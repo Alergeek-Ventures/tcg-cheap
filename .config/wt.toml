@@ -1,0 +1,28 @@
+[[pre-start]]
+copy = "wt step copy-ignored"
+
+[[pre-start]]
+deps = "devenv shell -- mix deps.get"
+
+[[pre-start]]
+env = """
+cat > .env.local <<'EOF'
+PORT={% if branch == default_branch %}4004{% else %}{{ branch | hash_port }}{% endif %}
+DB_PORT={% if branch == default_branch %}5436{% else %}{{ ('db-' ~ branch) | hash_port }}{% endif %}
+BRANCH={{ branch }}
+DATABASE_URL=ecto://postgres:postgres@localhost:{% if branch == default_branch %}5436{% else %}{{ ('db-' ~ branch) | hash_port }}{% endif %}/tcg_cheap_dev
+EOF
+echo "{% if branch == default_branch %}4004{% else %}{{ branch | hash_port }}{% endif %}" > .server.port
+"""
+
+[[pre-start]]
+dev = "devenv shell -- mix dev.up"
+
+[[pre-remove]]
+dev = "devenv shell -- mix dev.down"
+
+[step.copy-ignored]
+exclude = [".env.local", ".server.port"]
+
+[list]
+url = "http://localhost:{% if branch == default_branch %}4004{% else %}{{ branch | hash_port }}{% endif %}"

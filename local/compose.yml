@@ -1,0 +1,20 @@
+services:
+  # Keep this file to exactly one service: Podman Compose 1.6 cannot filter `ps -q` by service.
+  postgres:
+    image: docker.io/library/postgres:18.4-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
+    environment:
+      POSTGRES_DB: tcg_cheap_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "127.0.0.1:${DB_PORT:-5436}:5432"
+    volumes:
+      - tcg_cheap_postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tcg_cheap_dev"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  tcg_cheap_postgres:

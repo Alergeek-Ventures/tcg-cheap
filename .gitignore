@@ -1,0 +1,24 @@
+# devenv/direnv generated state
+.devenv/
+.direnv/
+
+# Mix and Phoenix build artifacts
+/_build/
+/deps/
+/cover/
+/doc/
+/priv/static/assets/
+/priv/static/cache_manifest.json
+/priv/static/uploads/
+erl_crash.dump
+*.ez
+*.tar
+
+# Local development configuration and runtime state
+/.playwright-mcp/
+.env.local
+.server.port
+devenv.local.nix
+*.pid
+*.log
+/tmp/
