@@ -43,6 +43,10 @@ defmodule TcgCheap.Core do
       define :list_single_valuation_history,
         action: :history_for_card_and_policy,
         args: [:card_printing_id, :policy_version]
+
+      define :list_single_valuation_history_since,
+        action: :history_since_for_card_and_policy,
+        args: [:card_printing_id, :policy_version, :since]
     end
   end
 end

@@ -2,8 +2,8 @@
 
 ## Architecture
 
-- [Application Foundation](architecture/application-foundation.md) — Current Phoenix/AshPostgres foundation, public local-only search, exact-printing catalogue storage, detailed set-level enrichment/Cardmarket mapping, completed Oban valuation acquisition/PubSub boundary, and remaining product/production limitations. Updated 2026-08-07.
-- [Provider and Acquisition Feasibility](architecture/provider-acquisition-feasibility.md) — TCGdex aggregate pricing, strict sync/enrichment safeguards, completed conservative Cardmarket mapping, completed freshness-gated Oban valuation acquisition/PubSub path, provider/licensing evidence, and remaining UI/operations work. Updated 2026-08-07.
+- [Application Foundation](architecture/application-foundation.md) — Current Phoenix/AshPostgres foundation, public local-only search, completed local-first exact-printing card detail with valuation/history, Oban/PubSub boundary, and remaining product/production limitations. Updated 2026-08-07.
+- [Provider and Acquisition Feasibility](architecture/provider-acquisition-feasibility.md) — TCGdex aggregate pricing, completed local-first card detail/history consumer, strict sync/enrichment safeguards, provider/licensing evidence, and remaining operations/roadmap work. Updated 2026-08-07.
 - [Reference Project Conventions](architecture/reference-project-conventions.md) — Phase 0 audit of Firmowid and Onside conventions, adoption decisions, and compatibility boundaries. Updated 2026-08-07.
 
 ## Product

@@ -66,6 +66,12 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#card-search-summary", "2 exact printings")
     assert has_element?(view, "#card-search-result-#{first.id} .label-data", "01")
     assert has_element?(view, "#card-search-result-#{second.id} .label-data", "02")
+    assert has_element?(view, "#card-detail-link-#{first.id}[href='/cards/#{first.tcgdex_id}']")
+
+    assert has_element?(
+             view,
+             "#card-detail-link-#{first.id}[aria-label='#{name}, Archive Set #{suffix}, collector number 01']"
+           )
 
     assert has_element?(
              view,

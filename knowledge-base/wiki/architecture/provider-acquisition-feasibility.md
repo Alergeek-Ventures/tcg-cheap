@@ -64,6 +64,8 @@ Strict set enumeration and brief sync fetch provider data outside transactions, 
 
 `/` is a complete public local-only `HomeLive` surface: `to_form`, 250ms debounce, shared normalization, effective minimum 2/max 100, stream-reset results, stable accessible IDs/`aria-live` for idle/short/invalid/empty/error/results, and distinct same-name results showing original name/set/collector/TCGdex ID plus optional rarity/legalities. No provider HTTP, invented price, or image is used in render/event paths. The responsive scoped archive-wall world is documented in `PRODUCT.md`, `DESIGN.md`, and `.impeccable/design.json`; self-hosted Barlow Condensed/Azeret Mono fonts carry OFL notices, with 1/2/3-column labels, keyboard focus, reduced motion, and a light scoped world. Generic Layout stays neutral; broader UI is not complete.
 
+The public UI boundary now extends through the local card-detail acquisition consumer at `/cards/:tcgdex_id`. Search links to exact printings; detail reads local identity/current valuation and a bounded fixed 30-day history, including disconnected/static reads, without a provider call on render or event paths. On stale/missing valuation it subscribes before requesting the freshness-gated Oban job, then reconciles card-specific PubSub completion or terminal failure. History failure does not erase the current value. Fresh, stale, fetching, unpriced, read-error, terminal-failure, and insufficient-history collecting states are explicit; daily gaps remain unconnected and the UI carries source/metric/policy/timestamp/methodology/disclaimer evidence. External imagery is withheld pending rights and trade remains deferred to Phase 3.
+
 ## Cost, licensing, and next actions
 
 The selected aggregate source costs `$0` and needs no credentials. Paid seller-level candidates remain capability-gated under the shared `$50/month` cap; shipping-to-Poland eligibility remains outside the aggregate MVP. TCGdex licensing does not resolve Pokémon image/IP or marketplace redistribution rights.
@@ -84,7 +86,7 @@ The historical seller-level core remains implemented at `lib/tcg_cheap/pricing/s
 
 1. **Complete:** the unauthenticated TCGdex `tcgdex_cardmarket_v1` aggregate adapter and metric selector, plus strict set enumeration and transactional brief-card sync, are implemented and fixture-tested.
 2. Resolve bounded live list access/reliability, then run the implemented full set/card sync through a production-safe job path; retain conservative mapping review behavior.
-3. **Complete:** the public exact-printing search/result surface, concurrency hardening, detailed set-level enrichment/Cardmarket mapping, and Oban valuation acquisition/PubSub path are implemented while keeping provider fetches outside request paths.
+3. **Complete:** the public exact-printing search/result surface, concurrency hardening, detailed set-level enrichment/Cardmarket mapping, Oban valuation acquisition/PubSub path, and local-first card-detail valuation/history consumer are implemented while keeping provider fetches outside request paths.
 4. Preserve `Provider`/`Offer`/`Valuation.default_v1` as historical/post-MVP seller-level capability; seller/offer count is unavailable from the active aggregate source and must not be fabricated.
 5. Request REBEL B2B data import/access and written SCD/data-reuse scope.
 6. Request approved feeds/permissions from the initial retailer/LGS panel, including Media Expert only with permitted feed/access; broader sealed research is not complete.
@@ -92,9 +94,9 @@ The historical seller-level core remains implemented at `lib/tcg_cheap/pricing/s
 
 All observations are time-specific. No credentials are committed.
 
-Validation: valuation worker 14 tests; singles pricing 56 tests; canonical `mix check --verbose` 155 tests, including format, Ash codegen, Sobelow, warnings-as-errors compile, unused dependencies, xref, Credo, Dialyzer, and tests; final review clean; `git diff --check` clean. The unresolved live TCGdex set-list timeout remains.
+Validation: focused history and web tests 19; canonical `mix check --verbose` passed with 168 tests; `mix check --no-test` passed after final fixes; assets build passed; browser checks passed at 1440x1000 and 390x844 with value in the first mobile viewport, no horizontal overflow, and no console errors. The mechanical detector had one known false-positive warning on the existing square 3px search-input bottom border and advisories; new off-palette hover/type drift was corrected, code-review blockers/warnings were fixed, and `git diff --check` is clean. The unresolved live TCGdex set-list timeout remains.
 
-No alias model, card detail LiveView consumption/history graph, trade, sealed, admin, production operational tracking/budgets, full scheduling, or broader product UI is complete. The valuation acquisition worker, freshness/job deduplication, snapshot recording, and card-specific PubSub path are complete; the card detail page has not consumed them yet. Ranking still needs real full-catalogue tuning. Next coherent Phase 2 task is the card detail page consuming freshness/job/PubSub state and 30-day history. Broader sealed research and the TCGdex live timeout remain open.
+No alias model, trade, sealed, admin, production operational tracking/budgets, full scheduling, or broader product UI is complete. Ranking still needs real full-catalogue tuning; image licensing, UTC/Warsaw presentation, and the TCGdex live timeout remain open. The next coherent high-leverage playability batch is Phase 3 URL-backed trade composition/search/add-side/quantity foundations, enabling the card-detail trade action. Earlier operations/admin/budget and sealed-source roadmap work remains unfinished; this does not declare prior phases globally complete.
 
 ## See Also
 

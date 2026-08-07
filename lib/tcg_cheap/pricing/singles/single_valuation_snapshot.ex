@@ -79,6 +79,19 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
 
       prepare build(sort: [fetched_at: :desc])
     end
+
+    read :history_since_for_card_and_policy do
+      argument :card_printing_id, :uuid, allow_nil?: false
+      argument :policy_version, :string, allow_nil?: false
+      argument :since, :utc_datetime_usec, allow_nil?: false
+
+      filter expr(
+               card_printing_id == ^arg(:card_printing_id) and
+                 policy_version == ^arg(:policy_version) and fetched_at >= ^arg(:since)
+             )
+
+      prepare build(sort: [fetched_at: :asc, id: :asc])
+    end
   end
 
   attributes do

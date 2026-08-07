@@ -35,7 +35,7 @@ defmodule TcgCheapWeb.HomeLive do
     <Layouts.app flash={@flash}>
       <div class="archive-world">
         <header id="archive-header" class="archive-header">
-          <a id="archive-wordmark" href="/" class="archive-wordmark">TCG CHEAP</a>
+          <.link id="archive-wordmark" navigate={~p"/"} class="archive-wordmark">TCG CHEAP</.link>
           <div class="archive-header-meta">
             <span id="archive-section">PRINTING ARCHIVE</span>
             <span id="archive-mode">LOCAL CATALOGUE</span>
@@ -89,32 +89,39 @@ defmodule TcgCheapWeb.HomeLive do
                   id={stream_id}
                   class="label-slot"
                 >
-                  <article
-                    id={"card-search-result-#{result.id}"}
-                    class="printing-label"
-                    aria-labelledby={"card-search-name-#{result.id}"}
+                  <.link
+                    navigate={~p"/cards/#{result.tcgdex_id}"}
+                    id={"card-detail-link-#{result.id}"}
+                    class="printing-label-link"
+                    aria-label={card_link_label(result)}
                   >
-                    <div class="label-art" aria-hidden="true">
-                      <svg viewBox="0 0 72 96" role="presentation"><path d="M12 4h38l10 10v78H12zM50 4v12h10M20 28h32M20 38h24M20 70h32M20 78h18" /></svg>
-                    </div>
-                    <div class="label-copy">
-                      <p id={"card-search-name-#{result.id}"} class="label-name">{result.name}</p>
-                      <p class="label-set">{result.set_name}</p>
-                      <dl class="label-data">
-                        <div>
-                          <dt>NO.</dt><dd>{result.collector_number}</dd>
-                        </div>
-                        <div>
-                          <dt>TCGDEX</dt><dd>{result.tcgdex_id}</dd>
-                        </div>
-                      </dl>
-                      <div class="label-chips">
-                        <span :if={result.rarity} class="archive-chip chip-lilac">{result.rarity}</span>
-                        <span :if={result.standard_legal} class="archive-chip chip-sage">STANDARD</span>
-                        <span :if={result.expanded_legal} class="archive-chip chip-indigo">EXPANDED</span>
+                    <article
+                      id={"card-search-result-#{result.id}"}
+                      class="printing-label"
+                      aria-labelledby={"card-search-name-#{result.id}"}
+                    >
+                      <div class="label-art" aria-hidden="true">
+                        <svg viewBox="0 0 72 96" role="presentation"><path d="M12 4h38l10 10v78H12zM50 4v12h10M20 28h32M20 38h24M20 70h32M20 78h18" /></svg>
                       </div>
-                    </div>
-                  </article>
+                      <div class="label-copy">
+                        <p id={"card-search-name-#{result.id}"} class="label-name">{result.name}</p>
+                        <p class="label-set">{result.set_name}</p>
+                        <dl class="label-data">
+                          <div>
+                            <dt>NO.</dt><dd>{result.collector_number}</dd>
+                          </div>
+                          <div>
+                            <dt>TCGDEX</dt><dd>{result.tcgdex_id}</dd>
+                          </div>
+                        </dl>
+                        <div class="label-chips">
+                          <span :if={result.rarity} class="archive-chip chip-lilac">{result.rarity}</span>
+                          <span :if={result.standard_legal} class="archive-chip chip-sage">STANDARD</span>
+                          <span :if={result.expanded_legal} class="archive-chip chip-indigo">EXPANDED</span>
+                        </div>
+                      </div>
+                    </article>
+                  </.link>
                 </div>
               </div>
 
@@ -184,4 +191,7 @@ defmodule TcgCheapWeb.HomeLive do
   defp summary_text(:error, _count), do: "Catalogue unavailable"
   defp summary_text(:invalid, _count), do: "Query too long"
   defp summary_text(_status, _count), do: "Awaiting a search"
+
+  defp card_link_label(result),
+    do: "#{result.name}, #{result.set_name}, collector number #{result.collector_number}"
 end

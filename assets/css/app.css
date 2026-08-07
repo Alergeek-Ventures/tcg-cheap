@@ -188,3 +188,43 @@
 @media (min-width: 70rem) { .archive-world .label-wall { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .archive-world .printing-label { animation: none; } }
 .archive-world .archive-wordmark:focus-visible { outline: 3px solid var(--ink); outline-offset: 5px; }
+
+/* Detail view: the same ruled tissue and ink language, with the valuation first. */
+.card-detail-world .archive-main { padding-top: clamp(1.25rem, 3vw, 3rem); }
+.archive-world .archive-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .75rem; min-height: 2.75rem; margin-bottom: 1.5rem; text-decoration-thickness: 2px; text-underline-offset: .25rem; }
+.archive-world .archive-back:focus-visible, .archive-world .printing-label-link:focus-visible { outline: 3px solid var(--ink); outline-offset: 5px; }
+.archive-world .printing-label-link { color: inherit; display: block; text-decoration: none; }
+.archive-world .printing-label-link:hover .printing-label { background: var(--sunfade); }
+.card-detail-world .card-detail-identity { align-items: start; border-bottom: 2px solid var(--ink); display: grid; gap: 1.5rem; grid-template-areas: "heading" "valuation" "placeholder" "secondary"; grid-template-columns: minmax(0, 1fr); padding: 1rem 0 2rem; }
+.card-detail-world .card-detail-heading { grid-area: heading; }
+.card-detail-world #card-valuation { grid-area: valuation; }
+.card-detail-world .card-detail-placeholder { grid-area: placeholder; }
+.card-detail-world .card-detail-secondary { grid-area: secondary; }
+.card-detail-world .card-detail-placeholder { align-items: center; border: 2px solid var(--ink); display: flex; flex-direction: column; justify-content: center; min-height: 15rem; padding: 1rem; }
+.card-detail-world .card-detail-placeholder svg { fill: none; height: 12rem; max-width: 100%; stroke: var(--box-board-dark); stroke-width: 1.5; }
+.card-detail-world .card-detail-placeholder span, .archive-world .section-rule span { font-size: .7rem; letter-spacing: .08em; }
+.card-detail-world .card-detail-heading h1 { font: 700 clamp(3rem, 9vw, 5.5rem)/.85 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .7rem 0; max-width: 14ch; overflow-wrap: anywhere; text-transform: uppercase; }
+.card-detail-world .card-detail-set { font-size: .75rem; margin-bottom: 1.5rem; }
+.card-detail-world .card-detail-metadata, .card-detail-world .valuation-provenance { display: grid; gap: .45rem 1.25rem; grid-template-columns: repeat(2, minmax(0, 1fr)); font-size: .7rem; }
+.card-detail-world .card-detail-metadata div, .card-detail-world .valuation-provenance div { display: flex; gap: .6rem; min-width: 0; }
+.card-detail-world .card-detail-metadata dt, .card-detail-world .valuation-provenance dt { color: var(--ink); flex: 0 0 auto; }
+.card-detail-world .card-detail-metadata dd, .card-detail-world .valuation-provenance dd { overflow-wrap: anywhere; }
+.card-detail-world .rights-note, .card-detail-world .methodology, .card-detail-world .history-description { border-left: 2px solid var(--ink); font-size: .75rem; line-height: 1.65; margin-top: 1.5rem; max-width: 48rem; padding-left: .75rem; }
+.card-detail-world .valuation-panel, .card-detail-world .valuation-history { padding: 2rem 0; }
+.archive-world .section-rule { align-items: baseline; border-bottom: 2px solid var(--ink); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
+.archive-world .section-rule h2 { font: 700 clamp(2rem, 5vw, 3.5rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
+.card-detail-world .valuation-state { font-size: .75rem; margin-top: 1rem; min-height: 1.4rem; }
+.card-detail-world .valuation-value { font: 700 clamp(3.2rem, 12vw, 6rem)/.85 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .5rem 0 1.25rem; }
+.card-detail-world .valuation-provenance { max-width: 50rem; }
+.card-detail-world .methodology { margin-top: 1.5rem; }
+.card-detail-world .disclaimer { border-left: 2px solid var(--box-board-dark); font-size: .75rem; line-height: 1.65; margin-top: 1rem; max-width: 48rem; padding-left: .75rem; }
+.card-detail-world #valuation-history-chart { background: var(--tissue); border: 1.5px solid var(--ink); display: block; height: auto; margin-top: 1.25rem; overflow: visible; width: 100%; }
+.card-detail-world .history-line { fill: none; stroke: var(--ink); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.card-detail-world #valuation-history-chart circle { fill: var(--sunfade); stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.card-detail-world .history-ledger { border-top: 1px solid var(--ink); list-style: none; margin: 1.25rem 0 0; padding: 0; }
+.card-detail-world .history-ledger li { align-items: baseline; border-bottom: 1px solid rgb(23 22 20 / 35%); display: grid; font-size: .7rem; gap: .75rem; grid-template-columns: 1fr auto 1.5fr; padding: .55rem 0; }
+.card-detail-world .history-ledger strong { font-weight: 400; }
+.card-detail-world .history-ledger span { color: var(--ink); font-size: .7rem; text-align: right; }
+@media (min-width: 60rem) { .card-detail-world .card-detail-identity { border-bottom: 0; column-gap: clamp(2rem, 5vw, 5rem); grid-template-areas: "placeholder heading valuation" "placeholder secondary valuation"; grid-template-columns: minmax(7rem, 13rem) minmax(0, 1fr) minmax(20rem, .85fr); } .card-detail-world #card-valuation { padding-top: 1rem; } }
+@media (max-width: 40rem) { .card-detail-world .card-detail-placeholder { min-height: 11rem; } .card-detail-world .card-detail-placeholder svg { height: 8rem; } .card-detail-world .card-detail-metadata, .card-detail-world .valuation-provenance { grid-template-columns: 1fr; } .card-detail-world .history-ledger li { grid-template-columns: 1fr auto; } .card-detail-world .history-ledger span { grid-column: 1 / -1; text-align: left; } }
+@media (prefers-reduced-motion: reduce) { .card-detail-world * { animation: none !important; scroll-behavior: auto !important; } }
