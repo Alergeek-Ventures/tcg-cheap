@@ -18,6 +18,38 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       reference :card_set, index?: true
     end
 
+    custom_indexes do
+      index "search_name gin_trgm_ops",
+        name: "card_printings_search_name_trgm_index",
+        using: "gin",
+        concurrently: true
+
+      index "search_set_name gin_trgm_ops",
+        name: "card_printings_search_set_name_trgm_index",
+        using: "gin",
+        concurrently: true
+
+      index "search_collector_number gin_trgm_ops",
+        name: "card_printings_search_collector_number_trgm_index",
+        using: "gin",
+        concurrently: true
+
+      index "search_tcgdex_id gin_trgm_ops",
+        name: "card_printings_search_tcgdex_id_trgm_index",
+        using: "gin",
+        concurrently: true
+    end
+
+    custom_statements do
+      statement :backfill_search_text do
+        up ~S"""
+        UPDATE card_printings SET search_name = btrim(lower(regexp_replace(normalize(name, NFKC) COLLATE "pg_unicode_fast", '[[:space:]]+', ' ', 'g'))), search_set_name = btrim(lower(regexp_replace(normalize(set_name, NFKC) COLLATE "pg_unicode_fast", '[[:space:]]+', ' ', 'g'))), search_collector_number = btrim(lower(regexp_replace(normalize(collector_number, NFKC) COLLATE "pg_unicode_fast", '[[:space:]]+', ' ', 'g'))), search_tcgdex_id = btrim(lower(regexp_replace(normalize(tcgdex_id, NFKC) COLLATE "pg_unicode_fast", '[[:space:]]+', ' ', 'g')));
+        """
+
+        down "UPDATE card_printings SET search_name = '', search_set_name = '', search_collector_number = '', search_tcgdex_id = '';"
+      end
+    end
+
     check_constraints do
       check_constraint [:mapping_status, :cardmarket_product_id, :mapping_review_reason],
                        "card_printings_mapping_invariant",
@@ -32,6 +64,7 @@ defmodule TcgCheap.Catalogue.CardPrinting do
 
     create :create do
       accept [:tcgdex_id, :name, :set_name, :collector_number]
+      change TcgCheap.Catalogue.Changes.SetSearchText
     end
 
     create :import do
@@ -58,6 +91,8 @@ defmodule TcgCheap.Catalogue.CardPrinting do
         :mapping_review_reason
       ]
 
+      change TcgCheap.Catalogue.Changes.SetSearchText
+
       upsert? true
       upsert_identity :unique_tcgdex_id
     end
@@ -73,6 +108,8 @@ defmodule TcgCheap.Catalogue.CardPrinting do
         :last_synced_at
       ]
 
+      change TcgCheap.Catalogue.Changes.SetSearchText
+
       upsert? true
       upsert_identity :unique_tcgdex_id
 
@@ -80,6 +117,10 @@ defmodule TcgCheap.Catalogue.CardPrinting do
         :name,
         :set_name,
         :collector_number,
+        :search_name,
+        :search_set_name,
+        :search_collector_number,
+        :search_tcgdex_id,
         :card_set_id,
         :last_synced_at
       ]
@@ -97,6 +138,12 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       argument :tcgdex_id, :string, allow_nil?: false
       get? true
       filter expr(tcgdex_id == ^arg(:tcgdex_id))
+    end
+
+    read :search do
+      argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
+      argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]
+      prepare TcgCheap.Catalogue.Preparations.Search
     end
 
     read :lock_for_update_by_id do
@@ -142,6 +189,11 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       allow_nil? false
       public? true
     end
+
+    attribute :search_name, :string, allow_nil?: false, default: "", public?: false
+    attribute :search_set_name, :string, allow_nil?: false, default: "", public?: false
+    attribute :search_collector_number, :string, allow_nil?: false, default: "", public?: false
+    attribute :search_tcgdex_id, :string, allow_nil?: false, default: "", public?: false
 
     attribute :image_url, :string, public?: true
     attribute :rarity, :string, public?: true
