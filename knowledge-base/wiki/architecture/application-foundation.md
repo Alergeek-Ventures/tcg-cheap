@@ -12,6 +12,8 @@ The Ash core/repo foundation is present. The historical provider-neutral singles
 
 The active TCGdex aggregate intentionally has no seller/offer count field. The public UI must show source plus selected metric/methodology, not an unknown-count widget; no count may be fabricated, and a future shared storage field may be nullable/optional. Scraper paths remain post-MVP research, with broader seller-level acquisition and destination-eligibility validation still open.
 
+The initial local singles storage slice is implemented. `CardPrinting` uses a unique TCGdex ID as the exact-printing identity and stores the initial canonical display fields. `SingleValuationSnapshot` retains positive EUR aggregate valuations, policy/source/metric provenance, fetched and provider-update timestamps, optional Cardmarket product ID, and immutable current/archive state. A partial unique index permits one current snapshot per card and policy, while history remains retained after the existing snapshot is archived. `TcgCheap.Pricing.Singles.Freshness` classifies missing, fresh, and stale data at the exact seven-day boundary. Catalogue import, automatic replacement/archive orchestration, Oban refresh, and public UI remain unimplemented.
+
 ## Local development
 
 - PostgreSQL runs through the worktree's Compose project on loopback port 5436 by default (`DB_PORT` can override it).
@@ -21,7 +23,7 @@ The active TCGdex aggregate intentionally has no seller/offer count field. The p
 - Development lifecycle is managed with `mix dev.up` and `mix dev.down`; non-main worktree identities include a short hash of the original branch to prevent sanitized-name collisions. `dev.up` verifies the expected Compose `postgres` service, restarts its exact Phoenix tmux session, and requires a 2xx HTTP response before reporting readiness.
 - Theme initialization is bundled in the self-hosted JavaScript asset rather than emitted as a raw inline script. Browser CSP explicitly allows self-hosted scripts/connect/images and self plus inline styles required by LiveView runtime behavior.
 
-The TCGdex adapter has fixture-backed deterministic coverage: 24 adapter tests and 32 total tests under the singles pricing directory passed, using local Req stubs with no live external dependency by default. Canonical `mix check --verbose` passed with 47 tests, including format, Ash codegen, Sobelow, compile, unused dependencies, xref, Credo, Dialyzer, and tests. Final read-only code review found no remaining blocking- or warning-level code issues after request-option whitelisting, huge-Decimal safe fallback, and status-before-decode fixes. Bounded live runtime smoke validation normalized successful `:avg7` results for canonical TCGdex IDs `base1-4`, `base1-58`, and `sv03-125`; volatile prices were not preserved. Deterministic wiki lint reported 4 articles, 12/12 metadata fields, 4/4 index coverage, 16 relative links, and zero issues. Caddy integration and CI remain deferred.
+The TCGdex adapter has fixture-backed deterministic coverage: 24 adapter tests and 32 total tests under the singles pricing directory passed, using local Req stubs with no live external dependency by default. The storage slice has six focused tests covering exact-printing identity, positive-EUR snapshot validation, provenance, current/archive retrieval, and exact freshness boundaries. Caddy integration and CI remain deferred.
 
 ## See Also
 
