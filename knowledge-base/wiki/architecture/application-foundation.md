@@ -8,7 +8,7 @@
 
 TCG Cheap is a Phoenix application using Phoenix LiveView, with the `TcgCheap.Core` Ash domain and `TcgCheap.Repo` AshPostgres repository providing the current domain/persistence foundation. The repository is developed in a Nix devenv with Elixir, PostgreSQL, Podman/Compose, Worktrunk, Tailwind, and esbuild tooling.
 
-The Ash core/repo foundation is present, and the Phase 0 reference-project inspection/convention recording is complete. Product resources, authentication, background jobs, and product-data storage have not yet been implemented.
+The Ash core/repo foundation is present. Provider/source research has recorded a catalogue-source direction, but does not complete Phase 0: the exact singles valuation acquisition plan remains blocked pending legitimate seller-level, exact-printing, English/NM, Poland-shipping evidence. Product resources, authentication, background jobs, and product-data storage have not yet been implemented.
 
 ## Local development
 
@@ -25,3 +25,4 @@ Agent quality tooling is now established and validated, including the repository
 
 - [Detailed MVP Implementation Plan](../product/mvp-implementation-plan.md)
 - [Reference Project Conventions](reference-project-conventions.md)
+- [Provider and Acquisition Feasibility](provider-acquisition-feasibility.md)

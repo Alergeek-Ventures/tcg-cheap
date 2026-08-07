@@ -1,10 +1,16 @@
 # Wiki Log
 
+## [2026-08-07] phase 0 provider/source research | Record acquisition feasibility batch
+- Task completed: Captured bounded read-only real HTTP observations and reconciled them against primary provider, retailer, terms, robots, quota, and pricing sources. Recorded TCGdex/Pokémon TCG API metadata direction, REBEL Hurt sealed discovery direction, and the exact singles acquisition blocker without changing the north star or claiming Phase 0 completion.
+- Files changed: `knowledge-base/raw/2026-08-07-provider-source-experiments.md`, `knowledge-base/wiki/architecture/provider-acquisition-feasibility.md`, `knowledge-base/wiki/architecture/reference-project-conventions.md`, `knowledge-base/wiki/index.md`, `knowledge-base/wiki/architecture/application-foundation.md`, and this log.
+- Validation: Bounded HTTP experiments/primary-source reconciliation; deterministic wiki lint checked 4 compiled articles, 12/12 metadata fields, 4/4 index coverage, and 14/14 relative links with zero missing/duplicate issues; `mix check --verbose` passed with 15 tests; `git diff --check` passed. Older unresolved wording was reconciled as historical/stale.
+- Remaining/blocking notes: Obtain written Cardmarket/licensed-provider terms or validate CardTrader with legitimate credentials and bounded exact-offer/Poland-shipping tests; request REBEL and retailer/LGS feed permissions; complete image/data licensing review. No credentials are committed.
+
 ## [2026-08-07] phase 0 references | Audit Firmowid and Onside conventions
 - Task completed: Audited the two read-only reference repositories against the Phase 0 categories, recorded authority, adopted/rejected conventions, version compatibility, and implications for later phases. Firmowid was clean; Onside already had an unrelated modified `shell.nix`; neither reference was changed.
 - Files changed: `knowledge-base/wiki/architecture/reference-project-conventions.md`, `knowledge-base/wiki/index.md`, `knowledge-base/wiki/architecture/application-foundation.md`, and this log.
 - Validation: Source/commit/path evidence reconciled; wiki metadata, index coverage, and internal links checked; `mix check --verbose` passed with 15 tests; `git diff --check` passed. Reference commits: `8a18f66aa28ac8444b5b3445fa3c7b6613fdf056` and `ac8d1d942a086bfe868043274fc0f430f30aacef`.
-- Remaining work: Provider/source experiments, cost ADR, acquisition feasibility, authentication/admin/background dependency validation, and subsequent MVP implementation phases remain unfinished.
+- Historical status at this entry: Provider/source experiments, cost ADR, acquisition feasibility, authentication/admin/background dependency validation, and subsequent MVP implementation phases remain unfinished. The newer provider ADR supersedes this entry's provider-research status; it does not claim the remaining tasks complete.
 
 ## [2026-08-07] bootstrap verification | Complete final local validation
 - Validation: Full `mix check` passed with 10 tests; homepage returned HTTP 200; LiveView mounted without current console errors; Tidewave MCP ping returned HTTP 200; PostgreSQL loopback connectivity was healthy.
