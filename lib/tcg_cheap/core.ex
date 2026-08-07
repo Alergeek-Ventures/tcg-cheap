@@ -7,10 +7,21 @@ defmodule TcgCheap.Core do
     otp_app: :tcg_cheap
 
   resources do
+    resource TcgCheap.Catalogue.CardSet do
+      define :import_card_set, action: :import
+      define :get_card_set_by_tcgdex_id, action: :by_tcgdex_id, args: [:tcgdex_id]
+    end
+
     resource TcgCheap.Catalogue.CardPrinting do
       define :create_card_printing, action: :create
+      define :import_card_printing, action: :import
       define :get_card_printing_by_tcgdex_id, action: :by_tcgdex_id, args: [:tcgdex_id]
       define :lock_card_printing_for_update, action: :lock_for_update_by_id, args: [:id]
+
+      define :lock_card_printing_for_update_by_tcgdex_id,
+        action: :lock_for_update_by_tcgdex_id,
+        args: [:tcgdex_id],
+        not_found_error?: false
     end
 
     resource TcgCheap.Pricing.Singles.SingleValuationSnapshot do
