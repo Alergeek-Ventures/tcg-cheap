@@ -12,6 +12,7 @@ defmodule TcgCheap.Application do
       TcgCheap.Repo,
       {DNSCluster, query: Application.get_env(:tcg_cheap, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: TcgCheap.PubSub},
+      {Oban, Application.fetch_env!(:tcg_cheap, Oban)},
       # Start a worker by calling: TcgCheap.Worker.start_link(arg)
       # {TcgCheap.Worker, arg},
       # Start to serve requests, typically the last entry

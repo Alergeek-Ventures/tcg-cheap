@@ -52,6 +52,7 @@ defmodule TcgCheap.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ash_phoenix, "~> 2.0"},
       {:ash_postgres, "~> 2.0"},
+      {:oban, "~> 2.23"},
       {:ash, "~> 3.0"},
       {:req, "~> 0.5"},
       {:igniter, "~> 0.6", only: [:dev, :test]},

@@ -57,6 +57,17 @@ config :tcg_cheap,
   generators: [timestamp_type: :utc_datetime],
   ash_domains: [TcgCheap.Core]
 
+config :tcg_cheap, Oban,
+  repo: TcgCheap.Repo,
+  queues: [valuations: 4],
+  plugins: [{Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60}]
+
+config :tcg_cheap, :valuation_clock, &DateTime.utc_now/0
+
+config :tcg_cheap, :valuation_provider,
+  adapter: TcgCheap.Pricing.Singles.TcgdexCardmarket,
+  options: []
+
 # Configure the endpoint
 config :tcg_cheap, TcgCheapWeb.Endpoint,
   url: [host: "localhost"],
