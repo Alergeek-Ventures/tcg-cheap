@@ -13,12 +13,16 @@ defmodule TcgCheap.Catalogue.Importer do
       provider_options = Keyword.get(opts, :provider_options, [])
 
       with {:ok, clock} <- validate_options(opts, provider, provider_options),
-           {:ok, card} <- provider.fetch_card(card_id, provider_options),
+           {:ok, card} <- safe_provider_call(provider, :fetch_card, [card_id, provider_options]),
            {:ok, set_id} <- set_id(card),
-           {:ok, set} <- provider.fetch_set(set_id, provider_options),
-           :ok <- validate_payload(card, set, card_id, set_id),
+           {:ok, set} <- safe_provider_call(provider, :fetch_set, [set_id, provider_options]),
            {:ok, synced_at} <- clock_datetime(clock) do
-        persist(card, set, synced_at)
+        unwrap_import_result(
+          import_fetched_card(card, set, card_id,
+            synced_at: synced_at,
+            expected_set_id: set_id
+          )
+        )
       end
     else
       {:error, :invalid_options}
@@ -26,6 +30,36 @@ defmodule TcgCheap.Catalogue.Importer do
   end
 
   def import_card(_, _), do: {:error, :invalid_options}
+
+  @doc "Imports already-fetched, identity-checked provider payloads without refetching."
+  @spec import_fetched_card(map(), map(), String.t(), keyword()) ::
+          {:ok, map()} | {:error, term()}
+  def import_fetched_card(card, set, expected_card_id, opts \\ [])
+
+  def import_fetched_card(card, set, expected_card_id, opts)
+      when is_map(card) and is_map(set) and is_binary(expected_card_id) and is_list(opts) do
+    if Keyword.keyword?(opts) and canonical_id?(expected_card_id) and
+         Keyword.keys(opts) |> Enum.uniq() == Keyword.keys(opts) and
+         Enum.all?(Keyword.keys(opts), &(&1 in [:synced_at, :expected_set_id])) do
+      expected_set_id = Keyword.get(opts, :expected_set_id)
+
+      with :ok <- validate_optional_expected_set_id(expected_set_id),
+           {:ok, set_id} <- set_id(card),
+           expected_set_id <- expected_set_id || set_id,
+           :ok <- validate_expected_id(expected_set_id),
+           :ok <- validate_payload(card, set, expected_card_id, expected_set_id),
+           {:ok, synced_at} <- valid_synced_at(Keyword.get(opts, :synced_at)) do
+        persist(card, set, synced_at)
+      end
+    else
+      {:error, :invalid_options}
+    end
+  end
+
+  def import_fetched_card(_, _, _, _), do: {:error, :invalid_options}
+
+  defp unwrap_import_result({:ok, %{card: card}}), do: {:ok, card}
+  defp unwrap_import_result(error), do: error
 
   defp validate_options(opts, provider, provider_options) do
     allowed = [:provider, :provider_options, :clock]
@@ -48,6 +82,18 @@ defmodule TcgCheap.Catalogue.Importer do
     end
   end
 
+  defp safe_provider_call(provider, function, args) do
+    case apply(provider, function, args) do
+      {:ok, value} when is_map(value) -> {:ok, value}
+      {:error, reason} -> {:error, reason}
+      other -> {:error, {:provider_callback_error, function, {:unexpected_return, other}}}
+    end
+  rescue
+    exception -> {:error, {:provider_callback_error, function, {:raised, exception}}}
+  catch
+    kind, reason -> {:error, {:provider_callback_error, function, {kind, reason}}}
+  end
+
   defp valid_provider?(provider) when is_atom(provider) do
     Code.ensure_loaded?(provider) and function_exported?(provider, :fetch_card, 2) and
       function_exported?(provider, :fetch_set, 2)
@@ -57,40 +103,88 @@ defmodule TcgCheap.Catalogue.Importer do
 
   defp clock_datetime(clock) do
     case clock.() do
-      %DateTime{} = datetime -> {:ok, datetime}
+      %DateTime{} = datetime -> valid_synced_at(datetime)
       _ -> {:error, :invalid_clock}
     end
   rescue
     _ -> {:error, :invalid_clock}
   end
 
+  defp valid_synced_at(%DateTime{} = datetime) do
+    {:ok, datetime |> DateTime.shift_zone!("Etc/UTC") |> DateTime.truncate(:microsecond)}
+  rescue
+    _ -> {:error, :invalid_clock}
+  end
+
+  defp valid_synced_at(_), do: {:error, :invalid_clock}
+
   defp duplicate_keys?(options), do: length(options) != length(Enum.uniq(Keyword.keys(options)))
 
   defp persist(card, set, synced_at) do
     Ash.transact([CardSet, CardPrinting], fn ->
+      lock_set(set["id"])
+      target_set = existing_set(set["id"])
       lock_card(card)
       {:ok, existing} = Core.lock_card_printing_for_update_by_tcgdex_id(card["id"])
       incoming = card_attributes(card, set, synced_at)
-
-      if stale?(existing, incoming) do
-        existing
-      else
-        imported_set = Core.import_card_set!(Normalizer.set_attributes(set, synced_at))
-        Core.import_card_printing!(Map.put(incoming, :card_set_id, imported_set.id))
-      end
+      persist_checked(card, set, incoming, synced_at, existing, target_set)
     end)
     |> case do
-      {:ok, card} -> {:ok, card}
-      {:error, reason} -> {:error, reason}
+      {:ok, result} -> {:ok, result}
+      {:error, reason} -> {:error, unwrap_conflict(reason)}
     end
   rescue
     exception -> {:error, exception}
   end
 
+  defp persist_checked(card, set, incoming, synced_at, existing, target_set) do
+    if cross_set_conflict?(existing, target_set) do
+      {:error, {:card_set_conflict, %{tcgdex_id: card["id"]}}}
+    else
+      persist_if_fresh(existing, set, incoming, synced_at, target_set)
+    end
+  end
+
+  defp persist_if_fresh(existing, set, incoming, synced_at, target_set) do
+    if stale?(existing, incoming),
+      do: %{card: existing, outcome: :stale},
+      else: persist_nonstale(set, incoming, synced_at, target_set)
+  end
+
+  defp persist_nonstale(set, incoming, synced_at, target_set) do
+    imported_set = target_set || Core.import_card_set!(Normalizer.set_attributes(set, synced_at))
+
+    %{
+      card: Core.import_card_printing!(Map.put(incoming, :card_set_id, imported_set.id)),
+      outcome: :imported
+    }
+  end
+
+  defp cross_set_conflict?(existing, nil), do: existing && existing.card_set_id != nil
+
+  defp cross_set_conflict?(existing, target_set),
+    do: existing && existing.card_set_id && existing.card_set_id != target_set.id
+
+  defp existing_set(tcgdex_id) do
+    case Core.get_card_set_by_tcgdex_id(tcgdex_id) do
+      {:ok, existing} -> existing
+      {:error, _} -> nil
+    end
+  end
+
+  defp unwrap_conflict(%{value: [{:card_set_conflict, detail}]}), do: {:card_set_conflict, detail}
+  defp unwrap_conflict(reason), do: reason
+
   defp lock_card(card) do
     Repo.query!("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [
       "tcgdex-card:" <> card["id"]
     ])
+
+    :ok
+  end
+
+  defp lock_set(set_id) do
+    Repo.query!("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", ["tcgdex-set:" <> set_id])
 
     :ok
   end
@@ -110,12 +204,42 @@ defmodule TcgCheap.Catalogue.Importer do
   defp set_id(%{"set" => id}) when is_binary(id) and id != "", do: {:ok, id}
   defp set_id(_), do: {:error, {:malformed_response, :missing_set}}
 
+  defp validate_expected_id(id) when is_binary(id) do
+    if canonical_id?(id), do: :ok, else: {:error, :invalid_id}
+  end
+
+  defp validate_expected_id(_), do: {:error, :invalid_id}
+  defp validate_optional_expected_set_id(nil), do: :ok
+  defp validate_optional_expected_set_id(id), do: validate_expected_id(id)
+
+  defp canonical_id?(id),
+    do:
+      Regex.match?(~r/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/, String.trim(id)) and
+        String.trim(id) == id
+
   defp validate_payload(card, set, expected_card_id, expected_set_id) do
     case validate_card_identity(card, expected_card_id) do
-      :ok -> validate_set_identity(set, expected_set_id)
-      error -> error
+      :ok ->
+        with {:ok, card_set_id} <- set_id(card),
+             true <- card_set_id == expected_set_id do
+          validate_set_identity(set, expected_set_id)
+        else
+          false ->
+            {:error,
+             {:malformed_response, {:card_set_id_mismatch, expected_set_id, set_id_value(card)}}}
+
+          error ->
+            error
+        end
+
+      error ->
+        error
     end
   end
+
+  defp set_id_value(%{"set" => %{"id" => id}}), do: id
+  defp set_id_value(%{"set" => id}), do: id
+  defp set_id_value(_), do: nil
 
   defp validate_card_identity(%{"id" => id, "name" => name, "localId" => local_id}, expected_id)
        when is_binary(id) and id != "" and id == expected_id and is_binary(name) and name != "" do

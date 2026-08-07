@@ -3,7 +3,7 @@ defmodule TcgCheap.Catalogue.SyncTest do
 
   import Ecto.Query
   alias Ecto.Adapters.SQL.Sandbox
-  alias TcgCheap.Catalogue.Sync
+  alias TcgCheap.Catalogue.{Importer, Sync}
   alias TcgCheap.{Core, Repo}
 
   defmodule Provider do
@@ -21,11 +21,20 @@ defmodule TcgCheap.Catalogue.SyncTest do
         result -> result
       end
     end
+
+    def fetch_card(id, opts) do
+      case Keyword.get(opts, :cards, %{}) do
+        %{^id => card} -> {:ok, card}
+        _ -> {:error, :missing_card}
+      end
+    end
   end
 
   setup do
     :ok = Sandbox.checkout(Repo)
     Sandbox.mode(Repo, {:shared, self()})
+    Repo.delete_all("card_printings")
+    Repo.delete_all("card_sets")
     :ok
   end
 
@@ -359,9 +368,17 @@ defmodule TcgCheap.Catalogue.SyncTest do
   test "concurrent brief and full import leave the enriched state authoritative" do
     set_id = id("race-concurrent-set")
     card_id = id("race-concurrent-card")
+    synced_at = ~U[2026-05-01 00:00:00Z]
+    payload_set = set(set_id, [card(card_id, "1")])
 
-    card_set =
-      Sandbox.unboxed_run(Repo, fn -> Core.import_card_set!(%{tcgdex_id: set_id, name: "Set"}) end)
+    payload_card = %{
+      "id" => card_id,
+      "name" => "Enriched",
+      "localId" => "1",
+      "set" => %{"id" => set_id},
+      "updated" => "2026-05-01T00:00:00Z",
+      "pricing" => %{"cardmarket" => %{"idProduct" => 777}}
+    }
 
     on_exit(fn ->
       Sandbox.unboxed_run(Repo, fn ->
@@ -378,24 +395,15 @@ defmodule TcgCheap.Catalogue.SyncTest do
          fn ->
            Sync.sync_set(
              set_id,
-             opts(%{set_id => set(set_id, [card(card_id, "1")])}, fn ->
-               ~U[2026-01-01 00:00:00Z]
-             end)
+             opts(%{set_id => payload_set}, fn -> synced_at end)
            )
          end},
         {:full,
          fn ->
-           Core.import_card_printing(%{
-             tcgdex_id: card_id,
-             name: "Full",
-             set_name: "Set",
-             collector_number: "1",
-             card_set_id: card_set.id,
-             source_payload: %{"full" => true},
-             source_updated_at: ~U[2026-01-01 00:00:00Z],
-             mapping_status: "matched",
-             cardmarket_product_id: 777
-           })
+           Importer.import_fetched_card(payload_card, payload_set, card_id,
+             expected_set_id: set_id,
+             synced_at: synced_at
+           )
          end}
       ]
       |> Enum.map(fn {kind, fun} ->
@@ -417,7 +425,7 @@ defmodule TcgCheap.Catalogue.SyncTest do
 
     Sandbox.unboxed_run(Repo, fn ->
       assert {:ok, stored} = Core.get_card_printing_by_tcgdex_id(card_id)
-      assert stored.name == "Full"
+      assert stored.name == "Enriched"
       assert stored.mapping_status == "matched"
       assert stored.cardmarket_product_id == 777
     end)

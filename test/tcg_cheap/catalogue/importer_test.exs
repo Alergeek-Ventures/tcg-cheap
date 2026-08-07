@@ -210,6 +210,16 @@ defmodule TcgCheap.Catalogue.ImporterTest do
     def fetch_set(_, _), do: {:ok, %{"id" => "versioned-set", "name" => "Old Set"}}
   end
 
+  defmodule MalformedCallbackProvider do
+    def fetch_card(_, _), do: :not_a_callback_result
+    def fetch_set(_, _), do: {:ok, %{"id" => "set", "name" => "Set"}}
+  end
+
+  defmodule RaisedCallbackProvider do
+    def fetch_card(_, _), do: raise("provider boom")
+    def fetch_set(_, _), do: {:ok, %{"id" => "set", "name" => "Set"}}
+  end
+
   @fixture_dir Path.expand("../../fixtures/tcgdex/catalogue", __DIR__)
 
   setup do
@@ -294,6 +304,8 @@ defmodule TcgCheap.Catalogue.ImporterTest do
     assert second.id == first.id
     assert second.name == "Raichu"
     assert second.set_name == "Modern Base Updated"
+    assert {:ok, stored_set} = Core.get_card_set_by_tcgdex_id("sv-base")
+    assert stored_set.name == "Modern Base"
     assert Repo.aggregate(from(c in "card_printings"), :count, :id) == 1
     assert Repo.aggregate(from(c in "card_sets"), :count, :id) == 1
   end
@@ -317,6 +329,17 @@ defmodule TcgCheap.Catalogue.ImporterTest do
 
     assert Repo.aggregate(from(c in "card_printings"), :count, :id) == 0
     assert Repo.aggregate(from(c in "card_sets"), :count, :id) == 0
+  end
+
+  test "normalizes malformed and raised provider callbacks" do
+    assert {:error,
+            {:provider_callback_error, :fetch_card, {:unexpected_return, :not_a_callback_result}}} =
+             Importer.import_card("callback-card", provider: MalformedCallbackProvider)
+
+    assert {:error,
+            {:provider_callback_error, :fetch_card,
+             {:raised, %RuntimeError{message: "provider boom"}}}} =
+             Importer.import_card("callback-card", provider: RaisedCallbackProvider)
   end
 
   test "clock is invoked once after fetches and shared by both records" do
@@ -448,5 +471,188 @@ defmodule TcgCheap.Catalogue.ImporterTest do
       VALUES ('raw-invalid-counts', 'Set', 5, 4)
       """)
     end
+  end
+
+  test "imports an already fetched payload with the same mapping behavior" do
+    card_id = "fetched-card-#{System.unique_integer([:positive])}"
+    set_id = "fetched-set-#{System.unique_integer([:positive])}"
+
+    card = %{
+      "id" => card_id,
+      "name" => "Fetched Card",
+      "localId" => 3,
+      "set" => %{"id" => set_id},
+      "pricing" => %{"cardmarket" => %{"idProduct" => 321}}
+    }
+
+    set = %{"id" => set_id, "name" => "Fetched Set"}
+
+    assert {:ok, imported} =
+             Importer.import_fetched_card(card, set, card_id,
+               expected_set_id: set_id,
+               synced_at: ~U[2026-03-01 00:00:00.123456Z]
+             )
+
+    assert imported.card.mapping_status == "matched"
+    assert imported.card.cardmarket_product_id == 321
+    assert imported.outcome == :imported
+    assert imported.card.last_synced_at == ~U[2026-03-01 00:00:00.123456Z]
+  end
+
+  test "fetched payload identity mismatches happen before any writes" do
+    card_id = "fetched-mismatch-#{System.unique_integer([:positive])}"
+    set_id = "fetched-mismatch-set-#{System.unique_integer([:positive])}"
+
+    card = %{
+      "id" => "different-card",
+      "name" => "Fetched Card",
+      "localId" => "1",
+      "set" => %{"id" => set_id}
+    }
+
+    assert {:error, {:malformed_response, {:card_id_mismatch, ^card_id, "different-card"}}} =
+             Importer.import_fetched_card(card, %{"id" => set_id, "name" => "Set"}, card_id,
+               expected_set_id: set_id,
+               synced_at: ~U[2026-03-01 00:00:00Z]
+             )
+
+    assert Repo.aggregate(from(c in "card_printings"), :count, :id) == 0
+    assert Repo.aggregate(from(s in "card_sets"), :count, :id) == 0
+  end
+
+  test "fetched payload requires one valid shared timestamp and known options" do
+    card_id = "fetched-options-#{System.unique_integer([:positive])}"
+    set_id = "fetched-options-set-#{System.unique_integer([:positive])}"
+    card = %{"id" => card_id, "name" => "Card", "localId" => "1", "set" => %{"id" => set_id}}
+    set = %{"id" => set_id, "name" => "Set"}
+
+    assert {:error, :invalid_clock} =
+             Importer.import_fetched_card(card, set, card_id, expected_set_id: set_id)
+
+    assert {:error, :invalid_clock} =
+             Importer.import_fetched_card(card, set, card_id, synced_at: :bad)
+
+    assert {:error, :invalid_options} =
+             Importer.import_fetched_card(card, set, "bad id",
+               synced_at: ~U[2026-03-01 00:00:00Z]
+             )
+
+    assert {:error, :invalid_id} =
+             Importer.import_fetched_card(card, set, card_id,
+               expected_set_id: "bad id",
+               synced_at: ~U[2026-03-01 00:00:00Z]
+             )
+
+    assert {:error, :invalid_options} =
+             Importer.import_fetched_card(card, set, card_id,
+               synced_at: ~U[2026-03-01 00:00:00Z],
+               unknown: true
+             )
+
+    assert {:error, :invalid_options} =
+             Importer.import_fetched_card(card, set, card_id,
+               synced_at: ~U[2026-03-01 00:00:00Z],
+               synced_at: ~U[2026-03-01 00:00:00Z]
+             )
+
+    assert Repo.aggregate(from(c in "card_printings"), :count, :id) == 0
+  end
+
+  test "does not reassign an existing card to a different set" do
+    card_id = "cross-set-card-#{System.unique_integer([:positive])}"
+    foreign_id = "foreign-set-#{System.unique_integer([:positive])}"
+    target_id = "target-set-#{System.unique_integer([:positive])}"
+    foreign = Core.import_card_set!(%{tcgdex_id: foreign_id, name: "Foreign"})
+
+    Core.import_card_printing!(%{
+      tcgdex_id: card_id,
+      name: "Existing",
+      set_name: "Foreign",
+      collector_number: "1",
+      card_set_id: foreign.id,
+      source_payload: %{"existing" => true},
+      mapping_status: "matched",
+      cardmarket_product_id: 999
+    })
+
+    card = %{
+      "id" => card_id,
+      "name" => "Incoming",
+      "localId" => "1",
+      "set" => %{"id" => target_id}
+    }
+
+    assert {:error, {:card_set_conflict, %{tcgdex_id: ^card_id}}} =
+             Importer.import_fetched_card(card, %{"id" => target_id, "name" => "Target"}, card_id,
+               expected_set_id: target_id,
+               synced_at: ~U[2026-03-01 00:00:00Z]
+             )
+
+    assert {:ok, retained} = Core.get_card_printing_by_tcgdex_id(card_id)
+    assert retained.name == "Existing"
+    assert retained.card_set_id == foreign.id
+    assert {:error, _} = Core.get_card_set_by_tcgdex_id(target_id)
+  end
+
+  test "legacy card without a set link can be linked by fetched import" do
+    card_id = "legacy-card-#{System.unique_integer([:positive])}"
+    set_id = "legacy-set-#{System.unique_integer([:positive])}"
+
+    legacy =
+      Core.create_card_printing!(%{
+        tcgdex_id: card_id,
+        name: "Legacy",
+        set_name: "Set",
+        collector_number: "1"
+      })
+
+    card = %{"id" => card_id, "name" => "Enriched", "localId" => "1", "set" => %{"id" => set_id}}
+
+    assert {:ok, %{card: imported, outcome: :imported}} =
+             Importer.import_fetched_card(card, %{"id" => set_id, "name" => "Set"}, card_id,
+               expected_set_id: set_id,
+               synced_at: ~U[2026-03-01 00:00:00Z]
+             )
+
+    assert imported.id == legacy.id
+    assert imported.card_set_id != nil
+  end
+
+  test "stale cross-set payload still conflicts before stale preservation" do
+    card_id = "stale-cross-card-#{System.unique_integer([:positive])}"
+    foreign_id = "stale-foreign-set-#{System.unique_integer([:positive])}"
+    target_id = "stale-target-set-#{System.unique_integer([:positive])}"
+    foreign = Core.import_card_set!(%{tcgdex_id: foreign_id, name: "Foreign"})
+
+    Core.import_card_printing!(%{
+      tcgdex_id: card_id,
+      name: "Authoritative",
+      set_name: "Foreign",
+      collector_number: "1",
+      card_set_id: foreign.id,
+      source_updated_at: ~U[2026-03-01 00:00:00Z],
+      source_payload: %{"authoritative" => true},
+      mapping_status: "matched",
+      cardmarket_product_id: 77
+    })
+
+    card = %{
+      "id" => card_id,
+      "name" => "Stale Incoming",
+      "localId" => "1",
+      "updated" => "2026-02-01T00:00:00Z",
+      "set" => %{"id" => target_id}
+    }
+
+    assert {:error, {:card_set_conflict, %{tcgdex_id: ^card_id}}} =
+             Importer.import_fetched_card(card, %{"id" => target_id, "name" => "Target"}, card_id,
+               expected_set_id: target_id,
+               synced_at: ~U[2026-03-02 00:00:00Z]
+             )
+
+    assert {:ok, retained} = Core.get_card_printing_by_tcgdex_id(card_id)
+    assert retained.name == "Authoritative"
+    assert retained.card_set_id == foreign.id
+    assert {:error, _} = Core.get_card_set_by_tcgdex_id(target_id)
   end
 end
