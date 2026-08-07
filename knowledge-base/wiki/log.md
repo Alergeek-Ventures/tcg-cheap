@@ -1,5 +1,11 @@
 # Wiki Log
 
+## [2026-08-07] phase 0 references | Audit Firmowid and Onside conventions
+- Task completed: Audited the two read-only reference repositories against the Phase 0 categories, recorded authority, adopted/rejected conventions, version compatibility, and implications for later phases. Firmowid was clean; Onside already had an unrelated modified `shell.nix`; neither reference was changed.
+- Files changed: `knowledge-base/wiki/architecture/reference-project-conventions.md`, `knowledge-base/wiki/index.md`, `knowledge-base/wiki/architecture/application-foundation.md`, and this log.
+- Validation: Source/commit/path evidence reconciled; wiki metadata, index coverage, and internal links checked; `mix check --verbose` passed with 15 tests; `git diff --check` passed. Reference commits: `8a18f66aa28ac8444b5b3445fa3c7b6613fdf056` and `ac8d1d942a086bfe868043274fc0f430f30aacef`.
+- Remaining work: Provider/source experiments, cost ADR, acquisition feasibility, authentication/admin/background dependency validation, and subsequent MVP implementation phases remain unfinished.
+
 ## [2026-08-07] bootstrap verification | Complete final local validation
 - Validation: Full `mix check` passed with 10 tests; homepage returned HTTP 200; LiveView mounted without current console errors; Tidewave MCP ping returned HTTP 200; PostgreSQL loopback connectivity was healthy.
 - Deferred/hand-off state: Caddy integration and CI remain explicitly deferred. The app was intentionally left running after verification.

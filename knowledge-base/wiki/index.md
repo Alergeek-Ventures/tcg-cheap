@@ -3,6 +3,7 @@
 ## Architecture
 
 - [Application Foundation](architecture/application-foundation.md) — Current development foundation, local services, isolation, and validation state. Updated 2026-08-07.
+- [Reference Project Conventions](architecture/reference-project-conventions.md) — Phase 0 audit of Firmowid and Onside conventions, adoption decisions, and compatibility boundaries. Updated 2026-08-07.
 
 ## Product
 
