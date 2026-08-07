@@ -79,4 +79,48 @@ defmodule TcgCheap.Catalogue.TcgdexTest do
 
     assert :counters.get(counter, 1) == 3
   end
+
+  test "lists and normalizes set briefs from the fixed endpoint" do
+    name = make_ref()
+
+    Req.Test.stub(name, fn conn ->
+      assert conn.request_path == "/v2/en/sets"
+      Req.Test.json(conn, [%{"id" => " base ", "name" => " Base "}])
+    end)
+
+    assert {:ok, [%{"id" => "base", "name" => "Base"}]} =
+             Tcgdex.list_sets(request_options: request_options(name))
+  end
+
+  test "rejects malformed set lists, duplicate/noncanonical IDs, and non-200 responses" do
+    for body <- [
+          %{"id" => "base", "name" => "Base"},
+          [%{"id" => "bad id", "name" => "Bad"}],
+          [%{"id" => "base", "name" => "Base"}, %{"id" => " base ", "name" => "Again"}]
+        ] do
+      name = make_ref()
+      Req.Test.stub(name, fn conn -> Req.Test.json(conn, body) end)
+
+      assert {:error, {:malformed_response, _}} =
+               Tcgdex.list_sets(request_options: request_options(name))
+    end
+
+    name = make_ref()
+    Req.Test.stub(name, fn conn -> Plug.Conn.send_resp(conn, 503, "offline") end)
+
+    assert {:error, {:http_error, %{status: 503, kind: "sets", id: nil}}} =
+             Tcgdex.list_sets(request_options: request_options(name))
+  end
+
+  test "rejects non-array set roots and unsafe list options without raising" do
+    name = make_ref()
+    Req.Test.stub(name, fn conn -> Req.Test.json(conn, %{"id" => "base"}) end)
+
+    assert {:error, {:malformed_response, :expected_array}} =
+             Tcgdex.list_sets(request_options: request_options(name))
+
+    assert {:error, :invalid_options} = Tcgdex.list_sets("bad")
+    assert {:error, :invalid_options} = Tcgdex.list_sets(request_options: [], request_options: [])
+    assert {:error, :invalid_options} = Tcgdex.list_sets(unknown: true)
+  end
 end

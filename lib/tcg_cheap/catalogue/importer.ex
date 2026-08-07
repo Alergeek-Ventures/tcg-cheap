@@ -1,6 +1,6 @@
 defmodule TcgCheap.Catalogue.Importer do
   @moduledoc "Imports one TCGdex card and its set atomically and idempotently."
-  alias TcgCheap.Catalogue.{CardPrinting, CardSet}
+  alias TcgCheap.Catalogue.{CardPrinting, CardSet, Normalizer}
   alias TcgCheap.Core
   alias TcgCheap.Repo
 
@@ -75,7 +75,7 @@ defmodule TcgCheap.Catalogue.Importer do
       if stale?(existing, incoming) do
         existing
       else
-        imported_set = Core.import_card_set!(set_attributes(set, synced_at))
+        imported_set = Core.import_card_set!(Normalizer.set_attributes(set, synced_at))
         Core.import_card_printing!(Map.put(incoming, :card_set_id, imported_set.id))
       end
     end)
@@ -141,27 +141,6 @@ defmodule TcgCheap.Catalogue.Importer do
 
   defp validate_set_identity(_, _), do: {:error, {:malformed_response, {:set, :missing_identity}}}
 
-  defp set_attributes(set, synced_at) do
-    counts = Map.get(set, "cardCount", %{})
-    legalities = Map.get(set, "legal", %{})
-
-    %{
-      tcgdex_id: Map.get(set, "id"),
-      name: Map.fetch!(set, "name"),
-      series_id: get_in(set, ["serie", "id"]) || get_in(set, ["series", "id"]),
-      series_name: get_in(set, ["serie", "name"]) || get_in(set, ["series", "name"]),
-      release_date: parse_date(Map.get(set, "releaseDate")),
-      logo_url: asset_url(Map.get(set, "logo"), :set),
-      symbol_url: asset_url(Map.get(set, "symbol"), :set),
-      official_count: nonnegative_int(Map.get(counts, "official")),
-      total_count: nonnegative_int(Map.get(counts, "total")),
-      standard_legal: legal?(legalities, "standard"),
-      expanded_legal: legal?(legalities, "expanded"),
-      source_payload: set,
-      last_synced_at: synced_at
-    }
-  end
-
   defp card_attributes(card, set, synced_at) do
     {status, reason, product_id} = mapping(card)
     legalities = Map.get(card, "legal", %{})
@@ -189,8 +168,7 @@ defmodule TcgCheap.Catalogue.Importer do
     }
   end
 
-  defp canonical_local_id(value) when is_integer(value), do: Integer.to_string(value)
-  defp canonical_local_id(value) when is_binary(value), do: String.trim(value)
+  defp canonical_local_id(value), do: Normalizer.canonical_local_id(value)
 
   defp mapping(card) do
     ids =
@@ -336,19 +314,7 @@ defmodule TcgCheap.Catalogue.Importer do
 
   defp nonblank(_), do: nil
 
-  defp asset_url(nil, _kind), do: nil
-  defp asset_url(value, _kind) when not is_binary(value), do: nil
-
-  defp asset_url(value, kind) do
-    value = String.trim(value)
-
-    cond do
-      value == "" -> nil
-      String.match?(value, ~r/\.[A-Za-z0-9]+(?:[?#].*)?$/) -> value
-      kind == :card -> value <> "/high.webp"
-      true -> value <> ".webp"
-    end
-  end
+  defp asset_url(value, kind), do: Normalizer.asset_url(value, kind)
 
   defp cardmarket_ids(pricing) when is_map(pricing) or is_list(pricing) do
     pricing
@@ -439,19 +405,8 @@ defmodule TcgCheap.Catalogue.Importer do
     end
   end
 
-  defp nonnegative_int(value) when is_integer(value) and value >= 0, do: value
-  defp nonnegative_int(_), do: nil
   defp positive_int(value) when is_integer(value) and value > 0, do: value
   defp positive_int(_), do: nil
-
-  defp parse_date(value) when is_binary(value) do
-    case Date.from_iso8601(value) do
-      {:ok, date} -> date
-      _ -> nil
-    end
-  end
-
-  defp parse_date(_), do: nil
 
   defp parse_datetime(value) when is_binary(value) do
     case DateTime.from_iso8601(value) do

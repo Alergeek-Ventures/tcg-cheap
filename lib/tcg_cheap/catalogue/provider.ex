@@ -3,4 +3,5 @@ defmodule TcgCheap.Catalogue.Provider do
 
   @callback fetch_card(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
   @callback fetch_set(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  @callback list_sets(keyword()) :: {:ok, [map()]} | {:error, term()}
 end

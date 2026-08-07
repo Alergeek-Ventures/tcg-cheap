@@ -10,6 +10,11 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   @impl true
   def fetch_set(id, opts \\ []), do: fetch("sets", id, opts)
 
+  @impl true
+  def list_sets(opts \\ []) do
+    if valid_top_options?(opts), do: request("sets", nil, opts), else: {:error, :invalid_options}
+  end
+
   defp fetch(kind, id, opts) when is_binary(id) do
     id = String.trim(id)
 
@@ -28,8 +33,9 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   defp fetch(_, _, _), do: {:error, :invalid_id}
 
   defp valid_top_options?(options) do
-    keys = Keyword.keys(options)
-    keys in [[], [:request_options]] and length(keys) == length(Enum.uniq(keys))
+    is_list(options) and Keyword.keyword?(options) and
+      Keyword.keys(options) in [[], [:request_options]] and
+      length(Keyword.keys(options)) == length(Enum.uniq(Keyword.keys(options)))
   end
 
   defp canonical_id?(id), do: Regex.match?(~r/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/, id)
@@ -42,7 +48,9 @@ defmodule TcgCheap.Catalogue.Tcgdex do
         [decode_body: false, receive_timeout: 10_000, retry: :safe_transient, max_retries: 2]
         |> Keyword.merge(request_options)
 
-      case Req.get("#{@base}/#{kind}/#{URI.encode(id)}", options) do
+      path = if id, do: "#{@base}/#{kind}/#{URI.encode(id)}", else: "#{@base}/#{kind}"
+
+      case Req.get(path, options) do
         {:ok, %{status: 200, body: body}} -> decode(body, kind, id)
         {:ok, %{status: status}} -> {:error, {:http_error, %{status: status, kind: kind, id: id}}}
         {:error, reason} -> {:error, {:transport_error, reason}}
@@ -73,6 +81,9 @@ defmodule TcgCheap.Catalogue.Tcgdex do
 
   defp decode(body, kind, id), do: normalize(body, kind, id)
 
+  defp normalize(value, "sets", nil) when is_list(value), do: validate_set_briefs(value)
+  defp normalize(_, "sets", nil), do: {:error, {:malformed_response, :expected_array}}
+
   defp normalize(%{} = value, _kind, id) do
     case Map.get(value, "id") do
       ^id -> {:ok, value}
@@ -82,4 +93,47 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   end
 
   defp normalize(_, _, _), do: {:error, {:malformed_response, :expected_object}}
+
+  defp validate_set_briefs(briefs) do
+    Enum.reduce_while(briefs, {[], MapSet.new()}, fn brief, {result, ids} ->
+      case validate_set_brief(brief, ids) do
+        {:ok, id, name} ->
+          {:cont,
+           {[Map.merge(brief, %{"id" => id, "name" => name}) | result], MapSet.put(ids, id)}}
+
+        {:error, reason} ->
+          {:halt, {:error, {:malformed_response, reason}}}
+      end
+    end)
+    |> case do
+      {briefs, _} when is_list(briefs) -> {:ok, Enum.reverse(briefs)}
+      error -> error
+    end
+  end
+
+  defp validate_set_brief(brief, ids) do
+    with {:ok, id} <- brief_field(brief, "id"),
+         {:ok, name} <- brief_field(brief, "name") do
+      cond do
+        not canonical_id?(id) -> {:error, {:set, {:invalid_id, id}}}
+        MapSet.member?(ids, id) -> {:error, {:duplicate_id, id}}
+        true -> {:ok, id, name}
+      end
+    else
+      {:error, reason} -> {:error, {:set, reason}}
+    end
+  end
+
+  defp brief_field(value, key) when is_map(value) do
+    case Map.get(value, key) do
+      value when is_binary(value) ->
+        value = String.trim(value)
+        if value == "", do: {:error, {:missing_or_blank, key}}, else: {:ok, value}
+
+      _ ->
+        {:error, {:missing_or_blank, key}}
+    end
+  end
+
+  defp brief_field(_, _), do: {:error, :expected_object}
 end

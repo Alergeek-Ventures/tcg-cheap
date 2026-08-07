@@ -62,6 +62,37 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       upsert_identity :unique_tcgdex_id
     end
 
+    create :seed_brief do
+      accept [
+        :tcgdex_id,
+        :name,
+        :set_name,
+        :collector_number,
+        :image_url,
+        :card_set_id,
+        :last_synced_at
+      ]
+
+      upsert? true
+      upsert_identity :unique_tcgdex_id
+
+      upsert_fields [
+        :name,
+        :set_name,
+        :collector_number,
+        :card_set_id,
+        :last_synced_at
+      ]
+
+      return_skipped_upsert? true
+
+      upsert_condition expr(
+                         mapping_status == "pending" and is_nil(source_updated_at) and
+                           is_nil(mapping_updated_at) and is_nil(source_payload) and
+                           (is_nil(card_set_id) or card_set_id == upsert_conflict(:card_set_id))
+                       )
+    end
+
     read :by_tcgdex_id do
       argument :tcgdex_id, :string, allow_nil?: false
       get? true

@@ -51,4 +51,24 @@ defmodule TcgCheap.Catalogue.CoreImportTest do
       })
     end
   end
+
+  test "default brief upserts cannot erase a pending image" do
+    suffix = System.unique_integer([:positive])
+    set = Core.import_card_set!(%{tcgdex_id: "brief-image-set-#{suffix}", name: "Set"})
+
+    attrs = %{
+      tcgdex_id: "brief-image-card-#{suffix}",
+      name: "Card",
+      set_name: "Set",
+      collector_number: "1",
+      card_set_id: set.id,
+      image_url: "https://assets.example/original.webp"
+    }
+
+    assert {:ok, first} = Core.seed_card_printing_brief(attrs)
+    assert {:ok, second} = Core.seed_card_printing_brief(Map.delete(attrs, :image_url))
+    assert {:ok, third} = Core.seed_card_printing_brief(Map.put(attrs, :image_url, nil))
+    assert first.id == second.id and second.id == third.id
+    assert third.image_url == "https://assets.example/original.webp"
+  end
 end
