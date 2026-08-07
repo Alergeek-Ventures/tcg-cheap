@@ -151,7 +151,12 @@ The form language is near-square throughout: the observed controls and archive s
 - **Character:** The signature end label for one exact printing.
 - **Shape:** Tissue paper, `1.5px` ink border, minimum height `12rem`, and `1rem` internal padding. The art column is separated by a `1px` vertical rule.
 - **Color:** Box-board-dark line art, ink identity text, and tissue surface.
-- **Behavior:** Labels pull down into place with the `pull-label` motion; reduced motion removes the animation.
+- **Behavior:** Labels use a low WebP TCGdex thumbnail when available; missing imagery falls back to box-board-dark line art. Labels pull down into place with the `pull-label` motion; reduced motion removes the animation.
+
+### Card detail image
+- **Character:** Functional exact-printing identification, not promotional card merchandising.
+- **Shape:** The high WebP TCGdex image sits inside a square tissue-and-ink frame that belongs to the archive wall.
+- **Behavior:** The image supports identity verification while the ruled metadata and value/history sheet remain primary. Missing imagery uses the same honest line-art fallback.
 
 ### Archive chips
 - **Character:** Small paper annotations, not calls to action.
@@ -171,9 +176,10 @@ The form language is near-square throughout: the observed controls and archive s
 - **Do** make exact identity fields visibly distinct through monospaced metadata and archive chips.
 - **Do** retain the soft drawer shadow and pull-label motion only where the implementation uses them.
 - **Do** provide the reduced-motion fallback for label entrance motion.
+- **Do** use low WebP TCGdex thumbnails on printing labels and the high WebP exact-printing image on card detail when available, keeping both inside the archive’s square tissue/ink framing.
 
 ### Don't:
-- **Don't** replace archive labels with generic rounded marketplace thumbnail grids.
-- **Don't** add glass surfaces, decorative gradients, or image-led card treatments.
+- **Don't** replace archive labels with generic rounded marketplace grids or use imagery that erases the archive identity.
+- **Don't** add glass surfaces or decorative gradients.
 - **Don't** invent buttons, pricing treatments, dark mode, or alias UI that is not part of this public archive.
 - **Don't** use shadows as a general card treatment; the drawer is the one soft elevation.

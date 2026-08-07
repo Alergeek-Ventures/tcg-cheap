@@ -11,7 +11,7 @@ defmodule TcgCheapWeb.Router do
     plug :put_secure_browser_headers,
          %{
            "content-security-policy" =>
-             "default-src 'self'; script-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+             "default-src 'self'; script-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data: https://assets.tcgdex.net; style-src 'self' 'unsafe-inline'"
          }
   end
 

@@ -51,9 +51,16 @@
       "name": "Printing Label",
       "kind": "custom",
       "refersTo": "printing-label",
-      "description": "One tissue-paper label for one exact printing.",
+      "description": "One tissue-paper label for one exact printing, using a low WebP TCGdex thumbnail when available and box-board-dark line art when imagery is missing.",
       "html": "<article class=\"ds-printing-label\"><div class=\"ds-label-art\" aria-hidden=\"true\"></div><div><strong>PIKACHU</strong><p>SET NAME</p><dl><div><dt>NO.</dt><dd>001</dd></div><div><dt>TCGDEX</dt><dd>swsh1-001</dd></div></dl><div class=\"ds-label-chips\"><span>STANDARD</span></div></div></article>",
       "css": ".ds-printing-label { display: flex; min-width: 0; min-height: 12rem; padding: 1rem; background: #f6f0df; border: 1.5px solid #171614; color: #171614; font-family: \"Azeret Mono\", ui-monospace, monospace; animation: ds-pull-label .45s ease-out both; } .ds-label-art { flex: 0 0 5rem; min-height: 7rem; margin-right: 1rem; border-right: 1px solid #171614; } .ds-printing-label strong { display: block; font: 700 1.65rem/.95 \"Barlow Condensed\", sans-serif; text-transform: uppercase; } .ds-printing-label p, .ds-printing-label dl { font-size: .75rem; } .ds-printing-label dl { line-height: 1.5; } .ds-printing-label dl div { display: flex; flex-wrap: wrap; gap: .6rem; } .ds-printing-label dt { min-width: 3.5rem; color: #a94f2f; } .ds-label-chips span { display: inline-block; padding: .3rem .4rem; border: 1px solid #171614; background: #a9b69a; font-size: .7rem; overflow-wrap: anywhere; } @media (max-width: 30rem) { .ds-printing-label { flex-direction: column; } .ds-label-art { flex: 0 0 auto; margin: 0 0 1rem; padding-bottom: .75rem; border-right: 0; border-bottom: 1px solid #171614; } .ds-label-art svg { height: 4rem; width: 3rem; } } @keyframes ds-pull-label { from { opacity: 0; transform: translateY(-.7rem); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: translateY(0); clip-path: inset(0); } } @media (prefers-reduced-motion: reduce) { .ds-printing-label { animation: none; } }"
+    },
+    {
+      "name": "Card Detail Image",
+      "kind": "media",
+      "description": "The high WebP TCGdex exact-printing image for functional identification, framed as a square tissue-and-ink archive object with an honest line-art fallback when missing.",
+      "html": "<figure class=\"ds-card-detail-image\"><img src=\"https://assets.tcgdex.net/en/swsh/swsh1/001/high.webp\" referrerpolicy=\"no-referrer\" alt=\"PIKACHU exact printing\" /></figure>",
+      "css": ".ds-card-detail-image { aspect-ratio: 1; margin: 0; padding: .75rem; background: #f6f0df; border: 1.5px solid #171614; } .ds-card-detail-image img { display: block; width: 100%; height: 100%; object-fit: contain; }"
     },
     {
       "name": "Archive Chips",
@@ -67,14 +74,14 @@
       "name": "State Note",
       "kind": "custom",
       "refersTo": "state-note",
-      "description": "Ruled catalogue guidance for idle, short, empty, or unavailable states.",
+      "description": "Ruled catalogue guidance for idle, short, empty, unavailable, or missing-image states.",
       "html": "<div class=\"ds-state-note\"><strong>START WITH AN IDENTITY.</strong> The archive keeps each exact printing on its own label.</div>",
       "css": ".ds-state-note { border-top: 1px solid #171614; padding: 1.25rem 0; color: #171614; font: .75rem/1.7 \"Azeret Mono\", ui-monospace, monospace; } .ds-state-note.ds-error { padding: 1rem; background: #e5bf70; }"
     }
   ],
   "narrative": {
     "northStar": "The Printing Archive Wall",
-    "overview": "The public archive is built like a working box-board drawer: burnt board surrounds tissue labels, black ink rules divide information, and every exact printing occupies its own labeled place. It is tactile and catalogued rather than promotional. Condensed display type makes the archive legible at a glance; monospaced data keeps identity fields precise.\n\nThe visual world favors near-square paper geometry, strong ruled edges, restrained color blocks, and a responsive wall of labels. Archive background, fonts, texture, and light color scheme are scoped to .archive-world so future product surfaces remain independent. It rejects the generic rounded marketplace thumbnail grid, glass surfaces, and decorative gradients. The field is the primary action, and catalogue states remain visible as honest notes.",
+    "overview": "The public archive is built like a working box-board drawer: burnt board surrounds tissue labels, black ink rules divide information, and every exact printing occupies its own labeled place. It is tactile and catalogued rather than promotional. Condensed display type makes the archive legible at a glance; monospaced data keeps identity fields precise.\n\nThe visual world favors near-square paper geometry, strong ruled edges, restrained color blocks, and a responsive wall of labels. Archive background, fonts, texture, and light color scheme are scoped to .archive-world so future product surfaces remain independent. It rejects generic rounded marketplace grids and imagery that erases the archive identity, not useful card imagery itself. The field is the primary action, and catalogue states remain visible as honest notes.",
     "keyCharacteristics": [
       "Physical box-board, tissue, ink, and paper-label grammar.",
       "Exact-printing identity expressed through ruled metadata and archive chips.",
@@ -90,11 +97,12 @@
       "Do keep the container capped at 78rem and the label wall responsive at 46rem and 70rem.",
       "Do make exact identity fields visibly distinct through monospaced metadata and archive chips.",
       "Do retain the soft drawer shadow and pull-label motion only where the implementation uses them.",
-      "Do provide the reduced-motion fallback for label entrance motion."
+      "Do provide the reduced-motion fallback for label entrance motion.",
+      "Do use low WebP TCGdex thumbnails on printing labels and the high WebP exact-printing image on card detail when available, inside square tissue-and-ink framing."
     ],
     "donts": [
-      "Don't replace archive labels with generic rounded marketplace thumbnail grids.",
-      "Don't add glass surfaces, decorative gradients, or image-led card treatments.",
+      "Don't replace archive labels with generic rounded marketplace grids or use imagery that erases the archive identity.",
+      "Don't add glass surfaces or decorative gradients.",
       "Don't invent buttons, pricing treatments, dark mode, or alias UI that is not part of this public archive.",
       "Don't use shadows as a general card treatment; the drawer is the one soft elevation."
     ]

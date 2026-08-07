@@ -161,8 +161,10 @@
 .archive-world .label-wall { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem 1.5rem; padding: 1.5rem 0; }
 .archive-world .label-slot { border-bottom: 1px solid var(--ink); padding-bottom: 1rem; }
 .archive-world .printing-label { background: var(--tissue); border: 1.5px solid var(--ink); display: flex; min-height: 12rem; min-width: 0; padding: 1rem; animation: pull-label .45s ease-out both; }
-.archive-world .label-art { align-items: center; border-right: 1px solid var(--ink); display: flex; flex: 0 0 5rem; justify-content: center; margin-right: 1rem; }
+.archive-world .label-art { align-items: center; background: var(--tissue); border-right: 1px solid var(--ink); display: flex; flex: 0 0 5rem; justify-content: center; margin-right: 1rem; overflow: hidden; }
 .archive-world .label-art svg { fill: none; height: 7rem; stroke: var(--box-board-dark); stroke-width: 1.5; width: 5rem; }
+.archive-world .label-art img { border: 1px solid var(--ink); height: 100%; max-height: 8rem; max-width: 100%; object-fit: contain; width: 100%; }
+.archive-world .card-image-missing { align-items: center; display: flex; flex-direction: column; justify-content: center; text-align: center; }
 .archive-world .label-copy { min-width: 0; }
 .archive-world .label-name { font: 700 1.65rem/.95 "Barlow Condensed", sans-serif; text-transform: uppercase; overflow-wrap: anywhere; }
 .archive-world .label-set { font-size: .75rem; margin: .45rem 0 1rem; overflow-wrap: anywhere; }
@@ -203,6 +205,10 @@
 .card-detail-world .card-detail-placeholder { align-items: center; border: 2px solid var(--ink); display: flex; flex-direction: column; justify-content: center; min-height: 15rem; padding: 1rem; }
 .card-detail-world .card-detail-placeholder svg { fill: none; height: 12rem; max-width: 100%; stroke: var(--box-board-dark); stroke-width: 1.5; }
 .card-detail-world .card-detail-placeholder span, .archive-world .section-rule span { font-size: .7rem; letter-spacing: .08em; }
+.card-detail-world .card-detail-figure { background: var(--tissue); margin: 0; max-width: 32rem; }
+.card-detail-world .card-detail-figure > img { border: 1px solid var(--ink); display: block; height: auto; max-height: 52rem; max-width: 100%; object-fit: contain; width: 100%; }
+.card-detail-world .card-detail-figure figcaption { font-size: .7rem; margin-top: .65rem; text-align: center; }
+.card-detail-world .card-detail-figure .card-image-missing { gap: .75rem; min-height: 15rem; width: 100%; }
 .card-detail-world .card-detail-heading h1 { font: 700 clamp(3rem, 9vw, 5.5rem)/.85 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .7rem 0; max-width: 14ch; overflow-wrap: anywhere; text-transform: uppercase; }
 .card-detail-world .card-detail-set { font-size: .75rem; margin-bottom: 1.5rem; }
 .card-detail-world .card-detail-metadata, .card-detail-world .valuation-provenance { display: grid; gap: .45rem 1.25rem; grid-template-columns: repeat(2, minmax(0, 1fr)); font-size: .7rem; }
@@ -226,5 +232,5 @@
 .card-detail-world .history-ledger strong { font-weight: 400; }
 .card-detail-world .history-ledger span { color: var(--ink); font-size: .7rem; text-align: right; }
 @media (min-width: 60rem) { .card-detail-world .card-detail-identity { border-bottom: 0; column-gap: clamp(2rem, 5vw, 5rem); grid-template-areas: "placeholder heading valuation" "placeholder secondary valuation"; grid-template-columns: minmax(7rem, 13rem) minmax(0, 1fr) minmax(20rem, .85fr); } .card-detail-world #card-valuation { padding-top: 1rem; } }
-@media (max-width: 40rem) { .card-detail-world .card-detail-placeholder { min-height: 11rem; } .card-detail-world .card-detail-placeholder svg { height: 8rem; } .card-detail-world .card-detail-metadata, .card-detail-world .valuation-provenance { grid-template-columns: 1fr; } .card-detail-world .history-ledger li { grid-template-columns: 1fr auto; } .card-detail-world .history-ledger span { grid-column: 1 / -1; text-align: left; } }
+@media (max-width: 40rem) { .card-detail-world .card-detail-placeholder { min-height: 11rem; max-width: 100%; } .card-detail-world .card-detail-placeholder svg { height: 8rem; } .card-detail-world .card-detail-figure > img { max-height: 75svh; } .card-detail-world .card-detail-metadata, .card-detail-world .valuation-provenance { grid-template-columns: 1fr; } .card-detail-world .history-ledger li { grid-template-columns: 1fr auto; } .card-detail-world .history-ledger span { grid-column: 1 / -1; text-align: left; } }
 @media (prefers-reduced-motion: reduce) { .card-detail-world * { animation: none !important; scroll-behavior: auto !important; } }

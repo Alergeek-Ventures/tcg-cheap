@@ -16,6 +16,14 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#card-search-idle")
   end
 
+  test "CSP allows only the TCGdex image host", %{conn: conn} do
+    response = get(conn, "/")
+    [policy] = get_resp_header(response, "content-security-policy")
+
+    assert Regex.match?(~r/img-src 'self' data: https:\/\/assets\.tcgdex\.net(?:;|$)/, policy)
+    refute policy =~ "img-src 'self' data: https://assets.tcgdex.net https://"
+  end
+
   test "requires two effective characters", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/")
 
@@ -77,6 +85,46 @@ defmodule TcgCheapWeb.HomeLiveTest do
              view,
              "#card-search-result-#{first.id}[aria-labelledby=card-search-name-#{first.id}]"
            )
+  end
+
+  test "renders a valid low WebP thumbnail and fallback for missing images", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    name = "Image Archive Card #{suffix}"
+
+    {:ok, set} =
+      Core.import_card_set(%{
+        tcgdex_id: "image-set-#{suffix}",
+        name: "Image Set #{suffix}"
+      })
+
+    {:ok, imported} =
+      Core.import_card_printing(%{
+        tcgdex_id: "image-card-#{suffix}",
+        name: name,
+        set_name: set.name,
+        collector_number: "01",
+        card_set_id: set.id,
+        image_url: "https://assets.tcgdex.net/en/swsh/swshp/1"
+      })
+
+    {:ok, missing} =
+      Core.import_card_printing(%{
+        tcgdex_id: "missing-image-card-#{suffix}",
+        name: name,
+        set_name: set.name,
+        collector_number: "02",
+        card_set_id: set.id
+      })
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_change(view, "search", %{"search" => %{"query" => name}})
+
+    assert has_element?(
+             view,
+             "#card-search-image-#{imported.id}[src='https://assets.tcgdex.net/en/swsh/swshp/1/low.webp'][width='245'][height='337'][loading='lazy'][decoding='async'][referrerpolicy='no-referrer']"
+           )
+
+    assert has_element?(view, "#card-search-image-missing-#{missing.id}")
   end
 
   test "uses singular summary and clears previous results", %{conn: conn} do

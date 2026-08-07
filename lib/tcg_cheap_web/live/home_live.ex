@@ -1,6 +1,7 @@
 defmodule TcgCheapWeb.HomeLive do
   use TcgCheapWeb, :live_view
 
+  alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Catalogue.SearchText
 
   @impl true
@@ -100,8 +101,28 @@ defmodule TcgCheapWeb.HomeLive do
                       class="printing-label"
                       aria-labelledby={"card-search-name-#{result.id}"}
                     >
-                      <div class="label-art" aria-hidden="true">
-                        <svg viewBox="0 0 72 96" role="presentation"><path d="M12 4h38l10 10v78H12zM50 4v12h10M20 28h32M20 38h24M20 70h32M20 78h18" /></svg>
+                      <div class="label-art">
+                        <%= if image_url = CardImage.thumbnail_url(result.image_url) do %>
+                          <img
+                            id={"card-search-image-#{result.id}"}
+                            src={image_url}
+                            alt={card_link_label(result)}
+                            width="245"
+                            height="337"
+                            loading="lazy"
+                            decoding="async"
+                            referrerpolicy="no-referrer"
+                          />
+                        <% else %>
+                          <div
+                            id={"card-search-image-missing-#{result.id}"}
+                            class="card-image-missing"
+                            role="img"
+                            aria-label="TCGdex has no image for this printing."
+                          >
+                            <svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 4h38l10 10v78H12zM50 4v12h10M20 28h32M20 38h24M20 70h32M20 78h18" /></svg>
+                          </div>
+                        <% end %>
                       </div>
                       <div class="label-copy">
                         <p id={"card-search-name-#{result.id}"} class="label-name">{result.name}</p>

@@ -27,12 +27,13 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#card-detail-identity")
     assert has_element?(view, "#card-detail-title", card.name)
     assert has_element?(view, "#card-detail-metadata", card.tcgdex_id)
-    assert has_element?(view, "#card-image-rights-note")
+    assert has_element?(view, "#card-detail-image-missing")
+    refute has_element?(view, "#card-detail-image")
 
     assert has_element?(
              view,
              "#card-detail-disclaimer",
-             "not affiliated with Pokémon or Cardmarket"
+             "not affiliated with Pokémon, Nintendo, TCGdex, Cardmarket, or any listed company"
            )
 
     assert has_element?(view, ".methodology", "tcgdex_cardmarket_v1")
@@ -55,6 +56,34 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
              )
 
     assert job.args["tcgdex_id"] == card.tcgdex_id
+  end
+
+  test "a valid TCGdex image renders the high WebP detail image", %{conn: conn} do
+    card = create_card("image", image_url: "https://assets.tcgdex.net/en/swsh/swshp/1")
+
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+
+    assert has_element?(
+             view,
+             "#card-detail-image[src='https://assets.tcgdex.net/en/swsh/swshp/1/high.webp'][width='600'][height='825'][loading='eager'][fetchpriority='high'][decoding='async'][referrerpolicy='no-referrer']"
+           )
+
+    assert has_element?(
+             view,
+             "#card-detail-image[alt='#{card.name}, #{card.set_name}, collector number #{card.collector_number}']"
+           )
+
+    assert has_element?(view, "#card-image-source-note", "Image supplied by TCGdex.")
+    refute has_element?(view, "#card-detail-image-missing")
+  end
+
+  test "an invalid TCGdex image keeps the honest fallback", %{conn: conn} do
+    card = create_card("invalid-image", image_url: "https://example.com/card.jpg")
+
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+
+    assert has_element?(view, "#card-detail-image-missing")
+    refute has_element?(view, "img")
   end
 
   test "a fresh cached valuation shows provenance and does not queue refresh", %{conn: conn} do
@@ -184,15 +213,17 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute has_element?(view, "#valuation-history-segment-2")
   end
 
-  defp create_card(label) do
+  defp create_card(label, overrides \\ []) do
     suffix = System.unique_integer([:positive])
 
-    Core.create_card_printing!(%{
+    attrs = %{
       tcgdex_id: "detail-#{label}-#{suffix}",
       name: "Detail Card #{label} #{suffix}",
       set_name: "Detail Set #{suffix}",
       collector_number: "#{suffix}"
-    })
+    }
+
+    Core.import_card_printing!(Map.merge(attrs, Map.new(overrides)))
   end
 
   defp record_snapshot(card, value, fetched_at) do

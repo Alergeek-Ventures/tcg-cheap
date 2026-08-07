@@ -44,7 +44,7 @@ Thesis-validation product built around local cached data and transparent uncerta
 - The authoritative MVP implementation plan: `knowledge-base/wiki/product/mvp-implementation-plan.md`.
 - Current application code and tests in `lib/` and `test/`.
 - No testimonials or customer proof are available.
-- Image licensing remains unresolved.
+- This thesis-validation product displays canonical TCGdex-hosted card images for exact-printing identification. Missing images retain an honest fallback. The site is explicitly unofficial and non-affiliated; it makes no claim that Pokémon art is independently licensed.
 
 ## Product Principles
 

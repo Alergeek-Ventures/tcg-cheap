@@ -1,6 +1,7 @@
 defmodule TcgCheapWeb.CardDetailLive do
   use TcgCheapWeb, :live_view
 
+  alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Core
   alias TcgCheap.Pricing.Singles.{Freshness, ValuationAcquisition, ValuationHistory}
 
@@ -13,6 +14,7 @@ defmodule TcgCheapWeb.CardDetailLive do
           |> assign(
             page_title: card.name,
             card: card,
+            card_image_url: CardImage.detail_url(card.image_url),
             tcgdex_id: tcgdex_id,
             policy_version: ValuationAcquisition.policy_version()
           )
@@ -134,13 +136,35 @@ defmodule TcgCheapWeb.CardDetailLive do
                     Aggregate Cardmarket estimate from TCGdex under policy {@policy_version}. Language, condition, seller identity/count, finish-specific exactness, and Poland shipping are not verified. Shipping is not calculated.
                   </p>
                   <p id="card-detail-disclaimer" class="disclaimer">
-                    Unofficial and not affiliated with Pokémon or Cardmarket. This is an estimate, not a guaranteed resale value or investment advice.
+                    TCG Cheap is unofficial and not affiliated with Pokémon, Nintendo, TCGdex, Cardmarket, or any listed company. This is an estimate, not a guaranteed resale value or investment advice.
                   </p>
                 </section>
-                <div class="card-detail-placeholder" aria-hidden="true">
-                  <svg viewBox="0 0 160 220" role="presentation"><path d="M18 8h102l22 22v182H18zM120 8v25h22M30 58h100M30 74h74M30 184h100M42 104h76M42 120h76M42 136h50" /></svg>
-                  <span>IMAGE HELD</span>
-                </div>
+                <figure class="card-detail-placeholder card-detail-figure">
+                  <%= if @card_image_url do %>
+                    <img
+                      id="card-detail-image"
+                      src={@card_image_url}
+                      alt={card_image_alt(@card)}
+                      width="600"
+                      height="825"
+                      loading="eager"
+                      fetchpriority="high"
+                      decoding="async"
+                      referrerpolicy="no-referrer"
+                    />
+                    <figcaption id="card-image-source-note">Image supplied by TCGdex.</figcaption>
+                  <% else %>
+                    <div
+                      id="card-detail-image-missing"
+                      class="card-image-missing"
+                      role="img"
+                      aria-label="TCGdex has no image for this printing."
+                    >
+                      <svg viewBox="0 0 160 220" aria-hidden="true"><path d="M18 8h102l22 22v182H18zM120 8v25h22M30 58h100M30 74h74M30 184h100M42 104h76M42 120h76M42 136h50" /></svg>
+                      <span>TCGDEX HAS NO IMAGE FOR THIS PRINTING</span>
+                    </div>
+                  <% end %>
+                </figure>
                 <div class="card-detail-secondary">
                   <dl id="card-detail-metadata" class="card-detail-metadata">
                     <div :if={@card.rarity}>
@@ -165,9 +189,6 @@ defmodule TcgCheapWeb.CardDetailLive do
                       <dt>TCGDEX ID</dt><dd>{@card.tcgdex_id}</dd>
                     </div>
                   </dl>
-                  <p id="card-image-rights-note" class="rights-note">
-                    Card imagery is held back while image rights are unresolved.
-                  </p>
                 </div>
               </section>
             </div>
@@ -295,6 +316,9 @@ defmodule TcgCheapWeb.CardDetailLive do
 
   defp acquisition_failed(socket),
     do: assign(socket, acquisition_state: :failed, refresh_failure: true)
+
+  defp card_image_alt(card),
+    do: "#{card.name}, #{card.set_name}, collector number #{card.collector_number}"
 
   defp apply_current_read(socket, {:ok, nil}, _now),
     do: assign(socket, valuation: nil, valuation_display: "?", valuation_status: :missing)
