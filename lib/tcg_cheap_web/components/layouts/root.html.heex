@@ -4,12 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="TcgCheap" suffix=" · Phoenix Framework" phx-no-format>{assigns[:page_title]}</.live_title>
+    <.live_title default="TCG Cheap" suffix=" · TCG Cheap" phx-no-format>{assigns[:page_title]}</.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
   </head>
   <body>
+    <%= if assigns[:page_title] == "Printing Archive" do %>
+      {Phoenix.HTML.raw(
+        "<!-- THESIS: Every exact printing has its own labeled place; refuse the marketplace thumbnail grid.\nOWN-WORLD: Burnt box-board, black ink, tissue white, muted archive chips; condensed end labels and monospaced identity data on ruled shelves.\nSTORY: Search locally by identity, distinguish same-name printings, and see honest catalogue state without a provider wait.\nFIRST VIEWPORT: Archive masthead above an oversized search drawer and a responsive wall of printing-end labels; the field is the primary action.\nFORM: Sneaker archive wall challenger; seed 3fe2158c.\nFINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md\n-->"
+      )}
+    <% end %>
     {@inner_content}
   </body>
 </html>

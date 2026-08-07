@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-07T17:38:49Z",
+  "title": "Design System: TCG Cheap Printing Archive",
+  "extensions": {
+    "colorMeta": {
+      "box-board": { "role": "primary", "displayName": "Box-board", "canonical": "#c86c3f" },
+      "box-board-dark": { "role": "primary", "displayName": "Box-board dark", "canonical": "#a94f2f" },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#171614" },
+      "tissue": { "role": "neutral", "displayName": "Tissue", "canonical": "#f6f0df" },
+      "sage": { "role": "secondary", "displayName": "Sage", "canonical": "#a9b69a" },
+      "indigo": { "role": "secondary", "displayName": "Indigo", "canonical": "#9fa8c8" },
+      "lilac": { "role": "secondary", "displayName": "Lilac", "canonical": "#c1b1c9" },
+      "sunfade": { "role": "tertiary", "displayName": "Sunfade", "canonical": "#e5bf70" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Barlow Condensed 700", "purpose": "Oversized archive and section headings." },
+      "body": { "displayName": "Azeret Mono 400", "purpose": "Search guidance, state copy, and archive data." },
+      "label": { "displayName": "Azeret Mono 400 label", "purpose": "Readable header, metadata, help, summary, set, state, and chip labels." }
+    },
+    "shadows": [
+      { "name": "soft-drawer", "value": "7px 9px 13px rgb(76 33 22 / 32%)", "purpose": "Physical lift for the search drawer only." }
+    ],
+    "motion": [
+      { "name": "pull-label", "value": "0.45s ease-out", "purpose": "Printing labels pull down into the wall; disabled under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "label-wall-narrow-reflow", "value": "30rem" },
+      { "name": "label-wall-two-column", "value": "46rem" },
+      { "name": "label-wall-three-column", "value": "70rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Archive Header Active Label",
+      "kind": "nav",
+      "refersTo": "archive-active-label",
+      "description": "The local catalogue mode label in the archive masthead.",
+      "html": "<span class=\"ds-archive-active-label\">LOCAL CATALOGUE</span>",
+      "css": ".ds-archive-active-label { display: inline-block; background: #171614; color: #f6f0df; padding: .45rem .55rem; font: .75rem/normal \"Azeret Mono\", ui-monospace, monospace; letter-spacing: .08em; }"
+    },
+    {
+      "name": "Search Drawer",
+      "kind": "custom",
+      "refersTo": "search-drawer",
+      "description": "Tissue paper drawer containing the local archive search field.",
+      "html": "<section class=\"ds-search-drawer\"><h2>SEARCH THE ARCHIVE</h2><input class=\"ds-search-input\" type=\"search\" placeholder=\"Name, set, number, or TCGdex ID\" /></section>",
+      "css": ".ds-search-drawer { background: #f6f0df; border: 2px solid #171614; box-shadow: 7px 9px 13px rgb(76 33 22 / 32%); padding: clamp(1.25rem, 4vw, 2.5rem); } .ds-search-drawer h2 { color: #171614; font: 700 clamp(2rem, 5vw, 3.5rem)/1 \"Barlow Condensed\", sans-serif; margin: 1rem 0; text-transform: uppercase; } .ds-search-input { width: 100%; min-height: 3.5rem; padding: .5rem 0; background: transparent; border: 0; border-bottom: 3px solid #171614; border-radius: 0; box-shadow: none; color: #171614; font: 700 clamp(1.2rem, 3vw, 2rem) \"Barlow Condensed\", sans-serif; } .ds-search-input:focus-visible { outline: 3px solid #171614; outline-offset: 5px; }"
+    },
+    {
+      "name": "Printing Label",
+      "kind": "custom",
+      "refersTo": "printing-label",
+      "description": "One tissue-paper label for one exact printing.",
+      "html": "<article class=\"ds-printing-label\"><div class=\"ds-label-art\" aria-hidden=\"true\"></div><div><strong>PIKACHU</strong><p>SET NAME</p><dl><div><dt>NO.</dt><dd>001</dd></div><div><dt>TCGDEX</dt><dd>swsh1-001</dd></div></dl><div class=\"ds-label-chips\"><span>STANDARD</span></div></div></article>",
+      "css": ".ds-printing-label { display: flex; min-width: 0; min-height: 12rem; padding: 1rem; background: #f6f0df; border: 1.5px solid #171614; color: #171614; font-family: \"Azeret Mono\", ui-monospace, monospace; animation: ds-pull-label .45s ease-out both; } .ds-label-art { flex: 0 0 5rem; min-height: 7rem; margin-right: 1rem; border-right: 1px solid #171614; } .ds-printing-label strong { display: block; font: 700 1.65rem/.95 \"Barlow Condensed\", sans-serif; text-transform: uppercase; } .ds-printing-label p, .ds-printing-label dl { font-size: .75rem; } .ds-printing-label dl { line-height: 1.5; } .ds-printing-label dl div { display: flex; flex-wrap: wrap; gap: .6rem; } .ds-printing-label dt { min-width: 3.5rem; color: #a94f2f; } .ds-label-chips span { display: inline-block; padding: .3rem .4rem; border: 1px solid #171614; background: #a9b69a; font-size: .7rem; overflow-wrap: anywhere; } @media (max-width: 30rem) { .ds-printing-label { flex-direction: column; } .ds-label-art { flex: 0 0 auto; margin: 0 0 1rem; padding-bottom: .75rem; border-right: 0; border-bottom: 1px solid #171614; } .ds-label-art svg { height: 4rem; width: 3rem; } } @keyframes ds-pull-label { from { opacity: 0; transform: translateY(-.7rem); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: translateY(0); clip-path: inset(0); } } @media (prefers-reduced-motion: reduce) { .ds-printing-label { animation: none; } }"
+    },
+    {
+      "name": "Archive Chips",
+      "kind": "chip",
+      "refersTo": "archive-chip",
+      "description": "Small square-edged status annotations on printing labels.",
+      "html": "<div class=\"ds-archive-chips\"><span class=\"ds-chip-sage\">STANDARD</span><span class=\"ds-chip-indigo\">EXPANDED</span><span class=\"ds-chip-lilac\">RARE</span></div>",
+      "css": ".ds-archive-chips { display: flex; flex-wrap: wrap; gap: .35rem; } .ds-archive-chips span { display: inline-block; padding: .3rem .4rem; border: 1px solid #171614; color: #171614; font: .7rem/normal \"Azeret Mono\", ui-monospace, monospace; } .ds-chip-sage { background: #a9b69a; } .ds-chip-indigo { background: #9fa8c8; } .ds-chip-lilac { background: #c1b1c9; }"
+    },
+    {
+      "name": "State Note",
+      "kind": "custom",
+      "refersTo": "state-note",
+      "description": "Ruled catalogue guidance for idle, short, empty, or unavailable states.",
+      "html": "<div class=\"ds-state-note\"><strong>START WITH AN IDENTITY.</strong> The archive keeps each exact printing on its own label.</div>",
+      "css": ".ds-state-note { border-top: 1px solid #171614; padding: 1.25rem 0; color: #171614; font: .75rem/1.7 \"Azeret Mono\", ui-monospace, monospace; } .ds-state-note.ds-error { padding: 1rem; background: #e5bf70; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Printing Archive Wall",
+    "overview": "The public archive is built like a working box-board drawer: burnt board surrounds tissue labels, black ink rules divide information, and every exact printing occupies its own labeled place. It is tactile and catalogued rather than promotional. Condensed display type makes the archive legible at a glance; monospaced data keeps identity fields precise.\n\nThe visual world favors near-square paper geometry, strong ruled edges, restrained color blocks, and a responsive wall of labels. Archive background, fonts, texture, and light color scheme are scoped to .archive-world so future product surfaces remain independent. It rejects the generic rounded marketplace thumbnail grid, glass surfaces, and decorative gradients. The field is the primary action, and catalogue states remain visible as honest notes.",
+    "keyCharacteristics": [
+      "Physical box-board, tissue, ink, and paper-label grammar.",
+      "Exact-printing identity expressed through ruled metadata and archive chips.",
+      "Mobile-first 1/2/3-column label wall with restrained tactile motion."
+    ],
+    "rules": [
+      { "name": "The Material Rule", "body": "Use the palette as physical archive material: board for the surrounding world, tissue for paper surfaces, ink for information structure, and muted colors for annotations.", "section": "colors" },
+      { "name": "The Identity Rule", "body": "Keep exact-printing names in condensed display type and identity fields in monospaced data type; do not turn catalogue facts into marketing copy.", "section": "typography" },
+      { "name": "The One-Shadow Rule", "body": "Do not add ornamental elevation to labels, chips, or state notes; use rules and material contrast instead.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do preserve the box-board field, tissue paper surfaces, and strong ink rules.",
+      "Do keep the container capped at 78rem and the label wall responsive at 46rem and 70rem.",
+      "Do make exact identity fields visibly distinct through monospaced metadata and archive chips.",
+      "Do retain the soft drawer shadow and pull-label motion only where the implementation uses them.",
+      "Do provide the reduced-motion fallback for label entrance motion."
+    ],
+    "donts": [
+      "Don't replace archive labels with generic rounded marketplace thumbnail grids.",
+      "Don't add glass surfaces, decorative gradients, or image-led card treatments.",
+      "Don't invent buttons, pricing treatments, dark mode, or alias UI that is not part of this public archive.",
+      "Don't use shadows as a general card treatment; the drawer is the one soft elevation."
+    ]
+  }
+}

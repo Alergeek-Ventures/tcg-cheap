@@ -1,0 +1,62 @@
+# Product
+
+<!-- impeccable:product-schema 1 -->
+
+> The facts in this record are collectively inferred from the explicit authoritative MVP plan and the current code/tests because a structured product interview was unavailable. They are not invented.
+
+## Platform
+
+web
+
+## Users
+
+- English-speaking Pokémon TCG players and collectors evaluating common in-shop singles trades.
+- English-speaking Polish sealed-product buyers evaluating products and prices.
+- The current public surface focuses on singles.
+
+## Product Purpose
+
+Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices.
+
+## Positioning
+
+Thesis-validation product built around local cached data and transparent uncertainty. It does not fabricate seller counts, shipping costs, or false precision.
+
+## Operating Context
+
+- Mobile-first checks while making an in-store trade.
+- Desktop research for Pokémon TCG singles and sealed products.
+- Public use does not require public accounts.
+
+## Capabilities and Constraints
+
+- Phoenix LiveView application using Elixir, Ash, and PostgreSQL.
+- Singles are searched and identified by exact printing, including set and collector number plus distinguishing metadata.
+- Singles estimates are in EUR and target seven-day freshness.
+- PLN sealed-product pricing and later PLN trade conversion are planned, but are not part of the current singles-focused surface.
+- Provider calls must happen outside normal request paths; public requests should primarily read local cached data.
+- The public exact-printing search surface is built as a local-only Home LiveView over the cached catalogue; catalogue/pricing modules remain the foundation.
+- The planned sealed-product experience, trade calculator, and the associated public and internal workflows are also not yet represented in the current route/UI surface.
+- Missing or stale data is preferable to fabricated data or silently exceeding acquisition constraints.
+
+## Evidence on Hand
+
+- The authoritative MVP implementation plan: `knowledge-base/wiki/product/mvp-implementation-plan.md`.
+- Current application code and tests in `lib/` and `test/`.
+- No testimonials or customer proof are available.
+- Image licensing remains unresolved.
+
+## Product Principles
+
+- Exact identity over approximate matching.
+- Honest uncertainty over fabricated precision.
+- Fast, local-first reads over synchronous provider dependence.
+- Stale data over a blank result when the data is clearly labeled.
+- Operational restraint over unnecessary acquisition cost or complexity.
+
+## Accessibility & Inclusion
+
+- English-only MVP.
+- Mobile-first and responsive, with desktop support.
+- Keyboard-accessible controls and semantic markup.
+- LiveView state changes must be communicated accessibly.

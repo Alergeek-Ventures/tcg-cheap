@@ -192,8 +192,11 @@ defmodule TcgCheap.Catalogue.Sync do
       end
     end)
     |> case do
-      {cards, _} when is_list(cards) -> {:ok, Enum.reverse(cards)}
-      error -> error
+      {cards, _} when is_list(cards) ->
+        {:ok, cards |> Enum.reverse() |> Enum.sort_by(& &1.tcgdex_id)}
+
+      error ->
+        error
     end
   end
 
@@ -305,6 +308,7 @@ defmodule TcgCheap.Catalogue.Sync do
 
   defp seed_cards(cards, set_id, synced_at) do
     Enum.reduce_while(cards, {:ok, 0, 0}, fn brief, {:ok, seeded, preserved} ->
+      lock_card(brief.tcgdex_id)
       attrs = brief |> Map.put(:card_set_id, set_id) |> Map.put(:last_synced_at, synced_at)
 
       upsert_fields =
@@ -321,6 +325,14 @@ defmodule TcgCheap.Catalogue.Sync do
           {:halt, {:error, reason}}
       end
     end)
+  end
+
+  defp lock_card(tcgdex_id) do
+    Repo.query!("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [
+      "tcgdex-card:" <> tcgdex_id
+    ])
+
+    :ok
   end
 
   defp handle_seed_result(brief, card, set_id, true, _seeded, _preserved)

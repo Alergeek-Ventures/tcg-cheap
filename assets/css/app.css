@@ -103,3 +103,88 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* This file is for your main application CSS */
+
+@font-face {
+  font-family: "Barlow Condensed";
+  src: url("/fonts/barlow-condensed-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Azeret Mono";
+  src: url("/fonts/azeret-mono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+.archive-world {
+  --box-board: #c86c3f;
+  --box-board-dark: #a94f2f;
+  --ink: #171614;
+  --tissue: #f6f0df;
+  --sage: #a9b69a;
+  --indigo: #9fa8c8;
+  --lilac: #c1b1c9;
+  --sunfade: #e5bf70;
+  color-scheme: light;
+  background: var(--box-board);
+  color: var(--ink);
+  font-family: "Azeret Mono", ui-monospace, monospace;
+  min-height: 100svh;
+  background-image: url("data:image/svg+xml,%3Csvg width='90' height='90' viewBox='0 0 90 90' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+}
+
+.archive-world .archive-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-bottom: 2px solid var(--ink); padding: 1rem clamp(1rem, 4vw, 3.5rem); }
+.archive-world .archive-wordmark, .archive-world .archive-header-meta, .archive-world .label-data, .archive-world .archive-chip { font-family: "Azeret Mono", ui-monospace, monospace; }
+.archive-world .archive-wordmark { color: var(--ink); font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-decoration: none; }
+.archive-world .archive-header-meta { display: flex; flex-wrap: wrap; gap: 1rem; font-size: .75rem; letter-spacing: .08em; text-align: right; }
+.archive-world .archive-header-meta span:last-child { background: var(--ink); color: var(--tissue); padding: .45rem .55rem; }
+.archive-world .archive-main { padding: clamp(2rem, 5vw, 5rem) 1rem 4rem; }
+.archive-world .archive-container { width: min(100%, 78rem); margin: 0 auto; }
+.archive-world .archive-intro { max-width: 49rem; margin-bottom: 2.5rem; }
+.archive-world .archive-intro h1 { font: 700 clamp(3.4rem, 11vw, 8rem)/.83 "Barlow Condensed", sans-serif; letter-spacing: -.045em; text-transform: uppercase; }
+.archive-world .archive-intro h1 span { color: var(--tissue); }
+.archive-world .archive-lede { max-width: 34rem; border-left: 2px solid var(--ink); margin-top: 1.5rem; padding-left: 1rem; font-size: .75rem; line-height: 1.7; }
+.archive-world .search-drawer { background: var(--tissue); border: 2px solid var(--ink); box-shadow: 7px 9px 13px rgb(76 33 22 / 32%); padding: clamp(1.25rem, 4vw, 2.5rem); margin-bottom: 4rem; }
+.archive-world .search-drawer h2, .archive-world .archive-shelf h2 { font: 700 clamp(2rem, 5vw, 3.5rem)/1 "Barlow Condensed", sans-serif; text-transform: uppercase; margin: 1rem 0; }
+.archive-world .search-field-wrap { position: relative; }
+.archive-world .search-field-wrap input { background: transparent; border: 0; border-bottom: 3px solid var(--ink); border-radius: 0; box-shadow: none; color: var(--ink); font: 700 clamp(1.2rem, 3vw, 2rem) "Barlow Condensed", sans-serif; min-height: 3.5rem; padding: .5rem 0; width: 100%; }
+.archive-world .search-field-wrap input:focus-visible { outline: 3px solid var(--ink); outline-offset: 5px; }
+.archive-world .search-field-wrap input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; background: var(--ink); height: 1rem; width: 1rem; clip-path: polygon(15% 0, 50% 35%, 85% 0, 100% 15%, 65% 50%, 100% 85%, 85% 100%, 50% 65%, 15% 100%, 0 85%, 35% 50%, 0 15%); }
+.archive-world .search-field-wrap input::placeholder { color: #6b5146; opacity: 1; }
+.archive-world .phx-change-loading { display: none; font-size: .7rem; margin-top: .6rem; }
+.archive-world form.phx-change-loading .phx-change-loading { display: block; }
+.archive-world .search-help { font-size: .75rem; line-height: 1.6; margin-top: 1rem; }
+.archive-world .shelf-heading { align-items: baseline; border-bottom: 2px solid var(--ink); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+.archive-world .shelf-heading p { font-size: .75rem; text-align: right; }
+.archive-world .label-wall { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem 1.5rem; padding: 1.5rem 0; }
+.archive-world .label-slot { border-bottom: 1px solid var(--ink); padding-bottom: 1rem; }
+.archive-world .printing-label { background: var(--tissue); border: 1.5px solid var(--ink); display: flex; min-height: 12rem; min-width: 0; padding: 1rem; animation: pull-label .45s ease-out both; }
+.archive-world .label-art { align-items: center; border-right: 1px solid var(--ink); display: flex; flex: 0 0 5rem; justify-content: center; margin-right: 1rem; }
+.archive-world .label-art svg { fill: none; height: 7rem; stroke: var(--box-board-dark); stroke-width: 1.5; width: 5rem; }
+.archive-world .label-copy { min-width: 0; }
+.archive-world .label-name { font: 700 1.65rem/.95 "Barlow Condensed", sans-serif; text-transform: uppercase; overflow-wrap: anywhere; }
+.archive-world .label-set { font-size: .75rem; margin: .45rem 0 1rem; overflow-wrap: anywhere; }
+.archive-world .label-data { font-size: .75rem; line-height: 1.5; }
+.archive-world .label-data div { display: flex; flex-wrap: wrap; gap: .6rem; min-width: 0; }
+.archive-world .label-data dt { color: var(--box-board-dark); min-width: 3.5rem; }
+.archive-world .label-data dd { overflow-wrap: anywhere; }
+.archive-world .label-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: 1rem; }
+.archive-world .archive-chip { border: 1px solid var(--ink); font-size: .7rem; padding: .3rem .4rem; }
+.archive-world .chip-sage { background: var(--sage); }.archive-world .chip-indigo { background: var(--indigo); }.archive-world .chip-lilac { background: var(--lilac); }.archive-world .chip-sunfade { background: var(--sunfade); }
+.archive-world .state-note { border-top: 1px solid var(--ink); font-size: .75rem; line-height: 1.7; padding: 1.25rem 0; }
+.archive-world .state-error { background: var(--sunfade); padding: 1rem; }
+@keyframes pull-label { from { opacity: 0; transform: translateY(-.7rem); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: translateY(0); clip-path: inset(0); } }
+@media (max-width: 30rem) {
+  .archive-world .printing-label { flex-direction: column; }
+  .archive-world .label-art { border-bottom: 1px solid var(--ink); border-right: 0; flex: 0 0 auto; margin: 0 0 1rem; padding-bottom: .75rem; }
+  .archive-world .label-art svg { height: 4rem; width: 3rem; }
+  .archive-world .label-copy, .archive-world .label-data, .archive-world .label-data dd { min-width: 0; max-width: 100%; }
+  .archive-world .label-data dd { overflow-wrap: anywhere; }
+  .archive-world .archive-chip { overflow-wrap: anywhere; }
+}
+@media (min-width: 46rem) { .archive-world .label-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 70rem) { .archive-world .label-wall { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .archive-world .printing-label { animation: none; } }
+.archive-world .archive-wordmark:focus-visible { outline: 3px solid var(--ink); outline-offset: 5px; }

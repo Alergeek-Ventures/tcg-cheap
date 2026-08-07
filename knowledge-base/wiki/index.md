@@ -2,8 +2,8 @@
 
 ## Architecture
 
-- [Application Foundation](architecture/application-foundation.md) — Current Phoenix/AshPostgres foundation, CardSet/CardPrinting storage, local exact-printing search boundary, strict TCGdex set enumeration and brief-card sync, transaction-safe valuation snapshots, and validation/limitations. Updated 2026-08-07.
-- [Provider and Acquisition Feasibility](architecture/provider-acquisition-feasibility.md) — TCGdex aggregate pricing, set-enumeration/brief-sync feasibility, local exact-printing search boundary, conservative mapping safeguards, bounded live limitation, and unfinished enrichment/public search UI work. Updated 2026-08-07.
+- [Application Foundation](architecture/application-foundation.md) — Current Phoenix/AshPostgres foundation, public local-only HomeLive exact-printing surface, CardSet/CardPrinting storage, strict TCGdex sync locking, valuation boundary, and validation/limitations. Updated 2026-08-07.
+- [Provider and Acquisition Feasibility](architecture/provider-acquisition-feasibility.md) — TCGdex aggregate pricing, sync concurrency hardening, completed local exact-printing search surface, conservative mapping safeguards, bounded live limitation, and pending enrichment/valuation work. Updated 2026-08-07.
 - [Reference Project Conventions](architecture/reference-project-conventions.md) — Phase 0 audit of Firmowid and Onside conventions, adoption decisions, and compatibility boundaries. Updated 2026-08-07.
 
 ## Product
