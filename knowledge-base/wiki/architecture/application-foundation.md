@@ -8,7 +8,9 @@
 
 TCG Cheap is a Phoenix application using Phoenix LiveView, with the `TcgCheap.Core` Ash domain and `TcgCheap.Repo` AshPostgres repository providing the current domain/persistence foundation. The repository is developed in a Nix devenv with Elixir, PostgreSQL, Podman/Compose, Worktrunk, Tailwind, and esbuild tooling.
 
-The Ash core/repo foundation is present. Provider/source research has recorded a catalogue-source direction, but does not complete Phase 0: the exact singles valuation acquisition plan remains blocked pending legitimate seller-level, exact-printing, English/NM, Poland-shipping evidence. Product resources, authentication, background jobs, and product-data storage have not yet been implemented.
+The Ash core/repo foundation is present. The pure provider-neutral singles core now exists in `lib/tcg_cheap/pricing/singles/provider.ex`, `offer.ex`, and `valuation.ex`, with focused tests in `test/tcg_cheap/pricing/singles/provider_test.exs` and `valuation_test.exs`. `Provider` declares required capabilities and exposes deterministic missing-capability detection, `Offer` normalizes seller/language/condition/shipping/Decimal EUR fields, and `Valuation` calculates `default_v1` from five lowest distinct sellers. No live adapter, adapter selector, Ash resource, Oban job, or singles storage exists yet.
+
+The access-policy blocker changed on 2026-08-07: scraper paths are allowed by product-owner direction, while a successful capability-complete credentialed provider test remains required. Future adapter selection must reject providers missing seller identity or destination eligibility rather than silently approximate them; no automatic selector exists yet.
 
 ## Local development
 
@@ -19,7 +21,7 @@ The Ash core/repo foundation is present. Provider/source research has recorded a
 - Development lifecycle is managed with `mix dev.up` and `mix dev.down`; non-main worktree identities include a short hash of the original branch to prevent sanitized-name collisions. `dev.up` verifies the expected Compose `postgres` service, restarts its exact Phoenix tmux session, and requires a 2xx HTTP response before reporting readiness.
 - Theme initialization is bundled in the self-hosted JavaScript asset rather than emitted as a raw inline script. Browser CSP explicitly allows self-hosted scripts/connect/images and self plus inline styles required by LiveView runtime behavior.
 
-Agent quality tooling is now established and validated, including the repository's canonical compile, formatting, linting, type/code generation, static analysis, and test checks. Final local bootstrap verification passed `mix check` with 10 tests, plus HTTP, LiveView, Tidewave MCP, and PostgreSQL loopback checks. Validation is local-only; Caddy integration and CI remain deferred.
+Focused pricing tests passed with 8 tests; `mix check --verbose` passed with 23 total tests. Bounded browser/HTTP experiments completed. Validation is local-only; Caddy integration and CI remain deferred.
 
 ## See Also
 

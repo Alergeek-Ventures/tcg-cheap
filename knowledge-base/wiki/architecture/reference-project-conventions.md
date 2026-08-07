@@ -30,7 +30,7 @@ changed.
 | Authentication | Firmowid has AshAuthentication, password/OAuth flows, token resources, and Phoenix routes (`firmowid/mix.exs:70-71`; `firmowid/lib/firmowid_web/core/router.ex:3-7`; `firmowid/lib/firmowid/ash/core/token.ex:10-29`). Onside has browser/mobile token paths (`onside/lib/onside_web/auth_controller.ex:3-81`; `onside/lib/onside_web/browser_socket.ex:5-12`). TCG Cheap has not implemented authentication; dependency and strategy selection remains future work. |
 | Admin | Firmowid has no AshBackpex dependency or adopted AshBackpex convention. Onside uses AshAdmin, not AshBackpex (`onside/mix.exs:75-82`; `onside/lib/onside/audits.ex:3-6`). Do not copy either admin UI; independently validate and pin AshBackpex before implementation. |
 | Oban/jobs | Firmowid combines Oban and AshOban, including tenant-aware wrappers and AshOban startup configuration (`firmowid/lib/firmowid/application.ex:17-50`; `firmowid/lib/firmowid/oban.ex:1-12`). Onside configures AshOban and Oban in its application (`onside/lib/onside/application.ex:16-33`) and has queued, retrying workers such as `onside/lib/onside/clubs/workers/squadassist_sync_worker.ex:1-8,16-38`. Adopt explicit queues, worker tests, and observability only after product jobs are defined. |
-| Provider boundaries | Onside wraps external SquadAssist calls behind a Req client (`onside/lib/onside/squadassist/client.ex:3-130`); Firmowid has a Req NBP client (`firmowid/lib/firmowid/ash/currencies/nbp_api_client.ex:27-75`). Adopt only the Req boundary and error-normalization pattern, not Firmowid's float rate representation: TCG Cheap money/rates require Decimal. The bounded experiment batch and cost/control analysis are recorded in the provider ADR; metadata/sealed source direction exists, while exact singles seller/destination access remains blocked. |
+| Provider boundaries | Onside wraps external SquadAssist calls behind a Req client (`onside/lib/onside/squadassist/client.ex:3-130`); Firmowid has a Req NBP client (`firmowid/lib/firmowid/ash/currencies/nbp_api_client.ex:27-75`). Adopt only the Req boundary and error-normalization pattern, not Firmowid's float rate representation: TCG Cheap money/rates require Decimal. The bounded experiment batch and cost/control analysis are recorded in the provider ADR; acquisition access is no longer vetoed under the scrappy policy, while exact seller-identity/destination capability validation remains unresolved, so production provider locking and Phase 0 remain incomplete. Older access-first wording is historical. |
 | Styling/assets | Firmowid uses Phoenix-managed Tailwind/esbuild and self-contained JS hooks (`firmowid/mix.exs:87-88,208-219`; `firmowid/assets/js/hooks/index.js:1-20`). Onside's product UI is React/Volt SPA (`onside/mix.exs:65-67`; `onside/lib/onside_web/volt_react_dev_entry_plugin.ex:1-54`). Adopt neither SPA architecture nor Volt; TCG Cheap remains standard LiveView with Nix/devenv and its existing Tailwind/esbuild pipeline (`tcg-cheap/mix.exs:66-67,98-114`). |
 | Tests/quality | Firmowid and Onside compile tests from `lib` and expose `mix check` (`firmowid/mix.exs:15-17`; `onside/mix.exs:15-17`). Firmowid has colocated tests and `test_paths: ["lib"]`; that colocated test convention is explicitly not adopted. TCG Cheap keeps standard `test/` structure and canonical `mix check`. |
 | Development | Firmowid uses Compose, Infisical, `mix setup`, and `mix dev.up` (`firmowid/README.md:5-23,121-153`). Onside uses worktree-specific ports, Caddy, Infisical, and `mix dev.up/down` (`onside/README.md:36-70`). Adopt reproducible lifecycle and isolation ideas, but TCG Cheap remains Nix/devenv, direct localhost, and deferred Caddy integration. |
@@ -95,9 +95,11 @@ before implementation; compatibility of those additions is unresolved.
 ## Unresolved items
 
 - The bounded provider/source experiment batch and cost/control analysis are recorded
-  in the provider ADR, with metadata and sealed source direction established. Exact
-  singles seller/destination access remains blocked, so Phase 0 and provider locking
-  are incomplete; older unresolved wording above is historical/stale.
+  in the provider ADR, with metadata and sealed source direction established.
+  Acquisition access is no longer vetoed under the scrappy policy, but exact
+  seller-identity/destination capability validation remains unresolved, so Phase 0
+  and provider locking are incomplete. Older access-first wording above is
+  historical/stale.
 - Authentication strategy, AshBackpex compatibility, background dependency
   versions, storage provider, and production deployment topology need decisions.
 - Do not introduce multitenancy absent a demonstrated requirement. Decide the

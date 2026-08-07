@@ -811,13 +811,13 @@ Create a concise decision record before locking integrations. It must contain:
 - licensing and terms notes
 - known gaps
 
-### 15.5 Compliance boundary
+### 15.5 Product-owner scrappy acquisition policy — supersedes prior boundary
 
-Do not rotate credentials, create multiple accounts, or use proxies to evade provider limits, prices, access controls, or terms.
+The former strict compliance boundary in this section is explicitly superseded by the product owner. Scraping public product/listing pages and using third-party scraping services are allowed. Multiple project-controlled accounts/API keys are allowed for experiments, redundancy, and quota pooling, including published free/trial capacity. All account/provider usage and acquisition cost remains aggregated under the same global **US$50/month** cap; accounts do not multiply the budget.
 
-Multiple credentials are acceptable only when the provider expressly supports them and the credentials represent legitimate organization accounts, environments, or tenants.
+Use canonical product identifiers and known source URLs only; never accept arbitrary user-supplied URLs. Keep credentials out of git and provider-specific secrets server-side. Do not use stolen credentials or false third-party identities, and do not bypass authentication, payment, or CAPTCHA controls. Document terms, robots, and access-control behavior as operational risk rather than an automatic source-selection veto.
 
-Use backoff, rate limits, robots/terms review, and provider-specific policies.
+Use backoff, bounded concurrency, kill switches, and stale/`?` fallback. This is an acquisition-policy change only: it does not weaken the exact `default_v1` requirements of English, Near Mint, listings that can ship to Poland, five distinct sellers, EUR arithmetic mean, or the fixed sample rules elsewhere in this plan.
 
 ---
 
