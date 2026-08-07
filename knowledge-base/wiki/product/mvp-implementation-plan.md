@@ -133,7 +133,7 @@ The sealed-product feature provides Polish retail market context, price history,
 
 A single is one exact Pokémon card printing, identified primarily by its set and collector number, with enough metadata to distinguish materially different printings.
 
-The singles feature provides a Cardmarket-derived or Cardmarket-equivalent valuation for one fixed MVP pricing preset, a 30-day valuation graph, and the values used by the trade calculator.
+The singles feature provides an honest, aggregate Cardmarket-derived estimate for common in-shop Pokémon trades, a 30-day valuation graph when observations accumulate, and the values used by the trade calculator. This is thesis validation, not seller-level market intelligence.
 
 ### 4.3 Important boundary
 
@@ -199,7 +199,7 @@ The MVP does **not** require the user to type the candidate price into a separat
 2. Use the default **Singles** search mode.
 3. Type a card name.
 4. Select the exact printing using image, set, collector number, and other distinguishing metadata.
-5. View the current valuation, 30-day history, price methodology, offer count, data age, and stale/limited state.
+5. View the current estimate, 30-day history when available, price methodology, data age, and stale/limited state.
 6. Add the card to a trade.
 
 ### 6.3 Trade calculator
@@ -275,7 +275,7 @@ Required content:
 - rarity and legality metadata when available
 - current valuation in EUR
 - data freshness or stale status
-- number of qualifying sellers used
+- source and selected metric/methodology; seller/offer count is unavailable from the active aggregate source and must not be fabricated
 - exact methodology explanation
 - fixed 30-day price graph
 - action to start or continue a trade with this card
@@ -339,7 +339,7 @@ MVP requirements:
 - preserve set, collector number, rarity, legalities, regulation mark, images, and other matching metadata
 - retain cards after rotation
 
-Candidate metadata providers include TCGdex and Pokémon TCG API, but the agent must verify current coverage, licensing, exact-printing fidelity, image reliability, and mapping suitability before choosing.
+Use TCGdex for the MVP metadata/catalogue and embedded Cardmarket aggregate pricing where available. Pokémon TCG API may remain a fallback/cross-check. Verify coverage, licensing, exact-printing fidelity, image reliability, and mapping suitability; unresolved material mappings go to review.
 
 ### 8.2 Card variants
 
@@ -397,52 +397,21 @@ Only approved products appear in public search. Ambiguous or unmatched listings 
 
 ## 9. Singles valuation rules
 
-### 9.1 Fixed MVP pricing preset
+### 9.1 Aggregate MVP policy
 
-The MVP exposes one fixed preset, internally versioned as something equivalent to `default_v1`.
+The active MVP uses the free, unauthenticated TCGdex embedded Cardmarket aggregate pricing source. The versioned policy is `tcgdex_cardmarket_v1`. It is intentionally an estimate for thesis validation: it does not claim English/Near Mint filtering, Poland shipping eligibility, or seller-level precision. Low-impact finish differences may be simplified; ambiguous or materially different variants remain missing/review rather than guessed.
 
-The preset is:
+For one exact card printing, select the first finite positive EUR value in this exact order: `avg7`, `avg30`, `trend`, `avg`, `low`. Use Decimal arithmetic and display the selected value to two decimal places. Store the selected source metric/method, source/provider, card identity, fetched timestamp, provider pricing update timestamp when parseable, and current/archive status. The active source does not provide a seller/offer count; it is unavailable and must never be fabricated. Any future shared storage field for that count may be nullable/optional.
 
-- language: English
-- condition: Near Mint
-- destination: listing can ship to Poland
-- seller type: any
-- seller reputation: any
-- aggregation: arithmetic mean
-- sample: five lowest qualifying offers from five distinct sellers
-- shipping: ignored
-- currency: EUR
+The UI and methodology copy must say that this is an aggregate Cardmarket estimate. It cannot prove language, condition, seller identity, finish-specific exactness, or shipping to Poland. Shipping is not calculated. Quantity still multiplies the unit estimate, but does not imply availability of multiple copies.
 
-The preset abstraction must exist internally, but users cannot change it in the MVP.
+The previously implemented `default_v1` five-lowest-distinct-seller offer algorithm remains historical/post-MVP capability and must not be the active MVP methodology. Preserve its code and history for a future seller-level source; do not expose its promises in the MVP.
 
-### 9.2 Exact calculation
+### 9.2 Missing aggregate value
 
-For one card printing:
+When none of `avg7`, `avg30`, `trend`, `avg`, or `low` is a finite positive EUR value, show the card as unavailable/unpriced and exclude it from numeric trade totals. Do not invent a fallback or claim that no current offers exist: this aggregate source does not provide qualifying-offer evidence.
 
-1. Filter listings to the fixed MVP preset.
-2. Group qualifying offers by seller.
-3. From each seller, keep the seller’s lowest qualifying listing.
-4. Sort those seller-level prices ascending.
-5. Take the five lowest distinct sellers.
-6. Compute the arithmetic mean using decimal arithmetic.
-7. If one to four sellers qualify, average all available distinct-seller prices.
-8. Store or reference the qualifying seller count.
-9. Display EUR values to two decimal places, without implying greater precision.
-
-Quantity does not change the unit-price sample. A quantity of four simply multiplies the unit valuation by four. Do not require one seller to have four copies.
-
-### 9.3 No current offers
-
-When there are no current qualifying offers:
-
-1. Look for the latest historical valuation for the same card printing and the same preset.
-2. Use it regardless of age.
-3. Include it in trade totals.
-4. Mark it clearly as historical or stale.
-5. Show the date and available offer-count metadata.
-6. Never silently broaden language, condition, geography, or seller rules.
-
-### 9.4 Never-valued card
+### 9.3 Never-valued card
 
 When a card has no current or historical valuation:
 
@@ -460,21 +429,18 @@ Right side:  €35.10
 Difference:  Cannot be determined precisely
 ```
 
-### 9.5 Provider request shape
+### 9.4 Provider request shape
 
-Choose the cheapest request shape that can support the fixed preset.
-
-- If the provider offers the needed aggregate more cheaply than listing-level data, store the aggregate.
-- If individual qualifying offers are returned for the same cost, store them.
-- Do not pay more solely to retain seller-level details.
-- Every stored valuation snapshot must still include:
+Use the free TCGdex embedded aggregate; do not scrape Cardmarket or pay for listing-level data for the active singles MVP. Every stored valuation snapshot must still include:
   - card printing
-  - preset version
+  - policy version (`tcgdex_cardmarket_v1`)
   - calculated EUR value
   - source/provider
   - calculation method
-  - qualifying offer count when known
+  - selected source metric/method
+  - seller/offer count only when a future source provides it; otherwise leave any shared field nullable/optional and do not fabricate it
   - fetch timestamp
+  - provider pricing update timestamp when parseable
   - current versus archival status
 
 ---
@@ -543,7 +509,7 @@ Requirements:
 - encode left-side card IDs and quantities
 - encode right-side card IDs and quantities
 - do not encode price snapshots
-- opening the link always uses the latest available cached valuation and current fixed preset
+- opening the link always uses the latest available cached valuation and current `tcgdex_cardmarket_v1` policy
 - card names may change without breaking the URL because stable IDs are authoritative
 - update the URL as the trade changes without full-page reloads
 
@@ -755,20 +721,16 @@ Data sources will make or break the product. Treat source selection as an explic
 
 ### 15.1 Singles research
 
-Evaluate current options for:
+For the active MVP, document and fixture-test TCGdex embedded Cardmarket aggregate pricing. Seller-level alternatives are post-MVP research only. Evaluate current options for:
 
-- direct Cardmarket access
-- legitimate third-party Cardmarket-data providers
-- aggregate versus listing-level endpoints
 - exact printing matching
-- language and condition filters
-- shipping-to-Poland support
-- data freshness
+- aggregate metric availability and field semantics
+- data freshness and provider update timestamps
 - historic data availability
 - API stability
-- pricing
-- rate limits
+- pricing and rate limits
 - licensing and terms
+- known inability to verify language, condition, seller identity, finish-specific exactness, or shipping-to-Poland eligibility
 
 ### 15.2 Card metadata research
 
@@ -802,7 +764,7 @@ Create a concise decision record before locking integrations. It must contain:
 
 - sources evaluated
 - primary and fallback choices
-- real request or scrape tests
+- real aggregate request tests (and bounded scrape experiments only when relevant to later sealed/post-MVP research)
 - coverage examples
 - matching accuracy examples
 - pricing and quota table
@@ -811,13 +773,13 @@ Create a concise decision record before locking integrations. It must contain:
 - licensing and terms notes
 - known gaps
 
-### 15.5 Product-owner scrappy acquisition policy — supersedes prior boundary
+### 15.5 Aggregate-first/no-scraping MVP policy
 
-The former strict compliance boundary in this section is explicitly superseded by the product owner. Scraping public product/listing pages and using third-party scraping services are allowed. Multiple project-controlled accounts/API keys are allowed for experiments, redundancy, and quota pooling, including published free/trial capacity. All account/provider usage and acquisition cost remains aggregated under the same global **US$50/month** cap; accounts do not multiply the budget.
+The active singles MVP selects free, unauthenticated TCGdex embedded Cardmarket aggregates and avoids scraping where practical. The selected singles source has **$0 acquisition cost** and requires no credentials. This does not decide every broader sealed-product source: sealed distributor and retailer research remains open and must be evaluated separately.
 
-Use canonical product identifiers and known source URLs only; never accept arbitrary user-supplied URLs. Keep credentials out of git and provider-specific secrets server-side. Do not use stolen credentials or false third-party identities, and do not bypass authentication, payment, or CAPTCHA controls. Document terms, robots, and access-control behavior as operational risk rather than an automatic source-selection veto.
+Use canonical identifiers and known source URLs only; never accept arbitrary user-supplied URLs. Keep any future credentials out of git and provider-specific secrets server-side. Do not bypass authentication, payment, or CAPTCHA controls. Scraping or paid providers may be researched for post-MVP seller-level capability, but are not part of the active singles methodology.
 
-Use backoff, bounded concurrency, kill switches, and stale/`?` fallback. This is an acquisition-policy change only: it does not weaken the exact `default_v1` requirements of English, Near Mint, listings that can ship to Poland, five distinct sellers, EUR arithmetic mean, or the fixed sample rules elsewhere in this plan.
+Keep the global **US$50/month** cap across all external acquisition. Use backoff, bounded concurrency, kill switches, cost tracking, and stale/`?` fallback for any future paid or scraped source.
 
 ---
 
@@ -974,7 +936,7 @@ Follow Firmowid conventions even when names differ. The following is a conceptua
 
 | Resource | Purpose |
 |---|---|
-| `PricingPreset` | Internal versioned fixed preset; only one public preset in MVP |
+| `PricingPreset` | Internal versioned singles policy; MVP uses `tcgdex_cardmarket_v1` |
 | `SingleValuationSnapshot` | Timestamped EUR valuation and methodology |
 | `SingleOfferObservation` | Optional seller-level observations when returned at no extra cost |
 | `SealedListingObservation` | Timestamped PLN price and stock observation |
@@ -1089,11 +1051,11 @@ Do not replace stale data with a blank screen.
 
 Show concise methodology text, for example:
 
-> Average of the five lowest English Near Mint offers from distinct sellers that ship to Poland. Shipping excluded.
+> Aggregate Cardmarket estimate from TCGdex (`tcgdex_cardmarket_v1`); language, condition, seller identity, finish, and Poland shipping are not verified.
 
-For historical fallback:
+For an unavailable aggregate:
 
-> No current qualifying offers. Using the latest matching valuation from 12 days ago.
+> No positive aggregate metric is available; this card is currently unpriced rather than treated as evidence of no offers.
 
 ### 22.4 Accessibility
 
@@ -1182,9 +1144,12 @@ Do not prematurely introduce distributed infrastructure.
 
 Cover:
 
-- five-lowest-distinct-seller valuation
-- fewer than five sellers
-- no current offer with historical fallback
+- aggregate metric-priority selection
+- non-finite/non-positive aggregate values
+- exact priority order and Decimal two-decimal formatting
+- provenance fields, parseable provider update timestamp, and current/archive status
+- seller/offer count remains unavailable for the active aggregate adapter and is not fabricated
+- missing aggregate value and unavailable state
 - never-valued card
 - quantity multiplication
 - incomplete trade totals
@@ -1287,7 +1252,7 @@ If a source does not expose historical data, allow the collector to accumulate r
 1. Import card sets and printings.
 2. Implement search and exact-printing result display.
 3. Implement Cardmarket/provider mapping.
-4. Implement fixed `default_v1` valuation.
+4. Implement `tcgdex_cardmarket_v1` aggregate valuation; preserve `default_v1` as historical/post-MVP code.
 5. Implement snapshots and 7-day TTL.
 6. Implement on-demand refresh and PubSub updates.
 7. Implement single-card page and 30-day graph.
@@ -1349,8 +1314,8 @@ The MVP is complete only when all of the following are true.
 
 - exact card printings are searchable
 - card page shows image and identity metadata
-- card page shows current or stale EUR valuation
-- methodology and offer count are visible
+- card page shows current or stale EUR aggregate valuation under `tcgdex_cardmarket_v1`
+- aggregate source, selected metric, and methodology are visible; no seller/offer-count widget is required because the active source does not provide that field
 - 7-day TTL works
 - missing/stale data triggers one deduplicated Oban job
 - page updates through LiveView when the job completes
@@ -1462,7 +1427,7 @@ Do **not** expose:
 - shipping normalization
 - separate fetches for arbitrary settings combinations
 
-The internal model should remain versionable so these can be added later, but the MVP has one fixed preset only.
+The internal model should remain versionable so these can be added later, but the MVP uses one fixed aggregate policy, `tcgdex_cardmarket_v1`.
 
 Earlier exploration also considered server-persisted trade links and frozen prices. The final MVP uses URL-only trade composition and always evaluates against the latest locally cached data.
 
