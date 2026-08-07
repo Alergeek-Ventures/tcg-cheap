@@ -48,6 +48,57 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
     assert Exception.message(error) =~ "has already been taken"
   end
 
+  test "replaces the current snapshot while retaining policy-specific history" do
+    card = create_card_printing()
+    policy = "tcgdex_cardmarket_v1-#{System.unique_integer([:positive])}"
+    other_policy = "tcgdex_cardmarket_v2-#{System.unique_integer([:positive])}"
+
+    assert {:ok, nil} = Core.get_current_single_valuation(card.id, policy)
+
+    first = Core.record_single_valuation!(snapshot_attributes(card, %{policy_version: policy}))
+
+    replacement =
+      Core.record_single_valuation!(
+        snapshot_attributes(card, %{
+          policy_version: policy,
+          value_eur: Decimal.new("512.00"),
+          fetched_at: ~U[2026-08-07 13:00:00.000000Z]
+        })
+      )
+
+    other =
+      Core.record_single_valuation!(
+        snapshot_attributes(card, %{policy_version: other_policy, value_eur: Decimal.new("99.00")})
+      )
+
+    assert {:ok, current} = Core.get_current_single_valuation(card.id, policy)
+    assert current.id == replacement.id
+    assert {:ok, other_current} = Core.get_current_single_valuation(card.id, other_policy)
+    assert other_current.id == other.id
+
+    assert [newest, oldest] = Core.list_single_valuation_history!(card.id, policy)
+    assert newest.id == replacement.id
+    assert oldest.id == first.id
+    refute oldest.current?
+  end
+
+  test "an invalid replacement preserves the prior current snapshot" do
+    card = create_card_printing()
+    policy = "tcgdex_cardmarket_v1-#{System.unique_integer([:positive])}"
+    first = Core.record_single_valuation!(snapshot_attributes(card, %{policy_version: policy}))
+
+    assert {:error, _error} =
+             Core.record_single_valuation(
+               snapshot_attributes(card, %{policy_version: policy, value_eur: Decimal.new(0)})
+             )
+
+    assert {:ok, current} = Core.get_current_single_valuation(card.id, policy)
+    assert current.id == first.id
+    assert [retained] = Core.list_single_valuation_history!(card.id, policy)
+    assert retained.id == first.id
+    assert retained.current?
+  end
+
   test "rejects non-positive values and non-EUR aggregate snapshots" do
     card = create_card_printing()
 
@@ -60,6 +111,13 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
              Core.record_single_valuation(snapshot_attributes(card, %{currency: "PLN"}))
 
     assert Exception.message(currency_error) =~ "expected one of \"EUR\""
+  end
+
+  test "returns an error instead of inserting for a nonexistent card printing" do
+    assert {:error, error} =
+             Core.record_single_valuation(snapshot_attributes(%{id: Ecto.UUID.generate()}, %{}))
+
+    assert Exception.message(error) =~ "not found"
   end
 
   defp create_card_printing do

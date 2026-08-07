@@ -27,6 +27,13 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       get? true
       filter expr(tcgdex_id == ^arg(:tcgdex_id))
     end
+
+    read :lock_for_update_by_id do
+      argument :id, :uuid, allow_nil?: false
+      get? true
+      filter expr(id == ^arg(:id))
+      prepare build(lock: :for_update)
+    end
   end
 
   attributes do

@@ -3,8 +3,8 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
   An immutable locally acquired aggregate Cardmarket valuation.
 
   Snapshots retain provider provenance indefinitely. At most one snapshot per
-  card and policy should remain current; acquisition orchestration archives the
-  old current snapshot after a successful replacement is stored.
+  card and policy should remain current; the record action archives the prior
+  current snapshot and inserts its replacement atomically in one transaction.
   """
 
   use Ash.Resource,
@@ -25,6 +25,9 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
     defaults [:read]
 
     create :record do
+      transaction? true
+      touches_resources [TcgCheap.Catalogue.CardPrinting]
+
       accept [
         :card_printing_id,
         :value_eur,
@@ -38,6 +41,7 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
       ]
 
       change set_attribute(:current?, true)
+      change {TcgCheap.Pricing.Singles.Changes.ReplaceCurrentSnapshot, []}
       validate compare(:value_eur, greater_than: 0)
       validate one_of(:currency, ["EUR"])
     end
@@ -48,8 +52,31 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
     end
 
     read :current_for_card do
-      argument :card_printing_id, :string, allow_nil?: false
+      argument :card_printing_id, :uuid, allow_nil?: false
       filter expr(card_printing_id == ^arg(:card_printing_id) and current? == true)
+      prepare build(sort: [fetched_at: :desc])
+    end
+
+    read :current_for_card_and_policy do
+      argument :card_printing_id, :uuid, allow_nil?: false
+      argument :policy_version, :string, allow_nil?: false
+      get? true
+
+      filter expr(
+               card_printing_id == ^arg(:card_printing_id) and
+                 policy_version == ^arg(:policy_version) and current? == true
+             )
+    end
+
+    read :history_for_card_and_policy do
+      argument :card_printing_id, :uuid, allow_nil?: false
+      argument :policy_version, :string, allow_nil?: false
+
+      filter expr(
+               card_printing_id == ^arg(:card_printing_id) and
+                 policy_version == ^arg(:policy_version)
+             )
+
       prepare build(sort: [fetched_at: :desc])
     end
   end
