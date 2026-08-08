@@ -49,6 +49,9 @@ defmodule TcgCheap.Catalogue.RetailerListing do
     defaults [:read]
 
     create :ingest do
+      transaction? true
+      touches_resources [TcgCheap.Pricing.SealedListingObservation]
+
       accept [
         :retailer_id,
         :source_listing_id,
@@ -65,6 +68,8 @@ defmodule TcgCheap.Catalogue.RetailerListing do
       ]
 
       change TcgCheap.Catalogue.Changes.NormalizeRetailerListing
+      change TcgCheap.Catalogue.Changes.LockRetailerListingIngest
+      change TcgCheap.Catalogue.Changes.RecordSealedListingObservation
       validate TcgCheap.Catalogue.Validations.RetailerListing
       upsert? true
       upsert_identity :unique_retailer_source_listing
@@ -82,7 +87,12 @@ defmodule TcgCheap.Catalogue.RetailerListing do
         :source_payload
       ]
 
-      upsert_condition expr(status == "active" and status == upsert_conflict(:status))
+      upsert_condition expr(
+                         status == "active" and status == upsert_conflict(:status) and
+                           upsert_conflict(:last_seen_at) >= last_seen_at and
+                           upsert_conflict(:last_checked_at) >= last_checked_at
+                       )
+
       return_skipped_upsert? true
     end
 
@@ -146,6 +156,10 @@ defmodule TcgCheap.Catalogue.RetailerListing do
 
   relationships do
     belongs_to :retailer, TcgCheap.Catalogue.Retailer, allow_nil?: false, public?: true
+
+    has_many :sealed_listing_observations, TcgCheap.Pricing.SealedListingObservation,
+      destination_attribute: :retailer_listing_id,
+      public?: true
   end
 
   identities do

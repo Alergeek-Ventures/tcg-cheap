@@ -126,6 +126,19 @@ defmodule TcgCheap.Core do
       define :list_active_retailer_listings, action: :active_for_retailer, args: [:retailer_id]
     end
 
+    resource TcgCheap.Pricing.SealedListingObservation do
+      define :record_sealed_listing_observation, action: :record
+
+      define :get_latest_sealed_listing_observation,
+        action: :latest_for_listing,
+        args: [:retailer_listing_id],
+        not_found_error?: false
+
+      define :list_sealed_listing_observation_history,
+        action: :history_for_listing,
+        args: [:retailer_listing_id]
+    end
+
     resource TcgCheap.Catalogue.ListingProductMapping do
       define :create_pending_listing_mapping, action: :create_pending
       define :create_review_listing_mapping, action: :create_review

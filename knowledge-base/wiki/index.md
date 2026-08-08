@@ -2,10 +2,10 @@
 
 ## Architecture
 
-- [Application Foundation](architecture/application-foundation.md) — Current Phoenix/AshPostgres foundation, sealed canonical SKU/alias review foundation for Phase 4, local-first detail/history, completed URL-only EUR/PLN trade/share surface, and NBP exchange-rate backend/cache. Updated 2026-08-08.
-- [Provider and Acquisition Feasibility](architecture/provider-acquisition-feasibility.md) — TCGdex aggregate pricing, honest acquisition boundaries, sealed source-neutral catalogue foundation, completed bulk local EUR/PLN trade/share valuation, and official NBP backend/cache. Updated 2026-08-08.
+- [Application Foundation](architecture/application-foundation.md) — Current Phoenix/AshPostgres foundation, sealed SKU/alias/retailer/listing/mapping and immutable observation foundations for Phase 4, local-first singles detail/history, completed URL-only EUR/PLN trade/share, and NBP cache. Updated 2026-08-08.
+- [Provider and Acquisition Feasibility](architecture/provider-acquisition-feasibility.md) — TCGdex aggregate pricing, honest acquisition boundaries, source-neutral sealed retailer/matching/observation persistence without production source claims, completed bulk EUR/PLN trade valuation, and official NBP backend/cache. Updated 2026-08-08.
 - [Reference Project Conventions](architecture/reference-project-conventions.md) — Phase 0 audit of Firmowid and Onside conventions, adoption decisions, and compatibility boundaries. Updated 2026-08-07.
 
 ## Product
 
-- [Detailed MVP Implementation Plan](product/mvp-implementation-plan.md) — **Current MVP North Star.** Exactly two top-level customer features: sealed product price comparison and singles price comparison, with completed Phase 3 URL-only EUR/PLN trade/share inside Singles; Phase 4 has begun with a non-production sealed catalogue foundation and remains incomplete. Updated 2026-08-08.
+- [Detailed MVP Implementation Plan](product/mvp-implementation-plan.md) — **Current MVP North Star.** Exactly two top-level customer features: sealed and singles price comparison, with Phase 3 trade/share complete inside Singles; Phase 4 has non-production catalogue, retailer/listing/mapping, and immutable observation foundations but remains incomplete. Updated 2026-08-08.
