@@ -4,6 +4,18 @@ defmodule TcgCheapWeb.CardDetailLive do
   alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Core
   alias TcgCheap.Pricing.Singles.{Freshness, ValuationAcquisition, ValuationHistory}
+  alias TcgCheap.Trades.Composition
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    return_to = valid_trade_return(Map.get(params, "return_to"))
+
+    {:noreply,
+     assign(socket,
+       back_path: return_to || "/",
+       back_label: if(return_to, do: "Back to trade", else: "Back to printing wall")
+     )}
+  end
 
   @impl true
   def mount(%{"tcgdex_id" => tcgdex_id}, _session, socket) do
@@ -72,7 +84,7 @@ defmodule TcgCheapWeb.CardDetailLive do
         </header>
         <main id="card-detail-main" class="archive-main">
           <div class="archive-container">
-            <.link id="card-detail-back" navigate={~p"/"} class="archive-back">Back to printing wall</.link>
+            <.link id="card-detail-back" navigate={@back_path} class="archive-back">{@back_label}</.link>
             <div id="card-detail-overview">
               <section
                 id="card-detail-identity"
@@ -82,6 +94,11 @@ defmodule TcgCheapWeb.CardDetailLive do
                 <div class="card-detail-heading">
                   <h1 id="card-detail-title">{@card.name}</h1>
                   <p class="card-detail-set">{@card.set_name} · NO. {@card.collector_number}</p>
+                  <.link
+                    id="card-detail-add-to-trade"
+                    navigate={trade_pick_path(@tcgdex_id)}
+                    class="card-detail-add-to-trade"
+                  >Add to a trade</.link>
                 </div>
                 <section id="card-valuation" class="valuation-panel" aria-labelledby="valuation-title">
                   <div class="section-rule">
@@ -252,6 +269,35 @@ defmodule TcgCheapWeb.CardDetailLive do
   end
 
   def render(assigns), do: not_found_render(assigns)
+
+  defp trade_pick_path(id), do: "/trade?pick=" <> URI.encode_www_form(id)
+
+  defp valid_trade_return(value) when is_binary(value) do
+    uri = URI.parse(value)
+
+    if local_trade_uri?(uri), do: canonical_trade_return(uri.query)
+  rescue
+    URI.Error -> nil
+    ArgumentError -> nil
+  end
+
+  defp valid_trade_return(_), do: nil
+
+  defp local_trade_uri?(uri),
+    do:
+      uri.scheme == nil and uri.host == nil and uri.userinfo == nil and uri.port == nil and
+        uri.fragment == nil and uri.path == "/trade"
+
+  defp canonical_trade_return(nil), do: "/trade"
+
+  defp canonical_trade_return(query) do
+    params = URI.decode_query(query)
+    allowed = Map.keys(params) |> Enum.all?(&(&1 in ["left", "right"]))
+    {composition, meta} = Composition.from_params(params)
+
+    if allowed and not meta.malformed? and not meta.truncated?,
+      do: Composition.to_path(composition)
+  end
 
   defp not_found_render(assigns) do
     ~H"""

@@ -18,14 +18,14 @@ progressive disclosure.
 - **Audience:** A person checking a Pokémon single at a card-shop counter on a phone.
 - **Job:** Decide whether an exact printing is worth investigating before a trade.
 - **Actions:** Search/select a single (default); verify identity and price; open value details. Sealed comparison is the second top-level feature when implemented. Trade composition belongs inside Singles and is not a third homepage category.
-- **Completed correction:** The former `99023f3` focus-loss path is fixed. A colocated 250ms input hook keeps the same focused input node, query, caret/selection, and focus through server result updates; IME composition pauses search and searches once after compositionend, and Escape cancels pending debounce. The next priority is Phase 3 trade foundations.
+- **Completed correction:** The former `99023f3` focus-loss path is fixed. The shared external 250ms `CardAutocomplete` hook keeps the same focused input node, query, caret/selection, and focus through server result updates; IME composition pauses search and searches once after compositionend, and Escape cancels pending debounce. The hook is shared with `/trade`; the trade foundation is implemented but Phase 3 is not complete.
 
 ## Proof and content
 
 - Exact image, name, set, and collector number; stable TCGdex identity remains in the route and result data, while accessible exact identity uses the card name, set, and collector number.
 - Current local EUR estimate when present, otherwise `Price unavailable`.
 - Plain `Updated …` or `May be outdated` freshness evidence from the existing seven-day `TcgCheap.Pricing.Singles.Freshness` policy.
-- One clear `View price` action; no trade control before Phase 3.
+- One clear `View price` action; `/trade` is entered through Singles/card-detail actions, not as a third homepage feature.
 - Usable autocomplete is implemented: preserve query, caret/selection, focus, and composition across LiveView updates; use combobox/listbox semantics with stable `card-option-UUID` IDs, direct streamed `role=option` children, exactly one visible `aria-selected` active option, wrapping ArrowUp/ArrowDown, exact active Enter navigation, Escape close retaining query/focus, validated option click/touch navigation, and query-specific screen-reader status. Accessible names reference visible name/set/rarity/price/update IDs, with no nested interactive control.
 - The active option is visibly ruled. The bounded listbox uses `min(45svh, 32rem)` and scrolls internally; the hook keeps the active option in view without scrolling the page or input away. Results retain only the bounded max-10 records needed to reinsert adjacent stream items when the active assign changes.
 - Keep legal/methodology honesty, exact-printing correctness, accessibility, and required caveats, but put technical detail behind concise secondary disclosure where feasible.
@@ -50,6 +50,6 @@ The result reads like a physical bench slip: image and exact identity on one sid
 ## Unresolved decisions
 
 - Sealed catalogue and pricing remain intentionally unavailable until that phase is implemented.
-- Trade controls remain deferred to Phase 3.
-- The autocomplete correction is complete; Phase 3 trade foundations are next. Do not add dead trade or sealed controls before those capabilities exist.
-- Do not add dead controls or imply sealed/trade capability before those capabilities are implemented.
+- Trade foundation controls now exist inside Singles; PLN conversion and explicit share/copy UI remain deferred.
+- The autocomplete correction is complete; trade is not a third homepage feature and must not be presented as finished beyond its implemented foundation.
+- Do not add dead sealed controls or imply finished trade capability.

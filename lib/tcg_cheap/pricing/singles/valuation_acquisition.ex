@@ -40,6 +40,24 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
 
   def subscribe_and_request(_input, _opts), do: {:error, :invalid_input}
 
+  @doc "Subscribes to and requests freshness for up to 100 canonical cards in one read."
+  @spec subscribe_and_request_many([map()], keyword()) ::
+          {:ok, %{String.t() => {:fresh, map()} | {:enqueued, Oban.Job.t()} | {:error, term()}}}
+          | {:error, term()}
+  def subscribe_and_request_many(inputs, opts \\ [])
+
+  def subscribe_and_request_many(inputs, opts) when is_list(inputs) and is_list(opts) do
+    with {:ok, requested} <- extract_many_ids(inputs),
+         {:ok, cards} <- read_many(requested),
+         :ok <- validate_many(inputs, requested, cards),
+         {:ok, now} <- clock_now(opts),
+         :ok <- subscribe_many(cards) do
+      {:ok, build_many_results(requested, cards, now)}
+    end
+  end
+
+  def subscribe_and_request_many(_inputs, _opts), do: {:error, :invalid_input}
+
   defp resolve_card(%{id: id, tcgdex_id: tcgdex_id}) when is_binary(id) and is_binary(tcgdex_id),
     do: resolve_card_by_tcgdex_id(id, tcgdex_id)
 
@@ -55,6 +73,76 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
   end
 
   defp resolve_card(_input), do: {:error, :invalid_local_card}
+
+  defp extract_many_ids(inputs) when length(inputs) <= 100 do
+    ids = Enum.map(inputs, &extract_many_id/1)
+
+    if Enum.any?(ids, &(&1 == :invalid_local_card)),
+      do: {:error, :invalid_local_card},
+      else: {:ok, Enum.uniq(ids)}
+  end
+
+  defp extract_many_ids(_inputs), do: {:error, :too_many_cards}
+
+  defp extract_many_id(input) when is_map(input) do
+    id = Map.get(input, "tcgdex_id") || Map.get(input, :tcgdex_id)
+    local_id = Map.get(input, "id") || Map.get(input, :id)
+
+    if is_binary(id) and id != "" and is_binary(local_id) and local_id != "",
+      do: id,
+      else: :invalid_local_card
+  end
+
+  defp extract_many_id(_), do: :invalid_local_card
+
+  defp read_many([]), do: {:ok, []}
+
+  defp read_many(ids) do
+    case TcgCheap.Core.list_card_printings_by_tcgdex_ids(ids) do
+      {:ok, cards} when is_list(cards) -> {:ok, cards}
+      _ -> {:error, :invalid_local_card}
+    end
+  end
+
+  defp validate_many(inputs, ids, cards) do
+    by_id = Map.new(cards, &{&1.tcgdex_id, &1})
+
+    valid? =
+      MapSet.size(MapSet.new(Map.keys(by_id))) == length(ids) and
+        Enum.all?(ids, &Map.has_key?(by_id, &1)) and
+        Enum.all?(inputs, &matches_canonical?(&1, by_id))
+
+    if valid? do
+      :ok
+    else
+      {:error, :invalid_local_card}
+    end
+  end
+
+  defp matches_canonical?(input, by_id) do
+    tcgdex_id = Map.get(input, "tcgdex_id", Map.get(input, :tcgdex_id))
+    local_id = Map.get(input, "id", Map.get(input, :id))
+    local_id == Map.get(by_id, tcgdex_id).id
+  end
+
+  defp subscribe_many(cards) do
+    Enum.reduce_while(cards, :ok, fn card, :ok ->
+      case subscribe(card) do
+        :ok -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp build_many_results(requested, cards, now) do
+    cards_by_id = Map.new(cards, &{&1.tcgdex_id, &1})
+
+    Map.new(requested, fn id ->
+      card = Map.fetch!(cards_by_id, id)
+      current = Map.get(card, :tcgdex_cardmarket_v1_current_valuation)
+      {id, enqueue_for_status(card, current, Freshness.status(current, now))}
+    end)
+  end
 
   defp resolve_card_by_tcgdex_id(id, tcgdex_id) do
     case TcgCheap.Core.get_card_printing_by_tcgdex_id(tcgdex_id) do

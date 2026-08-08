@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert has_element?(
              view,
-             "#card-search-query[phx-hook='TcgCheapWeb.HomeLive.CardAutocomplete']"
+             "#card-search-query[phx-hook='CardAutocomplete']"
            )
 
     assert has_element?(

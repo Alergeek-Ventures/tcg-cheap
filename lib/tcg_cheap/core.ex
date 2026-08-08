@@ -17,6 +17,7 @@ defmodule TcgCheap.Core do
       define :import_card_printing, action: :import
       define :seed_card_printing_brief, action: :seed_brief
       define :get_card_printing_by_tcgdex_id, action: :by_tcgdex_id, args: [:tcgdex_id]
+      define :list_card_printings_by_tcgdex_ids, action: :by_tcgdex_ids, args: [:tcgdex_ids]
 
       define :search_card_printings,
         action: :search,

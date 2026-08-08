@@ -140,6 +140,15 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       filter expr(tcgdex_id == ^arg(:tcgdex_id))
     end
 
+    read :by_tcgdex_ids do
+      argument :tcgdex_ids, {:array, :string},
+        allow_nil?: false,
+        constraints: [max_length: 100, items: [max_length: 160], nil_items?: false]
+
+      filter expr(tcgdex_id in ^arg(:tcgdex_ids))
+      prepare build(load: [:card_set, :tcgdex_cardmarket_v1_current_valuation])
+    end
+
     read :search do
       argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
       argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]

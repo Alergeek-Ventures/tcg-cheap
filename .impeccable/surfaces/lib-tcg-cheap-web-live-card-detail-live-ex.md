@@ -11,7 +11,7 @@ related_targets: ["assets/css/app.css","lib/tcg_cheap_web/live/home_live.ex"]
 - **Mode:** Operate
 - **Audience:** A mobile in-shop trader/collector.
 - **Job:** Confirm the exact printing and understand the current aggregate estimate, its freshness, and its history.
-- **Primary actions:** Read/verify, then return to search. Defer a trade action until Phase 3 exists.
+- **Primary actions:** Read/verify, add this exact printing to a trade as a pending pick without choosing a side, then return through a canonical local `/trade` URL.
 
 ## Proof and content
 
@@ -20,6 +20,7 @@ related_targets: ["assets/css/app.css","lib/tcg_cheap_web/live/home_live.ex"]
 - Source, metric, policy, and UTC timestamp.
 - Fixed 30-day daily history with gaps, plus an accessible ledger.
 - Canonical TCGdex-hosted high WebP exact-printing image when available, displayed with no-referrer hotlinking.
+- `Add to a trade` preserves the exact identity and accepts only a reconstructed local `/trade` return target; malformed or open-redirect targets are rejected.
 
 ## Constraints
 
@@ -41,5 +42,5 @@ The honest broken-line/dot history preserves missing days instead of implying fa
 
 ## Unresolved decisions
 
-- Future trade CTA.
+- Trade composition is implemented as a URL-only Phase 3 foundation; NBP EUR/PLN conversion and explicit share/copy controls remain unresolved.
 - Europe/Warsaw presentation if timezone infrastructure is added.

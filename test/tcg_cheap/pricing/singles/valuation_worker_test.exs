@@ -274,6 +274,79 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     assert id == card.id
   end
 
+  test "subscribe_and_request_many returns freshness states and subscribes queued cards" do
+    now = ~U[2026-08-14 12:00:00Z]
+    fresh = create_card()
+    stale = create_card()
+    missing = create_card()
+    record_snapshot(fresh, ~U[2026-08-13 12:00:00Z])
+    record_snapshot(stale, ~U[2026-08-05 12:00:00Z])
+
+    assert {:ok, results} =
+             ValuationAcquisition.subscribe_and_request_many(
+               [canonical(fresh), canonical(stale), canonical(missing)],
+               clock: fn -> now end
+             )
+
+    assert match?({:fresh, _}, results[fresh.tcgdex_id])
+    assert match?({:enqueued, _}, results[stale.tcgdex_id])
+    assert match?({:enqueued, _}, results[missing.tcgdex_id])
+    assert length(all_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)) == 2
+
+    assert :ok = perform_job(test_job(args(stale)), [])
+    assert_receive {:valuation_completed, %{card_printing_id: id}}, 500
+    assert id == stale.id
+  end
+
+  test "subscribe_and_request_many deduplicates canonical cards" do
+    card = create_card()
+
+    assert {:ok, results} =
+             ValuationAcquisition.subscribe_and_request_many(
+               [canonical(card), canonical(card)],
+               clock: fn -> ~U[2026-08-14 12:00:00Z] end
+             )
+
+    assert Map.keys(results) == [card.tcgdex_id]
+    assert [job] = all_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
+    assert job.args["local_card_id"] == card.id
+  end
+
+  test "subscribe_and_request_many rejects invalid batches without enqueuing" do
+    card = create_card()
+    valid = canonical(card)
+    forged = %{valid | "id" => Ecto.UUID.generate()}
+    oversized = List.duplicate(valid, 101)
+
+    assert {:error, :invalid_local_card} =
+             ValuationAcquisition.subscribe_and_request_many([forged])
+
+    assert {:error, :invalid_local_card} =
+             ValuationAcquisition.subscribe_and_request_many([
+               %{valid | "tcgdex_id" => "missing-#{System.unique_integer([:positive])}"}
+             ])
+
+    assert {:error, :invalid_local_card} =
+             ValuationAcquisition.subscribe_and_request_many([:not_a_card])
+
+    assert {:error, :invalid_clock} =
+             ValuationAcquisition.subscribe_and_request_many([valid], clock: fn -> :bad end)
+
+    assert {:error, :too_many_cards} =
+             ValuationAcquisition.subscribe_and_request_many(oversized)
+
+    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
+  end
+
+  test "subscribe_and_request_many accepts an empty batch" do
+    assert {:ok, %{}} =
+             ValuationAcquisition.subscribe_and_request_many([],
+               clock: fn -> DateTime.utc_now() end
+             )
+
+    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
+  end
+
   test "real Oban draining completes the queued job and persists its snapshot" do
     card = create_card()
     assert {:ok, job} = ValuationAcquisition.enqueue(card)
@@ -331,6 +404,8 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
       "currency" => "EUR"
     }
   end
+
+  defp canonical(card), do: %{"id" => card.id, "tcgdex_id" => card.tcgdex_id}
 
   defp record_snapshot(card, fetched_at) do
     Core.record_single_valuation!(%{

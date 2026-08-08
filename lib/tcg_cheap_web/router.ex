@@ -23,6 +23,7 @@ defmodule TcgCheapWeb.Router do
     pipe_through :browser
 
     live "/", HomeLive
+    live "/trade", TradeLive
     live "/cards/:tcgdex_id", CardDetailLive
   end
 

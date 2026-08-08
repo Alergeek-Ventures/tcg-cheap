@@ -288,3 +288,38 @@
 @media (max-width: 42rem) { .decision-world .decision-intro { align-items: stretch; flex-direction: column; } .decision-world .mode-switch { width: 100%; } .decision-world .mode-switch button { flex: 1; } }
 @media (max-width: 24rem) { .decision-world .evidence-slip { grid-template-columns: 4.75rem minmax(0, 1fr); } .decision-world .evidence-copy { padding: .6rem; } .decision-world .evidence-name { font-size: 1.3rem; } .decision-world .estimate-cell strong { font-size: 1.55rem; } }
 @media (prefers-reduced-motion: reduce) { .decision-world .evidence-slip { animation: none; } }
+
+/* Trade foundation: a symmetric valuation ledger on the same square bench. */
+.trade-world .decision-container { max-width: 72rem; }
+.trade-world #trade-title { font: 700 clamp(3rem, 9vw, 5.5rem)/.85 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0; text-transform: uppercase; }
+.trade-world #trade-task { font-size: .72rem; line-height: 1.6; margin-top: .5rem; }
+.trade-world #trade-home-link, .trade-world #trade-wordmark { color: var(--ink); min-height: 2.8rem; display: inline-flex; align-items: center; font-size: .78rem; }
+.trade-world .trade-staging { align-items: center; background: var(--paper); border: 2px solid var(--rule); display: flex; flex-wrap: wrap; gap: .65rem; margin: 0 0 1.25rem; padding: .75rem; }
+.trade-world .trade-staging strong { flex: 1 1 100%; font: 700 1.35rem/.95 "Barlow Condensed", sans-serif; text-transform: uppercase; }
+.trade-world button { background: var(--ink); border: 1px solid var(--ink); color: var(--bench-light); cursor: pointer; font: 700 .75rem "Barlow Condensed", sans-serif; min-height: 2.8rem; padding: .55rem .8rem; text-transform: uppercase; }
+.trade-world button:hover { background: var(--orange); }
+.trade-world button:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+.trade-world .trade-ledgers { display: grid; gap: 1.25rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.trade-world .trade-side { border-top: 2px solid var(--rule); min-width: 0; }
+.trade-world .trade-side h2 { font: 700 clamp(1.8rem, 4vw, 2.8rem)/1 "Barlow Condensed", sans-serif; margin: .45rem 0; text-transform: uppercase; }
+.trade-world .trade-rows { display: grid; gap: .6rem; }
+.trade-world .trade-row { align-items: start; background: var(--paper); border: 1.5px solid var(--rule); display: grid; gap: .65rem; grid-template-columns: 4.25rem minmax(0, 1fr); min-width: 0; padding: .55rem; }
+.trade-world .trade-row-art img, .trade-world .trade-row-art .card-image-missing { aspect-ratio: 245 / 337; border: 1px solid var(--rule); height: 6rem; min-height: 0; object-fit: contain; width: 4rem; }
+.trade-world .trade-row-content { min-width: 0; }
+.trade-world .card-image-missing { align-items: center; background: #efe3cb; display: flex; justify-content: center; }
+.trade-world .card-image-missing svg { fill: none; height: 5rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
+.trade-world .trade-row h3 { font: 700 1.2rem/.95 "Barlow Condensed", sans-serif; margin: .1rem 0; overflow-wrap: anywhere; text-transform: uppercase; }
+.trade-world .trade-row p, .trade-world .trade-row-value { font-size: .65rem; line-height: 1.5; }
+.trade-world .trade-row-value { align-items: center; display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .45rem; text-align: right; }
+.trade-world .trade-row-value strong { margin-right: auto; }
+.trade-world .trade-row-value strong { font: 700 1.3rem/.9 "Barlow Condensed", sans-serif; }
+.trade-world .trade-row-value button { font-size: .8rem; min-height: 2.75rem; min-width: 2.75rem; padding: .3rem; }
+.trade-world .trade-empty { border-bottom: 1px solid var(--rule); font-size: .72rem; padding: 1rem 0; }
+.trade-world .trade-total { border-top: 2px solid var(--rule); font: 700 1.7rem/.95 "Barlow Condensed", sans-serif; margin-top: .75rem; padding-top: .65rem; text-align: right; }
+.trade-world .trade-comparison { border-top: 2px solid var(--rule); margin-top: 1.5rem; padding: 1rem 0; text-align: center; }
+.trade-world .trade-comparison p { font: 700 clamp(1.5rem, 4vw, 2.4rem)/1 "Barlow Condensed", sans-serif; margin: 0; text-transform: uppercase; }
+.trade-world .trade-comparison span { font-size: .65rem; }
+@media (max-width: 45rem) { .trade-world .trade-ledgers { grid-template-columns: 1fr; } .trade-world .trade-row { grid-template-columns: 3.5rem minmax(0, 1fr); } .trade-world .trade-row-art img, .trade-world .trade-row-art .card-image-missing { height: 5.5rem; width: 3.25rem; } .trade-world .trade-row-value { text-align: left; } }
+.archive-world .card-detail-add-to-trade { align-items: center; background: var(--ink); border: 1px solid var(--ink); color: var(--tissue); display: inline-flex; font: 700 .82rem "Barlow Condensed", sans-serif; min-height: 2.8rem; padding: .55rem .8rem; text-decoration: none; text-transform: uppercase; }
+.archive-world .card-detail-add-to-trade:hover { background: var(--box-board-dark); }
+.archive-world .card-detail-add-to-trade:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; }

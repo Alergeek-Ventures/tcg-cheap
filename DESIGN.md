@@ -48,7 +48,7 @@ components:
     backgroundColor: "{colors.bench}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-     minHeight: "2.8rem"
+    minHeight: "2.8rem"
   decision-search:
     backgroundColor: "{colors.bench-light}"
     textColor: "{colors.ink}"
@@ -168,7 +168,7 @@ The Home form language is square throughout: controls and price-row surfaces use
 - **Character:** A bright counter surface and the primary decision action.
 - **Shape:** Bench-light surface, square `2px` ink border. The input has no radius or shadow and ends in a `3px` ink underline.
 - **Typography:** Heading and query use Barlow Condensed 700; evidence help uses Azeret Mono.
-- **Behavior:** A colocated input hook searches local exact-printing data after `250ms`, without replacing or server-patching the focused input node. Query, caret/selection, and focus survive result updates; composition blocks intermediate searches and searches once after compositionend; Escape cancels pending debounce. Focus uses a `3px` orange outline.
+    - **Behavior:** The shared external `CardAutocomplete` hook searches local exact-printing data after `250ms`, without replacing or server-patching the focused input node. Query, caret/selection, and focus survive result updates; composition blocks intermediate searches and searches once after compositionend; Escape cancels pending debounce. Focus uses a `3px` orange outline.
 
 ### Autocomplete combobox / listbox
 - **Character:** A compact ruled suggestion bench attached to the search surface, not a second card grid.
@@ -196,6 +196,14 @@ The Home form language is square throughout: controls and price-row surfaces use
 - **Character:** Plain decision status: `Updated …`, `May be outdated`, `Price unavailable`, empty, invalid, unavailable, or error; never hidden behind a decorative empty state.
 - **Shape:** A `1px` top rule, vertical padding, and mono copy. Error notes use a sunfade surface and `1rem` padding.
 - **Behavior:** Idle has no explanatory copy; short-query, empty, and unavailable states stay short. Full policy, methodology, non-affiliation, and shipping caveats live in collapsed `How prices work` details. Sealed says honestly that it is not available yet.
+
+### Trade decision bench
+- **Character:** An Operate-mode extension of the card-shop valuation bench for an in-store two-sided decision.
+- **Layout:** One selected-card staging strip leads to two symmetric ledgers; desktop uses columns and mobile stacks the sides. The surface must not overflow a 390px viewport.
+- **Controls:** Search is local and singular. Add-left and Add-right are explicit, square, and at least 44px; quantity decrement/increment/remove controls preserve exact identity and URL state.
+- **Evidence:** Rows show exact printing identity, current EUR unit/row value, `Updated today/yesterday/N days ago`, stale/outdated, fetching/failure, and unknown valid IDs as removable but unpriced. Totals show incomplete `€x + ? (N unpriced)` and the difference is estimate-only when needed.
+- **Acquisition:** Missing/stale composition rows render immediately, then use one bounded canonical bulk request and background jobs. Failure retains a stale estimate; search and pick alone never enqueue.
+- **Boundary:** The URL is manually copyable and deterministic, but there is no clipboard/share control yet. NBP EUR/PLN display and sealed mode remain unresolved/unavailable.
 
 ## Do's and Don'ts
 
