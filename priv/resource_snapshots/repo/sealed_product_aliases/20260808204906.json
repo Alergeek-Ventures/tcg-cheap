@@ -1,0 +1,304 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "kind",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "original_value",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "normalized_value",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_payload",
+      "type": "map"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"pending\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "review_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "approved_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "rejected_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "sealed_product_aliases_sealed_product_id_fkey",
+        "on_delete": "delete",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "sealed_products"
+      },
+      "scale": null,
+      "size": null,
+      "source": "sealed_product_id",
+      "type": "uuid"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [
+    {
+      "attribute": [
+        "kind",
+        "original_value",
+        "normalized_value"
+      ],
+      "base_filter": null,
+      "check": "kind IN ('name', 'ean') AND btrim(original_value) <> '' AND ((kind = 'name' AND btrim(normalized_value) <> '') OR (kind = 'ean' AND normalized_value ~ '^[0-9]+$' AND ((length(normalized_value) = 8 AND mod(10 - mod(3 * substring(normalized_value, 1, 1)::integer + substring(normalized_value, 2, 1)::integer + 3 * substring(normalized_value, 3, 1)::integer + substring(normalized_value, 4, 1)::integer + 3 * substring(normalized_value, 5, 1)::integer + substring(normalized_value, 6, 1)::integer + 3 * substring(normalized_value, 7, 1)::integer, 10), 10) = substring(normalized_value, 8, 1)::integer) OR (length(normalized_value) = 12 AND mod(10 - mod(3 * substring(normalized_value, 1, 1)::integer + substring(normalized_value, 2, 1)::integer + 3 * substring(normalized_value, 3, 1)::integer + substring(normalized_value, 4, 1)::integer + 3 * substring(normalized_value, 5, 1)::integer + substring(normalized_value, 6, 1)::integer + 3 * substring(normalized_value, 7, 1)::integer + substring(normalized_value, 8, 1)::integer + 3 * substring(normalized_value, 9, 1)::integer + substring(normalized_value, 10, 1)::integer + 3 * substring(normalized_value, 11, 1)::integer, 10), 10) = substring(normalized_value, 12, 1)::integer) OR (length(normalized_value) = 13 AND mod(10 - mod(substring(normalized_value, 1, 1)::integer + 3 * substring(normalized_value, 2, 1)::integer + substring(normalized_value, 3, 1)::integer + 3 * substring(normalized_value, 4, 1)::integer + substring(normalized_value, 5, 1)::integer + 3 * substring(normalized_value, 6, 1)::integer + substring(normalized_value, 7, 1)::integer + 3 * substring(normalized_value, 8, 1)::integer + substring(normalized_value, 9, 1)::integer + 3 * substring(normalized_value, 10, 1)::integer + substring(normalized_value, 11, 1)::integer + 3 * substring(normalized_value, 12, 1)::integer, 10), 10) = substring(normalized_value, 13, 1)::integer) OR (length(normalized_value) = 14 AND mod(10 - mod(3 * substring(normalized_value, 1, 1)::integer + substring(normalized_value, 2, 1)::integer + 3 * substring(normalized_value, 3, 1)::integer + substring(normalized_value, 4, 1)::integer + 3 * substring(normalized_value, 5, 1)::integer + substring(normalized_value, 6, 1)::integer + 3 * substring(normalized_value, 7, 1)::integer + substring(normalized_value, 8, 1)::integer + 3 * substring(normalized_value, 9, 1)::integer + substring(normalized_value, 10, 1)::integer + 3 * substring(normalized_value, 11, 1)::integer + substring(normalized_value, 12, 1)::integer + 3 * substring(normalized_value, 13, 1)::integer, 10), 10) = substring(normalized_value, 14, 1)::integer))))",
+      "name": "sealed_product_aliases_identity_invariant"
+    },
+    {
+      "attribute": [
+        "review_status"
+      ],
+      "base_filter": null,
+      "check": "review_status IN ('pending', 'approved', 'rejected')",
+      "name": "sealed_product_aliases_status_invariant"
+    },
+    {
+      "attribute": [
+        "review_status",
+        "approved_at",
+        "rejected_at"
+      ],
+      "base_filter": null,
+      "check": "(review_status = 'pending' AND approved_at IS NULL AND rejected_at IS NULL) OR (review_status = 'approved' AND approved_at IS NOT NULL AND rejected_at IS NULL) OR (review_status = 'rejected' AND rejected_at IS NOT NULL AND approved_at IS NULL)",
+      "name": "sealed_product_aliases_review_timestamps_invariant"
+    },
+    {
+      "attribute": [
+        "kind",
+        "normalized_value"
+      ],
+      "base_filter": null,
+      "check": "kind <> 'ean' OR normalized_value ~ '^[0-9]+$' AND ((length(normalized_value) = 8 AND mod(10 - mod(3 * substring(normalized_value, 1, 1)::integer + 1 * substring(normalized_value, 2, 1)::integer + 3 * substring(normalized_value, 3, 1)::integer + 1 * substring(normalized_value, 4, 1)::integer + 3 * substring(normalized_value, 5, 1)::integer + 1 * substring(normalized_value, 6, 1)::integer + 3 * substring(normalized_value, 7, 1)::integer, 10), 10) = substring(normalized_value, 8, 1)::integer) OR (length(normalized_value) = 12 AND mod(10 - mod(3 * substring(normalized_value, 1, 1)::integer + 1 * substring(normalized_value, 2, 1)::integer + 3 * substring(normalized_value, 3, 1)::integer + 1 * substring(normalized_value, 4, 1)::integer + 3 * substring(normalized_value, 5, 1)::integer + 1 * substring(normalized_value, 6, 1)::integer + 3 * substring(normalized_value, 7, 1)::integer + 1 * substring(normalized_value, 8, 1)::integer + 3 * substring(normalized_value, 9, 1)::integer + 1 * substring(normalized_value, 10, 1)::integer + 3 * substring(normalized_value, 11, 1)::integer, 10), 10) = substring(normalized_value, 12, 1)::integer) OR (length(normalized_value) = 13 AND mod(10 - mod(1 * substring(normalized_value, 1, 1)::integer + 3 * substring(normalized_value, 2, 1)::integer + 1 * substring(normalized_value, 3, 1)::integer + 3 * substring(normalized_value, 4, 1)::integer + 1 * substring(normalized_value, 5, 1)::integer + 3 * substring(normalized_value, 6, 1)::integer + 1 * substring(normalized_value, 7, 1)::integer + 3 * substring(normalized_value, 8, 1)::integer + 1 * substring(normalized_value, 9, 1)::integer + 3 * substring(normalized_value, 10, 1)::integer + 1 * substring(normalized_value, 11, 1)::integer + 3 * substring(normalized_value, 12, 1)::integer, 10), 10) = substring(normalized_value, 13, 1)::integer) OR (length(normalized_value) = 14 AND mod(10 - mod(3 * substring(normalized_value, 1, 1)::integer + 1 * substring(normalized_value, 2, 1)::integer + 3 * substring(normalized_value, 3, 1)::integer + 1 * substring(normalized_value, 4, 1)::integer + 3 * substring(normalized_value, 5, 1)::integer + 1 * substring(normalized_value, 6, 1)::integer + 3 * substring(normalized_value, 7, 1)::integer + 1 * substring(normalized_value, 8, 1)::integer + 3 * substring(normalized_value, 9, 1)::integer + 1 * substring(normalized_value, 10, 1)::integer + 3 * substring(normalized_value, 11, 1)::integer + 1 * substring(normalized_value, 12, 1)::integer + 3 * substring(normalized_value, 13, 1)::integer, 10), 10) = substring(normalized_value, 14, 1)::integer))",
+      "name": "sealed_product_aliases_gtin_check"
+    }
+  ],
+  "create_table_options": null,
+  "custom_indexes": [
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "sealed_product_id"
+      ],
+      "fields": [
+        {
+          "type": "string",
+          "value": "sealed_product_id"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": "sealed_product_aliases_product_id_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "normalized_value"
+      ],
+      "fields": [
+        {
+          "type": "string",
+          "value": "normalized_value"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": "sealed_product_aliases_unique_ean_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": true,
+      "using": null,
+      "where": "kind = 'ean'"
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "2DB4EDDDF92DAC1F622051BB9EAA10358A8FDF68DB49A01C84E8815E4F85BB2E",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "sealed_product_aliases_unique_product_kind_value_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "sealed_product_id"
+        },
+        {
+          "type": "atom",
+          "value": "kind"
+        },
+        {
+          "type": "atom",
+          "value": "normalized_value"
+        }
+      ],
+      "name": "unique_product_kind_value",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.TcgCheap.Repo",
+  "schema": null,
+  "table": "sealed_product_aliases"
+}

@@ -1,5 +1,6 @@
 defmodule TcgCheap.Catalogue.SealedProductAlias do
   @moduledoc "A normalized name or GTIN alias awaiting catalogue review."
+  alias TcgCheap.Catalogue.SealedIdentifier
   use Ash.Resource, otp_app: :tcg_cheap, domain: TcgCheap.Core, data_layer: AshPostgres.DataLayer
 
   postgres do
@@ -32,6 +33,9 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
           unique: true,
           where: "kind = 'ean'"
       end
+
+      check_constraint [:kind, :normalized_value], "sealed_product_aliases_gtin_check",
+        check: "kind <> 'ean' OR #{SealedIdentifier.postgres_gtin_check("normalized_value")}"
     end
   end
 
@@ -97,6 +101,21 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
       argument :sealed_product_id, :uuid, allow_nil?: false
       filter expr(sealed_product_id == ^arg(:sealed_product_id) and review_status == "approved")
       prepare build(sort: [kind: :asc, normalized_value: :asc])
+    end
+
+    read :approved_ean_aliases do
+      argument :normalized_value, :string, allow_nil?: false
+
+      filter expr(
+               kind == "ean" and review_status == "approved" and
+                 normalized_value == ^arg(:normalized_value) and
+                 sealed_product.publication_status == "approved" and
+                 sealed_product.officially_distributed == true and
+                 sealed_product.market == "PL" and sealed_product.language == "en" and
+                 sealed_product.release_date <= today()
+             )
+
+      prepare build(load: [:sealed_product])
     end
 
     read :rejected_queue do

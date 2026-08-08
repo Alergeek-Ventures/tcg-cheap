@@ -68,6 +68,11 @@ defmodule TcgCheap.Core do
       define :mark_sealed_product_discontinued, action: :mark_discontinued
       define :get_sealed_product_by_slug, action: :by_slug, args: [:slug]
 
+      define :get_public_sealed_product_by_id,
+        action: :public_by_id,
+        args: [:id],
+        not_found_error?: false
+
       define :get_public_sealed_product_by_slug,
         action: :public_by_slug,
         args: [:slug],
@@ -98,6 +103,52 @@ defmodule TcgCheap.Core do
       define :list_approved_sealed_product_aliases,
         action: :approved_for_product,
         args: [:sealed_product_id]
+
+      define :list_approved_ean_aliases, action: :approved_ean_aliases, args: [:normalized_value]
+    end
+
+    resource TcgCheap.Catalogue.Retailer do
+      define :register_retailer, action: :register
+      define :disable_retailer, action: :disable
+      define :enable_retailer, action: :enable
+      define :get_retailer_by_source_key, action: :by_source_key, args: [:source_key]
+      define :list_active_retailers, action: :active
+    end
+
+    resource TcgCheap.Catalogue.RetailerListing do
+      define :ingest_retailer_listing, action: :ingest
+      define :disable_retailer_listing, action: :disable
+
+      define :get_retailer_listing,
+        action: :by_source_listing,
+        args: [:retailer_id, :source_listing_id]
+
+      define :list_active_retailer_listings, action: :active_for_retailer, args: [:retailer_id]
+    end
+
+    resource TcgCheap.Catalogue.ListingProductMapping do
+      define :create_pending_listing_mapping, action: :create_pending
+      define :create_review_listing_mapping, action: :create_review
+      define :create_matched_listing_mapping, action: :create_matched
+      define :import_listing_mapping, action: :import
+      define :approve_listing_mapping, action: :approve
+      define :reject_listing_mapping, action: :reject
+      define :list_listing_mapping_review_queue, action: :review_queue
+
+      define :get_matched_listing_mapping,
+        action: :matched_by_listing,
+        args: [:retailer_listing_id],
+        not_found_error?: false
+
+      define :get_listing_mapping,
+        action: :by_listing,
+        args: [:retailer_listing_id],
+        not_found_error?: false
+
+      define :lock_listing_mapping_for_update,
+        action: :lock_for_update_by_id,
+        args: [:id],
+        not_found_error?: false
     end
   end
 end

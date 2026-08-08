@@ -1,5 +1,7 @@
 defmodule TcgCheap.Catalogue.SealedIdentifier do
   @moduledoc "Pure normalization and validation for sealed-product aliases."
+  # Explicit SQL checksum generation necessarily nests length and weight branches.
+  # credo:disable-for-this-file Credo.Check.Refactor.Nesting
 
   alias TcgCheap.Catalogue.SearchText
 
@@ -21,6 +23,28 @@ defmodule TcgCheap.Catalogue.SealedIdentifier do
   end
 
   def valid_ean?(_), do: false
+
+  @doc "Returns the explicit SQL predicate implementing the same GS1 check digit rules."
+  # The generated predicate intentionally nests each explicit length/checksum branch.
+  # credo:disable-for-next-line Credo.Check.Refactor.Nesting
+  def postgres_gtin_check(column) when is_binary(column) do
+    lengths = [8, 12, 13, 14]
+
+    checks =
+      Enum.map_join(lengths, " OR ", fn length ->
+        body_length = length - 1
+
+        terms =
+          Enum.map_join(1..body_length, " + ", fn position ->
+            weight = if rem(body_length - position, 2) == 0, do: 3, else: 1
+            "#{weight} * substring(#{column}, #{position}, 1)::integer"
+          end)
+
+        "(length(#{column}) = #{length} AND mod(10 - mod(#{terms}, 10), 10) = substring(#{column}, #{length}, 1)::integer)"
+      end)
+
+    "#{column} ~ '^[0-9]+$' AND (#{checks})"
+  end
 
   defp check_digit?(digits) do
     {body, [check]} = Enum.split(digits, -1)

@@ -215,6 +215,17 @@ defmodule TcgCheap.Catalogue.SealedProduct do
              )
     end
 
+    read :public_by_id do
+      argument :id, :uuid, allow_nil?: false
+      get? true
+
+      filter expr(
+               id == ^arg(:id) and publication_status == "approved" and
+                 officially_distributed == true and market == "PL" and language == "en" and
+                 release_date <= today() and distribution_status in ["current", "discontinued"]
+             )
+    end
+
     read :public_catalogue do
       filter expr(
                publication_status == "approved" and release_date <= today() and
