@@ -68,7 +68,7 @@ The public UI boundary now extends through the local card-detail acquisition con
 
 ## Cost, licensing, and next actions
 
-The 2026-08-08 minimal Home correction is implemented for this presentation boundary: ordinary collectors see `Price unavailable`, `Updated …`, and `May be outdated`, not internal policy/provider, freshness, local-data, or identifier jargon in the primary task path. Required provenance, methodology, legal, non-affiliation, shipping, and exact-printing caveats remain mandatory in concise collapsed disclosure. The two top-level customer features remain sealed product price comparison and singles price comparison, with trade composition/difference calculation inside Singles. This changes presentation priority, not source honesty or acquisition constraints.
+The 2026-08-08 minimal Home correction is the presentation baseline for this boundary, but the owner’s newest report says autocomplete currently “sucks” and loses focus on each letter. This is the highest-priority active public blocker before Phase 3 or later roadmap work. The next implementation must preserve query, caret/selection, focus, and IME/composition through LiveView updates; provide complete combobox/listbox keyboard/touch/screen-reader behavior; open the exact printing’s price detail on selection; and keep provider calls out of request paths. No implementation is claimed here. Ordinary collectors must still see `Price unavailable`, `Updated …`, and `May be outdated`, not internal jargon; provenance and caveats remain in concise disclosure.
 
 The selected aggregate source costs `$0` and needs no credentials. Paid seller-level candidates remain capability-gated under the shared `$50/month` cap; shipping-to-Poland eligibility remains outside the aggregate MVP. Product-owner approval permits TCGdex imagery for the MVP, but does not resolve third-party artwork rights or approve broader reuse/self-hosting.
 
@@ -93,13 +93,13 @@ The historical seller-level core remains implemented at `lib/tcg_cheap/pricing/s
 5. Request REBEL B2B data import/access and written SCD/data-reuse scope.
 6. Request approved feeds/permissions from the initial retailer/LGS panel, including Media Expert only with permitted feed/access; broader sealed research is not complete.
 7. Retain the evidence caveat that third-party artwork rights are not independently proven; broader image reuse/self-hosting, sealed research, and seller-level source research remain open.
-8. **Complete for this surface:** the minimal Home correction retains approved colors, fonts, and warm square direction while reducing density and using plain-language CTAs. Sealed and trade remain unfinished; Phase 3 trade foundations remain high-leverage alongside broader roadmap work.
+8. **Baseline only:** the minimal Home correction retains approved colors, fonts, and warm square direction while reducing density and using plain-language CTAs. First fix the focus-preserving autocomplete blocker with LiveView/browser regression coverage; only then prioritize Phase 3 trade foundations and broader roadmap work. Sealed and trade remain unfinished.
 
 All observations are time-specific. No credentials are committed.
 
-Final homepage validation: canonical `mix check --verbose` passed with 180 tests; Home tests 10 and all web tests 24, assets/static checks, and desktop/mobile browser checks at 1440x1000 and 390x844 also passed, with results in the viewport, no horizontal overflow or console errors, collapsed details, and >=44px controls. Final code re-review found no blocking or warning findings, and `git diff --check` passed. The mechanical detector found only two known false positives for explicit square 3px input borders plus design-system advisories; these remain advisory and are not claimed to have disappeared. The unresolved live TCGdex set-list timeout remains.
+The prior homepage validation passed for the `99023f3` baseline, but did not validate one-character-at-a-time focus/caret/IME preservation or complete autocomplete keyboard behavior. The unresolved live TCGdex set-list timeout remains.
 
-No alias model, trade, sealed, admin, production operational tracking/budgets, full scheduling, or broader product UI is complete. Ranking still needs real full-catalogue tuning; third-party artwork rights remain unproven, while UTC/Warsaw presentation and the TCGdex live timeout remain open. Remaining work includes trade/sealed/admin/budget and operational foundations; this batch does not declare prior phases globally complete or Home final.
+No usable autocomplete correction, alias model, trade, sealed, admin, production operational tracking/budgets, full scheduling, or broader product UI is complete. Ranking still needs real full-catalogue tuning; third-party artwork rights remain unproven, while UTC/Warsaw presentation and the TCGdex live timeout remain open. Next priority is the autocomplete regression and real browser validation; this batch does not declare prior phases globally complete or Home final.
 
 ## See Also
 

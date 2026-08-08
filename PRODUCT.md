@@ -16,7 +16,7 @@ web
 
 ## Product Purpose
 
-Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices. The 2026-08-08 minimal Home correction is implemented for this surface: ordinary collectors get a compact search-and-price decision path without claims that unfinished trade or sealed capabilities exist.
+Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices. Commit `99023f3` is the minimal Home search-and-price baseline. The owner’s 2026-08-08 report that autocomplete loses focus on every letter makes a genuinely usable autocomplete the highest-priority active public UX/correctness blocker before Phase 3 or later roadmap work; no correction implementation is claimed yet.
 
 The product has exactly two top-level customer features: **sealed product price comparison** and **singles price comparison**. Singles includes composing a trade and calculating the difference; trade is not a third equal homepage product category.
 
@@ -37,13 +37,13 @@ Thesis-validation product built around local cached data and transparent uncerta
 - Singles estimates are in EUR and target seven-day freshness.
 - PLN sealed-product pricing and later PLN trade conversion are planned, but are not part of the current singles-focused surface.
 - Provider calls must happen outside normal request paths; public requests should primarily read local cached data.
-- The public exact-printing search surface is built as a local-only Home LiveView over the cached catalogue. Home defaults to Singles and presents a compact wordmark with `Compare Pokémon prices`, a direct `Find a card` search, and one-column exact-printing price rows with image, name, set, collector number, optional rarity, price, update state, and one solid `View price` CTA.
+- The public exact-printing search surface is the local-only Home LiveView baseline over the cached catalogue. Home defaults to Singles and presents a compact wordmark with `Compare Pokémon prices`, a direct `Find a card` search, and one-column exact-printing price rows with image, name, set, collector number, optional rarity, price, update state, and one solid `View price` CTA. That baseline’s autocomplete is not considered usable until focus, query, caret/selection, and IME/composition survive every LiveView update without input replacement or focus theft.
 - Home has an accessible Singles/Sealed mode switch. Sealed remains an honest unavailable state because no sealed catalogue or estimate capability was added.
 - Search preloads the active `tcgdex_cardmarket_v1` valuation relationship with the printing, avoiding an N+1 valuation read. Estimates explicitly distinguish current/fresh, stale, and unpriced states.
 - Home exposes full policy, methodology, and non-affiliation caveats in collapsed `How prices work` details, uses terse shipping language, 44px-class touch targets, keyboard semantics, and one reveal motion with a reduced-motion fallback.
-- The 2026-08-08 minimal Home correction is implemented for this surface. It uses plain collector language: `€…` or `Price unavailable`, `Updated …` plus `May be outdated`, and no idle copy. Rows do not expose TCGdex, legality, policy, freshness, or local-data jargon; exact identity and local-only stream behavior remain intact.
+- The 2026-08-08 minimal Home correction remains the presentation baseline. It uses plain collector language: `€…` or `Price unavailable`, `Updated …` plus `May be outdated`, and no idle copy. Rows do not expose TCGdex, legality, policy, freshness, or local-data jargon; exact identity and local-only stream behavior remain requirements. The next implementation must add stable combobox/listbox IDs, visible active-option state, ArrowUp/ArrowDown, Enter exact-printing selection to price detail, Escape close, touch/click selection, and screen-reader status without dead trade/sealed controls.
 - The approved colors, fonts, and warm square visual direction remain; this correction targets density, copy, jargon, and CTA clarity rather than replacing the visual system.
-- The planned sealed-product experience, trade calculator, and the associated public and internal workflows are also not yet represented in the current route/UI surface.
+- The planned sealed-product experience, trade calculator, and the associated public and internal workflows are also not yet represented in the current route/UI surface. Fix and validate autocomplete before Phase 3 or later roadmap features.
 - Missing or stale data is preferable to fabricated data or silently exceeding acquisition constraints.
 
 ## Evidence on Hand
@@ -67,3 +67,4 @@ Thesis-validation product built around local cached data and transparent uncerta
 - Mobile-first and responsive, with desktop support.
 - Keyboard-accessible controls and semantic markup.
 - LiveView state changes must be communicated accessibly.
+- Regression coverage and real browser validation must type one character at a time, verify focus after every update, exercise keyboard selection/Escape, and cover mobile/desktop with no console errors or horizontal overflow.

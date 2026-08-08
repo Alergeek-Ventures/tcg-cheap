@@ -7,6 +7,14 @@
 **Status:** **Current product north star.** Unless the product owner explicitly supersedes this article, every requirement, implementation phase, documentation deliverable, and acceptance criterion listed below is authoritative and must be completed in full.
 **Audience:** Long-running implementation agent
 
+## Product-owner autocomplete quality correction — 2026-08-08
+
+The product owner reports that the current autocomplete “sucks” and loses input focus on every letter. This is the highest-priority active public UX/correctness blocker, ahead of Phase 3 and all later roadmap features. Commit `99023f3` is the Home simplification baseline being corrected: preserve its minimal plain collector UI, approved colors/fonts and warm square direction, exact-printing identity, pricing honesty, and clear CTA. Do not treat the current autocomplete as complete merely because it re-renders search results.
+
+The next implementation must deliver genuinely usable autocomplete: uninterrupted one-character-at-a-time typing; preservation of the current query, selection/caret, and IME/composition state across LiveView updates; no input replacement or focus theft on each change; and result updates that do not move focus. Use combobox/listbox semantics with stable IDs, ArrowUp/ArrowDown active-option navigation, a visibly active option, Enter selection that opens the exact printing/card price detail, Escape to close results, touch/click selection, and an accessible screen-reader status. Keep provider calls out of request paths and retain local/cached reads plus background acquisition boundaries.
+
+Validate this correction with focused LiveView regression tests where possible and a real browser pass that types one character at a time, checks focus after every update, exercises keyboard selection and Escape, and covers mobile and desktop without console errors or horizontal overflow. This requirement strengthens the existing north-star autocomplete requirements; it does not add dead trade/sealed controls, narrow other MVP work, or claim that implementation has begun.
+
 ## Product-owner course correction — 2026-08-08
 
 The product owner has issued a newer authoritative correction to the public product direction. The product has exactly two top-level customer features: **(1) Sealed product price comparison** and **(2) Singles price comparison**, including the ability to compose a trade and calculate the difference. Trade is part of Singles, not a third equal homepage product category. The audience is ordinary, simple collectors, not market-data or technical users.
@@ -241,7 +249,7 @@ On mobile, the two sides are stacked vertically. On desktop, they are side by si
 
 The homepage should feel like a focused search surface rather than a marketing landing page.
 
-**Superseding 2026-08-08 homepage guidance:** Make the first path minimal and collector-readable. Keep only the words and controls needed to search/select and take the next available action. Singles is the default; sealed comparison is the other top-level customer feature. Trade entry belongs inside Singles and must not be presented as a third equal homepage category. Use clear CTAs and plain states such as `Price unavailable` and `Updated …`; put policy/provider, freshness, local-data, IDs, and longer methodology explanations behind concise secondary disclosure where feasible. Preserve the detailed identity, evidence, caveat, accessibility, and exactness requirements below, but do not let their technical labels dominate the task path. The approved warm square visual direction, colors, and fonts remain in force.
+**Superseding 2026-08-08 homepage guidance:** Make the first path minimal and collector-readable. Keep only the words and controls needed to search/select and take the next available action. Singles is the default; sealed comparison is the other top-level customer feature. Trade entry belongs inside Singles and must not be presented as a third equal homepage category. Use clear CTAs and plain states such as `Price unavailable` and `Updated …`; put policy/provider, freshness, local-data, IDs, and longer methodology explanations behind concise secondary disclosure where feasible. Preserve the detailed identity, evidence, caveat, accessibility, and exactness requirements below, but do not let their technical labels dominate the task path. The approved warm square visual direction, colors, and fonts remain in force. The autocomplete must also preserve typing focus, caret/selection, and IME composition while results update; its complete keyboard, touch, stable-ID, visible-active-option, and screen-reader behavior is a release blocker, not optional polish.
 
 Required structure:
 
@@ -1204,6 +1212,8 @@ Cover:
 
 - homepage mode switch
 - autocomplete result identity
+- autocomplete regression: typing retains input focus, query, caret/selection, and IME/composition state across every update; result updates do not replace the input or steal focus
+- autocomplete combobox/listbox semantics, stable option IDs, visible active option, ArrowUp/ArrowDown, Enter exact-printing selection, Escape close, touch/click selection, and screen-reader status
 - cross-category fallback suggestions
 - single page missing-price refresh state
 - stale single refresh state
