@@ -179,11 +179,13 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingTest do
           %{direct_url: "https://"},
           %{direct_url: "http://shop.example"},
           %{gtin: "4006381333932"},
+          %{current_price_pln: 1.5},
           %{current_price_pln: "NaN"},
           %{current_price_pln: "Infinity"},
           %{current_price_pln: "0"},
           %{stock_status: "in_stock", current_price_pln: nil},
-          %{last_seen_at: DateTime.add(now, -1, :second)}
+          %{last_seen_at: DateTime.add(now, -1, :second)},
+          %{source_payload: "not a JSON map"}
         ] do
       assert {:error, :malformed_listing} = SealedRetailerAdapter.new(Map.merge(base, invalid))
     end

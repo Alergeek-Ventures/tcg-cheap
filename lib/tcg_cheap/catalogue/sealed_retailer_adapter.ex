@@ -33,6 +33,8 @@ defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
 
   @callback fetch_listings(retailer :: term(), opts :: keyword()) ::
               {:ok, [Listing.t()]} | {:error, term()}
+  @callback source_key() :: String.t()
+
   @spec new(map()) :: {:ok, Listing.t()} | {:error, term()}
   # This constructor is a pure boundary validator and intentionally checks every contract field.
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
@@ -61,13 +63,14 @@ defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
         DateTime.compare(listing.last_seen_at, listing.last_checked_at) != :gt
 
     valid? =
-      is_binary(listing.source_listing_id) and String.trim(listing.source_listing_id) != "" and
-        is_binary(title) and String.trim(title) != "" and is_binary(listing.direct_url) and
+      valid_string?(listing.source_listing_id, 240) and valid_string?(title, 500) and
+        valid_string?(listing.direct_url, 2_000) and
         https_url?(listing.direct_url) and
         (is_nil(listing.gtin) or
            SealedIdentifier.valid_ean?(listing.gtin)) and listing.currency == "PLN" and
         listing.stock_status in ["in_stock", "sold_out", "unknown"] and times_ok and
-        price != :invalid and (listing.stock_status != "in_stock" or not is_nil(price))
+        price != :invalid and (listing.stock_status != "in_stock" or not is_nil(price)) and
+        json_payload?(listing.source_payload)
 
     if valid?, do: {:ok, listing}, else: {:error, :malformed_listing}
   rescue
@@ -78,6 +81,10 @@ defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
 
   defp trim(value) when is_binary(value), do: String.trim(value)
   defp trim(value), do: value
+
+  defp valid_string?(value, maximum),
+    do: is_binary(value) and value != "" and byte_size(value) <= maximum
+
   defp normalize_gtin(nil), do: nil
   defp normalize_gtin(value), do: SealedIdentifier.normalize(:ean, value)
 
@@ -88,7 +95,8 @@ defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
 
   defp cast_positive_price(nil), do: nil
 
-  defp cast_positive_price(value) do
+  defp cast_positive_price(value)
+       when is_struct(value, Decimal) or is_integer(value) or is_binary(value) do
     case Decimal.cast(value) do
       {:ok, decimal} ->
         if is_integer(decimal.coef) and Decimal.compare(decimal, Decimal.new(0)) == :gt,
@@ -99,4 +107,16 @@ defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
         :invalid
     end
   end
+
+  defp cast_positive_price(_value), do: :invalid
+
+  defp json_payload?(nil), do: true
+
+  defp json_payload?(value) when is_map(value) do
+    match?({:ok, _json}, Jason.encode(value))
+  rescue
+    _ -> false
+  end
+
+  defp json_payload?(_value), do: false
 end

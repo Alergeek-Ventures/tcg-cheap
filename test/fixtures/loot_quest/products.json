@@ -1,0 +1,96 @@
+[
+  {
+    "id": 165955,
+    "name": "Pokémon TCG: First Partner Illustration Collection &#8211; Series 3",
+    "permalink": "https://lootquest.pl/produkt/pokemon-tcg-first-partner-illustration-collection-series-3/",
+    "prices": {
+      "price": "24999",
+      "currency_code": "PLN",
+      "currency_minor_unit": 2
+    },
+    "categories": [
+      {
+        "id": 18,
+        "name": "Kolekcjonerskie gry karciane",
+        "slug": "karciane",
+        "link": "https://lootquest.pl/kategoria-produktu/karciane/"
+      },
+      {
+        "id": 55,
+        "name": "Pokemon TCG",
+        "slug": "pokemon-tcg",
+        "link": "https://lootquest.pl/kategoria-produktu/karciane/pokemon-tcg/"
+      },
+      {
+        "id": 139,
+        "name": "Pokemon TCG - zestawy kolekcjonerskie",
+        "slug": "pokemon-zestawy",
+        "link": "https://lootquest.pl/kategoria-produktu/karciane/pokemon-tcg/pokemon-zestawy/"
+      }
+    ],
+    "tags": [
+      {
+        "id": 1284,
+        "name": "First Partner",
+        "slug": "first-partner",
+        "link": "https://lootquest.pl/tag-produktu/first-partner/"
+      },
+      {
+        "id": 1303,
+        "name": "Nowości Pokemon!",
+        "slug": "nowosci-pokemon",
+        "link": "https://lootquest.pl/tag-produktu/nowosci-pokemon/"
+      }
+    ],
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "is_on_backorder": false
+  },
+  {
+    "id": 165139,
+    "name": "Pokémon TCG &#8211; KOREA: &#8222;Abyss Eye&#8221; Booster",
+    "permalink": "https://lootquest.pl/produkt/pokemon-tcg-korea-abyss-eye-booster/",
+    "prices": {
+      "price": "899",
+      "currency_code": "PLN",
+      "currency_minor_unit": 2
+    },
+    "categories": [
+      {
+        "id": 18,
+        "name": "Kolekcjonerskie gry karciane",
+        "slug": "karciane",
+        "link": "https://lootquest.pl/kategoria-produktu/karciane/"
+      },
+      {
+        "id": 55,
+        "name": "Pokemon TCG",
+        "slug": "pokemon-tcg",
+        "link": "https://lootquest.pl/kategoria-produktu/karciane/pokemon-tcg/"
+      },
+      {
+        "id": 1031,
+        "name": "Pokemon TCG - Koreańskie Karty",
+        "slug": "pokemon-korean",
+        "link": "https://lootquest.pl/kategoria-produktu/karciane/pokemon-tcg/pokemon-korean/"
+      }
+    ],
+    "tags": [
+      {
+        "id": 1258,
+        "name": "Mega Pokemony",
+        "slug": "mega-pokemony",
+        "link": "https://lootquest.pl/tag-produktu/mega-pokemony/"
+      },
+      {
+        "id": 1303,
+        "name": "Nowości Pokemon!",
+        "slug": "nowosci-pokemon",
+        "link": "https://lootquest.pl/tag-produktu/nowosci-pokemon/"
+      }
+    ],
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "is_on_backorder": false
+  }
+]
