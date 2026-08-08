@@ -1,110 +1,110 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-07T17:38:49Z",
-  "title": "Design System: TCG Cheap Printing Archive",
+  "generatedAt": "2026-08-08T00:00:00Z",
+  "title": "Design System: TCG Cheap Decision Surface",
   "extensions": {
+    "worlds": [
+      { "name": "decision-world", "scope": "Home", "description": "Bright card-shop valuation bench for singles decisions." },
+      { "name": "archive-world", "scope": "Card detail", "description": "Scoped archive-wall contract retained for exact-printing detail." }
+    ],
     "colorMeta": {
-      "box-board": { "role": "primary", "displayName": "Box-board", "canonical": "#c86c3f" },
-      "box-board-dark": { "role": "primary", "displayName": "Box-board dark", "canonical": "#a94f2f" },
-      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#171614" },
-      "tissue": { "role": "neutral", "displayName": "Tissue", "canonical": "#f6f0df" },
-      "sage": { "role": "secondary", "displayName": "Sage", "canonical": "#a9b69a" },
-      "indigo": { "role": "secondary", "displayName": "Indigo", "canonical": "#9fa8c8" },
-      "lilac": { "role": "secondary", "displayName": "Lilac", "canonical": "#c1b1c9" },
-      "sunfade": { "role": "tertiary", "displayName": "Sunfade", "canonical": "#e5bf70" }
+      "bench": { "role": "primary", "displayName": "Bench", "canonical": "#f3ead7" },
+      "bench-light": { "role": "primary", "displayName": "Bench light", "canonical": "#fffaf0" },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#fffdf8" },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#201d19" },
+      "orange": { "role": "accent", "displayName": "Orange", "canonical": "#c64e2d" },
+      "muted": { "role": "secondary", "displayName": "Muted", "canonical": "#6d6256" },
+      "archive-box-board": { "role": "archive", "displayName": "Archive box-board", "canonical": "#c86c3f" },
+      "archive-tissue": { "role": "archive", "displayName": "Archive tissue", "canonical": "#f6f0df" }
     },
     "typographyMeta": {
-      "display": { "displayName": "Barlow Condensed 700", "purpose": "Oversized archive and section headings." },
-      "body": { "displayName": "Azeret Mono 400", "purpose": "Search guidance, state copy, and archive data." },
-      "label": { "displayName": "Azeret Mono 400 label", "purpose": "Readable header, metadata, help, summary, set, state, and chip labels." }
+      "action": { "displayName": "Barlow Condensed 700", "fontSize": "clamp(3.1rem, 9vw, 6rem)", "purpose": "Home decision headline, headings, estimates, mode controls, and action hierarchy." },
+      "evidence": { "displayName": "Azeret Mono 400", "purpose": "Evidence-only identity, methodology, disclaimer, help, and state copy." }
     },
-    "shadows": [
-      { "name": "soft-drawer", "value": "7px 9px 13px rgb(76 33 22 / 32%)", "purpose": "Physical lift for the search drawer only." }
-    ],
+    "rounded": { "square": "0" },
+    "touchTargets": { "minimum": "44px", "appliesTo": ["mode-switch", "search", "value-details"] },
     "motion": [
-      { "name": "pull-label", "value": "0.45s ease-out", "purpose": "Printing labels pull down into the wall; disabled under prefers-reduced-motion." }
+      { "name": "bench-reveal", "value": "0.45s ease-out", "purpose": "One evidence-slip reveal; disabled under prefers-reduced-motion." }
     ],
     "breakpoints": [
-      { "name": "label-wall-narrow-reflow", "value": "30rem" },
-      { "name": "label-wall-two-column", "value": "46rem" },
-      { "name": "label-wall-three-column", "value": "70rem" }
+      { "name": "decision-stack", "value": "42rem" },
+      { "name": "evidence-narrow", "value": "24rem" }
     ]
   },
   "components": [
     {
-      "name": "Archive Header Active Label",
-      "kind": "nav",
-      "refersTo": "archive-active-label",
-      "description": "The local catalogue mode label in the archive masthead.",
-      "html": "<span class=\"ds-archive-active-label\">LOCAL CATALOGUE</span>",
-      "css": ".ds-archive-active-label { display: inline-block; background: #171614; color: #f6f0df; padding: .45rem .55rem; font: .75rem/normal \"Azeret Mono\", ui-monospace, monospace; letter-spacing: .08em; }"
+      "name": "Decision Header",
+      "kind": "header",
+      "refersTo": "decision-header",
+      "description": "Square-rule Home masthead for the local counter context.",
+      "html": "<header class=\"decision-header\"><a id=\"decision-wordmark\">TCG CHEAP</a><span>COUNTER CHECK / LOCAL DATA</span></header>",
+      "css": ".decision-header { border-bottom: 2px solid #201d19; background: #f3ead7; }"
     },
     {
-      "name": "Search Drawer",
-      "kind": "custom",
-      "refersTo": "search-drawer",
-      "description": "Tissue paper drawer containing the local archive search field.",
-      "html": "<section class=\"ds-search-drawer\"><h2>SEARCH THE ARCHIVE</h2><input class=\"ds-search-input\" type=\"search\" placeholder=\"Name, set, number, or TCGdex ID\" /></section>",
-      "css": ".ds-search-drawer { background: #f6f0df; border: 2px solid #171614; box-shadow: 7px 9px 13px rgb(76 33 22 / 32%); padding: clamp(1.25rem, 4vw, 2.5rem); } .ds-search-drawer h2 { color: #171614; font: 700 clamp(2rem, 5vw, 3.5rem)/1 \"Barlow Condensed\", sans-serif; margin: 1rem 0; text-transform: uppercase; } .ds-search-input { width: 100%; min-height: 3.5rem; padding: .5rem 0; background: transparent; border: 0; border-bottom: 3px solid #171614; border-radius: 0; box-shadow: none; color: #171614; font: 700 clamp(1.2rem, 3vw, 2rem) \"Barlow Condensed\", sans-serif; } .ds-search-input:focus-visible { outline: 3px solid #171614; outline-offset: 5px; }"
+      "name": "Mode Switch",
+      "kind": "control",
+      "refersTo": "mode-switch",
+      "description": "Accessible Singles default and Sealed-products switch; Sealed exposes an honest unavailable state.",
+      "html": "<div class=\"mode-switch\" role=\"group\" aria-label=\"Choose product mode\"><button aria-pressed=\"true\">Singles</button><button aria-pressed=\"false\">Sealed products</button></div>",
+      "css": ".mode-switch { border: 2px solid #201d19; } .mode-switch button { min-height: 44px; font-family: \"Barlow Condensed\", sans-serif; }"
     },
     {
-      "name": "Printing Label",
-      "kind": "custom",
-      "refersTo": "printing-label",
-      "description": "One tissue-paper label for one exact printing, using a low WebP TCGdex thumbnail when available and box-board-dark line art when imagery is missing.",
-      "html": "<article class=\"ds-printing-label\"><div class=\"ds-label-art\" aria-hidden=\"true\"></div><div><strong>PIKACHU</strong><p>SET NAME</p><dl><div><dt>NO.</dt><dd>001</dd></div><div><dt>TCGDEX</dt><dd>swsh1-001</dd></div></dl><div class=\"ds-label-chips\"><span>STANDARD</span></div></div></article>",
-      "css": ".ds-printing-label { display: flex; min-width: 0; min-height: 12rem; padding: 1rem; background: #f6f0df; border: 1.5px solid #171614; color: #171614; font-family: \"Azeret Mono\", ui-monospace, monospace; animation: ds-pull-label .45s ease-out both; } .ds-label-art { flex: 0 0 5rem; min-height: 7rem; margin-right: 1rem; border-right: 1px solid #171614; } .ds-printing-label strong { display: block; font: 700 1.65rem/.95 \"Barlow Condensed\", sans-serif; text-transform: uppercase; } .ds-printing-label p, .ds-printing-label dl { font-size: .75rem; } .ds-printing-label dl { line-height: 1.5; } .ds-printing-label dl div { display: flex; flex-wrap: wrap; gap: .6rem; } .ds-printing-label dt { min-width: 3.5rem; color: #a94f2f; } .ds-label-chips span { display: inline-block; padding: .3rem .4rem; border: 1px solid #171614; background: #a9b69a; font-size: .7rem; overflow-wrap: anywhere; } @media (max-width: 30rem) { .ds-printing-label { flex-direction: column; } .ds-label-art { flex: 0 0 auto; margin: 0 0 1rem; padding-bottom: .75rem; border-right: 0; border-bottom: 1px solid #171614; } .ds-label-art svg { height: 4rem; width: 3rem; } } @keyframes ds-pull-label { from { opacity: 0; transform: translateY(-.7rem); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: translateY(0); clip-path: inset(0); } } @media (prefers-reduced-motion: reduce) { .ds-printing-label { animation: none; } }"
+      "name": "Decision Search",
+      "kind": "search",
+      "refersTo": "decision-search",
+      "description": "Direct local exact-printing search with a 250ms debounce and no provider request.",
+      "html": "<section class=\"decision-search\"><h2>SEARCH AN EXACT PRINTING</h2><input type=\"search\" placeholder=\"Card name, set, number, or ID\" /></section>",
+      "css": ".decision-search { background: #fffaf0; border: 2px solid #201d19; } input { min-height: 44px; border-bottom: 3px solid #201d19; border-radius: 0; }"
     },
     {
-      "name": "Card Detail Image",
-      "kind": "media",
-      "description": "The high WebP TCGdex exact-printing image for functional identification, framed as a square tissue-and-ink archive object with an honest line-art fallback when missing.",
-      "html": "<figure class=\"ds-card-detail-image\"><img src=\"https://assets.tcgdex.net/en/swsh/swsh1/001/high.webp\" referrerpolicy=\"no-referrer\" alt=\"PIKACHU exact printing\" /></figure>",
-      "css": ".ds-card-detail-image { aspect-ratio: 1; margin: 0; padding: .75rem; background: #f6f0df; border: 1.5px solid #171614; } .ds-card-detail-image img { display: block; width: 100%; height: 100%; object-fit: contain; }"
+      "name": "Evidence Slip",
+      "kind": "result",
+      "refersTo": "evidence-slip",
+      "description": "Image-backed exact identity, set/collector/TCGdex discriminators, current/fresh-stale-unpriced estimate, and one value-details action.",
+      "html": "<article class=\"evidence-slip\"><div class=\"evidence-art\"><img alt=\"Exact printing\" /></div><div class=\"evidence-copy\"><p>EXACT IDENTITY</p><p>PIKACHU</p><dl><div><dt>NO.</dt><dd>001</dd></div><div><dt>TCGDEX</dt><dd>swsh1-001</dd></div></dl><strong>€12.30</strong><a>OPEN VALUE DETAILS →</a></div></article>",
+      "css": ".evidence-slip { display: grid; grid-template-columns: 7rem minmax(0, 1fr); background: #fffdf8; border: 1.5px solid #201d19; animation: bench-reveal .45s ease-out both; }"
     },
     {
-      "name": "Archive Chips",
-      "kind": "chip",
-      "refersTo": "archive-chip",
-      "description": "Small square-edged status annotations on printing labels.",
-      "html": "<div class=\"ds-archive-chips\"><span class=\"ds-chip-sage\">STANDARD</span><span class=\"ds-chip-indigo\">EXPANDED</span><span class=\"ds-chip-lilac\">RARE</span></div>",
-      "css": ".ds-archive-chips { display: flex; flex-wrap: wrap; gap: .35rem; } .ds-archive-chips span { display: inline-block; padding: .3rem .4rem; border: 1px solid #171614; color: #171614; font: .7rem/normal \"Azeret Mono\", ui-monospace, monospace; } .ds-chip-sage { background: #a9b69a; } .ds-chip-indigo { background: #9fa8c8; } .ds-chip-lilac { background: #c1b1c9; }"
+      "name": "Methodology and State Notes",
+      "kind": "evidence",
+      "refersTo": "price-methodology",
+      "description": "Visible tcgdex_cardmarket_v1 methodology, disclaimer, and honest fresh/stale/unpriced/unavailable states.",
+      "html": "<aside class=\"price-methodology\"><strong>Methodology:</strong> aggregate Cardmarket estimate from TCGdex under tcgdex_cardmarket_v1.</aside>",
+      "css": ".price-methodology { border-left: 4px solid #c64e2d; background: #fffaf0; color: #201d19; }"
     },
     {
-      "name": "State Note",
-      "kind": "custom",
-      "refersTo": "state-note",
-      "description": "Ruled catalogue guidance for idle, short, empty, unavailable, or missing-image states.",
-      "html": "<div class=\"ds-state-note\"><strong>START WITH AN IDENTITY.</strong> The archive keeps each exact printing on its own label.</div>",
-      "css": ".ds-state-note { border-top: 1px solid #171614; padding: 1.25rem 0; color: #171614; font: .75rem/1.7 \"Azeret Mono\", ui-monospace, monospace; } .ds-state-note.ds-error { padding: 1rem; background: #e5bf70; }"
+      "name": "Archive Detail Contract",
+      "kind": "world",
+      "refersTo": "archive-world",
+      "description": "The archive-world remains scoped to card detail and retains board/tissue/ink, square rules, and exact-printing framing.",
+      "html": "<main class=\"archive-world\">Card detail</main>",
+      "css": ".archive-world { /* detail-only archive contract */ }"
     }
   ],
   "narrative": {
-    "northStar": "The Printing Archive Wall",
-    "overview": "The public archive is built like a working box-board drawer: burnt board surrounds tissue labels, black ink rules divide information, and every exact printing occupies its own labeled place. It is tactile and catalogued rather than promotional. Condensed display type makes the archive legible at a glance; monospaced data keeps identity fields precise.\n\nThe visual world favors near-square paper geometry, strong ruled edges, restrained color blocks, and a responsive wall of labels. Archive background, fonts, texture, and light color scheme are scoped to .archive-world so future product surfaces remain independent. It rejects generic rounded marketplace grids and imagery that erases the archive identity, not useful card imagery itself. The field is the primary action, and catalogue states remain visible as honest notes.",
+    "northStar": "The Card-Shop Valuation Bench",
+    "overview": "Home is a bright card-shop counter scene for deciding about exact singles. Warm bench, paper, ink, and orange tokens frame direct local search, image-backed identity, evidence slips, honest estimate freshness, and one clear value-details action. The decision-world is scoped to Home; archive-world remains the card-detail contract.",
     "keyCharacteristics": [
-      "Physical box-board, tissue, ink, and paper-label grammar.",
-      "Exact-printing identity expressed through ruled metadata and archive chips.",
-      "Mobile-first 1/2/3-column label wall with restrained tactile motion."
+      "Square rules and warm bench/paper/ink/orange palette.",
+      "Barlow Condensed action hierarchy with Azeret Mono evidence only.",
+      "Accessible mode switch, direct local search, visible methodology, honest unavailable Sealed mode, and one reveal motion with reduced-motion support."
     ],
     "rules": [
-      { "name": "The Material Rule", "body": "Use the palette as physical archive material: board for the surrounding world, tissue for paper surfaces, ink for information structure, and muted colors for annotations.", "section": "colors" },
-      { "name": "The Identity Rule", "body": "Keep exact-printing names in condensed display type and identity fields in monospaced data type; do not turn catalogue facts into marketing copy.", "section": "typography" },
-      { "name": "The One-Shadow Rule", "body": "Do not add ornamental elevation to labels, chips, or state notes; use rules and material contrast instead.", "section": "elevation" }
+      { "name": "The Scope Rule", "body": "Keep the decision-world on Home and preserve archive-world for card detail; do not merge their visual contracts.", "section": "worlds" },
+      { "name": "The Evidence Rule", "body": "Show exact identity, discriminators, source/methodology, and current/fresh, stale, or unpriced status without fabricated precision.", "section": "evidence" },
+      { "name": "The Action Rule", "body": "Make search and one value-details action clear, with 44px-class touch targets and keyboard focus.", "section": "interaction" }
     ],
     "dos": [
-      "Do preserve the box-board field, tissue paper surfaces, and strong ink rules.",
-      "Do keep the container capped at 78rem and the label wall responsive at 46rem and 70rem.",
-      "Do make exact identity fields visibly distinct through monospaced metadata and archive chips.",
-      "Do retain the soft drawer shadow and pull-label motion only where the implementation uses them.",
-      "Do provide the reduced-motion fallback for label entrance motion.",
-      "Do use low WebP TCGdex thumbnails on printing labels and the high WebP exact-printing image on card detail when available, inside square tissue-and-ink framing."
+      "Do keep Singles as the default Home mode and state Sealed honestly unavailable.",
+      "Do use square geometry, warm bench/paper/ink/orange tokens, and evidence slips.",
+      "Do preserve the archive-world contract on card detail.",
+      "Do keep methodology, disclaimer, freshness, and unpriced evidence visible.",
+      "Do provide one bench-reveal motion and disable it for reduced motion."
     ],
     "donts": [
-      "Don't replace archive labels with generic rounded marketplace grids or use imagery that erases the archive identity.",
-      "Don't add glass surfaces or decorative gradients.",
-      "Don't invent buttons, pricing treatments, dark mode, or alias UI that is not part of this public archive.",
-      "Don't use shadows as a general card treatment; the drawer is the one soft elevation."
+      "Don't imply sealed, trade, seller-count, language, condition, finish, or Poland-shipping capability.",
+      "Don't hide stale or unpriced estimates behind decorative treatment.",
+      "Don't replace either scoped world with generic rounded marketplace cards, glass, or gradients."
     ]
   }
 }

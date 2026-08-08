@@ -2,8 +2,8 @@
 
 ## Architecture
 
-- [Application Foundation](architecture/application-foundation.md) — Current Phoenix/AshPostgres foundation, approved TCGdex imagery through `CardImage`, local-first exact-printing detail/history, and the highest-priority homepage course correction from archive framing to decision support. Updated 2026-08-07.
-- [Provider and Acquisition Feasibility](architecture/provider-acquisition-feasibility.md) — TCGdex aggregate pricing and approved MVP imagery, strict sync/enrichment safeguards, evidence caveats, and remaining sealed/provider work. Updated 2026-08-07.
+- [Application Foundation](architecture/application-foundation.md) — Current Phoenix/AshPostgres foundation, local-first exact-printing detail/history, and the implemented Home decision-world with direct search, evidence, valuation freshness, and scoped archive detail. Updated 2026-08-08.
+- [Provider and Acquisition Feasibility](architecture/provider-acquisition-feasibility.md) — TCGdex aggregate pricing, the Home decision-surface valuation boundary, evidence caveats, and remaining trade/sealed/provider/admin/budget work. Updated 2026-08-08.
 - [Reference Project Conventions](architecture/reference-project-conventions.md) — Phase 0 audit of Firmowid and Onside conventions, adoption decisions, and compatibility boundaries. Updated 2026-08-07.
 
 ## Product

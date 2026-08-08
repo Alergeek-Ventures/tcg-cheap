@@ -3,18 +3,25 @@ defmodule TcgCheapWeb.HomeLive do
 
   alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Catalogue.SearchText
+  alias TcgCheap.Pricing.Singles.Freshness
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      socket
      |> assign(
-       page_title: "Printing Archive",
+       page_title: "Singles Valuation Bench",
+       mode: :singles,
        search_form: to_form(%{"query" => ""}, as: :search),
        search_status: :idle,
        result_count: 0
      )
      |> stream(:card_results, [])}
+  end
+
+  @impl true
+  def handle_event("search", _params, %{assigns: %{mode: :sealed}} = socket) do
+    {:noreply, socket}
   end
 
   @impl true
@@ -31,77 +38,113 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   @impl true
+  def handle_event("switch_mode", %{"mode" => "sealed"}, socket) do
+    {:noreply,
+     socket
+     |> assign(mode: :sealed, search_form: to_form(%{"query" => ""}, as: :search))
+     |> assign(search_status: :sealed_unavailable, result_count: 0)
+     |> stream(:card_results, [], reset: true)}
+  end
+
+  def handle_event("switch_mode", %{"mode" => "singles"}, socket) do
+    {:noreply,
+     socket
+     |> assign(mode: :singles, search_form: to_form(%{"query" => ""}, as: :search))
+     |> assign(search_status: :idle, result_count: 0)
+     |> stream(:card_results, [], reset: true)}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash}>
-      <div class="archive-world">
-        <header id="archive-header" class="archive-header">
-          <.link id="archive-wordmark" navigate={~p"/"} class="archive-wordmark">TCG CHEAP</.link>
-          <div class="archive-header-meta">
-            <span id="archive-section">PRINTING ARCHIVE</span>
-            <span id="archive-mode">LOCAL CATALOGUE</span>
-          </div>
+      <div class="decision-world">
+        <header id="decision-header" class="decision-header">
+          <.link id="decision-wordmark" navigate={~p"/"}>TCG CHEAP</.link>
+          <span id="decision-context">COUNTER CHECK / LOCAL DATA</span>
         </header>
 
-        <main id="archive-main" class="archive-main">
-          <div class="archive-container">
-            <section class="archive-intro" aria-labelledby="archive-title">
-              <h1 id="archive-title">Find the printing.<br /><span>Keep the name.</span></h1>
-              <p class="archive-lede">
-                A quiet, local index for telling same-name cards apart at the counter.
-              </p>
-            </section>
-
-            <section class="search-drawer" aria-labelledby="search-title">
-              <h2 id="search-title">Search the archive</h2>
-              <.form for={@search_form} id="card-search-form" phx-change="search">
-                <label for="card-search-query" class="sr-only">Search by card name, set, collector number, or TCGdex ID</label>
-                <div class="search-field-wrap">
-                  <.input
-                    field={@search_form[:query]}
-                    type="search"
-                    id="card-search-query"
-                    name="search[query]"
-                    autocomplete="off"
-                    maxlength="100"
-                    phx-debounce="250"
-                    placeholder="Name, set, number, or TCGdex ID"
-                    aria-describedby="search-help"
-                  />
-                  <span class="phx-change-loading" aria-live="polite">Checking local catalogue…</span>
-                </div>
-              </.form>
-              <p id="search-help" class="search-help">
-                Try a card name, set name, collector number, or stable TCGdex identity.
-              </p>
-            </section>
-
-            <section class="archive-shelf" aria-labelledby="results-title">
-              <div class="shelf-heading">
-                <h2 id="results-title">Printing wall</h2>
-                <p id="card-search-summary" aria-live="polite">
-                  {summary_text(@search_status, @result_count)}
+        <main id="decision-main" class="decision-main">
+          <div class="decision-container">
+            <section class="decision-intro" aria-labelledby="decision-title">
+              <div>
+                <h1 id="decision-title">Make the call<br /><span>before the trade.</span></h1>
+                <p class="decision-lede">
+                  Identify the exact single, then verify the local estimate.
                 </p>
               </div>
+              <div id="mode-switch" class="mode-switch" role="group" aria-label="Choose product mode">
+                <button
+                  id="mode-singles"
+                  type="button"
+                  phx-click="switch_mode"
+                  phx-value-mode="singles"
+                  aria-pressed={to_string(@mode == :singles)}
+                >Singles</button>
+                <button
+                  id="mode-sealed"
+                  type="button"
+                  phx-click="switch_mode"
+                  phx-value-mode="sealed"
+                  aria-pressed={to_string(@mode == :sealed)}
+                >Sealed products</button>
+              </div>
+            </section>
 
-              <div id="card-search-results" phx-update="stream" class="label-wall">
-                <div
-                  :for={{stream_id, result} <- @streams.card_results}
-                  id={stream_id}
-                  class="label-slot"
-                >
-                  <.link
-                    navigate={~p"/cards/#{result.tcgdex_id}"}
-                    id={"card-detail-link-#{result.id}"}
-                    class="printing-label-link"
-                    aria-label={card_link_label(result)}
+            <%= if @mode == :singles do %>
+              <section class="decision-search" aria-labelledby="search-title">
+                <h2 id="search-title">Search an exact printing</h2>
+                <.form for={@search_form} id="card-search-form" phx-change="search">
+                  <label for="card-search-query" class="sr-only">Search by card name, set, collector number, or TCGdex ID</label>
+                  <div class="search-field-wrap">
+                    <.input
+                      field={@search_form[:query]}
+                      type="search"
+                      id="card-search-query"
+                      name="search[query]"
+                      autocomplete="off"
+                      maxlength="100"
+                      phx-debounce="250"
+                      placeholder="Card name, set, number, or ID"
+                      aria-describedby="search-help"
+                    />
+                    <span class="phx-change-loading" aria-live="polite">Checking local data…</span>
+                  </div>
+                </.form>
+                <p id="search-help" class="search-help">
+                  Local-only search. No provider calls at the counter.
+                </p>
+              </section>
+
+              <section class="decision-results" aria-labelledby="results-title">
+                <div class="results-heading">
+                  <h2 id="results-title">Evidence</h2>
+                  <p id="card-search-summary" aria-live="polite">
+                    {summary_text(@search_status, @result_count)}
+                  </p>
+                </div>
+
+                <aside id="price-methodology" class="price-methodology" aria-label="Price methodology">
+                  <p>
+                    <strong>Methodology:</strong>
+                    aggregate Cardmarket estimate from TCGdex under <code>tcgdex_cardmarket_v1</code>. Language, condition, seller identity/count,
+                    finish-specific exactness, and Poland shipping are not verified; shipping is not
+                    calculated.
+                  </p>
+                </aside>
+
+                <div id="card-search-results" phx-update="stream" class="evidence-slips">
+                  <div
+                    :for={{stream_id, result} <- @streams.card_results}
+                    id={stream_id}
+                    class="evidence-slot"
                   >
                     <article
                       id={"card-search-result-#{result.id}"}
-                      class="printing-label"
+                      class="evidence-slip"
                       aria-labelledby={"card-search-name-#{result.id}"}
                     >
-                      <div class="label-art">
+                      <div class="evidence-art">
                         <%= if image_url = CardImage.thumbnail_url(result.image_url) do %>
                           <img
                             id={"card-search-image-#{result.id}"}
@@ -124,57 +167,134 @@ defmodule TcgCheapWeb.HomeLive do
                           </div>
                         <% end %>
                       </div>
-                      <div class="label-copy">
-                        <p id={"card-search-name-#{result.id}"} class="label-name">{result.name}</p>
-                        <p class="label-set">{result.set_name}</p>
-                        <dl class="label-data">
+                      <div class="evidence-copy">
+                        <p class="evidence-label">EXACT IDENTITY</p>
+                        <p id={"card-search-name-#{result.id}"} class="evidence-name">
+                          {result.name}
+                        </p>
+                        <p class="evidence-set">{result.set_name}</p>
+                        <div
+                          :if={result.rarity || result.standard_legal || result.expanded_legal}
+                          class="evidence-tags"
+                          aria-label="Printing discriminators"
+                        >
+                          <span
+                            :if={result.rarity}
+                            class="evidence-tag"
+                            id={"card-rarity-#{result.id}"}
+                          >{result.rarity}</span>
+                          <span
+                            :if={result.standard_legal}
+                            class="evidence-tag"
+                            id={"card-standard-#{result.id}"}
+                          >STANDARD</span>
+                          <span
+                            :if={result.expanded_legal}
+                            class="evidence-tag"
+                            id={"card-expanded-#{result.id}"}
+                          >EXPANDED</span>
+                        </div>
+                        <dl class="evidence-data">
                           <div>
                             <dt>NO.</dt><dd>{result.collector_number}</dd>
-                          </div>
-                          <div>
+                          </div><div>
                             <dt>TCGDEX</dt><dd>{result.tcgdex_id}</dd>
                           </div>
                         </dl>
-                        <div class="label-chips">
-                          <span :if={result.rarity} class="archive-chip chip-lilac">{result.rarity}</span>
-                          <span :if={result.standard_legal} class="archive-chip chip-sage">STANDARD</span>
-                          <span :if={result.expanded_legal} class="archive-chip chip-indigo">EXPANDED</span>
+                        <div class="estimate-cell">
+                          <span class="evidence-label">LOCAL ESTIMATE</span><strong id={"card-estimate-#{result.id}"}>{estimate_display(
+                            Map.get(result, :tcgdex_cardmarket_v1_current_valuation)
+                          )}</strong><span id={"card-freshness-#{result.id}"}>{freshness_text(
+                            Map.get(result, :tcgdex_cardmarket_v1_current_valuation)
+                          )}</span>
                         </div>
+                        <.link
+                          navigate={~p"/cards/#{result.tcgdex_id}"}
+                          id={"card-detail-link-#{result.id}"}
+                          class="detail-action"
+                          aria-label={"Open value details for #{card_link_label(result)}"}
+                        >Open value details <span aria-hidden="true">→</span></.link>
                       </div>
                     </article>
-                  </.link>
+                  </div>
                 </div>
-              </div>
 
-              <div :if={@search_status == :idle} id="card-search-idle" class="state-note">
-                <strong>Start with an identity.</strong>
-                The archive keeps each exact printing on its own label.
-              </div>
-              <div :if={@search_status == :short} id="card-search-short" class="state-note">
-                <strong>Keep going.</strong> Enter at least two characters to open the drawer.
-              </div>
-              <div :if={@search_status == :empty} id="card-search-empty" class="state-note">
-                <strong>No local match.</strong>
-                Try a set name, collector number, or the full card name.
-              </div>
-              <div
-                :if={@search_status == :error}
-                id="card-search-error"
-                class="state-note state-error"
+                <div :if={@search_status == :idle} id="card-search-idle" class="state-note">
+                  <strong>Ready when you are.</strong>
+                  Search a name, set, collector number, or stable ID.
+                </div>
+                <div :if={@search_status == :short} id="card-search-short" class="state-note">
+                  <strong>Keep going.</strong> Enter at least two characters.
+                </div>
+                <div :if={@search_status == :empty} id="card-search-empty" class="state-note">
+                  <strong>No local match.</strong>
+                  Try the set name, collector number, or full card name.
+                </div>
+                <div
+                  :if={@search_status == :error}
+                  id="card-search-error"
+                  class="state-note state-error"
+                >
+                  <strong>Local data unavailable.</strong> Try again in a moment.
+                </div>
+                <div :if={@search_status == :invalid} id="card-search-invalid" class="state-note">
+                  <strong>That query is too long.</strong> Use 100 characters or fewer.
+                </div>
+
+                <aside id="price-disclaimer" class="price-disclaimer" aria-label="Price disclaimer">
+                  TCG Cheap is unofficial and not affiliated with Pokémon, Nintendo, TCGdex,
+                  Cardmarket, or listed companies. This estimate is not guaranteed resale value
+                  or investment advice.
+                </aside>
+              </section>
+            <% else %>
+              <section
+                id="sealed-unavailable"
+                class="decision-search unavailable-note"
+                aria-labelledby="sealed-unavailable-title"
               >
-                <strong>Drawer stuck.</strong>
-                The local catalogue could not be read. Try again in a moment.
-              </div>
-              <div :if={@search_status == :invalid} id="card-search-invalid" class="state-note">
-                <strong>That query is too long.</strong> Use 100 characters or fewer.
-              </div>
-            </section>
+                <h2 id="sealed-unavailable-title">
+                  Sealed products are not in the local catalogue yet.
+                </h2>
+                <p>
+                  Nothing is being searched or estimated here. Switch back to Singles to check a card.
+                </p>
+              </section>
+            <% end %>
           </div>
         </main>
       </div>
     </Layouts.app>
     """
   end
+
+  defp estimate_display(nil), do: "?"
+  defp estimate_display(%{value_eur: value}), do: "€" <> format_eur(value)
+  defp estimate_display(_), do: "?"
+
+  defp freshness_text(nil), do: "UNPRICED / NO LOCAL ESTIMATE"
+
+  defp freshness_text(valuation) do
+    case Freshness.status(valuation, DateTime.utc_now()) do
+      :fresh -> "FRESH · within 7 days"
+      :stale -> "STALE · older than 7 days"
+    end
+  end
+
+  defp format_eur(%Decimal{} = value) do
+    [whole, fraction] =
+      value
+      |> Decimal.round(2)
+      |> Decimal.to_string(:normal)
+      |> String.split(".", parts: 2)
+      |> Kernel.++(["0"])
+      |> Enum.take(2)
+
+    whole <> "." <> String.pad_trailing(fraction, 2, "0")
+  end
+
+  defp format_eur(value) when is_binary(value), do: format_eur(Decimal.new(value))
+  defp format_eur(value) when is_integer(value), do: format_eur(Decimal.new(value))
 
   defp search_locally(socket, query) do
     case TcgCheap.Core.search_card_printings(query) do
@@ -211,8 +331,10 @@ defmodule TcgCheapWeb.HomeLive do
   defp summary_text(:empty, _count), do: "0 printings"
   defp summary_text(:error, _count), do: "Catalogue unavailable"
   defp summary_text(:invalid, _count), do: "Query too long"
+  defp summary_text(:sealed_unavailable, _count), do: "Not available yet"
   defp summary_text(_status, _count), do: "Awaiting a search"
 
   defp card_link_label(result),
-    do: "#{result.name}, #{result.set_name}, collector number #{result.collector_number}"
+    do:
+      "#{result.name}, #{result.set_name}, collector number #{result.collector_number}, TCGdex ID #{result.tcgdex_id}"
 end

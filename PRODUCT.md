@@ -16,7 +16,7 @@ web
 
 ## Product Purpose
 
-Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices.
+Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices. The completed homepage batch makes that decision surface concrete without claiming the unfinished trade or sealed capabilities.
 
 ## Positioning
 
@@ -35,7 +35,10 @@ Thesis-validation product built around local cached data and transparent uncerta
 - Singles estimates are in EUR and target seven-day freshness.
 - PLN sealed-product pricing and later PLN trade conversion are planned, but are not part of the current singles-focused surface.
 - Provider calls must happen outside normal request paths; public requests should primarily read local cached data.
-- The public exact-printing search surface is built as a local-only Home LiveView over the cached catalogue; catalogue/pricing modules remain the foundation.
+- The public exact-printing search surface is built as a local-only Home LiveView over the cached catalogue. Home defaults to Singles and presents a card-shop valuation bench: direct search, image-backed identity, discriminators, a local estimate, evidence, and one value-details action.
+- Home has an accessible Singles/Sealed-products mode switch. Sealed is visible as an honest unavailable state because no sealed catalogue or estimate capability was added in this batch.
+- Search preloads the active `tcgdex_cardmarket_v1` valuation relationship with the printing, avoiding an N+1 valuation read. Estimates explicitly distinguish current/fresh, stale, and unpriced states.
+- Home exposes the valuation methodology and disclaimer, and uses 44px-class touch targets, keyboard semantics, and one reveal motion with a reduced-motion fallback.
 - The planned sealed-product experience, trade calculator, and the associated public and internal workflows are also not yet represented in the current route/UI surface.
 - Missing or stale data is preferable to fabricated data or silently exceeding acquisition constraints.
 

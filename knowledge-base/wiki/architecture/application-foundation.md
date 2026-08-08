@@ -1,6 +1,6 @@
 # Application Foundation
 
-- Updated: 2026-08-07
+- Updated: 2026-08-08
 - Sources: Project code; local validation; `PRODUCT.md`; `DESIGN.md`; `.impeccable/design.json`
 - Raw: N/A — codebase update
 
@@ -20,7 +20,7 @@ Local exact-printing search is exposed as `TcgCheap.Core.search_card_printings`.
 
 `/` is now a public local-only exact-printing search surface in `HomeLive`. It uses `to_form`, a 250ms `phx-change` debounce, the backend-shared normalization, effective minimum 2/max 100 handling, and LiveView stream resets. Idle, short, invalid, empty, error, and results states have stable accessible IDs and `aria-live`. Same-name printings remain separate and show original name/set/collector/TCGdex ID plus optional rarity/legalities. No provider HTTP runs from render/event paths and no price is invented. Current commit `52a9c0d` renders approved TCGdex imagery only through the strict `CardImage` boundary: canonical `https://assets.tcgdex.net` URLs, low WebP search images, no-referrer, exact CSP host, no proxy/cache, and honest missing/invalid fallback.
 
-The public visual world is a responsive scoped archive-wall design documented in root `PRODUCT.md`, `DESIGN.md`, and `.impeccable/design.json`. Self-hosted Barlow Condensed/Azeret Mono fonts carry OFL notices; the surface supports 1/2/3-column labels, keyboard focus, reduced motion, and a light scoped world. Generic shared Layout remains neutral. The archive metaphor is now a product limitation, not a finished direction: the highest-priority active public-UI goal is to course-correct Home toward decision support, with Singles default, Sealed-products mode, direct search/select, image-backed identity, and useful honest next actions. Search/results must win the first viewport; do not add unavailable sealed/trade controls.
+Home now uses a scoped `decision-world`: a bright card-shop valuation bench with warm bench/paper/ink/orange tokens, square rules, Barlow Condensed action hierarchy, Azeret Mono evidence, accessible mode switch, direct local search, evidence slips, and one value-details action. Singles is the default; Sealed is an honest unavailable state. Results include image/identity/discriminators, visible methodology/disclaimer, and current/fresh, stale, or unpriced estimates. The active `tcgdex_cardmarket_v1` valuation is loaded with search in one relationship load, with no N+1 valuation read. The `archive-world` remains scoped to card detail and was not removed globally. Generic shared Layout remains neutral.
 
 The public `/cards/:tcgdex_id` exact-printing detail is now linked from local search. It is local-first: the initial render and events read the local printing and current valuation, while a disconnected/static local valuation and bounded-history read remains useful without a provider. When freshness requires work, the LiveView subscribes before requesting the deduplicated Oban acquisition; card-specific PubSub completion and terminal-failure events reconcile the final state. The current value is preserved independently when the history read fails. The surface explicitly represents fresh, stale, fetching, unpriced, read-error, and terminal-failure states, with an insufficient-history collecting state until real observations accrue.
 
@@ -28,7 +28,7 @@ History is a fixed 30 UTC-calendar-date query/projection: at most the latest fet
 
 ## Validation and limitations
 
-CardImage plus web-focused tests passed 23 tests. Canonical `mix check --verbose` passed with 177 tests; assets and static checks passed, and `git diff --check` is clean. Product owner confirmed valid live image rendering. Browser checks passed at 1440x1000 and 390x844 with value in the first mobile viewport, no horizontal overflow, and no console errors. The mechanical detector reported one known false-positive warning on the existing square 3px search-input bottom border plus advisories; new off-palette hover/type drift was corrected, and code-review blockers/warnings were fixed. The unresolved live TCGdex set-list timeout remains.
+Final homepage validation: canonical `mix check --verbose` passed with 180 tests; focused 25 tests, assets build, and desktop/mobile browser checks at 1440x1000 and 390x844 also passed, with first results in the desktop viewport, no horizontal overflow, and no console errors. Final code re-review found no blocking or warning findings, and `git diff --check` passed. The detector still reported two known false positives for explicit square 3px input borders plus design-system advisories; these remain advisory and are not claimed to have disappeared. The unresolved live TCGdex set-list timeout remains.
 
 ## Local development
 
@@ -41,7 +41,7 @@ CardImage plus web-focused tests passed 23 tests. Canonical `mix check --verbose
 
 The importer/sync boundary has fixture-backed deterministic coverage for provider errors, retries, idempotency, rollback, stale-response rejection, mapping review, assets, IDs, database constraints, set enumeration, brief validation, count mismatch, preservation, cross-set conflicts, TCG Pocket exclusion, and aggregate failure reporting. Focused search coverage passed 14 tests; SQL/Elixir Unicode parity and live PostgreSQL `EXPLAIN` index usage were verified. Caddy integration and CI remain deferred. Third-party artwork rights are not independently proven (and broader reuse/self-hosting is not approved), while UTC daily grouping with Europe/Warsaw presentation and full-catalogue validation remain explicit limitations.
 
-Card detail and bounded valuation history are complete for this local-first surface. Home framing/course correction is the highest-priority active public-UI limitation/goal: the current archive-oriented copy/layout is not the product thesis. Trade, sealed, admin, alias modeling, immutable catalogue-observation history, production operational tracking/budgets, and full scheduling remain unfinished; ranking needs real full-catalogue tuning. The next roadmap work must prioritize the decision-support homepage, potentially with Phase 3 URL-backed trade composition/search/add-side/quantity foundations, which will enable the card-detail trade action. Earlier operations/admin/budget and sealed-source roadmap work remains unfinished, so this does not declare prior phases globally complete.
+Card detail and bounded valuation history are complete for this local-first surface. The homepage decision-surface batch is implemented, but Home is not claimed final beyond this batch. Trade, sealed, admin, alias modeling, immutable catalogue-observation history, production operational tracking/budgets, and full scheduling remain unfinished; ranking needs real full-catalogue tuning. No provider request, trade capability, or sealed capability was added here. Remaining work includes trade/sealed/admin/budget and operational foundations, followed by the next product-owner course correction when requested.
 
 ## See Also
 

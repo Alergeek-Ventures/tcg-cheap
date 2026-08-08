@@ -224,6 +224,13 @@ defmodule TcgCheap.Catalogue.CardPrinting do
   relationships do
     belongs_to :card_set, TcgCheap.Catalogue.CardSet, public?: true
     has_many :valuation_snapshots, TcgCheap.Pricing.Singles.SingleValuationSnapshot
+
+    has_one :tcgdex_cardmarket_v1_current_valuation,
+            TcgCheap.Pricing.Singles.SingleValuationSnapshot do
+      allow_nil? true
+      filter expr(current? == true and policy_version == "tcgdex_cardmarket_v1")
+      sort fetched_at: :desc
+    end
   end
 
   identities do

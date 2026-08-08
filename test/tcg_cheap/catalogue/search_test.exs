@@ -320,6 +320,33 @@ defmodule TcgCheap.Catalogue.SearchTest do
     assert result.card_set.id == set.id
   end
 
+  test "search preloads the active Cardmarket valuation and leaves missing valuations nil" do
+    token = unique_token("valuation")
+    valued = printing(token, name: "Valued #{token}")
+    missing = printing(token, name: "Unvalued #{token}")
+
+    valuation =
+      Core.record_single_valuation!(%{
+        card_printing_id: valued.id,
+        value_eur: Decimal.new("12.34"),
+        currency: "EUR",
+        policy_version: "tcgdex_cardmarket_v1",
+        source: "tcgdex",
+        source_metric: "cardmarket_average_sell_price",
+        fetched_at: DateTime.utc_now()
+      })
+
+    results = Core.search_card_printings!(token)
+    valued_result = Enum.find(results, &(&1.id == valued.id))
+    missing_result = Enum.find(results, &(&1.id == missing.id))
+
+    assert valued_result
+    assert valued_result.tcgdex_cardmarket_v1_current_valuation.id == valuation.id
+    assert valued_result.tcgdex_cardmarket_v1_current_valuation.value_eur == Decimal.new("12.34")
+    assert missing_result
+    assert missing_result.tcgdex_cardmarket_v1_current_valuation == nil
+  end
+
   test "persisted search text is normalized and refreshed by both upsert actions" do
     token = unique_token("persisted")
     tcgdex_id = unique_token("persisted-id")
