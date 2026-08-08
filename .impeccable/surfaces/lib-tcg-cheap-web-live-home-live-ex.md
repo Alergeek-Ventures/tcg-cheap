@@ -7,6 +7,12 @@ related_targets: ["assets/css/app.css", "lib/tcg_cheap_web/components/layouts/ro
 
 # Home decision surface
 
+This surface is intentionally distilled for ordinary collectors: plain card search first,
+compact exact-printing result rows, and one clear `View price` action. Stable TCGdex identity
+remains in the route and result data; accessible exact identity uses the card name, set, and
+collector number. Methodology, policy, and non-affiliation caveats remain available in
+progressive disclosure.
+
 - **Scope:** `/`
 - **Mode:** Operate
 - **Audience:** A person checking a Pokémon single at a card-shop counter on a phone.
@@ -15,11 +21,10 @@ related_targets: ["assets/css/app.css", "lib/tcg_cheap_web/components/layouts/ro
 
 ## Proof and content
 
-- Exact image, name, set, collector number, and TCGdex identity.
-- Current local EUR estimate when present, otherwise `?` and an honest unpriced state.
-- Existing seven-day `TcgCheap.Pricing.Singles.Freshness` evidence: fresh or stale.
-- Clear value-details action; no trade control before Phase 3.
-- The next copy pass must be minimal and plain: prioritize clear search/select and price-comparison CTAs, with the fewest words needed for simple states. Prefer `Price unavailable` or `Updated …` over internal evidence, policy/provider, freshness, local-data, or ID jargon.
+- Exact image, name, set, and collector number; stable TCGdex identity remains in the route and result data, while accessible exact identity uses the card name, set, and collector number.
+- Current local EUR estimate when present, otherwise `Price unavailable`.
+- Plain `Updated …` or `May be outdated` freshness evidence from the existing seven-day `TcgCheap.Pricing.Singles.Freshness` policy.
+- One clear `View price` action; no trade control before Phase 3.
 - Keep legal/methodology honesty, exact-printing correctness, accessibility, and required caveats, but put technical detail behind concise secondary disclosure where feasible.
 
 ## Constraints
@@ -36,10 +41,10 @@ Direction 7 from seed `ca73501c`: a card-shop valuation bench/laboratory compari
 
 ## Memorable moment
 
-The result reads like a physical bench slip: image and exact identity on one side, the estimate and one decisive “Open value details” action on the other.
+The result reads like a physical bench slip: image and exact identity on one side, the estimate and one decisive “View price” action on the other.
 
 ## Unresolved decisions
 
 - Sealed catalogue and pricing remain intentionally unavailable until that phase is implemented.
 - Trade controls remain deferred to Phase 3.
-- Do not add dead controls or imply sealed/trade capability before those capabilities are implemented. This surface is a functional foundation, not final product copy.
+- Do not add dead controls or imply sealed/trade capability before those capabilities are implemented.

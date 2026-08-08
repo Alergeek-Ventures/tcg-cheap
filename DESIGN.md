@@ -18,7 +18,7 @@ colors:
 typography:
   display:
     fontFamily: "Barlow Condensed, sans-serif"
-    fontSize: "clamp(3.1rem, 9vw, 6rem)"
+    fontSize: "clamp(2.2rem, 6vw, 4rem)"
     fontWeight: 700
     lineHeight: 0.83
     letterSpacing: "-0.045em"
@@ -36,7 +36,7 @@ rounded:
   square: "0"
 spacing:
   unit: "1rem"
-  container: "78rem"
+  container: "62rem"
 components:
   decision-header:
     backgroundColor: "{colors.bench}"
@@ -48,32 +48,28 @@ components:
     backgroundColor: "{colors.bench}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    minHeight: "44px"
+     minHeight: "2.8rem"
   decision-search:
     backgroundColor: "{colors.bench-light}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
     padding: "clamp(1rem, 3vw, 1.75rem)"
-  evidence-slip:
+  price-row:
     backgroundColor: "{colors.paper}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "0.85rem"
-  estimate-cell:
-    backgroundColor: "{colors.paper}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.square}"
+    padding: "0.75rem"
   archive-active-label:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.tissue}"
     typography: "{typography.label}"
     rounded: "{rounded.square}"
     padding: "0.45rem 0.55rem"
-  search-drawer:
+  price-methodology:
     backgroundColor: "{colors.tissue}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "clamp(1.25rem, 4vw, 2.5rem)"
+    padding: "0.75rem 1rem"
   printing-label:
     backgroundColor: "{colors.tissue}"
     textColor: "{colors.ink}"
@@ -92,16 +88,16 @@ components:
 
 **Creative North Star: "The Card-Shop Valuation Bench"**
 
-Home is a light, bright counter scene: a warm bench supports paper-like evidence slips, black ink rules, and orange action emphasis. It is practical and decision-oriented rather than promotional. Condensed display type makes the call legible at a glance; monospaced data keeps identity and evidence precise.
+Home is a light, bright counter scene: a warm bench supports compact paper-like price rows, black ink rules, and orange action emphasis. It is practical and decision-oriented rather than promotional. Condensed display type makes the call legible at a glance; monospaced data keeps identity and supporting detail precise.
 
-The Home decision-world favors square geometry, strong ruled edges, warm bench/paper/ink/orange color blocks, and responsive evidence slips. It rejects generic rounded marketplace grids, glass surfaces, and decorative gradients. Search is the primary action; current, fresh, stale, and unpriced states remain visible as honest evidence.
+The Home decision-world favors square geometry, strong ruled edges, warm bench/paper/ink/orange color blocks, and a distilled vertical price-row system. It rejects generic rounded marketplace grids, glass surfaces, and decorative gradients. Search is the primary action; current, outdated, and unavailable states remain visible in plain collector language.
 
 The `.archive-world` remains the visual contract for card detail. The archive world was scoped away from Home, not removed globally.
 
 **Key Characteristics:**
 - Bright card-shop bench, paper, ink, and orange action grammar on Home.
-- Exact-printing identity expressed through image, set/collector/TCGdex discriminators, and evidence slips.
-- One accessible mode switch, direct local search, one clear value-details action, and restrained reveal motion.
+- Exact-printing identity expressed through image, name, set, collector number, and optional rarity.
+- One accessible mode switch, direct `Find a card` search, one solid `View price` action, and restrained reveal motion.
 
 ## Colors
 
@@ -133,18 +129,18 @@ The Home palette is a warm counter system: bench establishes the light field, pa
 **Character:** Barlow Condensed 700 gives the decision headline, search heading, estimate, mode controls, and detail action a compressed counter-sign voice. Azeret Mono is evidence-only: search guidance, identity metadata, methodology, disclaimer, and state copy stay measured and inspectable.
 
 ### Hierarchy
-- **Decision headline** (700, `clamp(3.1rem, 9vw, 6rem)`, 0.84): Home’s first-viewport call to action.
-- **Action heading** (700, `clamp(1.8rem, 4vw, 3rem)`, 1): Search and evidence headings.
-- **Evidence title** (700, `1.55rem`, 0.9): Printing name and estimate.
-- **Evidence/label** (400, `.68rem–.75rem`, 1.5–1.7): Search guidance, identity, methodology, disclaimer, and freshness states.
+- **Decision call** (700, `clamp(2.2rem, 6vw, 4rem)`, 0.92): `Compare Pokémon prices` and the first-viewport task.
+- **Action heading** (700, `clamp(1.7rem, 4vw, 2.5rem)`, 1): Search and disclosure headings.
+- **Price/name** (700, `1.45rem` name / `1.8rem` estimate, 0.9): Exact printing name and EUR estimate.
+- **Row metadata/label** (400, `.62rem–.75rem`, 1.5–1.7): Set, collector number, rarity, update state, shipping note, and caveat copy.
 
 **The Identity Rule.** Keep exact-printing names in condensed display type and identity fields in monospaced data type; do not turn catalogue facts into marketing copy.
 
 ## Layout
 
-The `.decision-world` uses a full-width counter header and a centered Home container capped at `76rem`. The intro places the decision headline beside the accessible mode switch; below `42rem` they stack and the switch becomes full width. The local search and evidence heading precede responsive evidence slips, which use `minmax(min(100%, 22rem), 1fr)` columns and collapse to a narrower image column below `24rem`. Text wraps without horizontal overflow.
+The `.decision-world` uses a compact full-width counter header and a centered Home container capped at `62rem`. The intro places the wordmark/call beside the accessible mode switch; below `42rem` they stack and the switch becomes full width. The decision title tops out at `4rem`, while mode and action controls use `2.8rem` minimum heights. The direct search precedes one vertical list of price rows. Each row uses a `5.5rem minmax(0, 1fr)` image/content split (`4.75rem minmax(0, 1fr)` below `24rem`), with identity, estimate, update state, and one CTA in the content column; text wraps without horizontal overflow.
 
-The decision header and evidence heading use `2px` ink rules. The search surface is the visual pause before results, with the input spanning the available width. The first results fit in the desktop viewport; mobile keeps mode, search, identity, estimate, and action usable in sequence.
+The decision header and result heading use `2px` ink rules. The search surface is the visual pause before results, with the input spanning the available width. Results are visible in the desktop viewport; mobile keeps mode, search, identity, estimate, and action usable in sequence.
 
 ## Elevation & Depth
 
@@ -158,7 +154,7 @@ Depth is physical but restrained. Bench, paper, and ink contrast do the structur
 
 ## Shapes
 
-The Home form language is square throughout: controls and evidence surfaces use zero-radius geometry, with borders doing the outlining. The search input is transparent with no box shadow and a `3px` ink underline; evidence slips use a `1.5px` ink border; header and evidence rules use ink lines. The printing-label art column and other archive-detail geometry remain part of `.archive-world`.
+The Home form language is square throughout: controls and price-row surfaces use zero-radius geometry, with borders doing the outlining. The search input is transparent with no box shadow and a `3px` ink underline; price rows use a `1.5px` ink border; header and result rules use ink lines. The printing-label art column and other archive-detail geometry remain part of `.archive-world`.
 
 ## Components
 
@@ -174,11 +170,11 @@ The Home form language is square throughout: controls and evidence surfaces use 
 - **Typography:** Heading and query use Barlow Condensed 700; evidence help uses Azeret Mono.
 - **Behavior:** The field searches local exact-printing data with a `250ms` debounce. Focus uses a `3px` orange outline; loading guidance appears beneath the field.
 
-### Evidence slip
-- **Character:** One exact printing’s identity and local estimate, ready for a counter decision.
-- **Shape:** Paper surface, `1.5px` ink border, image column, ruled estimate, and minimum `44px` action target.
+### Price row
+- **Character:** One exact printing’s identity and honest local estimate, ready for a counter decision.
+- **Shape:** Paper surface, `1.5px` ink border, a `5.5rem minmax(0, 1fr)` image/content split (narrowed to `4.75rem minmax(0, 1fr)` below `24rem`), and a `2.8rem` minimum action target.
 - **Color:** Warm image backing, ink identity, orange emphasis, and paper surface.
-- **Behavior:** Uses a low WebP TCGdex thumbnail when available; missing imagery remains explicit. Results reveal once with `bench-reveal`; reduced motion removes it.
+- **Behavior:** Uses a low WebP thumbnail when available; missing imagery remains explicit. Results reveal once with `bench-reveal`; reduced motion removes it.
 
 ### Card detail image
 - **Character:** Functional exact-printing identification, not promotional card merchandising.
@@ -190,20 +186,20 @@ The Home form language is square throughout: controls and evidence surfaces use 
 - **Shape:** Square `1px` ink border, compact padding (`0.3rem 0.4rem`), wrapping in a flexible row.
 - **Color:** Lilac marks rarity, sage marks STANDARD, and indigo marks EXPANDED; ink remains the text and border color.
 
-### State notes
-- **Character:** Plain decision status: current/fresh, stale, unpriced, empty, invalid, unavailable, or error; never hidden behind a decorative empty state.
+### State notes and price details
+- **Character:** Plain decision status: `Updated …`, `May be outdated`, `Price unavailable`, empty, invalid, unavailable, or error; never hidden behind a decorative empty state.
 - **Shape:** A `1px` top rule, vertical padding, and mono copy. Error notes use a sunfade surface and `1rem` padding.
-- **Behavior:** Idle, short-query, empty, and unavailable states explain what local data can do next. Methodology and disclaimer stay visible; Sealed says honestly that it is not available yet.
+- **Behavior:** Idle has no explanatory copy; short-query, empty, and unavailable states stay short. Full policy, methodology, non-affiliation, and shipping caveats live in collapsed `How prices work` details. Sealed says honestly that it is not available yet.
 
 ## Do's and Don'ts
 
 ### Do:
 - **Do** keep Home in the bright `.decision-world`; preserve `.archive-world` for card detail.
 - **Do** make Singles the default and keep the mode switch keyboard-accessible with an honest unavailable Sealed state.
-- **Do** make direct local search, image/identity/discriminators, evidence, freshness, and one value-details action obvious.
+- **Do** make `Find a card`, image/name/set/collector identity, price/update state, and one solid `View price` action obvious.
 - **Do** use Barlow Condensed for action hierarchy and Azeret Mono for evidence only.
 - **Do** preserve square rules, 44px touch targets, the single reveal motion, and its reduced-motion fallback.
-- **Do** keep methodology and disclaimer visible, and use low WebP TCGdex thumbnails in search when available.
+- **Do** keep caveats available in collapsed `How prices work` details, use terse shipping language, and use low WebP thumbnails when available.
 
 ### Don't:
 - **Don't** replace the decision bench with a generic rounded marketplace grid, glass, or decorative gradients.

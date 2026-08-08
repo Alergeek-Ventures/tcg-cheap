@@ -4,7 +4,7 @@
   "title": "Design System: TCG Cheap Decision Surface",
   "extensions": {
     "worlds": [
-      { "name": "decision-world", "scope": "Home", "description": "Bright card-shop valuation bench for singles decisions." },
+      { "name": "decision-world", "scope": "Home", "description": "Bright card-shop valuation bench distilled into a vertical price-row decision path." },
       { "name": "archive-world", "scope": "Card detail", "description": "Scoped archive-wall contract retained for exact-printing detail." }
     ],
     "colorMeta": {
@@ -18,13 +18,13 @@
       "archive-tissue": { "role": "archive", "displayName": "Archive tissue", "canonical": "#f6f0df" }
     },
     "typographyMeta": {
-      "action": { "displayName": "Barlow Condensed 700", "fontSize": "clamp(3.1rem, 9vw, 6rem)", "purpose": "Home decision headline, headings, estimates, mode controls, and action hierarchy." },
+      "action": { "displayName": "Barlow Condensed 700", "fontSize": "clamp(2.2rem, 6vw, 4rem)", "purpose": "Home decision call, headings, estimates, mode controls, and action hierarchy; compact wordmark remains .85rem mono." },
       "evidence": { "displayName": "Azeret Mono 400", "purpose": "Evidence-only identity, methodology, disclaimer, help, and state copy." }
     },
     "rounded": { "square": "0" },
     "touchTargets": { "minimum": "44px", "appliesTo": ["mode-switch", "search", "value-details"] },
     "motion": [
-      { "name": "bench-reveal", "value": "0.45s ease-out", "purpose": "One evidence-slip reveal; disabled under prefers-reduced-motion." }
+      { "name": "bench-reveal", "value": "0.45s ease-out", "purpose": "One price-row reveal; disabled under prefers-reduced-motion." }
     ],
     "breakpoints": [
       { "name": "decision-stack", "value": "42rem" },
@@ -36,8 +36,8 @@
       "name": "Decision Header",
       "kind": "header",
       "refersTo": "decision-header",
-      "description": "Square-rule Home masthead for the local counter context.",
-      "html": "<header class=\"decision-header\"><a id=\"decision-wordmark\">TCG CHEAP</a><span>COUNTER CHECK / LOCAL DATA</span></header>",
+      "description": "Compact square-rule Home masthead for the local price-comparison task.",
+      "html": "<header class=\"decision-header\"><a id=\"decision-wordmark\">TCG CHEAP</a><strong>Compare Pokémon prices</strong></header>",
       "css": ".decision-header { border-bottom: 2px solid #201d19; background: #f3ead7; }"
     },
     {
@@ -46,30 +46,30 @@
       "refersTo": "mode-switch",
       "description": "Accessible Singles default and Sealed-products switch; Sealed exposes an honest unavailable state.",
       "html": "<div class=\"mode-switch\" role=\"group\" aria-label=\"Choose product mode\"><button aria-pressed=\"true\">Singles</button><button aria-pressed=\"false\">Sealed products</button></div>",
-      "css": ".mode-switch { border: 2px solid #201d19; } .mode-switch button { min-height: 44px; font-family: \"Barlow Condensed\", sans-serif; }"
+      "css": ".mode-switch { border: 2px solid #201d19; } .mode-switch button { min-height: 2.8rem; font-family: \"Barlow Condensed\", sans-serif; }"
     },
     {
       "name": "Decision Search",
       "kind": "search",
       "refersTo": "decision-search",
       "description": "Direct local exact-printing search with a 250ms debounce and no provider request.",
-      "html": "<section class=\"decision-search\"><h2>SEARCH AN EXACT PRINTING</h2><input type=\"search\" placeholder=\"Card name, set, number, or ID\" /></section>",
+      "html": "<section class=\"decision-search\"><h2>Find a card</h2><input type=\"search\" placeholder=\"Card name, set, or number\" /></section>",
       "css": ".decision-search { background: #fffaf0; border: 2px solid #201d19; } input { min-height: 44px; border-bottom: 3px solid #201d19; border-radius: 0; }"
     },
     {
-      "name": "Evidence Slip",
+      "name": "Price Row",
       "kind": "result",
-      "refersTo": "evidence-slip",
-      "description": "Image-backed exact identity, set/collector/TCGdex discriminators, current/fresh-stale-unpriced estimate, and one value-details action.",
-      "html": "<article class=\"evidence-slip\"><div class=\"evidence-art\"><img alt=\"Exact printing\" /></div><div class=\"evidence-copy\"><p>EXACT IDENTITY</p><p>PIKACHU</p><dl><div><dt>NO.</dt><dd>001</dd></div><div><dt>TCGDEX</dt><dd>swsh1-001</dd></div></dl><strong>€12.30</strong><a>OPEN VALUE DETAILS →</a></div></article>",
-      "css": ".evidence-slip { display: grid; grid-template-columns: 7rem minmax(0, 1fr); background: #fffdf8; border: 1.5px solid #201d19; animation: bench-reveal .45s ease-out both; }"
+      "refersTo": "price-row",
+      "description": "One vertical-list image-backed exact-printing row with a 5.5rem image column and flexible content column; narrow screens use a 4.75rem image column.",
+      "html": "<article class=\"price-row\"><img alt=\"Exact printing\" /><div><strong>PIKACHU</strong><p>Scarlet & Violet · 001</p><span>€12.30 · Updated today</span><a>View price</a></div></article>",
+      "css": ".price-row { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); background: #fffdf8; border: 1.5px solid #201d19; animation: bench-reveal .45s ease-out both; } @media (max-width: 24rem) { .price-row { grid-template-columns: 4.75rem minmax(0, 1fr); } }"
     },
     {
       "name": "Methodology and State Notes",
       "kind": "evidence",
       "refersTo": "price-methodology",
-      "description": "Visible tcgdex_cardmarket_v1 methodology, disclaimer, and honest fresh/stale/unpriced/unavailable states.",
-      "html": "<aside class=\"price-methodology\"><strong>Methodology:</strong> aggregate Cardmarket estimate from TCGdex under tcgdex_cardmarket_v1.</aside>",
+      "description": "Collapsed How prices work disclosure containing policy, methodology, non-affiliation, shipping, and caveat detail.",
+      "html": "<details class=\"price-methodology\"><summary>How prices work</summary><p>Methodology, policy, and non-affiliation details.</p></details>",
       "css": ".price-methodology { border-left: 4px solid #c64e2d; background: #fffaf0; color: #201d19; }"
     },
     {
@@ -83,11 +83,11 @@
   ],
   "narrative": {
     "northStar": "The Card-Shop Valuation Bench",
-    "overview": "Home is a bright card-shop counter scene for deciding about exact singles. Warm bench, paper, ink, and orange tokens frame direct local search, image-backed identity, evidence slips, honest estimate freshness, and one clear value-details action. The decision-world is scoped to Home; archive-world remains the card-detail contract.",
+    "overview": "Home is a bright card-shop counter scene distilled for ordinary collectors: Compare Pokémon prices, find a card, then scan vertical exact-printing price rows. Warm bench, paper, ink, and orange tokens frame image-backed identity, honest price/update states, one View price action, and collapsed How prices work details. The decision-world is scoped to Home; archive-world remains the card-detail contract.",
     "keyCharacteristics": [
       "Square rules and warm bench/paper/ink/orange palette.",
       "Barlow Condensed action hierarchy with Azeret Mono evidence only.",
-      "Accessible mode switch, direct local search, visible methodology, honest unavailable Sealed mode, and one reveal motion with reduced-motion support."
+      "Accessible mode switch, direct Find a card search, honest unavailable Sealed mode, collapsed How prices work details, and one reveal motion with reduced-motion support."
     ],
     "rules": [
       { "name": "The Scope Rule", "body": "Keep the decision-world on Home and preserve archive-world for card detail; do not merge their visual contracts.", "section": "worlds" },
@@ -96,9 +96,9 @@
     ],
     "dos": [
       "Do keep Singles as the default Home mode and state Sealed honestly unavailable.",
-      "Do use square geometry, warm bench/paper/ink/orange tokens, and evidence slips.",
+      "Do use square geometry, warm bench/paper/ink/orange tokens, and vertical price rows.",
       "Do preserve the archive-world contract on card detail.",
-      "Do keep methodology, disclaimer, freshness, and unpriced evidence visible.",
+      "Do keep methodology, policy, non-affiliation, shipping, and unavailable-price caveats in collapsed details.",
       "Do provide one bench-reveal motion and disable it for reduced motion."
     ],
     "donts": [

@@ -16,7 +16,7 @@ web
 
 ## Product Purpose
 
-Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices. The completed homepage batch makes that decision surface concrete without claiming the unfinished trade or sealed capabilities.
+Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices. The 2026-08-08 minimal Home correction is implemented for this surface: ordinary collectors get a compact search-and-price decision path without claims that unfinished trade or sealed capabilities exist.
 
 The product has exactly two top-level customer features: **sealed product price comparison** and **singles price comparison**. Singles includes composing a trade and calculating the difference; trade is not a third equal homepage product category.
 
@@ -37,11 +37,11 @@ Thesis-validation product built around local cached data and transparent uncerta
 - Singles estimates are in EUR and target seven-day freshness.
 - PLN sealed-product pricing and later PLN trade conversion are planned, but are not part of the current singles-focused surface.
 - Provider calls must happen outside normal request paths; public requests should primarily read local cached data.
-- The public exact-printing search surface is built as a local-only Home LiveView over the cached catalogue. Home defaults to Singles and presents a card-shop valuation bench: direct search, image-backed identity, discriminators, a local estimate, evidence, and one value-details action.
-- Home has an accessible Singles/Sealed-products mode switch. Sealed is visible as an honest unavailable state because no sealed catalogue or estimate capability was added in this batch.
+- The public exact-printing search surface is built as a local-only Home LiveView over the cached catalogue. Home defaults to Singles and presents a compact wordmark with `Compare Pokémon prices`, a direct `Find a card` search, and one-column exact-printing price rows with image, name, set, collector number, optional rarity, price, update state, and one solid `View price` CTA.
+- Home has an accessible Singles/Sealed mode switch. Sealed remains an honest unavailable state because no sealed catalogue or estimate capability was added.
 - Search preloads the active `tcgdex_cardmarket_v1` valuation relationship with the printing, avoiding an N+1 valuation read. Estimates explicitly distinguish current/fresh, stale, and unpriced states.
-- Home exposes the valuation methodology and disclaimer, and uses 44px-class touch targets, keyboard semantics, and one reveal motion with a reduced-motion fallback.
-- Home is a functional foundation, not product-finished. The next Home pass must be minimal, use plain collector language, and provide clear CTAs for search/select, comparing a price, or adding a single to a trade. Use the fewest words needed for simple actions and states; prefer `Price unavailable` and `Updated …` over internal jargon. Keep technical evidence, policy/provider, freshness, local-data, IDs, and longer methodology in concise secondary disclosure where feasible while retaining legal/methodology honesty, exact-printing correctness, accessibility, and required caveats.
+- Home exposes full policy, methodology, and non-affiliation caveats in collapsed `How prices work` details, uses terse shipping language, 44px-class touch targets, keyboard semantics, and one reveal motion with a reduced-motion fallback.
+- The 2026-08-08 minimal Home correction is implemented for this surface. It uses plain collector language: `€…` or `Price unavailable`, `Updated …` plus `May be outdated`, and no idle copy. Rows do not expose TCGdex, legality, policy, freshness, or local-data jargon; exact identity and local-only stream behavior remain intact.
 - The approved colors, fonts, and warm square visual direction remain; this correction targets density, copy, jargon, and CTA clarity rather than replacing the visual system.
 - The planned sealed-product experience, trade calculator, and the associated public and internal workflows are also not yet represented in the current route/UI surface.
 - Missing or stale data is preferable to fabricated data or silently exceeding acquisition constraints.

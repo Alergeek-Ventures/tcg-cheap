@@ -235,66 +235,57 @@
 @media (max-width: 40rem) { .card-detail-world .card-detail-placeholder { min-height: 11rem; max-width: 100%; } .card-detail-world .card-detail-placeholder svg { height: 8rem; } .card-detail-world .card-detail-figure > img { max-height: 75svh; } .card-detail-world .card-detail-metadata, .card-detail-world .valuation-provenance { grid-template-columns: 1fr; } .card-detail-world .history-ledger li { grid-template-columns: 1fr auto; } .card-detail-world .history-ledger span { grid-column: 1 / -1; text-align: left; } }
 @media (prefers-reduced-motion: reduce) { .card-detail-world * { animation: none !important; scroll-behavior: auto !important; } }
 
-/* Home decision surface: a bright card-shop valuation bench. Keep this scope
-   separate so the card detail archive-world remains its own visual contract. */
-.decision-world { --bench: #f3ead7; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --rule: #201d19; --orange: #c64e2d; --muted: #6d6256; color-scheme: light; background: var(--bench); color: var(--ink); font-family: "Azeret Mono", ui-monospace, monospace; min-height: 100svh; background-image: url("data:image/svg+xml,%3Csvg width='96' height='96' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E"); }
-.decision-world .decision-header { align-items: center; border-bottom: 2px solid var(--rule); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding: .85rem clamp(1rem, 4vw, 3.5rem); }
+/* Home decision surface: distilled search, evidence, and price decisions. */
+.decision-world { --bench: #f3ead7; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --rule: #201d19; --orange: #c64e2d; --muted: #6d6256; background: var(--bench); background-image: url("data:image/svg+xml,%3Csvg width='96' height='96' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E"); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; min-height: 100svh; }
+.decision-world .decision-header { align-items: center; border-bottom: 2px solid var(--rule); display: flex; justify-content: space-between; padding: .55rem clamp(1rem, 4vw, 3.5rem); }
 .decision-world #decision-wordmark { align-items: center; color: var(--ink); display: inline-flex; font-size: .85rem; font-weight: 700; letter-spacing: .12em; min-height: 2.8rem; text-decoration: none; }
-.decision-world #decision-context { max-width: 100%; overflow-wrap: anywhere; }
-.decision-world #decision-context, .decision-world .evidence-label, .decision-world .evidence-data { font-size: .68rem; letter-spacing: .07em; }
-.decision-world .decision-main { padding: clamp(1.4rem, 4vw, 3.4rem) 1rem 4rem; }
-.decision-world .decision-container { margin: 0 auto; max-width: 76rem; }
-.decision-world .decision-intro { align-items: end; display: flex; gap: 2rem; justify-content: space-between; margin-bottom: 1.75rem; }
-.decision-world #decision-title { font: 700 clamp(3.1rem, 9vw, 6rem)/.84 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0; text-transform: uppercase; }
-.decision-world #decision-title span { color: var(--orange); }
-.decision-world .decision-lede { font-size: .75rem; line-height: 1.6; margin: 1rem 0 0; max-width: 35rem; }
+.decision-world .decision-main { padding: clamp(1rem, 3vw, 2rem) 1rem 4rem; }
+.decision-world .decision-container { margin: 0 auto; max-width: 62rem; }
+.decision-world .decision-intro { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 1rem; }
+.decision-world #decision-title { font: 700 clamp(2.2rem, 6vw, 4rem)/.92 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0; text-transform: uppercase; }
 .decision-world .mode-switch { border: 2px solid var(--rule); display: flex; flex: 0 0 auto; }
-.decision-world .mode-switch button { background: transparent; border: 0; border-right: 1px solid var(--rule); color: var(--ink); cursor: pointer; font: 700 .78rem "Barlow Condensed", sans-serif; min-height: 2.9rem; padding: .65rem 1rem; text-transform: uppercase; }
+.decision-world .mode-switch button { background: transparent; border: 0; border-right: 1px solid var(--rule); color: var(--ink); cursor: pointer; font: 700 .78rem "Barlow Condensed", sans-serif; min-height: 2.8rem; padding: .65rem 1rem; text-transform: uppercase; }
 .decision-world .mode-switch button:last-child { border-right: 0; }
 .decision-world .mode-switch button[aria-pressed="true"] { background: var(--ink); color: var(--bench-light); }
 .decision-world .mode-switch button:not([aria-pressed="true"]):hover { background: var(--bench-light); }
 .decision-world .mode-switch button:focus-visible, .decision-world a:focus-visible, .decision-world input:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
-.decision-world .decision-search { background: var(--bench-light); border: 2px solid var(--rule); margin-bottom: 2.5rem; padding: clamp(1rem, 3vw, 1.75rem); }
-.decision-world .decision-search h2, .decision-world .results-heading h2 { font: 700 clamp(1.8rem, 4vw, 3rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .7rem; text-transform: uppercase; }
+.decision-world .decision-search { background: var(--bench-light); border: 2px solid var(--rule); margin-bottom: 1.25rem; padding: clamp(1rem, 3vw, 1.5rem); }
+.decision-world .decision-search h2 { font: 700 clamp(1.7rem, 4vw, 2.5rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .55rem; text-transform: uppercase; }
 .decision-world .search-field-wrap { position: relative; }
 .decision-world .search-field-wrap input { background: transparent; border: 0; border-bottom: 3px solid var(--rule); border-radius: 0; box-shadow: none; color: var(--ink); font: 700 clamp(1.35rem, 3.5vw, 2.25rem) "Barlow Condensed", sans-serif; min-height: 3.6rem; padding: .4rem 0; width: 100%; }
 .decision-world .search-field-wrap input::placeholder { color: var(--muted); opacity: 1; }
 .decision-world .phx-change-loading { display: none; font-size: .68rem; margin-top: .5rem; }
 .decision-world form.phx-change-loading .phx-change-loading { display: block; }
-.decision-world .search-help { color: var(--muted); font-size: .7rem; line-height: 1.5; margin: .75rem 0 0; }
-.decision-world .results-heading { align-items: baseline; border-bottom: 2px solid var(--rule); display: flex; gap: 1rem; justify-content: space-between; }
-.decision-world .results-heading p { font-size: .7rem; margin: 0; text-align: right; }
-.decision-world .price-methodology, .decision-world .price-disclaimer { border-left: 4px solid var(--orange); font-size: .68rem; line-height: 1.55; margin: 1rem 0 0; max-width: 58rem; padding: .65rem .85rem; }
-.decision-world .price-methodology { background: var(--bench-light); }
-.decision-world .price-methodology p { margin: 0; }
-.decision-world .price-methodology code { font-size: .95em; font-weight: 700; }
-.decision-world .price-disclaimer { color: var(--muted); margin-top: 1.5rem; }
-.decision-world .evidence-slips { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); padding-top: 1rem; }
+.decision-world .evidence-slips { display: grid; gap: .65rem; grid-template-columns: minmax(0, 1fr); }
 .decision-world .evidence-slot { min-width: 0; }
-.decision-world .evidence-slip { animation: bench-reveal .45s ease-out both; background: var(--paper); border: 1.5px solid var(--rule); display: grid; grid-template-columns: 7rem minmax(0, 1fr); min-width: 0; }
-.decision-world .evidence-art { align-items: center; background: #efe3cb; border-right: 1px solid var(--rule); display: flex; justify-content: center; min-width: 0; padding: .6rem; }
+.decision-world .evidence-slip { animation: bench-reveal .45s ease-out both; background: var(--paper); border: 1.5px solid var(--rule); display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); min-width: 0; }
+.decision-world .evidence-art { align-items: center; background: #efe3cb; border-right: 1px solid var(--rule); display: flex; justify-content: center; min-width: 0; padding: .45rem; }
 .decision-world .evidence-art img { aspect-ratio: 245 / 337; border: 1px solid var(--rule); display: block; height: auto; max-width: 100%; object-fit: contain; width: 100%; }
-.decision-world .evidence-art a { display: block; width: 100%; }
 .decision-world .card-image-missing { align-items: center; display: flex; justify-content: center; min-height: 9rem; }
 .decision-world .card-image-missing svg { fill: none; height: 7rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
-.decision-world .evidence-copy { min-width: 0; padding: .85rem; }
-.decision-world .evidence-name { font: 700 1.55rem/.9 "Barlow Condensed", sans-serif; margin: .35rem 0 .3rem; overflow-wrap: anywhere; text-transform: uppercase; }
-.decision-world .evidence-set { font-size: .7rem; margin: 0 0 .7rem; overflow-wrap: anywhere; }
-.decision-world .evidence-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin: 0 0 .7rem; }
+.decision-world .evidence-copy { min-width: 0; padding: .7rem .85rem; }
+.decision-world .evidence-name { font: 700 1.45rem/.9 "Barlow Condensed", sans-serif; margin: 0 0 .25rem; overflow-wrap: anywhere; }
+.decision-world .evidence-set { font-size: .7rem; margin: 0 0 .45rem; overflow-wrap: anywhere; }
+.decision-world .evidence-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin: 0 0 .45rem; }
 .decision-world .evidence-tag { background: var(--bench); border: 1px solid var(--rule); font: 700 .62rem/1 "Azeret Mono", ui-monospace, monospace; padding: .3rem .38rem; text-transform: uppercase; }
-.decision-world .evidence-data { line-height: 1.5; margin: 0; }
-.decision-world .evidence-data div { display: flex; gap: .5rem; min-width: 0; }
-.decision-world .evidence-data dt { color: var(--muted); flex: 0 0 3rem; }
-.decision-world .evidence-data dd { margin: 0; overflow-wrap: anywhere; }
-.decision-world .estimate-cell { border-top: 1px solid var(--rule); display: grid; gap: .2rem; margin-top: .8rem; padding-top: .7rem; }
-.decision-world .estimate-cell strong { font: 700 2.2rem/.9 "Barlow Condensed", sans-serif; }
+.decision-world .estimate-cell { align-items: baseline; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .5rem; padding-top: .5rem; }
+.decision-world .estimate-cell strong { font: 700 1.8rem/.9 "Barlow Condensed", sans-serif; }
 .decision-world .estimate-cell > span:last-child { color: var(--muted); font-size: .65rem; line-height: 1.4; }
-.decision-world .detail-action { align-items: center; color: var(--ink); display: inline-flex; font: 700 .82rem "Barlow Condensed", sans-serif; gap: .4rem; margin-top: 1rem; min-height: 2.8rem; text-decoration-thickness: 2px; text-underline-offset: .2rem; text-transform: uppercase; }
-.decision-world .detail-action:hover { background: var(--bench-light); color: var(--orange); }
+.decision-world .detail-action { align-items: center; background: var(--ink); color: var(--bench-light); display: inline-flex; font: 700 .82rem "Barlow Condensed", sans-serif; margin-top: .65rem; min-height: 2.8rem; padding: .55rem .8rem; text-decoration: none; text-transform: uppercase; }
+.decision-world .detail-action:hover { background: var(--orange); color: var(--bench-light); }
 .decision-world .state-note { border-top: 1px solid var(--rule); font-size: .72rem; line-height: 1.7; padding: 1rem 0; }
-.decision-world .unavailable-note { background: #ead4b7; padding: 1rem; }
-.decision-world .state-error { background: #efd0b9; padding: 1rem; }
+.decision-world .unavailable-note, .decision-world .state-error { background: #ead4b7; padding: 1rem; }
+.decision-world .state-error { background: #efd0b9; }
+.decision-world .estimate-note, .decision-world .price-details { font-size: .68rem; line-height: 1.55; }
+.decision-world .estimate-note { margin: .85rem 0 0; }
+.decision-world .price-details { border-top: 1px solid var(--rule); margin-top: .75rem; padding-top: .65rem; }
+.decision-world .price-details summary { cursor: pointer; font-weight: 700; min-height: 2.8rem; padding: .6rem 0; }
+.decision-world .price-methodology, .decision-world .price-disclaimer { border-top: 1px solid var(--rule); font-size: .68rem; line-height: 1.55; margin-top: .75rem; max-width: 58rem; padding: .65rem 0 0; }
+.decision-world .price-methodology { background: var(--bench-light); padding-left: .65rem; padding-right: .65rem; }
+.decision-world .price-methodology p { margin: 0; }
+.decision-world .price-methodology code { font-size: .95em; font-weight: 700; }
+.decision-world .price-disclaimer { color: var(--muted); }
 @keyframes bench-reveal { from { clip-path: inset(0 0 100% 0); opacity: 0; transform: translateY(-.5rem); } to { clip-path: inset(0); opacity: 1; transform: translateY(0); } }
-@media (max-width: 42rem) { .decision-world .decision-intro { align-items: stretch; flex-direction: column; gap: 1rem; } .decision-world .mode-switch { width: 100%; } .decision-world .mode-switch button { flex: 1; } }
-@media (max-width: 24rem) { .decision-world .evidence-slip { grid-template-columns: 5.5rem minmax(0, 1fr); } .decision-world .evidence-copy { padding: .65rem; } .decision-world .evidence-name { font-size: 1.35rem; } }
+@media (max-width: 42rem) { .decision-world .decision-intro { align-items: stretch; flex-direction: column; } .decision-world .mode-switch { width: 100%; } .decision-world .mode-switch button { flex: 1; } }
+@media (max-width: 24rem) { .decision-world .evidence-slip { grid-template-columns: 4.75rem minmax(0, 1fr); } .decision-world .evidence-copy { padding: .6rem; } .decision-world .evidence-name { font-size: 1.3rem; } .decision-world .estimate-cell strong { font-size: 1.55rem; } }
 @media (prefers-reduced-motion: reduce) { .decision-world .evidence-slip { animation: none; } }

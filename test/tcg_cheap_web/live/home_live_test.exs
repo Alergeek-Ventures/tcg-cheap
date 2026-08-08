@@ -14,10 +14,11 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#card-search-form")
     assert has_element?(view, "#card-search-query[type=search]")
     assert has_element?(view, "#card-search-query[maxlength=\"100\"]")
+    refute has_element?(view, "#card-search-query[aria-describedby]")
     assert has_element?(view, "#card-search-results[phx-update=stream]")
-    assert has_element?(view, "#card-search-idle")
-    assert has_element?(view, "#price-methodology")
-    assert has_element?(view, "#price-disclaimer")
+    assert has_element?(view, "#decision-title", "Compare Pokémon prices")
+    assert has_element?(view, "#card-search-query[placeholder='Search for a card']")
+    refute has_element?(view, "#price-details")
   end
 
   test "switches to an honest unavailable sealed state and restores singles", %{conn: conn} do
@@ -37,7 +38,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#card-search-form")
     assert has_element?(view, "#card-search-results[phx-update=stream]")
     assert has_element?(view, "#card-search-query[type=search]")
-    assert has_element?(view, "#card-search-idle")
+    refute has_element?(view, "#card-search-idle")
     refute has_element?(view, "#sealed-unavailable")
   end
 
@@ -55,6 +56,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     render_change(view, "search", %{"search" => %{"query" => "é"}})
 
     assert has_element?(view, "#card-search-short")
+    assert has_element?(view, "#card-search-summary", "Type at least 2 characters")
     refute has_element?(view, ".evidence-slip")
   end
 
@@ -96,27 +98,42 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert has_element?(view, "#card-search-result-#{first.id}")
     assert has_element?(view, "#card-search-result-#{second.id}")
-    assert has_element?(view, "#card-search-summary", "2 exact printings")
-    assert has_element?(view, "#card-search-result-#{first.id} .evidence-data", "01")
-    assert has_element?(view, "#card-search-result-#{second.id} .evidence-data", "02")
+    assert has_element?(view, "#card-search-summary", "2 cards")
+
+    assert has_element?(
+             view,
+             "#card-search-result-#{first.id} .evidence-set",
+             "Archive Set #{suffix} · #01"
+           )
+
+    assert has_element?(
+             view,
+             "#card-search-result-#{second.id} .evidence-set",
+             "Archive Set #{suffix} · #02"
+           )
+
     assert has_element?(view, "#card-rarity-#{first.id}", "Common")
-    assert has_element?(view, "#card-standard-#{first.id}", "STANDARD")
-    assert has_element?(view, "#card-expanded-#{second.id}", "EXPANDED")
-    assert has_element?(view, "#card-estimate-#{first.id}", "?")
-    assert has_element?(view, "#card-freshness-#{first.id}", "UNPRICED")
+    refute has_element?(view, "#card-standard-#{first.id}")
+    refute has_element?(view, "#card-expanded-#{second.id}")
+    assert has_element?(view, "#card-estimate-#{first.id}", "Price unavailable")
+    refute has_element?(view, "#card-freshness-#{first.id}")
+    refute has_element?(view, "#tcgdex-#{first.id}")
     refute has_element?(view, "#trade")
 
     assert has_element?(
              view,
-             "#card-detail-link-#{first.id}[href='/cards/#{first.tcgdex_id}'][aria-label='Open value details for #{name}, Archive Set #{suffix}, collector number 01, TCGdex ID card-#{suffix}-a']"
+             "#card-detail-link-#{first.id}[href='/cards/#{first.tcgdex_id}'][aria-label='Open value details for #{name}, Archive Set #{suffix}, collector number 01']"
            )
 
+    assert has_element?(view, "#card-detail-link-#{first.id}", "View price")
     refute has_element?(view, "#card-image-link-#{first.id}")
 
     assert has_element?(
              view,
-             "#card-search-result-#{first.id}[aria-labelledby=card-search-name-#{first.id}]"
+             "#card-search-result-#{first.id}[aria-labelledby='card-search-name-#{first.id} card-search-set-#{first.id}']"
            )
+
+    assert has_element?(view, "#card-search-set-#{first.id}", "Archive Set #{suffix} · #01")
   end
 
   test "renders local active-policy estimates with seven-day freshness", %{conn: conn} do
@@ -167,9 +184,18 @@ defmodule TcgCheapWeb.HomeLiveTest do
     render_change(view, "search", %{"search" => %{"query" => search_term}})
 
     assert has_element?(view, "#card-estimate-#{fresh.id}", "€12.30")
-    assert has_element?(view, "#card-freshness-#{fresh.id}", "FRESH")
+    assert has_element?(view, "#card-freshness-#{fresh.id}", "Updated today")
     assert has_element?(view, "#card-estimate-#{stale.id}", "€8.40")
-    assert has_element?(view, "#card-freshness-#{stale.id}", "STALE")
+    assert has_element?(view, "#card-freshness-#{stale.id}", "May be outdated")
+    assert has_element?(view, "#price-details")
+
+    assert has_element?(
+             view,
+             "#price-methodology",
+             "Seller identity and seller/offer count are unavailable"
+           )
+
+    assert has_element?(view, "#price-disclaimer")
   end
 
   test "renders a valid low WebP thumbnail and fallback for missing images", %{conn: conn} do
@@ -209,10 +235,13 @@ defmodule TcgCheapWeb.HomeLiveTest do
              "#card-search-image-#{imported.id}[src='https://assets.tcgdex.net/en/swsh/swshp/1/low.webp'][width='245'][height='337'][loading='lazy'][decoding='async'][referrerpolicy='no-referrer']"
            )
 
-    assert has_element?(view, "#card-search-image-missing-#{missing.id}")
+    assert has_element?(
+             view,
+             "#card-search-image-missing-#{missing.id}[aria-label='No image is available for this card.']"
+           )
   end
 
-  test "uses singular summary and clears previous results", %{conn: conn} do
+  test "uses singular card summary and clears previous results", %{conn: conn} do
     suffix = System.unique_integer([:positive])
     name = "Solo Archive Card #{suffix}"
 
@@ -229,17 +258,17 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/")
     render_change(view, "search", %{"search" => %{"query" => name}})
-    assert has_element?(view, "#card-search-summary", "1 exact printing")
+    assert has_element?(view, "#card-search-summary", "1 card")
     assert has_element?(view, ".evidence-slip")
 
     padded_query = String.duplicate(" ", 101) <> name
     render_change(view, "search", %{"search" => %{"query" => padded_query}})
-    assert has_element?(view, "#card-search-summary", "1 exact printing")
+    assert has_element?(view, "#card-search-summary", "1 card")
     refute has_element?(view, "#card-search-invalid")
     refute has_element?(view, "#card-search-error")
 
     render_change(view, "search", %{"search" => %{"query" => ""}})
-    assert has_element?(view, "#card-search-idle")
+    refute has_element?(view, "#card-search-idle")
     refute has_element?(view, ".evidence-slip")
   end
 
@@ -250,7 +279,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     render_change(view, "search", %{"search" => %{"query" => query}})
 
     assert has_element?(view, "#card-search-invalid")
-    assert has_element?(view, "#card-search-summary", "Query too long")
+    assert has_element?(view, "#card-search-summary", "Search too long")
     refute has_element?(view, ".evidence-slip")
   end
 
@@ -262,6 +291,6 @@ defmodule TcgCheapWeb.HomeLiveTest do
     })
 
     assert has_element?(view, "#card-search-empty")
-    assert has_element?(view, "#card-search-summary", "0 printings")
+    assert has_element?(view, "#card-search-summary", "No cards found")
   end
 end
