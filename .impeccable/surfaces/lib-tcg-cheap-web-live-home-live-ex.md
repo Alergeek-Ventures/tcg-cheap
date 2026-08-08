@@ -18,7 +18,7 @@ progressive disclosure.
 - **Audience:** A person checking a Pokémon single at a card-shop counter on a phone.
 - **Job:** Decide whether an exact printing is worth investigating before a trade.
 - **Actions:** Search/select a single (default); verify identity and price; open value details. Sealed comparison is the second top-level feature when implemented. Trade composition belongs inside Singles and is not a third homepage category.
-- **Current blocker:** The `99023f3` minimal Home baseline loses input focus on each typed letter. This is the highest-priority public UX/correctness correction before Phase 3 or later roadmap work; no implementation is claimed yet.
+- **Completed correction:** The former `99023f3` focus-loss path is fixed. A colocated 250ms input hook keeps the same focused input node, query, caret/selection, and focus through server result updates; IME composition pauses search and searches once after compositionend, and Escape cancels pending debounce. The next priority is Phase 3 trade foundations.
 
 ## Proof and content
 
@@ -26,14 +26,15 @@ progressive disclosure.
 - Current local EUR estimate when present, otherwise `Price unavailable`.
 - Plain `Updated …` or `May be outdated` freshness evidence from the existing seven-day `TcgCheap.Pricing.Singles.Freshness` policy.
 - One clear `View price` action; no trade control before Phase 3.
-- Usable autocomplete is a release requirement: preserve query, caret/selection, focus, and IME/composition across LiveView updates; never replace the input or steal focus; update results without moving focus; use combobox/listbox semantics, stable IDs, ArrowUp/ArrowDown, visible active option, Enter to open the exact printing price detail, Escape to close, touch/click selection, and screen-reader status.
+- Usable autocomplete is implemented: preserve query, caret/selection, focus, and composition across LiveView updates; use combobox/listbox semantics with stable `card-option-UUID` IDs, direct streamed `role=option` children, exactly one visible `aria-selected` active option, wrapping ArrowUp/ArrowDown, exact active Enter navigation, Escape close retaining query/focus, validated option click/touch navigation, and query-specific screen-reader status. Accessible names reference visible name/set/rarity/price/update IDs, with no nested interactive control.
+- The active option is visibly ruled. The bounded listbox uses `min(45svh, 32rem)` and scrolls internally; the hook keeps the active option in view without scrolling the page or input away. Results retain only the bounded max-10 records needed to reinsert adjacent stream items when the active assign changes.
 - Keep legal/methodology honesty, exact-printing correctness, accessibility, and required caveats, but put technical detail behind concise secondary disclosure where feasible.
 
 ## Constraints
 
 - Singles is the only working catalogue; switching to Sealed clears and hides singles results and states that sealed is unavailable.
 - Local-only debounced exact-printing search; normalize and cap queries; no provider calls in render.
-- Validate with LiveView regression coverage where possible and real desktop/mobile browser typing one character at a time, focus checks after every update, keyboard selection/Escape, no console errors, and no horizontal overflow.
+- Validation is complete with LiveView regression coverage and real desktop/mobile browser typing one character at a time, focus/caret checks after every update, keyboard selection/Escape, composition-event simulation, no console errors, and no horizontal overflow.
 - Stream results with stable IDs, canonical low WebP images, no-referrer hotlinking, and an honest missing-image fallback.
 - Light, bright counter scene; square geometry; touch targets at least 44px; no horizontal overflow.
 - Current colors, fonts, and warm square direction are approved; simplify information density and copy rather than replacing the visual system.
@@ -50,5 +51,5 @@ The result reads like a physical bench slip: image and exact identity on one sid
 
 - Sealed catalogue and pricing remain intentionally unavailable until that phase is implemented.
 - Trade controls remain deferred to Phase 3.
-- The autocomplete correction precedes Phase 3; do not add dead trade or sealed controls while fixing it.
+- The autocomplete correction is complete; Phase 3 trade foundations are next. Do not add dead trade or sealed controls before those capabilities exist.
 - Do not add dead controls or imply sealed/trade capability before those capabilities are implemented.

@@ -57,6 +57,14 @@
       "css": ".decision-search { background: #fffaf0; border: 2px solid #201d19; } input { min-height: 44px; border-bottom: 3px solid #201d19; border-radius: 0; }"
     },
     {
+      "name": "Autocomplete Combobox",
+      "kind": "interaction",
+      "refersTo": "decision-search",
+      "description": "Implemented colocated-hook combobox/listbox: stable card-option-UUID stream IDs, one visible active option, internal bounded scrolling, and focus/caret-safe updates.",
+      "html": "<input role=\"combobox\" aria-expanded=\"true\" aria-controls=\"card-options\" aria-activedescendant=\"card-option-UUID\" /><div id=\"card-options\" role=\"listbox\"><div id=\"card-option-UUID\" role=\"option\" aria-selected=\"true\">Name · Set · rarity · €12.30 · Updated</div></div>",
+      "css": ".evidence-slips { max-height: min(45svh, 32rem); overflow-y: auto; } .evidence-slot.active-option .evidence-slip { background: color-mix(in srgb, var(--paper) 88%, var(--rule)); box-shadow: inset 0 0 0 3px var(--rule); }"
+    },
+    {
       "name": "Price Row",
       "kind": "result",
       "refersTo": "price-row",
@@ -92,7 +100,8 @@
     "rules": [
       { "name": "The Scope Rule", "body": "Keep the decision-world on Home and preserve archive-world for card detail; do not merge their visual contracts.", "section": "worlds" },
       { "name": "The Evidence Rule", "body": "Show exact identity, discriminators, source/methodology, and current/fresh, stale, or unpriced status without fabricated precision.", "section": "evidence" },
-      { "name": "The Action Rule", "body": "Make search and one value-details action clear, with 44px-class touch targets and keyboard focus.", "section": "interaction" }
+      { "name": "The Action Rule", "body": "Make search and one value-details action clear, with 44px-class touch targets and keyboard focus.", "section": "interaction" },
+      { "name": "The Focus Rule", "body": "Use the colocated 250ms input hook so query, input node, focus, caret/selection, and composition survive result updates; keep active options stable, visibly ruled, and internally scrollable.", "section": "interaction" }
     ],
     "dos": [
       "Do keep Singles as the default Home mode and state Sealed honestly unavailable.",

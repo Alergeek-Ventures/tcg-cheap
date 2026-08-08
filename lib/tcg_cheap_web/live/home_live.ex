@@ -5,6 +5,8 @@ defmodule TcgCheapWeb.HomeLive do
   alias TcgCheap.Catalogue.SearchText
   alias TcgCheap.Pricing.Singles.Freshness
 
+  @max_autocomplete_options 10
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
@@ -14,8 +16,12 @@ defmodule TcgCheapWeb.HomeLive do
        mode: :singles,
        search_form: to_form(%{"query" => ""}, as: :search),
        search_status: :idle,
-       result_count: 0
+       result_count: 0,
+       search_query: "",
+       autocomplete_options: [],
+       active_option_id: nil
      )
+     |> stream_configure(:card_results, dom_id: fn result -> "card-option-#{result.id}" end)
      |> stream(:card_results, [])}
   end
 
@@ -27,7 +33,7 @@ defmodule TcgCheapWeb.HomeLive do
   @impl true
   def handle_event("search", %{"search" => %{"query" => query}}, socket) do
     normalized = SearchText.normalize(query)
-    socket = assign(socket, :search_form, to_form(%{"query" => query}, as: :search))
+    socket = assign(socket, :search_query, normalized)
 
     cond do
       normalized == "" -> clear_results(socket, :idle)
@@ -42,7 +48,13 @@ defmodule TcgCheapWeb.HomeLive do
     {:noreply,
      socket
      |> assign(mode: :sealed, search_form: to_form(%{"query" => ""}, as: :search))
-     |> assign(search_status: :sealed_unavailable, result_count: 0)
+     |> assign(
+       search_status: :sealed_unavailable,
+       result_count: 0,
+       search_query: "",
+       autocomplete_options: [],
+       active_option_id: nil
+     )
      |> stream(:card_results, [], reset: true)}
   end
 
@@ -50,9 +62,52 @@ defmodule TcgCheapWeb.HomeLive do
     {:noreply,
      socket
      |> assign(mode: :singles, search_form: to_form(%{"query" => ""}, as: :search))
-     |> assign(search_status: :idle, result_count: 0)
+     |> assign(
+       search_status: :idle,
+       result_count: 0,
+       search_query: "",
+       autocomplete_options: [],
+       active_option_id: nil
+     )
      |> stream(:card_results, [], reset: true)}
   end
+
+  def handle_event("autocomplete_key", %{"key" => key}, socket)
+      when key in ["ArrowDown", "ArrowUp"] do
+    move_active_option(socket, key)
+  end
+
+  def handle_event("autocomplete_key", %{"key" => "Enter"}, socket) do
+    case Enum.find(
+           socket.assigns.autocomplete_options,
+           &(&1.dom_id == socket.assigns.active_option_id)
+         ) do
+      %{tcgdex_id: tcgdex_id} -> {:noreply, push_navigate(socket, to: ~p"/cards/#{tcgdex_id}")}
+      nil -> {:noreply, socket}
+    end
+  end
+
+  def handle_event("autocomplete_key", %{"key" => "Escape"}, socket) do
+    if socket.assigns.autocomplete_options == [] do
+      {:noreply, socket}
+    else
+      clear_results(socket, :idle)
+    end
+  end
+
+  def handle_event("autocomplete_key", _params, socket), do: {:noreply, socket}
+
+  def handle_event("select_option", %{"tcgdex-id" => tcgdex_id}, socket) do
+    case Enum.find(socket.assigns.autocomplete_options, &(&1.tcgdex_id == tcgdex_id)) do
+      %{tcgdex_id: ^tcgdex_id} ->
+        {:noreply, push_navigate(socket, to: ~p"/cards/#{tcgdex_id}")}
+
+      nil ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("select_option", _params, socket), do: {:noreply, socket}
 
   @impl true
   def render(assigns) do
@@ -88,7 +143,7 @@ defmodule TcgCheapWeb.HomeLive do
             <%= if @mode == :singles do %>
               <section class="decision-search" aria-labelledby="search-title">
                 <h2 id="search-title">Find a card</h2>
-                <.form for={@search_form} id="card-search-form" phx-change="search">
+                <.form for={@search_form} id="card-search-form">
                   <label for="card-search-query" class="sr-only">Search for a card</label>
                   <div class="search-field-wrap">
                     <.input
@@ -98,24 +153,40 @@ defmodule TcgCheapWeb.HomeLive do
                       name="search[query]"
                       autocomplete="off"
                       maxlength="100"
-                      phx-debounce="250"
+                      phx-hook=".CardAutocomplete"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-controls="card-search-results"
+                      aria-expanded={to_string(@autocomplete_options != [])}
+                      aria-activedescendant={active_option_dom_id(@active_option_id)}
                       placeholder="Search for a card"
                     />
-                    <span class="phx-change-loading" aria-live="polite">Searching…</span>
                   </div>
                 </.form>
               </section>
 
               <section class="decision-results" aria-label="Search results">
                 <p id="card-search-summary" class="sr-only" aria-live="polite">
-                  {summary_text(@search_status, @result_count)}
+                  {summary_text(@search_status, @result_count, @search_query)}
                 </p>
 
-                <div id="card-search-results" phx-update="stream" class="evidence-slips">
+                <div
+                  id="card-search-results"
+                  phx-update="stream"
+                  class="evidence-slips"
+                  role="listbox"
+                  aria-label="Card search results"
+                >
                   <div
                     :for={{stream_id, result} <- @streams.card_results}
                     id={stream_id}
-                    class="evidence-slot"
+                    class={["evidence-slot", @active_option_id == stream_id && "active-option"]}
+                    role="option"
+                    aria-selected={to_string(@active_option_id == stream_id)}
+                    aria-labelledby={option_labelledby(result)}
+                    phx-click="select_option"
+                    phx-value-tcgdex-id={result.tcgdex_id}
+                    tabindex="-1"
                   >
                     <article
                       id={"card-search-result-#{result.id}"}
@@ -172,12 +243,10 @@ defmodule TcgCheapWeb.HomeLive do
                             id={"card-freshness-#{result.id}"}
                           >{freshness_text(Map.get(result, :tcgdex_cardmarket_v1_current_valuation))}</span>
                         </div>
-                        <.link
-                          navigate={~p"/cards/#{result.tcgdex_id}"}
-                          id={"card-detail-link-#{result.id}"}
+                        <span
+                          id={"card-select-action-#{result.id}"}
                           class="detail-action"
-                          aria-label={"Open value details for #{card_link_label(result)}"}
-                        >View price</.link>
+                        >View price</span>
                       </div>
                     </article>
                   </div>
@@ -238,6 +307,79 @@ defmodule TcgCheapWeb.HomeLive do
           </div>
         </main>
       </div>
+      <script :type={Phoenix.LiveView.ColocatedHook} name=".CardAutocomplete">
+        export default {
+          mounted() {
+            this.composing = false
+            this.timer = null
+            this.scrollFrame = null
+
+            this.schedule = () => {
+              clearTimeout(this.timer)
+              if (!this.composing) {
+                this.timer = setTimeout(() => {
+                  this.pushEvent("search", {search: {query: this.el.value}})
+                }, 250)
+              }
+            }
+
+            this.onInput = () => this.schedule()
+            this.onCompositionStart = () => {
+              this.composing = true
+              clearTimeout(this.timer)
+            }
+            this.onCompositionEnd = () => {
+              this.composing = false
+              this.schedule()
+            }
+            this.onKeydown = event => {
+              if (this.composing || event.isComposing) return
+
+              const open = this.el.getAttribute("aria-expanded") === "true"
+              if (event.key === "Escape") {
+                clearTimeout(this.timer)
+                this.timer = null
+                if (open) {
+                  event.preventDefault()
+                  this.pushEvent("autocomplete_key", {key: event.key})
+                }
+              } else if (["ArrowDown", "ArrowUp"].includes(event.key) && open) {
+                event.preventDefault()
+                this.pushEvent("autocomplete_key", {key: event.key})
+              } else if (event.key === "Enter") {
+                event.preventDefault()
+                if (open) this.pushEvent("autocomplete_key", {key: "Enter"})
+              }
+            }
+
+            this.el.addEventListener("input", this.onInput)
+            this.el.addEventListener("compositionstart", this.onCompositionStart)
+            this.el.addEventListener("compositionend", this.onCompositionEnd)
+            this.el.addEventListener("keydown", this.onKeydown)
+          },
+          updated() {
+            if (this.scrollFrame) cancelAnimationFrame(this.scrollFrame)
+
+            const activeOptionId = this.el.getAttribute("aria-activedescendant")
+            if (activeOptionId) {
+              this.scrollFrame = requestAnimationFrame(() => {
+                document.getElementById(activeOptionId)?.scrollIntoView({block: "nearest"})
+                this.scrollFrame = null
+              })
+            } else {
+              this.scrollFrame = null
+            }
+          },
+          destroyed() {
+            clearTimeout(this.timer)
+            if (this.scrollFrame) cancelAnimationFrame(this.scrollFrame)
+            this.el.removeEventListener("input", this.onInput)
+            this.el.removeEventListener("compositionstart", this.onCompositionStart)
+            this.el.removeEventListener("compositionend", this.onCompositionEnd)
+            this.el.removeEventListener("keydown", this.onKeydown)
+          }
+        }
+      </script>
     </Layouts.app>
     """
   end
@@ -280,21 +422,43 @@ defmodule TcgCheapWeb.HomeLive do
   defp search_locally(socket, query) do
     case TcgCheap.Core.search_card_printings(query) do
       {:ok, results} when is_list(results) and results != [] ->
+        options =
+          results
+          |> Enum.take(@max_autocomplete_options)
+          |> Enum.map(fn result ->
+            %{dom_id: "card-option-#{result.id}", tcgdex_id: result.tcgdex_id, result: result}
+          end)
+
         {:noreply,
          socket
-         |> assign(search_status: :results, result_count: length(results))
-         |> stream(:card_results, results, reset: true)}
+         |> assign(
+           search_status: :results,
+           result_count: length(results),
+           autocomplete_options: options,
+           active_option_id: List.first(options).dom_id
+         )
+         |> stream(:card_results, Enum.map(options, & &1.result), reset: true)}
 
       {:ok, []} ->
         {:noreply,
          socket
-         |> assign(search_status: :empty, result_count: 0)
+         |> assign(
+           search_status: :empty,
+           result_count: 0,
+           autocomplete_options: [],
+           active_option_id: nil
+         )
          |> stream(:card_results, [], reset: true)}
 
       {:error, _reason} ->
         {:noreply,
          socket
-         |> assign(search_status: :error, result_count: 0)
+         |> assign(
+           search_status: :error,
+           result_count: 0,
+           autocomplete_options: [],
+           active_option_id: nil
+         )
          |> stream(:card_results, [], reset: true)}
     end
   end
@@ -302,21 +466,77 @@ defmodule TcgCheapWeb.HomeLive do
   defp clear_results(socket, status) do
     {:noreply,
      socket
-     |> assign(search_status: status, result_count: 0)
+     |> assign(
+       search_status: status,
+       result_count: 0,
+       autocomplete_options: [],
+       active_option_id: nil
+     )
      |> stream(:card_results, [], reset: true)}
   end
 
-  defp summary_text(:results, 1), do: "1 card"
-  defp summary_text(:results, count), do: "#{count} cards"
+  defp move_active_option(socket, key) do
+    options = socket.assigns.autocomplete_options
 
-  defp summary_text(:empty, _count), do: "No cards found"
-  defp summary_text(:error, _count), do: "Search unavailable"
-  defp summary_text(:invalid, _count), do: "Search too long"
-  defp summary_text(:short, _count), do: "Type at least 2 characters"
-  defp summary_text(_status, _count), do: ""
+    if options == [] do
+      {:noreply, socket}
+    else
+      current_index = Enum.find_index(options, &(&1.dom_id == socket.assigns.active_option_id))
+      next_index = next_option_index(key, current_index, length(options))
+      selected = Enum.at(options, next_index)
+      previous = Enum.find(options, &(&1.dom_id == socket.assigns.active_option_id))
+
+      stream_options =
+        [previous, selected]
+        |> Enum.reject(&is_nil/1)
+        |> Enum.uniq_by(& &1.dom_id)
+
+      {:noreply,
+       socket
+       |> assign(:active_option_id, selected.dom_id)
+       |> stream_insert_options(stream_options)}
+    end
+  end
+
+  defp stream_insert_options(socket, options) do
+    Enum.reduce(options, socket, fn option, socket ->
+      stream_insert(socket, :card_results, option.result)
+    end)
+  end
+
+  defp next_option_index("ArrowDown", nil, _count), do: 0
+  defp next_option_index("ArrowUp", nil, count), do: count - 1
+  defp next_option_index("ArrowDown", index, count), do: rem(index + 1, count)
+  defp next_option_index("ArrowUp", index, count), do: rem(index - 1 + count, count)
+
+  defp active_option_dom_id(nil), do: nil
+  defp active_option_dom_id(id), do: id
+
+  defp summary_text(:results, 1, query), do: "1 card for #{query}"
+  defp summary_text(:results, count, query), do: "#{count} cards for #{query}"
+
+  defp summary_text(:empty, _count, query), do: "No cards found for #{query}"
+  defp summary_text(:error, _count, query), do: "Search unavailable for #{query}"
+  defp summary_text(:invalid, _count, query), do: "Search too long for #{query}"
+  defp summary_text(:short, _count, query), do: "Type at least 2 characters for #{query}"
+  defp summary_text(_status, _count, _query), do: ""
 
   defp rarity_present?(rarity), do: not is_nil(rarity) and rarity != ""
 
   defp card_link_label(result),
     do: "#{result.name}, #{result.set_name}, collector number #{result.collector_number}"
+
+  defp option_labelledby(result) do
+    [
+      "card-search-name-#{result.id}",
+      "card-search-set-#{result.id}",
+      if(rarity_present?(result.rarity), do: "card-rarity-#{result.id}"),
+      "card-estimate-#{result.id}",
+      if(Map.get(result, :tcgdex_cardmarket_v1_current_valuation),
+        do: "card-freshness-#{result.id}"
+      )
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" ")
+  end
 end

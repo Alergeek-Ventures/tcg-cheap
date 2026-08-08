@@ -168,7 +168,13 @@ The Home form language is square throughout: controls and price-row surfaces use
 - **Character:** A bright counter surface and the primary decision action.
 - **Shape:** Bench-light surface, square `2px` ink border. The input has no radius or shadow and ends in a `3px` ink underline.
 - **Typography:** Heading and query use Barlow Condensed 700; evidence help uses Azeret Mono.
-- **Behavior:** The field searches local exact-printing data with a `250ms` debounce. Focus uses a `3px` orange outline; loading guidance appears beneath the field.
+- **Behavior:** A colocated input hook searches local exact-printing data after `250ms`, without replacing or server-patching the focused input node. Query, caret/selection, and focus survive result updates; composition blocks intermediate searches and searches once after compositionend; Escape cancels pending debounce. Focus uses a `3px` orange outline.
+
+### Autocomplete combobox / listbox
+- **Character:** A compact ruled suggestion bench attached to the search surface, not a second card grid.
+- **Semantics:** The input exposes combobox state with `aria-expanded`, `aria-controls`, and `aria-activedescendant`; direct streamed children use `role="option"` and stable `card-option-UUID` IDs. Accessible names reference visible name, set, rarity, price, and update state IDs.
+- **Behavior:** The first result is visibly active, exactly one option is `aria-selected`, ArrowUp/ArrowDown wrap, Enter opens the exact active printing, Escape closes while retaining query/focus, and validated option click/touch follows the same route. There are no nested interactive controls. Query-specific live status changes even when the count is unchanged.
+- **Spatial rule:** The bounded listbox is `min(45svh, 32rem)` and scrolls internally. The hook keeps the active option in view without moving page scroll or the input away. The active option receives a visible ink rule.
 
 ### Price row
 - **Character:** One exact printing’s identity and honest local estimate, ready for a counter decision.
@@ -199,10 +205,12 @@ The Home form language is square throughout: controls and price-row surfaces use
 - **Do** make `Find a card`, image/name/set/collector identity, price/update state, and one solid `View price` action obvious.
 - **Do** use Barlow Condensed for action hierarchy and Azeret Mono for evidence only.
 - **Do** preserve square rules, 44px touch targets, the single reveal motion, and its reduced-motion fallback.
+- **Do** keep autocomplete active state visibly ruled, internally scrollable, keyboard/touch accessible, and stable through LiveView stream updates.
 - **Do** keep caveats available in collapsed `How prices work` details, use terse shipping language, and use low WebP thumbnails when available.
 
 ### Don't:
 - **Don't** replace the decision bench with a generic rounded marketplace grid, glass, or decorative gradients.
 - **Don't** imply sealed, trade, seller-count, language, condition, finish-specific, or Poland-shipping capability that is not present.
 - **Don't** hide stale/unpriced estimates or methodology behind decorative treatment.
+- **Don't** use form-level reassignment or nested interactive controls that steal focus or break option semantics.
 - **Don't** let Home’s decision-world tokens or copy erase the archive-world contract on card detail.
