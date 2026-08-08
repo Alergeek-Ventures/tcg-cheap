@@ -4,7 +4,7 @@
 - Sources: Product specification supplied by project owner
 - Raw: N/A — product specification
 
-**Status:** **Current product north star.** Unless the product owner explicitly supersedes this article, every requirement, implementation phase, documentation deliverable, and acceptance criterion listed below is authoritative and must be completed in full. Phase 3 trade/share is complete; the overall MVP is not. The next roadmap phase is Phase 4 sealed catalogue/acquisition.
+**Status:** **Current product north star.** Unless the product owner explicitly supersedes this article, every requirement, implementation phase, documentation deliverable, and acceptance criterion listed below is authoritative and must be completed in full. Phase 3 trade/share is complete; Phase 4 has begun but is not complete; the overall MVP is not. Public Sealed remains unavailable.
 **Audience:** Long-running implementation agent
 
 ## Product-owner autocomplete quality correction — 2026-08-08 — Implemented
@@ -1319,12 +1319,16 @@ If a source does not expose historical data, allow the collector to accumulate r
 
 ### Phase 4 — Sealed catalogue and acquisition
 
-1. Import or curate official Polish sealed SKUs.
-2. Add aliases, EANs, MSRP, and draft approval.
+1. **Foundation begun, not complete:** Added source-neutral AshPostgres `SealedProduct` canonical official Polish-English SKU modeling. It supports stable slugs/search text, allowlisted types, series/set/release, optional finite positive PLN MSRP with paired provenance/source URL, image, PL/en/official flags, draft/approved/archived and current/discontinued states, source identity/provenance/private payload/timestamps. Draft-only source imports use stable source+source ID, allow slug corrections, and cannot overwrite reviewed rows; manual curation may omit source. Approval requires released/non-future and official PL/en; discontinued approved products remain readable and archive is soft/unpublished. No production SKUs are imported or curated, so this step is not complete.
+2. **Foundation begun, not complete:** Added `SealedProductAlias` name/EAN review queues with normalized aliases, original values/provenance, pending/approved/rejected states, approved-per-product reads, and app/DB GTIN-8/12/13/14 ASCII normalization plus GS1 checksum enforcement and global canonical-product uniqueness. Imports are pending-only/idempotent and cannot overwrite reviewed aliases. No production aliases/EANs/MSRP curation or admin approval UI exists, so this step is not complete.
 3. Implement retailer/LGS adapters.
 4. Implement listing matching and admin review.
 5. Store observations and stock transitions.
 6. Create current offers and sold-out context.
+
+The next coherent Phase 4 batch is retailer/listing/mapping/observation foundation plus approved production source access and real SKU curation. The generated migration/snapshot set `20260808160842_sealed_catalogue_foundation` was applied and reviewed without hand edits. Transaction-local row locks serialize review transitions and revalidate current state/completeness; database constraints and indexes cover state/timestamp invariants, approved completeness, locale, source pairs, finite MSRP, canonical slug/search, product type, GTIN/checksum, slug/source identity/product foreign key/global EAN.
+
+Phase 4 validation for this foundation: 20 focused sealed tests passed, including direct SQL constraints and independent-transaction expected-error tests; canonical `direnv exec . mix check --verbose` passed 278 tests with Ash codegen/Sobelow/format/compile/xref/unused/Credo/Dialyzer clean. `mix ash.codegen --check` and diff-check passed. A temporary runtime import probe was deleted and verified zero; no production seed data remains. This does not satisfy real-data import/curation, public search, or admin acceptance.
 
 ### Phase 5 — Buying intelligence
 

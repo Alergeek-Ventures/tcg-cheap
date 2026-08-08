@@ -12,7 +12,7 @@ web
 
 - English-speaking Pokémon TCG players and collectors evaluating common in-shop singles trades.
 - English-speaking Polish sealed-product buyers evaluating products and prices.
-- The current public surface focuses on singles.
+- The current public surface focuses on singles. Phase 4 has begun with a source-neutral sealed catalogue foundation, but public Sealed remains unavailable.
 
 ## Product Purpose
 
@@ -39,12 +39,21 @@ Thesis-validation product built around local cached data and transparent uncerta
 - Provider calls must happen outside normal request paths; public requests should primarily read local cached data.
 - The public exact-printing search surface is the local-only Home LiveView over the cached catalogue. Home defaults to Singles and presents a compact wordmark with `Compare Pokémon prices`, a direct `Find a card` search, and one-column exact-printing price rows with image, name, set, collector number, optional rarity, price, update state, and one solid `View price` CTA. The shared external 250ms `CardAutocomplete` hook serves Home and Trade, preserving the focused input node, query, caret/selection, and focus through result updates; composition pauses search and searches once after compositionend, while Escape cancels a pending debounce.
 - Home has an accessible Singles/Sealed mode switch. Sealed remains an honest unavailable state because no sealed catalogue or estimate capability was added.
+- The sealed foundation now includes canonical AshPostgres `SealedProduct` and reviewable `SealedProductAlias` resources, but contains no production SKUs, retailer adapters, listings, observations, admin UI, or invented prices. A product is draft-only until an administrator approves released, official Polish/English completeness; discontinued approved products remain readable and archive is soft/unpublished. Source imports are pending-only and cannot overwrite reviewed rows.
 - Search preloads the active `tcgdex_cardmarket_v1` valuation relationship with the printing, avoiding an N+1 valuation read. Estimates explicitly distinguish current/fresh, stale, and unpriced states.
 - Home exposes full policy, methodology, and non-affiliation caveats in collapsed `How prices work` details, uses terse shipping language, 44px-class touch targets, keyboard semantics, and one reveal motion with a reduced-motion fallback.
 - The 2026-08-08 minimal Home correction remains the presentation baseline. It uses plain collector language: `€…` or `Price unavailable`, `Updated …` plus `May be outdated`, and no idle copy. Rows do not expose TCGdex, legality, policy, freshness, or local-data jargon. The completed autocomplete uses real combobox/listbox semantics, stable `card-option-UUID` stream IDs, bounded ten-option results, visible first/active options, wrapping ArrowUp/ArrowDown, exact active Enter selection, Escape close with query/focus retained, validated touch/click selection, and query-specific live status.
 - The approved colors, fonts, and warm square visual direction remain; this correction targets density, copy, jargon, and CTA clarity rather than replacing the visual system.
 - Public `/trade` is the completed Phase 3 surface inside Singles: a mobile-first warm square decision bench with deterministic URL-only card IDs/quantities, one local search, explicit add-left/add-right actions, merged quantity rows, local bulk valuation, EUR-plus-PLN totals/difference, stale/unpriced/incomplete states, bounded background acquisition, safe CardDetail return/pick flows, and explicit canonical share/copy. NBP evidence shows the exact rate, effective date, relative age, and pending/failed/no-cache states; cached conversion is retained while acquisition is pending or failed. Sealed remains unavailable and Phase 4 is next.
 - Missing or stale data is preferable to fabricated data or silently exceeding acquisition constraints.
+
+### Sealed catalogue foundation — Phase 4 begun, not complete
+
+The current domain foundation is source-neutral and Polish-English official-SKU oriented. `SealedProduct` provides stable canonical slugs, normalized name/search text, an allowlisted product type, series/set and release date, optional finite positive PLN MSRP paired with provenance and source URL, image, language/official flags, draft/approved/archived publication state, current/discontinued distribution state, and source identity/provenance/private payload/timestamps. Draft-only imports use stable source plus source ID, may correct a draft slug, and cannot overwrite reviewed rows. Manual curation may omit source identity. Approval requires a released, non-future product with official Polish and English flags; discontinued approved products remain publicly readable, while archive is soft/unpublished.
+
+`SealedProductAlias` supports name and EAN review, normalized aliases, original values and provenance, pending/approved/rejected queues, and approved-per-product reads. GTIN-8/12/13/14 ASCII normalization and GS1 checksum validation run in both application and database layers, with global uniqueness across canonical products. Imports are pending-only and idempotent and cannot overwrite reviewed aliases. Transaction-local row locks serialize product and alias review transitions and revalidate latest state and completeness under lock. Database constraints and indexes cover state/timestamp invariants, completeness, locale, source pairs, finite MSRP, canonical search fields, product type, GTIN/checksum, slugs, source identity, product foreign keys, and global EAN.
+
+This is only the source-neutral/domain foundation for Phase 4 steps 1–2. No production data or public sealed search has been added; retailer/listing/mapping/observation work and approved source access/real SKU curation are next.
 
 ## Evidence on Hand
 

@@ -58,5 +58,46 @@ defmodule TcgCheap.Core do
         action: :history,
         args: [:as_of, {:optional, :limit}]
     end
+
+    resource TcgCheap.Catalogue.SealedProduct do
+      define :create_sealed_product_draft, action: :create_draft
+      define :import_sealed_product_draft, action: :import_draft
+      define :revise_sealed_product_draft, action: :revise_draft
+      define :approve_sealed_product, action: :approve
+      define :archive_sealed_product, action: :archive
+      define :mark_sealed_product_discontinued, action: :mark_discontinued
+      define :get_sealed_product_by_slug, action: :by_slug, args: [:slug]
+
+      define :get_public_sealed_product_by_slug,
+        action: :public_by_slug,
+        args: [:slug],
+        not_found_error?: false
+
+      define :list_public_sealed_products, action: :public_catalogue
+      define :list_sealed_product_draft_review_queue, action: :draft_review_queue
+
+      define :lock_sealed_product_for_update,
+        action: :lock_for_update_by_id,
+        args: [:id],
+        not_found_error?: false
+    end
+
+    resource TcgCheap.Catalogue.SealedProductAlias do
+      define :create_sealed_product_alias, action: :create
+      define :import_sealed_product_alias, action: :import
+      define :approve_sealed_product_alias, action: :approve
+      define :reject_sealed_product_alias, action: :reject
+      define :list_sealed_product_alias_pending_queue, action: :pending_queue
+      define :list_sealed_product_alias_rejected_queue, action: :rejected_queue
+
+      define :lock_sealed_product_alias_for_update,
+        action: :lock_for_update_by_id,
+        args: [:id],
+        not_found_error?: false
+
+      define :list_approved_sealed_product_aliases,
+        action: :approved_for_product,
+        args: [:sealed_product_id]
+    end
   end
 end

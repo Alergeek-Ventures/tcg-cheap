@@ -6,6 +6,8 @@
 
 **Status:** TCGdex embedded Cardmarket aggregate pricing remains the selected `$0`, unauthenticated singles MVP source under `tcgdex_cardmarket_v1`. Broader sealed research and future seller-level providers remain open.
 
+Phase 4 has begun with a source-neutral sealed catalogue foundation, not production acquisition. `SealedProduct` and `SealedProductAlias` now provide canonical official Polish-English SKU identity, draft-only source imports, review queues, aliases/EANs, optional provenance-backed finite PLN MSRP, and locked/revalidated approval transitions. App and DB GTIN normalization/checksum rules plus global canonical-product uniqueness are enforced. The generated migration/snapshot `20260808160842_sealed_catalogue_foundation` was applied and reviewed. No production SKUs, approved source access, retailer adapters, listings, observations, admin UI, or prices exist yet.
+
 ## Authority and access-policy boundary
 
 The product owner superseded the exact seller-level singles direction on 2026-08-07. The MVP is aggregate-first and avoids scraping where practical. No authentication, payment, or CAPTCHA bypass is permitted; credentials remain server-side and out of git. The historical `default_v1` seller-level algorithm is preserved post-MVP. The active aggregate does not prove language, condition, seller identity/count, finish exactness, or shipping to Poland; the UI must not imply those facts.
@@ -49,6 +51,8 @@ Do not make Apify or Parse part of the MVP. They may be evaluated later for sell
 ## Sealed catalogue/source direction
 
 REBEL Hurt remains the best current primary catalogue/SCD discovery candidate based on the observed `SCD`/`Chaos Rising` page and B2B terms, but it is not proven exclusive or official TPCi MSRP authority. ISA remains a historical fallback requiring permission for aggregation and republication. Treat SCD as a non-binding suggested reference, not authoritative MSRP. Candidate regular retailers are REBEL retail, Empik-owned offers, Media Expert only with permitted feed/access, Smyk, TCG Love, Graal, LootQuest, and PokeCollect; candidate LGS/community sources include TCG Love, Graal, ShopGracz, Centrum MTG, Strefa MTG, Plan-Sza, and Guildmage. Require released/English/official filtering, preorder/import/marketplace filtering, and feed/terms approval before adapters.
+
+The next coherent batch is retailer/listing/mapping/observation foundation, followed by approved production source access and real SKU curation. The current foundation materially implements Phase 4 steps 1–2 but does not mark either complete: there is no real-data import/curation, public sealed search, or admin acceptance.
 
 ## Implemented acquisition and catalogue boundary
 
