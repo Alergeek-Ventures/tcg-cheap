@@ -49,5 +49,14 @@ defmodule TcgCheap.Core do
         action: :history_since_for_card_and_policy,
         args: [:card_printing_id, :policy_version, :since]
     end
+
+    resource TcgCheap.Pricing.ExchangeRate do
+      define :record_exchange_rate, action: :record
+      define :get_latest_exchange_rate, action: :latest, args: [:as_of], not_found_error?: false
+
+      define :list_exchange_rate_history,
+        action: :history,
+        args: [:as_of, {:optional, :limit}]
+    end
   end
 end

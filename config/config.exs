@@ -59,13 +59,26 @@ config :tcg_cheap,
 
 config :tcg_cheap, Oban,
   repo: TcgCheap.Repo,
-  queues: [valuations: 4],
-  plugins: [{Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60}]
+  queues: [valuations: 4, exchange_rates: 1],
+  plugins: [
+    {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
+        args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}}
+     ]}
+  ]
 
 config :tcg_cheap, :valuation_clock, &DateTime.utc_now/0
 
 config :tcg_cheap, :valuation_provider,
   adapter: TcgCheap.Pricing.Singles.TcgdexCardmarket,
+  options: []
+
+config :tcg_cheap, :exchange_rate_clock, &DateTime.utc_now/0
+
+config :tcg_cheap, :exchange_rate_provider,
+  adapter: TcgCheap.Pricing.NbpExchangeRate,
   options: []
 
 # Configure the endpoint

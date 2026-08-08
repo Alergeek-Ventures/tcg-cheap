@@ -16,7 +16,7 @@ web
 
 ## Product Purpose
 
-Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices. The minimal Home search-and-price baseline is now backed by a corrected, usable local autocomplete, and the Phase 3 trade foundation is implemented. Next are NBP EUR/PLN conversion and explicit copy/share controls.
+Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices. The minimal Home search-and-price baseline is now backed by a corrected, usable local autocomplete, and the Phase 3 trade foundation plus the NBP EUR/PLN backend/local cache exist. Public PLN totals/difference display and explicit copy/share controls remain the two Phase 3 blockers.
 
 The product has exactly two top-level customer features: **sealed product price comparison** and **singles price comparison**. Singles includes composing a trade and calculating the difference; trade is not a third equal homepage product category.
 
@@ -43,7 +43,7 @@ Thesis-validation product built around local cached data and transparent uncerta
 - Home exposes full policy, methodology, and non-affiliation caveats in collapsed `How prices work` details, uses terse shipping language, 44px-class touch targets, keyboard semantics, and one reveal motion with a reduced-motion fallback.
 - The 2026-08-08 minimal Home correction remains the presentation baseline. It uses plain collector language: `€…` or `Price unavailable`, `Updated …` plus `May be outdated`, and no idle copy. Rows do not expose TCGdex, legality, policy, freshness, or local-data jargon. The completed autocomplete uses real combobox/listbox semantics, stable `card-option-UUID` stream IDs, bounded ten-option results, visible first/active options, wrapping ArrowUp/ArrowDown, exact active Enter selection, Escape close with query/focus retained, validated touch/click selection, and query-specific live status.
 - The approved colors, fonts, and warm square visual direction remain; this correction targets density, copy, jargon, and CTA clarity rather than replacing the visual system.
-- Public `/trade` is now an implemented Phase 3 foundation inside Singles: a mobile-first warm square decision bench with deterministic URL-only card IDs/quantities, one local search, explicit add-left/add-right actions, merged quantity rows, local bulk valuation, EUR totals/difference, stale/unpriced/incomplete states, bounded background acquisition, and safe CardDetail return/pick flows. NBP EUR/PLN conversion and explicit share/copy controls remain incomplete; sealed remains unavailable.
+- Public `/trade` is now an implemented Phase 3 foundation inside Singles: a mobile-first warm square decision bench with deterministic URL-only card IDs/quantities, one local search, explicit add-left/add-right actions, merged quantity rows, local bulk valuation, EUR totals/difference, stale/unpriced/incomplete states, bounded background acquisition, and safe CardDetail return/pick flows. The NBP A EUR/PLN resource, provider, worker, and local cache now exist, but public PLN totals/difference display and explicit share/copy controls remain incomplete; sealed remains unavailable.
 - Missing or stale data is preferable to fabricated data or silently exceeding acquisition constraints.
 
 ## Evidence on Hand
