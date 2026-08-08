@@ -4,6 +4,8 @@ defmodule TcgCheapWeb.TradeLive do
   alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Catalogue.SearchText
   alias TcgCheap.Core
+  alias TcgCheap.Pricing.ExchangeRate
+  alias TcgCheap.Pricing.ExchangeRateAcquisition
   alias TcgCheap.Pricing.Singles.{Freshness, ValuationAcquisition}
   alias TcgCheap.Trades.{Composition, Valuation}
 
@@ -12,6 +14,8 @@ defmodule TcgCheapWeb.TradeLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    {exchange_rate, exchange_rate_status} = local_exchange_rate()
+
     {:ok,
      socket
      |> assign(
@@ -37,7 +41,11 @@ defmodule TcgCheapWeb.TradeLive do
          left_unvalued_quantity: 0,
          right_unvalued_quantity: 0
        },
-       announcement: "Trade is empty. Add cards to either side."
+       announcement: "Trade is empty. Add cards to either side.",
+       exchange_rate: exchange_rate,
+       exchange_rate_status: exchange_rate_status,
+       exchange_rate_requested?: false,
+       share_status: nil
      )
      |> stream_configure(:card_results, dom_id: fn result -> "trade-card-option-#{result.id}" end)
      |> stream(:card_results, [])}
@@ -57,6 +65,7 @@ defmodule TcgCheapWeb.TradeLive do
     selected_card = selected_card || if(is_nil(pick), do: socket.assigns.selected_card, else: nil)
     warning = warning_for(meta, pick_warning, read_warning || pick_read_warning)
 
+    socket = assign(socket, :share_status, nil)
     {:noreply, rebuild_and_request(socket, composition, cards, warning, selected_card)}
   end
 
@@ -114,6 +123,19 @@ defmodule TcgCheapWeb.TradeLive do
       {:noreply, socket}
     end
   end
+
+  def handle_info(
+        {:exchange_rate_completed, %{exchange_rate: %ExchangeRate{} = rate}},
+        socket
+      )
+      when is_struct(rate, ExchangeRate) do
+    if usable_rate?(rate) and newer_rate?(rate, socket.assigns.exchange_rate),
+      do: {:noreply, assign(socket, exchange_rate: rate, exchange_rate_status: :ready)},
+      else: {:noreply, socket}
+  end
+
+  def handle_info({:exchange_rate_failed, %{reason: _reason}}, socket),
+    do: {:noreply, assign(socket, exchange_rate_status: :failed)}
 
   def handle_info(_, socket), do: {:noreply, socket}
 
@@ -191,6 +213,18 @@ defmodule TcgCheapWeb.TradeLive do
 
   def handle_event("remove", %{"side" => "right", "tcgdex-id" => id}, socket),
     do: mutate(socket, :remove, :right, id)
+
+  def handle_event("trade_share_result", %{"status" => status, "path" => path}, socket)
+      when status in ["copied", "failed"] and is_binary(path) do
+    announcement =
+      if status == "copied",
+        do: "Link copied.",
+        else: "Copy failed. Copy the current URL manually."
+
+    if path == Composition.to_path(socket.assigns.composition),
+      do: {:noreply, assign(socket, :share_status, announcement)},
+      else: {:noreply, socket}
+  end
 
   def handle_event(_, _, socket), do: {:noreply, socket}
 
@@ -368,6 +402,7 @@ defmodule TcgCheapWeb.TradeLive do
                           <h3>{row.name}</h3><p>{row.set_name} · {row.collector_number}</p>
                           <.link
                             id={"trade-detail-#{side}-#{row.id}"}
+                            class="trade-row-detail"
                             navigate={trade_detail_path(row.id, @composition)}
                           >View card</.link>
                           <span id={"trade-freshness-#{side}-#{row.id}"}>{row.freshness_display}</span>
@@ -403,18 +438,38 @@ defmodule TcgCheapWeb.TradeLive do
                       </div>
                     </article>
                   </div><p id={"trade-#{side}-total"} class="trade-total">
-                    Total: {total_display(
+                    <span id={"trade-#{side}-total-eur"}>{total_eur_display(
                       Map.fetch!(@totals, side),
                       total_complete?(@totals, side),
                       total_unvalued_quantity(@totals, side)
-                    )}
+                    )}</span><span id={"trade-#{side}-total-pln"}>{total_pln_display(
+                      Map.fetch!(@totals, side),
+                      total_complete?(@totals, side),
+                      total_unvalued_quantity(@totals, side),
+                      @exchange_rate
+                    )}</span>
                   </p>
                 </section>
               <% end %>
             </div>
             <section id="trade-comparison" class="trade-comparison" aria-live="polite">
-              <p>{comparison(@evaluation)}</p><span>Estimate only.</span>
+              <p id="trade-comparison-eur">{comparison(@evaluation)}</p>
+              <p :if={comparison_complete?(@evaluation)} id="trade-comparison-pln">
+                {comparison_pln(@evaluation, @exchange_rate)}
+              </p><span>Estimate only.</span>
             </section>
+            <section id="trade-rate-evidence" class="trade-rate-evidence" aria-live="polite">
+              {rate_evidence(@exchange_rate, @exchange_rate_status)}
+            </section>
+            <div class="trade-share">
+              <button
+                id="trade-share"
+                type="button"
+                phx-hook="TradeShare"
+                data-trade-path={Composition.to_path(@composition)}
+              >Copy trade link</button>
+              <p id="trade-share-status" role="status" aria-live="polite">{@share_status}</p>
+            </div>
           </div>
         </main><p id="trade-announcements" class="sr-only" role="status" aria-live="polite">
           {@announcement}
@@ -479,8 +534,45 @@ defmodule TcgCheapWeb.TradeLive do
 
   defp rebuild_and_request(socket, composition, cards, warning, selected) do
     socket = rebuild(socket, composition, cards, warning, selected)
+    socket = request_exchange_rate(socket)
     socket = request_acquisition(socket)
     rebuild(socket, composition, cards, warning, selected)
+  end
+
+  defp local_exchange_rate do
+    case ExchangeRateAcquisition.latest(Date.utc_today()) do
+      {:ok, rate} ->
+        if usable_rate?(rate), do: {rate, :ready}, else: {nil, :unavailable}
+
+      _ ->
+        {nil, :unavailable}
+    end
+  end
+
+  defp request_exchange_rate(%{assigns: %{exchange_rate_requested?: true}} = socket), do: socket
+
+  defp request_exchange_rate(socket) do
+    if connected?(socket) do
+      socket
+      |> exchange_rate_request_result()
+      |> assign(:exchange_rate_requested?, true)
+    else
+      socket
+    end
+  end
+
+  defp exchange_rate_request_result(socket) do
+    case ExchangeRateAcquisition.subscribe_and_request_latest() do
+      {:fresh, rate} -> fresh_exchange_rate(socket, rate)
+      {:enqueued, _job} -> assign(socket, :exchange_rate_status, :pending)
+      _ -> assign(socket, :exchange_rate_status, :failed)
+    end
+  end
+
+  defp fresh_exchange_rate(socket, rate) do
+    if usable_rate?(rate) and newer_rate?(rate, socket.assigns.exchange_rate),
+      do: assign(socket, exchange_rate: rate, exchange_rate_status: :ready),
+      else: assign(socket, :exchange_rate_status, :failed)
   end
 
   defp request_acquisition(socket) do
@@ -716,10 +808,19 @@ defmodule TcgCheapWeb.TradeLive do
         a <> "." <> String.pad_trailing(b, 2, "0")
       end)
 
-  defp total_display(total, true, 0), do: "€" <> eur(total)
+  defp total_eur_display(total, true, 0), do: "Total: €" <> eur(total)
 
-  defp total_display(total, false, quantity),
-    do: "€" <> eur(total) <> " + ? (#{quantity} unpriced)"
+  defp total_eur_display(total, false, quantity),
+    do: "Total: €" <> eur(total) <> " + ? (#{quantity} unpriced)"
+
+  defp total_pln_display(total, complete?, _quantity, rate) do
+    if usable_rate?(rate) do
+      converted = "PLN " <> eur(Decimal.mult(total, rate.rate))
+      if complete?, do: converted, else: converted <> " + ?"
+    else
+      "PLN unavailable"
+    end
+  end
 
   defp comparison(%{comparison: :incomplete}), do: "Comparison incomplete"
   defp comparison(%{comparison: :equal}), do: "Equal · difference €0.00"
@@ -729,6 +830,93 @@ defmodule TcgCheapWeb.TradeLive do
 
   defp comparison(%{comparison: {:higher, :right, difference}}),
     do: "Right side higher · difference €#{eur(difference)}"
+
+  defp comparison_complete?(%{comparison: comparison}), do: comparison != :incomplete
+
+  defp comparison_pln(%{comparison: :equal}, rate),
+    do: if(usable_rate?(rate), do: "Difference PLN 0.00", else: "PLN unavailable")
+
+  defp comparison_pln(%{comparison: {_, _, difference}}, rate),
+    do:
+      if(usable_rate?(rate),
+        do: "Difference PLN " <> eur(Decimal.mult(difference, rate.rate)),
+        else: "PLN unavailable"
+      )
+
+  defp comparison_pln(_, _), do: "PLN unavailable"
+
+  defp usable_rate?(%ExchangeRate{} = rate) do
+    canonical_rate?(rate) and finite_positive_decimal?(rate.rate) and valid_rate_dates?(rate)
+  end
+
+  defp usable_rate?(_), do: false
+
+  defp canonical_rate?(%ExchangeRate{
+         source: "nbp",
+         table: "A",
+         base_currency: "EUR",
+         quote_currency: "PLN",
+         publication_number: publication
+       })
+       when is_binary(publication), do: String.trim(publication) != ""
+
+  defp canonical_rate?(_), do: false
+
+  defp finite_positive_decimal?(%Decimal{} = rate) do
+    not Decimal.nan?(rate) and not Decimal.inf?(rate) and
+      Decimal.compare(rate, Decimal.new(0)) == :gt
+  end
+
+  defp finite_positive_decimal?(_), do: false
+
+  defp valid_rate_dates?(%ExchangeRate{
+         effective_date: %Date{} = effective_date,
+         fetched_at: %DateTime{} = fetched_at
+       }) do
+    Date.compare(effective_date, Date.utc_today()) != :gt and
+      Date.compare(effective_date, DateTime.to_date(fetched_at)) != :gt and
+      DateTime.compare(fetched_at, DateTime.utc_now()) != :gt
+  end
+
+  defp valid_rate_dates?(_), do: false
+
+  defp newer_rate?(%ExchangeRate{} = candidate, nil), do: usable_rate?(candidate)
+
+  defp newer_rate?(%ExchangeRate{} = candidate, %ExchangeRate{} = current) do
+    Date.compare(candidate.effective_date, current.effective_date) in [:gt, :eq] and
+      (Date.compare(candidate.effective_date, current.effective_date) == :gt or
+         DateTime.compare(candidate.fetched_at, current.fetched_at) in [:gt, :eq])
+  end
+
+  defp newer_rate?(_, _), do: false
+
+  defp rate_evidence(rate, status), do: rate_evidence_for(usable_rate?(rate), rate, status)
+
+  defp rate_evidence_for(true, rate, status) do
+    "1 EUR = #{Decimal.to_string(rate.rate, :normal)} PLN · NBP · Effective " <>
+      Date.to_iso8601(rate.effective_date) <>
+      " " <> relative_effective_date(rate) <> "." <> rate_state(status)
+  end
+
+  defp rate_evidence_for(false, _rate, :pending),
+    do: "Exchange-rate update pending. PLN unavailable."
+
+  defp rate_evidence_for(false, _rate, :failed),
+    do: "Exchange-rate update failed. PLN unavailable; no cached NBP rate."
+
+  defp rate_evidence_for(false, _rate, _status), do: "PLN unavailable; no cached NBP rate."
+
+  defp relative_effective_date(%{effective_date: effective_date}) do
+    case Date.diff(Date.utc_today(), effective_date) do
+      age when age <= 0 -> "(today)"
+      1 -> "(yesterday)"
+      age -> "(#{age} days ago)"
+    end
+  end
+
+  defp rate_state(:pending), do: " Update pending."
+  defp rate_state(:failed), do: " Update failed; cached rate kept."
+  defp rate_state(_), do: ""
 
   defp side_name(:left), do: "Left side"
   defp side_name(:right), do: "Right side"

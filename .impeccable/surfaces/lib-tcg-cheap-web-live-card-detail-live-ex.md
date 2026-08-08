@@ -42,5 +42,5 @@ The honest broken-line/dot history preserves missing days instead of implying fa
 
 ## Unresolved decisions
 
-- Trade composition is implemented as a URL-only Phase 3 foundation; NBP EUR/PLN conversion and explicit share/copy controls remain unresolved.
+- Trade composition is a completed URL-only Phase 3 flow. The side-neutral pick returns through canonical local `/trade`; the trade surface provides dated NBP EUR/PLN evidence and explicit canonical share/copy. Sealed remains unavailable; Phase 4 is next.
 - Europe/Warsaw presentation if timezone infrastructure is added.

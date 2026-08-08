@@ -18,7 +18,7 @@ progressive disclosure.
 - **Audience:** A person checking a Pokémon single at a card-shop counter on a phone.
 - **Job:** Decide whether an exact printing is worth investigating before a trade.
 - **Actions:** Search/select a single (default); verify identity and price; open value details. Sealed comparison is the second top-level feature when implemented. Trade composition belongs inside Singles and is not a third homepage category.
-- **Completed correction:** The former `99023f3` focus-loss path is fixed. The shared external 250ms `CardAutocomplete` hook keeps the same focused input node, query, caret/selection, and focus through server result updates; IME composition pauses search and searches once after compositionend, and Escape cancels pending debounce. The hook is shared with `/trade`; the trade foundation is implemented but Phase 3 is not complete.
+- **Completed correction:** The former `99023f3` focus-loss path is fixed. The shared external 250ms `CardAutocomplete` hook keeps the same focused input node, query, caret/selection, and focus through server result updates; IME composition pauses search and searches once after compositionend, and Escape cancels pending debounce. The hook is shared with `/trade`; Phase 3 is complete, while the overall MVP proceeds to sealed catalogue/acquisition.
 
 ## Proof and content
 
@@ -50,6 +50,6 @@ The result reads like a physical bench slip: image and exact identity on one sid
 ## Unresolved decisions
 
 - Sealed catalogue and pricing remain intentionally unavailable until that phase is implemented.
-- Trade foundation controls now exist inside Singles; PLN conversion and explicit share/copy UI remain deferred.
-- The autocomplete correction is complete; trade is not a third homepage feature and must not be presented as finished beyond its implemented foundation.
+- Trade controls, EUR-plus-PLN totals/difference, and explicit canonical share/copy now exist inside Singles; trade is not a third homepage feature.
+- The autocomplete and Phase 3 trade batch are complete. Sealed remains unavailable and Phase 4 is next.
 - Do not add dead sealed controls or imply finished trade capability.

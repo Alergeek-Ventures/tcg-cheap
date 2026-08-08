@@ -4,7 +4,10 @@ defmodule TcgCheapWeb.TradeLiveTest do
   use TcgCheapWeb.ConnCase, async: false
 
   alias TcgCheap.Core
+  alias TcgCheap.Pricing.ExchangeRate
+  alias TcgCheap.Pricing.ExchangeRateWorker
   alias TcgCheap.Pricing.Singles.ValuationWorker
+  alias TcgCheap.Trades.Composition
 
   @policy "tcgdex_cardmarket_v1"
 
@@ -20,7 +23,31 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-left-side")
     assert has_element?(view, "#trade-right-side")
     assert has_element?(view, "#trade-announcements[aria-live=polite]")
+    assert has_element?(view, "#trade-rate-evidence[aria-live=polite]")
+    assert has_element?(view, "#trade-share[phx-hook=TradeShare]")
+    assert has_element?(view, "#trade-share-status[role=status][aria-live=polite]")
     assert has_element?(view, ".trade-empty", "Add cards to this side.")
+  end
+
+  test "trade share feedback accepts only copied and failed statuses", %{conn: conn} do
+    card = card("share-path", "Share Path", 1)
+    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1&pick=#{card.tcgdex_id}")
+    path = Composition.to_path(%Composition{left: [{card.tcgdex_id, 1}], right: []})
+
+    assert has_element?(view, "#trade-share[data-trade-path='#{path}']")
+    refute has_element?(view, "#trade-share[data-trade-path*='pick']")
+
+    render_hook(view, "trade_share_result", %{"status" => "copied", "path" => path})
+    assert has_element?(view, "#trade-share-status", "Link copied.")
+
+    render_hook(view, "trade_share_result", %{"status" => "failed", "path" => path})
+    assert has_element?(view, "#trade-share-status", "Copy failed.")
+
+    render_hook(view, "trade_share_result", %{"status" => "unexpected", "path" => path})
+    assert has_element?(view, "#trade-share-status", "Copy failed.")
+
+    render_hook(view, "trade_share_result", %{"status" => "copied", "path" => "/trade"})
+    assert has_element?(view, "#trade-share-status", "Copy failed.")
   end
 
   test "restores valued rows with decimal totals and exact difference", %{conn: conn} do
@@ -39,6 +66,146 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-comparison", "Equal")
     assert has_element?(view, "#trade-comparison", "difference €0.00")
     assert has_element?(view, "#trade-row-left-#{first.tcgdex_id}", "€1.25")
+  end
+
+  test "complete totals and difference expose exact Decimal PLN evidence", %{conn: conn} do
+    first = card("rate-complete-a", "Rate Complete A", 1)
+    second = card("rate-complete-b", "Rate Complete B", 2)
+    snapshot(first, "2.00")
+    snapshot(second, "1.00")
+    exchange_rate("4.3000")
+
+    {:ok, view, _html} =
+      live(conn, "/trade?left=#{first.tcgdex_id}:1&right=#{second.tcgdex_id}:1")
+
+    assert has_element?(view, "#trade-left-total-eur", "€2.00")
+    assert has_element?(view, "#trade-left-total-pln", "PLN 8.60")
+    assert has_element?(view, "#trade-right-total-pln", "PLN 4.30")
+    assert has_element?(view, "#trade-comparison-eur", "difference €1.00")
+    assert has_element?(view, "#trade-comparison-pln", "Difference PLN 4.30")
+    assert has_element?(view, "#trade-rate-evidence", "1 EUR = 4.3000 PLN")
+    assert has_element?(view, "#trade-rate-evidence", "(today)")
+  end
+
+  test "incomplete known subtotal converts while comparison remains incomplete", %{conn: conn} do
+    known = card("rate-incomplete", "Rate Incomplete", 1)
+    snapshot(known, "2.50")
+    exchange_rate("4.3000")
+    unknown = "unknown-rate-#{System.unique_integer([:positive])}"
+
+    {:ok, view, _html} = live(conn, "/trade?left=#{known.tcgdex_id}:1,#{unknown}:1")
+
+    assert has_element?(view, "#trade-left-total-eur", "€2.50 + ? (1 unpriced)")
+    assert has_element?(view, "#trade-left-total-pln", "PLN 10.75 + ?")
+    assert has_element?(view, "#trade-comparison-eur", "Comparison incomplete")
+    refute has_element?(view, "#trade-comparison-pln")
+  end
+
+  test "no cached rate keeps EUR and reports PLN unavailable", %{conn: conn} do
+    card = card("rate-none", "Rate None", 1)
+    snapshot(card, "2.50")
+
+    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
+
+    assert has_element?(view, "#trade-left-total-eur", "€2.50")
+    assert has_element?(view, "#trade-left-total-pln", "PLN unavailable")
+    assert has_element?(view, "#trade-rate-evidence", "PLN unavailable")
+    assert has_element?(view, "#trade-comparison-eur", "Comparison incomplete")
+  end
+
+  test "exchange completion updates PLN without remounting and malformed completion is ignored",
+       %{
+         conn: conn
+       } do
+    first = card("rate-completion-a", "Rate Completion A", 1)
+    second = card("rate-completion-b", "Rate Completion B", 2)
+    snapshot(first, "2.00")
+    snapshot(second, "1.00")
+
+    {:ok, view, _html} =
+      live(conn, "/trade?left=#{first.tcgdex_id}:1&right=#{second.tcgdex_id}:1")
+
+    assert has_element?(view, "#trade-left-total-pln", "PLN unavailable")
+    send(view.pid, {:exchange_rate_completed, %{exchange_rate: %{rate: Decimal.new("4.3")}}})
+    assert has_element?(view, "#trade-left-total-pln", "PLN unavailable")
+
+    rate = exchange_rate("4.3000")
+
+    Phoenix.PubSub.broadcast(
+      TcgCheap.PubSub,
+      "exchange_rates",
+      {:exchange_rate_completed, %{exchange_rate: rate}}
+    )
+
+    assert has_element?(view, "#trade-left-total-pln", "PLN 8.60")
+    assert has_element?(view, "#trade-comparison-pln", "Difference PLN 4.30")
+
+    send(view.pid, {:exchange_rate_completed, %{exchange_rate: invalid_rate(:future)}})
+    send(view.pid, {:exchange_rate_completed, %{exchange_rate: invalid_rate(:noncanonical)}})
+    send(view.pid, {:exchange_rate_completed, %{exchange_rate: invalid_rate(:nan)}})
+    send(view.pid, {:exchange_rate_completed, %{exchange_rate: invalid_rate(:infinity)}})
+    send(view.pid, {:exchange_rate_completed, %{exchange_rate: invalid_rate(:blank_publication)}})
+    send(view.pid, {:exchange_rate_completed, %{exchange_rate: invalid_rate(:future_fetched)}})
+    send(view.pid, {:exchange_rate_completed, %{exchange_rate: invalid_rate(:older)}})
+    assert has_element?(view, "#trade-left-total-pln", "PLN 8.60")
+    assert has_element?(view, "#trade-rate-evidence", "1 EUR = 4.3000 PLN")
+  end
+
+  test "rate evidence uses yesterday grammar", %{conn: conn} do
+    exchange_rate("4.3000", Date.add(Date.utc_today(), -1))
+    {:ok, view, _html} = live(conn, ~p"/trade")
+
+    assert has_element?(
+             view,
+             "#trade-rate-evidence",
+             "Effective #{Date.to_iso8601(Date.add(Date.utc_today(), -1))} (yesterday)."
+           )
+  end
+
+  test "rate evidence uses N-days grammar", %{conn: conn} do
+    date = Date.add(Date.utc_today(), -2)
+    exchange_rate("4.3000", date)
+    {:ok, view, _html} = live(conn, ~p"/trade")
+
+    assert has_element?(
+             view,
+             "#trade-rate-evidence",
+             "Effective #{Date.to_iso8601(date)} (2 days ago)."
+           )
+  end
+
+  test "exchange acquisition is enqueued at most once across a URL patch", %{conn: conn} do
+    card = card("rate-once", "Rate Once", 1)
+
+    exchange_rate(
+      "4.3000",
+      Date.add(Date.utc_today(), -1),
+      DateTime.add(DateTime.utc_now(), -1, :day)
+    )
+
+    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
+    assert length(all_enqueued(repo: TcgCheap.Repo, worker: ExchangeRateWorker)) == 1
+
+    render_click(element(view, "#trade-increment-left-#{card.tcgdex_id}"))
+    assert length(all_enqueued(repo: TcgCheap.Repo, worker: ExchangeRateWorker)) == 1
+  end
+
+  test "failed refresh retains cached conversion and dated evidence", %{conn: conn} do
+    card = card("rate-failed", "Rate Failed", 1)
+    snapshot(card, "2.50")
+
+    exchange_rate(
+      "4.3000",
+      Date.add(Date.utc_today(), -1),
+      DateTime.add(DateTime.utc_now(), -1, :day)
+    )
+
+    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
+    send(view.pid, {:exchange_rate_failed, %{reason: :network}})
+
+    assert has_element?(view, "#trade-left-total-pln", "PLN 10.75")
+    assert has_element?(view, "#trade-rate-evidence", "1 EUR = 4.3000 PLN")
+    assert has_element?(view, "#trade-rate-evidence", "Update failed; cached rate kept.")
   end
 
   test "unknown and unvalued rows remain honest and incomplete", %{conn: conn} do
@@ -384,6 +551,49 @@ defmodule TcgCheapWeb.TradeLiveTest do
       source_metric: "avg7",
       fetched_at: fetched_at
     })
+  end
+
+  defp exchange_rate(value, effective_date \\ Date.utc_today(), fetched_at \\ DateTime.utc_now()) do
+    Core.record_exchange_rate!(%{
+      source: "nbp",
+      table: "A",
+      base_currency: "EUR",
+      quote_currency: "PLN",
+      rate: Decimal.new(value),
+      effective_date: effective_date,
+      publication_number: "trade-test-#{System.unique_integer([:positive])}",
+      fetched_at: fetched_at
+    })
+  end
+
+  defp invalid_rate(:future),
+    do: invalid_rate_struct(%{effective_date: Date.add(Date.utc_today(), 1)})
+
+  defp invalid_rate(:noncanonical), do: invalid_rate_struct(%{source: "ecb"})
+  defp invalid_rate(:nan), do: invalid_rate_struct(%{rate: Decimal.new("NaN")})
+  defp invalid_rate(:infinity), do: invalid_rate_struct(%{rate: Decimal.new("Infinity")})
+  defp invalid_rate(:blank_publication), do: invalid_rate_struct(%{publication_number: "  "})
+
+  defp invalid_rate(:future_fetched),
+    do: invalid_rate_struct(%{fetched_at: DateTime.add(DateTime.utc_now(), 60, :second)})
+
+  defp invalid_rate(:older),
+    do: invalid_rate_struct(%{effective_date: Date.add(Date.utc_today(), -1)})
+
+  defp invalid_rate_struct(overrides) do
+    struct(
+      %ExchangeRate{
+        source: "nbp",
+        table: "A",
+        base_currency: "EUR",
+        quote_currency: "PLN",
+        rate: Decimal.new("4.1000"),
+        effective_date: Date.utc_today(),
+        publication_number: "invalid-test",
+        fetched_at: DateTime.utc_now()
+      },
+      overrides
+    )
   end
 
   defp queued_jobs(card) do

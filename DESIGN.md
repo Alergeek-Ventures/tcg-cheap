@@ -201,9 +201,9 @@ The Home form language is square throughout: controls and price-row surfaces use
 - **Character:** An Operate-mode extension of the card-shop valuation bench for an in-store two-sided decision.
 - **Layout:** One selected-card staging strip leads to two symmetric ledgers; desktop uses columns and mobile stacks the sides. The surface must not overflow a 390px viewport.
 - **Controls:** Search is local and singular. Add-left and Add-right are explicit, square, and at least 44px; quantity decrement/increment/remove controls preserve exact identity and URL state.
-- **Evidence:** Rows show exact printing identity, current EUR unit/row value, `Updated today/yesterday/N days ago`, stale/outdated, fetching/failure, and unknown valid IDs as removable but unpriced. Totals show incomplete `€x + ? (N unpriced)` and the difference is estimate-only when needed.
+- **Evidence:** Rows show exact printing identity and EUR-only unit/row values, with `Updated today/yesterday/N days ago`, stale/outdated, fetching/failure, and unknown valid IDs as removable but unpriced. Each side total shows EUR plus Decimal PLN; incomplete known subtotals show both currencies plus `?`, and complete difference shows both currencies while incomplete difference remains explicit. NBP evidence shows exact `1 EUR = … PLN`, effective date, relative age, and pending/failed/no-cache states; carry-forward rates remain honestly dated.
 - **Acquisition:** Missing/stale composition rows render immediately, then use one bounded canonical bulk request and background jobs. Failure retains a stale estimate; search and pick alone never enqueue.
-- **Boundary:** The URL is manually copyable and deterministic, but there is no clipboard/share control yet. NBP EUR/PLN display and sealed mode remain unresolved/unavailable.
+- **Boundary:** External `TradeShare` copies an absolute server-derived canonical `Composition.to_path` URL containing only stable IDs and quantities. Clipboard API and cleaned legacy fallback restore focus, avoid stale/overlapping/destroyed feedback, and expose one accessible feedback live region. Sealed remains unavailable; Phase 4 is next.
 
 ## Do's and Don'ts
 
