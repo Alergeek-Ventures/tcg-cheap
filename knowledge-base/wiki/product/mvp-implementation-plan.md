@@ -1,11 +1,21 @@
 # Pokémon Market & Trade Platform — Detailed MVP Implementation Plan
 
-- Updated: 2026-08-07
+- Updated: 2026-08-08
 - Sources: Product specification supplied by project owner
 - Raw: N/A — product specification
 
 **Status:** **Current product north star.** Unless the product owner explicitly supersedes this article, every requirement, implementation phase, documentation deliverable, and acceptance criterion listed below is authoritative and must be completed in full.
 **Audience:** Long-running implementation agent
+
+## Product-owner course correction — 2026-08-08
+
+The product owner has issued a newer authoritative correction to the public product direction. The product has exactly two top-level customer features: **(1) Sealed product price comparison** and **(2) Singles price comparison**, including the ability to compose a trade and calculate the difference. Trade is part of Singles, not a third equal homepage product category. The audience is ordinary, simple collectors, not market-data or technical users.
+
+The current Home remains too wordy and too technical for simple collector tasks. Internal evidence, policy/provider, freshness, local-data, IDs, and long explanations must not dominate the primary path. Home must be minimal, use plain collector language, and present the fewest words needed for simple actions and states. Primary CTA hierarchy should help a collector search/select, compare a price, or add a single to a trade. Prefer states such as `Price unavailable` or `Updated …` over internal jargon. Preserve legal and methodology honesty, exact-printing correctness, accessibility, and required caveats, but move technical details and methodology into concise secondary disclosure wherever feasible instead of repeating them in the task path.
+
+The current colors, fonts, and warm square visual direction are approved and should be retained. This correction targets information density, copy, jargon, and CTA clarity, not another visual-system replacement. Do not add dead controls or imply unavailable sealed/trade capability before implementation. The just-built Home remains a functional foundation but is not product-finished; its wording and density are historical/current-code evidence to simplify, not copy to preserve.
+
+This correction supersedes only conflicting homepage wording, density, information-architecture, and CTA guidance below; it does not delete or narrow the original detailed requirements, domain scope, acceptance criteria, or implementation phases. All exact-printing, pricing honesty, methodology, legal, accessibility, sealed, and trade requirements remain authoritative and must still be completed in full.
 
 ## Product-owner course correction — 2026-08-07
 
@@ -230,6 +240,8 @@ On mobile, the two sides are stacked vertically. On desktop, they are side by si
 ### 7.1 Homepage
 
 The homepage should feel like a focused search surface rather than a marketing landing page.
+
+**Superseding 2026-08-08 homepage guidance:** Make the first path minimal and collector-readable. Keep only the words and controls needed to search/select and take the next available action. Singles is the default; sealed comparison is the other top-level customer feature. Trade entry belongs inside Singles and must not be presented as a third equal homepage category. Use clear CTAs and plain states such as `Price unavailable` and `Updated …`; put policy/provider, freshness, local-data, IDs, and longer methodology explanations behind concise secondary disclosure where feasible. Preserve the detailed identity, evidence, caveat, accessibility, and exactness requirements below, but do not let their technical labels dominate the task path. The approved warm square visual direction, colors, and fonts remain in force.
 
 Required structure:
 
@@ -1057,6 +1069,8 @@ Do not replace stale data with a blank screen.
 
 Show concise methodology text, for example:
 
+**Superseding presentation guidance:** Keep the primary task path to plain collector language and the fewest words needed for the action or state. Technical methodology, provider/policy labels, local-data wording, freshness detail, IDs, and required caveats may remain available in a concise disclosure, but should not be repeated across the main search and comparison path. Legal and methodological honesty remains mandatory.
+
 > Aggregate Cardmarket estimate from TCGdex (`tcgdex_cardmarket_v1`); language, condition, seller identity, finish, and Poland shipping are not verified.
 
 For an unavailable aggregate:
@@ -1308,6 +1322,8 @@ If a source does not expose historical data, allow the collector to accumulate r
 The MVP is complete only when all of the following are true.
 
 ### 29.1 Public application
+
+**Superseding product-structure and copy guidance:** The public product presents exactly two top-level customer features: sealed product price comparison and singles price comparison. Singles includes composing a trade and calculating the difference; trade is not a third equal homepage category. Homepage CTAs and states must remain minimal, plain-language, accessible, and honest about unimplemented capability. This supplements, and does not narrow, the detailed acceptance criteria below.
 
 - English-only public site works without accounts
 - mobile-first responsive UI

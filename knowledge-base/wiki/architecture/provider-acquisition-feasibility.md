@@ -68,6 +68,8 @@ The public UI boundary now extends through the local card-detail acquisition con
 
 ## Cost, licensing, and next actions
 
+The 2026-08-08 product-owner correction also applies to the provider-facing presentation boundary: ordinary collectors should see plain states such as `Price unavailable` or `Updated …`, not internal policy/provider, freshness, local-data, or identifier jargon in the primary task path. Required provenance, methodology, legal caveats, and exact-printing evidence remain mandatory, but should be concise secondary disclosure where feasible. The two top-level customer features remain sealed product price comparison and singles price comparison, with trade composition/difference calculation inside Singles. This changes presentation priority, not source honesty or acquisition constraints.
+
 The selected aggregate source costs `$0` and needs no credentials. Paid seller-level candidates remain capability-gated under the shared `$50/month` cap; shipping-to-Poland eligibility remains outside the aggregate MVP. Product-owner approval permits TCGdex imagery for the MVP, but does not resolve third-party artwork rights or approve broader reuse/self-hosting.
 
 ## Cost and destination risk
@@ -91,6 +93,7 @@ The historical seller-level core remains implemented at `lib/tcg_cheap/pricing/s
 5. Request REBEL B2B data import/access and written SCD/data-reuse scope.
 6. Request approved feeds/permissions from the initial retailer/LGS panel, including Media Expert only with permitted feed/access; broader sealed research is not complete.
 7. Retain the evidence caveat that third-party artwork rights are not independently proven; broader image reuse/self-hosting, sealed research, and seller-level source research remain open.
+8. Simplify the current Home in the next implementation batch: retain the approved colors, fonts, and warm square direction, but reduce information density and sharpen plain-language CTAs. Do not imply sealed or trade capability before implementation. Phase 3 trade foundations remain high-leverage alongside this work.
 
 All observations are time-specific. No credentials are committed.
 

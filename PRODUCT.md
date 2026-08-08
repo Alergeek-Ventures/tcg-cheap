@@ -18,6 +18,8 @@ web
 
 Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices. The completed homepage batch makes that decision surface concrete without claiming the unfinished trade or sealed capabilities.
 
+The product has exactly two top-level customer features: **sealed product price comparison** and **singles price comparison**. Singles includes composing a trade and calculating the difference; trade is not a third equal homepage product category.
+
 ## Positioning
 
 Thesis-validation product built around local cached data and transparent uncertainty. It does not fabricate seller counts, shipping costs, or false precision.
@@ -39,6 +41,8 @@ Thesis-validation product built around local cached data and transparent uncerta
 - Home has an accessible Singles/Sealed-products mode switch. Sealed is visible as an honest unavailable state because no sealed catalogue or estimate capability was added in this batch.
 - Search preloads the active `tcgdex_cardmarket_v1` valuation relationship with the printing, avoiding an N+1 valuation read. Estimates explicitly distinguish current/fresh, stale, and unpriced states.
 - Home exposes the valuation methodology and disclaimer, and uses 44px-class touch targets, keyboard semantics, and one reveal motion with a reduced-motion fallback.
+- Home is a functional foundation, not product-finished. The next Home pass must be minimal, use plain collector language, and provide clear CTAs for search/select, comparing a price, or adding a single to a trade. Use the fewest words needed for simple actions and states; prefer `Price unavailable` and `Updated …` over internal jargon. Keep technical evidence, policy/provider, freshness, local-data, IDs, and longer methodology in concise secondary disclosure where feasible while retaining legal/methodology honesty, exact-printing correctness, accessibility, and required caveats.
+- The approved colors, fonts, and warm square visual direction remain; this correction targets density, copy, jargon, and CTA clarity rather than replacing the visual system.
 - The planned sealed-product experience, trade calculator, and the associated public and internal workflows are also not yet represented in the current route/UI surface.
 - Missing or stale data is preferable to fabricated data or silently exceeding acquisition constraints.
 
