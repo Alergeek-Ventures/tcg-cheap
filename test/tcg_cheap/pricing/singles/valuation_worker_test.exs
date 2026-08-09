@@ -151,7 +151,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     assert :ok = perform_job(test_job(args(card)), [])
 
     provider = TcgCheap.Operations.get_provider_by_key!("tcgdex_cardmarket")
-    TcgCheap.Operations.disable_provider!(provider, nil, authorize?: false)
+    TcgCheap.Operations.disable_provider!(provider, provider.updated_at, authorize?: false)
 
     assert {:cancel, {:acquisition_budget_rejected, :provider_disabled}} =
              perform_job(test_job(args(card)), [])

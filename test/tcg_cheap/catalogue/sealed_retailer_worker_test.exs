@@ -115,7 +115,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
   test "a capped provider is rejected before the adapter", %{retailer: retailer, stub: stub} do
     assert :ok = SealedRetailerWorker.perform(job(retailer))
     provider = TcgCheap.Operations.get_provider_by_key!("sealed_retailer:worker-stub")
-    TcgCheap.Operations.disable_provider!(provider, nil, authorize?: false)
+    TcgCheap.Operations.disable_provider!(provider, provider.updated_at, authorize?: false)
 
     assert {:cancel, {:acquisition_budget_rejected, :provider_disabled}} =
              SealedRetailerWorker.perform(job(retailer))

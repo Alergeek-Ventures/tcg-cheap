@@ -178,7 +178,7 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
     assert :ok = Phoenix.PubSub.subscribe(TcgCheap.PubSub, ExchangeRateAcquisition.topic())
     assert :ok = perform_job(job(), [])
     provider = TcgCheap.Operations.get_provider_by_key!("nbp")
-    TcgCheap.Operations.disable_provider!(provider, nil, authorize?: false)
+    TcgCheap.Operations.disable_provider!(provider, provider.updated_at, authorize?: false)
 
     assert {:cancel, {:acquisition_budget_rejected, :provider_disabled}} =
              perform_job(job(), [])

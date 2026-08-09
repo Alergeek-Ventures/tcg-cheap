@@ -17,13 +17,18 @@ defmodule TcgCheap.Operations do
           :monthly_spend_limit
         ]
 
-      define :enable_provider, action: :enable
-      define :disable_provider, action: :disable
+      define :enable_provider, action: :enable, args: [:expected_updated_at]
+      define :disable_provider, action: :disable, args: [:expected_updated_at]
+      define :list_providers, action: :admin_list, args: [:provider_keys]
       define :get_provider_by_key, action: :by_key, args: [:provider_key], not_found_error?: false
     end
 
     resource TcgCheap.Operations.BudgetUsage do
       define :list_budget_usage, action: :read
+
+      define :list_current_budget_windows,
+        action: :current_windows,
+        args: [:provider_ids, :hour_started_at, :day_started_at, :month_started_at]
     end
   end
 end

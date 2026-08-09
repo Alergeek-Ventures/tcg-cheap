@@ -49,6 +49,7 @@ defmodule TcgCheapWeb.Router do
     ash_authentication_live_session :admin_review,
       on_mount: [{TcgCheapWeb.AdminAuth, :require_admin}] do
       live "/review", ReviewLive
+      live "/operations", OperationsLive
     end
   end
 

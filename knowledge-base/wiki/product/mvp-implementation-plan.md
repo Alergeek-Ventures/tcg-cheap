@@ -1,11 +1,13 @@
 # Pokémon Market & Trade Platform — Detailed MVP Implementation Plan
 
-- Updated: 2026-08-09
+- Updated: 2026-08-10
 - Sources: Product specification supplied by project owner
 - Raw: N/A — product specification
 
 **Status:** **Current product north star.** Unless the product owner explicitly supersedes this article, every requirement, implementation phase, documentation deliverable, and acceptance criterion listed below is authoritative and must be completed in full. Phase 3 trade/share is complete. Phase 4 now has source-neutral product/alias/retailer/listing/mapping/observation foundations, an explicitly unconfigured fixture-backed LootQuest adapter and atomic unique refresh path, an authenticated administrator review desk, and a local-only public Sealed search/detail foundation. Phase 5 now has a local-only versioned daily aggregate foundation, the pure provisional `sealed_buying_model_v1`, persisted versioned buying-guide snapshots/recomputation, and public rendering of persisted ready/Limited guides, plain-English explanations from persisted factors, and the fixed 30-day graph. Daily aggregate persistence atomically enqueues jobs identified by the exact current and preceding 30-day revisions, and historical corrections cascade through affected following guide dates; local snapshot reads retain model outputs and factors. Public guide projection validates bindings, exact source fingerprints, and invariants, failing closed on corruption or mismatch; stale bands remain previous/cached/outdated rather than current. A fail-closed request-level acquisition-budget foundation covers every in-tree operational TCGdex catalogue, TCGdex Cardmarket, NBP, and sealed-retailer request with provider/global UTC counters, estimated-spend caps, and persisted provider kill switches. Public connected LiveViews now additionally apply a bounded direct-peer IP throttle before stale/missing singles or NBP work can be enqueued. Written production source permission, real catalogue/observations/model validation, actual-cost reconciliation, source health/operational admin, AshBackpex CRUD/operations, homepage discovery/tuning/deployment, and other acceptance work remain incomplete. The overall MVP is not complete.
 **Audience:** Long-running implementation agent
+
+**2026-08-10 operations update:** Authenticated `/admin/operations` now provides a bounded current UTC request/estimated-spend ledger, configured-provider state and stale-safe kill-switch controls, and a secret-safe retained-job failure summary. This completes a useful admin visibility/control slice, not source health, actual-cost reconciliation, broad AshBackpex CRUD, manual refresh/retry operations, or the overall operations acceptance criteria.
 
 ## Product-owner autocomplete quality correction — 2026-08-08 — Implemented
 
@@ -871,7 +873,7 @@ Every in-tree operational outbound request now enters one fail-closed PostgreSQL
 
 `DataProvider` persists provider status, estimated per-request cost, provider hourly/daily/monthly request limits, and provider monthly estimated-spend limits. `BudgetUsage` retains one UTC hour/day/month row per provider with request and estimated-spend counters. One global advisory lock serializes provider upsert/status locking, provider and global checks, and all three atomic increments, preventing concurrent admissions from exceeding provider/global limits. Global hourly/daily request limits and the global monthly estimated-spend limit are configurable, bounded at US$50, and shared across catalogue, singles, exchange-rate, and future configured sealed acquisition. Config synchronization intentionally does not re-enable a disabled persisted provider. UTC windows zero subsecond precision so requests in the same hour/day cannot split counters by microsecond.
 
-This is a strong foundation, not completion of all Section 16 requirements. Active sources currently have zero acquisition cost, and estimated cost is conservatively reserved before HTTP. Public per-IP acquisition throttling is now implemented at the connected LiveView enqueue boundary as described below. Actual-cost reconciliation for future paid responses, acquisition priority classes, source health/circuit-breaker automation beyond the persisted kill switch, and admin usage/failure visibility remain required.
+This is a strong foundation, not completion of all Section 16 requirements. Active sources currently have zero acquisition cost, and estimated cost is conservatively reserved before HTTP. Public per-IP acquisition throttling is now implemented at the connected LiveView enqueue boundary as described below, and the focused authenticated usage/failure ledger is documented in Section 16.6. Actual-cost reconciliation for future paid responses, acquisition priority classes, and source health/circuit-breaker automation beyond the persisted kill switch remain required.
 
 ### 16.5 Implemented public per-IP acquisition throttle — 2026-08-09
 
@@ -880,6 +882,12 @@ Connected card-detail and trade LiveViews obtain the direct transport peer throu
 Only stale or missing work consumes the peer quota. Fresh local singles valuations and today's cached NBP rate do not reserve. Card-detail reserves immediately before a valuation job insert; Trade reserves separately for every canonical stale/missing card, so a large URL-backed composition cannot bypass the bound, while independently allowed cards may still enqueue. A stale/missing public NBP request reserves once before enqueue. Missing admitters and callbacks that raise, throw, exit, or return malformed values fail closed; direct trusted `enqueue` functions remain available for Cron/manual internal work and still pass through worker-level provider/global budget admission before HTTP. Rejection leaves stale values or `?`/PLN-unavailable states usable and queues no rejected job.
 
 The peer limiter is intentionally in memory: a process/application restart clears its windows, while the PostgreSQL provider/global hourly, daily, monthly, and spend controls remain the durable hard-stop layer. If deployment later introduces a reverse proxy, explicitly trusted client-address resolution must be designed and tested before relying on per-client buckets; otherwise the direct peer would correctly be the proxy address and clients would share one bucket. Caddy/trusted-proxy integration remains deferred.
+
+### 16.6 Implemented authenticated operations ledger — 2026-08-10
+
+Authenticated `/admin/operations` reads a strictly validated maximum-100-provider server configuration, current configured-provider UTC counters, SQL-aggregated global current-window usage, and at most 25 retained retryable/discarded/cancelled Oban projections by default (50 hard maximum). Raw job arguments, metadata, and error messages are excluded; a bounded database extraction is reduced to a conservative timeout/rate-limit/budget/authorization/transport/persistence/generic category before LiveView state. Query or configuration failure renders an explicit unavailable state rather than a healthy/empty assumption.
+
+Provider enable/disable actions accept only configured keys and require an administrator actor plus the displayed `updated_at`. A custom Ash change locks and compares the latest row inside the action transaction before applying the opposite state. Concurrent same-version controls allow one update, and admission-versus-disable races preserve one linear order. Unchanged acquisition upserts no longer touch `updated_at`, avoiding control-token churn during normal traffic; real configuration changes still invalidate old controls. Counters remain estimated reservations before HTTP. Actual paid-cost reconciliation, source-health state/circuit breakers, acquisition-run/import-issue persistence, and broader operational actions remain required.
 
 ---
 
@@ -1079,6 +1087,8 @@ Required admin capabilities:
 - inspect the current buying-model configuration/version
 
 AshBackpex is an evolving integration. Pin compatible versions. Where an operational workflow cannot be expressed safely or clearly in AshBackpex, add a focused custom authenticated LiveView rather than forcing it into generic CRUD.
+
+**Implemented subset — 2026-08-10:** The focused authenticated operations LiveView now covers current configured-provider/global quota and estimated-spend inspection, secret-safe retained failure summaries, and stale-safe configured-provider enable/disable. It intentionally does not claim the main AshBackpex CRUD interface, retailer-adapter control, safe manual refresh/retry actions, source health/staleness, import issues, valuation/catalogue CRUD, model-version inspection, or complete job observability.
 
 Do not expose the admin publicly without authentication and authorization.
 
@@ -1359,8 +1369,8 @@ Latest sealed validation includes the prior observation/retailer/listing/mapping
 
 1. Implement homepage discovery sections.
 2. Tune search using real collision cases.
-3. **Foundation advanced, not complete:** request-level provider/global UTC limits, estimated-spend caps, persisted provider kill switches, and a bounded direct-peer public acquisition throttle are implemented; actual-cost reconciliation, priority classes, circuit-breaker/source-health automation, trusted-proxy client-address handling for a future proxied deployment, and admin usage visibility remain.
-4. Complete admin operational views.
+3. **Foundation advanced, not complete:** request-level provider/global UTC limits, estimated-spend caps, persisted provider kill switches, a bounded direct-peer public acquisition throttle, and authenticated current usage/failure visibility are implemented; actual-cost reconciliation, priority classes, circuit-breaker/source-health automation, and trusted-proxy client-address handling for a future proxied deployment remain.
+4. **Focused operations desk implemented, broader admin incomplete:** authenticated current quota/estimated-spend ledgers, retained failure categories, and stale-safe provider controls exist. Main AshBackpex CRUD, source-health/stale-source views, retailer controls, manual refresh/retry, model inspection, and broader operational workflows remain.
 5. Add observability and health checks.
 6. Run full tests and real-data validation.
 7. Produce deployment and operations documentation.

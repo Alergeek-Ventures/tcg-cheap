@@ -4,7 +4,8 @@ defmodule TcgCheap.Operations.DataProvider do
   use Ash.Resource,
     otp_app: :tcg_cheap,
     domain: TcgCheap.Operations,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "acquisition_data_providers"
@@ -39,6 +40,15 @@ defmodule TcgCheap.Operations.DataProvider do
   actions do
     defaults [:read]
 
+    read :admin_list do
+      argument :provider_keys, {:array, :string},
+        allow_nil?: false,
+        constraints: [max_length: 100, items: [max_length: 160], nil_items?: false]
+
+      filter expr(provider_key in ^arg(:provider_keys))
+      prepare build(sort: [provider_key: :asc, id: :asc])
+    end
+
     create :register do
       argument :provider_key, :string, allow_nil?: false
       argument :display_name, :string, allow_nil?: false
@@ -67,23 +77,63 @@ defmodule TcgCheap.Operations.DataProvider do
         :monthly_spend_limit
       ]
 
+      upsert_condition expr(
+                         display_name != upsert_conflict(:display_name) or
+                           estimated_cost_per_request !=
+                             upsert_conflict(:estimated_cost_per_request) or
+                           hourly_request_limit != upsert_conflict(:hourly_request_limit) or
+                           daily_request_limit != upsert_conflict(:daily_request_limit) or
+                           monthly_request_limit != upsert_conflict(:monthly_request_limit) or
+                           monthly_spend_limit != upsert_conflict(:monthly_spend_limit)
+                       )
+
       return_skipped_upsert? true
     end
 
     update :disable do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
       accept []
-      change set_attribute(:status, "disabled")
+      require_atomic? false
+      change {TcgCheap.Operations.Changes.StaleStatusTransition, status: "disabled"}
     end
 
     update :enable do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
       accept []
-      change set_attribute(:status, "active")
+      require_atomic? false
+      change {TcgCheap.Operations.Changes.StaleStatusTransition, status: "active"}
     end
 
     read :by_key do
       argument :provider_key, :string, allow_nil?: false
       get? true
       filter expr(provider_key == ^arg(:provider_key))
+    end
+  end
+
+  policies do
+    # Admission registers and performs the exact-key lookup without an actor.
+    bypass action(:register) do
+      authorize_if always()
+    end
+
+    bypass action(:by_key) do
+      authorize_if always()
+    end
+
+    policy action(:admin_list) do
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
+    end
+
+    policy action_type(:read) do
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
+    end
+
+    policy action([:enable, :disable]) do
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
     end
   end
 
@@ -117,8 +167,8 @@ defmodule TcgCheap.Operations.DataProvider do
     attribute :daily_request_limit, :integer, allow_nil?: false, public?: true
     attribute :monthly_request_limit, :integer, allow_nil?: false, public?: true
     attribute :monthly_spend_limit, :decimal, allow_nil?: false, public?: true
-    create_timestamp :inserted_at
-    update_timestamp :updated_at
+    create_timestamp :inserted_at, public?: true
+    update_timestamp :updated_at, public?: true
   end
 
   identities do

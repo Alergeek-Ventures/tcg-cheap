@@ -18,6 +18,7 @@ defmodule TcgCheap.Operations.AcquisitionBudget do
     :providers
   ]
   @max_bigint 9_223_372_036_854_775_807
+  @max_provider_count 100
   @provider_keys [
     :provider_key,
     :display_name,
@@ -71,64 +72,63 @@ defmodule TcgCheap.Operations.AcquisitionBudget do
     end
   end
 
+  @doc "Returns the complete, validated server-side acquisition configuration."
+  @spec configured_limits() :: {:ok, map()} | {:error, :invalid_provider_configuration}
+  def configured_limits do
+    with config when is_list(config) <- Application.get_env(:tcg_cheap, :acquisition_budget),
+         providers when is_list(providers) and length(providers) in 1..@max_provider_count <-
+           Keyword.get(config, :providers),
+         true <- valid_complete_config?(config, providers) do
+      {:ok, configured_limits(config, providers)}
+    else
+      _ -> {:error, :invalid_provider_configuration}
+    end
+  rescue
+    _ -> {:error, :invalid_provider_configuration}
+  end
+
+  defp configured_limits(config, providers) do
+    %{
+      global_hourly_request_limit: Keyword.get(config, :global_hourly_request_limit),
+      global_daily_request_limit: Keyword.get(config, :global_daily_request_limit),
+      global_monthly_spend_limit: decimal_value(Keyword.get(config, :global_monthly_spend_limit)),
+      providers: Enum.map(providers, &normalize_provider(config, &1))
+    }
+  end
+
+  defp normalize_provider(config, entry) do
+    config
+    |> normalize_config(entry)
+    |> Map.drop([:global_monthly_spend_limit])
+  end
+
+  defp valid_complete_config?(config, providers) do
+    provider_keys = Enum.map(providers, &Keyword.get(&1, :provider_key))
+
+    valid_top_level_config?(config) and valid_global_limits?(config) and
+      Enum.all?(providers, &valid_raw_provider_entry?(config, &1)) and
+      Enum.uniq(provider_keys) == provider_keys
+  end
+
   defp provider_config(provider_key)
        when is_binary(provider_key) and byte_size(provider_key) > 0 do
-    case Application.get_env(:tcg_cheap, :acquisition_budget) do
-      config when is_list(config) ->
-        providers = Keyword.get(config, :providers)
-
-        entry =
-          if is_list(providers),
-            do:
-              Enum.find(
-                providers,
-                &(is_list(&1) and Keyword.get(&1, :provider_key) == provider_key)
-              )
-
-        normalized = normalize_config(config, entry)
-
-        if provider_key == String.trim(provider_key) and valid_top_level_config?(config) and
-             valid_budget_config?(normalized, normalized, config, providers) do
-          {:ok,
-           normalized
-           |> Map.put(
-             :global_hourly_request_limit,
-             Keyword.get(config, :global_hourly_request_limit)
-           )
-           |> Map.put(
-             :global_daily_request_limit,
-             Keyword.get(config, :global_daily_request_limit)
-           )}
-        else
-          {:error, :invalid_provider_configuration}
-        end
-
-      _ ->
-        {:error, :invalid_provider_configuration}
+    with {:ok, config} <- configured_limits(),
+         true <- provider_key == String.trim(provider_key),
+         provider when is_map(provider) <-
+           Enum.find(config.providers, &(&1.provider_key == provider_key)) do
+      {:ok,
+       provider
+       |> Map.put(:global_hourly_request_limit, config.global_hourly_request_limit)
+       |> Map.put(:global_daily_request_limit, config.global_daily_request_limit)
+       |> Map.put(:global_monthly_spend_limit, config.global_monthly_spend_limit)}
+    else
+      _ -> {:error, :invalid_provider_configuration}
     end
   rescue
     _ -> {:error, :invalid_provider_configuration}
   end
 
   defp provider_config(_), do: {:error, :invalid_provider_configuration}
-
-  defp valid_budget_config?(_config, entry, original_config, providers)
-       when is_map(entry) and is_list(providers) do
-    valid_keys?(entry) and valid_global_limits?(original_config) and
-      valid_identity?(entry) and valid_provider_limits?(entry) and
-      providers != [] and Enum.all?(providers, &valid_raw_provider_entry?(original_config, &1)) and
-      Enum.uniq(Enum.map(providers, &Keyword.get(&1, :provider_key))) ==
-        Enum.map(providers, &Keyword.get(&1, :provider_key)) and
-      Decimal.compare(
-        entry.monthly_spend_limit,
-        decimal_value(Keyword.get(original_config, :global_monthly_spend_limit))
-      ) !=
-        :gt
-  rescue
-    _ -> false
-  end
-
-  defp valid_budget_config?(_, _, _, _), do: false
 
   defp valid_raw_provider_entry?(config, entry) when is_list(entry) do
     normalized = normalize_config(config, entry)

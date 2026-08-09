@@ -4,7 +4,8 @@ defmodule TcgCheap.Operations.BudgetUsage do
   use Ash.Resource,
     otp_app: :tcg_cheap,
     domain: TcgCheap.Operations,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "acquisition_budget_usages"
@@ -27,6 +28,32 @@ defmodule TcgCheap.Operations.BudgetUsage do
 
   actions do
     defaults [:read]
+
+    read :current_windows do
+      argument :provider_ids, {:array, :uuid},
+        allow_nil?: false,
+        constraints: [max_length: 100, nil_items?: false]
+
+      argument :hour_started_at, :utc_datetime_usec, allow_nil?: false
+      argument :day_started_at, :utc_datetime_usec, allow_nil?: false
+      argument :month_started_at, :utc_datetime_usec, allow_nil?: false
+
+      filter expr(
+               provider_id in ^arg(:provider_ids) and
+                 ((window_kind == "hour" and window_started_at == ^arg(:hour_started_at)) or
+                    (window_kind == "day" and window_started_at == ^arg(:day_started_at)) or
+                    (window_kind == "month" and window_started_at == ^arg(:month_started_at)))
+             )
+
+      prepare build(sort: [window_kind: :asc, provider_id: :asc, id: :asc])
+    end
+  end
+
+  policies do
+    policy action_type(:read) do
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
+    end
   end
 
   attributes do

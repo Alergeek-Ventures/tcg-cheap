@@ -45,6 +45,12 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
       <div id="admin-review" class="admin-world">
         <header class="admin-header">
           <.link id="admin-review-home" navigate={~p"/"}>TCG CHEAP</.link>
+          <nav id="admin-review-header-nav" aria-label="Admin sections">
+            <.link id="admin-review-header-link" navigate={~p"/admin/review"} aria-current="page">
+              Review
+            </.link>
+            <.link id="admin-review-operations-header-link" navigate={~p"/admin/operations"}>Operations</.link>
+          </nav>
           <div class="admin-header-actions">
             <span>{@current_admin.email}</span>
             <.link id="admin-sign-out" href={~p"/admin/sign-out"} method="delete">Sign out</.link>

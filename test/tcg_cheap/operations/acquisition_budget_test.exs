@@ -120,6 +120,11 @@ defmodule TcgCheap.Operations.AcquisitionBudgetTest do
           Keyword.put(config, :providers, [provider(key, display_name: " Test Provider")]),
           Keyword.put(config, :providers, [provider(key, display_name: "   ")]),
           Keyword.put(config, :providers, [provider(key), provider(key)]),
+          Keyword.put(
+            config,
+            :providers,
+            Enum.map(1..101, &provider("bounded-provider-#{&1}"))
+          ),
           Keyword.put(config, :providers, [provider(key) ++ [provider_key: key]]),
           Keyword.put(config, :providers, [[:not_a_keyword]]),
           Keyword.put(config, :providers, [provider(key), provider(" #{other_key}")]),
@@ -157,7 +162,18 @@ defmodule TcgCheap.Operations.AcquisitionBudgetTest do
   test "refresh preserves a disabled provider and adds no usage", %{key: key} do
     assert {:ok, _} = AcquisitionBudget.admit(key)
     provider = TcgCheap.Operations.get_provider_by_key!(key)
-    Ash.update!(provider, %{}, action: :disable, authorize?: false)
+
+    updated_at =
+      TcgCheap.Repo.query!("SELECT updated_at FROM acquisition_data_providers WHERE id = $1", [
+        Ecto.UUID.dump!(provider.id)
+      ]).rows
+      |> List.first()
+      |> List.first()
+
+    provider
+    |> Ash.Changeset.for_update(:disable, %{expected_updated_at: updated_at})
+    |> Ash.update!(authorize?: false)
+
     assert {:error, :provider_disabled} = AcquisitionBudget.admit(key)
 
     assert 3 ==
@@ -167,6 +183,51 @@ defmodule TcgCheap.Operations.AcquisitionBudgetTest do
              ).rows
              |> List.first()
              |> List.first()
+  end
+
+  test "unchanged admission does not invalidate the provider control version", %{key: key} do
+    base = next_unused_base()
+    assert {:ok, _} = AcquisitionBudget.admit(key, clock: fn -> base end)
+    provider = Operations.get_provider_by_key!(key)
+    stable_version = ~U[2020-01-01 00:00:00Z]
+
+    TcgCheap.Repo.query!(
+      "UPDATE acquisition_data_providers SET updated_at = $2 WHERE id = $1",
+      [Ecto.UUID.dump!(provider.id), stable_version]
+    )
+
+    assert {:ok, _} =
+             AcquisitionBudget.admit(key, clock: fn -> DateTime.add(base, 3_600, :second) end)
+
+    assert NaiveDateTime.compare(
+             provider_updated_at(provider.id),
+             DateTime.to_naive(stable_version)
+           ) ==
+             :eq
+
+    Application.put_env(:tcg_cheap, :acquisition_budget,
+      global_hourly_request_limit: 100,
+      global_daily_request_limit: 1_000,
+      global_monthly_spend_limit: "50.00",
+      providers: [
+        provider(key,
+          display_name: "Updated provider",
+          hourly_request_limit: 2,
+          daily_request_limit: 3,
+          monthly_request_limit: 4
+        )
+      ]
+    )
+
+    assert {:ok, _} =
+             AcquisitionBudget.admit(key, clock: fn -> DateTime.add(base, 7_200, :second) end)
+
+    refute NaiveDateTime.compare(
+             provider_updated_at(provider.id),
+             DateTime.to_naive(stable_version)
+           ) == :eq
+
+    assert Operations.get_provider_by_key!(key).display_name == "Updated provider"
   end
 
   test "UTC month boundaries use separate monthly windows", %{key: key} do
@@ -445,6 +506,15 @@ defmodule TcgCheap.Operations.AcquisitionBudgetTest do
     |> Enum.reduce(%{}, fn [kind, count], counts ->
       Map.update(counts, kind, count, &(&1 + count))
     end)
+  end
+
+  defp provider_updated_at(id) do
+    TcgCheap.Repo.query!(
+      "SELECT updated_at FROM acquisition_data_providers WHERE id = $1",
+      [Ecto.UUID.dump!(id)]
+    ).rows
+    |> List.first()
+    |> List.first()
   end
 
   defp next_unused_base do
