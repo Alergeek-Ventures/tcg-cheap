@@ -293,7 +293,32 @@
 /* Public sealed detail: canonical identity and local shop evidence on the valuation bench. */
 .sealed-detail-world .decision-container { max-width: 70rem; }
 .sealed-detail-world #sealed-detail-back, .sealed-detail-world #sealed-detail-not-found-back, .sealed-detail-world #sealed-detail-data-error-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .75rem; min-height: 2.8rem; text-underline-offset: .22rem; }
-.sealed-detail-world .sealed-detail-overview { align-items: stretch; display: grid; gap: 1rem; grid-template-columns: minmax(0, 1.7fr) minmax(15rem, .8fr); margin: .5rem 0 2rem; }
+.sealed-detail-world .sealed-detail-overview { align-items: start; display: grid; gap: 1rem; grid-template-columns: minmax(0, 1.7fr) minmax(15rem, .8fr); margin: .5rem 0 2rem; }
+.sealed-detail-world #sealed-market-history-section, .sealed-detail-world #sealed-detail-buying-guide { border-top: 2px solid var(--rule); margin-top: 2rem; padding-top: 1rem; }
+.sealed-detail-world #sealed-detail-buying-guide-title, .sealed-detail-world #sealed-market-history-title { font: 700 clamp(2rem, 5vw, 3.5rem)/.9 "Barlow Condensed", sans-serif; letter-spacing: -.02em; margin: 0 0 .65rem; text-transform: uppercase; }
+.sealed-detail-world #sealed-market-history-chart-wrap { margin: 1rem 0; }
+.sealed-detail-world #sealed-market-history-chart { background: var(--paper); border: 2px solid var(--rule); display: block; height: auto; max-width: 42rem; overflow: visible; padding: .5rem; width: 100%; }
+.sealed-detail-world .sealed-history-range { fill: var(--sunfade); fill-opacity: .75; stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.sealed-detail-world .sealed-history-benchmark { fill: none; stroke: var(--ink); stroke-width: 2; }
+.sealed-detail-world .sealed-history-point { fill: var(--bench-light); stroke: var(--ink); stroke-width: 1.5; }
+.sealed-detail-world #sealed-market-history-legend { display: flex; flex-wrap: wrap; font-size: .9rem; gap: .8rem 1.5rem; }
+.sealed-detail-world .sealed-history-swatch { display: inline-block; margin-right: .35rem; vertical-align: middle; }
+.sealed-detail-world .sealed-history-swatch-line { border-top: 2px solid var(--ink); width: 1.2rem; }
+.sealed-detail-world .sealed-history-swatch-band { background: var(--sunfade); border: 1px dashed var(--muted); height: .8rem; width: 1.2rem; }
+.sealed-detail-world .sealed-history-swatch-point { background: var(--bench-light); border: 2px solid var(--ink); height: .65rem; width: .65rem; }
+.sealed-detail-world .sealed-history-ledger { display: grid; gap: .35rem; margin-top: 1rem; overflow-wrap: anywhere; padding-left: 1.5rem; }
+.sealed-detail-world #sealed-market-history-ledger { background: var(--paper); border-top: 2px solid var(--rule); padding: .35rem 1.5rem .35rem 2.5rem; }
+.sealed-detail-world #sealed-market-history-ledger li { border-bottom: 1px solid var(--rule); line-height: 1.55; padding: .65rem 0; }
+.sealed-detail-world #sealed-market-history-ledger li:last-child { border-bottom: 0; }
+.sealed-detail-world .sealed-buying-bands { display: grid; gap: 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.sealed-detail-world .sealed-buying-bands article { background: var(--paper); border: 2px solid var(--rule); min-height: 10rem; overflow-wrap: anywhere; padding: 1rem; }
+.sealed-detail-world .sealed-buying-bands h3 { font: 700 clamp(1.55rem, 3vw, 2.2rem)/.9 "Barlow Condensed", sans-serif; letter-spacing: -.01em; margin: 0 0 .7rem; text-transform: uppercase; }
+.sealed-detail-world .sealed-buying-bands p { line-height: 1.6; margin: 0; }
+.sealed-detail-world #sealed-detail-guide-reasons { background: var(--paper); border-top: 2px solid var(--rule); margin-top: 1.25rem; padding: .85rem 1rem 1rem; }
+.sealed-detail-world #sealed-detail-guide-reasons h3 { font: 700 1.6rem/.95 "Barlow Condensed", sans-serif; margin: 0 0 .55rem; text-transform: uppercase; }
+.sealed-detail-world #sealed-detail-guide-reasons ul { display: grid; gap: .55rem; line-height: 1.55; margin: 0; padding-left: 1.25rem; }
+@media (max-width: 44rem) { .sealed-detail-world .sealed-buying-bands { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 27rem) { .sealed-detail-world .sealed-buying-bands { grid-template-columns: 1fr; } }
 .sealed-detail-world #sealed-detail-identity { background: var(--paper); border: 2px solid var(--rule); min-width: 0; padding: clamp(1rem, 4vw, 2rem); }
 .sealed-detail-world #sealed-detail-title { font: 700 clamp(2.6rem, 7vw, 5.4rem)/.84 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0 0 .75rem; overflow-wrap: anywhere; text-transform: uppercase; }
 .sealed-detail-world #sealed-detail-type { font: 700 1.2rem/1 "Barlow Condensed", sans-serif; text-transform: uppercase; }

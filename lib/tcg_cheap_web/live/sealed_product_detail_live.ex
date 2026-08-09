@@ -3,7 +3,10 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
 
   alias TcgCheap.Catalogue.PublicSealedProductProjection
   alias TcgCheap.Core
+  alias TcgCheap.Pricing.SealedBuyingGuidePublicProjection
   alias TcgCheap.Pricing.SealedDailyAggregateCalculator
+  alias TcgCheap.Pricing.SealedDailyAggregatePublic
+  alias TcgCheap.Pricing.SealedMarketHistory
 
   @impl true
   def mount(%{"slug" => slug}, _session, socket) when is_binary(slug) and slug != "" do
@@ -14,7 +17,8 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
         {:ok, assign(socket, page_title: "Sealed product not found", state: :not_found)}
 
       {:ok, product} ->
-        {:ok, load_product(socket, product)}
+        now = DateTime.utc_now()
+        {:ok, load_product(socket, product, now)}
 
       {:error, reason} ->
         {:ok,
@@ -73,9 +77,25 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
                 aria-labelledby="sealed-detail-market-snapshot-title"
               >
                 <h2 id="sealed-detail-market-snapshot-title">Market snapshot</h2>
-                {aggregate_content(@aggregate_state, @aggregate)}
+                {aggregate_content(@aggregate_state, @aggregate, @aggregate_current?)}
               </section>
             </div>
+
+            <section
+              id="sealed-detail-buying-guide"
+              aria-labelledby="sealed-detail-buying-guide-title"
+            >
+              <h2 id="sealed-detail-buying-guide-title">Buying guide</h2>
+              {buying_guide_content(@buying_guide_state)}
+            </section>
+
+            <section id="sealed-market-history-section" aria-labelledby="sealed-market-history-title">
+              <h2 id="sealed-market-history-title">30-day market history</h2>
+              <p>
+                The line is the daily market benchmark; the band is the typical daily price range. Gaps mean no daily snapshot was available.
+              </p>
+              {history_content(@market_history, @market_history_state)}
+            </section>
 
             <p :if={@read_error} id="sealed-detail-read-error" class="state-note state-error">
               Offers could not be read from local records. Product identity is retained; offer sections are empty.
@@ -191,7 +211,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     """
   end
 
-  defp load_product(socket, product) do
+  defp load_product(socket, product, now) do
     {projection, read_error} =
       case Core.list_public_listing_mappings_for_product(product.id) do
         {:ok, mappings} when is_list(mappings) ->
@@ -204,7 +224,12 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
           {%{current: [], sold_out: []}, :invalid_local_read}
       end
 
-    {aggregate_state, aggregate} = load_aggregate(product.id)
+    {aggregate_state, aggregate} = load_aggregate(product.id, now)
+    today = DateTime.to_date(now)
+    {history_state, history} = load_history(product.id, today)
+
+    buying_guide_state =
+      SealedBuyingGuidePublicProjection.load(product.id, aggregate_state, aggregate, now)
 
     socket
     |> assign(
@@ -215,14 +240,17 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
       sold_out_offer_count: length(projection.sold_out),
       read_error: read_error,
       aggregate_state: aggregate_state,
-      aggregate: aggregate
+      aggregate: aggregate,
+      market_history_state: history_state,
+      market_history: SealedMarketHistory.build(history, product.id, now),
+      aggregate_current?: aggregate_current?(aggregate_state, aggregate, product.id, now),
+      buying_guide_state: buying_guide_state
     )
     |> stream(:current_offers, projection.current, reset: true)
     |> stream(:sold_out_offers, projection.sold_out, reset: true)
   end
 
-  defp load_aggregate(product_id) do
-    now = DateTime.utc_now()
+  defp load_aggregate(product_id, now) do
     today = DateTime.to_date(now)
 
     case Core.get_latest_sealed_daily_aggregate(
@@ -236,12 +264,24 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     end
   end
 
-  defp normalize_latest_aggregate(aggregate, product_id, now, today) do
+  defp load_history(product_id, today) do
+    case Core.list_sealed_daily_aggregate_history(
+           product_id,
+           SealedDailyAggregateCalculator.version(),
+           Date.add(today, -29),
+           today
+         ) do
+      {:ok, history} when is_list(history) -> {:ok, history}
+      _ -> {:error, []}
+    end
+  end
+
+  defp normalize_latest_aggregate(aggregate, product_id, now, _today) do
     cond do
-      valid_ready_aggregate?(aggregate, now) ->
+      SealedDailyAggregatePublic.ready?(aggregate, now, sealed_product_id: product_id) ->
         {:ready, aggregate}
 
-      valid_limited_aggregate?(aggregate, now, today) ->
+      SealedDailyAggregatePublic.limited?(aggregate, now, sealed_product_id: product_id) ->
         load_cached_ready(aggregate, product_id, now)
 
       true ->
@@ -256,7 +296,8 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
            limited.aggregate_date
          ) do
       {:ok, snapshot} when not is_nil(snapshot) ->
-        if snapshot.id != limited.id and valid_ready_aggregate?(snapshot, now) do
+        if snapshot.id != limited.id and
+             SealedDailyAggregatePublic.ready?(snapshot, now, sealed_product_id: product_id) do
           {:limited_cached, %{limited: limited, snapshot: snapshot}}
         else
           {:limited, limited}
@@ -267,125 +308,25 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     end
   end
 
-  defp valid_ready_aggregate?(aggregate, now) when is_map(aggregate) do
-    Enum.all?([
-      canonical_aggregate?(aggregate),
-      Map.get(aggregate, :status) == "ready",
-      Map.get(aggregate, :fresh_regular_retailer_count) >=
-        SealedDailyAggregateCalculator.minimum_fresh_regular_retailers(),
-      valid_ready_values?(aggregate),
-      valid_aggregate_times?(aggregate, now, evidence?: true)
-    ])
-  rescue
-    _ -> false
-  end
+  defp aggregate_content(:none, aggregate, current?),
+    do: aggregate_content_none(aggregate, current?)
 
-  defp valid_ready_aggregate?(_, _), do: false
+  defp aggregate_content(:unavailable, aggregate, current?),
+    do: aggregate_content_unavailable(aggregate, current?)
 
-  defp valid_limited_aggregate?(aggregate, now, today) when is_map(aggregate) do
-    Enum.all?([
-      canonical_aggregate?(aggregate),
-      Map.get(aggregate, :status) == "limited",
-      Map.get(aggregate, :limited_reason) in SealedDailyAggregateCalculator.limited_reasons(),
-      limited_reason_counts_valid?(aggregate),
-      limited_values_absent?(aggregate),
-      nonfuture_date?(Map.get(aggregate, :aggregate_date), today),
-      valid_aggregate_times?(aggregate, now, evidence?: false)
-    ])
-  rescue
-    _ -> false
-  end
+  defp aggregate_content(:limited, aggregate, current?),
+    do: aggregate_content_limited(aggregate, current?)
 
-  defp canonical_aggregate?(aggregate) do
-    Enum.all?([
-      exact_version?(aggregate),
-      Map.get(aggregate, :currency) == "PLN",
-      match?(%Date{}, Map.get(aggregate, :aggregate_date)),
-      nonnegative_counts?(aggregate),
-      valid_coverage_counts?(aggregate)
-    ])
-  end
+  defp aggregate_content(:limited_cached, aggregate, current?),
+    do: aggregate_content_limited_cached(aggregate, current?)
 
-  defp exact_version?(aggregate),
-    do: Map.get(aggregate, :calculation_version) == SealedDailyAggregateCalculator.version()
+  defp aggregate_content(:ready, aggregate, current?),
+    do: aggregate_content_ready(aggregate, current?)
 
-  defp nonnegative_counts?(aggregate) do
-    Enum.all?(
-      [
-        :fresh_regular_retailer_count,
-        :fresh_lgs_count,
-        :recent_sold_out_0_14_day_count,
-        :sold_out_15_30_day_count,
-        :stale_or_future_current_offer_count,
-        :unique_source_retailer_count
-      ],
-      &(is_integer(Map.get(aggregate, &1)) and Map.get(aggregate, &1) >= 0)
-    )
-  end
+  defp aggregate_content(_, aggregate, current?),
+    do: aggregate_content_invalid(aggregate, current?)
 
-  defp valid_coverage_counts?(aggregate) do
-    Map.get(aggregate, :unique_source_retailer_count) >=
-      Map.get(aggregate, :fresh_regular_retailer_count) +
-        Map.get(aggregate, :fresh_lgs_count)
-  end
-
-  defp valid_ready_values?(aggregate) do
-    values = [aggregate.benchmark_pln, aggregate.typical_low_pln, aggregate.typical_high_pln]
-
-    Enum.all?(values, &finite_decimal?/1) and
-      Decimal.compare(aggregate.typical_low_pln, aggregate.benchmark_pln) != :gt and
-      Decimal.compare(aggregate.benchmark_pln, aggregate.typical_high_pln) != :gt and
-      is_nil(aggregate.limited_reason)
-  end
-
-  defp limited_values_absent?(aggregate) do
-    Enum.all?(
-      [:benchmark_pln, :typical_low_pln, :typical_high_pln],
-      &is_nil(Map.get(aggregate, &1))
-    )
-  end
-
-  defp limited_reason_counts_valid?(aggregate) do
-    regular = Map.get(aggregate, :fresh_regular_retailer_count)
-    lgs = Map.get(aggregate, :fresh_lgs_count)
-    minimum = SealedDailyAggregateCalculator.minimum_fresh_regular_retailers()
-
-    case Map.get(aggregate, :limited_reason) do
-      "no_fresh_current_offers" -> regular == 0 and lgs == 0
-      "too_few_regular_retailers" -> regular < minimum and regular + lgs > 0
-      "insufficient_inliers" -> regular >= minimum
-      _ -> false
-    end
-  end
-
-  defp valid_aggregate_times?(aggregate, %DateTime{} = now, options) do
-    aggregate_date = Map.get(aggregate, :aggregate_date)
-    calculated_at = Map.get(aggregate, :calculated_at)
-    checked_at = Map.get(aggregate, :latest_nonfuture_checked_at)
-
-    with %Date{} <- aggregate_date,
-         %DateTime{} <- calculated_at,
-         true <- Date.compare(aggregate_date, DateTime.to_date(calculated_at)) != :gt,
-         true <- DateTime.compare(calculated_at, now) != :gt,
-         true <- valid_optional_checked_at?(checked_at, calculated_at),
-         true <- not Keyword.fetch!(options, :evidence?) or match?(%DateTime{}, checked_at) do
-      true
-    else
-      _ -> false
-    end
-  end
-
-  defp valid_optional_checked_at?(nil, _calculated_at), do: true
-
-  defp valid_optional_checked_at?(%DateTime{} = checked_at, calculated_at),
-    do: DateTime.compare(checked_at, calculated_at) != :gt
-
-  defp valid_optional_checked_at?(_, _), do: false
-
-  defp nonfuture_date?(%Date{} = date, %Date{} = today), do: Date.compare(date, today) != :gt
-  defp nonfuture_date?(_, _), do: false
-
-  defp aggregate_content(:none, _aggregate) do
+  defp aggregate_content_none(_aggregate, _current?) do
     assigns = %{}
 
     ~H"""
@@ -396,7 +337,280 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     """
   end
 
-  defp aggregate_content(:unavailable, _aggregate) do
+  defp history_content(_history, :error) do
+    assigns = %{}
+
+    ~H"""
+    <p id="sealed-market-history-error" class="state-note state-error">
+      Market history could not be read from local records. No graph is shown.
+    </p>
+    """
+  end
+
+  defp history_content(%{points: []}, :ok) do
+    assigns = %{}
+
+    ~H"""
+    <p id="sealed-market-history-empty" class="state-note">
+      Daily snapshots are still being collected locally. A chart will appear when valid snapshots exist.
+    </p>
+    """
+  end
+
+  defp history_content(history, :ok) do
+    assigns = %{history: history}
+
+    ~H"""
+    <figure id="sealed-market-history-chart-wrap">
+      <svg
+        id="sealed-market-history-chart"
+        viewBox="0 0 300 120"
+        role="img"
+        aria-labelledby="sealed-market-history-chart-title sealed-market-history-chart-description"
+      >
+        <title id="sealed-market-history-chart-title">Thirty-day sealed market history</title>
+        <desc id="sealed-market-history-chart-description">
+          Benchmark points connected by lines with typical price ranges. Missing dates are left as gaps.
+        </desc>
+        <%= for {path, index} <- Enum.with_index(@history.range_paths) do %>
+          <path id={"sealed-market-history-range-#{index}"} class="sealed-history-range" d={path} />
+        <% end %>
+        <%= for {path, index} <- Enum.with_index(@history.benchmark_paths) do %>
+          <path
+            id={"sealed-market-history-benchmark-#{index}"}
+            class="sealed-history-benchmark"
+            d={path}
+          />
+        <% end %>
+        <%= for {point, index} <- Enum.with_index(@history.plot_points) do %>
+          <circle
+            id={"sealed-market-history-point-#{index}"}
+            class="sealed-history-point"
+            cx={point.x}
+            cy={point.benchmark_y}
+            r="2.5"
+          >
+            <title>
+              {format_aggregate_date(point.date)}: {format_history_point(point.date, @history.points)}
+            </title>
+          </circle>
+        <% end %>
+      </svg>
+      <figcaption id="sealed-market-history-legend">
+        <span><i class="sealed-history-swatch sealed-history-swatch-line" aria-hidden="true"></i>Benchmark line</span><span><i
+          class="sealed-history-swatch sealed-history-swatch-band"
+          aria-hidden="true"
+        ></i>Typical range band</span><span><i
+          class="sealed-history-swatch sealed-history-swatch-point"
+          aria-hidden="true"
+        ></i>Daily snapshot point</span>
+      </figcaption>
+    </figure>
+    <ol id="sealed-market-history-ledger" class="sealed-history-ledger">
+      <li
+        :for={point <- @history.points}
+        id={"sealed-market-history-day-#{Date.to_iso8601(point.date)}"}
+      >
+        <strong>{format_aggregate_date(point.date)}</strong>: benchmark {format_pln(
+          point.benchmark_pln
+        )} PLN; typical range {format_pln(point.typical_low_pln)}–{format_pln(point.typical_high_pln)} PLN
+      </li>
+    </ol>
+    """
+  end
+
+  defp buying_guide_content({:ready, guide}) do
+    assigns = %{guide: guide}
+
+    ~H"""
+    <p id="sealed-detail-guide-ready">
+      Guidance from a matching local market snapshot; no purchase action is implied.
+    </p>
+    {ready_buying_bands(@guide)}
+    {guide_reasons(@guide)}
+    """
+  end
+
+  defp buying_guide_content({:stale_ready, guide}) do
+    assigns = %{guide: guide}
+
+    ~H"""
+    <p id="sealed-detail-guide-stale">
+      <strong>Previous guidance.</strong>
+      This guide matches an older local market snapshot and may be outdated; it is not current-ready guidance.
+    </p>
+    {ready_buying_bands(@guide)}
+    {guide_reasons(@guide)}
+    """
+  end
+
+  defp buying_guide_content({:cached_ready, %{latest: latest, cached: guide}}) do
+    assigns = %{latest: latest, guide: guide}
+
+    ~H"""
+    <p id="sealed-detail-guide-limited">
+      <strong>Limited data.</strong>
+      The newest saved guide is limited: {limited_guide_reason(@latest.limited_reason)}.
+    </p>
+    <p id="sealed-detail-guide-cached">
+      Previous guidance from an older matching local market snapshot is shown below and may be outdated.
+    </p>
+    {ready_buying_bands(@guide)}
+    {guide_reasons(@guide)}
+    """
+  end
+
+  defp buying_guide_content({:limited, guide}) do
+    assigns = %{guide: guide}
+
+    ~H"""
+    <p id="sealed-detail-guide-limited">
+      <strong>Limited data.</strong> {limited_guide_reason(@guide.limited_reason)}
+    </p>
+    {guide_reasons(@guide)}
+    """
+  end
+
+  defp buying_guide_content(:missing) do
+    assigns = %{}
+
+    ~H"""
+    <p id="sealed-detail-guide-missing">
+      No saved buying guide is available yet; local calculations are still being collected.
+    </p>
+    """
+  end
+
+  defp buying_guide_content(:calculating) do
+    assigns = %{}
+
+    ~H"""
+    <p id="sealed-detail-guide-calculating">
+      The local buying guide is calculating. No price bands are shown.
+    </p>
+    """
+  end
+
+  defp buying_guide_content(:invalid) do
+    assigns = %{}
+
+    ~H"""
+    <p id="sealed-detail-guide-invalid">
+      The local buying guide could not be verified, so no price bands are shown.
+    </p>
+    """
+  end
+
+  defp buying_guide_content(:read_error) do
+    assigns = %{}
+
+    ~H"""
+    <p id="sealed-detail-guide-read-error" class="state-note state-error">
+      The buying guide could not be read from local records. No price bands are shown.
+    </p>
+    """
+  end
+
+  defp ready_buying_bands(guide) do
+    assigns = %{guide: guide}
+
+    ~H"""
+    <div id="sealed-detail-buying-bands" class="sealed-buying-bands">
+      <article id="sealed-detail-buying-band-great">
+        <h3>Great price</h3><p>
+          At or below {format_pln(@guide.great_price_max_pln)} PLN (inclusive).
+        </p>
+      </article>
+      <article id="sealed-detail-buying-band-fair">
+        <h3>Fair price</h3><p>
+          Above {format_pln(@guide.great_price_max_pln)} and at or below {format_pln(
+            @guide.fair_price_max_pln
+          )} PLN.
+        </p>
+      </article>
+      <article id="sealed-detail-buying-band-expensive">
+        <h3>Expensive</h3><p>
+          Above {format_pln(@guide.fair_price_max_pln)} and at or below {format_pln(
+            @guide.expensive_price_max_pln
+          )} PLN.
+        </p>
+      </article>
+      <article id="sealed-detail-buying-band-avoid">
+        <h3>Avoid</h3><p>Above {format_pln(@guide.expensive_price_max_pln)} PLN.</p>
+      </article>
+    </div>
+    """
+  end
+
+  defp guide_reasons(guide) do
+    assigns = %{guide: guide}
+
+    ~H"""
+    <div id="sealed-detail-guide-reasons">
+      <h3>Why this guidance</h3><ul>
+        <li :for={factor <- @guide.explanation_factors}>{factor_copy(factor)}</li>
+      </ul>
+    </div>
+    """
+  end
+
+  defp factor_copy("market_benchmark"),
+    do: "The guide uses the saved regular-retailer market benchmark."
+
+  defp factor_copy("market_data_limited"), do: "Some local market data is limited."
+  defp factor_copy("msrp"), do: "The product's saved MSRP informs this guidance."
+  defp factor_copy("lgs"), do: "Local game-store evidence informs this guidance."
+  defp factor_copy("sold_out"), do: "Recent sold-out evidence informs this guidance."
+
+  defp factor_copy("trend_rising"), do: "Recent local snapshots indicate prices are rising."
+  defp factor_copy("trend_falling"), do: "Recent local snapshots indicate prices are falling."
+  defp factor_copy("trend_stable"), do: "Recent local snapshots indicate stable prices."
+
+  defp factor_copy("trend_insufficient_history"),
+    do: "There is not enough history to establish a price trend."
+
+  defp factor_copy("availability_abundant"),
+    do: "Local evidence suggests abundant availability."
+
+  defp factor_copy("availability_balanced"),
+    do: "Local evidence suggests balanced availability."
+
+  defp factor_copy("availability_scarce"), do: "Local evidence suggests scarce availability."
+  defp factor_copy("availability_trend_improving"), do: "Availability appears to be improving."
+
+  defp factor_copy("availability_trend_tightening"),
+    do: "Availability appears to be tightening."
+
+  defp factor_copy("availability_trend_stable"), do: "Availability appears stable."
+
+  defp factor_copy("availability_trend_insufficient_history"),
+    do: "There is not enough history to establish an availability trend."
+
+  defp limited_guide_reason(:uncertain_mapping),
+    do: "There is not enough trustworthy product evidence yet."
+
+  defp limited_guide_reason(:limited_market_aggregate),
+    do: "The latest local market snapshot has limited data."
+
+  defp limited_guide_reason(:stale_market_evidence),
+    do: "The available local market evidence is stale."
+
+  defp limited_guide_reason(:insufficient_history),
+    do: "More daily history is needed for a reliable guide."
+
+  defp limited_guide_reason(:low_confidence),
+    do: "There is not enough trustworthy evidence for a dependable guide yet."
+
+  defp limited_guide_reason(:invalid_band_boundaries),
+    do: "Price ranges could not be formed safely from the available evidence."
+
+  defp limited_guide_reason(reason) when is_binary(reason),
+    do: limited_guide_reason(String.to_existing_atom(reason))
+
+  defp format_history_point(date, points),
+    do: points |> Enum.find(&(&1.date == date)) |> then(&(format_pln(&1.benchmark_pln) <> " PLN"))
+
+  defp aggregate_content_unavailable(_aggregate, _current?) do
     assigns = %{}
 
     ~H"""
@@ -406,7 +620,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     """
   end
 
-  defp aggregate_content(:limited, %{limited_reason: reason} = aggregate) do
+  defp aggregate_content_limited(%{limited_reason: reason} = aggregate, _current?) do
     assigns = %{aggregate: aggregate, reason: reason}
 
     ~H"""
@@ -416,7 +630,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     """
   end
 
-  defp aggregate_content(:limited_cached, %{limited: limited, snapshot: aggregate}) do
+  defp aggregate_content_limited_cached(%{limited: limited, snapshot: aggregate}, _current?) do
     assigns = %{aggregate: aggregate, limited: limited, reason: limited.limited_reason}
 
     ~H"""
@@ -430,13 +644,13 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     """
   end
 
-  defp aggregate_content(:ready, aggregate) do
-    assigns = %{aggregate: aggregate}
+  defp aggregate_content_ready(aggregate, current?) do
+    assigns = %{aggregate: aggregate, current?: current?}
 
     ~H"""
     <p id="sealed-detail-aggregate-ready">
-      <%= if snapshot_current?(@aggregate) do %>
-        Collected prices are sufficient for a current market benchmark. Buying bands and trend still need more real history.
+      <%= if @current? do %>
+        Collected prices are sufficient for a current market benchmark. See the buying guide below.
       <% else %>
         <span id="sealed-detail-aggregate-stale">May be outdated: this cached benchmark is from the aggregate date {format_aggregate_iso_date(
           @aggregate.aggregate_date
@@ -446,7 +660,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     <dl id="sealed-detail-aggregate-summary" class="sealed-aggregate-summary">
       <div>
         <dt>
-          {if(snapshot_current?(@aggregate),
+          {if(@current?,
             do: "Current market benchmark",
             else: "Latest stored benchmark"
           )}
@@ -456,7 +670,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
       </div>
       <div>
         <dt>
-          {if(snapshot_current?(@aggregate),
+          {if(@current?,
             do: "Typical current range",
             else: "Typical range at that snapshot"
           )}
@@ -497,7 +711,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     """
   end
 
-  defp aggregate_content(_state, _aggregate) do
+  defp aggregate_content_invalid(_aggregate, _current?) do
     assigns = %{}
 
     ~H"""
@@ -561,24 +775,11 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
   defp format_aggregate_iso_date(%Date{} = date), do: Date.to_iso8601(date)
   defp format_aggregate_iso_date(_), do: "unavailable"
 
-  defp snapshot_current?(aggregate) do
-    today = Date.utc_today()
-
-    with %Date{} = date <- Map.get(aggregate, :aggregate_date),
-         true <- Date.diff(today, date) in 0..1,
-         %DateTime{} = checked_at <- Map.get(aggregate, :latest_nonfuture_checked_at),
-         now <- DateTime.utc_now(),
-         true <- DateTime.compare(checked_at, now) != :gt,
-         true <-
-           DateTime.diff(now, checked_at, :second) <=
-             SealedDailyAggregateCalculator.policy().freshness_days * 86_400 do
-      true
-    else
-      _ -> false
-    end
-  rescue
-    _ -> false
+  defp aggregate_current?(:ready, aggregate, product_id, now) do
+    SealedDailyAggregatePublic.current_ready?(aggregate, now, sealed_product_id: product_id)
   end
+
+  defp aggregate_current?(_state, _aggregate, _product_id, _now), do: false
 
   defp configure_offer_streams(socket) do
     socket

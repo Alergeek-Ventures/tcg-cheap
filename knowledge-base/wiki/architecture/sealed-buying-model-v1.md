@@ -7,8 +7,8 @@
 **Status:** `sealed_buying_model_v1` is the initial pure, deterministic, versioned
 sealed buying-policy implementation. Its weights and boundaries are provisional
 until representative real Polish-market observations are available. Its outputs are
-now persisted as local buying-guide snapshots, but they are not yet rendered on the
-public sealed page.
+now persisted as local buying-guide snapshots and consumed by the public sealed page
+through a fail-closed projection.
 
 ## Decision
 
@@ -115,13 +115,20 @@ Three dynamic ceilings create four explicit bands:
 The Great ceiling cannot exceed the aggregate's typical low; the Fair ceiling
 cannot fall below the market benchmark; and the Expensive ceiling cannot fall
 below 1.05 times the typical high. Ceilings are inclusive and belong to the cheaper
-preceding band; the next band's lower bound is exclusive. A future UI should render
-this as “up to” language rather than overlapping ranges.
+preceding band; the next band's lower bound is exclusive. The public UI renders
+inclusive ceilings with unambiguous at-or-below/above wording rather than overlapping ranges.
 
 The result retains reference/component centers, confidence, trend and availability
 states, four explicit interval records, and ordered machine-readable explanation
-factors. Snapshot persistence and public plain-English explanations must consume
-these outputs rather than recalculate model policy in the LiveView.
+factors. Snapshot persistence and public plain-English explanations consume these
+outputs rather than recalculating model policy in the LiveView. The public projection
+validates expected product binding, exact aggregate and preceding-history
+fingerprints, source-relative history, and time/version/currency/state/money/factor/
+trend invariants; corrupt, mismatched, or unreadable data fails closed. Exact ready
+guides render four inclusive-ceiling Great/Fair/Expensive/Avoid ranges, while exact
+Limited guides render collector-readable reasons/factors. Older-ready and
+newest-limited/older-ready combinations are explicitly previous/cached/outdated,
+never current.
 
 ## Synthetic validation
 
@@ -168,9 +175,14 @@ These are synthetic policy fixtures, not proof of Polish-market quality.
   30-day aggregate revisions. Persistence locks and rechecks every consumed revision,
   and historical corrections enqueue every persisted following guide date through the
   end of the affected window.
-- Real Polish retailer/SKU data, weight validation, public bands, plain-English
-  explanations, and the 30-day sealed graph remain unfinished. Production source
-  permission remains a blocker for real validation, not for local persistence.
+- Real Polish retailer/SKU data and weight validation remain unfinished. The public
+  bands, persisted-factor explanations, and fixed 30-day sealed graph are implemented
+  in code: `SealedDailyAggregatePublic` defensively validates public aggregate state,
+  while `SealedMarketHistory` renders an accessible fixed UTC-calendar-day SVG with
+  benchmark line, typical-range band, missing-day gaps, no controls/interpolation,
+  and a textual ledger using only canonical ready rows for the expected product.
+  Production source permission remains a blocker for real validation, not for local
+  persistence or local public rendering.
 
 ## See Also
 
