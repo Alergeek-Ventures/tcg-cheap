@@ -20,14 +20,20 @@ defmodule TcgCheapWeb.AdminAuth do
     |> halt()
   end
 
-  def on_mount(:require_admin, _params, _session, %{assigns: %{current_admin: %Admin{}}} = socket) do
-    {:cont, socket}
+  def on_mount(
+        :require_admin,
+        _params,
+        _session,
+        %{assigns: %{current_admin: %Admin{} = admin}} = socket
+      ) do
+    {:cont, assign(socket, :current_user, admin)}
   end
 
   def on_mount(:require_admin, _params, _session, socket) do
     {:halt,
      socket
      |> assign(:current_admin, nil)
+     |> assign(:current_user, nil)
      |> Phoenix.LiveView.put_flash(:error, "Sign in to open the review desk.")
      |> Phoenix.LiveView.redirect(to: ~p"/admin/sign-in")}
   end

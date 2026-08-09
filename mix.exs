@@ -55,6 +55,7 @@ defmodule TcgCheap.MixProject do
       {:sobelow, "~> 0.13", only: [:dev, :test]},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ash_phoenix, "~> 2.0"},
+      {:ash_backpex, "~> 0.1.12"},
       {:ash_postgres, "~> 2.0"},
       {:oban, "~> 2.23"},
       {:ash, "~> 3.0"},

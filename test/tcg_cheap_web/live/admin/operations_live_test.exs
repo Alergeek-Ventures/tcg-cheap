@@ -32,6 +32,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#admin-operations")
     assert has_element?(view, "#admin-operations-header-nav")
     assert has_element?(view, "#admin-operations-review-header-link")
+    assert has_element?(view, "#admin-operations-products-header-link")
     assert has_element?(view, "#admin-operations-header-link")
     assert has_element?(view, "#operations-global-ledger")
     assert has_element?(view, "#operations-providers")

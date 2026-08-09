@@ -92,6 +92,27 @@ defmodule TcgCheap.Catalogue.SealedProduct do
       validate TcgCheap.Catalogue.Validations.SealedProductFields
     end
 
+    create :admin_create_draft do
+      accept [
+        :slug,
+        :name,
+        :product_type,
+        :series_name,
+        :set_name,
+        :release_date,
+        :msrp_pln,
+        :msrp_source,
+        :msrp_source_url,
+        :image_url,
+        :officially_distributed
+      ]
+
+      change TcgCheap.Catalogue.Changes.SetSealedProductSearchText
+      validate TcgCheap.Catalogue.Validations.SealedProductIdentity
+      validate TcgCheap.Catalogue.Validations.SourceIdentity
+      validate TcgCheap.Catalogue.Validations.SealedProductFields
+    end
+
     create :import_draft do
       accept [
         :slug,
@@ -274,6 +295,10 @@ defmodule TcgCheap.Catalogue.SealedProduct do
       prepare build(sort: [inserted_at: :asc, slug: :asc])
     end
 
+    read :admin_catalogue do
+      prepare build(sort: [inserted_at: :desc, slug: :asc])
+    end
+
     read :draft_review_by_id do
       argument :id, :uuid, allow_nil?: false
       get? true
@@ -289,7 +314,14 @@ defmodule TcgCheap.Catalogue.SealedProduct do
   end
 
   policies do
+    policy action(:revise_draft) do
+      authorize_if expr(publication_status == "draft")
+    end
+
     policy action([
+             :read,
+             :admin_create_draft,
+             :admin_catalogue,
              :revise_draft,
              :approve,
              :archive,
@@ -297,6 +329,7 @@ defmodule TcgCheap.Catalogue.SealedProduct do
              :draft_review_queue,
              :draft_review_by_id
            ]) do
+      access_type :strict
       authorize_if TcgCheap.Accounts.Checks.Admin
     end
 

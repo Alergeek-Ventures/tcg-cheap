@@ -19,6 +19,7 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
     {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
 
     assert has_element?(view, "#admin-review")
+    assert has_element?(view, "#admin-review-products-header-link")
     assert has_element?(view, "#product-review-form-#{product.id}")
     assert has_element?(view, "#draft-product-queue article", "Review Me")
 

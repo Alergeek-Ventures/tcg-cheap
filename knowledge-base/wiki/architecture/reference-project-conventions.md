@@ -1,6 +1,6 @@
 # Reference Project Conventions
 
-- Updated: 2026-08-09
+- Updated: 2026-08-10
 - Sources: Read-only source audits of `/home/kosciak/projects/alergeek/firmowid` at commit `8a18f66aa28ac8444b5b3445fa3c7b6613fdf056`, `/home/kosciak/projects/alergeek/onside` at commit `ac8d1d942a086bfe868043274fc0f430f30aacef`, and current TCG Cheap code
 - Raw: N/A — codebase update
 
@@ -28,7 +28,7 @@ changed.
 | Ash domains/resources/actions | Firmowid separates domains and resource namespaces, with explicit actions and policies (`firmowid/lib/firmowid/ash/core/core.ex:12-24`; `firmowid/lib/firmowid/ash/core/organization.ex:30-158`). Onside similarly groups resource domains and adds generated interfaces (`onside/lib/onside/audits.ex:3-30`). Adopt domain/resource organization and specific actions; do not copy business models. |
 | Ash auth/authz | Firmowid uses `Ash.Policy.Authorizer` and `AshAuthentication` on users (`firmowid/lib/firmowid/ash/core/user.ex:18-19,99-105,346-347`). Onside uses policy checks and scoped authorization, e.g. `onside/lib/onside/policy_checks/system_actor_scope.ex:1-40` and the admin bypass in `onside/lib/onside/audits.ex:268-272`. Adopt explicit policy boundaries and actor context. |
 | Authentication | Firmowid has AshAuthentication, password/OAuth flows, token resources, and Phoenix routes (`firmowid/mix.exs:70-71`; `firmowid/lib/firmowid_web/core/router.ex:3-7`; `firmowid/lib/firmowid/ash/core/token.ex:10-29`). Onside has browser/mobile token paths (`onside/lib/onside_web/auth_controller.ex:3-81`; `onside/lib/onside_web/browser_socket.ex:5-12`). TCG Cheap now uses independently pinned AshAuthentication password/token support only for provisioned administrators, with no public registration, renewed/revoked sessions, dual IP/account throttling, and admin-only Ash policies around review actions. |
-| Admin | Firmowid has no AshBackpex dependency or adopted AshBackpex convention. Onside uses AshAdmin, not AshBackpex (`onside/mix.exs:75-82`; `onside/lib/onside/audits.ex:3-6`). Do not copy either admin UI; independently validate and pin AshBackpex before implementation. |
+| Admin | Firmowid has no AshBackpex dependency or adopted AshBackpex convention. Onside uses AshAdmin, not AshBackpex (`onside/mix.exs:75-82`; `onside/lib/onside/audits.ex:3-6`). Neither admin UI was copied. TCG Cheap independently pins AshBackpex `0.1.12`/Backpex `0.19.6` and validates the first authenticated sealed-product CRUD resource while retaining focused review/operations LiveViews for workflows generic CRUD cannot safely express. |
 | Oban/jobs | Firmowid combines Oban and AshOban, including tenant-aware wrappers and AshOban startup configuration (`firmowid/lib/firmowid/application.ex:17-50`; `firmowid/lib/firmowid/oban.ex:1-12`). Onside configures AshOban and Oban in its application (`onside/lib/onside/application.ex:16-33`) and has queued, retrying workers such as `onside/lib/onside/clubs/workers/squadassist_sync_worker.ex:1-8,16-38`. Adopt explicit queues, worker tests, and observability only after product jobs are defined. |
 | Provider boundaries | Onside wraps external SquadAssist calls behind a Req client (`onside/lib/onside/squadassist/client.ex:3-130`); Firmowid has a Req NBP client (`firmowid/lib/firmowid/ash/currencies/nbp_api_client.ex:27-75`). Adopt only the Req boundary and error-normalization pattern, not Firmowid's float rate representation: TCG Cheap money/rates require Decimal. The bounded experiment batch and cost/control analysis are recorded in the provider ADR; acquisition access is no longer vetoed under the scrappy policy, while exact seller-identity/destination capability validation remains unresolved, so production provider locking and Phase 0 remain incomplete. Older access-first wording is historical. |
 | Styling/assets | Firmowid uses Phoenix-managed Tailwind/esbuild and self-contained JS hooks (`firmowid/mix.exs:87-88,208-219`; `firmowid/assets/js/hooks/index.js:1-20`). Onside's product UI is React/Volt SPA (`onside/mix.exs:65-67`; `onside/lib/onside_web/volt_react_dev_entry_plugin.ex:1-54`). Adopt neither SPA architecture nor Volt; TCG Cheap remains standard LiveView with Nix/devenv and its existing Tailwind/esbuild pipeline (`tcg-cheap/mix.exs:66-67,98-114`). |
@@ -61,18 +61,19 @@ changed.
 - Firmowid's colocated tests are not adopted; tests stay in the standard test tree.
 - Onside's React/Volt SPA, AshAdmin UI, AshTypescript RPC, and mobile frontend are
   not copied. The product surface is LiveView-first.
-- AshBackpex, AshOban, and storage libraries are not added merely because references
-  use them. AshAuthentication and Oban were added only after concrete MVP boundaries
-  and compatibility were validated; the same standard still applies to remaining tools.
+- AshBackpex, AshAuthentication, and Oban were added only after concrete MVP boundaries
+  and compatibility were validated; AshOban and storage libraries are not added merely
+  because references use them. The same standard still applies to remaining tools.
 
 ## Version compatibility
 
 At lock level, TCG Cheap and Onside currently share Phoenix `1.8.9`, Ash `3.31.0`,
 and AshPostgres `2.11.0` (`tcg-cheap/mix.lock:2,5,41`; `onside/mix.lock:4,11,96`).
 Firmowid is a useful behavioral reference but its audited lock has older Ash
-`3.27.7` and AshPostgres `2.9.1` (`firmowid/mix.lock:7,16`). Independently
-validate and pin AshBackpex before implementation. Authentication and Oban compatibility
-are now validated in TCG Cheap; broader admin CRUD compatibility remains unresolved.
+`3.27.7` and AshPostgres `2.9.1` (`firmowid/mix.lock:7,16`). AshBackpex `0.1.12`
+pins Backpex `0.19.6` and requires the already-compatible Ash/AshPhoenix
+range. Authentication, actor propagation, stale-safe sealed draft create/edit, assets, routing,
+and mobile rendering are validated in TCG Cheap; broader resource coverage remains unresolved.
 
 ## Implications for subsequent phases
 
@@ -87,8 +88,9 @@ are now validated in TCG Cheap; broader admin CRUD compatibility remains unresol
 4. Add jobs only for demonstrated asynchronous work, with explicit
    provider/source/resource IDs, queue policy, and worker tests; use a scoped
    system actor only where authorization benefits.
-5. Decide admin tooling after the MVP workflows are known; AshBackpex requires a
-   dedicated compatibility spike, not an assumption from Onside's AshAdmin.
+5. Keep AshBackpex for ordinary main CRUD after the completed compatibility slice;
+   retain focused authenticated LiveViews for evidence review and operational controls
+   that cannot be expressed safely or clearly as generic CRUD.
 6. Preserve LiveView UX and current local/devenv operations while deployment and
    storage decisions mature.
 
@@ -100,9 +102,9 @@ are now validated in TCG Cheap; broader admin CRUD compatibility remains unresol
   seller-identity/destination capability validation remains unresolved, so Phase 0
   and provider locking are incomplete. Older access-first wording above is
   historical/stale.
-- AshBackpex compatibility, storage provider, and production deployment topology need
-  decisions. Administrator password authentication and existing background dependency
-  versions are now selected and validated.
+- Remaining AshBackpex resource rollout, storage provider, and production deployment
+  topology need decisions. Administrator password authentication, the first AshBackpex
+  sealed-product resource, and existing background dependency versions are selected and validated.
 - Do not introduce multitenancy absent a demonstrated requirement. Decide the
   worker authorization/scope shape alongside the product resources.
 

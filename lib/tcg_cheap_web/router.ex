@@ -2,6 +2,8 @@ defmodule TcgCheapWeb.Router do
   use TcgCheapWeb, :router
   use AshAuthentication.Phoenix.Router
 
+  import Backpex.Router
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -46,10 +48,13 @@ defmodule TcgCheapWeb.Router do
   scope "/admin", TcgCheapWeb.Admin do
     pipe_through [:browser, :admin]
 
+    backpex_routes()
+
     ash_authentication_live_session :admin_review,
-      on_mount: [{TcgCheapWeb.AdminAuth, :require_admin}] do
+      on_mount: [Backpex.InitAssigns, {TcgCheapWeb.AdminAuth, :require_admin}] do
       live "/review", ReviewLive
       live "/operations", OperationsLive
+      live_resources "/catalogue/products", SealedProductLive
     end
   end
 

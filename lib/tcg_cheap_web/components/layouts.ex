@@ -40,6 +40,63 @@ defmodule TcgCheapWeb.Layouts do
     """
   end
 
+  attr :flash, :map, required: true, doc: "the map of flash messages"
+  attr :fluid?, :boolean, default: false, doc: "whether the admin content uses full width"
+  attr :current_url, :string, required: true, doc: "the current admin URL"
+  attr :live_resource, :atom, default: nil, doc: "the active Backpex resource"
+  attr :current_admin, :any, required: true, doc: "the authenticated administrator"
+  slot :inner_block, required: true
+
+  def admin(assigns) do
+    ~H"""
+    <div id="admin-catalogue">
+      <Backpex.HTML.Layout.app_shell fluid={@fluid?} live_resource={@live_resource}>
+        <:topbar>
+          <Backpex.HTML.Layout.topbar_branding title="TCG Cheap admin">
+            <:logo>
+              <span class="grid size-9 place-items-center border-2 border-base-content bg-primary font-black text-primary-content">
+                TC
+              </span>
+            </:logo>
+          </Backpex.HTML.Layout.topbar_branding>
+          <div class="ml-auto flex min-h-11 items-center gap-3 pr-2">
+            <span id="admin-catalogue-identity" class="hidden text-sm sm:inline">
+              {@current_admin.email}
+            </span>
+            <.link
+              id="admin-catalogue-sign-out"
+              href={~p"/admin/sign-out"}
+              method="delete"
+              class="btn btn-outline min-h-11"
+            >
+              Sign out
+            </.link>
+          </div>
+        </:topbar>
+        <:sidebar>
+          <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate={~p"/admin/review"}>
+            <Backpex.HTML.CoreComponents.icon name="hero-check-badge" class="size-5" /> Review
+          </Backpex.HTML.Layout.sidebar_item>
+          <Backpex.HTML.Layout.sidebar_item
+            current_url={@current_url}
+            navigate={~p"/admin/catalogue/products"}
+          >
+            <Backpex.HTML.CoreComponents.icon name="hero-archive-box" class="size-5" /> Products
+          </Backpex.HTML.Layout.sidebar_item>
+          <Backpex.HTML.Layout.sidebar_item
+            current_url={@current_url}
+            navigate={~p"/admin/operations"}
+          >
+            <Backpex.HTML.CoreComponents.icon name="hero-command-line" class="size-5" /> Operations
+          </Backpex.HTML.Layout.sidebar_item>
+        </:sidebar>
+        <Backpex.HTML.Layout.flash_messages flash={@flash} />
+        {render_slot(@inner_block)}
+      </Backpex.HTML.Layout.app_shell>
+    </div>
+    """
+  end
+
   @doc """
   Shows the flash group with standard titles and content.
 

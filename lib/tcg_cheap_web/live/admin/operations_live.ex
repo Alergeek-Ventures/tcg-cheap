@@ -28,6 +28,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
           <.link id="admin-operations-home" navigate={~p"/"}>TCG CHEAP</.link>
           <nav id="admin-operations-header-nav" aria-label="Admin sections">
             <.link id="admin-operations-review-header-link" navigate={~p"/admin/review"}>Review</.link>
+            <.link id="admin-operations-products-header-link" navigate={~p"/admin/catalogue/products"}>Products</.link>
             <.link
               id="admin-operations-header-link"
               navigate={~p"/admin/operations"}

@@ -49,6 +49,7 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
             <.link id="admin-review-header-link" navigate={~p"/admin/review"} aria-current="page">
               Review
             </.link>
+            <.link id="admin-review-products-header-link" navigate={~p"/admin/catalogue/products"}>Products</.link>
             <.link id="admin-review-operations-header-link" navigate={~p"/admin/operations"}>Operations</.link>
           </nav>
           <div class="admin-header-actions">

@@ -58,6 +58,11 @@ config :tcg_cheap,
   ash_domains: [TcgCheap.Core, TcgCheap.Accounts, TcgCheap.Operations],
   token_signing_secret: :endpoint_secret_key_base
 
+config :backpex,
+  pubsub_server: TcgCheap.PubSub,
+  translator_function: {TcgCheapWeb.CoreComponents, :translate_error},
+  error_translator_function: {TcgCheapWeb.CoreComponents, :translate_error}
+
 config :tcg_cheap, Oban,
   repo: TcgCheap.Repo,
   queues: [

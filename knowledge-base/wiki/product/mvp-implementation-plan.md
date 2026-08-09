@@ -9,6 +9,8 @@
 
 **2026-08-10 operations update:** Authenticated `/admin/operations` now provides a bounded current UTC request/estimated-spend ledger, configured-provider state and stale-safe kill-switch controls, and a secret-safe retained-job failure summary. This completes a useful admin visibility/control slice, not source health, actual-cost reconciliation, broad AshBackpex CRUD, manual refresh/retry operations, or the overall operations acceptance criteria.
 
+**2026-08-10 AshBackpex catalogue update:** AshBackpex `0.1.12` with Backpex `0.19.6` is now pinned and integrated under the existing administrator session at `/admin/catalogue/products`. The first main-CRUD slice lists and shows all sealed products and lets administrators create and stale-safely revise drafts; approved rows are inspectable but do not offer draft editing, and destructive actions are absent. The actual generic Ash read used by this AshBackpex release is strict-admin protected, while explicit public sealed reads remain separate. Review approval/archive, alias, and mapping decisions stay in the focused `/admin/review` desk. This validates the compatibility boundary and begins the required main admin interface; retailers, listings, cards, valuation snapshots, import issues, source health, manual refresh, model inspection, and other broad admin resources remain incomplete.
+
 ## Product-owner autocomplete quality correction — 2026-08-08 — Implemented
 
 The owner-reported focus-loss blocker is corrected. The minimal plain collector UI, approved colors/fonts and warm square direction, exact-printing identity, pricing honesty, and clear CTA remain intact. The former form-level `phx-change`/form-reassignment path was replaced by a shared external 250ms input hook used by Home and Trade: the focused input is never server-value patched, so query, input node, focus, caret/selection survive result updates. IME composition blocks search and searches once after compositionend; Escape cancels pending debounce.
@@ -1090,6 +1092,8 @@ AshBackpex is an evolving integration. Pin compatible versions. Where an operati
 
 **Implemented subset — 2026-08-10:** The focused authenticated operations LiveView now covers current configured-provider/global quota and estimated-spend inspection, secret-safe retained failure summaries, and stale-safe configured-provider enable/disable. It intentionally does not claim the main AshBackpex CRUD interface, retailer-adapter control, safe manual refresh/retry actions, source health/staleness, import issues, valuation/catalogue CRUD, model-version inspection, or complete job observability.
 
+**Implemented AshBackpex foundation — 2026-08-10:** The pinned authenticated AshBackpex/Backpex surface now covers sealed-product index/show, administrator-only draft creation, and administrator-only stale-safe draft revision. It excludes delete/bulk-delete and delegates consequential approval/archive review to the custom review desk. This is the first required main-CRUD resource, not completion of the resource list above.
+
 Do not expose the admin publicly without authentication and authorization.
 
 ---
@@ -1370,7 +1374,7 @@ Latest sealed validation includes the prior observation/retailer/listing/mapping
 1. Implement homepage discovery sections.
 2. Tune search using real collision cases.
 3. **Foundation advanced, not complete:** request-level provider/global UTC limits, estimated-spend caps, persisted provider kill switches, a bounded direct-peer public acquisition throttle, and authenticated current usage/failure visibility are implemented; actual-cost reconciliation, priority classes, circuit-breaker/source-health automation, and trusted-proxy client-address handling for a future proxied deployment remain.
-4. **Focused operations desk implemented, broader admin incomplete:** authenticated current quota/estimated-spend ledgers, retained failure categories, and stale-safe provider controls exist. Main AshBackpex CRUD, source-health/stale-source views, retailer controls, manual refresh/retry, model inspection, and broader operational workflows remain.
+4. **Initial AshBackpex catalogue plus focused operations desks implemented; broader admin incomplete:** authenticated sealed-product list/show/draft create/stale-safe edit now exists in pinned AshBackpex, while review approval/archive stays in the focused review desk. Authenticated current quota/estimated-spend ledgers, retained failure categories, and stale-safe provider controls also exist. Other required AshBackpex resources, source-health/stale-source views, retailer controls, manual refresh/retry, model inspection, and broader operational workflows remain.
 5. Add observability and health checks.
 6. Run full tests and real-data validation.
 7. Produce deployment and operations documentation.

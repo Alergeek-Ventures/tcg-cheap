@@ -6,6 +6,8 @@
 @source "../css";
 @source "../js";
 @source "../../lib/tcg_cheap_web";
+@source "../../deps/backpex/**/*.*ex";
+@source "../../deps/backpex/assets/js/**/*.*js";
 /* Required for Tailwind to automatically pick up changes in colocated CSS files in dev */
 @source "../../_build/dev/phoenix-colocated/tcg_cheap/*/";
 
@@ -479,3 +481,30 @@
 .admin-state-error h2 { font: 700 clamp(2.5rem, 8vw, 4.5rem)/.9 "Barlow Condensed", sans-serif; margin: 0 0 1rem; text-transform: uppercase; }
 .admin-state-error p { font-size: .74rem; line-height: 1.7; max-width: 42rem; }
 @media (max-width: 40rem) { .operations-provider-dockets, .admin-ledger { grid-template-columns: minmax(0, 1fr); } .operations-provider-docket, .operations-job-docket { min-width: 0; } .operations-provider-docket button { min-height: 2.8rem; } }
+
+/* AshBackpex catalogue: keep generated controls usable on an in-store phone. */
+#admin-catalogue .btn,
+#admin-catalogue .input,
+#admin-catalogue .select,
+#admin-catalogue nav.menu a,
+#admin-catalogue label[for="menu-drawer"],
+#admin-catalogue button[aria-label="Toggle columns"],
+#admin-catalogue [id^="item-action-"] {
+  min-height: 2.75rem;
+}
+#admin-catalogue .btn,
+#admin-catalogue label[for="menu-drawer"],
+#admin-catalogue button[aria-label="Toggle columns"] {
+  min-width: 2.75rem;
+}
+#admin-catalogue [id^="item-action-"] {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-width: 2.75rem;
+}
+#admin-catalogue thead a {
+  align-items: center;
+  display: inline-flex;
+  min-height: 2.75rem;
+}
