@@ -300,9 +300,18 @@
 .sealed-detail-world #sealed-detail-collection, .sealed-detail-world #sealed-detail-release, .sealed-detail-world #sealed-detail-status { font-size: .75rem; line-height: 1.55; margin-top: .45rem; overflow-wrap: anywhere; }
 .sealed-detail-world #sealed-detail-msrp { border-top: 2px solid var(--rule); font: 700 clamp(1.6rem, 4vw, 2.5rem)/1 "Barlow Condensed", sans-serif; margin-top: 1rem; padding-top: .75rem; text-transform: uppercase; }
 .sealed-detail-world #sealed-detail-msrp-provenance { display: block; font: 400 .75rem/1.5 "Azeret Mono", ui-monospace, monospace; margin-top: .45rem; overflow-wrap: anywhere; text-transform: none; }
-.sealed-detail-world #sealed-detail-limited-data { background: var(--paper); border: 2px solid var(--rule); padding: clamp(1rem, 3vw, 1.4rem); }
-.sealed-detail-world #sealed-detail-limited-data h2, .sealed-detail-world #sealed-current-title, .sealed-detail-world #sealed-sold-out-title, .sealed-detail-world #sealed-detail-not-found h1, .sealed-detail-world #sealed-detail-data-error h1 { font: 700 clamp(1.8rem, 4vw, 2.8rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .55rem; text-transform: uppercase; }
-.sealed-detail-world #sealed-detail-limited-data p { font-size: .75rem; line-height: 1.65; }
+.sealed-detail-world #sealed-detail-market-snapshot { background: var(--paper); border: 2px solid var(--rule); padding: clamp(1rem, 3vw, 1.4rem); }
+.sealed-detail-world #sealed-detail-market-snapshot h2, .sealed-detail-world #sealed-current-title, .sealed-detail-world #sealed-sold-out-title, .sealed-detail-world #sealed-detail-not-found h1, .sealed-detail-world #sealed-detail-data-error h1 { font: 700 clamp(1.8rem, 4vw, 2.8rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .55rem; text-transform: uppercase; }
+.sealed-detail-world #sealed-detail-market-snapshot p { font-size: .75rem; line-height: 1.65; }
+.sealed-detail-world .sealed-aggregate-summary { display: grid; gap: .65rem; margin: 1rem 0 0; }
+.sealed-detail-world .sealed-aggregate-summary div { border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; padding-top: .55rem; }
+.sealed-detail-world .sealed-aggregate-summary dt, .sealed-detail-world .sealed-aggregate-summary dd { overflow-wrap: anywhere; }
+.sealed-detail-world .sealed-aggregate-summary dt { color: var(--muted); }
+.sealed-detail-world .sealed-aggregate-summary dd { font-weight: 700; margin: 0; text-align: right; }
+.sealed-detail-world .sealed-aggregate-methodology { border-top: 1px solid var(--rule); font-size: .75rem; line-height: 1.6; margin-top: 1rem; }
+.sealed-detail-world .sealed-aggregate-methodology summary { cursor: pointer; font-weight: 700; min-height: 2.8rem; padding: .7rem 0; }
+.sealed-detail-world .sealed-aggregate-methodology summary:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+.sealed-detail-world .sealed-aggregate-methodology p { border-top: 1px solid var(--rule); padding-top: .65rem; }
 .sealed-detail-world #sealed-detail-read-error { margin-bottom: 1.5rem; }
 .sealed-detail-world #sealed-current-section, .sealed-detail-world #sealed-sold-out-section { margin-top: clamp(2rem, 6vw, 4rem); }
 .sealed-detail-world #sealed-current-title, .sealed-detail-world #sealed-sold-out-title { border-bottom: 2px solid var(--rule); padding-bottom: .45rem; }

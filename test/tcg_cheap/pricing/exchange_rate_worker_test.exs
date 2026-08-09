@@ -304,7 +304,11 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
     [{Oban.Plugins.Pruner, _}, {Oban.Plugins.Cron, opts}] =
       Application.fetch_env!(:tcg_cheap, Oban)[:plugins]
 
-    assert [{"0 15 * * *", ExchangeRateWorker, [args: args]}] = opts[:crontab]
+    assert {"0 15 * * *", ExchangeRateWorker, [args: args]} =
+             Enum.find(opts[:crontab], fn {_schedule, worker, _options} ->
+               worker == ExchangeRateWorker
+             end)
+
     assert args == %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}
   end
 

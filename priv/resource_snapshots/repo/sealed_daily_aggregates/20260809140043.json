@@ -1,0 +1,364 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "aggregate_date",
+      "type": "date"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"sealed_market_daily_v1\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "calculation_version",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"PLN\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "currency",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "limited_reason",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "benchmark_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "typical_low_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "typical_high_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "fresh_regular_retailer_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "fresh_lgs_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "recent_sold_out_0_14_day_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "sold_out_15_30_day_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "stale_or_future_current_offer_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "unique_source_retailer_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "latest_nonfuture_checked_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "calculated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "sealed_daily_aggregates_sealed_product_id_fkey",
+        "on_delete": "restrict",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "sealed_products"
+      },
+      "scale": null,
+      "size": null,
+      "source": "sealed_product_id",
+      "type": "uuid"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [
+    {
+      "attribute": [
+        "calculation_version"
+      ],
+      "base_filter": null,
+      "check": "calculation_version ~ '^sealed_market_daily_v[0-9]+$'",
+      "name": "sealed_daily_aggregates_version_invariant"
+    },
+    {
+      "attribute": [
+        "currency"
+      ],
+      "base_filter": null,
+      "check": "currency = 'PLN'",
+      "name": "sealed_daily_aggregates_currency_invariant"
+    },
+    {
+      "attribute": [
+        "status",
+        "limited_reason",
+        "benchmark_pln",
+        "typical_low_pln",
+        "typical_high_pln"
+      ],
+      "base_filter": null,
+      "check": "(status = 'ready' AND limited_reason IS NULL AND benchmark_pln IS NOT NULL AND typical_low_pln IS NOT NULL AND typical_high_pln IS NOT NULL) OR (status = 'limited' AND limited_reason IN ('no_fresh_current_offers', 'too_few_regular_retailers', 'insufficient_inliers') AND benchmark_pln IS NULL AND typical_low_pln IS NULL AND typical_high_pln IS NULL)",
+      "name": "sealed_daily_aggregates_state_invariant"
+    },
+    {
+      "attribute": [
+        "benchmark_pln",
+        "typical_low_pln",
+        "typical_high_pln"
+      ],
+      "base_filter": null,
+      "check": "(benchmark_pln IS NULL OR (benchmark_pln > 0 AND benchmark_pln <> 'NaN'::numeric AND benchmark_pln <> 'Infinity'::numeric AND benchmark_pln <> '-Infinity'::numeric)) AND (typical_low_pln IS NULL OR (typical_low_pln > 0 AND typical_low_pln <> 'NaN'::numeric AND typical_low_pln <> 'Infinity'::numeric AND typical_low_pln <> '-Infinity'::numeric)) AND (typical_high_pln IS NULL OR (typical_high_pln > 0 AND typical_high_pln <> 'NaN'::numeric AND typical_high_pln <> 'Infinity'::numeric AND typical_high_pln <> '-Infinity'::numeric)) AND (benchmark_pln IS NULL OR (typical_low_pln <= benchmark_pln AND benchmark_pln <= typical_high_pln))",
+      "name": "sealed_daily_aggregates_price_invariant"
+    },
+    {
+      "attribute": [
+        "fresh_regular_retailer_count",
+        "fresh_lgs_count",
+        "recent_sold_out_0_14_day_count",
+        "sold_out_15_30_day_count",
+        "stale_or_future_current_offer_count",
+        "unique_source_retailer_count"
+      ],
+      "base_filter": null,
+      "check": "fresh_regular_retailer_count >= 0 AND fresh_lgs_count >= 0 AND recent_sold_out_0_14_day_count >= 0 AND sold_out_15_30_day_count >= 0 AND stale_or_future_current_offer_count >= 0 AND unique_source_retailer_count >= 0",
+      "name": "sealed_daily_aggregates_counts_invariant"
+    },
+    {
+      "attribute": [
+        "aggregate_date",
+        "calculated_at"
+      ],
+      "base_filter": null,
+      "check": "aggregate_date <= calculated_at::date",
+      "name": "sealed_daily_aggregates_time_invariant"
+    }
+  ],
+  "create_table_options": null,
+  "custom_indexes": [],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "1761C67BD645B6363A4D5EC6F6FA690455833E4465F9544B1657FC140367158B",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "sealed_daily_aggregates_unique_product_date_version_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "sealed_product_id"
+        },
+        {
+          "type": "atom",
+          "value": "aggregate_date"
+        },
+        {
+          "type": "atom",
+          "value": "calculation_version"
+        }
+      ],
+      "name": "unique_product_date_version",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.TcgCheap.Repo",
+  "schema": null,
+  "table": "sealed_daily_aggregates"
+}

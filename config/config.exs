@@ -60,13 +60,15 @@ config :tcg_cheap,
 
 config :tcg_cheap, Oban,
   repo: TcgCheap.Repo,
-  queues: [valuations: 4, exchange_rates: 1, sealed_retailers: 1],
+  queues: [valuations: 4, exchange_rates: 1, sealed_retailers: 1, sealed_aggregates: 1],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,
      crontab: [
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
-        args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}}
+        args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
+       # Daily at 16:00 UTC, after the 15:00 UTC NBP job.
+       {"0 16 * * *", TcgCheap.Pricing.SealedDailyAggregateWorker, args: %{}}
      ]}
   ]
 
@@ -83,6 +85,7 @@ config :tcg_cheap, :valuation_provider,
   options: []
 
 config :tcg_cheap, :exchange_rate_clock, &DateTime.utc_now/0
+config :tcg_cheap, :sealed_daily_aggregate_clock, &DateTime.utc_now/0
 
 config :tcg_cheap, :exchange_rate_provider,
   adapter: TcgCheap.Pricing.NbpExchangeRate,

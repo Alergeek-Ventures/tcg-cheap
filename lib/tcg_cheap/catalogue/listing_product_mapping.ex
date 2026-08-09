@@ -63,7 +63,7 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
     create :create_matched do
       accept [:retailer_listing_id, :confirmed_product_id, :confidence, :evidence]
       change set_attribute(:status, "matched")
-      change atomic_update(:approved_at, expr(now()))
+      change atomic_set(:approved_at, expr(now()))
       change TcgCheap.Catalogue.Changes.ValidateConfirmedProduct
       validate {TcgCheap.Catalogue.Validations.ListingProductMapping, state: :matched}
     end

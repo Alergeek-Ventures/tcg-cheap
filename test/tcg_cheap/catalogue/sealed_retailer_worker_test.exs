@@ -294,7 +294,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
     assert usage_counts("sealed_retailer:worker-stub") == %{}
   end
 
-  test "configures the queue without adding a sealed cron" do
+  test "configures the queue without adding a sealed retailer refresh cron" do
     config = Application.fetch_env!(:tcg_cheap, Oban)
     assert Keyword.get(config, :queues)[:sealed_retailers] == 1
 
@@ -306,7 +306,14 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
         _ -> nil
       end)
 
-    assert [{"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker, _options}] = crontab
+    assert Enum.any?(crontab, fn
+             {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker, _options} -> true
+             _ -> false
+           end)
+
+    refute Enum.any?(crontab, fn {_schedule, worker, _options} ->
+             worker == SealedRetailerWorker
+           end)
   end
 
   defp args(retailer),

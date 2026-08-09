@@ -59,6 +59,24 @@ defmodule TcgCheap.Core do
         args: [:as_of, {:optional, :limit}]
     end
 
+    resource TcgCheap.Pricing.SealedDailyAggregate do
+      define :record_sealed_daily_aggregate, action: :record
+
+      define :get_latest_sealed_daily_aggregate,
+        action: :latest_as_of,
+        args: [:sealed_product_id, :calculation_version, :as_of],
+        not_found_error?: false
+
+      define :get_latest_ready_sealed_daily_aggregate,
+        action: :latest_ready_as_of,
+        args: [:sealed_product_id, :calculation_version, :as_of],
+        not_found_error?: false
+
+      define :list_sealed_daily_aggregate_history,
+        action: :history,
+        args: [:sealed_product_id, :calculation_version, :since, :as_of]
+    end
+
     resource TcgCheap.Catalogue.SealedProduct do
       define :create_sealed_product_draft, action: :create_draft
       define :import_sealed_product_draft, action: :import_draft

@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
   alias TcgCheap.Core
   alias TcgCheapWeb.SealedProductDetailLive
 
-  test "renders public identity, optional MSRP, and the limited-data state", %{conn: conn} do
+  test "renders public identity, optional MSRP, and the market snapshot state", %{conn: conn} do
     product = product(%{msrp_pln: Decimal.new("129.99"), msrp_source: "official product sheet"})
 
     {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
@@ -17,8 +17,17 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
     assert has_element?(view, "#sealed-detail-type", "Booster Box")
     assert has_element?(view, "#sealed-detail-msrp", "129.99 PLN")
     assert has_element?(view, "#sealed-detail-msrp-provenance", "official product sheet")
-    assert has_element?(view, "#sealed-detail-limited-data", "Buying bands")
-    refute has_element?(view, "#sealed-detail-limited-data", "graph")
+    assert has_element?(view, "#sealed-detail-market-snapshot")
+    assert has_element?(view, "#sealed-detail-market-snapshot-title", "Market snapshot")
+
+    assert has_element?(
+             view,
+             "#sealed-detail-aggregate-empty",
+             "Limited data. Market history is being collected"
+           )
+
+    refute has_element?(view, "#sealed-detail-benchmark")
+    refute has_element?(view, "#sealed-detail-market-snapshot", "graph")
     assert has_element?(view, "#sealed-current-empty", "No current local offers yet")
     assert has_element?(view, "#sealed-sold-out-empty")
   end
@@ -64,6 +73,146 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
 
     refute has_element?(view, "#sealed-current-empty")
     refute has_element?(view, "#sealed-sold-out-empty")
+  end
+
+  test "renders a ready local aggregate alongside offers without inventing buying bands", %{
+    conn: conn
+  } do
+    product = product()
+    retailer = Core.register_retailer!(retailer_attrs())
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    current = listing(retailer.id, now, %{current_price_pln: Decimal.new("11.50")})
+    map_listing(product.id, current)
+
+    assert {:ok, _aggregate} =
+             Core.record_sealed_daily_aggregate(
+               aggregate_attrs(product, %{
+                 benchmark_pln: Decimal.new("12.50"),
+                 typical_low_pln: Decimal.new("10.00"),
+                 typical_high_pln: Decimal.new("15.00")
+               })
+             )
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+
+    assert has_element?(view, "#sealed-detail-benchmark", "12.50 PLN")
+    assert has_element?(view, "#sealed-current-offer-#{current.id}")
+    assert has_element?(view, "#sealed-detail-range", "10.00–15.00 PLN")
+    assert has_element?(view, "#sealed-detail-fresh-regular-count", "5")
+    assert has_element?(view, "#sealed-detail-fresh-lgs-count", "1")
+    assert has_element?(view, "#sealed-detail-sold-out-evidence-count", "3")
+
+    assert has_element?(
+             view,
+             "#sealed-detail-aggregate-date",
+             Calendar.strftime(Date.utc_today(), "%b %-d, %Y")
+           )
+
+    assert has_element?(view, "#sealed-detail-methodology")
+    assert has_element?(view, "#sealed-detail-evidence-checked-at", "UTC")
+    refute has_element?(view, "#sealed-detail-buying-bands")
+    refute has_element?(view, "button", "Buy")
+  end
+
+  test "labels an older ready aggregate as cached and possibly outdated", %{conn: conn} do
+    product = product()
+
+    assert {:ok, _aggregate} =
+             Core.record_sealed_daily_aggregate(
+               aggregate_attrs(product, %{aggregate_date: Date.add(Date.utc_today(), -2)})
+             )
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+    assert has_element?(view, "#sealed-detail-aggregate-stale", "May be outdated")
+
+    assert has_element?(
+             view,
+             "#sealed-detail-aggregate-stale",
+             Date.to_iso8601(Date.add(Date.utc_today(), -2))
+           )
+
+    assert has_element?(view, "#sealed-detail-market-snapshot", "Latest stored benchmark")
+    assert has_element?(view, "#sealed-detail-market-snapshot", "Typical range at that snapshot")
+    refute has_element?(view, "#sealed-detail-market-snapshot", "Current market benchmark")
+  end
+
+  test "renders canonical limited aggregate reasons as plain copy", %{conn: conn} do
+    for {reason, counts} <- [
+          {"no_fresh_current_offers", %{fresh_regular_retailer_count: 0, fresh_lgs_count: 0}},
+          {"too_few_regular_retailers", %{fresh_regular_retailer_count: 4}},
+          {"insufficient_inliers", %{fresh_regular_retailer_count: 5}}
+        ] do
+      product = product()
+
+      assert {:ok, _aggregate} =
+               Core.record_sealed_daily_aggregate(
+                 aggregate_attrs(
+                   product,
+                   Map.merge(counts, %{
+                     status: "limited",
+                     limited_reason: reason,
+                     benchmark_pln: nil,
+                     typical_low_pln: nil,
+                     typical_high_pln: nil
+                   })
+                 )
+               )
+
+      {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+      assert has_element?(view, "#sealed-detail-aggregate-limited", "Limited data.")
+      refute has_element?(view, "sealed_market_daily_v1")
+      refute has_element?(view, "#sealed-detail-benchmark")
+    end
+  end
+
+  test "uses an older cached ready snapshot when the newest aggregate is limited", %{conn: conn} do
+    product = product()
+    snapshot_date = Date.add(Date.utc_today(), -45)
+    snapshot_time = DateTime.new!(snapshot_date, ~T[12:00:00], "Etc/UTC")
+
+    assert {:ok, _aggregate} =
+             Core.record_sealed_daily_aggregate(
+               aggregate_attrs(product, %{
+                 aggregate_date: snapshot_date,
+                 latest_nonfuture_checked_at: snapshot_time,
+                 calculated_at: snapshot_time
+               })
+             )
+
+    assert {:ok, _aggregate} =
+             Core.record_sealed_daily_aggregate(
+               aggregate_attrs(product, %{
+                 status: "limited",
+                 limited_reason: "too_few_regular_retailers",
+                 fresh_regular_retailer_count: 4,
+                 benchmark_pln: nil,
+                 typical_low_pln: nil,
+                 typical_high_pln: nil
+               })
+             )
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+
+    assert has_element?(view, "#sealed-detail-aggregate-cached", "may be outdated")
+    assert has_element?(view, "#sealed-detail-aggregate-limited", "Only 4")
+    assert has_element?(view, "#sealed-detail-benchmark", "12.00 PLN")
+    refute has_element?(view, "#sealed-detail-aggregate-ready")
+  end
+
+  test "does not label ready evidence current when its evidence is stale", %{conn: conn} do
+    product = product()
+    stale = DateTime.add(DateTime.utc_now(), -8 * 86_400, :second)
+
+    assert {:ok, _aggregate} =
+             Core.record_sealed_daily_aggregate(
+               aggregate_attrs(product, %{latest_nonfuture_checked_at: stale})
+             )
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+
+    assert has_element?(view, "#sealed-detail-aggregate-stale", "May be outdated")
+    assert has_element?(view, "#sealed-detail-market-snapshot", "Latest stored benchmark")
+    refute has_element?(view, "#sealed-detail-market-snapshot", "Current market benchmark")
   end
 
   test "does not expose draft or nonexistent products", %{conn: conn} do
@@ -167,6 +316,31 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
         expected_updated_at: review.updated_at
       },
       authorize?: false
+    )
+  end
+
+  defp aggregate_attrs(product, overrides) do
+    Map.merge(
+      %{
+        sealed_product_id: product.id,
+        aggregate_date: Date.utc_today(),
+        calculation_version: "sealed_market_daily_v1",
+        currency: "PLN",
+        status: "ready",
+        limited_reason: nil,
+        benchmark_pln: Decimal.new("12.00"),
+        typical_low_pln: Decimal.new("10.00"),
+        typical_high_pln: Decimal.new("15.00"),
+        fresh_regular_retailer_count: 5,
+        fresh_lgs_count: 1,
+        recent_sold_out_0_14_day_count: 2,
+        sold_out_15_30_day_count: 1,
+        stale_or_future_current_offer_count: 0,
+        unique_source_retailer_count: 6,
+        latest_nonfuture_checked_at: DateTime.utc_now() |> DateTime.truncate(:microsecond),
+        calculated_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+      },
+      overrides
     )
   end
 
