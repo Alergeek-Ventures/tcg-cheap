@@ -1,0 +1,485 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "slug",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "search_name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "product_type",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "series_name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "set_name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "release_date",
+      "type": "date"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "msrp_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"PLN\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "msrp_currency",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "msrp_source",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "msrp_source_url",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "image_url",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"PL\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "market",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"en\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "language",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "officially_distributed",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"draft\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "publication_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"current\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "distribution_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_payload",
+      "type": "map"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_updated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "last_synced_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "approved_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "archived_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [
+    {
+      "attribute": [
+        "slug",
+        "name"
+      ],
+      "base_filter": null,
+      "check": "slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' AND btrim(name) <> '' AND btrim(search_name) <> ''",
+      "name": "sealed_products_identity_invariant"
+    },
+    {
+      "attribute": [
+        "product_type"
+      ],
+      "base_filter": null,
+      "check": "product_type IN ('booster_pack', 'sleeved_booster', 'booster_bundle', 'booster_box', 'elite_trainer_box', 'tin', 'collection_box', 'deck', 'trainer_toolkit', 'other')",
+      "name": "sealed_products_product_type_invariant"
+    },
+    {
+      "attribute": [
+        "publication_status",
+        "distribution_status"
+      ],
+      "base_filter": null,
+      "check": "publication_status IN ('draft', 'approved', 'archived') AND distribution_status IN ('current', 'discontinued')",
+      "name": "sealed_products_status_invariant"
+    },
+    {
+      "attribute": [
+        "msrp_pln",
+        "msrp_currency",
+        "msrp_source"
+      ],
+      "base_filter": null,
+      "check": "((msrp_pln IS NULL AND msrp_currency = 'PLN' AND msrp_source IS NULL) OR (msrp_pln IS NOT NULL AND msrp_pln > 0 AND msrp_currency = 'PLN' AND msrp_source IS NOT NULL AND btrim(msrp_source) <> ''))",
+      "name": "sealed_products_msrp_invariant"
+    },
+    {
+      "attribute": [
+        "market",
+        "language",
+        "officially_distributed"
+      ],
+      "base_filter": null,
+      "check": "market = 'PL' AND language = 'en'",
+      "name": "sealed_products_distribution_invariant"
+    },
+    {
+      "attribute": [
+        "publication_status",
+        "approved_at",
+        "archived_at"
+      ],
+      "base_filter": null,
+      "check": "(publication_status = 'draft' AND approved_at IS NULL AND archived_at IS NULL) OR (publication_status = 'approved' AND approved_at IS NOT NULL AND archived_at IS NULL) OR (publication_status = 'archived' AND archived_at IS NOT NULL)",
+      "name": "sealed_products_review_timestamps_invariant"
+    },
+    {
+      "attribute": [
+        "publication_status",
+        "officially_distributed",
+        "release_date"
+      ],
+      "base_filter": null,
+      "check": "publication_status <> 'approved' OR (officially_distributed = TRUE AND release_date IS NOT NULL)",
+      "name": "sealed_products_approved_completeness_invariant"
+    },
+    {
+      "attribute": [
+        "source",
+        "source_id"
+      ],
+      "base_filter": null,
+      "check": "(source IS NULL AND source_id IS NULL) OR (source IS NOT NULL AND source_id IS NOT NULL AND btrim(source) <> '' AND btrim(source_id) <> '')",
+      "name": "sealed_products_source_identity_invariant"
+    },
+    {
+      "attribute": [
+        "msrp_pln",
+        "msrp_currency",
+        "msrp_source"
+      ],
+      "base_filter": null,
+      "check": "msrp_pln IS NULL OR (msrp_pln <> 'NaN'::numeric AND msrp_pln <> 'Infinity'::numeric AND msrp_pln <> '-Infinity'::numeric)",
+      "name": "sealed_products_msrp_finite_invariant"
+    }
+  ],
+  "create_table_options": null,
+  "custom_indexes": [
+    {
+      "all_tenants?": false,
+      "concurrently": true,
+      "error_fields": [],
+      "fields": [
+        {
+          "type": "string",
+          "value": "search_name gin_trgm_ops"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": "sealed_products_search_name_trgm_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": "gin",
+      "where": null
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "2C5A1569EE2A27AB4FB527D4726D1E69D3F97AE23141B88AFCC199B95BA431E6",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "sealed_products_unique_slug_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "slug"
+        }
+      ],
+      "name": "unique_slug",
+      "nils_distinct?": true,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "sealed_products_unique_source_id_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "source"
+        },
+        {
+          "type": "atom",
+          "value": "source_id"
+        }
+      ],
+      "name": "unique_source_id",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.TcgCheap.Repo",
+  "schema": null,
+  "table": "sealed_products"
+}

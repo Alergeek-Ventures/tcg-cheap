@@ -3,6 +3,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
   use TcgCheapWeb.ConnCase
 
   alias TcgCheap.Core
+  alias TcgCheapWeb.HomeLive
 
   test "mounts the singles decision surface by default", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/")
@@ -33,16 +34,21 @@ defmodule TcgCheapWeb.HomeLiveTest do
     refute has_element?(view, "#price-details")
   end
 
-  test "switches to an honest unavailable sealed state and restores singles", %{conn: conn} do
+  test "switches to local sealed search and restores singles", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/")
 
     render_click(element(view, "#mode-sealed"))
 
     assert has_element?(view, "#mode-sealed[aria-pressed=true]")
-    assert has_element?(view, "#sealed-unavailable")
+    assert has_element?(view, "#sealed-search-form")
+
+    assert has_element?(
+             view,
+             "#sealed-search-query[role=combobox][aria-controls=sealed-search-results]"
+           )
+
+    assert has_element?(view, "#sealed-search-results[role=listbox][phx-update=stream]")
     refute has_element?(view, "#card-search-form")
-    refute has_element?(view, "#card-search-results")
-    refute has_element?(view, ".evidence-slip")
 
     render_click(element(view, "#mode-singles"))
 
@@ -51,7 +57,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#card-search-results[phx-update=stream]")
     assert has_element?(view, "#card-search-query[type=search]")
     refute has_element?(view, "#card-search-idle")
-    refute has_element?(view, "#sealed-unavailable")
+    refute has_element?(view, "#sealed-search-form")
   end
 
   test "CSP allows only the TCGdex image host", %{conn: conn} do
@@ -60,6 +66,147 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert Regex.match?(~r/img-src 'self' data: https:\/\/assets\.tcgdex\.net(?:;|$)/, policy)
     refute policy =~ "img-src 'self' data: https://assets.tcgdex.net https://"
+  end
+
+  test "searches approved sealed products by canonical name and approved alias", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    product = create_sealed_product("Public Sealed #{suffix}")
+
+    alias_row =
+      Core.create_sealed_product_alias!(%{
+        sealed_product_id: product.id,
+        kind: "name",
+        original_value: "Friendly Sealed #{suffix}"
+      })
+
+    Core.approve_sealed_product_alias!(alias_row, %{expected_updated_at: alias_row.updated_at},
+      authorize?: false
+    )
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_click(element(view, "#mode-sealed"))
+
+    render_hook(view, "search", %{"search" => %{"query" => product.name}})
+    assert has_element?(view, "#sealed-option-#{product.id}")
+
+    render_hook(view, "search", %{"search" => %{"query" => "friendly sealed #{suffix}"}})
+
+    assert has_element?(view, "#sealed-option-#{product.id}[role=option][aria-selected=true]")
+    assert has_element?(view, "#sealed-search-name-#{product.id}", product.name)
+    assert has_element?(view, "#sealed-search-summary", "1 sealed product")
+    refute has_element?(view, "#sealed-search-result-#{product.id} img")
+  end
+
+  test "sealed selection is bounded to current options", %{conn: conn} do
+    product = create_sealed_product("Clickable Sealed #{System.unique_integer([:positive])}")
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_click(element(view, "#mode-sealed"))
+    render_hook(view, "search", %{"search" => %{"query" => "clickable sealed"}})
+
+    render_hook(view, "select_option", %{"slug" => product.slug})
+    assert_redirect(view, "/sealed/#{product.slug}")
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_click(element(view, "#mode-sealed"))
+    render_hook(view, "select_option", %{"slug" => "not-a-current-slug"})
+    assert has_element?(view, "#sealed-search-form")
+  end
+
+  test "sealed search hides drafts and reports short and empty states", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+
+    Core.create_sealed_product_draft!(%{
+      slug: "hidden-home-#{suffix}",
+      name: "Hidden Home Sealed #{suffix}",
+      product_type: "tin"
+    })
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_click(element(view, "#mode-sealed"))
+
+    render_hook(view, "search", %{"search" => %{"query" => "x"}})
+    assert has_element?(view, "#sealed-search-short")
+    assert has_element?(view, "#sealed-search-summary", "Type at least 2 characters")
+
+    render_hook(view, "search", %{
+      "search" => %{"query" => "Hidden Home Sealed #{suffix}"}
+    })
+
+    assert has_element?(view, "#sealed-search-empty", "No sealed products found")
+    refute has_element?(view, "[id^='sealed-search-result-']")
+  end
+
+  test "sealed keyboard navigation wraps and Enter selects the active product", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    query = "Sealed Keyboard #{suffix}"
+    first = create_sealed_product("#{query} Alpha")
+    second = create_sealed_product("#{query} Bravo")
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_click(element(view, "#mode-sealed"))
+    render_hook(view, "search", %{"search" => %{"query" => query}})
+
+    assert has_element?(view, "#sealed-option-#{first.id}[aria-selected=true]")
+    assert has_element?(view, "#sealed-option-#{second.id}[aria-selected=false]")
+
+    render_hook(view, "autocomplete_key", %{"key" => "ArrowDown"})
+    assert has_element?(view, "#sealed-option-#{second.id}.active-option[aria-selected=true]")
+
+    render_hook(view, "autocomplete_key", %{"key" => "Enter", "query" => query})
+    assert_redirect(view, "/sealed/#{second.slug}")
+  end
+
+  test "Enter from a newer input cannot use stale options", %{conn: conn} do
+    card = create_same_name_printings("Rapid input") |> elem(1)
+    query = "Rapid input"
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    render_hook(view, "search", %{"search" => %{"query" => query}})
+    assert has_element?(view, "#card-option-#{card.id}")
+
+    render_hook(view, "autocomplete_key", %{"key" => "Enter", "query" => "New input"})
+
+    refute has_element?(view, "#card-option-#{card.id}")
+    assert has_element?(view, "#card-search-query[aria-expanded=false]")
+  end
+
+  test "sealed Escape clears visible options and malformed cross-mode selections are ignored", %{
+    conn: conn
+  } do
+    product = create_sealed_product("Escape Sealed #{System.unique_integer([:positive])}")
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_click(element(view, "#mode-sealed"))
+    render_hook(view, "search", %{"search" => %{"query" => product.name}})
+
+    assert has_element?(view, "#sealed-option-#{product.id}")
+    render_hook(view, "autocomplete_key", %{"key" => "Escape"})
+    refute has_element?(view, "#sealed-option-#{product.id}")
+    assert has_element?(view, "#sealed-search-query[aria-expanded=false]")
+
+    render_hook(view, "select_option", %{"tcgdex-id" => "cross-mode-tamper"})
+    render_hook(view, "select_option", %{"slug" => "not-a-current-slug"})
+    render_hook(view, "search", %{})
+    render_hook(view, "switch_mode", %{"mode" => "unsupported"})
+    assert has_element?(view, "#sealed-search-form")
+  end
+
+  test "sealed search error component gives a deterministic recovery state" do
+    html =
+      render_component(&HomeLive.sealed_search_state/1,
+        status: :error,
+        count: 0,
+        query: "charizard"
+      )
+
+    document = LazyHTML.from_fragment(html)
+
+    assert document
+           |> LazyHTML.filter("#sealed-search-error.state-error")
+           |> LazyHTML.to_tree() != []
+
+    assert document
+           |> LazyHTML.filter("#sealed-search-summary")
+           |> LazyHTML.text() =~ "Search unavailable for charizard"
   end
 
   test "requires two effective characters", %{conn: conn} do
@@ -370,38 +517,39 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/")
     render_hook(view, "search", %{"search" => %{"query" => name}})
+    {initial, next} = selected_order(view, first, second)
 
     assert has_element?(view, "#card-search-results[role=listbox]")
-    assert has_element?(view, "#card-option-#{first.id}[role=option][aria-selected=true]")
-    assert has_element?(view, "#card-option-#{second.id}[role=option][aria-selected=false]")
+    assert has_element?(view, "#card-option-#{initial.id}[role=option][aria-selected=true]")
+    assert has_element?(view, "#card-option-#{next.id}[role=option][aria-selected=false]")
     assert has_element?(view, "#card-search-query[aria-expanded=true]")
 
     render_hook(view, "autocomplete_key", %{"key" => "ArrowDown"})
-    assert has_element?(view, "#card-option-#{second.id}.active-option[aria-selected=true]")
-    assert has_element?(view, "#card-option-#{first.id}[aria-selected=false]")
-    refute has_element?(view, "#card-option-#{first.id}.active-option")
+    assert has_element?(view, "#card-option-#{next.id}.active-option[aria-selected=true]")
+    assert has_element?(view, "#card-option-#{initial.id}[aria-selected=false]")
+    refute has_element?(view, "#card-option-#{initial.id}.active-option")
     assert_one_selected(view)
 
     assert has_element?(
              view,
-             "#card-search-query[aria-activedescendant='card-option-#{second.id}']"
+             "#card-search-query[aria-activedescendant='card-option-#{next.id}']"
            )
 
     render_hook(view, "autocomplete_key", %{"key" => "ArrowDown"})
-    assert has_element?(view, "#card-option-#{first.id}.active-option[aria-selected=true]")
-    assert has_element?(view, "#card-option-#{second.id}[aria-selected=false]")
-    refute has_element?(view, "#card-option-#{second.id}.active-option")
+    assert has_element?(view, "#card-option-#{initial.id}.active-option[aria-selected=true]")
+    assert has_element?(view, "#card-option-#{next.id}[aria-selected=false]")
+    refute has_element?(view, "#card-option-#{next.id}.active-option")
     assert_one_selected(view)
 
     assert has_element?(
              view,
-             "#card-search-query[aria-activedescendant='card-option-#{first.id}']"
+             "#card-search-query[aria-activedescendant='card-option-#{initial.id}']"
            )
 
     render_hook(view, "autocomplete_key", %{"key" => "ArrowUp"})
-    assert has_element?(view, "#card-option-#{second.id}.active-option[aria-selected=true]")
-    assert has_element?(view, "#card-option-#{first.id}[aria-selected=false]")
-    refute has_element?(view, "#card-option-#{first.id}.active-option")
+    assert has_element?(view, "#card-option-#{next.id}.active-option[aria-selected=true]")
+    assert has_element?(view, "#card-option-#{initial.id}[aria-selected=false]")
+    refute has_element?(view, "#card-option-#{initial.id}.active-option")
     assert_one_selected(view)
 
     render_hook(view, "autocomplete_key", %{"key" => "Escape"})
@@ -410,25 +558,30 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#card-search-query[aria-expanded=false]")
   end
 
-  test "Enter selects the first exact autocomplete printing", %{conn: conn} do
-    {name, first, _second} = create_same_name_printings("Enter first")
+  test "Enter selects the initially active exact autocomplete printing", %{conn: conn} do
+    {name, first, second} = create_same_name_printings("Enter first")
     {:ok, view, _html} = live(conn, ~p"/")
 
     render_hook(view, "search", %{"search" => %{"query" => name}})
-    render_hook(view, "autocomplete_key", %{"key" => "Enter"})
+    {initial, _next} = selected_order(view, first, second)
+    render_hook(view, "autocomplete_key", %{"key" => "Enter", "query" => name})
 
-    assert_redirect(view, "/cards/#{first.tcgdex_id}")
+    assert_redirect(view, "/cards/#{initial.tcgdex_id}")
   end
 
   test "Enter selects the active autocomplete printing", %{conn: conn} do
-    {name, _first, second} = create_same_name_printings("Enter active")
+    {name, first, second} = create_same_name_printings("Enter active")
     {:ok, view, _html} = live(conn, ~p"/")
 
     render_hook(view, "search", %{"search" => %{"query" => name}})
-    render_hook(view, "autocomplete_key", %{"key" => "ArrowDown"})
-    render_hook(view, "autocomplete_key", %{"key" => "Enter"})
+    {_initial, next} = selected_order(view, first, second)
 
-    assert_redirect(view, "/cards/#{second.tcgdex_id}")
+    render_hook(view, "autocomplete_key", %{"key" => "ArrowDown"})
+    assert has_element?(view, "#card-option-#{next.id}[aria-selected=true]")
+
+    render_hook(view, "autocomplete_key", %{"key" => "Enter", "query" => name})
+
+    assert_redirect(view, "/cards/#{next.tcgdex_id}")
   end
 
   test "clicking an option selects the exact current printing and rejects tampering", %{
@@ -453,8 +606,17 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert length(LazyHTML.to_tree(selected)) == 1
   end
 
+  defp selected_order(view, first, second) do
+    if has_element?(view, "#card-option-#{first.id}[aria-selected=true]") do
+      {first, second}
+    else
+      assert has_element?(view, "#card-option-#{second.id}[aria-selected=true]")
+      {second, first}
+    end
+  end
+
   defp create_same_name_printings(label) do
-    suffix = System.unique_integer([:positive])
+    suffix = Ecto.UUID.generate()
     name = "#{label} #{suffix}"
 
     {:ok, set} =
@@ -479,5 +641,20 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
 
     {name, first, second}
+  end
+
+  defp create_sealed_product(name) do
+    draft =
+      Core.create_sealed_product_draft!(%{
+        slug: "home-#{System.unique_integer([:positive])}",
+        name: name,
+        product_type: "booster_box",
+        officially_distributed: true,
+        release_date: Date.utc_today()
+      })
+
+    Core.approve_sealed_product!(draft, %{expected_updated_at: draft.updated_at},
+      authorize?: false
+    )
   end
 end

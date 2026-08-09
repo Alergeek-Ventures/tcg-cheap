@@ -22,12 +22,26 @@ defmodule TcgCheapWeb.HomeLive do
        active_option_id: nil
      )
      |> stream_configure(:card_results, dom_id: fn result -> "card-option-#{result.id}" end)
-     |> stream(:card_results, [])}
+     |> stream_configure(:sealed_results, dom_id: fn result -> "sealed-option-#{result.id}" end)
+     |> stream(:card_results, [])
+     |> stream(:sealed_results, [])}
   end
 
   @impl true
-  def handle_event("search", _params, %{assigns: %{mode: :sealed}} = socket) do
-    {:noreply, socket}
+  def handle_event(
+        "search",
+        %{"search" => %{"query" => query}},
+        %{assigns: %{mode: :sealed}} = socket
+      ) do
+    normalized = SearchText.normalize(query)
+    socket = assign(socket, :search_query, normalized)
+
+    cond do
+      normalized == "" -> clear_sealed_results(socket, :idle)
+      length(String.graphemes(normalized)) < 2 -> clear_sealed_results(socket, :short)
+      length(String.graphemes(normalized)) > 100 -> clear_sealed_results(socket, :invalid)
+      true -> search_sealed_locally(socket, normalized)
+    end
   end
 
   @impl true
@@ -43,19 +57,22 @@ defmodule TcgCheapWeb.HomeLive do
     end
   end
 
+  def handle_event("search", _params, socket), do: {:noreply, socket}
+
   @impl true
   def handle_event("switch_mode", %{"mode" => "sealed"}, socket) do
     {:noreply,
      socket
      |> assign(mode: :sealed, search_form: to_form(%{"query" => ""}, as: :search))
      |> assign(
-       search_status: :sealed_unavailable,
+       search_status: :idle,
        result_count: 0,
        search_query: "",
        autocomplete_options: [],
        active_option_id: nil
      )
-     |> stream(:card_results, [], reset: true)}
+     |> stream(:card_results, [], reset: true)
+     |> stream(:sealed_results, [], reset: true)}
   end
 
   def handle_event("switch_mode", %{"mode" => "singles"}, socket) do
@@ -69,41 +86,68 @@ defmodule TcgCheapWeb.HomeLive do
        autocomplete_options: [],
        active_option_id: nil
      )
-     |> stream(:card_results, [], reset: true)}
+     |> stream(:card_results, [], reset: true)
+     |> stream(:sealed_results, [], reset: true)}
   end
+
+  def handle_event("switch_mode", _params, socket), do: {:noreply, socket}
 
   def handle_event("autocomplete_key", %{"key" => key}, socket)
       when key in ["ArrowDown", "ArrowUp"] do
     move_active_option(socket, key)
   end
 
-  def handle_event("autocomplete_key", %{"key" => "Enter"}, socket) do
-    case Enum.find(
-           socket.assigns.autocomplete_options,
-           &(&1.dom_id == socket.assigns.active_option_id)
-         ) do
-      %{tcgdex_id: tcgdex_id} -> {:noreply, push_navigate(socket, to: ~p"/cards/#{tcgdex_id}")}
-      nil -> {:noreply, socket}
+  def handle_event("autocomplete_key", %{"key" => "Enter", "query" => query}, socket)
+      when is_binary(query) do
+    if SearchText.normalize(query) == socket.assigns.search_query do
+      case Enum.find(
+             socket.assigns.autocomplete_options,
+             &(&1.dom_id == socket.assigns.active_option_id)
+           ) do
+        %{slug: slug} when socket.assigns.mode == :sealed ->
+          {:noreply, push_navigate(socket, to: ~p"/sealed/#{slug}")}
+
+        %{tcgdex_id: tcgdex_id} ->
+          {:noreply, push_navigate(socket, to: ~p"/cards/#{tcgdex_id}")}
+
+        nil ->
+          {:noreply, socket}
+      end
+    else
+      clear_results_for_mode(socket, :idle)
     end
   end
+
+  def handle_event("autocomplete_key", %{"key" => "Enter"}, socket), do: {:noreply, socket}
 
   def handle_event("autocomplete_key", %{"key" => "Escape"}, socket) do
     if socket.assigns.autocomplete_options == [] do
       {:noreply, socket}
     else
-      clear_results(socket, :idle)
+      clear_results_for_mode(socket, :idle)
     end
   end
 
   def handle_event("autocomplete_key", _params, socket), do: {:noreply, socket}
 
-  def handle_event("select_option", %{"tcgdex-id" => tcgdex_id}, socket) do
-    case Enum.find(socket.assigns.autocomplete_options, &(&1.tcgdex_id == tcgdex_id)) do
+  def handle_event(
+        "select_option",
+        %{"tcgdex-id" => tcgdex_id},
+        %{assigns: %{mode: :singles}} = socket
+      ) do
+    case Enum.find(socket.assigns.autocomplete_options, &(Map.get(&1, :tcgdex_id) == tcgdex_id)) do
       %{tcgdex_id: ^tcgdex_id} ->
         {:noreply, push_navigate(socket, to: ~p"/cards/#{tcgdex_id}")}
 
       nil ->
         {:noreply, socket}
+    end
+  end
+
+  def handle_event("select_option", %{"slug" => slug}, %{assigns: %{mode: :sealed}} = socket) do
+    case Enum.find(socket.assigns.autocomplete_options, &(&1.slug == slug)) do
+      %{slug: ^slug} -> {:noreply, push_navigate(socket, to: ~p"/sealed/#{slug}")}
+      nil -> {:noreply, socket}
     end
   end
 
@@ -291,23 +335,122 @@ defmodule TcgCheapWeb.HomeLive do
                 </details>
               </section>
             <% else %>
-              <section
-                id="sealed-unavailable"
-                class="decision-search unavailable-note"
-                aria-labelledby="sealed-unavailable-title"
-              >
-                <h2 id="sealed-unavailable-title">
-                  Sealed price comparison isn't ready yet.
-                </h2>
-                <p>
-                  Switch back to Singles to compare a card price.
-                </p>
+              <section class="decision-search" aria-labelledby="sealed-search-title">
+                <h2 id="sealed-search-title">Find a sealed product</h2>
+                <.form for={@search_form} id="sealed-search-form">
+                  <label for="sealed-search-query" class="sr-only">Search for a sealed product</label>
+                  <div class="search-field-wrap">
+                    <.input
+                      field={@search_form[:query]}
+                      type="search"
+                      id="sealed-search-query"
+                      name="search[query]"
+                      autocomplete="off"
+                      maxlength="100"
+                      phx-hook="CardAutocomplete"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-controls="sealed-search-results"
+                      aria-expanded={to_string(@autocomplete_options != [])}
+                      aria-activedescendant={active_option_dom_id(@active_option_id)}
+                      placeholder="Search for a sealed product"
+                    />
+                  </div>
+                </.form>
+              </section>
+
+              <section class="decision-results" aria-label="Sealed product search results">
+                <div
+                  id="sealed-search-results"
+                  phx-update="stream"
+                  class="evidence-slips"
+                  role="listbox"
+                  aria-label="Sealed product search results"
+                >
+                  <div
+                    :for={{stream_id, result} <- @streams.sealed_results}
+                    id={stream_id}
+                    class={["evidence-slot", @active_option_id == stream_id && "active-option"]}
+                    role="option"
+                    aria-selected={to_string(@active_option_id == stream_id)}
+                    aria-labelledby={sealed_option_labelledby(result)}
+                    phx-click="select_option"
+                    phx-value-slug={result.slug}
+                    tabindex="-1"
+                  >
+                    <article id={"sealed-search-result-#{result.id}"} class="evidence-slip">
+                      <div
+                        class="evidence-art"
+                        id={"sealed-art-#{result.id}"}
+                        role="img"
+                        aria-label={"No image is available for #{result.name}."}
+                      >
+                        <svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 14 36 5l24 9v68l-24 9-24-9zM12 14l24 9 24-9M36 23v68M22 39h28M22 49h20" /></svg>
+                      </div>
+                      <div class="evidence-copy">
+                        <p id={"sealed-search-name-#{result.id}"} class="evidence-name">
+                          {result.name}
+                        </p>
+                        <p id={"sealed-search-type-#{result.id}"} class="evidence-set">
+                          {human_product_type(result.product_type)}
+                        </p>
+                        <p
+                          :if={result.series_name || result.set_name}
+                          id={"sealed-search-collection-#{result.id}"}
+                          class="evidence-set"
+                        >
+                          {sealed_collection(result)}
+                        </p>
+                        <p id={"sealed-search-release-#{result.id}"} class="evidence-set">
+                          Released {format_release_date(result.release_date)}
+                        </p>
+                        <div
+                          :if={result.distribution_status == "discontinued"}
+                          class="evidence-tags"
+                          aria-label="Product status"
+                        >
+                          <span id={"sealed-discontinued-#{result.id}"} class="evidence-tag">Discontinued</span>
+                        </div>
+                        <span id={"sealed-select-action-#{result.id}"} class="detail-action">View offers</span>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+                <.sealed_search_state
+                  status={@search_status}
+                  count={@result_count}
+                  query={@search_query}
+                />
               </section>
             <% end %>
           </div>
         </main>
       </div>
     </Layouts.app>
+    """
+  end
+
+  attr :status, :atom, required: true
+  attr :count, :integer, required: true
+  attr :query, :string, required: true
+
+  def sealed_search_state(assigns) do
+    ~H"""
+    <p id="sealed-search-summary" class="sr-only" aria-live="polite">
+      {sealed_summary_text(@status, @count, @query)}
+    </p>
+    <div :if={@status == :short} id="sealed-search-short" class="state-note">
+      Type at least 2 characters.
+    </div>
+    <div :if={@status == :empty} id="sealed-search-empty" class="state-note">
+      No sealed products found.
+    </div>
+    <div :if={@status == :error} id="sealed-search-error" class="state-note state-error">
+      Sealed product search is unavailable. Try again.
+    </div>
+    <div :if={@status == :invalid} id="sealed-search-invalid" class="state-note">
+      Search is too long. Use 100 characters or fewer.
+    </div>
     """
   end
 
@@ -390,6 +533,46 @@ defmodule TcgCheapWeb.HomeLive do
     end
   end
 
+  defp search_sealed_locally(socket, query) do
+    case TcgCheap.Core.search_public_sealed_products(query, @max_autocomplete_options) do
+      {:ok, results} when is_list(results) and results != [] ->
+        options =
+          Enum.map(results, &%{dom_id: "sealed-option-#{&1.id}", slug: &1.slug, result: &1})
+
+        {:noreply,
+         socket
+         |> assign(
+           search_status: :results,
+           result_count: length(results),
+           autocomplete_options: options,
+           active_option_id: List.first(options).dom_id
+         )
+         |> stream(:sealed_results, Enum.map(options, & &1.result), reset: true)}
+
+      {:ok, []} ->
+        {:noreply,
+         socket
+         |> assign(
+           search_status: :empty,
+           result_count: 0,
+           autocomplete_options: [],
+           active_option_id: nil
+         )
+         |> stream(:sealed_results, [], reset: true)}
+
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> assign(
+           search_status: :error,
+           result_count: 0,
+           autocomplete_options: [],
+           active_option_id: nil
+         )
+         |> stream(:sealed_results, [], reset: true)}
+    end
+  end
+
   defp clear_results(socket, status) do
     {:noreply,
      socket
@@ -401,6 +584,23 @@ defmodule TcgCheapWeb.HomeLive do
      )
      |> stream(:card_results, [], reset: true)}
   end
+
+  defp clear_sealed_results(socket, status) do
+    {:noreply,
+     socket
+     |> assign(
+       search_status: status,
+       result_count: 0,
+       autocomplete_options: [],
+       active_option_id: nil
+     )
+     |> stream(:sealed_results, [], reset: true)}
+  end
+
+  defp clear_results_for_mode(%{assigns: %{mode: :sealed}} = socket, status),
+    do: clear_sealed_results(socket, status)
+
+  defp clear_results_for_mode(socket, status), do: clear_results(socket, status)
 
   defp move_active_option(socket, key) do
     options = socket.assigns.autocomplete_options
@@ -426,8 +626,10 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   defp stream_insert_options(socket, options) do
+    stream_name = if socket.assigns.mode == :sealed, do: :sealed_results, else: :card_results
+
     Enum.reduce(options, socket, fn option, socket ->
-      stream_insert(socket, :card_results, option.result)
+      stream_insert(socket, stream_name, option.result)
     end)
   end
 
@@ -447,6 +649,42 @@ defmodule TcgCheapWeb.HomeLive do
   defp summary_text(:invalid, _count, query), do: "Search too long for #{query}"
   defp summary_text(:short, _count, query), do: "Type at least 2 characters for #{query}"
   defp summary_text(_status, _count, _query), do: ""
+
+  defp sealed_summary_text(:results, 1, query), do: "1 sealed product for #{query}"
+  defp sealed_summary_text(:results, count, query), do: "#{count} sealed products for #{query}"
+  defp sealed_summary_text(:empty, _count, _query), do: "No sealed products found"
+
+  defp sealed_summary_text(:short, _count, _query),
+    do: "Type at least 2 characters to find a sealed product"
+
+  defp sealed_summary_text(:error, _count, query), do: "Search unavailable for #{query}"
+  defp sealed_summary_text(:invalid, _count, _query), do: "Sealed product search too long"
+  defp sealed_summary_text(_status, _count, _query), do: ""
+
+  defp sealed_option_labelledby(result) do
+    [
+      "sealed-search-name-#{result.id}",
+      "sealed-search-type-#{result.id}",
+      if(result.series_name || result.set_name, do: "sealed-search-collection-#{result.id}"),
+      "sealed-search-release-#{result.id}",
+      if(result.distribution_status == "discontinued", do: "sealed-discontinued-#{result.id}")
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" ")
+  end
+
+  defp human_product_type(type) do
+    type
+    |> String.replace("_", " ")
+    |> String.split()
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  defp sealed_collection(result),
+    do: Enum.filter([result.series_name, result.set_name], & &1) |> Enum.join(" · ")
+
+  defp format_release_date(%Date{} = date), do: Calendar.strftime(date, "%b %-d, %Y")
+  defp format_release_date(_), do: "Date unavailable"
 
   defp rarity_present?(rarity), do: not is_nil(rarity) and rarity != ""
 

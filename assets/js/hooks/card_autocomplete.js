@@ -38,7 +38,9 @@ export default {
         this.pushEvent("autocomplete_key", {key: event.key})
       } else if (event.key === "Enter") {
         event.preventDefault()
-        if (open) this.pushEvent("autocomplete_key", {key: "Enter"})
+        clearTimeout(this.timer)
+        this.timer = null
+        if (open) this.pushEvent("autocomplete_key", {key: "Enter", query: this.el.value})
       }
     }
 

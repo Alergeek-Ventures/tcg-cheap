@@ -144,6 +144,32 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
       filter expr(retailer_listing_id == ^arg(:retailer_listing_id))
     end
 
+    read :public_for_product do
+      argument :confirmed_product_id, :uuid, allow_nil?: false
+
+      filter expr(
+               confirmed_product_id == ^arg(:confirmed_product_id) and status == "matched" and
+                 retailer_listing.status == "active" and
+                 retailer_listing.retailer.status == "active" and
+                 confirmed_product.publication_status == "approved" and
+                 confirmed_product.release_date <= today() and
+                 confirmed_product.officially_distributed == true and
+                 confirmed_product.market == "PL" and
+                 confirmed_product.language == "en" and
+                 confirmed_product.distribution_status in ["current", "discontinued"]
+             )
+
+      prepare build(
+                load: [retailer_listing: [:retailer]],
+                sort: [
+                  "retailer_listing.retailer.name": :asc,
+                  "retailer_listing.retailer.slug": :asc,
+                  "retailer_listing.normalized_title": :asc,
+                  "retailer_listing.source_listing_id": :asc
+                ]
+              )
+    end
+
     read :lock_for_update_by_id do
       argument :id, :uuid, allow_nil?: false
       get? true

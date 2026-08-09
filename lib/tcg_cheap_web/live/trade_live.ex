@@ -160,15 +160,22 @@ defmodule TcgCheapWeb.TradeLive do
   def handle_event("autocomplete_key", %{"key" => "Escape"}, socket),
     do: clear_results(socket, :idle)
 
-  def handle_event("autocomplete_key", %{"key" => "Enter"}, socket) do
-    case Enum.find(
-           socket.assigns.autocomplete_options,
-           &(&1.dom_id == socket.assigns.active_option_id)
-         ) do
-      %{card: card} -> {:noreply, stage_selected(socket, card)}
-      _ -> {:noreply, socket}
+  def handle_event("autocomplete_key", %{"key" => "Enter", "query" => query}, socket)
+      when is_binary(query) do
+    if SearchText.normalize(query) == socket.assigns.search_query do
+      case Enum.find(
+             socket.assigns.autocomplete_options,
+             &(&1.dom_id == socket.assigns.active_option_id)
+           ) do
+        %{card: card} -> {:noreply, stage_selected(socket, card)}
+        _ -> {:noreply, socket}
+      end
+    else
+      clear_results(socket, :idle)
     end
   end
+
+  def handle_event("autocomplete_key", %{"key" => "Enter"}, socket), do: {:noreply, socket}
 
   def handle_event("autocomplete_key", _, socket), do: {:noreply, socket}
 

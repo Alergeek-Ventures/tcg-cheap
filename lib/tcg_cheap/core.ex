@@ -79,6 +79,11 @@ defmodule TcgCheap.Core do
         not_found_error?: false
 
       define :list_public_sealed_products, action: :public_catalogue
+
+      define :search_public_sealed_products,
+        action: :search_public,
+        args: [:query, {:optional, :limit}]
+
       define :list_sealed_product_draft_review_queue, action: :draft_review_queue
 
       define :get_sealed_product_draft_for_review,
@@ -172,6 +177,10 @@ defmodule TcgCheap.Core do
         action: :by_listing,
         args: [:retailer_listing_id],
         not_found_error?: false
+
+      define :list_public_listing_mappings_for_product,
+        action: :public_for_product,
+        args: [:confirmed_product_id]
 
       define :lock_listing_mapping_for_update,
         action: :lock_for_update_by_id,

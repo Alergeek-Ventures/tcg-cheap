@@ -260,6 +260,7 @@
 .decision-world .evidence-slip { animation: bench-reveal .45s ease-out both; background: var(--paper); border: 1.5px solid var(--rule); display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); min-width: 0; }
 .decision-world .evidence-art { align-items: center; background: #efe3cb; border-right: 1px solid var(--rule); display: flex; justify-content: center; min-width: 0; padding: .45rem; }
 .decision-world .evidence-art img { aspect-ratio: 245 / 337; border: 1px solid var(--rule); display: block; height: auto; max-width: 100%; object-fit: contain; width: 100%; }
+.decision-world .evidence-art > svg { fill: none; height: 7rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
 .decision-world .card-image-missing { align-items: center; display: flex; justify-content: center; min-height: 9rem; }
 .decision-world .card-image-missing svg { fill: none; height: 7rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
 .decision-world .evidence-copy { min-width: 0; padding: .7rem .85rem; }
@@ -288,6 +289,40 @@
 @media (max-width: 42rem) { .decision-world .decision-intro { align-items: stretch; flex-direction: column; } .decision-world .mode-switch { width: 100%; } .decision-world .mode-switch button { flex: 1; } }
 @media (max-width: 24rem) { .decision-world .evidence-slip { grid-template-columns: 4.75rem minmax(0, 1fr); } .decision-world .evidence-copy { padding: .6rem; } .decision-world .evidence-name { font-size: 1.3rem; } .decision-world .estimate-cell strong { font-size: 1.55rem; } }
 @media (prefers-reduced-motion: reduce) { .decision-world .evidence-slip { animation: none; } }
+
+/* Public sealed detail: canonical identity and local shop evidence on the valuation bench. */
+.sealed-detail-world .decision-container { max-width: 70rem; }
+.sealed-detail-world #sealed-detail-back, .sealed-detail-world #sealed-detail-not-found-back, .sealed-detail-world #sealed-detail-data-error-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .75rem; min-height: 2.8rem; text-underline-offset: .22rem; }
+.sealed-detail-world .sealed-detail-overview { align-items: stretch; display: grid; gap: 1rem; grid-template-columns: minmax(0, 1.7fr) minmax(15rem, .8fr); margin: .5rem 0 2rem; }
+.sealed-detail-world #sealed-detail-identity { background: var(--paper); border: 2px solid var(--rule); min-width: 0; padding: clamp(1rem, 4vw, 2rem); }
+.sealed-detail-world #sealed-detail-title { font: 700 clamp(2.6rem, 7vw, 5.4rem)/.84 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0 0 .75rem; overflow-wrap: anywhere; text-transform: uppercase; }
+.sealed-detail-world #sealed-detail-type { font: 700 1.2rem/1 "Barlow Condensed", sans-serif; text-transform: uppercase; }
+.sealed-detail-world #sealed-detail-collection, .sealed-detail-world #sealed-detail-release, .sealed-detail-world #sealed-detail-status { font-size: .75rem; line-height: 1.55; margin-top: .45rem; overflow-wrap: anywhere; }
+.sealed-detail-world #sealed-detail-msrp { border-top: 2px solid var(--rule); font: 700 clamp(1.6rem, 4vw, 2.5rem)/1 "Barlow Condensed", sans-serif; margin-top: 1rem; padding-top: .75rem; text-transform: uppercase; }
+.sealed-detail-world #sealed-detail-msrp-provenance { display: block; font: 400 .75rem/1.5 "Azeret Mono", ui-monospace, monospace; margin-top: .45rem; overflow-wrap: anywhere; text-transform: none; }
+.sealed-detail-world #sealed-detail-limited-data { background: var(--paper); border: 2px solid var(--rule); padding: clamp(1rem, 3vw, 1.4rem); }
+.sealed-detail-world #sealed-detail-limited-data h2, .sealed-detail-world #sealed-current-title, .sealed-detail-world #sealed-sold-out-title, .sealed-detail-world #sealed-detail-not-found h1, .sealed-detail-world #sealed-detail-data-error h1 { font: 700 clamp(1.8rem, 4vw, 2.8rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .55rem; text-transform: uppercase; }
+.sealed-detail-world #sealed-detail-limited-data p { font-size: .75rem; line-height: 1.65; }
+.sealed-detail-world #sealed-detail-read-error { margin-bottom: 1.5rem; }
+.sealed-detail-world #sealed-current-section, .sealed-detail-world #sealed-sold-out-section { margin-top: clamp(2rem, 6vw, 4rem); }
+.sealed-detail-world #sealed-current-title, .sealed-detail-world #sealed-sold-out-title { border-bottom: 2px solid var(--rule); padding-bottom: .45rem; }
+.sealed-detail-world .sealed-offer-ledger { display: grid; gap: .65rem; }
+.sealed-detail-world .sealed-offer { align-items: center; background: var(--paper); border-bottom: 1px solid var(--rule); display: grid; gap: .35rem 1rem; grid-template-columns: minmax(0, 1.4fr) minmax(9rem, .7fr) auto; min-width: 0; padding: .8rem .15rem; }
+.sealed-detail-world .sealed-offer h3 { font: 700 1.45rem/.95 "Barlow Condensed", sans-serif; grid-column: 1; margin: 0; overflow-wrap: anywhere; text-transform: uppercase; }
+.sealed-detail-world .sealed-offer p { font-size: .75rem; line-height: 1.45; margin: 0; overflow-wrap: anywhere; }
+.sealed-detail-world .sealed-offer p:nth-of-type(1) { grid-column: 1; }
+.sealed-detail-world .sealed-offer p:nth-of-type(2) { font: 700 1.35rem/1 "Barlow Condensed", sans-serif; grid-column: 2; grid-row: 1; text-transform: uppercase; }
+.sealed-detail-world .sealed-offer p:nth-of-type(3) { grid-column: 2; grid-row: 2; }
+.sealed-detail-world .sealed-offer p:nth-of-type(4) { grid-column: 1 / 3; }
+.sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { align-items: center; align-self: center; display: inline-flex; font: 700 .75rem "Barlow Condensed", sans-serif; grid-column: 3; grid-row: 1 / 4; justify-content: center; min-height: 2.8rem; padding: .55rem .75rem; text-transform: uppercase; }
+.sealed-detail-world .sealed-offer a { background: var(--ink); color: var(--bench-light); text-decoration: none; }
+.sealed-detail-world .sealed-offer a:hover { background: var(--orange); }
+.sealed-detail-world #sealed-detail-notes { border-top: 2px solid var(--rule); color: var(--muted); font-size: .75rem; line-height: 1.6; margin-top: 3rem; padding-top: .8rem; }
+.sealed-detail-world #sealed-detail-notes p + p { margin-top: .35rem; }
+.sealed-detail-world #sealed-detail-not-found, .sealed-detail-world #sealed-detail-data-error { border: 2px solid var(--rule); margin-top: 1rem; padding: clamp(1rem, 4vw, 2rem); }
+.sealed-detail-world #sealed-detail-not-found p, .sealed-detail-world #sealed-detail-data-error p { font-size: .75rem; line-height: 1.65; }
+@media (max-width: 46rem) { .sealed-detail-world .sealed-detail-overview { grid-template-columns: 1fr; } .sealed-detail-world .sealed-offer { align-items: start; grid-template-columns: minmax(0, 1fr) auto; } .sealed-detail-world .sealed-offer p:nth-of-type(2) { grid-column: 1; grid-row: auto; } .sealed-detail-world .sealed-offer p:nth-of-type(3), .sealed-detail-world .sealed-offer p:nth-of-type(4) { grid-column: 1; grid-row: auto; } .sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { grid-column: 2; grid-row: 1 / 6; } }
+@media (max-width: 27rem) { .sealed-detail-world .sealed-offer { grid-template-columns: 1fr; } .sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { grid-column: 1; grid-row: auto; justify-self: start; margin-top: .35rem; width: 100%; } }
 
 /* Trade foundation: a symmetric valuation ledger on the same square bench. */
 .trade-world .decision-container { max-width: 72rem; }

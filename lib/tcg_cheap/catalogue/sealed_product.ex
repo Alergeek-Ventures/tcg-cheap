@@ -10,6 +10,13 @@ defmodule TcgCheap.Catalogue.SealedProduct do
     table "sealed_products"
     repo TcgCheap.Repo
 
+    custom_indexes do
+      index "search_name gin_trgm_ops",
+        name: "sealed_products_search_name_trgm_index",
+        using: "gin",
+        concurrently: true
+    end
+
     check_constraints do
       check_constraint [:slug, :name], "sealed_products_identity_invariant",
         check:
@@ -254,6 +261,12 @@ defmodule TcgCheap.Catalogue.SealedProduct do
              )
 
       prepare build(sort: [name: :asc, slug: :asc])
+    end
+
+    read :search_public do
+      argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
+      argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]
+      prepare TcgCheap.Catalogue.Preparations.SearchPublicSealedProducts
     end
 
     read :draft_review_queue do

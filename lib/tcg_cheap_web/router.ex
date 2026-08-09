@@ -32,6 +32,7 @@ defmodule TcgCheapWeb.Router do
     live "/", HomeLive
     live "/trade", TradeLive
     live "/cards/:tcgdex_id", CardDetailLive
+    live "/sealed/:slug", SealedProductDetailLive
   end
 
   scope "/admin", TcgCheapWeb do

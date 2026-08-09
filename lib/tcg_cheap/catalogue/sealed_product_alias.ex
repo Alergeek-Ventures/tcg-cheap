@@ -33,6 +33,11 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
       custom_indexes do
         index "sealed_product_id", name: "sealed_product_aliases_product_id_index"
 
+        index "normalized_value gin_trgm_ops",
+          name: "sealed_product_aliases_normalized_value_trgm_index",
+          using: "gin",
+          concurrently: true
+
         index "normalized_value",
           name: "sealed_product_aliases_unique_ean_index",
           unique: true,

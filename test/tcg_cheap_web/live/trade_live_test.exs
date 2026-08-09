@@ -359,7 +359,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
              "#trade-search-query[aria-activedescendant='trade-card-option-#{card.id}']"
            )
 
-    render_hook(view, "autocomplete_key", %{"key" => "Enter"})
+    render_hook(view, "autocomplete_key", %{"key" => "Enter", "query" => "Searchable"})
     assert has_element?(view, "#trade-staging")
     assert has_element?(view, "#trade-selected-name", card.name)
     refute has_element?(view, ".evidence-slot")
@@ -436,7 +436,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert_patch(view, "/trade?left=#{first.tcgdex_id}%3A2&right=#{first.tcgdex_id}%3A1")
 
     render_hook(view, "search", %{"search" => %{"query" => second.name}})
-    render_hook(view, "autocomplete_key", %{"key" => "Enter"})
+    render_hook(view, "autocomplete_key", %{"key" => "Enter", "query" => second.name})
     assert has_element?(view, "#trade-staging", second.name)
     render_click(element(view, "#add-to-left"))
 
