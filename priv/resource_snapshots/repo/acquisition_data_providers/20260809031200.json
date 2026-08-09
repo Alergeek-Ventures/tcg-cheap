@@ -1,0 +1,221 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "provider_key",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "display_name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"active\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "estimated_cost_per_request",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "hourly_request_limit",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "daily_request_limit",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "monthly_request_limit",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "monthly_spend_limit",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [
+    {
+      "attribute": [
+        "provider_key",
+        "display_name"
+      ],
+      "base_filter": null,
+      "check": "btrim(provider_key) <> '' AND btrim(display_name) <> ''",
+      "name": "acquisition_data_providers_identity_invariant"
+    },
+    {
+      "attribute": [
+        "status"
+      ],
+      "base_filter": null,
+      "check": "status IN ('active', 'disabled')",
+      "name": "acquisition_data_providers_status_invariant"
+    },
+    {
+      "attribute": [
+        "estimated_cost_per_request"
+      ],
+      "base_filter": null,
+      "check": "estimated_cost_per_request >= 0 AND estimated_cost_per_request < 1000000000",
+      "name": "acquisition_data_providers_cost_invariant"
+    },
+    {
+      "attribute": [
+        "hourly_request_limit",
+        "daily_request_limit",
+        "monthly_request_limit"
+      ],
+      "base_filter": null,
+      "check": "hourly_request_limit > 0 AND daily_request_limit > 0 AND monthly_request_limit > 0",
+      "name": "acquisition_data_providers_request_limits_invariant"
+    },
+    {
+      "attribute": [
+        "hourly_request_limit",
+        "daily_request_limit",
+        "monthly_request_limit"
+      ],
+      "base_filter": null,
+      "check": "hourly_request_limit <= daily_request_limit AND daily_request_limit <= monthly_request_limit",
+      "name": "acquisition_data_providers_request_limit_order_invariant"
+    },
+    {
+      "attribute": [
+        "monthly_spend_limit"
+      ],
+      "base_filter": null,
+      "check": "monthly_spend_limit >= 0 AND monthly_spend_limit <= 50",
+      "name": "acquisition_data_providers_spend_limit_invariant"
+    }
+  ],
+  "create_table_options": null,
+  "custom_indexes": [],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "E6EB9C784EA69DD8E9AB9280FED86FC623CCF25CB3383E95632FA4CCF3335608",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "acquisition_data_providers_unique_provider_key_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "provider_key"
+        }
+      ],
+      "name": "unique_provider_key",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.TcgCheap.Repo",
+  "schema": null,
+  "table": "acquisition_data_providers"
+}

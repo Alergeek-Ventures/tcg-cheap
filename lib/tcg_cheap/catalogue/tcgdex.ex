@@ -34,8 +34,9 @@ defmodule TcgCheap.Catalogue.Tcgdex do
 
   defp valid_top_options?(options) do
     is_list(options) and Keyword.keyword?(options) and
-      Keyword.keys(options) in [[], [:request_options]] and
-      length(Keyword.keys(options)) == length(Enum.uniq(Keyword.keys(options)))
+      Enum.all?(Keyword.keys(options), &(&1 in [:request_options, :request_admitter])) and
+      length(Keyword.keys(options)) == length(Enum.uniq(Keyword.keys(options))) and
+      is_function(Keyword.get(options, :request_admitter, fn -> :ok end), 0)
   end
 
   defp canonical_id?(id), do: Regex.match?(~r/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/, id)
@@ -43,20 +44,39 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   defp request(kind, id, opts) do
     request_options = Keyword.get(opts, :request_options, [])
 
-    if valid_request_options?(request_options) do
-      options =
-        [decode_body: false, receive_timeout: 10_000, retry: :safe_transient, max_retries: 2]
-        |> Keyword.merge(request_options)
+    if valid_request_options?(request_options),
+      do: request_validated(kind, id, opts, request_options),
+      else: {:error, :invalid_options}
+  end
 
-      path = if id, do: "#{@base}/#{kind}/#{URI.encode(id)}", else: "#{@base}/#{kind}"
+  defp request_validated(kind, id, opts, request_options) do
+    budgeted? = Keyword.has_key?(opts, :request_admitter)
 
-      case Req.get(path, options) do
-        {:ok, %{status: 200, body: body}} -> decode(body, kind, id)
-        {:ok, %{status: status}} -> {:error, {:http_error, %{status: status, kind: kind, id: id}}}
-        {:error, reason} -> {:error, {:transport_error, reason}}
-      end
-    else
-      {:error, :invalid_options}
+    options =
+      [
+        decode_body: false,
+        receive_timeout: 10_000,
+        retry: if(budgeted?, do: false, else: :safe_transient),
+        max_retries: if(budgeted?, do: 0, else: 2)
+      ]
+      |> Keyword.merge(request_options)
+      |> force_single_attempt(budgeted?)
+
+    path = if id, do: "#{@base}/#{kind}/#{URI.encode(id)}", else: "#{@base}/#{kind}"
+
+    with :ok <- admit_request(opts), do: execute_request(path, options, kind, id)
+  end
+
+  defp execute_request(path, options, kind, id) do
+    case Req.get(path, options) do
+      {:ok, %{status: 200, body: body}} ->
+        decode(body, kind, id)
+
+      {:ok, %{status: status}} ->
+        {:error, {:http_error, %{status: status, kind: kind, id: id}}}
+
+      {:error, reason} ->
+        {:error, {:transport_error, reason}}
     end
   end
 
@@ -71,6 +91,24 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   defp valid_request_options?(_), do: false
 
   defp valid_max_retries?(value), do: is_integer(value) and value in 0..2
+
+  defp force_single_attempt(options, true),
+    do: options |> Keyword.put(:retry, false) |> Keyword.put(:max_retries, 0)
+
+  defp force_single_attempt(options, false), do: options
+
+  defp admit_request(opts) do
+    case Keyword.get(opts, :request_admitter, fn -> :ok end).() do
+      :ok -> :ok
+      {:error, :budget_persistence_failed} = error -> error
+      {:error, {:acquisition_budget_rejected, _reason}} = error -> error
+      _ -> {:error, :invalid_admission_result}
+    end
+  rescue
+    _ -> {:error, :budget_persistence_failed}
+  catch
+    _, _ -> {:error, :budget_persistence_failed}
+  end
 
   defp decode(body, kind, id) when is_binary(body) do
     case Jason.decode(body) do

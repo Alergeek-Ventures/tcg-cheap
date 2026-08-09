@@ -7,17 +7,19 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
   alias TcgCheap.Pricing.Singles.{ValuationAcquisition, ValuationWorker}
 
   defmodule ProviderStub do
-    def fetch(card_id, _options) do
-      pid = Application.fetch_env!(:tcg_cheap, :valuation_provider_stub)
-      Agent.update(pid, &Map.update!(&1, :calls, fn calls -> calls + 1 end))
+    def fetch(card_id, options) do
+      with :ok <- Keyword.fetch!(options, :request_admitter).() do
+        pid = Application.fetch_env!(:tcg_cheap, :valuation_provider_stub)
+        Agent.update(pid, &Map.update!(&1, :calls, fn calls -> calls + 1 end))
 
-      case Agent.get(pid, & &1.mode) do
-        :raise -> raise "stub failure"
-        :throw -> throw(:stub_failure)
-        :exit -> exit(:stub_failure)
-        :malformed -> :not_a_provider_response
-        {:error, reason} -> {:error, reason}
-        mode -> {:ok, result(card_id, mode)}
+        case Agent.get(pid, & &1.mode) do
+          :raise -> raise "stub failure"
+          :throw -> throw(:stub_failure)
+          :exit -> exit(:stub_failure)
+          :malformed -> :not_a_provider_response
+          {:error, reason} -> {:error, reason}
+          mode -> {:ok, result(card_id, mode)}
+        end
       end
     end
 
@@ -45,9 +47,17 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     end
   end
 
+  defmodule BudgetStub do
+    def admit(_provider_key),
+      do: Application.fetch_env!(:tcg_cheap, :valuation_budget_stub_result)
+  end
+
   setup do
     previous = Application.get_env(:tcg_cheap, :valuation_provider)
     previous_stub = Application.get_env(:tcg_cheap, :valuation_provider_stub)
+    previous_budget = Application.get_env(:tcg_cheap, :acquisition_budget)
+    previous_admitter = Application.get_env(:tcg_cheap, :acquisition_budget_admitter)
+    previous_budget_result = Application.get_env(:tcg_cheap, :valuation_budget_stub_result)
     {:ok, stub} = Agent.start(fn -> %{mode: :success, calls: 0} end)
 
     Application.put_env(:tcg_cheap, :valuation_provider_stub, stub)
@@ -57,16 +67,21 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
       options: [deterministic: true]
     )
 
+    Application.put_env(:tcg_cheap, :acquisition_budget, budget_config())
+
     on_exit(fn ->
       Application.put_env(:tcg_cheap, :valuation_provider, previous)
       Application.put_env(:tcg_cheap, :valuation_provider_stub, previous_stub)
+      restore_env(:acquisition_budget, previous_budget)
+      restore_env(:acquisition_budget_admitter, previous_admitter)
+      restore_env(:valuation_budget_stub_result, previous_budget_result)
       Agent.stop(stub)
     end)
 
     %{stub: stub}
   end
 
-  test "enqueues one unique valuation and persists then broadcasts" do
+  test "enqueues one unique valuation and persists then broadcasts", %{stub: stub} do
     card = create_card()
     topic = ValuationAcquisition.topic(card.id)
     assert :ok = ValuationAcquisition.subscribe(card)
@@ -84,6 +99,8 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
            }
 
     assert :ok = perform_job(test_job(first.args), [])
+    assert %{calls: 1} = Agent.get(stub, & &1)
+    assert usage_counts("tcgdex_cardmarket") == %{"day" => 1, "hour" => 1, "month" => 1}
     assert {:ok, snapshot} = Core.get_current_single_valuation(card.id, "tcgdex_cardmarket_v1")
     assert Decimal.equal?(snapshot.value_eur, Decimal.new("12.34"))
     assert snapshot.source == "tcgdex_cardmarket"
@@ -115,6 +132,68 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
 
     assert Enum.count([first, second], & &1.current?) == 1
     assert Enum.count([first, second], &(not &1.current?)) == 1
+  end
+
+  test "each retryable provider attempt is admitted separately", %{stub: stub} do
+    card = create_card()
+    Agent.update(stub, &Map.put(&1, :mode, {:error, :timeout}))
+
+    assert {:error, :provider_timeout} = perform_job(test_job(args(card), 1, 5), [])
+    assert {:error, :provider_timeout} = perform_job(test_job(args(card), 2, 5), [])
+
+    assert %{calls: 2} = Agent.get(stub, & &1)
+    assert usage_counts("tcgdex_cardmarket") == %{"day" => 2, "hour" => 2, "month" => 2}
+  end
+
+  test "a capped provider is rejected before the callback and broadcasts failure", %{stub: stub} do
+    card = create_card()
+    assert :ok = ValuationAcquisition.subscribe(card)
+    assert :ok = perform_job(test_job(args(card)), [])
+
+    provider = TcgCheap.Operations.get_provider_by_key!("tcgdex_cardmarket")
+    TcgCheap.Operations.disable_provider!(provider, nil, authorize?: false)
+
+    assert {:cancel, {:acquisition_budget_rejected, :provider_disabled}} =
+             perform_job(test_job(args(card)), [])
+
+    assert %{calls: 1} = Agent.get(stub, & &1)
+
+    assert_receive {:valuation_failed,
+                    %{reason: {:acquisition_budget_rejected, :provider_disabled}}},
+                   500
+  end
+
+  test "budget persistence failure retries without callback and broadcasts on final attempt", %{
+    stub: stub
+  } do
+    card = create_card()
+    assert :ok = ValuationAcquisition.subscribe(card)
+    Application.put_env(:tcg_cheap, :acquisition_budget_admitter, BudgetStub)
+
+    Application.put_env(
+      :tcg_cheap,
+      :valuation_budget_stub_result,
+      {:error, :budget_persistence_failed}
+    )
+
+    assert {:error, :budget_persistence_failed} = perform_job(test_job(args(card), 1, 5), [])
+    assert %{calls: 0} = Agent.get(stub, & &1)
+    refute_receive {:valuation_failed, _}, 20
+
+    assert {:error, :budget_persistence_failed} = perform_job(test_job(args(card), 5, 5), [])
+    assert_receive {:valuation_failed, %{reason: :budget_persistence_failed}}, 500
+    assert usage_counts("tcgdex_cardmarket") == %{}
+  end
+
+  test "malformed admission configuration fails closed without usage", %{stub: stub} do
+    card = create_card()
+    Application.put_env(:tcg_cheap, :acquisition_budget_admitter, String)
+
+    assert {:cancel, {:acquisition_budget_rejected, :invalid_admission_configuration}} =
+             perform_job(test_job(args(card)), [])
+
+    assert %{calls: 0} = Agent.get(stub, & &1)
+    assert usage_counts("tcgdex_cardmarket") == %{}
   end
 
   test "permanent provider errors and malformed results are cancelled", %{stub: stub} do
@@ -211,6 +290,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
 
     assert {:cancel, :invalid_provider_configuration} = perform_job(test_job(args(card)), [])
     assert %{calls: 0} = Agent.get(stub, & &1)
+    assert usage_counts("tcgdex_cardmarket") == %{}
 
     Application.put_env(:tcg_cheap, :valuation_provider,
       adapter: ProviderStub,
@@ -219,6 +299,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
 
     assert {:cancel, :invalid_provider_configuration} = perform_job(test_job(args(card)), [])
     assert %{calls: 0} = Agent.get(stub, & &1)
+    assert usage_counts("tcgdex_cardmarket") == %{}
   end
 
   test "invalid local cards are cancelled before provider invocation", %{stub: stub} do
@@ -230,6 +311,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
              perform_job(test_job(%{args(card) | "tcgdex_id" => "missing-card"}), [])
 
     assert %{calls: 0} = Agent.get(stub, & &1)
+    assert usage_counts("tcgdex_cardmarket") == %{}
   end
 
   test "enqueue accepts a local TCGdex ID and rejects invalid input" do
@@ -416,5 +498,35 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
       source_metric: "avg7",
       fetched_at: fetched_at
     })
+  end
+
+  defp budget_config(opts \\ []) do
+    [
+      global_hourly_request_limit: 100,
+      global_daily_request_limit: 1_000,
+      global_monthly_spend_limit: "50.00",
+      providers: [
+        [
+          provider_key: "tcgdex_cardmarket",
+          display_name: "TCGdex Cardmarket",
+          estimated_cost_per_request: "0.00",
+          hourly_request_limit: Keyword.get(opts, :hourly, 100),
+          daily_request_limit: 1_000,
+          monthly_request_limit: 20_000,
+          monthly_spend_limit: "0.00"
+        ]
+      ]
+    ]
+  end
+
+  defp restore_env(key, nil), do: Application.delete_env(:tcg_cheap, key)
+  defp restore_env(key, value), do: Application.put_env(:tcg_cheap, key, value)
+
+  defp usage_counts(provider_key) do
+    TcgCheap.Repo.query!(
+      "SELECT u.window_kind, u.request_count FROM acquisition_budget_usages u JOIN acquisition_data_providers p ON p.id = u.provider_id WHERE p.provider_key = $1",
+      [provider_key]
+    ).rows
+    |> Enum.reduce(%{}, fn [kind, count], acc -> Map.update(acc, kind, count, &(&1 + count)) end)
   end
 end

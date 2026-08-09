@@ -11,6 +11,7 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
     ]
 
   alias TcgCheap.Core
+  alias TcgCheap.Operations.AcquisitionBudget
   alias TcgCheap.Pricing.ExchangeRateAcquisition
 
   @canonical %{
@@ -49,18 +50,24 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
 
   defp acquire(args) do
     case provider_config() do
-      {:ok, adapter, options} ->
-        case safely_fetch(adapter, args, options) do
-          {:ok, {:ok, result}} -> validate_result(result)
-          {:ok, {:error, reason}} -> classify(reason)
-          {:ok, _other} -> {:cancel, :malformed_provider_result}
-          {:error, reason} -> classify(reason)
-        end
-
-      _ ->
-        {:cancel, :invalid_provider_configuration}
+      {:ok, adapter, options} -> admitted_fetch(adapter, args, options)
+      _ -> {:cancel, :invalid_provider_configuration}
     end
   end
+
+  defp admitted_fetch(adapter, args, options) do
+    options =
+      Keyword.put(options, :request_admitter, fn ->
+        AcquisitionBudget.admit_request("nbp")
+      end)
+
+    classify_fetch(safely_fetch(adapter, args, options))
+  end
+
+  defp classify_fetch({:ok, {:ok, result}}), do: validate_result(result)
+  defp classify_fetch({:ok, {:error, reason}}), do: classify(reason)
+  defp classify_fetch({:ok, _other}), do: {:cancel, :malformed_provider_result}
+  defp classify_fetch({:error, reason}), do: classify(reason)
 
   defp provider_config do
     config = Application.get_env(:tcg_cheap, :exchange_rate_provider, [])
@@ -159,6 +166,7 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
 
   defp classify({:transport_error, _}), do: {:retry, :transport_error}
   defp classify(:transport_error), do: {:retry, :transport_error}
+  defp classify(:budget_persistence_failed), do: {:retry, :budget_persistence_failed}
   defp classify(:no_published_rate), do: {:cancel, :no_published_rate}
   defp classify({:http_error, _}), do: {:cancel, :http_error}
   defp classify(reason), do: {:cancel, reason}

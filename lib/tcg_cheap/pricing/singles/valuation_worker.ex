@@ -12,6 +12,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
     ]
 
   alias TcgCheap.Core
+  alias TcgCheap.Operations.AcquisitionBudget
   alias TcgCheap.Pricing.Singles.ValuationAcquisition
 
   @policy_version "tcgdex_cardmarket_v1"
@@ -95,16 +96,24 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
 
   defp call_provider(tcgdex_id) do
     case provider_config() do
-      {:ok, adapter, options} ->
-        case safely_fetch(adapter, tcgdex_id, options) do
-          {:ok, response} -> classify_response(response)
-          {:error, :provider_callback_failed} -> {:retry, :provider_callback_failed}
-        end
-
-      {:error, _reason} ->
-        {:cancel, :invalid_provider_configuration}
+      {:ok, adapter, options} -> admitted_fetch(adapter, tcgdex_id, options)
+      _ -> {:cancel, :invalid_provider_configuration}
     end
   end
+
+  defp admitted_fetch(adapter, card_id, options) do
+    options =
+      Keyword.put(options, :request_admitter, fn ->
+        AcquisitionBudget.admit_request(@source)
+      end)
+
+    classify_fetch(safely_fetch(adapter, card_id, options))
+  end
+
+  defp classify_fetch({:ok, response}), do: classify_response(response)
+
+  defp classify_fetch({:error, :provider_callback_failed}),
+    do: {:retry, :provider_callback_failed}
 
   defp provider_config do
     config = Application.get_env(:tcg_cheap, :valuation_provider, [])
@@ -136,6 +145,12 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
   end
 
   defp classify_response({:ok, result}), do: {:ok, result}
+
+  defp classify_response({:error, :budget_persistence_failed}),
+    do: {:retry, :budget_persistence_failed}
+
+  defp classify_response({:error, {:acquisition_budget_rejected, reason}}),
+    do: {:cancel, {:acquisition_budget_rejected, reason}}
 
   defp classify_response({:error, reason}) when reason in @transient_tags,
     do: transient_reason(reason, nil)

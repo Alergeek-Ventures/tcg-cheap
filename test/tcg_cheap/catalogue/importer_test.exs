@@ -220,6 +220,18 @@ defmodule TcgCheap.Catalogue.ImporterTest do
     def fetch_set(_, _), do: {:ok, %{"id" => "set", "name" => "Set"}}
   end
 
+  defmodule SequentialBudgetStub do
+    def admit("tcgdex_catalogue") do
+      Agent.get_and_update(
+        Application.fetch_env!(:tcg_cheap, :importer_budget_stub),
+        fn
+          0 -> {{:ok, %{}}, 1}
+          calls -> {{:error, :hourly_limit_reached}, calls + 1}
+        end
+      )
+    end
+  end
+
   @fixture_dir Path.expand("../../fixtures/tcgdex/catalogue", __DIR__)
 
   setup do
@@ -327,6 +339,45 @@ defmodule TcgCheap.Catalogue.ImporterTest do
                ]
              )
 
+    assert Repo.aggregate(from(c in "card_printings"), :count, :id) == 0
+    assert Repo.aggregate(from(c in "card_sets"), :count, :id) == 0
+  end
+
+  test "operational imports admit each provider request before HTTP" do
+    previous_admitter = Application.get_env(:tcg_cheap, :acquisition_budget_admitter)
+    previous_stub = Application.get_env(:tcg_cheap, :importer_budget_stub)
+    {:ok, budget_stub} = Agent.start_link(fn -> 0 end)
+
+    Application.put_env(:tcg_cheap, :acquisition_budget_admitter, SequentialBudgetStub)
+    Application.put_env(:tcg_cheap, :importer_budget_stub, budget_stub)
+
+    on_exit(fn ->
+      restore_env(:acquisition_budget_admitter, previous_admitter)
+      restore_env(:importer_budget_stub, previous_stub)
+      if Process.alive?(budget_stub), do: Agent.stop(budget_stub)
+    end)
+
+    name = make_ref()
+    requests = :counters.new(1, [:atomics])
+
+    Req.Test.stub(name, fn conn ->
+      :counters.add(requests, 1, 1)
+
+      case conn.request_path do
+        "/v2/en/cards/sv-base-1" -> Req.Test.text(conn, fixture("modern_normal.json"))
+        _ -> flunk("rejected set request reached HTTP")
+      end
+    end)
+
+    assert {:error, {:acquisition_budget_rejected, :hourly_limit_reached}} =
+             Importer.import_card("sv-base-1",
+               provider_options: [
+                 request_options: [plug: {Req.Test, name}, retry: :safe_transient, max_retries: 2]
+               ]
+             )
+
+    assert :counters.get(requests, 1) == 1
+    assert Agent.get(budget_stub, & &1) == 2
     assert Repo.aggregate(from(c in "card_printings"), :count, :id) == 0
     assert Repo.aggregate(from(c in "card_sets"), :count, :id) == 0
   end
@@ -655,4 +706,7 @@ defmodule TcgCheap.Catalogue.ImporterTest do
     assert retained.card_set_id == foreign.id
     assert {:error, _} = Core.get_card_set_by_tcgdex_id(target_id)
   end
+
+  defp restore_env(key, nil), do: Application.delete_env(:tcg_cheap, key)
+  defp restore_env(key, value), do: Application.put_env(:tcg_cheap, key, value)
 end

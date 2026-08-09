@@ -13,7 +13,7 @@ defmodule TcgCheap.Catalogue.SealedRetailers.LootQuest do
   @category 55
   @max_listings 1_000
   @max_response_bytes 2_000_000
-  @allowed [:plug, :clock, :per_page, :max_pages]
+  @allowed [:plug, :clock, :per_page, :max_pages, :request_admitter]
   @fields "id,name,permalink,prices,categories,tags,is_purchasable,is_in_stock,is_on_backorder"
   @excluded ~r/(japan|japoń|japons|korea|koreań|koreans|china|chiń|chins|import|single|pojedyncz|accessor|akcesori|sleeve|preorder|pre-order|backorder|przedsprzeda|przedpremier)/iu
 
@@ -46,7 +46,8 @@ defmodule TcgCheap.Catalogue.SealedRetailers.LootQuest do
 
     valid_plug?(Keyword.get(options, :plug)) and
       valid_pagination_values?(per_page, max_pages) and
-      is_function(Keyword.get(options, :clock, &DateTime.utc_now/0), 0)
+      is_function(Keyword.get(options, :clock, &DateTime.utc_now/0), 0) and
+      is_function(Keyword.get(options, :request_admitter, fn -> :ok end), 0)
   end
 
   defp valid_pagination_values?(per_page, max_pages)
@@ -138,10 +139,25 @@ defmodule TcgCheap.Catalogue.SealedRetailers.LootQuest do
 
     req = if options[:plug], do: Keyword.put(req, :plug, options[:plug]), else: req
 
-    case Req.request(req) do
-      {:ok, response} -> handle_response(response)
-      {:error, reason} -> {:error, {:transport_error, reason}}
+    with :ok <- admit_request(options) do
+      case Req.request(req) do
+        {:ok, response} -> handle_response(response)
+        {:error, reason} -> {:error, {:transport_error, reason}}
+      end
     end
+  end
+
+  defp admit_request(options) do
+    case Keyword.get(options, :request_admitter, fn -> :ok end).() do
+      :ok -> :ok
+      {:error, :budget_persistence_failed} = error -> error
+      {:error, {:acquisition_budget_rejected, _reason}} = error -> error
+      _ -> {:error, :invalid_admission_result}
+    end
+  rescue
+    _ -> {:error, :budget_persistence_failed}
+  catch
+    _, _ -> {:error, :budget_persistence_failed}
   end
 
   defp bounded_into({:data, data}, {request, response}) when is_binary(data) do

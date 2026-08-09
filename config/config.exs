@@ -55,7 +55,7 @@ config :spark,
 config :tcg_cheap,
   ecto_repos: [TcgCheap.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [TcgCheap.Core, TcgCheap.Accounts],
+  ash_domains: [TcgCheap.Core, TcgCheap.Accounts, TcgCheap.Operations],
   token_signing_secret: :endpoint_secret_key_base
 
 config :tcg_cheap, Oban,
@@ -87,6 +87,40 @@ config :tcg_cheap, :exchange_rate_clock, &DateTime.utc_now/0
 config :tcg_cheap, :exchange_rate_provider,
   adapter: TcgCheap.Pricing.NbpExchangeRate,
   options: []
+
+config :tcg_cheap, :acquisition_budget,
+  global_hourly_request_limit: 100,
+  global_daily_request_limit: 1_000,
+  global_monthly_spend_limit: "50.00",
+  providers: [
+    [
+      provider_key: "tcgdex_catalogue",
+      display_name: "TCGdex Catalogue",
+      estimated_cost_per_request: "0.00",
+      hourly_request_limit: 100,
+      daily_request_limit: 1_000,
+      monthly_request_limit: 20_000,
+      monthly_spend_limit: "0.00"
+    ],
+    [
+      provider_key: "tcgdex_cardmarket",
+      display_name: "TCGdex Cardmarket",
+      estimated_cost_per_request: "0.00",
+      hourly_request_limit: 100,
+      daily_request_limit: 1_000,
+      monthly_request_limit: 20_000,
+      monthly_spend_limit: "0.00"
+    ],
+    [
+      provider_key: "nbp",
+      display_name: "Narodowy Bank Polski",
+      estimated_cost_per_request: "0.00",
+      hourly_request_limit: 24,
+      daily_request_limit: 100,
+      monthly_request_limit: 1_000,
+      monthly_spend_limit: "0.00"
+    ]
+  ]
 
 # Configure the endpoint
 config :tcg_cheap, TcgCheapWeb.Endpoint,

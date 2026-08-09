@@ -8,6 +8,11 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
 
   defmodule AdapterStub do
     def fetch(args, options) do
+      with :ok <- Keyword.fetch!(options, :request_admitter).(),
+           do: fetch_admitted(args, options)
+    end
+
+    defp fetch_admitted(args, options) do
       pid = Application.fetch_env!(:tcg_cheap, :exchange_rate_test_stub)
       Agent.update(pid, fn state -> Map.update!(state, :calls, fn calls -> calls + 1 end) end)
 
@@ -47,9 +52,16 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
     end
   end
 
+  defmodule BudgetStub do
+    def admit(_provider_key), do: Application.fetch_env!(:tcg_cheap, :exchange_budget_stub_result)
+  end
+
   setup do
     previous = Application.get_env(:tcg_cheap, :exchange_rate_provider)
     previous_stub = Application.get_env(:tcg_cheap, :exchange_rate_test_stub)
+    previous_budget = Application.get_env(:tcg_cheap, :acquisition_budget)
+    previous_admitter = Application.get_env(:tcg_cheap, :acquisition_budget_admitter)
+    previous_budget_result = Application.get_env(:tcg_cheap, :exchange_budget_stub_result)
     {:ok, stub} = Agent.start(fn -> %{mode: :success, calls: 0} end)
     Application.put_env(:tcg_cheap, :exchange_rate_test_stub, stub)
 
@@ -58,9 +70,14 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
       options: [clock: fn -> ~U[2026-08-08 12:00:00Z] end]
     )
 
+    Application.put_env(:tcg_cheap, :acquisition_budget, budget_config())
+
     on_exit(fn ->
       Application.put_env(:tcg_cheap, :exchange_rate_provider, previous)
       Application.put_env(:tcg_cheap, :exchange_rate_test_stub, previous_stub)
+      restore_env(:acquisition_budget, previous_budget)
+      restore_env(:acquisition_budget_admitter, previous_admitter)
+      restore_env(:exchange_budget_stub_result, previous_budget_result)
       if Process.alive?(stub), do: Agent.stop(stub)
     end)
 
@@ -95,6 +112,7 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
 
     assert :ok = perform_job(job(), [])
     assert %{calls: 1} = Agent.get(stub, & &1)
+    assert usage_counts("nbp") == %{"day" => 1, "hour" => 1, "month" => 1}
     assert {:ok, rate} = Core.get_latest_exchange_rate(~D[2026-08-08])
     assert %Decimal{} = rate.rate
     assert_receive {:exchange_rate_completed, %{exchange_rate: event_rate}}, 500
@@ -105,6 +123,9 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
   test "malformed callbacks/results and invalid configuration cancel without persistence", %{
     stub: stub
   } do
+    assert {:cancel, :malformed_job_args} = perform_job(job(%{}), [])
+    assert usage_counts("nbp") == %{}
+
     for mode <- [:malformed, :wrong_pair, :wrong_source, :zero, :nan, :future] do
       Agent.update(stub, &Map.put(&1, :mode, mode))
       assert {:cancel, _} = perform_job(job(), [])
@@ -116,9 +137,11 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
       assert {:error, :transport_error} = perform_job(job(), [])
     end
 
+    before_invalid_config = usage_counts("nbp")
     Application.put_env(:tcg_cheap, :exchange_rate_provider, bad: true)
     assert {:cancel, :invalid_provider_configuration} = perform_job(job(), [])
     assert %{calls: 9} = Agent.get(stub, & &1)
+    assert usage_counts("nbp") == before_invalid_config
   end
 
   test "transient failures retry and only final retry broadcasts failure", %{stub: stub} do
@@ -137,6 +160,8 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
 
     assert {:error, _} = perform_job(job(args(), 5, 5), [])
     assert_receive {:exchange_rate_failed, _}, 500
+    assert %{calls: 5} = Agent.get(stub, & &1)
+    assert usage_counts("nbp") == %{"day" => 5, "hour" => 5, "month" => 5}
   end
 
   test "permanent provider errors and invalid persistence are cancelled", %{stub: stub} do
@@ -147,6 +172,58 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
 
     Agent.update(stub, &Map.put(&1, :mode, :invalid_persist))
     assert {:cancel, :malformed_provider_result} = perform_job(job(), [])
+  end
+
+  test "a capped provider is rejected before the callback and broadcasts failure", %{stub: stub} do
+    assert :ok = Phoenix.PubSub.subscribe(TcgCheap.PubSub, ExchangeRateAcquisition.topic())
+    assert :ok = perform_job(job(), [])
+    provider = TcgCheap.Operations.get_provider_by_key!("nbp")
+    TcgCheap.Operations.disable_provider!(provider, nil, authorize?: false)
+
+    assert {:cancel, {:acquisition_budget_rejected, :provider_disabled}} =
+             perform_job(job(), [])
+
+    assert %{calls: 1} = Agent.get(stub, & &1)
+
+    assert_receive {:exchange_rate_failed,
+                    %{reason: {:acquisition_budget_rejected, :provider_disabled}}},
+                   500
+  end
+
+  test "budget persistence failure retries without callback and broadcasts on final attempt", %{
+    stub: stub
+  } do
+    Application.put_env(:tcg_cheap, :acquisition_budget_admitter, BudgetStub)
+
+    Application.put_env(
+      :tcg_cheap,
+      :exchange_budget_stub_result,
+      {:error, :budget_persistence_failed}
+    )
+
+    assert :ok = Phoenix.PubSub.subscribe(TcgCheap.PubSub, ExchangeRateAcquisition.topic())
+
+    assert {:error, :budget_persistence_failed} = perform_job(job(args(), 1, 5), [])
+    assert %{calls: 0} = Agent.get(stub, & &1)
+    refute_receive {:exchange_rate_failed, _}, 20
+    assert {:error, :budget_persistence_failed} = perform_job(job(args(), 5, 5), [])
+    assert_receive {:exchange_rate_failed, %{reason: :budget_persistence_failed}}, 500
+    assert usage_counts("nbp") == %{}
+  end
+
+  test "malformed admission configuration fails closed without usage", %{stub: stub} do
+    assert :ok = Phoenix.PubSub.subscribe(TcgCheap.PubSub, ExchangeRateAcquisition.topic())
+    Application.put_env(:tcg_cheap, :acquisition_budget_admitter, String)
+
+    assert {:cancel, {:acquisition_budget_rejected, :invalid_admission_configuration}} =
+             perform_job(job(), [])
+
+    assert %{calls: 0} = Agent.get(stub, & &1)
+    assert usage_counts("nbp") == %{}
+
+    assert_receive {:exchange_rate_failed,
+                    %{reason: {:acquisition_budget_rejected, :invalid_admission_configuration}}},
+                   500
   end
 
   test "latest validates dates/options and acquisition enqueues only when stale" do
@@ -229,5 +306,35 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
 
     assert [{"0 15 * * *", ExchangeRateWorker, [args: args]}] = opts[:crontab]
     assert args == %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}
+  end
+
+  defp budget_config(opts \\ []) do
+    [
+      global_hourly_request_limit: 100,
+      global_daily_request_limit: 1_000,
+      global_monthly_spend_limit: "50.00",
+      providers: [
+        [
+          provider_key: "nbp",
+          display_name: "Narodowy Bank Polski",
+          estimated_cost_per_request: "0.00",
+          hourly_request_limit: Keyword.get(opts, :hourly, 100),
+          daily_request_limit: 1_000,
+          monthly_request_limit: 20_000,
+          monthly_spend_limit: "0.00"
+        ]
+      ]
+    ]
+  end
+
+  defp restore_env(key, nil), do: Application.delete_env(:tcg_cheap, key)
+  defp restore_env(key, value), do: Application.put_env(:tcg_cheap, key, value)
+
+  defp usage_counts(provider_key) do
+    TcgCheap.Repo.query!(
+      "SELECT u.window_kind, u.request_count FROM acquisition_budget_usages u JOIN acquisition_data_providers p ON p.id = u.provider_id WHERE p.provider_key = $1",
+      [provider_key]
+    ).rows
+    |> Enum.reduce(%{}, fn [kind, count], acc -> Map.update(acc, kind, count, &(&1 + count)) end)
   end
 end

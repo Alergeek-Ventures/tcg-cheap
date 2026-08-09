@@ -21,7 +21,10 @@ defmodule TcgCheap.Catalogue.SealedRetailerAcquisition do
          true <- map_size(entry) == 2,
          true <- is_atom(adapter) and is_list(options) and Keyword.keyword?(options),
          true <- unique_keys?(options),
-         true <- Code.ensure_loaded?(adapter) and function_exported?(adapter, :source_key, 0),
+         true <-
+           Code.ensure_loaded?(adapter) and
+             function_exported?(adapter, :source_key, 0) and
+             function_exported?(adapter, :fetch_listings, 2),
          {:ok, callback_key} <- safe_source_key(adapter),
          true <- callback_key == source_key do
       {:ok, adapter, options}

@@ -143,4 +143,39 @@ defmodule TcgCheap.Pricing.NbpExchangeRateTest do
     assert {:error, :invalid_options} = NbpExchangeRate.fetch(canonical_request(), retry: :never)
     assert {:error, :invalid_clock} = fetch(File.read!(@fixture), 200, clock: :bad)
   end
+
+  test "request admission rejects before HTTP and disables internal retries" do
+    name = make_ref()
+    Req.Test.stub(name, fn _conn -> flunk("rejected request reached HTTP") end)
+
+    assert {:error, {:acquisition_budget_rejected, :provider_disabled}} =
+             NbpExchangeRate.fetch(canonical_request(),
+               plug: {Req.Test, name},
+               retry: :safe_transient,
+               max_retries: 2,
+               clock: fn -> @fetched_at end,
+               request_admitter: fn ->
+                 {:error, {:acquisition_budget_rejected, :provider_disabled}}
+               end
+             )
+
+    admitted = make_ref()
+    attempts = :counters.new(1, [:atomics])
+
+    Req.Test.stub(admitted, fn conn ->
+      :counters.add(attempts, 1, 1)
+      Plug.Conn.send_resp(conn, 503, "temporary")
+    end)
+
+    assert {:error, {:http_error, %{status: 503}}} =
+             NbpExchangeRate.fetch(canonical_request(),
+               plug: {Req.Test, admitted},
+               retry: :safe_transient,
+               max_retries: 2,
+               clock: fn -> @fetched_at end,
+               request_admitter: fn -> :ok end
+             )
+
+    assert :counters.get(attempts, 1) == 1
+  end
 end

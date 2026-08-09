@@ -2,6 +2,7 @@ defmodule TcgCheap.Catalogue.Importer do
   @moduledoc "Imports one TCGdex card and its set atomically and idempotently."
   alias TcgCheap.Catalogue.{CardPrinting, CardSet, Normalizer}
   alias TcgCheap.Core
+  alias TcgCheap.Operations.AcquisitionBudget
   alias TcgCheap.Repo
 
   @spec import_card(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
@@ -13,6 +14,7 @@ defmodule TcgCheap.Catalogue.Importer do
       provider_options = Keyword.get(opts, :provider_options, [])
 
       with {:ok, clock} <- validate_options(opts, provider, provider_options),
+           provider_options = budgeted_options(provider_options),
            {:ok, card} <- safe_provider_call(provider, :fetch_card, [card_id, provider_options]),
            {:ok, set_id} <- set_id(card),
            {:ok, set} <- safe_provider_call(provider, :fetch_set, [set_id, provider_options]),
@@ -119,6 +121,12 @@ defmodule TcgCheap.Catalogue.Importer do
   defp valid_synced_at(_), do: {:error, :invalid_clock}
 
   defp duplicate_keys?(options), do: length(options) != length(Enum.uniq(Keyword.keys(options)))
+
+  defp budgeted_options(options),
+    do:
+      Keyword.put(options, :request_admitter, fn ->
+        AcquisitionBudget.admit_request("tcgdex_catalogue")
+      end)
 
   defp persist(card, set, synced_at) do
     Ash.transact([CardSet, CardPrinting], fn ->

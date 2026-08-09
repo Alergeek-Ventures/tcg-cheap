@@ -9,6 +9,7 @@ defmodule TcgCheap.Catalogue.Sync do
 
   alias TcgCheap.Catalogue.{CardPrinting, CardSet, Normalizer, Tcgdex}
   alias TcgCheap.{Core, Repo}
+  alias TcgCheap.Operations.AcquisitionBudget
 
   @type result :: %{
           set_id: String.t(),
@@ -89,7 +90,7 @@ defmodule TcgCheap.Catalogue.Sync do
          :ok <- validate_provider_options(Keyword.get(opts, :provider_options, [])),
          {:ok, provider} <- validate_provider(Keyword.get(opts, :provider, Tcgdex), mode),
          {:ok, clock} <- validate_clock(Keyword.get(opts, :clock, &DateTime.utc_now/0)) do
-      {:ok, provider, Keyword.get(opts, :provider_options, []), clock}
+      {:ok, provider, budgeted_options(Keyword.get(opts, :provider_options, [])), clock}
     end
   end
 
@@ -124,6 +125,12 @@ defmodule TcgCheap.Catalogue.Sync do
   defp validate_clock(_), do: {:error, :invalid_clock}
 
   defp duplicate?(list), do: length(list) != length(Enum.uniq(Keyword.keys(list)))
+
+  defp budgeted_options(options),
+    do:
+      Keyword.put(options, :request_admitter, fn ->
+        AcquisitionBudget.admit_request("tcgdex_catalogue")
+      end)
 
   defp canonical_id(id) when is_binary(id) do
     id = String.trim(id)

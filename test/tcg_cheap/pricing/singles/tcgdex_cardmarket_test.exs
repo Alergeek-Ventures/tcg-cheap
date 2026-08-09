@@ -225,6 +225,8 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarketTest do
     assert {:error, :invalid_options} = TcgdexCardmarket.fetch("base1-4", %{})
     assert {:error, :invalid_options} = TcgdexCardmarket.fetch("base1-4", request_options: %{})
     assert {:error, :invalid_options} = TcgdexCardmarket.fetch("base1-4", clock: :now)
+    assert {:error, :invalid_options} = TcgdexCardmarket.fetch("base1-4", unknown: true)
+    assert {:error, :invalid_options} = TcgdexCardmarket.fetch("base1-4", [:request_options])
 
     assert {:error, :invalid_options} =
              fetch_with(
@@ -315,5 +317,44 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarketTest do
                request_options: request_options(name),
                clock: fn -> @fetched_at end
              )
+  end
+
+  test "request admission rejects before HTTP and disables internal retries" do
+    rejected = make_ref()
+    Req.Test.stub(rejected, fn _conn -> flunk("rejected request reached HTTP") end)
+
+    assert {:error, {:acquisition_budget_rejected, :provider_disabled}} =
+             TcgdexCardmarket.fetch("base1-4",
+               request_options: [
+                 plug: {Req.Test, rejected},
+                 retry: :safe_transient,
+                 max_retries: 2
+               ],
+               clock: fn -> @fetched_at end,
+               request_admitter: fn ->
+                 {:error, {:acquisition_budget_rejected, :provider_disabled}}
+               end
+             )
+
+    admitted = make_ref()
+    attempts = :counters.new(1, [:atomics])
+
+    Req.Test.stub(admitted, fn conn ->
+      :counters.add(attempts, 1, 1)
+      Plug.Conn.send_resp(conn, 503, "temporary")
+    end)
+
+    assert {:error, {:http_error, %{status: 503, card_id: "base1-4"}}} =
+             TcgdexCardmarket.fetch("base1-4",
+               request_options: [
+                 plug: {Req.Test, admitted},
+                 retry: :safe_transient,
+                 max_retries: 2
+               ],
+               clock: fn -> @fetched_at end,
+               request_admitter: fn -> :ok end
+             )
+
+    assert :counters.get(attempts, 1) == 1
   end
 end

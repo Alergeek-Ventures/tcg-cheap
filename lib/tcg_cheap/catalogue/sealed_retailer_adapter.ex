@@ -1,5 +1,11 @@
 defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
-  @moduledoc "Source-neutral contract for retailer listing adapters; it performs no HTTP itself."
+  @moduledoc """
+  Source-neutral contract for retailer listing adapters; it performs no HTTP itself.
+
+  Operational callers add a zero-arity `:request_admitter` to adapter options.
+  Adapters must invoke it immediately before every outbound request and return its
+  error without performing that request. Fixture-only callers may omit it.
+  """
   alias TcgCheap.Catalogue.{SealedIdentifier, SearchText}
 
   defmodule Listing do

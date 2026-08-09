@@ -12,6 +12,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
     ]
 
   alias TcgCheap.Catalogue.{SealedRetailerAcquisition, SealedRetailerRefresh}
+  alias TcgCheap.Operations.AcquisitionBudget
 
   @impl true
   def perform(%Oban.Job{args: args}) when is_map(args) do
@@ -19,7 +20,12 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
          {:ok, _retailer} <- SealedRetailerRefresh.canonical_retailer(retailer_id, source_key),
          {:ok, adapter, options} <- SealedRetailerAcquisition.config(source_key),
          {:ok, _result} <-
-           SealedRetailerRefresh.refresh(retailer_id, source_key, adapter, options) do
+           SealedRetailerRefresh.refresh(
+             retailer_id,
+             source_key,
+             adapter,
+             budgeted_options(options, source_key)
+           ) do
       :ok
     else
       {:cancel, reason} -> {:cancel, reason}
@@ -70,6 +76,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
        do: {:retry, {:http_error, status}}
 
   defp classify({:error, :persistence_failed}), do: {:retry, :persistence_failed}
+  defp classify({:error, :budget_persistence_failed}), do: {:retry, :budget_persistence_failed}
   defp classify({:error, :retailer_lookup_failed}), do: {:retry, :retailer_lookup_failed}
   defp classify({:error, :pagination_changed}), do: {:retry, :pagination_changed}
 
@@ -81,4 +88,10 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
       {:cancel, value} -> {:cancel, value}
     end
   end
+
+  defp budgeted_options(options, source_key),
+    do:
+      Keyword.put(options, :request_admitter, fn ->
+        AcquisitionBudget.admit_request("sealed_retailer:" <> source_key)
+      end)
 end

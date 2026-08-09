@@ -2,6 +2,7 @@ defmodule TcgCheap.Catalogue.Enrichment do
   @moduledoc "Bounded, set-level enrichment of detailed TCGdex cards."
 
   alias TcgCheap.Catalogue.{Importer, Tcgdex}
+  alias TcgCheap.Operations.AcquisitionBudget
 
   @default_concurrency 4
   @default_timeout 30_000
@@ -150,7 +151,7 @@ defmodule TcgCheap.Catalogue.Enrichment do
         {:ok,
          %{
            provider: Keyword.get(opts, :provider, Tcgdex),
-           provider_options: Keyword.get(opts, :provider_options, []),
+           provider_options: budgeted_options(Keyword.get(opts, :provider_options, [])),
            clock: Keyword.get(opts, :clock, &DateTime.utc_now/0),
            max_concurrency: Keyword.get(opts, :max_concurrency, @default_concurrency),
            fetch_timeout: Keyword.get(opts, :fetch_timeout, @default_timeout)
@@ -170,6 +171,12 @@ defmodule TcgCheap.Catalogue.Enrichment do
 
   defp valid_provider?(_), do: false
   defp duplicate?(list), do: length(list) != length(Enum.uniq(Keyword.keys(list)))
+
+  defp budgeted_options(options),
+    do:
+      Keyword.put(options, :request_admitter, fn ->
+        AcquisitionBudget.admit_request("tcgdex_catalogue")
+      end)
 
   defp safe_provider_call(provider, function, args) do
     case apply(provider, function, args) do

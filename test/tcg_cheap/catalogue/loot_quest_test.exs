@@ -44,6 +44,7 @@ defmodule TcgCheap.Catalogue.LootQuestTest do
 
   test "uses total-pages headers and preserves page order" do
     name = make_ref()
+    admissions = :counters.new(1, [:atomics])
     [first | _] = fixture()
 
     products = [
@@ -65,8 +66,50 @@ defmodule TcgCheap.Catalogue.LootQuestTest do
       conn |> Plug.Conn.put_resp_header("x-wp-totalpages", "2") |> Req.Test.json(body)
     end)
 
-    assert {:ok, listings} = LootQuest.fetch_listings(@retailer, options(name, per_page: 2))
+    assert {:ok, listings} =
+             LootQuest.fetch_listings(
+               @retailer,
+               options(name,
+                 per_page: 2,
+                 request_admitter: fn ->
+                   :counters.add(admissions, 1, 1)
+                   :ok
+                 end
+               )
+             )
+
     assert Enum.map(listings, & &1.source_listing_id) == ["165955", "165956", "165957"]
+    assert :counters.get(admissions, 1) == 2
+  end
+
+  test "stops pagination before a rejected outbound request" do
+    name = make_ref()
+    attempts = :counters.new(1, [:atomics])
+    [product | _] = fixture()
+
+    Req.Test.stub(name, fn conn ->
+      :counters.add(attempts, 1, 1)
+      conn |> Plug.Conn.put_resp_header("x-wp-totalpages", "2") |> Req.Test.json([product])
+    end)
+
+    admissions = :counters.new(1, [:atomics])
+
+    admitter = fn ->
+      :counters.add(admissions, 1, 1)
+
+      if :counters.get(admissions, 1) == 1,
+        do: :ok,
+        else: {:error, {:acquisition_budget_rejected, :hourly_limit_reached}}
+    end
+
+    assert {:error, {:acquisition_budget_rejected, :hourly_limit_reached}} =
+             LootQuest.fetch_listings(
+               @retailer,
+               options(name, per_page: 1, request_admitter: admitter)
+             )
+
+    assert :counters.get(admissions, 1) == 2
+    assert :counters.get(attempts, 1) == 1
   end
 
   test "reports a page-count change after the first page as transient" do

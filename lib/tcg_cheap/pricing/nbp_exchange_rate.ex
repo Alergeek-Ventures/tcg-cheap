@@ -3,7 +3,7 @@ defmodule TcgCheap.Pricing.NbpExchangeRate do
   @behaviour TcgCheap.Pricing.ExchangeRateProvider
   alias TcgCheap.Pricing.ExchangeRateProvider.Result
   @url "https://api.nbp.pl/api/exchangerates/rates/a/eur/"
-  @allowed [:plug, :retry, :max_retries, :clock]
+  @allowed [:plug, :retry, :max_retries, :clock, :request_admitter]
 
   @impl true
   def fetch(
@@ -40,7 +40,8 @@ defmodule TcgCheap.Pricing.NbpExchangeRate do
     plug = Keyword.get(options, :plug)
 
     if valid_plug?(plug) and retry in [false, :safe_transient] and is_integer(max_retries) and
-         max_retries in 0..2,
+         max_retries in 0..2 and
+         is_function(Keyword.get(options, :request_admitter, fn -> :ok end), 0),
        do: :ok,
        else: {:error, :invalid_options}
   end
@@ -70,26 +71,43 @@ defmodule TcgCheap.Pricing.NbpExchangeRate do
   end
 
   defp request(options) do
+    budgeted? = Keyword.has_key?(options, :request_admitter)
+
     req_options =
       [
         url: @url,
         decode_body: false,
         receive_timeout: 10_000,
-        retry: Keyword.get(options, :retry, :safe_transient),
-        max_retries: Keyword.get(options, :max_retries, 2)
+        retry: if(budgeted?, do: false, else: Keyword.get(options, :retry, :safe_transient)),
+        max_retries: if(budgeted?, do: 0, else: Keyword.get(options, :max_retries, 2))
       ]
       |> maybe_put(:plug, Keyword.get(options, :plug))
 
-    case Req.request(req_options) do
-      {:ok, %{status: 200, body: body}} when is_binary(body) -> {:ok, %{body: body}}
-      {:ok, %{status: 200}} -> {:error, :malformed_response}
-      {:ok, %{status: 404}} -> {:error, :no_published_rate}
-      {:ok, %{status: 429}} -> {:error, {:rate_limited, %{status: 429}}}
-      {:ok, %{status: status}} -> {:error, {:http_error, %{status: status}}}
-      {:error, reason} -> {:error, {:transport_error, reason}}
+    with :ok <- admit_request(options) do
+      case Req.request(req_options) do
+        {:ok, %{status: 200, body: body}} when is_binary(body) -> {:ok, %{body: body}}
+        {:ok, %{status: 200}} -> {:error, :malformed_response}
+        {:ok, %{status: 404}} -> {:error, :no_published_rate}
+        {:ok, %{status: 429}} -> {:error, {:rate_limited, %{status: 429}}}
+        {:ok, %{status: status}} -> {:error, {:http_error, %{status: status}}}
+        {:error, reason} -> {:error, {:transport_error, reason}}
+      end
     end
   rescue
     exception -> {:error, {:transport_error, exception}}
+  end
+
+  defp admit_request(options) do
+    case Keyword.get(options, :request_admitter, fn -> :ok end).() do
+      :ok -> :ok
+      {:error, :budget_persistence_failed} = error -> error
+      {:error, {:acquisition_budget_rejected, _reason}} = error -> error
+      _ -> {:error, :invalid_admission_result}
+    end
+  rescue
+    _ -> {:error, :budget_persistence_failed}
+  catch
+    _, _ -> {:error, :budget_persistence_failed}
   end
 
   defp maybe_put(keyword, _key, nil), do: keyword

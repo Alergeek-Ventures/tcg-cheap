@@ -65,7 +65,7 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarket do
   def fetch(card_id, opts \\ [])
 
   def fetch(card_id, opts) when is_binary(card_id) and is_list(opts) do
-    if Keyword.keyword?(opts) do
+    if valid_options?(opts) do
       fetch_card(card_id, opts)
     else
       {:error, :invalid_options}
@@ -87,19 +87,25 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarket do
   end
 
   defp request(card_id, opts) do
+    budgeted? = Keyword.has_key?(opts, :request_admitter)
+
     defaults = [
       decode_body: false,
       receive_timeout: 10_000,
-      retry: :safe_transient,
-      max_retries: 2
+      retry: if(budgeted?, do: false, else: :safe_transient),
+      max_retries: if(budgeted?, do: 0, else: 2)
     ]
 
     request_options = Keyword.get(opts, :request_options, [])
 
     with :ok <- validate_request_options(request_options),
-         :ok <- validate_clock(opts) do
+         :ok <- validate_clock(opts),
+         :ok <- admit_request(opts) do
       options =
-        Keyword.merge(defaults, request_options) |> Keyword.put(:path_params, card_id: card_id)
+        defaults
+        |> Keyword.merge(request_options)
+        |> force_single_attempt(budgeted?)
+        |> Keyword.put(:path_params, card_id: card_id)
 
       case Req.get(@endpoint, options) do
         {:ok, %{status: 200, body: body}} -> parse_body(body, card_id, opts)
@@ -110,6 +116,7 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarket do
       end
     else
       {:error, :invalid_options} -> {:error, :invalid_options}
+      {:error, reason} -> {:error, reason}
     end
   end
 
@@ -217,6 +224,36 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarket do
   defp positive_integer(_value), do: nil
 
   defp decode_json(body), do: Jason.decode(body, floats: :decimals)
+
+  defp valid_options?(opts) do
+    if Keyword.keyword?(opts) do
+      keys = Keyword.keys(opts)
+
+      length(keys) == length(Enum.uniq(keys)) and
+        Enum.all?(keys, &(&1 in [:request_options, :clock, :request_admitter])) and
+        is_function(Keyword.get(opts, :request_admitter, fn -> :ok end), 0)
+    else
+      false
+    end
+  end
+
+  defp force_single_attempt(options, true),
+    do: options |> Keyword.put(:retry, false) |> Keyword.put(:max_retries, 0)
+
+  defp force_single_attempt(options, false), do: options
+
+  defp admit_request(opts) do
+    case Keyword.get(opts, :request_admitter, fn -> :ok end).() do
+      :ok -> :ok
+      {:error, :budget_persistence_failed} = error -> error
+      {:error, {:acquisition_budget_rejected, _reason}} = error -> error
+      _ -> {:error, :invalid_admission_result}
+    end
+  rescue
+    _ -> {:error, :budget_persistence_failed}
+  catch
+    _, _ -> {:error, :budget_persistence_failed}
+  end
 
   defp validate_request_options(request_options) when is_list(request_options) do
     if Keyword.keyword?(request_options) do
