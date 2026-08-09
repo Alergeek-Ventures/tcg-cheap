@@ -85,6 +85,19 @@ defmodule TcgCheapWeb.Layouts do
           </Backpex.HTML.Layout.sidebar_item>
           <Backpex.HTML.Layout.sidebar_item
             current_url={@current_url}
+            navigate={~p"/admin/catalogue/retailers"}
+          >
+            <Backpex.HTML.CoreComponents.icon name="hero-building-storefront" class="size-5" />
+            Retailers
+          </Backpex.HTML.Layout.sidebar_item>
+          <Backpex.HTML.Layout.sidebar_item
+            current_url={@current_url}
+            navigate={~p"/admin/catalogue/listings"}
+          >
+            <Backpex.HTML.CoreComponents.icon name="hero-list-bullet" class="size-5" /> Listings
+          </Backpex.HTML.Layout.sidebar_item>
+          <Backpex.HTML.Layout.sidebar_item
+            current_url={@current_url}
             navigate={~p"/admin/operations"}
           >
             <Backpex.HTML.CoreComponents.icon name="hero-command-line" class="size-5" /> Operations

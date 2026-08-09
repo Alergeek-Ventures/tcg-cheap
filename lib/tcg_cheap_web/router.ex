@@ -55,6 +55,8 @@ defmodule TcgCheapWeb.Router do
       live "/review", ReviewLive
       live "/operations", OperationsLive
       live_resources "/catalogue/products", SealedProductLive
+      live_resources "/catalogue/retailers", RetailerLive
+      live_resources "/catalogue/listings", RetailerListingLive, only: [:index, :show]
     end
   end
 

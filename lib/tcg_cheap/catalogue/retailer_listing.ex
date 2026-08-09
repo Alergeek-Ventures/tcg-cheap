@@ -1,7 +1,12 @@
 defmodule TcgCheap.Catalogue.RetailerListing do
   @moduledoc "The current local projection of a retailer listing."
   alias TcgCheap.Catalogue.SealedIdentifier
-  use Ash.Resource, otp_app: :tcg_cheap, domain: TcgCheap.Core, data_layer: AshPostgres.DataLayer
+
+  use Ash.Resource,
+    otp_app: :tcg_cheap,
+    domain: TcgCheap.Core,
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "retailer_listings"
@@ -115,6 +120,35 @@ defmodule TcgCheap.Catalogue.RetailerListing do
       argument :retailer_id, :uuid, allow_nil?: false
       filter expr(retailer_id == ^arg(:retailer_id) and status == "active")
       prepare build(sort: [normalized_title: :asc, source_listing_id: :asc])
+    end
+
+    read :admin_catalogue do
+      prepare build(
+                load: [:retailer],
+                sort: [
+                  last_checked_at: :desc,
+                  retailer_id: :asc,
+                  normalized_title: :asc,
+                  source_listing_id: :asc,
+                  id: :asc
+                ]
+              )
+    end
+  end
+
+  policies do
+    bypass action([:ingest, :disable, :by_source_listing, :active_for_retailer]) do
+      authorize_if always()
+    end
+
+    bypass accessing_from(TcgCheap.Catalogue.ListingProductMapping, :retailer_listing) do
+      authorize_if always()
+    end
+
+    policy action([:read, :admin_catalogue]) do
+      access_type :strict
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
     end
   end
 
