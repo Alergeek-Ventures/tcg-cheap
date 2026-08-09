@@ -19,14 +19,20 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
     attrs =
       attrs(Map.merge(%{officially_distributed: true, release_date: Date.utc_today()}, overrides))
 
-    Core.create_sealed_product_draft!(attrs) |> Core.approve_sealed_product!()
+    draft = Core.create_sealed_product_draft!(attrs)
+
+    Core.approve_sealed_product!(draft, %{expected_updated_at: draft.updated_at},
+      authorize?: false
+    )
   end
 
   test "drafts are permissive and normalized but unpublished" do
     product = Core.create_sealed_product_draft!(attrs(%{name: "  Example   Product "}))
     assert {product.publication_status, product.market, product.language} == {"draft", "PL", "en"}
     assert product.search_name == "example product"
-    assert Core.list_sealed_product_draft_review_queue!() |> Enum.any?(&(&1.id == product.id))
+
+    assert Core.list_sealed_product_draft_review_queue!(authorize?: false)
+           |> Enum.any?(&(&1.id == product.id))
   end
 
   test "product type and canonical slug are constrained" do
@@ -60,41 +66,115 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
 
   test "approval enforces draft, official PL/en, release, and MSRP requirements" do
     draft = Core.create_sealed_product_draft!(attrs())
-    assert_raise Ash.Error.Invalid, fn -> Core.approve_sealed_product!(draft) end
+
+    assert_raise Ash.Error.Invalid, fn ->
+      Core.approve_sealed_product!(draft, %{expected_updated_at: draft.updated_at},
+        authorize?: false
+      )
+    end
 
     future =
-      Core.revise_sealed_product_draft!(draft, %{
-        officially_distributed: true,
-        release_date: Date.add(Date.utc_today(), 1)
-      })
+      Core.revise_sealed_product_draft!(
+        draft,
+        %{
+          officially_distributed: true,
+          release_date: Date.add(Date.utc_today(), 1),
+          expected_updated_at: draft.updated_at
+        },
+        authorize?: false
+      )
 
-    assert_raise Ash.Error.Invalid, fn -> Core.approve_sealed_product!(future) end
+    assert_raise Ash.Error.Invalid, fn ->
+      Core.approve_sealed_product!(future, %{expected_updated_at: future.updated_at},
+        authorize?: false
+      )
+    end
 
     ready =
-      Core.revise_sealed_product_draft!(draft, %{
-        officially_distributed: true,
-        release_date: Date.utc_today()
-      })
+      Core.revise_sealed_product_draft!(
+        future,
+        %{
+          officially_distributed: true,
+          release_date: Date.utc_today(),
+          expected_updated_at: future.updated_at
+        },
+        authorize?: false
+      )
 
-    assert Core.approve_sealed_product!(ready).publication_status == "approved"
+    assert Core.approve_sealed_product!(
+             ready,
+             %{expected_updated_at: ready.updated_at},
+             authorize?: false
+           ).publication_status == "approved"
   end
 
   test "revise and approve are draft-only transitions" do
     approved = approved_product()
 
     assert_raise Ash.Error.Invalid, fn ->
-      Core.revise_sealed_product_draft!(approved, %{name: "Changed"})
+      Core.revise_sealed_product_draft!(
+        approved,
+        %{name: "Changed", expected_updated_at: approved.updated_at},
+        authorize?: false
+      )
     end
-
-    assert_raise Ash.Error.Invalid, fn -> Core.approve_sealed_product!(approved) end
-
-    archived = Core.archive_sealed_product!(approved)
 
     assert_raise Ash.Error.Invalid, fn ->
-      Core.revise_sealed_product_draft!(archived, %{name: "Changed"})
+      Core.approve_sealed_product!(approved, %{expected_updated_at: approved.updated_at},
+        authorize?: false
+      )
     end
 
-    assert_raise Ash.Error.Invalid, fn -> Core.approve_sealed_product!(archived) end
+    archived =
+      Core.archive_sealed_product!(
+        approved,
+        %{expected_updated_at: approved.updated_at},
+        authorize?: false
+      )
+
+    assert_raise Ash.Error.Invalid, fn ->
+      Core.revise_sealed_product_draft!(
+        archived,
+        %{name: "Changed", expected_updated_at: archived.updated_at},
+        authorize?: false
+      )
+    end
+
+    assert_raise Ash.Error.Invalid, fn ->
+      Core.approve_sealed_product!(archived, %{expected_updated_at: archived.updated_at},
+        authorize?: false
+      )
+    end
+  end
+
+  test "stale review versions cannot revise or archive a draft" do
+    draft = Core.create_sealed_product_draft!(attrs())
+    original_updated_at = draft.updated_at
+
+    revised =
+      Core.revise_sealed_product_draft!(
+        draft,
+        %{name: "First revision", expected_updated_at: original_updated_at},
+        authorize?: false
+      )
+
+    assert revised.name == "First revision"
+
+    assert_raise Ash.Error.Invalid, fn ->
+      Core.revise_sealed_product_draft!(
+        revised,
+        %{name: "Stale revision", expected_updated_at: original_updated_at},
+        authorize?: false
+      )
+    end
+
+    assert_raise Ash.Error.Invalid, fn ->
+      Core.archive_sealed_product!(
+        revised,
+        %{expected_updated_at: original_updated_at},
+        authorize?: false
+      )
+    end
   end
 
   test "product import refreshes drafts and protects approved and archived rows" do
@@ -109,18 +189,36 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
     assert Core.import_sealed_product_draft!(Map.put(corrected_source, :name, "Refreshed")).name ==
              "Refreshed"
 
-    Core.revise_sealed_product_draft!(draft, %{
-      officially_distributed: true,
-      release_date: Date.utc_today()
-    })
-    |> Core.approve_sealed_product!()
+    current_draft = Core.get_sealed_product_by_slug!("corrected-slug")
+
+    revised =
+      Core.revise_sealed_product_draft!(
+        current_draft,
+        %{
+          officially_distributed: true,
+          release_date: Date.utc_today(),
+          expected_updated_at: current_draft.updated_at
+        },
+        authorize?: false
+      )
+
+    Core.approve_sealed_product!(
+      revised,
+      %{expected_updated_at: revised.updated_at},
+      authorize?: false
+    )
 
     approved = Core.get_sealed_product_by_slug!("corrected-slug")
 
     assert Core.import_sealed_product_draft!(Map.put(corrected_source, :name, "Protected")).name ==
              approved.name
 
-    archived = Core.archive_sealed_product!(approved)
+    archived =
+      Core.archive_sealed_product!(
+        approved,
+        %{expected_updated_at: approved.updated_at},
+        authorize?: false
+      )
 
     assert Core.import_sealed_product_draft!(Map.put(corrected_source, :name, "Still Protected")).name ==
              archived.name
@@ -130,9 +228,18 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
     current = approved_product(%{name: "Zulu Product"})
 
     discontinued =
-      approved_product(%{name: "Alpha Product"}) |> Core.mark_sealed_product_discontinued!()
+      approved_product(%{name: "Alpha Product"})
+      |> Core.mark_sealed_product_discontinued!(authorize?: false)
 
-    archived = approved_product(%{name: "Hidden Product"}) |> Core.archive_sealed_product!()
+    hidden = approved_product(%{name: "Hidden Product"})
+
+    archived =
+      Core.archive_sealed_product!(
+        hidden,
+        %{expected_updated_at: hidden.updated_at},
+        authorize?: false
+      )
+
     draft = Core.create_sealed_product_draft!(attrs(%{name: "Draft Product"}))
 
     public =
@@ -204,7 +311,12 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
 
     assert refreshed.id == first.id and refreshed.original_value == "First"
 
-    approved = Core.approve_sealed_product_alias!(refreshed)
+    approved =
+      Core.approve_sealed_product_alias!(
+        refreshed,
+        %{expected_updated_at: refreshed.updated_at},
+        authorize?: false
+      )
 
     protected =
       Core.import_sealed_product_alias!(
@@ -214,13 +326,19 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
     assert protected.id == approved.id and protected.original_value == "First" and
              protected.review_status == "approved"
 
-    rejected =
+    rejected_alias =
       Core.create_sealed_product_alias!(%{
         sealed_product_id: product.id,
         kind: "name",
         original_value: "Rejected"
       })
-      |> Core.reject_sealed_product_alias!()
+
+    rejected =
+      Core.reject_sealed_product_alias!(
+        rejected_alias,
+        %{expected_updated_at: rejected_alias.updated_at},
+        authorize?: false
+      )
 
     assert Core.import_sealed_product_alias!(%{
              sealed_product_id: product.id,
@@ -229,8 +347,21 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
              source: "d"
            }).original_value == "Rejected"
 
-    assert_raise Ash.Error.Invalid, fn -> Core.approve_sealed_product_alias!(rejected) end
-    assert_raise Ash.Error.Invalid, fn -> Core.reject_sealed_product_alias!(approved) end
+    assert_raise Ash.Error.Invalid, fn ->
+      Core.approve_sealed_product_alias!(
+        rejected,
+        %{expected_updated_at: rejected.updated_at},
+        authorize?: false
+      )
+    end
+
+    assert_raise Ash.Error.Invalid, fn ->
+      Core.reject_sealed_product_alias!(
+        approved,
+        %{expected_updated_at: approved.updated_at},
+        authorize?: false
+      )
+    end
   end
 
   test "alias queues, duplicate identity, and foreign keys are enforced" do
@@ -243,7 +374,13 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
         original_value: "Alias"
       })
 
-    assert Enum.any?(Core.list_sealed_product_alias_pending_queue!(), &(&1.id == alias_record.id))
+    queued =
+      Enum.find(
+        Core.list_sealed_product_alias_pending_queue!(authorize?: false),
+        &(&1.id == alias_record.id)
+      )
+
+    assert queued.sealed_product.id == product.id
 
     assert_raise Ash.Error.Invalid, fn ->
       Core.create_sealed_product_alias!(%{
@@ -261,23 +398,42 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
       })
     end
 
-    approved = Core.approve_sealed_product_alias!(alias_record)
+    approved =
+      Core.approve_sealed_product_alias!(
+        alias_record,
+        %{expected_updated_at: alias_record.updated_at},
+        authorize?: false
+      )
 
     assert Enum.map(Core.list_approved_sealed_product_aliases!(product.id), & &1.id) == [
              approved.id
            ]
 
-    assert Core.reject_sealed_product_alias(approved) |> elem(0) == :error
+    assert Core.reject_sealed_product_alias(
+             approved,
+             %{expected_updated_at: approved.updated_at},
+             authorize?: false
+           )
+           |> elem(0) == :error
 
-    rejected =
+    rejected_alias =
       Core.create_sealed_product_alias!(%{
         sealed_product_id: product.id,
         kind: "name",
         original_value: "Queue Rejected"
       })
-      |> Core.reject_sealed_product_alias!()
 
-    assert Enum.any?(Core.list_sealed_product_alias_rejected_queue!(), &(&1.id == rejected.id))
+    rejected =
+      Core.reject_sealed_product_alias!(
+        rejected_alias,
+        %{expected_updated_at: rejected_alias.updated_at},
+        authorize?: false
+      )
+
+    assert Enum.any?(
+             Core.list_sealed_product_alias_rejected_queue!(authorize?: false),
+             &(&1.id == rejected.id)
+           )
   end
 
   test "source provenance is optional for curation but paired and required for imports" do
@@ -420,7 +576,14 @@ defmodule TcgCheap.Catalogue.SealedCatalogueConcurrencyTest do
           send(parent, {:ready, self()})
 
           receive do
-            :go -> Sandbox.unboxed_run(Repo, fn -> Core.approve_sealed_product(product) end)
+            :go ->
+              Sandbox.unboxed_run(Repo, fn ->
+                Core.approve_sealed_product(
+                  product,
+                  %{expected_updated_at: product.updated_at},
+                  authorize?: false
+                )
+              end)
           end
         end)
       end
@@ -437,6 +600,14 @@ defmodule TcgCheap.Catalogue.SealedCatalogueConcurrencyTest do
              Core.get_sealed_product_by_slug!(product.slug).publication_status
            end) == "approved"
 
-    Sandbox.unboxed_run(Repo, fn -> Core.archive_sealed_product!(product) end)
+    approved = Sandbox.unboxed_run(Repo, fn -> Core.get_sealed_product_by_slug!(product.slug) end)
+
+    Sandbox.unboxed_run(Repo, fn ->
+      Core.archive_sealed_product!(
+        approved,
+        %{expected_updated_at: approved.updated_at},
+        authorize?: false
+      )
+    end)
   end
 end

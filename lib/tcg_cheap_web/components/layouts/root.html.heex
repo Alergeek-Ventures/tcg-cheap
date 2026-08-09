@@ -15,6 +15,11 @@
         "<!-- THESIS: Compare Pokémon prices quickly; keep exact identity and honest estimates available without technical clutter.\nOWN-WORLD: A warm card-shop valuation bench: bright tissue, board, ink rules, square result rows, and measurement-led type.\nSTORY: Choose Singles or Sealed products, search locally, verify the exact card and price, then view price details.\nFIRST VIEWPORT: Compact masthead, plain heading, two-button mode switch, and one direct card search.\nFORM: Card-shop valuation bench; grounded direction 7; seed ca73501c.\nFINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md\n-->"
       )}
     <% end %>
+    <%= if assigns[:page_title] in ["Admin sign in", "Sealed review desk"] do %>
+      {Phoenix.HTML.raw(
+        "<!-- THESIS: Make every sealed publication decision traceable to visible evidence; refuse generic dashboard tiles and hidden bulk actions.\nOWN-WORLD: The existing warm valuation bench becomes a square paper review docket with ink rules, orange decisions, and compact evidence type.\nSTORY: Sign in, see the three queues, inspect one identity at a time, then save, approve, archive, or reject explicitly.\nFIRST VIEWPORT: A compact desk header, queue counts, and the first full-width product docket with evidence and named actions.\nFORM: Evidence docket; grounded structure 3; seed 5a7b009e.\nFINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md\n-->"
+      )}
+    <% end %>
     {@inner_content}
   </body>
 </html>

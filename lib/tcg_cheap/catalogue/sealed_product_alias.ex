@@ -1,7 +1,12 @@
 defmodule TcgCheap.Catalogue.SealedProductAlias do
   @moduledoc "A normalized name or GTIN alias awaiting catalogue review."
   alias TcgCheap.Catalogue.SealedIdentifier
-  use Ash.Resource, otp_app: :tcg_cheap, domain: TcgCheap.Core, data_layer: AshPostgres.DataLayer
+
+  use Ash.Resource,
+    otp_app: :tcg_cheap,
+    domain: TcgCheap.Core,
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "sealed_product_aliases"
@@ -65,6 +70,7 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
     end
 
     update :approve do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
       accept []
       # Transaction-local row lock and latest pending-state check require a non-atomic action.
       require_atomic? false
@@ -75,10 +81,12 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
               resource: __MODULE__,
               lock_action: :lock_for_update_by_id,
               status_attribute: :review_status,
-              expected_status: "pending"}
+              expected_status: "pending",
+              version_argument: :expected_updated_at}
     end
 
     update :reject do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
       accept []
       # Transaction-local row lock and latest pending-state check require a non-atomic action.
       require_atomic? false
@@ -89,12 +97,20 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
               resource: __MODULE__,
               lock_action: :lock_for_update_by_id,
               status_attribute: :review_status,
-              expected_status: "pending"}
+              expected_status: "pending",
+              version_argument: :expected_updated_at}
     end
 
     read :pending_queue do
       filter expr(review_status == "pending")
       prepare build(sort: [inserted_at: :asc, normalized_value: :asc])
+      prepare build(load: [:sealed_product])
+    end
+
+    read :pending_review_by_id do
+      argument :id, :uuid, allow_nil?: false
+      get? true
+      filter expr(id == ^arg(:id) and review_status == "pending")
     end
 
     read :approved_for_product do
@@ -128,6 +144,16 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
       get? true
       filter expr(id == ^arg(:id))
       prepare build(lock: :for_update)
+    end
+  end
+
+  policies do
+    policy action([:approve, :reject, :pending_queue, :rejected_queue, :pending_review_by_id]) do
+      authorize_if TcgCheap.Accounts.Checks.Admin
+    end
+
+    policy always() do
+      authorize_if always()
     end
   end
 

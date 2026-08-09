@@ -43,6 +43,10 @@ defmodule TcgCheap.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:picosat_elixir, "~> 0.2"},
+      {:argon2_elixir, "~> 4.0"},
+      {:ash_authentication_phoenix, "~> 2.17"},
+      {:ash_authentication, "~> 4.14"},
       {:sourceror, "~> 1.8", only: [:dev, :test]},
       {:usage_rules, "~> 1.2", only: :dev},
       {:tidewave, "~> 0.5", only: :dev},

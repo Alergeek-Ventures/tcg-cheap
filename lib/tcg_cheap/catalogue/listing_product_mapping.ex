@@ -1,6 +1,10 @@
 defmodule TcgCheap.Catalogue.ListingProductMapping do
   @moduledoc "Human-reviewable projection from a retailer listing to a sealed product."
-  use Ash.Resource, otp_app: :tcg_cheap, domain: TcgCheap.Core, data_layer: AshPostgres.DataLayer
+  use Ash.Resource,
+    otp_app: :tcg_cheap,
+    domain: TcgCheap.Core,
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "listing_product_mappings"
@@ -86,6 +90,7 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
     end
 
     update :approve do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
       accept [:confirmed_product_id, :confidence, :evidence]
       # Required only because the latest-state row lock runs before the update.
       require_atomic? false
@@ -100,6 +105,7 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
     end
 
     update :reject do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
       accept [:reason]
       # Required only because the latest-state row lock runs before the update.
       require_atomic? false
@@ -117,6 +123,13 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
     read :review_queue do
       filter expr(status in ["pending", "review"])
       prepare build(sort: [inserted_at: :asc])
+      prepare build(load: [candidate_product: [], retailer_listing: [:retailer]])
+    end
+
+    read :review_by_id do
+      argument :id, :uuid, allow_nil?: false
+      get? true
+      filter expr(id == ^arg(:id) and status in ["pending", "review"])
     end
 
     read :matched_by_listing do
@@ -136,6 +149,16 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
       get? true
       filter expr(id == ^arg(:id))
       prepare build(lock: :for_update)
+    end
+  end
+
+  policies do
+    policy action([:approve, :reject, :review_queue, :review_by_id]) do
+      authorize_if TcgCheap.Accounts.Checks.Admin
+    end
+
+    policy always() do
+      authorize_if always()
     end
   end
 

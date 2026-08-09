@@ -333,3 +333,64 @@
 .archive-world .card-detail-add-to-trade { align-items: center; background: var(--ink); border: 1px solid var(--ink); color: var(--tissue); display: inline-flex; font: 700 .82rem "Barlow Condensed", sans-serif; min-height: 2.8rem; padding: .55rem .8rem; text-decoration: none; text-transform: uppercase; }
 .archive-world .card-detail-add-to-trade:hover { background: var(--box-board-dark); }
 .archive-world .card-detail-add-to-trade:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; }
+
+/* Authenticated sealed review: paper dockets on the established valuation bench. */
+.admin-world, .admin-login-world { --bench: #f3ead7; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --orange: #c64e2d; --muted: #6d6256; background: var(--bench); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; min-height: 100svh; }
+.admin-header { align-items: center; border-bottom: 2px solid var(--ink); display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; justify-content: space-between; padding: .65rem clamp(1rem, 4vw, 3.5rem); }
+.admin-header > a, .admin-header-actions { align-items: center; display: flex; min-height: 2.8rem; }
+.admin-header > a { color: var(--ink); font-size: .85rem; font-weight: 700; letter-spacing: .12em; text-decoration: none; }
+.admin-header-actions { flex-wrap: wrap; font-size: .68rem; gap: .75rem; overflow-wrap: anywhere; }
+.admin-header-actions a { align-items: center; background: var(--ink); color: var(--bench-light); display: inline-flex; font: 700 .78rem "Barlow Condensed", sans-serif; min-height: 2.8rem; padding: .55rem .8rem; text-decoration: none; text-transform: uppercase; }
+.admin-main { padding: clamp(1.25rem, 4vw, 3rem) 1rem 5rem; }
+.admin-container { margin: 0 auto; max-width: 74rem; }
+.admin-intro { align-items: end; display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr) auto; margin-bottom: 2rem; }
+.admin-intro h1 { font: 700 clamp(3rem, 8vw, 5.5rem)/.85 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0; text-transform: uppercase; }
+.admin-intro p { font-size: .72rem; line-height: 1.65; margin-top: .75rem; max-width: 48rem; }
+.admin-intro nav { border: 2px solid var(--ink); display: flex; flex-wrap: wrap; }
+.admin-intro nav a { align-items: center; border-right: 1px solid var(--ink); color: var(--ink); display: flex; font: 700 .76rem "Barlow Condensed", sans-serif; gap: .55rem; min-height: 2.8rem; padding: .55rem .75rem; text-decoration: none; text-transform: uppercase; }
+.admin-intro nav a:last-child { border-right: 0; }
+.admin-intro nav strong { background: var(--ink); color: var(--paper); display: inline-grid; min-width: 1.6rem; padding: .2rem; place-items: center; }
+.admin-queue { margin-top: clamp(2.5rem, 7vw, 5.5rem); scroll-margin-top: 1rem; }
+.admin-section-rule { align-items: baseline; border-bottom: 2px solid var(--ink); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
+.admin-section-rule h2 { font: 700 clamp(2rem, 5vw, 3.4rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .45rem; text-transform: uppercase; }
+.admin-section-rule span { font-size: .68rem; }
+.admin-dockets { display: grid; gap: 1rem; padding-top: 1rem; }
+.admin-docket { background: var(--paper); border: 1.5px solid var(--ink); min-width: 0; padding: clamp(.8rem, 2.5vw, 1.25rem); }
+.admin-docket-heading { align-items: start; border-bottom: 1px solid var(--ink); display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; margin-bottom: 1rem; padding-bottom: .75rem; }
+.admin-docket-heading h3 { font: 700 clamp(1.45rem, 3vw, 2rem)/.95 "Barlow Condensed", sans-serif; margin: 0; overflow-wrap: anywhere; text-transform: uppercase; }
+.admin-docket-heading p { font-size: .64rem; line-height: 1.5; margin-top: .3rem; overflow-wrap: anywhere; }
+.admin-docket-heading > span { background: var(--ink); color: var(--paper); font-size: .62rem; padding: .4rem .5rem; }
+.admin-product-form { display: grid; gap: .8rem 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.admin-product-form > div:nth-of-type(2), .admin-product-form > div:nth-of-type(3), .admin-product-form > div:nth-last-of-type(1) { grid-column: span 2; }
+.admin-world label, .admin-login-world label { color: var(--ink); font-size: .66rem; font-weight: 700; }
+.admin-world input:not([type="checkbox"]), .admin-world select, .admin-login-world input { background: var(--bench-light); border: 1px solid var(--ink); border-radius: 0; box-shadow: none; color: var(--ink); font: 400 .74rem "Azeret Mono", ui-monospace, monospace; min-height: 2.8rem; padding: .55rem .65rem; width: 100%; }
+.admin-world input[type="checkbox"] { border: 1.5px solid var(--ink); border-radius: 0; color: var(--orange); }
+.admin-product-form .fieldset label > .label { align-items: center; display: flex; gap: .5rem; min-height: 2.8rem; }
+.admin-world button, .admin-login-world button { background: var(--ink); border: 1px solid var(--ink); border-radius: 0; color: var(--bench-light); cursor: pointer; font: 700 .78rem "Barlow Condensed", sans-serif; min-height: 2.8rem; padding: .55rem .8rem; text-transform: uppercase; }
+.admin-world button:hover, .admin-login-world button:hover, .admin-header-actions a:hover { background: var(--orange); }
+.admin-world button.secondary-action { background: transparent; color: var(--ink); }
+.admin-world button.secondary-action:hover { background: #ead4b7; }
+.admin-world button:disabled { background: var(--muted); cursor: not-allowed; opacity: .7; }
+.admin-world a:focus-visible, .admin-world button:focus-visible, .admin-world input:focus-visible, .admin-world select:focus-visible, .admin-login-world a:focus-visible, .admin-login-world button:focus-visible, .admin-login-world input:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.admin-decision-row { border-top: 1px solid var(--ink); display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; padding-top: 1rem; }
+.admin-evidence-grid { display: grid; font-size: .68rem; gap: .65rem 1.25rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+.admin-evidence-grid div { min-width: 0; }
+.admin-evidence-grid dt { color: var(--muted); margin-bottom: .2rem; }
+.admin-evidence-grid dd { overflow-wrap: anywhere; }
+.admin-evidence-grid .wide-evidence { grid-column: 1 / -1; }
+.admin-evidence-grid a { align-items: center; color: var(--ink); display: inline-flex; min-height: 2.8rem; text-underline-offset: .2rem; }
+.compact-dockets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mapping-decision-form { align-items: end; border-top: 1px solid var(--ink); display: grid; gap: .75rem; grid-template-columns: minmax(0, 1fr) auto; margin-top: 1rem; overflow-x: clip; padding-top: 1rem; }
+.mapping-decision-form > *, .mapping-decision-form .fieldset, .mapping-decision-form label, .mapping-decision-form select { max-width: 100%; min-width: 0; }
+.mapping-decision-form select { overflow: hidden; text-overflow: ellipsis; }
+.mapping-decision-form select:focus-visible { outline-offset: -3px; }
+.mapping-decision-form.reject-form { border-top-style: dashed; }
+.admin-empty { border-bottom: 1px solid var(--ink); font-size: .72rem; margin: 0; padding: 1rem 0; }
+.admin-login-main { display: grid; min-height: 100svh; padding: 1rem; place-items: center; }
+.admin-login-ticket { background: var(--paper); border: 2px solid var(--ink); max-width: 31rem; padding: clamp(1.25rem, 5vw, 2.5rem); width: 100%; }
+.admin-login-ticket > a { color: var(--ink); display: inline-flex; font-size: .78rem; font-weight: 700; letter-spacing: .12em; min-height: 2.8rem; text-decoration: none; }
+.admin-login-ticket h1 { font: 700 clamp(2.8rem, 10vw, 4.8rem)/.85 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .6rem 0 1rem; text-transform: uppercase; }
+.admin-login-ticket > p { border-bottom: 1px solid var(--ink); font-size: .7rem; line-height: 1.65; margin-bottom: 1.25rem; padding-bottom: 1rem; }
+.admin-login-ticket form { display: grid; gap: 1rem; }
+@media (max-width: 54rem) { .admin-intro { align-items: stretch; grid-template-columns: 1fr; } .admin-intro nav { width: fit-content; } .admin-product-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-product-form > div:nth-of-type(2), .admin-product-form > div:nth-of-type(3), .admin-product-form > div:nth-last-of-type(1) { grid-column: auto; } }
+@media (max-width: 40rem) { .admin-header-actions { align-items: start; flex-direction: column; } .admin-intro nav, .admin-intro nav a { width: 100%; } .admin-intro nav a { border-bottom: 1px solid var(--ink); border-right: 0; justify-content: space-between; } .admin-intro nav a:last-child { border-bottom: 0; } .admin-product-form, .compact-dockets, .admin-evidence-grid, .mapping-decision-form { grid-template-columns: minmax(0, 1fr); } .admin-product-form > div, .admin-evidence-grid .wide-evidence { grid-column: 1; } .mapping-decision-form button { width: 100%; } }

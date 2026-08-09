@@ -68,6 +68,21 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
+  token_signing_secret =
+    case System.get_env("ADMIN_AUTH_SIGNING_SECRET") do
+      nil ->
+        secret_key_base
+
+      secret when byte_size(secret) >= 32 ->
+        secret
+
+      _secret ->
+        raise """
+        environment variable ADMIN_AUTH_SIGNING_SECRET must contain at least 32 bytes.
+        Remove it to reuse SECRET_KEY_BASE, or provide a dedicated strong secret.
+        """
+    end
+
   host = System.get_env("PHX_HOST") || "example.com"
 
   config :tcg_cheap, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
@@ -82,6 +97,8 @@ if config_env() == :prod do
       ip: {0, 0, 0, 0, 0, 0, 0, 0}
     ],
     secret_key_base: secret_key_base
+
+  config :tcg_cheap, :token_signing_secret, token_signing_secret
 
   # ## SSL Support
   #

@@ -55,7 +55,11 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingTest do
         overrides
       )
 
-    Core.create_sealed_product_draft!(attrs) |> Core.approve_sealed_product!()
+    draft = Core.create_sealed_product_draft!(attrs)
+
+    Core.approve_sealed_product!(draft, %{expected_updated_at: draft.updated_at},
+      authorize?: false
+    )
   end
 
   test "retailer registration normalizes identity and protects disabled rows" do
@@ -236,6 +240,10 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingTest do
     pending = Core.create_pending_listing_mapping!(%{retailer_listing_id: row.id})
     assert pending.status == "pending"
 
+    queued_pending = hd(Core.list_listing_mapping_review_queue!(authorize?: false))
+    assert queued_pending.retailer_listing.id == row.id
+    assert queued_pending.retailer_listing.retailer.id == shop.id
+
     review =
       Core.import_listing_mapping!(%{
         retailer_listing_id: row.id,
@@ -246,13 +254,25 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingTest do
       })
 
     assert Core.get_matched_listing_mapping(row.id) == {:ok, nil}
-    assert hd(Core.list_listing_mapping_review_queue!()).status == "review"
+    queued_review = hd(Core.list_listing_mapping_review_queue!(authorize?: false))
+    assert queued_review.status == "review"
+    assert queued_review.candidate_product.id == product.id
+    assert queued_review.retailer_listing.id == row.id
+    assert queued_review.retailer_listing.retailer.id == shop.id
 
-    assert Core.approve_listing_mapping!(review, %{
-             confirmed_product_id: product.id,
-             confidence: Decimal.new("0.9"),
-             evidence: %{source: "human"}
-           }).status == "matched"
+    approved_mapping =
+      Core.approve_listing_mapping!(
+        review,
+        %{
+          confirmed_product_id: product.id,
+          confidence: Decimal.new("0.9"),
+          evidence: %{source: "human"},
+          expected_updated_at: review.updated_at
+        },
+        authorize?: false
+      )
+
+    assert approved_mapping.status == "matched"
 
     Core.import_listing_mapping!(%{
       retailer_listing_id: row.id,
@@ -294,7 +314,12 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingTest do
         reason: "check"
       })
 
-    rejected = Core.reject_listing_mapping!(review, %{reason: "not this product"})
+    rejected =
+      Core.reject_listing_mapping!(
+        review,
+        %{reason: "not this product", expected_updated_at: review.updated_at},
+        authorize?: false
+      )
 
     assert {rejected.status, rejected.candidate_product_id, rejected.confidence,
             rejected.evidence} == {"rejected", nil, nil, nil}

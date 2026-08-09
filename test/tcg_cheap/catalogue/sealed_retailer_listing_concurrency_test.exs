@@ -31,7 +31,14 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingConcurrencyTest do
 
     results =
       1..2
-      |> Task.async_stream(fn _ -> Core.reject_listing_mapping(mapping, %{reason: "review"}) end,
+      |> Task.async_stream(
+        fn _ ->
+          Core.reject_listing_mapping(
+            mapping,
+            %{reason: "review", expected_updated_at: mapping.updated_at},
+            authorize?: false
+          )
+        end,
         max_concurrency: 2,
         timeout: 10_000
       )

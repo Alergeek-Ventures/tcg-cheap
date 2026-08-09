@@ -1,6 +1,6 @@
 # Reference Project Conventions
 
-- Updated: 2026-08-07
+- Updated: 2026-08-09
 - Sources: Read-only source audits of `/home/kosciak/projects/alergeek/firmowid` at commit `8a18f66aa28ac8444b5b3445fa3c7b6613fdf056`, `/home/kosciak/projects/alergeek/onside` at commit `ac8d1d942a086bfe868043274fc0f430f30aacef`, and current TCG Cheap code
 - Raw: N/A — codebase update
 
@@ -27,7 +27,7 @@ changed.
 | Layouts/components/forms/validation | Adopt explicit TCG Cheap Phoenix components, layouts, unique form IDs, `to_form`, and LiveView validation conventions. Firmowid's `simple_form` `:let` style is observed in `/home/kosciak/projects/alergeek/firmowid/lib/firmowid_web/auth/views/login.ex:19-40` but is rejected in favor of the repository's current form rules. Reusable design-system components and resource validation patterns remain useful references (`firmowid/lib/firmowid_web/design_system/components/core_components.ex:243-273`; `firmowid/lib/firmowid/ash/timetracker/validations/project_access.ex:1-48`). |
 | Ash domains/resources/actions | Firmowid separates domains and resource namespaces, with explicit actions and policies (`firmowid/lib/firmowid/ash/core/core.ex:12-24`; `firmowid/lib/firmowid/ash/core/organization.ex:30-158`). Onside similarly groups resource domains and adds generated interfaces (`onside/lib/onside/audits.ex:3-30`). Adopt domain/resource organization and specific actions; do not copy business models. |
 | Ash auth/authz | Firmowid uses `Ash.Policy.Authorizer` and `AshAuthentication` on users (`firmowid/lib/firmowid/ash/core/user.ex:18-19,99-105,346-347`). Onside uses policy checks and scoped authorization, e.g. `onside/lib/onside/policy_checks/system_actor_scope.ex:1-40` and the admin bypass in `onside/lib/onside/audits.ex:268-272`. Adopt explicit policy boundaries and actor context. |
-| Authentication | Firmowid has AshAuthentication, password/OAuth flows, token resources, and Phoenix routes (`firmowid/mix.exs:70-71`; `firmowid/lib/firmowid_web/core/router.ex:3-7`; `firmowid/lib/firmowid/ash/core/token.ex:10-29`). Onside has browser/mobile token paths (`onside/lib/onside_web/auth_controller.ex:3-81`; `onside/lib/onside_web/browser_socket.ex:5-12`). TCG Cheap has not implemented authentication; dependency and strategy selection remains future work. |
+| Authentication | Firmowid has AshAuthentication, password/OAuth flows, token resources, and Phoenix routes (`firmowid/mix.exs:70-71`; `firmowid/lib/firmowid_web/core/router.ex:3-7`; `firmowid/lib/firmowid/ash/core/token.ex:10-29`). Onside has browser/mobile token paths (`onside/lib/onside_web/auth_controller.ex:3-81`; `onside/lib/onside_web/browser_socket.ex:5-12`). TCG Cheap now uses independently pinned AshAuthentication password/token support only for provisioned administrators, with no public registration, renewed/revoked sessions, dual IP/account throttling, and admin-only Ash policies around review actions. |
 | Admin | Firmowid has no AshBackpex dependency or adopted AshBackpex convention. Onside uses AshAdmin, not AshBackpex (`onside/mix.exs:75-82`; `onside/lib/onside/audits.ex:3-6`). Do not copy either admin UI; independently validate and pin AshBackpex before implementation. |
 | Oban/jobs | Firmowid combines Oban and AshOban, including tenant-aware wrappers and AshOban startup configuration (`firmowid/lib/firmowid/application.ex:17-50`; `firmowid/lib/firmowid/oban.ex:1-12`). Onside configures AshOban and Oban in its application (`onside/lib/onside/application.ex:16-33`) and has queued, retrying workers such as `onside/lib/onside/clubs/workers/squadassist_sync_worker.ex:1-8,16-38`. Adopt explicit queues, worker tests, and observability only after product jobs are defined. |
 | Provider boundaries | Onside wraps external SquadAssist calls behind a Req client (`onside/lib/onside/squadassist/client.ex:3-130`); Firmowid has a Req NBP client (`firmowid/lib/firmowid/ash/currencies/nbp_api_client.ex:27-75`). Adopt only the Req boundary and error-normalization pattern, not Firmowid's float rate representation: TCG Cheap money/rates require Decimal. The bounded experiment batch and cost/control analysis are recorded in the provider ADR; acquisition access is no longer vetoed under the scrappy policy, while exact seller-identity/destination capability validation remains unresolved, so production provider locking and Phase 0 remain incomplete. Older access-first wording is historical. |
@@ -61,9 +61,9 @@ changed.
 - Firmowid's colocated tests are not adopted; tests stay in the standard test tree.
 - Onside's React/Volt SPA, AshAdmin UI, AshTypescript RPC, and mobile frontend are
   not copied. The product surface is LiveView-first.
-- AshAuthentication, AshBackpex, Oban, AshOban, and storage libraries are not
-  added merely because references use them. Validate versions and the MVP need
-  first.
+- AshBackpex, AshOban, and storage libraries are not added merely because references
+  use them. AshAuthentication and Oban were added only after concrete MVP boundaries
+  and compatibility were validated; the same standard still applies to remaining tools.
 
 ## Version compatibility
 
@@ -71,8 +71,8 @@ At lock level, TCG Cheap and Onside currently share Phoenix `1.8.9`, Ash `3.31.0
 and AshPostgres `2.11.0` (`tcg-cheap/mix.lock:2,5,41`; `onside/mix.lock:4,11,96`).
 Firmowid is a useful behavioral reference but its audited lock has older Ash
 `3.27.7` and AshPostgres `2.9.1` (`firmowid/mix.lock:7,16`). Independently
-validate and pin AshBackpex plus authentication/background-job dependencies
-before implementation; compatibility of those additions is unresolved.
+validate and pin AshBackpex before implementation. Authentication and Oban compatibility
+are now validated in TCG Cheap; broader admin CRUD compatibility remains unresolved.
 
 ## Implications for subsequent phases
 
@@ -100,8 +100,9 @@ before implementation; compatibility of those additions is unresolved.
   seller-identity/destination capability validation remains unresolved, so Phase 0
   and provider locking are incomplete. Older access-first wording above is
   historical/stale.
-- Authentication strategy, AshBackpex compatibility, background dependency
-  versions, storage provider, and production deployment topology need decisions.
+- AshBackpex compatibility, storage provider, and production deployment topology need
+  decisions. Administrator password authentication and existing background dependency
+  versions are now selected and validated.
 - Do not introduce multitenancy absent a demonstrated requirement. Decide the
   worker authorization/scope shape alongside the product resources.
 

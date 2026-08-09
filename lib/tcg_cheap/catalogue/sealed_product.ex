@@ -1,6 +1,10 @@
 defmodule TcgCheap.Catalogue.SealedProduct do
   @moduledoc "Source-neutral canonical catalogue entry for an officially distributed sealed product."
-  use Ash.Resource, otp_app: :tcg_cheap, domain: TcgCheap.Core, data_layer: AshPostgres.DataLayer
+  use Ash.Resource,
+    otp_app: :tcg_cheap,
+    domain: TcgCheap.Core,
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "sealed_products"
@@ -137,6 +141,8 @@ defmodule TcgCheap.Catalogue.SealedProduct do
     end
 
     update :revise_draft do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
+
       accept [
         :slug,
         :name,
@@ -167,10 +173,12 @@ defmodule TcgCheap.Catalogue.SealedProduct do
               resource: __MODULE__,
               lock_action: :lock_for_update_by_id,
               status_attribute: :publication_status,
-              expected_status: "draft"}
+              expected_status: "draft",
+              version_argument: :expected_updated_at}
     end
 
     update :approve do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
       accept []
 
       # Transaction-local row lock, latest completeness check, and wall-clock release date require a non-atomic action.
@@ -183,13 +191,25 @@ defmodule TcgCheap.Catalogue.SealedProduct do
               lock_action: :lock_for_update_by_id,
               status_attribute: :publication_status,
               expected_status: "draft",
+              version_argument: :expected_updated_at,
               mode: :product_approval}
     end
 
     update :archive do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
       accept []
+
+      # Review rows may be archived while draft or after publication; lock and version both states.
+      require_atomic? false
       change set_attribute(:publication_status, "archived")
       change atomic_update(:archived_at, expr(now()))
+
+      change {TcgCheap.Catalogue.Changes.LockAndValidateReview,
+              resource: __MODULE__,
+              lock_action: :lock_for_update_by_id,
+              status_attribute: :publication_status,
+              expected_status: ["draft", "approved"],
+              version_argument: :expected_updated_at}
     end
 
     update :mark_discontinued do
@@ -241,11 +261,34 @@ defmodule TcgCheap.Catalogue.SealedProduct do
       prepare build(sort: [inserted_at: :asc, slug: :asc])
     end
 
+    read :draft_review_by_id do
+      argument :id, :uuid, allow_nil?: false
+      get? true
+      filter expr(id == ^arg(:id) and publication_status == "draft")
+    end
+
     read :lock_for_update_by_id do
       argument :id, :uuid, allow_nil?: false
       get? true
       filter expr(id == ^arg(:id))
       prepare build(lock: :for_update)
+    end
+  end
+
+  policies do
+    policy action([
+             :revise_draft,
+             :approve,
+             :archive,
+             :mark_discontinued,
+             :draft_review_queue,
+             :draft_review_by_id
+           ]) do
+      authorize_if TcgCheap.Accounts.Checks.Admin
+    end
+
+    policy always() do
+      authorize_if always()
     end
   end
 

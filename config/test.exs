@@ -1,5 +1,6 @@
 import Config
 config :ash, policies: [show_policy_breakdowns?: true], disable_async?: true
+config :tcg_cheap, :token_signing_secret, "tcg-cheap-test-auth-secret"
 config :tcg_cheap, Oban, testing: :manual
 
 # Configure your database

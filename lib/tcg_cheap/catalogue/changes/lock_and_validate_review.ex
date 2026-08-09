@@ -11,15 +11,16 @@ defmodule TcgCheap.Catalogue.Changes.LockAndValidateReview do
     valid_resource? = is_atom(opts[:resource])
     valid_lock_action? = is_atom(opts[:lock_action])
     valid_status_attribute? = is_atom(opts[:status_attribute])
-    valid_expected? = is_binary(opts[:expected_status])
+    valid_expected? = valid_expected_status?(opts[:expected_status])
+    valid_version_argument? = is_nil(opts[:version_argument]) or is_atom(opts[:version_argument])
     valid_mode? = is_nil(opts[:mode]) or opts[:mode] == :product_approval
 
     if valid_resource? and valid_lock_action? and valid_status_attribute? and valid_expected? and
-         valid_mode?,
+         valid_version_argument? and valid_mode?,
        do: {:ok, opts},
        else:
          {:error,
-          "resource, lock_action, status_attribute, expected_status, and mode options are invalid"}
+          "resource, lock_action, status_attribute, expected_status, version_argument, and mode options are invalid"}
   end
 
   @impl true
@@ -45,14 +46,39 @@ defmodule TcgCheap.Catalogue.Changes.LockAndValidateReview do
   end
 
   defp validate_latest(changeset, latest, opts) do
-    if Map.get(latest, opts[:status_attribute]) != opts[:expected_status] do
-      Changeset.add_error(changeset,
-        message: "may only transition from #{opts[:expected_status]}"
-      )
-    else
-      validate_completeness(changeset, latest, opts[:mode])
+    expected_statuses = List.wrap(opts[:expected_status])
+
+    cond do
+      Map.get(latest, opts[:status_attribute]) not in expected_statuses ->
+        expected = Enum.join(expected_statuses, " or ")
+
+        Changeset.add_error(changeset,
+          message: "may only transition from #{expected}"
+        )
+
+      stale_version?(changeset, latest, opts[:version_argument]) ->
+        Changeset.add_error(changeset,
+          message: "record changed after it was loaded"
+        )
+
+      true ->
+        validate_completeness(changeset, latest, opts[:mode])
     end
   end
+
+  defp stale_version?(_changeset, _latest, nil), do: false
+
+  defp stale_version?(changeset, latest, version_argument) do
+    Changeset.get_argument(changeset, version_argument) != latest.updated_at
+  end
+
+  defp valid_expected_status?(status) when is_binary(status), do: true
+
+  defp valid_expected_status?(statuses) when is_list(statuses) do
+    statuses != [] and Enum.all?(statuses, &is_binary/1)
+  end
+
+  defp valid_expected_status?(_statuses), do: false
 
   defp validate_completeness(changeset, _latest, nil), do: changeset
 

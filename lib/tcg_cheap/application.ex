@@ -10,6 +10,8 @@ defmodule TcgCheap.Application do
     children = [
       TcgCheapWeb.Telemetry,
       TcgCheap.Repo,
+      {AshAuthentication.Supervisor, otp_app: :tcg_cheap},
+      {TcgCheapWeb.AdminLoginLimiter, Application.get_env(:tcg_cheap, :admin_login_limiter, [])},
       {DNSCluster, query: Application.get_env(:tcg_cheap, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: TcgCheap.PubSub},
       {Oban, Application.fetch_env!(:tcg_cheap, Oban)},

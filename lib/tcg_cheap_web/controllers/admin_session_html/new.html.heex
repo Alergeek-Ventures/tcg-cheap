@@ -1,0 +1,28 @@
+<div class="admin-login-world">
+  <Layouts.flash_group flash={@flash} id="admin-login-flash" />
+  <main class="admin-login-main">
+    <section class="admin-login-ticket" aria-labelledby="admin-login-title">
+      <.link id="admin-login-home" navigate={~p"/"}>TCG CHEAP</.link>
+      <h1 id="admin-login-title">Open the review desk</h1>
+      <p>Administrator access only. Public collector pages do not require an account.</p>
+
+      <.form for={@form} id="admin-login-form" action={~p"/admin/sign-in"} method="post">
+        <.input
+          field={@form[:email]}
+          type="email"
+          label="Email"
+          autocomplete="username"
+          required
+        />
+        <.input
+          field={@form[:password]}
+          type="password"
+          label="Password"
+          autocomplete="current-password"
+          required
+        />
+        <button id="admin-login-submit" type="submit">Sign in</button>
+      </.form>
+    </section>
+  </main>
+</div>

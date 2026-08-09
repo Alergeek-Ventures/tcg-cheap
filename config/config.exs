@@ -55,7 +55,8 @@ config :spark,
 config :tcg_cheap,
   ecto_repos: [TcgCheap.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [TcgCheap.Core]
+  ash_domains: [TcgCheap.Core, TcgCheap.Accounts],
+  token_signing_secret: :endpoint_secret_key_base
 
 config :tcg_cheap, Oban,
   repo: TcgCheap.Repo,
@@ -70,6 +71,12 @@ config :tcg_cheap, Oban,
   ]
 
 config :tcg_cheap, :valuation_clock, &DateTime.utc_now/0
+
+config :tcg_cheap, :admin_login_limiter,
+  limit: 5,
+  window_ms: 5 * 60 * 1_000,
+  max_entries: 10_000,
+  prune_interval_ms: 60_000
 
 config :tcg_cheap, :valuation_provider,
   adapter: TcgCheap.Pricing.Singles.TcgdexCardmarket,

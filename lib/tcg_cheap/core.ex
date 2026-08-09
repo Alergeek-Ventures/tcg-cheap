@@ -81,6 +81,11 @@ defmodule TcgCheap.Core do
       define :list_public_sealed_products, action: :public_catalogue
       define :list_sealed_product_draft_review_queue, action: :draft_review_queue
 
+      define :get_sealed_product_draft_for_review,
+        action: :draft_review_by_id,
+        args: [:id],
+        not_found_error?: false
+
       define :lock_sealed_product_for_update,
         action: :lock_for_update_by_id,
         args: [:id],
@@ -94,6 +99,11 @@ defmodule TcgCheap.Core do
       define :reject_sealed_product_alias, action: :reject
       define :list_sealed_product_alias_pending_queue, action: :pending_queue
       define :list_sealed_product_alias_rejected_queue, action: :rejected_queue
+
+      define :get_pending_sealed_product_alias_for_review,
+        action: :pending_review_by_id,
+        args: [:id],
+        not_found_error?: false
 
       define :lock_sealed_product_alias_for_update,
         action: :lock_for_update_by_id,
@@ -147,6 +157,11 @@ defmodule TcgCheap.Core do
       define :approve_listing_mapping, action: :approve
       define :reject_listing_mapping, action: :reject
       define :list_listing_mapping_review_queue, action: :review_queue
+
+      define :get_listing_mapping_for_review,
+        action: :review_by_id,
+        args: [:id],
+        not_found_error?: false
 
       define :get_matched_listing_mapping,
         action: :matched_by_listing,
