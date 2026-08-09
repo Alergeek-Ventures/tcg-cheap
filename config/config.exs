@@ -60,7 +60,13 @@ config :tcg_cheap,
 
 config :tcg_cheap, Oban,
   repo: TcgCheap.Repo,
-  queues: [valuations: 4, exchange_rates: 1, sealed_retailers: 1, sealed_aggregates: 1],
+  queues: [
+    valuations: 4,
+    exchange_rates: 1,
+    sealed_retailers: 1,
+    sealed_aggregates: 1,
+    sealed_buying_guides: 1
+  ],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,

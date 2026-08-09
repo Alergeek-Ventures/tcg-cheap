@@ -6,8 +6,9 @@
 
 **Status:** `sealed_buying_model_v1` is the initial pure, deterministic, versioned
 sealed buying-policy implementation. Its weights and boundaries are provisional
-until representative real Polish-market observations are available. It is not yet
-persisted as buying-guide snapshots or rendered on the public sealed page.
+until representative real Polish-market observations are available. Its outputs are
+now persisted as local buying-guide snapshots, but they are not yet rendered on the
+public sealed page.
 
 ## Decision
 
@@ -158,10 +159,18 @@ These are synthetic policy fixtures, not proof of Polish-market quality.
   interpolation. Missing days remain missing.
 - LGS uses a robust median but no separate outlier fence; its 0.10 weight bounds its
   influence. Real validation may justify a v2 change rather than mutating v1.
-- Real Polish retailer/SKU data, weight validation, `SealedBuyingGuideSnapshot`
-  persistence, recomputation jobs, public bands, plain-English explanations, and the
-  30-day sealed graph remain unfinished. Production source permission remains a
-  blocker for real validation, not for this pure policy foundation.
+- `SealedBuyingGuideSnapshot` persistence and exact-revision recomputation are now
+  implemented. The daily aggregate retains policy-relevant normalized source evidence,
+  snapshot-time MSRP, explicit mapping confidence, and a canonical SHA-256 revision;
+  aggregate persistence and guide enqueue commit atomically. The guide stores model
+  outputs, component centers, confidence, trend/availability, explanation factors,
+  the current source fingerprint, and a canonical fingerprint of the exact preceding
+  30-day aggregate revisions. Persistence locks and rechecks every consumed revision,
+  and historical corrections enqueue every persisted following guide date through the
+  end of the affected window.
+- Real Polish retailer/SKU data, weight validation, public bands, plain-English
+  explanations, and the 30-day sealed graph remain unfinished. Production source
+  permission remains a blocker for real validation, not for local persistence.
 
 ## See Also
 

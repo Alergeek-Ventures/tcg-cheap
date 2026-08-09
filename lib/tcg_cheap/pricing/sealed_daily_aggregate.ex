@@ -47,6 +47,10 @@ defmodule TcgCheap.Pricing.SealedDailyAggregate do
                        check:
                          "(benchmark_pln IS NULL OR (benchmark_pln > 0 AND benchmark_pln <> 'NaN'::numeric AND benchmark_pln <> 'Infinity'::numeric AND benchmark_pln <> '-Infinity'::numeric)) AND (typical_low_pln IS NULL OR (typical_low_pln > 0 AND typical_low_pln <> 'NaN'::numeric AND typical_low_pln <> 'Infinity'::numeric AND typical_low_pln <> '-Infinity'::numeric)) AND (typical_high_pln IS NULL OR (typical_high_pln > 0 AND typical_high_pln <> 'NaN'::numeric AND typical_high_pln <> 'Infinity'::numeric AND typical_high_pln <> '-Infinity'::numeric)) AND (benchmark_pln IS NULL OR (typical_low_pln <= benchmark_pln AND benchmark_pln <= typical_high_pln))"
 
+      check_constraint [:source_msrp_pln], "sealed_daily_aggregates_source_msrp_invariant",
+        check:
+          "source_msrp_pln IS NULL OR (source_msrp_pln > 0 AND source_msrp_pln <> 'NaN'::numeric AND source_msrp_pln <> 'Infinity'::numeric AND source_msrp_pln <> '-Infinity'::numeric)"
+
       check_constraint [
                          :fresh_regular_retailer_count,
                          :fresh_lgs_count,
@@ -100,7 +104,10 @@ defmodule TcgCheap.Pricing.SealedDailyAggregate do
         :stale_or_future_current_offer_count,
         :unique_source_retailer_count,
         :latest_nonfuture_checked_at,
-        :calculated_at
+        :calculated_at,
+        :source_msrp_pln,
+        :source_evidence,
+        :source_mapping_confident
       ]
 
       validate TcgCheap.Pricing.Validations.SealedDailyAggregate
@@ -121,7 +128,10 @@ defmodule TcgCheap.Pricing.SealedDailyAggregate do
         :stale_or_future_current_offer_count,
         :unique_source_retailer_count,
         :latest_nonfuture_checked_at,
-        :calculated_at
+        :calculated_at,
+        :source_msrp_pln,
+        :source_evidence,
+        :source_mapping_confident
       ]
 
       upsert_condition expr(upsert_conflict(:calculated_at) >= calculated_at)
@@ -140,6 +150,12 @@ defmodule TcgCheap.Pricing.SealedDailyAggregate do
              )
 
       prepare build(sort: [aggregate_date: :desc, calculated_at: :desc, id: :desc], limit: 1)
+    end
+
+    read :by_id do
+      argument :id, :uuid, allow_nil?: false
+      get? true
+      filter expr(id == ^arg(:id))
     end
 
     read :latest_ready_as_of do
@@ -171,6 +187,22 @@ defmodule TcgCheap.Pricing.SealedDailyAggregate do
 
       prepare build(sort: [aggregate_date: :asc, calculated_at: :asc, id: :asc], limit: 30)
     end
+
+    read :guide_dependents do
+      argument :sealed_product_id, :uuid, allow_nil?: false
+      argument :calculation_version, :string, allow_nil?: false
+      argument :from_date, :date, allow_nil?: false
+      argument :through_date, :date, allow_nil?: false
+
+      filter expr(
+               sealed_product_id == ^arg(:sealed_product_id) and
+                 calculation_version == ^arg(:calculation_version) and
+                 aggregate_date >= ^arg(:from_date) and
+                 aggregate_date <= ^arg(:through_date)
+             )
+
+      prepare build(sort: [aggregate_date: :asc, calculated_at: :asc, id: :asc], limit: 31)
+    end
   end
 
   attributes do
@@ -196,6 +228,18 @@ defmodule TcgCheap.Pricing.SealedDailyAggregate do
     attribute :unique_source_retailer_count, :integer, allow_nil?: false, public?: true
     attribute :latest_nonfuture_checked_at, :utc_datetime_usec, public?: true
     attribute :calculated_at, :utc_datetime_usec, allow_nil?: false, public?: true
+    attribute :source_msrp_pln, :decimal, public?: true
+
+    attribute :source_mapping_confident, :boolean,
+      allow_nil?: false,
+      default: false,
+      public?: true
+
+    attribute :source_evidence, {:array, TcgCheap.Pricing.SealedDailyAggregateEvidence},
+      allow_nil?: false,
+      default: [],
+      public?: true
+
     create_timestamp :inserted_at
     update_timestamp :updated_at
   end

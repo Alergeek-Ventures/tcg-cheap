@@ -63,6 +63,9 @@ defmodule TcgCheap.Pricing.Validations.SealedDailyAggregate do
       Enum.any?(prices, &invalid_price?/1) ->
         {:error, "prices must be finite and positive"}
 
+      invalid_price?(Ash.Changeset.get_attribute(changeset, :source_msrp_pln)) ->
+        {:error, "source MSRP must be finite and positive"}
+
       present_prices?(prices) and not ordered_prices?(prices) ->
         {:error, "price range is invalid"}
 

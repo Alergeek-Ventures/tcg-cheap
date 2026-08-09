@@ -1,0 +1,531 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "guide_date",
+      "type": "date"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "model_version",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"PLN\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "currency",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "limited_reason",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "reference_price_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "great_price_max_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "fair_price_max_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "expensive_price_max_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "confidence",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "trend",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "trend_change",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "availability",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "availability_trend",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "regular_benchmark_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "msrp_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "lgs_median_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "sold_out_center_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "explanation_factors",
+      "type": [
+        "array",
+        "text"
+      ]
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_aggregate_calculated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_aggregate_fingerprint",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "calculated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "sealed_buying_guide_snapshots_sealed_product_id_fkey",
+        "on_delete": "restrict",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "sealed_products"
+      },
+      "scale": null,
+      "size": null,
+      "source": "sealed_product_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "sealed_buying_guide_snapshots_source_aggregate_id_fkey",
+        "on_delete": "restrict",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "sealed_daily_aggregates"
+      },
+      "scale": null,
+      "size": null,
+      "source": "source_aggregate_id",
+      "type": "uuid"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [
+    {
+      "attribute": [
+        "model_version"
+      ],
+      "base_filter": null,
+      "check": "model_version ~ '^sealed_buying_model_v[0-9]+$'",
+      "name": "sealed_buying_guide_snapshots_version_invariant"
+    },
+    {
+      "attribute": [
+        "currency"
+      ],
+      "base_filter": null,
+      "check": "currency = 'PLN'",
+      "name": "sealed_buying_guide_snapshots_currency_invariant"
+    },
+    {
+      "attribute": [
+        "status",
+        "limited_reason",
+        "reference_price_pln",
+        "great_price_max_pln",
+        "fair_price_max_pln",
+        "expensive_price_max_pln"
+      ],
+      "base_filter": null,
+      "check": "(status = 'ready' AND limited_reason IS NULL AND reference_price_pln > 0 AND great_price_max_pln > 0 AND fair_price_max_pln > great_price_max_pln AND expensive_price_max_pln > fair_price_max_pln) OR (status = 'limited' AND limited_reason IN ('uncertain_mapping','limited_market_aggregate','stale_market_evidence','insufficient_history','low_confidence','invalid_band_boundaries') AND great_price_max_pln IS NULL AND fair_price_max_pln IS NULL AND expensive_price_max_pln IS NULL)",
+      "name": "sealed_buying_guide_snapshots_state_invariant"
+    },
+    {
+      "attribute": [
+        "reference_price_pln",
+        "regular_benchmark_pln",
+        "msrp_pln",
+        "lgs_median_pln",
+        "sold_out_center_pln",
+        "great_price_max_pln",
+        "fair_price_max_pln",
+        "expensive_price_max_pln"
+      ],
+      "base_filter": null,
+      "check": "(reference_price_pln IS NULL OR (reference_price_pln > 0 AND reference_price_pln <> 'NaN'::numeric AND reference_price_pln <> 'Infinity'::numeric AND reference_price_pln <> '-Infinity'::numeric)) AND (regular_benchmark_pln IS NULL OR (regular_benchmark_pln > 0 AND regular_benchmark_pln <> 'NaN'::numeric AND regular_benchmark_pln <> 'Infinity'::numeric AND regular_benchmark_pln <> '-Infinity'::numeric)) AND (msrp_pln IS NULL OR (msrp_pln > 0 AND msrp_pln <> 'NaN'::numeric AND msrp_pln <> 'Infinity'::numeric AND msrp_pln <> '-Infinity'::numeric)) AND (lgs_median_pln IS NULL OR (lgs_median_pln > 0 AND lgs_median_pln <> 'NaN'::numeric AND lgs_median_pln <> 'Infinity'::numeric AND lgs_median_pln <> '-Infinity'::numeric)) AND (sold_out_center_pln IS NULL OR (sold_out_center_pln > 0 AND sold_out_center_pln <> 'NaN'::numeric AND sold_out_center_pln <> 'Infinity'::numeric AND sold_out_center_pln <> '-Infinity'::numeric)) AND (great_price_max_pln IS NULL OR (great_price_max_pln > 0 AND great_price_max_pln <> 'NaN'::numeric AND great_price_max_pln <> 'Infinity'::numeric AND great_price_max_pln <> '-Infinity'::numeric)) AND (fair_price_max_pln IS NULL OR (fair_price_max_pln > 0 AND fair_price_max_pln <> 'NaN'::numeric AND fair_price_max_pln <> 'Infinity'::numeric AND fair_price_max_pln <> '-Infinity'::numeric)) AND (expensive_price_max_pln IS NULL OR (expensive_price_max_pln > 0 AND expensive_price_max_pln <> 'NaN'::numeric AND expensive_price_max_pln <> 'Infinity'::numeric AND expensive_price_max_pln <> '-Infinity'::numeric))",
+      "name": "sealed_buying_guide_snapshots_money_invariant"
+    },
+    {
+      "attribute": [
+        "confidence"
+      ],
+      "base_filter": null,
+      "check": "confidence >= 0 AND confidence <= 1 AND confidence <> 'NaN'::numeric AND confidence <> 'Infinity'::numeric AND confidence <> '-Infinity'::numeric",
+      "name": "sealed_buying_guide_snapshots_confidence_invariant"
+    },
+    {
+      "attribute": [
+        "trend",
+        "trend_change"
+      ],
+      "base_filter": null,
+      "check": "(trend = 'insufficient_history' AND trend_change IS NULL) OR (trend IN ('rising','stable','falling') AND trend_change IS NOT NULL AND trend_change > -1 AND trend_change <> 'NaN'::numeric AND trend_change <> 'Infinity'::numeric AND trend_change <> '-Infinity'::numeric)",
+      "name": "sealed_buying_guide_snapshots_trend_invariant"
+    },
+    {
+      "attribute": [
+        "availability",
+        "availability_trend"
+      ],
+      "base_filter": null,
+      "check": "availability IN ('abundant','balanced','scarce') AND availability_trend IN ('improving','stable','tightening','insufficient_history')",
+      "name": "sealed_buying_guide_snapshots_availability_invariant"
+    },
+    {
+      "attribute": [
+        "explanation_factors"
+      ],
+      "base_filter": null,
+      "check": "cardinality(explanation_factors) BETWEEN 1 AND 8 AND explanation_factors <@ ARRAY['market_benchmark','market_data_limited','msrp','lgs','sold_out','trend_rising','trend_stable','trend_falling','trend_insufficient_history','availability_abundant','availability_balanced','availability_scarce','availability_trend_improving','availability_trend_stable','availability_trend_tightening','availability_trend_insufficient_history']::text[]",
+      "name": "sealed_buying_guide_snapshots_factors_invariant"
+    },
+    {
+      "attribute": [
+        "guide_date",
+        "calculated_at",
+        "source_aggregate_calculated_at"
+      ],
+      "base_filter": null,
+      "check": "guide_date <= source_aggregate_calculated_at::date AND source_aggregate_calculated_at <= calculated_at",
+      "name": "sealed_buying_guide_snapshots_time_invariant"
+    },
+    {
+      "attribute": [
+        "source_aggregate_fingerprint"
+      ],
+      "base_filter": null,
+      "check": "source_aggregate_fingerprint ~ '^[0-9a-f]{64}$'",
+      "name": "sealed_buying_guide_snapshots_fingerprint_invariant"
+    }
+  ],
+  "create_table_options": null,
+  "custom_indexes": [
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "source_aggregate_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "source_aggregate_id"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "EDC5AC0EE88E1A7AE5AC5161E2AA195E066C55137D67F28E752BE3C72BDBFDB0",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "sealed_buying_guide_snapshots_unique_product_date_version_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "sealed_product_id"
+        },
+        {
+          "type": "atom",
+          "value": "guide_date"
+        },
+        {
+          "type": "atom",
+          "value": "model_version"
+        }
+      ],
+      "name": "unique_product_date_version",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.TcgCheap.Repo",
+  "schema": null,
+  "table": "sealed_buying_guide_snapshots"
+}

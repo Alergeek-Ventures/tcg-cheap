@@ -62,6 +62,11 @@ defmodule TcgCheap.Core do
     resource TcgCheap.Pricing.SealedDailyAggregate do
       define :record_sealed_daily_aggregate, action: :record
 
+      define :get_sealed_daily_aggregate,
+        action: :by_id,
+        args: [:id],
+        not_found_error?: false
+
       define :get_latest_sealed_daily_aggregate,
         action: :latest_as_of,
         args: [:sealed_product_id, :calculation_version, :as_of],
@@ -75,6 +80,28 @@ defmodule TcgCheap.Core do
       define :list_sealed_daily_aggregate_history,
         action: :history,
         args: [:sealed_product_id, :calculation_version, :since, :as_of]
+
+      define :list_sealed_daily_aggregate_guide_dependents,
+        action: :guide_dependents,
+        args: [:sealed_product_id, :calculation_version, :from_date, :through_date]
+    end
+
+    resource TcgCheap.Pricing.SealedBuyingGuideSnapshot do
+      define :record_sealed_buying_guide_snapshot, action: :record
+
+      define :get_latest_sealed_buying_guide_snapshot,
+        action: :latest_as_of,
+        args: [:sealed_product_id, :model_version, :as_of],
+        not_found_error?: false
+
+      define :get_latest_ready_sealed_buying_guide_snapshot,
+        action: :latest_ready_as_of,
+        args: [:sealed_product_id, :model_version, :as_of],
+        not_found_error?: false
+
+      define :list_sealed_buying_guide_snapshot_history,
+        action: :history,
+        args: [:sealed_product_id, :model_version, :since, :as_of]
     end
 
     resource TcgCheap.Catalogue.SealedProduct do
