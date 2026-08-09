@@ -263,7 +263,8 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
 
     assert {:enqueued, %Oban.Job{args: enqueued_args} = enqueued_job} =
              ExchangeRateAcquisition.subscribe_and_request_latest(
-               clock: fn -> ~U[2026-08-08 12:00:00Z] end
+               clock: fn -> ~U[2026-08-08 12:00:00Z] end,
+               request_admitter: fn -> :ok end
              )
 
     assert enqueued_job.worker == "TcgCheap.Pricing.ExchangeRateWorker"
@@ -273,7 +274,8 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
   test "missing observations enqueue a request" do
     assert {:enqueued, %Oban.Job{args: enqueued_args} = enqueued_job} =
              ExchangeRateAcquisition.subscribe_and_request_latest(
-               clock: fn -> ~U[2026-08-01 12:00:00Z] end
+               clock: fn -> ~U[2026-08-01 12:00:00Z] end,
+               request_admitter: fn -> :ok end
              )
 
     assert enqueued_job.worker == "TcgCheap.Pricing.ExchangeRateWorker"
@@ -283,7 +285,8 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
   test "subscribes before requesting and receives persisted completion", %{stub: stub} do
     assert {:enqueued, job} =
              ExchangeRateAcquisition.subscribe_and_request_latest(
-               clock: fn -> ~U[2026-08-08 12:00:00Z] end
+               clock: fn -> ~U[2026-08-08 12:00:00Z] end,
+               request_admitter: fn -> :ok end
              )
 
     job = %{

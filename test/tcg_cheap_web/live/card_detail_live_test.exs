@@ -1,12 +1,25 @@
 defmodule TcgCheapWeb.CardDetailLiveTest do
+  import Bitwise
   import Oban.Testing
   import Phoenix.LiveViewTest
   use TcgCheapWeb.ConnCase, async: false
 
   alias TcgCheap.Core
   alias TcgCheap.Pricing.Singles.{ValuationAcquisition, ValuationWorker}
+  alias TcgCheapWeb.PublicAcquisitionLimiter
 
   @policy "tcgdex_cardmarket_v1"
+
+  setup %{conn: conn} do
+    address = unique_ip()
+
+    conn =
+      conn
+      |> Map.put(:remote_ip, address)
+      |> put_private(:live_view_connect_info, %{peer_data: %{address: address}})
+
+    {:ok, conn: conn}
+  end
 
   test "an unknown exact printing is honest and offers a way back", %{conn: conn} do
     id = "missing-#{System.unique_integer([:positive])}"
@@ -148,6 +161,26 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert job.args["tcgdex_id"] == card.tcgdex_id
   end
 
+  test "a peer at the public acquisition limit keeps local fallback and queues no refresh", %{
+    conn: conn
+  } do
+    card = create_card("public-limit")
+    fill_public_limit(conn.remote_ip)
+
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+
+    assert has_element?(view, "#valuation-value", "?")
+    assert has_element?(view, "#valuation-unpriced")
+    assert has_element?(view, "#valuation-refresh-failed")
+    refute has_element?(view, "#valuation-fetching")
+
+    refute_enqueued(
+      repo: TcgCheap.Repo,
+      worker: ValuationWorker,
+      args: %{"local_card_id" => card.id}
+    )
+  end
+
   test "a valuation completion updates value, freshness, history and ledger", %{conn: conn} do
     card = create_card("completion")
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
@@ -235,5 +268,21 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
       source_metric: "avg7",
       fetched_at: fetched_at
     })
+  end
+
+  defp unique_ip do
+    n = System.unique_integer([:positive])
+
+    {0x2001, 0xDB8, 0, 0, n >>> 48 &&& 0xFFFF, n >>> 32 &&& 0xFFFF, n >>> 16 &&& 0xFFFF,
+     n &&& 0xFFFF}
+  end
+
+  defp fill_public_limit(address) do
+    limit =
+      :tcg_cheap
+      |> Application.fetch_env!(:public_acquisition_limiter)
+      |> Keyword.fetch!(:limit)
+
+    for _attempt <- 1..limit, do: assert(:ok = PublicAcquisitionLimiter.reserve(address))
   end
 end

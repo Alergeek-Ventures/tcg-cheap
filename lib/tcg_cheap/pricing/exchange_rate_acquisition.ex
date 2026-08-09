@@ -28,7 +28,7 @@ defmodule TcgCheap.Pricing.ExchangeRateAcquisition do
          :ok <- Phoenix.PubSub.subscribe(TcgCheap.PubSub, topic()),
          {:ok, now} <- clock_now(opts),
          {:ok, latest} <- latest(DateTime.to_date(now)) do
-      if fresh_today?(latest, now), do: {:fresh, latest}, else: enqueue_result()
+      if fresh_today?(latest, now), do: {:fresh, latest}, else: enqueue_result(opts)
     else
       false -> {:error, :invalid_options}
       error -> error
@@ -41,13 +41,48 @@ defmodule TcgCheap.Pricing.ExchangeRateAcquisition do
 
   defp valid_options?(opts) do
     Keyword.keyword?(opts) and unique_keys?(opts) and
-      Enum.all?(Keyword.keys(opts), &(&1 == :clock))
+      Enum.all?(Keyword.keys(opts), &(&1 in [:clock, :request_admitter])) and
+      valid_function_option?(opts, :request_admitter, 0)
   end
 
-  defp enqueue_result do
+  defp valid_function_option?(opts, key, arity) do
+    case Keyword.fetch(opts, key) do
+      :error -> true
+      {:ok, value} -> is_function(value, arity)
+    end
+  end
+
+  defp enqueue_result(opts) do
+    case admit(opts) do
+      :ok -> enqueue_job()
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp enqueue_job do
     case enqueue() do
       {:ok, job} -> {:enqueued, job}
       error -> error
+    end
+  end
+
+  defp admit(opts) do
+    case Keyword.get(opts, :request_admitter) do
+      nil ->
+        {:error, :request_admitter_required}
+
+      callback ->
+        try do
+          case callback.() do
+            :ok -> :ok
+            {:error, reason} -> {:error, reason}
+            _ -> {:error, :invalid_request_admission}
+          end
+        rescue
+          _ -> {:error, :request_admission_failed}
+        catch
+          _, _ -> {:error, :request_admission_failed}
+        end
     end
   end
 

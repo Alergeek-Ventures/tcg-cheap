@@ -5,6 +5,7 @@ defmodule TcgCheapWeb.CardDetailLive do
   alias TcgCheap.Core
   alias TcgCheap.Pricing.Singles.{Freshness, ValuationAcquisition, ValuationHistory}
   alias TcgCheap.Trades.Composition
+  alias TcgCheapWeb.PublicAcquisitionLimiter
 
   @impl true
   def handle_params(params, _uri, socket) do
@@ -28,14 +29,20 @@ defmodule TcgCheapWeb.CardDetailLive do
             card: card,
             card_image_url: CardImage.detail_url(card.image_url),
             tcgdex_id: tcgdex_id,
-            policy_version: ValuationAcquisition.policy_version()
+            policy_version: ValuationAcquisition.policy_version(),
+            public_address: public_address(socket)
           )
           |> assign_valuation(:disconnected)
           |> reload_valuation(card)
 
         if connected?(socket) do
           socket =
-            handle_acquisition_result(socket, ValuationAcquisition.subscribe_and_request(card))
+            handle_acquisition_result(
+              socket,
+              ValuationAcquisition.subscribe_and_request(card,
+                request_admitter: PublicAcquisitionLimiter.admitter(socket.assigns.public_address)
+              )
+            )
 
           {:ok, reload_valuation(socket, card)}
         else
@@ -44,6 +51,13 @@ defmodule TcgCheapWeb.CardDetailLive do
 
       _ ->
         {:ok, assign(socket, page_title: "Printing not found", tcgdex_id: tcgdex_id)}
+    end
+  end
+
+  defp public_address(socket) do
+    case Phoenix.LiveView.get_connect_info(socket, :peer_data) do
+      %{address: address} -> address
+      _ -> nil
     end
   end
 

@@ -86,6 +86,12 @@ config :tcg_cheap, :admin_login_limiter,
   max_entries: 10_000,
   prune_interval_ms: 60_000
 
+config :tcg_cheap, :public_acquisition_limiter,
+  limit: 30,
+  window_ms: 60 * 60 * 1_000,
+  max_entries: 10_000,
+  prune_interval_ms: 60_000
+
 config :tcg_cheap, :valuation_provider,
   adapter: TcgCheap.Pricing.Singles.TcgdexCardmarket,
   options: []

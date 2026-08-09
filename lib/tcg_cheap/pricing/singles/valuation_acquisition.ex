@@ -19,26 +19,34 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
   def enqueue_if_stale(input, opts \\ [])
 
   def enqueue_if_stale(input, opts) when is_list(opts) do
-    with {:ok, card} <- resolve_card(input),
+    with true <- valid_options?(opts),
+         {:ok, card} <- resolve_card(input),
          {:ok, now} <- clock_now(opts),
          {:ok, current} <- TcgCheap.Core.get_current_single_valuation(card.id, @policy_version) do
-      enqueue_for_status(card, current, Freshness.status(current, now))
+      enqueue_for_status(card, current, Freshness.status(current, now), opts)
+    else
+      false -> {:error, :invalid_options}
+      error -> error
     end
   end
 
-  def enqueue_if_stale(_input, _opts), do: {:error, :invalid_clock}
+  def enqueue_if_stale(_input, _opts), do: {:error, :invalid_options}
 
   @doc "Subscribe before requesting freshness, so callers can reconcile the result."
   def subscribe_and_request(input, opts \\ [])
 
   def subscribe_and_request(input, opts) when is_list(opts) do
-    with {:ok, card} <- resolve_card(input),
+    with true <- valid_options?(opts),
+         {:ok, card} <- resolve_card(input),
          :ok <- subscribe(card) do
       {:ok, card, enqueue_if_stale(card, opts)}
+    else
+      false -> {:error, :invalid_options}
+      error -> error
     end
   end
 
-  def subscribe_and_request(_input, _opts), do: {:error, :invalid_input}
+  def subscribe_and_request(_input, _opts), do: {:error, :invalid_options}
 
   @doc "Subscribes to and requests freshness for up to 100 canonical cards in one read."
   @spec subscribe_and_request_many([map()], keyword()) ::
@@ -47,14 +55,21 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
   def subscribe_and_request_many(inputs, opts \\ [])
 
   def subscribe_and_request_many(inputs, opts) when is_list(inputs) and is_list(opts) do
-    with {:ok, requested} <- extract_many_ids(inputs),
+    with true <- valid_options?(opts),
+         {:ok, requested} <- extract_many_ids(inputs),
          {:ok, cards} <- read_many(requested),
          :ok <- validate_many(inputs, requested, cards),
          {:ok, now} <- clock_now(opts),
          :ok <- subscribe_many(cards) do
-      {:ok, build_many_results(requested, cards, now)}
+      {:ok, build_many_results(requested, cards, now, opts)}
+    else
+      false -> {:error, :invalid_options}
+      error -> error
     end
   end
+
+  def subscribe_and_request_many(_inputs, opts) when not is_list(opts),
+    do: {:error, :invalid_options}
 
   def subscribe_and_request_many(_inputs, _opts), do: {:error, :invalid_input}
 
@@ -134,13 +149,13 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
     end)
   end
 
-  defp build_many_results(requested, cards, now) do
+  defp build_many_results(requested, cards, now, opts) do
     cards_by_id = Map.new(cards, &{&1.tcgdex_id, &1})
 
     Map.new(requested, fn id ->
       card = Map.fetch!(cards_by_id, id)
       current = Map.get(card, :tcgdex_cardmarket_v1_current_valuation)
-      {id, enqueue_for_status(card, current, Freshness.status(current, now))}
+      {id, enqueue_for_status(card, current, Freshness.status(current, now), opts)}
     end)
   end
 
@@ -164,12 +179,52 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
 
   defp insert(_card), do: {:error, :invalid_local_card}
 
-  defp enqueue_for_status(_card, current, :fresh), do: {:fresh, current}
+  defp enqueue_for_status(_card, current, :fresh, _opts), do: {:fresh, current}
 
-  defp enqueue_for_status(card, _current, status) when status in [:missing, :stale] do
+  defp enqueue_for_status(card, _current, status, opts) when status in [:missing, :stale] do
+    case admit(opts) do
+      :ok -> insert_result(card)
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp insert_result(card) do
     case insert(card) do
       {:ok, job} -> {:enqueued, job}
       {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp valid_options?(opts) do
+    Keyword.keyword?(opts) and length(opts) == length(Enum.uniq(Keyword.keys(opts))) and
+      Enum.all?(Keyword.keys(opts), &(&1 in [:clock, :request_admitter])) and
+      valid_function_option?(opts, :request_admitter, 0)
+  end
+
+  defp valid_function_option?(opts, key, arity) do
+    case Keyword.fetch(opts, key) do
+      :error -> true
+      {:ok, value} -> is_function(value, arity)
+    end
+  end
+
+  defp admit(opts) do
+    case Keyword.get(opts, :request_admitter) do
+      nil ->
+        {:error, :request_admitter_required}
+
+      callback ->
+        try do
+          case callback.() do
+            :ok -> :ok
+            {:error, reason} -> {:error, reason}
+            _ -> {:error, :invalid_request_admission}
+          end
+        rescue
+          _ -> {:error, :request_admission_failed}
+        catch
+          _, _ -> {:error, :request_admission_failed}
+        end
     end
   end
 

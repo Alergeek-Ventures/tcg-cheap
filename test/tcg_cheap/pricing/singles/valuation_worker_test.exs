@@ -327,7 +327,10 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     now = ~U[2026-08-14 12:00:00Z]
 
     assert {:enqueued, _job} =
-             ValuationAcquisition.enqueue_if_stale(missing, clock: fn -> now end)
+             ValuationAcquisition.enqueue_if_stale(missing,
+               clock: fn -> now end,
+               request_admitter: fn -> :ok end
+             )
 
     fresh = create_card()
     record_snapshot(fresh, ~U[2026-08-07 12:00:01Z])
@@ -339,7 +342,10 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     record_snapshot(boundary, ~U[2026-08-07 12:00:00Z])
 
     assert {:enqueued, _job} =
-             ValuationAcquisition.enqueue_if_stale(boundary, clock: fn -> now end)
+             ValuationAcquisition.enqueue_if_stale(boundary,
+               clock: fn -> now end,
+               request_admitter: fn -> :ok end
+             )
   end
 
   test "subscribe_and_request subscribes before returning the freshness result" do
@@ -347,7 +353,8 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
 
     assert {:ok, returned_card, {:enqueued, _job}} =
              ValuationAcquisition.subscribe_and_request(card.tcgdex_id,
-               clock: fn -> ~U[2026-08-14 12:00:00Z] end
+               clock: fn -> ~U[2026-08-14 12:00:00Z] end,
+               request_admitter: fn -> :ok end
              )
 
     assert returned_card.id == card.id
@@ -367,7 +374,8 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     assert {:ok, results} =
              ValuationAcquisition.subscribe_and_request_many(
                [canonical(fresh), canonical(stale), canonical(missing)],
-               clock: fn -> now end
+               clock: fn -> now end,
+               request_admitter: fn -> :ok end
              )
 
     assert match?({:fresh, _}, results[fresh.tcgdex_id])
@@ -386,7 +394,8 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     assert {:ok, results} =
              ValuationAcquisition.subscribe_and_request_many(
                [canonical(card), canonical(card)],
-               clock: fn -> ~U[2026-08-14 12:00:00Z] end
+               clock: fn -> ~U[2026-08-14 12:00:00Z] end,
+               request_admitter: fn -> :ok end
              )
 
     assert Map.keys(results) == [card.tcgdex_id]

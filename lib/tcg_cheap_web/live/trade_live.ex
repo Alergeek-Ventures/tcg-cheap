@@ -8,6 +8,7 @@ defmodule TcgCheapWeb.TradeLive do
   alias TcgCheap.Pricing.ExchangeRateAcquisition
   alias TcgCheap.Pricing.Singles.{Freshness, ValuationAcquisition}
   alias TcgCheap.Trades.{Composition, Valuation}
+  alias TcgCheapWeb.PublicAcquisitionLimiter
 
   @max_options 10
   @max_acquisition 100
@@ -45,7 +46,8 @@ defmodule TcgCheapWeb.TradeLive do
        exchange_rate: exchange_rate,
        exchange_rate_status: exchange_rate_status,
        exchange_rate_requested?: false,
-       share_status: nil
+       share_status: nil,
+       public_address: public_address(socket)
      )
      |> stream_configure(:card_results, dom_id: fn result -> "trade-card-option-#{result.id}" end)
      |> stream(:card_results, [])}
@@ -569,7 +571,9 @@ defmodule TcgCheapWeb.TradeLive do
   end
 
   defp exchange_rate_request_result(socket) do
-    case ExchangeRateAcquisition.subscribe_and_request_latest() do
+    case ExchangeRateAcquisition.subscribe_and_request_latest(
+           request_admitter: PublicAcquisitionLimiter.admitter(socket.assigns.public_address)
+         ) do
       {:fresh, rate} -> fresh_exchange_rate(socket, rate)
       {:enqueued, _job} -> assign(socket, :exchange_rate_status, :pending)
       _ -> assign(socket, :exchange_rate_status, :failed)
@@ -599,7 +603,10 @@ defmodule TcgCheapWeb.TradeLive do
 
         cards ->
           result =
-            ValuationAcquisition.subscribe_and_request_many(Enum.take(cards, @max_acquisition))
+            ValuationAcquisition.subscribe_and_request_many(
+              Enum.take(cards, @max_acquisition),
+              request_admitter: PublicAcquisitionLimiter.admitter(socket.assigns.public_address)
+            )
 
           states = acquisition_states(result, new_ids)
 
@@ -610,6 +617,13 @@ defmodule TcgCheapWeb.TradeLive do
       end
     else
       socket
+    end
+  end
+
+  defp public_address(socket) do
+    case Phoenix.LiveView.get_connect_info(socket, :peer_data) do
+      %{address: address} -> address
+      _ -> nil
     end
   end
 

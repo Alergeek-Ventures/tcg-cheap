@@ -1,4 +1,5 @@
 defmodule TcgCheapWeb.TradeLiveTest do
+  import Bitwise
   import Oban.Testing
   import Phoenix.LiveViewTest
   use TcgCheapWeb.ConnCase, async: false
@@ -8,8 +9,20 @@ defmodule TcgCheapWeb.TradeLiveTest do
   alias TcgCheap.Pricing.ExchangeRateWorker
   alias TcgCheap.Pricing.Singles.ValuationWorker
   alias TcgCheap.Trades.Composition
+  alias TcgCheapWeb.PublicAcquisitionLimiter
 
   @policy "tcgdex_cardmarket_v1"
+
+  setup %{conn: conn} do
+    address = unique_ip()
+
+    conn =
+      conn
+      |> Map.put(:remote_ip, address)
+      |> put_private(:live_view_connect_info, %{peer_data: %{address: address}})
+
+    {:ok, conn: conn}
+  end
 
   test "empty trade has stable structure, accessible search, and empty ledgers", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/trade")
@@ -111,6 +124,26 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-left-total-pln", "PLN unavailable")
     assert has_element?(view, "#trade-rate-evidence", "PLN unavailable")
     assert has_element?(view, "#trade-comparison-eur", "Comparison incomplete")
+  end
+
+  test "a peer at the public acquisition limit queues neither rate nor valuation work", %{
+    conn: conn
+  } do
+    card = card("public-limit", "Public Limit", 1)
+    fill_public_limit(conn.remote_ip)
+
+    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
+
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Price unavailable")
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Update failed")
+    assert has_element?(view, "#trade-rate-evidence", "Exchange-rate update failed")
+    refute_enqueued(repo: TcgCheap.Repo, worker: ExchangeRateWorker)
+
+    refute_enqueued(
+      repo: TcgCheap.Repo,
+      worker: ValuationWorker,
+      args: %{"local_card_id" => card.id}
+    )
   end
 
   test "exchange completion updates PLN without remounting and malformed completion is ignored",
@@ -602,5 +635,21 @@ defmodule TcgCheapWeb.TradeLiveTest do
       worker: ValuationWorker,
       args: %{"local_card_id" => card.id}
     )
+  end
+
+  defp unique_ip do
+    n = System.unique_integer([:positive])
+
+    {0x2001, 0xDB8, 0, 1, n >>> 48 &&& 0xFFFF, n >>> 32 &&& 0xFFFF, n >>> 16 &&& 0xFFFF,
+     n &&& 0xFFFF}
+  end
+
+  defp fill_public_limit(address) do
+    limit =
+      :tcg_cheap
+      |> Application.fetch_env!(:public_acquisition_limiter)
+      |> Keyword.fetch!(:limit)
+
+    for _attempt <- 1..limit, do: assert(:ok = PublicAcquisitionLimiter.reserve(address))
   end
 end
