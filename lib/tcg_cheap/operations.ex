@@ -61,5 +61,22 @@ defmodule TcgCheap.Operations do
     resource TcgCheap.Operations.SourceHealth do
       define :list_source_health, action: :by_providers, args: [:provider_keys]
     end
+
+    resource TcgCheap.Operations.ImportIssue do
+      define :record_import_issue,
+        action: :record,
+        args: [
+          :provider_key,
+          :operation,
+          :stage,
+          :target_type,
+          :target_key,
+          :issue_kind,
+          :issue_code,
+          :occurred_at
+        ]
+
+      define :list_admin_import_issues, action: :admin_catalogue
+    end
   end
 end

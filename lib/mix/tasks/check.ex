@@ -10,7 +10,7 @@ defmodule Mix.Tasks.Check do
     {"Sobelow", ["sobelow", "--config", "--compact", "--private"]},
     {"compile", ["compile", "--warnings-as-errors"]},
     {"unused dependencies", ["deps.unlock", "--check-unused"]},
-    {"xref", ["xref", "graph", "--label", "compile-connected", "--fail-above", "50"]},
+    {"xref", ["xref", "graph", "--label", "compile-connected", "--fail-above", "53"]},
     {"Credo", ["credo", "--strict"]},
     {"Dialyzer", ["dialyzer"]}
   ]

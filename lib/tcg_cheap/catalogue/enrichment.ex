@@ -3,6 +3,7 @@ defmodule TcgCheap.Catalogue.Enrichment do
 
   alias TcgCheap.Catalogue.{Importer, Tcgdex}
   alias TcgCheap.Operations.AcquisitionBudget
+  alias TcgCheap.Operations.ImportIssues
 
   @default_concurrency 4
   @default_timeout 30_000
@@ -14,39 +15,49 @@ defmodule TcgCheap.Catalogue.Enrichment do
 
   def enrich_set(set_id, opts) when is_binary(set_id) and is_list(opts) do
     with {:ok, set_id} <- canonical_id(set_id),
-         {:ok, config} <- validate_options(opts),
-         {:ok, set} <-
-           provider_call_with_timeout(
-             config.provider,
-             :fetch_set,
-             [set_id, config.provider_options],
-             config.fetch_timeout
-           ),
-         :ok <- validate_set_identity(set, set_id) do
-      if pocket?(set) do
-        {:ok,
-         %{
-           status: :excluded,
-           reason: :tcg_pocket,
-           set_id: set_id,
-           cards_seen: 0,
-           cards_enriched: 0,
-           cards_preserved: 0,
-           cards_failed: 0,
-           failures: []
-         }}
-      else
-        enrich_validated_cards(set, set_id, config)
-      end
+         {:ok, config} <- validate_options(opts) do
+      config.provider
+      |> provider_call_with_timeout(
+        :fetch_set,
+        [set_id, config.provider_options],
+        config.fetch_timeout
+      )
+      |> handle_set_fetch(set_id, config)
     end
   end
 
   def enrich_set(_, _), do: {:error, :invalid_options}
 
+  defp handle_set_fetch({:error, reason} = error, set_id, _config) do
+    _ = record_issue("set_fetch", "set", set_id, reason)
+    error
+  end
+
+  defp handle_set_fetch({:ok, set}, set_id, config) do
+    set
+    |> validate_set_identity(set_id)
+    |> handle_set_validation(set, set_id, config)
+  end
+
+  defp handle_set_validation({:error, reason} = error, _set, set_id, _config) do
+    _ = record_issue("set_validation", "set", set_id, reason)
+    error
+  end
+
+  defp handle_set_validation(:ok, set, set_id, config) do
+    if pocket?(set),
+      do: {:ok, excluded_result(set_id)},
+      else: enrich_validated_cards(set, set_id, config)
+  end
+
   defp enrich_validated_cards(set, set_id, config) do
     case validate_cards(set) do
-      {:ok, card_ids} -> enrich_cards(set, set_id, card_ids, config)
-      error -> error
+      {:ok, card_ids} ->
+        enrich_cards(set, set_id, card_ids, config)
+
+      {:error, reason} = error ->
+        _ = record_issue("set_validation", "set", set_id, reason)
+        error
     end
   end
 
@@ -76,31 +87,56 @@ defmodule TcgCheap.Catalogue.Enrichment do
         end
       end)
 
-    with {:ok, synced_at} <- clock_datetime(config.clock) do
-      {enriched, preserved, failures} =
-        Enum.reduce(results, {0, 0, []}, fn
-          {:error, card_id, stage, reason}, {count, preserved, failures} ->
-            {count, preserved, [{card_id, stage, reason} | failures]}
+    case clock_datetime(config.clock) do
+      {:ok, synced_at} ->
+        {enriched, preserved, failures} =
+          Enum.reduce(results, {0, 0, []}, fn
+            {:error, card_id, stage, reason}, {count, preserved, failures} ->
+              _ =
+                ImportIssues.record(
+                  "tcgdex_catalogue",
+                  "card_catalogue_enrichment",
+                  "card_fetch",
+                  "card",
+                  card_id,
+                  reason,
+                  synced_at
+                )
 
-          {:ok, card_id, card}, {count, preserved, failures} ->
-            import_result(card, set, set_id, card_id, synced_at, count, preserved, failures)
-        end)
+              {count, preserved, [{card_id, stage, reason} | failures]}
 
-      {:ok,
-       %{
-         status: :completed,
-         set_id: set_id,
-         cards_seen: length(card_ids),
-         cards_enriched: enriched,
-         cards_preserved: preserved,
-         cards_failed: length(failures),
-         failures:
-           Enum.reverse(
-             Enum.map(failures, fn {card_id, stage, reason} ->
-               %{card_id: card_id, stage: stage, reason: reason}
-             end)
-           )
-       }}
+            {:ok, card_id, card}, {count, preserved, failures} ->
+              import_result(
+                card,
+                set,
+                set_id,
+                card_id,
+                synced_at,
+                count,
+                preserved,
+                failures
+              )
+          end)
+
+        {:ok,
+         %{
+           status: :completed,
+           set_id: set_id,
+           cards_seen: length(card_ids),
+           cards_enriched: enriched,
+           cards_preserved: preserved,
+           cards_failed: length(failures),
+           failures:
+             Enum.reverse(
+               Enum.map(failures, fn {card_id, stage, reason} ->
+                 %{card_id: card_id, stage: stage, reason: reason}
+               end)
+             )
+         }}
+
+      {:error, :invalid_clock} = error ->
+        _ = record_issue("set_import", "set", set_id, :invalid_clock)
+        error
     end
   end
 
@@ -109,13 +145,25 @@ defmodule TcgCheap.Catalogue.Enrichment do
            synced_at: synced_at,
            expected_set_id: set_id
          ) do
-      {:ok, %{outcome: :imported}} ->
+      {:ok, %{outcome: :imported, card: imported_card}} ->
+        record_mapping_issue(imported_card, card_id, synced_at)
         {count + 1, preserved, failures}
 
       {:ok, %{outcome: :stale}} ->
         {count, preserved + 1, failures}
 
       {:error, reason} ->
+        _ =
+          ImportIssues.record(
+            "tcgdex_catalogue",
+            "card_catalogue_enrichment",
+            "card_import",
+            "card",
+            card_id,
+            reason,
+            synced_at
+          )
+
         {count, preserved, [{card_id, :import, reason} | failures]}
     end
   end
@@ -277,5 +325,55 @@ defmodule TcgCheap.Catalogue.Enrichment do
     end
   rescue
     _ -> {:error, :invalid_clock}
+  end
+
+  defp record_issue(stage, target_type, target_key, reason) do
+    ImportIssues.record(
+      "tcgdex_catalogue",
+      "card_catalogue_enrichment",
+      stage,
+      target_type,
+      target_key,
+      reason
+    )
+  end
+
+  defp record_mapping_issue(%{mapping_status: "unmatched"}, card_id, synced_at),
+    do:
+      ImportIssues.record(
+        "tcgdex_catalogue",
+        "card_catalogue_enrichment",
+        "card_import",
+        "card",
+        card_id,
+        :unmatched_external_mapping,
+        synced_at
+      )
+
+  defp record_mapping_issue(%{mapping_status: "review"}, card_id, synced_at),
+    do:
+      ImportIssues.record(
+        "tcgdex_catalogue",
+        "card_catalogue_enrichment",
+        "card_import",
+        "card",
+        card_id,
+        :ambiguous_external_mapping,
+        synced_at
+      )
+
+  defp record_mapping_issue(_, _, _), do: :ok
+
+  defp excluded_result(set_id) do
+    %{
+      status: :excluded,
+      reason: :tcg_pocket,
+      set_id: set_id,
+      cards_seen: 0,
+      cards_enriched: 0,
+      cards_preserved: 0,
+      cards_failed: 0,
+      failures: []
+    }
   end
 end

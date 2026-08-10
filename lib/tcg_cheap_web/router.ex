@@ -54,6 +54,7 @@ defmodule TcgCheapWeb.Router do
       on_mount: [Backpex.InitAssigns, {TcgCheapWeb.AdminAuth, :require_admin}] do
       live "/review", ReviewLive
       live "/operations", OperationsLive
+      live_resources "/operations/import-issues", ImportIssueLive, only: [:index, :show]
       live "/catalogue/mappings/:id/correct", ListingProductMappingCorrectionLive
       live_resources "/catalogue/products", SealedProductLive
       live_resources "/catalogue/retailers", RetailerLive

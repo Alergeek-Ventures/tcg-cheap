@@ -138,6 +138,13 @@ defmodule TcgCheapWeb.Layouts do
           >
             <Backpex.HTML.CoreComponents.icon name="hero-command-line" class="size-5" /> Operations
           </Backpex.HTML.Layout.sidebar_item>
+          <Backpex.HTML.Layout.sidebar_item
+            current_url={@current_url}
+            navigate={~p"/admin/operations/import-issues"}
+          >
+            <Backpex.HTML.CoreComponents.icon name="hero-exclamation-triangle" class="size-5" />
+            Import issues
+          </Backpex.HTML.Layout.sidebar_item>
         </:sidebar>
         <Backpex.HTML.Layout.flash_messages flash={@flash} />
         {render_slot(@inner_block)}

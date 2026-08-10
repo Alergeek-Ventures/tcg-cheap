@@ -10,6 +10,7 @@ defmodule TcgCheap.Catalogue.Sync do
   alias TcgCheap.Catalogue.{CardPrinting, CardSet, Normalizer, Tcgdex}
   alias TcgCheap.{Core, Repo}
   alias TcgCheap.Operations.AcquisitionBudget
+  alias TcgCheap.Operations.ImportIssues
 
   @type result :: %{
           set_id: String.t(),
@@ -22,49 +23,127 @@ defmodule TcgCheap.Catalogue.Sync do
 
   def sync_set(set_id, opts) when is_binary(set_id) and is_list(opts) do
     with {:ok, set_id} <- canonical_id(set_id),
-         {:ok, provider, provider_options, clock} <- validate_options(opts, :set),
-         {:ok, set} <- provider.fetch_set(set_id, provider_options),
-         :ok <- validate_set_identity(set, set_id) do
-      if tcg_pocket?(set) do
-        {:ok, excluded_result(set_id)}
-      else
-        sync_supported_set(set, set_id, clock)
-      end
+         {:ok, provider, provider_options, clock} <- validate_options(opts, :set) do
+      provider
+      |> safe_provider_call(:fetch_set, [set_id, provider_options])
+      |> handle_set_fetch(set_id, clock)
     end
   end
 
   def sync_set(_, _), do: {:error, :invalid_options}
 
+  defp handle_set_fetch({:error, reason} = error, set_id, _clock) do
+    _ = record_issue("set_fetch", "set", set_id, reason)
+    error
+  end
+
+  defp handle_set_fetch({:ok, set}, set_id, clock) do
+    set
+    |> validate_set_identity(set_id)
+    |> handle_set_validation(set, set_id, clock)
+  end
+
+  defp handle_set_validation({:error, reason} = error, _set, set_id, _clock) do
+    _ = record_issue("set_validation", "set", set_id, reason)
+    error
+  end
+
+  defp handle_set_validation(:ok, set, set_id, clock) do
+    if tcg_pocket?(set),
+      do: {:ok, excluded_result(set_id)},
+      else: sync_supported_set(set, set_id, clock)
+  end
+
   defp sync_supported_set(set, set_id, clock) do
-    with {:ok, cards} <- validate_set(set, set_id),
-         {:ok, synced_at} <- clock_datetime(clock) do
-      persist(
-        Map.merge(set, %{"id" => set_id, "name" => String.trim(set["name"])}),
-        cards,
-        synced_at
-      )
+    case validate_set(set, set_id) do
+      {:ok, cards} ->
+        sync_cards(set, set_id, cards, clock)
+
+      {:error, reason} = error ->
+        _ = record_issue("set_validation", "set", set_id, reason)
+        error
     end
   end
+
+  defp sync_cards(set, set_id, cards, clock) do
+    case clock_datetime(clock) do
+      {:ok, synced_at} ->
+        set
+        |> Map.merge(%{"id" => set_id, "name" => String.trim(set["name"])})
+        |> persist(cards, synced_at)
+        |> handle_persist_result(set_id, synced_at)
+
+      {:error, :invalid_clock} = error ->
+        _ = record_issue("set_import", "set", set_id, :invalid_clock)
+        error
+    end
+  end
+
+  defp handle_persist_result({:error, reason} = error, set_id, synced_at) do
+    _ =
+      ImportIssues.record(
+        "tcgdex_catalogue",
+        "card_catalogue_sync",
+        "set_import",
+        "set",
+        set_id,
+        reason,
+        synced_at
+      )
+
+    error
+  end
+
+  defp handle_persist_result(result, _set_id, _synced_at), do: result
 
   def sync_all_sets(opts \\ [])
 
   def sync_all_sets(opts) when is_list(opts) do
-    with {:ok, provider, provider_options, clock} <- validate_options(opts, :list),
-         {:ok, sets} <- provider.list_sets(provider_options),
-         {:ok, sets} <- validate_briefs(sets) do
-      initial = %{report() | discovered_sets: length(sets)}
+    case validate_options(opts, :list) do
+      {:ok, provider, provider_options, clock} ->
+        provider
+        |> safe_provider_call(:list_sets, [provider_options])
+        |> handle_catalogue_fetch(provider, provider_options, clock)
 
-      sets
-      |> Enum.reduce(initial, fn %{"id" => id}, report ->
-        sync_one(id, report, provider, provider_options, clock)
-      end)
-      |> Map.update!(:failures, &Enum.reverse/1)
-      |> Map.update!(:exclusions, &Enum.reverse/1)
-      |> then(&{:ok, &1})
+      error ->
+        error
     end
   end
 
   def sync_all_sets(_), do: {:error, :invalid_options}
+
+  defp handle_catalogue_fetch({:error, reason} = error, _provider, _options, _clock) do
+    _ = record_issue("catalogue_fetch", "catalogue", "tcgdex", reason)
+    error
+  end
+
+  defp handle_catalogue_fetch({:ok, sets}, provider, provider_options, clock) do
+    sets
+    |> validate_briefs()
+    |> handle_catalogue_validation(provider, provider_options, clock)
+  end
+
+  defp handle_catalogue_validation(
+         {:error, reason} = error,
+         _provider,
+         _provider_options,
+         _clock
+       ) do
+    _ = record_issue("catalogue_validation", "catalogue", "tcgdex", reason)
+    error
+  end
+
+  defp handle_catalogue_validation({:ok, sets}, provider, provider_options, clock) do
+    initial = %{report() | discovered_sets: length(sets)}
+
+    sets
+    |> Enum.reduce(initial, fn %{"id" => id}, report ->
+      sync_one(id, report, provider, provider_options, clock)
+    end)
+    |> Map.update!(:failures, &Enum.reverse/1)
+    |> Map.update!(:exclusions, &Enum.reverse/1)
+    |> then(&{:ok, &1})
+  end
 
   defp report,
     do: %{
@@ -149,6 +228,25 @@ defmodule TcgCheap.Catalogue.Sync do
     end
   rescue
     _ -> {:error, :invalid_clock}
+  end
+
+  defp safe_provider_call(provider, function, args) do
+    case apply(provider, function, args) do
+      {:ok, value}
+      when (function == :fetch_set and is_map(value)) or
+             (function == :list_sets and is_list(value)) ->
+        {:ok, value}
+
+      {:error, reason} ->
+        {:error, reason}
+
+      other ->
+        {:error, {:provider_callback_error, function, {:unexpected_return, other}}}
+    end
+  rescue
+    exception -> {:error, {:provider_callback_error, function, {:raised, exception}}}
+  catch
+    kind, reason -> {:error, {:provider_callback_error, function, {kind, reason}}}
   end
 
   defp validate_set(%{"id" => id, "name" => name, "cards" => cards} = set, _expected)
@@ -386,6 +484,17 @@ defmodule TcgCheap.Catalogue.Sync do
             failures: [%{set_id: id, stage: :sync, reason: reason} | report.failures]
         }
     end
+  end
+
+  defp record_issue(stage, target_type, target_key, reason) do
+    ImportIssues.record(
+      "tcgdex_catalogue",
+      "card_catalogue_sync",
+      stage,
+      target_type,
+      target_key,
+      reason
+    )
   end
 
   defp excluded_result(set_id),

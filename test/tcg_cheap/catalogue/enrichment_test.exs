@@ -3,7 +3,7 @@ defmodule TcgCheap.Catalogue.EnrichmentTest do
 
   import Ecto.Query
   alias Ecto.Adapters.SQL.Sandbox
-  alias TcgCheap.{Catalogue.Enrichment, Core, Repo}
+  alias TcgCheap.{Catalogue.Enrichment, Core, Operations, Repo}
 
   defmodule Provider do
     def fetch_set(id, opts) do
@@ -48,6 +48,7 @@ defmodule TcgCheap.Catalogue.EnrichmentTest do
     Sandbox.mode(Repo, {:shared, self()})
     Repo.delete_all("card_printings")
     Repo.delete_all("card_sets")
+    Repo.delete_all("import_issues")
     {:ok, state} = Agent.start_link(fn -> [] end)
     %{state: state}
   end
@@ -123,6 +124,13 @@ defmodule TcgCheap.Catalogue.EnrichmentTest do
     assert unmatched.mapping_status == "unmatched"
     assert {:ok, review} = Core.get_card_printing_by_tcgdex_id(Enum.at(ids, 2))
     assert review.mapping_status == "review"
+    assert {:ok, issues} = Operations.list_admin_import_issues(authorize?: false)
+
+    assert Enum.sort(Enum.map(issues, &{&1.target_key, &1.issue_kind, &1.issue_code})) ==
+             Enum.sort([
+               {Enum.at(ids, 1), "unmatched", "provider_response"},
+               {Enum.at(ids, 2), "ambiguous", "provider_response"}
+             ])
   end
 
   test "rejects malformed, truncated, and duplicate card lists before detail calls or writes", %{
@@ -180,6 +188,16 @@ defmodule TcgCheap.Catalogue.EnrichmentTest do
     assert Enum.at(report.failures, 0).stage == :fetch
     assert Enum.at(report.failures, 1).stage == :import
     assert {:ok, _} = Core.get_card_printing_by_tcgdex_id(Enum.at(ids, 3))
+
+    assert {:ok, issues} = Operations.list_admin_import_issues(authorize?: false)
+
+    assert Enum.sort(Enum.map(issues, &{&1.target_key, &1.stage, &1.issue_code})) ==
+             Enum.sort([
+               {Enum.at(ids, 1), "card_fetch", "unknown"},
+               {Enum.at(ids, 0), "card_import", "provider_response"},
+               {Enum.at(ids, 2), "card_import", "malformed_response"},
+               {Enum.at(ids, 3), "card_import", "provider_response"}
+             ])
   end
 
   test "rejects returned set mismatch as an isolated import failure", %{state: state} do
@@ -224,6 +242,10 @@ defmodule TcgCheap.Catalogue.EnrichmentTest do
 
       assert Repo.aggregate(from(s in "card_sets"), :count, :id) == 0
     end
+
+    assert {:ok, [issue]} = Operations.list_admin_import_issues(authorize?: false)
+    assert issue.stage == "set_import"
+    assert issue.issue_code == "local_input"
   end
 
   test "bounds detail fetch concurrency", %{state: state} do
@@ -301,6 +323,13 @@ defmodule TcgCheap.Catalogue.EnrichmentTest do
                provider: __MODULE__.MalformedSetProvider,
                provider_options: [state: bad_state]
              )
+
+    assert {:ok, issues} = Operations.list_admin_import_issues(authorize?: false)
+
+    assert Enum.any?(
+             issues,
+             &(&1.stage == "set_fetch" and &1.issue_code == "provider_response")
+           )
   end
 
   test "reports malformed card callback as a fetch failure", _context do
@@ -384,6 +413,11 @@ defmodule TcgCheap.Catalogue.EnrichmentTest do
     assert Enum.map(report.failures, & &1.card_id) == Enum.take(ids, 4)
     assert Enum.all?(report.failures, &(&1.stage == :fetch))
     assert {:ok, _} = Core.get_card_printing_by_tcgdex_id(healthy)
+
+    assert {:ok, issues} = Operations.list_admin_import_issues(authorize?: false)
+    fetch_issues = Enum.filter(issues, &(&1.stage == "card_fetch"))
+    assert length(fetch_issues) == 4
+    assert Enum.count(fetch_issues, &(&1.issue_code == "provider_response")) == 3
   end
 
   test "rejects invalid options, providers, provider options, and bounds", %{state: state} do

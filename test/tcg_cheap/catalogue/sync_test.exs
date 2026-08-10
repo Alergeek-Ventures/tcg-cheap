@@ -4,7 +4,7 @@ defmodule TcgCheap.Catalogue.SyncTest do
   import Ecto.Query
   alias Ecto.Adapters.SQL.Sandbox
   alias TcgCheap.Catalogue.{Importer, Sync}
-  alias TcgCheap.{Core, Repo}
+  alias TcgCheap.{Core, Operations, Repo}
 
   defmodule Provider do
     def fetch_set(id, opts) do
@@ -30,11 +30,31 @@ defmodule TcgCheap.Catalogue.SyncTest do
     end
   end
 
+  defmodule CallbackProvider do
+    def list_sets(opts), do: callback(Keyword.fetch!(opts, :list_result))
+
+    def fetch_set(id, opts) do
+      opts
+      |> Keyword.fetch!(:sets)
+      |> Map.fetch!(id)
+      |> callback()
+    end
+
+    defp callback({:ok, value}), do: {:ok, value}
+    defp callback({:error, reason}), do: {:error, reason}
+    defp callback({:return, value}), do: value
+    defp callback({:raise, message}), do: raise(message)
+    defp callback({:throw, reason}), do: throw(reason)
+    defp callback({:exit, reason}), do: exit(reason)
+    defp callback(value), do: {:ok, value}
+  end
+
   setup do
     :ok = Sandbox.checkout(Repo)
     Sandbox.mode(Repo, {:shared, self()})
     Repo.delete_all("card_printings")
     Repo.delete_all("card_sets")
+    Repo.delete_all("import_issues")
     :ok
   end
 
@@ -155,6 +175,7 @@ defmodule TcgCheap.Catalogue.SyncTest do
     assert report.synced_sets == 0
     assert report.failed_sets == 0
     assert report.exclusions == [%{set_id: set_id, reason: :tcg_pocket}]
+    assert {:ok, []} = Operations.list_admin_import_issues(authorize?: false)
   end
 
   test "does not classify a mismatched Pocket payload as excluded" do
@@ -497,6 +518,104 @@ defmodule TcgCheap.Catalogue.SyncTest do
     assert report.cards_seen == 2
     assert report.cards_seeded == 2
     assert [%{set_id: ^broken, stage: :sync, reason: :offline}] = report.failures
+
+    assert {:ok, [issue]} = Operations.list_admin_import_issues(authorize?: false)
+    assert issue.operation == "card_catalogue_sync"
+    assert issue.stage == "set_fetch"
+    assert issue.target_type == "set"
+    assert issue.target_key == broken
+    assert issue.issue_kind == "failed"
+    assert issue.issue_code == "unknown"
+  end
+
+  test "records bounded catalogue and malformed-set diagnostics without raw reasons" do
+    secret = "https://provider.test/sets?token=do-not-retain"
+
+    assert {:error, {:transport_error, ^secret}} =
+             Sync.sync_all_sets(
+               provider: Provider,
+               provider_options: [list_result: {:error, {:transport_error, secret}}]
+             )
+
+    set_id = id("diagnostic-malformed")
+    malformed = set(set_id, []) |> Map.delete("cardCount")
+
+    assert {:error, {:malformed_response, {:set, :invalid_card_count_total}}} =
+             Sync.sync_set(
+               set_id,
+               opts(%{set_id => malformed}, fn -> raise "business clock must not run" end)
+             )
+
+    assert {:ok, issues} = Operations.list_admin_import_issues(authorize?: false)
+
+    assert Enum.map(issues, &{&1.stage, &1.issue_kind, &1.issue_code}) |> Enum.sort() ==
+             [
+               {"catalogue_fetch", "failed", "transport"},
+               {"set_validation", "malformed", "malformed_response"}
+             ]
+
+    refute inspect(issues) =~ secret
+  end
+
+  test "normalizes malformed and failed list callbacks without retaining details" do
+    callbacks = [
+      {:return, :unexpected},
+      {:raise, "raise-secret"},
+      {:throw, "throw-secret"},
+      {:exit, "exit-secret"}
+    ]
+
+    for callback <- callbacks do
+      assert {:error, {:provider_callback_error, :list_sets, _}} =
+               Sync.sync_all_sets(
+                 provider: CallbackProvider,
+                 provider_options: [list_result: callback]
+               )
+    end
+
+    assert {:ok, [issue]} = Operations.list_admin_import_issues(authorize?: false)
+    assert issue.stage == "catalogue_fetch"
+    assert issue.issue_kind == "failed"
+    assert issue.issue_code == "provider_response"
+    refute inspect(issue) =~ "secret"
+  end
+
+  test "isolates a failed set callback and continues the catalogue" do
+    first = id("callback-first")
+    broken = id("callback-broken")
+    third = id("callback-third")
+
+    assert {:ok, report} =
+             Sync.sync_all_sets(
+               provider: CallbackProvider,
+               provider_options: [
+                 list_result:
+                   {:ok,
+                    [
+                      %{"id" => first, "name" => "First"},
+                      %{"id" => broken, "name" => "Broken"},
+                      %{"id" => third, "name" => "Third"}
+                    ]},
+                 sets: %{
+                   first => set(first, []),
+                   broken => {:throw, "set-secret"},
+                   third => set(third, [])
+                 }
+               ],
+               clock: fn -> ~U[2026-01-01 00:00:00Z] end
+             )
+
+    assert report.synced_sets == 2
+    assert report.failed_sets == 1
+
+    assert [%{set_id: ^broken, stage: :sync, reason: {:provider_callback_error, :fetch_set, _}}] =
+             report.failures
+
+    assert {:ok, [issue]} = Operations.list_admin_import_issues(authorize?: false)
+    assert issue.target_key == broken
+    assert issue.stage == "set_fetch"
+    assert issue.issue_code == "provider_response"
+    refute inspect(issue) =~ "set-secret"
   end
 
   test "malformed list and invalid options do not write or raise" do
