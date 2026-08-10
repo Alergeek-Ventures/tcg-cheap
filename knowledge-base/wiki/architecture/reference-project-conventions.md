@@ -106,7 +106,8 @@ range. Authentication, actor propagation, stale-safe sealed draft/manual pending
   mapping/history and card-set/card/valuation inspection slices, and existing background dependency versions
   are selected and validated. Typed canonical refresh/requeue for NBP, exact local Singles valuations, and configured
   active sealed retailers is also validated. Import issues, arbitrary retained-job replay, card-mapping
-  correction/history, and buying-model inspection remain open admin work.
+  correction/history remain open admin work; exact read-only current buying-model
+  inspection now lives in the focused authenticated operations desk.
 - Do not introduce multitenancy absent a demonstrated requirement. Decide the
   worker authorization/scope shape alongside the product resources.
 

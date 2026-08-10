@@ -65,6 +65,12 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#operations-providers")
     assert has_element?(view, "#operations-acquisition-runs")
     assert has_element?(view, "#operations-retained-jobs")
+    assert has_element?(view, "#operations-buying-model")
+    assert has_element?(view, "#operations-buying-model-dockets")
+    assert has_element?(view, "#operations-model-identity")
+    assert has_element?(view, "#operations-model-component-weights")
+    assert has_element?(view, "#operations-model-hard-requirements")
+    assert has_element?(view, "#operations-model-limited-reasons")
     assert has_element?(view, "#operations-provider-stream[phx-update=stream]")
     assert has_element?(view, "#operations-run-stream[phx-update=stream]")
     assert has_element?(view, "#operations-job-stream[phx-update=stream]")
@@ -74,6 +80,35 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#manual-refresh-retailer-stream[phx-update=stream]")
     assert has_element?(view, "#manual-refresh-exchange-rate[disabled]")
     assert has_element?(view, "#manual-refresh-valuation[disabled]")
+  end
+
+  test "buying model inspection exposes current provisional policy without edit controls", %{
+    conn: conn
+  } do
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+
+    assert has_element?(
+             view,
+             "#operations-model-identity-ledger",
+             "sealed_buying_model_v1"
+           )
+
+    assert has_element?(
+             view,
+             "#operations-model-identity-ledger",
+             "sealed_market_daily_v1"
+           )
+
+    assert has_element?(view, "#operations-model-identity", "Provisional")
+    assert has_element?(view, "#operations-model-component-weights", "55.00%")
+    assert has_element?(view, "#operations-model-confidence-targets", "8")
+    assert has_element?(view, "#operations-model-hard-requirements", "5")
+    assert has_element?(view, "#operations-model-availability-rules", "sold outs × 2")
+    assert has_element?(view, "#operations-model-band-bases", "At most aggregate typical low")
+    assert has_element?(view, "#operations-model-limited-reasons", "Priority 1")
+    assert has_element?(view, "#operations-model-limited-reasons", "Uncertain mapping")
+    refute has_element?(view, "#operations-buying-model input")
+    refute has_element?(view, "#operations-buying-model button")
   end
 
   test "manual controls enqueue only the three canonical target shapes", %{conn: conn, key: key} do
@@ -293,6 +328,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     Application.put_env(:tcg_cheap, :acquisition_budget, [])
     {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
     assert has_element?(view, "#operations-unavailable")
+    assert has_element?(view, "#operations-buying-model-dockets")
     refute has_element?(view, "#operations-provider-stream")
   end
 

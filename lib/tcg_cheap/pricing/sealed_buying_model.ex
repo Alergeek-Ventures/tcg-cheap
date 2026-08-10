@@ -21,12 +21,14 @@ defmodule TcgCheap.Pricing.SealedBuyingModel do
   @span_target 7
   @lgs_target 2
   @sold_out_target 2
+  @sold_out_majority_multiplier 2
   @confidence_threshold Decimal.new("0.65")
   @availability_thresholds %{
     abundant_regular_minimum: 8,
     abundant_recent_sold_out_maximum: 1,
     scarce_regular_maximum: 5,
-    scarce_recent_sold_out_minimum: 3
+    scarce_recent_sold_out_minimum: 3,
+    scarce_recent_sold_out_majority_multiplier: @sold_out_majority_multiplier
   }
   @sold_out_recency_weights %{
     days_0_to_14_inclusive: Decimal.new("1.00"),
@@ -135,7 +137,12 @@ defmodule TcgCheap.Pricing.SealedBuyingModel do
         trend_adjustments: @trend_adjustments,
         availability_adjustments: @availability_adjustments,
         expensive_minimum_high_multiplier: @expensive_minimum_high_multiplier,
-        availability_trend_adjustments: @availability_trend_adjustments
+        availability_trend_adjustments: @availability_trend_adjustments,
+        guardrails: %{
+          great_ceiling_maximum: :typical_low,
+          fair_ceiling_minimum: :benchmark,
+          expensive_ceiling_minimum: :typical_high
+        }
       },
       availability_trend: %{
         coverage_change_threshold: @availability_change_threshold,
@@ -604,7 +611,7 @@ defmodule TcgCheap.Pricing.SealedBuyingModel do
 
       (regular <= @availability_thresholds.scarce_regular_maximum and
          sold_out >= @availability_thresholds.scarce_recent_sold_out_minimum) or
-          sold_out * 2 > coverage ->
+          sold_out * @sold_out_majority_multiplier > coverage ->
         "scarce"
 
       true ->

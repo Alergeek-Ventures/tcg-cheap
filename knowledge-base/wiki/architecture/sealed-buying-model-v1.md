@@ -1,6 +1,6 @@
 # Sealed Buying Model v1
 
-- Updated: 2026-08-09
+- Updated: 2026-08-10
 - Sources: [Detailed MVP Implementation Plan](../product/mvp-implementation-plan.md); project code; local synthetic validation
 - Raw: N/A — codebase update and architecture decision
 
@@ -8,7 +8,8 @@
 sealed buying-policy implementation. Its weights and boundaries are provisional
 until representative real Polish-market observations are available. Its outputs are
 now persisted as local buying-guide snapshots and consumed by the public sealed page
-through a fail-closed projection.
+through a fail-closed projection. Its exact current policy is also available through
+authenticated read-only operations inspection.
 
 ## Decision
 
@@ -159,6 +160,13 @@ These are synthetic policy fixtures, not proof of Polish-market quality.
 
 - The version and full policy are inspectable and deterministic, enabling future
   persisted snapshots to retain their meaning after a v2 model exists.
+- The policy now explicitly publishes the strict recent-sold-out-majority scarcity
+  rule and the aggregate typical-low/benchmark/typical-high band guardrails that were
+  already applied by calculation. Authenticated `/admin/operations` renders the full
+  decision policy through a bounded read-only projection. A deterministic exact-v1
+  fingerprint rejects malformed or silently changed same-version policy, so changed
+  weights or rules require a new model version. The desk labels v1 provisional and
+  synthetic-only and exposes no edit or recomputation control.
 - The model is intentionally conservative: missing MSRP alone does not always
   prevent readiness, but weak combined support falls below confidence; insufficient
   history always limits output.

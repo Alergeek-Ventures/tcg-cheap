@@ -19,6 +19,14 @@ defmodule TcgCheap.Pricing.SealedBuyingModelTest do
     assert policy.confidence.sold_out_support_target == 2
     assert policy.confidence.ready_threshold == Decimal.new("0.65")
     assert policy.rounding == %{scale: 2, mode: :half_up}
+    assert policy.availability.scarce_recent_sold_out_majority_multiplier == 2
+
+    assert policy.bands.guardrails == %{
+             great_ceiling_maximum: :typical_low,
+             fair_ceiling_minimum: :benchmark,
+             expensive_ceiling_minimum: :typical_high
+           }
+
     assert :low_confidence in SealedBuyingModel.limited_reasons()
     assert policy.arithmetic_context.precision == 34
     assert policy.arithmetic_context.rounding == :half_up
