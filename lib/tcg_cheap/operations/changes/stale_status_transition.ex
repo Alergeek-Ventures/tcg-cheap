@@ -6,6 +6,7 @@ defmodule TcgCheap.Operations.Changes.StaleStatusTransition do
   """
 
   use Ash.Resource.Change
+  alias TcgCheap.Operations.ProviderSourceHealthLock
 
   @impl true
   def init(opts) do
@@ -26,6 +27,9 @@ defmodule TcgCheap.Operations.Changes.StaleStatusTransition do
           Map.get(changeset.arguments, "expected_updated_at")
 
       id = Ash.Changeset.get_data(changeset, :id)
+      provider_key = Ash.Changeset.get_data(changeset, :provider_key)
+
+      ProviderSourceHealthLock.lock_source!(provider_key)
 
       case TcgCheap.Repo.query(
              "SELECT status, updated_at FROM acquisition_data_providers WHERE id = $1 FOR UPDATE",
@@ -37,6 +41,18 @@ defmodule TcgCheap.Operations.Changes.StaleStatusTransition do
         _ ->
           stale(changeset)
       end
+    end)
+    |> Ash.Changeset.after_action(fn changeset, result ->
+      if status == "active" do
+        provider_key = Ash.Changeset.get_data(changeset, :provider_key)
+
+        TcgCheap.Repo.query!(
+          "UPDATE acquisition_source_health SET circuit_failure_streak = 0, circuit_opened_at = NULL, updated_at = now() WHERE provider_key = $1",
+          [provider_key]
+        )
+      end
+
+      {:ok, result}
     end)
   end
 

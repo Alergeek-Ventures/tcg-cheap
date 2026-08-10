@@ -87,6 +87,26 @@ defmodule TcgCheap.Operations.AcquisitionBudget do
     _ -> {:error, :invalid_provider_configuration}
   end
 
+  @doc false
+  @spec register_configured_provider(String.t()) ::
+          {:ok, DataProvider.t()}
+          | {:error, :invalid_provider_configuration | :budget_persistence_failed}
+  def register_configured_provider(provider_key) do
+    with {:ok, config} <- provider_config(provider_key),
+         {:ok, provider} <-
+           Ash.create(DataProvider, Map.take(config, @provider_keys),
+             action: :register,
+             authorize?: false
+           ) do
+      {:ok, provider}
+    else
+      {:error, :invalid_provider_configuration} = error -> error
+      _ -> {:error, :budget_persistence_failed}
+    end
+  rescue
+    _ -> {:error, :budget_persistence_failed}
+  end
+
   defp configured_limits(config, providers) do
     %{
       global_hourly_request_limit: Keyword.get(config, :global_hourly_request_limit),

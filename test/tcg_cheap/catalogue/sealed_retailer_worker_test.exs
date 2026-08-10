@@ -67,6 +67,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
     previous_adapters = Application.get_env(:tcg_cheap, :sealed_retailer_adapters)
     previous_mode = Application.get_env(:tcg_cheap, :sealed_retailer_worker_test_mode)
     previous_budget = Application.get_env(:tcg_cheap, :acquisition_budget)
+    previous_health = Application.get_env(:tcg_cheap, :acquisition_health)
     previous_admitter = Application.get_env(:tcg_cheap, :acquisition_budget_admitter)
     previous_budget_result = Application.get_env(:tcg_cheap, :sealed_retailer_budget_stub_result)
     previous_stub = Application.get_env(:tcg_cheap, :sealed_retailer_worker_test_stub)
@@ -78,12 +79,14 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
 
     Application.put_env(:tcg_cheap, :sealed_retailer_worker_test_mode, :success)
     Application.put_env(:tcg_cheap, :acquisition_budget, budget_config())
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config())
     Application.put_env(:tcg_cheap, :sealed_retailer_worker_test_stub, stub)
 
     on_exit(fn ->
       restore_env(:sealed_retailer_adapters, previous_adapters)
       restore_env(:sealed_retailer_worker_test_mode, previous_mode)
       restore_env(:acquisition_budget, previous_budget)
+      restore_env(:acquisition_health, previous_health)
       restore_env(:acquisition_budget_admitter, previous_admitter)
       restore_env(:sealed_retailer_budget_stub_result, previous_budget_result)
       restore_env(:sealed_retailer_worker_test_stub, previous_stub)
@@ -101,6 +104,14 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
 
     %{retailer: retailer, stub: stub}
   end
+
+  defp health_config,
+    do: [
+      stranded_after_seconds: 900,
+      reconcile_limit: 100,
+      circuit_breaker_failure_threshold: 100,
+      stale_after_seconds: %{}
+    ]
 
   test "enqueues a unique canonical job", %{retailer: retailer} do
     assert {:ok, job} = SealedRetailerAcquisition.enqueue(retailer.id, retailer.source_key)

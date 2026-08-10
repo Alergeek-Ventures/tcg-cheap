@@ -19,6 +19,7 @@ defmodule TcgCheap.Operations.OverviewTest do
     Application.put_env(:tcg_cheap, :acquisition_health,
       stranded_after_seconds: 900,
       reconcile_limit: 100,
+      circuit_breaker_failure_threshold: 5,
       stale_after_seconds: %{}
     )
 
@@ -202,6 +203,9 @@ defmodule TcgCheap.Operations.OverviewTest do
     assert provider.health.last_status == "cancelled"
     assert provider.health.last_failure_category == "rate_limit"
     assert provider.health.consecutive_failures == 1
+    assert provider.health.circuit_failure_streak == 1
+    assert provider.health.circuit_opened_at == nil
+    assert provider.circuit_breaker_failure_threshold == 5
     assert run.failure_category == "rate_limit"
     assert run.status == "cancelled"
     assert run.request_count == 0
@@ -301,6 +305,7 @@ defmodule TcgCheap.Operations.OverviewTest do
     Application.put_env(:tcg_cheap, :acquisition_health,
       stranded_after_seconds: 10,
       reconcile_limit: 100,
+      circuit_breaker_failure_threshold: 5,
       stale_after_seconds: %{key => 10, not_observed => 10}
     )
 
@@ -329,10 +334,41 @@ defmodule TcgCheap.Operations.OverviewTest do
     Application.put_env(:tcg_cheap, :acquisition_health,
       stranded_after_seconds: 10,
       reconcile_limit: 100,
+      circuit_breaker_failure_threshold: 5,
       stale_after_seconds: %{key => 10}
     )
 
     insert_health(key, now, DateTime.add(now, 1, :second))
+
+    assert {:error, :invalid_source_health_evidence} =
+             Overview.load(actor, clock: fn -> now end)
+  end
+
+  test "future circuit evidence fails the overview closed", %{
+    key: key,
+    actor: actor,
+    now: now
+  } do
+    TcgCheap.Repo.query!(
+      "INSERT INTO acquisition_source_health (provider_key, last_started_at, last_failed_at, last_status, last_failure_category, consecutive_failures, circuit_failure_streak, circuit_opened_at) VALUES ($1, $2, $3, 'failed', 'timeout', 1, 1, $3)",
+      [key, now, DateTime.add(now, 1, :second)]
+    )
+
+    assert {:error, :invalid_source_health_evidence} =
+             Overview.load(actor, clock: fn -> now end)
+  end
+
+  test "an open circuit on an active provider fails the overview closed", %{
+    key: key,
+    actor: actor,
+    now: now
+  } do
+    assert {:ok, _usage} = AcquisitionBudget.admit(key, clock: fn -> now end)
+
+    TcgCheap.Repo.query!(
+      "INSERT INTO acquisition_source_health (provider_key, last_started_at, last_failed_at, last_status, last_failure_category, consecutive_failures, circuit_failure_streak, circuit_opened_at) VALUES ($1, $2, $2, 'failed', 'timeout', 1, 1, $2)",
+      [key, now]
+    )
 
     assert {:error, :invalid_source_health_evidence} =
              Overview.load(actor, clock: fn -> now end)

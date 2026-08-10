@@ -10,6 +10,7 @@ defmodule TcgCheap.Operations.AcquisitionReconcilerTest do
     Application.put_env(:tcg_cheap, :acquisition_health,
       stranded_after_seconds: 900,
       reconcile_limit: 100,
+      circuit_breaker_failure_threshold: 5,
       stale_after_seconds: %{"nbp" => 129_600}
     )
 
@@ -48,9 +49,9 @@ defmodule TcgCheap.Operations.AcquisitionReconcilerTest do
                [provider]
              )
 
-    assert {:ok, %{rows: [[1, "failed", "unknown"]]}} =
+    assert {:ok, %{rows: [[1, 0, "failed", "unknown"]]}} =
              TcgCheap.Repo.query(
-               "SELECT consecutive_failures, last_status, last_failure_category FROM acquisition_source_health WHERE provider_key = $1",
+               "SELECT consecutive_failures, circuit_failure_streak, last_status, last_failure_category FROM acquisition_source_health WHERE provider_key = $1",
                [provider]
              )
   end
@@ -136,6 +137,7 @@ defmodule TcgCheap.Operations.AcquisitionReconcilerTest do
     Application.put_env(:tcg_cheap, :acquisition_health,
       stranded_after_seconds: 900,
       reconcile_limit: 2,
+      circuit_breaker_failure_threshold: 5,
       stale_after_seconds: %{}
     )
 
@@ -177,6 +179,7 @@ defmodule TcgCheap.Operations.AcquisitionReconcilerTest do
     Application.put_env(:tcg_cheap, :acquisition_health,
       stranded_after_seconds: 900,
       reconcile_limit: 100,
+      circuit_breaker_failure_threshold: 5,
       stale_after_seconds: %{"unconfigured-provider" => 60}
     )
 

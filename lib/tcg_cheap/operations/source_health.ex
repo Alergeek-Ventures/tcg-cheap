@@ -14,6 +14,15 @@ defmodule TcgCheap.Operations.SourceHealth do
       check_constraint [:consecutive_failures], "source_health_failures_nonnegative",
         check: "consecutive_failures >= 0"
 
+      check_constraint [:circuit_failure_streak],
+                       "source_health_circuit_failure_streak_nonnegative",
+                       check: "circuit_failure_streak >= 0"
+
+      check_constraint [:circuit_failure_streak, :circuit_opened_at],
+                       "source_health_circuit_open_invariant",
+                       check:
+                         "(circuit_opened_at IS NULL AND ((last_status IS NULL AND circuit_failure_streak = 0) OR (last_status = 'succeeded' AND circuit_failure_streak = 0) OR (last_status IS NOT NULL AND last_status IN ('retryable_failure','failed','cancelled')))) OR (circuit_opened_at IS NOT NULL AND circuit_failure_streak > 0 AND last_failed_at IS NOT NULL AND circuit_opened_at <= last_failed_at)"
+
       check_constraint [
                          :last_status,
                          :last_failure_category,
@@ -69,6 +78,8 @@ defmodule TcgCheap.Operations.SourceHealth do
     attribute :last_status, :string, public?: true
     attribute :last_failure_category, :string, public?: true
     attribute :consecutive_failures, :integer, allow_nil?: false, default: 0, public?: true
+    attribute :circuit_failure_streak, :integer, allow_nil?: false, default: 0, public?: true
+    attribute :circuit_opened_at, :utc_datetime_usec, public?: true
     create_timestamp :inserted_at, public?: true
     update_timestamp :updated_at, public?: true
   end

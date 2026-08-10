@@ -60,6 +60,7 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
     previous = Application.get_env(:tcg_cheap, :exchange_rate_provider)
     previous_stub = Application.get_env(:tcg_cheap, :exchange_rate_test_stub)
     previous_budget = Application.get_env(:tcg_cheap, :acquisition_budget)
+    previous_health = Application.get_env(:tcg_cheap, :acquisition_health)
     previous_admitter = Application.get_env(:tcg_cheap, :acquisition_budget_admitter)
     previous_budget_result = Application.get_env(:tcg_cheap, :exchange_budget_stub_result)
     {:ok, stub} = Agent.start(fn -> %{mode: :success, calls: 0} end)
@@ -71,11 +72,13 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
     )
 
     Application.put_env(:tcg_cheap, :acquisition_budget, budget_config())
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config())
 
     on_exit(fn ->
       Application.put_env(:tcg_cheap, :exchange_rate_provider, previous)
       Application.put_env(:tcg_cheap, :exchange_rate_test_stub, previous_stub)
       restore_env(:acquisition_budget, previous_budget)
+      restore_env(:acquisition_health, previous_health)
       restore_env(:acquisition_budget_admitter, previous_admitter)
       restore_env(:exchange_budget_stub_result, previous_budget_result)
       if Process.alive?(stub), do: Agent.stop(stub)
@@ -86,6 +89,14 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
 
   defp args,
     do: %{"source" => "nbp", "table" => "A", "base_currency" => "EUR", "quote_currency" => "PLN"}
+
+  defp health_config,
+    do: [
+      stranded_after_seconds: 900,
+      reconcile_limit: 100,
+      circuit_breaker_failure_threshold: 100,
+      stale_after_seconds: %{"nbp" => 129_600}
+    ]
 
   defp job(args \\ args(), attempt \\ 1, max_attempts \\ 5),
     do: %Oban.Job{

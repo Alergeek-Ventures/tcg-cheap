@@ -1,7 +1,12 @@
 defmodule TcgCheap.Operations.AcquisitionHealthPolicy do
-  @moduledoc "Strict, pure policy for acquisition freshness and stranded runs."
+  @moduledoc "Strict, pure policy for acquisition freshness, repair, and circuit breaking."
 
-  @config_keys [:reconcile_limit, :stale_after_seconds, :stranded_after_seconds]
+  @config_keys [
+    :circuit_breaker_failure_threshold,
+    :reconcile_limit,
+    :stale_after_seconds,
+    :stranded_after_seconds
+  ]
   @max_stranded_seconds 86_400
   @max_stale_seconds 31_536_000
 
@@ -12,9 +17,16 @@ defmodule TcgCheap.Operations.AcquisitionHealthPolicy do
          {:ok, stranded} <-
            bounded(Map.get(config, :stranded_after_seconds), 1, @max_stranded_seconds),
          {:ok, limit} <- bounded(Map.get(config, :reconcile_limit), 1, 100),
+         {:ok, circuit_threshold} <-
+           bounded(Map.get(config, :circuit_breaker_failure_threshold), 1, 100),
          {:ok, stale} <- normalize_stale(Map.get(config, :stale_after_seconds)) do
       {:ok,
-       %{stranded_after_seconds: stranded, reconcile_limit: limit, stale_after_seconds: stale}}
+       %{
+         circuit_breaker_failure_threshold: circuit_threshold,
+         stranded_after_seconds: stranded,
+         reconcile_limit: limit,
+         stale_after_seconds: stale
+       }}
     else
       _ -> {:error, :invalid_acquisition_health_configuration}
     end
@@ -42,6 +54,13 @@ defmodule TcgCheap.Operations.AcquisitionHealthPolicy do
   end
 
   def overdue?(_, _, _), do: false
+
+  @doc "Returns whether a persisted failure category contributes to the provider circuit."
+  def circuit_eligible_category?(category)
+      when category in ["rate_limit", "timeout", "transport", "provider_response"],
+      do: true
+
+  def circuit_eligible_category?(_), do: false
 
   def provider_state(
         %{stale_after_seconds: stale},

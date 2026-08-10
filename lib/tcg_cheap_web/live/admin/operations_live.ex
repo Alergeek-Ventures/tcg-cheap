@@ -65,7 +65,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                   Counters are estimated reservations before HTTP. Tracked provider attempts retain safe outcomes and admitted request counts; actual paid-cost reconciliation is not tracked yet.
                 </p>
                 <p class="admin-disclosure">
-                  Running attempts older than the configured boundary are reconciled automatically. Catalogue synchronization checkpoints each bounded batch; this desk does not probe providers or break circuits.
+                  Running attempts older than the configured boundary are reconciled automatically. Repeated source-facing failures open a provider circuit only at a terminal outcome; this desk does not probe providers.
                 </p>
               </div>
               <%= if @overview_ready? or @model_ready? or @manual_ready? do %>
@@ -191,6 +191,19 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                       </div>
                       <div>
                         <dt>Failure streak</dt><dd>{failure_streak(provider.health)}</dd>
+                      </div>
+                      <div>
+                        <dt>Circuit</dt><dd id={"provider-circuit-state-#{provider_dom_id(provider.provider_key)}"}>
+                          {circuit_state(provider.health)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Circuit failures</dt><dd id={"provider-circuit-failures-#{provider_dom_id(provider.provider_key)}"}>
+                          {circuit_failures(
+                            provider.health,
+                            provider.circuit_breaker_failure_threshold
+                          )}
+                        </dd>
                       </div>
                       <div class="wide-evidence">
                         <dt>Last failure category</dt><dd>{health_failure(provider.health)}</dd>
@@ -803,6 +816,10 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp retailer_dom_id(id), do: Base.url_encode64(id, padding: false)
 
   defp provider_dom_id(key), do: Base.url_encode64(to_string(key), padding: false)
+
+  defp provider_status(%{status: "disabled", health: %{circuit_opened_at: %DateTime{}}}),
+    do: "DISABLED — CIRCUIT OPEN"
+
   defp provider_status(%{status: "disabled"}), do: "DISABLED"
   defp provider_status(%{persisted?: false}), do: "ACTIVE ON FIRST USE"
   defp provider_status(_), do: "ACTIVE"
@@ -840,6 +857,14 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
 
   defp failure_streak(nil), do: 0
   defp failure_streak(health), do: health.consecutive_failures
+  defp circuit_state(nil), do: "CLOSED"
+  defp circuit_state(%{circuit_opened_at: nil}), do: "CLOSED"
+  defp circuit_state(%{circuit_opened_at: opened_at}), do: "OPEN — " <> datetime(opened_at)
+  defp circuit_failures(nil, threshold), do: "0 / #{threshold}"
+
+  defp circuit_failures(health, threshold),
+    do: "#{health.circuit_failure_streak} / #{threshold}"
+
   defp health_failure(nil), do: "None"
   defp health_failure(%{last_failure_category: nil}), do: "None"
   defp health_failure(health), do: failure_name(health.last_failure_category)

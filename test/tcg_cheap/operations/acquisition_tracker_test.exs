@@ -3,7 +3,7 @@ defmodule TcgCheap.Operations.AcquisitionTrackerTest do
 
   alias TcgCheap.Accounts.Admin
   alias TcgCheap.Operations
-  alias TcgCheap.Operations.AcquisitionTracker
+  alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionTracker}
 
   defmodule AdmissionStub do
     def admit(_provider_key) do
@@ -16,11 +16,13 @@ defmodule TcgCheap.Operations.AcquisitionTrackerTest do
 
   setup do
     previous_budget = Application.get_env(:tcg_cheap, :acquisition_budget)
+    previous_health = Application.get_env(:tcg_cheap, :acquisition_health)
     previous_admitter = Application.get_env(:tcg_cheap, :acquisition_budget_admitter)
     previous_stub = Application.get_env(:tcg_cheap, :acquisition_tracker_admission_stub)
     provider_key = "tracker-#{System.unique_integer([:positive])}"
 
     Application.put_env(:tcg_cheap, :acquisition_budget, budget_config(provider_key))
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config(5))
 
     {:ok, %{rows: [[admin_id]]}} =
       TcgCheap.Repo.query(
@@ -28,8 +30,20 @@ defmodule TcgCheap.Operations.AcquisitionTrackerTest do
         ["admin-#{provider_key}@example.test"]
       )
 
+    Operations.register_provider!(
+      provider_key,
+      "Tracker provider",
+      Decimal.new(0),
+      100,
+      1_000,
+      20_000,
+      Decimal.new(0),
+      authorize?: false
+    )
+
     on_exit(fn ->
       restore_env(:acquisition_budget, previous_budget)
+      restore_env(:acquisition_health, previous_health)
       restore_env(:acquisition_budget_admitter, previous_admitter)
       restore_env(:acquisition_tracker_admission_stub, previous_stub)
     end)
@@ -160,6 +174,187 @@ defmodule TcgCheap.Operations.AcquisitionTrackerTest do
     assert {:ok, [health]} = Operations.list_source_health([provider_key], actor: actor)
     assert health.last_status == "failed"
     assert health.consecutive_failures == 1
+  end
+
+  test "eligible retryable failures build a streak without opening the circuit", %{
+    provider_key: provider_key,
+    actor: actor
+  } do
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config(3))
+
+    for _ <- 1..2 do
+      tracker = start_tracker(provider_key)
+
+      assert {:ok, %{status: "retryable_failure"}} =
+               AcquisitionTracker.finish(tracker, {:error, :provider_timeout})
+    end
+
+    assert {:ok, [health]} = Operations.list_source_health([provider_key], actor: actor)
+    assert health.circuit_failure_streak == 2
+    assert is_nil(health.circuit_opened_at)
+    assert Operations.get_provider_by_key!(provider_key, authorize?: false).status == "active"
+  end
+
+  test "terminal eligible failure opens at threshold and rejects later admission", %{
+    provider_key: provider_key,
+    actor: actor
+  } do
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config(3))
+
+    for _ <- 1..3 do
+      tracker = start_tracker(provider_key, 1, 1)
+
+      assert {:ok, %{status: "failed"}} =
+               AcquisitionTracker.finish(tracker, {:error, :provider_timeout})
+    end
+
+    assert {:ok, [health]} = Operations.list_source_health([provider_key], actor: actor)
+    assert health.circuit_failure_streak == 3
+    assert %DateTime{} = health.circuit_opened_at
+    assert Operations.get_provider_by_key!(provider_key, authorize?: false).status == "disabled"
+
+    assert {:error, :provider_disabled} =
+             AcquisitionBudget.admit(provider_key)
+  end
+
+  test "opening materializes a configured provider that has not been persisted", %{
+    provider_key: provider_key,
+    actor: actor
+  } do
+    TcgCheap.Repo.query!(
+      "DELETE FROM acquisition_data_providers WHERE provider_key = $1",
+      [provider_key]
+    )
+
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config(1))
+
+    assert {:ok, %{status: "failed"}} =
+             AcquisitionTracker.finish(
+               start_tracker(provider_key, 1, 1),
+               {:error, :provider_timeout}
+             )
+
+    assert Operations.get_provider_by_key!(provider_key, authorize?: false).status == "disabled"
+    assert {:ok, [health]} = Operations.list_source_health([provider_key], actor: actor)
+    assert %DateTime{} = health.circuit_opened_at
+  end
+
+  test "terminal cancelled eligible outcomes open at threshold", %{
+    provider_key: provider_key,
+    actor: actor
+  } do
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config(2))
+
+    for _ <- 1..2 do
+      tracker = start_tracker(provider_key, 1, 1)
+
+      assert {:ok, %{status: "cancelled"}} =
+               AcquisitionTracker.finish(tracker, {:cancel, :provider_timeout})
+    end
+
+    assert {:ok, [health]} = Operations.list_source_health([provider_key], actor: actor)
+    assert health.circuit_failure_streak == 2
+    assert %DateTime{} = health.circuit_opened_at
+    assert Operations.get_provider_by_key!(provider_key, authorize?: false).status == "disabled"
+  end
+
+  test "excluded categories do not increment or open the circuit", %{
+    provider_key: provider_key,
+    actor: actor
+  } do
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config(1))
+
+    for {reason, category} <- [
+          {:acquisition_budget_rejected, "budget"},
+          {:persistence_failed, "persistence"},
+          {:invalid_provider_configuration, "configuration"},
+          {:invalid_input, "local_input"},
+          {:unclassified, "unknown"}
+        ] do
+      tracker = start_tracker(provider_key, 1, 1)
+
+      assert {:ok, %{status: "failed", failure_category: ^category}} =
+               AcquisitionTracker.finish(tracker, {:error, reason})
+    end
+
+    assert {:ok, [health]} = Operations.list_source_health([provider_key], actor: actor)
+    assert health.circuit_failure_streak == 0
+    assert is_nil(health.circuit_opened_at)
+    assert Operations.get_provider_by_key!(provider_key, authorize?: false).status == "active"
+  end
+
+  test "database rejects a closed pristine health row with a circuit streak", %{
+    provider_key: provider_key
+  } do
+    error =
+      assert_raise Postgrex.Error, fn ->
+        TcgCheap.Repo.query!(
+          "INSERT INTO acquisition_source_health (provider_key, last_started_at, consecutive_failures, circuit_failure_streak) VALUES ($1, now(), 0, 1)",
+          ["invalid-#{provider_key}"]
+        )
+      end
+
+    assert error.postgres.constraint == "source_health_circuit_open_invariant"
+  end
+
+  test "success resets a closed circuit streak", %{provider_key: provider_key, actor: actor} do
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config(3))
+
+    for _ <- 1..2 do
+      assert {:ok, _} =
+               AcquisitionTracker.finish(start_tracker(provider_key), {:error, :provider_timeout})
+    end
+
+    assert {:ok, _} = AcquisitionTracker.finish(start_tracker(provider_key), :ok)
+    assert {:ok, [health]} = Operations.list_source_health([provider_key], actor: actor)
+    assert health.circuit_failure_streak == 0
+    assert is_nil(health.circuit_opened_at)
+  end
+
+  test "an in-flight success cannot close a circuit opened by another attempt", %{
+    provider_key: provider_key,
+    actor: actor
+  } do
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config(1))
+    success = start_tracker(provider_key)
+
+    assert {:ok, %{status: "failed"}} =
+             AcquisitionTracker.finish(
+               start_tracker(provider_key, 1, 1),
+               {:error, :provider_timeout}
+             )
+
+    assert {:ok, %{status: "succeeded"}} = AcquisitionTracker.finish(success, :ok)
+    assert {:ok, [health]} = Operations.list_source_health([provider_key], actor: actor)
+    assert health.circuit_failure_streak == 1
+    assert %DateTime{} = health.circuit_opened_at
+    assert Operations.get_provider_by_key!(provider_key, authorize?: false).status == "disabled"
+  end
+
+  test "invalid circuit configuration rolls back terminal finalization", %{
+    provider_key: provider_key,
+    actor: actor
+  } do
+    tracker = start_tracker(provider_key, 1, 1)
+
+    Application.put_env(
+      :tcg_cheap,
+      :acquisition_health,
+      Keyword.delete(health_config(1), :circuit_breaker_failure_threshold)
+    )
+
+    assert {:error, :acquisition_tracking_failed} =
+             AcquisitionTracker.finish(tracker, {:error, :provider_timeout})
+
+    assert {:ok, [run]} = Operations.list_recent_acquisition_runs([provider_key], 1, actor: actor)
+    assert run.status == "running"
+    assert run.finished_at == nil
+
+    assert {:ok, [health]} = Operations.list_source_health([provider_key], actor: actor)
+    assert health.last_status == nil
+    assert health.circuit_failure_streak == 0
+    assert health.circuit_opened_at == nil
+    assert Operations.get_provider_by_key!(provider_key, authorize?: false).status == "active"
   end
 
   test "finalization failure is returned and leaves the run running", %{
@@ -301,8 +496,13 @@ defmodule TcgCheap.Operations.AcquisitionTrackerTest do
              )
   end
 
-  defp start_tracker(provider_key) do
-    assert {:ok, tracker} = AcquisitionTracker.start(job(nil), tracker_options(provider_key))
+  defp start_tracker(provider_key, attempt \\ 1, max_attempts \\ 5) do
+    assert {:ok, tracker} =
+             AcquisitionTracker.start(
+               job(System.unique_integer([:positive]), attempt, max_attempts),
+               tracker_options(provider_key)
+             )
+
     tracker
   end
 
@@ -338,6 +538,14 @@ defmodule TcgCheap.Operations.AcquisitionTrackerTest do
           monthly_spend_limit: "0.00"
         ]
       ]
+    ]
+
+  defp health_config(threshold),
+    do: [
+      stranded_after_seconds: 900,
+      reconcile_limit: 100,
+      circuit_breaker_failure_threshold: threshold,
+      stale_after_seconds: %{}
     ]
 
   defp restore_env(key, nil), do: Application.delete_env(:tcg_cheap, key)

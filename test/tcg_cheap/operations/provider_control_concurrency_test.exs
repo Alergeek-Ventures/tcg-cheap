@@ -57,7 +57,7 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
     end)
   end
 
-  test "concurrent acquisition failures serialize without losing the source streak" do
+  test "concurrent terminal failures serialize, open, and preserve the source streak" do
     with_runtime(fn key, _actor, _provider ->
       trackers =
         Sandbox.unboxed_run(Repo, fn ->
@@ -66,7 +66,7 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
               AcquisitionTracker.start(
                 %Oban.Job{
                   attempt: 1,
-                  max_attempts: 5,
+                  max_attempts: 1,
                   worker: "TcgCheap.ConcurrentWorker",
                   queue: "valuations"
                 },
@@ -86,12 +86,205 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
           end)
         )
 
-      assert Enum.all?(results, &match?({:ok, %{status: "retryable_failure"}}, &1))
+      assert Enum.all?(results, &match?({:ok, %{status: "failed"}}, &1))
 
       assert Sandbox.unboxed_run(Repo, fn ->
                [health] = Operations.list_source_health!([key], authorize?: false)
-               {health.consecutive_failures, health.last_failure_category}
-             end) == {5, "timeout"}
+
+               {health.consecutive_failures, health.circuit_failure_streak,
+                not is_nil(health.circuit_opened_at)}
+             end) == {5, 5, true}
+
+      assert Sandbox.unboxed_run(Repo, fn ->
+               Operations.get_provider_by_key!(key, authorize?: false).status
+             end) ==
+               "disabled"
+    end)
+  end
+
+  test "manual disable does not claim a circuit opening" do
+    with_runtime(fn key, actor, provider ->
+      Application.put_env(:tcg_cheap, :acquisition_health, health_config(1))
+
+      tracker =
+        Sandbox.unboxed_run(Repo, fn ->
+          {:ok, tracker} =
+            AcquisitionTracker.start(
+              %Oban.Job{
+                attempt: 1,
+                max_attempts: 1,
+                worker: "ManualDisableWorker",
+                queue: "valuations"
+              },
+              provider_key: key,
+              operation: "single_valuation",
+              target_key: "manual-disable"
+            )
+
+          tracker
+        end)
+
+      version = persisted_updated_at(provider.id)
+
+      assert {:ok, %{status: "disabled"}} =
+               Sandbox.unboxed_run(Repo, fn ->
+                 Overview.set_provider_status(actor, key, "disabled", version)
+               end)
+
+      assert {:ok, %{status: "failed"}} =
+               Sandbox.unboxed_run(Repo, fn ->
+                 AcquisitionTracker.finish(tracker, {:error, :provider_timeout})
+               end)
+
+      assert Sandbox.unboxed_run(Repo, fn ->
+               [health] = Operations.list_source_health!([key], authorize?: false)
+               {health.circuit_failure_streak, health.circuit_opened_at}
+             end) == {1, nil}
+    end)
+  end
+
+  test "manual re-enable clears circuit evidence" do
+    with_runtime(fn key, actor, provider ->
+      Application.put_env(:tcg_cheap, :acquisition_health, health_config(1))
+
+      Sandbox.unboxed_run(Repo, fn ->
+        {:ok, tracker} =
+          AcquisitionTracker.start(
+            %Oban.Job{
+              attempt: 1,
+              max_attempts: 1,
+              worker: "ManualEnableWorker",
+              queue: "valuations"
+            },
+            provider_key: key,
+            operation: "single_valuation",
+            target_key: "manual-enable"
+          )
+
+        assert {:ok, %{status: "failed"}} =
+                 AcquisitionTracker.finish(tracker, {:error, :provider_timeout})
+      end)
+
+      assert Sandbox.unboxed_run(Repo, fn ->
+               [health] = Operations.list_source_health!([key], authorize?: false)
+               {health.circuit_failure_streak, health.circuit_opened_at}
+             end)
+             |> elem(0) == 1
+
+      version = persisted_updated_at(provider.id)
+
+      assert {:ok, %{status: "active"}} =
+               Sandbox.unboxed_run(Repo, fn ->
+                 Overview.set_provider_status(actor, key, "active", version)
+               end)
+
+      assert Sandbox.unboxed_run(Repo, fn ->
+               [health] = Operations.list_source_health!([key], authorize?: false)
+               {health.circuit_failure_streak, health.circuit_opened_at}
+             end) == {0, nil}
+    end)
+  end
+
+  test "automatic opening and admission linearize without admitting after open" do
+    with_runtime(fn key, _actor, provider ->
+      Application.put_env(:tcg_cheap, :acquisition_health, health_config(1))
+      base = next_unused_base()
+
+      tracker =
+        Sandbox.unboxed_run(Repo, fn ->
+          {:ok, tracker} =
+            AcquisitionTracker.start(
+              %Oban.Job{
+                attempt: 1,
+                max_attempts: 1,
+                worker: "CircuitAdmissionWorker",
+                queue: "valuations"
+              },
+              provider_key: key,
+              operation: "single_valuation",
+              target_key: "circuit-admission"
+            )
+
+          tracker
+        end)
+
+      [completion, admission] =
+        concurrently([
+          fn -> AcquisitionTracker.finish(tracker, {:error, :provider_timeout}) end,
+          fn -> AcquisitionBudget.admit(key, clock: fn -> base end) end
+        ])
+
+      assert {:ok, %{status: "failed"}} = completion
+      assert admission == {:error, :provider_disabled} or match?({:ok, _}, admission)
+
+      admitted_requests =
+        Sandbox.unboxed_run(Repo, fn ->
+          Repo.query!(
+            "SELECT COALESCE(SUM(request_count), 0)::bigint FROM acquisition_budget_usages WHERE provider_id = $1 AND window_kind = 'hour' AND window_started_at = $2",
+            [Ecto.UUID.dump!(provider.id), hour_start(base)]
+          ).rows
+          |> List.first()
+          |> List.first()
+        end)
+
+      assert admitted_requests == if(match?({:ok, _}, admission), do: 1, else: 0)
+
+      assert Sandbox.unboxed_run(Repo, fn ->
+               [health] = Operations.list_source_health!([key], authorize?: false)
+
+               {Operations.get_provider_by_key!(key, authorize?: false).status,
+                health.circuit_failure_streak, not is_nil(health.circuit_opened_at)}
+             end) == {"disabled", 1, true}
+    end)
+  end
+
+  test "automatic opening and manual disable converge without deadlock" do
+    with_runtime(fn key, actor, provider ->
+      Application.put_env(:tcg_cheap, :acquisition_health, health_config(1))
+      version = persisted_updated_at(provider.id)
+
+      tracker =
+        Sandbox.unboxed_run(Repo, fn ->
+          {:ok, tracker} =
+            AcquisitionTracker.start(
+              %Oban.Job{
+                attempt: 1,
+                max_attempts: 1,
+                worker: "CircuitControlWorker",
+                queue: "valuations"
+              },
+              provider_key: key,
+              operation: "single_valuation",
+              target_key: "circuit-control"
+            )
+
+          tracker
+        end)
+
+      [completion, control] =
+        concurrently([
+          fn -> AcquisitionTracker.finish(tracker, {:error, :provider_timeout}) end,
+          fn -> Overview.set_provider_status(actor, key, "disabled", version) end
+        ])
+
+      assert {:ok, %{status: "failed"}} = completion
+      assert match?({:ok, %{status: "disabled"}}, control) or match?({:error, _}, control)
+
+      {status, streak, opened_at} =
+        Sandbox.unboxed_run(Repo, fn ->
+          [health] = Operations.list_source_health!([key], authorize?: false)
+
+          {Operations.get_provider_by_key!(key, authorize?: false).status,
+           health.circuit_failure_streak, health.circuit_opened_at}
+        end)
+
+      assert status == "disabled"
+      assert streak == 1
+
+      case control do
+        {:ok, _provider} -> assert opened_at == nil
+        {:error, _reason} -> assert %DateTime{} = opened_at
+      end
     end)
   end
 
@@ -154,6 +347,7 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
 
   defp with_runtime(test) do
     previous = Application.get_env(:tcg_cheap, :acquisition_budget)
+    previous_health = Application.get_env(:tcg_cheap, :acquisition_health)
     key = "control-race-#{System.unique_integer([:positive])}"
 
     Application.put_env(:tcg_cheap, :acquisition_budget,
@@ -162,6 +356,8 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
       global_monthly_spend_limit: "50.00",
       providers: [provider_config(key)]
     )
+
+    Application.put_env(:tcg_cheap, :acquisition_health, health_config(5))
 
     {actor, provider} =
       Sandbox.unboxed_run(Repo, fn ->
@@ -193,9 +389,21 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
         do: Application.delete_env(:tcg_cheap, :acquisition_budget),
         else: Application.put_env(:tcg_cheap, :acquisition_budget, previous)
 
+      if is_nil(previous_health),
+        do: Application.delete_env(:tcg_cheap, :acquisition_health),
+        else: Application.put_env(:tcg_cheap, :acquisition_health, previous_health)
+
       cleanup(provider.id, actor.id)
     end
   end
+
+  defp health_config(threshold),
+    do: [
+      stranded_after_seconds: 900,
+      reconcile_limit: 100,
+      circuit_breaker_failure_threshold: threshold,
+      stale_after_seconds: %{}
+    ]
 
   defp concurrently(functions) do
     parent = self()

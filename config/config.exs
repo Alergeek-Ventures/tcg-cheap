@@ -61,6 +61,7 @@ config :tcg_cheap,
 config :tcg_cheap, :acquisition_health,
   stranded_after_seconds: 900,
   reconcile_limit: 100,
+  circuit_breaker_failure_threshold: 5,
   stale_after_seconds: %{"nbp" => 129_600}
 
 config :backpex,

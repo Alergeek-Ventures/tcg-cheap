@@ -40,7 +40,8 @@ defmodule TcgCheap.Operations.Overview do
          {:ok, now} <- valid_clock(clock),
          {:ok, windows} <- current_windows(actor, providers, now),
          {:ok, global_usage} <- global_current_usage(now),
-         {:ok, health} <- validate_source_health(health, now) do
+         {:ok, health} <- validate_source_health(health, now),
+         :ok <- validate_circuit_bindings(providers, health) do
       projected_runs = Enum.map(runs, &run_projection(&1, health_policy, now))
 
       {:ok,
@@ -215,21 +216,26 @@ defmodule TcgCheap.Operations.Overview do
   defp valid_health_times?(health, now) do
     valid_past_time?(health.last_started_at, now) and
       valid_optional_past_time?(health.last_succeeded_at, now) and
-      valid_optional_past_time?(health.last_failed_at, now)
+      valid_optional_past_time?(health.last_failed_at, now) and
+      valid_optional_past_time?(health.circuit_opened_at, now)
   end
 
-  defp valid_health_state?(%{last_status: nil} = health) do
+  defp valid_health_state?(health) do
+    valid_run_health_state?(health) and valid_circuit_state?(health)
+  end
+
+  defp valid_run_health_state?(%{last_status: nil} = health) do
     is_nil(health.last_succeeded_at) and is_nil(health.last_failed_at) and
       is_nil(health.last_failure_category) and health.consecutive_failures == 0
   end
 
-  defp valid_health_state?(%{last_status: "succeeded"} = health) do
+  defp valid_run_health_state?(%{last_status: "succeeded"} = health) do
     not is_nil(health.last_succeeded_at) and is_nil(health.last_failure_category) and
       health.consecutive_failures == 0 and
       nondecreasing_evidence?(health.last_succeeded_at, health.last_failed_at)
   end
 
-  defp valid_health_state?(%{last_status: status} = health)
+  defp valid_run_health_state?(%{last_status: status} = health)
        when status in ["retryable_failure", "failed", "cancelled"] do
     not is_nil(health.last_failed_at) and
       health.last_failure_category in ~w(budget rate_limit timeout transport provider_response persistence configuration local_input unknown) and
@@ -237,7 +243,48 @@ defmodule TcgCheap.Operations.Overview do
       nondecreasing_evidence?(health.last_failed_at, health.last_succeeded_at)
   end
 
-  defp valid_health_state?(_), do: false
+  defp valid_run_health_state?(_), do: false
+
+  defp valid_circuit_state?(%{
+         last_status: status,
+         circuit_failure_streak: streak,
+         circuit_opened_at: nil
+       })
+       when status in [nil, "succeeded"],
+       do: streak == 0
+
+  defp valid_circuit_state?(%{
+         last_status: status,
+         circuit_failure_streak: streak,
+         circuit_opened_at: nil
+       })
+       when status in ["retryable_failure", "failed", "cancelled"],
+       do: is_integer(streak) and streak >= 0
+
+  defp valid_circuit_state?(%{
+         circuit_failure_streak: streak,
+         circuit_opened_at: %DateTime{time_zone: "Etc/UTC"} = opened_at,
+         last_failed_at: %DateTime{time_zone: "Etc/UTC"} = failed_at
+       }),
+       do:
+         is_integer(streak) and streak > 0 and
+           DateTime.compare(opened_at, failed_at) in [:lt, :eq]
+
+  defp valid_circuit_state?(_), do: false
+
+  defp validate_circuit_bindings(providers, health) do
+    persisted_status = Map.new(providers, &{&1.provider_key, &1.status})
+
+    if Enum.all?(health, fn
+         %{circuit_opened_at: nil} ->
+           true
+
+         %{provider_key: key, circuit_opened_at: %DateTime{}} ->
+           persisted_status[key] == "disabled"
+       end),
+       do: :ok,
+       else: {:error, :invalid_source_health_evidence}
+  end
 
   defp valid_optional_past_time?(nil, _now), do: true
   defp valid_optional_past_time?(value, now), do: valid_past_time?(value, now)
@@ -323,7 +370,8 @@ defmodule TcgCheap.Operations.Overview do
               configured.provider_key,
               last_succeeded_at(health_by_provider[configured.provider_key]),
               now
-            )
+            ),
+          circuit_breaker_failure_threshold: health_policy.circuit_breaker_failure_threshold
         }
       end)
 
@@ -354,7 +402,9 @@ defmodule TcgCheap.Operations.Overview do
       last_failed_at: health.last_failed_at,
       last_status: health.last_status,
       last_failure_category: health.last_failure_category,
-      consecutive_failures: health.consecutive_failures
+      consecutive_failures: health.consecutive_failures,
+      circuit_failure_streak: health.circuit_failure_streak,
+      circuit_opened_at: health.circuit_opened_at
     }
   end
 

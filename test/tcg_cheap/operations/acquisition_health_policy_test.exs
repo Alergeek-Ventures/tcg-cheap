@@ -18,6 +18,7 @@ defmodule TcgCheap.Operations.AcquisitionHealthPolicyTest do
   test "strictly normalizes the configured policy" do
     assert {:ok, policy} = AcquisitionHealthPolicy.load()
     assert policy.reconcile_limit == 100
+    assert policy.circuit_breaker_failure_threshold == 5
     assert policy.stale_after_seconds == %{"nbp" => 129_600}
     assert {:ok, ^policy} = AcquisitionHealthPolicy.validate_provider_keys(policy, ["nbp"])
 
@@ -31,6 +32,14 @@ defmodule TcgCheap.Operations.AcquisitionHealthPolicyTest do
     )
 
     assert {:error, :invalid_acquisition_health_configuration} = AcquisitionHealthPolicy.load()
+  end
+
+  test "classifies only fixed provider failure categories as circuit eligible" do
+    for category <- ["rate_limit", "timeout", "transport", "provider_response"],
+        do: assert(AcquisitionHealthPolicy.circuit_eligible_category?(category))
+
+    for category <- ["budget", "persistence", "configuration", "local_input", "unknown", nil],
+        do: refute(AcquisitionHealthPolicy.circuit_eligible_category?(category))
   end
 
   test "uses exact boundaries and rejects future or non-UTC successes" do
@@ -81,23 +90,55 @@ defmodule TcgCheap.Operations.AcquisitionHealthPolicyTest do
   end
 
   test "rejects unknown keys, duplicate keys, invalid values, and normalized collisions" do
+    valid = [
+      stranded_after_seconds: 900,
+      reconcile_limit: 1,
+      circuit_breaker_failure_threshold: 5,
+      stale_after_seconds: %{}
+    ]
+
+    for config <- [
+          Keyword.delete(valid, :circuit_breaker_failure_threshold),
+          Keyword.put(valid, :circuit_breaker_failure_threshold, 0),
+          Keyword.put(valid, :circuit_breaker_failure_threshold, 101),
+          valid ++ [circuit_breaker_failure_threshold: 5],
+          valid ++ [extra: true]
+        ] do
+      Application.put_env(:tcg_cheap, :acquisition_health, config)
+      assert {:error, :invalid_acquisition_health_configuration} = AcquisitionHealthPolicy.load()
+    end
+
     invalid = [
-      [stranded_after_seconds: 900, reconcile_limit: 1, stale_after_seconds: %{}, extra: true],
       [
         stranded_after_seconds: 900,
         reconcile_limit: 1,
+        circuit_breaker_failure_threshold: 5,
+        stale_after_seconds: %{},
+        extra: true
+      ],
+      [
+        stranded_after_seconds: 900,
+        reconcile_limit: 1,
+        circuit_breaker_failure_threshold: 5,
         stale_after_seconds: %{"nbp" => 1},
         reconcile_limit: 2
       ],
       [
         stranded_after_seconds: 900,
         reconcile_limit: 1,
+        circuit_breaker_failure_threshold: 5,
         stale_after_seconds: %{" nbp " => 1}
       ],
-      %{stranded_after_seconds: 900, reconcile_limit: 0, stale_after_seconds: %{}},
+      %{
+        stranded_after_seconds: 900,
+        reconcile_limit: 0,
+        circuit_breaker_failure_threshold: 5,
+        stale_after_seconds: %{}
+      },
       %{
         stranded_after_seconds: 900,
         reconcile_limit: 1,
+        circuit_breaker_failure_threshold: 5,
         stale_after_seconds: %{"nbp" => 31_536_001}
       },
       :invalid

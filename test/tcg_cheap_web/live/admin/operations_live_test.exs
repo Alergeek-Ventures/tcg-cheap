@@ -29,6 +29,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     Application.put_env(:tcg_cheap, :acquisition_health,
       stranded_after_seconds: 900,
       reconcile_limit: 100,
+      circuit_breaker_failure_threshold: 5,
       stale_after_seconds: %{}
     )
 
@@ -228,10 +229,52 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
            )
   end
 
+  test "automatic circuit state is visible and manual enable clears it", %{conn: conn, key: key} do
+    Application.put_env(:tcg_cheap, :acquisition_health,
+      stranded_after_seconds: 900,
+      reconcile_limit: 100,
+      circuit_breaker_failure_threshold: 1,
+      stale_after_seconds: %{}
+    )
+
+    assert {:ok, _usage} = Operations.AcquisitionBudget.admit(key)
+
+    assert {:error, :provider_timeout} =
+             AcquisitionTracker.run(
+               %Oban.Job{
+                 id: System.unique_integer([:positive]),
+                 attempt: 1,
+                 max_attempts: 1,
+                 worker: "TcgCheap.TestWorker",
+                 queue: "valuations"
+               },
+               [
+                 provider_key: key,
+                 operation: "single_valuation",
+                 target_key: "circuit-test"
+               ],
+               fn _request_admitter -> {:error, :provider_timeout} end
+             )
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+    provider_id = provider_id(key)
+
+    assert has_element?(view, "#provider-status-#{provider_id}", "DISABLED — CIRCUIT OPEN")
+    assert has_element?(view, "#provider-circuit-state-#{provider_id}", "OPEN")
+    assert has_element?(view, "#provider-circuit-failures-#{provider_id}", "1 / 1")
+
+    view |> element("#provider-action-#{provider_id}") |> render_click()
+
+    assert has_element?(view, "#provider-status-#{provider_id}", "ACTIVE")
+    assert has_element?(view, "#provider-circuit-state-#{provider_id}", "CLOSED")
+    assert has_element?(view, "#provider-circuit-failures-#{provider_id}", "0 / 1")
+  end
+
   test "running attempts beyond the boundary render as overdue", %{conn: conn, key: key} do
     Application.put_env(:tcg_cheap, :acquisition_health,
       stranded_after_seconds: 1,
       reconcile_limit: 100,
+      circuit_breaker_failure_threshold: 5,
       stale_after_seconds: %{}
     )
 
