@@ -13,7 +13,7 @@ defmodule TcgCheap.Catalogue.Changes.LockAndValidateReview do
     valid_status_attribute? = is_atom(opts[:status_attribute])
     valid_expected? = valid_expected_status?(opts[:expected_status])
     valid_version_argument? = is_nil(opts[:version_argument]) or is_atom(opts[:version_argument])
-    valid_mode? = is_nil(opts[:mode]) or opts[:mode] == :product_approval
+    valid_mode? = opts[:mode] in [nil, :product_approval, :manual_alias_revision]
 
     if valid_resource? and valid_lock_action? and valid_status_attribute? and valid_expected? and
          valid_version_argument? and valid_mode?,
@@ -96,5 +96,13 @@ defmodule TcgCheap.Catalogue.Changes.LockAndValidateReview do
     Enum.reduce(errors, changeset, fn {:error, error}, changeset ->
       Changeset.add_error(changeset, error)
     end)
+  end
+
+  defp validate_completeness(changeset, latest, :manual_alias_revision) do
+    if is_nil(latest.source) and is_nil(latest.source_id) and is_nil(latest.source_payload) do
+      changeset
+    else
+      Changeset.add_error(changeset, message: "provider-backed aliases cannot be revised")
+    end
   end
 end

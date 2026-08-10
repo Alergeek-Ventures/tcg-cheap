@@ -152,6 +152,9 @@ defmodule TcgCheap.Core do
 
     resource TcgCheap.Catalogue.SealedProductAlias do
       define :create_sealed_product_alias, action: :create
+      define :admin_create_sealed_product_alias, action: :admin_create
+      define :admin_revise_pending_sealed_product_alias, action: :admin_revise_pending
+      define :list_admin_sealed_product_aliases, action: :admin_catalogue
       define :import_sealed_product_alias, action: :import
       define :approve_sealed_product_alias, action: :approve
       define :reject_sealed_product_alias, action: :reject

@@ -47,8 +47,8 @@ defmodule TcgCheap.Catalogue.Preparations.SearchPublicSealedProducts do
     expr(
       ilike(search_name, ^pattern) or
         exists(
-          aliases,
-          kind == "name" and review_status == "approved" and ilike(normalized_value, ^pattern)
+          approved_name_aliases,
+          ilike(normalized_value, ^pattern)
         )
     )
   end
@@ -95,8 +95,8 @@ defmodule TcgCheap.Catalogue.Preparations.SearchPublicSealedProducts do
   defp approved_alias_equals(normalized) do
     expr(
       exists(
-        aliases,
-        kind == "name" and review_status == "approved" and normalized_value == ^normalized
+        approved_name_aliases,
+        normalized_value == ^normalized
       )
     )
   end
@@ -104,8 +104,8 @@ defmodule TcgCheap.Catalogue.Preparations.SearchPublicSealedProducts do
   defp approved_alias_starts_with(prefix) do
     expr(
       exists(
-        aliases,
-        kind == "name" and review_status == "approved" and ilike(normalized_value, ^prefix)
+        approved_name_aliases,
+        ilike(normalized_value, ^prefix)
       )
     )
   end

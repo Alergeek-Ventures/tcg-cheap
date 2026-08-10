@@ -92,6 +92,12 @@ defmodule TcgCheapWeb.Layouts do
           </Backpex.HTML.Layout.sidebar_item>
           <Backpex.HTML.Layout.sidebar_item
             current_url={@current_url}
+            navigate={~p"/admin/catalogue/aliases"}
+          >
+            <Backpex.HTML.CoreComponents.icon name="hero-tag" class="size-5" /> Aliases
+          </Backpex.HTML.Layout.sidebar_item>
+          <Backpex.HTML.Layout.sidebar_item
+            current_url={@current_url}
             navigate={~p"/admin/catalogue/listings"}
           >
             <Backpex.HTML.CoreComponents.icon name="hero-list-bullet" class="size-5" /> Listings

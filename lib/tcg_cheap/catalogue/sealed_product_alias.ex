@@ -52,6 +52,12 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
   actions do
     defaults [:read]
 
+    create :admin_create do
+      accept [:sealed_product_id, :kind, :original_value]
+      change TcgCheap.Catalogue.Changes.NormalizeSealedIdentifier
+      validate TcgCheap.Catalogue.Validations.SealedIdentifier
+    end
+
     create :create do
       accept [:sealed_product_id, :kind, :original_value, :source, :source_id, :source_payload]
       change TcgCheap.Catalogue.Changes.NormalizeSealedIdentifier
@@ -72,6 +78,22 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
                        )
 
       return_skipped_upsert? true
+    end
+
+    update :admin_revise_pending do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
+      accept [:sealed_product_id, :kind, :original_value]
+      require_atomic? false
+      change TcgCheap.Catalogue.Changes.NormalizeSealedIdentifier
+      validate TcgCheap.Catalogue.Validations.SealedIdentifier
+
+      change {TcgCheap.Catalogue.Changes.LockAndValidateReview,
+              resource: __MODULE__,
+              lock_action: :lock_for_update_by_id,
+              status_attribute: :review_status,
+              expected_status: "pending",
+              version_argument: :expected_updated_at,
+              mode: :manual_alias_revision}
     end
 
     update :approve do
@@ -109,6 +131,11 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
     read :pending_queue do
       filter expr(review_status == "pending")
       prepare build(sort: [inserted_at: :asc, normalized_value: :asc])
+      prepare build(load: [:sealed_product])
+    end
+
+    read :admin_catalogue do
+      prepare build(sort: [id: :asc])
       prepare build(load: [:sealed_product])
     end
 
@@ -153,11 +180,43 @@ defmodule TcgCheap.Catalogue.SealedProductAlias do
   end
 
   policies do
-    policy action([:approve, :reject, :pending_queue, :rejected_queue, :pending_review_by_id]) do
-      authorize_if TcgCheap.Accounts.Checks.Admin
+    # These actions are used by ingestion and public catalogue lookup, and must
+    # remain actorless.  The generic read below is intentionally not permissive:
+    # AshBackpex uses it for count/get/list in addition to the configured read.
+    bypass action([
+             :create,
+             :import,
+             :approved_for_product,
+             :approved_ean_aliases,
+             :lock_for_update_by_id
+           ]) do
+      authorize_if always()
     end
 
-    policy always() do
+    # Public sealed-product searches traverse this relationship.  Keep that
+    # narrowly scoped instead of making aliases generally readable.
+    bypass accessing_from(TcgCheap.Catalogue.SealedProduct, :approved_name_aliases) do
+      authorize_if always()
+    end
+
+    policy action(:admin_revise_pending) do
+      access_type :strict
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if TcgCheap.Catalogue.Checks.ManualPendingAlias
+    end
+
+    policy action([
+             :read,
+             :admin_create,
+             :admin_catalogue,
+             :approve,
+             :reject,
+             :pending_queue,
+             :rejected_queue,
+             :pending_review_by_id
+           ]) do
+      access_type :strict
+      forbid_unless TcgCheap.Accounts.Checks.Admin
       authorize_if always()
     end
   end

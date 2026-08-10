@@ -26,6 +26,17 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
     )
   end
 
+  defp admin do
+    TcgCheap.Accounts.register_admin!(
+      %{
+        email: "catalogue-admin-#{System.unique_integer([:positive])}@example.test",
+        password: "correct horse battery staple",
+        password_confirmation: "correct horse battery staple"
+      },
+      authorize?: false
+    )
+  end
+
   test "drafts are permissive and normalized but unpublished" do
     product = Core.create_sealed_product_draft!(attrs(%{name: "  Example   Product "}))
     assert {product.publication_status, product.market, product.language} == {"draft", "PL", "en"}
@@ -281,6 +292,99 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
 
       assert gtin.normalized_value == normalized
     end
+  end
+
+  test "administrator curation is actor-protected, manual-only, and stale-safe" do
+    administrator = admin()
+    first_product = Core.create_sealed_product_draft!(attrs(%{name: "First alias product"}))
+    second_product = Core.create_sealed_product_draft!(attrs(%{name: "Second alias product"}))
+
+    assert {:error, %Ash.Error.Forbidden{}} =
+             Core.admin_create_sealed_product_alias(%{
+               sealed_product_id: first_product.id,
+               kind: "name",
+               original_value: "Curated alias"
+             })
+
+    curated =
+      Core.admin_create_sealed_product_alias!(
+        %{
+          sealed_product_id: first_product.id,
+          kind: "name",
+          original_value: "Curated alias"
+        },
+        actor: administrator
+      )
+
+    assert Ash.can?({curated, :admin_revise_pending}, administrator)
+
+    revised =
+      Core.admin_revise_pending_sealed_product_alias!(
+        curated,
+        %{
+          expected_updated_at: curated.updated_at,
+          sealed_product_id: second_product.id,
+          kind: "ean",
+          original_value: "4006-3813-33931"
+        },
+        actor: administrator
+      )
+
+    assert revised.sealed_product_id == second_product.id
+    assert revised.kind == "ean"
+    assert revised.normalized_value == "4006381333931"
+
+    assert {:error, stale_error} =
+             Core.admin_revise_pending_sealed_product_alias(
+               curated,
+               %{
+                 expected_updated_at: curated.updated_at,
+                 original_value: "Stale overwrite"
+               },
+               actor: administrator
+             )
+
+    assert Exception.message(stale_error) =~ "record changed after it was loaded"
+
+    imported =
+      Core.import_sealed_product_alias!(%{
+        sealed_product_id: first_product.id,
+        kind: "name",
+        original_value: "Provider alias",
+        source: "fixture"
+      })
+
+    refute Ash.can?({imported, :admin_revise_pending}, administrator)
+
+    assert {:error, %Ash.Error.Forbidden{}} =
+             Core.admin_revise_pending_sealed_product_alias(
+               imported,
+               %{
+                 expected_updated_at: imported.updated_at,
+                 original_value: "Do not replace evidence"
+               },
+               actor: administrator
+             )
+
+    payload_only =
+      Core.create_sealed_product_alias!(%{
+        sealed_product_id: first_product.id,
+        kind: "name",
+        original_value: "Payload-only evidence",
+        source_payload: %{provider: true}
+      })
+
+    assert {:error, payload_error} =
+             Core.admin_revise_pending_sealed_product_alias(
+               payload_only,
+               %{
+                 expected_updated_at: payload_only.updated_at,
+                 original_value: "Do not replace hidden provider evidence"
+               },
+               actor: administrator
+             )
+
+    assert Exception.message(payload_error) =~ "provider-backed aliases cannot be revised"
   end
 
   test "invalid GTINs are rejected through the Core action" do

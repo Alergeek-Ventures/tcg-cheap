@@ -389,6 +389,10 @@ defmodule TcgCheap.Catalogue.SealedProduct do
 
   relationships do
     has_many :aliases, TcgCheap.Catalogue.SealedProductAlias
+
+    has_many :approved_name_aliases, TcgCheap.Catalogue.SealedProductAlias do
+      filter expr(kind == "name" and review_status == "approved")
+    end
   end
 
   identities do
