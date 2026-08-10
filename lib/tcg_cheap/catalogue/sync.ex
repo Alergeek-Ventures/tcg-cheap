@@ -23,9 +23,13 @@ defmodule TcgCheap.Catalogue.Sync do
 
   def sync_set(set_id, opts) when is_binary(set_id) and is_list(opts) do
     with {:ok, set_id} <- canonical_id(set_id),
-         {:ok, provider, provider_options, clock} <- validate_options(opts, :set) do
+         {:ok, provider, provider_options, clock, request_admitter} <-
+           validate_options(opts, :set) do
       provider
-      |> safe_provider_call(:fetch_set, [set_id, provider_options])
+      |> safe_provider_call(:fetch_set, [
+        set_id,
+        budgeted_options(provider_options, request_admitter)
+      ])
       |> handle_set_fetch(set_id, clock)
     end
   end
@@ -100,10 +104,10 @@ defmodule TcgCheap.Catalogue.Sync do
 
   def sync_all_sets(opts) when is_list(opts) do
     case validate_options(opts, :list) do
-      {:ok, provider, provider_options, clock} ->
+      {:ok, provider, provider_options, clock, request_admitter} ->
         provider
-        |> safe_provider_call(:list_sets, [provider_options])
-        |> handle_catalogue_fetch(provider, provider_options, clock)
+        |> safe_provider_call(:list_sets, [budgeted_options(provider_options, request_admitter)])
+        |> handle_catalogue_fetch(provider, provider_options, clock, request_admitter)
 
       error ->
         error
@@ -112,33 +116,78 @@ defmodule TcgCheap.Catalogue.Sync do
 
   def sync_all_sets(_), do: {:error, :invalid_options}
 
-  defp handle_catalogue_fetch({:error, reason} = error, _provider, _options, _clock) do
+  def discover_set_ids(opts \\ [])
+
+  def discover_set_ids(opts) when is_list(opts) do
+    case validate_options(opts, :list) do
+      {:ok, provider, provider_options, _clock, request_admitter} ->
+        provider
+        |> safe_provider_call(:list_sets, [budgeted_options(provider_options, request_admitter)])
+        |> handle_discovery_fetch()
+
+      error ->
+        error
+    end
+  end
+
+  def discover_set_ids(_), do: {:error, :invalid_options}
+
+  defp handle_catalogue_fetch(
+         {:error, reason} = error,
+         _provider,
+         _options,
+         _clock,
+         _request_admitter
+       ) do
     _ = record_issue("catalogue_fetch", "catalogue", "tcgdex", reason)
     error
   end
 
-  defp handle_catalogue_fetch({:ok, sets}, provider, provider_options, clock) do
+  defp handle_catalogue_fetch({:ok, sets}, provider, provider_options, clock, request_admitter) do
     sets
     |> validate_briefs()
-    |> handle_catalogue_validation(provider, provider_options, clock)
+    |> handle_catalogue_validation(provider, provider_options, clock, request_admitter)
+  end
+
+  defp handle_discovery_fetch({:error, reason} = error) do
+    _ = record_issue("catalogue_fetch", "catalogue", "tcgdex", reason)
+    error
+  end
+
+  defp handle_discovery_fetch({:ok, sets}) do
+    case validate_briefs(sets) do
+      {:ok, briefs} ->
+        {:ok, briefs |> Enum.map(& &1["id"]) |> Enum.sort()}
+
+      {:error, reason} = error ->
+        _ = record_issue("catalogue_validation", "catalogue", "tcgdex", reason)
+        error
+    end
   end
 
   defp handle_catalogue_validation(
          {:error, reason} = error,
          _provider,
          _provider_options,
-         _clock
+         _clock,
+         _request_admitter
        ) do
     _ = record_issue("catalogue_validation", "catalogue", "tcgdex", reason)
     error
   end
 
-  defp handle_catalogue_validation({:ok, sets}, provider, provider_options, clock) do
+  defp handle_catalogue_validation(
+         {:ok, sets},
+         provider,
+         provider_options,
+         clock,
+         request_admitter
+       ) do
     initial = %{report() | discovered_sets: length(sets)}
 
     sets
     |> Enum.reduce(initial, fn %{"id" => id}, report ->
-      sync_one(id, report, provider, provider_options, clock)
+      sync_one(id, report, provider, provider_options, clock, request_admitter)
     end)
     |> Map.update!(:failures, &Enum.reverse/1)
     |> Map.update!(:exclusions, &Enum.reverse/1)
@@ -168,22 +217,30 @@ defmodule TcgCheap.Catalogue.Sync do
     with :ok <- validate_keys(opts),
          :ok <- validate_provider_options(Keyword.get(opts, :provider_options, [])),
          {:ok, provider} <- validate_provider(Keyword.get(opts, :provider, Tcgdex), mode),
-         {:ok, clock} <- validate_clock(Keyword.get(opts, :clock, &DateTime.utc_now/0)) do
-      {:ok, provider, budgeted_options(Keyword.get(opts, :provider_options, [])), clock}
+         {:ok, clock} <- validate_clock(Keyword.get(opts, :clock, &DateTime.utc_now/0)),
+         {:ok, request_admitter} <-
+           validate_request_admitter(
+             Keyword.get(opts, :request_admitter, &default_request_admitter/0)
+           ) do
+      {:ok, provider, Keyword.get(opts, :provider_options, []), clock, request_admitter}
     end
   end
 
   defp validate_keys(opts) do
     if duplicate?(opts) or
-         Enum.any?(Keyword.keys(opts), &(&1 in [:provider, :provider_options, :clock] == false)),
+         Enum.any?(
+           Keyword.keys(opts),
+           &(&1 in [:provider, :provider_options, :clock, :request_admitter] == false)
+         ),
        do: {:error, :invalid_options},
        else: :ok
   end
 
   defp validate_provider_options(options) when is_list(options) do
-    if Keyword.keyword?(options) and not duplicate?(options),
-      do: :ok,
-      else: {:error, :invalid_provider_options}
+    if Keyword.keyword?(options) and not duplicate?(options) and
+         not Keyword.has_key?(options, :request_admitter),
+       do: :ok,
+       else: {:error, :invalid_provider_options}
   end
 
   defp validate_provider_options(_), do: {:error, :invalid_provider_options}
@@ -203,13 +260,16 @@ defmodule TcgCheap.Catalogue.Sync do
   defp validate_clock(clock) when is_function(clock, 0), do: {:ok, clock}
   defp validate_clock(_), do: {:error, :invalid_clock}
 
+  defp validate_request_admitter(admitter) when is_function(admitter, 0), do: {:ok, admitter}
+  defp validate_request_admitter(_), do: {:error, :invalid_request_admitter}
+
   defp duplicate?(list), do: length(list) != length(Enum.uniq(Keyword.keys(list)))
 
-  defp budgeted_options(options),
-    do:
-      Keyword.put(options, :request_admitter, fn ->
-        AcquisitionBudget.admit_request("tcgdex_catalogue")
-      end)
+  defp budgeted_options(options, request_admitter),
+    do: Keyword.put(options, :request_admitter, request_admitter)
+
+  defp default_request_admitter,
+    do: AcquisitionBudget.admit_request("tcgdex_catalogue")
 
   defp canonical_id(id) when is_binary(id) do
     id = String.trim(id)
@@ -458,8 +518,13 @@ defmodule TcgCheap.Catalogue.Sync do
   defp bool_int(true), do: 1
   defp bool_int(false), do: 0
 
-  defp sync_one(id, report, provider, provider_options, clock) do
-    case sync_set(id, provider: provider, provider_options: provider_options, clock: clock) do
+  defp sync_one(id, report, provider, provider_options, clock, request_admitter) do
+    case sync_set(id,
+           provider: provider,
+           provider_options: provider_options,
+           clock: clock,
+           request_admitter: request_admitter
+         ) do
       {:ok, result} ->
         if Map.get(result, :status) == :excluded do
           %{

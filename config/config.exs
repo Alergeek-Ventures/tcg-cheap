@@ -73,6 +73,7 @@ config :tcg_cheap, Oban,
   queues: [
     valuations: 4,
     exchange_rates: 1,
+    catalogue_sync: 1,
     operations: 1,
     sealed_retailers: 1,
     sealed_aggregates: 1,
@@ -89,6 +90,13 @@ config :tcg_cheap, Oban,
        {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
      ]}
   ]
+
+config :tcg_cheap, :catalogue_sync,
+  provider: TcgCheap.Catalogue.Tcgdex,
+  provider_options: [],
+  batch_size: 20,
+  batch_delay_seconds: 900,
+  budget_backoff_seconds: 3_600
 
 config :tcg_cheap, :valuation_clock, &DateTime.utc_now/0
 

@@ -10,7 +10,8 @@ defmodule Mix.Tasks.Check do
     {"Sobelow", ["sobelow", "--config", "--compact", "--private"]},
     {"compile", ["compile", "--warnings-as-errors"]},
     {"unused dependencies", ["deps.unlock", "--check-unused"]},
-    {"xref", ["xref", "graph", "--label", "compile-connected", "--fail-above", "58"]},
+    # Ash code interfaces compile-connect each resource to its domain; keep this ceiling explicit.
+    {"xref", ["xref", "graph", "--label", "compile-connected", "--fail-above", "59"]},
     {"Credo", ["credo", "--strict"]},
     {"Dialyzer", ["dialyzer"]}
   ]

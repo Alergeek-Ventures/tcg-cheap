@@ -21,6 +21,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:model_ready?, false)
      |> assign(:buying_model, nil)
      |> assign(:manual_ready?, false)
+     |> assign(:manual_catalogue, nil)
      |> assign(:manual_exchange_rate, nil)
      |> assign(:manual_valuation, nil)
      |> assign(:manual_available_count, 0)
@@ -64,7 +65,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                   Counters are estimated reservations before HTTP. Tracked provider attempts retain safe outcomes and admitted request counts; actual paid-cost reconciliation is not tracked yet.
                 </p>
                 <p class="admin-disclosure">
-                  Running attempts older than the configured boundary are reconciled automatically; this desk does not probe providers or break circuits.
+                  Running attempts older than the configured boundary are reconciled automatically. Catalogue synchronization checkpoints each bounded batch; this desk does not probe providers or break circuits.
                 </p>
               </div>
               <%= if @overview_ready? or @model_ready? or @manual_ready? do %>
@@ -491,6 +492,27 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                   Active duplicates reuse the canonical queued job. Provider budget is checked before HTTP; this action never marks work complete.
                 </p>
                 <div id="manual-refresh-fixed" class="admin-dockets operations-provider-dockets">
+                  <article id="manual-refresh-catalogue-panel" class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <div>
+                        <h3>TCGdex catalogue</h3>
+                        <p>Resume one canonical, checkpointed set and card-brief sync.</p>
+                      </div>
+                      <span id="manual-refresh-catalogue-status">
+                        {manual_status(@manual_catalogue)}
+                      </span>
+                    </div>
+                    <div class="admin-decision-row">
+                      <button
+                        id="manual-refresh-catalogue"
+                        type="button"
+                        phx-click="manual_catalogue_sync"
+                        phx-disable-with="Queueing…"
+                        disabled={@manual_catalogue.status != :available}
+                      >Queue catalogue sync</button>
+                    </div>
+                  </article>
+
                   <article id="manual-refresh-exchange-rate-panel" class="admin-docket">
                     <div class="admin-docket-heading">
                       <div>
@@ -592,6 +614,9 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   end
 
   @impl true
+  def handle_event("manual_catalogue_sync", _params, socket),
+    do: manual_enqueue(:catalogue_sync, "Catalogue sync", socket)
+
   def handle_event("manual_exchange_rate", _params, socket),
     do: manual_enqueue(:exchange_rate, "EUR / PLN refresh", socket)
 
@@ -689,6 +714,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp load_manual(socket) do
     case ManualRefresh.targets(socket.assigns.current_admin) do
       {:ok, targets} ->
+        catalogue = Enum.find(targets, &(&1.kind == :catalogue_sync)) || %{status: :unconfigured}
         exchange = Enum.find(targets, &(&1.kind == :exchange_rate)) || %{status: :unconfigured}
 
         valuation =
@@ -703,6 +729,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
 
         socket
         |> assign(:manual_ready?, true)
+        |> assign(:manual_catalogue, catalogue)
         |> assign(:manual_exchange_rate, exchange)
         |> assign(:manual_valuation, valuation)
         |> assign(:manual_available_count, Enum.count(targets, &(&1.status == :available)))
@@ -711,6 +738,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
       _ ->
         socket
         |> assign(:manual_ready?, false)
+        |> assign(:manual_catalogue, nil)
         |> assign(:manual_exchange_rate, nil)
         |> assign(:manual_valuation, nil)
         |> assign(:manual_available_count, 0)

@@ -78,5 +78,17 @@ defmodule TcgCheap.Operations do
 
       define :list_admin_import_issues, action: :admin_catalogue
     end
+
+    resource TcgCheap.Operations.CatalogueSyncRun do
+      define :start_catalogue_sync_run, action: :start, args: [:set_ids, :started_at]
+
+      define :get_active_catalogue_sync_run,
+        action: :active,
+        not_found_error?: false
+
+      define :advance_catalogue_sync_run,
+        action: :advance,
+        args: [:expected_index, :set_id, :outcome, :completed_at]
+    end
   end
 end

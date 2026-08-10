@@ -2,7 +2,7 @@ defmodule TcgCheap.Operations.ManualRefresh do
   @moduledoc "Safe, bounded boundary for manually requesting canonical acquisition jobs."
 
   alias TcgCheap.Accounts.{Admin, AdminActor}
-  alias TcgCheap.Catalogue.{Retailer, SealedRetailerAcquisition}
+  alias TcgCheap.Catalogue.{CatalogueSyncWorker, Retailer, SealedRetailerAcquisition}
   alias TcgCheap.Operations.{AcquisitionBudget, DataProvider}
   alias TcgCheap.Pricing.{ExchangeRateAcquisition, ExchangeRateWorker}
   alias TcgCheap.Pricing.Singles.{ValuationAcquisition, ValuationWorker}
@@ -60,6 +60,18 @@ defmodule TcgCheap.Operations.ManualRefresh do
 
   defp fixed_targets(budget, persisted_statuses) do
     [
+      %{
+        kind: :catalogue_sync,
+        label: "TCGdex catalogue",
+        provider_key: "tcgdex_catalogue",
+        status:
+          target_status(
+            budget,
+            persisted_statuses,
+            "tcgdex_catalogue",
+            worker_configured?(CatalogueSyncWorker)
+          )
+      },
       %{
         kind: :exchange_rate,
         label: "NBP EUR/PLN",
@@ -168,6 +180,17 @@ defmodule TcgCheap.Operations.ManualRefresh do
   defp checked_enqueue(:exchange_rate, budget, _admin) do
     with :ok <- provider_available?(budget, "nbp", worker_configured?(ExchangeRateWorker)) do
       enqueue_job(&ExchangeRateAcquisition.enqueue/0)
+    end
+  end
+
+  defp checked_enqueue(:catalogue_sync, budget, _admin) do
+    with :ok <-
+           provider_available?(
+             budget,
+             "tcgdex_catalogue",
+             worker_configured?(CatalogueSyncWorker)
+           ) do
+      enqueue_job(&CatalogueSyncWorker.enqueue/0)
     end
   end
 
@@ -293,7 +316,11 @@ defmodule TcgCheap.Operations.ManualRefresh do
   end
 
   defp worker_configured?(worker) do
-    match?({:ok, _adapter, _options}, worker.provider_config())
+    case worker.provider_config() do
+      {:ok, _config} -> true
+      {:ok, _adapter, _options} -> true
+      _other -> false
+    end
   rescue
     _ -> false
   catch

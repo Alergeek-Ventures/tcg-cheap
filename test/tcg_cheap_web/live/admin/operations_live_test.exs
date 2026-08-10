@@ -11,7 +11,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
 
   alias AshAuthentication.Phoenix.Plug, as: AuthenticationPlug
   alias TcgCheap.Accounts
-  alias TcgCheap.Catalogue.SealedRetailerWorker
+  alias TcgCheap.Catalogue.{CatalogueSyncWorker, SealedRetailerWorker}
   alias TcgCheap.Core
   alias TcgCheap.Operations
   alias TcgCheap.Operations.AcquisitionTracker
@@ -84,6 +84,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#manual-refresh-valuation-form")
     assert has_element?(view, "#manual-refresh-exchange-rate[phx-disable-with]")
     assert has_element?(view, "#manual-refresh-retailer-stream[phx-update=stream]")
+    assert has_element?(view, "#manual-refresh-catalogue[disabled]")
     assert has_element?(view, "#manual-refresh-exchange-rate[disabled]")
     assert has_element?(view, "#manual-refresh-valuation[disabled]")
   end
@@ -117,7 +118,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     refute has_element?(view, "#operations-buying-model button")
   end
 
-  test "manual controls enqueue only the three canonical target shapes", %{conn: conn, key: key} do
+  test "manual controls enqueue only the canonical target shapes", %{conn: conn, key: key} do
     {card, retailer} = configure_manual_targets(key)
     {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
     html = render(view)
@@ -125,6 +126,14 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     refute html =~ "retailer-source-secret"
     refute html =~ "OperationsManualRefreshTestAdapter"
     refute html =~ "adapter_options"
+
+    view |> element("#manual-refresh-catalogue") |> render_click()
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: CatalogueSyncWorker,
+      args: %{"scope" => "all_sets"}
+    )
 
     view |> element("#manual-refresh-exchange-rate") |> render_click()
 
@@ -417,6 +426,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
         provider(key),
         provider("other-#{key}"),
         provider("nbp"),
+        provider("tcgdex_catalogue"),
         provider("tcgdex_cardmarket"),
         provider("sealed_retailer:web-manual-refresh")
       ]

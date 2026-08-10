@@ -89,6 +89,10 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
   end
 
   defp outcome(_tracker, :ok), do: {"succeeded", nil}
+
+  defp outcome(_tracker, {:snooze, period}) when is_integer(period) and period > 0,
+    do: {"succeeded", nil}
+
   defp outcome(_tracker, {:cancel, reason}), do: {"cancelled", category(reason)}
 
   defp outcome(tracker, {:error, reason}) do
@@ -144,14 +148,19 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
   defp category({:transport_error, _}), do: :transport
   defp category({:provider_transport_error, _}), do: :transport
 
+  defp category({:http_error, %{status: status}}), do: http_category(status)
   defp category({:http_error, status}), do: http_category(status)
   defp category({:provider_http_error, status}), do: http_category(status)
+  defp category({:provider_callback_error, _function, _outcome}), do: :provider_response
+  defp category({:decode_error, _reason}), do: :provider_response
+  defp category({:malformed_response, _reason}), do: :provider_response
 
   defp category(reason)
        when reason in [
               :provider_response,
               :invalid_provider_response,
               :provider_callback_failed,
+              :catalogue_sync_incomplete,
               :provider_not_found,
               :pricing_unavailable,
               :unsupported_currency,
@@ -281,7 +290,12 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
 
   defp valid_identity?(provider, operation, target, worker, queue) do
     valid_text?(provider, 160) and
-      operation in ["single_valuation", "exchange_rate", "sealed_retailer_refresh"] and
+      operation in [
+        "single_valuation",
+        "exchange_rate",
+        "sealed_retailer_refresh",
+        "card_catalogue_sync"
+      ] and
       valid_text?(target, 240) and valid_text?(worker, 240) and valid_text?(queue, 160)
   end
 

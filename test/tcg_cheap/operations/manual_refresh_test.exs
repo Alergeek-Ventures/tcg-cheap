@@ -9,7 +9,7 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
   import Oban.Testing
 
   alias TcgCheap.Accounts
-  alias TcgCheap.Catalogue.SealedRetailerWorker
+  alias TcgCheap.Catalogue.{CatalogueSyncWorker, SealedRetailerWorker}
   alias TcgCheap.Core
   alias TcgCheap.Operations
   alias TcgCheap.Operations.{AcquisitionBudget, ManualRefresh, Overview}
@@ -21,6 +21,7 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     previous_adapters = Application.get_env(:tcg_cheap, :sealed_retailer_adapters)
     previous_exchange = Application.get_env(:tcg_cheap, :exchange_rate_provider)
     previous_valuation = Application.get_env(:tcg_cheap, :valuation_provider)
+    previous_catalogue = Application.get_env(:tcg_cheap, :catalogue_sync)
 
     Application.put_env(:tcg_cheap, :acquisition_budget, budget())
     Application.put_env(:tcg_cheap, :sealed_retailer_adapters, %{})
@@ -30,6 +31,7 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
       restore(:sealed_retailer_adapters, previous_adapters)
       restore(:exchange_rate_provider, previous_exchange)
       restore(:valuation_provider, previous_valuation)
+      restore(:catalogue_sync, previous_catalogue)
     end)
 
     admin = admin()
@@ -40,7 +42,14 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     retailer = configure_retailer()
 
     assert {:ok, targets} = ManualRefresh.targets(admin)
-    assert Enum.map(targets, & &1.kind) == [:exchange_rate, :single_valuation, :sealed_retailer]
+
+    assert Enum.map(targets, & &1.kind) == [
+             :catalogue_sync,
+             :exchange_rate,
+             :single_valuation,
+             :sealed_retailer
+           ]
+
     assert Enum.all?(targets, &(&1.status == :available))
 
     retailer_target = Enum.find(targets, &(&1.kind == :sealed_retailer))
@@ -79,6 +88,23 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
 
     assert {:ok, %{status: :already_queued, job_id: ^job_id}} =
              ManualRefresh.enqueue(admin, :exchange_rate)
+  end
+
+  test "queues or resumes only the fixed catalogue synchronization", %{admin: admin} do
+    assert {:ok, %{status: :queued, job_id: job_id}} =
+             ManualRefresh.enqueue(admin, :catalogue_sync)
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: CatalogueSyncWorker,
+      args: %{"scope" => "all_sets"}
+    )
+
+    assert {:ok, %{status: :already_queued, job_id: ^job_id}} =
+             ManualRefresh.enqueue(admin, :catalogue_sync)
+
+    assert {:error, :invalid_target} =
+             ManualRefresh.enqueue(admin, {:catalogue_sync, "caller-controlled"})
   end
 
   test "queues a valuation only for one exact local printing", %{admin: admin} do
@@ -197,6 +223,7 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
       :acquisition_budget,
       budget([
         provider("nbp"),
+        provider("tcgdex_catalogue"),
         provider("tcgdex_cardmarket"),
         provider("sealed_retailer:manual-refresh-stub")
       ])
@@ -236,7 +263,13 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     )
   end
 
-  defp budget(providers \\ [provider("nbp"), provider("tcgdex_cardmarket")]) do
+  defp budget(
+         providers \\ [
+           provider("tcgdex_catalogue"),
+           provider("nbp"),
+           provider("tcgdex_cardmarket")
+         ]
+       ) do
     [
       global_hourly_request_limit: 100,
       global_daily_request_limit: 1_000,

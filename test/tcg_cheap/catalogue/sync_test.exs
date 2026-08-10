@@ -49,6 +49,18 @@ defmodule TcgCheap.Catalogue.SyncTest do
     defp callback(value), do: {:ok, value}
   end
 
+  defmodule AdmittingProvider do
+    def list_sets(opts) do
+      Keyword.fetch!(opts, :request_admitter).()
+      {:ok, Keyword.fetch!(opts, :set_briefs)}
+    end
+
+    def fetch_set(id, opts) do
+      Keyword.fetch!(opts, :request_admitter).()
+      {:ok, Keyword.fetch!(opts, :sets) |> Map.fetch!(id)}
+    end
+  end
+
   setup do
     :ok = Sandbox.checkout(Repo)
     Sandbox.mode(Repo, {:shared, self()})
@@ -670,5 +682,71 @@ defmodule TcgCheap.Catalogue.SyncTest do
 
     assert {:error, _} = Core.get_card_set_by_tcgdex_id(untouched_id)
     assert {:error, _} = Core.get_card_printing_by_tcgdex_id(untouched_id)
+  end
+
+  test "discovery validates and sorts IDs without writing catalogue rows" do
+    first = id("discovery-first")
+    second = id("discovery-second")
+    counter = :counters.new(1, [:atomics])
+
+    assert {:ok, [^first, ^second]} =
+             Sync.discover_set_ids(
+               provider: AdmittingProvider,
+               provider_options: [
+                 set_briefs: [
+                   %{"id" => second, "name" => "Second"},
+                   %{"id" => first, "name" => "First"}
+                 ]
+               ],
+               request_admitter: fn -> :counters.add(counter, 1, 1) end
+             )
+
+    assert :counters.get(counter, 1) == 1
+    assert {:error, _} = Core.get_card_set_by_tcgdex_id(first)
+    assert {:error, _} = Core.get_card_set_by_tcgdex_id(second)
+  end
+
+  test "custom request admitter is used for list and every fetched set" do
+    first = id("admit-first")
+    second = id("admit-second")
+    counter = :counters.new(1, [:atomics])
+    briefs = [%{"id" => second, "name" => "Second"}, %{"id" => first, "name" => "First"}]
+    sets = %{first => set(first, []), second => set(second, [])}
+
+    assert {:ok, report} =
+             Sync.sync_all_sets(
+               provider: AdmittingProvider,
+               provider_options: [set_briefs: briefs, sets: sets],
+               request_admitter: fn -> :counters.add(counter, 1, 1) end,
+               clock: fn -> ~U[2026-01-01 00:00:00Z] end
+             )
+
+    assert report.synced_sets == 2
+    assert :counters.get(counter, 1) == 3
+  end
+
+  test "rejects malformed request admitters before calling the provider" do
+    assert {:error, :invalid_request_admitter} =
+             Sync.discover_set_ids(provider: AdmittingProvider, request_admitter: :not_a_function)
+
+    assert {:error, :invalid_request_admitter} =
+             Sync.sync_set(id("invalid-admitter"),
+               provider: AdmittingProvider,
+               request_admitter: :not_a_function
+             )
+  end
+
+  test "discovery keeps malformed provider diagnostics secret-safe" do
+    secret = "discovery-secret-token"
+
+    assert {:error, {:provider_callback_error, :list_sets, _}} =
+             Sync.discover_set_ids(
+               provider: CallbackProvider,
+               provider_options: [list_result: {:raise, secret}]
+             )
+
+    assert {:ok, [issue]} = Operations.list_admin_import_issues(authorize?: false)
+    assert issue.stage == "catalogue_fetch"
+    refute inspect(issue) =~ secret
   end
 end

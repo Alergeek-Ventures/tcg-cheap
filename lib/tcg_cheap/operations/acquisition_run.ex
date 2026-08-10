@@ -42,7 +42,8 @@ defmodule TcgCheap.Operations.AcquisitionRun do
           "failure_category IS NULL OR failure_category IN ('budget','rate_limit','timeout','transport','provider_response','persistence','configuration','local_input','unknown')"
 
       check_constraint [:operation], "acquisition_runs_operation_invariant",
-        check: "operation IN ('single_valuation','exchange_rate','sealed_retailer_refresh')"
+        check:
+          "operation IN ('single_valuation','exchange_rate','sealed_retailer_refresh','card_catalogue_sync')"
     end
   end
 
@@ -99,7 +100,12 @@ defmodule TcgCheap.Operations.AcquisitionRun do
       change set_attribute(:max_attempts, arg(:max_attempts))
       change set_attribute(:started_at, arg(:started_at))
 
-      validate one_of(:operation, ["single_valuation", "exchange_rate", "sealed_retailer_refresh"])
+      validate one_of(:operation, [
+                 "single_valuation",
+                 "exchange_rate",
+                 "sealed_retailer_refresh",
+                 "card_catalogue_sync"
+               ])
 
       change {TcgCheap.Operations.Changes.SourceHealthLifecycle, event: :start}
     end
