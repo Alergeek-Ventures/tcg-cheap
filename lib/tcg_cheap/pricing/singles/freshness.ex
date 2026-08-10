@@ -12,6 +12,13 @@ defmodule TcgCheap.Pricing.Singles.Freshness do
 
   def status(%SingleValuationSnapshot{fetched_at: fetched_at}, now)
       when is_struct(fetched_at, DateTime) and is_struct(now, DateTime) do
+    status_at(fetched_at, now)
+  end
+
+  @doc "Classifies a persisted valuation timestamp without requiring its resource record."
+  @spec status_at(DateTime.t(), DateTime.t()) :: :fresh | :stale
+  def status_at(fetched_at, now)
+      when is_struct(fetched_at, DateTime) and is_struct(now, DateTime) do
     if fresh_at?(fetched_at, now), do: :fresh, else: :stale
   end
 

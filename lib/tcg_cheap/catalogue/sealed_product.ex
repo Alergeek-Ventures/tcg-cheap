@@ -284,6 +284,20 @@ defmodule TcgCheap.Catalogue.SealedProduct do
       prepare build(sort: [name: :asc, slug: :asc])
     end
 
+    read :recent_public_releases do
+      argument :since, :date, allow_nil?: false
+      argument :as_of, :date, allow_nil?: false
+
+      filter expr(
+               publication_status == "approved" and release_date >= ^arg(:since) and
+                 release_date <= ^arg(:as_of) and
+                 officially_distributed == true and market == "PL" and language == "en" and
+                 distribution_status in ["current", "discontinued"]
+             )
+
+      prepare build(sort: [release_date: :desc, name: :asc, slug: :asc], limit: 4)
+    end
+
     read :search_public do
       argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
       argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]

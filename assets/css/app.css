@@ -292,6 +292,32 @@
 @media (max-width: 24rem) { .decision-world .evidence-slip { grid-template-columns: 4.75rem minmax(0, 1fr); } .decision-world .evidence-copy { padding: .6rem; } .decision-world .evidence-name { font-size: 1.3rem; } .decision-world .estimate-cell strong { font-size: 1.55rem; } }
 @media (prefers-reduced-motion: reduce) { .decision-world .evidence-slip { animation: none; } }
 
+.decision-world .discovery-ledgers { border-top: 2px solid var(--rule); display: grid; gap: 1.25rem; margin-top: 2rem; padding-top: .8rem; }
+.decision-world .discovery-ledger { min-width: 0; }
+.decision-world .discovery-heading { align-items: baseline; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; gap: 1rem; }
+.decision-world .discovery-heading h2, .decision-world .fallback-ledger h2 { font: 700 clamp(1.55rem, 4vw, 2.5rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .4rem; text-transform: uppercase; }
+.decision-world .discovery-heading span { color: var(--muted); font-size: .68rem; }
+.decision-world .discovery-rows { display: grid; gap: .45rem; padding-top: .5rem; }
+.decision-world .discovery-row { align-items: center; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); border-bottom: 1px solid var(--rule); color: inherit; display: grid; gap: .7rem; grid-template-columns: 3.2rem minmax(0, 1fr); min-height: 4.2rem; padding: .4rem; text-decoration: none; }
+.decision-world .discovery-row:hover { background: var(--paper); }
+.decision-world .discovery-sealed-row { grid-template-columns: minmax(0, 1fr); }
+.decision-world .discovery-thumb { align-items: center; background: #efe3cb; display: flex; height: 4.2rem; justify-content: center; min-width: 0; width: 3.2rem; }
+.decision-world .discovery-thumb img { border: 1px solid var(--rule); height: 100%; object-fit: contain; width: 100%; }
+.decision-world .discovery-thumb.card-image-missing { color: var(--muted); min-height: 4.2rem; }
+.decision-world .discovery-thumb.card-image-missing svg { fill: none; height: 3.5rem; stroke: var(--muted); stroke-width: 1.5; }
+.decision-world .discovery-copy { min-width: 0; }
+.decision-world .discovery-copy h3 { font: 700 1.2rem/.95 "Barlow Condensed", sans-serif; margin: 0 0 .2rem; overflow-wrap: anywhere; text-transform: uppercase; }
+.decision-world .discovery-copy p { font-size: .65rem; line-height: 1.45; margin: 0; overflow-wrap: anywhere; }
+.decision-world .discovery-evidence { align-items: baseline; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .3rem !important; padding-top: .3rem; }
+.decision-world .discovery-evidence strong { font: 700 1.25rem/.9 "Barlow Condensed", sans-serif; }
+.decision-world .discovery-evidence span:nth-child(2) { color: var(--orange); font-weight: 700; }
+.decision-world .discovery-status { color: var(--orange); font-weight: 700; text-transform: uppercase; }
+.decision-world .fallback-ledger { background: color-mix(in srgb, var(--paper) 65%, var(--bench)); border-top: 2px solid var(--rule); margin-top: 1rem; padding: .65rem 0 .5rem; }
+.decision-world .fallback-ledger h2 { font-size: 1.7rem; }
+.decision-world .fallback-ledger > div { display: grid; gap: .3rem; }
+.decision-world .fallback-ledger a { align-items: center; color: inherit; display: inline-flex; font-size: .7rem; min-height: 2.8rem; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2rem; }
+@media (min-width: 48rem) { .decision-world .discovery-ledgers { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
 /* Public sealed detail: canonical identity and local shop evidence on the valuation bench. */
 .sealed-detail-world .decision-container { max-width: 70rem; }
 .sealed-detail-world #sealed-detail-back, .sealed-detail-world #sealed-detail-not-found-back, .sealed-detail-world #sealed-detail-data-error-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .75rem; min-height: 2.8rem; text-underline-offset: .22rem; }

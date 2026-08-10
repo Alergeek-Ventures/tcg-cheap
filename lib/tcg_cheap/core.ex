@@ -48,6 +48,10 @@ defmodule TcgCheap.Core do
       define :list_single_valuation_history_since,
         action: :history_since_for_card_and_policy,
         args: [:card_printing_id, :policy_version, :since]
+
+      define :list_homepage_price_changes,
+        action: :homepage_price_changes,
+        args: [:as_of, {:optional, :limit}]
     end
 
     resource TcgCheap.Pricing.ExchangeRate do
@@ -124,6 +128,10 @@ defmodule TcgCheap.Core do
         not_found_error?: false
 
       define :list_public_sealed_products, action: :public_catalogue
+
+      define :list_recent_public_sealed_products,
+        action: :recent_public_releases,
+        args: [:since, :as_of]
 
       define :search_public_sealed_products,
         action: :search_public,

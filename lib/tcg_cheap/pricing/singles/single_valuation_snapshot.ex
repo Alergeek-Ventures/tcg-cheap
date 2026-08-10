@@ -17,6 +17,10 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
 
     custom_indexes do
       index [:card_printing_id, :policy_version, :fetched_at]
+
+      index [:policy_version, :fetched_at, :card_printing_id],
+        name: "single_valuation_snapshots_homepage_window_index"
+
       index [:card_printing_id, :policy_version], unique: true, where: "\"current?\" = TRUE"
     end
   end
@@ -91,6 +95,13 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
              )
 
       prepare build(sort: [fetched_at: :asc, id: :asc])
+    end
+
+    action :homepage_price_changes, {:array, :struct} do
+      constraints items: [instance_of: TcgCheap.Pricing.Singles.HomepagePriceChange]
+      argument :as_of, :utc_datetime_usec, allow_nil?: false
+      argument :limit, :integer, allow_nil?: false, default: 4, constraints: [min: 1, max: 6]
+      run TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges
     end
   end
 

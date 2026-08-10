@@ -195,7 +195,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
       render_component(&HomeLive.sealed_search_state/1,
         status: :error,
         count: 0,
-        query: "charizard"
+        query: "charizard",
+        fallback_count: 0
       )
 
     document = LazyHTML.from_fragment(html)
@@ -600,6 +601,102 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#card-option-#{first.id}")
   end
 
+  test "renders ordered discovery rows with evidence and direct routes", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    first = create_discovery_card("first-#{suffix}", "10", "20")
+    second = create_discovery_card("second-#{suffix}", "20", "10")
+    newest = create_sealed_product("Newest discovery #{suffix}")
+
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    assert has_element?(view, "#homepage-discovery")
+    assert has_element?(view, "#discovery-change-name-#{first.id}", "Discovery first")
+    assert has_element?(view, "#discovery-change-name-#{second.id}", "Discovery second")
+    assert has_element?(view, "#discovery-change-#{first.id}[href='/cards/#{first.tcgdex_id}']")
+    assert has_element?(view, "#discovery-change-#{first.id}", "€20.00")
+    assert has_element?(view, "#discovery-change-#{first.id}", "+100.00%")
+    assert has_element?(view, "#discovery-change-#{first.id}", "8 days")
+    assert has_element?(view, "#discovery-change-#{first.id}", "Updated today")
+    assert has_element?(view, "#discovery-sealed-#{newest.id}[href='/sealed/#{newest.slug}']")
+    assert has_element?(view, "#discovery-sealed-name-#{newest.id}", newest.name)
+
+    html = render(view)
+
+    assert :binary.match(html, "discovery-change-#{first.id}") <
+             :binary.match(html, "discovery-change-#{second.id}")
+  end
+
+  test "keeps discovery streams mounted while hidden during search", %{conn: conn} do
+    product = create_sealed_product("Stream discovery #{System.unique_integer([:positive])}")
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    assert has_element?(view, "#discovery-sealed-#{product.id}")
+    render_hook(view, "search", %{"search" => %{"query" => "missing discovery"}})
+    assert has_element?(view, "#homepage-discovery[hidden]")
+    assert has_element?(view, "#discovery-sealed-#{product.id}")
+
+    render_hook(view, "autocomplete_key", %{"key" => "Escape"})
+    assert has_element?(view, "#homepage-discovery:not([hidden])")
+    assert has_element?(view, "#discovery-sealed-#{product.id}")
+  end
+
+  test "offers sealed products when singles have no match", %{conn: conn} do
+    product = create_sealed_product("Fallback sealed #{System.unique_integer([:positive])}")
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    render_hook(view, "search", %{"search" => %{"query" => "Fallback sealed"}})
+    assert has_element?(view, "#sealed-fallback-list a[href='/sealed/#{product.slug}']")
+    assert has_element?(view, "#card-search-summary", "1 sealed product suggestion")
+    refute has_element?(view, "#card-search-results a")
+    refute has_element?(view, "#card-search-results #sealed-fallback-list")
+  end
+
+  test "offers singles when sealed products have no match", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    card = create_discovery_card("fallback-card-#{suffix}", "10", "11")
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_click(element(view, "#mode-sealed"))
+
+    render_hook(view, "search", %{"search" => %{"query" => "Discovery fallback card #{suffix}"}})
+    assert has_element?(view, "#card-fallback-list a[href='/cards/#{card.tcgdex_id}']")
+    assert has_element?(view, "#sealed-search-summary", "1 single-card suggestion")
+    refute has_element?(view, "#sealed-search-results #card-fallback-list")
+  end
+
+  test "does not show cross-category fallback when primary results exist", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    card = create_discovery_card("primary-#{suffix}", "10", "11")
+    product = create_sealed_product("Primary sealed #{suffix}")
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    render_hook(view, "search", %{"search" => %{"query" => "Discovery primary #{suffix}"}})
+    refute has_element?(view, "#sealed-fallback")
+    assert has_element?(view, "#card-option-#{card.id}")
+
+    render_click(element(view, "#mode-sealed"))
+    render_hook(view, "search", %{"search" => %{"query" => product.name}})
+    refute has_element?(view, "#card-fallback")
+    assert has_element?(view, "#sealed-option-#{product.id}")
+  end
+
+  test "clears fallback on short input, idle input, and mode changes", %{conn: conn} do
+    _product = create_sealed_product("Clear fallback #{System.unique_integer([:positive])}")
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    render_hook(view, "search", %{"search" => %{"query" => "Clear fallback"}})
+    assert has_element?(view, "#sealed-fallback")
+    render_hook(view, "search", %{"search" => %{"query" => "x"}})
+    refute has_element?(view, "#sealed-fallback")
+    render_hook(view, "search", %{"search" => %{"query" => "Clear fallback"}})
+    assert has_element?(view, "#sealed-fallback")
+    render_hook(view, "search", %{"search" => %{"query" => ""}})
+    refute has_element?(view, "#sealed-fallback")
+    render_hook(view, "search", %{"search" => %{"query" => "Clear fallback"}})
+    assert has_element?(view, "#sealed-fallback")
+    render_click(element(view, "#mode-sealed"))
+    refute has_element?(view, "#sealed-fallback")
+  end
+
   defp assert_one_selected(view) do
     document = LazyHTML.from_fragment(render(view))
     selected = LazyHTML.query(document, "#card-search-results [aria-selected=true]")
@@ -656,5 +753,30 @@ defmodule TcgCheapWeb.HomeLiveTest do
     Core.approve_sealed_product!(draft, %{expected_updated_at: draft.updated_at},
       authorize?: false
     )
+  end
+
+  defp create_discovery_card(label, start_value, current_value) do
+    card =
+      Core.create_card_printing!(%{
+        tcgdex_id: "home-discovery-#{label}-#{Ecto.UUID.generate()}",
+        name: "Discovery #{String.replace(label, "-", " ")}",
+        set_name: "Discovery Set",
+        collector_number: "001"
+      })
+
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    for {days_ago, value} <- [{8, start_value}, {0, current_value}] do
+      Core.record_single_valuation!(%{
+        card_printing_id: card.id,
+        value_eur: Decimal.new(value),
+        policy_version: "tcgdex_cardmarket_v1",
+        source: "tcgdex_cardmarket",
+        source_metric: "avg7",
+        fetched_at: DateTime.add(now, -days_ago * 86_400, :second)
+      })
+    end
+
+    card
   end
 end
