@@ -1,0 +1,336 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "provider_key",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "operation",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "stage",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "target_type",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "target_key",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "issue_kind",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "issue_code",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "first_seen_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "last_seen_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [
+    {
+      "attribute": [
+        "provider_key",
+        "target_key"
+      ],
+      "base_filter": null,
+      "check": "btrim(provider_key) <> '' AND btrim(target_key) <> ''",
+      "name": "import_issues_text_invariant"
+    },
+    {
+      "attribute": [
+        "provider_key"
+      ],
+      "base_filter": null,
+      "check": "provider_key = 'tcgdex_catalogue' OR provider_key ~ '^sealed_retailer:[A-Za-z0-9][A-Za-z0-9._-]{0,143}$'",
+      "name": "import_issues_provider_invariant"
+    },
+    {
+      "attribute": [
+        "provider_key",
+        "operation"
+      ],
+      "base_filter": null,
+      "check": "(provider_key = 'tcgdex_catalogue' AND operation IN ('card_catalogue_sync','card_catalogue_enrichment')) OR (provider_key ~ '^sealed_retailer:[A-Za-z0-9][A-Za-z0-9._-]{0,143}$' AND operation = 'sealed_retailer_refresh')",
+      "name": "import_issues_provider_operation_invariant"
+    },
+    {
+      "attribute": [
+        "operation"
+      ],
+      "base_filter": null,
+      "check": "operation IN ('card_catalogue_sync','card_catalogue_enrichment','sealed_retailer_refresh')",
+      "name": "import_issues_operation_invariant"
+    },
+    {
+      "attribute": [
+        "stage"
+      ],
+      "base_filter": null,
+      "check": "stage IN ('catalogue_fetch','catalogue_validation','set_fetch','set_validation','set_import','card_fetch','card_import','retailer_fetch','listing_validation','listing_import')",
+      "name": "import_issues_stage_invariant"
+    },
+    {
+      "attribute": [
+        "target_type"
+      ],
+      "base_filter": null,
+      "check": "target_type IN ('catalogue','set','card','retailer')",
+      "name": "import_issues_target_type_invariant"
+    },
+    {
+      "attribute": [
+        "issue_kind"
+      ],
+      "base_filter": null,
+      "check": "issue_kind IN ('unmatched','ambiguous','malformed','failed')",
+      "name": "import_issues_kind_invariant"
+    },
+    {
+      "attribute": [
+        "issue_code"
+      ],
+      "base_filter": null,
+      "check": "issue_code IN ('malformed_response','budget','rate_limit','timeout','transport','provider_response','persistence','configuration','local_input','unknown')",
+      "name": "import_issues_code_invariant"
+    },
+    {
+      "attribute": [
+        "operation",
+        "stage"
+      ],
+      "base_filter": null,
+      "check": "(operation = 'card_catalogue_sync' AND stage IN ('catalogue_fetch','catalogue_validation','set_fetch','set_validation','set_import')) OR (operation = 'card_catalogue_enrichment' AND stage IN ('set_fetch','set_validation','set_import','card_fetch','card_import')) OR (operation = 'sealed_retailer_refresh' AND stage IN ('retailer_fetch','listing_validation','listing_import'))",
+      "name": "import_issues_operation_stage_invariant"
+    },
+    {
+      "attribute": [
+        "stage",
+        "target_type",
+        "target_key"
+      ],
+      "base_filter": null,
+      "check": "(stage IN ('catalogue_fetch','catalogue_validation') AND target_type = 'catalogue' AND target_key = 'tcgdex') OR (stage IN ('set_fetch','set_validation','set_import') AND target_type = 'set') OR (stage IN ('card_fetch','card_import') AND target_type = 'card') OR (stage IN ('retailer_fetch','listing_validation','listing_import') AND target_type = 'retailer' AND target_key ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' AND target_key = lower(target_key))",
+      "name": "import_issues_stage_target_invariant"
+    },
+    {
+      "attribute": [
+        "issue_kind",
+        "issue_code"
+      ],
+      "base_filter": null,
+      "check": "(issue_kind IN ('unmatched','ambiguous') AND issue_code = 'provider_response') OR (issue_kind = 'malformed' AND issue_code = 'malformed_response') OR (issue_kind = 'failed' AND issue_code IN ('budget','rate_limit','timeout','transport','provider_response','persistence','configuration','local_input','unknown'))",
+      "name": "import_issues_kind_code_invariant"
+    },
+    {
+      "attribute": [
+        "first_seen_at",
+        "last_seen_at"
+      ],
+      "base_filter": null,
+      "check": "last_seen_at >= first_seen_at",
+      "name": "import_issues_timestamp_invariant"
+    }
+  ],
+  "create_table_options": null,
+  "custom_indexes": [
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "last_seen_at",
+        "id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "last_seen_at"
+        },
+        {
+          "type": "atom",
+          "value": "id"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "6C84DB43F0E75ABC9B6EBA4CC85B827DE5A51F2F2721BE5F44BE4F5014679900",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "import_issues_unique_import_issue_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "provider_key"
+        },
+        {
+          "type": "atom",
+          "value": "operation"
+        },
+        {
+          "type": "atom",
+          "value": "stage"
+        },
+        {
+          "type": "atom",
+          "value": "target_type"
+        },
+        {
+          "type": "atom",
+          "value": "target_key"
+        },
+        {
+          "type": "atom",
+          "value": "issue_kind"
+        },
+        {
+          "type": "atom",
+          "value": "issue_code"
+        }
+      ],
+      "name": "unique_import_issue",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.TcgCheap.Repo",
+  "schema": null,
+  "table": "import_issues"
+}

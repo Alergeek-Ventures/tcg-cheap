@@ -16,6 +16,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTestAdapter do
       :raise -> raise "worker adapter failed"
       :throw -> throw(:worker_adapter_failed)
       :exit -> exit(:worker_adapter_failed)
+      :batch -> {:ok, [:not_a_listing]}
       {:error, reason} -> {:error, reason}
       value -> value
     end
@@ -43,6 +44,13 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerSourceOnlyAdapter do
   def source_key, do: "worker-stub"
 end
 
+defmodule TcgCheap.Catalogue.SealedRetailerWorkerUnsafeKeyAdapter do
+  def source_key, do: "worker stub"
+
+  defdelegate fetch_listings(retailer, options),
+    to: TcgCheap.Catalogue.SealedRetailerWorkerTestAdapter
+end
+
 defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
   use TcgCheap.DataCase, async: false
 
@@ -55,6 +63,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
   end
 
   setup do
+    TcgCheap.Repo.delete_all("import_issues")
     previous_adapters = Application.get_env(:tcg_cheap, :sealed_retailer_adapters)
     previous_mode = Application.get_env(:tcg_cheap, :sealed_retailer_worker_test_mode)
     previous_budget = Application.get_env(:tcg_cheap, :acquisition_budget)
@@ -268,7 +277,6 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
 
   test "cancels permanent and malformed provider failures", %{retailer: retailer} do
     for reason <- [
-          {:http_error, %{status: 404}},
           :malformed_json,
           :malformed_shape,
           :invalid_pagination
@@ -277,8 +285,93 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
       assert {:cancel, ^reason} = SealedRetailerWorker.perform(job(retailer))
     end
 
+    Application.put_env(:tcg_cheap, :sealed_retailer_worker_test_mode, {
+      :error,
+      {:http_error, %{status: 404, response: "secret"}}
+    })
+
+    assert {:cancel, {:http_error, 404}} = SealedRetailerWorker.perform(job(retailer))
+
     Application.put_env(:tcg_cheap, :sealed_retailer_worker_test_mode, :malformed)
     assert {:cancel, :malformed_provider_result} = SealedRetailerWorker.perform(job(retailer))
+  end
+
+  test "retains secret-safe transport, callback, and listing diagnostics", %{retailer: retailer} do
+    for {mode, result, stage, kind, code} <- [
+          {{:error, {:transport_error, "https://secret.example/token"}},
+           {:error, :transport_error}, "retailer_fetch", "failed", "transport"},
+          {:raise, {:cancel, :adapter_exception}, "retailer_fetch", "failed",
+           "provider_response"},
+          {{:error, {:http_error, %{status: 408}}}, {:error, {:http_error, 408}},
+           "retailer_fetch", "failed", "timeout"},
+          {{:error, {:http_error, %{status: 429}}}, {:error, {:http_error, 429}},
+           "retailer_fetch", "failed", "rate_limit"},
+          {:batch, {:cancel, :malformed_listing}, "listing_validation", "malformed",
+           "malformed_response"},
+          {{:error, {:malformed_listing, "https://secret.example/listing"}},
+           {:cancel, :malformed_listing}, "listing_validation", "malformed",
+           "malformed_response"},
+          {{:error, {:provider_error, "https://secret.example/provider"}},
+           {:cancel, :provider_failure}, "retailer_fetch", "failed", "unknown"}
+        ] do
+      Application.put_env(:tcg_cheap, :sealed_retailer_worker_test_mode, mode)
+      assert SealedRetailerWorker.perform(job(retailer)) == result
+      assert {:ok, [issue]} = TcgCheap.Operations.list_admin_import_issues(authorize?: false)
+      assert issue.stage == stage
+      assert issue.issue_kind == kind
+      assert issue.issue_code == code
+      refute inspect(issue) =~ "secret.example"
+      TcgCheap.Repo.delete_all("import_issues")
+    end
+  end
+
+  test "repeated failures converge and malformed jobs retain no issue", %{retailer: retailer} do
+    Application.put_env(:tcg_cheap, :sealed_retailer_worker_test_mode, {:error, :transport_error})
+    assert {:error, :transport_error} = SealedRetailerWorker.perform(job(retailer))
+    assert {:error, :transport_error} = SealedRetailerWorker.perform(job(retailer))
+    assert {:ok, issues} = TcgCheap.Operations.list_admin_import_issues(authorize?: false)
+    assert length(issues) == 1
+
+    TcgCheap.Repo.delete_all("import_issues")
+    assert {:cancel, :malformed_job_args} = SealedRetailerWorker.perform(%Oban.Job{args: %{}})
+    assert {:ok, []} = TcgCheap.Operations.list_admin_import_issues(authorize?: false)
+  end
+
+  test "falls back to a safe diagnostic provider for a legacy source key" do
+    source_key = "worker stub"
+
+    retailer =
+      Core.register_retailer!(%{
+        slug: "unsafe-worker-#{System.unique_integer([:positive])}",
+        source_key: source_key,
+        name: "Unsafe key worker",
+        category: "regular_retailer",
+        homepage_url: "https://example.test"
+      })
+
+    Application.put_env(:tcg_cheap, :sealed_retailer_adapters, %{
+      source_key => %{
+        adapter: TcgCheap.Catalogue.SealedRetailerWorkerUnsafeKeyAdapter,
+        options: []
+      }
+    })
+
+    Application.put_env(
+      :tcg_cheap,
+      :acquisition_budget,
+      budget_config(provider_key: "sealed_retailer:" <> source_key)
+    )
+
+    Application.put_env(:tcg_cheap, :sealed_retailer_worker_test_mode, {
+      :error,
+      :transport_error
+    })
+
+    assert {:error, :transport_error} = SealedRetailerWorker.perform(job(retailer))
+    assert {:ok, [issue]} = TcgCheap.Operations.list_admin_import_issues(authorize?: false)
+    assert issue.provider_key == "sealed_retailer:other"
+    assert issue.target_key == retailer.id
+    refute inspect(issue) =~ source_key
   end
 
   test "rejects malformed or absent dynamic configuration before enqueue", %{retailer: retailer} do
@@ -360,7 +453,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
       global_monthly_spend_limit: "50.00",
       providers: [
         [
-          provider_key: "sealed_retailer:worker-stub",
+          provider_key: Keyword.get(opts, :provider_key, "sealed_retailer:worker-stub"),
           display_name: "Worker Stub",
           estimated_cost_per_request: "0.00",
           hourly_request_limit: Keyword.get(opts, :hourly, 100),

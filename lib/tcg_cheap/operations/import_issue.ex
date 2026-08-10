@@ -1,5 +1,5 @@
 defmodule TcgCheap.Operations.ImportIssue do
-  @moduledoc "Retained, secret-safe diagnostics for catalogue imports."
+  @moduledoc "Retained, secret-safe diagnostics for catalogue and sealed-retailer imports."
 
   use Ash.Resource,
     otp_app: :tcg_cheap,
@@ -20,17 +20,23 @@ defmodule TcgCheap.Operations.ImportIssue do
         check: "btrim(provider_key) <> '' AND btrim(target_key) <> ''"
 
       check_constraint [:provider_key], "import_issues_provider_invariant",
-        check: "provider_key = 'tcgdex_catalogue'"
+        check:
+          "provider_key = 'tcgdex_catalogue' OR provider_key ~ '^sealed_retailer:[A-Za-z0-9][A-Za-z0-9._-]{0,143}$'"
+
+      check_constraint [:provider_key, :operation], "import_issues_provider_operation_invariant",
+        check:
+          "(provider_key = 'tcgdex_catalogue' AND operation IN ('card_catalogue_sync','card_catalogue_enrichment')) OR (provider_key ~ '^sealed_retailer:[A-Za-z0-9][A-Za-z0-9._-]{0,143}$' AND operation = 'sealed_retailer_refresh')"
 
       check_constraint [:operation], "import_issues_operation_invariant",
-        check: "operation IN ('card_catalogue_sync','card_catalogue_enrichment')"
+        check:
+          "operation IN ('card_catalogue_sync','card_catalogue_enrichment','sealed_retailer_refresh')"
 
       check_constraint [:stage], "import_issues_stage_invariant",
         check:
-          "stage IN ('catalogue_fetch','catalogue_validation','set_fetch','set_validation','set_import','card_fetch','card_import')"
+          "stage IN ('catalogue_fetch','catalogue_validation','set_fetch','set_validation','set_import','card_fetch','card_import','retailer_fetch','listing_validation','listing_import')"
 
       check_constraint [:target_type], "import_issues_target_type_invariant",
-        check: "target_type IN ('catalogue','set','card')"
+        check: "target_type IN ('catalogue','set','card','retailer')"
 
       check_constraint [:issue_kind], "import_issues_kind_invariant",
         check: "issue_kind IN ('unmatched','ambiguous','malformed','failed')"
@@ -41,12 +47,12 @@ defmodule TcgCheap.Operations.ImportIssue do
 
       check_constraint [:operation, :stage], "import_issues_operation_stage_invariant",
         check:
-          "(operation = 'card_catalogue_sync' AND stage IN ('catalogue_fetch','catalogue_validation','set_fetch','set_validation','set_import')) OR (operation = 'card_catalogue_enrichment' AND stage IN ('set_fetch','set_validation','set_import','card_fetch','card_import'))"
+          "(operation = 'card_catalogue_sync' AND stage IN ('catalogue_fetch','catalogue_validation','set_fetch','set_validation','set_import')) OR (operation = 'card_catalogue_enrichment' AND stage IN ('set_fetch','set_validation','set_import','card_fetch','card_import')) OR (operation = 'sealed_retailer_refresh' AND stage IN ('retailer_fetch','listing_validation','listing_import'))"
 
       check_constraint [:stage, :target_type, :target_key],
                        "import_issues_stage_target_invariant",
                        check:
-                         "(stage IN ('catalogue_fetch','catalogue_validation') AND target_type = 'catalogue' AND target_key = 'tcgdex') OR (stage IN ('set_fetch','set_validation','set_import') AND target_type = 'set') OR (stage IN ('card_fetch','card_import') AND target_type = 'card')"
+                         "(stage IN ('catalogue_fetch','catalogue_validation') AND target_type = 'catalogue' AND target_key = 'tcgdex') OR (stage IN ('set_fetch','set_validation','set_import') AND target_type = 'set') OR (stage IN ('card_fetch','card_import') AND target_type = 'card') OR (stage IN ('retailer_fetch','listing_validation','listing_import') AND target_type = 'retailer' AND target_key ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' AND target_key = lower(target_key))"
 
       check_constraint [:issue_kind, :issue_code], "import_issues_kind_code_invariant",
         check:
@@ -108,9 +114,18 @@ defmodule TcgCheap.Operations.ImportIssue do
       upsert_condition expr(last_seen_at < upsert_conflict(:last_seen_at))
       return_skipped_upsert? true
 
-      validate one_of(:operation, ["card_catalogue_sync", "card_catalogue_enrichment"])
-      validate one_of(:provider_key, ["tcgdex_catalogue"])
-      validate match(:target_key, ~r/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/)
+      validate one_of(:operation, [
+                 "card_catalogue_sync",
+                 "card_catalogue_enrichment",
+                 "sealed_retailer_refresh"
+               ])
+
+      validate match(
+                 :provider_key,
+                 ~r/\A(tcgdex_catalogue|sealed_retailer:[A-Za-z0-9][A-Za-z0-9._-]{0,143})\z/
+               )
+
+      validate match(:target_key, ~r/\A[A-Za-z0-9][A-Za-z0-9._-]{0,127}\z/)
 
       validate one_of(:stage, [
                  "catalogue_fetch",
@@ -119,10 +134,13 @@ defmodule TcgCheap.Operations.ImportIssue do
                  "set_validation",
                  "set_import",
                  "card_fetch",
-                 "card_import"
+                 "card_import",
+                 "retailer_fetch",
+                 "listing_validation",
+                 "listing_import"
                ])
 
-      validate one_of(:target_type, ["catalogue", "set", "card"])
+      validate one_of(:target_type, ["catalogue", "set", "card", "retailer"])
       validate one_of(:issue_kind, ["unmatched", "ambiguous", "malformed", "failed"])
 
       validate one_of(:issue_code, [

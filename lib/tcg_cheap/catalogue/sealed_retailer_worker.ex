@@ -13,6 +13,22 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
 
   alias TcgCheap.Catalogue.{SealedRetailerAcquisition, SealedRetailerRefresh}
   alias TcgCheap.Operations.AcquisitionTracker
+  alias TcgCheap.Operations.ImportIssues
+
+  @malformed_issue_reasons [
+    :malformed_provider_result,
+    :malformed_batch,
+    :malformed_listing,
+    :duplicate_source_listing_id,
+    :malformed_json,
+    :malformed_shape,
+    :malformed_pagination,
+    :malformed_price,
+    :invalid_pagination,
+    :invalid_url,
+    :response_too_large
+  ]
+  @listing_validation_reasons [:malformed_batch, :malformed_listing, :duplicate_source_listing_id]
 
   @impl true
   def perform(%Oban.Job{args: args} = job) when is_map(args) do
@@ -45,9 +61,9 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
 
   defp validate_args(%{"retailer_id" => id, "source_key" => key} = args)
        when map_size(args) == 2 and is_binary(id) and is_binary(key) do
-    with {:ok, _uuid} <- Ecto.UUID.cast(id),
+    with {:ok, canonical_id} <- Ecto.UUID.cast(id),
          true <- byte_size(key) in 1..144 and key == String.trim(key) do
-      {:ok, id, key}
+      {:ok, canonical_id, key}
     else
       _ -> {:cancel, :malformed_job_args}
     end
@@ -71,12 +87,25 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
        when status == 408 or status == 429 or (status >= 500 and status <= 599),
        do: {:retry, {:http_error, status}}
 
+  defp classify({:error, {:http_error, %{status: status}}}) when status in 400..499,
+    do: {:cancel, {:http_error, status}}
+
   defp classify({:error, :persistence_failed}), do: {:retry, :persistence_failed}
   defp classify({:error, :budget_persistence_failed}), do: {:retry, :budget_persistence_failed}
   defp classify({:error, :retailer_lookup_failed}), do: {:retry, :retailer_lookup_failed}
   defp classify({:error, :pagination_changed}), do: {:retry, :pagination_changed}
 
-  defp classify({:error, reason}), do: {:cancel, reason}
+  defp classify({:error, {:acquisition_budget_rejected, reason}}) when is_atom(reason),
+    do: {:cancel, {:acquisition_budget_rejected, reason}}
+
+  defp classify({:error, {:acquisition_budget_rejected, _reason}}),
+    do: {:cancel, :acquisition_budget_rejected}
+
+  defp classify({:error, {reason, _detail}}) when reason in @malformed_issue_reasons,
+    do: {:cancel, reason}
+
+  defp classify({:error, reason}) when is_atom(reason), do: {:cancel, reason}
+  defp classify({:error, _reason}), do: {:cancel, :provider_failure}
 
   defp classify_error(reason) do
     case classify({:error, reason}) do
@@ -97,8 +126,39 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
            ) do
       :ok
     else
-      {:error, reason} -> classify_error(reason)
+      {:error, reason} ->
+        _ =
+          ImportIssues.record(
+            diagnostic_provider_key(source_key),
+            "sealed_retailer_refresh",
+            failure_stage(reason),
+            "retailer",
+            retailer_id,
+            reason
+          )
+
+        classify_error(reason)
     end
+  end
+
+  defp failure_stage(reason) when reason in @listing_validation_reasons,
+    do: "listing_validation"
+
+  defp failure_stage(:persistence_invalid), do: "listing_import"
+  defp failure_stage(:persistence_failed), do: "listing_import"
+
+  defp failure_stage({reason, _}) when reason in @listing_validation_reasons,
+    do: "listing_validation"
+
+  defp failure_stage(_), do: "retailer_fetch"
+
+  defp diagnostic_provider_key(source_key) do
+    suffix =
+      if Regex.match?(~r/\A[A-Za-z0-9][A-Za-z0-9._-]{0,143}\z/, source_key),
+        do: source_key,
+        else: "other"
+
+    "sealed_retailer:" <> suffix
   end
 
   defp tracker_options(retailer_id, source_key),

@@ -80,6 +80,152 @@ defmodule TcgCheap.Operations.ImportIssueTest do
     assert listed.id == initial.id
   end
 
+  test "records sealed retailer evidence for every refresh stage", %{actor: actor} do
+    provider = "sealed_retailer:shop_1"
+    retailer_id = "aabbccdd-eeff-0011-2233-445566778899"
+    now = ~U[2026-01-01 00:00:00.123456Z]
+
+    for stage <- ["retailer_fetch", "listing_validation", "listing_import"] do
+      assert :ok =
+               ImportIssues.record(
+                 provider,
+                 "sealed_retailer_refresh",
+                 stage,
+                 "retailer",
+                 retailer_id,
+                 :malformed_listing,
+                 now
+               )
+    end
+
+    assert {:ok, issues} = Operations.list_admin_import_issues(actor: actor)
+    assert length(issues) == 3
+
+    assert Enum.all?(
+             issues,
+             &(&1.provider_key == provider and &1.target_key == retailer_id and
+                 &1.issue_kind == "malformed" and &1.issue_code == "malformed_response")
+           )
+  end
+
+  test "rejects sealed cross-provider, matrix, unsafe provider, and UUID values" do
+    timestamp = DateTime.utc_now()
+
+    valid = [
+      "sealed_retailer:shop",
+      "sealed_retailer_refresh",
+      "retailer_fetch",
+      "retailer",
+      Ecto.UUID.generate(),
+      "failed",
+      "transport"
+    ]
+
+    for args <- [
+          [
+            "tcgdex_catalogue",
+            "sealed_retailer_refresh",
+            "retailer_fetch",
+            "retailer",
+            Ecto.UUID.generate(),
+            "failed",
+            "transport"
+          ],
+          [
+            "sealed_retailer:shop",
+            "sealed_retailer_refresh",
+            "set_fetch",
+            "set",
+            "set-1",
+            "failed",
+            "transport"
+          ],
+          [
+            "sealed_retailer:shop?secret",
+            "sealed_retailer_refresh",
+            "retailer_fetch",
+            "retailer",
+            Ecto.UUID.generate(),
+            "failed",
+            "transport"
+          ],
+          [
+            "sealed_retailer:shop",
+            "sealed_retailer_refresh",
+            "retailer_fetch",
+            "retailer",
+            String.upcase(Ecto.UUID.generate()),
+            "failed",
+            "transport"
+          ],
+          [
+            "sealed_retailer:shop",
+            "sealed_retailer_refresh",
+            "retailer_fetch",
+            "retailer",
+            "not-a-uuid",
+            "failed",
+            "transport"
+          ]
+        ] do
+      assert {:error, _} =
+               apply(Operations, :record_import_issue, args ++ [timestamp, [authorize?: false]])
+    end
+
+    for {provider, target} <- [
+          {"sealed_retailer:shop\n", Ecto.UUID.generate()},
+          {"sealed_retailer:shop", Ecto.UUID.generate() <> "\n"}
+        ] do
+      assert {:error, :import_issue_persistence_failed} =
+               ImportIssues.record(
+                 provider,
+                 "sealed_retailer_refresh",
+                 "retailer_fetch",
+                 "retailer",
+                 target,
+                 :transport_error,
+                 timestamp
+               )
+    end
+
+    assert :ok =
+             ImportIssues.record(
+               Enum.at(valid, 0),
+               Enum.at(valid, 1),
+               Enum.at(valid, 2),
+               Enum.at(valid, 3),
+               Enum.at(valid, 4),
+               {:malformed_listing, "secret-url"},
+               timestamp
+             )
+
+    {:ok, [issue]} = Operations.list_admin_import_issues(authorize?: false)
+    refute inspect(issue) =~ "secret-url"
+  end
+
+  test "normalizes sealed HTTP status maps without retaining response details", %{actor: actor} do
+    provider = "sealed_retailer:shop"
+    retailer_id = Ecto.UUID.generate()
+    now = ~U[2026-01-01 00:00:00.000000Z]
+
+    for {status, expected_code} <- [{408, "timeout"}, {429, "rate_limit"}] do
+      assert :ok =
+               ImportIssues.record(
+                 provider,
+                 "sealed_retailer_refresh",
+                 "retailer_fetch",
+                 "retailer",
+                 retailer_id,
+                 {:http_error, %{status: status, response: "secret-#{status}"}},
+                 DateTime.add(now, status, :second)
+               )
+
+      assert {:ok, issues} = Operations.list_admin_import_issues(actor: actor)
+      assert Enum.any?(issues, &(&1.issue_code == expected_code))
+      refute inspect(issues) =~ "secret-#{status}"
+    end
+  end
+
   test "concurrent repeats converge on one issue with the latest occurrence", %{actor: actor} do
     provider = "tcgdex_catalogue"
     base = ~U[2026-01-01 00:00:00.000000Z]

@@ -17,29 +17,29 @@ defmodule TcgCheapWeb.Admin.ImportIssueLiveTest do
 
   test "authenticated index and show expose only normalized issue evidence", %{conn: conn} do
     suffix = System.unique_integer([:positive])
-    provider_key = "tcgdex_catalogue"
-    target_key = "set-#{suffix}"
+    provider_key = "sealed_retailer:shop_#{suffix}"
+    target_key = Ecto.UUID.generate()
     now = ~U[2026-01-02 03:04:05.000000Z]
 
     assert :ok =
              ImportIssues.record(
                provider_key,
-               "card_catalogue_sync",
-               "set_validation",
-               "set",
+               "sealed_retailer_refresh",
+               "listing_validation",
+               "retailer",
                target_key,
-               {:malformed_response, {:bearer_secret, "payload-secret"}},
+               {:malformed_listing, {:bearer_secret, "payload-secret"}},
                now
              )
 
-    latest_target = "set-latest-#{suffix}"
+    latest_target = Ecto.UUID.generate()
 
     assert :ok =
              ImportIssues.record(
                provider_key,
-               "card_catalogue_sync",
-               "set_validation",
-               "set",
+               "sealed_retailer_refresh",
+               "listing_validation",
+               "retailer",
                latest_target,
                {:malformed_response, :latest},
                DateTime.add(now, 1, :second)
