@@ -17,6 +17,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:provider_count, 0)
      |> assign(:run_count, 0)
      |> assign(:job_count, 0)
+     |> assign(:total_retained_jobs, 0)
      |> assign(:model_ready?, false)
      |> assign(:buying_model, nil)
      |> assign(:manual_ready?, false)
@@ -24,6 +25,8 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:manual_valuation, nil)
      |> assign(:manual_available_count, 0)
      |> assign(:manual_form, to_form(%{"tcgdex_id" => ""}, as: :manual_refresh))
+     |> stream_configure(:job_state_counts, dom_id: &job_state_dom_id/1)
+     |> stream(:job_state_counts, [], reset: true)
      |> stream(:manual_retailers, [], reset: true)
      |> load_buying_model()
      |> load_manual()
@@ -70,7 +73,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                     <a href="#operations-global-ledger">Global <strong>UTC</strong></a>
                     <a href="#operations-providers">Providers <strong>{@provider_count}</strong></a>
                     <a href="#operations-acquisition-runs">Runs <strong>{@run_count}</strong></a>
-                    <a href="#operations-retained-jobs">Jobs <strong>{@job_count}</strong></a>
+                    <a href="#operations-retained-jobs">Jobs <strong>{@total_retained_jobs}</strong></a>
                   <% end %>
                   <a href="#operations-buying-model">
                     Model <strong>{if(@model_ready?, do: 1, else: 0)}</strong>
@@ -257,11 +260,19 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                 aria-labelledby="operations-retained-title"
               >
                 <div class="admin-section-rule">
-                  <h2 id="operations-retained-title">Retained jobs</h2><span>{@job_count} shown</span>
+                  <h2 id="operations-retained-title">Job ledger</h2><span id="operations-retained-total">{@job_count} recent · {@total_retained_jobs} retained</span>
                 </div>
+                <p id="operations-retained-disclosure" class="admin-disclosure">
+                  Counts cover every retained Oban state. The newest inserted evidence list is bounded to 25 jobs (maximum 50) and is secret-safe: arguments, metadata, and raw errors are never shown.
+                </p>
+                <dl id="operations-job-state-counts" class="admin-ledger" phx-update="stream">
+                  <div :for={{dom_id, entry} <- @streams.job_state_counts} id={dom_id}>
+                    <dt>{entry.state}</dt><dd>{entry.count}</dd>
+                  </div>
+                </dl>
                 <div id="operations-job-stream" class="admin-dockets" phx-update="stream">
                   <p id="operations-job-empty" class="admin-empty hidden only:block">
-                    No retained failed/retryable/cancelled jobs.
+                    No retained jobs.
                   </p>
                   <article
                     :for={{dom_id, job} <- @streams.recent_jobs}
@@ -270,15 +281,21 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                   >
                     <div class="admin-docket-heading">
                       <div>
-                        <h3>{job.state}</h3><p>{job.queue} · {job.worker}</p>
-                      </div><span>{job.attempt}/{job.max_attempts}</span>
+                        <h3>{job.worker}</h3><p>{job.queue}</p>
+                      </div><span>{job_state(job.state)}</span>
                     </div>
                     <dl class="admin-ledger">
                       <div>
-                        <dt>Observed UTC</dt><dd>{datetime(job.observed_at)}</dd>
-                      </div><div class="wide-evidence">
-                        <dt>Failure category</dt><dd>{job.failure_category}</dd>
+                        <dt>Attempt</dt><dd>{job.attempt}/{job.max_attempts}</dd>
                       </div>
+                      <div>
+                        <dt>Observed UTC</dt><dd>{datetime(job.observed_at)}</dd>
+                      </div>
+                      <%= if job.failure_category do %>
+                        <div class="wide-evidence">
+                          <dt>Failure category</dt><dd>{job.failure_category}</dd>
+                        </div>
+                      <% end %>
                     </dl>
                   </article>
                 </div>
@@ -715,6 +732,8 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         |> assign(:provider_count, length(providers))
         |> assign(:run_count, length(overview.recent_runs))
         |> assign(:job_count, length(overview.recent_jobs))
+        |> assign(:total_retained_jobs, overview.total_retained_jobs)
+        |> stream(:job_state_counts, overview.job_state_counts, reset: true)
         |> stream(:providers, providers, reset: true)
         |> stream(:recent_runs, overview.recent_runs, reset: true)
         |> stream(:recent_jobs, overview.recent_jobs, reset: true)
@@ -726,6 +745,8 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         |> assign(:provider_count, 0)
         |> assign(:run_count, 0)
         |> assign(:job_count, 0)
+        |> assign(:total_retained_jobs, 0)
+        |> stream(:job_state_counts, [], reset: true)
         |> stream(:providers, [], reset: true)
         |> stream(:recent_runs, [], reset: true)
         |> stream(:recent_jobs, [], reset: true)
@@ -808,6 +829,8 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp run_status(_), do: "UNKNOWN"
   defp run_failure(nil), do: "None"
   defp run_failure(category), do: failure_name(category)
+  defp job_state_dom_id(entry), do: "operations-job-state-#{entry.state}"
+  defp job_state(state), do: state |> String.replace("_", " ") |> String.upcase()
 
   defp failure_name(category),
     do: category |> String.replace("_", " ") |> String.capitalize()

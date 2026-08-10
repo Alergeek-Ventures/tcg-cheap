@@ -74,6 +74,12 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#operations-provider-stream[phx-update=stream]")
     assert has_element?(view, "#operations-run-stream[phx-update=stream]")
     assert has_element?(view, "#operations-job-stream[phx-update=stream]")
+    assert has_element?(view, "#operations-job-state-counts[phx-update=stream]")
+
+    Enum.each(Oban.Job.states(), fn state ->
+      assert has_element?(view, "#operations-job-state-#{state}")
+    end)
+
     assert has_element?(view, "#operations-manual-refresh")
     assert has_element?(view, "#manual-refresh-valuation-form")
     assert has_element?(view, "#manual-refresh-exchange-rate[phx-disable-with]")
@@ -296,6 +302,36 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
 
     assert has_element?(view, "#operations-job-stream", "Timeout")
     refute LazyHTML.text(document) =~ "secret-error-token"
+    refute LazyHTML.text(document) =~ "secret-args"
+    refute LazyHTML.text(document) =~ "secret-meta"
+  end
+
+  test "retained state ledger and local workers are visible without secrets", %{conn: conn} do
+    Enum.each(Oban.Job.states(), fn state ->
+      insert_job(
+        Atom.to_string(state),
+        "Local.Worker",
+        "secret-error",
+        "secret-args",
+        "secret-meta"
+      )
+    end)
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+    document = LazyHTML.from_fragment(render(view))
+
+    Enum.each(Oban.Job.states(), fn state ->
+      assert has_element?(view, "#operations-job-state-#{state}", "1")
+    end)
+
+    assert has_element?(
+             view,
+             "#operations-retained-total",
+             "#{length(Oban.Job.states())} retained"
+           )
+
+    assert has_element?(view, "#operations-job-stream", "Local.Worker")
+    refute LazyHTML.text(document) =~ "secret-error"
     refute LazyHTML.text(document) =~ "secret-args"
     refute LazyHTML.text(document) =~ "secret-meta"
   end

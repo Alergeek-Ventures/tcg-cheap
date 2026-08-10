@@ -242,6 +242,44 @@ defmodule TcgCheap.Operations.OverviewTest do
     refute Map.has_key?(job, :latest_error)
   end
 
+  test "counts every canonical state in Oban order and recent evidence includes all states", %{
+    actor: actor,
+    now: now
+  } do
+    states = Oban.Job.states()
+
+    Enum.each(Enum.with_index(states), fn {state, index} ->
+      TcgCheap.Repo.query!(
+        ~S|INSERT INTO oban_jobs (state, queue, worker, args, attempt, max_attempts, inserted_at, scheduled_at) VALUES ($1, 'ops', $2, '{"secret":"hidden"}', 1, 3, $3, $3)|,
+        [Atom.to_string(state), "LocalOnly.Worker#{index}", DateTime.add(now, -index, :second)]
+      )
+    end)
+
+    assert {:ok, overview} = Overview.load(actor, clock: fn -> now end)
+    assert Enum.map(overview.job_state_counts, & &1.state) == Enum.map(states, &Atom.to_string/1)
+    assert Enum.all?(overview.job_state_counts, &(&1.count == 1))
+    assert overview.total_retained_jobs == length(states)
+
+    assert Enum.map(overview.recent_jobs, & &1.state) |> Enum.sort() ==
+             Enum.map(states, &Atom.to_string/1) |> Enum.sort()
+
+    assert Enum.all?(
+             overview.recent_jobs,
+             &(Map.keys(&1) |> Enum.sort() == [
+                 :attempt,
+                 :failure_category,
+                 :id,
+                 :max_attempts,
+                 :observed_at,
+                 :queue,
+                 :state,
+                 :worker
+               ])
+           )
+
+    refute inspect(overview.recent_jobs) =~ "hidden"
+  end
+
   test "projects source freshness and stranded attempts from the strict policy", %{
     key: key,
     actor: actor,

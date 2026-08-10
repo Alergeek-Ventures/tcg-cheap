@@ -8,7 +8,8 @@ defmodule TcgCheap.Operations.Overview do
   @max_job_limit 50
   @default_run_limit 25
   @max_run_limit 50
-  @job_states ~w(retryable discarded cancelled)
+  @job_states Oban.Job.states()
+  @failure_job_states ~w(retryable discarded cancelled)
   @failure_categories [
     {"Timeout", ["timeout"]},
     {"Rate limited", ["rate limit", "429"]},
@@ -34,6 +35,7 @@ defmodule TcgCheap.Operations.Overview do
          {:ok, providers} <- list_providers(actor, config.providers),
          {:ok, health} <- source_health(actor, config.providers),
          {:ok, runs} <- recent_runs(actor, config.providers, run_limit),
+         {:ok, job_state_counts} <- job_state_counts(),
          {:ok, jobs} <- recent_jobs(job_limit),
          {:ok, now} <- valid_clock(clock),
          {:ok, windows} <- current_windows(actor, providers, now),
@@ -49,6 +51,7 @@ defmodule TcgCheap.Operations.Overview do
          health: health,
          runs: projected_runs,
          jobs: jobs,
+         job_state_counts: job_state_counts,
          health_policy: health_policy,
          now: now
        })}
@@ -288,6 +291,7 @@ defmodule TcgCheap.Operations.Overview do
          health: health,
          runs: runs,
          jobs: jobs,
+         job_state_counts: job_state_counts,
          health_policy: health_policy,
          now: now
        }) do
@@ -331,7 +335,14 @@ defmodule TcgCheap.Operations.Overview do
         monthly_spend_limit: config.global_monthly_spend_limit
       })
 
-    %{global: global, providers: providers, recent_runs: runs, recent_jobs: jobs}
+    %{
+      global: global,
+      providers: providers,
+      recent_runs: runs,
+      recent_jobs: jobs,
+      job_state_counts: job_state_counts,
+      total_retained_jobs: Enum.sum(Enum.map(job_state_counts, & &1.count))
+    }
   end
 
   defp health_projection(nil), do: nil
@@ -418,6 +429,39 @@ defmodule TcgCheap.Operations.Overview do
     |> List.first()
   end
 
+  defp job_state_counts do
+    result =
+      TcgCheap.Repo.query(
+        """
+        SELECT states.state::text, COUNT(jobs.id)::bigint
+        FROM unnest(enum_range(NULL::oban_job_state)) AS states(state)
+        LEFT JOIN oban_jobs AS jobs ON jobs.state = states.state
+        GROUP BY states.state
+        ORDER BY array_position(enum_range(NULL::oban_job_state), states.state)
+        """,
+        []
+      )
+
+    case result do
+      {:ok, %{rows: rows}} ->
+        validate_job_state_counts(rows)
+
+      {:error, reason} ->
+        {:error, {:overview_query_failed, reason}}
+    end
+  end
+
+  defp validate_job_state_counts(rows) do
+    expected_states = Enum.map(@job_states, &Atom.to_string/1)
+    counts = Map.new(rows, fn [state, count] -> {state, count} end)
+
+    if MapSet.new(Map.keys(counts)) == MapSet.new(expected_states) do
+      {:ok, Enum.map(expected_states, &%{state: &1, count: Map.fetch!(counts, &1)})}
+    else
+      {:error, :oban_job_state_mismatch}
+    end
+  end
+
   defp recent_jobs(limit) do
     result =
       TcgCheap.Repo.query(
@@ -430,24 +474,26 @@ defmodule TcgCheap.Operations.Overview do
           attempt,
           max_attempts,
           LEFT(
-            CASE jsonb_typeof(errors[array_length(errors, 1)])
-              WHEN 'object' THEN COALESCE(
-                errors[array_length(errors, 1)]->>'error',
-                errors[array_length(errors, 1)]->>'message',
-                errors[array_length(errors, 1)]->>'reason'
-              )
-              WHEN 'string' THEN errors[array_length(errors, 1)] #>> '{}'
-              ELSE NULL
+            CASE
+              WHEN state = ANY($2::oban_job_state[]) THEN
+                CASE jsonb_typeof(errors[array_length(errors, 1)])
+                  WHEN 'object' THEN COALESCE(
+                    errors[array_length(errors, 1)]->>'error',
+                    errors[array_length(errors, 1)]->>'message',
+                    errors[array_length(errors, 1)]->>'reason'
+                  )
+                  WHEN 'string' THEN errors[array_length(errors, 1)] #>> '{}'
+                  ELSE NULL
+                END
             END,
             500
           ) AS latest_error,
-          COALESCE(cancelled_at, completed_at, discarded_at, attempted_at, inserted_at) AS observed_at
+          COALESCE(completed_at, discarded_at, cancelled_at, attempted_at, inserted_at) AS observed_at
         FROM oban_jobs
-        WHERE state = ANY($1)
-        ORDER BY observed_at DESC NULLS LAST, id DESC
-        LIMIT $2
+        ORDER BY id DESC
+        LIMIT $1
         """,
-        [@job_states, limit]
+        [limit, @failure_job_states]
       )
 
     case result do
@@ -473,20 +519,24 @@ defmodule TcgCheap.Operations.Overview do
       worker: worker,
       attempt: attempt,
       max_attempts: max_attempts,
-      failure_category: failure_category(latest_error),
+      failure_category: failure_category(state, latest_error),
       observed_at: observed_at
     }
   end
 
-  defp failure_category(nil), do: "No error detail retained"
+  defp failure_category(state, nil) when state in @failure_job_states,
+    do: "No error detail retained"
 
-  defp failure_category(error) when is_binary(error) do
+  defp failure_category(state, error)
+       when state in @failure_job_states and is_binary(error) do
     normalized = String.downcase(error)
 
     Enum.find_value(@failure_categories, "Worker failure", fn {category, fragments} ->
       Enum.any?(fragments, &String.contains?(normalized, &1)) && category
     end)
   end
+
+  defp failure_category(_state, _error), do: nil
 
   defp provider_keys,
     do: [
