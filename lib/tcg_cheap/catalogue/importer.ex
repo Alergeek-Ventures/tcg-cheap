@@ -3,6 +3,7 @@ defmodule TcgCheap.Catalogue.Importer do
   alias TcgCheap.Catalogue.{CardPrinting, CardSet, Normalizer}
   alias TcgCheap.Core
   alias TcgCheap.Operations.AcquisitionBudget
+  alias TcgCheap.Pricing.Singles.ValuationAcquisition
   alias TcgCheap.Repo
 
   @spec import_card(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
@@ -129,17 +130,35 @@ defmodule TcgCheap.Catalogue.Importer do
       end)
 
   defp persist(card, set, synced_at) do
-    Ash.transact([CardSet, CardPrinting], fn ->
-      lock_set(set["id"])
-      target_set = existing_set(set["id"])
-      lock_card(card)
-      {:ok, existing} = Core.lock_card_printing_for_update_by_tcgdex_id(card["id"])
-      incoming = card_attributes(card, set, synced_at)
-      persist_checked(card, set, incoming, synced_at, existing, target_set)
-    end)
+    Ash.transact(
+      [
+        CardSet,
+        CardPrinting,
+        TcgCheap.Catalogue.CardPrintingMappingDecision,
+        TcgCheap.Pricing.Singles.SingleValuationSnapshot
+      ],
+      fn ->
+        lock_set(set["id"])
+        target_set = existing_set(set["id"])
+        lock_card(card)
+        {:ok, existing} = Core.lock_card_printing_for_update_by_tcgdex_id(card["id"])
+        incoming = card_attributes(card, set, synced_at)
+        persist_checked(card, set, incoming, synced_at, existing, target_set)
+      end
+    )
     |> case do
-      {:ok, result} -> {:ok, result}
-      {:error, reason} -> {:error, unwrap_conflict(reason)}
+      {:ok, %{mapping_changed?: true, card: card} = result} ->
+        ValuationAcquisition.notify_mapping_changed(card)
+        {:ok, Map.delete(result, :mapping_changed?)}
+
+      {:ok, %{mapping_changed?: false} = result} ->
+        {:ok, Map.delete(result, :mapping_changed?)}
+
+      {:ok, result} ->
+        {:ok, result}
+
+      {:error, reason} ->
+        {:error, unwrap_conflict(reason)}
     end
   rescue
     exception -> {:error, exception}
@@ -149,23 +168,114 @@ defmodule TcgCheap.Catalogue.Importer do
     if cross_set_conflict?(existing, target_set) do
       {:error, {:card_set_conflict, %{tcgdex_id: card["id"]}}}
     else
-      persist_if_fresh(existing, set, incoming, synced_at, target_set)
+      persist_if_fresh(
+        existing,
+        set,
+        preserve_administrator_mapping(existing, incoming),
+        synced_at,
+        target_set
+      )
     end
   end
 
   defp persist_if_fresh(existing, set, incoming, synced_at, target_set) do
     if stale?(existing, incoming),
       do: %{card: existing, outcome: :stale},
-      else: persist_nonstale(set, incoming, synced_at, target_set)
+      else: persist_nonstale(existing, set, incoming, synced_at, target_set)
   end
 
-  defp persist_nonstale(set, incoming, synced_at, target_set) do
+  defp persist_nonstale(existing, set, incoming, synced_at, target_set) do
     imported_set = target_set || Core.import_card_set!(Normalizer.set_attributes(set, synced_at))
+    mapping_changed? = not is_nil(existing) and mapping_changed?(existing, incoming)
 
-    %{
-      card: Core.import_card_printing!(Map.put(incoming, :card_set_id, imported_set.id)),
-      outcome: :imported
+    with :ok <- archive_provider_valuations(existing, incoming),
+         card <- import_card_printing!(Map.put(incoming, :card_set_id, imported_set.id)),
+         :ok <- record_import_decision(existing, card) do
+      %{card: card, outcome: :imported, mapping_changed?: mapping_changed?}
+    end
+  end
+
+  defp preserve_administrator_mapping(%{mapping_authority: "administrator"} = current, incoming) do
+    Map.merge(
+      incoming,
+      Map.take(current, [
+        :cardmarket_product_id,
+        :mapping_status,
+        :mapping_review_reason,
+        :mapping_authority,
+        :mapping_updated_at
+      ])
+    )
+  end
+
+  defp preserve_administrator_mapping(_existing, incoming),
+    do: Map.put(incoming, :mapping_authority, "provider")
+
+  defp import_card_printing!(attrs) do
+    CardPrinting
+    |> Ash.Changeset.for_create(:import, attrs)
+    |> Ash.create!(authorize?: false)
+  end
+
+  defp archive_provider_valuations(nil, _incoming), do: :ok
+
+  defp archive_provider_valuations(%{mapping_authority: "provider"} = existing, incoming) do
+    if mapping_changed?(existing, incoming) do
+      with {:ok, snapshots} <- Core.list_current_single_valuations(existing.id, authorize?: false),
+           do: archive_snapshots(snapshots)
+    else
+      :ok
+    end
+  end
+
+  defp archive_provider_valuations(_existing, _incoming), do: :ok
+
+  defp archive_snapshots(snapshots) do
+    Enum.reduce_while(snapshots, :ok, fn snapshot, :ok ->
+      case Core.archive_single_valuation(snapshot, authorize?: false) do
+        {:ok, _} -> {:cont, :ok}
+        {:error, _} -> {:halt, {:error, :valuation_archival_failed}}
+      end
+    end)
+  end
+
+  defp record_import_decision(nil, result), do: record_decision(result, "imported", nil)
+
+  defp record_import_decision(existing, result) do
+    if existing.mapping_authority == "provider" and mapping_changed?(existing, result) do
+      record_decision(result, "provider_updated", existing)
+    else
+      :ok
+    end
+  end
+
+  defp record_decision(result, event, previous) do
+    attrs = %{
+      card_printing_id: result.id,
+      event: event,
+      from_status: previous && previous.mapping_status,
+      to_status: result.mapping_status,
+      from_cardmarket_product_id: previous && previous.cardmarket_product_id,
+      cardmarket_product_id: result.cardmarket_product_id,
+      mapping_authority: result.mapping_authority,
+      reason: result.mapping_review_reason,
+      source_mapping_evidence_at: result.mapping_updated_at,
+      printing_version_at: result.updated_at,
+      actor_type: "system",
+      actor_id: nil,
+      actor_email: nil
     }
+
+    case Core.record_card_printing_mapping_decision(attrs, authorize?: false) do
+      {:ok, _} -> :ok
+      {:error, _} -> {:error, :mapping_history_failed}
+    end
+  end
+
+  defp mapping_changed?(left, right) do
+    left.mapping_status != right.mapping_status or
+      left.cardmarket_product_id != right.cardmarket_product_id or
+      left.mapping_review_reason != right.mapping_review_reason
   end
 
   defp cross_set_conflict?(existing, nil), do: existing && existing.card_set_id != nil

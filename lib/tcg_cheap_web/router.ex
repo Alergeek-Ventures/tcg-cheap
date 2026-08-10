@@ -56,6 +56,7 @@ defmodule TcgCheapWeb.Router do
       live "/operations", OperationsLive
       live_resources "/operations/import-issues", ImportIssueLive, only: [:index, :show]
       live "/catalogue/mappings/:id/correct", ListingProductMappingCorrectionLive
+      live "/catalogue/cards/:id/correct", CardPrintingMappingCorrectionLive
       live_resources "/catalogue/products", SealedProductLive
       live_resources "/catalogue/retailers", RetailerLive
       live_resources "/catalogue/aliases", SealedProductAliasLive
@@ -63,6 +64,9 @@ defmodule TcgCheapWeb.Router do
       live_resources "/catalogue/mappings", ListingProductMappingLive, only: [:index, :show]
 
       live_resources "/catalogue/mapping-history", ListingProductMappingDecisionLive,
+        only: [:index, :show]
+
+      live_resources "/catalogue/card-mapping-history", CardPrintingMappingDecisionLive,
         only: [:index, :show]
 
       live_resources "/catalogue/card-sets", CardSetLive, only: [:index, :show]

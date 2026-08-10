@@ -44,7 +44,7 @@ defmodule TcgCheapWeb.CardDetailLive do
               )
             )
 
-          {:ok, reload_valuation(socket, card)}
+          {:ok, reload_valuation(socket, socket.assigns.card)}
         else
           {:ok, socket}
         end
@@ -84,6 +84,27 @@ defmodule TcgCheapWeb.CardDetailLive do
   end
 
   def handle_info({:valuation_failed, _event}, socket), do: {:noreply, socket}
+
+  def handle_info(
+        {:card_mapping_changed, %{card_printing_id: id}},
+        %{assigns: %{card: %{id: id} = card}} = socket
+      ) do
+    case reload_card_mapping(socket, card) do
+      {:ok, socket} ->
+        result =
+          ValuationAcquisition.subscribe_and_request(socket.assigns.card,
+            request_admitter: PublicAcquisitionLimiter.admitter(socket.assigns.public_address)
+          )
+
+        socket = handle_acquisition_result(socket, result)
+        {:noreply, reload_valuation(socket, socket.assigns.card)}
+
+      {:error, socket} ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_info({:card_mapping_changed, _event}, socket), do: {:noreply, socket}
 
   @impl true
   def render(%{card: _card} = assigns) do
@@ -347,35 +368,67 @@ defmodule TcgCheapWeb.CardDetailLive do
   end
 
   defp reload_valuation(socket, card) do
+    socket = clear_valuation_state(socket)
     now = DateTime.utc_now()
     policy_version = socket.assigns.policy_version
     current = Core.get_current_single_valuation(card.id, policy_version)
 
-    history =
-      Core.list_single_valuation_history_since(
-        card.id,
-        policy_version,
-        ValuationHistory.window_start(now)
-      )
+    history = public_history(card, policy_version, ValuationHistory.window_start(now))
 
     socket
     |> apply_current_read(current, now)
     |> apply_history_read(history, now)
   end
 
-  defp handle_acquisition_result(socket, {:ok, _card, {:enqueued, _job}}),
-    do: assign(socket, acquisition_state: :enqueued)
+  defp reload_card_mapping(socket, card) do
+    socket = clear_valuation_state(socket)
 
-  defp handle_acquisition_result(socket, {:ok, _card, {:fresh, _valuation}}),
-    do: assign(socket, acquisition_state: :completed)
+    case Core.get_card_printing_by_tcgdex_id(card.tcgdex_id) do
+      {:ok, latest_card} ->
+        {:ok,
+         socket
+         |> assign_card(latest_card)
+         |> reload_valuation(latest_card)}
 
-  defp handle_acquisition_result(socket, {:ok, _card, {:error, _reason}}),
-    do: acquisition_failed(socket)
+      _error ->
+        {:error, assign(socket, valuation_status: :local_read_failure)}
+    end
+  end
+
+  defp clear_valuation_state(socket) do
+    assign(socket,
+      valuation: nil,
+      valuation_display: "?",
+      valuation_status: :disconnected,
+      history_points: [],
+      history_paths: [],
+      history_plot_points: [],
+      history_origin: nil,
+      history_load_failed: false
+    )
+  end
+
+  defp handle_acquisition_result(socket, {:ok, card, {:enqueued, _job}}),
+    do: socket |> assign_card(card) |> assign(acquisition_state: :enqueued)
+
+  defp handle_acquisition_result(socket, {:ok, card, {:fresh, _valuation}}),
+    do: socket |> assign_card(card) |> assign(acquisition_state: :completed)
+
+  defp handle_acquisition_result(socket, {:ok, card, {:error, _reason}}),
+    do: socket |> assign_card(card) |> acquisition_failed()
 
   defp handle_acquisition_result(socket, {:error, _reason}), do: acquisition_failed(socket)
 
   defp acquisition_failed(socket),
     do: assign(socket, acquisition_state: :failed, refresh_failure: true)
+
+  defp assign_card(socket, card) do
+    assign(socket,
+      page_title: card.name,
+      card: card,
+      card_image_url: CardImage.detail_url(card.image_url)
+    )
+  end
 
   defp card_image_alt(card),
     do: "#{card.name}, #{card.set_name}, collector number #{card.collector_number}"
@@ -383,16 +436,26 @@ defmodule TcgCheapWeb.CardDetailLive do
   defp apply_current_read(socket, {:ok, nil}, _now),
     do: assign(socket, valuation: nil, valuation_display: "?", valuation_status: :missing)
 
-  defp apply_current_read(socket, {:ok, valuation}, now),
-    do:
+  defp apply_current_read(socket, {:ok, valuation}, now) do
+    if valuation.cardmarket_product_id == socket.assigns.card.cardmarket_product_id and
+         positive_product_id?(socket.assigns.card.cardmarket_product_id) do
       assign(socket,
         valuation: valuation,
         valuation_display: format_eur(valuation.value_eur),
         valuation_status: Freshness.status(valuation, now)
       )
+    else
+      apply_current_read(socket, {:ok, nil}, now)
+    end
+  end
 
   defp apply_current_read(socket, {:error, _reason}, _now),
-    do: assign(socket, valuation_status: :local_read_failure)
+    do:
+      assign(socket,
+        valuation: nil,
+        valuation_display: "?",
+        valuation_status: :local_read_failure
+      )
 
   defp apply_history_read(socket, {:ok, snapshots}, now) do
     points = ValuationHistory.daily_points(snapshots, now)
@@ -408,6 +471,21 @@ defmodule TcgCheapWeb.CardDetailLive do
 
   defp apply_history_read(socket, {:error, _reason}, _now),
     do: assign(socket, history_load_failed: true)
+
+  defp public_history(card, policy_version, since) do
+    if positive_product_id?(card.cardmarket_product_id) do
+      Core.list_single_valuation_history_since(
+        card.id,
+        policy_version,
+        card.cardmarket_product_id,
+        since
+      )
+    else
+      {:ok, []}
+    end
+  end
+
+  defp positive_product_id?(product_id), do: is_integer(product_id) and product_id > 0
 
   defp assign_history_plot(socket, points) do
     origin = socket.assigns.history_origin || ValuationHistory.window_start(DateTime.utc_now())

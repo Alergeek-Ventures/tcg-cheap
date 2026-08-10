@@ -389,11 +389,13 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     unique = System.unique_integer([:positive])
 
     card =
-      Core.import_card_printing!(%{
+      TcgCheap.TestSupport.import_card_printing!(%{
         tcgdex_id: "web-manual-card-#{unique}",
         name: "Web manual card #{unique}",
         set_name: "Web manual set",
-        collector_number: Integer.to_string(unique)
+        collector_number: Integer.to_string(unique),
+        mapping_status: "matched",
+        cardmarket_product_id: unique
       })
 
     retailer =

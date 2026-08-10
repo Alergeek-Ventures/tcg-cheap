@@ -62,6 +62,20 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     assert Decimal.equal?(change.change_percent, Decimal.new("50.00"))
   end
 
+  test "price changes exclude snapshots from an old cardmarket mapping" do
+    card = card("old-mapping")
+    old_product_id = card.cardmarket_product_id
+
+    snapshots(card, [{8, "10"}, {0, "20"}], "tcgdex_cardmarket_v1", old_product_id)
+
+    Repo.query!(
+      "UPDATE card_printings SET cardmarket_product_id = $2 WHERE id = $1",
+      [Ecto.UUID.dump!(card.id), old_product_id + 1]
+    )
+
+    assert {:ok, []} = Core.list_homepage_price_changes(@as_of, 4)
+  end
+
   test "recent releases are public, released, and bounded" do
     since = ~D[2026-07-01]
     _older = released_product("older", ~D[2026-08-01])
@@ -96,33 +110,37 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
   end
 
   defp card(label) do
-    Core.create_card_printing!(%{
+    TcgCheap.TestSupport.import_card_printing!(%{
       tcgdex_id: "homepage-#{label}-#{System.unique_integer([:positive])}",
       name: "Homepage #{label}",
       set_name: "Homepage Set",
-      collector_number: "#{System.unique_integer([:positive])}"
+      collector_number: "#{System.unique_integer([:positive])}",
+      mapping_status: "matched",
+      cardmarket_product_id: System.unique_integer([:positive])
     })
   end
 
-  defp snapshots(card, points, policy \\ "tcgdex_cardmarket_v1") do
+  defp snapshots(card, points, policy \\ "tcgdex_cardmarket_v1", product_id \\ nil) do
     Enum.each(points, fn {days_ago, value} ->
       snapshot(
         card,
         value,
         DateTime.add(@as_of, -days_ago * 86_400, :second),
-        if(policy == "other", do: "other-policy", else: policy)
+        if(policy == "other", do: "other-policy", else: policy),
+        product_id || card.cardmarket_product_id
       )
     end)
   end
 
-  defp snapshot(card, value, fetched_at, policy \\ "tcgdex_cardmarket_v1") do
+  defp snapshot(card, value, fetched_at, policy \\ "tcgdex_cardmarket_v1", product_id \\ nil) do
     Core.record_single_valuation!(%{
       card_printing_id: card.id,
       value_eur: Decimal.new(value),
       policy_version: policy,
       source: "tcgdex_cardmarket",
       source_metric: "avg7",
-      fetched_at: fetched_at
+      fetched_at: fetched_at,
+      cardmarket_product_id: product_id || card.cardmarket_product_id
     })
   end
 

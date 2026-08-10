@@ -103,9 +103,24 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
 
   defp load_card(%{local_card_id: id, tcgdex_id: tcgdex_id}) do
     case Core.get_card_printing_by_tcgdex_id(tcgdex_id) do
-      {:ok, %{id: ^id, tcgdex_id: ^tcgdex_id} = card} -> {:ok, card}
-      {:ok, _card} -> {:cancel, :invalid_local_card}
-      {:error, _error} -> {:cancel, :invalid_local_card}
+      {:ok,
+       %{
+         id: ^id,
+         tcgdex_id: ^tcgdex_id,
+         mapping_status: "matched",
+         cardmarket_product_id: product_id
+       } = card}
+      when is_integer(product_id) and product_id > 0 ->
+        {:ok, card}
+
+      {:ok, %{id: ^id, tcgdex_id: ^tcgdex_id}} ->
+        {:cancel, :unpriced_mapping}
+
+      {:ok, _card} ->
+        {:cancel, :invalid_local_card}
+
+      {:error, _error} ->
+        {:cancel, :invalid_local_card}
     end
   end
 
@@ -217,7 +232,8 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
            is_nil(Map.get(result, :provider_updated_at)) or
              match?(%DateTime{}, Map.get(result, :provider_updated_at)),
          product_id <- Map.get(result, :cardmarket_product_id),
-         true <- is_nil(product_id) or (is_integer(product_id) and product_id > 0) do
+         true <- is_integer(product_id) and product_id > 0,
+         true <- product_id == card.cardmarket_product_id do
       {:ok,
        %{
          card_printing_id: card.id,

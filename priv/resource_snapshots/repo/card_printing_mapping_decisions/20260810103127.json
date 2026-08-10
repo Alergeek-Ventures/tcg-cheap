@@ -1,0 +1,305 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "event",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "from_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "to_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "from_cardmarket_product_id",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "cardmarket_product_id",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "mapping_authority",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "reason",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_mapping_evidence_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "printing_version_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "actor_type",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "actor_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "actor_email",
+      "type": "citext"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "card_printing_mapping_decisions_card_printing_id_fkey",
+        "on_delete": "restrict",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "card_printings"
+      },
+      "scale": null,
+      "size": null,
+      "source": "card_printing_id",
+      "type": "uuid"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [
+    {
+      "attribute": [
+        "event",
+        "from_status",
+        "to_status",
+        "from_cardmarket_product_id"
+      ],
+      "base_filter": null,
+      "check": "((from_status = 'matched' AND from_cardmarket_product_id IS NOT NULL AND from_cardmarket_product_id > 0) OR (from_status IS NULL OR from_status IN ('pending', 'unmatched', 'review')) AND from_cardmarket_product_id IS NULL) AND ((event = 'imported' AND from_status IS NULL AND to_status IN ('pending', 'matched', 'unmatched', 'review')) OR (event = 'baseline' AND from_status IS NULL AND to_status IN ('pending', 'matched', 'unmatched', 'review')) OR (event = 'provider_updated' AND from_status IN ('pending', 'matched', 'unmatched', 'review') AND to_status IN ('pending', 'matched', 'unmatched', 'review')) OR (event = 'corrected' AND from_status IN ('pending', 'matched', 'unmatched', 'review') AND to_status = 'matched') OR (event = 'reopened' AND from_status IN ('matched', 'unmatched') AND to_status = 'review'))",
+      "name": "card_printing_mapping_decisions_transition_invariant"
+    },
+    {
+      "attribute": [
+        "event",
+        "to_status",
+        "cardmarket_product_id",
+        "reason"
+      ],
+      "base_filter": null,
+      "check": "((to_status = 'matched' AND cardmarket_product_id IS NOT NULL AND cardmarket_product_id > 0 AND ((event = 'corrected' AND reason IS NOT NULL AND btrim(reason) <> '') OR (event <> 'corrected' AND reason IS NULL))) OR (to_status IN ('pending', 'unmatched') AND cardmarket_product_id IS NULL AND reason IS NULL) OR (to_status = 'review' AND cardmarket_product_id IS NULL AND reason IS NOT NULL AND btrim(reason) <> '')) AND char_length(coalesce(reason, '')) <= 2000",
+      "name": "card_printing_mapping_decisions_state_invariant"
+    },
+    {
+      "attribute": [
+        "mapping_authority"
+      ],
+      "base_filter": null,
+      "check": "mapping_authority IN ('provider', 'administrator')",
+      "name": "card_printing_mapping_decisions_authority_invariant"
+    },
+    {
+      "attribute": [
+        "actor_type",
+        "actor_id",
+        "actor_email"
+      ],
+      "base_filter": null,
+      "check": "(actor_type = 'system' AND actor_id IS NULL AND actor_email IS NULL) OR (actor_type = 'administrator' AND actor_id IS NOT NULL AND actor_email IS NOT NULL AND btrim(actor_email) <> '')",
+      "name": "card_printing_mapping_decisions_actor_invariant"
+    },
+    {
+      "attribute": [
+        "event",
+        "mapping_authority",
+        "actor_type"
+      ],
+      "base_filter": null,
+      "check": "(event IN ('imported', 'provider_updated', 'baseline') AND mapping_authority = 'provider' AND actor_type = 'system') OR (event IN ('corrected', 'reopened') AND mapping_authority = 'administrator' AND actor_type = 'administrator')",
+      "name": "card_printing_mapping_decisions_event_authority_actor_invariant"
+    }
+  ],
+  "create_table_options": null,
+  "custom_indexes": [
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "card_printing_id",
+        "inserted_at",
+        "id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "card_printing_id"
+        },
+        {
+          "type": "atom",
+          "value": "inserted_at"
+        },
+        {
+          "type": "atom",
+          "value": "id"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "C71F78197B76763F46FCE8D7EB769ABA3969AF2A2C4D0357F7979163218BFE70",
+  "identities": [],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.TcgCheap.Repo",
+  "schema": null,
+  "table": "card_printing_mapping_decisions"
+}

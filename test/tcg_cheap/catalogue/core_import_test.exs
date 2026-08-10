@@ -35,7 +35,9 @@ defmodule TcgCheap.Catalogue.CoreImportTest do
     ]
 
     for overrides <- invalid do
-      assert_raise Ash.Error.Invalid, fn -> Core.import_card_printing!(attrs(overrides)) end
+      assert_raise Ash.Error.Invalid, fn ->
+        TcgCheap.TestSupport.import_card_printing!(attrs(overrides))
+      end
     end
 
     assert Repo.aggregate(from(c in "card_printings"), :count, :id) == 0

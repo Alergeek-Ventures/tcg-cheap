@@ -55,6 +55,7 @@ defmodule TcgCheapWeb.Admin.CardPrintingLive do
         panel: :mapping
 
       field :mapping_review_reason, label: "Review reason", orderable: false, panel: :mapping
+      field :mapping_authority, label: "Mapping authority", orderable: false, panel: :mapping
       field :mapping_updated_at, label: "Mapping updated", orderable: false, panel: :mapping
 
       field :source_updated_at, label: "Source updated", orderable: false, panel: :timing
@@ -65,6 +66,10 @@ defmodule TcgCheapWeb.Admin.CardPrintingLive do
 
     item_actions do
       strip_default([:edit, :delete])
+
+      action :correct_mapping, TcgCheapWeb.Admin.CardPrintingMappingCorrectionAction do
+        only([:row, :show])
+      end
     end
   end
 end

@@ -233,7 +233,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
 
     {:ok, first} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: "card-#{suffix}-a",
         name: name,
         set_name: set.name,
@@ -244,7 +244,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
 
     {:ok, second} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: "card-#{suffix}-b",
         name: name,
         set_name: set.name,
@@ -322,21 +322,25 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
 
     {:ok, fresh} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: Ecto.UUID.generate(),
         name: "Fresh #{search_term}",
         set_name: set.name,
         collector_number: "01",
-        card_set_id: set.id
+        card_set_id: set.id,
+        mapping_status: "matched",
+        cardmarket_product_id: System.unique_integer([:positive])
       })
 
     {:ok, stale} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: Ecto.UUID.generate(),
         name: "Stale #{search_term}",
         set_name: set.name,
         collector_number: "02",
-        card_set_id: set.id
+        card_set_id: set.id,
+        mapping_status: "matched",
+        cardmarket_product_id: System.unique_integer([:positive])
       })
 
     valuation_attrs = fn card, value, fetched_at ->
@@ -347,7 +351,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
         policy_version: "tcgdex_cardmarket_v1",
         source: "tcgdex",
         source_metric: "cardmarket_average_sell_price",
-        fetched_at: fetched_at
+        fetched_at: fetched_at,
+        cardmarket_product_id: card.cardmarket_product_id
       }
     end
 
@@ -394,7 +399,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
 
     {:ok, imported} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: "image-card-#{suffix}",
         name: name,
         set_name: set.name,
@@ -404,7 +409,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
 
     {:ok, missing} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: "missing-image-card-#{suffix}",
         name: name,
         set_name: set.name,
@@ -434,7 +439,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       Core.import_card_set(%{tcgdex_id: "solo-set-#{suffix}", name: "Solo Set #{suffix}"})
 
     {:ok, _printing} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: "solo-card-#{suffix}",
         name: name,
         set_name: "Solo Set #{suffix}",
@@ -499,7 +504,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       Core.import_card_set(%{tcgdex_id: Ecto.UUID.generate(), name: "Keyboard Set #{suffix}"})
 
     {:ok, first} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: "keyboard-#{suffix}-a",
         name: name,
         set_name: set.name,
@@ -508,7 +513,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
 
     {:ok, second} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: "keyboard-#{suffix}-b",
         name: name,
         set_name: set.name,
@@ -720,7 +725,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       Core.import_card_set(%{tcgdex_id: Ecto.UUID.generate(), name: "Set #{suffix}"})
 
     {:ok, first} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: "enter-#{suffix}-a",
         name: name,
         set_name: set.name,
@@ -729,7 +734,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
 
     {:ok, second} =
-      Core.import_card_printing(%{
+      TcgCheap.TestSupport.import_card_printing(%{
         tcgdex_id: "enter-#{suffix}-b",
         name: name,
         set_name: set.name,
@@ -757,11 +762,13 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
   defp create_discovery_card(label, start_value, current_value) do
     card =
-      Core.create_card_printing!(%{
+      TcgCheap.TestSupport.import_card_printing!(%{
         tcgdex_id: "home-discovery-#{label}-#{Ecto.UUID.generate()}",
         name: "Discovery #{String.replace(label, "-", " ")}",
         set_name: "Discovery Set",
-        collector_number: "001"
+        collector_number: "001",
+        mapping_status: "matched",
+        cardmarket_product_id: System.unique_integer([:positive])
       })
 
     now = DateTime.utc_now() |> DateTime.truncate(:second)
@@ -773,7 +780,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
         policy_version: "tcgdex_cardmarket_v1",
         source: "tcgdex_cardmarket",
         source_metric: "avg7",
-        fetched_at: DateTime.add(now, -days_ago * 86_400, :second)
+        fetched_at: DateTime.add(now, -days_ago * 86_400, :second),
+        cardmarket_product_id: card.cardmarket_product_id
       })
     end
 

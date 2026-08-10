@@ -31,6 +31,14 @@ defmodule TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges do
         WHERE s.policy_version = $1
           AND s.fetched_at >= ((($2::timestamptz AT TIME ZONE 'UTC')::date - 29) AT TIME ZONE 'UTC')
           AND s.fetched_at <= $2::timestamptz
+          AND EXISTS (
+            SELECT 1
+            FROM card_printings AS current_cp
+            WHERE current_cp.id = s.card_printing_id
+              AND current_cp.mapping_status = 'matched'
+              AND current_cp.cardmarket_product_id > 0
+              AND current_cp.cardmarket_product_id = s.cardmarket_product_id
+          )
         ORDER BY s.card_printing_id, (s.fetched_at AT TIME ZONE 'UTC')::date,
           s.fetched_at DESC, s.id DESC
       ),

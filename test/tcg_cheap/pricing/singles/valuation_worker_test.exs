@@ -475,11 +475,13 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
   defp create_card do
     suffix = System.unique_integer([:positive])
 
-    Core.create_card_printing!(%{
+    TcgCheap.TestSupport.import_card_printing!(%{
       tcgdex_id: "base1-4-worker-#{suffix}",
       name: "Charizard",
       set_name: "Base Set",
-      collector_number: "4"
+      collector_number: "4",
+      mapping_status: "matched",
+      cardmarket_product_id: 123
     })
   end
 
@@ -520,7 +522,8 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
       policy_version: "tcgdex_cardmarket_v1",
       source: "tcgdex_cardmarket",
       source_metric: "avg7",
-      fetched_at: fetched_at
+      fetched_at: fetched_at,
+      cardmarket_product_id: card.cardmarket_product_id
     })
   end
 

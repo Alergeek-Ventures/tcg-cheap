@@ -273,7 +273,7 @@ defmodule TcgCheap.Catalogue.SyncTest do
       }
     ])
     |> Enum.each(fn {card, extra} ->
-      Core.import_card_printing!(
+      TcgCheap.TestSupport.import_card_printing!(
         Map.merge(
           %{
             tcgdex_id: card["id"],
@@ -383,7 +383,7 @@ defmodule TcgCheap.Catalogue.SyncTest do
         cardmarket_product_id: 999
       })
 
-    imported = Core.import_card_printing!(full)
+    imported = TcgCheap.TestSupport.import_card_printing!(full)
     assert imported.name == "Full"
     assert {:ok, skipped} = Core.seed_card_printing_brief(Map.put(brief, :name, "Late Brief"))
     assert Ash.Resource.get_metadata(skipped, :upsert_skipped) == true
@@ -407,6 +407,14 @@ defmodule TcgCheap.Catalogue.SyncTest do
 
     on_exit(fn ->
       Sandbox.unboxed_run(Repo, fn ->
+        Repo.delete_all(
+          from(d in "card_printing_mapping_decisions",
+            join: c in "card_printings",
+            on: c.id == d.card_printing_id,
+            where: c.tcgdex_id == ^card_id
+          )
+        )
+
         Repo.delete_all(from(c in "card_printings", where: c.tcgdex_id == ^card_id))
         Repo.delete_all(from(s in "card_sets", where: s.tcgdex_id == ^set_id))
       end)
@@ -464,7 +472,7 @@ defmodule TcgCheap.Catalogue.SyncTest do
     foreign_set = Core.import_card_set!(%{tcgdex_id: foreign_set_id, name: "Foreign"})
 
     foreign =
-      Core.import_card_printing!(%{
+      TcgCheap.TestSupport.import_card_printing!(%{
         tcgdex_id: conflict_id,
         name: "Foreign Card",
         set_name: "Foreign",

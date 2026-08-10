@@ -7,7 +7,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
   alias TcgCheap.Core
   alias TcgCheap.Pricing.ExchangeRate
   alias TcgCheap.Pricing.ExchangeRateWorker
-  alias TcgCheap.Pricing.Singles.ValuationWorker
+  alias TcgCheap.Pricing.Singles.{ValuationAcquisition, ValuationWorker}
   alias TcgCheap.Trades.Composition
   alias TcgCheapWeb.PublicAcquisitionLimiter
 
@@ -329,6 +329,36 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-left-total", "€5.50")
   end
 
+  test "mapping changes clear the old total and reacquire the canonical printing", %{conn: conn} do
+    card = card("mapping-event", "Mapping Event", 1)
+    snapshot(card, "8.10")
+    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
+    assert has_element?(view, "#trade-left-total", "€8.10")
+
+    new_product_id = card.cardmarket_product_id + 1
+
+    TcgCheap.Repo.query!(
+      "UPDATE card_printings SET cardmarket_product_id = $2 WHERE id = $1",
+      [Ecto.UUID.dump!(card.id), new_product_id]
+    )
+
+    TcgCheap.Repo.query!(
+      "UPDATE single_valuation_snapshots SET \"current?\" = FALSE WHERE card_printing_id = $1",
+      [Ecto.UUID.dump!(card.id)]
+    )
+
+    Phoenix.PubSub.broadcast(
+      TcgCheap.PubSub,
+      ValuationAcquisition.topic(card),
+      {:card_mapping_changed, %{card_printing_id: card.id}}
+    )
+
+    render(view)
+    refute has_element?(view, "#trade-left-total", "€8.10")
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Fetching estimate…")
+    assert length(queued_jobs(card)) == 1
+  end
+
   test "stale valuation failures retain cached estimates and ignore unrelated cards", %{
     conn: conn
   } do
@@ -565,13 +595,14 @@ defmodule TcgCheapWeb.TradeLiveTest do
     suffix = System.unique_integer([:positive])
     set = Core.import_card_set!(%{tcgdex_id: "trade-set-#{suffix}", name: "Trade Set"})
 
-    Core.import_card_printing!(%{
+    TcgCheap.TestSupport.import_card_printing!(%{
       tcgdex_id: "#{prefix}-#{suffix}",
       name: name,
       set_name: set.name,
       collector_number: Integer.to_string(number),
       card_set_id: set.id,
-      mapping_status: "pending"
+      mapping_status: "matched",
+      cardmarket_product_id: suffix
     })
   end
 
@@ -582,7 +613,8 @@ defmodule TcgCheapWeb.TradeLiveTest do
       policy_version: @policy,
       source: "test",
       source_metric: "avg7",
-      fetched_at: fetched_at
+      fetched_at: fetched_at,
+      cardmarket_product_id: card.cardmarket_product_id
     })
   end
 

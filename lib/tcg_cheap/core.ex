@@ -15,7 +15,6 @@ defmodule TcgCheap.Core do
 
     resource TcgCheap.Catalogue.CardPrinting do
       define :create_card_printing, action: :create
-      define :import_card_printing, action: :import
       define :seed_card_printing_brief, action: :seed_brief
       define :get_card_printing_by_tcgdex_id, action: :by_tcgdex_id, args: [:tcgdex_id]
       define :list_card_printings_by_tcgdex_ids, action: :by_tcgdex_ids, args: [:tcgdex_ids]
@@ -32,6 +31,18 @@ defmodule TcgCheap.Core do
         not_found_error?: false
 
       define :list_admin_card_printings, action: :admin_catalogue
+      define :correct_cardmarket_mapping, action: :correct_cardmarket_mapping
+      define :reopen_cardmarket_mapping, action: :reopen_cardmarket_mapping
+    end
+
+    resource TcgCheap.Catalogue.CardPrintingMappingDecision do
+      define :record_card_printing_mapping_decision, action: :record
+
+      define :list_card_printing_mapping_decision_history,
+        action: :history_for_card_printing,
+        args: [:card_printing_id]
+
+      define :list_admin_card_printing_mapping_decisions, action: :admin_catalogue
     end
 
     resource TcgCheap.Pricing.Singles.SingleValuationSnapshot do
@@ -50,7 +61,7 @@ defmodule TcgCheap.Core do
 
       define :list_single_valuation_history_since,
         action: :history_since_for_card_and_policy,
-        args: [:card_printing_id, :policy_version, :since]
+        args: [:card_printing_id, :policy_version, :cardmarket_product_id, :since]
 
       define :list_homepage_price_changes,
         action: :homepage_price_changes,

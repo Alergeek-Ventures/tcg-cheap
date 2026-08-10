@@ -57,6 +57,10 @@ defmodule TcgCheap.Catalogue.CardPrinting do
                        check:
                          "mapping_status IN ('pending', 'matched', 'unmatched', 'review') AND ((mapping_status IN ('pending', 'unmatched') AND cardmarket_product_id IS NULL AND mapping_review_reason IS NULL) OR (mapping_status = 'matched' AND cardmarket_product_id IS NOT NULL AND cardmarket_product_id > 0 AND mapping_review_reason IS NULL) OR (mapping_status = 'review' AND cardmarket_product_id IS NULL AND mapping_review_reason IS NOT NULL AND btrim(mapping_review_reason) <> ''))",
                        message: "has inconsistent mapping fields"
+
+      check_constraint [:mapping_authority], "card_printings_mapping_authority_invariant",
+        check: "mapping_authority IN ('provider', 'administrator')",
+        message: "has invalid mapping authority"
     end
   end
 
@@ -69,6 +73,8 @@ defmodule TcgCheap.Catalogue.CardPrinting do
     end
 
     create :import do
+      public? false
+
       accept [
         :tcgdex_id,
         :name,
@@ -89,11 +95,11 @@ defmodule TcgCheap.Catalogue.CardPrinting do
         :last_synced_at,
         :cardmarket_product_id,
         :mapping_status,
-        :mapping_review_reason
+        :mapping_review_reason,
+        :mapping_authority
       ]
 
       change TcgCheap.Catalogue.Changes.SetSearchText
-
       upsert? true
       upsert_identity :unique_tcgdex_id
     end
@@ -176,6 +182,59 @@ defmodule TcgCheap.Catalogue.CardPrinting do
                 sort: [set_name: :asc, collector_number: :asc, tcgdex_id: :asc, id: :asc]
               )
     end
+
+    update :correct_cardmarket_mapping do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
+      argument :cardmarket_product_id, :integer, allow_nil?: false, constraints: [min: 1]
+
+      argument :reason, :string,
+        allow_nil?: false,
+        constraints: [min_length: 1, max_length: 2_000]
+
+      require_atomic? false
+      transaction? true
+
+      touches_resources [
+        TcgCheap.Catalogue.CardPrintingMappingDecision,
+        TcgCheap.Pricing.Singles.SingleValuationSnapshot
+      ]
+
+      change {TcgCheap.Catalogue.Changes.LockAndValidateCardPrintingMapping, reject_no_op?: true}
+      change set_attribute(:mapping_status, "matched")
+      change set_attribute(:mapping_review_reason, nil)
+      change set_attribute(:mapping_authority, "administrator")
+      change set_attribute(:cardmarket_product_id, arg(:cardmarket_product_id))
+      change atomic_set(:mapping_updated_at, expr(now()))
+      change TcgCheap.Catalogue.Changes.ArchiveCardPrintingValuations
+      change {TcgCheap.Catalogue.Changes.RecordCardPrintingMappingDecision, event: "corrected"}
+    end
+
+    update :reopen_cardmarket_mapping do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
+
+      argument :reason, :string,
+        allow_nil?: false,
+        constraints: [min_length: 1, max_length: 2_000]
+
+      require_atomic? false
+      transaction? true
+
+      touches_resources [
+        TcgCheap.Catalogue.CardPrintingMappingDecision,
+        TcgCheap.Pricing.Singles.SingleValuationSnapshot
+      ]
+
+      change {TcgCheap.Catalogue.Changes.LockAndValidateCardPrintingMapping,
+              allowed_statuses: ["matched", "unmatched"]}
+
+      change set_attribute(:mapping_status, "review")
+      change set_attribute(:cardmarket_product_id, nil)
+      change set_attribute(:mapping_review_reason, arg(:reason))
+      change set_attribute(:mapping_authority, "administrator")
+      change atomic_set(:mapping_updated_at, expr(now()))
+      change TcgCheap.Catalogue.Changes.ArchiveCardPrintingValuations
+      change {TcgCheap.Catalogue.Changes.RecordCardPrintingMappingDecision, event: "reopened"}
+    end
   end
 
   policies do
@@ -204,10 +263,17 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       forbid_unless TcgCheap.Accounts.Checks.Admin
       authorize_if always()
     end
+
+    policy action([:correct_cardmarket_mapping, :reopen_cardmarket_mapping]) do
+      access_type :strict
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
+    end
   end
 
   validations do
     validate one_of(:mapping_status, ["pending", "matched", "unmatched", "review"])
+    validate one_of(:mapping_authority, ["provider", "administrator"])
     validate compare(:cardmarket_product_id, greater_than: 0)
     validate TcgCheap.Catalogue.Validations.MappingInvariant
   end
@@ -280,6 +346,7 @@ defmodule TcgCheap.Catalogue.CardPrinting do
     end
 
     attribute :mapping_review_reason, :string, public?: true
+    attribute :mapping_authority, :string, allow_nil?: false, default: "provider", public?: true
 
     create_timestamp :created_at
     update_timestamp :updated_at
@@ -292,7 +359,12 @@ defmodule TcgCheap.Catalogue.CardPrinting do
     has_one :tcgdex_cardmarket_v1_current_valuation,
             TcgCheap.Pricing.Singles.SingleValuationSnapshot do
       allow_nil? true
-      filter expr(current? == true and policy_version == "tcgdex_cardmarket_v1")
+
+      filter expr(
+               current? == true and policy_version == "tcgdex_cardmarket_v1" and
+                 cardmarket_product_id == parent(cardmarket_product_id)
+             )
+
       sort fetched_at: :desc
     end
   end

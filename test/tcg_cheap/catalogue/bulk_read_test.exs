@@ -15,23 +15,25 @@ defmodule TcgCheap.Catalogue.BulkReadTest do
       })
 
     first =
-      Core.import_card_printing!(%{
+      TcgCheap.TestSupport.import_card_printing!(%{
         tcgdex_id: "card-a-#{suffix}",
         name: "Card A #{suffix}",
         set_name: set.name,
         collector_number: "1",
         card_set_id: set.id,
-        mapping_status: "pending"
+        mapping_status: "matched",
+        cardmarket_product_id: System.unique_integer([:positive])
       })
 
     second =
-      Core.import_card_printing!(%{
+      TcgCheap.TestSupport.import_card_printing!(%{
         tcgdex_id: "card-b-#{suffix}",
         name: "Card B #{suffix}",
         set_name: set.name,
         collector_number: "2",
         card_set_id: set.id,
-        mapping_status: "pending"
+        mapping_status: "matched",
+        cardmarket_product_id: System.unique_integer([:positive])
       })
 
     Core.record_single_valuation!(%{
@@ -40,7 +42,8 @@ defmodule TcgCheap.Catalogue.BulkReadTest do
       policy_version: "tcgdex_cardmarket_v1",
       source: "test",
       source_metric: "trend",
-      fetched_at: DateTime.utc_now()
+      fetched_at: DateTime.utc_now(),
+      cardmarket_product_id: first.cardmarket_product_id
     })
 
     results =
@@ -64,5 +67,37 @@ defmodule TcgCheap.Catalogue.BulkReadTest do
   test "rejects more than one hundred IDs before querying" do
     ids = Enum.map(1..101, &"card-#{&1}-#{token("limit")}")
     assert {:error, _error} = Core.list_card_printings_by_tcgdex_ids(ids)
+  end
+
+  test "bulk printing read does not preload a current valuation from another Cardmarket product" do
+    suffix = token("stale-bulk")
+
+    card =
+      TcgCheap.TestSupport.import_card_printing!(%{
+        tcgdex_id: "card-#{suffix}",
+        name: "Card #{suffix}",
+        set_name: "Set #{suffix}",
+        collector_number: "1",
+        mapping_status: "matched",
+        cardmarket_product_id: 303
+      })
+
+    Core.record_single_valuation!(%{
+      card_printing_id: card.id,
+      value_eur: Decimal.new("7.77"),
+      policy_version: "tcgdex_cardmarket_v1",
+      source: "test",
+      source_metric: "trend",
+      fetched_at: DateTime.utc_now(),
+      cardmarket_product_id: card.cardmarket_product_id
+    })
+
+    Repo.query!(
+      "UPDATE single_valuation_snapshots SET cardmarket_product_id = $1 WHERE card_printing_id = $2",
+      [404, Ecto.UUID.dump!(card.id)]
+    )
+
+    assert [result] = Core.list_card_printings_by_tcgdex_ids!([card.tcgdex_id])
+    assert result.tcgdex_cardmarket_v1_current_valuation == nil
   end
 end

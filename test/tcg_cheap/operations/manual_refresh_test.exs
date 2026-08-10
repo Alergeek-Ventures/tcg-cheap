@@ -215,11 +215,13 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
   defp card do
     unique = System.unique_integer([:positive])
 
-    Core.import_card_printing!(%{
+    TcgCheap.TestSupport.import_card_printing!(%{
       tcgdex_id: "manual-card-#{unique}",
       name: "Manual card #{unique}",
       set_name: "Manual set",
-      collector_number: Integer.to_string(unique)
+      collector_number: Integer.to_string(unique),
+      mapping_status: "matched",
+      cardmarket_product_id: unique
     })
   end
 

@@ -23,6 +23,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
          {:ok, card} <- resolve_card(input),
          {:ok, now} <- clock_now(opts),
          {:ok, current} <- TcgCheap.Core.get_current_single_valuation(card.id, @policy_version) do
+      current = matching_current_snapshot(card, current)
       enqueue_for_status(card, current, Freshness.status(current, now), opts)
     else
       false -> {:error, :invalid_options}
@@ -37,9 +38,10 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
 
   def subscribe_and_request(input, opts) when is_list(opts) do
     with true <- valid_options?(opts),
-         {:ok, card} <- resolve_card(input),
-         :ok <- subscribe(card) do
-      {:ok, card, enqueue_if_stale(card, opts)}
+         {:ok, card} <- resolve_local_card(input),
+         :ok <- subscribe(card),
+         {:ok, subscribed_card} <- resolve_local_card(card) do
+      {:ok, subscribed_card, enqueue_if_stale(subscribed_card, opts)}
     else
       false -> {:error, :invalid_options}
       error -> error
@@ -59,9 +61,11 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
          {:ok, requested} <- extract_many_ids(inputs),
          {:ok, cards} <- read_many(requested),
          :ok <- validate_many(inputs, requested, cards),
-         {:ok, now} <- clock_now(opts),
-         :ok <- subscribe_many(cards) do
-      {:ok, build_many_results(requested, cards, now, opts)}
+         :ok <- subscribe_many(cards),
+         {:ok, refreshed_cards} <- read_many(requested),
+         :ok <- validate_many(inputs, requested, refreshed_cards),
+         {:ok, now} <- clock_now(opts) do
+      {:ok, build_many_results(requested, refreshed_cards, now, opts)}
     else
       false -> {:error, :invalid_options}
       error -> error
@@ -73,21 +77,26 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
 
   def subscribe_and_request_many(_inputs, _opts), do: {:error, :invalid_input}
 
-  defp resolve_card(%{id: id, tcgdex_id: tcgdex_id}) when is_binary(id) and is_binary(tcgdex_id),
-    do: resolve_card_by_tcgdex_id(id, tcgdex_id)
+  defp resolve_card(input) do
+    with {:ok, card} <- resolve_local_card(input), do: pricing_card(card)
+  end
 
-  defp resolve_card(%{"id" => id, "tcgdex_id" => tcgdex_id})
+  defp resolve_local_card(%{id: id, tcgdex_id: tcgdex_id})
        when is_binary(id) and is_binary(tcgdex_id),
-       do: resolve_card_by_tcgdex_id(id, tcgdex_id)
+       do: resolve_local_card_by_tcgdex_id(id, tcgdex_id)
 
-  defp resolve_card(tcgdex_id) when is_binary(tcgdex_id) do
+  defp resolve_local_card(%{"id" => id, "tcgdex_id" => tcgdex_id})
+       when is_binary(id) and is_binary(tcgdex_id),
+       do: resolve_local_card_by_tcgdex_id(id, tcgdex_id)
+
+  defp resolve_local_card(tcgdex_id) when is_binary(tcgdex_id) do
     case TcgCheap.Core.get_card_printing_by_tcgdex_id(tcgdex_id) do
       {:ok, card} -> {:ok, card}
       _ -> {:error, :invalid_local_card}
     end
   end
 
-  defp resolve_card(_input), do: {:error, :invalid_local_card}
+  defp resolve_local_card(_input), do: {:error, :invalid_local_card}
 
   defp extract_many_ids(inputs) when length(inputs) <= 100 do
     ids = Enum.map(inputs, &extract_many_id/1)
@@ -154,17 +163,35 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
 
     Map.new(requested, fn id ->
       card = Map.fetch!(cards_by_id, id)
-      current = Map.get(card, :tcgdex_cardmarket_v1_current_valuation)
+
+      current =
+        matching_current_snapshot(card, Map.get(card, :tcgdex_cardmarket_v1_current_valuation))
+
       {id, enqueue_for_status(card, current, Freshness.status(current, now), opts)}
     end)
   end
 
-  defp resolve_card_by_tcgdex_id(id, tcgdex_id) do
+  defp resolve_local_card_by_tcgdex_id(id, tcgdex_id) do
     case TcgCheap.Core.get_card_printing_by_tcgdex_id(tcgdex_id) do
       {:ok, %{id: ^id, tcgdex_id: ^tcgdex_id} = card} -> {:ok, card}
       _ -> {:error, :invalid_local_card}
     end
   end
+
+  defp pricing_card(%{mapping_status: "matched", cardmarket_product_id: id} = card)
+       when is_integer(id) and id > 0,
+       do: {:ok, card}
+
+  defp pricing_card(_card), do: {:error, :unpriced_mapping}
+
+  defp matching_current_snapshot(
+         %{cardmarket_product_id: product_id},
+         %{cardmarket_product_id: product_id} = current
+       )
+       when is_integer(product_id) and product_id > 0,
+       do: current
+
+  defp matching_current_snapshot(_card, _current), do: nil
 
   defp insert(%{id: id, tcgdex_id: tcgdex_id}) when is_binary(id) and is_binary(tcgdex_id) do
     %{
@@ -182,9 +209,15 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
   defp enqueue_for_status(_card, current, :fresh, _opts), do: {:fresh, current}
 
   defp enqueue_for_status(card, _current, status, opts) when status in [:missing, :stale] do
-    case admit(opts) do
-      :ok -> insert_result(card)
-      {:error, reason} -> {:error, reason}
+    case pricing_card(card) do
+      {:ok, priced_card} ->
+        case admit(opts) do
+          :ok -> insert_result(priced_card)
+          {:error, reason} -> {:error, reason}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -252,6 +285,16 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
   def topic(%{id: id}), do: topic(id)
   def topic(%{"id" => id}), do: topic(id)
   def topic(id) when is_binary(id), do: "valuations:#{id}"
+
+  def notify_mapping_changed(%{id: id}), do: notify_mapping_changed(id)
+
+  def notify_mapping_changed(id) when is_binary(id) do
+    Phoenix.PubSub.broadcast(
+      TcgCheap.PubSub,
+      topic(id),
+      {:card_mapping_changed, %{card_printing_id: id}}
+    )
+  end
 
   @spec subscribe(String.t() | map()) :: :ok | {:error, term()}
   def subscribe(card), do: Phoenix.PubSub.subscribe(TcgCheap.PubSub, topic(card))

@@ -99,6 +99,26 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
     assert retained.current?
   end
 
+  test "a mismatched active-policy replacement preserves the prior current snapshot" do
+    card = create_card_printing()
+
+    first =
+      Core.record_single_valuation!(
+        snapshot_attributes(card, %{cardmarket_product_id: card.cardmarket_product_id})
+      )
+
+    assert {:error, error} =
+             Core.record_single_valuation(
+               snapshot_attributes(card, %{cardmarket_product_id: card.cardmarket_product_id + 1})
+             )
+
+    assert Exception.message(error) =~ "currently matched positive Cardmarket product"
+    assert {:ok, current} = Core.get_current_single_valuation(card.id, "tcgdex_cardmarket_v1")
+    assert current.id == first.id
+    assert [retained] = Core.list_single_valuation_history!(card.id, "tcgdex_cardmarket_v1")
+    assert retained.current?
+  end
+
   test "rejects non-positive values and non-EUR aggregate snapshots" do
     card = create_card_printing()
 
@@ -123,11 +143,13 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
   defp create_card_printing do
     suffix = System.unique_integer([:positive])
 
-    Core.create_card_printing!(%{
+    TcgCheap.TestSupport.import_card_printing!(%{
       tcgdex_id: "base1-4-#{suffix}",
       name: "Charizard",
       set_name: "Base Set",
-      collector_number: "4"
+      collector_number: "4",
+      mapping_status: "matched",
+      cardmarket_product_id: 273_699
     })
   end
 

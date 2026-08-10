@@ -6,7 +6,7 @@ defmodule TcgCheap.Catalogue.SearchTest do
   defp unique_token(prefix), do: "#{prefix}-#{System.unique_integer([:positive])}"
 
   defp printing(token, overrides) do
-    Core.import_card_printing!(
+    TcgCheap.TestSupport.import_card_printing!(
       Map.merge(
         %{
           tcgdex_id: unique_token("id-#{token}"),
@@ -322,7 +322,14 @@ defmodule TcgCheap.Catalogue.SearchTest do
 
   test "search preloads the active Cardmarket valuation and leaves missing valuations nil" do
     token = unique_token("valuation")
-    valued = printing(token, name: "Valued #{token}")
+
+    valued =
+      printing(token,
+        name: "Valued #{token}",
+        mapping_status: "matched",
+        cardmarket_product_id: System.unique_integer([:positive])
+      )
+
     missing = printing(token, name: "Unvalued #{token}")
 
     valuation =
@@ -333,7 +340,8 @@ defmodule TcgCheap.Catalogue.SearchTest do
         policy_version: "tcgdex_cardmarket_v1",
         source: "tcgdex",
         source_metric: "cardmarket_average_sell_price",
-        fetched_at: DateTime.utc_now()
+        fetched_at: DateTime.utc_now(),
+        cardmarket_product_id: valued.cardmarket_product_id
       })
 
     results = Core.search_card_printings!(token)
@@ -347,18 +355,48 @@ defmodule TcgCheap.Catalogue.SearchTest do
     assert missing_result.tcgdex_cardmarket_v1_current_valuation == nil
   end
 
+  test "search does not preload a current valuation from another Cardmarket product" do
+    token = unique_token("stale-valuation")
+
+    card =
+      printing(token,
+        name: "Stale #{token}",
+        mapping_status: "matched",
+        cardmarket_product_id: 101
+      )
+
+    Core.record_single_valuation!(%{
+      card_printing_id: card.id,
+      value_eur: Decimal.new("9.99"),
+      currency: "EUR",
+      policy_version: "tcgdex_cardmarket_v1",
+      source: "tcgdex",
+      source_metric: "cardmarket_average_sell_price",
+      fetched_at: DateTime.utc_now(),
+      cardmarket_product_id: card.cardmarket_product_id
+    })
+
+    Repo.query!(
+      "UPDATE single_valuation_snapshots SET cardmarket_product_id = $1 WHERE card_printing_id = $2",
+      [202, Ecto.UUID.dump!(card.id)]
+    )
+
+    assert [result] = Core.search_card_printings!("stale #{token}")
+    assert result.tcgdex_cardmarket_v1_current_valuation == nil
+  end
+
   test "persisted search text is normalized and refreshed by both upsert actions" do
     token = unique_token("persisted")
     tcgdex_id = unique_token("persisted-id")
 
-    Core.import_card_printing!(%{
+    TcgCheap.TestSupport.import_card_printing!(%{
       tcgdex_id: tcgdex_id,
       name: "  Initial   Name  ",
       set_name: "Initial Set",
       collector_number: "A_1"
     })
 
-    Core.import_card_printing!(%{
+    TcgCheap.TestSupport.import_card_printing!(%{
       tcgdex_id: tcgdex_id,
       name: "Updated #{token}",
       set_name: "Updated Set #{token}",

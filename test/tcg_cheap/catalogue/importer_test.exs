@@ -615,7 +615,7 @@ defmodule TcgCheap.Catalogue.ImporterTest do
     target_id = "target-set-#{System.unique_integer([:positive])}"
     foreign = Core.import_card_set!(%{tcgdex_id: foreign_id, name: "Foreign"})
 
-    Core.import_card_printing!(%{
+    TcgCheap.TestSupport.import_card_printing!(%{
       tcgdex_id: card_id,
       name: "Existing",
       set_name: "Foreign",
@@ -675,7 +675,7 @@ defmodule TcgCheap.Catalogue.ImporterTest do
     target_id = "stale-target-set-#{System.unique_integer([:positive])}"
     foreign = Core.import_card_set!(%{tcgdex_id: foreign_id, name: "Foreign"})
 
-    Core.import_card_printing!(%{
+    TcgCheap.TestSupport.import_card_printing!(%{
       tcgdex_id: card_id,
       name: "Authoritative",
       set_name: "Foreign",

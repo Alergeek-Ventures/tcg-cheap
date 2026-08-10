@@ -103,6 +103,12 @@ defmodule TcgCheapWeb.Layouts do
           </Backpex.HTML.Layout.sidebar_item>
           <Backpex.HTML.Layout.sidebar_item
             current_url={@current_url}
+            navigate={~p"/admin/catalogue/card-mapping-history"}
+          >
+            <Backpex.HTML.CoreComponents.icon name="hero-clock" class="size-5" /> Card mapping history
+          </Backpex.HTML.Layout.sidebar_item>
+          <Backpex.HTML.Layout.sidebar_item
+            current_url={@current_url}
             navigate={~p"/admin/catalogue/retailers"}
           >
             <Backpex.HTML.CoreComponents.icon name="hero-building-storefront" class="size-5" />

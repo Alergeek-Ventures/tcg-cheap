@@ -140,6 +140,104 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     )
   end
 
+  test "a valuation from a different cardmarket mapping is hidden from current and history", %{
+    conn: conn
+  } do
+    card = create_card("mapping-mismatch")
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    old_product_id = card.cardmarket_product_id
+
+    record_snapshot(card, Decimal.new("12.34"), DateTime.add(now, -2, :day), old_product_id)
+    record_snapshot(card, Decimal.new("23.45"), now, old_product_id)
+
+    TcgCheap.Repo.query!(
+      "UPDATE card_printings SET cardmarket_product_id = $2 WHERE id = $1",
+      [Ecto.UUID.dump!(card.id), old_product_id + 1]
+    )
+
+    TcgCheap.Repo.query!(
+      """
+      UPDATE single_valuation_snapshots
+      SET "current?" = TRUE
+      WHERE id = (
+        SELECT id FROM single_valuation_snapshots
+        WHERE card_printing_id = $1
+        ORDER BY fetched_at DESC
+        LIMIT 1
+      )
+      """,
+      [Ecto.UUID.dump!(card.id)]
+    )
+
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+
+    assert has_element?(view, "#valuation-value", "?")
+    assert has_element?(view, "#valuation-unpriced")
+    assert has_element?(view, "#valuation-history-empty")
+    refute has_element?(view, "#valuation-history-ledger")
+  end
+
+  test "a mounted card clears the old valuation epoch when its mapping changes", %{conn: conn} do
+    card = create_card("mapping-event")
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    old_product_id = card.cardmarket_product_id
+
+    record_snapshot(card, Decimal.new("12.34"), DateTime.add(now, -2, :day))
+    record_snapshot(card, Decimal.new("23.45"), now)
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+    assert has_element?(view, "#valuation-value", "23.45")
+
+    TcgCheap.Repo.query!(
+      "UPDATE card_printings SET cardmarket_product_id = $2 WHERE id = $1",
+      [Ecto.UUID.dump!(card.id), old_product_id + 1]
+    )
+
+    TcgCheap.Repo.query!(
+      "UPDATE single_valuation_snapshots SET \"current?\" = FALSE WHERE card_printing_id = $1",
+      [Ecto.UUID.dump!(card.id)]
+    )
+
+    Phoenix.PubSub.broadcast(
+      TcgCheap.PubSub,
+      ValuationAcquisition.topic(card),
+      {:card_mapping_changed, %{card_printing_id: card.id}}
+    )
+
+    render(view)
+    assert has_element?(view, "#valuation-value", "?")
+    assert has_element?(view, "#valuation-history-empty")
+    refute has_element?(view, "#valuation-history-ledger")
+  end
+
+  test "an unresolved card requests acquisition after a later matched mapping", %{conn: conn} do
+    card = create_card("mapping-later", mapping_status: "unmatched", cardmarket_product_id: nil)
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+    assert has_element?(view, "#valuation-unpriced")
+
+    TcgCheap.Repo.query!(
+      "UPDATE card_printings SET mapping_status = 'matched', cardmarket_product_id = $2 WHERE id = $1",
+      [
+        Ecto.UUID.dump!(card.id),
+        card.id |> String.slice(0, 8) |> :erlang.phash2(10_000) |> max(1)
+      ]
+    )
+
+    Phoenix.PubSub.broadcast(
+      TcgCheap.PubSub,
+      ValuationAcquisition.topic(card),
+      {:card_mapping_changed, %{card_printing_id: card.id}}
+    )
+
+    render(view)
+    assert has_element?(view, "#valuation-fetching")
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: ValuationWorker,
+      args: %{"local_card_id" => card.id}
+    )
+  end
+
   test "a stale cached valuation remains visible while refresh is queued", %{conn: conn} do
     card = create_card("stale")
     now = DateTime.utc_now() |> DateTime.truncate(:second)
@@ -253,20 +351,23 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
       tcgdex_id: "detail-#{label}-#{suffix}",
       name: "Detail Card #{label} #{suffix}",
       set_name: "Detail Set #{suffix}",
-      collector_number: "#{suffix}"
+      collector_number: "#{suffix}",
+      mapping_status: "matched",
+      cardmarket_product_id: suffix
     }
 
-    Core.import_card_printing!(Map.merge(attrs, Map.new(overrides)))
+    TcgCheap.TestSupport.import_card_printing!(Map.merge(attrs, Map.new(overrides)))
   end
 
-  defp record_snapshot(card, value, fetched_at) do
+  defp record_snapshot(card, value, fetched_at, product_id \\ nil) do
     Core.record_single_valuation!(%{
       card_printing_id: card.id,
       value_eur: value,
       policy_version: @policy,
       source: "tcgdex_cardmarket",
       source_metric: "avg7",
-      fetched_at: fetched_at
+      fetched_at: fetched_at,
+      cardmarket_product_id: product_id || card.cardmarket_product_id
     })
   end
 

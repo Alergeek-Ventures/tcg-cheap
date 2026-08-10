@@ -126,6 +126,11 @@ defmodule TcgCheapWeb.TradeLive do
     end
   end
 
+  def handle_info({:card_mapping_changed, %{card_printing_id: id}}, socket)
+      when is_binary(id) do
+    mapping_changed(socket, id)
+  end
+
   def handle_info(
         {:exchange_rate_completed, %{exchange_rate: %ExchangeRate{} = rate}},
         socket
@@ -641,6 +646,81 @@ defmodule TcgCheapWeb.TradeLive do
 
   defp current_card_id?(socket, id),
     do: card_tcgdex_id(socket.assigns.cards, id) in composition_ids(socket.assigns.composition)
+
+  defp selected_after_reload(nil, _cards), do: nil
+
+  defp selected_after_reload(%{tcgdex_id: id}, cards), do: Map.get(cards, id)
+
+  defp selected_after_reload(selected, _cards), do: selected
+
+  defp mapping_changed(socket, id) do
+    case mapping_change_target(socket, id) do
+      {:ok, tcgdex_id} -> reload_mapping(socket, tcgdex_id)
+      :ignore -> {:noreply, socket}
+    end
+  end
+
+  defp mapping_change_target(socket, id) do
+    tcgdex_id = card_tcgdex_id(socket.assigns.cards, id)
+    composition_ids = composition_ids(socket.assigns.composition)
+
+    case {tcgdex_id, tcgdex_id in composition_ids} do
+      {tcgdex_id, true} when is_binary(tcgdex_id) -> {:ok, tcgdex_id}
+      _ -> :ignore
+    end
+  end
+
+  defp reload_mapping(socket, tcgdex_id) do
+    case load_cards(composition_ids(socket.assigns.composition)) do
+      {cards, nil} -> reload_mapping_from_cards(socket, cards, tcgdex_id)
+      _ -> mapping_read_failed(socket, tcgdex_id)
+    end
+  end
+
+  defp reload_mapping_from_cards(socket, cards, tcgdex_id) do
+    case Map.fetch(cards, tcgdex_id) do
+      {:ok, _card} ->
+        selected = selected_after_reload(socket.assigns.selected_card, cards)
+        reset = reset_mapping_state(socket, tcgdex_id, cards, selected)
+        {:noreply, rebuild_after_mapping_request(reset, cards, selected)}
+
+      :error ->
+        {:noreply, socket}
+    end
+  end
+
+  defp reset_mapping_state(socket, tcgdex_id, cards, selected) do
+    socket
+    |> assign(
+      requested_card_ids: MapSet.delete(socket.assigns.requested_card_ids, tcgdex_id),
+      acquisition_states: Map.delete(socket.assigns.acquisition_states, tcgdex_id)
+    )
+    |> rebuild(socket.assigns.composition, cards, socket.assigns.warning, selected)
+  end
+
+  defp rebuild_after_mapping_request(socket, cards, selected) do
+    socket
+    |> request_acquisition()
+    |> rebuild(socket.assigns.composition, cards, socket.assigns.warning, selected)
+  end
+
+  defp mapping_read_failed(socket, tcgdex_id) do
+    cards = Map.delete(socket.assigns.cards, tcgdex_id)
+
+    {:noreply,
+     socket
+     |> assign(
+       cards: cards,
+       requested_card_ids: MapSet.delete(socket.assigns.requested_card_ids, tcgdex_id),
+       acquisition_states: Map.delete(socket.assigns.acquisition_states, tcgdex_id)
+     )
+     |> rebuild(
+       socket.assigns.composition,
+       cards,
+       :read_error,
+       selected_after_reload(socket.assigns.selected_card, %{})
+     )}
+  end
 
   defp card_tcgdex_id(cards, id),
     do: cards |> Map.values() |> Enum.find_value(&(&1.id == id && &1.tcgdex_id))
