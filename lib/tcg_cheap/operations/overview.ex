@@ -2,7 +2,7 @@ defmodule TcgCheap.Operations.Overview do
   @moduledoc "The authenticated, bounded query and control boundary for operations UI."
 
   alias TcgCheap.Accounts.Admin
-  alias TcgCheap.Operations.{AcquisitionBudget, DataProvider}
+  alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionHealthPolicy, DataProvider}
 
   @default_job_limit 25
   @max_job_limit 50
@@ -24,15 +24,34 @@ defmodule TcgCheap.Operations.Overview do
   def load(%Admin{} = actor, opts) do
     with :ok <- validate_actor(actor),
          {:ok, clock, job_limit, run_limit} <- parse_options(opts),
-         {:ok, now} <- valid_clock(clock),
+         {:ok, health_policy} <- AcquisitionHealthPolicy.load(),
          {:ok, config} <- AcquisitionBudget.configured_limits(),
+         {:ok, health_policy} <-
+           AcquisitionHealthPolicy.validate_provider_keys(
+             health_policy,
+             Enum.map(config.providers, & &1.provider_key)
+           ),
          {:ok, providers} <- list_providers(actor, config.providers),
-         {:ok, windows} <- current_windows(actor, providers, now),
-         {:ok, global_usage} <- global_current_usage(now),
          {:ok, health} <- source_health(actor, config.providers),
          {:ok, runs} <- recent_runs(actor, config.providers, run_limit),
-         {:ok, jobs} <- recent_jobs(job_limit) do
-      {:ok, build_overview(config, providers, windows, global_usage, health, runs, jobs)}
+         {:ok, jobs} <- recent_jobs(job_limit),
+         {:ok, now} <- valid_clock(clock),
+         {:ok, windows} <- current_windows(actor, providers, now),
+         {:ok, global_usage} <- global_current_usage(now),
+         {:ok, health} <- validate_source_health(health, now) do
+      projected_runs = Enum.map(runs, &run_projection(&1, health_policy, now))
+
+      {:ok,
+       build_overview(config, %{
+         providers: providers,
+         windows: windows,
+         global_usage: global_usage,
+         health: health,
+         runs: projected_runs,
+         jobs: jobs,
+         health_policy: health_policy,
+         now: now
+       })}
     else
       {:error, _} = error -> error
     end
@@ -197,11 +216,62 @@ defmodule TcgCheap.Operations.Overview do
     end
   end
 
+  defp validate_source_health(health, now) do
+    if Enum.all?(health, &valid_source_health?(&1, now)),
+      do: {:ok, health},
+      else: {:error, :invalid_source_health_evidence}
+  end
+
+  defp valid_source_health?(health, now) do
+    valid_health_times?(health, now) and valid_health_state?(health)
+  end
+
+  defp valid_health_times?(health, now) do
+    valid_past_time?(health.last_started_at, now) and
+      valid_optional_past_time?(health.last_succeeded_at, now) and
+      valid_optional_past_time?(health.last_failed_at, now)
+  end
+
+  defp valid_health_state?(%{last_status: nil} = health) do
+    is_nil(health.last_succeeded_at) and is_nil(health.last_failed_at) and
+      is_nil(health.last_failure_category) and health.consecutive_failures == 0
+  end
+
+  defp valid_health_state?(%{last_status: "succeeded"} = health) do
+    not is_nil(health.last_succeeded_at) and is_nil(health.last_failure_category) and
+      health.consecutive_failures == 0 and
+      nondecreasing_evidence?(health.last_succeeded_at, health.last_failed_at)
+  end
+
+  defp valid_health_state?(%{last_status: status} = health)
+       when status in ["retryable_failure", "failed", "cancelled"] do
+    not is_nil(health.last_failed_at) and
+      health.last_failure_category in ~w(budget rate_limit timeout transport provider_response persistence configuration local_input unknown) and
+      is_integer(health.consecutive_failures) and health.consecutive_failures > 0 and
+      nondecreasing_evidence?(health.last_failed_at, health.last_succeeded_at)
+  end
+
+  defp valid_health_state?(_), do: false
+
+  defp valid_optional_past_time?(nil, _now), do: true
+  defp valid_optional_past_time?(value, now), do: valid_past_time?(value, now)
+
+  defp nondecreasing_evidence?(_latest, nil), do: true
+
+  defp nondecreasing_evidence?(latest, previous) do
+    DateTime.compare(latest, previous) in [:eq, :gt]
+  end
+
+  defp valid_past_time?(%DateTime{time_zone: "Etc/UTC"} = value, now),
+    do: DateTime.compare(value, now) != :gt
+
+  defp valid_past_time?(_, _now), do: false
+
   defp recent_runs(actor, configured_providers, limit) do
     provider_keys = Enum.map(configured_providers, & &1.provider_key)
 
     case TcgCheap.Operations.list_recent_acquisition_runs(provider_keys, limit, actor: actor) do
-      {:ok, runs} -> {:ok, Enum.map(runs, &run_projection/1)}
+      {:ok, runs} -> {:ok, runs}
       {:error, reason} -> {:error, {:acquisition_run_query_failed, reason}}
     end
   end
@@ -228,7 +298,16 @@ defmodule TcgCheap.Operations.Overview do
     {hour, day, month}
   end
 
-  defp build_overview(config, persisted, windows, global_usage, health, runs, jobs) do
+  defp build_overview(config, %{
+         providers: persisted,
+         windows: windows,
+         global_usage: global_usage,
+         health: health,
+         runs: runs,
+         jobs: jobs,
+         health_policy: health_policy,
+         now: now
+       }) do
     by_provider = Map.new(persisted, &{&1.provider_key, &1})
     usage = Enum.group_by(windows, & &1.provider_id)
     health_by_provider = Map.new(health, &{&1.provider_key, &1})
@@ -250,7 +329,14 @@ defmodule TcgCheap.Operations.Overview do
           updated_at: persisted_provider && persisted_provider.updated_at,
           status: (persisted_provider && persisted_provider.status) || "active",
           current_usage: usage_summary(rows),
-          health: health_projection(health_by_provider[configured.provider_key])
+          health: health_projection(health_by_provider[configured.provider_key]),
+          source_state:
+            AcquisitionHealthPolicy.provider_state(
+              health_policy,
+              configured.provider_key,
+              last_succeeded_at(health_by_provider[configured.provider_key]),
+              now
+            )
         }
       end)
 
@@ -278,7 +364,7 @@ defmodule TcgCheap.Operations.Overview do
     }
   end
 
-  defp run_projection(run) do
+  defp run_projection(run, health_policy, now) do
     %{
       id: run.id,
       provider_key: run.provider_key,
@@ -293,9 +379,19 @@ defmodule TcgCheap.Operations.Overview do
       failure_category: run.failure_category,
       request_count: run.request_count,
       started_at: run.started_at,
-      finished_at: run.finished_at
+      finished_at: run.finished_at,
+      overdue?:
+        run.status == "running" and
+          AcquisitionHealthPolicy.overdue?(
+            run.started_at,
+            now,
+            health_policy.stranded_after_seconds
+          )
     }
   end
+
+  defp last_succeeded_at(nil), do: nil
+  defp last_succeeded_at(health), do: health.last_succeeded_at
 
   defp usage_summary(rows) do
     Enum.reduce(rows, %{hour: zero(), day: zero(), month: zero()}, fn row, acc ->

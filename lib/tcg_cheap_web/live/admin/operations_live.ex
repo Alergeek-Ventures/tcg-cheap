@@ -50,6 +50,9 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                 <p class="admin-disclosure">
                   Counters are estimated reservations before HTTP. Tracked provider attempts retain safe outcomes and admitted request counts; actual paid-cost reconciliation is not tracked yet.
                 </p>
+                <p class="admin-disclosure">
+                  Running attempts older than the configured boundary are reconciled automatically; this desk does not probe providers or break circuits.
+                </p>
               </div>
               <%= if @overview_ready? do %>
                 <nav id="admin-operations-nav" aria-label="Operations sections">
@@ -160,6 +163,11 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                         </dd>
                       </div>
                       <div>
+                        <dt>Source freshness</dt><dd id={"provider-source-state-#{provider_dom_id(provider.provider_key)}"}>
+                          {source_state(provider.source_state)}
+                        </dd>
+                      </div>
+                      <div>
                         <dt>Failure streak</dt><dd>{failure_streak(provider.health)}</dd>
                       </div>
                       <div class="wide-evidence">
@@ -199,7 +207,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                     <div class="admin-docket-heading">
                       <div>
                         <h3>{operation_name(run.operation)}</h3><p>{run.provider_key}</p>
-                      </div><span>{run_status(run.status)}</span>
+                      </div><span>{run_status(run)}</span>
                     </div>
                     <dl class="admin-ledger">
                       <div class="wide-evidence">
@@ -366,6 +374,12 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp health_status(nil), do: "No completed acquisition"
   defp health_status(%{last_status: nil}), do: "No completed acquisition"
   defp health_status(%{last_status: status}), do: run_status(status)
+  defp source_state(:current), do: "CURRENT"
+  defp source_state(:stale), do: "STALE"
+  defp source_state(:not_observed), do: "NO SUCCESS YET"
+  defp source_state(:on_demand), do: "ON DEMAND"
+  defp source_state(:invalid), do: "INVALID EVIDENCE"
+  defp source_state(_), do: "INVALID EVIDENCE"
   defp health_time(nil, _field), do: "None yet"
 
   defp health_time(health, field) do
@@ -384,6 +398,8 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp operation_name("exchange_rate"), do: "EUR/PLN rate"
   defp operation_name("sealed_retailer_refresh"), do: "Sealed retailer refresh"
   defp operation_name(_), do: "Acquisition"
+  defp run_status(%{overdue?: true, status: "running"}), do: "OVERDUE"
+  defp run_status(%{status: status}), do: run_status(status)
   defp run_status("succeeded"), do: "SUCCEEDED"
   defp run_status("retryable_failure"), do: "RETRYABLE FAILURE"
   defp run_status("failed"), do: "FAILED"

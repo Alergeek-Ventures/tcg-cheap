@@ -13,7 +13,7 @@ defmodule TcgCheap.Operations.AcquisitionRun do
 
     custom_indexes do
       index [:provider_key, :started_at, :id]
-      index [:started_at, :id]
+      index [:started_at, :id], where: "status = 'running'"
     end
 
     check_constraints do
@@ -130,6 +130,15 @@ defmodule TcgCheap.Operations.AcquisitionRun do
                ])
 
       change {TcgCheap.Operations.Changes.SourceHealthLifecycle, event: :finish}
+    end
+
+    update :reconcile_stranded do
+      argument :expected_cutoff, :utc_datetime_usec, allow_nil?: false
+      argument :finished_at, :utc_datetime_usec, allow_nil?: false
+      accept []
+      require_atomic? false
+      change {TcgCheap.Operations.Changes.SourceHealthLifecycle, event: :reconcile}
+      change {TcgCheap.Operations.Changes.ReconcileStranded, []}
     end
   end
 

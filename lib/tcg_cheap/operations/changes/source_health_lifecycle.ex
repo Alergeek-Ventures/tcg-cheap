@@ -6,9 +6,9 @@ defmodule TcgCheap.Operations.Changes.SourceHealthLifecycle do
 
   @impl true
   def init(opts) do
-    if Keyword.get(opts, :event) in [:start, :finish],
+    if Keyword.get(opts, :event) in [:start, :finish, :reconcile],
       do: {:ok, opts},
-      else: {:error, "event must be start or finish"}
+      else: {:error, "event must be start, finish, or reconcile"}
   end
 
   @impl true
@@ -48,6 +48,14 @@ defmodule TcgCheap.Operations.Changes.SourceHealthLifecycle do
     end)
   end
 
+  defp lock_running_attempt(changeset, :reconcile) do
+    Ash.Changeset.before_action(changeset, fn changeset ->
+      provider = Ash.Changeset.get_data(changeset, :provider_key)
+      lock_source_health(provider)
+      changeset
+    end)
+  end
+
   defp lock_running_attempt(changeset, :finish) do
     Ash.Changeset.before_action(changeset, fn changeset ->
       provider = Ash.Changeset.get_data(changeset, :provider_key)
@@ -77,7 +85,7 @@ defmodule TcgCheap.Operations.Changes.SourceHealthLifecycle do
     )
   end
 
-  defp update_health(provider, :finish, changeset, now) do
+  defp update_health(provider, event, changeset, now) when event in [:finish, :reconcile] do
     status = Ash.Changeset.get_attribute(changeset, :status)
     category = Ash.Changeset.get_attribute(changeset, :failure_category)
     if category not in [nil | @categories], do: raise(ArgumentError, "invalid failure category")
@@ -85,6 +93,10 @@ defmodule TcgCheap.Operations.Changes.SourceHealthLifecycle do
     case status do
       "succeeded" ->
         record_success!(provider, now)
+
+      status
+      when status in ["retryable_failure", "failed", "cancelled"] and event == :reconcile ->
+        record_reconciliation_failure!(provider, now, status, category, changeset)
 
       status when status in ["retryable_failure", "failed", "cancelled"] ->
         record_failure!(provider, now, status, category)
@@ -112,6 +124,15 @@ defmodule TcgCheap.Operations.Changes.SourceHealthLifecycle do
       )
 
     verify_health_updated!(result)
+  end
+
+  defp record_reconciliation_failure!(provider, now, status, category, changeset) do
+    started_at = Ash.Changeset.get_attribute(changeset, :started_at)
+
+    TcgCheap.Repo.query!(
+      "INSERT INTO acquisition_source_health (id, provider_key, last_started_at, last_failed_at, last_status, last_failure_category, consecutive_failures, inserted_at, updated_at) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 1, now(), now()) ON CONFLICT (provider_key) DO UPDATE SET last_started_at = GREATEST(acquisition_source_health.last_started_at, EXCLUDED.last_started_at), last_failed_at = EXCLUDED.last_failed_at, last_status = EXCLUDED.last_status, last_failure_category = EXCLUDED.last_failure_category, consecutive_failures = acquisition_source_health.consecutive_failures + 1, updated_at = now()",
+      [provider, started_at, now, status, category]
+    )
   end
 
   defp verify_health_updated!(result) do

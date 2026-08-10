@@ -6,6 +6,7 @@ defmodule TcgCheap.Operations.OverviewTest do
 
   setup do
     previous = Application.get_env(:tcg_cheap, :acquisition_budget)
+    previous_health = Application.get_env(:tcg_cheap, :acquisition_health)
     key = "overview-provider-#{System.unique_integer([:positive])}"
 
     Application.put_env(:tcg_cheap, :acquisition_budget,
@@ -13,6 +14,12 @@ defmodule TcgCheap.Operations.OverviewTest do
       global_daily_request_limit: 1_000,
       global_monthly_spend_limit: "50.00",
       providers: [provider(key), provider("unpersisted-#{key}")]
+    )
+
+    Application.put_env(:tcg_cheap, :acquisition_health,
+      stranded_after_seconds: 900,
+      reconcile_limit: 100,
+      stale_after_seconds: %{}
     )
 
     {:ok, %{rows: [[id]]}} =
@@ -25,6 +32,10 @@ defmodule TcgCheap.Operations.OverviewTest do
       if is_nil(previous),
         do: Application.delete_env(:tcg_cheap, :acquisition_budget),
         else: Application.put_env(:tcg_cheap, :acquisition_budget, previous)
+
+      if is_nil(previous_health),
+        do: Application.delete_env(:tcg_cheap, :acquisition_health),
+        else: Application.put_env(:tcg_cheap, :acquisition_health, previous_health)
     end)
 
     {:ok, key: key, actor: %Admin{id: id}, now: ~U[2026-08-09 12:34:56Z]}
@@ -146,10 +157,22 @@ defmodule TcgCheap.Operations.OverviewTest do
     assert {:error, :invalid_provider_configuration} = Overview.load(actor, clock: fn -> now end)
   end
 
+  test "overview validates and reuses one clock instant", %{actor: actor, now: now} do
+    {:ok, clock} = Agent.start_link(fn -> 0 end)
+
+    assert {:ok, _overview} =
+             Overview.load(actor,
+               clock: fn ->
+                 Agent.get_and_update(clock, fn calls -> {now, calls + 1} end)
+               end
+             )
+
+    assert Agent.get(clock, & &1) == 1
+  end
+
   test "overview projects bounded source health and acquisition runs without raw failures", %{
     key: key,
-    actor: actor,
-    now: now
+    actor: actor
   } do
     job = %Oban.Job{
       id: System.unique_integer([:positive]),
@@ -172,7 +195,7 @@ defmodule TcgCheap.Operations.OverviewTest do
                end
              )
 
-    assert {:ok, overview} = Overview.load(actor, clock: fn -> now end)
+    assert {:ok, overview} = Overview.load(actor)
     provider = Enum.find(overview.providers, &(&1.provider_key == key))
     run = Enum.find(overview.recent_runs, &(&1.provider_key == key))
 
@@ -217,6 +240,106 @@ defmodule TcgCheap.Operations.OverviewTest do
     refute Map.has_key?(job, :args)
     refute Map.has_key?(job, :meta)
     refute Map.has_key?(job, :latest_error)
+  end
+
+  test "projects source freshness and stranded attempts from the strict policy", %{
+    key: key,
+    actor: actor,
+    now: now
+  } do
+    not_observed = "not-observed-#{key}"
+
+    Application.put_env(:tcg_cheap, :acquisition_budget,
+      global_hourly_request_limit: 100,
+      global_daily_request_limit: 1_000,
+      global_monthly_spend_limit: "50.00",
+      providers: [
+        provider(key),
+        provider("unpersisted-#{key}"),
+        provider(not_observed)
+      ]
+    )
+
+    Application.put_env(:tcg_cheap, :acquisition_health,
+      stranded_after_seconds: 10,
+      reconcile_limit: 100,
+      stale_after_seconds: %{key => 10, not_observed => 10}
+    )
+
+    insert_health(key, now, DateTime.add(now, -10, :second))
+    insert_health(not_observed, now, nil)
+    insert_run(key, "running", DateTime.add(now, -10, :second), nil, "running-at-boundary")
+    insert_run(key, "succeeded", DateTime.add(now, -20, :second), now, "terminal-old")
+
+    assert {:ok, overview} = Overview.load(actor, clock: fn -> now end)
+    states = Map.new(overview.providers, &{&1.provider_key, &1.source_state})
+    assert states[key] == :stale
+    assert states["unpersisted-#{key}"] == :on_demand
+    assert states[not_observed] == :not_observed
+
+    running = Enum.find(overview.recent_runs, &(&1.target_key == "running-at-boundary"))
+    terminal = Enum.find(overview.recent_runs, &(&1.target_key == "terminal-old"))
+    assert running.overdue?
+    refute terminal.overdue?
+  end
+
+  test "future source health evidence fails the overview closed", %{
+    key: key,
+    actor: actor,
+    now: now
+  } do
+    Application.put_env(:tcg_cheap, :acquisition_health,
+      stranded_after_seconds: 10,
+      reconcile_limit: 100,
+      stale_after_seconds: %{key => 10}
+    )
+
+    insert_health(key, now, DateTime.add(now, 1, :second))
+
+    assert {:error, :invalid_source_health_evidence} =
+             Overview.load(actor, clock: fn -> now end)
+  end
+
+  test "invalid health policy fails the overview closed", %{actor: actor, now: now} do
+    Application.put_env(:tcg_cheap, :acquisition_health, [])
+
+    assert {:error, :invalid_acquisition_health_configuration} =
+             Overview.load(actor, clock: fn -> now end)
+  end
+
+  defp insert_health(provider_key, now, succeeded_at) do
+    values =
+      if succeeded_at do
+        [provider_key, now, succeeded_at]
+      else
+        [provider_key, now]
+      end
+
+    query =
+      if succeeded_at do
+        "INSERT INTO acquisition_source_health (provider_key, last_started_at, last_succeeded_at, last_status, consecutive_failures) VALUES ($1, $2, $3, 'succeeded', 0)"
+      else
+        "INSERT INTO acquisition_source_health (provider_key, last_started_at, consecutive_failures) VALUES ($1, $2, 0)"
+      end
+
+    TcgCheap.Repo.query!(query, values)
+  end
+
+  defp insert_run(provider_key, status, started_at, finished_at, target_key) do
+    failure = if status == "running" or status == "succeeded", do: nil, else: "timeout"
+
+    TcgCheap.Repo.query!(
+      "INSERT INTO acquisition_runs (attempt_key, provider_key, operation, target_key, worker, queue, attempt, max_attempts, status, failure_category, started_at, finished_at) VALUES ($1, $2, 'single_valuation', $3, 'TestWorker', 'ops', 1, 5, $4, $5, $6, $7)",
+      [
+        "#{provider_key}-#{target_key}",
+        provider_key,
+        target_key,
+        status,
+        failure,
+        started_at,
+        finished_at
+      ]
+    )
   end
 
   defp provider(key),

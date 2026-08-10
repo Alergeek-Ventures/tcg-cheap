@@ -51,6 +51,10 @@ defmodule TcgCheap.Operations do
         action: :finish,
         args: [:status, :failure_category, :request_count]
 
+      define :reconcile_stranded_acquisition_run,
+        action: :reconcile_stranded,
+        args: [:expected_cutoff, :finished_at]
+
       define :list_recent_acquisition_runs, action: :recent, args: [:provider_keys, :limit]
     end
 

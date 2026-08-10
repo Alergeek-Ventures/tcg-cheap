@@ -21,6 +21,9 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
   @transient_tags [:rate_limited, :http_error, :transport_error, :timeout]
 
   @impl Oban.Worker
+  def timeout(_job), do: :timer.seconds(60)
+
+  @impl Oban.Worker
   def perform(%Oban.Job{args: args} = job) when is_map(args) do
     case validate_args(args) do
       {:ok, identity} ->

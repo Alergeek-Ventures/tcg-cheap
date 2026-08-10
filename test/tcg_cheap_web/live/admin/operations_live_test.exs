@@ -10,14 +10,25 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
 
   setup do
     previous = Application.get_env(:tcg_cheap, :acquisition_budget)
+    previous_health = Application.get_env(:tcg_cheap, :acquisition_health)
     key = "web-ops-#{System.unique_integer([:positive])}"
 
     Application.put_env(:tcg_cheap, :acquisition_budget, budget_config(key))
+
+    Application.put_env(:tcg_cheap, :acquisition_health,
+      stranded_after_seconds: 900,
+      reconcile_limit: 100,
+      stale_after_seconds: %{}
+    )
 
     on_exit(fn ->
       if is_nil(previous),
         do: Application.delete_env(:tcg_cheap, :acquisition_budget),
         else: Application.put_env(:tcg_cheap, :acquisition_budget, previous)
+
+      if is_nil(previous_health),
+        do: Application.delete_env(:tcg_cheap, :acquisition_health),
+        else: Application.put_env(:tcg_cheap, :acquisition_health, previous_health)
     end)
 
     {:ok, key: key}
@@ -42,6 +53,37 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#operations-provider-stream[phx-update=stream]")
     assert has_element?(view, "#operations-run-stream[phx-update=stream]")
     assert has_element?(view, "#operations-job-stream[phx-update=stream]")
+  end
+
+  test "provider freshness has stable accessible identifiers", %{conn: conn, key: key} do
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+
+    assert has_element?(view, "#provider-source-state-#{provider_id(key)}", "ON DEMAND")
+
+    assert has_element?(
+             view,
+             "#provider-source-state-#{provider_id("other-#{key}")}",
+             "ON DEMAND"
+           )
+  end
+
+  test "running attempts beyond the boundary render as overdue", %{conn: conn, key: key} do
+    Application.put_env(:tcg_cheap, :acquisition_health,
+      stranded_after_seconds: 1,
+      reconcile_limit: 100,
+      stale_after_seconds: %{}
+    )
+
+    now = DateTime.utc_now()
+
+    TcgCheap.Repo.query!(
+      "INSERT INTO acquisition_runs (attempt_key, provider_key, operation, target_key, worker, queue, attempt, max_attempts, status, started_at) VALUES ($1, $2, 'single_valuation', 'overdue-target', 'TestWorker', 'ops', 1, 5, 'running', $3)",
+      ["overdue-#{key}", key, DateTime.add(now, -2, :second)]
+    )
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+
+    assert has_element?(view, "#operations-acquisition-runs", "OVERDUE")
   end
 
   test "tracked source health and safe acquisition evidence render", %{conn: conn, key: key} do

@@ -23,7 +23,7 @@ defmodule TcgCheap.Operations.SourceHealth do
                        ],
                        "source_health_state_invariant",
                        check:
-                         "last_started_at IS NOT NULL AND ((last_status IS NULL AND last_succeeded_at IS NULL AND last_failed_at IS NULL AND last_failure_category IS NULL AND consecutive_failures = 0) OR (last_status = 'succeeded' AND last_succeeded_at IS NOT NULL AND last_failure_category IS NULL AND consecutive_failures = 0) OR (last_status IN ('retryable_failure','failed','cancelled') AND last_failed_at IS NOT NULL AND last_failure_category IS NOT NULL AND consecutive_failures > 0))"
+                         "last_started_at IS NOT NULL AND ((last_status IS NULL AND last_succeeded_at IS NULL AND last_failed_at IS NULL AND last_failure_category IS NULL AND consecutive_failures = 0) OR (last_status IS NOT NULL AND last_status = 'succeeded' AND last_succeeded_at IS NOT NULL AND (last_failed_at IS NULL OR last_succeeded_at >= last_failed_at) AND last_failure_category IS NULL AND consecutive_failures = 0) OR (last_status IS NOT NULL AND last_status IN ('retryable_failure','failed','cancelled') AND last_failed_at IS NOT NULL AND (last_succeeded_at IS NULL OR last_failed_at >= last_succeeded_at) AND last_failure_category IS NOT NULL AND consecutive_failures > 0))"
 
       check_constraint [:last_status], "source_health_status_invariant",
         check:

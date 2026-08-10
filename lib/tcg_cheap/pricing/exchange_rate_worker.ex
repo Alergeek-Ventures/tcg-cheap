@@ -22,6 +22,9 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
   }
 
   @impl Oban.Worker
+  def timeout(_job), do: :timer.seconds(60)
+
+  @impl Oban.Worker
   def perform(%Oban.Job{args: args} = job) do
     with {:ok, args} <- validate_args(args),
          result <-

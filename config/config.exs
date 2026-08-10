@@ -58,6 +58,11 @@ config :tcg_cheap,
   ash_domains: [TcgCheap.Core, TcgCheap.Accounts, TcgCheap.Operations],
   token_signing_secret: :endpoint_secret_key_base
 
+config :tcg_cheap, :acquisition_health,
+  stranded_after_seconds: 900,
+  reconcile_limit: 100,
+  stale_after_seconds: %{"nbp" => 129_600}
+
 config :backpex,
   pubsub_server: TcgCheap.PubSub,
   translator_function: {TcgCheapWeb.CoreComponents, :translate_error},
@@ -68,6 +73,7 @@ config :tcg_cheap, Oban,
   queues: [
     valuations: 4,
     exchange_rates: 1,
+    operations: 1,
     sealed_retailers: 1,
     sealed_aggregates: 1,
     sealed_buying_guides: 1
@@ -79,7 +85,8 @@ config :tcg_cheap, Oban,
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
        # Daily at 16:00 UTC, after the 15:00 UTC NBP job.
-       {"0 16 * * *", TcgCheap.Pricing.SealedDailyAggregateWorker, args: %{}}
+       {"0 16 * * *", TcgCheap.Pricing.SealedDailyAggregateWorker, args: %{}},
+       {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
      ]}
   ]
 
