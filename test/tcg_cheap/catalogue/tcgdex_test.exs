@@ -185,4 +185,32 @@ defmodule TcgCheap.Catalogue.TcgdexTest do
     assert {:error, :invalid_options} = Tcgdex.list_sets(request_options: [], request_options: [])
     assert {:error, :invalid_options} = Tcgdex.list_sets(unknown: true)
   end
+
+  test "normalizes timeout transport failures" do
+    name = make_ref()
+    Req.Test.stub(name, &Req.Test.transport_error(&1, :timeout))
+
+    assert {:error, {:provider_timeout, :request}} =
+             Tcgdex.list_sets(request_options: request_options(name))
+  end
+
+  test "rejects oversized and overlong set-list responses" do
+    name = make_ref()
+
+    Req.Test.stub(name, fn conn ->
+      Plug.Conn.send_resp(conn, 200, String.duplicate("x", 2 * 1024 * 1024 + 1))
+    end)
+
+    assert {:error, {:malformed_response, :response_too_large}} =
+             Tcgdex.list_sets(request_options: request_options(name))
+
+    name = make_ref()
+
+    Req.Test.stub(name, fn conn ->
+      Req.Test.json(conn, Enum.map(1..1_001, &%{"id" => "s#{&1}", "name" => "Set"}))
+    end)
+
+    assert {:error, {:malformed_response, :too_many_set_briefs}} =
+             Tcgdex.list_sets(request_options: request_options(name))
+  end
 end

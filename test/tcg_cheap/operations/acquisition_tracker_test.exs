@@ -78,6 +78,11 @@ defmodule TcgCheap.Operations.AcquisitionTrackerTest do
     assert Enum.map(runs, & &1.status) == ["succeeded", "retryable_failure"]
   end
 
+  test "nested timeout transport errors classify as timeout" do
+    assert AcquisitionTracker.classify({:transport_error, %Req.TransportError{reason: :timeout}}) ==
+             :timeout
+  end
+
   test "only successful admissions count and raw failures become fixed categories", %{
     provider_key: provider_key,
     actor: actor

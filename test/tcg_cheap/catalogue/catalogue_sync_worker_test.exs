@@ -1,9 +1,7 @@
 defmodule TcgCheap.Catalogue.CatalogueSyncWorkerTestProvider do
   def list_sets(opts) do
     with :ok <- admit(opts) do
-      Agent.get_and_update(agent(opts), fn state ->
-        {{:ok, state.briefs}, %{state | list_calls: state.list_calls + 1}}
-      end)
+      Agent.get_and_update(agent(opts), &list_result/1)
     end
   end
 
@@ -19,6 +17,9 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorkerTestProvider do
 
   defp admit(opts), do: Keyword.fetch!(opts, :request_admitter).()
   defp agent(opts), do: Keyword.fetch!(opts, :agent)
+  defp list_result(%{list_error: nil} = state), do: reply({:ok, state.briefs}, state)
+  defp list_result(state), do: reply({:error, state.list_error}, state)
+  defp reply(result, state), do: {result, %{state | list_calls: state.list_calls + 1}}
   defp provider_response({:error, _reason} = error), do: error
   defp provider_response(result), do: {:ok, result}
 end
@@ -49,7 +50,9 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorkerTest do
     previous_admissions = Application.get_env(:tcg_cheap, :catalogue_sync_worker_admissions)
 
     {:ok, provider} =
-      Agent.start_link(fn -> %{briefs: [], sets: %{}, list_calls: 0, fetched: []} end)
+      Agent.start_link(fn ->
+        %{briefs: [], sets: %{}, list_calls: 0, fetched: [], list_error: nil}
+      end)
 
     Application.put_env(:tcg_cheap, :catalogue_sync, sync_config(provider))
     Application.put_env(:tcg_cheap, :acquisition_budget, budget_config())
@@ -242,6 +245,32 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorkerTest do
     assert health.consecutive_failures == 0
   end
 
+  test "discovery timeout leaves no run, records health, and retries from discovery", %{
+    provider: provider
+  } do
+    ids = ["timeout-set"]
+    configure_provider(provider, ids)
+    Agent.update(provider, &Map.put(&1, :list_error, {:provider_timeout, :request}))
+
+    assert {:error, :provider_timeout} = CatalogueSyncWorker.perform(job(1, 5))
+    assert {:ok, nil} = Operations.get_active_catalogue_sync_run(authorize?: false)
+    assert provider_state(provider).list_calls == 1
+    assert provider_state(provider).fetched == []
+
+    admin = admin()
+    assert {:ok, [health]} = Operations.list_source_health(["tcgdex_catalogue"], actor: admin)
+    assert health.last_failure_category == "timeout"
+
+    configure_provider(provider, ids)
+    assert :ok = CatalogueSyncWorker.perform(job(2, 5))
+    assert provider_state(provider).list_calls == 1
+    assert provider_state(provider).fetched == ids
+
+    [completed] = Ash.read!(CatalogueSyncRun, authorize?: false)
+    assert completed.status == "completed"
+    assert completed.synced_sets == 1
+  end
+
   defp configure_provider(agent, ids, overrides \\ %{}) do
     sets =
       Map.new(ids, fn id ->
@@ -261,7 +290,7 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorkerTest do
     briefs = Enum.map(Enum.reverse(ids), &%{"id" => &1, "name" => "Set #{&1}"})
 
     Agent.update(agent, fn state ->
-      %{state | briefs: briefs, sets: sets, list_calls: 0, fetched: []}
+      %{state | briefs: briefs, sets: sets, list_calls: 0, fetched: [], list_error: nil}
     end)
   end
 

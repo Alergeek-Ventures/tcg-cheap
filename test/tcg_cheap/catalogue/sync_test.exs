@@ -8,6 +8,11 @@ defmodule TcgCheap.Catalogue.SyncTest do
 
   defmodule Provider do
     def fetch_set(id, opts) do
+      case Keyword.get(opts, :fetch_counter) do
+        nil -> :ok
+        counter -> :counters.add(counter, 1, 1)
+      end
+
       case Keyword.get(opts, :sets, %{}) do
         %{^id => {:error, reason}} -> {:error, reason}
         %{^id => set} -> {:ok, set}
@@ -748,5 +753,21 @@ defmodule TcgCheap.Catalogue.SyncTest do
     assert {:ok, [issue]} = Operations.list_admin_import_issues(authorize?: false)
     assert issue.stage == "catalogue_fetch"
     refute inspect(issue) =~ secret
+  end
+
+  test "rejects more than 1,000 discovered briefs before writes" do
+    briefs = Enum.map(1..1_001, &%{"id" => "brief-#{&1}", "name" => "Set"})
+    fetch_counter = :counters.new(1, [:atomics])
+
+    assert {:error, {:malformed_response, :too_many_set_briefs}} =
+             Sync.sync_all_sets(
+               provider: Provider,
+               provider_options: [set_briefs: briefs, fetch_counter: fetch_counter]
+             )
+
+    assert {:ok, [issue]} = Operations.list_admin_import_issues(authorize?: false)
+    assert issue.issue_code == "malformed_response"
+    assert :counters.get(fetch_counter, 1) == 0
+    assert Repo.aggregate(from(s in "card_sets"), :count, :id) == 0
   end
 end

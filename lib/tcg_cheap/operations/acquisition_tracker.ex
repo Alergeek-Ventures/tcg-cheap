@@ -132,6 +132,7 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
 
   defp category({:timeout, _}), do: :timeout
   defp category({:provider_timeout, _}), do: :timeout
+  defp category({:transport_error, %Req.TransportError{reason: :timeout}}), do: :timeout
 
   defp category(reason)
        when reason in [

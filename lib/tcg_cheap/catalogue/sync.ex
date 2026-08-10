@@ -397,6 +397,16 @@ defmodule TcgCheap.Catalogue.Sync do
   defp valid_card_image(_), do: {:error, {:malformed_response, {:card, :invalid_image}}}
 
   defp validate_briefs(sets) when is_list(sets) do
+    if length(sets) > 1_000 do
+      {:error, {:malformed_response, :too_many_set_briefs}}
+    else
+      validate_briefs_bounded(sets)
+    end
+  end
+
+  defp validate_briefs(_), do: {:error, {:malformed_response, :expected_array}}
+
+  defp validate_briefs_bounded(sets) do
     Enum.reduce_while(sets, {[], MapSet.new()}, fn brief, {result, ids} ->
       with true <- is_map(brief),
            {:ok, id} <- canonical_id(Map.get(brief, "id")),
@@ -415,8 +425,6 @@ defmodule TcgCheap.Catalogue.Sync do
       error -> error
     end
   end
-
-  defp validate_briefs(_), do: {:error, {:malformed_response, :expected_array}}
 
   defp nonblank(value) when is_binary(value) do
     value = String.trim(value)

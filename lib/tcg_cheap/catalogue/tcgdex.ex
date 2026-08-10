@@ -3,6 +3,7 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   @behaviour TcgCheap.Catalogue.Provider
 
   @base "https://api.tcgdex.net/v2/en"
+  @max_response_bytes 2 * 1024 * 1024
 
   @impl true
   def fetch_card(id, opts \\ []), do: fetch("cards", id, opts)
@@ -55,7 +56,11 @@ defmodule TcgCheap.Catalogue.Tcgdex do
     options =
       [
         decode_body: false,
-        receive_timeout: 10_000,
+        into: &bounded_into/2,
+        connect_options: [timeout: 5_000],
+        receive_timeout: 15_000,
+        request_timeout: 15_000,
+        redirect: false,
         retry: if(budgeted?, do: false, else: :safe_transient),
         max_retries: if(budgeted?, do: 0, else: 2)
       ]
@@ -69,11 +74,17 @@ defmodule TcgCheap.Catalogue.Tcgdex do
 
   defp execute_request(path, options, kind, id) do
     case Req.get(path, options) do
+      {:ok, %{status: 200, body: :too_large}} ->
+        {:error, {:malformed_response, :response_too_large}}
+
       {:ok, %{status: 200, body: body}} ->
-        decode(body, kind, id)
+        with {:ok, body} <- response_body(body), do: decode(body, kind, id)
 
       {:ok, %{status: status}} ->
         {:error, {:http_error, %{status: status, kind: kind, id: id}}}
+
+      {:error, %Req.TransportError{reason: :timeout}} ->
+        {:error, {:provider_timeout, :request}}
 
       {:error, reason} ->
         {:error, {:transport_error, reason}}
@@ -121,7 +132,11 @@ defmodule TcgCheap.Catalogue.Tcgdex do
     end
   end
 
-  defp decode(body, kind, id), do: normalize(body, kind, id)
+  defp response_body({size, chunks}) when is_integer(size) and is_list(chunks),
+    do: {:ok, chunks |> Enum.reverse() |> IO.iodata_to_binary()}
+
+  defp response_body(body) when is_binary(body), do: {:ok, body}
+  defp response_body(_), do: {:error, {:malformed_response, :invalid_body}}
 
   defp normalize(value, "sets", nil) when is_list(value), do: validate_set_briefs(value)
   defp normalize(_, "sets", nil), do: {:error, {:malformed_response, :expected_array}}
@@ -135,6 +150,9 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   end
 
   defp normalize(_, _, _), do: {:error, {:malformed_response, :expected_object}}
+
+  defp validate_set_briefs(briefs) when length(briefs) > 1_000,
+    do: {:error, {:malformed_response, :too_many_set_briefs}}
 
   defp validate_set_briefs(briefs) do
     Enum.reduce_while(briefs, {[], MapSet.new()}, fn brief, {result, ids} ->
@@ -152,6 +170,19 @@ defmodule TcgCheap.Catalogue.Tcgdex do
       error -> error
     end
   end
+
+  defp bounded_into({:data, data}, {request, response}) when is_binary(data) do
+    {size, chunks} = body_chunks(response.body)
+
+    if size + byte_size(data) > @max_response_bytes do
+      {:halt, {request, %{response | body: :too_large}}}
+    else
+      {:cont, {request, %{response | body: {size + byte_size(data), [data | chunks]}}}}
+    end
+  end
+
+  defp body_chunks({size, chunks}) when is_integer(size) and is_list(chunks), do: {size, chunks}
+  defp body_chunks(_), do: {0, []}
 
   defp validate_set_brief(brief, ids) do
     with {:ok, id} <- brief_field(brief, "id"),
