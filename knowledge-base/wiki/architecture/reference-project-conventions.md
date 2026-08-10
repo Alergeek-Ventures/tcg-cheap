@@ -34,7 +34,7 @@ changed.
 | Styling/assets | Firmowid uses Phoenix-managed Tailwind/esbuild and self-contained JS hooks (`firmowid/mix.exs:87-88,208-219`; `firmowid/assets/js/hooks/index.js:1-20`). Onside's product UI is React/Volt SPA (`onside/mix.exs:65-67`; `onside/lib/onside_web/volt_react_dev_entry_plugin.ex:1-54`). Adopt neither SPA architecture nor Volt; TCG Cheap remains standard LiveView with Nix/devenv and its existing Tailwind/esbuild pipeline (`tcg-cheap/mix.exs:66-67,98-114`). |
 | Tests/quality | Firmowid and Onside compile tests from `lib` and expose `mix check` (`firmowid/mix.exs:15-17`; `onside/mix.exs:15-17`). Firmowid has colocated tests and `test_paths: ["lib"]`; that colocated test convention is explicitly not adopted. TCG Cheap keeps standard `test/` structure and canonical `mix check`. |
 | Development | Firmowid uses Compose, Infisical, `mix setup`, and `mix dev.up` (`firmowid/README.md:5-23,121-153`). Onside uses worktree-specific ports, Caddy, Infisical, and `mix dev.up/down` (`onside/README.md:36-70`). Adopt reproducible lifecycle and isolation ideas, but TCG Cheap remains Nix/devenv, direct localhost, and deferred Caddy integration. |
-| Deployment/operations/docs | Firmowid documents S3-compatible storage and production environment variables (`firmowid/README.md:160-207`) and has container files under `firmowid/deployment/`. Onside has app and SeaweedFS container files and health/telemetry boundaries (`onside/deployment/Containerfile.app`; `onside/lib/onside_web/health_controller.ex:39-44`). These are references only; TCG Cheap's deployment, storage, and operations are not yet product-complete. |
+| Deployment/operations/docs | Firmowid documents S3-compatible storage and production environment variables (`firmowid/README.md:160-207`) and has container files under `firmowid/deployment/`. Onside has app and SeaweedFS container files and health/telemetry boundaries (`onside/deployment/Containerfile.app`; `onside/lib/onside_web/health_controller.ex:39-44`). TCG Cheap now adapts the verified pinned Debian release pattern, non-root runtime, release migration module, and JSON health boundary while separating liveness from readiness and adding its own deployment/operations runbook. A real production deployment, restore drill, and monitoring integration remain incomplete. |
 
 ## Decisions for TCG Cheap
 
@@ -90,8 +90,10 @@ range. Authentication, actor propagation, stale-safe sealed draft/manual pending
 5. Keep AshBackpex for ordinary main CRUD after the completed compatibility slice;
    retain focused authenticated LiveViews for evidence review and operational controls
    that cannot be expressed safely or clearly as generic CRUD.
-6. Preserve LiveView UX and current local/devenv operations while deployment and
-   storage decisions mature.
+6. Preserve LiveView UX and current local/devenv operations. The initial pinned
+   release image, release commands, liveness/readiness boundary, and deployment/
+   operations runbook are selected; production topology, restore evidence, and
+   monitoring integration still need real deployment validation.
 
 ## Unresolved items
 
@@ -101,13 +103,17 @@ range. Authentication, actor propagation, stale-safe sealed draft/manual pending
   seller-identity/destination capability validation remains unresolved, so Phase 0
   and provider locking are incomplete. Older access-first wording above is
   historical/stale.
-- Remaining AshBackpex resource rollout, storage provider, and production deployment
-  topology need decisions. Administrator password authentication, the sealed-product/alias/retailer/listing/
+- Remaining AshBackpex resource rollout, storage provider, and final production deployment
+  topology need decisions. A pinned non-root OTP image, forward migration and one-shot administrator
+  release commands, separate liveness/readiness endpoints, and deployment/operations runbook now exist and
+  have been locally container-verified, but no production deploy or restore drill is claimed. Administrator
+  password authentication, the sealed-product/alias/retailer/listing/
   mapping/history and card-set/card/valuation inspection slices, and existing background dependency versions
   are selected and validated. Typed canonical refresh/requeue for NBP, exact local Singles valuations, configured
   active sealed retailers, and reasoned card external-mapping correction with immutable history are also validated.
-  Sealed-source import issues and arbitrary retained-job replay remain open admin work; exact read-only current
-  buying-model inspection now lives in the focused authenticated operations desk.
+  Normalized TCGdex/sealed-source import issues and exact read-only buying-model policy are inspectable in the
+  authenticated admin surfaces. Active source probes/alerts, arbitrary retained-job replay, production topology,
+  and the remaining broader workflows stay open.
 - Do not introduce multitenancy absent a demonstrated requirement. Decide the
   worker authorization/scope shape alongside the product resources.
 

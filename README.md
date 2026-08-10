@@ -62,7 +62,8 @@ incrementally; run the final named codegen command before handing off changes.
 iterating on static checks and `mix check --verbose` when command output is
 needed.
 
-## Current status
+## Deployment and operations
 
-The repository is currently a bootstrap only: product features have not been
-implemented yet.
+Production image build, release migrations, administrator provisioning,
+backups, rollback, and incident guidance are documented in
+[Deployment and operations](docs/deployment-and-operations.md).

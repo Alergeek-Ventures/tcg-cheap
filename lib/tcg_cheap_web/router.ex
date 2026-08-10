@@ -29,6 +29,13 @@ defmodule TcgCheapWeb.Router do
   end
 
   scope "/", TcgCheapWeb do
+    pipe_through :api
+
+    get "/health", HealthController, :index, log: false
+    get "/health/live", HealthController, :live, log: false
+  end
+
+  scope "/", TcgCheapWeb do
     pipe_through :browser
 
     live "/", HomeLive
