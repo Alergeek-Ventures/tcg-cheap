@@ -63,6 +63,10 @@ defmodule TcgCheapWeb.Router do
 
       live_resources "/catalogue/mapping-history", ListingProductMappingDecisionLive,
         only: [:index, :show]
+
+      live_resources "/catalogue/card-sets", CardSetLive, only: [:index, :show]
+      live_resources "/catalogue/cards", CardPrintingLive, only: [:index, :show]
+      live_resources "/catalogue/valuations", SingleValuationSnapshotLive, only: [:index, :show]
     end
   end
 

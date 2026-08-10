@@ -10,6 +10,7 @@ defmodule TcgCheap.Core do
     resource TcgCheap.Catalogue.CardSet do
       define :import_card_set, action: :import
       define :get_card_set_by_tcgdex_id, action: :by_tcgdex_id, args: [:tcgdex_id]
+      define :list_admin_card_sets, action: :admin_catalogue
     end
 
     resource TcgCheap.Catalogue.CardPrinting do
@@ -29,6 +30,8 @@ defmodule TcgCheap.Core do
         action: :lock_for_update_by_tcgdex_id,
         args: [:tcgdex_id],
         not_found_error?: false
+
+      define :list_admin_card_printings, action: :admin_catalogue
     end
 
     resource TcgCheap.Pricing.Singles.SingleValuationSnapshot do
@@ -52,6 +55,8 @@ defmodule TcgCheap.Core do
       define :list_homepage_price_changes,
         action: :homepage_price_changes,
         args: [:as_of, {:optional, :limit}]
+
+      define :list_admin_single_valuation_snapshots, action: :admin_catalogue
     end
 
     resource TcgCheap.Pricing.ExchangeRate do

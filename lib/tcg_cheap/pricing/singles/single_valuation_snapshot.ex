@@ -9,7 +9,8 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
 
   use Ash.Resource,
     domain: TcgCheap.Core,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "single_valuation_snapshots"
@@ -102,6 +103,40 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
       argument :as_of, :utc_datetime_usec, allow_nil?: false
       argument :limit, :integer, allow_nil?: false, default: 4, constraints: [min: 1, max: 6]
       run TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges
+    end
+
+    read :admin_catalogue do
+      prepare build(
+                load: [:card_printing],
+                sort: [fetched_at: :desc, id: :desc]
+              )
+    end
+  end
+
+  policies do
+    bypass action([
+             :record,
+             :archive,
+             :current_for_card,
+             :current_for_card_and_policy,
+             :history_for_card_and_policy,
+             :history_since_for_card_and_policy,
+             :homepage_price_changes
+           ]) do
+      authorize_if always()
+    end
+
+    bypass accessing_from(
+             TcgCheap.Catalogue.CardPrinting,
+             :tcgdex_cardmarket_v1_current_valuation
+           ) do
+      authorize_if always()
+    end
+
+    policy action([:read, :admin_catalogue]) do
+      access_type :strict
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
     end
   end
 

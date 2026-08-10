@@ -1,6 +1,9 @@
 defmodule TcgCheap.Catalogue.CardSet do
   @moduledoc "An imported TCGdex set and its source metadata."
-  use Ash.Resource, domain: TcgCheap.Core, data_layer: AshPostgres.DataLayer
+  use Ash.Resource,
+    domain: TcgCheap.Core,
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "card_sets"
@@ -43,6 +46,26 @@ defmodule TcgCheap.Catalogue.CardSet do
       get? true
       filter expr(tcgdex_id == ^arg(:tcgdex_id))
     end
+
+    read :admin_catalogue do
+      prepare build(sort: [series_name: :asc, release_date: :asc, tcgdex_id: :asc, id: :asc])
+    end
+  end
+
+  policies do
+    bypass action([:import, :by_tcgdex_id]) do
+      authorize_if always()
+    end
+
+    bypass accessing_from(TcgCheap.Catalogue.CardPrinting, :card_set) do
+      authorize_if always()
+    end
+
+    policy action([:read, :admin_catalogue]) do
+      access_type :strict
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
+    end
   end
 
   validations do
@@ -64,7 +87,7 @@ defmodule TcgCheap.Catalogue.CardSet do
     attribute :total_count, :integer, public?: true
     attribute :standard_legal, :boolean, public?: true
     attribute :expanded_legal, :boolean, public?: true
-    attribute :source_payload, :map, public?: false
+    attribute :source_payload, :map, public?: false, select_by_default?: false
     attribute :last_synced_at, :utc_datetime_usec, public?: true
     create_timestamp :created_at
     update_timestamp :updated_at

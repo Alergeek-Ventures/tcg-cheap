@@ -276,7 +276,11 @@ defmodule TcgCheap.Catalogue.SyncTest do
     assert result.cards_seeded == 0
 
     for card <- cards do
-      assert {:ok, stored} = Core.get_card_printing_by_tcgdex_id(card["id"])
+      query =
+        TcgCheap.Catalogue.CardPrinting
+        |> Ash.Query.select([:tcgdex_id, :name, :source_payload])
+
+      assert {:ok, stored} = Core.get_card_printing_by_tcgdex_id(card["id"], query: query)
       assert stored.name == "Full"
       assert stored.source_payload == %{"full" => true}
     end

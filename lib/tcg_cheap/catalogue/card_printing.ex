@@ -8,7 +8,8 @@ defmodule TcgCheap.Catalogue.CardPrinting do
 
   use Ash.Resource,
     domain: TcgCheap.Core,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   postgres do
     table "card_printings"
@@ -168,6 +169,41 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       filter expr(tcgdex_id == ^arg(:tcgdex_id))
       prepare build(lock: :for_update)
     end
+
+    read :admin_catalogue do
+      prepare build(
+                load: [:card_set],
+                sort: [set_name: :asc, collector_number: :asc, tcgdex_id: :asc, id: :asc]
+              )
+    end
+  end
+
+  policies do
+    bypass action([
+             :create,
+             :import,
+             :seed_brief,
+             :by_tcgdex_id,
+             :by_tcgdex_ids,
+             :search,
+             :lock_for_update_by_id,
+             :lock_for_update_by_tcgdex_id
+           ]) do
+      authorize_if always()
+    end
+
+    bypass accessing_from(
+             TcgCheap.Pricing.Singles.SingleValuationSnapshot,
+             :card_printing
+           ) do
+      authorize_if always()
+    end
+
+    policy action([:read, :admin_catalogue]) do
+      access_type :strict
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
+    end
   end
 
   validations do
@@ -199,10 +235,29 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       public? true
     end
 
-    attribute :search_name, :string, allow_nil?: false, default: "", public?: false
-    attribute :search_set_name, :string, allow_nil?: false, default: "", public?: false
-    attribute :search_collector_number, :string, allow_nil?: false, default: "", public?: false
-    attribute :search_tcgdex_id, :string, allow_nil?: false, default: "", public?: false
+    attribute :search_name, :string,
+      allow_nil?: false,
+      default: "",
+      public?: false,
+      select_by_default?: false
+
+    attribute :search_set_name, :string,
+      allow_nil?: false,
+      default: "",
+      public?: false,
+      select_by_default?: false
+
+    attribute :search_collector_number, :string,
+      allow_nil?: false,
+      default: "",
+      public?: false,
+      select_by_default?: false
+
+    attribute :search_tcgdex_id, :string,
+      allow_nil?: false,
+      default: "",
+      public?: false,
+      select_by_default?: false
 
     attribute :image_url, :string, public?: true
     attribute :rarity, :string, public?: true
@@ -211,10 +266,10 @@ defmodule TcgCheap.Catalogue.CardPrinting do
     attribute :regulation_mark, :string, public?: true
     attribute :standard_legal, :boolean, public?: true
     attribute :expanded_legal, :boolean, public?: true
-    attribute :variant_data, :map, public?: false
+    attribute :variant_data, :map, public?: false, select_by_default?: false
     attribute :source_updated_at, :utc_datetime_usec, public?: true
     attribute :mapping_updated_at, :utc_datetime_usec, public?: true
-    attribute :source_payload, :map, public?: false
+    attribute :source_payload, :map, public?: false, select_by_default?: false
     attribute :last_synced_at, :utc_datetime_usec, public?: true
     attribute :cardmarket_product_id, :integer, public?: true
 
