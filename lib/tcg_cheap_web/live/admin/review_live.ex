@@ -385,6 +385,7 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
                       label="Rejection reason"
                       placeholder="Why this listing must not map"
                       required
+                      maxlength="2000"
                     />
                     <button id={"reject-mapping-#{mapping.id}"} type="submit" class="secondary-action">
                       Reject mapping

@@ -1,0 +1,358 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "event",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "from_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "to_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "confidence",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "reason",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "evidence_method",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "evidence_gtin",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "actor_type",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "actor_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "actor_email",
+      "type": "citext"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "mapping_updated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "listing_product_mapping_decisions_mapping_id_fkey",
+        "on_delete": "restrict",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "listing_product_mappings"
+      },
+      "scale": null,
+      "size": null,
+      "source": "mapping_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "listing_product_mapping_decisions_candidate_product_id_fkey",
+        "on_delete": "restrict",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "sealed_products"
+      },
+      "scale": null,
+      "size": null,
+      "source": "candidate_product_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "listing_product_mapping_decisions_confirmed_product_id_fkey",
+        "on_delete": "restrict",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "sealed_products"
+      },
+      "scale": null,
+      "size": null,
+      "source": "confirmed_product_id",
+      "type": "uuid"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [
+    {
+      "attribute": [
+        "event",
+        "from_status",
+        "to_status"
+      ],
+      "base_filter": null,
+      "check": "(event = 'created' AND from_status IS NULL AND to_status IN ('pending', 'review', 'matched')) OR (event = 'baseline' AND from_status IS NULL AND to_status IN ('pending', 'review', 'matched', 'rejected')) OR (event = 'approved' AND from_status IN ('pending', 'review') AND to_status = 'matched') OR (event = 'rejected' AND from_status IN ('pending', 'review') AND to_status = 'rejected') OR (event = 'reopened' AND from_status IN ('matched', 'rejected') AND to_status = 'review')",
+      "name": "listing_product_mapping_decisions_transition_invariant"
+    },
+    {
+      "attribute": [
+        "to_status",
+        "candidate_product_id",
+        "confirmed_product_id",
+        "confidence",
+        "reason",
+        "evidence_method",
+        "evidence_gtin"
+      ],
+      "base_filter": null,
+      "check": "(to_status = 'pending' AND candidate_product_id IS NULL AND confirmed_product_id IS NULL AND confidence IS NULL AND reason IS NULL AND evidence_method IS NULL AND evidence_gtin IS NULL) OR (to_status = 'review' AND confirmed_product_id IS NULL AND reason IS NOT NULL AND btrim(reason) <> '' AND (confidence IS NULL OR (confidence > 0 AND confidence <= 1 AND confidence <> 'NaN'::numeric AND confidence <> 'Infinity'::numeric AND confidence <> '-Infinity'::numeric))) OR (to_status = 'matched' AND confirmed_product_id IS NOT NULL AND candidate_product_id IS NULL AND confidence > 0 AND confidence <= 1 AND confidence <> 'NaN'::numeric AND confidence <> 'Infinity'::numeric AND confidence <> '-Infinity'::numeric AND reason IS NULL AND evidence_method IS NOT NULL AND btrim(evidence_method) <> '') OR (to_status = 'rejected' AND candidate_product_id IS NULL AND confirmed_product_id IS NULL AND confidence IS NULL AND reason IS NOT NULL AND btrim(reason) <> '' AND evidence_method IS NULL AND evidence_gtin IS NULL)",
+      "name": "listing_product_mapping_decisions_snapshot_invariant"
+    },
+    {
+      "attribute": [
+        "confidence"
+      ],
+      "base_filter": null,
+      "check": "confidence IS NULL OR (confidence > 0 AND confidence <= 1 AND confidence <> 'NaN'::numeric AND confidence <> 'Infinity'::numeric AND confidence <> '-Infinity'::numeric)",
+      "name": "listing_product_mapping_decisions_confidence_finite_invariant"
+    },
+    {
+      "attribute": [
+        "actor_type",
+        "actor_id",
+        "actor_email"
+      ],
+      "base_filter": null,
+      "check": "(actor_type = 'system' AND actor_id IS NULL AND actor_email IS NULL) OR (actor_type = 'administrator' AND actor_id IS NOT NULL AND actor_email IS NOT NULL AND btrim(actor_email) <> '')",
+      "name": "listing_product_mapping_decisions_actor_invariant"
+    },
+    {
+      "attribute": [
+        "evidence_method",
+        "evidence_gtin"
+      ],
+      "base_filter": null,
+      "check": "(evidence_method IS NULL AND evidence_gtin IS NULL) OR (evidence_method IS NOT NULL AND btrim(evidence_method) <> '')",
+      "name": "listing_product_mapping_decisions_evidence_invariant"
+    }
+  ],
+  "create_table_options": null,
+  "custom_indexes": [
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "mapping_id",
+        "inserted_at",
+        "id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "mapping_id"
+        },
+        {
+          "type": "atom",
+          "value": "inserted_at"
+        },
+        {
+          "type": "atom",
+          "value": "id"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "C591E432FB10BAF68E92AA0E2320289AA87C470A62429E65C30E3DE4AD8D1851",
+  "identities": [],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.TcgCheap.Repo",
+  "schema": null,
+  "table": "listing_product_mapping_decisions"
+}

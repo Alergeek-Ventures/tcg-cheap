@@ -217,7 +217,9 @@ defmodule TcgCheap.Core do
       define :import_listing_mapping, action: :import
       define :approve_listing_mapping, action: :approve
       define :reject_listing_mapping, action: :reject
+      define :reopen_listing_mapping, action: :reopen
       define :list_listing_mapping_review_queue, action: :review_queue
+      define :list_admin_listing_mappings, action: :admin_catalogue
 
       define :get_listing_mapping_for_review,
         action: :review_by_id,
@@ -242,6 +244,16 @@ defmodule TcgCheap.Core do
         action: :lock_for_update_by_id,
         args: [:id],
         not_found_error?: false
+    end
+
+    resource TcgCheap.Catalogue.ListingProductMappingDecision do
+      define :record_listing_mapping_decision, action: :record
+
+      define :list_listing_mapping_decision_history,
+        action: :history_for_mapping,
+        args: [:mapping_id]
+
+      define :list_admin_listing_mapping_decisions, action: :admin_catalogue
     end
   end
 end

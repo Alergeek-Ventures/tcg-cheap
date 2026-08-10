@@ -51,12 +51,15 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
 
     create :create_pending do
       accept [:retailer_listing_id]
+      change {TcgCheap.Catalogue.Changes.RecordListingMappingDecision, event: "created"}
       validate {TcgCheap.Catalogue.Validations.ListingProductMapping, state: :pending}
     end
 
     create :create_review do
       accept [:retailer_listing_id, :candidate_product_id, :confidence, :evidence, :reason]
       change set_attribute(:status, "review")
+
+      change {TcgCheap.Catalogue.Changes.RecordListingMappingDecision, event: "created"}
       validate {TcgCheap.Catalogue.Validations.ListingProductMapping, state: :review}
     end
 
@@ -65,6 +68,7 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
       change set_attribute(:status, "matched")
       change atomic_set(:approved_at, expr(now()))
       change TcgCheap.Catalogue.Changes.ValidateConfirmedProduct
+      change {TcgCheap.Catalogue.Changes.RecordListingMappingDecision, event: "created"}
       validate {TcgCheap.Catalogue.Validations.ListingProductMapping, state: :matched}
     end
 
@@ -79,6 +83,10 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
       ]
 
       change set_attribute(:status, "review")
+
+      change {TcgCheap.Catalogue.Changes.RecordListingMappingDecision,
+              event: "created", only_if_missing?: true}
+
       validate {TcgCheap.Catalogue.Validations.ListingProductMapping, state: :review}
       upsert? true
       upsert_identity :unique_listing
@@ -101,6 +109,7 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
       change atomic_update(:approved_at, expr(now()))
       change TcgCheap.Catalogue.Changes.LockAndValidateListingMapping
       change TcgCheap.Catalogue.Changes.ValidateConfirmedProduct
+      change {TcgCheap.Catalogue.Changes.RecordListingMappingDecision, event: "approved"}
       validate {TcgCheap.Catalogue.Validations.ListingProductMapping, state: :matched}
     end
 
@@ -117,7 +126,29 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
       change set_attribute(:approved_at, nil)
       change atomic_update(:rejected_at, expr(now()))
       change TcgCheap.Catalogue.Changes.LockAndValidateListingMapping
+      change {TcgCheap.Catalogue.Changes.RecordListingMappingDecision, event: "rejected"}
       validate {TcgCheap.Catalogue.Validations.ListingProductMapping, state: :rejected}
+    end
+
+    update :reopen do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
+
+      argument :reason, :string,
+        allow_nil?: false,
+        constraints: [min_length: 1, max_length: 2_000]
+
+      require_atomic? false
+      change set_attribute(:status, "review")
+      change set_attribute(:reason, arg(:reason))
+      change set_attribute(:approved_at, nil)
+      change set_attribute(:rejected_at, nil)
+      change set_attribute(:confirmed_product_id, nil)
+
+      change {TcgCheap.Catalogue.Changes.LockAndValidateListingMapping,
+              allowed_statuses: ["matched", "rejected"], copy_confirmed_to_candidate?: true}
+
+      change {TcgCheap.Catalogue.Changes.RecordListingMappingDecision, event: "reopened"}
+      validate {TcgCheap.Catalogue.Validations.ListingProductMapping, state: :review}
     end
 
     read :review_queue do
@@ -176,14 +207,44 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
       filter expr(id == ^arg(:id))
       prepare build(lock: :for_update)
     end
+
+    read :admin_catalogue do
+      prepare build(
+                sort: [updated_at: :desc, id: :asc],
+                load: [:retailer_listing, :candidate_product, :confirmed_product]
+              )
+    end
   end
 
   policies do
-    policy action([:approve, :reject, :review_queue, :review_by_id]) do
-      authorize_if TcgCheap.Accounts.Checks.Admin
+    bypass action([
+             :create_pending,
+             :create_review,
+             :create_matched,
+             :import,
+             :matched_by_listing,
+             :by_listing,
+             :public_for_product,
+             :lock_for_update_by_id
+           ]) do
+      authorize_if always()
     end
 
-    policy always() do
+    policy action([:approve, :reject, :review_queue, :review_by_id, :admin_catalogue]) do
+      access_type :strict
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
+    end
+
+    policy action(:reopen) do
+      access_type :strict
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if TcgCheap.Catalogue.Checks.TerminalListingMapping
+    end
+
+    policy action(:read) do
+      access_type :strict
+      forbid_unless TcgCheap.Accounts.Checks.Admin
       authorize_if always()
     end
   end
@@ -193,7 +254,7 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
     attribute :status, :string, allow_nil?: false, default: "pending", public?: true
     attribute :confidence, :decimal, public?: true
     attribute :evidence, :map, public?: true
-    attribute :reason, :string, public?: true
+    attribute :reason, :string, public?: true, constraints: [max_length: 2_000]
     attribute :approved_at, :utc_datetime_usec, public?: true
     attribute :rejected_at, :utc_datetime_usec, public?: true
     create_timestamp :inserted_at
