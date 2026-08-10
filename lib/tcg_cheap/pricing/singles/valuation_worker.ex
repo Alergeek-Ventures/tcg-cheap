@@ -133,7 +133,8 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
   defp classify_fetch({:error, :provider_callback_failed}),
     do: {:retry, :provider_callback_failed}
 
-  defp provider_config do
+  @doc false
+  def provider_config do
     config = Application.get_env(:tcg_cheap, :valuation_provider, [])
 
     with true <- is_list(config) and Keyword.keyword?(config),

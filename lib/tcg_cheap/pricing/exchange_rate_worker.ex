@@ -90,7 +90,8 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
   defp classify_fetch({:ok, _other}), do: {:cancel, :malformed_provider_result}
   defp classify_fetch({:error, reason}), do: classify(reason)
 
-  defp provider_config do
+  @doc false
+  def provider_config do
     config = Application.get_env(:tcg_cheap, :exchange_rate_provider, [])
 
     with true <- is_list(config) and Keyword.keyword?(config) and unique_keys?(config),

@@ -3,7 +3,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
 
   use TcgCheapWeb, :live_view
 
-  alias TcgCheap.Operations.Overview
+  alias TcgCheap.Operations.{ManualRefresh, Overview}
 
   @operation_events ~w(disable_provider enable_provider)
 
@@ -17,6 +17,13 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:provider_count, 0)
      |> assign(:run_count, 0)
      |> assign(:job_count, 0)
+     |> assign(:manual_ready?, false)
+     |> assign(:manual_exchange_rate, nil)
+     |> assign(:manual_valuation, nil)
+     |> assign(:manual_available_count, 0)
+     |> assign(:manual_form, to_form(%{"tcgdex_id" => ""}, as: :manual_refresh))
+     |> stream(:manual_retailers, [], reset: true)
+     |> load_manual()
      |> load_overview()}
   end
 
@@ -60,6 +67,9 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                   <a href="#operations-providers">Providers <strong>{@provider_count}</strong></a>
                   <a href="#operations-acquisition-runs">Runs <strong>{@run_count}</strong></a>
                   <a href="#operations-retained-jobs">Jobs <strong>{@job_count}</strong></a>
+                  <a href="#operations-manual-refresh">
+                    Manual <strong>{@manual_available_count}</strong>
+                  </a>
                 </nav>
               <% end %>
             </section>
@@ -277,6 +287,113 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                 </p>
               </section>
             <% end %>
+
+            <section
+              id="operations-manual-refresh"
+              class="admin-queue"
+              aria-labelledby="operations-manual-refresh-title"
+            >
+              <div class="admin-section-rule">
+                <h2 id="operations-manual-refresh-title">Manual refresh</h2><span>Canonical jobs only</span>
+              </div>
+              <%= if @manual_ready? do %>
+                <p class="admin-disclosure">
+                  Active duplicates reuse the canonical queued job. Provider budget is checked before HTTP; this action never marks work complete.
+                </p>
+                <div id="manual-refresh-fixed" class="admin-dockets operations-provider-dockets">
+                  <article id="manual-refresh-exchange-rate-panel" class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <div>
+                        <h3>EUR / PLN rate</h3>
+                        <p>One fixed NBP Table A request.</p>
+                      </div>
+                      <span id="manual-refresh-exchange-rate-status">
+                        {manual_status(@manual_exchange_rate)}
+                      </span>
+                    </div>
+                    <div class="admin-decision-row">
+                      <button
+                        id="manual-refresh-exchange-rate"
+                        type="button"
+                        phx-click="manual_exchange_rate"
+                        phx-disable-with="Queueing…"
+                        disabled={@manual_exchange_rate.status != :available}
+                      >Queue EUR / PLN refresh</button>
+                    </div>
+                  </article>
+
+                  <article id="manual-refresh-valuation-panel" class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <div>
+                        <h3>Single valuation</h3>
+                        <p>One exact locally imported TCGdex printing.</p>
+                      </div>
+                      <span id="manual-refresh-valuation-status">
+                        {manual_status(@manual_valuation)}
+                      </span>
+                    </div>
+                    <.form
+                      for={@manual_form}
+                      id="manual-refresh-valuation-form"
+                      phx-submit="manual_single_valuation"
+                    >
+                      <.input
+                        field={@manual_form[:tcgdex_id]}
+                        type="text"
+                        label="Exact TCGdex ID"
+                        maxlength="240"
+                        autocomplete="off"
+                      />
+                      <div class="admin-decision-row">
+                        <button
+                          id="manual-refresh-valuation"
+                          type="submit"
+                          phx-disable-with="Queueing…"
+                          disabled={@manual_valuation.status != :available}
+                        >Queue valuation refresh</button>
+                      </div>
+                    </.form>
+                  </article>
+                </div>
+
+                <div
+                  id="manual-refresh-retailer-stream"
+                  class="admin-dockets compact-dockets"
+                  phx-update="stream"
+                >
+                  <p id="manual-refresh-retailer-empty" class="admin-empty hidden only:block">
+                    No active configured sealed retailers.
+                  </p>
+                  <article
+                    :for={{dom_id, retailer} <- @streams.manual_retailers}
+                    id={dom_id}
+                    class="admin-docket"
+                  >
+                    <div class="admin-docket-heading">
+                      <div>
+                        <h3>{retailer.label}</h3>
+                        <p>{retailer.source_key}</p>
+                      </div>
+                      <span>{manual_status(retailer)}</span>
+                    </div>
+                    <div class="admin-decision-row">
+                      <button
+                        id={"manual-refresh-retailer-#{retailer_dom_id(retailer.retailer_id)}"}
+                        type="button"
+                        phx-click="manual_sealed_retailer"
+                        phx-value-retailer-id={retailer.retailer_id}
+                        phx-disable-with="Queueing…"
+                        disabled={retailer.status != :available}
+                      >Queue sealed retailer refresh</button>
+                    </div>
+                  </article>
+                </div>
+              <% else %>
+                <p id="operations-manual-unavailable">
+                  Manual refresh is unavailable. No acquisition target was assumed safe.
+                </p>
+              <% end %>
+            </section>
           </div>
         </main>
       </div>
@@ -285,6 +402,45 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   end
 
   @impl true
+  def handle_event("manual_exchange_rate", _params, socket),
+    do: manual_enqueue(:exchange_rate, "EUR / PLN refresh", socket)
+
+  def handle_event("manual_single_valuation", %{"manual_refresh" => %{"tcgdex_id" => id}}, socket) do
+    case ManualRefresh.enqueue(socket.assigns.current_admin, {:single_valuation, id}) do
+      {:ok, result} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, manual_flash(result, "valuation"))
+         |> assign(:manual_form, to_form(%{"tcgdex_id" => id}, as: :manual_refresh))}
+
+      {:error, _} ->
+        {:noreply,
+         socket
+         |> put_flash(
+           :error,
+           "Valuation was not queued. Check the exact TCGdex ID and try again."
+         )
+         |> assign(:manual_form, to_form(%{"tcgdex_id" => id}, as: :manual_refresh))}
+    end
+  end
+
+  def handle_event("manual_single_valuation", _params, socket),
+    do:
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         "Valuation was not queued. Check the exact TCGdex ID and try again."
+       )}
+
+  def handle_event("manual_sealed_retailer", %{"retailer-id" => id}, socket),
+    do: manual_enqueue({:sealed_retailer, id}, "Sealed retailer refresh", socket)
+
+  def handle_event("manual_sealed_retailer", _params, socket),
+    do:
+      {:noreply,
+       put_flash(socket, :error, "Sealed refresh was not queued. Reload and try again.")}
+
   def handle_event(event, params, socket) when event in @operation_events do
     with {:ok, provider_key} <- fetch_binary(params, "provider-key"),
          {:ok, expected} <- fetch_version(params),
@@ -296,13 +452,65 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
              status,
              expected
            ) do
-      {:noreply, socket |> put_flash(:info, "Provider status updated.") |> load_overview()}
+      {:noreply,
+       socket
+       |> put_flash(:info, "Provider status updated.")
+       |> load_manual()
+       |> load_overview()}
     else
       _ ->
         {:noreply,
          socket
          |> put_flash(:error, "Provider status was not updated. Reload and try again.")
+         |> load_manual()
          |> load_overview()}
+    end
+  end
+
+  defp manual_enqueue(target, noun, socket) do
+    case ManualRefresh.enqueue(socket.assigns.current_admin, target) do
+      {:ok, result} ->
+        {:noreply, put_flash(socket, :info, manual_flash(result, noun))}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Acquisition was not queued. Reload and try again.")}
+    end
+  end
+
+  defp manual_flash(%{status: :queued}, noun), do: "#{String.capitalize(noun)} queued."
+
+  defp manual_flash(%{status: :already_queued}, noun),
+    do: "#{String.capitalize(noun)} already queued; reused the canonical job."
+
+  defp load_manual(socket) do
+    case ManualRefresh.targets(socket.assigns.current_admin) do
+      {:ok, targets} ->
+        exchange = Enum.find(targets, &(&1.kind == :exchange_rate)) || %{status: :unconfigured}
+
+        valuation =
+          Enum.find(targets, &(&1.kind == :single_valuation)) || %{status: :unconfigured}
+
+        retailers =
+          targets
+          |> Enum.filter(&(&1.kind == :sealed_retailer))
+          |> Enum.map(fn retailer ->
+            Map.put(retailer, :id, "manual-retailer-#{retailer_dom_id(retailer.retailer_id)}")
+          end)
+
+        socket
+        |> assign(:manual_ready?, true)
+        |> assign(:manual_exchange_rate, exchange)
+        |> assign(:manual_valuation, valuation)
+        |> assign(:manual_available_count, Enum.count(targets, &(&1.status == :available)))
+        |> stream(:manual_retailers, retailers, reset: true)
+
+      _ ->
+        socket
+        |> assign(:manual_ready?, false)
+        |> assign(:manual_exchange_rate, nil)
+        |> assign(:manual_valuation, nil)
+        |> assign(:manual_available_count, 0)
+        |> stream(:manual_retailers, [], reset: true)
     end
   end
 
@@ -352,6 +560,11 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
       _ -> {:error, :invalid_event}
     end
   end
+
+  defp manual_status(%{status: :available}), do: "AVAILABLE"
+  defp manual_status(%{status: :disabled}), do: "DISABLED"
+  defp manual_status(_), do: "UNCONFIGURED"
+  defp retailer_dom_id(id), do: Base.url_encode64(id, padding: false)
 
   defp provider_dom_id(key), do: Base.url_encode64(to_string(key), padding: false)
   defp provider_status(%{status: "disabled"}), do: "DISABLED"

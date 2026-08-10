@@ -1,7 +1,7 @@
 defmodule TcgCheap.Operations.Overview do
   @moduledoc "The authenticated, bounded query and control boundary for operations UI."
 
-  alias TcgCheap.Accounts.Admin
+  alias TcgCheap.Accounts.{Admin, AdminActor}
   alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionHealthPolicy, DataProvider}
 
   @default_job_limit 25
@@ -147,24 +147,7 @@ defmodule TcgCheap.Operations.Overview do
     end
   end
 
-  defp validate_actor(%Admin{id: id}) when is_binary(id) do
-    case dump_uuid(id) do
-      {:ok, uuid} -> validate_persisted_actor(uuid)
-      :error -> {:error, :invalid_actor}
-    end
-  end
-
-  defp validate_actor(_), do: {:error, :invalid_actor}
-
-  defp validate_persisted_actor(uuid) do
-    case TcgCheap.Repo.query("SELECT 1 FROM admins WHERE id = $1", [uuid]) do
-      {:ok, %{rows: [[1]]}} -> :ok
-      _ -> {:error, :invalid_actor}
-    end
-  end
-
-  defp dump_uuid(<<_::binary-size(16)>> = id), do: {:ok, id}
-  defp dump_uuid(id), do: Ecto.UUID.dump(id)
+  defp validate_actor(%Admin{} = actor), do: AdminActor.validate(actor)
 
   defp parse_options(opts) when is_list(opts) do
     if Keyword.keyword?(opts) and

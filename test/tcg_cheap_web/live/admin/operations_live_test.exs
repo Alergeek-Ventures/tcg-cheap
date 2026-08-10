@@ -1,16 +1,27 @@
+defmodule TcgCheapWeb.Admin.OperationsManualRefreshTestAdapter do
+  def source_key, do: "web-manual-refresh"
+  def fetch_listings(_retailer, _options), do: {:ok, []}
+end
+
 defmodule TcgCheapWeb.Admin.OperationsLiveTest do
   use TcgCheapWeb.ConnCase, async: false
 
+  import Oban.Testing
   import Phoenix.LiveViewTest
 
   alias AshAuthentication.Phoenix.Plug, as: AuthenticationPlug
   alias TcgCheap.Accounts
+  alias TcgCheap.Catalogue.SealedRetailerWorker
+  alias TcgCheap.Core
   alias TcgCheap.Operations
   alias TcgCheap.Operations.AcquisitionTracker
+  alias TcgCheap.Pricing.ExchangeRateWorker
+  alias TcgCheap.Pricing.Singles.ValuationWorker
 
   setup do
     previous = Application.get_env(:tcg_cheap, :acquisition_budget)
     previous_health = Application.get_env(:tcg_cheap, :acquisition_health)
+    previous_adapters = Application.get_env(:tcg_cheap, :sealed_retailer_adapters)
     key = "web-ops-#{System.unique_integer([:positive])}"
 
     Application.put_env(:tcg_cheap, :acquisition_budget, budget_config(key))
@@ -29,6 +40,10 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
       if is_nil(previous_health),
         do: Application.delete_env(:tcg_cheap, :acquisition_health),
         else: Application.put_env(:tcg_cheap, :acquisition_health, previous_health)
+
+      if is_nil(previous_adapters),
+        do: Application.delete_env(:tcg_cheap, :sealed_retailer_adapters),
+        else: Application.put_env(:tcg_cheap, :sealed_retailer_adapters, previous_adapters)
     end)
 
     {:ok, key: key}
@@ -53,6 +68,102 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#operations-provider-stream[phx-update=stream]")
     assert has_element?(view, "#operations-run-stream[phx-update=stream]")
     assert has_element?(view, "#operations-job-stream[phx-update=stream]")
+    assert has_element?(view, "#operations-manual-refresh")
+    assert has_element?(view, "#manual-refresh-valuation-form")
+    assert has_element?(view, "#manual-refresh-exchange-rate[phx-disable-with]")
+    assert has_element?(view, "#manual-refresh-retailer-stream[phx-update=stream]")
+    assert has_element?(view, "#manual-refresh-exchange-rate[disabled]")
+    assert has_element?(view, "#manual-refresh-valuation[disabled]")
+  end
+
+  test "manual controls enqueue only the three canonical target shapes", %{conn: conn, key: key} do
+    {card, retailer} = configure_manual_targets(key)
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+    html = render(view)
+
+    refute html =~ "retailer-source-secret"
+    refute html =~ "OperationsManualRefreshTestAdapter"
+    refute html =~ "adapter_options"
+
+    view |> element("#manual-refresh-exchange-rate") |> render_click()
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: ExchangeRateWorker,
+      args: %{
+        "source" => "nbp",
+        "table" => "A",
+        "base_currency" => "EUR",
+        "quote_currency" => "PLN"
+      }
+    )
+
+    view
+    |> form("#manual-refresh-valuation-form", manual_refresh: %{tcgdex_id: card.tcgdex_id})
+    |> render_submit()
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: ValuationWorker,
+      args: %{
+        "local_card_id" => card.id,
+        "tcgdex_id" => card.tcgdex_id,
+        "policy_version" => "tcgdex_cardmarket_v1",
+        "currency" => "EUR"
+      }
+    )
+
+    view
+    |> element("#manual-refresh-retailer-#{provider_id(retailer.id)}")
+    |> render_click()
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: SealedRetailerWorker,
+      args: %{"retailer_id" => retailer.id, "source_key" => "web-manual-refresh"}
+    )
+
+    view |> element("#manual-refresh-exchange-rate") |> render_click()
+    assert has_element?(view, "#flash-info", "already queued")
+  end
+
+  test "manual valuation keeps invalid input and queues nothing", %{conn: conn, key: key} do
+    configure_manual_targets(key)
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+    invalid_id = "missing-manual-card"
+
+    view
+    |> form("#manual-refresh-valuation-form", manual_refresh: %{tcgdex_id: invalid_id})
+    |> render_submit()
+
+    assert has_element?(
+             view,
+             "#manual-refresh-valuation-form input[value='#{invalid_id}']"
+           )
+
+    assert has_element?(view, "#flash-error", "not queued")
+    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
+  end
+
+  test "manual retailer event rejects a tampered local identifier", %{conn: conn, key: key} do
+    configure_manual_targets(key)
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+
+    render_click(view, "manual_sealed_retailer", %{"retailer-id" => Ecto.UUID.generate()})
+
+    assert has_element?(view, "#flash-error", "not queued")
+    refute_enqueued(repo: TcgCheap.Repo, worker: SealedRetailerWorker)
+  end
+
+  test "provider controls immediately disable the matching manual action", %{conn: conn, key: key} do
+    configure_manual_targets(key)
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+
+    refute has_element?(view, "#manual-refresh-exchange-rate[disabled]")
+    view |> element("#provider-action-#{provider_id("nbp")}") |> render_click()
+    assert has_element?(view, "#manual-refresh-exchange-rate[disabled]")
+    assert has_element?(view, "#manual-refresh-exchange-rate-status", "DISABLED")
+    refute_enqueued(repo: TcgCheap.Repo, worker: ExchangeRateWorker)
   end
 
   test "provider freshness has stable accessible identifiers", %{conn: conn, key: key} do
@@ -216,6 +327,50 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
       },
       authorize?: false
     )
+  end
+
+  defp configure_manual_targets(key) do
+    Application.put_env(:tcg_cheap, :sealed_retailer_adapters, %{
+      "web-manual-refresh" => %{
+        adapter: TcgCheapWeb.Admin.OperationsManualRefreshTestAdapter,
+        options: []
+      }
+    })
+
+    Application.put_env(:tcg_cheap, :acquisition_budget,
+      global_hourly_request_limit: 100,
+      global_daily_request_limit: 1_000,
+      global_monthly_spend_limit: "50.00",
+      providers: [
+        provider(key),
+        provider("other-#{key}"),
+        provider("nbp"),
+        provider("tcgdex_cardmarket"),
+        provider("sealed_retailer:web-manual-refresh")
+      ]
+    )
+
+    unique = System.unique_integer([:positive])
+
+    card =
+      Core.import_card_printing!(%{
+        tcgdex_id: "web-manual-card-#{unique}",
+        name: "Web manual card #{unique}",
+        set_name: "Web manual set",
+        collector_number: Integer.to_string(unique)
+      })
+
+    retailer =
+      Core.register_retailer!(%{
+        slug: "web-manual-retailer-#{unique}",
+        source_key: "web-manual-refresh",
+        name: "Web Manual Shop",
+        category: "regular_retailer",
+        homepage_url: "https://example.test/manual",
+        source_payload: %{"secret" => "retailer-source-secret"}
+      })
+
+    {card, retailer}
   end
 
   defp budget_config(key) do
