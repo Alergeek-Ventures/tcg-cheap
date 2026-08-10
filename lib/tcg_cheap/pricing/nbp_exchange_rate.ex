@@ -77,10 +77,9 @@ defmodule TcgCheap.Pricing.NbpExchangeRate do
       [
         url: @url,
         decode_body: false,
-        receive_timeout: 10_000,
-        retry: if(budgeted?, do: false, else: Keyword.get(options, :retry, :safe_transient)),
-        max_retries: if(budgeted?, do: 0, else: Keyword.get(options, :max_retries, 2))
+        receive_timeout: 10_000
       ]
+      |> Keyword.merge(request_attempt_options(options, budgeted?))
       |> maybe_put(:plug, Keyword.get(options, :plug))
 
     with :ok <- admit_request(options) do
@@ -109,6 +108,15 @@ defmodule TcgCheap.Pricing.NbpExchangeRate do
   catch
     _, _ -> {:error, :budget_persistence_failed}
   end
+
+  defp request_attempt_options(_options, true),
+    do: [retry: false, max_retries: 0, redirect: false]
+
+  defp request_attempt_options(options, false),
+    do: [
+      retry: Keyword.get(options, :retry, :safe_transient),
+      max_retries: Keyword.get(options, :max_retries, 2)
+    ]
 
   defp maybe_put(keyword, _key, nil), do: keyword
   defp maybe_put(keyword, key, value), do: Keyword.put(keyword, key, value)

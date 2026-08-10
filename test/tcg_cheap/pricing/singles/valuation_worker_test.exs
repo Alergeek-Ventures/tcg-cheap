@@ -105,6 +105,12 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     assert Decimal.equal?(snapshot.value_eur, Decimal.new("12.34"))
     assert snapshot.source == "tcgdex_cardmarket"
     assert snapshot.source_metric == "avg7"
+    run = latest_run("tcgdex_cardmarket")
+    assert run.operation == "single_valuation"
+    assert run.target_key == card.tcgdex_id
+    assert run.status == "succeeded"
+    assert run.request_count == 1
+    assert source_health("tcgdex_cardmarket").last_status == "succeeded"
 
     assert_receive {:valuation_completed, %{card_printing_id: id, snapshot: event_snapshot}}, 500
     assert id == card.id
@@ -157,6 +163,11 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
              perform_job(test_job(args(card)), [])
 
     assert %{calls: 1} = Agent.get(stub, & &1)
+
+    run = latest_run("tcgdex_cardmarket")
+    assert run.status == "cancelled"
+    assert run.failure_category == "budget"
+    assert run.request_count == 0
 
     assert_receive {:valuation_failed,
                     %{reason: {:acquisition_budget_rejected, :provider_disabled}}},
@@ -309,6 +320,10 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
 
     assert {:cancel, :invalid_local_card} =
              perform_job(test_job(%{args(card) | "tcgdex_id" => "missing-card"}), [])
+
+    run = latest_run("tcgdex_cardmarket")
+    assert run.status == "cancelled"
+    assert run.failure_category == "local_input"
 
     assert %{calls: 0} = Agent.get(stub, & &1)
     assert usage_counts("tcgdex_cardmarket") == %{}
@@ -538,4 +553,12 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     ).rows
     |> Enum.reduce(%{}, fn [kind, count], acc -> Map.update(acc, kind, count, &(&1 + count)) end)
   end
+
+  defp latest_run(provider_key),
+    do:
+      TcgCheap.Operations.list_recent_acquisition_runs!([provider_key], 1, authorize?: false)
+      |> hd()
+
+  defp source_health(provider_key),
+    do: TcgCheap.Operations.list_source_health!([provider_key], authorize?: false) |> hd()
 end

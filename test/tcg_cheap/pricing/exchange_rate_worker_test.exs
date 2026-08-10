@@ -115,6 +115,12 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
     assert usage_counts("nbp") == %{"day" => 1, "hour" => 1, "month" => 1}
     assert {:ok, rate} = Core.get_latest_exchange_rate(~D[2026-08-08])
     assert %Decimal{} = rate.rate
+    run = latest_run("nbp")
+    assert run.operation == "exchange_rate"
+    assert run.target_key == "EUR/PLN"
+    assert run.status == "succeeded"
+    assert run.request_count == 1
+    assert source_health("nbp").last_status == "succeeded"
     assert_receive {:exchange_rate_completed, %{exchange_rate: event_rate}}, 500
     assert event_rate.id == rate.id
     assert Decimal.equal?(event_rate.rate, rate.rate)
@@ -292,7 +298,8 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
     job = %{
       job
       | attempted_at: ~U[2026-08-08 12:00:00Z],
-        scheduled_at: ~U[2026-08-08 12:00:00Z]
+        scheduled_at: ~U[2026-08-08 12:00:00Z],
+        attempt: 1
     }
 
     assert :ok = perform_job(job, [])
@@ -344,4 +351,12 @@ defmodule TcgCheap.Pricing.ExchangeRateWorkerTest do
     ).rows
     |> Enum.reduce(%{}, fn [kind, count], acc -> Map.update(acc, kind, count, &(&1 + count)) end)
   end
+
+  defp latest_run(provider_key),
+    do:
+      TcgCheap.Operations.list_recent_acquisition_runs!([provider_key], 1, authorize?: false)
+      |> hd()
+
+  defp source_health(provider_key),
+    do: TcgCheap.Operations.list_source_health!([provider_key], authorize?: false) |> hd()
 end

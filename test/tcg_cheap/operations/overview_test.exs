@@ -2,7 +2,7 @@ defmodule TcgCheap.Operations.OverviewTest do
   use TcgCheap.DataCase, async: false
 
   alias TcgCheap.Accounts.Admin
-  alias TcgCheap.Operations.{AcquisitionBudget, Overview}
+  alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionTracker, Overview}
 
   setup do
     previous = Application.get_env(:tcg_cheap, :acquisition_budget)
@@ -140,9 +140,50 @@ defmodule TcgCheap.Operations.OverviewTest do
              Overview.load(actor, clock: fn -> DateTime.now!("Europe/Warsaw") end)
 
     assert {:error, :invalid_limit} = Overview.load(actor, max_recent_jobs: 51)
+    assert {:error, :invalid_limit} = Overview.load(actor, max_recent_runs: 51)
     assert {:error, :invalid_overview_input} = Overview.load(actor, [:bad])
     Application.put_env(:tcg_cheap, :acquisition_budget, [])
     assert {:error, :invalid_provider_configuration} = Overview.load(actor, clock: fn -> now end)
+  end
+
+  test "overview projects bounded source health and acquisition runs without raw failures", %{
+    key: key,
+    actor: actor,
+    now: now
+  } do
+    job = %Oban.Job{
+      id: System.unique_integer([:positive]),
+      attempt: 2,
+      max_attempts: 5,
+      worker: "TcgCheap.TestWorker",
+      queue: "valuations"
+    }
+
+    assert {:cancel, {:provider_rate_limited, "bearer-secret"}} =
+             AcquisitionTracker.run(
+               job,
+               [
+                 provider_key: key,
+                 operation: "single_valuation",
+                 target_key: "base1-4"
+               ],
+               fn _request_admitter ->
+                 {:cancel, {:provider_rate_limited, "bearer-secret"}}
+               end
+             )
+
+    assert {:ok, overview} = Overview.load(actor, clock: fn -> now end)
+    provider = Enum.find(overview.providers, &(&1.provider_key == key))
+    run = Enum.find(overview.recent_runs, &(&1.provider_key == key))
+
+    assert provider.health.last_status == "cancelled"
+    assert provider.health.last_failure_category == "rate_limit"
+    assert provider.health.consecutive_failures == 1
+    assert run.failure_category == "rate_limit"
+    assert run.status == "cancelled"
+    assert run.request_count == 0
+    refute inspect(run) =~ "bearer-secret"
+    refute Map.has_key?(run, :attempt_key)
   end
 
   test "failed job projection is safe and bounded", %{actor: actor, now: now} do

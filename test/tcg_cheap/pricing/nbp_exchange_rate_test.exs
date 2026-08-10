@@ -178,4 +178,31 @@ defmodule TcgCheap.Pricing.NbpExchangeRateTest do
 
     assert :counters.get(attempts, 1) == 1
   end
+
+  test "budgeted redirects are returned as one HTTP response" do
+    name = make_ref()
+    attempts = :counters.new(1, [:atomics])
+
+    Req.Test.stub(name, fn conn ->
+      :counters.add(attempts, 1, 1)
+
+      conn
+      |> Plug.Conn.put_resp_header(
+        "location",
+        "https://api.nbp.pl/api/exchangerates/rates/a/eur/"
+      )
+      |> Plug.Conn.send_resp(302, "redirect")
+    end)
+
+    assert {:error, {:http_error, %{status: 302}}} =
+             NbpExchangeRate.fetch(canonical_request(),
+               plug: {Req.Test, name},
+               retry: :safe_transient,
+               max_retries: 2,
+               clock: fn -> @fetched_at end,
+               request_admitter: fn -> :ok end
+             )
+
+    assert :counters.get(attempts, 1) == 1
+  end
 end

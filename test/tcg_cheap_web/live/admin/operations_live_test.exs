@@ -6,6 +6,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
   alias AshAuthentication.Phoenix.Plug, as: AuthenticationPlug
   alias TcgCheap.Accounts
   alias TcgCheap.Operations
+  alias TcgCheap.Operations.AcquisitionTracker
 
   setup do
     previous = Application.get_env(:tcg_cheap, :acquisition_budget)
@@ -36,9 +37,40 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#admin-operations-header-link")
     assert has_element?(view, "#operations-global-ledger")
     assert has_element?(view, "#operations-providers")
+    assert has_element?(view, "#operations-acquisition-runs")
     assert has_element?(view, "#operations-retained-jobs")
     assert has_element?(view, "#operations-provider-stream[phx-update=stream]")
+    assert has_element?(view, "#operations-run-stream[phx-update=stream]")
     assert has_element?(view, "#operations-job-stream[phx-update=stream]")
+  end
+
+  test "tracked source health and safe acquisition evidence render", %{conn: conn, key: key} do
+    job = %Oban.Job{
+      id: System.unique_integer([:positive]),
+      attempt: 1,
+      max_attempts: 5,
+      worker: "TcgCheap.TestWorker",
+      queue: "valuations"
+    }
+
+    assert {:error, {:provider_rate_limited, "bearer-secret"}} =
+             AcquisitionTracker.run(
+               job,
+               [
+                 provider_key: key,
+                 operation: "single_valuation",
+                 target_key: "base1-4"
+               ],
+               fn _request_admitter -> {:error, {:provider_rate_limited, "bearer-secret"}} end
+             )
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+    html = render(view)
+
+    assert has_element?(view, "#operations-providers", "RETRYABLE FAILURE")
+    assert has_element?(view, "#operations-acquisition-runs", "Rate limit")
+    assert has_element?(view, "#operations-acquisition-runs", "base1-4")
+    refute html =~ "bearer-secret"
   end
 
   test "configured unpersisted provider is honest and can be toggled", %{conn: conn, key: key} do

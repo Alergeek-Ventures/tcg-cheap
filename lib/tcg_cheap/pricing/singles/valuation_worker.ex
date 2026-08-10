@@ -12,7 +12,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
     ]
 
   alias TcgCheap.Core
-  alias TcgCheap.Operations.AcquisitionBudget
+  alias TcgCheap.Operations.AcquisitionTracker
   alias TcgCheap.Pricing.Singles.ValuationAcquisition
 
   @policy_version "tcgdex_cardmarket_v1"
@@ -22,18 +22,29 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: args} = job) when is_map(args) do
-    with {:ok, identity} <- validate_args(args),
-         {:ok, card} <- load_card(identity) do
-      acquire(job, card)
-    else
-      {:cancel, reason} -> {:cancel, reason}
+    case validate_args(args) do
+      {:ok, identity} ->
+        AcquisitionTracker.run(
+          job,
+          tracker_options(identity.tcgdex_id),
+          &execute(job, identity, &1)
+        )
+
+      {:cancel, reason} ->
+        {:cancel, reason}
     end
   end
 
   def perform(_job), do: {:cancel, :malformed_job_args}
 
-  defp acquire(job, card) do
-    case call_provider(card.tcgdex_id) do
+  defp execute(job, identity, request_admitter) do
+    with {:ok, card} <- load_card(identity) do
+      acquire(job, card, request_admitter)
+    end
+  end
+
+  defp acquire(job, card, request_admitter) do
+    case call_provider(card.tcgdex_id, request_admitter) do
       {:ok, result} ->
         case validate_result(result, %{tcgdex_id: card.tcgdex_id}, card) do
           {:ok, attrs} -> persist_and_finish(job, card, attrs)
@@ -81,7 +92,8 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
          "policy_version" => @policy_version,
          "currency" => @currency
        })
-       when is_binary(local_card_id) and is_binary(tcgdex_id),
+       when is_binary(local_card_id) and byte_size(local_card_id) in 1..240 and
+              is_binary(tcgdex_id) and byte_size(tcgdex_id) in 1..240,
        do: {:ok, %{local_card_id: local_card_id, tcgdex_id: tcgdex_id}}
 
   defp validate_args(_args), do: {:cancel, :malformed_job_args}
@@ -94,21 +106,24 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
     end
   end
 
-  defp call_provider(tcgdex_id) do
+  defp call_provider(tcgdex_id, request_admitter) do
     case provider_config() do
-      {:ok, adapter, options} -> admitted_fetch(adapter, tcgdex_id, options)
+      {:ok, adapter, options} -> admitted_fetch(adapter, tcgdex_id, options, request_admitter)
       _ -> {:cancel, :invalid_provider_configuration}
     end
   end
 
-  defp admitted_fetch(adapter, card_id, options) do
-    options =
-      Keyword.put(options, :request_admitter, fn ->
-        AcquisitionBudget.admit_request(@source)
-      end)
-
+  defp admitted_fetch(adapter, card_id, options, request_admitter) do
+    options = Keyword.put(options, :request_admitter, request_admitter)
     classify_fetch(safely_fetch(adapter, card_id, options))
   end
+
+  defp tracker_options(target),
+    do: [
+      provider_key: @source,
+      operation: "single_valuation",
+      target_key: target
+    ]
 
   defp classify_fetch({:ok, response}), do: classify_response(response)
 

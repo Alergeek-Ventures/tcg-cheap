@@ -12,24 +12,20 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
     ]
 
   alias TcgCheap.Catalogue.{SealedRetailerAcquisition, SealedRetailerRefresh}
-  alias TcgCheap.Operations.AcquisitionBudget
+  alias TcgCheap.Operations.AcquisitionTracker
 
   @impl true
-  def perform(%Oban.Job{args: args}) when is_map(args) do
+  def perform(%Oban.Job{args: args} = job) when is_map(args) do
     with {:ok, retailer_id, source_key} <- validate_args(args),
-         {:ok, _retailer} <- SealedRetailerRefresh.canonical_retailer(retailer_id, source_key),
-         {:ok, adapter, options} <- SealedRetailerAcquisition.config(source_key),
-         {:ok, _result} <-
-           SealedRetailerRefresh.refresh(
-             retailer_id,
-             source_key,
-             adapter,
-             budgeted_options(options, source_key)
+         result <-
+           AcquisitionTracker.run(
+             job,
+             tracker_options(retailer_id, source_key),
+             &execute(retailer_id, source_key, &1)
            ) do
-      :ok
+      result
     else
       {:cancel, reason} -> {:cancel, reason}
-      {:error, reason} -> classify_error(reason)
     end
   end
 
@@ -50,7 +46,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
   defp validate_args(%{"retailer_id" => id, "source_key" => key} = args)
        when map_size(args) == 2 and is_binary(id) and is_binary(key) do
     with {:ok, _uuid} <- Ecto.UUID.cast(id),
-         true <- key != "" and key == String.trim(key) do
+         true <- byte_size(key) in 1..144 and key == String.trim(key) do
       {:ok, id, key}
     else
       _ -> {:cancel, :malformed_job_args}
@@ -89,9 +85,26 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
     end
   end
 
-  defp budgeted_options(options, source_key),
-    do:
-      Keyword.put(options, :request_admitter, fn ->
-        AcquisitionBudget.admit_request("sealed_retailer:" <> source_key)
-      end)
+  defp execute(retailer_id, source_key, request_admitter) do
+    with {:ok, _retailer} <- SealedRetailerRefresh.canonical_retailer(retailer_id, source_key),
+         {:ok, adapter, options} <- SealedRetailerAcquisition.config(source_key),
+         {:ok, _result} <-
+           SealedRetailerRefresh.refresh(
+             retailer_id,
+             source_key,
+             adapter,
+             Keyword.put(options, :request_admitter, request_admitter)
+           ) do
+      :ok
+    else
+      {:error, reason} -> classify_error(reason)
+    end
+  end
+
+  defp tracker_options(retailer_id, source_key),
+    do: [
+      provider_key: "sealed_retailer:" <> source_key,
+      operation: "sealed_retailer_refresh",
+      target_key: retailer_id
+    ]
 end

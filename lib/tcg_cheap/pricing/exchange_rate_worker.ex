@@ -11,7 +11,7 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
     ]
 
   alias TcgCheap.Core
-  alias TcgCheap.Operations.AcquisitionBudget
+  alias TcgCheap.Operations.AcquisitionTracker
   alias TcgCheap.Pricing.ExchangeRateAcquisition
 
   @canonical %{
@@ -24,7 +24,27 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
   @impl Oban.Worker
   def perform(%Oban.Job{args: args} = job) do
     with {:ok, args} <- validate_args(args),
-         {:ok, result} <- acquire(args),
+         result <-
+           AcquisitionTracker.run(
+             job,
+             tracker_options(),
+             &execute(args, &1, job)
+           ) do
+      result
+    else
+      {:cancel, reason} ->
+        broadcast_failure(reason)
+        {:cancel, reason}
+    end
+  end
+
+  def perform(_), do: {:cancel, :malformed_job_args}
+
+  defp validate_args(@canonical), do: {:ok, @canonical}
+  defp validate_args(_), do: {:cancel, :malformed_job_args}
+
+  defp execute(args, request_admitter, job) do
+    with {:ok, result} <- acquire(args, request_admitter),
          {:ok, rate} <- persist(result) do
       Phoenix.PubSub.broadcast(
         TcgCheap.PubSub,
@@ -43,26 +63,24 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
     end
   end
 
-  def perform(_), do: {:cancel, :malformed_job_args}
-
-  defp validate_args(@canonical), do: {:ok, @canonical}
-  defp validate_args(_), do: {:cancel, :malformed_job_args}
-
-  defp acquire(args) do
+  defp acquire(args, request_admitter) do
     case provider_config() do
-      {:ok, adapter, options} -> admitted_fetch(adapter, args, options)
+      {:ok, adapter, options} -> admitted_fetch(adapter, args, options, request_admitter)
       _ -> {:cancel, :invalid_provider_configuration}
     end
   end
 
-  defp admitted_fetch(adapter, args, options) do
-    options =
-      Keyword.put(options, :request_admitter, fn ->
-        AcquisitionBudget.admit_request("nbp")
-      end)
-
+  defp admitted_fetch(adapter, args, options, request_admitter) do
+    options = Keyword.put(options, :request_admitter, request_admitter)
     classify_fetch(safely_fetch(adapter, args, options))
   end
+
+  defp tracker_options,
+    do: [
+      provider_key: "nbp",
+      operation: "exchange_rate",
+      target_key: "EUR/PLN"
+    ]
 
   defp classify_fetch({:ok, {:ok, result}}), do: validate_result(result)
   defp classify_fetch({:ok, {:error, reason}}), do: classify(reason)

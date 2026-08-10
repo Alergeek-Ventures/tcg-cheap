@@ -4,7 +4,7 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
   alias Ecto.Adapters.SQL.Sandbox
   alias TcgCheap.Accounts.Admin
   alias TcgCheap.Operations
-  alias TcgCheap.Operations.{AcquisitionBudget, Overview}
+  alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionTracker, Overview}
   alias TcgCheap.Repo
 
   test "concurrent transitions sharing one displayed version allow one update" do
@@ -54,6 +54,101 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
 
       assert Sandbox.unboxed_run(Repo, fn -> Operations.get_provider_by_key!(key).status end) ==
                "disabled"
+    end)
+  end
+
+  test "concurrent acquisition failures serialize without losing the source streak" do
+    with_runtime(fn key, _actor, _provider ->
+      trackers =
+        Sandbox.unboxed_run(Repo, fn ->
+          Enum.map(1..5, fn _index ->
+            {:ok, tracker} =
+              AcquisitionTracker.start(
+                %Oban.Job{
+                  attempt: 1,
+                  max_attempts: 5,
+                  worker: "TcgCheap.ConcurrentWorker",
+                  queue: "valuations"
+                },
+                provider_key: key,
+                operation: "single_valuation",
+                target_key: "base1-4"
+              )
+
+            tracker
+          end)
+        end)
+
+      results =
+        concurrently(
+          Enum.map(trackers, fn tracker ->
+            fn -> AcquisitionTracker.finish(tracker, {:error, :provider_timeout}) end
+          end)
+        )
+
+      assert Enum.all?(results, &match?({:ok, %{status: "retryable_failure"}}, &1))
+
+      assert Sandbox.unboxed_run(Repo, fn ->
+               [health] = Operations.list_source_health!([key], authorize?: false)
+               {health.consecutive_failures, health.last_failure_category}
+             end) == {5, "timeout"}
+    end)
+  end
+
+  test "mixed concurrent completions leave health at the latest durable outcome" do
+    with_runtime(fn key, _actor, _provider ->
+      trackers =
+        Sandbox.unboxed_run(Repo, fn ->
+          Enum.map(1..2, fn index ->
+            {:ok, tracker} =
+              AcquisitionTracker.start(
+                %Oban.Job{
+                  attempt: 1,
+                  max_attempts: 5,
+                  worker: "TcgCheap.MixedWorker#{index}",
+                  queue: "valuations"
+                },
+                provider_key: key,
+                operation: "single_valuation",
+                target_key: "base1-#{index}"
+              )
+
+            tracker
+          end)
+        end)
+
+      [failure, success] = trackers
+
+      results =
+        concurrently([
+          fn -> AcquisitionTracker.finish(failure, {:error, :provider_timeout}) end,
+          fn -> AcquisitionTracker.finish(success, :ok) end
+        ])
+
+      assert Enum.all?(results, &match?({:ok, _run}, &1))
+
+      Sandbox.unboxed_run(Repo, fn ->
+        run_ids = MapSet.new(Enum.map(trackers, & &1.run.id))
+
+        latest =
+          Operations.list_recent_acquisition_runs!([key], 10, authorize?: false)
+          |> Enum.filter(&MapSet.member?(run_ids, &1.id))
+          |> Enum.max_by(&DateTime.to_unix(&1.finished_at, :microsecond))
+
+        [health] = Operations.list_source_health!([key], authorize?: false)
+
+        case latest.status do
+          "succeeded" ->
+            assert health.last_status == "succeeded"
+            assert health.consecutive_failures == 0
+            assert DateTime.compare(health.last_succeeded_at, latest.finished_at) == :eq
+
+          "retryable_failure" ->
+            assert health.last_status == "retryable_failure"
+            assert health.consecutive_failures == 1
+            assert DateTime.compare(health.last_failed_at, latest.finished_at) == :eq
+        end
+      end)
     end)
   end
 
@@ -154,6 +249,14 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
         dumped_provider_id
       ])
 
+      Repo.query!("DELETE FROM acquisition_runs WHERE provider_key = $1", [
+        provider_key(provider_id)
+      ])
+
+      Repo.query!("DELETE FROM acquisition_source_health WHERE provider_key = $1", [
+        provider_key(provider_id)
+      ])
+
       Repo.query!("DELETE FROM acquisition_data_providers WHERE id = $1", [dumped_provider_id])
       Repo.query!("DELETE FROM admins WHERE id = $1", [dump_uuid!(admin_id)])
     end)
@@ -161,6 +264,14 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
 
   defp dump_uuid!(<<_::binary-size(16)>> = id), do: id
   defp dump_uuid!(id), do: Ecto.UUID.dump!(id)
+
+  defp provider_key(provider_id) do
+    Repo.query!("SELECT provider_key FROM acquisition_data_providers WHERE id = $1", [
+      Ecto.UUID.dump!(provider_id)
+    ]).rows
+    |> List.first()
+    |> List.first()
+  end
 
   defp provider_config(key),
     do: [

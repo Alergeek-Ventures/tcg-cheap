@@ -238,7 +238,11 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarket do
   end
 
   defp force_single_attempt(options, true),
-    do: options |> Keyword.put(:retry, false) |> Keyword.put(:max_retries, 0)
+    do:
+      options
+      |> Keyword.put(:retry, false)
+      |> Keyword.put(:max_retries, 0)
+      |> Keyword.put(:redirect, false)
 
   defp force_single_attempt(options, false), do: options
 

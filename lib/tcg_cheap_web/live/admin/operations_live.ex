@@ -15,6 +15,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:overview_ready?, false)
      |> assign(:global, nil)
      |> assign(:provider_count, 0)
+     |> assign(:run_count, 0)
      |> assign(:job_count, 0)
      |> load_overview()}
   end
@@ -47,13 +48,14 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                 <h1 id="admin-operations-title">Operations desk</h1>
                 <p>Operate the provider bench without hiding what the counters do not know.</p>
                 <p class="admin-disclosure">
-                  Counters are estimated reservations before HTTP. Actual paid-cost reconciliation and source health are not tracked yet.
+                  Counters are estimated reservations before HTTP. Tracked provider attempts retain safe outcomes and admitted request counts; actual paid-cost reconciliation is not tracked yet.
                 </p>
               </div>
               <%= if @overview_ready? do %>
                 <nav id="admin-operations-nav" aria-label="Operations sections">
                   <a href="#operations-global-ledger">Global <strong>UTC</strong></a>
                   <a href="#operations-providers">Providers <strong>{@provider_count}</strong></a>
+                  <a href="#operations-acquisition-runs">Runs <strong>{@run_count}</strong></a>
                   <a href="#operations-retained-jobs">Jobs <strong>{@job_count}</strong></a>
                 </nav>
               <% end %>
@@ -149,6 +151,20 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                       <div>
                         <dt>Updated</dt><dd>{provider_updated(provider.updated_at)}</dd>
                       </div>
+                      <div>
+                        <dt>Last completed run</dt><dd>{health_status(provider.health)}</dd>
+                      </div>
+                      <div>
+                        <dt>Last success UTC</dt><dd>
+                          {health_time(provider.health, :last_succeeded_at)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Failure streak</dt><dd>{failure_streak(provider.health)}</dd>
+                      </div>
+                      <div class="wide-evidence">
+                        <dt>Last failure category</dt><dd>{health_failure(provider.health)}</dd>
+                      </div>
                     </dl>
                     <div class="admin-decision-row">
                       <button
@@ -159,6 +175,52 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                         phx-value-version={version(provider.updated_at)}
                       >{provider_action(provider)}</button>
                     </div>
+                  </article>
+                </div>
+              </section>
+
+              <section
+                id="operations-acquisition-runs"
+                class="admin-queue"
+                aria-labelledby="operations-acquisition-runs-title"
+              >
+                <div class="admin-section-rule">
+                  <h2 id="operations-acquisition-runs-title">Acquisition runs</h2><span>{@run_count} shown</span>
+                </div>
+                <div id="operations-run-stream" class="admin-dockets" phx-update="stream">
+                  <p id="operations-run-empty" class="admin-empty hidden only:block">
+                    No tracked acquisition attempts yet.
+                  </p>
+                  <article
+                    :for={{dom_id, run} <- @streams.recent_runs}
+                    id={dom_id}
+                    class="admin-docket operations-run-docket"
+                  >
+                    <div class="admin-docket-heading">
+                      <div>
+                        <h3>{operation_name(run.operation)}</h3><p>{run.provider_key}</p>
+                      </div><span>{run_status(run.status)}</span>
+                    </div>
+                    <dl class="admin-ledger">
+                      <div class="wide-evidence">
+                        <dt>Canonical target</dt><dd>{run.target_key}</dd>
+                      </div>
+                      <div>
+                        <dt>Attempt</dt><dd>{run.attempt}/{run.max_attempts}</dd>
+                      </div>
+                      <div>
+                        <dt>Admitted requests</dt><dd>{run.request_count}</dd>
+                      </div>
+                      <div>
+                        <dt>Started UTC</dt><dd>{datetime(run.started_at)}</dd>
+                      </div>
+                      <div>
+                        <dt>Finished UTC</dt><dd>{datetime(run.finished_at)}</dd>
+                      </div>
+                      <div class="wide-evidence">
+                        <dt>Failure category</dt><dd>{run_failure(run.failure_category)}</dd>
+                      </div>
+                    </dl>
                   </article>
                 </div>
               </section>
@@ -248,8 +310,10 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         |> assign(:overview_ready?, true)
         |> assign(:global, overview.global)
         |> assign(:provider_count, length(providers))
+        |> assign(:run_count, length(overview.recent_runs))
         |> assign(:job_count, length(overview.recent_jobs))
         |> stream(:providers, providers, reset: true)
+        |> stream(:recent_runs, overview.recent_runs, reset: true)
         |> stream(:recent_jobs, overview.recent_jobs, reset: true)
 
       {:error, _reason} ->
@@ -257,8 +321,10 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         |> assign(:overview_ready?, false)
         |> assign(:global, nil)
         |> assign(:provider_count, 0)
+        |> assign(:run_count, 0)
         |> assign(:job_count, 0)
         |> stream(:providers, [], reset: true)
+        |> stream(:recent_runs, [], reset: true)
         |> stream(:recent_jobs, [], reset: true)
     end
   end
@@ -297,6 +363,39 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp version(value), do: DateTime.to_iso8601(value)
   defp provider_updated(nil), do: "Not registered yet"
   defp provider_updated(value), do: DateTime.to_iso8601(value)
+  defp health_status(nil), do: "No completed acquisition"
+  defp health_status(%{last_status: nil}), do: "No completed acquisition"
+  defp health_status(%{last_status: status}), do: run_status(status)
+  defp health_time(nil, _field), do: "None yet"
+
+  defp health_time(health, field) do
+    case Map.fetch!(health, field) do
+      nil -> "None yet"
+      value -> datetime(value)
+    end
+  end
+
+  defp failure_streak(nil), do: 0
+  defp failure_streak(health), do: health.consecutive_failures
+  defp health_failure(nil), do: "None"
+  defp health_failure(%{last_failure_category: nil}), do: "None"
+  defp health_failure(health), do: failure_name(health.last_failure_category)
+  defp operation_name("single_valuation"), do: "Single valuation"
+  defp operation_name("exchange_rate"), do: "EUR/PLN rate"
+  defp operation_name("sealed_retailer_refresh"), do: "Sealed retailer refresh"
+  defp operation_name(_), do: "Acquisition"
+  defp run_status("succeeded"), do: "SUCCEEDED"
+  defp run_status("retryable_failure"), do: "RETRYABLE FAILURE"
+  defp run_status("failed"), do: "FAILED"
+  defp run_status("cancelled"), do: "CANCELLED"
+  defp run_status("running"), do: "RUNNING"
+  defp run_status(_), do: "UNKNOWN"
+  defp run_failure(nil), do: "None"
+  defp run_failure(category), do: failure_name(category)
+
+  defp failure_name(category),
+    do: category |> String.replace("_", " ") |> String.capitalize()
+
   defp datetime(nil), do: "Unknown"
   defp datetime(%NaiveDateTime{} = value), do: NaiveDateTime.to_iso8601(value) <> "Z"
   defp datetime(value), do: DateTime.to_iso8601(value)

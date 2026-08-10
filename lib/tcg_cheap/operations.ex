@@ -30,5 +30,32 @@ defmodule TcgCheap.Operations do
         action: :current_windows,
         args: [:provider_ids, :hour_started_at, :day_started_at, :month_started_at]
     end
+
+    resource TcgCheap.Operations.AcquisitionRun do
+      define :start_acquisition_run,
+        action: :start,
+        args: [
+          :attempt_key,
+          :provider_key,
+          :operation,
+          :target_key,
+          :worker,
+          :queue,
+          :job_id,
+          :attempt,
+          :max_attempts,
+          :started_at
+        ]
+
+      define :finish_acquisition_run,
+        action: :finish,
+        args: [:status, :failure_category, :request_count]
+
+      define :list_recent_acquisition_runs, action: :recent, args: [:provider_keys, :limit]
+    end
+
+    resource TcgCheap.Operations.SourceHealth do
+      define :list_source_health, action: :by_providers, args: [:provider_keys]
+    end
   end
 end

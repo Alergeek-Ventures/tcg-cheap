@@ -357,4 +357,30 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarketTest do
 
     assert :counters.get(attempts, 1) == 1
   end
+
+  test "budgeted redirects are classified as one HTTP response" do
+    name = make_ref()
+    attempts = :counters.new(1, [:atomics])
+
+    Req.Test.stub(name, fn conn ->
+      :counters.add(attempts, 1, 1)
+
+      conn
+      |> Plug.Conn.put_resp_header("location", "https://api.tcgdex.net/v2/en/cards/base1-4")
+      |> Plug.Conn.send_resp(302, "redirect")
+    end)
+
+    assert {:error, {:http_error, %{status: 302, card_id: "base1-4"}}} =
+             TcgdexCardmarket.fetch("base1-4",
+               request_options: [
+                 plug: {Req.Test, name},
+                 retry: :safe_transient,
+                 max_retries: 2
+               ],
+               clock: fn -> @fetched_at end,
+               request_admitter: fn -> :ok end
+             )
+
+    assert :counters.get(attempts, 1) == 1
+  end
 end

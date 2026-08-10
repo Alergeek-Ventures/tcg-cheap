@@ -6,6 +6,8 @@ defmodule TcgCheap.Operations.Overview do
 
   @default_job_limit 25
   @max_job_limit 50
+  @default_run_limit 25
+  @max_run_limit 50
   @job_states ~w(retryable discarded cancelled)
   @failure_categories [
     {"Timeout", ["timeout"]},
@@ -21,14 +23,16 @@ defmodule TcgCheap.Operations.Overview do
 
   def load(%Admin{} = actor, opts) do
     with :ok <- validate_actor(actor),
-         {:ok, clock, job_limit} <- parse_options(opts),
+         {:ok, clock, job_limit, run_limit} <- parse_options(opts),
          {:ok, now} <- valid_clock(clock),
          {:ok, config} <- AcquisitionBudget.configured_limits(),
          {:ok, providers} <- list_providers(actor, config.providers),
          {:ok, windows} <- current_windows(actor, providers, now),
          {:ok, global_usage} <- global_current_usage(now),
+         {:ok, health} <- source_health(actor, config.providers),
+         {:ok, runs} <- recent_runs(actor, config.providers, run_limit),
          {:ok, jobs} <- recent_jobs(job_limit) do
-      {:ok, build_overview(config, providers, windows, global_usage, jobs)}
+      {:ok, build_overview(config, providers, windows, global_usage, health, runs, jobs)}
     else
       {:error, _} = error -> error
     end
@@ -145,13 +149,15 @@ defmodule TcgCheap.Operations.Overview do
 
   defp parse_options(opts) when is_list(opts) do
     if Keyword.keyword?(opts) and
-         Enum.all?(Keyword.keys(opts), &(&1 in [:clock, :max_recent_jobs])) and
+         Enum.all?(Keyword.keys(opts), &(&1 in [:clock, :max_recent_jobs, :max_recent_runs])) and
          (not Keyword.has_key?(opts, :clock) or is_function(opts[:clock], 0)) do
-      limit = Keyword.get(opts, :max_recent_jobs, @default_job_limit)
+      job_limit = Keyword.get(opts, :max_recent_jobs, @default_job_limit)
+      run_limit = Keyword.get(opts, :max_recent_runs, @default_run_limit)
 
-      if is_integer(limit) and limit in 1..@max_job_limit,
-        do: {:ok, Keyword.get(opts, :clock, &DateTime.utc_now/0), limit},
-        else: {:error, :invalid_limit}
+      if is_integer(job_limit) and job_limit in 1..@max_job_limit and is_integer(run_limit) and
+           run_limit in 1..@max_run_limit,
+         do: {:ok, Keyword.get(opts, :clock, &DateTime.utc_now/0), job_limit, run_limit},
+         else: {:error, :invalid_limit}
     else
       {:error, :invalid_overview_input}
     end
@@ -182,6 +188,24 @@ defmodule TcgCheap.Operations.Overview do
     end
   end
 
+  defp source_health(actor, configured_providers) do
+    provider_keys = Enum.map(configured_providers, & &1.provider_key)
+
+    case TcgCheap.Operations.list_source_health(provider_keys, actor: actor) do
+      {:ok, health} -> {:ok, health}
+      {:error, reason} -> {:error, {:source_health_query_failed, reason}}
+    end
+  end
+
+  defp recent_runs(actor, configured_providers, limit) do
+    provider_keys = Enum.map(configured_providers, & &1.provider_key)
+
+    case TcgCheap.Operations.list_recent_acquisition_runs(provider_keys, limit, actor: actor) do
+      {:ok, runs} -> {:ok, Enum.map(runs, &run_projection/1)}
+      {:error, reason} -> {:error, {:acquisition_run_query_failed, reason}}
+    end
+  end
+
   defp global_current_usage(%DateTime{} = now) do
     {hour, day, month} = window_starts(now)
 
@@ -204,9 +228,10 @@ defmodule TcgCheap.Operations.Overview do
     {hour, day, month}
   end
 
-  defp build_overview(config, persisted, windows, global_usage, jobs) do
+  defp build_overview(config, persisted, windows, global_usage, health, runs, jobs) do
     by_provider = Map.new(persisted, &{&1.provider_key, &1})
     usage = Enum.group_by(windows, & &1.provider_id)
+    health_by_provider = Map.new(health, &{&1.provider_key, &1})
 
     providers =
       Enum.map(config.providers, fn configured ->
@@ -224,7 +249,8 @@ defmodule TcgCheap.Operations.Overview do
           persisted?: not is_nil(persisted_provider),
           updated_at: persisted_provider && persisted_provider.updated_at,
           status: (persisted_provider && persisted_provider.status) || "active",
-          current_usage: usage_summary(rows)
+          current_usage: usage_summary(rows),
+          health: health_projection(health_by_provider[configured.provider_key])
         }
       end)
 
@@ -236,7 +262,39 @@ defmodule TcgCheap.Operations.Overview do
         monthly_spend_limit: config.global_monthly_spend_limit
       })
 
-    %{global: global, providers: providers, recent_jobs: jobs}
+    %{global: global, providers: providers, recent_runs: runs, recent_jobs: jobs}
+  end
+
+  defp health_projection(nil), do: nil
+
+  defp health_projection(health) do
+    %{
+      last_started_at: health.last_started_at,
+      last_succeeded_at: health.last_succeeded_at,
+      last_failed_at: health.last_failed_at,
+      last_status: health.last_status,
+      last_failure_category: health.last_failure_category,
+      consecutive_failures: health.consecutive_failures
+    }
+  end
+
+  defp run_projection(run) do
+    %{
+      id: run.id,
+      provider_key: run.provider_key,
+      operation: run.operation,
+      target_key: run.target_key,
+      worker: run.worker,
+      queue: run.queue,
+      job_id: run.job_id,
+      attempt: run.attempt,
+      max_attempts: run.max_attempts,
+      status: run.status,
+      failure_category: run.failure_category,
+      request_count: run.request_count,
+      started_at: run.started_at,
+      finished_at: run.finished_at
+    }
   end
 
   defp usage_summary(rows) do

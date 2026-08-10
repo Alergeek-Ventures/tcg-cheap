@@ -110,6 +110,12 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
     assert {:ok, [listing]} = Core.list_active_retailer_listings(retailer.id)
     assert listing.source_listing_id == "worker-listing"
     assert {:ok, [_observation]} = Core.list_sealed_listing_observation_history(listing.id)
+    run = latest_run("sealed_retailer:worker-stub")
+    assert run.operation == "sealed_retailer_refresh"
+    assert run.target_key == retailer.id
+    assert run.status == "succeeded"
+    assert run.request_count == 1
+    assert source_health("sealed_retailer:worker-stub").last_status == "succeeded"
   end
 
   test "a capped provider is rejected before the adapter", %{retailer: retailer, stub: stub} do
@@ -162,13 +168,20 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
                args: %{"retailer_id" => "not-a-uuid", "source_key" => retailer.source_key}
              })
 
+    forged_job = %{
+      job(retailer)
+      | args: %{
+          "retailer_id" => Ecto.UUID.generate(),
+          "source_key" => retailer.source_key
+        }
+    }
+
     assert {:cancel, :retailer_not_active_or_mismatched} =
-             SealedRetailerWorker.perform(%Oban.Job{
-               args: %{
-                 "retailer_id" => Ecto.UUID.generate(),
-                 "source_key" => retailer.source_key
-               }
-             })
+             SealedRetailerWorker.perform(forged_job)
+
+    forged_run = latest_run("sealed_retailer:worker-stub")
+    assert forged_run.status == "cancelled"
+    assert forged_run.failure_category == "local_input"
 
     disabled = Core.disable_retailer!(retailer)
 
@@ -320,7 +333,13 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
     do: %{"retailer_id" => retailer.id, "source_key" => retailer.source_key}
 
   defp job(retailer, attempt \\ 1, max_attempts \\ 5) do
-    %Oban.Job{args: args(retailer), attempt: attempt, max_attempts: max_attempts}
+    %Oban.Job{
+      args: args(retailer),
+      attempt: attempt,
+      max_attempts: max_attempts,
+      worker: Atom.to_string(SealedRetailerWorker),
+      queue: "sealed_retailers"
+    }
   end
 
   defp restore_env(key, nil), do: Application.delete_env(:tcg_cheap, key)
@@ -352,4 +371,12 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
       ]
     ]
   end
+
+  defp latest_run(provider_key),
+    do:
+      TcgCheap.Operations.list_recent_acquisition_runs!([provider_key], 1, authorize?: false)
+      |> hd()
+
+  defp source_health(provider_key),
+    do: TcgCheap.Operations.list_source_health!([provider_key], authorize?: false) |> hd()
 end

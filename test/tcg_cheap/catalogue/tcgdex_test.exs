@@ -117,6 +117,31 @@ defmodule TcgCheap.Catalogue.TcgdexTest do
     assert :counters.get(attempts, 1) == 1
   end
 
+  test "budgeted redirects are classified after one network request" do
+    name = make_ref()
+    attempts = :counters.new(1, [:atomics])
+
+    Req.Test.stub(name, fn conn ->
+      :counters.add(attempts, 1, 1)
+
+      conn
+      |> Plug.Conn.put_resp_header("location", "https://api.tcgdex.net/v2/en/sets/base")
+      |> Plug.Conn.send_resp(302, "redirect")
+    end)
+
+    assert {:error, {:http_error, %{status: 302, kind: "sets", id: "base"}}} =
+             Tcgdex.fetch_set("base",
+               request_options: [
+                 plug: {Req.Test, name},
+                 retry: :safe_transient,
+                 max_retries: 2
+               ],
+               request_admitter: fn -> :ok end
+             )
+
+    assert :counters.get(attempts, 1) == 1
+  end
+
   test "lists and normalizes set briefs from the fixed endpoint" do
     name = make_ref()
 
