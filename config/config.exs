@@ -128,35 +128,69 @@ config :tcg_cheap, :acquisition_budget,
   global_hourly_request_limit: 100,
   global_daily_request_limit: 1_000,
   global_monthly_spend_limit: "50.00",
-  providers: [
+  providers:
     [
-      provider_key: "tcgdex_catalogue",
-      display_name: "TCGdex Catalogue",
-      estimated_cost_per_request: "0.00",
-      hourly_request_limit: 100,
-      daily_request_limit: 1_000,
-      monthly_request_limit: 20_000,
-      monthly_spend_limit: "0.00"
-    ],
-    [
-      provider_key: "tcgdex_cardmarket",
-      display_name: "TCGdex Cardmarket",
-      estimated_cost_per_request: "0.00",
-      hourly_request_limit: 100,
-      daily_request_limit: 1_000,
-      monthly_request_limit: 20_000,
-      monthly_spend_limit: "0.00"
-    ],
-    [
-      provider_key: "nbp",
-      display_name: "Narodowy Bank Polski",
-      estimated_cost_per_request: "0.00",
-      hourly_request_limit: 24,
-      daily_request_limit: 100,
-      monthly_request_limit: 1_000,
-      monthly_spend_limit: "0.00"
-    ]
-  ]
+      [
+        provider_key: "tcgdex_catalogue",
+        display_name: "TCGdex Catalogue",
+        estimated_cost_per_request: "0.00",
+        hourly_request_limit: 100,
+        daily_request_limit: 1_000,
+        monthly_request_limit: 20_000,
+        monthly_spend_limit: "0.00"
+      ],
+      [
+        provider_key: "tcgdex_cardmarket",
+        display_name: "TCGdex Cardmarket",
+        estimated_cost_per_request: "0.00",
+        hourly_request_limit: 100,
+        daily_request_limit: 1_000,
+        monthly_request_limit: 20_000,
+        monthly_spend_limit: "0.00"
+      ],
+      [
+        provider_key: "nbp",
+        display_name: "Narodowy Bank Polski",
+        estimated_cost_per_request: "0.00",
+        hourly_request_limit: 24,
+        daily_request_limit: 100,
+        monthly_request_limit: 1_000,
+        monthly_spend_limit: "0.00"
+      ]
+    ] ++
+      (if config_env() == :dev do
+         [
+           [
+             provider_key: "sealed_retailer:lootquest",
+             display_name: "LootQuest sealed catalogue",
+             estimated_cost_per_request: "0.00",
+             hourly_request_limit: 50,
+             daily_request_limit: 100,
+             monthly_request_limit: 500,
+             monthly_spend_limit: "0.00"
+           ],
+           [
+             provider_key: "sealed_retailer:cardzhouse",
+             display_name: "CardzHouse sealed catalogue",
+             estimated_cost_per_request: "0.00",
+             hourly_request_limit: 50,
+             daily_request_limit: 100,
+             monthly_request_limit: 500,
+             monthly_spend_limit: "0.00"
+           ],
+           [
+             provider_key: "sealed_retailer:boosterpoint",
+             display_name: "BoosterPoint sealed catalogue",
+             estimated_cost_per_request: "0.00",
+             hourly_request_limit: 50,
+             daily_request_limit: 100,
+             monthly_request_limit: 500,
+             monthly_spend_limit: "0.00"
+           ]
+         ]
+       else
+         []
+       end)
 
 # Configure the endpoint
 config :tcg_cheap, TcgCheapWeb.Endpoint,

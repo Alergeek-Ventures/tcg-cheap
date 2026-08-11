@@ -1,0 +1,46 @@
+[
+  {
+    "id": 301001,
+    "name": "Pokémon TCG: Stellar Crown Booster Box &amp; Display",
+    "permalink": "https://boosterpoint.pl/produkt/pokemon-tcg-stellar-crown-booster-box/",
+    "prices": {"price": "12999", "currency_code": "PLN", "currency_minor_unit": 2},
+    "categories": [{"id": 61, "name": "Boostery", "slug": "boostery"}],
+    "tags": [{"id": 1, "name": "English", "slug": "english"}],
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "is_on_backorder": false
+  },
+  {
+    "id": 301002,
+    "name": "Pokémon TCG: 30th Celebration Collection - Greninja ex",
+    "permalink": "https://boosterpoint.pl/produkt/pokemon-tcg-30th-celebration-greninja-ex/",
+    "prices": {"price": "19999", "currency_code": "PLN", "currency_minor_unit": 2},
+    "categories": [{"id": 61, "name": "Zestawy kolekcjonerskie", "slug": "zestawy-kolekcjonerskie"}],
+    "tags": [{"id": 2, "name": "Przedsprzedaż", "slug": "przedsprzedaz"}],
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "is_on_backorder": false
+  },
+  {
+    "id": 301003,
+    "name": "Pokémon TCG Gadget Collection",
+    "permalink": "https://boosterpoint.pl/produkt/pokemon-tcg-gadget-collection/",
+    "prices": {"price": "4999", "currency_code": "PLN", "currency_minor_unit": 2},
+    "categories": [{"id": 61, "name": "Akcesoria", "slug": "akcesoria"}],
+    "tags": [{"id": 3, "name": "Gadżety", "slug": "gadzety"}],
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "is_on_backorder": false
+  },
+  {
+    "id": 301004,
+    "name": "Pokémon TCG: Charizard ex Single Card",
+    "permalink": "https://boosterpoint.pl/produkt/pokemon-tcg-charizard-ex-single-card/",
+    "prices": {"price": "2999", "currency_code": "PLN", "currency_minor_unit": 2},
+    "categories": [{"id": 61, "name": "Pojedyncze karty", "slug": "pojedyncze-karty"}],
+    "tags": [{"id": 4, "name": "Single", "slug": "single"}],
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "is_on_backorder": false
+  }
+]

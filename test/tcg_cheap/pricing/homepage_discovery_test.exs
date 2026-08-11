@@ -18,7 +18,7 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     snapshots(up, [{8, "10"}, {0, "20"}])
     snapshots(down, [{8, "20"}, {0, "10"}])
     snapshots(one_point, [{0, "20"}])
-    snapshots(short, [{6, "10"}, {0, "20"}])
+    snapshots(short, [{0, "10"}, {0, "20"}])
     snapshots(small, [{8, "10"}, {0, "10.40"}])
     snapshots(future, [{8, "10"}, {-1, "20"}])
     snapshots(other_policy, [{8, "10"}, {0, "20"}], "other")
@@ -31,11 +31,18 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
       ]
     )
 
-    assert {:ok, [first, second]} = Core.list_homepage_price_changes(@as_of, 4)
-    assert Enum.map([first, second], & &1.tcgdex_id) == [up.tcgdex_id, down.tcgdex_id]
+    assert {:ok, [first, second, third]} = Core.list_homepage_price_changes(@as_of, 4)
+
+    assert Enum.map([first, second, third], & &1.tcgdex_id) == [
+             up.tcgdex_id,
+             down.tcgdex_id,
+             small.tcgdex_id
+           ]
+
     assert first.card_printing_id == up.id
     assert Decimal.equal?(first.change_percent, Decimal.new("100.00"))
     assert Decimal.equal?(second.change_percent, Decimal.new("-50.00"))
+    assert Decimal.equal?(third.change_percent, Decimal.new("4.00"))
     assert first.start_date == Date.add(DateTime.to_date(@as_of), -8)
     assert first.current_date == DateTime.to_date(@as_of)
     assert first.current_fetched_at == @as_of
@@ -62,6 +69,28 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     assert Decimal.equal?(change.change_percent, Decimal.new("50.00"))
   end
 
+  test "a ten item result balances risers and fallers without weakening evidence" do
+    risers = Enum.map(1..6, &card("riser-#{&1}"))
+    fallers = Enum.map(1..6, &card("faller-#{&1}"))
+
+    Enum.each(risers, &snapshots(&1, [{8, "10"}, {0, "20"}]))
+    Enum.each(fallers, &snapshots(&1, [{8, "20"}, {0, "10"}]))
+    weak = card("weak-ten")
+    short = card("short-ten")
+    snapshots(weak, [{8, "10"}, {0, "10.40"}])
+    snapshots(short, [{6, "10"}, {0, "20"}])
+
+    old = card("old-epoch-ten")
+    snapshots(old, [{8, "10"}, {0, "20"}], "old-policy")
+
+    assert {:ok, changes} = Core.list_homepage_price_changes(@as_of, 10)
+    assert length(changes) == 10
+    assert Enum.count(changes, &(Decimal.compare(&1.change_percent, Decimal.new(0)) == :gt)) == 5
+    assert Enum.count(changes, &(Decimal.compare(&1.change_percent, Decimal.new(0)) == :lt)) == 5
+    refute Enum.any?(changes, &(&1.card_printing_id in [weak.id, short.id]))
+    refute Enum.any?(changes, &(&1.card_printing_id == old.id))
+  end
+
   test "price changes exclude snapshots from an old cardmarket mapping" do
     card = card("old-mapping")
     old_product_id = card.cardmarket_product_id
@@ -78,7 +107,7 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
 
   test "recent releases are public, released, and bounded" do
     since = ~D[2026-07-01]
-    _older = released_product("older", ~D[2026-08-01])
+    older = released_product("older", ~D[2026-08-01])
     newest = released_product("newest", ~D[2026-08-10])
     middle = released_product("middle", ~D[2026-08-05])
     discontinued = released_product("discontinued", ~D[2026-08-04])
@@ -101,12 +130,13 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
              newest.name,
              middle.name,
              discontinued.name,
-             "fifth"
+             "fifth",
+             older.name
            ]
 
     assert Enum.all?(products, &(&1.publication_status == "approved"))
     assert {:ok, bounded} = Core.list_recent_public_sealed_products(since, ~D[2026-08-10])
-    assert length(bounded) == 4
+    assert length(bounded) == 5
   end
 
   defp card(label) do

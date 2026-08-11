@@ -1,0 +1,104 @@
+[
+  {
+    "id": 8393,
+    "name": "Pokémon TCG: 151 – Booster Bundle",
+    "permalink": "https://cardzhouse.pl/product/pokemon-tcg-151-booster-bundle/",
+    "prices": {
+      "price": "59999",
+      "currency_code": "PLN",
+      "currency_minor_unit": 2
+    },
+    "categories": [
+      {
+        "id": 742,
+        "name": "Booster Bundle",
+        "slug": "booster-bundle"
+      }
+    ],
+    "tags": [],
+    "is_purchasable": false,
+    "is_in_stock": false,
+    "is_on_backorder": false
+  },
+  {
+    "id": 8394,
+    "name": "Pokémon TCG: Japanese Scarlet & Violet Booster Box",
+    "permalink": "https://cardzhouse.pl/product/pokemon-tcg-japanese-scarlet-violet-booster-box/",
+    "prices": {
+      "price": "15999",
+      "currency_code": "PLN",
+      "currency_minor_unit": 2
+    },
+    "categories": [
+      {
+        "id": 743,
+        "name": "Booster Boxy",
+        "slug": "booster-boxy"
+      }
+    ],
+    "tags": [
+      {
+        "id": 1,
+        "name": "Import",
+        "slug": "import"
+      }
+    ],
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "is_on_backorder": false
+  },
+  {
+    "id": 8395,
+    "name": "Pokémon TCG Acrylic Booster Bundle Protection",
+    "permalink": "https://cardzhouse.pl/product/pokemon-tcg-acrylic-booster-bundle-protection/",
+    "prices": {
+      "price": "2999",
+      "currency_code": "PLN",
+      "currency_minor_unit": 2
+    },
+    "categories": [
+      {
+        "id": 744,
+        "name": "Premium Boxy",
+        "slug": "premium-boxy"
+      }
+    ],
+    "tags": [
+      {
+        "id": 2,
+        "name": "Acrylic",
+        "slug": "acrylic"
+      }
+    ],
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "is_on_backorder": false
+  },
+  {
+    "id": 8396,
+    "name": "Pokémon TCG: Destined Rivals Booster Bundle Preorder",
+    "permalink": "https://cardzhouse.pl/product/pokemon-tcg-destined-rivals-booster-bundle-preorder/",
+    "prices": {
+      "price": "59999",
+      "currency_code": "PLN",
+      "currency_minor_unit": 2
+    },
+    "categories": [
+      {
+        "id": 745,
+        "name": "Booster Bundle",
+        "slug": "booster-bundle"
+      }
+    ],
+    "tags": [
+      {
+        "id": 3,
+        "name": "Preorder",
+        "slug": "preorder"
+      }
+    ],
+    "is_purchasable": true,
+    "is_in_stock": true,
+    "is_on_backorder": false
+  }
+]

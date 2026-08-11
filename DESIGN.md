@@ -13,63 +13,73 @@ colors:
   bench: "#f3ead7"
   bench-light: "#fffaf0"
   paper: "#fffdf8"
-  orange: "#c64e2d"
+  orange: "#b54125"
   muted: "#6d6256"
+  rise: "#27714b"
+  fall: "#a6402f"
 typography:
   display:
     fontFamily: "Barlow Condensed, sans-serif"
-    fontSize: "clamp(2.2rem, 6vw, 4rem)"
+    fontSize: "clamp(2rem, 4vw, 2.5rem)"
+    typeRamp: ["1.25rem", "1.5rem", "2rem", "2.5rem"]
     fontWeight: 700
-    lineHeight: 0.83
-    letterSpacing: "-0.045em"
+    lineHeight: 1
+    letterSpacing: "-0.04em"
   body:
     fontFamily: "Azeret Mono, ui-monospace, monospace"
-    fontSize: "0.75rem"
+    fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.7
   label:
     fontFamily: "Azeret Mono, ui-monospace, monospace"
-    fontSize: "0.75rem"
+    fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.5
 rounded:
   square: "0"
 spacing:
-  unit: "1rem"
-  container: "62rem"
+  scale: ["4px", "8px", "12px", "16px", "24px", "32px", "48px", "64px"]
+  coreGrid: "8px"
+  halfStep: "4px"
+  intermediateStep: "12px"
+  container: "72rem"
+  desktopMax: "1100-1200px"
+  desktopSectionGap: "48px"
+  desktopPanelPadding: "24-32px"
+  mobileDensityReduction: "33-50%"
 components:
   decision-header:
     backgroundColor: "{colors.bench}"
     textColor: "{colors.ink}"
     typography: "{typography.label}"
     rounded: "{rounded.square}"
-    padding: "1rem clamp(1rem, 4vw, 3.5rem)"
+    padding: "16px 48px"
   mode-switch:
     backgroundColor: "{colors.bench}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    minHeight: "2.8rem"
+    minHeight: "3rem"
   decision-search:
     backgroundColor: "{colors.bench-light}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "clamp(1rem, 3vw, 1.75rem)"
+    padding: "24px"
   price-row:
     backgroundColor: "{colors.paper}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "0.75rem"
+    padding: "12px"
   archive-active-label:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.tissue}"
     typography: "{typography.label}"
     rounded: "{rounded.square}"
-    padding: "0.45rem 0.55rem"
+    padding: "4px 8px"
   price-methodology:
     backgroundColor: "{colors.tissue}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "0.75rem 1rem"
+    padding: "12px 16px"
   printing-label:
     backgroundColor: "{colors.tissue}"
     textColor: "{colors.ink}"
@@ -79,7 +89,7 @@ components:
     textColor: "{colors.ink}"
     typography: "{typography.label}"
     rounded: "{rounded.square}"
-    padding: "0.3rem 0.4rem"
+    padding: "4px 8px"
 ---
 
 # Design System: TCG Cheap Decision Surface
@@ -107,7 +117,9 @@ The Home palette is a warm counter system: bench establishes the light field, pa
 - **Bench**: The warm light counter field for Home.
 - **Bench light**: The bright search surface.
 - **Paper**: The evidence-slip surface.
-- **Orange**: Action, focus, and methodology emphasis.
+- **Orange**: Action, focus, and methodology emphasis; canonical `#b54125` keeps normal text contrast clear on warm surfaces.
+- **Rise**: Positive directional evidence on paper; canonical `#27714b` keeps normal text contrast clear at `4.5:1` or better.
+- **Fall**: Negative directional evidence on paper; canonical `#a6402f` keeps normal text contrast clear at `4.5:1` or better.
 
 ### Secondary
 - **Sage**: The status color for STANDARD archive chips.
@@ -119,6 +131,8 @@ The Home palette is a warm counter system: bench establishes the light field, pa
 - **Ink**: The near-black writing, rules, borders, and primary contrast.
 - **Tissue**: The paper-colored label and drawer surface, including inverse header text.
 
+Directional evidence uses `rise` and `fall` only as intentional accessible movement colors on paper. Derived warm art and state backgrounds use `color-mix()` from documented `paper`, `bench`, and `orange` tokens rather than introducing new literal colors.
+
 **The Scope Rule.** Use bench, bench-light, paper, ink, orange, and muted tokens inside `.decision-world` for Home. Preserve board/tissue/archive tokens inside `.archive-world` for card detail; neither world should silently inherit the other’s field or texture.
 
 ## Typography
@@ -126,21 +140,27 @@ The Home palette is a warm counter system: bench establishes the light field, pa
 **Action/display font:** Barlow Condensed (sans-serif fallback)
 **Evidence font:** Azeret Mono (ui-monospace, monospace fallback)
 
-**Character:** Barlow Condensed 700 gives the decision headline, search heading, estimate, mode controls, and detail action a compressed counter-sign voice. Azeret Mono is evidence-only: search guidance, identity metadata, methodology, disclaimer, and state copy stay measured and inspectable.
+**Character:** Barlow Condensed 700 gives the decision headline, search heading, estimate, mode controls, and detail action a compressed counter-sign voice. The 700 weight is a documented brand/asset exception: only the approved 700 asset exists, so do not substitute a requested semibold file. Azeret Mono is body and evidence: search guidance, identity metadata, methodology, disclaimer, and state copy stay measured and inspectable. Use no more than these two typefaces.
 
 ### Hierarchy
-- **Decision call** (700, `clamp(2.2rem, 6vw, 4rem)`, 0.92): `Compare Pokémon prices` and the first-viewport task.
-- **Action heading** (700, `clamp(1.7rem, 4vw, 2.5rem)`, 1): Search and disclosure headings.
+- **H1 / decision call** (700, `32–40px`, 0.92): `Compare Pokémon prices` and the first-viewport task.
+- **H2 / action heading** (700, `24–28px`, 1): Search and disclosure headings; narrow display steps include `1.25rem` and `1.5rem` where the available width requires them.
+- **H3 / supporting heading** (700, `20–22px`): Section and panel headings.
 - **Price/name** (700, `1.45rem` name / `1.8rem` estimate, 0.9): Exact printing name and EUR estimate.
-- **Row metadata/label** (400, `.62rem–.75rem`, 1.5–1.7): Set, collector number, rarity, update state, shipping note, and caveat copy.
+- **Body** (400, `16px`, 1.5–1.7): Explanatory and operational copy; prose stays at or below `70ch`.
+- **Row metadata/label** (400, `14px` minimum, 1.5–1.7): Set, collector number, rarity, update state, shipping note, and caveat copy.
 
 **The Identity Rule.** Keep exact-printing names in condensed display type and identity fields in monospaced data type; do not turn catalogue facts into marketing copy.
 
 ## Layout
 
-The `.decision-world` uses a compact full-width counter header and a centered Home container capped at `62rem`. The intro places the wordmark/call beside the accessible mode switch; below `42rem` they stack and the switch becomes full width. The decision title tops out at `4rem`, while mode and action controls use `2.8rem` minimum heights. The direct search precedes one vertical list of price rows. Each row uses a `5.5rem minmax(0, 1fr)` image/content split (`4.75rem minmax(0, 1fr)` below `24rem`), with identity, estimate, update state, and one CTA in the content column; text wraps without horizontal overflow.
+The `.decision-world` uses a compact full-width counter header and a centered Home container capped at the canonical `1152px` (`72rem`), within an approved desktop range of `1100–1200px`. Major sections have `48px` desktop separation and actual cards/panels use `24–32px` desktop spacing; compact price and evidence rows are rows, not cards, and intentionally use denser `12–16px` padding. The intro places the wordmark/call beside the accessible mode switch; below `42rem` they stack and the switch becomes full width. Mobile-first layouts stack, reduce spatial density by about `33–50%`, and preserve at least `48px` for every control; the header uses `16px` inline padding on mobile. The decision title is `32–40px`, while mode and action controls use `48px` minimum heights. The direct search precedes one vertical list of price rows. Each row uses a `5.5rem minmax(0, 1fr)` image/content split (`4.75rem minmax(0, 1fr)` below `24rem`), with identity, estimate, update state, and one CTA in the content column; text wraps without horizontal overflow.
 
 The decision header and result heading use `2px` ink rules. The search surface is the visual pause before results, with the input spanning the available width. Results are visible in the desktop viewport; mobile keeps mode, search, identity, estimate, and action usable in sequence.
+
+### Action hierarchy and accessibility
+
+Each screen has one primary task/action hierarchy with generous space around it. Home's search and `View price` flow is that hierarchy. Repeated result-row CTAs are contextual choices within the result list, not competing page-level primaries. In Trade, the equal left/right choices and row operations are necessary Operate-mode peers, so the two-sided ledger intentionally presents them symmetrically. Normal text meets at least `4.5:1` contrast, focus is always clearly visible, and interactive targets are at least `48px`.
 
 ## Elevation & Depth
 
@@ -178,7 +198,7 @@ The Home form language is square throughout: controls and price-row surfaces use
 
 ### Price row
 - **Character:** One exact printing’s identity and honest local estimate, ready for a counter decision.
-- **Shape:** Paper surface, `1.5px` ink border, a `5.5rem minmax(0, 1fr)` image/content split (narrowed to `4.75rem minmax(0, 1fr)` below `24rem`), and a `2.8rem` minimum action target.
+- **Shape:** Paper surface, `1.5px` ink border, a `5.5rem minmax(0, 1fr)` image/content split (narrowed to `4.75rem minmax(0, 1fr)` below `24rem`), and a `48px` minimum action target.
 - **Color:** Warm image backing, ink identity, orange emphasis, and paper surface.
 - **Behavior:** Uses a low WebP thumbnail when available; missing imagery remains explicit. Results reveal once with `bench-reveal`; reduced motion removes it.
 
@@ -189,7 +209,7 @@ The Home form language is square throughout: controls and price-row surfaces use
 
 ### Archive chips
 - **Character:** Small paper annotations, not calls to action.
-- **Shape:** Square `1px` ink border, compact padding (`0.3rem 0.4rem`), wrapping in a flexible row.
+- **Shape:** Square `1px` ink border, compact padding (`4px 8px`), wrapping in a flexible row.
 - **Color:** Lilac marks rarity, sage marks STANDARD, and indigo marks EXPANDED; ink remains the text and border color.
 
 ### State notes and price details
@@ -200,7 +220,7 @@ The Home form language is square throughout: controls and price-row surfaces use
 ### Trade decision bench
 - **Character:** An Operate-mode extension of the card-shop valuation bench for an in-store two-sided decision.
 - **Layout:** One selected-card staging strip leads to two symmetric ledgers; desktop uses columns and mobile stacks the sides. The surface must not overflow a 390px viewport.
-- **Controls:** Search is local and singular. Add-left and Add-right are explicit, square, and at least 44px; quantity decrement/increment/remove controls preserve exact identity and URL state.
+- **Controls:** Search is local and singular. Add-left and Add-right are explicit, square, and at least 48px; quantity decrement/increment/remove controls preserve exact identity and URL state.
 - **Evidence:** Rows show exact printing identity and EUR-only unit/row values, with `Updated today/yesterday/N days ago`, stale/outdated, fetching/failure, and unknown valid IDs as removable but unpriced. Each side total shows EUR plus Decimal PLN; incomplete known subtotals show both currencies plus `?`, and complete difference shows both currencies while incomplete difference remains explicit. NBP evidence shows exact `1 EUR = … PLN`, effective date, relative age, and pending/failed/no-cache states; carry-forward rates remain honestly dated.
 - **Acquisition:** Missing/stale composition rows render immediately, then use one bounded canonical bulk request and background jobs. Failure retains a stale estimate; search and pick alone never enqueue.
 - **Boundary:** External `TradeShare` copies an absolute server-derived canonical `Composition.to_path` URL containing only stable IDs and quantities. Clipboard API and cleaned legacy fallback restore focus, avoid stale/overlapping/destroyed feedback, and expose one accessible feedback live region. Sealed remains unavailable; Phase 4 is next.
@@ -211,8 +231,8 @@ The Home form language is square throughout: controls and price-row surfaces use
 - **Do** keep Home in the bright `.decision-world`; preserve `.archive-world` for card detail.
 - **Do** make Singles the default and keep the mode switch keyboard-accessible with an honest unavailable Sealed state.
 - **Do** make `Find a card`, image/name/set/collector identity, price/update state, and one solid `View price` action obvious.
-- **Do** use Barlow Condensed for action hierarchy and Azeret Mono for evidence only.
-- **Do** preserve square rules, 44px touch targets, the single reveal motion, and its reduced-motion fallback.
+- **Do** use Barlow Condensed for action hierarchy and Azeret Mono for body and evidence.
+- **Do** preserve square rules, 48px touch targets, the single reveal motion, and its reduced-motion fallback.
 - **Do** keep autocomplete active state visibly ruled, internally scrollable, keyboard/touch accessible, and stable through LiveView stream updates.
 - **Do** keep caveats available in collapsed `How prices work` details, use terse shipping language, and use low WebP thumbnails when available.
 

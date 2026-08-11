@@ -12,17 +12,22 @@
       "bench-light": { "role": "primary", "displayName": "Bench light", "canonical": "#fffaf0" },
       "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#fffdf8" },
       "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#201d19" },
-      "orange": { "role": "accent", "displayName": "Orange", "canonical": "#c64e2d" },
+      "orange": { "role": "accent", "displayName": "Orange", "canonical": "#b54125" },
       "muted": { "role": "secondary", "displayName": "Muted", "canonical": "#6d6256" },
+      "rise": { "role": "directional-positive", "displayName": "Rise", "canonical": "#27714b", "description": "Positive directional evidence on paper; clear 4.5:1 contrast." },
+      "fall": { "role": "directional-negative", "displayName": "Fall", "canonical": "#a6402f", "description": "Negative directional evidence on paper; clear 4.5:1 contrast." },
       "archive-box-board": { "role": "archive", "displayName": "Archive box-board", "canonical": "#c86c3f" },
       "archive-tissue": { "role": "archive", "displayName": "Archive tissue", "canonical": "#f6f0df" }
     },
     "typographyMeta": {
-      "action": { "displayName": "Barlow Condensed 700", "fontSize": "clamp(2.2rem, 6vw, 4rem)", "purpose": "Home decision call, headings, estimates, mode controls, and action hierarchy; compact wordmark remains .85rem mono." },
-      "evidence": { "displayName": "Azeret Mono 400", "purpose": "Evidence-only identity, methodology, disclaimer, help, and state copy." }
+      "action": { "displayName": "Barlow Condensed 700", "fontSize": "H1 32-40px / H2 24-28px / H3 20-22px", "typeRamp": ["1.25rem", "1.5rem", "2rem", "2.5rem"], "purpose": "Home decision call, headings, estimates, mode controls, and action hierarchy; narrow display steps include 1.25rem and 1.5rem where relevant; 700 is the approved brand/asset exception because only the 700 asset exists." },
+      "evidence": { "displayName": "Azeret Mono 400", "fontSize": "16px body / 14px metadata minimum", "lineHeight": "1.5-1.7", "purpose": "Body and evidence: identity, methodology, disclaimer, help, and state copy; prose max 70ch." }
     },
+    "spacing": { "scale": ["4px", "8px", "12px", "16px", "24px", "32px", "48px", "64px"], "coreGrid": "8px", "halfStep": "4px", "intermediateStep": "12px", "desktopContainer": "1152px / 72rem", "desktopRange": "1100-1200px", "majorSectionGap": "48px", "panelSpacing": "24-32px", "mobileDensityReduction": "33-50%" },
+    "accessibility": { "minimumTextContrast": "4.5:1", "minimumTarget": "48px", "focus": "clear visible focus indicator" },
+    "hierarchy": { "primary": "One primary task/action hierarchy per screen with generous surrounding space.", "contextualRows": "Repeated result-row CTAs are contextual, not competing page-level primaries.", "tradePeers": "Trade's equal left/right choices and row operations are necessary Operate-mode peers." },
     "rounded": { "square": "0" },
-    "touchTargets": { "minimum": "44px", "appliesTo": ["mode-switch", "search", "value-details"] },
+    "touchTargets": { "minimum": "48px", "appliesTo": ["mode-switch", "search", "value-details", "trade-side-actions", "row-operations"] },
     "motion": [
       { "name": "bench-reveal", "value": "0.45s ease-out", "purpose": "One price-row reveal; disabled under prefers-reduced-motion." }
     ],
@@ -46,7 +51,7 @@
       "refersTo": "mode-switch",
       "description": "Accessible Singles default and Sealed-products switch; Sealed exposes an honest unavailable state.",
       "html": "<div class=\"mode-switch\" role=\"group\" aria-label=\"Choose product mode\"><button aria-pressed=\"true\">Singles</button><button aria-pressed=\"false\">Sealed products</button></div>",
-      "css": ".mode-switch { border: 2px solid #201d19; } .mode-switch button { min-height: 2.8rem; font-family: \"Barlow Condensed\", sans-serif; }"
+      "css": ".mode-switch { border: 2px solid #201d19; } .mode-switch button { min-height: 48px; font-family: \"Barlow Condensed\", sans-serif; }"
     },
     {
       "name": "Decision Search",
@@ -54,7 +59,7 @@
       "refersTo": "decision-search",
       "description": "Direct local exact-printing search with a 250ms debounce and no provider request.",
       "html": "<section class=\"decision-search\"><h2>Find a card</h2><input type=\"search\" placeholder=\"Card name, set, or number\" /></section>",
-      "css": ".decision-search { background: #fffaf0; border: 2px solid #201d19; } input { min-height: 44px; border-bottom: 3px solid #201d19; border-radius: 0; }"
+      "css": ".decision-search { background: #fffaf0; border: 2px solid #201d19; } input { min-height: 48px; border-bottom: 3px solid #201d19; border-radius: 0; }"
     },
     {
       "name": "Autocomplete Combobox",
@@ -78,7 +83,7 @@
       "refersTo": "price-methodology",
       "description": "Collapsed How prices work disclosure containing policy, methodology, non-affiliation, shipping, and caveat detail.",
       "html": "<details class=\"price-methodology\"><summary>How prices work</summary><p>Methodology, policy, and non-affiliation details.</p></details>",
-      "css": ".price-methodology { border-left: 4px solid #c64e2d; background: #fffaf0; color: #201d19; }"
+      "css": ".price-methodology { border-left: 4px solid #b54125; background: #fffaf0; color: #201d19; }"
     },
     {
       "name": "Archive Detail Contract",
@@ -94,15 +99,18 @@
     "overview": "Home and Trade are bright card-shop counter scenes distilled for ordinary collectors: find a card, inspect honest value evidence, then operate a two-sided decision bench when comparing a trade. Warm bench, paper, ink, and orange tokens frame exact identity, current/stale/unpriced states, and clear actions. Archive-world remains the card-detail contract.",
     "keyCharacteristics": [
       "Square rules and warm bench/paper/ink/orange palette.",
-      "Barlow Condensed action hierarchy with Azeret Mono evidence only.",
+      "Rise #27714b and fall #a6402f are intentional accessible positive/negative directional evidence colors on paper; derived warm art and state backgrounds use color-mix from documented paper, bench, and orange tokens rather than new literal colors.",
+      "Barlow Condensed action hierarchy with Azeret Mono for body and evidence.",
       "Accessible mode switch, direct Find a card search, honest unavailable Sealed mode, collapsed How prices work details, and one reveal motion with reduced-motion support."
     ],
     "rules": [
       { "name": "The Scope Rule", "body": "Keep the decision-world on Home and Trade and preserve archive-world for card detail; do not merge their visual contracts.", "section": "worlds" },
       { "name": "The Evidence Rule", "body": "Show exact identity, discriminators, source/methodology, and current/fresh, stale, or unpriced status without fabricated precision.", "section": "evidence" },
-      { "name": "The Action Rule", "body": "Make search and one value-details action clear, with 44px-class touch targets and keyboard focus.", "section": "interaction" },
+      { "name": "The Action Rule", "body": "Give each screen one primary task/action hierarchy with generous surrounding space; contextual result-row CTAs do not compete with it. Use 48px targets, 4.5:1 normal text contrast, and clear keyboard focus.", "section": "interaction" },
       { "name": "The Focus Rule", "body": "Use the shared external 250ms CardAutocomplete hook so query, input node, focus, caret/selection, and composition survive result updates; keep active options stable, visibly ruled, and internally scrollable.", "section": "interaction" },
-      { "name": "The Trade Evidence Rule", "body": "Keep two symmetric square ledgers, exact identity, 44px controls, visible acquisition status, stale/unpriced honesty, and no implied share/copy or PLN capability before those pieces exist.", "section": "trade" }
+      { "name": "The Trade Evidence Rule", "body": "Keep two symmetric square ledgers, exact identity, 48px controls, visible acquisition status, stale/unpriced honesty, and no implied share/copy or PLN capability before those pieces exist.", "section": "trade" },
+      { "name": "The Spatial Rule", "body": "Use the 4/8/12/16/24/32/48/64px scale on an 8px core grid, a canonical 1152px (72rem) desktop container, 48px major section spacing, 24-32px actual card/panel spacing, and mobile-first stacking with 33-50% lower spatial density.", "section": "layout" },
+      { "name": "The Row Density Rule", "body": "Compact price and evidence rows are rows, not cards, so their intentional 12-16px padding exception keeps repeated evidence scannable while actual panels/cards retain 24-32px spacing.", "section": "layout" }
     ],
     "dos": [
       "Do keep Singles as the default Home mode and state Sealed honestly unavailable.",

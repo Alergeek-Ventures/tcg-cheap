@@ -58,6 +58,22 @@ config :tcg_cheap, TcgCheapWeb.Endpoint,
 # Enable dev routes for dashboard and mailbox
 config :tcg_cheap, dev_routes: true
 
+# Development-only/manual-test adapter registry; no Cron is enabled for it.
+config :tcg_cheap, :sealed_retailer_adapters, %{
+  "lootquest" => %{
+    adapter: TcgCheap.Catalogue.SealedRetailers.LootQuest,
+    options: [per_page: 100, max_pages: 10]
+  },
+  "cardzhouse" => %{
+    adapter: TcgCheap.Catalogue.SealedRetailers.CardzHouse,
+    options: [per_page: 100, max_pages: 10]
+  },
+  "boosterpoint" => %{
+    adapter: TcgCheap.Catalogue.SealedRetailers.BoosterPoint,
+    options: [per_page: 100, max_pages: 10]
+  }
+}
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 

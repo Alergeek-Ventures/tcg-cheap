@@ -1,7 +1,7 @@
 defmodule TcgCheap.Catalogue.SealedRetailerRefresh do
   @moduledoc "Fetches, validates, and atomically ingests one retailer's listing batch."
 
-  alias TcgCheap.Catalogue.{Retailer, SealedRetailerAdapter}
+  alias TcgCheap.Catalogue.{ListingProductMappingImporter, Retailer, SealedRetailerAdapter}
   alias TcgCheap.Core
   alias TcgCheap.Repo
 
@@ -174,27 +174,36 @@ defmodule TcgCheap.Catalogue.SealedRetailerRefresh do
 
   defp persist_listings(retailer_id, listings) do
     Enum.reduce(listings, {0, []}, fn listing, {count, notifications} ->
-      attrs =
-        listing
-        |> Map.from_struct()
-        |> Map.put(:retailer_id, retailer_id)
-        |> Map.delete(:normalized_title)
+      {persisted, action_notifications, mapping_notifications} =
+        persist_listing(retailer_id, listing)
 
-      case Core.ingest_retailer_listing(attrs, return_notifications?: true) do
-        {:ok, _listing, action_notifications} ->
-          {count + 1, [action_notifications | notifications]}
-
-        {:error, %Ash.Error.Invalid{} = error} ->
-          Repo.rollback({:invalid, error})
-
-        {:error, %Ash.Changeset{} = changeset} ->
-          Repo.rollback({:invalid, changeset})
-
-        {:error, error} ->
-          Repo.rollback(error)
-      end
+      {count + persisted, [action_notifications, mapping_notifications | notifications]}
     end)
     |> then(fn {count, notifications} -> {count, Enum.flat_map(notifications, & &1)} end)
+  end
+
+  defp persist_listing(retailer_id, listing) do
+    attrs =
+      listing
+      |> Map.from_struct()
+      |> Map.put(:retailer_id, retailer_id)
+      |> Map.delete(:normalized_title)
+
+    with {:ok, stored_listing, action_notifications} <-
+           Core.ingest_retailer_listing(attrs, return_notifications?: true),
+         {:ok, _mapping, mapping_notifications} <-
+           ListingProductMappingImporter.ensure(stored_listing) do
+      {1, action_notifications, mapping_notifications}
+    else
+      {:error, %Ash.Error.Invalid{} = error} ->
+        Repo.rollback({:invalid, error})
+
+      {:error, %Ash.Changeset{} = changeset} ->
+        Repo.rollback({:invalid, changeset})
+
+      {:error, error} ->
+        Repo.rollback(error)
+    end
   end
 
   defp latest_check([]), do: nil

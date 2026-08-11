@@ -6,24 +6,33 @@ defmodule TcgCheapWeb.HomeLive do
   alias TcgCheap.Pricing.Singles.Freshness
 
   @max_autocomplete_options 10
-  @recent_release_window_days 180
-
+  # Keep the idle shelf useful for long-lived catalogue data (including 151).
+  @recent_sealed_window_days 1_825
   @impl true
   def mount(_params, _session, socket) do
     as_of = DateTime.utc_now()
 
     {price_changes, price_changes_ok?} =
-      safe_discovery(fn -> TcgCheap.Core.list_homepage_price_changes(as_of, 4) end)
+      safe_discovery(fn -> TcgCheap.Core.list_homepage_price_changes(as_of, 10) end)
+
+    {sealed_price_changes, sealed_price_changes_ok?} =
+      safe_discovery(fn -> TcgCheap.Core.list_homepage_sealed_price_changes(as_of, 10) end)
+
+    as_of_date = DateTime.to_date(as_of)
+
+    {recent_cards, recent_cards_ok?} =
+      safe_discovery(fn -> TcgCheap.Core.list_recently_tracked_card_printings() end)
 
     {recent_sealed, recent_sealed_ok?} =
       safe_discovery(fn ->
-        as_of_date = DateTime.to_date(as_of)
-
         TcgCheap.Core.list_recent_public_sealed_products(
-          Date.add(as_of_date, 1 - @recent_release_window_days),
+          Date.add(as_of_date, -@recent_sealed_window_days),
           as_of_date
         )
       end)
+
+    {single_risers, single_fallers} = split_movers(price_changes)
+    {sealed_risers, sealed_fallers} = split_movers(sealed_price_changes)
 
     {:ok,
      socket
@@ -36,30 +45,53 @@ defmodule TcgCheapWeb.HomeLive do
        search_query: "",
        autocomplete_options: [],
        active_option_id: nil,
-       price_changes_count: length(price_changes),
+       singles_risers_count: length(single_risers),
+       singles_fallers_count: length(single_fallers),
+       sealed_risers_count: length(sealed_risers),
+       sealed_fallers_count: length(sealed_fallers),
+       singles_movers_available?: price_changes_ok?,
+       sealed_movers_available?: sealed_price_changes_ok?,
+       recent_cards_available?: recent_cards_ok?,
+       recent_sealed_available?: recent_sealed_ok?,
+       recent_cards_count: length(recent_cards),
        recent_sealed_count: length(recent_sealed),
-       discovery_available?: price_changes_ok? or recent_sealed_ok?,
        fallback_cards_count: 0,
        fallback_sealed_count: 0
      )
      |> stream_configure(:card_results, dom_id: fn result -> "card-option-#{result.id}" end)
      |> stream_configure(:sealed_results, dom_id: fn result -> "sealed-option-#{result.id}" end)
-     |> stream_configure(:discovery_price_changes,
-       dom_id: fn result -> "discovery-change-#{result.card_printing_id}" end
+     |> stream_configure(:market_single_risers,
+       dom_id: fn result -> "market-single-riser-#{result.card_printing_id}" end
      )
-     |> stream_configure(:discovery_recent_sealed,
-       dom_id: fn result -> "discovery-sealed-#{result.id}" end
+     |> stream_configure(:market_single_fallers,
+       dom_id: fn result -> "market-single-faller-#{result.card_printing_id}" end
+     )
+     |> stream_configure(:market_sealed_risers,
+       dom_id: fn result -> "market-sealed-riser-#{result.sealed_product_id}" end
+     )
+     |> stream_configure(:market_sealed_fallers,
+       dom_id: fn result -> "market-sealed-faller-#{result.sealed_product_id}" end
      )
      |> stream_configure(:fallback_cards, dom_id: fn result -> "fallback-card-#{result.id}" end)
      |> stream_configure(:fallback_sealed,
        dom_id: fn result -> "fallback-sealed-#{result.id}" end
      )
+     |> stream_configure(:idle_recent_cards,
+       dom_id: fn result -> "idle-recent-card-#{result.id}" end
+     )
+     |> stream_configure(:idle_recent_sealed,
+       dom_id: fn result -> "idle-recent-sealed-#{result.id}" end
+     )
      |> stream(:card_results, [])
      |> stream(:sealed_results, [])
-     |> stream(:discovery_price_changes, price_changes)
-     |> stream(:discovery_recent_sealed, recent_sealed)
+     |> stream(:market_single_risers, single_risers)
+     |> stream(:market_single_fallers, single_fallers)
+     |> stream(:market_sealed_risers, sealed_risers)
+     |> stream(:market_sealed_fallers, sealed_fallers)
      |> stream(:fallback_cards, [])
-     |> stream(:fallback_sealed, [])}
+     |> stream(:fallback_sealed, [])
+     |> stream(:idle_recent_cards, recent_cards)
+     |> stream(:idle_recent_sealed, recent_sealed)}
   end
 
   @impl true
@@ -469,11 +501,19 @@ defmodule TcgCheapWeb.HomeLive do
               </section>
             <% end %>
 
-            <.discovery_ledgers
+            <.market_movers
               streams={@streams}
-              price_count={@price_changes_count}
-              sealed_count={@recent_sealed_count}
-              available?={@discovery_available?}
+              mode={@mode}
+              singles_risers_count={@singles_risers_count}
+              singles_fallers_count={@singles_fallers_count}
+              sealed_risers_count={@sealed_risers_count}
+              sealed_fallers_count={@sealed_fallers_count}
+              singles_available?={@singles_movers_available?}
+              sealed_available?={@sealed_movers_available?}
+              recent_cards_available?={@recent_cards_available?}
+              recent_sealed_available?={@recent_sealed_available?}
+              recent_cards_count={@recent_cards_count}
+              recent_sealed_count={@recent_sealed_count}
               hidden={@search_status != :idle}
             />
 
@@ -493,91 +533,329 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   attr :streams, :map, required: true
-  attr :price_count, :integer, required: true
-  attr :sealed_count, :integer, required: true
-  attr :available?, :boolean, required: true
+  attr :mode, :atom, required: true
+  attr :singles_risers_count, :integer, required: true
+  attr :singles_fallers_count, :integer, required: true
+  attr :sealed_risers_count, :integer, required: true
+  attr :sealed_fallers_count, :integer, required: true
+  attr :singles_available?, :boolean, required: true
+  attr :sealed_available?, :boolean, required: true
+  attr :recent_cards_available?, :boolean, required: true
+  attr :recent_sealed_available?, :boolean, required: true
+  attr :recent_cards_count, :integer, required: true
+  attr :recent_sealed_count, :integer, required: true
   attr :hidden, :boolean, required: true
 
-  def discovery_ledgers(assigns) do
+  def market_movers(assigns) do
     ~H"""
     <section
-      :if={@price_count > 0 or @sealed_count > 0}
-      id="homepage-discovery"
-      class="discovery-ledgers"
-      aria-label="Local discovery"
+      id="market-movers"
+      class="market-movers"
+      aria-labelledby="market-movers-title"
       hidden={@hidden}
     >
-      <div :if={@price_count > 0} id="biggest-changes" class="discovery-ledger">
-        <div class="discovery-heading">
-          <h2>Biggest changes</h2><span>{@price_count}</span>
-        </div>
-        <div id="biggest-changes-list" phx-update="stream" class="discovery-rows">
-          <.link
-            :for={{stream_id, change} <- @streams.discovery_price_changes}
-            id={stream_id}
-            navigate={~p"/cards/#{change.tcgdex_id}"}
-            class="discovery-row"
-          >
-            <div :if={CardImage.thumbnail_url(change.image_url)} class="discovery-thumb">
-              <img
-                src={CardImage.thumbnail_url(change.image_url)}
-                alt=""
-                width="80"
-                height="110"
-                loading="lazy"
-                decoding="async"
-                referrerpolicy="no-referrer"
-              />
-            </div>
-            <div
-              :if={!CardImage.thumbnail_url(change.image_url)}
-              id={"discovery-image-missing-#{change.card_printing_id}"}
-              class="discovery-thumb card-image-missing"
-              role="img"
-              aria-label="No image is available for this card."
-            >
-              <svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 4h38l10 10v78H12zM50 4v12h10M20 28h32M20 38h24M20 70h32M20 78h18" /></svg>
-            </div>
-            <div class="discovery-copy">
-              <h3 id={"discovery-change-name-#{change.card_printing_id}"}>{change.name}</h3><p>
-                {change.set_name} · #{change.collector_number}
-              </p><p class="discovery-evidence">
-                <strong>€{format_eur(change.current_value_eur)}</strong>
-                <span>{signed_percent(change.change_percent)}</span>
-                <span>{Date.diff(change.current_date, change.start_date)} days</span>
-                <span>{discovery_freshness_text(change.current_fetched_at)}</span>
-              </p>
-            </div>
-          </.link>
-        </div>
+      <h2 id="market-movers-title">Market movers</h2>
+      <p id="market-movers-intro">The largest qualified local changes in the recent 30-day window.</p>
+      <div
+        id="market-singles-panel"
+        class="market-mode-panel"
+        hidden={@mode != :singles or !@singles_available?}
+      >
+        <.mover_lane
+          :if={@singles_risers_count + @singles_fallers_count > 0}
+          title="Risers"
+          id="market-singles-risers"
+          count={@singles_risers_count}
+          empty="No qualified risers yet"
+          streams={@streams.market_single_risers}
+          kind={:single}
+        />
+        <.mover_lane
+          :if={@singles_risers_count + @singles_fallers_count > 0}
+          title="Fallers"
+          id="market-singles-fallers"
+          count={@singles_fallers_count}
+          empty="No qualified fallers yet"
+          streams={@streams.market_single_fallers}
+          kind={:single}
+        />
       </div>
-      <div :if={@sealed_count > 0} id="recent-sealed-releases" class="discovery-ledger">
-        <div class="discovery-heading">
-          <h2>Recent sealed releases</h2><span>{@sealed_count}</span>
+      <div
+        id="market-sealed-panel"
+        class="market-mode-panel"
+        hidden={@mode != :sealed or !@sealed_available?}
+      >
+        <.mover_lane
+          :if={@sealed_risers_count + @sealed_fallers_count > 0}
+          title="Risers"
+          id="market-sealed-risers"
+          count={@sealed_risers_count}
+          empty="No qualified risers yet"
+          streams={@streams.market_sealed_risers}
+          kind={:sealed}
+        />
+        <.mover_lane
+          :if={@sealed_risers_count + @sealed_fallers_count > 0}
+          title="Fallers"
+          id="market-sealed-fallers"
+          count={@sealed_fallers_count}
+          empty="No qualified fallers yet"
+          streams={@streams.market_sealed_fallers}
+          kind={:sealed}
+        />
+      </div>
+      <.recent_idle_ledger
+        id="market-singles-recent"
+        title="Recently tracked"
+        description="Price direction appears after observations on at least two dates."
+        streams={@streams.idle_recent_cards}
+        count={@recent_cards_count}
+        available?={@recent_cards_available?}
+        kind={:single}
+        hidden={
+          @mode != :singles or !@singles_available? or
+            @singles_risers_count + @singles_fallers_count > 0
+        }
+      />
+      <.recent_idle_ledger
+        id="market-sealed-recent"
+        title="Recently tracked"
+        description="Price direction appears after observations on at least two dates."
+        streams={@streams.idle_recent_sealed}
+        count={@recent_sealed_count}
+        available?={@recent_sealed_available?}
+        kind={:sealed}
+        hidden={
+          @mode != :sealed or !@sealed_available? or @sealed_risers_count + @sealed_fallers_count > 0
+        }
+      />
+      <p
+        :if={
+          (@mode == :singles and !@singles_available?) or (@mode == :sealed and !@sealed_available?)
+        }
+        id="market-movers-unavailable"
+        class="state-note state-error"
+      >
+        Market movers are unavailable right now. Try again later.
+      </p>
+    </section>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :title, :string, required: true
+  attr :description, :string, required: true
+  attr :streams, :any, required: true
+  attr :count, :integer, required: true
+  attr :available?, :boolean, required: true
+  attr :kind, :atom, required: true
+  attr :hidden, :boolean, required: true
+
+  def recent_idle_ledger(assigns) do
+    ~H"""
+    <section id={@id} class="market-recent-ledger" aria-labelledby={"#{@id}-title"} hidden={@hidden}>
+      <h3 id={"#{@id}-title"}>{@title} <span>{@count}</span></h3>
+      <p id={"#{@id}-direction-note"}>{@description}</p>
+      <%= if !@available? or @count == 0 do %>
+        <p id={"#{@id}-empty"} class="market-empty">
+          {if @available?,
+            do: "No recently tracked products yet.",
+            else: "Recent local data is unavailable right now."}
+        </p>
+      <% else %>
+        <div id={"#{@id}-list"} phx-update="stream" class="market-rows">
+          <%= if @kind == :single do %>
+            <.recent_single_rows streams={@streams} />
+          <% else %>
+            <.recent_sealed_rows streams={@streams} />
+          <% end %>
         </div>
-        <div id="recent-sealed-releases-list" phx-update="stream" class="discovery-rows">
-          <.link
-            :for={{stream_id, product} <- @streams.discovery_recent_sealed}
-            id={stream_id}
-            navigate={~p"/sealed/#{product.slug}"}
-            class="discovery-row discovery-sealed-row"
-          >
-            <div class="discovery-copy">
-              <h3 id={"discovery-sealed-name-#{product.id}"}>{product.name}</h3><p>
-                {human_product_type(product.product_type)} · Released {format_release_date(
-                  product.release_date
-                )}
-              </p><p :if={product.distribution_status == "discontinued"} class="discovery-status">
-                Discontinued
-              </p>
-            </div>
-          </.link>
-        </div>
+      <% end %>
+    </section>
+    """
+  end
+
+  attr :streams, :any, required: true
+
+  def recent_single_rows(assigns) do
+    ~H"""
+    <.link
+      :for={{stream_id, card} <- @streams}
+      id={stream_id}
+      navigate={~p"/cards/#{card.tcgdex_id}"}
+      class="market-row"
+    >
+      <div class="market-thumb">
+        <%= if image_url = CardImage.thumbnail_url(card.image_url) do %>
+          <img
+            src={image_url}
+            alt=""
+            width="80"
+            height="110"
+            loading="lazy"
+            decoding="async"
+            referrerpolicy="no-referrer"
+          />
+        <% else %>
+          <span
+            class="market-image-fallback"
+            role="img"
+            aria-label="No image is available for this card."
+          ><svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 4h38l10 10v78H12zM50 4v12h10M20 28h32M20 38h24M20 70h32M20 78h18" /></svg></span>
+        <% end %>
+      </div>
+      <div class="market-copy">
+        <h4>{card.name}</h4>
+        <p>{card.set_name} · #{card.collector_number}</p>
+        <p class="recent-value">
+          <strong>{estimate_display(Map.get(card, :tcgdex_cardmarket_v1_current_valuation))}</strong>
+          <%= if valuation = Map.get(card, :tcgdex_cardmarket_v1_current_valuation) do %>
+            · {freshness_text(valuation)}
+          <% end %>
+        </p>
+        <span class="market-action">View price</span>
+      </div>
+    </.link>
+    """
+  end
+
+  def recent_sealed_rows(assigns) do
+    ~H"""
+    <.link
+      :for={{stream_id, product} <- @streams}
+      id={stream_id}
+      navigate={~p"/sealed/#{product.slug}"}
+      class="market-row market-sealed-row"
+    >
+      <div class="market-thumb market-package">
+        <%= if image_url = CardImage.thumbnail_url(product.image_url) do %>
+          <img
+            src={image_url}
+            alt=""
+            width="80"
+            height="110"
+            loading="lazy"
+            decoding="async"
+            referrerpolicy="no-referrer"
+          />
+        <% else %>
+          <span role="img" aria-label={"Package line-art placeholder for #{product.name}"}><svg
+            viewBox="0 0 72 96"
+            aria-hidden="true"
+          ><path d="M12 14 36 5l24 9v68l-24 9-24-9zM12 14l24 9 24-9M36 23v68M22 39h28M22 49h20" /></svg></span>
+        <% end %>
+      </div>
+      <div class="market-copy">
+        <h4>{product.name}</h4>
+        <p>{sealed_identity(product)}</p>
+        <p>
+          {if product.release_date,
+            do: "Released " <> format_release_date(product.release_date),
+            else: "Release date unavailable"}
+        </p>
+        <span class="market-action">View offers</span>
+      </div>
+    </.link>
+    """
+  end
+
+  attr :title, :string, required: true
+  attr :id, :string, required: true
+  attr :count, :integer, required: true
+  attr :empty, :string, required: true
+  attr :streams, :any, required: true
+  attr :kind, :atom, required: true
+
+  def mover_lane(assigns) do
+    ~H"""
+    <section id={@id} class="market-lane" aria-labelledby={"#{@id}-title"}>
+      <div class="market-lane-heading">
+        <h3 id={"#{@id}-title"}>{@title}</h3><span>{@count}</span>
+      </div>
+      <div id={"#{@id}-list"} phx-update="stream" class="market-rows">
+        <%= if @count == 0 do %>
+          <p id={"#{@id}-empty"} class="market-empty">{@empty}</p>
+        <% end %>
+        <%= if @kind == :single do %>
+          <.single_mover_rows streams={@streams} />
+        <% else %>
+          <.sealed_mover_rows streams={@streams} />
+        <% end %>
       </div>
     </section>
-    <p :if={!@available?} id="homepage-discovery-unavailable" class="state-note" hidden={@hidden}>
-      Local discovery is temporarily unavailable.
-    </p>
+    """
+  end
+
+  attr :streams, :any, required: true
+
+  def single_mover_rows(assigns) do
+    ~H"""
+    <.link
+      :for={{stream_id, mover} <- @streams}
+      id={stream_id}
+      navigate={~p"/cards/#{mover.tcgdex_id}"}
+      class="market-row"
+    >
+      <div class="market-thumb">
+        <%= if image_url = CardImage.thumbnail_url(mover.image_url) do %>
+          <img
+            src={image_url}
+            alt=""
+            width="80"
+            height="110"
+            loading="lazy"
+            decoding="async"
+            referrerpolicy="no-referrer"
+          />
+        <% else %>
+          <span
+            class="market-image-fallback"
+            role="img"
+            aria-label="No image is available for this card."
+          ><svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 4h38l10 10v78H12zM50 4v12h10M20 28h32M20 38h24M20 70h32M20 78h18" /></svg></span>
+        <% end %>
+      </div>
+      <div class="market-copy">
+        <h4>{mover.name}</h4><p>{mover.set_name} · #{mover.collector_number}</p><p class={
+          movement_class(mover.change_percent)
+        }>
+          <strong>{movement_label(mover.change_percent)} {signed_percent(mover.change_percent)}</strong>
+          · €{format_eur(mover.current_value_eur)} · {Date.diff(mover.current_date, mover.start_date)}-day span · {discovery_freshness_text(
+            mover.current_fetched_at
+          )}
+        </p><span class="market-action">View price</span>
+      </div>
+    </.link>
+    """
+  end
+
+  def sealed_mover_rows(assigns) do
+    ~H"""
+    <.link
+      :for={{stream_id, mover} <- @streams}
+      id={stream_id}
+      navigate={~p"/sealed/#{mover.slug}"}
+      class="market-row market-sealed-row"
+    >
+      <div
+        class="market-thumb market-package"
+        role="img"
+        aria-label={"Package line-art placeholder for #{mover.name}"}
+      >
+        <svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 14 36 5l24 9v68l-24 9-24-9zM12 14l24 9 24-9M36 23v68M22 39h28M22 49h20" /></svg>
+      </div>
+      <div class="market-copy">
+        <h4>{mover.name}</h4><p>{sealed_identity(mover)}</p><p class={
+          movement_class(mover.change_percent)
+        }>
+          <strong>{movement_label(mover.change_percent)} {signed_percent(mover.change_percent)}</strong>
+          · {format_eur(mover.current_benchmark_pln)} PLN · {Date.diff(
+            mover.current_date,
+            mover.start_date
+          )}-day span · {checked_text(mover.current_checked_at)}
+        </p><span class="market-action">View offers</span>
+      </div>
+    </.link>
     """
   end
 
@@ -660,6 +938,22 @@ defmodule TcgCheapWeb.HomeLive do
     updated_text(fetched_at, Freshness.status_at(fetched_at, now), now)
   end
 
+  defp checked_text(checked_at) do
+    age = max(DateTime.diff(DateTime.utc_now(), checked_at, :day), 0)
+
+    case age do
+      0 -> "Checked today"
+      1 -> "Checked yesterday"
+      days -> "Checked #{days} days ago"
+    end
+  end
+
+  defp sealed_identity(mover) do
+    [human_product_type(mover.product_type), mover.series_name, mover.set_name]
+    |> Enum.reject(&(is_nil(&1) or &1 == ""))
+    |> Enum.join(" · ")
+  end
+
   defp updated_text(fetched_at, status, now) do
     age = max(DateTime.diff(now, fetched_at, :day), 0)
 
@@ -696,6 +990,21 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   defp signed_percent(value) when is_binary(value), do: signed_percent(Decimal.new(value))
+
+  defp split_movers(movers) do
+    {risers, fallers} =
+      Enum.split_with(movers, &(Decimal.compare(&1.change_percent, Decimal.new(0)) == :gt))
+
+    {risers, Enum.reject(fallers, &(Decimal.compare(&1.change_percent, Decimal.new(0)) == :eq))}
+  end
+
+  defp movement_label(value) do
+    if Decimal.compare(value, Decimal.new(0)) == :gt, do: "Rise", else: "Fall"
+  end
+
+  defp movement_class(value) do
+    if Decimal.compare(value, Decimal.new(0)) == :gt, do: "movement-rise", else: "movement-fall"
+  end
 
   defp search_locally(socket, query) do
     case TcgCheap.Core.search_card_printings(query) do

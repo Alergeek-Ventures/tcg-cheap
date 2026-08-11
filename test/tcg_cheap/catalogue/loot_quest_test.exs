@@ -146,6 +146,43 @@ defmodule TcgCheap.Catalogue.LootQuestTest do
     assert {:error, :malformed_shape} = LootQuest.fetch_listings(@retailer, options(name))
   end
 
+  test "rejects same-host product links with a trailing newline" do
+    name = make_ref()
+    [product | _] = fixture()
+
+    Req.Test.stub(name, fn conn ->
+      body = [Map.put(product, "permalink", "https://lootquest.pl/produkt/valid-product/\n")]
+      conn |> Plug.Conn.put_resp_header("x-wp-totalpages", "1") |> Req.Test.json(body)
+    end)
+
+    assert {:error, :malformed_shape} = LootQuest.fetch_listings(@retailer, options(name))
+  end
+
+  test "does not retry HTTP failures or re-admit the request" do
+    name = make_ref()
+    admissions = :counters.new(1, [:atomics])
+    requests = :counters.new(1, [:atomics])
+
+    Req.Test.stub(name, fn conn ->
+      :counters.add(requests, 1, 1)
+      conn |> Plug.Conn.put_status(503) |> Req.Test.text("")
+    end)
+
+    assert {:error, {:http_error, %{status: 503}}} =
+             LootQuest.fetch_listings(
+               @retailer,
+               options(name,
+                 request_admitter: fn ->
+                   :counters.add(admissions, 1, 1)
+                   :ok
+                 end
+               )
+             )
+
+    assert :counters.get(admissions, 1) == 1
+    assert :counters.get(requests, 1) == 1
+  end
+
   test "rejects unsafe options and bounded totals" do
     assert {:error, :invalid_options} = LootQuest.fetch_listings(@retailer, per_page: 101)
 

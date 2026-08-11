@@ -103,7 +103,7 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
     action :homepage_price_changes, {:array, :struct} do
       constraints items: [instance_of: TcgCheap.Pricing.Singles.HomepagePriceChange]
       argument :as_of, :utc_datetime_usec, allow_nil?: false
-      argument :limit, :integer, allow_nil?: false, default: 4, constraints: [min: 1, max: 6]
+      argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 10]
       run TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges
     end
 

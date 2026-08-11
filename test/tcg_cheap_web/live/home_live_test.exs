@@ -15,6 +15,10 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#card-search-form")
     refute has_element?(view, "#card-search-form[phx-change]")
     assert has_element?(view, "#card-search-query[type=search]")
+    assert has_element?(view, "#market-singles-panel:not([hidden])")
+    assert has_element?(view, "#market-sealed-panel[hidden]")
+    assert has_element?(view, "#market-singles-recent:not([hidden])")
+    assert has_element?(view, "#market-sealed-recent[hidden]")
 
     assert has_element?(
              view,
@@ -606,43 +610,154 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#card-option-#{first.id}")
   end
 
-  test "renders ordered discovery rows with evidence and direct routes", %{conn: conn} do
+  test "renders singles market movers with evidence and direct routes", %{conn: conn} do
     suffix = System.unique_integer([:positive])
     first = create_discovery_card("first-#{suffix}", "10", "20")
-    second = create_discovery_card("second-#{suffix}", "20", "10")
-    newest = create_sealed_product("Newest discovery #{suffix}")
+    _second = create_discovery_card("second-#{suffix}", "20", "10")
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    assert has_element?(view, "#market-movers")
+    assert has_element?(view, "#market-movers-title", "Market movers")
+    assert has_element?(view, "#market-singles-risers-list[phx-update=stream]")
+    assert has_element?(view, "#market-singles-fallers-list[phx-update=stream]")
+
+    assert has_element?(
+             view,
+             "#market-single-riser-#{first.id}[href='/cards/#{first.tcgdex_id}']"
+           )
+
+    assert has_element?(view, "#market-single-riser-#{first.id}", "€20.00")
+    assert has_element?(view, "#market-single-riser-#{first.id}", "+100.00%")
+    assert has_element?(view, "#market-single-riser-#{first.id}", "8-day span")
+    assert has_element?(view, "#market-single-riser-#{first.id}", "Updated today")
+    assert has_element?(view, "#market-single-riser-#{first.id}", "View price")
+    assert has_element?(view, "#market-singles-recent[hidden]")
+  end
+
+  test "renders one-observation recently tracked singles without inventing direction", %{
+    conn: conn
+  } do
+    suffix = System.unique_integer([:positive])
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    card =
+      TcgCheap.TestSupport.import_card_printing!(%{
+        tcgdex_id: "idle-card-#{suffix}",
+        name: "Idle Card #{suffix}",
+        set_name: "Idle Set #{suffix}",
+        collector_number: "151",
+        last_synced_at: now,
+        mapping_status: "matched",
+        cardmarket_product_id: suffix
+      })
+
+    Core.record_single_valuation!(%{
+      card_printing_id: card.id,
+      value_eur: Decimal.new("12.30"),
+      policy_version: "tcgdex_cardmarket_v1",
+      source: "tcgdex_cardmarket",
+      source_metric: "avg7",
+      fetched_at: now,
+      cardmarket_product_id: suffix
+    })
 
     {:ok, view, _html} = live(conn, ~p"/")
 
-    assert has_element?(view, "#homepage-discovery")
-    assert has_element?(view, "#discovery-change-name-#{first.id}", "Discovery first")
-    assert has_element?(view, "#discovery-change-name-#{second.id}", "Discovery second")
-    assert has_element?(view, "#discovery-change-#{first.id}[href='/cards/#{first.tcgdex_id}']")
-    assert has_element?(view, "#discovery-change-#{first.id}", "€20.00")
-    assert has_element?(view, "#discovery-change-#{first.id}", "+100.00%")
-    assert has_element?(view, "#discovery-change-#{first.id}", "8 days")
-    assert has_element?(view, "#discovery-change-#{first.id}", "Updated today")
-    assert has_element?(view, "#discovery-sealed-#{newest.id}[href='/sealed/#{newest.slug}']")
-    assert has_element?(view, "#discovery-sealed-name-#{newest.id}", newest.name)
+    assert has_element?(view, "#market-singles-recent")
 
-    html = render(view)
+    assert has_element?(
+             view,
+             "#market-singles-recent-direction-note",
+             "Price direction appears after observations on at least two dates."
+           )
 
-    assert :binary.match(html, "discovery-change-#{first.id}") <
-             :binary.match(html, "discovery-change-#{second.id}")
+    assert has_element?(view, "#idle-recent-card-#{card.id}[href='/cards/#{card.tcgdex_id}']")
+    assert has_element?(view, "#idle-recent-card-#{card.id}", "Idle Card #{suffix}")
+    assert has_element?(view, "#idle-recent-card-#{card.id}", "Idle Set #{suffix} · #151")
+    assert has_element?(view, "#idle-recent-card-#{card.id}", "€12.30")
+    assert has_element?(view, "#idle-recent-card-#{card.id}", "Updated today")
+    assert has_element?(view, "#idle-recent-card-#{card.id}", "View price")
+    refute has_element?(view, "#idle-recent-card-#{card.id}", "%")
+  end
+
+  test "renders recently approved sealed products after switching mode", %{conn: conn} do
+    product = create_sealed_product("Idle sealed #{System.unique_integer([:positive])}")
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    render_click(element(view, "#mode-sealed"))
+
+    assert has_element?(view, "#market-sealed-recent")
+    assert has_element?(view, "#market-singles-recent[hidden]")
+    assert has_element?(view, "#market-sealed-recent:not([hidden])")
+
+    assert has_element?(
+             view,
+             "#market-sealed-recent-direction-note",
+             "Price direction appears after observations on at least two dates."
+           )
+
+    assert has_element?(view, "#market-sealed-recent-title", "Recently tracked 1")
+    assert has_element?(view, "#idle-recent-sealed-#{product.id}[href='/sealed/#{product.slug}']")
+    assert has_element?(view, "#idle-recent-sealed-#{product.id}", product.name)
+    assert has_element?(view, "#idle-recent-sealed-#{product.id}", "View offers")
+  end
+
+  test "keeps an honest nonblank state when no recent local data exists", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    assert has_element?(view, "#market-singles-recent")
+    assert has_element?(view, "#market-singles-recent-empty", "No recently tracked products yet.")
+
+    assert has_element?(
+             view,
+             "#market-singles-recent-direction-note",
+             "Price direction appears after observations on at least two dates."
+           )
+  end
+
+  test "switches to sealed market movers with signed PLN evidence", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    riser = create_sealed_mover("Sealed Riser #{suffix}", ["100.00", "120.00", "150.00"])
+    faller = create_sealed_mover("Sealed Faller #{suffix}", ["200.00", "180.00", "100.00"])
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    assert has_element?(view, "#market-singles-panel:not([hidden])")
+    assert has_element?(view, "#market-sealed-panel[hidden]")
+
+    render_click(element(view, "#mode-sealed"))
+
+    assert has_element?(view, "#market-singles-panel[hidden]")
+    assert has_element?(view, "#market-sealed-panel:not([hidden])")
+    assert has_element?(view, "#market-sealed-riser-#{riser.id}[href='/sealed/#{riser.slug}']")
+    assert has_element?(view, "#market-sealed-faller-#{faller.id}[href='/sealed/#{faller.slug}']")
+    assert has_element?(view, "#market-sealed-riser-#{riser.id}", "+50.00%")
+    assert has_element?(view, "#market-sealed-faller-#{faller.id}", "-50.00%")
+    assert has_element?(view, "#market-sealed-riser-#{riser.id}", "150.00 PLN")
+    assert has_element?(view, "#market-sealed-riser-#{riser.id}", "Checked today")
+    assert has_element?(view, "#market-sealed-riser-#{riser.id}", "View offers")
+    assert has_element?(view, "#market-sealed-recent[hidden]")
   end
 
   test "keeps discovery streams mounted while hidden during search", %{conn: conn} do
-    product = create_sealed_product("Stream discovery #{System.unique_integer([:positive])}")
+    product =
+      create_sealed_mover("Stream discovery #{System.unique_integer([:positive])}", [
+        "100",
+        "110",
+        "120"
+      ])
+
     {:ok, view, _html} = live(conn, ~p"/")
 
-    assert has_element?(view, "#discovery-sealed-#{product.id}")
+    assert has_element?(view, "#market-sealed-risers-list[phx-update=stream]")
+    assert has_element?(view, "#market-sealed-fallers-list[phx-update=stream]")
+    assert has_element?(view, "#market-sealed-riser-#{product.id}")
     render_hook(view, "search", %{"search" => %{"query" => "missing discovery"}})
-    assert has_element?(view, "#homepage-discovery[hidden]")
-    assert has_element?(view, "#discovery-sealed-#{product.id}")
+    assert has_element?(view, "#market-movers[hidden]")
+    assert has_element?(view, "#market-sealed-riser-#{product.id}")
 
     render_hook(view, "autocomplete_key", %{"key" => "Escape"})
-    assert has_element?(view, "#homepage-discovery:not([hidden])")
-    assert has_element?(view, "#discovery-sealed-#{product.id}")
+    assert has_element?(view, "#market-movers:not([hidden])")
+    assert has_element?(view, "#market-sealed-riser-#{product.id}")
   end
 
   test "offers sealed products when singles have no match", %{conn: conn} do
@@ -786,5 +901,41 @@ defmodule TcgCheapWeb.HomeLiveTest do
     end
 
     card
+  end
+
+  defp create_sealed_mover(name, values) do
+    product = create_sealed_product(name)
+    today = Date.utc_today()
+
+    for {days_ago, value} <- Enum.zip([14, 7, 0], values) do
+      date = Date.add(today, -days_ago)
+
+      calculated_at =
+        if days_ago == 0,
+          do: DateTime.utc_now() |> DateTime.truncate(:microsecond),
+          else: DateTime.new!(date, ~T[12:00:00], "Etc/UTC")
+
+      Core.record_sealed_daily_aggregate!(%{
+        sealed_product_id: product.id,
+        aggregate_date: date,
+        calculation_version: "sealed_market_daily_v1",
+        currency: "PLN",
+        status: "ready",
+        benchmark_pln: Decimal.new(value),
+        typical_low_pln: Decimal.new(value),
+        typical_high_pln: Decimal.new(value),
+        fresh_regular_retailer_count: 5,
+        fresh_lgs_count: 1,
+        recent_sold_out_0_14_day_count: 0,
+        sold_out_15_30_day_count: 0,
+        stale_or_future_current_offer_count: 0,
+        unique_source_retailer_count: 6,
+        latest_nonfuture_checked_at: calculated_at,
+        calculated_at: calculated_at,
+        source_mapping_confident: true
+      })
+    end
+
+    product
   end
 end

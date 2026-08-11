@@ -295,7 +295,7 @@ defmodule TcgCheap.Catalogue.SealedProduct do
                  distribution_status in ["current", "discontinued"]
              )
 
-      prepare build(sort: [release_date: :desc, name: :asc, slug: :asc], limit: 4)
+      prepare build(sort: [release_date: :desc, name: :asc, slug: :asc], limit: 10)
     end
 
     read :search_public do

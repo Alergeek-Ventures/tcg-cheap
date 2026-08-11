@@ -18,6 +18,7 @@ defmodule TcgCheap.Core do
       define :seed_card_printing_brief, action: :seed_brief
       define :get_card_printing_by_tcgdex_id, action: :by_tcgdex_id, args: [:tcgdex_id]
       define :list_card_printings_by_tcgdex_ids, action: :by_tcgdex_ids, args: [:tcgdex_ids]
+      define :list_recently_tracked_card_printings, action: :recently_tracked
 
       define :search_card_printings,
         action: :search,
@@ -81,6 +82,10 @@ defmodule TcgCheap.Core do
 
     resource TcgCheap.Pricing.SealedDailyAggregate do
       define :record_sealed_daily_aggregate, action: :record
+
+      define :list_homepage_sealed_price_changes,
+        action: :homepage_sealed_price_changes,
+        args: [:as_of, {:optional, :limit}]
 
       define :get_sealed_daily_aggregate,
         action: :by_id,

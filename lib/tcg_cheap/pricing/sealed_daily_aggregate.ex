@@ -12,6 +12,12 @@ defmodule TcgCheap.Pricing.SealedDailyAggregate do
       reference :sealed_product, on_delete: :restrict
     end
 
+    custom_indexes do
+      index [:sealed_product_id, :calculation_version, :aggregate_date, :calculated_at, :id],
+        name: "sealed_daily_aggregates_homepage_window_index",
+        concurrently: true
+    end
+
     check_constraints do
       check_constraint [:calculation_version], "sealed_daily_aggregates_version_invariant",
         check: "calculation_version ~ '^sealed_market_daily_v[0-9]+$'"
@@ -85,6 +91,13 @@ defmodule TcgCheap.Pricing.SealedDailyAggregate do
 
   actions do
     defaults [:read]
+
+    action :homepage_sealed_price_changes, {:array, :struct} do
+      constraints items: [instance_of: TcgCheap.Pricing.HomepageSealedPriceChange]
+      argument :as_of, :utc_datetime_usec, allow_nil?: false
+      argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 10]
+      run TcgCheap.Pricing.Sealed.Actions.HomepagePriceChanges
+    end
 
     create :record do
       accept [

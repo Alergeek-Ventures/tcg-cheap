@@ -156,6 +156,16 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       prepare build(load: [:card_set, :tcgdex_cardmarket_v1_current_valuation])
     end
 
+    read :recently_tracked do
+      filter expr(not is_nil(last_synced_at))
+
+      prepare build(
+                load: [:tcgdex_cardmarket_v1_current_valuation],
+                sort: [last_synced_at: :desc, tcgdex_id: :asc, id: :asc],
+                limit: 10
+              )
+    end
+
     read :search do
       argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
       argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]
@@ -244,6 +254,7 @@ defmodule TcgCheap.Catalogue.CardPrinting do
              :seed_brief,
              :by_tcgdex_id,
              :by_tcgdex_ids,
+             :recently_tracked,
              :search,
              :lock_for_update_by_id,
              :lock_for_update_by_tcgdex_id

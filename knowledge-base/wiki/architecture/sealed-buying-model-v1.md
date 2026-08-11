@@ -1,8 +1,8 @@
 # Sealed Buying Model v1
 
 - Updated: 2026-08-10
-- Sources: [Detailed MVP Implementation Plan](../product/mvp-implementation-plan.md); project code; local synthetic validation
-- Raw: N/A — codebase update and architecture decision
+- Sources: [Detailed MVP Implementation Plan](../product/mvp-implementation-plan.md); [CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); project code; local synthetic validation
+- Raw: [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md)
 
 **Status:** `sealed_buying_model_v1` is the initial pure, deterministic, versioned
 sealed buying-policy implementation. Its weights and boundaries are provisional
@@ -10,6 +10,10 @@ until representative real Polish-market observations are available. Its outputs 
 now persisted as local buying-guide snapshots and consumed by the public sealed page
 through a fail-closed projection. Its exact current policy is also available through
 authenticated read-only operations inspection.
+
+Private feasibility checkpoint: the approved `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` produced `limited / too_few_regular_retailers` with one regular retailer, and its guide produced `limited / limited_market_aggregate` at confidence `0.19`; no bands were fabricated. Browser search/detail showed one 899.99 PLN LootQuest offer and honest Limited-data messages with zero console errors. This validates sparse/Limited behavior only, not ready benchmark bands, representative Polish-market weights, multi-shop deduplication/outliers, recurring stock history, or public source rights.
+
+The later private CardzHouse and BoosterPoint runs do not change that model boundary: both real shops are deliberately `lgs`, not representative regular-retailer evidence; all new mappings remain review because no reliable GTINs were supplied; and no candidate was approved without an authenticated administrator. Jobs 88/89 retained 96/232 rows and unchanged jobs 90/91 retained exactly those counts, while current aggregate/guide/public-offer behavior remains unchanged. Public recurring acquisition/republication permission remains unresolved.
 
 ## Decision
 
@@ -189,8 +193,12 @@ These are synthetic policy fixtures, not proof of Polish-market quality.
   while `SealedMarketHistory` renders an accessible fixed UTC-calendar-day SVG with
   benchmark line, typical-range band, missing-day gaps, no controls/interpolation,
   and a textual ledger using only canonical ready rows for the expected product.
-  Production source permission remains a blocker for real validation, not for local
-  persistence or local public rendering.
+  Under the 2026-08-10 product-owner assumption, private/local/staging source polling and
+  real-data validation are permitted technical-feasibility work, subject to budgets, rate
+  limits, safety controls, attribution, and provider constraints. External permission
+  remains the boundary for public acquisition/republication and public launch; this is not
+  a legal authorization claim. Local persistence and public rendering remain technically
+  exercisable without claiming public source rights.
 
 ## See Also
 

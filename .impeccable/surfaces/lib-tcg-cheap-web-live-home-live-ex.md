@@ -36,8 +36,11 @@ progressive disclosure.
 - Local-only debounced exact-printing search; normalize and cap queries; no provider calls in render.
 - Validation is complete with LiveView regression coverage and real desktop/mobile browser typing one character at a time, focus/caret checks after every update, keyboard selection/Escape, composition-event simulation, no console errors, and no horizontal overflow.
 - Stream results with stable IDs, canonical low WebP images, no-referrer hotlinking, and an honest missing-image fallback.
-- Light, bright counter scene; square geometry; touch targets at least 44px; no horizontal overflow.
+- Light, bright counter scene; square geometry; touch targets at least 48px; no horizontal overflow. Use mobile-first stacking, the 4/8/12/16/24/32/48/64px spacing scale on an 8px core grid, and reduce mobile spatial density by about 33-50%.
 - Current colors, fonts, and warm square direction are approved; simplify information density and copy rather than replacing the visual system.
+- Use a canonical 1152px/72rem desktop content container (within 1100-1200px), 48px major section spacing, and 24-32px desktop panel spacing. Body text is 16px, metadata is at least 14px, prose is at most 70ch, normal text contrast is at least 4.5:1, and focus is clear.
+- Keep Barlow Condensed 700 as the documented brand/asset exception because only the approved 700 asset exists; Azeret Mono is body/evidence and no third typeface is introduced.
+- Keep one primary task/action hierarchy with generous space around it. Repeated result-row `View price` CTAs are contextual, not competing page-level primaries.
 
 ## Direction
 

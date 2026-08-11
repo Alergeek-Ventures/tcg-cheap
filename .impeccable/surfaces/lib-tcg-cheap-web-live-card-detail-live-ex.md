@@ -31,6 +31,8 @@ related_targets: ["assets/css/app.css","lib/tcg_cheap_web/live/home_live.ex"]
 - The site is explicitly unofficial and non-affiliated; it makes no claim of independently licensed Pokémon art.
 - Put mobile identity and value first.
 - Preserve the archive-wall world.
+- Use mobile-first stacking, at least 48px controls, and 33-50% lower mobile spatial density. Desktop content is capped at 1152px/72rem (within 1100-1200px), with 48px major section spacing and 24-32px panel spacing. Body is 16px, metadata is at least 14px, prose is at most 70ch, normal text contrast is at least 4.5:1, and focus is clear.
+- Retain Barlow Condensed 700 as the documented brand/asset exception because only the approved 700 asset exists; Azeret Mono is body/evidence, with no more than two typefaces.
 
 ## Direction
 
