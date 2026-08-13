@@ -130,13 +130,15 @@ defmodule TcgCheapWeb.Layouts do
             current_url={@current_url}
             navigate={~p"/admin/catalogue/mappings"}
           >
-            <Backpex.HTML.CoreComponents.icon name="hero-arrows-right-left" class="size-5" /> Mappings
+            <Backpex.HTML.CoreComponents.icon name="hero-arrows-right-left" class="size-5" />
+            Listing mappings
           </Backpex.HTML.Layout.sidebar_item>
           <Backpex.HTML.Layout.sidebar_item
             current_url={@current_url}
             navigate={~p"/admin/catalogue/mapping-history"}
           >
-            <Backpex.HTML.CoreComponents.icon name="hero-clock" class="size-5" /> Mapping history
+            <Backpex.HTML.CoreComponents.icon name="hero-clock" class="size-5" />
+            Listing mapping history
           </Backpex.HTML.Layout.sidebar_item>
           <Backpex.HTML.Layout.sidebar_item
             current_url={@current_url}

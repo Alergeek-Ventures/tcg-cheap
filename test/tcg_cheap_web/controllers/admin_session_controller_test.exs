@@ -26,7 +26,7 @@ defmodule TcgCheapWeb.AdminSessionControllerTest do
 
     assert {:ok, view, _html} = conn |> recycle() |> live(~p"/admin/review")
     assert has_element?(view, "#admin-review")
-    assert has_element?(view, "#admin-sign-out")
+    assert has_element?(view, "#admin-catalogue-sign-out")
   end
 
   test "an unauthenticated review request redirects to sign in", %{conn: conn} do

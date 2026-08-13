@@ -36,10 +36,27 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-left-side")
     assert has_element?(view, "#trade-right-side")
     assert has_element?(view, "#trade-announcements[aria-live=polite]")
-    assert has_element?(view, "#trade-rate-evidence[aria-live=polite]")
+    refute has_element?(view, "#trade-left-total")
+    refute has_element?(view, "#trade-right-total")
+    refute has_element?(view, "#trade-comparison")
+    refute has_element?(view, "#trade-rate-evidence")
+    refute has_element?(view, "#trade-share")
+    refute has_element?(view, "#trade-share-status")
+    assert has_element?(view, ".trade-empty", "Add cards to this side.")
+  end
+
+  test "a populated side reveals comparison, rate evidence, and share controls", %{conn: conn} do
+    card = card("revealed-controls", "Revealed Controls", 1)
+
+    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
+
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}")
+    assert has_element?(view, "#trade-left-total")
+    refute has_element?(view, "#trade-right-total")
+    assert has_element?(view, "#trade-comparison")
+    assert has_element?(view, "#trade-rate-evidence")
     assert has_element?(view, "#trade-share[phx-hook=TradeShare]")
     assert has_element?(view, "#trade-share-status[role=status][aria-live=polite]")
-    assert has_element?(view, ".trade-empty", "Add cards to this side.")
   end
 
   test "trade share feedback accepts only copied and failed statuses", %{conn: conn} do
@@ -136,7 +153,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
 
     assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Price unavailable")
     assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Update failed")
-    assert has_element?(view, "#trade-rate-evidence", "Exchange-rate update failed")
+    assert has_element?(view, "#trade-rate-evidence", "Rate update failed")
     refute_enqueued(repo: TcgCheap.Repo, worker: ExchangeRateWorker)
 
     refute_enqueued(
@@ -185,25 +202,27 @@ defmodule TcgCheapWeb.TradeLiveTest do
   end
 
   test "rate evidence uses yesterday grammar", %{conn: conn} do
+    card = card("rate-yesterday", "Rate Yesterday", 1)
     exchange_rate("4.3000", Date.add(Date.utc_today(), -1))
-    {:ok, view, _html} = live(conn, ~p"/trade")
+    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
 
     assert has_element?(
              view,
              "#trade-rate-evidence",
-             "Effective #{Date.to_iso8601(Date.add(Date.utc_today(), -1))} (yesterday)."
+             "1 EUR = 4.3000 PLN · #{Date.to_iso8601(Date.add(Date.utc_today(), -1))} (yesterday)."
            )
   end
 
   test "rate evidence uses N-days grammar", %{conn: conn} do
+    card = card("rate-days-ago", "Rate Days Ago", 1)
     date = Date.add(Date.utc_today(), -2)
     exchange_rate("4.3000", date)
-    {:ok, view, _html} = live(conn, ~p"/trade")
+    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
 
     assert has_element?(
              view,
              "#trade-rate-evidence",
-             "Effective #{Date.to_iso8601(date)} (2 days ago)."
+             "1 EUR = 4.3000 PLN · #{Date.to_iso8601(date)} (2 days ago)."
            )
   end
 
@@ -376,7 +395,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(
              view,
              "#trade-row-left-#{card.tcgdex_id}",
-             "Update failed; cached estimate kept."
+             "Update failed · Cached estimate kept."
            )
 
     assert has_element?(view, "#trade-left-total", "€6.10")
@@ -510,6 +529,16 @@ defmodule TcgCheapWeb.TradeLiveTest do
 
     render_click(element(view, "#trade-decrement-left-#{first.tcgdex_id}"))
 
+    assert has_element?(
+             view,
+             "#trade-increment-left-#{first.tcgdex_id}[aria-label='Add one Mutation A to Left side'] .hero-plus"
+           )
+
+    assert has_element?(
+             view,
+             "#trade-decrement-left-#{first.tcgdex_id}[aria-label='Subtract one Mutation A from Left side'] .hero-minus"
+           )
+
     assert_patch(
       view,
       "/trade?left=#{first.tcgdex_id}%3A1%2C#{second.tcgdex_id}%3A1&right=#{first.tcgdex_id}%3A1"
@@ -575,7 +604,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
           "%2Ftrade%3Fleft%3Dbad%252Fvalue"
         ] do
       {:ok, rejected, _html} = live(conn, "/cards/#{card.tcgdex_id}?return_to=#{value}")
-      assert has_element?(rejected, "#card-detail-back[href='/']", "Back to printing wall")
+      assert has_element?(rejected, "#card-detail-back[href='/']", "Back to search")
     end
   end
 

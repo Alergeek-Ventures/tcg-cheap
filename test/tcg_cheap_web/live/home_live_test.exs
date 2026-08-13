@@ -34,7 +34,10 @@ defmodule TcgCheapWeb.HomeLiveTest do
     refute has_element?(view, "#card-search-query[aria-describedby]")
     assert has_element?(view, "#card-search-results[phx-update=stream]")
     assert has_element?(view, "#decision-title", "Compare Pokémon prices")
-    assert has_element?(view, "#card-search-query[placeholder='Search for a card']")
+    assert has_element?(view, "#card-search-query[placeholder='Search cards']")
+    assert has_element?(view, "#search-title.sr-only")
+    refute has_element?(view, "#search-title:not(.sr-only)")
+    refute has_element?(view, "#market-movers-intro")
     refute has_element?(view, "#price-details")
   end
 
@@ -45,6 +48,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert has_element?(view, "#mode-sealed[aria-pressed=true]")
     assert has_element?(view, "#sealed-search-form")
+    assert has_element?(view, "#sealed-search-title.sr-only")
+    assert has_element?(view, "#sealed-search-query[placeholder='Search sealed products']")
 
     assert has_element?(
              view,
@@ -262,6 +267,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert has_element?(view, "#card-search-result-#{first.id}")
     assert has_element?(view, "#card-search-result-#{second.id}")
+    assert has_element?(view, "#card-search-result-#{first.id} .evidence-identity")
     assert has_element?(view, "#card-search-summary", "2 cards for #{String.downcase(name)}")
 
     assert has_element?(
@@ -381,15 +387,15 @@ defmodule TcgCheapWeb.HomeLiveTest do
              "#card-option-#{stale.id}[aria-labelledby='card-search-name-#{stale.id} card-search-set-#{stale.id} card-estimate-#{stale.id} card-freshness-#{stale.id}']"
            )
 
-    assert has_element?(view, "#price-details")
-
     assert has_element?(
              view,
-             "#price-methodology",
-             "Seller identity and seller/offer count are unavailable"
+             ".estimate-note",
+             "Estimate only · Condition and shipping may vary."
            )
 
-    assert has_element?(view, "#price-disclaimer")
+    refute has_element?(view, "#price-details")
+    refute has_element?(view, "#price-methodology")
+    refute has_element?(view, "#price-disclaimer")
   end
 
   test "renders a valid low WebP thumbnail and fallback for missing images", %{conn: conn} do
@@ -628,9 +634,9 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert has_element?(view, "#market-single-riser-#{first.id}", "€20.00")
     assert has_element?(view, "#market-single-riser-#{first.id}", "+100.00%")
-    assert has_element?(view, "#market-single-riser-#{first.id}", "8-day span")
     assert has_element?(view, "#market-single-riser-#{first.id}", "Updated today")
-    assert has_element?(view, "#market-single-riser-#{first.id}", "View price")
+    refute has_element?(view, "#market-single-riser-#{first.id}", "day span")
+    refute has_element?(view, "#market-single-riser-#{first.id}", "View price")
     assert has_element?(view, "#market-singles-recent[hidden]")
   end
 
@@ -665,18 +671,14 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert has_element?(view, "#market-singles-recent")
 
-    assert has_element?(
-             view,
-             "#market-singles-recent-direction-note",
-             "Price direction appears after observations on at least two dates."
-           )
+    refute has_element?(view, "#market-singles-recent-direction-note")
 
     assert has_element?(view, "#idle-recent-card-#{card.id}[href='/cards/#{card.tcgdex_id}']")
     assert has_element?(view, "#idle-recent-card-#{card.id}", "Idle Card #{suffix}")
     assert has_element?(view, "#idle-recent-card-#{card.id}", "Idle Set #{suffix} · #151")
     assert has_element?(view, "#idle-recent-card-#{card.id}", "€12.30")
     assert has_element?(view, "#idle-recent-card-#{card.id}", "Updated today")
-    assert has_element?(view, "#idle-recent-card-#{card.id}", "View price")
+    refute has_element?(view, "#idle-recent-card-#{card.id}", "View price")
     refute has_element?(view, "#idle-recent-card-#{card.id}", "%")
   end
 
@@ -690,29 +692,61 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#market-singles-recent[hidden]")
     assert has_element?(view, "#market-sealed-recent:not([hidden])")
 
-    assert has_element?(
-             view,
-             "#market-sealed-recent-direction-note",
-             "Price direction appears after observations on at least two dates."
-           )
+    refute has_element?(view, "#market-sealed-recent-direction-note")
 
-    assert has_element?(view, "#market-sealed-recent-title", "Recently tracked 1")
+    assert has_element?(view, "#market-movers-title", "Recently tracked")
+    assert has_element?(view, "#market-sealed-recent[aria-label='Recently tracked']")
+    refute has_element?(view, "#market-sealed-recent-title")
     assert has_element?(view, "#idle-recent-sealed-#{product.id}[href='/sealed/#{product.slug}']")
     assert has_element?(view, "#idle-recent-sealed-#{product.id}", product.name)
-    assert has_element?(view, "#idle-recent-sealed-#{product.id}", "View offers")
+    refute has_element?(view, "#idle-recent-sealed-#{product.id}", "View offers")
+  end
+
+  test "caps idle recently tracked singles at six rows", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    cards =
+      for index <- 1..7 do
+        card =
+          TcgCheap.TestSupport.import_card_printing!(%{
+            tcgdex_id: "idle-cap-#{suffix}-#{index}",
+            name: "Idle Cap Card #{suffix} #{index}",
+            set_name: "Idle Cap Set #{suffix}",
+            collector_number: Integer.to_string(index),
+            last_synced_at: DateTime.add(now, -index, :day),
+            mapping_status: "matched",
+            cardmarket_product_id: System.unique_integer([:positive])
+          })
+
+        Core.record_single_valuation!(%{
+          card_printing_id: card.id,
+          value_eur: Decimal.new("#{index}.00"),
+          policy_version: "tcgdex_cardmarket_v1",
+          source: "tcgdex_cardmarket",
+          source_metric: "avg7",
+          fetched_at: DateTime.add(now, -index, :day),
+          cardmarket_product_id: card.cardmarket_product_id
+        })
+
+        card
+      end
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    assert Enum.count(cards, &has_element?(view, "#idle-recent-card-#{&1.id}")) == 6
+    oldest = List.last(cards)
+    refute has_element?(view, "#idle-recent-card-#{oldest.id}")
   end
 
   test "keeps an honest nonblank state when no recent local data exists", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/")
 
     assert has_element?(view, "#market-singles-recent")
+    assert has_element?(view, "#market-movers-title", "Recently tracked")
+    refute has_element?(view, "#market-singles-recent-title")
     assert has_element?(view, "#market-singles-recent-empty", "No recently tracked products yet.")
 
-    assert has_element?(
-             view,
-             "#market-singles-recent-direction-note",
-             "Price direction appears after observations on at least two dates."
-           )
+    refute has_element?(view, "#market-singles-recent-direction-note")
   end
 
   test "switches to sealed market movers with signed PLN evidence", %{conn: conn} do
@@ -734,7 +768,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#market-sealed-faller-#{faller.id}", "-50.00%")
     assert has_element?(view, "#market-sealed-riser-#{riser.id}", "150.00 PLN")
     assert has_element?(view, "#market-sealed-riser-#{riser.id}", "Checked today")
-    assert has_element?(view, "#market-sealed-riser-#{riser.id}", "View offers")
+    refute has_element?(view, "#market-sealed-riser-#{riser.id}", "View offers")
     assert has_element?(view, "#market-sealed-recent[hidden]")
   end
 

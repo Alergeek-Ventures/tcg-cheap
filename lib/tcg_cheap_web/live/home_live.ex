@@ -6,6 +6,7 @@ defmodule TcgCheapWeb.HomeLive do
   alias TcgCheap.Pricing.Singles.Freshness
 
   @max_autocomplete_options 10
+  @max_discovery_rows 6
   # Keep the idle shelf useful for long-lived catalogue data (including 151).
   @recent_sealed_window_days 1_825
   @impl true
@@ -13,15 +14,20 @@ defmodule TcgCheapWeb.HomeLive do
     as_of = DateTime.utc_now()
 
     {price_changes, price_changes_ok?} =
-      safe_discovery(fn -> TcgCheap.Core.list_homepage_price_changes(as_of, 10) end)
+      safe_discovery(fn ->
+        TcgCheap.Core.list_homepage_price_changes(as_of, @max_discovery_rows)
+      end)
 
     {sealed_price_changes, sealed_price_changes_ok?} =
-      safe_discovery(fn -> TcgCheap.Core.list_homepage_sealed_price_changes(as_of, 10) end)
+      safe_discovery(fn ->
+        TcgCheap.Core.list_homepage_sealed_price_changes(as_of, @max_discovery_rows)
+      end)
 
     as_of_date = DateTime.to_date(as_of)
 
     {recent_cards, recent_cards_ok?} =
       safe_discovery(fn -> TcgCheap.Core.list_recently_tracked_card_printings() end)
+      |> then(fn {rows, ok?} -> {Enum.take(rows, @max_discovery_rows), ok?} end)
 
     {recent_sealed, recent_sealed_ok?} =
       safe_discovery(fn ->
@@ -30,6 +36,7 @@ defmodule TcgCheapWeb.HomeLive do
           as_of_date
         )
       end)
+      |> then(fn {rows, ok?} -> {Enum.take(rows, @max_discovery_rows), ok?} end)
 
     {single_risers, single_fallers} = split_movers(price_changes)
     {sealed_risers, sealed_fallers} = split_movers(sealed_price_changes)
@@ -257,7 +264,7 @@ defmodule TcgCheapWeb.HomeLive do
 
             <%= if @mode == :singles do %>
               <section class="decision-search" aria-labelledby="search-title">
-                <h2 id="search-title">Find a card</h2>
+                <h2 id="search-title" class="sr-only">Find a card</h2>
                 <.form for={@search_form} id="card-search-form">
                   <label for="card-search-query" class="sr-only">Search for a card</label>
                   <div class="search-field-wrap">
@@ -274,7 +281,7 @@ defmodule TcgCheapWeb.HomeLive do
                       aria-controls="card-search-results"
                       aria-expanded={to_string(@autocomplete_options != [])}
                       aria-activedescendant={active_option_dom_id(@active_option_id)}
-                      placeholder="Search for a card"
+                      placeholder="Search cards"
                     />
                   </div>
                 </.form>
@@ -337,22 +344,24 @@ defmodule TcgCheapWeb.HomeLive do
                         <% end %>
                       </div>
                       <div class="evidence-copy">
-                        <p id={"card-search-name-#{result.id}"} class="evidence-name">
-                          {result.name}
-                        </p>
-                        <p id={"card-search-set-#{result.id}"} class="evidence-set">
-                          {result.set_name} · #{result.collector_number}
-                        </p>
-                        <div
-                          :if={rarity_present?(result.rarity)}
-                          class="evidence-tags"
-                          aria-label="Rarity"
-                        >
-                          <span
-                            :if={result.rarity}
-                            class="evidence-tag"
-                            id={"card-rarity-#{result.id}"}
-                          >{result.rarity}</span>
+                        <div class="evidence-identity">
+                          <p id={"card-search-name-#{result.id}"} class="evidence-name">
+                            {result.name}
+                          </p>
+                          <p id={"card-search-set-#{result.id}"} class="evidence-set">
+                            {result.set_name} · #{result.collector_number}
+                          </p>
+                          <div
+                            :if={rarity_present?(result.rarity)}
+                            class="evidence-tags"
+                            aria-label="Rarity"
+                          >
+                            <span
+                              :if={result.rarity}
+                              class="evidence-tag"
+                              id={"card-rarity-#{result.id}"}
+                            >{result.rarity}</span>
+                          </div>
                         </div>
                         <div class="estimate-cell">
                           <strong id={"card-estimate-#{result.id}"}>{estimate_display(
@@ -390,29 +399,12 @@ defmodule TcgCheapWeb.HomeLive do
                 </div>
 
                 <p :if={@search_status == :results} class="estimate-note">
-                  Estimates only · Shipping not included.
+                  Estimate only · Condition and shipping may vary.
                 </p>
-                <details :if={@search_status == :results} id="price-details" class="price-details">
-                  <summary>How prices work</summary>
-                  <div id="price-methodology" class="price-methodology">
-                    <p>
-                      <strong>Methodology:</strong>
-                      aggregate Cardmarket estimate from TCGdex under <code>tcgdex_cardmarket_v1</code>.
-                      Seller identity and seller/offer count are unavailable from the active aggregate;
-                      language, condition, finish exactness, and Poland shipping are not verified; shipping
-                      is not calculated.
-                    </p>
-                  </div>
-                  <aside id="price-disclaimer" class="price-disclaimer" aria-label="Price disclaimer">
-                    TCG Cheap is unofficial and not affiliated with Pokémon, Nintendo, TCGdex,
-                    Cardmarket, or listed companies. This estimate is not guaranteed resale value
-                    or investment advice.
-                  </aside>
-                </details>
               </section>
             <% else %>
               <section class="decision-search" aria-labelledby="sealed-search-title">
-                <h2 id="sealed-search-title">Find a sealed product</h2>
+                <h2 id="sealed-search-title" class="sr-only">Find a sealed product</h2>
                 <.form for={@search_form} id="sealed-search-form">
                   <label for="sealed-search-query" class="sr-only">Search for a sealed product</label>
                   <div class="search-field-wrap">
@@ -429,7 +421,7 @@ defmodule TcgCheapWeb.HomeLive do
                       aria-controls="sealed-search-results"
                       aria-expanded={to_string(@autocomplete_options != [])}
                       aria-activedescendant={active_option_dom_id(@active_option_id)}
-                      placeholder="Search for a sealed product"
+                      placeholder="Search sealed products"
                     />
                   </div>
                 </.form>
@@ -464,28 +456,30 @@ defmodule TcgCheapWeb.HomeLive do
                         <svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 14 36 5l24 9v68l-24 9-24-9zM12 14l24 9 24-9M36 23v68M22 39h28M22 49h20" /></svg>
                       </div>
                       <div class="evidence-copy">
-                        <p id={"sealed-search-name-#{result.id}"} class="evidence-name">
-                          {result.name}
-                        </p>
-                        <p id={"sealed-search-type-#{result.id}"} class="evidence-set">
-                          {human_product_type(result.product_type)}
-                        </p>
-                        <p
-                          :if={result.series_name || result.set_name}
-                          id={"sealed-search-collection-#{result.id}"}
-                          class="evidence-set"
-                        >
-                          {sealed_collection(result)}
-                        </p>
-                        <p id={"sealed-search-release-#{result.id}"} class="evidence-set">
-                          Released {format_release_date(result.release_date)}
-                        </p>
-                        <div
-                          :if={result.distribution_status == "discontinued"}
-                          class="evidence-tags"
-                          aria-label="Product status"
-                        >
-                          <span id={"sealed-discontinued-#{result.id}"} class="evidence-tag">Discontinued</span>
+                        <div class="evidence-identity">
+                          <p id={"sealed-search-name-#{result.id}"} class="evidence-name">
+                            {result.name}
+                          </p>
+                          <p id={"sealed-search-type-#{result.id}"} class="evidence-set">
+                            {human_product_type(result.product_type)}
+                          </p>
+                          <p
+                            :if={result.series_name || result.set_name}
+                            id={"sealed-search-collection-#{result.id}"}
+                            class="evidence-set"
+                          >
+                            {sealed_collection(result)}
+                          </p>
+                          <p id={"sealed-search-release-#{result.id}"} class="evidence-set">
+                            Release {format_release_date(result.release_date)}
+                          </p>
+                          <div
+                            :if={result.distribution_status == "discontinued"}
+                            class="evidence-tags"
+                            aria-label="Product status"
+                          >
+                            <span id={"sealed-discontinued-#{result.id}"} class="evidence-tag">Discontinued</span>
+                          </div>
                         </div>
                         <span id={"sealed-select-action-#{result.id}"} class="detail-action">View offers</span>
                       </div>
@@ -554,8 +548,17 @@ defmodule TcgCheapWeb.HomeLive do
       aria-labelledby="market-movers-title"
       hidden={@hidden}
     >
-      <h2 id="market-movers-title">Market movers</h2>
-      <p id="market-movers-intro">The largest qualified local changes in the recent 30-day window.</p>
+      <h2 id="market-movers-title">
+        {if active_mode_has_movers?(
+              @mode,
+              @singles_risers_count,
+              @singles_fallers_count,
+              @sealed_risers_count,
+              @sealed_fallers_count
+            ),
+            do: "Market movers",
+            else: "Recently tracked"}
+      </h2>
       <div
         id="market-singles-panel"
         class="market-mode-panel"
@@ -606,8 +609,6 @@ defmodule TcgCheapWeb.HomeLive do
       </div>
       <.recent_idle_ledger
         id="market-singles-recent"
-        title="Recently tracked"
-        description="Price direction appears after observations on at least two dates."
         streams={@streams.idle_recent_cards}
         count={@recent_cards_count}
         available?={@recent_cards_available?}
@@ -619,8 +620,6 @@ defmodule TcgCheapWeb.HomeLive do
       />
       <.recent_idle_ledger
         id="market-sealed-recent"
-        title="Recently tracked"
-        description="Price direction appears after observations on at least two dates."
         streams={@streams.idle_recent_sealed}
         count={@recent_sealed_count}
         available?={@recent_sealed_available?}
@@ -643,8 +642,6 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   attr :id, :string, required: true
-  attr :title, :string, required: true
-  attr :description, :string, required: true
   attr :streams, :any, required: true
   attr :count, :integer, required: true
   attr :available?, :boolean, required: true
@@ -653,9 +650,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   def recent_idle_ledger(assigns) do
     ~H"""
-    <section id={@id} class="market-recent-ledger" aria-labelledby={"#{@id}-title"} hidden={@hidden}>
-      <h3 id={"#{@id}-title"}>{@title} <span>{@count}</span></h3>
-      <p id={"#{@id}-direction-note"}>{@description}</p>
+    <section id={@id} class="market-recent-ledger" aria-label="Recently tracked" hidden={@hidden}>
       <%= if !@available? or @count == 0 do %>
         <p id={"#{@id}-empty"} class="market-empty">
           {if @available?,
@@ -713,7 +708,6 @@ defmodule TcgCheapWeb.HomeLive do
             · {freshness_text(valuation)}
           <% end %>
         </p>
-        <span class="market-action">View price</span>
       </div>
     </.link>
     """
@@ -753,7 +747,6 @@ defmodule TcgCheapWeb.HomeLive do
             do: "Released " <> format_release_date(product.release_date),
             else: "Release date unavailable"}
         </p>
-        <span class="market-action">View offers</span>
       </div>
     </.link>
     """
@@ -820,10 +813,10 @@ defmodule TcgCheapWeb.HomeLive do
           movement_class(mover.change_percent)
         }>
           <strong>{movement_label(mover.change_percent)} {signed_percent(mover.change_percent)}</strong>
-          · €{format_eur(mover.current_value_eur)} · {Date.diff(mover.current_date, mover.start_date)}-day span · {discovery_freshness_text(
+          · €{format_eur(mover.current_value_eur)} · {discovery_freshness_text(
             mover.current_fetched_at
           )}
-        </p><span class="market-action">View price</span>
+        </p>
       </div>
     </.link>
     """
@@ -849,11 +842,8 @@ defmodule TcgCheapWeb.HomeLive do
           movement_class(mover.change_percent)
         }>
           <strong>{movement_label(mover.change_percent)} {signed_percent(mover.change_percent)}</strong>
-          · {format_eur(mover.current_benchmark_pln)} PLN · {Date.diff(
-            mover.current_date,
-            mover.start_date
-          )}-day span · {checked_text(mover.current_checked_at)}
-        </p><span class="market-action">View offers</span>
+          · {format_eur(mover.current_benchmark_pln)} PLN · {checked_text(mover.current_checked_at)}
+        </p>
       </div>
     </.link>
     """
@@ -995,8 +985,19 @@ defmodule TcgCheapWeb.HomeLive do
     {risers, fallers} =
       Enum.split_with(movers, &(Decimal.compare(&1.change_percent, Decimal.new(0)) == :gt))
 
-    {risers, Enum.reject(fallers, &(Decimal.compare(&1.change_percent, Decimal.new(0)) == :eq))}
+    {
+      Enum.take(risers, div(@max_discovery_rows, 2)),
+      fallers
+      |> Enum.reject(&(Decimal.compare(&1.change_percent, Decimal.new(0)) == :eq))
+      |> Enum.take(div(@max_discovery_rows, 2))
+    }
   end
+
+  defp active_mode_has_movers?(:singles, risers, fallers, _sealed_risers, _sealed_fallers),
+    do: risers + fallers > 0
+
+  defp active_mode_has_movers?(:sealed, _singles_risers, _singles_fallers, risers, fallers),
+    do: risers + fallers > 0
 
   defp movement_label(value) do
     if Decimal.compare(value, Decimal.new(0)) == :gt, do: "Rise", else: "Fall"

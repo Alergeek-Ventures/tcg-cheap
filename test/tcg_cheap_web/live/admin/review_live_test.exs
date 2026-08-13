@@ -19,9 +19,19 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
     {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
 
     assert has_element?(view, "#admin-review")
-    assert has_element?(view, "#admin-review-products-header-link")
+    assert has_element?(view, "#admin-catalogue")
+    assert has_element?(view, "#admin-catalogue a[href='/admin/review']", "Review")
+    assert has_element?(view, "#admin-catalogue a[href='/admin/catalogue/products']", "Products")
+    assert has_element?(view, "#admin-catalogue a[href='/admin/operations']", "Operations")
     assert has_element?(view, "#product-review-form-#{product.id}")
+    assert has_element?(view, ".admin-form-section--identity h4", "Identity")
+    assert has_element?(view, ".admin-form-section--classification h4", "Classification")
+    assert has_element?(view, ".admin-form-section--pricing-media h4", "Pricing and media")
+    assert has_element?(view, ".admin-form-section--publication h4", "Publication")
     assert has_element?(view, "#draft-product-queue article", "Review Me")
+    refute has_element?(view, "#draft-products-limit")
+    refute has_element?(view, "#pending-aliases-limit")
+    refute has_element?(view, "#listing-mappings-limit")
 
     view
     |> form("#product-review-form-#{product.id}",
@@ -100,7 +110,15 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
 
     {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
 
+    assert has_element?(
+             view,
+             "#listing-mapping-queue article.mapping-docket details.admin-docket-details"
+           )
+
+    refute has_element?(view, "#listing-mapping-queue article.mapping-docket details[open]")
     assert has_element?(view, "#mapping-source-#{approve_mapping.id}")
+    assert has_element?(view, "#listing-mapping-queue .admin-docket-meta")
+    assert has_element?(view, "#listing-mapping-queue .admin-docket-status")
 
     view
     |> form("#approve-mapping-form-#{approve_mapping.id}",
@@ -120,6 +138,33 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
     rejected = Ash.get!(ListingProductMapping, reject_mapping.id, authorize?: false)
     assert {rejected.status, rejected.reason} == {"rejected", "Not an official English product"}
     refute has_element?(view, "#reject-mapping-form-#{reject_mapping.id}")
+  end
+
+  test "overflow queues show only the visible limit and bounded count", %{
+    conn: conn
+  } do
+    shop = retailer()
+
+    mappings =
+      Enum.map(1..26, fn index ->
+        listing = listing(shop, "listing-limit-#{index}")
+        Core.create_pending_listing_mapping!(%{retailer_listing_id: listing.id})
+      end)
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+
+    assert has_element?(view, "#listing-mappings .admin-section-rule span", "25+ waiting")
+    assert has_element?(view, "#listing-mappings-limit", "Showing first 25")
+
+    assert has_element?(
+             view,
+             "#listing-mapping-queue article.mapping-docket details.admin-docket-details"
+           )
+
+    refute has_element?(view, "#listing-mapping-queue article.mapping-docket details[open]")
+    assert has_element?(view, "#mapping-source-#{Enum.at(mappings, 24).id}")
+    refute has_element?(view, "#mapping-source-#{Enum.at(mappings, 25).id}")
+    refute has_element?(view, "#listing-mapping-queue article:nth-of-type(26)")
   end
 
   defp authenticated_conn(conn) do

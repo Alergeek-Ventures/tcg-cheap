@@ -109,7 +109,9 @@ defmodule TcgCheapWeb.Admin.ListingProductMappingLiveTest do
     {:ok, correction_view, _html} =
       live(authenticated_conn(conn, admin), ~p"/admin/catalogue/mappings/#{mapping.id}/correct")
 
-    assert has_element?(correction_view, "#mapping-correction-form")
+    assert has_element?(correction_view, "#admin-catalogue")
+    assert has_element?(correction_view, "#admin-catalogue-identity", to_string(admin.email))
+    assert has_element?(correction_view, "#mapping-correction-form.mapping-correction-form")
 
     result =
       correction_view

@@ -257,9 +257,7 @@ defmodule TcgCheapWeb.TradeLive do
           <div class="decision-container">
             <section id="trade-intro" class="decision-intro">
               <div>
-                <h1 id="trade-title">Build a trade</h1><p id="trade-task">
-                  Add cards to each side, then compare local estimates.
-                </p>
+                <h1 id="trade-title">Build a trade</h1>
               </div>
             </section>
             <section id="trade-search" class="decision-search" aria-labelledby="trade-search-title">
@@ -421,7 +419,7 @@ defmodule TcgCheapWeb.TradeLive do
                           >View card</.link>
                           <span id={"trade-freshness-#{side}-#{row.id}"}>{row.freshness_display}</span>
                           <span :if={row.acquisition_state == :fetching}>Updating…</span>
-                          <span :if={row.acquisition_state == :failed && row.status == :stale}>Update failed; cached estimate kept.</span>
+                          <span :if={row.acquisition_state == :failed && row.status == :stale}>Update failed · Cached estimate kept.</span>
                         <% else %>
                           <h3>Card unavailable</h3><p>{row.id}</p>
                         <% end %>
@@ -433,14 +431,14 @@ defmodule TcgCheapWeb.TradeLive do
                             phx-value-side={side}
                             phx-value-tcgdex-id={row.id}
                             aria-label={"Add one #{row.name || row.id} to #{side_name(side)}"}
-                          >Add one</button><button
+                          ><.icon name="hero-plus" class="size-4" /></button><button
                             id={"trade-decrement-#{side}-#{row.id}"}
                             type="button"
                             phx-click="decrement"
                             phx-value-side={side}
                             phx-value-tcgdex-id={row.id}
                             aria-label={"Subtract one #{row.name || row.id} from #{side_name(side)}"}
-                          >Subtract one</button><button
+                          ><.icon name="hero-minus" class="size-4" /></button><button
                             id={"trade-remove-#{side}-#{row.id}"}
                             type="button"
                             phx-click="remove"
@@ -451,7 +449,11 @@ defmodule TcgCheapWeb.TradeLive do
                         </div>
                       </div>
                     </article>
-                  </div><p id={"trade-#{side}-total"} class="trade-total">
+                  </div><p
+                    :if={Map.fetch!(@rows, side) != []}
+                    id={"trade-#{side}-total"}
+                    class="trade-total"
+                  >
                     <span id={"trade-#{side}-total-eur"}>{total_eur_display(
                       Map.fetch!(@totals, side),
                       total_complete?(@totals, side),
@@ -466,24 +468,26 @@ defmodule TcgCheapWeb.TradeLive do
                 </section>
               <% end %>
             </div>
-            <section id="trade-comparison" class="trade-comparison" aria-live="polite">
-              <p id="trade-comparison-eur">{comparison(@evaluation)}</p>
-              <p :if={comparison_complete?(@evaluation)} id="trade-comparison-pln">
-                {comparison_pln(@evaluation, @exchange_rate)}
-              </p><span>Estimate only.</span>
-            </section>
-            <section id="trade-rate-evidence" class="trade-rate-evidence" aria-live="polite">
-              {rate_evidence(@exchange_rate, @exchange_rate_status)}
-            </section>
-            <div class="trade-share">
-              <button
-                id="trade-share"
-                type="button"
-                phx-hook="TradeShare"
-                data-trade-path={Composition.to_path(@composition)}
-              >Copy trade link</button>
-              <p id="trade-share-status" role="status" aria-live="polite">{@share_status}</p>
-            </div>
+            <%= if trade_started?(@rows) do %>
+              <section id="trade-comparison" class="trade-comparison" aria-live="polite">
+                <p id="trade-comparison-eur">{comparison(@evaluation)}</p>
+                <p :if={comparison_complete?(@evaluation)} id="trade-comparison-pln">
+                  {comparison_pln(@evaluation, @exchange_rate)}
+                </p><span>Estimate only.</span>
+              </section>
+              <section id="trade-rate-evidence" class="trade-rate-evidence" aria-live="polite">
+                {rate_evidence(@exchange_rate, @exchange_rate_status)}
+              </section>
+              <div class="trade-share">
+                <button
+                  id="trade-share"
+                  type="button"
+                  phx-hook="TradeShare"
+                  data-trade-path={Composition.to_path(@composition)}
+                >Copy trade link</button>
+                <p id="trade-share-status" role="status" aria-live="polite">{@share_status}</p>
+              </div>
+            <% end %>
           </div>
         </main><p id="trade-announcements" class="sr-only" role="status" aria-live="polite">
           {@announcement}
@@ -835,6 +839,9 @@ defmodule TcgCheapWeb.TradeLive do
         })
       end)
 
+  defp trade_started?(rows),
+    do: Enum.any?(rows, fn {_side, side_rows} -> side_rows != [] end)
+
   defp announcement(composition, evaluation) do
     left_count = Enum.reduce(composition.left, 0, fn {_, quantity}, count -> count + quantity end)
 
@@ -994,18 +1001,18 @@ defmodule TcgCheapWeb.TradeLive do
   defp rate_evidence(rate, status), do: rate_evidence_for(usable_rate?(rate), rate, status)
 
   defp rate_evidence_for(true, rate, status) do
-    "1 EUR = #{Decimal.to_string(rate.rate, :normal)} PLN · NBP · Effective " <>
+    "1 EUR = #{Decimal.to_string(rate.rate, :normal)} PLN · " <>
       Date.to_iso8601(rate.effective_date) <>
       " " <> relative_effective_date(rate) <> "." <> rate_state(status)
   end
 
   defp rate_evidence_for(false, _rate, :pending),
-    do: "Exchange-rate update pending. PLN unavailable."
+    do: "Rate update pending. PLN unavailable."
 
   defp rate_evidence_for(false, _rate, :failed),
-    do: "Exchange-rate update failed. PLN unavailable; no cached NBP rate."
+    do: "Rate update failed. PLN unavailable; no cached rate."
 
-  defp rate_evidence_for(false, _rate, _status), do: "PLN unavailable; no cached NBP rate."
+  defp rate_evidence_for(false, _rate, _status), do: "PLN unavailable; no cached rate."
 
   defp relative_effective_date(%{effective_date: effective_date}) do
     case Date.diff(Date.utc_today(), effective_date) do

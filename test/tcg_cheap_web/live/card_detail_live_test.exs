@@ -26,8 +26,9 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     {:ok, view, _html} = live(conn, ~p"/cards/#{id}")
 
     assert has_element?(view, "#card-detail-not-found")
-    assert has_element?(view, "#card-detail-not-found-back[href='/']")
-    assert has_element?(view, "#card-detail-not-found", "No provider was contacted.")
+    assert has_element?(view, "#card-detail-not-found-back[href='/']", "Back to search")
+    assert has_element?(view, "#card-detail-not-found", "Try another search.")
+    refute has_element?(view, "#card-detail-not-found", "provider")
   end
 
   test "a missing valuation renders the full local-card detail and queues acquisition", %{
@@ -39,22 +40,42 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     assert has_element?(view, "#card-detail-identity")
     assert has_element?(view, "#card-detail-title", card.name)
-    assert has_element?(view, "#card-detail-metadata", card.tcgdex_id)
+    assert has_element?(view, "#archive-wordmark", "TCG CHEAP")
+    refute has_element?(view, "#archive-header", "Card details")
+    refute has_element?(view, "#card-detail-metadata", "TCGDEX ID")
+    refute has_element?(view, "#card-detail-metadata", card.tcgdex_id)
     assert has_element?(view, "#card-detail-image-missing")
     refute has_element?(view, "#card-detail-image")
 
     assert has_element?(
              view,
-             "#card-detail-disclaimer",
-             "not affiliated with Pokémon, Nintendo, TCGdex, Cardmarket, or any listed company"
+             "#card-detail-price-note",
+             "Estimate only · Condition and shipping may vary."
            )
 
-    assert has_element?(view, ".methodology", "tcgdex_cardmarket_v1")
+    assert has_element?(
+             view,
+             "#card-detail-image-missing[aria-label='No image is available for this card printing.']"
+           )
+
+    refute has_element?(view, "#valuation-details")
+    refute has_element?(view, "#valuation-provenance")
+    refute has_element?(view, "Cardmarket")
+    refute has_element?(view, "TCGdex")
+    refute has_element?(view, "not affiliated")
     assert has_element?(view, "#valuation-value", "?")
     assert has_element?(view, "#valuation-unpriced")
     assert has_element?(view, "#valuation-fetching")
-    assert has_element?(view, "#valuation-history-empty")
-    assert has_element?(view, "#valuation-history-collecting")
+    assert has_element?(view, "#valuation-history-empty", "No price history yet.")
+    assert has_element?(view, "#valuation-history-collecting", "Not enough price history yet.")
+
+    refute has_element?(
+             view,
+             "#valuation-history-empty",
+             "No successful observations in the last 30 days."
+           )
+
+    refute has_element?(view, "#valuation-history-collecting", "History is still being collected")
 
     assert has_element?(
              view,
@@ -86,7 +107,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
              "#card-detail-image[alt='#{card.name}, #{card.set_name}, collector number #{card.collector_number}']"
            )
 
-    assert has_element?(view, "#card-image-source-note", "Image supplied by TCGdex.")
+    refute has_element?(view, "#card-image-source-note")
     refute has_element?(view, "#card-detail-image-missing")
   end
 
@@ -99,7 +120,9 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute has_element?(view, "img")
   end
 
-  test "a fresh cached valuation shows provenance and does not queue refresh", %{conn: conn} do
+  test "a fresh cached valuation shows value and relative freshness without provenance", %{
+    conn: conn
+  } do
     card = create_card("fresh")
     fetched_at = DateTime.utc_now() |> DateTime.truncate(:second)
     record_snapshot(card, Decimal.new("12.345"), fetched_at)
@@ -107,11 +130,18 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
 
     assert has_element?(view, "#valuation-value", "12.35")
-    assert has_element?(view, "#valuation-fresh")
-    assert has_element?(view, "#valuation-provenance", "tcgdex_cardmarket")
-    assert has_element?(view, "#valuation-provenance", "avg7")
-    assert has_element?(view, "#valuation-provenance", @policy)
-    assert has_element?(view, "#valuation-provenance", "UTC")
+    assert has_element?(view, "#valuation-fresh", "Updated today")
+    refute has_element?(view, "#valuation-title", "EUR / 7-DAY FRESHNESS")
+
+    assert has_element?(
+             view,
+             "#card-detail-price-note",
+             "Estimate only · Condition and shipping may vary."
+           )
+
+    refute has_element?(view, "#valuation-details")
+    refute has_element?(view, "#valuation-provenance")
+    refute has_element?(view, "#archive-header", "PRINTING ARCHIVE")
 
     refute_enqueued(
       repo: TcgCheap.Repo,
@@ -130,8 +160,19 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     assert [_valuation] = document |> LazyHTML.query("#valuation-value") |> LazyHTML.to_tree()
 
+    assert [_description] =
+             document |> LazyHTML.query("#valuation-history-description") |> LazyHTML.to_tree()
+
     assert [_ledger] =
-             document |> LazyHTML.query("#valuation-history-ledger") |> LazyHTML.to_tree()
+             document |> LazyHTML.query("#valuation-history-ledger.sr-only") |> LazyHTML.to_tree()
+
+    ledger = document |> LazyHTML.query("#valuation-history-ledger") |> LazyHTML.to_tree()
+    assert inspect(ledger) =~ "12.35"
+
+    assert inspect(ledger) =~ Date.to_iso8601(DateTime.to_date(fetched_at))
+    assert inspect(ledger) =~ Calendar.strftime(fetched_at, "%Y-%m-%d %H:%M:%S UTC")
+
+    assert [] == document |> LazyHTML.query("#valuation-history-details") |> LazyHTML.to_tree()
 
     refute_enqueued(
       repo: TcgCheap.Repo,
@@ -174,7 +215,6 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-value", "?")
     assert has_element?(view, "#valuation-unpriced")
     assert has_element?(view, "#valuation-history-empty")
-    refute has_element?(view, "#valuation-history-ledger")
   end
 
   test "a mounted card clears the old valuation epoch when its mapping changes", %{conn: conn} do
@@ -206,7 +246,6 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     render(view)
     assert has_element?(view, "#valuation-value", "?")
     assert has_element?(view, "#valuation-history-empty")
-    refute has_element?(view, "#valuation-history-ledger")
   end
 
   test "an unresolved card requests acquisition after a later matched mapping", %{conn: conn} do
@@ -246,7 +285,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
 
     assert has_element?(view, "#valuation-value", "17.20")
-    assert has_element?(view, "#valuation-stale")
+    assert has_element?(view, "#valuation-stale", "May be outdated")
     assert has_element?(view, "#valuation-fetching")
 
     assert [job] =
@@ -279,7 +318,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     )
   end
 
-  test "a valuation completion updates value, freshness, history and ledger", %{conn: conn} do
+  test "a valuation completion updates value, freshness and history chart", %{conn: conn} do
     card = create_card("completion")
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
 
@@ -301,7 +340,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-value", "23.40")
     assert has_element?(view, "#valuation-fresh")
     assert has_element?(view, "#valuation-history-chart")
-    assert has_element?(view, "#valuation-history-ledger")
+    refute has_element?(view, "#valuation-history-details")
     refute has_element?(view, "#valuation-fetching")
   end
 
@@ -332,13 +371,9 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     record_snapshot(card, Decimal.new("42.00"), now)
 
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
-    day_a = Date.to_iso8601(DateTime.to_date(DateTime.add(now, -2, :day)))
-    day_b = Date.to_iso8601(DateTime.to_date(now))
-
     assert has_element?(view, "#valuation-history-chart")
-    assert has_element?(view, "#valuation-history-ledger")
-    assert has_element?(view, "#valuation-history-day-#{day_a}")
-    assert has_element?(view, "#valuation-history-day-#{day_b}")
+    assert has_element?(view, "#valuation-history-description")
+    refute has_element?(view, "#valuation-history-details")
     assert has_element?(view, "#valuation-history-segment-0")
     assert has_element?(view, "#valuation-history-segment-1")
     refute has_element?(view, "#valuation-history-segment-2")

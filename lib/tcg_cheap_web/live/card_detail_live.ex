@@ -14,7 +14,7 @@ defmodule TcgCheapWeb.CardDetailLive do
     {:noreply,
      assign(socket,
        back_path: return_to || "/",
-       back_label: if(return_to, do: "Back to trade", else: "Back to printing wall")
+       back_label: if(return_to, do: "Back to trade", else: "Back to search")
      )}
   end
 
@@ -113,9 +113,6 @@ defmodule TcgCheapWeb.CardDetailLive do
       <div class="archive-world card-detail-world">
         <header id="archive-header" class="archive-header">
           <.link id="archive-wordmark" navigate={~p"/"} class="archive-wordmark">TCG CHEAP</.link>
-          <div class="archive-header-meta">
-            <span>PRINTING ARCHIVE</span><span>SINGLE / VALUE</span>
-          </div>
         </header>
         <main id="card-detail-main" class="archive-main">
           <div class="archive-container">
@@ -137,12 +134,12 @@ defmodule TcgCheapWeb.CardDetailLive do
                 </div>
                 <section id="card-valuation" class="valuation-panel" aria-labelledby="valuation-title">
                   <div class="section-rule">
-                    <h2 id="valuation-title">Current value</h2><span>EUR / 7-DAY FRESHNESS</span>
+                    <h2 id="valuation-title">Current value</h2>
                   </div>
                   <div id="valuation-live-region" role="status" aria-live="polite" aria-atomic="true">
                     <div id="valuation-state" class="valuation-state">
-                      <span :if={@valuation_status == :fresh} id="valuation-fresh">Fresh · updated within seven days</span>
-                      <span :if={@valuation_status == :stale} id="valuation-stale">Stale</span>
+                      <span :if={@valuation_status == :fresh} id="valuation-fresh">{@valuation_freshness_text}</span>
+                      <span :if={@valuation_status == :stale} id="valuation-stale">May be outdated</span>
                       <span :if={@acquisition_state == :enqueued} id="valuation-fetching">Fetching a local valuation…</span>
                       <span
                         :if={@valuation_status in [:missing, :disconnected]}
@@ -168,27 +165,8 @@ defmodule TcgCheapWeb.CardDetailLive do
                       <% end %>
                     </p>
                   </div>
-                  <%= if @valuation do %>
-                    <dl id="valuation-provenance" class="valuation-provenance">
-                      <div>
-                        <dt>SOURCE</dt><dd>{@valuation.source}</dd>
-                      </div>
-                      <div>
-                        <dt>METRIC</dt><dd>{@valuation.source_metric}</dd>
-                      </div>
-                      <div>
-                        <dt>POLICY</dt><dd>{@valuation.policy_version}</dd>
-                      </div>
-                      <div>
-                        <dt>FETCHED</dt><dd>{utc_timestamp(@valuation.fetched_at)}</dd>
-                      </div>
-                    </dl>
-                  <% end %>
-                  <p class="methodology">
-                    Aggregate Cardmarket estimate from TCGdex under policy {@policy_version}. Language, condition, seller identity/count, finish-specific exactness, and Poland shipping are not verified. Shipping is not calculated.
-                  </p>
-                  <p id="card-detail-disclaimer" class="disclaimer">
-                    TCG Cheap is unofficial and not affiliated with Pokémon, Nintendo, TCGdex, Cardmarket, or any listed company. This is an estimate, not a guaranteed resale value or investment advice.
+                  <p id="card-detail-price-note" class="estimate-note">
+                    Estimate only · Condition and shipping may vary.
                   </p>
                 </section>
                 <figure class="card-detail-placeholder card-detail-figure">
@@ -204,16 +182,15 @@ defmodule TcgCheapWeb.CardDetailLive do
                       decoding="async"
                       referrerpolicy="no-referrer"
                     />
-                    <figcaption id="card-image-source-note">Image supplied by TCGdex.</figcaption>
                   <% else %>
                     <div
                       id="card-detail-image-missing"
                       class="card-image-missing"
                       role="img"
-                      aria-label="TCGdex has no image for this printing."
+                      aria-label="No image is available for this card printing."
                     >
                       <svg viewBox="0 0 160 220" aria-hidden="true"><path d="M18 8h102l22 22v182H18zM120 8v25h22M30 58h100M30 74h74M30 184h100M42 104h76M42 120h76M42 136h50" /></svg>
-                      <span>TCGDEX HAS NO IMAGE FOR THIS PRINTING</span>
+                      <span>No image is available for this card printing.</span>
                     </div>
                   <% end %>
                 </figure>
@@ -237,9 +214,6 @@ defmodule TcgCheapWeb.CardDetailLive do
                     <div :if={@card.expanded_legal}>
                       <dt>LEGALITY</dt><dd>EXPANDED</dd>
                     </div>
-                    <div>
-                      <dt>TCGDEX ID</dt><dd>{@card.tcgdex_id}</dd>
-                    </div>
                   </dl>
                 </div>
               </section>
@@ -247,28 +221,25 @@ defmodule TcgCheapWeb.CardDetailLive do
 
             <section class="valuation-history" aria-labelledby="history-title">
               <div class="section-rule">
-                <h2 id="history-title">Thirty-day ledger</h2><span>UTC / DAILY SNAPSHOTS</span>
+                <h2 id="history-title">30-day price history</h2>
               </div>
-              <p id="valuation-history-description" class="history-description">
-                Each day uses its last successful snapshot. Gaps mean no observation.
-              </p>
               <p
                 :if={@history_load_failed}
                 id="valuation-history-error"
                 class="state-note state-error"
               >
-                History could not be refreshed. Any ledger shown is the last local read.
+                History could not be refreshed.
               </p>
               <p
                 :if={not @history_load_failed and length(@history_points) < 2}
                 id="valuation-history-collecting"
                 class="state-note"
               >
-                History is still being collected; there are not enough observations to show a trend.
+                Not enough price history yet.
               </p>
               <%= if @history_points == [] do %>
                 <p :if={not @history_load_failed} id="valuation-history-empty" class="state-note">
-                  No successful observations in the last 30 days.
+                  No price history yet.
                 </p>
               <% else %>
                 <svg
@@ -277,7 +248,10 @@ defmodule TcgCheapWeb.CardDetailLive do
                   role="img"
                   aria-labelledby="valuation-history-title valuation-history-description"
                 >
-                  <title id="valuation-history-title">Thirty-day valuation history</title>
+                  <title id="valuation-history-title">30-day price history</title>
+                  <desc id="valuation-history-description">
+                    Daily price snapshots; gaps mean no observation.
+                  </desc>
                   <%= for {path, index} <- Enum.with_index(@history_paths) do %>
                     <path id={"valuation-history-segment-#{index}"} class="history-line" d={path} />
                   <% end %>
@@ -285,12 +259,12 @@ defmodule TcgCheapWeb.CardDetailLive do
                     <circle cx={point.x} cy={point.y} r="3" aria-hidden="true" />
                   <% end %>
                 </svg>
-                <ol id="valuation-history-ledger" class="history-ledger">
+                <ol id="valuation-history-ledger" class="sr-only">
                   <%= for point <- @history_points do %>
                     <li id={"valuation-history-day-#{point.date}"}>
-                      <time datetime={Date.to_iso8601(point.date)}>{Date.to_iso8601(point.date)}</time><strong>€{format_eur(
-                        point.value_eur
-                      )}</strong><span>{utc_timestamp(point.fetched_at)}</span>
+                      <time datetime={Date.to_iso8601(point.date)}>{Date.to_iso8601(point.date)}</time>
+                      <strong>€{format_eur(point.value_eur)}</strong>
+                      <span>{utc_timestamp(point.fetched_at)}</span>
                     </li>
                   <% end %>
                 </ol>
@@ -342,9 +316,9 @@ defmodule TcgCheapWeb.CardDetailLive do
           <.link id="archive-wordmark" navigate={~p"/"} class="archive-wordmark">TCG CHEAP</.link>
         </header><main class="archive-main">
           <section id="card-detail-not-found" class="state-note state-error">
-            <h1>Printing not found</h1><p>
-              No local card matches TCGdex ID <strong>{@tcgdex_id}</strong>. No provider was contacted.
-            </p><.link id="card-detail-not-found-back" navigate={~p"/"} class="archive-back">Back to archive</.link>
+            <h1>Card printing not found</h1><p>
+              We couldn’t find that card printing. Try another search.
+            </p><.link id="card-detail-not-found-back" navigate={~p"/"} class="archive-back">Back to search</.link>
           </section>
         </main>
       </div>
@@ -356,6 +330,7 @@ defmodule TcgCheapWeb.CardDetailLive do
     assign(socket,
       valuation: nil,
       valuation_display: "?",
+      valuation_freshness_text: "Updated recently",
       valuation_status: mode,
       history_points: [],
       history_paths: [],
@@ -399,6 +374,7 @@ defmodule TcgCheapWeb.CardDetailLive do
     assign(socket,
       valuation: nil,
       valuation_display: "?",
+      valuation_freshness_text: "Updated recently",
       valuation_status: :disconnected,
       history_points: [],
       history_paths: [],
@@ -442,7 +418,8 @@ defmodule TcgCheapWeb.CardDetailLive do
       assign(socket,
         valuation: valuation,
         valuation_display: format_eur(valuation.value_eur),
-        valuation_status: Freshness.status(valuation, now)
+        valuation_status: Freshness.status(valuation, now),
+        valuation_freshness_text: updated_text(valuation.fetched_at, now)
       )
     else
       apply_current_read(socket, {:ok, nil}, now)
@@ -456,6 +433,17 @@ defmodule TcgCheapWeb.CardDetailLive do
         valuation_display: "?",
         valuation_status: :local_read_failure
       )
+
+  defp updated_text(%DateTime{} = fetched_at, now) do
+    case max(DateTime.diff(now, fetched_at, :day), 0) do
+      0 -> "Updated today"
+      1 -> "Updated yesterday"
+      days -> "Updated #{days} days ago"
+    end
+  end
+
+  defp utc_timestamp(%DateTime{} = dt),
+    do: Calendar.strftime(DateTime.shift_zone!(dt, "Etc/UTC"), "%Y-%m-%d %H:%M:%S UTC")
 
   defp apply_history_read(socket, {:ok, snapshots}, now) do
     points = ValuationHistory.daily_points(snapshots, now)
@@ -501,9 +489,6 @@ defmodule TcgCheapWeb.CardDetailLive do
     [whole, fraction] = Enum.take(parts ++ ["0"], 2)
     whole <> "." <> String.pad_trailing(fraction, 2, "0")
   end
-
-  defp utc_timestamp(%DateTime{} = dt),
-    do: Calendar.strftime(DateTime.shift_zone!(dt, "Etc/UTC"), "%Y-%m-%d %H:%M:%S UTC")
 
   defp plot_points([], _origin), do: []
 

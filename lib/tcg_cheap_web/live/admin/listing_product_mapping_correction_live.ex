@@ -29,33 +29,18 @@ defmodule TcgCheapWeb.Admin.ListingProductMappingCorrectionLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.admin
+      flash={@flash}
+      current_url={~p"/admin/catalogue/mappings"}
+      current_admin={@current_admin}
+    >
       <div id="admin-mapping-correction" class="admin-world">
-        <header class="admin-header">
-          <.link id="admin-mapping-correction-home" navigate={~p"/"}>TCG CHEAP</.link>
-          <nav id="admin-mapping-correction-header-nav" aria-label="Admin sections">
-            <.link id="admin-mapping-correction-review-link" navigate={~p"/admin/review"}>Review</.link>
-            <.link
-              id="admin-mapping-correction-mappings-link"
-              navigate={~p"/admin/catalogue/mappings"}
-            >
-              Mappings
-            </.link>
-          </nav>
-          <div class="admin-header-actions">
-            <span>{@current_admin.email}</span>
-            <.link id="admin-mapping-correction-sign-out" href={~p"/admin/sign-out"} method="delete">
-              Sign out
-            </.link>
-          </div>
-        </header>
-
         <main class="admin-main">
           <div class="admin-container">
             <section class="admin-intro" aria-labelledby="admin-mapping-correction-title">
               <div>
                 <h1 id="admin-mapping-correction-title">Correct listing mapping</h1>
-                <p>Reopen this terminal decision to return the mapping to the review queue.</p>
+                <p>Reopen this mapping and send it back to the review queue.</p>
               </div>
             </section>
 
@@ -103,7 +88,12 @@ defmodule TcgCheapWeb.Admin.ListingProductMappingCorrectionLive do
               </p>
             </section>
 
-            <.form for={@form} id="mapping-correction-form" phx-submit="confirm_reopen">
+            <.form
+              for={@form}
+              id="mapping-correction-form"
+              class="mapping-correction-form"
+              phx-submit="confirm_reopen"
+            >
               <.input
                 field={@form[:reason]}
                 id="mapping-correction-reason"
@@ -126,7 +116,7 @@ defmodule TcgCheapWeb.Admin.ListingProductMappingCorrectionLive do
           </div>
         </main>
       </div>
-    </Layouts.app>
+    </Layouts.admin>
     """
   end
 

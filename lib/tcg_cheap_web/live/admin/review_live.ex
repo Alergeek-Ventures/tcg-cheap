@@ -29,41 +29,33 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
     reject_mapping
   )
 
+  @visible_queue_limit 25
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      socket
      |> assign(:page_title, "Sealed review desk")
      |> assign(:product_type_options, @product_type_options)
+     |> assign(:visible_queue_limit, @visible_queue_limit)
      |> load_review_desk()}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.admin
+      flash={@flash}
+      current_url={~p"/admin/review"}
+      current_admin={@current_admin}
+    >
       <div id="admin-review" class="admin-world">
-        <header class="admin-header">
-          <.link id="admin-review-home" navigate={~p"/"}>TCG CHEAP</.link>
-          <nav id="admin-review-header-nav" aria-label="Admin sections">
-            <.link id="admin-review-header-link" navigate={~p"/admin/review"} aria-current="page">
-              Review
-            </.link>
-            <.link id="admin-review-products-header-link" navigate={~p"/admin/catalogue/products"}>Products</.link>
-            <.link id="admin-review-operations-header-link" navigate={~p"/admin/operations"}>Operations</.link>
-          </nav>
-          <div class="admin-header-actions">
-            <span>{@current_admin.email}</span>
-            <.link id="admin-sign-out" href={~p"/admin/sign-out"} method="delete">Sign out</.link>
-          </div>
-        </header>
-
         <main class="admin-main">
           <div class="admin-container">
             <section class="admin-intro" aria-labelledby="admin-review-title">
               <div>
                 <h1 id="admin-review-title">Sealed review desk</h1>
-                <p>Confirm identity before anything can reach the collector catalogue.</p>
+                <p>Verify identity before publishing.</p>
               </div>
               <nav id="admin-queue-nav" aria-label="Review queues">
                 <a href="#draft-products">Products <strong>{@queue_counts.products}</strong></a>
@@ -77,6 +69,13 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
                 <h2 id="draft-products-title">Draft products</h2>
                 <span>{@queue_counts.products} waiting</span>
               </div>
+              <p
+                :if={@queue_limit_notes.products}
+                id="draft-products-limit"
+                class="admin-queue-limit"
+              >
+                {@queue_limit_notes.products}
+              </p>
 
               <div id="draft-product-queue" class="admin-dockets" phx-update="stream">
                 <p id="draft-product-empty" class="admin-empty hidden only:block">
@@ -108,77 +107,89 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
                       id={"product-#{product.id}-version"}
                       type="hidden"
                     />
-                    <.input
-                      field={form[:name]}
-                      id={"product-#{product.id}-name"}
-                      type="text"
-                      label="Canonical name"
-                      required
-                    />
-                    <.input
-                      field={form[:slug]}
-                      id={"product-#{product.id}-slug"}
-                      type="text"
-                      label="Stable slug"
-                      required
-                    />
-                    <.input
-                      field={form[:product_type]}
-                      id={"product-#{product.id}-type"}
-                      type="select"
-                      label="Product type"
-                      options={@product_type_options}
-                    />
-                    <.input
-                      field={form[:series_name]}
-                      id={"product-#{product.id}-series"}
-                      type="text"
-                      label="Series"
-                    />
-                    <.input
-                      field={form[:set_name]}
-                      id={"product-#{product.id}-set"}
-                      type="text"
-                      label="Set"
-                    />
-                    <.input
-                      field={form[:release_date]}
-                      id={"product-#{product.id}-release-date"}
-                      type="date"
-                      label="Release date"
-                    />
-                    <.input
-                      field={form[:msrp_pln]}
-                      id={"product-#{product.id}-msrp"}
-                      type="number"
-                      step="0.01"
-                      label="MSRP (PLN)"
-                    />
-                    <.input
-                      field={form[:msrp_source]}
-                      id={"product-#{product.id}-msrp-source"}
-                      type="text"
-                      label="MSRP source"
-                    />
-                    <.input
-                      field={form[:msrp_source_url]}
-                      id={"product-#{product.id}-msrp-url"}
-                      type="url"
-                      label="MSRP source URL"
-                    />
-                    <.input
-                      field={form[:image_url]}
-                      id={"product-#{product.id}-image-url"}
-                      type="url"
-                      label="Image URL"
-                    />
-                    <.input
-                      field={form[:officially_distributed]}
-                      id={"product-#{product.id}-official"}
-                      type="checkbox"
-                      label="Officially distributed in Poland in English"
-                    />
-                    <button id={"save-product-#{product.id}"} type="submit">Save draft</button>
+                    <section class="admin-form-section admin-form-section--identity">
+                      <h4>Identity</h4>
+                      <.input
+                        field={form[:name]}
+                        id={"product-#{product.id}-name"}
+                        type="text"
+                        label="Canonical name"
+                        required
+                      />
+                      <.input
+                        field={form[:slug]}
+                        id={"product-#{product.id}-slug"}
+                        type="text"
+                        label="Stable slug"
+                        required
+                      />
+                      <.input
+                        field={form[:product_type]}
+                        id={"product-#{product.id}-type"}
+                        type="select"
+                        label="Product type"
+                        options={@product_type_options}
+                      />
+                    </section>
+                    <section class="admin-form-section admin-form-section--classification">
+                      <h4>Classification</h4>
+                      <.input
+                        field={form[:series_name]}
+                        id={"product-#{product.id}-series"}
+                        type="text"
+                        label="Series"
+                      />
+                      <.input
+                        field={form[:set_name]}
+                        id={"product-#{product.id}-set"}
+                        type="text"
+                        label="Set"
+                      />
+                      <.input
+                        field={form[:release_date]}
+                        id={"product-#{product.id}-release-date"}
+                        type="date"
+                        label="Release date"
+                      />
+                    </section>
+                    <section class="admin-form-section admin-form-section--pricing-media">
+                      <h4>Pricing and media</h4>
+                      <.input
+                        field={form[:msrp_pln]}
+                        id={"product-#{product.id}-msrp"}
+                        type="number"
+                        step="0.01"
+                        label="MSRP (PLN)"
+                      />
+                      <.input
+                        field={form[:msrp_source]}
+                        id={"product-#{product.id}-msrp-source"}
+                        type="text"
+                        label="MSRP source"
+                      />
+                      <.input
+                        field={form[:msrp_source_url]}
+                        id={"product-#{product.id}-msrp-url"}
+                        type="url"
+                        label="MSRP source URL"
+                      />
+                      <.input
+                        field={form[:image_url]}
+                        id={"product-#{product.id}-image-url"}
+                        type="url"
+                        label="Image URL"
+                      />
+                    </section>
+                    <section class="admin-form-section admin-form-section--publication">
+                      <h4>Publication</h4>
+                      <.input
+                        field={form[:officially_distributed]}
+                        id={"product-#{product.id}-official"}
+                        type="checkbox"
+                        label="Officially distributed in Poland in English"
+                      />
+                      <button id={"save-product-#{product.id}"} type="submit">Save draft</button>
+                    </section>
                   </.form>
 
                   <div class="admin-decision-row">
@@ -211,6 +222,13 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
                 <h2 id="pending-aliases-title">Pending aliases</h2>
                 <span>{@queue_counts.aliases} waiting</span>
               </div>
+              <p
+                :if={@queue_limit_notes.aliases}
+                id="pending-aliases-limit"
+                class="admin-queue-limit"
+              >
+                {@queue_limit_notes.aliases}
+              </p>
 
               <div id="pending-alias-queue" class="admin-dockets compact-dockets" phx-update="stream">
                 <p id="pending-alias-empty" class="admin-empty hidden only:block">
@@ -270,6 +288,13 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
                 <h2 id="listing-mappings-title">Listing mappings</h2>
                 <span>{@queue_counts.mappings} waiting</span>
               </div>
+              <p
+                :if={@queue_limit_notes.mappings}
+                id="listing-mappings-limit"
+                class="admin-queue-limit"
+              >
+                {@queue_limit_notes.mappings}
+              </p>
 
               <div id="listing-mapping-queue" class="admin-dockets" phx-update="stream">
                 <p id="listing-mapping-empty" class="admin-empty hidden only:block">
@@ -282,122 +307,127 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
                 >
                   <% approve_form = Map.fetch!(@mapping_approve_forms, mapping.id) %>
                   <% reject_form = Map.fetch!(@mapping_reject_forms, mapping.id) %>
-                  <div class="admin-docket-heading">
-                    <div>
-                      <h3>{mapping.retailer_listing.source_title}</h3>
-                      <p>
+                  <details class="admin-docket-details">
+                    <summary class="admin-docket-summary">
+                      <strong>{mapping.retailer_listing.source_title}</strong>
+                      <span class="admin-docket-meta">
                         {mapping.retailer_listing.retailer.name} · {mapping.retailer_listing.source_listing_id}
-                      </p>
-                    </div>
-                    <span>{String.upcase(mapping.status)}</span>
-                  </div>
+                      </span>
+                      <span class="admin-docket-status">{String.upcase(mapping.status)}</span>
+                    </summary>
+                    <div class="admin-docket-body">
+                      <dl class="admin-evidence-grid">
+                        <div>
+                          <dt>Price / stock</dt>
+                          <dd>
+                            {format_price(mapping.retailer_listing.current_price_pln)} · {mapping.retailer_listing.stock_status}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>GTIN</dt><dd>{mapping.retailer_listing.gtin || "Not supplied"}</dd>
+                        </div>
+                        <div>
+                          <dt>Candidate</dt><dd>{candidate_name(mapping)}</dd>
+                        </div>
+                        <div>
+                          <dt>Confidence</dt><dd>{format_decimal(mapping.confidence)}</dd>
+                        </div>
+                        <div class="wide-evidence">
+                          <dt>Reason</dt><dd>{mapping.reason || "No matcher reason"}</dd>
+                        </div>
+                        <div class="wide-evidence">
+                          <dt>Evidence</dt><dd>{format_evidence(mapping.evidence)}</dd>
+                        </div>
+                        <div class="wide-evidence">
+                          <dt>Source</dt>
+                          <dd>
+                            <a
+                              id={"mapping-source-#{mapping.id}"}
+                              href={mapping.retailer_listing.direct_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Open retailer listing
+                            </a>
+                          </dd>
+                        </div>
+                      </dl>
 
-                  <dl class="admin-evidence-grid">
-                    <div>
-                      <dt>Price / stock</dt>
-                      <dd>
-                        {format_price(mapping.retailer_listing.current_price_pln)} · {mapping.retailer_listing.stock_status}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>GTIN</dt><dd>{mapping.retailer_listing.gtin || "Not supplied"}</dd>
-                    </div>
-                    <div>
-                      <dt>Candidate</dt><dd>{candidate_name(mapping)}</dd>
-                    </div>
-                    <div>
-                      <dt>Confidence</dt><dd>{format_decimal(mapping.confidence)}</dd>
-                    </div>
-                    <div class="wide-evidence">
-                      <dt>Reason</dt><dd>{mapping.reason || "No matcher reason"}</dd>
-                    </div>
-                    <div class="wide-evidence">
-                      <dt>Evidence</dt><dd>{format_evidence(mapping.evidence)}</dd>
-                    </div>
-                    <div class="wide-evidence">
-                      <dt>Source</dt>
-                      <dd>
-                        <a
-                          id={"mapping-source-#{mapping.id}"}
-                          href={mapping.retailer_listing.direct_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                      <.form
+                        for={approve_form}
+                        id={"approve-mapping-form-#{mapping.id}"}
+                        phx-submit="approve_mapping"
+                        class="mapping-decision-form"
+                      >
+                        <.input
+                          field={approve_form[:id]}
+                          id={"mapping-#{mapping.id}-approve-id"}
+                          type="hidden"
+                        />
+                        <.input
+                          field={approve_form[:expected_updated_at]}
+                          id={"mapping-#{mapping.id}-approve-version"}
+                          type="hidden"
+                        />
+                        <.input
+                          field={approve_form[:confirmed_product_id]}
+                          id={"mapping-#{mapping.id}-confirmed-product"}
+                          type="select"
+                          label="Confirmed canonical product"
+                          options={@approved_product_options}
+                          prompt="Choose an approved product"
+                        />
+                        <button
+                          id={"approve-mapping-#{mapping.id}"}
+                          type="submit"
+                          disabled={@approved_product_options == []}
                         >
-                          Open retailer listing
-                        </a>
-                      </dd>
+                          Approve mapping
+                        </button>
+                      </.form>
+
+                      <.form
+                        for={reject_form}
+                        id={"reject-mapping-form-#{mapping.id}"}
+                        phx-submit="reject_mapping"
+                        class="mapping-decision-form reject-form"
+                      >
+                        <.input
+                          field={reject_form[:id]}
+                          id={"mapping-#{mapping.id}-reject-id"}
+                          type="hidden"
+                        />
+                        <.input
+                          field={reject_form[:expected_updated_at]}
+                          id={"mapping-#{mapping.id}-reject-version"}
+                          type="hidden"
+                        />
+                        <.input
+                          field={reject_form[:reason]}
+                          id={"mapping-#{mapping.id}-reason"}
+                          type="text"
+                          label="Rejection reason"
+                          placeholder="Why this listing must not map"
+                          required
+                          maxlength="2000"
+                        />
+                        <button
+                          id={"reject-mapping-#{mapping.id}"}
+                          type="submit"
+                          class="secondary-action"
+                        >
+                          Reject mapping
+                        </button>
+                      </.form>
                     </div>
-                  </dl>
-
-                  <.form
-                    for={approve_form}
-                    id={"approve-mapping-form-#{mapping.id}"}
-                    phx-submit="approve_mapping"
-                    class="mapping-decision-form"
-                  >
-                    <.input
-                      field={approve_form[:id]}
-                      id={"mapping-#{mapping.id}-approve-id"}
-                      type="hidden"
-                    />
-                    <.input
-                      field={approve_form[:expected_updated_at]}
-                      id={"mapping-#{mapping.id}-approve-version"}
-                      type="hidden"
-                    />
-                    <.input
-                      field={approve_form[:confirmed_product_id]}
-                      id={"mapping-#{mapping.id}-confirmed-product"}
-                      type="select"
-                      label="Confirmed canonical product"
-                      options={@approved_product_options}
-                      prompt="Choose an approved product"
-                    />
-                    <button
-                      id={"approve-mapping-#{mapping.id}"}
-                      type="submit"
-                      disabled={@approved_product_options == []}
-                    >
-                      Approve mapping
-                    </button>
-                  </.form>
-
-                  <.form
-                    for={reject_form}
-                    id={"reject-mapping-form-#{mapping.id}"}
-                    phx-submit="reject_mapping"
-                    class="mapping-decision-form reject-form"
-                  >
-                    <.input
-                      field={reject_form[:id]}
-                      id={"mapping-#{mapping.id}-reject-id"}
-                      type="hidden"
-                    />
-                    <.input
-                      field={reject_form[:expected_updated_at]}
-                      id={"mapping-#{mapping.id}-reject-version"}
-                      type="hidden"
-                    />
-                    <.input
-                      field={reject_form[:reason]}
-                      id={"mapping-#{mapping.id}-reason"}
-                      type="text"
-                      label="Rejection reason"
-                      placeholder="Why this listing must not map"
-                      required
-                      maxlength="2000"
-                    />
-                    <button id={"reject-mapping-#{mapping.id}"} type="submit" class="secondary-action">
-                      Reject mapping
-                    </button>
-                  </.form>
+                  </details>
                 </article>
               </div>
             </section>
           </div>
         </main>
       </div>
-    </Layouts.app>
+    </Layouts.admin>
     """
   end
 
@@ -537,26 +567,55 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
 
   defp load_review_desk(socket) do
     actor = socket.assigns.current_admin
-    products = Core.list_sealed_product_draft_review_queue!(actor: actor)
-    aliases = Core.list_sealed_product_alias_pending_queue!(actor: actor)
-    mappings = Core.list_listing_mapping_review_queue!(actor: actor)
+    fetched_queue_limit = @visible_queue_limit + 1
+
+    products =
+      Core.list_sealed_product_draft_review_queue!(
+        query: [limit: fetched_queue_limit],
+        actor: actor
+      )
+
+    aliases =
+      Core.list_sealed_product_alias_pending_queue!(
+        query: [limit: fetched_queue_limit],
+        actor: actor
+      )
+
+    mappings =
+      Core.list_listing_mapping_review_queue!(
+        query: [limit: fetched_queue_limit],
+        actor: actor
+      )
+
     approved_products = Core.list_public_sealed_products!(actor: actor)
     approved_product_ids = MapSet.new(approved_products, & &1.id)
+    visible_products = Enum.take(products, @visible_queue_limit)
+    visible_aliases = Enum.take(aliases, @visible_queue_limit)
+    visible_mappings = Enum.take(mappings, @visible_queue_limit)
+
+    queue_counts = %{
+      products: queue_count(products),
+      aliases: queue_count(aliases),
+      mappings: queue_count(mappings)
+    }
+
+    queue_limit_notes = %{
+      products: queue_limit_note(products),
+      aliases: queue_limit_note(aliases),
+      mappings: queue_limit_note(mappings)
+    }
 
     socket
-    |> assign(:queue_counts, %{
-      products: length(products),
-      aliases: length(aliases),
-      mappings: length(mappings)
-    })
-    |> assign(:product_forms, Map.new(products, &{&1.id, product_form(&1)}))
+    |> assign(:queue_counts, queue_counts)
+    |> assign(:queue_limit_notes, queue_limit_notes)
+    |> assign(:product_forms, Map.new(visible_products, &{&1.id, product_form(&1)}))
     |> assign(
       :approved_product_options,
       Enum.map(approved_products, &{"#{&1.name} · #{&1.slug}", &1.id})
     )
     |> assign(
       :mapping_approve_forms,
-      Map.new(mappings, fn mapping ->
+      Map.new(visible_mappings, fn mapping ->
         selected_id =
           if mapping.candidate_product_id in approved_product_ids,
             do: mapping.candidate_product_id,
@@ -575,7 +634,7 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
     )
     |> assign(
       :mapping_reject_forms,
-      Map.new(mappings, fn mapping ->
+      Map.new(visible_mappings, fn mapping ->
         {mapping.id,
          to_form(
            %{
@@ -587,10 +646,20 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
          )}
       end)
     )
-    |> stream(:draft_products, products, reset: true)
-    |> stream(:pending_aliases, aliases, reset: true)
-    |> stream(:listing_mappings, mappings, reset: true)
+    |> stream(:draft_products, visible_products, reset: true)
+    |> stream(:pending_aliases, visible_aliases, reset: true)
+    |> stream(:listing_mappings, visible_mappings, reset: true)
   end
+
+  defp queue_count(queue) when length(queue) > @visible_queue_limit,
+    do: "#{@visible_queue_limit}+"
+
+  defp queue_count(queue), do: length(queue)
+
+  defp queue_limit_note(queue) when length(queue) > @visible_queue_limit,
+    do: "Showing first #{@visible_queue_limit}"
+
+  defp queue_limit_note(_queue), do: nil
 
   defp product_form(product) do
     to_form(

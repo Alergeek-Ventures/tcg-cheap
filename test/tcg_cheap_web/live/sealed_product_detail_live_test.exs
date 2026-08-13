@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
   alias TcgCheap.Pricing.SealedDailyAggregateRevision
   alias TcgCheapWeb.SealedProductDetailLive
 
-  test "renders an exact persisted ready guide and its reasons", %{conn: conn} do
+  test "renders an exact persisted ready guide without explanations", %{conn: conn} do
     product = product()
     today = Date.utc_today()
 
@@ -40,16 +40,17 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
     assert has_element?(view, "#sealed-detail-buying-band-fair", "105.00 PLN")
     assert has_element?(view, "#sealed-detail-buying-band-expensive", "120.00 PLN")
     assert has_element?(view, "#sealed-detail-buying-band-avoid", "120.00 PLN")
-    assert has_element?(view, "#sealed-detail-guide-reasons", "prices are rising")
+    refute has_element?(view, "#sealed-detail-guide-reasons")
+    assert has_element?(view, "#sealed-market-history-ledger.sr-only")
 
     assert has_element?(
              view,
-             "#sealed-detail-guide-reasons",
-             "scarce availability"
+             "#sealed-market-history-ledger",
+             Calendar.strftime(today, "%b %-d, %Y")
            )
 
-    assert has_element?(view, "#sealed-detail-guide-reasons", "saved MSRP")
-    assert has_element?(view, "#sealed-market-history-ledger")
+    assert has_element?(view, "#sealed-market-history-ledger", "benchmark 12.00 PLN")
+    assert has_element?(view, "#sealed-market-history-ledger", "typical range 10.00–15.00 PLN")
     assert has_element?(view, "#sealed-market-history-benchmark-0")
     assert has_element?(view, "#sealed-market-history-benchmark-1")
     refute has_element?(view, "button", "Buy")
@@ -67,8 +68,8 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
 
-    assert has_element?(view, "#sealed-detail-guide-stale", "older local market snapshot")
-    assert has_element?(view, "#sealed-detail-guide-stale", "may be outdated")
+    assert has_element?(view, "#sealed-detail-guide-stale", "May be outdated")
+    refute has_element?(view, "#sealed-detail-guide-stale", "snapshot")
 
     for band <- ~w(great fair expensive avoid) do
       assert has_element?(view, "#sealed-detail-buying-band-#{band}")
@@ -109,7 +110,7 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
 
-    assert has_element?(view, "#sealed-detail-guide-limited", "Limited data")
+    refute has_element?(view, "#sealed-detail-buying-guide")
     refute has_element?(view, "#sealed-detail-buying-bands")
   end
 
@@ -139,8 +140,9 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
 
-    assert has_element?(view, "#sealed-detail-guide-limited", "Limited data")
+    assert has_element?(view, "#sealed-detail-buying-guide")
     assert has_element?(view, "#sealed-detail-guide-cached")
+    assert has_element?(view, "#sealed-detail-guide-limited", "Limited data")
 
     for band <- ~w(great fair expensive avoid) do
       assert has_element?(view, "#sealed-detail-buying-band-#{band}")
@@ -161,11 +163,11 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
 
-    assert has_element?(view, "#sealed-detail-guide-invalid")
+    refute has_element?(view, "#sealed-detail-buying-guide")
     refute has_element?(view, "#sealed-detail-buying-bands")
   end
 
-  test "renders public identity, optional MSRP, and the market snapshot state", %{conn: conn} do
+  test "renders public identity, optional MSRP, and the price guide state", %{conn: conn} do
     product = product(%{msrp_pln: Decimal.new("129.99"), msrp_source: "official product sheet"})
 
     {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
@@ -176,24 +178,36 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
     assert has_element?(view, "#sealed-detail-title", product.name)
     assert has_element?(view, "#sealed-detail-type", "Booster Box")
     assert has_element?(view, "#sealed-detail-msrp", "129.99 PLN")
-    assert has_element?(view, "#sealed-detail-msrp-provenance", "official product sheet")
+    refute has_element?(view, "#sealed-detail-msrp-provenance")
+    refute has_element?(view, "#sealed-detail-release", "Release date:")
+    refute has_element?(view, "#sealed-detail-status", "Status:")
     assert has_element?(view, "#sealed-detail-market-snapshot")
-    assert has_element?(view, "#sealed-detail-market-snapshot-title", "Market snapshot")
-    assert has_element?(view, "#sealed-market-history-section", "30-day market history")
-    assert has_element?(view, "#sealed-market-history-empty")
-    assert has_element?(view, "#sealed-detail-buying-guide")
-    assert has_element?(view, "#sealed-detail-guide-missing")
+    assert has_element?(view, "#sealed-detail-market-snapshot-title", "Price guide")
+    refute has_element?(view, "#sealed-market-history-section")
+    refute has_element?(view, "#sealed-market-history-empty")
+    refute has_element?(view, "#sealed-detail-buying-guide")
+    refute has_element?(view, "#sealed-detail-guide-missing")
 
     assert has_element?(
              view,
              "#sealed-detail-aggregate-empty",
-             "Limited data. Market history is being collected"
+             "Limited data."
            )
 
     refute has_element?(view, "#sealed-detail-benchmark")
     refute has_element?(view, "#sealed-detail-market-snapshot", "graph")
     assert has_element?(view, "#sealed-current-empty", "No current local offers yet")
-    assert has_element?(view, "#sealed-sold-out-empty")
+    refute has_element?(view, "#sealed-sold-out-section")
+    refute has_element?(view, "#sealed-sold-out-empty")
+  end
+
+  test "renders a concise fallback when MSRP is absent", %{conn: conn} do
+    product = product(%{msrp_pln: nil, msrp_source: nil})
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+
+    assert has_element?(view, "#sealed-detail-msrp", "MSRP unavailable")
+    refute has_element?(view, "#sealed-detail-msrp", "unavailable from local records")
   end
 
   test "renders a graph ledger with a genuine missing-day gap", %{conn: conn} do
@@ -218,14 +232,10 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
     {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
 
     assert has_element?(view, "#sealed-market-history-chart")
-    assert has_element?(view, "#sealed-market-history-ledger")
+    assert has_element?(view, "#sealed-market-history-ledger.sr-only")
+    assert has_element?(view, "#sealed-market-history-ledger", "benchmark 12.00 PLN")
+    assert has_element?(view, "#sealed-market-history-ledger", "typical range 10.00–15.00 PLN")
 
-    assert has_element?(
-             view,
-             "#sealed-market-history-day-#{Date.to_iso8601(Date.add(today, -2))}"
-           )
-
-    assert has_element?(view, "#sealed-market-history-day-#{Date.to_iso8601(today)}")
     assert has_element?(view, "#sealed-market-history-benchmark-0")
     assert has_element?(view, "#sealed-market-history-benchmark-1")
     refute has_element?(view, "button", "Buy")
@@ -256,15 +266,33 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
 
     assert has_element?(view, "#sealed-current-offers #sealed-current-offer-#{current.id}")
     assert has_element?(view, "#sealed-sold-out-offers #sealed-sold-out-offer-#{sold_out.id}")
+    assert has_element?(view, "details#sealed-sold-out-section > summary#sealed-sold-out-title")
     assert has_element?(view, "#sealed-current-price-#{current.id}", "99.90 PLN")
     assert has_element?(view, "#sealed-sold-out-price-#{sold_out.id}", "unavailable")
+    refute has_element?(view, "#sealed-sold-out-price-#{sold_out.id}", "Price at last check:")
+    assert has_element?(view, "#sealed-current-price-#{current.id}.sealed-offer-price")
+
+    assert has_element?(
+             view,
+             "#sealed-current-stock-#{current.id}.sealed-offer-stock",
+             "In stock"
+           )
+
+    assert has_element?(
+             view,
+             "#sealed-current-checked-#{current.id}.sealed-offer-checked",
+             "Checked today"
+           )
+
+    refute has_element?(view, ".sealed-offer-category")
+    refute has_element?(view, "#sealed-current-offer-#{current.id}", "Category:")
 
     assert has_element?(
              view,
              "#sealed-current-direct-link-#{current.id}[target='_blank'][rel='noopener noreferrer']"
            )
 
-    assert has_element?(view, "#sealed-sold-out-checked-#{sold_out.id}", "UTC")
+    assert has_element?(view, "#sealed-sold-out-checked-#{sold_out.id}", "Checked today")
 
     assert has_element?(
              view,
@@ -298,18 +326,12 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
     assert has_element?(view, "#sealed-detail-benchmark", "12.50 PLN")
     assert has_element?(view, "#sealed-current-offer-#{current.id}")
     assert has_element?(view, "#sealed-detail-range", "10.00–15.00 PLN")
-    assert has_element?(view, "#sealed-detail-fresh-regular-count", "5")
-    assert has_element?(view, "#sealed-detail-fresh-lgs-count", "1")
-    assert has_element?(view, "#sealed-detail-sold-out-evidence-count", "3")
-
-    assert has_element?(
-             view,
-             "#sealed-detail-aggregate-date",
-             Calendar.strftime(Date.utc_today(), "%b %-d, %Y")
-           )
-
-    assert has_element?(view, "#sealed-detail-methodology")
-    assert has_element?(view, "#sealed-detail-evidence-checked-at", "UTC")
+    refute has_element?(view, "#sealed-detail-fresh-regular-count")
+    refute has_element?(view, "#sealed-detail-fresh-lgs-count")
+    refute has_element?(view, "#sealed-detail-sold-out-evidence-count")
+    refute has_element?(view, "#sealed-detail-aggregate-date")
+    refute has_element?(view, "#sealed-detail-methodology")
+    refute has_element?(view, "#sealed-detail-evidence-checked-at")
     refute has_element?(view, "#sealed-detail-buying-bands")
     refute has_element?(view, "button", "Buy")
   end
@@ -325,14 +347,11 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
     {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
     assert has_element?(view, "#sealed-detail-aggregate-stale", "May be outdated")
 
-    assert has_element?(
-             view,
-             "#sealed-detail-aggregate-stale",
-             Date.to_iso8601(Date.add(Date.utc_today(), -2))
-           )
-
-    assert has_element?(view, "#sealed-detail-market-snapshot", "Latest stored benchmark")
-    assert has_element?(view, "#sealed-detail-market-snapshot", "Typical range at that snapshot")
+    assert has_element?(view, "#sealed-detail-market-snapshot", "Market price")
+    assert has_element?(view, "#sealed-detail-market-snapshot", "Typical range")
+    refute has_element?(view, "#sealed-detail-aggregate-date")
+    refute has_element?(view, "#sealed-detail-evidence-checked-at")
+    refute has_element?(view, "#sealed-detail-market-snapshot", "Latest stored benchmark")
     refute has_element?(view, "#sealed-detail-market-snapshot", "Current market benchmark")
   end
 
@@ -360,6 +379,8 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
 
       {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
       assert has_element?(view, "#sealed-detail-aggregate-limited", "Limited data.")
+      refute has_element?(view, "regular retailer")
+      refute has_element?(view, "outlier")
       refute has_element?(view, "sealed_market_daily_v1")
       refute has_element?(view, "#sealed-detail-benchmark")
     end
@@ -393,8 +414,8 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
 
-    assert has_element?(view, "#sealed-detail-aggregate-cached", "may be outdated")
-    assert has_element?(view, "#sealed-detail-aggregate-limited", "Only 4")
+    assert has_element?(view, "#sealed-detail-aggregate-cached", "May be outdated")
+    assert has_element?(view, "#sealed-detail-aggregate-limited", "Limited data.")
     assert has_element?(view, "#sealed-detail-benchmark", "12.00 PLN")
     refute has_element?(view, "#sealed-detail-aggregate-ready")
   end
@@ -411,7 +432,8 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
     {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
 
     assert has_element?(view, "#sealed-detail-aggregate-stale", "May be outdated")
-    assert has_element?(view, "#sealed-detail-market-snapshot", "Latest stored benchmark")
+    assert has_element?(view, "#sealed-detail-market-snapshot", "Market price")
+    refute has_element?(view, "#sealed-detail-market-snapshot", "Latest stored benchmark")
     refute has_element?(view, "#sealed-detail-market-snapshot", "Current market benchmark")
   end
 

@@ -56,17 +56,14 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
                   {collection(@product)}
                 </p>
                 <p id="sealed-detail-release">
-                  Release date: {format_release_date(@product.release_date)}
+                  {format_release_date(@product.release_date)}
                 </p>
-                <p id="sealed-detail-status">Status: {human_status(@product.distribution_status)}</p>
+                <p id="sealed-detail-status">{human_status(@product.distribution_status)}</p>
                 <p id="sealed-detail-msrp">
                   <%= if finite_decimal?(@product.msrp_pln) do %>
                     MSRP: {format_pln(@product.msrp_pln)} PLN
-                    <span :if={@product.msrp_source} id="sealed-detail-msrp-provenance">
-                      · Source: {@product.msrp_source}
-                    </span>
                   <% else %>
-                    MSRP: unavailable from local records
+                    MSRP unavailable
                   <% end %>
                 </p>
               </section>
@@ -76,33 +73,13 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
                 class="state-note"
                 aria-labelledby="sealed-detail-market-snapshot-title"
               >
-                <h2 id="sealed-detail-market-snapshot-title">Market snapshot</h2>
+                <h2 id="sealed-detail-market-snapshot-title">Price guide</h2>
                 {aggregate_content(@aggregate_state, @aggregate, @aggregate_current?)}
               </section>
             </div>
 
-            <section
-              id="sealed-detail-buying-guide"
-              aria-labelledby="sealed-detail-buying-guide-title"
-            >
-              <h2 id="sealed-detail-buying-guide-title">Buying guide</h2>
-              {buying_guide_content(@buying_guide_state)}
-            </section>
-
-            <section id="sealed-market-history-section" aria-labelledby="sealed-market-history-title">
-              <h2 id="sealed-market-history-title">30-day market history</h2>
-              <p>
-                The line is the daily market benchmark; the band is the typical daily price range. Gaps mean no daily snapshot was available.
-              </p>
-              {history_content(@market_history, @market_history_state)}
-            </section>
-
-            <p :if={@read_error} id="sealed-detail-read-error" class="state-note state-error">
-              Offers could not be read from local records. Product identity is retained; offer sections are empty.
-            </p>
-
             <section id="sealed-current-section" aria-labelledby="sealed-current-title">
-              <h2 id="sealed-current-title">Current in-stock offers</h2>
+              <h2 id="sealed-current-title">Offers</h2>
               <p
                 :if={@current_offer_count == 0 and is_nil(@read_error)}
                 id="sealed-current-empty"
@@ -120,14 +97,36 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
               </div>
             </section>
 
-            <section id="sealed-sold-out-section" aria-labelledby="sealed-sold-out-title">
-              <h2 id="sealed-sold-out-title">Sold out at last check</h2>
+            <section
+              :if={buying_guide_visible?(@buying_guide_state)}
+              id="sealed-detail-buying-guide"
+              aria-labelledby="sealed-detail-buying-guide-title"
+            >
+              <h2 id="sealed-detail-buying-guide-title">Price guide</h2>
+              {buying_guide_content(@buying_guide_state)}
+            </section>
+
+            <section
+              :if={market_history_visible?(@market_history_state, @market_history)}
+              id="sealed-market-history-section"
+              aria-labelledby="sealed-market-history-title"
+            >
+              <h2 id="sealed-market-history-title">30-day market history</h2>
+              {history_content(@market_history, @market_history_state)}
+            </section>
+
+            <p :if={@read_error} id="sealed-detail-read-error" class="state-note state-error">
+              Offers unavailable.
+            </p>
+
+            <details :if={@sold_out_offer_count > 0} id="sealed-sold-out-section">
+              <summary id="sealed-sold-out-title">Sold out at last check</summary>
               <p
                 :if={@sold_out_offer_count == 0 and is_nil(@read_error)}
                 id="sealed-sold-out-empty"
                 class="state-note"
               >
-                No sold-out local evidence yet.
+                No sold-out offers yet.
               </p>
               <div id="sealed-sold-out-offers" phx-update="stream" class="sealed-offer-ledger">
                 <.offer_card
@@ -137,13 +136,10 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
                   prefix="sold-out"
                 />
               </div>
-            </section>
+            </details>
 
             <aside id="sealed-detail-notes">
               <p>Prices exclude shipping.</p>
-              <p>
-                TCG Cheap is unofficial and not affiliated with Pokémon, Nintendo, or any listed company.
-              </p>
             </aside>
           </div>
         </main>
@@ -168,7 +164,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
           <div class="decision-container">
             <section id="sealed-detail-data-error" class="state-note state-error">
               <h1>Sealed product data is unavailable</h1>
-              <p>Local records could not be read. Try again; no provider was contacted.</p>
+              <p>We could not load this product right now. Try again later.</p>
               <.link id="sealed-detail-data-error-back" navigate={~p"/"}>Back to search</.link>
             </section>
           </div>
@@ -182,19 +178,23 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     ~H"""
     <article id={@id} class="sealed-offer">
       <h3>{@offer.retailer.name}</h3>
-      <p>Category: {human_category(@offer.retailer.category)}</p>
-      <p id={"sealed-#{@prefix}-price-#{@offer.listing.id}"}>
-        <%= if @offer.listing.stock_status == "sold_out" do %>
-          Price at last check: {price_or_unavailable(@offer.listing.current_price_pln)}
-        <% else %>
-          {price_or_unavailable(@offer.listing.current_price_pln)}
-        <% end %>
+      <p
+        id={"sealed-#{@prefix}-price-#{@offer.listing.id}"}
+        class="sealed-offer-price"
+      >
+        {price_or_unavailable(@offer.listing.current_price_pln)}
       </p>
-      <p id={"sealed-#{@prefix}-stock-#{@offer.listing.id}"}>
+      <p
+        id={"sealed-#{@prefix}-stock-#{@offer.listing.id}"}
+        class="sealed-offer-stock"
+      >
         {stock_label(@offer.listing.stock_status)}
       </p>
-      <p id={"sealed-#{@prefix}-checked-#{@offer.listing.id}"}>
-        Last checked: {utc_timestamp(@offer.listing.last_checked_at)}
+      <p
+        id={"sealed-#{@prefix}-checked-#{@offer.listing.id}"}
+        class="sealed-offer-checked"
+      >
+        {checked_text(@offer.listing.last_checked_at)}
       </p>
       <%= if valid_direct_url?(@offer.listing.direct_url) do %>
         <.link
@@ -331,28 +331,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
 
     ~H"""
     <p id="sealed-detail-aggregate-empty">
-      <strong>Limited data.</strong>
-      Market history is being collected from local records. No benchmark or buying bands are shown yet.
-    </p>
-    """
-  end
-
-  defp history_content(_history, :error) do
-    assigns = %{}
-
-    ~H"""
-    <p id="sealed-market-history-error" class="state-note state-error">
-      Market history could not be read from local records. No graph is shown.
-    </p>
-    """
-  end
-
-  defp history_content(%{points: []}, :ok) do
-    assigns = %{}
-
-    ~H"""
-    <p id="sealed-market-history-empty" class="state-note">
-      Daily snapshots are still being collected locally. A chart will appear when valid snapshots exist.
+      Limited data.
     </p>
     """
   end
@@ -370,7 +349,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
       >
         <title id="sealed-market-history-chart-title">Thirty-day sealed market history</title>
         <desc id="sealed-market-history-chart-description">
-          Benchmark points connected by lines with typical price ranges. Missing dates are left as gaps.
+          Benchmark and typical price range over the last thirty days.
         </desc>
         <%= for {path, index} <- Enum.with_index(@history.range_paths) do %>
           <path id={"sealed-market-history-range-#{index}"} class="sealed-history-range" d={path} />
@@ -396,26 +375,19 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
           </circle>
         <% end %>
       </svg>
-      <figcaption id="sealed-market-history-legend">
-        <span><i class="sealed-history-swatch sealed-history-swatch-line" aria-hidden="true"></i>Benchmark line</span><span><i
-          class="sealed-history-swatch sealed-history-swatch-band"
-          aria-hidden="true"
-        ></i>Typical range band</span><span><i
-          class="sealed-history-swatch sealed-history-swatch-point"
-          aria-hidden="true"
-        ></i>Daily snapshot point</span>
-      </figcaption>
+      <ol id="sealed-market-history-ledger" class="sr-only">
+        <li
+          :for={point <- @history.points}
+          id={"sealed-market-history-day-#{Date.to_iso8601(point.date)}"}
+        >
+          <strong>{format_aggregate_date(point.date)}</strong>: benchmark {format_pln(
+            point.benchmark_pln
+          )} PLN; typical range {format_pln(point.typical_low_pln)}–{format_pln(
+            point.typical_high_pln
+          )} PLN
+        </li>
+      </ol>
     </figure>
-    <ol id="sealed-market-history-ledger" class="sealed-history-ledger">
-      <li
-        :for={point <- @history.points}
-        id={"sealed-market-history-day-#{Date.to_iso8601(point.date)}"}
-      >
-        <strong>{format_aggregate_date(point.date)}</strong>: benchmark {format_pln(
-          point.benchmark_pln
-        )} PLN; typical range {format_pln(point.typical_low_pln)}–{format_pln(point.typical_high_pln)} PLN
-      </li>
-    </ol>
     """
   end
 
@@ -423,11 +395,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     assigns = %{guide: guide}
 
     ~H"""
-    <p id="sealed-detail-guide-ready">
-      Guidance from a matching local market snapshot; no purchase action is implied.
-    </p>
     {ready_buying_bands(@guide)}
-    {guide_reasons(@guide)}
     """
   end
 
@@ -436,78 +404,23 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
 
     ~H"""
     <p id="sealed-detail-guide-stale">
-      <strong>Previous guidance.</strong>
-      This guide matches an older local market snapshot and may be outdated; it is not current-ready guidance.
+      May be outdated.
     </p>
     {ready_buying_bands(@guide)}
-    {guide_reasons(@guide)}
     """
   end
 
-  defp buying_guide_content({:cached_ready, %{latest: latest, cached: guide}}) do
-    assigns = %{latest: latest, guide: guide}
-
-    ~H"""
-    <p id="sealed-detail-guide-limited">
-      <strong>Limited data.</strong>
-      The newest saved guide is limited: {limited_guide_reason(@latest.limited_reason)}.
-    </p>
-    <p id="sealed-detail-guide-cached">
-      Previous guidance from an older matching local market snapshot is shown below and may be outdated.
-    </p>
-    {ready_buying_bands(@guide)}
-    {guide_reasons(@guide)}
-    """
-  end
-
-  defp buying_guide_content({:limited, guide}) do
+  defp buying_guide_content({:cached_ready, %{cached: guide}}) do
     assigns = %{guide: guide}
 
     ~H"""
     <p id="sealed-detail-guide-limited">
-      <strong>Limited data.</strong> {limited_guide_reason(@guide.limited_reason)}
+      Limited data.
     </p>
-    {guide_reasons(@guide)}
-    """
-  end
-
-  defp buying_guide_content(:missing) do
-    assigns = %{}
-
-    ~H"""
-    <p id="sealed-detail-guide-missing">
-      No saved buying guide is available yet; local calculations are still being collected.
+    <p id="sealed-detail-guide-cached">
+      May be outdated.
     </p>
-    """
-  end
-
-  defp buying_guide_content(:calculating) do
-    assigns = %{}
-
-    ~H"""
-    <p id="sealed-detail-guide-calculating">
-      The local buying guide is calculating. No price bands are shown.
-    </p>
-    """
-  end
-
-  defp buying_guide_content(:invalid) do
-    assigns = %{}
-
-    ~H"""
-    <p id="sealed-detail-guide-invalid">
-      The local buying guide could not be verified, so no price bands are shown.
-    </p>
-    """
-  end
-
-  defp buying_guide_content(:read_error) do
-    assigns = %{}
-
-    ~H"""
-    <p id="sealed-detail-guide-read-error" class="state-note state-error">
-      The buying guide could not be read from local records. No price bands are shown.
-    </p>
+    {ready_buying_bands(@guide)}
     """
   end
 
@@ -542,71 +455,6 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     """
   end
 
-  defp guide_reasons(guide) do
-    assigns = %{guide: guide}
-
-    ~H"""
-    <div id="sealed-detail-guide-reasons">
-      <h3>Why this guidance</h3><ul>
-        <li :for={factor <- @guide.explanation_factors}>{factor_copy(factor)}</li>
-      </ul>
-    </div>
-    """
-  end
-
-  defp factor_copy("market_benchmark"),
-    do: "The guide uses the saved regular-retailer market benchmark."
-
-  defp factor_copy("market_data_limited"), do: "Some local market data is limited."
-  defp factor_copy("msrp"), do: "The product's saved MSRP informs this guidance."
-  defp factor_copy("lgs"), do: "Local game-store evidence informs this guidance."
-  defp factor_copy("sold_out"), do: "Recent sold-out evidence informs this guidance."
-
-  defp factor_copy("trend_rising"), do: "Recent local snapshots indicate prices are rising."
-  defp factor_copy("trend_falling"), do: "Recent local snapshots indicate prices are falling."
-  defp factor_copy("trend_stable"), do: "Recent local snapshots indicate stable prices."
-
-  defp factor_copy("trend_insufficient_history"),
-    do: "There is not enough history to establish a price trend."
-
-  defp factor_copy("availability_abundant"),
-    do: "Local evidence suggests abundant availability."
-
-  defp factor_copy("availability_balanced"),
-    do: "Local evidence suggests balanced availability."
-
-  defp factor_copy("availability_scarce"), do: "Local evidence suggests scarce availability."
-  defp factor_copy("availability_trend_improving"), do: "Availability appears to be improving."
-
-  defp factor_copy("availability_trend_tightening"),
-    do: "Availability appears to be tightening."
-
-  defp factor_copy("availability_trend_stable"), do: "Availability appears stable."
-
-  defp factor_copy("availability_trend_insufficient_history"),
-    do: "There is not enough history to establish an availability trend."
-
-  defp limited_guide_reason(:uncertain_mapping),
-    do: "There is not enough trustworthy product evidence yet."
-
-  defp limited_guide_reason(:limited_market_aggregate),
-    do: "The latest local market snapshot has limited data."
-
-  defp limited_guide_reason(:stale_market_evidence),
-    do: "The available local market evidence is stale."
-
-  defp limited_guide_reason(:insufficient_history),
-    do: "More daily history is needed for a reliable guide."
-
-  defp limited_guide_reason(:low_confidence),
-    do: "There is not enough trustworthy evidence for a dependable guide yet."
-
-  defp limited_guide_reason(:invalid_band_boundaries),
-    do: "Price ranges could not be formed safely from the available evidence."
-
-  defp limited_guide_reason(reason) when is_binary(reason),
-    do: limited_guide_reason(String.to_existing_atom(reason))
-
   defp format_history_point(date, points),
     do: points |> Enum.find(&(&1.date == date)) |> then(&(format_pln(&1.benchmark_pln) <> " PLN"))
 
@@ -615,30 +463,30 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
 
     ~H"""
     <p id="sealed-detail-aggregate-error">
-      Market history could not be read from local records. No benchmark or buying bands are shown.
+      Limited data.
     </p>
     """
   end
 
-  defp aggregate_content_limited(%{limited_reason: reason} = aggregate, _current?) do
-    assigns = %{aggregate: aggregate, reason: reason}
+  defp aggregate_content_limited(_aggregate, _current?) do
+    assigns = %{}
 
     ~H"""
     <p id="sealed-detail-aggregate-limited">
-      <strong>Limited data.</strong> {limited_reason_copy(@reason, @aggregate)}
+      Limited data.
     </p>
     """
   end
 
-  defp aggregate_content_limited_cached(%{limited: limited, snapshot: aggregate}, _current?) do
-    assigns = %{aggregate: aggregate, limited: limited, reason: limited.limited_reason}
+  defp aggregate_content_limited_cached(%{snapshot: aggregate}, _current?) do
+    assigns = %{aggregate: aggregate}
 
     ~H"""
     <p id="sealed-detail-aggregate-limited">
-      <strong>Limited data.</strong> {limited_reason_copy(@reason, @limited)}
+      Limited data.
     </p>
     <p id="sealed-detail-aggregate-cached">
-      The latest check has limited data. The last usable market snapshot is shown below and may be outdated.
+      May be outdated.
     </p>
     {ready_snapshot_content(@aggregate)}
     """
@@ -648,21 +496,15 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     assigns = %{aggregate: aggregate, current?: current?}
 
     ~H"""
-    <p id="sealed-detail-aggregate-ready">
-      <%= if @current? do %>
-        Collected prices are sufficient for a current market benchmark. See the buying guide below.
-      <% else %>
-        <span id="sealed-detail-aggregate-stale">May be outdated: this cached benchmark is from the aggregate date {format_aggregate_iso_date(
-          @aggregate.aggregate_date
-        )}.</span>
-      <% end %>
+    <p :if={!@current?} id="sealed-detail-aggregate-ready">
+      <span id="sealed-detail-aggregate-stale">May be outdated.</span>
     </p>
     <dl id="sealed-detail-aggregate-summary" class="sealed-aggregate-summary">
       <div>
         <dt>
           {if(@current?,
-            do: "Current market benchmark",
-            else: "Latest stored benchmark"
+            do: "Market price",
+            else: "Market price"
           )}
         </dt><dd id="sealed-detail-benchmark">
           {format_pln(@aggregate.benchmark_pln)} PLN
@@ -671,43 +513,14 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
       <div>
         <dt>
           {if(@current?,
-            do: "Typical current range",
-            else: "Typical range at that snapshot"
+            do: "Typical range",
+            else: "Typical range"
           )}
         </dt><dd id="sealed-detail-range">
           {format_pln(@aggregate.typical_low_pln)}–{format_pln(@aggregate.typical_high_pln)} PLN
         </dd>
       </div>
-      <div>
-        <dt>Fresh regular retailers</dt><dd id="sealed-detail-fresh-regular-count">
-          {@aggregate.fresh_regular_retailer_count}
-        </dd>
-      </div>
-      <div :if={@aggregate.fresh_lgs_count > 0}>
-        <dt>Fresh LGS</dt><dd id="sealed-detail-fresh-lgs-count">{@aggregate.fresh_lgs_count}</dd>
-      </div>
-      <div>
-        <dt>Recent sold-out evidence (0–30 days)</dt><dd id="sealed-detail-sold-out-evidence-count">
-          {@aggregate.recent_sold_out_0_14_day_count + @aggregate.sold_out_15_30_day_count}
-        </dd>
-      </div>
-      <div>
-        <dt>Aggregate date</dt><dd id="sealed-detail-aggregate-date">
-          {format_aggregate_date(@aggregate.aggregate_date)}
-        </dd>
-      </div>
-      <div>
-        <dt>Evidence last checked</dt><dd id="sealed-detail-evidence-checked-at">
-          {utc_timestamp(@aggregate.latest_nonfuture_checked_at)}
-        </dd>
-      </div>
     </dl>
-    <details id="sealed-detail-methodology" class="sealed-aggregate-methodology">
-      <summary>How this local benchmark is made</summary>
-      <p>
-        Median of fresh current regular-retailer prices after Tukey-style obvious-outlier removal. At least five current regular retailers are required. LGS and sold-out evidence are tracked separately. Shipping is excluded.
-      </p>
-    </details>
     """
   end
 
@@ -716,7 +529,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
 
     ~H"""
     <p id="sealed-detail-aggregate-invalid">
-      Market history is being collected from local records. No benchmark or buying bands are shown yet.
+      Limited data.
     </p>
     """
   end
@@ -727,59 +540,34 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     ~H"""
     <dl id="sealed-detail-aggregate-summary" class="sealed-aggregate-summary">
       <div>
-        <dt>Latest stored benchmark</dt><dd id="sealed-detail-benchmark">
+        <dt>Market price</dt><dd id="sealed-detail-benchmark">
           {format_pln(@aggregate.benchmark_pln)} PLN
         </dd>
       </div>
       <div>
-        <dt>Typical range at that snapshot</dt><dd id="sealed-detail-range">
+        <dt>Typical range</dt><dd id="sealed-detail-range">
           {format_pln(@aggregate.typical_low_pln)}–{format_pln(@aggregate.typical_high_pln)} PLN
-        </dd>
-      </div>
-      <div>
-        <dt>Aggregate date</dt><dd id="sealed-detail-aggregate-date">
-          {format_aggregate_date(@aggregate.aggregate_date)}
-        </dd>
-      </div>
-      <div>
-        <dt>Evidence last checked</dt><dd id="sealed-detail-evidence-checked-at">
-          {utc_timestamp(@aggregate.latest_nonfuture_checked_at)}
         </dd>
       </div>
     </dl>
     """
   end
 
-  defp limited_reason_copy("no_fresh_current_offers", _aggregate),
-    do:
-      "No fresh current offers were available in collected data, so market history is still being built."
-
-  defp limited_reason_copy("too_few_regular_retailers", %{fresh_regular_retailer_count: 1}),
-    do:
-      "Only 1 fresh regular retailer was available; more are needed before a benchmark can be shown."
-
-  defp limited_reason_copy("too_few_regular_retailers", aggregate),
-    do:
-      "Only #{aggregate.fresh_regular_retailer_count} fresh regular retailers were available; more are needed before a benchmark can be shown."
-
-  defp limited_reason_copy("insufficient_inliers", _aggregate),
-    do:
-      "Fresh prices did not leave enough comparable offers after obvious-outlier removal; market history is still being collected."
-
-  defp limited_reason_copy(_, _aggregate),
-    do: "Market history is still being collected; no benchmark is shown yet."
-
   defp format_aggregate_date(%Date{} = date), do: Calendar.strftime(date, "%b %-d, %Y")
   defp format_aggregate_date(_), do: "unavailable"
-
-  defp format_aggregate_iso_date(%Date{} = date), do: Date.to_iso8601(date)
-  defp format_aggregate_iso_date(_), do: "unavailable"
 
   defp aggregate_current?(:ready, aggregate, product_id, now) do
     SealedDailyAggregatePublic.current_ready?(aggregate, now, sealed_product_id: product_id)
   end
 
   defp aggregate_current?(_state, _aggregate, _product_id, _now), do: false
+
+  defp buying_guide_visible?({state, _guide}) when state in [:ready, :stale_ready], do: true
+  defp buying_guide_visible?({:cached_ready, _guide}), do: true
+  defp buying_guide_visible?(_state), do: false
+
+  defp market_history_visible?(:ok, %{points: points}) when points != [], do: true
+  defp market_history_visible?(_state, _history), do: false
 
   defp configure_offer_streams(socket) do
     socket
@@ -802,7 +590,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
           <div class="decision-container">
             <section id="sealed-detail-not-found" class="state-note state-error">
               <h1>Sealed product not found</h1>
-              <p>No public local product matches this address. No provider was contacted.</p>
+              <p>No public product matches this address.</p>
               <.link id="sealed-detail-not-found-back" navigate={~p"/"}>Back to search</.link>
             </section>
           </div>
@@ -819,9 +607,6 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
       |> String.split()
       |> Enum.map_join(" ", &String.capitalize/1)
 
-  defp human_category("lgs"), do: "Local game store (LGS)"
-  defp human_category("regular_retailer"), do: "Regular retailer"
-  defp human_category(category), do: category
   defp human_status("discontinued"), do: "Discontinued"
   defp human_status(_), do: "Current"
 
@@ -862,10 +647,15 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
   defp direct_link_label(offer),
     do: "View #{offer.retailer.name} listing, #{stock_label(offer.listing.stock_status)}"
 
-  defp utc_timestamp(%DateTime{} = value),
-    do: Calendar.strftime(DateTime.shift_zone!(value, "Etc/UTC"), "%Y-%m-%d %H:%M:%S UTC")
+  defp checked_text(%DateTime{} = checked_at) do
+    case max(DateTime.diff(DateTime.utc_now(), checked_at, :day), 0) do
+      0 -> "Checked today"
+      1 -> "Checked yesterday"
+      days -> "Checked #{days} days ago"
+    end
+  end
 
-  defp utc_timestamp(_), do: "unavailable"
+  defp checked_text(_), do: "Checked unavailable"
 
   defp valid_direct_url?(value) when is_binary(value) do
     uri = URI.parse(value)

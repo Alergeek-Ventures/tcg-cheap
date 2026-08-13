@@ -143,13 +143,13 @@
 .archive-world .archive-wordmark { color: var(--ink); font-size: .875rem; font-weight: 700; letter-spacing: .12em; text-decoration: none; }
 .archive-world .archive-header-meta { display: flex; flex-wrap: wrap; gap: 1rem; font-size: .875rem; letter-spacing: .08em; text-align: right; }
 .archive-world .archive-header-meta span:last-child { background: var(--ink); color: var(--tissue); padding: .5rem; }
-.archive-world .archive-main { padding: 3rem 1rem; }
+.archive-world .archive-main { padding: 2rem 1rem; }
 .archive-world .archive-container { width: min(100%, 72rem); margin: 0 auto; }
 .archive-world .archive-intro { max-width: 49rem; margin-bottom: 2rem; }
 .archive-world .archive-intro h1 { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.045em; text-transform: uppercase; }
 .archive-world .archive-intro h1 span { color: var(--tissue); }
 .archive-world .archive-lede { max-width: 70ch; border-left: 2px solid var(--ink); margin-top: 1.5rem; padding-left: 1rem; font-size: 1rem; line-height: 1.6; }
-.archive-world .search-drawer { background: var(--tissue); border: 2px solid var(--ink); box-shadow: 7px 9px 13px rgb(76 33 22 / 32%); padding: 2rem; margin-bottom: 3rem; }
+.archive-world .search-drawer { background: var(--tissue); border: 2px solid var(--ink); box-shadow: 7px 9px 13px rgb(76 33 22 / 32%); padding: 1.25rem; margin-bottom: 1rem; }
 .archive-world .search-drawer h2, .archive-world .archive-shelf h2 { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; text-transform: uppercase; margin: 1rem 0; }
 .archive-world .search-field-wrap { position: relative; }
 .archive-world .search-field-wrap input { background: transparent; border: 0; border-bottom: 3px solid var(--ink); border-radius: 0; box-shadow: none; color: var(--ink); font: 700 clamp(1.2rem, 3vw, 2rem) "Barlow Condensed", sans-serif; min-height: 3rem; padding: .5rem 0; width: 100%; }
@@ -195,8 +195,8 @@
 .archive-world .archive-wordmark:focus-visible { outline: 3px solid var(--ink); outline-offset: 5px; }
 
 /* Detail view: the same ruled tissue and ink language, with the valuation first. */
-.card-detail-world .archive-main { padding-top: 3rem; }
-.archive-world .archive-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; min-height: 3rem; margin-bottom: 1.5rem; text-decoration-thickness: 2px; text-underline-offset: .25rem; }
+.card-detail-world .archive-main { padding-top: 2rem; }
+.archive-world .archive-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; min-height: 3rem; margin-bottom: .75rem; text-decoration-thickness: 2px; text-underline-offset: .25rem; }
 .archive-world .archive-back:focus-visible, .archive-world .printing-label-link:focus-visible { outline: 3px solid var(--ink); outline-offset: 5px; }
 .archive-world .printing-label-link { color: inherit; display: block; text-decoration: none; }
 .archive-world .printing-label-link:hover .printing-label { background: var(--sunfade); }
@@ -205,44 +205,42 @@
 .card-detail-world #card-valuation { grid-area: valuation; }
 .card-detail-world .card-detail-placeholder { grid-area: placeholder; }
 .card-detail-world .card-detail-secondary { grid-area: secondary; }
-.card-detail-world .card-detail-placeholder { align-items: center; border: 2px solid var(--ink); display: flex; flex-direction: column; justify-content: center; min-height: 15rem; padding: 1.5rem; }
+.card-detail-world .card-detail-placeholder { align-items: center; border: 2px solid var(--ink); display: flex; flex-direction: column; justify-content: center; min-height: 15rem; padding: .75rem; }
 .card-detail-world .card-detail-placeholder svg { fill: none; height: 12rem; max-width: 100%; stroke: var(--box-board-dark); stroke-width: 1.5; }
 .card-detail-world .card-detail-placeholder span, .archive-world .section-rule span { font-size: .875rem; letter-spacing: .08em; }
 .card-detail-world .card-detail-figure { background: var(--tissue); margin: 0; max-width: 32rem; }
 .card-detail-world .card-detail-figure > img { border: 1px solid var(--ink); display: block; height: auto; max-height: 52rem; max-width: 100%; object-fit: contain; width: 100%; }
-.card-detail-world .card-detail-figure figcaption { font-size: .875rem; margin-top: .75rem; text-align: center; }
 .card-detail-world .card-detail-figure .card-image-missing { gap: .75rem; min-height: 15rem; width: 100%; }
 .card-detail-world .card-detail-heading h1 { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .75rem 0; max-width: 14ch; overflow-wrap: anywhere; text-transform: uppercase; }
 .card-detail-world .card-detail-set { font-size: .875rem; margin-bottom: 1.5rem; }
-.card-detail-world .card-detail-metadata, .card-detail-world .valuation-provenance { display: grid; gap: .5rem 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); font-size: .875rem; }
-.card-detail-world .card-detail-metadata div, .card-detail-world .valuation-provenance div { display: flex; gap: .5rem; min-width: 0; }
-.card-detail-world .card-detail-metadata dt, .card-detail-world .valuation-provenance dt { color: var(--ink); flex: 0 0 auto; }
-.card-detail-world .card-detail-metadata dd, .card-detail-world .valuation-provenance dd { overflow-wrap: anywhere; }
-.card-detail-world .rights-note, .card-detail-world .methodology, .card-detail-world .history-description { border-left: 2px solid var(--ink); font-size: .875rem; line-height: 1.6; margin-top: 1.5rem; max-width: 70ch; padding-left: .75rem; }
-.card-detail-world .valuation-panel, .card-detail-world .valuation-history { padding: 2rem 0; }
+.card-detail-world .card-detail-metadata { display: grid; gap: .5rem 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); font-size: .875rem; }
+.card-detail-world .card-detail-metadata div { display: flex; gap: .5rem; min-width: 0; }
+.card-detail-world .card-detail-metadata dt { color: var(--ink); flex: 0 0 auto; }
+.card-detail-world .card-detail-metadata dd { overflow-wrap: anywhere; }
+.card-detail-world .valuation-panel, .card-detail-world .valuation-history { padding: 1rem 0; }
 .archive-world .section-rule { align-items: baseline; border-bottom: 2px solid var(--ink); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
 .archive-world .section-rule h2 { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
 .card-detail-world .valuation-state { font-size: .875rem; margin-top: 1rem; min-height: 1.4rem; }
-.card-detail-world .valuation-value { font: 700 clamp(3.2rem, 12vw, 6rem)/.85 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .5rem 0 1.5rem; }
-.card-detail-world .valuation-provenance { max-width: 50rem; }
-.card-detail-world .methodology { margin-top: 1.5rem; }
-.card-detail-world .disclaimer { border-left: 2px solid var(--box-board-dark); font-size: .875rem; line-height: 1.6; margin-top: 1rem; max-width: 70ch; padding-left: .75rem; }
+.card-detail-world .valuation-value { font: 700 clamp(3rem, 10vw, 5rem)/.85 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .25rem 0 .5rem; }
 .card-detail-world #valuation-history-chart { background: var(--tissue); border: 1.5px solid var(--ink); display: block; height: auto; margin-top: 1.5rem; overflow: visible; width: 100%; }
 .card-detail-world .history-line { fill: none; stroke: var(--ink); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .card-detail-world #valuation-history-chart circle { fill: var(--sunfade); stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.card-detail-world .history-ledger { border-top: 1px solid var(--ink); list-style: none; margin: 1.5rem 0 0; padding: 0; }
-.card-detail-world .history-ledger li { align-items: baseline; border-bottom: 1px solid rgb(23 22 20 / 35%); display: grid; font-size: .875rem; gap: .75rem; grid-template-columns: 1fr auto 1.5fr; padding: .5rem 0; }
-.card-detail-world .history-ledger strong { font-weight: 400; }
-.card-detail-world .history-ledger span { color: var(--ink); font-size: .875rem; text-align: right; }
-@media (min-width: 60rem) { .card-detail-world .card-detail-identity { border-bottom: 0; column-gap: 4rem; grid-template-areas: "placeholder heading valuation" "placeholder secondary valuation"; grid-template-columns: minmax(7rem, 13rem) minmax(0, 1fr) minmax(20rem, .85fr); } .card-detail-world #card-valuation { padding-top: 1rem; } }
-@media (max-width: 40rem) { .card-detail-world .card-detail-placeholder { min-height: 11rem; max-width: 100%; } .card-detail-world .card-detail-placeholder svg { height: 8rem; } .card-detail-world .card-detail-figure > img { max-height: 75svh; } .card-detail-world .card-detail-metadata, .card-detail-world .valuation-provenance { grid-template-columns: 1fr; } .card-detail-world .history-ledger li { grid-template-columns: 1fr auto; } .card-detail-world .history-ledger span { grid-column: 1 / -1; text-align: left; } }
+.sealed-detail-world #sealed-sold-out-section {
+  border-top: 1px solid var(--ink); margin-top: 1rem; padding-top: 0;
+}
+.sealed-detail-world #sealed-sold-out-section summary {
+  align-items: center; cursor: pointer; display: flex; font-weight: 700; min-height: 3rem; padding: .5rem 0;
+}
+.sealed-detail-world #sealed-sold-out-section[open] { padding-bottom: .5rem; }
+@media (min-width: 60rem) { .card-detail-world .card-detail-identity { border-bottom: 0; column-gap: 2rem; grid-template-areas: "placeholder heading valuation" "placeholder secondary valuation"; grid-template-columns: minmax(7rem, 13rem) minmax(0, 1fr) minmax(20rem, .85fr); } .card-detail-world #card-valuation { padding-top: .5rem; } }
+@media (max-width: 40rem) { .card-detail-world .card-detail-placeholder { min-height: 11rem; max-width: 100%; } .card-detail-world .card-detail-placeholder svg { height: 8rem; } .card-detail-world .card-detail-figure > img { max-height: 75svh; } .card-detail-world .card-detail-metadata { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .card-detail-world * { animation: none !important; scroll-behavior: auto !important; } }
 
 /* Home decision surface: distilled search, evidence, and price decisions. */
 .decision-world { --bench: #f3ead7; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --rule: #201d19; --orange: #b54125; --muted: #6d6256; --rise: #27714b; --fall: #a6402f; background: var(--bench); background-image: url("data:image/svg+xml,%3Csvg width='96' height='96' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E"); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; font-size: 1rem; line-height: 1.6; min-height: 100svh; }
 .decision-world .decision-header { align-items: center; border-bottom: 2px solid var(--rule); display: flex; justify-content: space-between; padding: .5rem 3rem; }
 .decision-world #decision-wordmark { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; font-weight: 700; letter-spacing: .12em; min-height: 3rem; text-decoration: none; }
-.decision-world .decision-main { padding: 3rem 1rem; }
+.decision-world .decision-main { padding: 1.25rem 1rem; }
 .decision-world .decision-container { margin: 0 auto; max-width: 72rem; }
 .decision-world .decision-intro { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 1rem; }
 .decision-world #decision-title { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0; text-transform: uppercase; }
@@ -252,45 +250,39 @@
 .decision-world .mode-switch button[aria-pressed="true"] { background: var(--ink); color: var(--bench-light); }
 .decision-world .mode-switch button:not([aria-pressed="true"]):hover { background: var(--bench-light); }
 .decision-world .mode-switch button:focus-visible, .decision-world a:focus-visible, .decision-world input:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
-.decision-world .decision-search { background: var(--bench-light); border: 2px solid var(--rule); margin-bottom: 1.5rem; padding: 1.5rem; }
-.decision-world .decision-search h2 { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
+.decision-world .decision-search { background: var(--bench-light); border: 2px solid var(--rule); margin-bottom: .75rem; padding: 1rem 1.25rem; }
+.decision-world .decision-search h2 { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .25rem; text-transform: uppercase; }
 .decision-world .search-field-wrap { position: relative; }
 .decision-world .search-field-wrap input { background: transparent; border: 0; border-bottom: 3px solid var(--rule); border-radius: 0; box-shadow: none; color: var(--ink); font: 700 clamp(1.35rem, 3.5vw, 2.25rem) "Barlow Condensed", sans-serif; min-height: 3rem; padding: .5rem 0; width: 100%; }
 .decision-world .search-field-wrap input::placeholder { color: var(--muted); opacity: 1; }
-.decision-world .evidence-slips { display: grid; gap: .75rem; grid-template-columns: minmax(0, 1fr); max-height: min(45svh, 32rem); overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: .75rem; }
+.decision-world .evidence-slips { display: grid; gap: .5rem; grid-template-columns: minmax(0, 1fr); max-height: min(45svh, 32rem); overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: .5rem; }
 .decision-world .evidence-slot { cursor: pointer; min-width: 0; }
 .decision-world .evidence-slot.active-option .evidence-slip { background: color-mix(in srgb, var(--paper) 88%, var(--rule)); box-shadow: inset 0 0 0 3px var(--rule); }
-.decision-world .evidence-slip { animation: bench-reveal .45s ease-out both; background: var(--paper); border: 1.5px solid var(--rule); display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); min-width: 0; }
-.decision-world .evidence-art { align-items: center; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); border-right: 1px solid var(--rule); display: flex; justify-content: center; min-width: 0; padding: .5rem; }
+.decision-world .evidence-slip { animation: bench-reveal .45s ease-out both; background: var(--paper); border: 1.5px solid var(--rule); display: grid; grid-template-columns: 4.25rem minmax(0, 1fr); min-width: 0; }
+.decision-world .evidence-art { align-items: center; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); border-right: 1px solid var(--rule); display: flex; justify-content: center; min-width: 0; padding: .35rem; }
 .decision-world .evidence-art img { aspect-ratio: 245 / 337; border: 1px solid var(--rule); display: block; height: auto; max-width: 100%; object-fit: contain; width: 100%; }
-.decision-world .evidence-art > svg { fill: none; height: 7rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
-.decision-world .card-image-missing { align-items: center; display: flex; justify-content: center; min-height: 9rem; }
-.decision-world .card-image-missing svg { fill: none; height: 7rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
-.decision-world .evidence-copy { min-width: 0; padding: .75rem 1rem; }
-.decision-world .evidence-name { font: 700 1.45rem/.9 "Barlow Condensed", sans-serif; margin: 0 0 .25rem; overflow-wrap: anywhere; }
-.decision-world .evidence-set { font-size: .875rem; margin: 0 0 .5rem; overflow-wrap: anywhere; }
-.decision-world .evidence-tags { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0 0 .5rem; }
-.decision-world .evidence-tag { background: var(--bench); border: 1px solid var(--rule); font: 700 .875rem/1.2 "Azeret Mono", ui-monospace, monospace; padding: .5rem; text-transform: uppercase; }
-.decision-world .estimate-cell { align-items: baseline; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; padding-top: .5rem; }
+.decision-world .evidence-art > svg { fill: none; height: 4.5rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
+.decision-world .card-image-missing { align-items: center; display: flex; justify-content: center; min-height: 5rem; }
+.decision-world .card-image-missing svg { fill: none; height: 4.25rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
+.decision-world .evidence-copy { align-items: center; display: grid; gap: .5rem 1rem; grid-template-columns: minmax(0, 1fr) auto auto; min-width: 0; padding: .5rem .75rem; }
+.decision-world .evidence-identity { min-width: 0; }
+.decision-world .evidence-name { font: 700 1.35rem/.9 "Barlow Condensed", sans-serif; margin: 0 0 .2rem; overflow-wrap: anywhere; }
+.decision-world .evidence-set { font-size: .875rem; margin: 0 0 .25rem; overflow-wrap: anywhere; }
+.decision-world .evidence-tags { display: flex; flex-wrap: wrap; gap: .25rem; margin: 0 0 .25rem; }
+.decision-world .evidence-tag { background: var(--bench); border: 1px solid var(--rule); font: 700 .875rem/1.2 "Azeret Mono", ui-monospace, monospace; padding: .25rem .4rem; text-transform: uppercase; }
+.decision-world .estimate-cell { align-items: baseline; border-top: 0; display: flex; flex-wrap: wrap; gap: .35rem; margin-top: 0; padding-top: 0; }
 .decision-world .estimate-cell strong { font: 700 1.8rem/.9 "Barlow Condensed", sans-serif; }
 .decision-world .estimate-cell > span:last-child { color: var(--muted); font-size: .875rem; line-height: 1.4; }
-.decision-world .detail-action { align-items: center; background: var(--ink); color: var(--bench-light); display: inline-flex; font: 700 .875rem "Barlow Condensed", sans-serif; margin-top: .75rem; min-height: 3rem; padding: .5rem .75rem; text-decoration: none; text-transform: uppercase; }
+.decision-world .detail-action { align-items: center; background: var(--ink); color: var(--bench-light); display: inline-flex; font: 700 .875rem "Barlow Condensed", sans-serif; margin-top: 0; min-height: 3rem; padding: .5rem .75rem; text-decoration: none; text-transform: uppercase; }
 .decision-world .detail-action:hover { background: var(--orange); color: var(--bench-light); }
-.decision-world .state-note { border-top: 1px solid var(--rule); font-size: .875rem; line-height: 1.6; padding: 1rem 0; }
+.decision-world .state-note { border-top: 1px solid var(--rule); font-size: .875rem; line-height: 1.6; padding: .5rem 0; }
 .decision-world .unavailable-note, .decision-world .state-error { background: color-mix(in srgb, var(--paper) 78%, var(--orange)); padding: 1rem; }
 .decision-world .state-error { background: color-mix(in srgb, var(--paper) 68%, var(--orange)); }
-.decision-world .estimate-note, .decision-world .price-details { font-size: .875rem; line-height: 1.6; }
+.decision-world .estimate-note { font-size: .875rem; line-height: 1.6; }
 .decision-world .estimate-note { margin: .75rem 0 0; }
-.decision-world .price-details { border-top: 1px solid var(--rule); margin-top: .75rem; padding-top: .75rem; }
-.decision-world .price-details summary { cursor: pointer; font-weight: 700; min-height: 3rem; padding: .5rem 0; }
-.decision-world .price-methodology, .decision-world .price-disclaimer { border-top: 1px solid var(--rule); font-size: .875rem; line-height: 1.6; margin-top: .75rem; max-width: 70ch; padding: .75rem 0 0; }
-.decision-world .price-methodology { background: var(--bench-light); padding-left: .75rem; padding-right: .75rem; }
-.decision-world .price-methodology p { margin: 0; }
-.decision-world .price-methodology code { font-size: .95em; font-weight: 700; }
-.decision-world .price-disclaimer { color: var(--muted); }
 @keyframes bench-reveal { from { clip-path: inset(0 0 100% 0); opacity: 0; transform: translateY(-.5rem); } to { clip-path: inset(0); opacity: 1; transform: translateY(0); } }
 @media (max-width: 42rem) { .decision-world .decision-intro { align-items: stretch; flex-direction: column; } .decision-world .mode-switch { width: 100%; } .decision-world .mode-switch button { flex: 1; } }
-@media (max-width: 24rem) { .decision-world .evidence-slip { grid-template-columns: 4.75rem minmax(0, 1fr); } .decision-world .evidence-copy { padding: .5rem; } .decision-world .evidence-name { font-size: 1.25rem; } .decision-world .estimate-cell strong { font-size: 1.5rem; } }
+@media (max-width: 24rem) { .decision-world .evidence-slip { grid-template-columns: 4.25rem minmax(0, 1fr); } .decision-world .evidence-copy { padding: .5rem; } .decision-world .evidence-name { font-size: 1.25rem; } .decision-world .estimate-cell strong { font-size: 1.5rem; } }
 @media (prefers-reduced-motion: reduce) { .decision-world .evidence-slip { animation: none; } }
 
 .decision-world .fallback-ledger { background: color-mix(in srgb, var(--paper) 65%, var(--bench)); border-top: 2px solid var(--rule); margin-top: 1rem; padding: .75rem 0 .5rem; }
@@ -298,16 +290,15 @@
 .decision-world .fallback-ledger > div { display: grid; gap: .25rem; }
 .decision-world .fallback-ledger a { align-items: center; color: inherit; display: inline-flex; font-size: .875rem; min-height: 3rem; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2rem; }
 
-.decision-world .market-movers { border-top: 2px solid var(--rule); margin-top: 2rem; padding-top: .75rem; }
+.decision-world .market-movers { border-top: 2px solid var(--rule); margin-top: 1rem; padding-top: .75rem; }
 .decision-world .market-movers > h2 { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: 0; text-transform: uppercase; }
-.decision-world .market-movers > p { font-size: .875rem; line-height: 1.6; margin: .25rem 0 1rem; max-width: 70ch; }
-.decision-world .market-mode-panel { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.decision-world .market-mode-panel { display: grid; gap: .75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .decision-world .market-lane { min-width: 0; }
 .decision-world .market-lane-heading { align-items: baseline; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; }
 .decision-world .market-lane-heading h3 { font: 700 clamp(1.25rem, 2.5vw, 1.375rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
 .decision-world .market-lane-heading span { color: var(--muted); font-size: .875rem; }
 .decision-world .market-rows { display: grid; gap: .25rem; padding-top: .5rem; }
-.decision-world .market-row { align-items: center; background: color-mix(in srgb, var(--paper) 76%, var(--bench)); border-bottom: 1px solid var(--rule); color: inherit; display: grid; gap: .75rem; grid-template-columns: 3.5rem minmax(0, 1fr); min-height: 5.2rem; padding: .5rem; text-decoration: none; }
+.decision-world .market-row { align-items: center; background: color-mix(in srgb, var(--paper) 76%, var(--bench)); border-bottom: 1px solid var(--rule); color: inherit; display: grid; gap: .5rem; grid-template-columns: 3.5rem minmax(0, 1fr); min-height: 3rem; padding: .25rem .5rem; text-decoration: none; }
 .decision-world .market-row:hover { background: var(--paper); }
 .decision-world .market-thumb { align-items: center; align-self: stretch; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); display: flex; justify-content: center; min-width: 0; }
 .decision-world .market-thumb img { border: 1px solid var(--rule); height: 100%; object-fit: contain; width: 100%; }
@@ -319,54 +310,46 @@
 .decision-world .movement-rise { color: var(--rise); }
 .decision-world .movement-fall { color: var(--fall); }
 .decision-world .market-copy p strong { font-weight: 700; }
-.decision-world .market-action { align-items: center; background: var(--ink); color: var(--bench-light); display: inline-flex; font: 700 .875rem "Barlow Condensed", sans-serif; margin-top: .5rem; min-height: 3rem; padding: .5rem .75rem; text-transform: uppercase; }
-.decision-world .market-row:hover .market-action { background: var(--orange); }
 .decision-world .market-empty { border-bottom: 1px solid var(--rule); color: var(--muted); font-size: .875rem; min-height: 3rem; margin: 0; padding: .75rem 0; }
 .decision-world .market-movers .state-error { margin-top: 1rem; }
-.decision-world .market-recent-ledger { background: color-mix(in srgb, var(--paper) 76%, var(--bench)); border: 2px solid var(--rule); grid-column: 1 / -1; padding: 1.5rem; }
-.decision-world .market-recent-ledger h3 { border-bottom: 1px solid var(--rule); font: 700 clamp(1.25rem, 2.5vw, 1.375rem)/1 "Barlow Condensed", sans-serif; margin: 0; text-transform: uppercase; }
-.decision-world .market-recent-ledger h3 span { color: var(--muted); font: 400 .875rem "Azeret Mono", ui-monospace, monospace; }
-.decision-world .market-recent-ledger > p { font-size: .875rem; line-height: 1.6; margin: .5rem 0; max-width: 70ch; }
-.decision-world .market-recent-ledger .market-rows { padding-top: .25rem; }
+.decision-world .market-recent-ledger { border-top: 2px solid var(--rule); grid-column: 1 / -1; padding: .75rem 0 0; }
+.decision-world .market-recent-ledger .market-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-top: .25rem; }
 .decision-world .market-recent-ledger .market-empty { border-top: 1px solid var(--rule); border-bottom: 0; margin: .75rem 0 0; padding: .75rem 0 .25rem; }
 @media (max-width: 48rem) { .decision-world .market-mode-panel { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 48rem) { .decision-world .market-recent-ledger .market-rows { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 42rem) {
+  .decision-world .decision-main { padding-block: 1rem; }
+  .decision-world .decision-intro { gap: .5rem; margin-bottom: .5rem; }
+  .decision-world .evidence-copy { align-items: start; grid-template-columns: minmax(0, 1fr) auto; }
+  .decision-world .evidence-identity { grid-column: 1 / -1; }
+  .decision-world .estimate-cell { grid-column: 1; }
+  .decision-world .detail-action { grid-column: 2; grid-row: 2; }
+}
 
 /* Public sealed detail: canonical identity and local shop evidence on the valuation bench. */
 .sealed-detail-world .decision-container { max-width: 72rem; }
 .sealed-detail-world #sealed-detail-back, .sealed-detail-world #sealed-detail-not-found-back, .sealed-detail-world #sealed-detail-data-error-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; min-height: 3rem; text-underline-offset: .22rem; }
-.sealed-detail-world .sealed-detail-overview { align-items: start; display: grid; gap: 1rem; grid-template-columns: minmax(0, 1.7fr) minmax(15rem, .8fr); margin: .5rem 0 2rem; }
-.sealed-detail-world #sealed-market-history-section, .sealed-detail-world #sealed-detail-buying-guide { border-top: 2px solid var(--rule); margin-top: 2rem; padding-top: 1rem; }
+.sealed-detail-world .sealed-detail-overview { align-items: start; display: grid; gap: .75rem; grid-template-columns: minmax(0, 1.7fr) minmax(15rem, .8fr); margin: 0 0 1.25rem; }
+.sealed-detail-world #sealed-market-history-section, .sealed-detail-world #sealed-detail-buying-guide { border-top: 2px solid var(--rule); margin-top: 1.5rem; padding-top: .75rem; }
 .sealed-detail-world #sealed-detail-buying-guide-title, .sealed-detail-world #sealed-market-history-title { font: 700 1.75rem/1 "Barlow Condensed", sans-serif; letter-spacing: -.02em; margin: 0 0 .75rem; text-transform: uppercase; }
 .sealed-detail-world #sealed-market-history-chart-wrap { margin: 1rem 0; }
 .sealed-detail-world #sealed-market-history-chart { background: var(--paper); border: 2px solid var(--rule); display: block; height: auto; max-width: 42rem; overflow: visible; padding: .5rem; width: 100%; }
 .sealed-detail-world .sealed-history-range { fill: var(--sunfade); fill-opacity: .75; stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
 .sealed-detail-world .sealed-history-benchmark { fill: none; stroke: var(--ink); stroke-width: 2; }
 .sealed-detail-world .sealed-history-point { fill: var(--bench-light); stroke: var(--ink); stroke-width: 1.5; }
-.sealed-detail-world #sealed-market-history-legend { display: flex; flex-wrap: wrap; font-size: .9rem; gap: .75rem 1.5rem; }
-.sealed-detail-world .sealed-history-swatch { display: inline-block; margin-right: .25rem; vertical-align: middle; }
-.sealed-detail-world .sealed-history-swatch-line { border-top: 2px solid var(--ink); width: 1.2rem; }
-.sealed-detail-world .sealed-history-swatch-band { background: var(--sunfade); border: 1px dashed var(--muted); height: .8rem; width: 1.2rem; }
-.sealed-detail-world .sealed-history-swatch-point { background: var(--bench-light); border: 2px solid var(--ink); height: .65rem; width: .65rem; }
-.sealed-detail-world .sealed-history-ledger { display: grid; gap: .25rem; margin-top: 1rem; overflow-wrap: anywhere; padding-left: 1.5rem; }
-.sealed-detail-world #sealed-market-history-ledger { background: var(--paper); border-top: 2px solid var(--rule); padding: .5rem 1.5rem .5rem 2rem; }
-.sealed-detail-world #sealed-market-history-ledger li { border-bottom: 1px solid var(--rule); line-height: 1.55; padding: .75rem 0; }
-.sealed-detail-world #sealed-market-history-ledger li:last-child { border-bottom: 0; }
-.sealed-detail-world .sealed-buying-bands { display: grid; gap: 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.sealed-detail-world .sealed-buying-bands article { background: var(--paper); border: 2px solid var(--rule); min-height: 10rem; overflow-wrap: anywhere; padding: 1.5rem; }
+.sealed-detail-world .sealed-buying-bands { border-bottom: 1px solid var(--rule); border-top: 1px solid var(--rule); display: grid; gap: 0 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.sealed-detail-world .sealed-buying-bands article { border-bottom: 1px solid rgb(32 29 25 / 35%); min-height: 7rem; overflow-wrap: anywhere; padding: .75rem 0; }
 .sealed-detail-world .sealed-buying-bands h3 { font: 700 clamp(1.25rem, 2.5vw, 1.375rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.01em; margin: 0 0 .75rem; text-transform: uppercase; }
 .sealed-detail-world .sealed-buying-bands p { line-height: 1.6; margin: 0; }
-.sealed-detail-world #sealed-detail-guide-reasons { background: var(--paper); border-top: 2px solid var(--rule); margin-top: 1.5rem; padding: 1.5rem; }
-.sealed-detail-world #sealed-detail-guide-reasons h3 { font: 700 1.375rem/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
-.sealed-detail-world #sealed-detail-guide-reasons ul { display: grid; gap: .5rem; line-height: 1.55; margin: 0; padding-left: 1rem; }
 @media (max-width: 44rem) { .sealed-detail-world .sealed-buying-bands { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 27rem) { .sealed-detail-world .sealed-buying-bands { grid-template-columns: 1fr; } }
-.sealed-detail-world #sealed-detail-identity { background: var(--paper); border: 2px solid var(--rule); min-width: 0; padding: 2rem; }
+.sealed-detail-world #sealed-detail-identity { background: var(--paper); border: 2px solid var(--rule); min-width: 0; padding: 1.25rem; }
 .sealed-detail-world #sealed-detail-title { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0 0 .75rem; overflow-wrap: anywhere; text-transform: uppercase; }
 .sealed-detail-world #sealed-detail-type { font: 700 1.2rem/1 "Barlow Condensed", sans-serif; text-transform: uppercase; }
 .sealed-detail-world #sealed-detail-collection, .sealed-detail-world #sealed-detail-release, .sealed-detail-world #sealed-detail-status { font-size: .875rem; line-height: 1.6; margin-top: .5rem; overflow-wrap: anywhere; }
 .sealed-detail-world #sealed-detail-msrp { border-top: 2px solid var(--rule); font: 700 clamp(1.6rem, 4vw, 2.5rem)/1 "Barlow Condensed", sans-serif; margin-top: 1rem; padding-top: .75rem; text-transform: uppercase; }
 .sealed-detail-world #sealed-detail-msrp-provenance { display: block; font: 400 .875rem/1.5 "Azeret Mono", ui-monospace, monospace; margin-top: .5rem; overflow-wrap: anywhere; text-transform: none; }
-.sealed-detail-world #sealed-detail-market-snapshot { background: var(--paper); border: 2px solid var(--rule); padding: 1.5rem; }
+.sealed-detail-world #sealed-detail-market-snapshot { background: var(--paper); border: 2px solid var(--rule); padding: 1rem; }
 .sealed-detail-world #sealed-detail-market-snapshot h2, .sealed-detail-world #sealed-current-title, .sealed-detail-world #sealed-sold-out-title { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
 .sealed-detail-world #sealed-detail-not-found h1, .sealed-detail-world #sealed-detail-data-error h1 { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
 .sealed-detail-world #sealed-detail-market-snapshot p { font-size: .875rem; line-height: 1.6; }
@@ -375,29 +358,24 @@
 .sealed-detail-world .sealed-aggregate-summary dt, .sealed-detail-world .sealed-aggregate-summary dd { overflow-wrap: anywhere; }
 .sealed-detail-world .sealed-aggregate-summary dt { color: var(--muted); }
 .sealed-detail-world .sealed-aggregate-summary dd { font-weight: 700; margin: 0; text-align: right; }
-.sealed-detail-world .sealed-aggregate-methodology { border-top: 1px solid var(--rule); font-size: .875rem; line-height: 1.6; margin-top: 1rem; }
-.sealed-detail-world .sealed-aggregate-methodology summary { cursor: pointer; font-weight: 700; min-height: 3rem; padding: .75rem 0; }
-.sealed-detail-world .sealed-aggregate-methodology summary:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
-.sealed-detail-world .sealed-aggregate-methodology p { border-top: 1px solid var(--rule); padding-top: .75rem; }
 .sealed-detail-world #sealed-detail-read-error { margin-bottom: 1.5rem; }
-.sealed-detail-world #sealed-current-section, .sealed-detail-world #sealed-sold-out-section { margin-top: 3rem; }
+.sealed-detail-world #sealed-current-section, .sealed-detail-world #sealed-sold-out-section { margin-top: 1.5rem; }
 .sealed-detail-world #sealed-current-title, .sealed-detail-world #sealed-sold-out-title { border-bottom: 2px solid var(--rule); padding-bottom: .5rem; }
 .sealed-detail-world .sealed-offer-ledger { display: grid; gap: .75rem; }
 .sealed-detail-world .sealed-offer { align-items: center; background: var(--paper); border-bottom: 1px solid var(--rule); display: grid; gap: .25rem 1rem; grid-template-columns: minmax(0, 1.4fr) minmax(9rem, .7fr) auto; min-width: 0; padding: .75rem .25rem; }
 .sealed-detail-world .sealed-offer h3 { font: 700 1.375rem/1 "Barlow Condensed", sans-serif; grid-column: 1; margin: 0; overflow-wrap: anywhere; text-transform: uppercase; }
 .sealed-detail-world .sealed-offer p { font-size: .875rem; line-height: 1.6; margin: 0; overflow-wrap: anywhere; }
-.sealed-detail-world .sealed-offer p:nth-of-type(1) { grid-column: 1; }
-.sealed-detail-world .sealed-offer p:nth-of-type(2) { font: 700 1.35rem/1 "Barlow Condensed", sans-serif; grid-column: 2; grid-row: 1; text-transform: uppercase; }
-.sealed-detail-world .sealed-offer p:nth-of-type(3) { grid-column: 2; grid-row: 2; }
-.sealed-detail-world .sealed-offer p:nth-of-type(4) { grid-column: 1 / 3; }
+.sealed-detail-world .sealed-offer-price { font: 700 1.35rem/1 "Barlow Condensed", sans-serif; grid-column: 2; grid-row: 1; text-transform: uppercase; }
+.sealed-detail-world .sealed-offer-stock { grid-column: 2; grid-row: 2; }
+.sealed-detail-world .sealed-offer-checked { grid-column: 1 / 3; }
 .sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { align-items: center; align-self: center; display: inline-flex; font: 700 .875rem "Barlow Condensed", sans-serif; grid-column: 3; grid-row: 1 / 4; justify-content: center; min-height: 3rem; padding: .75rem; text-transform: uppercase; }
 .sealed-detail-world .sealed-offer a { background: var(--ink); color: var(--bench-light); text-decoration: none; }
 .sealed-detail-world .sealed-offer a:hover { background: var(--orange); }
-.sealed-detail-world #sealed-detail-notes { border-top: 2px solid var(--rule); color: var(--muted); font-size: .875rem; line-height: 1.6; margin-top: 3rem; padding-top: .75rem; max-width: 70ch; }
+.sealed-detail-world #sealed-detail-notes { border-top: 2px solid var(--rule); color: var(--muted); font-size: .875rem; line-height: 1.6; margin-top: 1.5rem; padding-top: .75rem; max-width: 70ch; }
 .sealed-detail-world #sealed-detail-notes p + p { margin-top: .25rem; }
-.sealed-detail-world #sealed-detail-not-found, .sealed-detail-world #sealed-detail-data-error { border: 2px solid var(--rule); margin-top: 1rem; padding: 2rem; }
+.sealed-detail-world #sealed-detail-not-found, .sealed-detail-world #sealed-detail-data-error { border: 2px solid var(--rule); margin-top: 1rem; padding: 1.25rem; }
 .sealed-detail-world #sealed-detail-not-found p, .sealed-detail-world #sealed-detail-data-error p { font-size: .875rem; line-height: 1.6; }
-@media (max-width: 46rem) { .sealed-detail-world .sealed-detail-overview { grid-template-columns: 1fr; } .sealed-detail-world .sealed-offer { align-items: start; grid-template-columns: minmax(0, 1fr) auto; } .sealed-detail-world .sealed-offer p:nth-of-type(2) { grid-column: 1; grid-row: auto; } .sealed-detail-world .sealed-offer p:nth-of-type(3), .sealed-detail-world .sealed-offer p:nth-of-type(4) { grid-column: 1; grid-row: auto; } .sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { grid-column: 2; grid-row: 1 / 6; } }
+@media (max-width: 46rem) { .sealed-detail-world .sealed-detail-overview { grid-template-columns: 1fr; } .sealed-detail-world .sealed-offer { align-items: start; grid-template-columns: minmax(0, 1fr) auto; } .sealed-detail-world .sealed-offer-price, .sealed-detail-world .sealed-offer-stock, .sealed-detail-world .sealed-offer-checked { grid-column: 1; grid-row: auto; } .sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { grid-column: 2; grid-row: 1 / 5; } }
 @media (max-width: 27rem) { .sealed-detail-world .sealed-offer { grid-template-columns: 1fr; } .sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { grid-column: 1; grid-row: auto; justify-self: start; margin-top: .25rem; width: 100%; } }
 
 /* Trade foundation: a symmetric valuation ledger on the same square bench. */
@@ -406,16 +384,16 @@
 .trade-world #trade-task { font-size: 1rem; line-height: 1.6; margin-top: .5rem; max-width: 70ch; }
 .trade-world #trade-home-link, .trade-world #trade-wordmark { color: var(--ink); min-height: 3rem; display: inline-flex; align-items: center; font-size: .875rem; }
 .trade-world #trade-home-link { justify-content: center; min-width: 3rem; text-align: center; }
-.trade-world .trade-staging { align-items: center; background: var(--paper); border: 2px solid var(--rule); display: flex; flex-wrap: wrap; gap: .75rem; margin: 0 0 1.5rem; padding: 1.5rem; }
+.trade-world .trade-staging { align-items: center; background: var(--paper); border: 2px solid var(--rule); display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; padding: 1rem; }
 .trade-world .trade-staging strong { flex: 1 1 100%; font: 700 1.35rem/.95 "Barlow Condensed", sans-serif; text-transform: uppercase; }
 .trade-world button { background: var(--ink); border: 1px solid var(--ink); color: var(--bench-light); cursor: pointer; font: 700 .875rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .75rem; text-transform: uppercase; }
 .trade-world button:hover { background: var(--orange); }
 .trade-world button:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
-.trade-world .trade-ledgers { display: grid; gap: 1.5rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.trade-world .trade-ledgers { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .trade-world .trade-side { border-top: 2px solid var(--rule); min-width: 0; }
 .trade-world .trade-side h2 { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: .5rem 0; text-transform: uppercase; }
-.trade-world .trade-rows { display: grid; gap: .5rem; }
-.trade-world .trade-row { align-items: start; background: var(--paper); border: 1.5px solid var(--rule); display: grid; gap: .75rem; grid-template-columns: 4.25rem minmax(0, 1fr); min-width: 0; padding: .5rem; }
+.trade-world .trade-rows { display: grid; gap: .25rem; }
+.trade-world .trade-row { align-items: start; background: var(--paper); border: 1.5px solid var(--rule); display: grid; gap: .5rem; grid-template-columns: 4.25rem minmax(0, 1fr); min-width: 0; padding: .35rem .5rem; }
 .trade-world .trade-row-art img, .trade-world .trade-row-art .card-image-missing { aspect-ratio: 245 / 337; border: 1px solid var(--rule); height: 6rem; min-height: 0; object-fit: contain; width: 4rem; }
 .trade-world .trade-row-content { min-width: 0; }
 .trade-world .card-image-missing { align-items: center; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); display: flex; justify-content: center; }
@@ -447,40 +425,37 @@
 
 /* Authenticated sealed review: paper dockets on the established valuation bench. */
 .admin-world, .admin-login-world { --bench: #f3ead7; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --orange: #b54125; --muted: #6d6256; background: var(--bench); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; font-size: 1rem; line-height: 1.6; min-height: 100svh; }
-.admin-header { align-items: center; border-bottom: 2px solid var(--ink); display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; justify-content: space-between; padding: .75rem 3rem; }
-.admin-header > a, .admin-header-actions { align-items: center; display: flex; min-height: 3rem; }
-.admin-header > a { color: var(--ink); font-size: .875rem; font-weight: 700; letter-spacing: .12em; text-decoration: none; }
-.admin-header-actions { flex-wrap: wrap; font-size: .875rem; gap: .75rem; overflow-wrap: anywhere; }
-.admin-header-actions a { align-items: center; background: var(--ink); color: var(--bench-light); display: inline-flex; font: 700 .875rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .75rem; text-decoration: none; text-transform: uppercase; }
-.admin-header nav { align-items: center; display: flex; flex-wrap: wrap; gap: .75rem; }
-.admin-header nav a { color: var(--ink); font: 700 .875rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .75rem 0; text-decoration: underline; text-underline-offset: .2rem; text-transform: uppercase; }
-.admin-main { padding: 3rem 1rem; }
+.admin-main { padding: 1.5rem 1rem; }
 .admin-container { margin: 0 auto; max-width: 72rem; }
-.admin-intro { align-items: end; display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr) auto; margin-bottom: 2rem; }
+.admin-intro { align-items: end; display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr) auto; margin-bottom: 1rem; }
 .admin-intro h1 { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0; text-transform: uppercase; }
 .admin-intro p { font-size: .875rem; line-height: 1.6; margin-top: .75rem; max-width: 70ch; }
 .admin-intro nav { border: 2px solid var(--ink); display: flex; flex-wrap: wrap; }
 .admin-intro nav a { align-items: center; border-right: 1px solid var(--ink); color: var(--ink); display: flex; font: 700 .875rem "Barlow Condensed", sans-serif; gap: .5rem; min-height: 3rem; padding: .75rem; text-decoration: none; text-transform: uppercase; }
 .admin-intro nav a:last-child { border-right: 0; }
 .admin-intro nav strong { background: var(--ink); color: var(--paper); display: inline-grid; min-width: 1.6rem; padding: .25rem; place-items: center; }
-.admin-queue { margin-top: 3rem; scroll-margin-top: 1rem; }
+.admin-queue { margin-top: 1.5rem; scroll-margin-top: 1rem; }
 .admin-section-rule { align-items: baseline; border-bottom: 2px solid var(--ink); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
 .admin-section-rule h2 { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
 .admin-section-rule span { font-size: .875rem; }
-.admin-dockets { display: grid; gap: 1rem; padding-top: 1rem; }
-.admin-docket { background: var(--paper); border: 1.5px solid var(--ink); min-width: 0; padding: 1.5rem; }
+.admin-dockets { display: grid; gap: .75rem; padding-top: .75rem; }
+.admin-docket { background: var(--paper); border: 1.5px solid var(--ink); min-width: 0; padding: 1rem; }
 .admin-docket-heading { align-items: start; border-bottom: 1px solid var(--ink); display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; margin-bottom: 1rem; padding-bottom: .75rem; }
 .admin-docket-heading h3 { font: 700 clamp(1.25rem, 2.5vw, 1.375rem)/1 "Barlow Condensed", sans-serif; margin: 0; overflow-wrap: anywhere; text-transform: uppercase; }
 .admin-docket-heading p { font-size: .875rem; line-height: 1.5; margin-top: .25rem; overflow-wrap: anywhere; }
 .admin-docket-heading > span { background: var(--ink); color: var(--paper); font-size: .875rem; padding: .5rem; }
-.admin-product-form { display: grid; gap: .75rem 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.admin-product-form > div:nth-of-type(2), .admin-product-form > div:nth-of-type(3), .admin-product-form > div:nth-last-of-type(1) { grid-column: span 2; }
+.admin-product-form { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
+.admin-form-section { border-top: 1px solid var(--ink); display: grid; gap: .75rem 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); padding-top: .75rem; }
+.admin-form-section h4 { font: 700 1.125rem/1 "Barlow Condensed", sans-serif; grid-column: 1 / -1; margin: 0; text-transform: uppercase; }
+.admin-form-section--pricing-media { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.admin-form-section--publication { align-items: end; grid-template-columns: minmax(0, 1fr) auto; }
+.admin-form-section--publication button { min-width: 8rem; }
 .admin-world label, .admin-login-world label { color: var(--ink); font-size: .875rem; font-weight: 700; }
 .admin-world input:not([type="checkbox"]), .admin-world select, .admin-login-world input { background: var(--bench-light); border: 1px solid var(--ink); border-radius: 0; box-shadow: none; color: var(--ink); font: 400 .875rem "Azeret Mono", ui-monospace, monospace; min-height: 3rem; padding: .75rem; width: 100%; }
 .admin-world input[type="checkbox"] { border: 1.5px solid var(--ink); border-radius: 0; color: var(--orange); }
 .admin-product-form .fieldset label > .label { align-items: center; display: flex; gap: .5rem; min-height: 3rem; }
 .admin-world button, .admin-login-world button { background: var(--ink); border: 1px solid var(--ink); border-radius: 0; color: var(--bench-light); cursor: pointer; font: 700 .875rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .75rem; text-transform: uppercase; }
-.admin-world button:hover, .admin-login-world button:hover, .admin-header-actions a:hover { background: var(--orange); }
+.admin-world button:hover, .admin-login-world button:hover { background: var(--orange); }
 .admin-world button.secondary-action { background: transparent; color: var(--ink); }
 .admin-world button.secondary-action:hover { background: color-mix(in srgb, var(--paper) 78%, var(--orange)); }
 .admin-world button:disabled { background: var(--muted); cursor: not-allowed; opacity: .7; }
@@ -493,23 +468,61 @@
 .admin-evidence-grid .wide-evidence { grid-column: 1 / -1; }
 .admin-evidence-grid a { align-items: center; color: var(--ink); display: inline-flex; min-height: 3rem; text-underline-offset: .2rem; }
 .compact-dockets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.mapping-decision-form { align-items: end; border-top: 1px solid var(--ink); display: grid; gap: .75rem; grid-template-columns: minmax(0, 1fr) auto; margin-top: 1rem; overflow-x: clip; padding-top: 1rem; }
+.mapping-docket { overflow: hidden; padding: 0; }
+.admin-docket-details { min-width: 0; }
+.admin-docket-details > summary {
+  align-items: center;
+  cursor: pointer;
+  display: grid;
+  gap: .25rem .75rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 48px;
+  overflow-wrap: anywhere;
+  padding: .75rem;
+}
+.admin-docket-details > summary::marker { color: var(--orange); }
+.admin-docket-details > summary::-webkit-details-marker { color: var(--orange); }
+.admin-docket-details > summary strong { font: 700 1.125rem/1 "Barlow Condensed", sans-serif; overflow-wrap: anywhere; text-transform: uppercase; }
+.admin-docket-details > summary .admin-docket-meta,
+.admin-docket-details > summary .admin-docket-status {
+  font-size: .875rem;
+  line-height: 1.5;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.admin-docket-details > summary .admin-docket-status { background: var(--ink); color: var(--paper); padding: .25rem .5rem; text-align: center; }
+.admin-docket-details > summary:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
+.admin-docket-details[open] > summary { background: color-mix(in srgb, var(--paper) 82%, var(--orange)); }
+.admin-docket-body { border-top: 1px solid var(--ink); min-width: 0; overflow-wrap: anywhere; padding: 1rem; }
+.mapping-decision-form, .mapping-correction-form { align-items: end; border-top: 1px solid var(--ink); display: grid; gap: .75rem; grid-template-columns: minmax(0, 1fr) auto; margin-top: 1rem; max-width: 48rem; overflow-x: clip; padding-top: .75rem; }
+.mapping-correction-form { grid-template-columns: minmax(0, 1fr); }
+.mapping-correction-form .admin-decision-row { gap: .5rem; margin-top: 0; padding-top: .75rem; }
 .mapping-decision-form > *, .mapping-decision-form .fieldset, .mapping-decision-form label, .mapping-decision-form select { max-width: 100%; min-width: 0; }
 .mapping-decision-form select { overflow: hidden; text-overflow: ellipsis; }
 .mapping-decision-form select:focus-visible { outline-offset: -3px; }
 .mapping-decision-form.reject-form { border-top-style: dashed; }
 .admin-empty { border-bottom: 1px solid var(--ink); font-size: .875rem; margin: 0; padding: 1rem 0; }
 .admin-login-main { display: grid; min-height: 100svh; padding: 1rem; place-items: center; }
-.admin-login-ticket { background: var(--paper); border: 2px solid var(--ink); max-width: 31rem; padding: 2rem; width: 100%; }
+.admin-login-ticket { background: var(--paper); border: 2px solid var(--ink); max-width: 31rem; padding: 1.25rem; width: 100%; }
 .admin-login-ticket > a { color: var(--ink); display: inline-flex; font-size: .875rem; font-weight: 700; letter-spacing: .12em; min-height: 3rem; text-decoration: none; }
 .admin-login-ticket h1 { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .5rem 0 1rem; text-transform: uppercase; }
-.admin-login-ticket > p { border-bottom: 1px solid var(--ink); font-size: .875rem; line-height: 1.6; margin-bottom: 1.5rem; padding-bottom: 1rem; max-width: 70ch; }
+.admin-login-ticket > p { border-bottom: 1px solid var(--ink); font-size: .875rem; line-height: 1.6; margin-bottom: .75rem; padding-bottom: .75rem; max-width: 70ch; }
 .admin-login-ticket form { display: grid; gap: 1rem; }
-@media (max-width: 54rem) { .admin-intro { align-items: stretch; grid-template-columns: 1fr; } .admin-intro nav { width: fit-content; } .admin-product-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-product-form > div:nth-of-type(2), .admin-product-form > div:nth-of-type(3), .admin-product-form > div:nth-last-of-type(1) { grid-column: auto; } }
-@media (max-width: 40rem) { .admin-header-actions { align-items: start; flex-direction: column; } .admin-intro nav, .admin-intro nav a { width: 100%; } .admin-intro nav a { border-bottom: 1px solid var(--ink); border-right: 0; justify-content: space-between; } .admin-intro nav a:last-child { border-bottom: 0; } .admin-product-form, .compact-dockets, .admin-evidence-grid, .mapping-decision-form { grid-template-columns: minmax(0, 1fr); } .admin-product-form > div, .admin-evidence-grid .wide-evidence { grid-column: 1; } .mapping-decision-form button { width: 100%; } }
+@media (max-width: 54rem) { .admin-intro { align-items: stretch; grid-template-columns: 1fr; } .admin-intro nav { width: fit-content; } .admin-form-section { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 40rem) { .admin-main { padding: 1rem; } .admin-intro nav, .admin-intro nav a { width: 100%; } .admin-intro nav a { border-bottom: 1px solid var(--ink); border-right: 0; justify-content: space-between; } .admin-intro nav a:last-child { border-bottom: 0; } .admin-form-section, .admin-form-section--pricing-media, .admin-form-section--publication, .compact-dockets, .admin-evidence-grid, .mapping-decision-form, .mapping-correction-form { grid-template-columns: minmax(0, 1fr); } .admin-evidence-grid .wide-evidence { grid-column: 1; } .mapping-decision-form button, .mapping-correction-form button { width: 100%; } .admin-docket-body { padding: .75rem; } }
 
 /* Operations ledger: same docket language, with usage and controls kept legible. */
 .admin-disclosure { background: var(--paper); border-bottom: 1px solid var(--ink); border-top: 1px solid var(--ink); padding: .75rem 0; }
+.admin-disclosure p { font-size: .875rem; line-height: 1.5; margin: .5rem 0 0; max-width: 78ch; }
+details.admin-disclosure { padding: 0; }
+details.admin-disclosure summary { align-items: center; cursor: pointer; display: flex; font-weight: 700; min-height: 3rem; padding: .5rem 0; }
+details.admin-disclosure summary::marker { color: var(--orange); }
+.admin-record-disclosure { border-top: 1px solid var(--ink); margin-top: .5rem; min-width: 0; overflow-wrap: anywhere; }
+.admin-record-disclosure summary { align-items: center; cursor: pointer; display: flex; min-height: 48px; }
+.admin-record-disclosure summary:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.admin-record-disclosure summary strong { font: 700 1rem/1 "Barlow Condensed", sans-serif; text-transform: uppercase; }
+.admin-record-disclosure[open] > :not(summary) { margin-top: .5rem; }
+.admin-queue-limit { color: var(--muted); font-size: 14px; margin: .25rem 0 0; }
 .admin-ledger { border-top: 1px solid var(--ink); display: grid; font-size: .875rem; gap: 0 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); line-height: 1.6; margin: 1rem 0 0; }
 .admin-ledger > div { border-bottom: 1px solid rgb(32 29 25 / 35%); display: grid; gap: .25rem; min-width: 0; padding: .75rem 0; }
 .admin-ledger dt { color: var(--muted); }
@@ -517,12 +530,17 @@
 .admin-ledger .wide-evidence { grid-column: 1 / -1; }
 .operations-provider-dockets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .operations-job-docket .admin-docket-heading h3 { font: 700 clamp(1.25rem, 2.5vw, 1.375rem)/1 "Barlow Condensed", sans-serif; }
-.admin-state-error { background: var(--paper); border: 2px solid var(--ink); padding: 2rem; }
+.admin-state-error { background: var(--paper); border: 2px solid var(--ink); padding: 1rem; }
 .admin-state-error h2 { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 1rem; text-transform: uppercase; }
 .admin-state-error p { font-size: .875rem; line-height: 1.6; max-width: 70ch; }
 @media (max-width: 40rem) { .operations-provider-dockets, .admin-ledger { grid-template-columns: minmax(0, 1fr); } .operations-provider-docket, .operations-job-docket { min-width: 0; } .operations-provider-docket button { min-height: 3rem; } }
 
+/* Generated policy panels are already inside a docket; do not nest paper boxes. */
+#operations-buying-model-dockets > .admin-docket, #manual-refresh-fixed > .admin-docket { background: transparent; border: 0; border-top: 1px solid var(--ink); padding: .75rem 0 0; }
+#operations-buying-model-dockets > .admin-docket:first-child, #manual-refresh-fixed > .admin-docket:first-child { border-top: 0; padding-top: 0; }
+
 /* AshBackpex catalogue: keep generated controls usable on an in-store phone. */
+#admin-catalogue .admin-world { min-height: auto; }
 #admin-catalogue .btn,
 #admin-catalogue .input,
 #admin-catalogue .select,
@@ -553,6 +571,7 @@
   display: inline-flex;
   min-height: 2.75rem;
 }
+#admin-catalogue label, #admin-catalogue th, #admin-catalogue td { overflow-wrap: anywhere; }
 
 /* App rhythm tokens: spacing only; artwork, borders, tracking, and breakpoints
    intentionally retain their intrinsic values. */
@@ -572,21 +591,19 @@
   outline: 3px solid var(--orange, var(--ink)); outline-offset: 4px;
 }
 
-/* Major rhythm is 48px on desktop and compact on phones. */
-.archive-world .archive-main, .decision-world .decision-main, .admin-main { padding-bottom: var(--space-12); }
-.archive-world .search-drawer { margin-bottom: var(--space-12); }
-.decision-world .decision-search { margin-bottom: var(--space-6); }
-.trade-world #trade-search { margin-bottom: var(--space-12); }
-.card-detail-world .valuation-panel, .card-detail-world .valuation-history { padding-block: var(--space-12); }
+/* Public rhythm: dense desktop surfaces, with touch-safe controls retained. */
+.archive-world .archive-main, .decision-world .decision-main { padding-block: var(--space-8); }
+.archive-world .search-drawer, .decision-world .decision-search { margin-bottom: var(--space-4); padding: var(--space-4); }
+.trade-world #trade-search { margin-bottom: var(--space-6); }
+.card-detail-world .valuation-panel, .card-detail-world .valuation-history { padding-block: var(--space-4); }
 @media (max-width: 40rem) {
-  .archive-world .archive-main, .decision-world .decision-main, .admin-main { padding-block: var(--space-6); }
-  .archive-world .archive-header, .decision-world .decision-header, .admin-header { padding-inline: var(--space-4); }
+  .archive-world .archive-main, .decision-world .decision-main { padding-block: var(--space-4); }
+  .archive-world .archive-header, .decision-world .decision-header { padding-inline: var(--space-4); }
   .card-detail-world .card-detail-placeholder, .sealed-detail-world .sealed-buying-bands article,
-  .sealed-detail-world #sealed-detail-guide-reasons, .decision-world .market-recent-ledger,
   .trade-world .trade-staging { padding: var(--space-4); }
-   .archive-world .search-drawer, .decision-world .decision-search { padding: var(--space-4); }
-  .archive-world .search-drawer { margin-bottom: var(--space-6); }
-  .card-detail-world .valuation-panel, .card-detail-world .valuation-history { padding-block: var(--space-6); }
+  .archive-world .search-drawer, .decision-world .decision-search { padding: var(--space-4); }
+  .archive-world .search-drawer, .decision-world .decision-search { margin-bottom: var(--space-4); }
+  .card-detail-world .valuation-panel, .card-detail-world .valuation-history { padding-block: var(--space-4); }
   .sealed-detail-world #sealed-current-section, .sealed-detail-world #sealed-sold-out-section,
-  .admin-queue { margin-top: var(--space-6); }
+   .admin-queue { margin-top: var(--space-6); }
 }
