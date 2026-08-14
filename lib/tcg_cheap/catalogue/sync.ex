@@ -53,15 +53,39 @@ defmodule TcgCheap.Catalogue.Sync do
   end
 
   defp handle_set_validation(:ok, set, set_id, clock) do
-    if tcg_pocket?(set),
-      do: {:ok, excluded_result(set_id)},
-      else: sync_supported_set(set, set_id, clock)
+    if tcg_pocket?(set) do
+      exclude_tcg_pocket_set(set_id, clock)
+    else
+      sync_supported_set(set, set_id, clock)
+    end
+  end
+
+  defp exclude_tcg_pocket_set(set_id, clock) do
+    case clock_datetime(clock) do
+      {:ok, excluded_at} -> resolve_excluded_set(set_id, excluded_at)
+      {:error, :invalid_clock} = error -> record_clock_issue(set_id, error)
+    end
+  end
+
+  defp resolve_excluded_set(set_id, excluded_at) do
+    case resolve_catalogue_set(set_id, excluded_at, nil) do
+      :ok -> {:ok, excluded_result(set_id)}
+      _ -> {:error, :persistence_failed}
+    end
+  end
+
+  defp record_clock_issue(set_id, error) do
+    _ = record_issue("set_import", "set", set_id, :invalid_clock)
+    error
   end
 
   defp sync_supported_set(set, set_id, clock) do
     case validate_set(set, set_id) do
       {:ok, cards} ->
-        sync_cards(set, set_id, cards, clock)
+        sync_cards(set, set_id, cards, length(cards), nil, clock)
+
+      {:partial, cards, cards_seen, cards_invalid, reason} ->
+        sync_cards(set, set_id, cards, cards_seen, {cards_invalid, reason}, clock)
 
       {:error, reason} = error ->
         _ = record_issue("set_validation", "set", set_id, reason)
@@ -69,13 +93,13 @@ defmodule TcgCheap.Catalogue.Sync do
     end
   end
 
-  defp sync_cards(set, set_id, cards, clock) do
+  defp sync_cards(set, set_id, cards, cards_seen, partial, clock) do
     case clock_datetime(clock) do
       {:ok, synced_at} ->
         set
         |> Map.merge(%{"id" => set_id, "name" => String.trim(set["name"])})
-        |> persist(cards, synced_at)
-        |> handle_persist_result(set_id, synced_at)
+        |> persist(cards, cards_seen, partial, synced_at)
+        |> handle_persist_result(set_id, synced_at, partial)
 
       {:error, :invalid_clock} = error ->
         _ = record_issue("set_import", "set", set_id, :invalid_clock)
@@ -83,7 +107,7 @@ defmodule TcgCheap.Catalogue.Sync do
     end
   end
 
-  defp handle_persist_result({:error, reason} = error, set_id, synced_at) do
+  defp handle_persist_result({:error, reason} = error, set_id, synced_at, _partial) do
     _ =
       ImportIssues.record(
         "tcgdex_catalogue",
@@ -98,7 +122,16 @@ defmodule TcgCheap.Catalogue.Sync do
     error
   end
 
-  defp handle_persist_result(result, _set_id, _synced_at), do: result
+  defp handle_persist_result({:ok, _result} = success, set_id, synced_at, partial) do
+    with :ok <- resolve_catalogue_set(set_id, synced_at, partial),
+         :ok <- persist_partial_issue(set_id, partial, synced_at) do
+      success
+    else
+      _ -> {:error, :persistence_failed}
+    end
+  end
+
+  defp handle_persist_result(result, _set_id, _synced_at, _partial), do: result
 
   def sync_all_sets(opts \\ [])
 
@@ -198,6 +231,7 @@ defmodule TcgCheap.Catalogue.Sync do
     do: %{
       discovered_sets: 0,
       synced_sets: 0,
+      partial_sets: 0,
       failed_sets: 0,
       excluded_sets: 0,
       cards_seen: 0,
@@ -311,21 +345,32 @@ defmodule TcgCheap.Catalogue.Sync do
 
   defp validate_set(%{"id" => id, "name" => name, "cards" => cards} = set, _expected)
        when is_binary(id) and is_binary(name) and is_list(cards) do
-    total = get_in(set, ["cardCount", "total"])
-
-    cond do
-      not is_integer(total) or total < 0 ->
-        {:error, {:malformed_response, {:set, :invalid_card_count_total}}}
-
-      total != length(cards) ->
-        {:error, {:malformed_response, {:set, {:truncated_cards, total, length(cards)}}}}
-
-      true ->
-        validate_cards(cards, String.trim(name))
+    with {:ok, total} <- validate_total(get_in(set, ["cardCount", "total"]), length(cards)),
+         {:ok, valid_cards, invalid_count, invalid_reasons} <-
+           validate_cards(cards, String.trim(name)) do
+      coverage_result(cards, total, valid_cards, invalid_count, invalid_reasons)
     end
   end
 
   defp validate_set(_, _), do: {:error, {:malformed_response, {:set, :missing_identity}}}
+
+  defp validate_total(total, returned_count) when is_integer(total) and total >= returned_count,
+    do: {:ok, total}
+
+  defp validate_total(total, returned_count) when is_integer(total) and total >= 0,
+    do: {:error, {:malformed_response, {:set, {:too_many_cards, total, returned_count}}}}
+
+  defp validate_total(_total, _returned_count),
+    do: {:error, {:malformed_response, {:set, :invalid_card_count_total}}}
+
+  defp coverage_result(cards, total, valid_cards, invalid_count, invalid_reasons)
+       when length(cards) < total or invalid_count > 0 do
+    {:partial, valid_cards, length(cards), invalid_count,
+     {:partial_coverage, {total, length(cards), invalid_count, invalid_reasons}}}
+  end
+
+  defp coverage_result(_cards, _total, valid_cards, 0, _invalid_reasons),
+    do: {:ok, valid_cards}
 
   defp validate_set_identity(%{"id" => id, "name" => name}, expected)
        when is_binary(id) and is_binary(name) do
@@ -344,21 +389,23 @@ defmodule TcgCheap.Catalogue.Sync do
   defp validate_set_identity(_, _), do: {:error, {:malformed_response, {:set, :missing_identity}}}
 
   defp validate_cards(cards, set_name) do
-    Enum.reduce_while(cards, {[], MapSet.new()}, fn card, {result, ids} ->
+    Enum.reduce_while(cards, {[], MapSet.new(), 0, []}, fn card,
+                                                           {result, ids, invalid, reasons} ->
       with {:ok, brief} <- validate_card(card, set_name),
            false <- MapSet.member?(ids, brief.tcgdex_id) do
-        {:cont, {[brief | result], MapSet.put(ids, brief.tcgdex_id)}}
+        {:cont, {[brief | result], MapSet.put(ids, brief.tcgdex_id), invalid, reasons}}
       else
         true ->
           {:halt, {:error, {:malformed_response, {:duplicate_card_id, Map.get(card, "id")}}}}
 
         {:error, reason} ->
-          {:halt, {:error, reason}}
+          {:cont, {result, ids, invalid + 1, [reason | reasons]}}
       end
     end)
     |> case do
-      {cards, _} when is_list(cards) ->
-        {:ok, cards |> Enum.reverse() |> Enum.sort_by(& &1.tcgdex_id)}
+      {cards, _, invalid, reasons} when is_list(cards) ->
+        {:ok, cards |> Enum.reverse() |> Enum.sort_by(& &1.tcgdex_id), invalid,
+         Enum.reverse(reasons)}
 
       error ->
         error
@@ -433,7 +480,7 @@ defmodule TcgCheap.Catalogue.Sync do
 
   defp nonblank(_), do: nil
 
-  defp persist(set, cards, synced_at) do
+  defp persist(set, cards, cards_seen, partial, synced_at) do
     case Ash.transact([CardSet, CardPrinting], fn ->
            persist_transaction(set, cards, synced_at)
          end) do
@@ -441,10 +488,11 @@ defmodule TcgCheap.Catalogue.Sync do
         {:ok,
          %{
            set_id: set["id"],
-           cards_seen: length(cards),
+           cards_seen: cards_seen,
            cards_seeded: seeded,
            cards_preserved: preserved
-         }}
+         }
+         |> maybe_partial_result(partial)}
 
       {:ok, other} ->
         other
@@ -454,6 +502,16 @@ defmodule TcgCheap.Catalogue.Sync do
     end
   rescue
     exception -> {:error, exception}
+  end
+
+  defp maybe_partial_result(result, nil), do: result
+
+  defp maybe_partial_result(result, {cards_invalid, _reason}) do
+    Map.merge(result, %{
+      status: :partial,
+      cards_available: result.cards_seen - cards_invalid,
+      cards_invalid: cards_invalid
+    })
   end
 
   defp unwrap_transaction_error(%{__struct__: Ash.Error.Unknown, value: [{tag, detail}]})
@@ -534,21 +592,7 @@ defmodule TcgCheap.Catalogue.Sync do
            request_admitter: request_admitter
          ) do
       {:ok, result} ->
-        if Map.get(result, :status) == :excluded do
-          %{
-            report
-            | excluded_sets: report.excluded_sets + 1,
-              exclusions: [%{set_id: id, reason: :tcg_pocket} | report.exclusions]
-          }
-        else
-          %{
-            report
-            | synced_sets: report.synced_sets + 1,
-              cards_seen: report.cards_seen + result.cards_seen,
-              cards_seeded: report.cards_seeded + result.cards_seeded,
-              cards_preserved: report.cards_preserved + result.cards_preserved
-          }
-        end
+        merge_set_result(report, id, result)
 
       {:error, reason} ->
         %{
@@ -557,6 +601,24 @@ defmodule TcgCheap.Catalogue.Sync do
             failures: [%{set_id: id, stage: :sync, reason: reason} | report.failures]
         }
     end
+  end
+
+  defp merge_set_result(report, id, %{status: :excluded}) do
+    %{
+      report
+      | excluded_sets: report.excluded_sets + 1,
+        exclusions: [%{set_id: id, reason: :tcg_pocket} | report.exclusions]
+    }
+  end
+
+  defp merge_set_result(report, _id, result) do
+    counter = if(Map.get(result, :status) == :partial, do: :partial_sets, else: :synced_sets)
+
+    report
+    |> Map.update!(counter, &(&1 + 1))
+    |> Map.update!(:cards_seen, &(&1 + result.cards_seen))
+    |> Map.update!(:cards_seeded, &(&1 + result.cards_seeded))
+    |> Map.update!(:cards_preserved, &(&1 + result.cards_preserved))
   end
 
   defp record_issue(stage, target_type, target_key, reason) do
@@ -568,6 +630,32 @@ defmodule TcgCheap.Catalogue.Sync do
       target_key,
       reason
     )
+  end
+
+  defp record_issue(stage, target_type, target_key, reason, occurred_at) do
+    ImportIssues.record(
+      "tcgdex_catalogue",
+      "card_catalogue_sync",
+      stage,
+      target_type,
+      target_key,
+      reason,
+      occurred_at
+    )
+  end
+
+  defp persist_partial_issue(_set_id, nil, _occurred_at), do: :ok
+
+  defp persist_partial_issue(set_id, {_cards_invalid, reason}, occurred_at) do
+    record_issue("set_validation", "set", set_id, reason, occurred_at)
+  end
+
+  defp resolve_catalogue_set(set_id, synced_at, nil) do
+    ImportIssues.resolve_catalogue_set(set_id, synced_at)
+  end
+
+  defp resolve_catalogue_set(set_id, synced_at, _partial) do
+    ImportIssues.resolve_hard_catalogue_set(set_id, synced_at)
   end
 
   defp excluded_result(set_id),

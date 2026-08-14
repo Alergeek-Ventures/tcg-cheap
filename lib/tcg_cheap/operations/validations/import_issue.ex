@@ -108,6 +108,7 @@ defmodule TcgCheap.Operations.Validations.ImportIssue do
        when kind in ["unmatched", "ambiguous"],
        do: true
 
+  defp valid_issue_category?("partial", "partial_coverage"), do: true
   defp valid_issue_category?("malformed", "malformed_response"), do: true
   defp valid_issue_category?("failed", code), do: code in @failed_codes
   defp valid_issue_category?(_, _), do: false

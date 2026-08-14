@@ -15,6 +15,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
   alias TcgCheap.Core
   alias TcgCheap.Operations
   alias TcgCheap.Operations.AcquisitionTracker
+  alias TcgCheap.Operations.ImportIssues
   alias TcgCheap.Pricing.ExchangeRateWorker
   alias TcgCheap.Pricing.Singles.ValuationWorker
 
@@ -96,6 +97,9 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#manual-refresh-exchange-rate[phx-disable-with]")
     assert has_element?(view, "#manual-refresh-retailer-stream[phx-update=stream]")
     assert has_element?(view, "#manual-refresh-catalogue[disabled]")
+    assert has_element?(view, "#manual-refresh-catalogue-repair[disabled]")
+    assert has_element?(view, "#manual-refresh-catalogue-repair-status", "NO FAILURES")
+    assert has_element?(view, "#manual-refresh-catalogue-repair-count", "0")
     assert has_element?(view, "#manual-refresh-exchange-rate[disabled]")
     assert has_element?(view, "#manual-refresh-valuation[disabled]")
   end
@@ -188,6 +192,36 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#flash-info", "already queued")
   end
 
+  test "failed-set repair queues its fixed scope and only exposes a count", %{
+    conn: conn,
+    key: key
+  } do
+    configure_manual_targets(key)
+
+    assert :ok =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_sync",
+               "set_import",
+               "set",
+               "web-repair-set",
+               :malformed_response
+             )
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+
+    assert has_element?(view, "#manual-refresh-catalogue-repair-count", "1")
+    refute render(view) =~ "web-repair-set"
+
+    view |> element("#manual-refresh-catalogue-repair") |> render_click()
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: CatalogueSyncWorker,
+      args: %{"scope" => "failed_sets"}
+    )
+  end
+
   test "manual valuation keeps invalid input and queues nothing", %{conn: conn, key: key} do
     configure_manual_targets(key)
     {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
@@ -223,6 +257,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     refute has_element?(view, "#manual-refresh-exchange-rate[disabled]")
     view |> element("#provider-action-#{provider_id("nbp")}") |> render_click()
     assert has_element?(view, "#manual-refresh-exchange-rate[disabled]")
+    assert has_element?(view, "#manual-refresh-catalogue-repair[disabled]")
     assert has_element?(view, "#manual-refresh-exchange-rate-status", "DISABLED")
     refute_enqueued(repo: TcgCheap.Repo, worker: ExchangeRateWorker)
   end

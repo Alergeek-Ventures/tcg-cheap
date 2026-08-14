@@ -25,6 +25,7 @@ defmodule TcgCheapWeb.Admin.ImportIssueLive do
       field :issue_code, orderable: false, panel: :issue
       field :first_seen_at, orderable: false, panel: :timing
       field :last_seen_at, orderable: false, panel: :timing
+      field :resolved_at, orderable: false, panel: :timing
       field :inserted_at, only: [:show], orderable: false, panel: :timing
       field :updated_at, only: [:show], orderable: false, panel: :timing
     end

@@ -12,7 +12,7 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
   alias TcgCheap.Catalogue.{CatalogueSyncWorker, SealedRetailerWorker}
   alias TcgCheap.Core
   alias TcgCheap.Operations
-  alias TcgCheap.Operations.{AcquisitionBudget, ManualRefresh, Overview}
+  alias TcgCheap.Operations.{AcquisitionBudget, ImportIssues, ManualRefresh, Overview}
   alias TcgCheap.Pricing.ExchangeRateWorker
   alias TcgCheap.Pricing.Singles.ValuationWorker
 
@@ -45,12 +45,13 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
 
     assert Enum.map(targets, & &1.kind) == [
              :catalogue_sync,
+             :catalogue_repair,
              :exchange_rate,
              :single_valuation,
              :sealed_retailer
            ]
 
-    assert Enum.all?(targets, &(&1.status == :available))
+    assert Enum.find(targets, &(&1.kind == :catalogue_repair)).status == :empty
 
     retailer_target = Enum.find(targets, &(&1.kind == :sealed_retailer))
     assert retailer_target.retailer_id == retailer.id
@@ -105,6 +106,67 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
 
     assert {:error, :invalid_target} =
              ManualRefresh.enqueue(admin, {:catalogue_sync, "caller-controlled"})
+  end
+
+  test "queues the failed-set scope without exposing set identifiers", %{admin: admin} do
+    assert :ok =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_sync",
+               "set_import",
+               "set",
+               "base1",
+               :malformed_response
+             )
+
+    assert {:ok, targets} = ManualRefresh.targets(admin)
+    repair = Enum.find(targets, &(&1.kind == :catalogue_repair))
+    assert repair.failure_count == 1
+    assert repair.status == :available
+    refute Map.has_key?(repair, :set_ids)
+
+    assert {:ok, %{status: :queued}} = ManualRefresh.enqueue(admin, :catalogue_repair)
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: CatalogueSyncWorker,
+      args: %{"scope" => "failed_sets"}
+    )
+  end
+
+  test "failed-set repair closes safely when issues disappear", %{admin: admin} do
+    assert {:error, :invalid_target} = ManualRefresh.enqueue(admin, :catalogue_repair)
+    refute_enqueued(repo: TcgCheap.Repo, worker: CatalogueSyncWorker)
+  end
+
+  test "repair discovery overflow leaves unrelated targets available", %{admin: admin} do
+    timestamp = ~U[2026-01-01 00:00:00.000000Z]
+
+    rows =
+      Enum.map(1..1001, fn index ->
+        %{
+          provider_key: "tcgdex_catalogue",
+          operation: "card_catalogue_sync",
+          stage: "set_fetch",
+          target_type: "set",
+          target_key: "manual-overflow-#{index}",
+          issue_kind: "failed",
+          issue_code: "timeout",
+          first_seen_at: timestamp,
+          last_seen_at: timestamp
+        }
+      end)
+
+    assert {1001, nil} =
+             TcgCheap.Repo.insert_all(TcgCheap.Operations.ImportIssue, rows, returning: false)
+
+    assert {:ok, targets} = ManualRefresh.targets(admin)
+    repair = Enum.find(targets, &(&1.kind == :catalogue_repair))
+    exchange = Enum.find(targets, &(&1.kind == :exchange_rate))
+
+    assert repair.status == :unavailable
+    assert repair.failure_count == nil
+    assert exchange.status == :available
   end
 
   test "queues a valuation only for one exact local printing", %{admin: admin} do

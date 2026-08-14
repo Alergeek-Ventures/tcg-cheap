@@ -45,6 +45,22 @@ defmodule TcgCheapWeb.Admin.ImportIssueLiveTest do
                DateTime.add(now, 1, :second)
              )
 
+    resolved_target = "resolved-set-#{suffix}"
+
+    assert :ok =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_sync",
+               "set_import",
+               "set",
+               resolved_target,
+               :malformed_response,
+               now
+             )
+
+    resolved_at = ~U[2026-01-03 04:05:06.000000Z]
+    assert :ok = ImportIssues.resolve_catalogue_set(resolved_target, resolved_at)
+
     {:ok, issues} = Operations.list_admin_import_issues(authorize?: false)
     issue = Enum.find(issues, &(&1.provider_key == provider_key and &1.target_key == target_key))
     assert issue
@@ -65,6 +81,13 @@ defmodule TcgCheapWeb.Admin.ImportIssueLiveTest do
     assert has_element?(show, "p", provider_key)
     assert has_element?(show, "p", target_key)
     assert has_element?(show, "p", "2026")
+    resolved_issue = Enum.find(issues, &(&1.target_key == resolved_target))
+    assert resolved_issue
+
+    {:ok, resolved_show, _html} =
+      live(conn, "/admin/operations/import-issues/#{resolved_issue.id}/show")
+
+    assert has_element?(resolved_show, "p", "2026-01-03 04:05 AM")
     refute has_element?(show, "body", "payload-secret")
     refute has_element?(show, "a[href*='/edit']")
     refute has_element?(show, "button", "Delete")

@@ -3,7 +3,7 @@ defmodule TcgCheap.Operations.ManualRefresh do
 
   alias TcgCheap.Accounts.{Admin, AdminActor}
   alias TcgCheap.Catalogue.{CatalogueSyncWorker, Retailer, SealedRetailerAcquisition}
-  alias TcgCheap.Operations.{AcquisitionBudget, DataProvider}
+  alias TcgCheap.Operations.{AcquisitionBudget, DataProvider, ImportIssues}
   alias TcgCheap.Pricing.{ExchangeRateAcquisition, ExchangeRateWorker}
   alias TcgCheap.Pricing.Singles.{ValuationAcquisition, ValuationWorker}
 
@@ -11,7 +11,7 @@ defmodule TcgCheap.Operations.ManualRefresh do
   @max_adapters 100
   @max_source_key 144
 
-  @type target_status :: :available | :disabled | :unconfigured
+  @type target_status :: :available | :disabled | :unconfigured | :empty | :unavailable
   @type result :: %{status: :queued | :already_queued, job_id: pos_integer()}
 
   @spec targets(Admin.t()) :: {:ok, [map()]} | {:error, atom()}
@@ -59,19 +59,24 @@ defmodule TcgCheap.Operations.ManualRefresh do
   def enqueue(_, _), do: {:error, :invalid_actor}
 
   defp fixed_targets(budget, persisted_statuses) do
+    catalogue_target = %{
+      kind: :catalogue_sync,
+      label: "TCGdex catalogue",
+      provider_key: "tcgdex_catalogue",
+      status:
+        target_status(
+          budget,
+          persisted_statuses,
+          "tcgdex_catalogue",
+          worker_configured?(CatalogueSyncWorker)
+        )
+    }
+
+    catalogue_repair_target = catalogue_repair_target(budget, persisted_statuses)
+
     [
-      %{
-        kind: :catalogue_sync,
-        label: "TCGdex catalogue",
-        provider_key: "tcgdex_catalogue",
-        status:
-          target_status(
-            budget,
-            persisted_statuses,
-            "tcgdex_catalogue",
-            worker_configured?(CatalogueSyncWorker)
-          )
-      },
+      catalogue_target,
+      catalogue_repair_target,
       %{
         kind: :exchange_rate,
         label: "NBP EUR/PLN",
@@ -97,6 +102,38 @@ defmodule TcgCheap.Operations.ManualRefresh do
           )
       }
     ]
+  end
+
+  defp catalogue_repair_target(budget, persisted_statuses) do
+    provider_status =
+      target_status(
+        budget,
+        persisted_statuses,
+        "tcgdex_catalogue",
+        worker_configured?(CatalogueSyncWorker)
+      )
+
+    case ImportIssues.unresolved_catalogue_set_ids() do
+      {:ok, set_ids} ->
+        failure_count = length(set_ids)
+
+        %{
+          kind: :catalogue_repair,
+          label: "TCGdex failed-set repair",
+          provider_key: "tcgdex_catalogue",
+          failure_count: failure_count,
+          status: if(failure_count == 0, do: :empty, else: provider_status)
+        }
+
+      {:error, _reason} ->
+        %{
+          kind: :catalogue_repair,
+          label: "TCGdex failed-set repair",
+          provider_key: "tcgdex_catalogue",
+          failure_count: nil,
+          status: :unavailable
+        }
+    end
   end
 
   defp retailer_targets(budget, persisted_statuses) do
@@ -191,6 +228,23 @@ defmodule TcgCheap.Operations.ManualRefresh do
              worker_configured?(CatalogueSyncWorker)
            ) do
       enqueue_job(&CatalogueSyncWorker.enqueue/0)
+    end
+  end
+
+  defp checked_enqueue(:catalogue_repair, budget, _admin) do
+    with :ok <-
+           provider_available?(
+             budget,
+             "tcgdex_catalogue",
+             worker_configured?(CatalogueSyncWorker)
+           ) do
+      case CatalogueSyncWorker.enqueue_failed() do
+        {:ok, %Oban.Job{} = job} -> {:ok, job}
+        {:error, :no_failures} -> {:error, :invalid_target}
+        {:error, :invalid_provider_configuration} -> {:error, :unconfigured}
+        {:error, :import_issue_read_failed} -> {:error, :manual_refresh_unavailable}
+        _ -> {:error, :manual_refresh_unavailable}
+      end
     end
   end
 

@@ -39,11 +39,11 @@ defmodule TcgCheap.Operations.ImportIssue do
         check: "target_type IN ('catalogue','set','card','retailer')"
 
       check_constraint [:issue_kind], "import_issues_kind_invariant",
-        check: "issue_kind IN ('unmatched','ambiguous','malformed','failed')"
+        check: "issue_kind IN ('unmatched','ambiguous','partial','malformed','failed')"
 
       check_constraint [:issue_code], "import_issues_code_invariant",
         check:
-          "issue_code IN ('malformed_response','budget','rate_limit','timeout','transport','provider_response','persistence','configuration','local_input','unknown')"
+          "issue_code IN ('partial_coverage','malformed_response','budget','rate_limit','timeout','transport','provider_response','persistence','configuration','local_input','unknown')"
 
       check_constraint [:operation, :stage], "import_issues_operation_stage_invariant",
         check:
@@ -56,10 +56,13 @@ defmodule TcgCheap.Operations.ImportIssue do
 
       check_constraint [:issue_kind, :issue_code], "import_issues_kind_code_invariant",
         check:
-          "(issue_kind IN ('unmatched','ambiguous') AND issue_code = 'provider_response') OR (issue_kind = 'malformed' AND issue_code = 'malformed_response') OR (issue_kind = 'failed' AND issue_code IN ('budget','rate_limit','timeout','transport','provider_response','persistence','configuration','local_input','unknown'))"
+          "(issue_kind IN ('unmatched','ambiguous') AND issue_code = 'provider_response') OR (issue_kind = 'partial' AND issue_code = 'partial_coverage') OR (issue_kind = 'malformed' AND issue_code = 'malformed_response') OR (issue_kind = 'failed' AND issue_code IN ('budget','rate_limit','timeout','transport','provider_response','persistence','configuration','local_input','unknown'))"
 
       check_constraint [:first_seen_at, :last_seen_at], "import_issues_timestamp_invariant",
         check: "last_seen_at >= first_seen_at"
+
+      check_constraint [:resolved_at, :last_seen_at], "import_issues_resolution_invariant",
+        check: "resolved_at IS NULL OR resolved_at >= last_seen_at"
     end
   end
 
@@ -98,6 +101,7 @@ defmodule TcgCheap.Operations.ImportIssue do
         constraints: [min_length: 1, max_length: 80]
 
       argument :occurred_at, :utc_datetime_usec, allow_nil?: false
+      argument :resolved_at, :utc_datetime_usec, allow_nil?: true
       accept []
       change set_attribute(:provider_key, arg(:provider_key))
       change set_attribute(:operation, arg(:operation))
@@ -108,10 +112,22 @@ defmodule TcgCheap.Operations.ImportIssue do
       change set_attribute(:issue_code, arg(:issue_code))
       change set_attribute(:first_seen_at, arg(:occurred_at))
       change set_attribute(:last_seen_at, arg(:occurred_at))
+      change set_attribute(:resolved_at, arg(:resolved_at))
       upsert? true
       upsert_identity :unique_import_issue
-      upsert_fields [:last_seen_at]
-      upsert_condition expr(last_seen_at < upsert_conflict(:last_seen_at))
+      upsert_fields [:last_seen_at, :resolved_at]
+
+      upsert_condition expr(
+                         (last_seen_at < upsert_conflict(:last_seen_at) or
+                            (last_seen_at == upsert_conflict(:last_seen_at) and
+                               is_nil(upsert_conflict(:resolved_at)))) and
+                           (is_nil(resolved_at) or
+                              (not is_nil(upsert_conflict(:resolved_at)) and
+                                 resolved_at < upsert_conflict(:resolved_at)) or
+                              (is_nil(upsert_conflict(:resolved_at)) and
+                                 resolved_at < upsert_conflict(:last_seen_at)))
+                       )
+
       return_skipped_upsert? true
 
       validate one_of(:operation, [
@@ -141,9 +157,10 @@ defmodule TcgCheap.Operations.ImportIssue do
                ])
 
       validate one_of(:target_type, ["catalogue", "set", "card", "retailer"])
-      validate one_of(:issue_kind, ["unmatched", "ambiguous", "malformed", "failed"])
+      validate one_of(:issue_kind, ["unmatched", "ambiguous", "partial", "malformed", "failed"])
 
       validate one_of(:issue_code, [
+                 "partial_coverage",
                  "malformed_response",
                  "budget",
                  "rate_limit",
@@ -156,7 +173,56 @@ defmodule TcgCheap.Operations.ImportIssue do
                  "unknown"
                ])
 
+      validate compare(:resolved_at, greater_than_or_equal_to: ref(:last_seen_at))
       validate TcgCheap.Operations.Validations.ImportIssue
+    end
+
+    read :unresolved_catalogue_sets do
+      filter expr(
+               provider_key == "tcgdex_catalogue" and operation == "card_catalogue_sync" and
+                 target_type == "set" and issue_kind in ["malformed", "failed"] and
+                 is_nil(resolved_at)
+             )
+
+      prepare build(
+                distinct: [:target_key],
+                distinct_sort: [target_key: :asc, id: :asc],
+                sort: [target_key: :asc, id: :asc],
+                limit: 1001
+              )
+    end
+
+    read :unresolved_catalogue_set do
+      argument :target_key, :string, allow_nil?: false
+      get? false
+
+      filter expr(
+               provider_key == "tcgdex_catalogue" and operation == "card_catalogue_sync" and
+                 target_type == "set" and issue_kind in ["partial", "malformed", "failed"] and
+                 is_nil(resolved_at) and target_key == ^arg(:target_key)
+             )
+
+      prepare build(sort: [last_seen_at: :desc, id: :desc], limit: 1001)
+    end
+
+    read :unresolved_hard_catalogue_set do
+      argument :target_key, :string, allow_nil?: false
+      get? false
+
+      filter expr(
+               provider_key == "tcgdex_catalogue" and operation == "card_catalogue_sync" and
+                 target_type == "set" and issue_kind in ["malformed", "failed"] and
+                 is_nil(resolved_at) and target_key == ^arg(:target_key)
+             )
+
+      prepare build(sort: [last_seen_at: :desc, id: :desc], limit: 1001)
+    end
+
+    update :resolve do
+      argument :resolved_at, :utc_datetime_usec, allow_nil?: false
+      accept []
+      change set_attribute(:resolved_at, arg(:resolved_at))
+      validate compare(:resolved_at, greater_than_or_equal_to: ref(:last_seen_at))
     end
   end
 
@@ -201,6 +267,7 @@ defmodule TcgCheap.Operations.ImportIssue do
 
     attribute :first_seen_at, :utc_datetime_usec, allow_nil?: false, public?: true
     attribute :last_seen_at, :utc_datetime_usec, allow_nil?: false, public?: true
+    attribute :resolved_at, :utc_datetime_usec, public?: true
     create_timestamp :inserted_at, public?: true
     update_timestamp :updated_at, public?: true
   end

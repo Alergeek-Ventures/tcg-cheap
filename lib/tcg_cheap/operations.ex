@@ -73,14 +73,43 @@ defmodule TcgCheap.Operations do
           :target_key,
           :issue_kind,
           :issue_code,
-          :occurred_at
+          :occurred_at,
+          :resolved_at
         ]
+
+      define :list_unresolved_catalogue_sets,
+        action: :unresolved_catalogue_sets
+
+      define :list_unresolved_catalogue_set,
+        action: :unresolved_catalogue_set,
+        args: [:target_key]
+
+      define :list_unresolved_hard_catalogue_set,
+        action: :unresolved_hard_catalogue_set,
+        args: [:target_key]
+
+      define :resolve_import_issue, action: :resolve, args: [:resolved_at]
 
       define :list_admin_import_issues, action: :admin_catalogue
     end
 
+    resource TcgCheap.Operations.CatalogueSetIssueResolution do
+      define :get_catalogue_set_issue_resolution,
+        action: :by_set_mode,
+        args: [:set_id, :mode],
+        not_found_error?: false
+
+      define :record_catalogue_set_issue_resolution,
+        action: :record,
+        args: [:set_id, :mode, :resolved_at]
+    end
+
     resource TcgCheap.Operations.CatalogueSyncRun do
       define :start_catalogue_sync_run, action: :start, args: [:set_ids, :started_at]
+
+      define :start_failed_catalogue_sync_run,
+        action: :start_failed,
+        args: [:set_ids, :started_at]
 
       define :get_active_catalogue_sync_run,
         action: :active,

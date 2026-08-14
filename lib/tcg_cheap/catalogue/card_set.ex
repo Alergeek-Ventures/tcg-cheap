@@ -97,6 +97,10 @@ defmodule TcgCheap.Catalogue.CardSet do
     has_many :card_printings, TcgCheap.Catalogue.CardPrinting
   end
 
+  aggregates do
+    count :imported_printings, :card_printings, public?: true
+  end
+
   identities do
     identity :unique_tcgdex_id, [:tcgdex_id]
   end

@@ -1,4 +1,4 @@
-defmodule TcgCheap.Operations.Changes.StartCatalogueSyncRun do
+defmodule TcgCheap.Operations.Changes.StartFailedCatalogueSyncRun do
   @moduledoc false
   use Ash.Resource.Change
 
@@ -11,7 +11,7 @@ defmodule TcgCheap.Operations.Changes.StartCatalogueSyncRun do
     if canonical?(set_ids) do
       changeset
       |> Ash.Changeset.change_attribute(:provider_key, "tcgdex_catalogue")
-      |> Ash.Changeset.change_attribute(:scope, "all_sets")
+      |> Ash.Changeset.change_attribute(:scope, "failed_sets")
       |> Ash.Changeset.change_attribute(:set_ids, set_ids)
       |> Ash.Changeset.change_attribute(
         :started_at,

@@ -5,6 +5,7 @@ defmodule TcgCheap.Catalogue.SyncTest do
   alias Ecto.Adapters.SQL.Sandbox
   alias TcgCheap.Catalogue.{Importer, Sync}
   alias TcgCheap.{Core, Operations, Repo}
+  alias TcgCheap.Operations.ImportIssues
 
   defmodule Provider do
     def fetch_set(id, opts) do
@@ -125,7 +126,158 @@ defmodule TcgCheap.Catalogue.SyncTest do
     assert stored_card.mapping_status == "pending"
   end
 
-  test "validates every card before writing the set" do
+  test "reports lifecycle persistence failure without rolling back imported catalogue data" do
+    set_id = id("lifecycle-persistence")
+    synced_at = ~U[2026-01-01 00:00:01Z]
+
+    assert :ok =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_sync",
+               "set_fetch",
+               "set",
+               set_id,
+               :timeout,
+               ~U[2026-01-01 00:00:02Z]
+             )
+
+    assert {:error, :persistence_failed} =
+             Sync.sync_set(set_id, opts(%{set_id => set(set_id, [])}, fn -> synced_at end))
+
+    assert {:ok, imported} = Core.get_card_set_by_tcgdex_id(set_id)
+    assert imported.tcgdex_id == set_id
+  end
+
+  test "imports partial coverage and persists empty partial sets" do
+    set_id = id("partial")
+
+    candidate =
+      Map.put(set(set_id, [card(id("partial-card"), "1")]), "cardCount", %{
+        "official" => 1,
+        "total" => 2
+      })
+
+    assert {:ok, result} =
+             Sync.sync_set(
+               set_id,
+               opts(%{set_id => candidate}, fn -> ~U[2026-01-01 00:00:00Z] end)
+             )
+
+    assert result.status == :partial
+    assert result.cards_seen == 1
+    assert result.cards_available == 1
+    assert result.cards_invalid == 0
+    assert {:ok, _} = Core.get_card_set_by_tcgdex_id(set_id)
+
+    empty_id = id("partial-empty")
+    empty = Map.put(set(empty_id, []), "cardCount", %{"official" => 0, "total" => 3})
+
+    assert {:ok, empty_result} =
+             Sync.sync_set(
+               empty_id,
+               opts(%{empty_id => empty}, fn -> ~U[2026-01-01 00:00:00Z] end)
+             )
+
+    assert empty_result.status == :partial
+    assert empty_result.cards_seen == 0
+    assert empty_result.cards_available == 0
+    assert empty_result.cards_invalid == 0
+    assert {:ok, _} = Core.get_card_set_by_tcgdex_id(empty_id)
+  end
+
+  test "partial evidence stays unresolved until a later full success" do
+    set_id = id("partial-lifecycle")
+
+    assert :ok =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_sync",
+               "set_fetch",
+               "set",
+               set_id,
+               :timeout,
+               ~U[2025-12-31 00:00:00Z]
+             )
+
+    partial =
+      Map.put(set(set_id, [card(id("lifecycle-card"), "1")]), "cardCount", %{
+        "official" => 1,
+        "total" => 2
+      })
+
+    assert {:ok, %{status: :partial}} =
+             Sync.sync_set(set_id, opts(%{set_id => partial}, fn -> ~U[2026-01-01 00:00:00Z] end))
+
+    assert {:ok, []} = ImportIssues.unresolved_catalogue_set_ids()
+    assert {:ok, [first]} = Operations.list_unresolved_catalogue_set(set_id, authorize?: false)
+    assert first.issue_kind == "partial"
+    assert first.last_seen_at == ~U[2026-01-01 00:00:00.000000Z]
+
+    assert {:ok, %{status: :partial}} =
+             Sync.sync_set(set_id, opts(%{set_id => partial}, fn -> ~U[2026-01-02 00:00:00Z] end))
+
+    assert {:ok, [advanced]} = Operations.list_unresolved_catalogue_set(set_id, authorize?: false)
+    assert advanced.last_seen_at == ~U[2026-01-02 00:00:00.000000Z]
+
+    complete = set(set_id, [card(id("lifecycle-card"), "1")])
+
+    assert {:ok, _} =
+             Sync.sync_set(
+               set_id,
+               opts(%{set_id => complete}, fn -> ~U[2026-01-03 00:00:00Z] end)
+             )
+
+    assert {:ok, []} = Operations.list_unresolved_catalogue_set(set_id, authorize?: false)
+  end
+
+  test "sync-all reports partial sets separately from complete sets" do
+    complete_id = id("complete-report")
+    partial_id = id("partial-report")
+
+    partial =
+      Map.put(set(partial_id, [card(id("partial-report-card"), "1")]), "cardCount", %{
+        "official" => 1,
+        "total" => 2
+      })
+
+    assert {:ok, report} =
+             Sync.sync_all_sets(
+               provider: Provider,
+               provider_options: [
+                 sets: %{
+                   complete_id => set(complete_id, []),
+                   partial_id => partial
+                 },
+                 set_briefs: [
+                   %{"id" => partial_id, "name" => "Partial"},
+                   %{"id" => complete_id, "name" => "Complete"}
+                 ]
+               ],
+               clock: fn -> ~U[2026-01-01 00:00:00Z] end
+             )
+
+    assert report.synced_sets == 1
+    assert report.partial_sets == 1
+    assert report.failed_sets == 0
+  end
+
+  test "rejects returned cards above the provider total atomically" do
+    set_id = id("overfull")
+
+    candidate =
+      Map.put(set(set_id, [card(id("one"), "1")]), "cardCount", %{"official" => 1, "total" => 0})
+
+    assert {:error, {:malformed_response, {:set, {:too_many_cards, 0, 1}}}} =
+             Sync.sync_set(
+               set_id,
+               opts(%{set_id => candidate}, fn -> ~U[2026-01-01 00:00:00Z] end)
+             )
+
+    assert {:error, _} = Core.get_card_set_by_tcgdex_id(set_id)
+    assert Repo.aggregate(from(c in "card_printings"), :count, :id) == 0
+  end
+
+  test "skips malformed card briefs while retaining valid cards" do
     set_id = id("malformed")
 
     cards = [
@@ -133,13 +285,17 @@ defmodule TcgCheap.Catalogue.SyncTest do
       %{"id" => id("bad"), "name" => "Bad", "localId" => "2", "image" => 12}
     ]
 
-    assert {:error, {:malformed_response, {:card, :invalid_image}}} =
+    assert {:ok, result} =
              Sync.sync_set(
                set_id,
                opts(%{set_id => set(set_id, cards)}, fn -> ~U[2026-01-01 00:00:00Z] end)
              )
 
-    assert {:error, _} = Core.get_card_set_by_tcgdex_id(set_id)
+    assert result.status == :partial
+    assert result.cards_seen == 2
+    assert result.cards_available == 1
+    assert result.cards_invalid == 1
+    assert {:ok, _} = Core.get_card_set_by_tcgdex_id(set_id)
 
     assert Repo.aggregate(
              from(c in "card_printings", where: c.tcgdex_id == ^hd(tl(cards))["id"]),
@@ -162,9 +318,20 @@ defmodule TcgCheap.Catalogue.SyncTest do
     assert {:error, _} = Core.get_card_set_by_tcgdex_id(duplicate_set_id)
   end
 
-  test "excludes TCG Pocket sets without invoking the clock or writing" do
+  test "excludes TCG Pocket sets using the injected clock without writing" do
     set_id = id("A1")
     counter = :counters.new(1, [:atomics])
+
+    assert :ok =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_sync",
+               "set_validation",
+               "set",
+               set_id,
+               {:malformed_response, :old_failure},
+               ~U[2026-01-01 00:00:00.000000Z]
+             )
 
     pocket =
       set(set_id, [card(id("pocket-card"), "1")])
@@ -176,7 +343,7 @@ defmodule TcgCheap.Catalogue.SyncTest do
                opts(%{set_id => pocket}, clock(counter, ~U[2026-01-01 00:00:00Z]))
              )
 
-    assert :counters.get(counter, 1) == 0
+    assert :counters.get(counter, 1) == 1
     assert {:error, _} = Core.get_card_set_by_tcgdex_id(set_id)
 
     briefs = [%{"id" => set_id, "name" => "A1"}]
@@ -185,14 +352,16 @@ defmodule TcgCheap.Catalogue.SyncTest do
              Sync.sync_all_sets(
                provider: Provider,
                provider_options: [sets: %{set_id => pocket}, set_briefs: briefs],
-               clock: fn -> raise "must not run" end
+               clock: fn -> ~U[2026-01-01 00:00:00Z] end
              )
 
     assert report.excluded_sets == 1
     assert report.synced_sets == 0
     assert report.failed_sets == 0
     assert report.exclusions == [%{set_id: set_id, reason: :tcg_pocket}]
-    assert {:ok, []} = Operations.list_admin_import_issues(authorize?: false)
+    assert {:ok, []} = Operations.list_unresolved_catalogue_set(set_id, authorize?: false)
+    assert {:ok, [resolved_issue]} = Operations.list_admin_import_issues(authorize?: false)
+    assert resolved_issue.resolved_at
   end
 
   test "does not classify a mismatched Pocket payload as excluded" do
@@ -211,12 +380,11 @@ defmodule TcgCheap.Catalogue.SyncTest do
     assert {:error, _} = Core.get_card_set_by_tcgdex_id(requested_id)
   end
 
-  test "rejects missing, truncated, and invalid detailed card totals before writes" do
+  test "rejects missing and invalid detailed card totals before writes" do
     set_id = id("count")
 
     cases = [
       Map.delete(set(set_id, []), "cardCount"),
-      Map.put(set(set_id, [card(id("partial"), "1")]), "cardCount", %{"total" => 2}),
       Map.put(set(set_id, []), "cardCount", %{"total" => -1})
     ]
 

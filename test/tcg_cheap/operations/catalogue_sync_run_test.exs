@@ -16,9 +16,44 @@ defmodule TcgCheap.Operations.CatalogueSyncRunTest do
     assert run.next_index == 0
     assert run.status == "running"
     assert run.completed_at == nil
+    assert run.scope == "all_sets"
+    assert run.partial_sets == 0
 
     assert {:error, _} =
              Operations.start_catalogue_sync_run(["sv1", "base1"], started_at, authorize?: false)
+  end
+
+  test "failed scope advances partial outcomes and maintains all counters" do
+    assert {:ok, run} =
+             Operations.start_failed_catalogue_sync_run(["a", "b"], ~U[2026-08-10 12:00:00Z],
+               authorize?: false
+             )
+
+    assert run.scope == "failed_sets"
+
+    {:ok, run} = advance(run, 0, "a", "partial", nil)
+    {:ok, run} = advance(run, 1, "b", "failed", ~U[2026-08-10 12:01:00Z])
+
+    assert {run.next_index, run.synced_sets, run.partial_sets, run.failed_sets, run.excluded_sets} ==
+             {2, 0, 1, 1, 0}
+
+    assert run.status == "completed"
+  end
+
+  test "database rejects invalid scope and counter invariant" do
+    assert {:error, %Postgrex.Error{postgres: %{code: :check_violation}}} =
+             Sandbox.unboxed_run(Repo, fn ->
+               Repo.query(
+                 "INSERT INTO catalogue_sync_runs (provider_key, set_ids, scope, started_at) VALUES ('tcgdex_catalogue', ARRAY['a'], 'invalid', now())"
+               )
+             end)
+
+    assert {:error, %Postgrex.Error{postgres: %{code: :check_violation}}} =
+             Sandbox.unboxed_run(Repo, fn ->
+               Repo.query(
+                 "INSERT INTO catalogue_sync_runs (provider_key, set_ids, synced_sets, partial_sets, failed_sets, excluded_sets, started_at) VALUES ('tcgdex_catalogue', ARRAY['a'], 1, 1, 0, 0, now())"
+               )
+             end)
   end
 
   test "advances sequential outcomes and completes the final set" do

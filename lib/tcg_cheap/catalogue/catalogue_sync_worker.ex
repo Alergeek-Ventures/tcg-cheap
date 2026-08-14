@@ -15,6 +15,7 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorker do
   alias TcgCheap.Catalogue.Sync
   alias TcgCheap.Operations
   alias TcgCheap.Operations.AcquisitionTracker
+  alias TcgCheap.Operations.ImportIssues
 
   @args %{"scope" => "all_sets"}
   @max_batch_size 20
@@ -36,21 +37,27 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorker do
   def backoff(%Oban.Job{attempt: attempt}), do: min(60 * attempt * attempt, 3_600)
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: @args} = job) do
+  def perform(%Oban.Job{args: %{"scope" => "all_sets"} = args} = job) when map_size(args) == 1,
+    do: perform_scope(job, "all_sets")
+
+  def perform(%Oban.Job{args: %{"scope" => "failed_sets"} = args} = job) when map_size(args) == 1,
+    do: perform_scope(job, "failed_sets")
+
+  def perform(_job), do: {:cancel, :malformed_job_args}
+
+  defp perform_scope(job, scope) do
     case provider_config() do
       {:ok, config} ->
         AcquisitionTracker.run(
           job,
-          tracker_options(),
-          &execute(config, &1)
+          tracker_options(scope),
+          &execute(config, &1, scope)
         )
 
       {:error, :invalid_provider_configuration} ->
         {:cancel, :invalid_provider_configuration}
     end
   end
-
-  def perform(_job), do: {:cancel, :malformed_job_args}
 
   @doc "Queues or reuses the one canonical full-catalogue synchronization job."
   def enqueue do
@@ -62,6 +69,21 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorker do
 
       {:error, :invalid_provider_configuration} = error ->
         error
+    end
+  end
+
+  @doc "Queues the canonical failed-set repair job only when unresolved sets exist."
+  def enqueue_failed do
+    case provider_config() do
+      {:error, :invalid_provider_configuration} = error ->
+        error
+
+      {:ok, _config} ->
+        case ImportIssues.unresolved_catalogue_set_ids() do
+          {:ok, []} -> {:error, :no_failures}
+          {:ok, _set_ids} -> Oban.insert(new(%{"scope" => "failed_sets"}))
+          {:error, _} -> {:error, :import_issue_read_failed}
+        end
     end
   end
 
@@ -104,37 +126,65 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorker do
     _ -> {:error, :invalid_provider_configuration}
   end
 
-  defp execute(config, request_admitter) do
-    case active_or_start(config, request_admitter) do
+  defp execute(config, request_admitter, scope) do
+    case active_or_start(config, request_admitter, scope) do
+      {:snooze, delay} -> {:snooze, delay}
+      {:ok, nil} -> :ok
       {:ok, run} -> process_batch(run, config, request_admitter)
       {:error, reason} -> safe_failure(reason)
     end
   end
 
-  defp active_or_start(config, request_admitter) do
+  defp active_or_start(config, request_admitter, scope) do
     case Operations.get_active_catalogue_sync_run(authorize?: false) do
-      {:ok, nil} -> discover_and_start(config, request_admitter)
-      {:ok, run} -> {:ok, run}
+      {:ok, nil} -> discover_and_start(config, request_admitter, scope)
+      {:ok, %{scope: ^scope} = run} -> {:ok, run}
+      {:ok, %{scope: _other_scope}} -> {:snooze, config.batch_delay_seconds}
       {:error, _reason} -> {:error, :persistence_failed}
     end
   end
 
-  defp discover_and_start(config, request_admitter) do
+  defp discover_and_start(config, _request_admitter, "failed_sets") do
+    case ImportIssues.unresolved_catalogue_set_ids() do
+      {:ok, []} -> {:ok, nil}
+      {:ok, set_ids} -> start_failed_run(set_ids, config)
+      {:error, _} -> {:error, :persistence_failed}
+    end
+  end
+
+  defp discover_and_start(config, request_admitter, "all_sets") do
     case Sync.discover_set_ids(sync_options(config, request_admitter)) do
       {:ok, []} -> {:error, :invalid_provider_response}
-      {:ok, set_ids} -> start_discovered_run(set_ids)
+      {:ok, set_ids} -> start_discovered_run(set_ids, config)
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp start_discovered_run(set_ids) do
+  defp start_failed_run(set_ids, config) do
+    case Operations.start_failed_catalogue_sync_run(set_ids, DateTime.utc_now(),
+           authorize?: false
+         ) do
+      {:ok, run} ->
+        {:ok, run}
+
+      {:error, _} ->
+        case Operations.get_active_catalogue_sync_run(authorize?: false) do
+          {:ok, %{scope: "failed_sets"} = run} -> {:ok, run}
+          {:ok, %{scope: _other_scope}} -> {:snooze, config.batch_delay_seconds}
+          _ -> {:error, :persistence_failed}
+        end
+    end
+  end
+
+  defp start_discovered_run(set_ids, config) do
     case Operations.start_catalogue_sync_run(set_ids, DateTime.utc_now(), authorize?: false) do
       {:ok, run} ->
         {:ok, run}
 
       {:error, _reason} ->
         case Operations.get_active_catalogue_sync_run(authorize?: false) do
-          {:ok, run} when not is_nil(run) -> {:ok, run}
+          {:ok, %{scope: "all_sets"} = run} -> {:ok, run}
+          {:ok, %{scope: _other_scope}} -> {:snooze, config.batch_delay_seconds}
           _ -> {:error, :persistence_failed}
         end
     end
@@ -157,6 +207,7 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorker do
 
     case Sync.sync_set(set_id, sync_options(config, request_admitter)) do
       {:ok, %{status: :excluded}} -> advance(run, set_id, "excluded")
+      {:ok, %{status: :partial}} -> advance(run, set_id, "partial")
       {:ok, _result} -> advance(run, set_id, "synced")
       {:error, reason} -> handle_set_failure(run, set_id, reason)
     end
@@ -226,11 +277,11 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorker do
       request_admitter: request_admitter
     ]
 
-  defp tracker_options,
+  defp tracker_options(scope),
     do: [
       provider_key: "tcgdex_catalogue",
       operation: "card_catalogue_sync",
-      target_key: "all_sets"
+      target_key: scope
     ]
 
   defp valid_provider?(provider),

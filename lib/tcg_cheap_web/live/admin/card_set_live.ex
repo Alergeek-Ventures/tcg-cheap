@@ -23,6 +23,7 @@ defmodule TcgCheapWeb.Admin.CardSetLive do
       field :release_date, orderable: false, panel: :catalogue
       field :official_count, label: "Official count", orderable: false, panel: :catalogue
       field :total_count, label: "Total count", orderable: false, panel: :catalogue
+      field :imported_printings, label: "Imported printings", orderable: false, panel: :catalogue
       field :standard_legal, label: "Standard legal", orderable: false, panel: :catalogue
       field :expanded_legal, label: "Expanded legal", orderable: false, panel: :catalogue
 

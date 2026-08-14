@@ -18,19 +18,25 @@ defmodule TcgCheap.Operations.Changes.AdvanceCatalogueSyncRun do
 
   defp lock_run(id) do
     case TcgCheap.Repo.query(
-           "SELECT set_ids, next_index, synced_sets, failed_sets, excluded_sets, status, started_at FROM catalogue_sync_runs WHERE id = $1 FOR UPDATE",
+           "SELECT set_ids, next_index, synced_sets, partial_sets, failed_sets, excluded_sets, status, started_at FROM catalogue_sync_runs WHERE id = $1 FOR UPDATE",
            [Ecto.UUID.dump!(id)]
          ) do
-      {:ok, %{rows: [[set_ids, index, synced, failed, excluded, "running", started_at]]}} ->
+      {:ok, %{rows: [[set_ids, index, synced, partial, failed, excluded, "running", started_at]]}} ->
         {:ok,
          %{
            set_ids: set_ids,
            index: index,
-           counters: %{synced_sets: synced, failed_sets: failed, excluded_sets: excluded},
+           counters: %{
+             synced_sets: synced,
+             partial_sets: partial,
+             failed_sets: failed,
+             excluded_sets: excluded
+           },
            started_at: started_at
          }}
 
-      {:ok, %{rows: [[_set_ids, _index, _synced, _failed, _excluded, _status, _started_at]]}} ->
+      {:ok,
+       %{rows: [[_set_ids, _index, _synced, _partial, _failed, _excluded, _status, _started_at]]}} ->
         {:error, "catalogue sync run is not running"}
 
       _other ->
@@ -76,8 +82,9 @@ defmodule TcgCheap.Operations.Changes.AdvanceCatalogueSyncRun do
 
   defp validate_position(_transition), do: :ok
 
-  defp validate_outcome(%{outcome: outcome}) when outcome in ["synced", "failed", "excluded"],
-    do: :ok
+  defp validate_outcome(%{outcome: outcome})
+       when outcome in ["synced", "partial", "failed", "excluded"],
+       do: :ok
 
   defp validate_outcome(_transition), do: {:error, "outcome is invalid"}
 
@@ -127,6 +134,7 @@ defmodule TcgCheap.Operations.Changes.AdvanceCatalogueSyncRun do
 
   defp counter_for("synced"), do: :synced_sets
   defp counter_for("failed"), do: :failed_sets
+  defp counter_for("partial"), do: :partial_sets
   defp counter_for("excluded"), do: :excluded_sets
 
   defp naive_datetime(%DateTime{} = value), do: DateTime.to_naive(value)

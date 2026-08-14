@@ -64,15 +64,18 @@ defmodule TcgCheap.Operations.CatalogueSyncRun do
       check_constraint [:next_index, :set_ids], "catalogue_sync_runs_index_invariant",
         check: "next_index >= 0 AND next_index <= cardinality(set_ids)"
 
-      check_constraint [:synced_sets, :failed_sets, :excluded_sets, :next_index],
+      check_constraint [:synced_sets, :partial_sets, :failed_sets, :excluded_sets, :next_index],
                        "catalogue_sync_runs_counter_invariant",
                        check:
-                         "synced_sets >= 0 AND failed_sets >= 0 AND excluded_sets >= 0 AND synced_sets + failed_sets + excluded_sets = next_index"
+                         "synced_sets >= 0 AND partial_sets >= 0 AND failed_sets >= 0 AND excluded_sets >= 0 AND synced_sets + partial_sets + failed_sets + excluded_sets = next_index"
 
       check_constraint [:status, :next_index, :set_ids, :completed_at],
                        "catalogue_sync_runs_lifecycle_invariant",
                        check:
                          "(status = 'running' AND next_index < cardinality(set_ids) AND completed_at IS NULL) OR (status = 'completed' AND next_index = cardinality(set_ids) AND completed_at IS NOT NULL)"
+
+      check_constraint [:scope], "catalogue_sync_runs_scope_invariant",
+        check: "scope IN ('all_sets','failed_sets')"
 
       check_constraint [:status], "catalogue_sync_runs_status_invariant",
         check: "status IN ('running','completed')"
@@ -102,6 +105,16 @@ defmodule TcgCheap.Operations.CatalogueSyncRun do
       change {TcgCheap.Operations.Changes.StartCatalogueSyncRun, []}
     end
 
+    create :start_failed do
+      argument :set_ids, {:array, :string},
+        allow_nil?: false,
+        constraints: [min_length: 1, max_length: 1000, nil_items?: false]
+
+      argument :started_at, :utc_datetime_usec, allow_nil?: false
+      accept []
+      change {TcgCheap.Operations.Changes.StartFailedCatalogueSyncRun, []}
+    end
+
     update :advance do
       argument :expected_index, :integer, allow_nil?: false, constraints: [min: 0]
       argument :set_id, :string, allow_nil?: false
@@ -127,7 +140,9 @@ defmodule TcgCheap.Operations.CatalogueSyncRun do
     attribute :next_index, :integer, allow_nil?: false, default: 0, public?: true
     attribute :synced_sets, :integer, allow_nil?: false, default: 0, public?: true
     attribute :failed_sets, :integer, allow_nil?: false, default: 0, public?: true
+    attribute :partial_sets, :integer, allow_nil?: false, default: 0, public?: true
     attribute :excluded_sets, :integer, allow_nil?: false, default: 0, public?: true
+    attribute :scope, :string, allow_nil?: false, default: "all_sets", public?: true
     attribute :status, :string, allow_nil?: false, default: "running", public?: true
     attribute :started_at, :utc_datetime_usec, allow_nil?: false, public?: true
     attribute :completed_at, :utc_datetime_usec, public?: true

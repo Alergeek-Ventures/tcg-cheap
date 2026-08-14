@@ -42,6 +42,7 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorkerTest do
   alias TcgCheap.Catalogue.CatalogueSyncWorker
   alias TcgCheap.Operations
   alias TcgCheap.Operations.CatalogueSyncRun
+  alias TcgCheap.Operations.ImportIssues
 
   setup do
     previous_sync = Application.get_env(:tcg_cheap, :catalogue_sync)
@@ -231,6 +232,90 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorkerTest do
              CatalogueSyncWorker.perform(%{job(1, 5) | args: %{"scope" => "one-set"}})
   end
 
+  test "failed repair uses server-derived IDs without list discovery", %{provider: provider} do
+    id = "repair-set"
+    configure_provider(provider, [id])
+
+    assert :ok =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_sync",
+               "set_fetch",
+               "set",
+               id,
+               :timeout,
+               ~U[2026-01-01 00:00:00Z]
+             )
+
+    assert {:ok, _job} = CatalogueSyncWorker.enqueue_failed()
+    assert :ok = CatalogueSyncWorker.perform(failed_job(1, 5))
+    assert provider_state(provider).list_calls == 0
+    assert provider_state(provider).fetched == [id]
+    assert {:ok, nil} = Operations.get_active_catalogue_sync_run(authorize?: false)
+  end
+
+  test "empty failed repair does not enqueue or start a run", %{provider: provider} do
+    assert {:error, :no_failures} = CatalogueSyncWorker.enqueue_failed()
+    assert provider_state(provider).list_calls == 0
+    assert :ok = CatalogueSyncWorker.perform(failed_job(1, 5))
+    assert {:ok, nil} = Operations.get_active_catalogue_sync_run(authorize?: false)
+  end
+
+  test "all and failed scope jobs remain independently queued" do
+    assert {:ok, all_job} = CatalogueSyncWorker.enqueue()
+    assert {:ok, failed_job} = Oban.insert(CatalogueSyncWorker.new(%{"scope" => "failed_sets"}))
+    refute all_job.conflict?
+    refute failed_job.conflict?
+    refute failed_job.id == all_job.id
+  end
+
+  test "failed-set scope snoozes while an all-set run is active", %{provider: provider} do
+    assert {:ok, _run} =
+             Operations.start_catalogue_sync_run(["active-all"], DateTime.utc_now(),
+               authorize?: false
+             )
+
+    assert {:snooze, 900} = CatalogueSyncWorker.perform(failed_job(1, 5))
+    assert provider_state(provider).list_calls == 0
+    assert provider_state(provider).fetched == []
+  end
+
+  test "all-set scope snoozes while a failed-set run is active", %{provider: provider} do
+    assert {:ok, _run} =
+             Operations.start_failed_catalogue_sync_run(["active-failed"], DateTime.utc_now(),
+               authorize?: false
+             )
+
+    assert {:snooze, 900} = CatalogueSyncWorker.perform(job(1, 5))
+    assert provider_state(provider).list_calls == 0
+    assert provider_state(provider).fetched == []
+  end
+
+  test "partial set outcomes complete successfully without failed sets", %{provider: provider} do
+    id = "partial-worker-set"
+
+    candidate =
+      Map.put(valid_set(id, [valid_card("partial-card")]), "cardCount", %{
+        "official" => 1,
+        "total" => 2
+      })
+
+    configure_provider(provider, [id], %{id => candidate})
+
+    assert :ok = CatalogueSyncWorker.perform(job(1, 5))
+    [completed] = Ash.read!(CatalogueSyncRun, authorize?: false)
+    assert completed.partial_sets == 1
+    assert completed.failed_sets == 0
+    assert completed.status == "completed"
+    assert {:ok, []} = ImportIssues.unresolved_catalogue_set_ids()
+
+    assert {:ok, [partial_issue]} =
+             Operations.list_unresolved_catalogue_set(id, authorize?: false)
+
+    assert partial_issue.issue_kind == "partial"
+    assert partial_issue.issue_code == "partial_coverage"
+  end
+
   test "snoozed tracked batches are successful health evidence", %{provider: provider} do
     ids = ["health-set-1", "health-set-2", "health-set-3"]
     configure_provider(provider, ids)
@@ -274,17 +359,7 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorkerTest do
   defp configure_provider(agent, ids, overrides \\ %{}) do
     sets =
       Map.new(ids, fn id ->
-        {id,
-         Map.get(overrides, id, %{
-           "id" => id,
-           "name" => "Set #{id}",
-           "cards" => [],
-           "releaseDate" => "2026-01-02",
-           "logo" => "https://assets.example/logo",
-           "symbol" => "https://assets.example/symbol",
-           "cardCount" => %{"official" => 0, "total" => 0},
-           "legal" => %{"standard" => true, "expanded" => false}
-         })}
+        {id, Map.get(overrides, id, valid_set(id, []))}
       end)
 
     briefs = Enum.map(Enum.reverse(ids), &%{"id" => &1, "name" => "Set #{&1}"})
@@ -296,6 +371,26 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorkerTest do
 
   defp provider_state(agent), do: Agent.get(agent, & &1)
 
+  defp valid_set(id, cards),
+    do: %{
+      "id" => id,
+      "name" => "Set #{id}",
+      "cards" => cards,
+      "releaseDate" => "2026-01-02",
+      "logo" => "https://assets.example/logo",
+      "symbol" => "https://assets.example/symbol",
+      "cardCount" => %{"official" => 0, "total" => 0},
+      "legal" => %{"standard" => true, "expanded" => false}
+    }
+
+  defp valid_card(id),
+    do: %{
+      "id" => id,
+      "name" => "Card #{id}",
+      "localId" => "1",
+      "image" => "https://assets.example/card"
+    }
+
   defp job(attempt, max_attempts),
     do: %Oban.Job{
       id: nil,
@@ -305,6 +400,9 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorkerTest do
       queue: "catalogue_sync",
       args: %{"scope" => "all_sets"}
     }
+
+  defp failed_job(attempt, max_attempts),
+    do: %{job(attempt, max_attempts) | args: %{"scope" => "failed_sets"}}
 
   defp sync_config(agent),
     do: [

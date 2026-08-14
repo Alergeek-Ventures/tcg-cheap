@@ -22,6 +22,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:buying_model, nil)
      |> assign(:manual_ready?, false)
      |> assign(:manual_catalogue, nil)
+     |> assign(:manual_catalogue_repair, nil)
      |> assign(:manual_exchange_rate, nil)
      |> assign(:manual_valuation, nil)
      |> assign(:manual_available_count, 0)
@@ -528,6 +529,34 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                     </div>
                   </article>
 
+                  <article id="manual-refresh-catalogue-repair-panel" class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <div>
+                        <h3>TCGdex failed-set repair</h3>
+                        <p>Retry only catalogue sets with unresolved hard import failures.</p>
+                      </div>
+                      <span id="manual-refresh-catalogue-repair-status">
+                        {manual_status(@manual_catalogue_repair)}
+                      </span>
+                    </div>
+                    <dl id="manual-refresh-catalogue-repair-ledger" class="admin-ledger">
+                      <div>
+                        <dt>Repairable sets</dt><dd id="manual-refresh-catalogue-repair-count">
+                          {manual_failure_count(@manual_catalogue_repair)}
+                        </dd>
+                      </div>
+                    </dl>
+                    <div class="admin-decision-row">
+                      <button
+                        id="manual-refresh-catalogue-repair"
+                        type="button"
+                        phx-click="manual_catalogue_repair"
+                        phx-disable-with="Queueing…"
+                        disabled={@manual_catalogue_repair.status != :available}
+                      >Queue failed-set repair</button>
+                    </div>
+                  </article>
+
                   <article id="manual-refresh-exchange-rate-panel" class="admin-docket">
                     <div class="admin-docket-heading">
                       <div>
@@ -632,6 +661,9 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   def handle_event("manual_catalogue_sync", _params, socket),
     do: manual_enqueue(:catalogue_sync, "Catalogue sync", socket)
 
+  def handle_event("manual_catalogue_repair", _params, socket),
+    do: manual_enqueue(:catalogue_repair, "Catalogue repair", socket)
+
   def handle_event("manual_exchange_rate", _params, socket),
     do: manual_enqueue(:exchange_rate, "EUR / PLN refresh", socket)
 
@@ -730,6 +762,11 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
     case ManualRefresh.targets(socket.assigns.current_admin) do
       {:ok, targets} ->
         catalogue = Enum.find(targets, &(&1.kind == :catalogue_sync)) || %{status: :unconfigured}
+
+        catalogue_repair =
+          Enum.find(targets, &(&1.kind == :catalogue_repair)) ||
+            %{status: :unconfigured, failure_count: 0}
+
         exchange = Enum.find(targets, &(&1.kind == :exchange_rate)) || %{status: :unconfigured}
 
         valuation =
@@ -745,6 +782,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         socket
         |> assign(:manual_ready?, true)
         |> assign(:manual_catalogue, catalogue)
+        |> assign(:manual_catalogue_repair, catalogue_repair)
         |> assign(:manual_exchange_rate, exchange)
         |> assign(:manual_valuation, valuation)
         |> assign(:manual_available_count, Enum.count(targets, &(&1.status == :available)))
@@ -754,6 +792,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         socket
         |> assign(:manual_ready?, false)
         |> assign(:manual_catalogue, nil)
+        |> assign(:manual_catalogue_repair, nil)
         |> assign(:manual_exchange_rate, nil)
         |> assign(:manual_valuation, nil)
         |> assign(:manual_available_count, 0)
@@ -813,8 +852,12 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   end
 
   defp manual_status(%{status: :available}), do: "AVAILABLE"
+  defp manual_status(%{status: :empty}), do: "NO FAILURES"
   defp manual_status(%{status: :disabled}), do: "DISABLED"
+  defp manual_status(%{status: :unavailable}), do: "UNAVAILABLE"
   defp manual_status(_), do: "UNCONFIGURED"
+  defp manual_failure_count(%{failure_count: count}) when is_integer(count), do: count
+  defp manual_failure_count(_target), do: "—"
   defp retailer_dom_id(id), do: Base.url_encode64(id, padding: false)
 
   defp provider_dom_id(key), do: Base.url_encode64(to_string(key), padding: false)

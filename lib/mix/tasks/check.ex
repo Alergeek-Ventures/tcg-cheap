@@ -10,9 +10,10 @@ defmodule Mix.Tasks.Check do
     {"Sobelow", ["sobelow", "--config", "--compact", "--private"]},
     {"compile", ["compile", "--warnings-as-errors"]},
     {"unused dependencies", ["deps.unlock", "--check-unused"]},
-    # Ash code interfaces plus four intentional compile-connected additions over the 59 baseline:
-    # one Home sealed-movement action edge and three concrete sealed-retailer-to-shared-helper edges.
-    {"xref", ["xref", "graph", "--label", "compile-connected", "--fail-above", "63"]},
+    # Ash code interfaces plus five intentional compile-connected additions over the 59 baseline:
+    # one Home sealed-movement action edge, three concrete sealed-retailer-to-shared-helper edges,
+    # and the internal catalogue-set issue-resolution resource edge.
+    {"xref", ["xref", "graph", "--label", "compile-connected", "--fail-above", "64"]},
     {"Credo", ["credo", "--strict"]},
     {"Dialyzer", ["dialyzer"]}
   ]
