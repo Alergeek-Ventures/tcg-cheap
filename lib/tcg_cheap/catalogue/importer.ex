@@ -1,6 +1,6 @@
 defmodule TcgCheap.Catalogue.Importer do
   @moduledoc "Imports one TCGdex card and its set atomically and idempotently."
-  alias TcgCheap.Catalogue.{CardPrinting, CardSet, Normalizer}
+  alias TcgCheap.Catalogue.{CardPrinting, CardSet, Normalizer, Tcgdex}
   alias TcgCheap.Core
   alias TcgCheap.Operations.AcquisitionBudget
   alias TcgCheap.Pricing.Singles.ValuationAcquisition
@@ -10,25 +10,30 @@ defmodule TcgCheap.Catalogue.Importer do
   def import_card(card_id, opts \\ [])
 
   def import_card(card_id, opts) when is_binary(card_id) and is_list(opts) do
-    if Keyword.keyword?(opts) do
-      provider = Keyword.get(opts, :provider, TcgCheap.Catalogue.Tcgdex)
-      provider_options = Keyword.get(opts, :provider_options, [])
+    cond do
+      not Tcgdex.valid_card_id?(card_id) ->
+        {:error, :invalid_id}
 
-      with {:ok, clock} <- validate_options(opts, provider, provider_options),
-           provider_options = budgeted_options(provider_options),
-           {:ok, card} <- safe_provider_call(provider, :fetch_card, [card_id, provider_options]),
-           {:ok, set_id} <- set_id(card),
-           {:ok, set} <- safe_provider_call(provider, :fetch_set, [set_id, provider_options]),
-           {:ok, synced_at} <- clock_datetime(clock) do
-        unwrap_import_result(
-          import_fetched_card(card, set, card_id,
-            synced_at: synced_at,
-            expected_set_id: set_id
+      not Keyword.keyword?(opts) ->
+        {:error, :invalid_options}
+
+      true ->
+        provider = Keyword.get(opts, :provider, TcgCheap.Catalogue.Tcgdex)
+        provider_options = Keyword.get(opts, :provider_options, [])
+
+        with {:ok, clock} <- validate_options(opts, provider, provider_options),
+             provider_options = budgeted_options(provider_options),
+             {:ok, card} <- safe_provider_call(provider, :fetch_card, [card_id, provider_options]),
+             {:ok, set_id} <- set_id(card),
+             {:ok, set} <- safe_provider_call(provider, :fetch_set, [set_id, provider_options]),
+             {:ok, synced_at} <- clock_datetime(clock) do
+          unwrap_import_result(
+            import_fetched_card(card, set, card_id,
+              synced_at: synced_at,
+              expected_set_id: set_id
+            )
           )
-        )
-      end
-    else
-      {:error, :invalid_options}
+        end
     end
   end
 
@@ -41,7 +46,7 @@ defmodule TcgCheap.Catalogue.Importer do
 
   def import_fetched_card(card, set, expected_card_id, opts)
       when is_map(card) and is_map(set) and is_binary(expected_card_id) and is_list(opts) do
-    if Keyword.keyword?(opts) and canonical_id?(expected_card_id) and
+    if Keyword.keyword?(opts) and Tcgdex.valid_card_id?(expected_card_id) and
          Keyword.keys(opts) |> Enum.uniq() == Keyword.keys(opts) and
          Enum.all?(Keyword.keys(opts), &(&1 in [:synced_at, :expected_set_id])) do
       expected_set_id = Keyword.get(opts, :expected_set_id)
@@ -318,22 +323,23 @@ defmodule TcgCheap.Catalogue.Importer do
   defp stale_dimension?(_existing, nil), do: true
   defp stale_dimension?(existing, incoming), do: DateTime.compare(incoming, existing) == :lt
 
-  defp set_id(%{"set" => %{"id" => id}}) when is_binary(id) and id != "", do: {:ok, id}
-  defp set_id(%{"set" => id}) when is_binary(id) and id != "", do: {:ok, id}
+  defp set_id(%{"set" => %{"id" => id}}) when is_binary(id) and id != "" do
+    if Tcgdex.valid_set_id?(id), do: {:ok, id}, else: {:error, :invalid_id}
+  end
+
+  defp set_id(%{"set" => id}) when is_binary(id) and id != "" do
+    if Tcgdex.valid_set_id?(id), do: {:ok, id}, else: {:error, :invalid_id}
+  end
+
   defp set_id(_), do: {:error, {:malformed_response, :missing_set}}
 
   defp validate_expected_id(id) when is_binary(id) do
-    if canonical_id?(id), do: :ok, else: {:error, :invalid_id}
+    if Tcgdex.valid_set_id?(id), do: :ok, else: {:error, :invalid_id}
   end
 
   defp validate_expected_id(_), do: {:error, :invalid_id}
   defp validate_optional_expected_set_id(nil), do: :ok
   defp validate_optional_expected_set_id(id), do: validate_expected_id(id)
-
-  defp canonical_id?(id),
-    do:
-      Regex.match?(~r/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/, String.trim(id)) and
-        String.trim(id) == id
 
   defp validate_payload(card, set, expected_card_id, expected_set_id) do
     case validate_card_identity(card, expected_card_id) do

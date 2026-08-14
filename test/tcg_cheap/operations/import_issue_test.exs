@@ -75,6 +75,54 @@ defmodule TcgCheap.Operations.ImportIssueTest do
     refute inspect(issues) =~ "private-url"
   end
 
+  test "accepts punctuation card targets but keeps set targets strict" do
+    now = ~U[2026-01-01 00:00:00Z]
+
+    assert :ok =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_enrichment",
+               "card_import",
+               "card",
+               "exu-%3F",
+               :offline,
+               now
+             )
+
+    assert {:error, :import_issue_persistence_failed} =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_enrichment",
+               "set_import",
+               "set",
+               "exu-%3F",
+               :offline,
+               now
+             )
+
+    assert {:error, :import_issue_persistence_failed} =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_enrichment",
+               "card_import",
+               "card",
+               "exu-%GG",
+               :offline,
+               now
+             )
+
+    assert {:error, :import_issue_persistence_failed} =
+             ImportIssues.record(
+               "tcgdex_catalogue",
+               "card_catalogue_enrichment",
+               "card_import",
+               "card",
+               "exu-/2",
+               :offline,
+               now
+             )
+  end
+
   test "exact identity is monotonic and preserves first_seen_at", %{actor: actor} do
     provider = "tcgdex_catalogue"
     first = ~U[2026-01-01 00:00:01.000000Z]

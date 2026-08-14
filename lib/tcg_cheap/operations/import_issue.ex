@@ -52,7 +52,7 @@ defmodule TcgCheap.Operations.ImportIssue do
       check_constraint [:stage, :target_type, :target_key],
                        "import_issues_stage_target_invariant",
                        check:
-                         "(stage IN ('catalogue_fetch','catalogue_validation') AND target_type = 'catalogue' AND target_key = 'tcgdex') OR (stage IN ('set_fetch','set_validation','set_import') AND target_type = 'set') OR (stage IN ('card_fetch','card_import') AND target_type = 'card') OR (stage IN ('retailer_fetch','listing_validation','listing_import') AND target_type = 'retailer' AND target_key ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' AND target_key = lower(target_key))"
+                         "(stage IN ('catalogue_fetch','catalogue_validation') AND target_type = 'catalogue' AND target_key = 'tcgdex') OR (stage IN ('set_fetch','set_validation','set_import') AND target_type = 'set' AND octet_length(target_key) BETWEEN 1 AND 128 AND target_key ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$') OR (stage IN ('card_fetch','card_import') AND target_type = 'card' AND octet_length(target_key) BETWEEN 1 AND 128 AND target_key ~ '^[A-Za-z0-9]([A-Za-z0-9._!-]|%[0-9A-Fa-f]{2})*$') OR (stage IN ('retailer_fetch','listing_validation','listing_import') AND target_type = 'retailer' AND target_key ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' AND target_key = lower(target_key))"
 
       check_constraint [:issue_kind, :issue_code], "import_issues_kind_code_invariant",
         check:
@@ -140,8 +140,6 @@ defmodule TcgCheap.Operations.ImportIssue do
                  :provider_key,
                  ~r/\A(tcgdex_catalogue|sealed_retailer:[A-Za-z0-9][A-Za-z0-9._-]{0,143})\z/
                )
-
-      validate match(:target_key, ~r/\A[A-Za-z0-9][A-Za-z0-9._-]{0,127}\z/)
 
       validate one_of(:stage, [
                  "catalogue_fetch",

@@ -10,6 +10,7 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarket do
   @policy_version :tcgdex_cardmarket_v1
   @source :tcgdex_cardmarket
   @metrics [:avg7, :avg30, :trend, :avg, :low]
+  alias TcgCheap.Catalogue.Tcgdex
 
   defmodule Result do
     @moduledoc "Aggregate TCGdex Cardmarket pricing result."
@@ -77,12 +78,12 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarket do
   def fetch(_card_id, _opts), do: {:error, :invalid_card_id}
 
   defp fetch_card(card_id, opts) do
-    requested_id = String.trim(card_id)
+    requested_id = card_id
 
-    if requested_id == "" do
-      {:error, :invalid_card_id}
-    else
+    if Tcgdex.valid_card_id?(requested_id) do
       request(requested_id, opts)
+    else
+      {:error, :invalid_card_id}
     end
   end
 

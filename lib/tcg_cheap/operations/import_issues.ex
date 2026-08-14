@@ -1,6 +1,7 @@
 defmodule TcgCheap.Operations.ImportIssues do
   @moduledoc "The sole normalization boundary for retained catalogue and sealed-retailer import issues."
 
+  alias TcgCheap.Catalogue.Tcgdex
   alias TcgCheap.Operations
   alias TcgCheap.Operations.{AcquisitionTracker, ImportIssue}
 
@@ -344,10 +345,8 @@ defmodule TcgCheap.Operations.ImportIssues do
       ) and value == String.downcase(value)
   end
 
-  defp valid_target_key?(target_type, value) when target_type in ["set", "card"] do
-    valid_text?(value, 128) and
-      Regex.match?(~r/\A[A-Za-z0-9][A-Za-z0-9._-]{0,127}\z/, value)
-  end
+  defp valid_target_key?("set", value), do: Tcgdex.valid_set_id?(value)
+  defp valid_target_key?("card", value), do: Tcgdex.valid_card_id?(value)
 
   defp valid_target_key?(_, _), do: false
 

@@ -730,7 +730,7 @@ defmodule TcgCheapWeb.TradeLive do
     do: cards |> Map.values() |> Enum.find_value(&(&1.id == id && &1.tcgdex_id))
 
   defp valid_pick(value) when is_binary(value) do
-    if Regex.match?(~r/^[A-Za-z0-9._-]{1,160}$/, value),
+    if Composition.valid_card_id?(value),
       do: {value, nil},
       else: {nil, :pick_malformed}
   end

@@ -111,7 +111,7 @@ defmodule TcgCheap.Catalogue.SyncTest do
 
     assert {:ok, result} =
              Sync.sync_set(
-               " " <> set_id <> " ",
+               set_id,
                opts(%{set_id => set}, clock(counter, ~U[2026-01-01 00:00:00Z]))
              )
 
@@ -124,6 +124,57 @@ defmodule TcgCheap.Catalogue.SyncTest do
     assert stored_card.collector_number == "7"
     assert stored_card.image_url == "https://assets.example/card/high.webp"
     assert stored_card.mapping_status == "pending"
+  end
+
+  test "syncs the real punctuation card IDs as complete and skips malformed IDs" do
+    set_id = "exu"
+    cards = [card("exu-!", "1"), card("exu-%3F", "2")]
+
+    assert {:ok, result} =
+             Sync.sync_set(
+               set_id,
+               opts(%{set_id => set(set_id, cards)}, fn -> ~U[2026-01-01 00:00:00Z] end)
+             )
+
+    refute Map.get(result, :status) == :partial
+    assert result.cards_seen == 2
+    assert {:ok, _} = Core.get_card_printing_by_tcgdex_id("exu-!")
+    assert {:ok, _} = Core.get_card_printing_by_tcgdex_id("exu-%3F")
+
+    broken = set("exu-broken", [card("exu-%GG", "1"), card("exu-/2", "2")])
+
+    assert {:ok, %{status: :partial}} =
+             Sync.sync_set(
+               "exu-broken",
+               opts(%{"exu-broken" => broken}, fn -> ~U[2026-01-01 00:00:00Z] end)
+             )
+
+    assert {:error, _} = Core.get_card_printing_by_tcgdex_id("exu-%GG")
+    assert {:error, _} = Core.get_card_printing_by_tcgdex_id("exu-/2")
+  end
+
+  test "does not normalize whitespace-wrapped provider set or card IDs" do
+    set_id = "exu-boundary-set"
+    wrapped_set_id = " #{set_id} "
+    provider_set = set(set_id, [card("exu-!", "1")])
+    provider_set = Map.put(provider_set, "id", wrapped_set_id)
+
+    assert {:error, {:malformed_response, {:set_id_mismatch, ^set_id, ^wrapped_set_id}}} =
+             Sync.sync_set(
+               set_id,
+               opts(%{set_id => provider_set}, fn -> ~U[2026-01-01 00:00:00Z] end)
+             )
+
+    card_set_id = "exu-boundary-card"
+    provider_set = set(card_set_id, [card(" exu-! ", "1")])
+
+    assert {:ok, %{status: :partial, cards_available: 0, cards_invalid: 1}} =
+             Sync.sync_set(
+               card_set_id,
+               opts(%{card_set_id => provider_set}, fn -> ~U[2026-01-01 00:00:00Z] end)
+             )
+
+    assert {:error, _} = Core.get_card_printing_by_tcgdex_id(" exu-! ")
   end
 
   test "reports lifecycle persistence failure without rolling back imported catalogue data" do

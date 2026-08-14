@@ -133,6 +133,23 @@ defmodule TcgCheap.Catalogue.EnrichmentTest do
              ])
   end
 
+  test "completes enrichment for punctuation card IDs", %{state: state} do
+    set_id = "exu"
+    ids = ["exu-!", "exu-%3F"]
+    cards = Map.new(ids, &{&1, card(&1, set_id)})
+
+    assert {:ok, %{status: :completed, cards_seen: 2, cards_failed: 0}} =
+             Enrichment.enrich_set(set_id, opts(state, set_id, cards, brief_ids: ids))
+
+    recorded = events(state)
+    assert {:set, set_id} in recorded
+    assert {:card, "exu-!"} in recorded
+    assert {:card, "exu-%3F"} in recorded
+
+    assert {:ok, _} = Core.get_card_printing_by_tcgdex_id("exu-!")
+    assert {:ok, _} = Core.get_card_printing_by_tcgdex_id("exu-%3F")
+  end
+
   test "rejects malformed, truncated, and duplicate card lists before detail calls or writes", %{
     state: state
   } do

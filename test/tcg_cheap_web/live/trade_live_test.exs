@@ -59,6 +59,26 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-share-status[role=status][aria-live=polite]")
   end
 
+  test "accepts a URL-encoded punctuation pick", %{conn: conn} do
+    set = Core.import_card_set!(%{tcgdex_id: "exu", name: "Destined Rivals"})
+
+    card =
+      TcgCheap.TestSupport.import_card_printing!(%{
+        tcgdex_id: "exu-%3F",
+        name: "Question",
+        set_name: set.name,
+        collector_number: "2",
+        card_set_id: set.id,
+        mapping_status: "matched",
+        cardmarket_product_id: 999_001
+      })
+
+    {:ok, view, _html} = live(conn, "/trade?pick=exu-%253F")
+
+    assert has_element?(view, "#trade-selected-name", card.name)
+    refute has_element?(view, "#trade-url-warning", "malformed")
+  end
+
   test "trade share feedback accepts only copied and failed statuses", %{conn: conn} do
     card = card("share-path", "Share Path", 1)
     {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1&pick=#{card.tcgdex_id}")

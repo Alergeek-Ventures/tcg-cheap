@@ -71,6 +71,26 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarketTest do
     refute Map.has_key?(result, :offer_count)
   end
 
+  test "encodes punctuation IDs while preserving the fixed TCGdex endpoint" do
+    name = make_ref()
+
+    Req.Test.stub(name, fn conn ->
+      assert conn.host == "api.tcgdex.net"
+      assert conn.request_path == "/v2/en/cards/exu-%253F"
+
+      Req.Test.json(conn, %{
+        "id" => "exu-%3F",
+        "pricing" => %{"cardmarket" => %{"unit" => "EUR", "avg7" => 1.25}}
+      })
+    end)
+
+    assert {:ok, %TcgdexCardmarket.Result{card_id: "exu-%3F"}} =
+             TcgdexCardmarket.fetch("exu-%3F",
+               request_options: request_options(name),
+               clock: fn -> @fetched_at end
+             )
+  end
+
   for {metric, expected} <- [
         avg7: "411.69",
         avg30: "439.16",

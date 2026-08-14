@@ -2,6 +2,7 @@ defmodule TcgCheap.Operations.Validations.ImportIssue do
   @moduledoc "Validates the retained import-issue operation, target, and category matrix."
 
   use Ash.Resource.Validation
+  alias TcgCheap.Catalogue.Tcgdex
 
   @sync_stages [
     "catalogue_fetch",
@@ -86,13 +87,13 @@ defmodule TcgCheap.Operations.Validations.ImportIssue do
        when stage in ["catalogue_fetch", "catalogue_validation"],
        do: true
 
-  defp valid_stage_target?(stage, "set", _target_key)
+  defp valid_stage_target?(stage, "set", target_key)
        when stage in ["set_fetch", "set_validation", "set_import"],
-       do: true
+       do: Tcgdex.valid_set_id?(target_key)
 
-  defp valid_stage_target?(stage, "card", _target_key)
+  defp valid_stage_target?(stage, "card", target_key)
        when stage in ["card_fetch", "card_import"],
-       do: true
+       do: Tcgdex.valid_card_id?(target_key)
 
   defp valid_stage_target?(stage, "retailer", target_key) when stage in @retailer_stages do
     is_binary(target_key) and

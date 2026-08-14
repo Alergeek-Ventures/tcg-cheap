@@ -14,7 +14,7 @@ defmodule TcgCheap.Catalogue.Enrichment do
   def enrich_set(set_id, opts \\ [])
 
   def enrich_set(set_id, opts) when is_binary(set_id) and is_list(opts) do
-    with {:ok, set_id} <- canonical_id(set_id),
+    with {:ok, set_id} <- canonical_set_id(set_id),
          {:ok, config} <- validate_options(opts) do
       config.provider
       |> provider_call_with_timeout(
@@ -254,13 +254,8 @@ defmodule TcgCheap.Catalogue.Enrichment do
     end
   end
 
-  defp canonical_id(id) do
-    id = String.trim(id)
-
-    if Regex.match?(~r/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/, id),
-      do: {:ok, id},
-      else: {:error, :invalid_id}
-  end
+  defp canonical_set_id(id),
+    do: if(Tcgdex.valid_set_id?(id), do: {:ok, id}, else: {:error, :invalid_id})
 
   defp validate_set_identity(%{"id" => id, "name" => name}, expected)
        when is_binary(id) and is_binary(name) do
@@ -309,7 +304,9 @@ defmodule TcgCheap.Catalogue.Enrichment do
     end
   end
 
-  defp card_id(%{"id" => id}) when is_binary(id), do: canonical_id(id)
+  defp card_id(%{"id" => id}) when is_binary(id),
+    do: if(Tcgdex.valid_card_id?(id), do: {:ok, id}, else: {:error, :invalid_id})
+
   defp card_id(_), do: {:error, :invalid_id}
   defp pocket?(%{"serie" => %{"id" => "tcgp"}}), do: true
   defp pocket?(%{"series" => %{"id" => "tcgp"}}), do: true

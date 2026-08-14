@@ -3,6 +3,16 @@ defmodule TcgCheap.Trades.CompositionTest do
 
   alias TcgCheap.Trades.Composition
 
+  test "round-trips punctuation card IDs" do
+    composition = Composition.add(%Composition{}, :left, "exu-!")
+    composition = Composition.add(composition, :right, "exu-%3F")
+
+    {parsed, meta} = Composition.from_params(Composition.to_params(composition))
+
+    refute meta.malformed?
+    assert parsed == composition
+  end
+
   test "round trips empty and ordered compositions without prices" do
     composition = %Composition{left: [{"z", 1}, {"a", 2}], right: [{"m", 3}]}
 

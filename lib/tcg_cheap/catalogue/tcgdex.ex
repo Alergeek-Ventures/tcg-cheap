@@ -5,6 +5,20 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   @base "https://api.tcgdex.net/v2/en"
   @max_response_bytes 2 * 1024 * 1024
 
+  @doc false
+  def valid_set_id?(id) when is_binary(id),
+    do: byte_size(id) in 1..128 and Regex.match?(~r/\A[A-Za-z0-9][A-Za-z0-9._-]*\z/, id)
+
+  def valid_set_id?(_), do: false
+
+  @doc false
+  def valid_card_id?(id) when is_binary(id) do
+    byte_size(id) in 1..128 and
+      Regex.match?(~r/\A[A-Za-z0-9](?:[A-Za-z0-9._!-]|%[0-9A-Fa-f]{2})*\z/, id)
+  end
+
+  def valid_card_id?(_), do: false
+
   @impl true
   def fetch_card(id, opts \\ []), do: fetch("cards", id, opts)
 
@@ -17,10 +31,8 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   end
 
   defp fetch(kind, id, opts) when is_binary(id) do
-    id = String.trim(id)
-
     cond do
-      id == "" or not canonical_id?(id) ->
+      not valid_id?(kind, id) ->
         {:error, :invalid_id}
 
       not is_list(opts) or not Keyword.keyword?(opts) or not valid_top_options?(opts) ->
@@ -40,7 +52,8 @@ defmodule TcgCheap.Catalogue.Tcgdex do
       is_function(Keyword.get(options, :request_admitter, fn -> :ok end), 0)
   end
 
-  defp canonical_id?(id), do: Regex.match?(~r/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/, id)
+  defp valid_id?("sets", id), do: valid_set_id?(id)
+  defp valid_id?("cards", id), do: valid_card_id?(id)
 
   defp request(kind, id, opts) do
     request_options = Keyword.get(opts, :request_options, [])
@@ -185,10 +198,10 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   defp body_chunks(_), do: {0, []}
 
   defp validate_set_brief(brief, ids) do
-    with {:ok, id} <- brief_field(brief, "id"),
+    with {:ok, id} <- raw_brief_field(brief, "id"),
          {:ok, name} <- brief_field(brief, "name") do
       cond do
-        not canonical_id?(id) -> {:error, {:set, {:invalid_id, id}}}
+        not valid_set_id?(id) -> {:error, {:set, {:invalid_id, id}}}
         MapSet.member?(ids, id) -> {:error, {:duplicate_id, id}}
         true -> {:ok, id, name}
       end
@@ -208,5 +221,12 @@ defmodule TcgCheap.Catalogue.Tcgdex do
     end
   end
 
-  defp brief_field(_, _), do: {:error, :expected_object}
+  defp raw_brief_field(value, key) when is_map(value) do
+    case Map.get(value, key) do
+      value when is_binary(value) and value != "" -> {:ok, value}
+      _ -> {:error, {:missing_or_blank, key}}
+    end
+  end
+
+  defp raw_brief_field(_, _), do: {:error, :expected_object}
 end

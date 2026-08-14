@@ -22,7 +22,7 @@ defmodule TcgCheap.Catalogue.Sync do
   def sync_set(set_id, opts \\ [])
 
   def sync_set(set_id, opts) when is_binary(set_id) and is_list(opts) do
-    with {:ok, set_id} <- canonical_id(set_id),
+    with {:ok, set_id} <- canonical_set_id(set_id),
          {:ok, provider, provider_options, clock, request_admitter} <-
            validate_options(opts, :set) do
       provider
@@ -305,15 +305,10 @@ defmodule TcgCheap.Catalogue.Sync do
   defp default_request_admitter,
     do: AcquisitionBudget.admit_request("tcgdex_catalogue")
 
-  defp canonical_id(id) when is_binary(id) do
-    id = String.trim(id)
+  defp canonical_set_id(id) when is_binary(id),
+    do: if(Tcgdex.valid_set_id?(id), do: {:ok, id}, else: {:error, :invalid_id})
 
-    if Regex.match?(~r/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/, id),
-      do: {:ok, id},
-      else: {:error, :invalid_id}
-  end
-
-  defp canonical_id(_), do: {:error, :invalid_id}
+  defp canonical_set_id(_), do: {:error, :invalid_id}
 
   defp clock_datetime(clock) do
     case clock.() do
@@ -375,7 +370,7 @@ defmodule TcgCheap.Catalogue.Sync do
   defp validate_set_identity(%{"id" => id, "name" => name}, expected)
        when is_binary(id) and is_binary(name) do
     cond do
-      String.trim(id) != expected ->
+      id != expected ->
         {:error, {:malformed_response, {:set_id_mismatch, expected, id}}}
 
       String.trim(name) == "" ->
@@ -414,7 +409,6 @@ defmodule TcgCheap.Catalogue.Sync do
 
   defp validate_card(%{"id" => id, "name" => name, "localId" => local_id} = card, set_name)
        when is_binary(id) and is_binary(name) and (is_binary(local_id) or is_integer(local_id)) do
-    id = String.trim(id)
     name = String.trim(name)
     local_id = Normalizer.canonical_local_id(local_id)
 
@@ -435,7 +429,7 @@ defmodule TcgCheap.Catalogue.Sync do
 
   defp valid_card_identity(id, name, local_id) do
     if id != "" and name != "" and local_id != "" and
-         Regex.match?(~r/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/, id),
+         Tcgdex.valid_card_id?(id),
        do: :ok,
        else: {:error, {:malformed_response, {:card, :missing_identity}}}
   end
@@ -456,7 +450,7 @@ defmodule TcgCheap.Catalogue.Sync do
   defp validate_briefs_bounded(sets) do
     Enum.reduce_while(sets, {[], MapSet.new()}, fn brief, {result, ids} ->
       with true <- is_map(brief),
-           {:ok, id} <- canonical_id(Map.get(brief, "id")),
+           {:ok, id} <- canonical_set_id(Map.get(brief, "id")),
            name when is_binary(name) <- nonblank(Map.get(brief, "name")),
            false <- MapSet.member?(ids, id) do
         {:cont, {[Map.merge(brief, %{"id" => id, "name" => name}) | result], MapSet.put(ids, id)}}

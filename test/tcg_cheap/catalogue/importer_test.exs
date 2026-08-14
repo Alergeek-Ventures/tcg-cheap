@@ -550,6 +550,30 @@ defmodule TcgCheap.Catalogue.ImporterTest do
     assert imported.card.last_synced_at == ~U[2026-03-01 00:00:00.123456Z]
   end
 
+  test "accepts punctuation card IDs with a strict set ID" do
+    card_id = "exu-%3F"
+    set_id = "exu"
+    card = %{"id" => card_id, "name" => "Question", "localId" => "2", "set" => %{"id" => set_id}}
+    set = %{"id" => set_id, "name" => "Destined Rivals"}
+
+    assert {:ok, %{card: %{tcgdex_id: ^card_id}}} =
+             Importer.import_fetched_card(card, set, card_id,
+               expected_set_id: set_id,
+               synced_at: ~U[2026-03-01 00:00:00Z]
+             )
+
+    assert {:error, :invalid_options} =
+             Importer.import_fetched_card(%{card | "id" => "exu-%GG"}, set, "exu-%GG",
+               expected_set_id: set_id,
+               synced_at: ~U[2026-03-01 00:00:00Z]
+             )
+  end
+
+  test "direct import rejects invalid card IDs before provider callbacks" do
+    assert {:error, :invalid_id} = Importer.import_card("exu-%GG", provider: __MODULE__)
+    assert {:error, :invalid_options} = Importer.import_card("exu-%3F", "bad")
+  end
+
   test "fetched payload identity mismatches happen before any writes" do
     card_id = "fetched-mismatch-#{System.unique_integer([:positive])}"
     set_id = "fetched-mismatch-set-#{System.unique_integer([:positive])}"

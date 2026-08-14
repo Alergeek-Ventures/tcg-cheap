@@ -6,6 +6,43 @@ defmodule TcgCheap.Catalogue.TcgdexTest do
 
   defp request_options(name), do: [plug: {Req.Test, name}, retry: false, max_retries: 0]
 
+  test "accepts punctuation card IDs and requests percent escapes exactly once" do
+    name = make_ref()
+
+    Req.Test.stub(name, fn conn ->
+      assert conn.request_path == "/v2/en/cards/exu-%253F"
+      Req.Test.json(conn, %{"id" => "exu-%3F"})
+    end)
+
+    assert Tcgdex.valid_card_id?("exu-!")
+    assert Tcgdex.valid_card_id?("exu-%3F")
+    refute Tcgdex.valid_card_id?("exu-%3")
+    refute Tcgdex.valid_card_id?("exu-%GG")
+    refute Tcgdex.valid_card_id?("exu-/1")
+    refute Tcgdex.valid_card_id?("exu-:1")
+    refute Tcgdex.valid_card_id?("exu-,1")
+    refute Tcgdex.valid_card_id?("exu-!\n")
+    refute Tcgdex.valid_card_id?(" exu-!")
+    refute Tcgdex.valid_card_id?(String.duplicate("a", 129))
+    refute Tcgdex.valid_set_id?("exu-%3F")
+    refute Tcgdex.valid_set_id?("exu-\n")
+    refute Tcgdex.valid_set_id?(String.duplicate("a", 129))
+
+    assert {:ok, %{"id" => "exu-%3F"}} =
+             Tcgdex.fetch_card("exu-%3F", request_options: request_options(name))
+  end
+
+  test "does not normalize provider set brief identities" do
+    name = make_ref()
+
+    Req.Test.stub(name, fn conn ->
+      Req.Test.json(conn, [%{"id" => " exu ", "name" => "Example"}])
+    end)
+
+    assert {:error, {:malformed_response, {:set, {:invalid_id, " exu "}}}} =
+             Tcgdex.list_sets(request_options: request_options(name))
+  end
+
   test "normalizes fixture responses without provider metadata" do
     name = make_ref()
 
@@ -147,7 +184,7 @@ defmodule TcgCheap.Catalogue.TcgdexTest do
 
     Req.Test.stub(name, fn conn ->
       assert conn.request_path == "/v2/en/sets"
-      Req.Test.json(conn, [%{"id" => " base ", "name" => " Base "}])
+      Req.Test.json(conn, [%{"id" => "base", "name" => " Base "}])
     end)
 
     assert {:ok, [%{"id" => "base", "name" => "Base"}]} =

@@ -13,7 +13,8 @@ defmodule TcgCheap.Trades.Composition do
   @type t :: %__MODULE__{left: [item()], right: [item()]}
   @type metadata :: %{malformed?: boolean(), truncated?: boolean()}
 
-  @max_id_length 160
+  alias TcgCheap.Catalogue.Tcgdex
+
   @max_quantity 99
   @max_rows 50
   @max_side_bytes 8_000
@@ -34,6 +35,9 @@ defmodule TcgCheap.Trades.Composition do
   end
 
   def from_params(_), do: {%__MODULE__{}, %{malformed?: true, truncated?: false}}
+
+  @doc false
+  def valid_card_id?(id), do: match?({:ok, _}, valid_id(id))
 
   @doc "Serializes a composition to its compact query parameter map."
   @spec to_params(t()) :: %{optional(String.t()) => String.t()}
@@ -189,9 +193,8 @@ defmodule TcgCheap.Trades.Composition do
     end
   end
 
-  defp valid_id(value) when is_binary(value) and byte_size(value) in 1..@max_id_length do
-    if String.match?(value, ~r/^[A-Za-z0-9._-]+$/), do: {:ok, value}, else: :error
-  end
+  defp valid_id(value) when is_binary(value),
+    do: if(Tcgdex.valid_card_id?(value), do: {:ok, value}, else: :error)
 
   defp valid_id(_), do: :error
   defp valid_side?(side), do: side in [:left, :right]
