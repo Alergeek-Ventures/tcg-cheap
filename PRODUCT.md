@@ -60,6 +60,27 @@ The curated `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` is approved an
 
 Detailed private enrichment now covers exactly `sv01-001` through `sv01-011`: all 11 matched Cardmarket IDs 702298–702308 and all 11 have current `tcgdex_cardmarket_v1` valuations. These real local observations range from EUR 0.03 to EUR 5.04; Pineco remains EUR 5.04. This is not representative coverage of the 20,964-printing catalogue; the two restored `exu` rows are pending and unpriced. Every successful listing ingest ensures a mapping in the same transaction: missing/invalid/ambiguous evidence creates or refreshes review; one eligible approved exact EAN may create or promote a mutable pending/review mapping to matched through the locked/product-validated Ash action and immutable decision history; terminal matched/rejected decisions are protected from source overwrite; failures roll back the batch.
 
+## Current deployment checkpoint — 2026-08-19
+
+Production is online at <https://tcg-cheap.d.alergeek.me>. The product owner
+confirms that the pinned ParadeDB production setup is complete, automatic
+release migrations are configured, and the first administrator is provisioned.
+Independently verified: the public HTTPS root, `/health`, `/health/live`, a
+connected LiveView search event, zero browser console warnings/errors, and the
+successful GitHub CI run at
+<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32250558751>.
+`/health` reported database ready, 7 Oban queues, and 3 acquisition providers.
+Production currently has no catalogue data, so empty Recently tracked/search
+results are expected. Future deploys, migration gating, administrator
+provisioning, ParadeDB upgrades/preload, backups, rollback, and incident
+handling remain governed by the deployment runbook; no secrets or administrator
+identity are recorded here.
+
+The deployment is complete, but the broader MVP remains incomplete. Backup and
+restore drill, external monitoring/alerts, production catalogue/data
+validation, public source/republication rights, representative evidence,
+broader pilot/MVP work, and PostgreSQL 18.4-versus-18.6 update risk remain open.
+
 ## Current implementation checkpoint — 2026-08-10
 
 Private sealed retailer adapters now include reusable `TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI` request, pagination, and normalization mechanics; LootQuest uses it without intended behavior change. CardzHouse (fixed endpoint/category `742`) and BoosterPoint (fixed endpoint/category `61`) are new development/private-test-only adapters. All three remain manual and development-only: there is no sealed Cron or public schedule, and each source has an independent zero-cost budget of 50/hour, 100/day, and 500/month. Their exact host/path/category/field policies enforce per-page admission, disabled redirects/retries, bounded pages/listings/body/time, strict PLN minor-unit conversion, conservative English sealed filtering, and exact direct-URL validation. Public recurring acquisition/republication permission remains unresolved.

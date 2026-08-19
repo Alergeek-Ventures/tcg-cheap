@@ -4,6 +4,28 @@
 - Sources: Product specification supplied by project owner; [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation
 - Raw: [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
 
+## Current production deployment checkpoint — 2026-08-19
+
+Production is online at <https://tcg-cheap.d.alergeek.me>. The product owner
+confirms that the pinned ParadeDB production setup is complete, automatic
+release migrations are configured, and the first administrator is provisioned.
+Independently verified: public HTTPS root, `/health`, `/health/live`, a
+connected LiveView search event, zero browser console warnings/errors, and
+successful GitHub CI run
+<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32250558751>.
+`/health` reported database ready, 7 Oban queues, and 3 acquisition providers.
+Production currently has no catalogue data, so empty Recently tracked/search
+results are expected. Future deployment, migration gating, admin provisioning,
+ParadeDB upgrade/preload, backup, rollback, and incident procedures remain in
+the deployment runbook; secrets and administrator identity are intentionally
+omitted.
+
+This closes the actual-deployment, domain/TLS, automatic-migration, and initial
+administrator blockers. Backup/restore drill, external monitoring/alerts,
+production catalogue/data validation, public source/republication rights,
+representative evidence, broader pilot/MVP work, and PostgreSQL
+18.4-versus-18.6 update risk remain open.
+
 ## Current product-owner course correction — 2026-08-19
 
 The personal pilot is now deliberately staged around deployment rather than a broad public launch. The first gate is deployment through the existing Coolify environment. Public read pages remain public on the existing unlisted/internal domain, while administration remains authenticated. This does not change robots or noindex behavior. There is no archive/backfill scope: history is collected prospectively.
@@ -12,7 +34,7 @@ For sealed stage one, include products released in the rolling last three years,
 
 The deployment-foundation batch is implemented locally. The local, CI, and Coolify target is the exact multi-architecture OCI index `docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649495964b296ad7c0931658dbf99d3cf1b35bc994`, with amd64 and arm64 manifests, PostgreSQL 18.4, `pg_search` 0.25.2, and `pgvector` 0.8.4. Stock PostgreSQL current is 18.6; this is an explicit minor security/bugfix tradeoff to revisit on validated ParadeDB updates. Local Compose explicitly preloads `pg_search`, `pg_cron`, and `pg_stat_statements`. Existing compatible stock-PG18 volumes must not be reset: intentional container recreation/restart and `SHOW shared_preload_libraries` verification are required. Fresh ParadeDB may bootstrap extensions, while TCG Cheap-owned migrations/resources/queries currently require only existing Ash functions, `citext`, and `pg_trgm`, with no BM25/vector use.
 
-The exact index manifest was verified; a fresh ParadeDB scratch reported expected versions/preload; canonical `mix check --verbose` passed all static gates and 813 tests against ParadeDB; the target app image built; `/app/bin/migrate` migrated an empty ParadeDB database; and app `/health` plus Docker HEALTHCHECK passed with PostgreSQL, 7 Oban queues, and 3 acquisition providers. Temporary app/scratch containers, image, and database were cleaned. The current persisted local DB was not reset (20,964 card printings, 1 sealed product, 94 Oban jobs; PostgreSQL 18.4 and extensions available); its running container still has empty preload because it was deliberately not restarted, and the new Compose setting takes effect on the next intentional `mix dev.down`/`mix dev.up`. CI has no production application/database secrets and performs neither migrations nor deployment. `.dockerignore`, the release overlay `/app/bin/migrate`, and the pinned Containerfile are part of the foundation. The container uses fail-closed `/health` readiness for Coolify promotion because Dockerfile health-check precedence applies; `/health/live` remains process liveness. `PHX_HOST` is required. The owner-provided Coolify webhook must run migrations using the target image and private database before promotion; no sibling `deploy-production` workflow is reused. Actual Coolify deployment, webhook exercise, domain/TLS, backup restore, administrator provisioning, external monitoring, and production-data validation remain pending.
+The exact index manifest was verified; a fresh ParadeDB scratch reported expected versions/preload; canonical `mix check --verbose` passed all static gates and 813 tests against ParadeDB; the target app image built; `/app/bin/migrate` migrated an empty ParadeDB database; and app `/health` plus Docker HEALTHCHECK passed with PostgreSQL, 7 Oban queues, and 3 acquisition providers. Temporary app/scratch containers, image, and database were cleaned. The current persisted local DB was not reset (20,964 card printings, 1 sealed product, 94 Oban jobs; PostgreSQL 18.4 and extensions available); its running container still has empty preload because it was deliberately not restarted, and the new Compose setting takes effect on the next intentional `mix dev.down`/`mix dev.up`. CI has no production application/database secrets and performs neither migrations nor deployment. `.dockerignore`, the release overlay `/app/bin/migrate`, and the pinned Containerfile are part of the foundation. The container uses fail-closed `/health` readiness for Coolify promotion because Dockerfile health-check precedence applies; `/health/live` remains process liveness. `PHX_HOST` is required. The configured Coolify release gate runs migrations using the target image and private database before promotion; no sibling `deploy-production` workflow is reused. The current production deployment, domain/TLS, automatic migrations, and first administrator provisioning are recorded in the newer checkpoint above. Backup restore, external monitoring, and production-data validation remain open.
 
 ## Current implementation checkpoint — 2026-08-14
 

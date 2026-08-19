@@ -85,12 +85,13 @@ image `docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649
 See the [deployment and operations guide](docs/deployment-and-operations.md)
 for its PostgreSQL/extension compatibility and upgrade requirements.
 
-Production image build, release migrations, administrator provisioning,
+Production image build, automatic release migrations, administrator provisioning,
 backups, rollback, and incident guidance are documented in
 [Deployment and operations](docs/deployment-and-operations.md).
 
-The repository is prepared as a public-repository Coolify deployment target:
-public read pages remain public while administration is protected. The actual
-Coolify deployment exercise is still pending; see the operations guide for
-the target variables, owner-provided migration webhook, health checks, and
-initial rollout plan.
+Production is online at <https://tcg-cheap.d.alergeek.me>. Public read pages
+remain public while administration is protected. The product owner confirms
+that the pinned ParadeDB production setup, automatic release migrations, and
+first administrator provisioning are complete. The deployment and operations
+guide remains the source of truth for future deploys, migration gating, admin
+provisioning, ParadeDB upgrades/preload, backups, rollback, and incidents.

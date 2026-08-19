@@ -2,10 +2,10 @@
 
 ## Coolify deployment target
 
-This repository is prepared for deployment from a public repository through
-Coolify; the actual Coolify deployment exercise is still pending. Public read
-pages remain unchanged and public; administrative access is protected by the
-application's admin authentication. Coolify will build
+This repository is deployed from a public repository through Coolify at
+<https://tcg-cheap.d.alergeek.me>. Public read pages remain unchanged and
+public; administrative access is protected by the application's admin
+authentication. Coolify builds
 `deployment/Containerfile.app` and publish the application on internal
 container port `4004` (the public hostname and TLS termination are configured
 in Coolify).
@@ -43,11 +43,11 @@ GitHub-hosted CI never receives production application or database secrets.
 Deployment secrets stay in Coolify, and no sibling `deploy-production`
 workflow is reused. A stock Coolify Dockerfile pre-deployment command runs in
 the existing container, so it is not sufficient for this migration gate. The
-deployment owner must provide webhook orchestration that runs the migration
+configured release orchestration runs the migration
 against the private database network using the target/new image before
-traffic promotion, aborts on failure, and handles the first deployment too.
-Repository CI does not implement this orchestration. The owner-provided
-webhook must execute:
+traffic promotion, aborts on failure, and handles future first deployments too.
+Repository CI does not implement this orchestration. The configured release
+gate must execute:
 
 ```text
 /app/bin/migrate
@@ -102,7 +102,7 @@ Generated migrations create the required `citext`, `pg_trgm`, and Ash
 functions. The migration role must be allowed to create and own the required
 extensions and functions, or the complete migration must run with a
 dedicated, sufficiently privileged migration role. Run it through the
-owner-provided Coolify webhook, not GitHub-hosted CI:
+configured Coolify release gate, not GitHub-hosted CI:
 
 ```text
 /app/bin/migrate
@@ -132,7 +132,9 @@ provider.
 
 ## First administrator
 
-Provision the first administrator once, after migrations succeed. Inject
+The first production administrator has been provisioned. For future
+environments, provision the first administrator once, after migrations succeed.
+Inject
 `ADMIN_EMAIL` and `ADMIN_PASSWORD` only into this one-shot command, then remove
 them from the Coolify runtime variables:
 

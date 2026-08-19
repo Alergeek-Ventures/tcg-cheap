@@ -1,5 +1,15 @@
 # Wiki Log
 
+## [2026-08-19] Deterministic wiki lint | Production deployment checkpoint update
+- Validation: 5 articles; 5/5 indexed; 15/15 metadata fields with exactly one Updated/Sources/Raw per article; 47/47 Markdown links resolved; 25/25 Raw links resolved; 0 deterministic errors; 0 heuristic deployment contradictions; 0 auto-fixes.
+
+## [2026-08-19] Production deployment completed | Public verification
+- Owner-confirmed operational facts: production is online at <https://tcg-cheap.d.alergeek.me>; the pinned ParadeDB production setup is complete; automatic release migrations are configured; and the first administrator is provisioned. No secrets or administrator identity are recorded.
+- Independent verification: public HTTPS root, `/health`, `/health/live`, a connected LiveView search event, zero browser console warnings/errors, and successful GitHub CI run <https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32250558751>. `/health` reported database ready, 7 Oban queues, and 3 acquisition providers.
+- Production currently has no catalogue data, so empty Recently tracked/search results are expected. The deployment, domain/TLS, migration automation, and initial administrator blockers are closed; future deploys must retain the runbook’s migration gating, admin provisioning, ParadeDB upgrade/preload, backup, rollback, and incident instructions.
+- Remaining open boundary: backup/restore drill, external monitoring/alerts, production catalogue/data validation, public source/republication rights, representative evidence, broader pilot/MVP work, and PostgreSQL 18.4-versus-18.6 update risk.
+- Files: Updated only the requested repository/product/deployment documentation and durable wiki articles/index/log. Historical dated entries were preserved.
+
 ## [2026-08-19] Deterministic wiki lint | After ParadeDB update
 - Validation: 5 articles; 5/5 indexed; 15/15 metadata fields with exactly one Updated/Sources/Raw per article; 47/47 relative Markdown links resolved; 25/25 Raw links resolved under `knowledge-base/raw`; 0 deterministic errors; 0 auto-fixes.
 - Contradiction review: No heuristic ParadeDB contradiction. PostgreSQL 18.4 versus stock PostgreSQL 18.6 is an explicit tradeoff; configured preload versus the current empty preload is intentional pending restart; and the verified path is distinguished from actual production deployment.
