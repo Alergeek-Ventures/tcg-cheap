@@ -1,8 +1,8 @@
 # Pokémon Market & Trade Platform — Detailed MVP Implementation Plan
 
 - Updated: 2026-08-19
-- Sources: Product specification supplied by project owner; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation
-- Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
+- Sources: Product specification supplied by project owner; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation; [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
+- Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 
 ## Current production deployment checkpoint — 2026-08-19
 
@@ -33,6 +33,18 @@ The personal pilot is now deliberately staged around deployment rather than a br
 For sealed stage one, include products released in the rolling last three years, with sourced MSRP/RRP when available, the current overall/Cardmarket benchmark, and retailer links. For singles stage one, include the full Pitch Black set, IR/SIR cards from the rolling last two years, and a curated set of playable Trainers/Items/Supporters; bulk singles remain out except for those playables. These are the current pilot priorities, not a silent deletion of the original MVP requirements below; the broader product scope, requirements, phases, and acceptance criteria remain historical authoritative requirements unless the owner explicitly supersedes them.
 
 ### Approved production Singles collection scope
+
+Collection policy v2 is an operational correction, not a scope expansion. The
+observed 218-entry provider list was oldest-first-ish with exact pilot `me05`
+last, but this is not treated as an API contract. Initial discovery applies a
+bounded candidate ID-prefix prefilter for configured `sv`/`me`, followed by
+authoritative strict fetched `serie.id` revalidation; `tcgp` is excluded at
+fetched evidence. `me05` initial/continuations have priority 0, an active
+rolling set continuation has priority 1, and untouched rolling initial scans
+have priority 2, avoiding fail-slow startup and Pocket fanout. Cron/manual
+actions use the exact policy version; legacy queued v1 jobs self-cancel without
+provider-budget admission. Chunks, budgets, and public scope are unchanged. No
+deployment or production-data claim follows.
 
 `CardPrinting` uses fail-closed scopes `pitch_black_full`, `rolling_ir_sir`, `curated_playable`, and `legacy_local`, with expiry and provenance. Provider imports/briefs never auto-scope. Public Home search/recent, CardDetail, Trade, and mover SQL require active nonexpired scope. Migration backfill assigns preexisting local rows only to `legacy_local`, preserving useful state while empty production gains no broad rows; broad discovery remains private.
 

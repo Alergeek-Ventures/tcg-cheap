@@ -95,7 +95,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     provider: provider
   } do
     ids = card_ids(4)
-    set_id = "sv-base-#{System.unique_integer([:positive])}"
+    set_id = "sv-base-priority-#{System.unique_integer([:positive])}"
 
     cards = [
       card(Enum.at(ids, 0), "Illustration Rare", 1),
@@ -144,23 +144,118 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
   test "chunk continuation and rerun are idempotent", %{provider: provider} do
     Application.put_env(:tcg_cheap, :singles_collection,
       pitch_black_set_id: "me05",
+      paper_series_ids: ["sv", "me"],
       rolling_rarities: ["illustration rare", "special illustration rare"],
       chunk_size: 1
     )
 
     ids = card_ids(2)
-    put_fixture(provider, "me05", ids, Enum.map(ids, &card(&1, "matched", 321)))
-    assert :ok = SinglesSetCollectionWorker.perform(job("me05", 0))
+    set_id = "me05"
+    put_fixture(provider, set_id, ids, Enum.map(ids, &card(&1, "matched", 321)))
+    assert :ok = SinglesSetCollectionWorker.perform(job(set_id, 0))
 
     assert_enqueued(
       repo: TcgCheap.Repo,
       worker: SinglesSetCollectionWorker,
-      args: %{"set_id" => "me05", "offset" => 1, "as_of" => "2026-08-19"}
+      args: %{"policy_version" => 2, "set_id" => set_id, "offset" => 1, "as_of" => "2026-08-19"},
+      priority: 0
     )
 
-    assert :ok = SinglesSetCollectionWorker.perform(job("me05", 1))
-    assert :ok = SinglesSetCollectionWorker.perform(job("me05", 0))
+    assert :ok = SinglesSetCollectionWorker.perform(job(set_id, 1))
+    assert :ok = SinglesSetCollectionWorker.perform(job(set_id, 0))
     assert length(Ash.read!(TcgCheap.Catalogue.CardPrinting, authorize?: false)) == 2
+  end
+
+  test "rolling continuation is enqueued at priority 1", %{provider: provider} do
+    Application.put_env(:tcg_cheap, :singles_collection,
+      pitch_black_set_id: "me05",
+      paper_series_ids: ["sv", "me"],
+      rolling_rarities: ["illustration rare", "special illustration rare"],
+      chunk_size: 1
+    )
+
+    ids = card_ids(2)
+    set_id = "sv-priority-#{System.unique_integer([:positive])}"
+
+    put_fixture(
+      provider,
+      set_id,
+      ids,
+      Enum.map(ids, &card(&1, "Illustration Rare", 321)),
+      "2026-08-19"
+    )
+
+    assert :ok = SinglesSetCollectionWorker.perform(job(set_id, 0))
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: SinglesSetCollectionWorker,
+      args: %{
+        "policy_version" => 2,
+        "set_id" => set_id,
+        "offset" => 1,
+        "as_of" => "2026-08-19"
+      },
+      priority: 1
+    )
+  end
+
+  test "recent Pocket set is rejected before fetching or persisting cards", %{provider: provider} do
+    id = hd(card_ids(1))
+
+    Agent.update(provider, fn state ->
+      %{
+        state
+        | sets: %{"sv01" => set("sv01", [%{"id" => id}], "2026-08-01", "tcgp")},
+          cards: %{id => card(id, "Illustration Rare", 1)}
+      }
+    end)
+
+    assert {:cancel, :provider_response} = SinglesSetCollectionWorker.perform(job("sv01", 0))
+    assert Agent.get(provider, & &1.fetched) == []
+    assert {:error, _} = TcgCheap.Core.get_card_printing_by_tcgdex_id(id)
+  end
+
+  test "legacy child payload is superseded without provider or budget calls", %{
+    provider: provider
+  } do
+    legacy = job("me05", 0) |> Map.update!(:args, &Map.delete(&1, "policy_version"))
+
+    assert {:cancel, :superseded_policy} = SinglesSetCollectionWorker.perform(legacy)
+    assert Agent.get(provider, & &1.fetched) == []
+
+    assert Agent.get(Application.fetch_env!(:tcg_cheap, :singles_set_admissions), & &1) ==
+             List.duplicate({:ok, %{}}, 10)
+  end
+
+  test "unsupported and extra child payloads are malformed" do
+    unsupported = job("me05", 0) |> Map.update!(:args, &Map.put(&1, "policy_version", 3))
+    extra = job("me05", 0) |> Map.update!(:args, &Map.put(&1, "extra", true))
+
+    assert {:cancel, :malformed_job_args} = SinglesSetCollectionWorker.perform(unsupported)
+    assert {:cancel, :malformed_job_args} = SinglesSetCollectionWorker.perform(extra)
+  end
+
+  test "available legacy me05 child does not conflict with a versioned child" do
+    {:ok, legacy} =
+      SinglesSetCollectionWorker.new(%{
+        "set_id" => "me05",
+        "offset" => 0,
+        "as_of" => "2026-08-19"
+      })
+      |> Oban.insert()
+
+    assert {:ok, versioned} =
+             SinglesSetCollectionWorker.new(%{
+               "policy_version" => 2,
+               "set_id" => "me05",
+               "offset" => 0,
+               "as_of" => "2026-08-19"
+             })
+             |> Oban.insert()
+
+    assert versioned.id != legacy.id
+    assert TcgCheap.Repo.get!(Oban.Job, legacy.id).state == "available"
   end
 
   test "duplicate and malformed briefs cancel before card fetch", %{provider: provider} do
@@ -242,6 +337,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
 
         Application.put_env(:tcg_cheap, :singles_collection,
           pitch_black_set_id: "me05",
+          paper_series_ids: ["sv", "me"],
           rolling_rarities: ["illustration rare", "special illustration rare"],
           chunk_size: chunk
         )
@@ -268,10 +364,11 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
         }
       end)
 
-  defp set(id, cards, release \\ "2026-01-01"),
+  defp set(id, cards, release \\ "2026-01-01", serie_id \\ nil),
     do: %{
       "id" => id,
       "name" => "Set",
+      "serie" => %{"id" => serie_id || if(String.starts_with?(id, "me"), do: "me", else: "sv")},
       "releaseDate" => release,
       "cards" => cards,
       "cardCount" => %{"official" => length(cards), "total" => length(cards)}
@@ -295,7 +392,12 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
 
   defp job(set_id, offset),
     do: %Oban.Job{
-      args: %{"set_id" => set_id, "offset" => offset, "as_of" => "2026-08-19"},
+      args: %{
+        "policy_version" => 2,
+        "set_id" => set_id,
+        "offset" => offset,
+        "as_of" => "2026-08-19"
+      },
       attempt: 1,
       max_attempts: 5,
       worker: Atom.to_string(SinglesSetCollectionWorker),

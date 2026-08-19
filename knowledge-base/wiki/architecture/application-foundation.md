@@ -1,12 +1,24 @@
 # Application Foundation
 
 - Updated: 2026-08-19
-- Sources: Project code; local validation; `PRODUCT.md`; `DESIGN.md`; `.impeccable/design.json`; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
-- Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-08 NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [2026-08-09 LootQuest Store API](../../raw/2026-08-09-lootquest-store-api.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
+- Sources: Project code; local validation; `PRODUCT.md`; `DESIGN.md`; `.impeccable/design.json`; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
+- Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-08 NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [2026-08-09 LootQuest Store API](../../raw/2026-08-09-lootquest-store-api.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 
 ## Deployment foundation — 2026-08-19
 
 ## Production Singles collection boundary — 2026-08-19
+
+Collection policy v2 corrects fail-slow startup caused by the observed
+oldest-first-ish provider order without assuming an ordering contract. Initial
+discovery applies a bounded candidate ID-prefix prefilter for configured
+`sv`/`me`, followed by authoritative strict fetched `serie.id` revalidation;
+`tcgp` is excluded at fetched evidence. `me05` initial/continuations have
+priority 0, an active rolling set continuation has priority 1, and untouched
+rolling initial scans have priority 2. Chunks, budgets, and public scope stay
+unchanged. Cron and manual triggers carry the exact policy version, and legacy
+queued v1 jobs self-cancel before provider admission, consuming no provider
+budget. This also avoids Pocket fanout. No deployment or production-data claim
+is made.
 
 `CardPrinting` has fail-closed scopes `pitch_black_full`, `rolling_ir_sir`, `curated_playable`, and `legacy_local`, with expiry and provenance. Provider imports/briefs never auto-scope. Public Home search/recent, CardDetail, Trade, and mover SQL require active nonexpired scope; broad unscoped discovery remains private. Migration backfill marks preexisting local rows only as `legacy_local`, preserving useful state while empty production gains no broad rows.
 

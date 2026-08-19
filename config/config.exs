@@ -84,7 +84,8 @@ config :tcg_cheap, Oban,
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,
      crontab: [
-       {"*/15 * * * *", TcgCheap.Catalogue.SinglesScopeBootstrapWorker, args: %{}},
+       {"*/15 * * * *", TcgCheap.Catalogue.SinglesScopeBootstrapWorker,
+        args: %{"policy_version" => 2}},
        {"0 14 * * *", TcgCheap.Pricing.Singles.ValuationRefreshWorker, args: %{}},
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
@@ -103,6 +104,7 @@ config :tcg_cheap, :catalogue_sync,
 
 config :tcg_cheap, :singles_collection,
   pitch_black_set_id: "me05",
+  paper_series_ids: ["sv", "me"],
   rolling_rarities: ["Illustration rare", "Special illustration rare"],
   chunk_size: 20
 

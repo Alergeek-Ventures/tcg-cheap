@@ -1,10 +1,23 @@
 # Provider and Acquisition Feasibility
 
 - Updated: 2026-08-19
-- Sources: [Production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [Provider/source experiment capture](../../raw/2026-08-07-provider-source-experiments.md); [Scrappy singles acquisition spike](../../raw/2026-08-07-scrappy-singles-acquisition-spike.md); [NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [LootQuest Store API capture](../../raw/2026-08-09-lootquest-store-api.md); [CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [current MVP north star](../product/mvp-implementation-plan.md); project code and validation
-- Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-07 provider/source experiments](../../raw/2026-08-07-provider-source-experiments.md); [2026-08-07 scrappy singles acquisition spike](../../raw/2026-08-07-scrappy-singles-acquisition-spike.md); [2026-08-08 NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [2026-08-09 LootQuest Store API](../../raw/2026-08-09-lootquest-store-api.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
+- Sources: [Production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [Provider/source experiment capture](../../raw/2026-08-07-provider-source-experiments.md); [Scrappy singles acquisition spike](../../raw/2026-08-07-scrappy-singles-acquisition-spike.md); [NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [LootQuest Store API capture](../../raw/2026-08-09-lootquest-store-api.md); [CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [current MVP north star](../product/mvp-implementation-plan.md); project code and validation; [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
+- Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-07 provider/source experiments](../../raw/2026-08-07-provider-source-experiments.md); [2026-08-07 scrappy singles acquisition spike](../../raw/2026-08-07-scrappy-singles-acquisition-spike.md); [2026-08-08 NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [2026-08-09 LootQuest Store API](../../raw/2026-08-09-lootquest-store-api.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 
 ## Approved production Singles acquisition — 2026-08-19
+
+### Collection policy v2
+
+The 2026-08-19 capture observed 218 IDs with `me05` last in an
+oldest-first-ish list, not an ordering guarantee. Initial discovery applies a
+bounded candidate ID-prefix prefilter for configured `sv`/`me`, followed by
+authoritative strict fetched `serie.id` revalidation; `tcgp` is excluded at
+fetched evidence. `me05` initial/continuations have priority 0, an active
+rolling set continuation has priority 1, and untouched rolling initial scans
+have priority 2, so startup no longer fails slowly on irrelevant early IDs or
+fans out across Pocket. Cron and manual actions use the exact policy version.
+Legacy queued v1 jobs self-cancel before admission and consume no provider
+budget. Chunks, budgets, and public scope are unchanged.
 
 The scope-first boundary uses `pitch_black_full`, `rolling_ir_sir`, `curated_playable`, and `legacy_local`, with expiry/provenance. Provider imports/briefs never grant scope; public Home search/recent, CardDetail, Trade, and mover SQL require active nonexpired scope. Existing local rows are backfilled as `legacy_local`; empty production receives no broad catalogue. Bootstrap starts within 15 minutes, is unique after a successful run for seven days, imports complete `me05`, and imports only exact IR/SIR cards from the inclusive rolling prior two calendar years in chunks of at most 20. Complete `cardCount` evidence is required; incomplete/transient evidence retries and scanned non-target cards are never imported. Daily 14:00 UTC keyset refresh enqueues stale/missing valuations, with `ValuationWorker` as sole immediate pre-HTTP budget admission. Admin operations provides a scoped trigger. Curated playables remain empty pending dated Limitless evidence, official legality, and editorial approval. No sealed production adapter is enabled.
 

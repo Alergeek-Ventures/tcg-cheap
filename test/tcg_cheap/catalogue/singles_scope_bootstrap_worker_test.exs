@@ -22,6 +22,7 @@ end
 
 defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorkerTest do
   use TcgCheap.DataCase, async: false
+  import Ecto.Query
   import Oban.Testing
   alias TcgCheap.Catalogue.SinglesScopeBootstrapWorker
 
@@ -50,6 +51,7 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorkerTest do
 
     Application.put_env(:tcg_cheap, :singles_collection,
       pitch_black_set_id: "me05",
+      paper_series_ids: ["sv", "me"],
       rolling_rarities: ["illustration rare", "special illustration rare"],
       chunk_size: 20
     )
@@ -93,7 +95,69 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorkerTest do
                & &1.args
              )
            ) ==
-             Enum.sort(Enum.map(ids, &%{"set_id" => &1, "offset" => 0, "as_of" => "2026-08-19"}))
+             Enum.sort(
+               Enum.map(
+                 ids,
+                 &%{"set_id" => &1, "offset" => 0, "as_of" => "2026-08-19", "policy_version" => 2}
+               )
+             )
+  end
+
+  test "filters historic and Pocket set IDs and prioritizes me05", %{provider: provider} do
+    Agent.update(provider, fn state ->
+      %{
+        state
+        | sets: [
+            %{"id" => "base1", "name" => "Historic"},
+            %{"id" => "tcgp01", "name" => "Pocket"},
+            %{"id" => "sv01", "name" => "SV"},
+            %{"id" => "me01", "name" => "ME"},
+            %{"id" => "me05", "name" => "Pitch Black"}
+          ]
+      }
+    end)
+
+    assert :ok = SinglesScopeBootstrapWorker.perform(job(%{"as_of" => "2026-08-19"}))
+
+    jobs =
+      all_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Catalogue.SinglesSetCollectionWorker)
+
+    assert Enum.map(jobs, & &1.args["set_id"]) |> Enum.sort() == ["me01", "me05", "sv01"]
+
+    assert Enum.find(jobs, &(&1.args["set_id"] == "me05")).priority <
+             Enum.find(jobs, &(&1.args["set_id"] == "me01")).priority
+
+    assert Enum.find(jobs, &(&1.args["set_id"] == "me01")).priority == 2
+    assert Enum.find(jobs, &(&1.args["set_id"] == "sv01")).priority == 2
+  end
+
+  test "cron payload uses today's date and enqueues versioned children", %{provider: provider} do
+    id = "sv#{System.unique_integer([:positive])}"
+    Agent.update(provider, &Map.put(&1, :sets, [%{"id" => id, "name" => "Set"}]))
+
+    assert :ok = SinglesScopeBootstrapWorker.perform(job(%{"policy_version" => 2}))
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: TcgCheap.Catalogue.SinglesSetCollectionWorker,
+      args: %{
+        "policy_version" => 2,
+        "set_id" => id,
+        "offset" => 0,
+        "as_of" => Date.to_iso8601(Date.utc_today())
+      }
+    )
+  end
+
+  test "unsupported and extra bootstrap payloads are malformed" do
+    assert {:cancel, :malformed_job_args} =
+             SinglesScopeBootstrapWorker.perform(
+               job(%{"policy_version" => 2})
+               |> Map.update!(:args, &Map.put(&1, "policy_version", 3))
+             )
+
+    assert {:cancel, :malformed_job_args} =
+             SinglesScopeBootstrapWorker.perform(job(%{"policy_version" => 2, "extra" => true}))
   end
 
   test "duplicate and malformed set lists enqueue no children", %{provider: provider} do
@@ -119,6 +183,19 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorkerTest do
   test "wrong but valid pitch black set ID is rejected" do
     Application.put_env(:tcg_cheap, :singles_collection,
       pitch_black_set_id: "sv-base",
+      paper_series_ids: ["sv", "me"],
+      rolling_rarities: ["illustration rare", "special illustration rare"],
+      chunk_size: 20
+    )
+
+    assert {:error, :invalid_singles_collection_configuration} =
+             SinglesScopeBootstrapWorker.singles_config()
+  end
+
+  test "duplicate paper series config entries are rejected" do
+    Application.put_env(:tcg_cheap, :singles_collection,
+      pitch_black_set_id: "me05",
+      paper_series_ids: ["sv", "me", "sv"],
       rolling_rarities: ["illustration rare", "special illustration rare"],
       chunk_size: 20
     )
@@ -151,9 +228,35 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorkerTest do
     refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Catalogue.SinglesSetCollectionWorker)
   end
 
+  test "legacy bootstrap payload is superseded without provider or budget calls", %{
+    provider: provider
+  } do
+    legacy =
+      job(%{"as_of" => "2026-08-19"}) |> Map.update!(:args, &Map.delete(&1, "policy_version"))
+
+    assert {:cancel, :superseded_policy} = SinglesScopeBootstrapWorker.perform(legacy)
+    assert Agent.get(provider, & &1.calls) == 0
+
+    assert Agent.get(Application.fetch_env!(:tcg_cheap, :singles_admissions), & &1) ==
+             List.duplicate({:ok, %{}}, 10)
+  end
+
+  test "completed legacy bootstrap does not conflict with a versioned bootstrap" do
+    {:ok, legacy} =
+      SinglesScopeBootstrapWorker.new(%{"as_of" => "2026-08-19"})
+      |> Oban.insert()
+
+    TcgCheap.Repo.update_all(from(j in Oban.Job, where: j.id == ^legacy.id),
+      set: [state: "completed"]
+    )
+
+    assert {:ok, versioned} = SinglesScopeBootstrapWorker.enqueue(~D[2026-08-19])
+    assert versioned.id != legacy.id
+  end
+
   defp job(args),
     do: %Oban.Job{
-      args: args,
+      args: Map.put(args, "policy_version", 2),
       attempt: 1,
       max_attempts: 5,
       worker: Atom.to_string(SinglesScopeBootstrapWorker),

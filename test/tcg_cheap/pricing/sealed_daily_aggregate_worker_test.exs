@@ -45,7 +45,8 @@ defmodule TcgCheap.Pricing.SealedDailyAggregateWorkerTest do
         _ -> nil
       end)
 
-    assert {"*/15 * * * *", TcgCheap.Catalogue.SinglesScopeBootstrapWorker, [args: %{}]} =
+    assert {"*/15 * * * *", TcgCheap.Catalogue.SinglesScopeBootstrapWorker,
+            [args: %{"policy_version" => 2}]} =
              Enum.at(crontab, 0)
 
     assert {"0 14 * * *", TcgCheap.Pricing.Singles.ValuationRefreshWorker, [args: %{}]} =

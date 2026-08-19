@@ -132,6 +132,20 @@ provider.
 
 ## Production Singles collection operations
 
+### Collection policy v2 — operational correction
+
+The bounded discovery policy is v2. A public unauthenticated observation on
+2026-08-19 returned 218 set entries in oldest-first-ish order, with `me05` last;
+this is not treated as an API ordering contract. Initial discovery applies a
+bounded candidate ID-prefix prefilter for configured `sv`/`me`, followed by
+authoritative strict fetched `serie.id` revalidation; `tcgp` is excluded at
+fetched evidence. `me05` initial/continuations have priority 0, an active
+rolling set continuation has priority 1, and untouched rolling initial scans
+have priority 2. This avoids fail-slow startup caused by the observed provider
+order and avoids Pocket fanout; chunks, budgets, and public scope remain
+unchanged. Legacy queued v1 jobs self-cancel without consuming a provider
+budget. Cron and manual operations use the exact policy version.
+
 The collection is fail-closed and scope-based: `pitch_black_full`,
 `rolling_ir_sir`, `curated_playable`, and `legacy_local`, each with expiry and
 provenance. Provider imports/briefs never auto-scope. Public Home search/recent,

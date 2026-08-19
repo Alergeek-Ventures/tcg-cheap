@@ -5,7 +5,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
     max_attempts: 5,
     unique: [
       period: :infinity,
-      keys: [:set_id, :offset],
+      keys: [:policy_version, :set_id, :offset],
       states: [:available, :scheduled, :executing, :retryable, :suspended],
       fields: [:worker, :args]
     ]
@@ -15,6 +15,8 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
   alias TcgCheap.Operations.AcquisitionTracker
   alias TcgCheap.Pricing.Singles.ValuationAcquisition
 
+  @policy_version 2
+
   def timeout(_), do: :timer.seconds(360)
 
   def backoff(%Oban.Job{unsaved_error: %{reason: %Oban.PerformError{reason: reason}}})
@@ -23,9 +25,17 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
   def backoff(%Oban.Job{attempt: attempt}), do: min(60 * attempt * attempt, 3_600)
 
   def perform(
-        %Oban.Job{args: %{"set_id" => set_id, "offset" => offset, "as_of" => as_of} = args} = job
+        %Oban.Job{
+          args:
+            %{
+              "policy_version" => @policy_version,
+              "set_id" => set_id,
+              "offset" => offset,
+              "as_of" => as_of
+            } = args
+        } = job
       )
-      when map_size(args) == 3 and is_binary(set_id) and is_integer(offset) and offset >= 0 do
+      when map_size(args) == 4 and is_binary(set_id) and is_integer(offset) and offset >= 0 do
     with {:ok, date} <- valid_date(as_of), true <- Tcgdex.valid_set_id?(set_id) do
       run_collection(job, set_id, offset, date)
     else
@@ -33,6 +43,10 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
         {:cancel, :malformed_job_args}
     end
   end
+
+  def perform(%Oban.Job{args: %{"set_id" => _, "offset" => _, "as_of" => _} = args})
+      when map_size(args) == 3,
+      do: {:cancel, :superseded_policy}
 
   def perform(_), do: {:cancel, :malformed_job_args}
 
@@ -61,7 +75,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
   end
 
   defp process_set(set, set_id, offset, as_of, config, provider, options) do
-    with :ok <- validate_set(set, set_id, as_of),
+    with :ok <- validate_set(set, set_id, as_of, config),
          {:ok, release_date} <- Date.from_iso8601(set["releaseDate"]),
          true <- selected_set?(set_id, release_date, as_of, config),
          {:ok, briefs} <- validate_coverage(set) do
@@ -70,7 +84,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
 
       with {:ok, cards} <- fetch_cards(chunk, provider, options, set_id),
            :ok <- persist_selected(cards, set, set_id, release_date, as_of, config, scoped_at),
-           :ok <- enqueue_next(set_id, offset + length(chunk), length(briefs), as_of) do
+           :ok <- enqueue_next(set_id, offset + length(chunk), length(briefs), as_of, config) do
         :ok
       else
         {:error, reason} -> classify(reason)
@@ -177,10 +191,20 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
 
   defp maybe_enqueue_valuation(_), do: :ok
 
-  defp enqueue_next(_set_id, offset, total, _as_of) when offset >= total, do: :ok
+  defp enqueue_next(_set_id, offset, total, _as_of, _config) when offset >= total, do: :ok
 
-  defp enqueue_next(set_id, offset, _total, as_of) do
-    case new(%{"set_id" => set_id, "offset" => offset, "as_of" => Date.to_iso8601(as_of)})
+  defp enqueue_next(set_id, offset, _total, as_of, config) do
+    priority = if set_id == config.pitch_black_set_id, do: 0, else: 1
+
+    case new(
+           %{
+             "policy_version" => @policy_version,
+             "set_id" => set_id,
+             "offset" => offset,
+             "as_of" => Date.to_iso8601(as_of)
+           },
+           priority: priority
+         )
          |> Oban.insert() do
       {:ok, _} -> :ok
       {:error, _} -> {:error, :persistence_failed}
@@ -205,15 +229,23 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
       set_id == config.pitch_black_set_id or
         (release >= Date.shift(as_of, year: -2) and release <= as_of)
 
-  defp validate_set(%{"id" => actual_id, "name" => name, "releaseDate" => release}, set_id, as_of)
+  defp validate_set(
+         %{"id" => actual_id, "name" => name, "releaseDate" => release, "serie" => serie},
+         set_id,
+         as_of,
+         config
+       )
        when is_binary(name) and name != "" and is_binary(release) do
     case {actual_id, Date.from_iso8601(release)} do
-      {^set_id, {:ok, date}} when date <= as_of -> :ok
-      _ -> {:error, :invalid_provider_response}
+      {^set_id, {:ok, date}} when date <= as_of and is_map(serie) ->
+        if Map.get(serie, "id") in config.paper_series_ids, do: :ok, else: {:error, :out_of_scope}
+
+      _ ->
+        {:error, :invalid_provider_response}
     end
   end
 
-  defp validate_set(_, _, _), do: {:error, :invalid_provider_response}
+  defp validate_set(_, _, _, _), do: {:error, :invalid_provider_response}
 
   defp validate_coverage(%{"cardCount" => count, "cards" => cards})
        when is_map(count) and is_list(cards) do

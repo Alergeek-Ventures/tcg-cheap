@@ -122,7 +122,7 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     assert_enqueued(
       repo: TcgCheap.Repo,
       worker: SinglesScopeBootstrapWorker,
-      args: %{"as_of" => Date.to_iso8601(Date.utc_today())}
+      args: %{"as_of" => Date.to_iso8601(Date.utc_today()), "policy_version" => 2}
     )
 
     assert {:ok, %{status: :already_queued, job_id: ^job_id}} =
