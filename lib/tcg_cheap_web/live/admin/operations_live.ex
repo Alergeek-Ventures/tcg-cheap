@@ -22,6 +22,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:buying_model, nil)
      |> assign(:manual_ready?, false)
      |> assign(:manual_catalogue, nil)
+     |> assign(:manual_singles_collection, nil)
      |> assign(:manual_catalogue_repair, nil)
      |> assign(:manual_exchange_rate, nil)
      |> assign(:manual_valuation, nil)
@@ -508,11 +509,36 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                   Active duplicates reuse the canonical queued job. Provider budget is checked before HTTP; this action never marks work complete.
                 </p>
                 <div id="manual-refresh-fixed" class="admin-dockets operations-provider-dockets">
+                  <article id="manual-refresh-singles-collection-panel" class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <div>
+                        <h3>Scoped Singles collection</h3>
+                        <p>
+                          Imports Pitch Black plus rolling two-year IR / SIR only; resumable and budgeted.
+                        </p>
+                      </div>
+                      <span id="manual-refresh-singles-collection-status">
+                        {manual_status(@manual_singles_collection)}
+                      </span>
+                    </div>
+                    <div class="admin-decision-row">
+                      <button
+                        id="manual-refresh-singles-collection"
+                        type="button"
+                        phx-click="manual_singles_collection"
+                        phx-disable-with="Queueing…"
+                        disabled={@manual_singles_collection.status != :available}
+                      >Queue Singles collection</button>
+                    </div>
+                  </article>
+
                   <article id="manual-refresh-catalogue-panel" class="admin-docket">
                     <div class="admin-docket-heading">
                       <div>
                         <h3>TCGdex catalogue</h3>
-                        <p>Resume one canonical, checkpointed set and card-brief sync.</p>
+                        <p>
+                          Broad private discovery: resume the canonical checkpointed catalogue sync.
+                        </p>
                       </div>
                       <span id="manual-refresh-catalogue-status">
                         {manual_status(@manual_catalogue)}
@@ -661,6 +687,9 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   def handle_event("manual_catalogue_sync", _params, socket),
     do: manual_enqueue(:catalogue_sync, "Catalogue sync", socket)
 
+  def handle_event("manual_singles_collection", _params, socket),
+    do: manual_enqueue(:singles_collection, "Singles collection", socket)
+
   def handle_event("manual_catalogue_repair", _params, socket),
     do: manual_enqueue(:catalogue_repair, "Catalogue repair", socket)
 
@@ -763,6 +792,9 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
       {:ok, targets} ->
         catalogue = Enum.find(targets, &(&1.kind == :catalogue_sync)) || %{status: :unconfigured}
 
+        singles_collection =
+          Enum.find(targets, &(&1.kind == :singles_collection)) || %{status: :unconfigured}
+
         catalogue_repair =
           Enum.find(targets, &(&1.kind == :catalogue_repair)) ||
             %{status: :unconfigured, failure_count: 0}
@@ -782,6 +814,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         socket
         |> assign(:manual_ready?, true)
         |> assign(:manual_catalogue, catalogue)
+        |> assign(:manual_singles_collection, singles_collection)
         |> assign(:manual_catalogue_repair, catalogue_repair)
         |> assign(:manual_exchange_rate, exchange)
         |> assign(:manual_valuation, valuation)
@@ -792,6 +825,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         socket
         |> assign(:manual_ready?, false)
         |> assign(:manual_catalogue, nil)
+        |> assign(:manual_singles_collection, nil)
         |> assign(:manual_catalogue_repair, nil)
         |> assign(:manual_exchange_rate, nil)
         |> assign(:manual_valuation, nil)

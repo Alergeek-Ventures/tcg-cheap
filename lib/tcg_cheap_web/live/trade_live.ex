@@ -741,7 +741,7 @@ defmodule TcgCheapWeb.TradeLive do
   defp load_cards([]), do: {%{}, nil}
 
   defp load_cards(ids) do
-    case Core.list_card_printings_by_tcgdex_ids(ids) do
+    case Core.list_public_card_printings_by_tcgdex_ids(ids) do
       {:ok, cards} -> {Map.new(cards, &{&1.tcgdex_id, &1}), nil}
       _ -> {%{}, :read_error}
     end
@@ -753,7 +753,7 @@ defmodule TcgCheapWeb.TradeLive do
     if Map.has_key?(cards, pick) do
       {cards, Map.fetch!(cards, pick), nil}
     else
-      case Core.list_card_printings_by_tcgdex_ids([pick]) do
+      case Core.list_public_card_printings_by_tcgdex_ids([pick]) do
         {:ok, [card]} -> {Map.put(cards, pick, card), card, nil}
         {:ok, []} -> {cards, %{tcgdex_id: pick, unavailable?: true}, nil}
         _ -> {cards, %{tcgdex_id: pick, unavailable?: true}, :pick_read_error}
@@ -1052,7 +1052,7 @@ defmodule TcgCheapWeb.TradeLive do
   defp status_text(_, _, _), do: ""
 
   defp search(socket, query) do
-    case Core.search_card_printings(query) do
+    case Core.search_public_card_printings(query) do
       {:ok, results} ->
         options =
           results

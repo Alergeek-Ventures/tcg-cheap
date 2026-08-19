@@ -130,6 +130,31 @@ The endpoints are:
 Both endpoints are served on internal port `4004` and do not call an external
 provider.
 
+## Production Singles collection operations
+
+The collection is fail-closed and scope-based: `pitch_black_full`,
+`rolling_ir_sir`, `curated_playable`, and `legacy_local`, each with expiry and
+provenance. Provider imports/briefs never auto-scope. Public Home search/recent,
+CardDetail, Trade, and mover queries require active nonexpired scope; broad
+unscoped discovery is private. Migration backfill assigns preexisting local
+rows only to `legacy_local`, preserving useful local state while empty
+production gains no broad rows.
+
+Automatic bootstrap starts within 15 minutes and is unique after a successful
+run for seven days. It discovers TCGdex sets, imports every `me05` card, and
+imports only exact IR/SIR cards from the inclusive rolling prior two calendar
+years. Chunks are at most 20; complete `cardCount` evidence is required;
+incomplete/transient evidence retries; scanned non-target cards are never
+imported. Daily at 14:00 UTC, refresh keyset-paginates active scoped matched
+cards and enqueues stale/missing valuations. `ValuationWorker` is the sole
+provider-budget admission immediately before HTTP.
+
+Operations provides a manual scoped collection trigger. `curated_playable` is
+modeled but empty until dated Limitless evidence, official legality evidence,
+and explicit editorial approval exist. No sealed production adapter is enabled.
+Do not treat implementation readiness as evidence that production data has
+already been collected.
+
 ## First administrator
 
 The first production administrator has been provisioned. For future

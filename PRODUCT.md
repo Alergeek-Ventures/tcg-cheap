@@ -81,6 +81,31 @@ restore drill, external monitoring/alerts, production catalogue/data
 validation, public source/republication rights, representative evidence,
 broader pilot/MVP work, and PostgreSQL 18.4-versus-18.6 update risk remain open.
 
+## Approved production Singles collection — 2026-08-19
+
+Singles production collection is fail-closed. `CardPrinting` scopes are
+`pitch_black_full`, `rolling_ir_sir`, `curated_playable`, and `legacy_local`,
+with expiry and provenance. Provider imports/briefs never auto-scope. Public
+Home search/recent, CardDetail, Trade, and mover SQL require active nonexpired
+scope. Migration backfill assigns existing local rows only to `legacy_local`,
+preserving useful local state while empty production gains no broad rows; broad
+catalogue discovery remains private.
+
+Bootstrap starts within 15 minutes and is successful-run unique for seven days.
+It strictly discovers TCGdex sets, imports every `me05` card, and imports only
+exact IR/SIR cards from the inclusive rolling prior two calendar years, in
+chunks of at most 20. Complete set `cardCount` evidence is required;
+incomplete/transient evidence retries, and scanned non-target cards are never
+imported. Daily 14:00 UTC refresh keyset-paginates active scoped matched cards
+and enqueues stale/missing valuations; `ValuationWorker` remains the sole
+provider-budget admission immediately before HTTP. Operations provides a
+manual scoped trigger.
+
+`curated_playable` is modeled but not populated: dated Limitless evidence,
+official legality evidence, and explicit editorial approval are required. No
+sealed production adapter is enabled. This is an approved implementation scope,
+not a claim that production data has already been collected.
+
 ## Current implementation checkpoint — 2026-08-10
 
 Private sealed retailer adapters now include reusable `TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI` request, pagination, and normalization mechanics; LootQuest uses it without intended behavior change. CardzHouse (fixed endpoint/category `742`) and BoosterPoint (fixed endpoint/category `61`) are new development/private-test-only adapters. All three remain manual and development-only: there is no sealed Cron or public schedule, and each source has an independent zero-cost budget of 50/hour, 100/day, and 500/month. Their exact host/path/category/field policies enforce per-page admission, disabled redirects/retries, bounded pages/listings/body/time, strict PLN minor-unit conversion, conservative English sealed filtering, and exact direct-URL validation. Public recurring acquisition/republication permission remains unresolved.

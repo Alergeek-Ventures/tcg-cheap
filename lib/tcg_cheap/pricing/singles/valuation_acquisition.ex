@@ -33,6 +33,29 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
 
   def enqueue_if_stale(_input, _opts), do: {:error, :invalid_options}
 
+  @doc """
+  Enqueue stale valuation work from trusted background paths.
+
+  This keeps canonical-card, freshness, and Oban deduplication checks while
+  bypassing only the public peer admission. Provider budget admission remains
+  the responsibility of `ValuationWorker`, immediately before its HTTP call.
+  """
+  @spec enqueue_if_stale_background(map() | String.t(), keyword()) ::
+          {:fresh, TcgCheap.Pricing.Singles.SingleValuationSnapshot.t()}
+          | {:enqueued, Oban.Job.t()}
+          | {:error, term()}
+  def enqueue_if_stale_background(input, opts \\ [])
+
+  def enqueue_if_stale_background(input, opts) when is_list(opts) do
+    if Keyword.has_key?(opts, :request_admitter) do
+      {:error, :invalid_options}
+    else
+      enqueue_if_stale(input, Keyword.put(opts, :request_admitter, fn -> :ok end))
+    end
+  end
+
+  def enqueue_if_stale_background(_input, _opts), do: {:error, :invalid_options}
+
   @doc "Subscribe before requesting freshness, so callers can reconcile the result."
   def subscribe_and_request(input, opts \\ [])
 

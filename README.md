@@ -95,3 +95,12 @@ that the pinned ParadeDB production setup, automatic release migrations, and
 first administrator provisioning are complete. The deployment and operations
 guide remains the source of truth for future deploys, migration gating, admin
 provisioning, ParadeDB upgrades/preload, backups, rollback, and incidents.
+
+The approved production Singles collection is fail-closed: Pitch Black full,
+rolling two-calendar-year IR/SIR, and explicitly approved curated playables
+only. Existing local rows are retained as `legacy_local`; provider imports do
+not grant public collection scope, and empty production does not receive broad
+catalogue rows. See the [MVP plan](knowledge-base/wiki/product/mvp-implementation-plan.md)
+and [operations guide](docs/deployment-and-operations.md) for the rules. This
+scope is documented before collection; it does not claim production data has
+been collected.

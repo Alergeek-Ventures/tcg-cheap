@@ -31,6 +31,14 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute has_element?(view, "#card-detail-not-found", "provider")
   end
 
+  test "a known but unscoped printing is publicly not found", %{conn: conn} do
+    card = create_card("unscoped", scoped?: false)
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+
+    assert has_element?(view, "#card-detail-not-found")
+    refute has_element?(view, "#card-detail-identity")
+  end
+
   test "a missing valuation renders the full local-card detail and queues acquisition", %{
     conn: conn
   } do
@@ -381,6 +389,8 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
   defp create_card(label, overrides \\ []) do
     suffix = System.unique_integer([:positive])
+    fixture_opts = Keyword.take(overrides, [:scoped?, :expires_on])
+    attribute_overrides = Keyword.drop(overrides, [:scoped?, :expires_on])
 
     attrs = %{
       tcgdex_id: "detail-#{label}-#{suffix}",
@@ -391,7 +401,10 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
       cardmarket_product_id: suffix
     }
 
-    TcgCheap.TestSupport.import_card_printing!(Map.merge(attrs, Map.new(overrides)))
+    TcgCheap.TestSupport.import_card_printing!(
+      Map.merge(attrs, Map.new(attribute_overrides)),
+      fixture_opts
+    )
   end
 
   defp record_snapshot(card, value, fetched_at, product_id \\ nil) do

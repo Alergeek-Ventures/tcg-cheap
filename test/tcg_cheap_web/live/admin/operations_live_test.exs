@@ -11,7 +11,13 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
 
   alias AshAuthentication.Phoenix.Plug, as: AuthenticationPlug
   alias TcgCheap.Accounts
-  alias TcgCheap.Catalogue.{CatalogueSyncWorker, SealedRetailerWorker}
+
+  alias TcgCheap.Catalogue.{
+    CatalogueSyncWorker,
+    SealedRetailerWorker,
+    SinglesScopeBootstrapWorker
+  }
+
   alias TcgCheap.Core
   alias TcgCheap.Operations
   alias TcgCheap.Operations.AcquisitionTracker
@@ -98,6 +104,9 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#manual-refresh-retailer-stream[phx-update=stream]")
     assert has_element?(view, "#manual-refresh-catalogue[disabled]")
     assert has_element?(view, "#manual-refresh-catalogue-repair[disabled]")
+    assert has_element?(view, "#manual-refresh-singles-collection-panel")
+    assert has_element?(view, "#manual-refresh-singles-collection-status", "UNCONFIGURED")
+    assert has_element?(view, "#manual-refresh-singles-collection[disabled]")
     assert has_element?(view, "#manual-refresh-catalogue-repair-status", "NO FAILURES")
     assert has_element?(view, "#manual-refresh-catalogue-repair-count", "0")
     assert has_element?(view, "#manual-refresh-exchange-rate[disabled]")
@@ -141,6 +150,19 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     refute html =~ "retailer-source-secret"
     refute html =~ "OperationsManualRefreshTestAdapter"
     refute html =~ "adapter_options"
+
+    assert has_element?(view, "#manual-refresh-singles-collection-panel")
+    refute has_element?(view, "#manual-refresh-singles-collection[disabled]")
+    view |> element("#manual-refresh-singles-collection") |> render_click()
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: SinglesScopeBootstrapWorker,
+      args: %{"as_of" => Date.to_iso8601(Date.utc_today())}
+    )
+
+    view |> element("#manual-refresh-singles-collection") |> render_click()
+    assert has_element?(view, "#flash-info", "already queued")
 
     view |> element("#manual-refresh-catalogue") |> render_click()
 

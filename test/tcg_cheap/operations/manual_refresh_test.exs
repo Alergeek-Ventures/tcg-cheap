@@ -9,7 +9,13 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
   import Oban.Testing
 
   alias TcgCheap.Accounts
-  alias TcgCheap.Catalogue.{CatalogueSyncWorker, SealedRetailerWorker}
+
+  alias TcgCheap.Catalogue.{
+    CatalogueSyncWorker,
+    SealedRetailerWorker,
+    SinglesScopeBootstrapWorker
+  }
+
   alias TcgCheap.Core
   alias TcgCheap.Operations
   alias TcgCheap.Operations.{AcquisitionBudget, ImportIssues, ManualRefresh, Overview}
@@ -44,6 +50,7 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     assert {:ok, targets} = ManualRefresh.targets(admin)
 
     assert Enum.map(targets, & &1.kind) == [
+             :singles_collection,
              :catalogue_sync,
              :catalogue_repair,
              :exchange_rate,
@@ -106,6 +113,23 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
 
     assert {:error, :invalid_target} =
              ManualRefresh.enqueue(admin, {:catalogue_sync, "caller-controlled"})
+  end
+
+  test "queues only the server-dated scoped Singles bootstrap", %{admin: admin} do
+    assert {:ok, %{status: :queued, job_id: job_id}} =
+             ManualRefresh.enqueue(admin, :singles_collection)
+
+    assert_enqueued(
+      repo: TcgCheap.Repo,
+      worker: SinglesScopeBootstrapWorker,
+      args: %{"as_of" => Date.to_iso8601(Date.utc_today())}
+    )
+
+    assert {:ok, %{status: :already_queued, job_id: ^job_id}} =
+             ManualRefresh.enqueue(admin, :singles_collection)
+
+    assert {:error, :invalid_target} =
+             ManualRefresh.enqueue(admin, {:singles_collection, "caller-controlled"})
   end
 
   test "queues the failed-set scope without exposing set identifiers", %{admin: admin} do

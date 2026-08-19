@@ -1,5 +1,15 @@
 # Wiki Log
 
+## [2026-08-19] Approved scoped Singles production collection | Primary-source capture
+- Task completed: Documented fail-closed `pitch_black_full`, `rolling_ir_sir`, `curated_playable`, and `legacy_local` scopes, expiry/provenance, legacy-only migration backfill, public-read requirements, seven-day successful-bootstrap uniqueness, <=20 complete-evidence chunks, daily 14:00 UTC scoped refresh, sole ValuationWorker budget admission, manual admin trigger, private broad discovery, and disabled sealed production acquisition.
+- Research captured immutably in [the primary-source record](../raw/2026-08-19-production-singles-scope-sources.md): live TCGdex `me05` release `2026-07-17`, `cardCount.official` 84 and `cardCount.total` plus `cards` briefs 120, complete set-list evidence, set/card shapes and rarity strings; official Pokémon announcement/gallery; official 2026 rotation; and Limitless tournament/developer candidate URLs. Access, licensing, attribution, and IP/production-permission caveats are explicit.
+- Validation: Full suite 836; all static gates, Ash codegen, generated schema+data migrations, and multi-agent review approved. Current deployment state remains unchanged; no production collection is claimed. `git diff --check` passed.
+- Files: Updated only the requested README, PRODUCT, deployment guide, raw capture, architecture/product wiki articles, index, and log.
+
+## [2026-08-19] Deterministic wiki lint | Scoped Singles collection documentation
+- Validation: 5 articles; 7 raw captures; 15/15 metadata fields; 5/5 indexed; 54 local links (22 internal, 32 raw); 0 broken links; 7 new Singles raw references; 0 deterministic errors; 0 auto-fixes.
+- Heuristic contradiction review: No contradictions for scheduled-vs-empty production, broad-private-vs-fail-closed-public, curated playables unpopulated, or public rights.
+
 ## [2026-08-19] Deterministic wiki lint | Production deployment checkpoint update
 - Validation: 5 articles; 5/5 indexed; 15/15 metadata fields with exactly one Updated/Sources/Raw per article; 47/47 Markdown links resolved; 25/25 Raw links resolved; 0 deterministic errors; 0 heuristic deployment contradictions; 0 auto-fixes.
 

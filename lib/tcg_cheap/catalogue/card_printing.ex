@@ -61,6 +61,28 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       check_constraint [:mapping_authority], "card_printings_mapping_authority_invariant",
         check: "mapping_authority IN ('provider', 'administrator')",
         message: "has invalid mapping authority"
+
+      check_constraint [
+                         :collection_scopes,
+                         :collection_scope_source,
+                         :collection_scoped_at,
+                         :collection_expires_on
+                       ],
+                       "card_printings_collection_scope_invariant",
+                       check:
+                         "((collection_scopes = '{}' AND collection_scope_source IS NULL AND collection_scoped_at IS NULL AND collection_expires_on IS NULL) OR (collection_scopes <> '{}' AND collection_scope_source IS NOT NULL AND collection_scoped_at IS NOT NULL)) AND (collection_expires_on IS NULL OR collection_scoped_at IS NULL OR collection_expires_on >= (collection_scoped_at AT TIME ZONE 'UTC')::date)",
+                       message: "has inconsistent collection scope metadata"
+
+      check_constraint [:collection_scopes], "card_printings_collection_scope_values",
+        check:
+          "collection_scopes <@ ARRAY['pitch_black_full', 'rolling_ir_sir', 'curated_playable', 'legacy_local']::text[]",
+        message: "has invalid collection scopes"
+
+      check_constraint [:collection_scope_source],
+                       "card_printings_collection_scope_source_values",
+                       check:
+                         "collection_scope_source IS NULL OR collection_scope_source IN ('system', 'administrator', 'legacy')",
+                       message: "has invalid collection scope source"
     end
   end
 
@@ -156,8 +178,68 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       prepare build(load: [:card_set, :tcgdex_cardmarket_v1_current_valuation])
     end
 
+    read :singles_valuation_candidates do
+      argument :cursor, :string, allow_nil?: true
+
+      argument :limit, :integer,
+        allow_nil?: false,
+        default: 1_000,
+        constraints: [min: 1, max: 1_000]
+
+      filter expr(
+               collection_scopes != [] and
+                 (is_nil(collection_expires_on) or collection_expires_on >= today()) and
+                 mapping_status == "matched" and
+                 not is_nil(cardmarket_product_id) and cardmarket_product_id > 0 and
+                 (is_nil(^arg(:cursor)) or tcgdex_id > ^arg(:cursor))
+             )
+
+      prepare build(
+                load: [:tcgdex_cardmarket_v1_current_valuation],
+                sort: [tcgdex_id: :asc, id: :asc],
+                limit: arg(:limit)
+              )
+    end
+
+    read :public_by_tcgdex_id do
+      argument :tcgdex_id, :string, allow_nil?: false
+      get? true
+
+      filter expr(
+               tcgdex_id == ^arg(:tcgdex_id) and not is_nil(collection_scopes) and
+                 collection_scopes != [] and
+                 (is_nil(collection_expires_on) or collection_expires_on >= today())
+             )
+    end
+
+    read :public_by_tcgdex_ids do
+      argument :tcgdex_ids, {:array, :string},
+        allow_nil?: false,
+        constraints: [max_length: 100, items: [max_length: 160], nil_items?: false]
+
+      filter expr(
+               tcgdex_id in ^arg(:tcgdex_ids) and collection_scopes != [] and
+                 (is_nil(collection_expires_on) or collection_expires_on >= today())
+             )
+
+      prepare build(load: [:card_set, :tcgdex_cardmarket_v1_current_valuation])
+    end
+
     read :recently_tracked do
       filter expr(not is_nil(last_synced_at))
+
+      prepare build(
+                load: [:tcgdex_cardmarket_v1_current_valuation],
+                sort: [last_synced_at: :desc, tcgdex_id: :asc, id: :asc],
+                limit: 10
+              )
+    end
+
+    read :public_recently_tracked do
+      filter expr(
+               not is_nil(last_synced_at) and collection_scopes != [] and
+                 (is_nil(collection_expires_on) or collection_expires_on >= today())
+             )
 
       prepare build(
                 load: [:tcgdex_cardmarket_v1_current_valuation],
@@ -170,6 +252,34 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
       argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]
       prepare TcgCheap.Catalogue.Preparations.Search
+    end
+
+    read :public_search do
+      argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
+      argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]
+      prepare TcgCheap.Catalogue.Preparations.PublicSearch
+    end
+
+    update :set_collection_scope do
+      public? false
+      require_atomic? false
+
+      argument :collection_scopes, {:array, :string},
+        allow_nil?: false,
+        constraints: [max_length: 4, items: [max_length: 32]]
+
+      argument :collection_scope_source, :string,
+        allow_nil?: true,
+        constraints: [max_length: 32]
+
+      argument :collection_scoped_at, :utc_datetime_usec, allow_nil?: true
+      argument :collection_expires_on, :date, allow_nil?: true
+      validate one_of(:collection_scope_source, ["system", "administrator", "legacy"])
+      validate TcgCheap.Catalogue.Validations.CollectionScope
+      change set_attribute(:collection_scopes, arg(:collection_scopes))
+      change set_attribute(:collection_scope_source, arg(:collection_scope_source))
+      change set_attribute(:collection_scoped_at, arg(:collection_scoped_at))
+      change set_attribute(:collection_expires_on, arg(:collection_expires_on))
     end
 
     read :lock_for_update_by_id do
@@ -254,8 +364,13 @@ defmodule TcgCheap.Catalogue.CardPrinting do
              :seed_brief,
              :by_tcgdex_id,
              :by_tcgdex_ids,
+             :public_by_tcgdex_id,
+             :public_by_tcgdex_ids,
              :recently_tracked,
+             :public_recently_tracked,
              :search,
+             :public_search,
+             :set_collection_scope,
              :lock_for_update_by_id,
              :lock_for_update_by_tcgdex_id
            ]) do
@@ -358,6 +473,17 @@ defmodule TcgCheap.Catalogue.CardPrinting do
 
     attribute :mapping_review_reason, :string, public?: true
     attribute :mapping_authority, :string, allow_nil?: false, default: "provider", public?: true
+
+    attribute :collection_scopes, {:array, :string} do
+      allow_nil? false
+      default []
+      public? true
+      constraints items: [max_length: 32]
+    end
+
+    attribute :collection_scope_source, :string, public?: true
+    attribute :collection_scoped_at, :utc_datetime_usec, public?: true
+    attribute :collection_expires_on, :date, public?: true
 
     create_timestamp :created_at
     update_timestamp :updated_at

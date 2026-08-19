@@ -1,10 +1,16 @@
 # Application Foundation
 
 - Updated: 2026-08-19
-- Sources: Project code; local validation; `PRODUCT.md`; `DESIGN.md`; `.impeccable/design.json`; [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
-- Raw: [2026-08-08 NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [2026-08-09 LootQuest Store API](../../raw/2026-08-09-lootquest-store-api.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
+- Sources: Project code; local validation; `PRODUCT.md`; `DESIGN.md`; `.impeccable/design.json`; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
+- Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-08 NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [2026-08-09 LootQuest Store API](../../raw/2026-08-09-lootquest-store-api.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
 
 ## Deployment foundation — 2026-08-19
+
+## Production Singles collection boundary — 2026-08-19
+
+`CardPrinting` has fail-closed scopes `pitch_black_full`, `rolling_ir_sir`, `curated_playable`, and `legacy_local`, with expiry and provenance. Provider imports/briefs never auto-scope. Public Home search/recent, CardDetail, Trade, and mover SQL require active nonexpired scope; broad unscoped discovery remains private. Migration backfill marks preexisting local rows only as `legacy_local`, preserving useful state while empty production gains no broad rows.
+
+Automatic bootstrap starts within 15 minutes and is successful-run unique for seven days. It strictly discovers TCGdex sets, imports every `me05` card, and dynamically imports only exact IR/SIR cards from the inclusive rolling prior two calendar years. Chunks are <=20, complete `cardCount` evidence is required, incomplete/transient evidence retries, and scanned non-target cards are never imported. Daily 14:00 UTC refresh keyset-paginates active scoped matched cards and enqueues stale/missing valuations; `ValuationWorker` remains sole provider-budget admission immediately before HTTP. Admin operations has a manual scoped trigger. Curated playables remain empty until dated Limitless evidence, official legality evidence, and explicit editorial approval. No sealed production adapter is enabled, and no production collection is claimed yet.
 
 The local, CI, and Coolify deployment target is the exact multi-architecture OCI index `docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649495964b296ad7c0931658dbf99d3cf1b35bc994`, containing amd64 and arm64 manifests. It bundles PostgreSQL 18.4, `pg_search` 0.25.2, and `pgvector` 0.8.4. The product owner confirms this pinned ParadeDB production setup is complete. Stock PostgreSQL current is 18.6, so choosing this target is an explicit minor security/bugfix tradeoff to revisit on validated ParadeDB updates.
 

@@ -469,6 +469,14 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#add-to-right")
   end
 
+  test "trade search cannot stage an unscoped known card", %{conn: conn} do
+    card = card("unscoped", "Unscoped Trade", 3, scoped?: false)
+    {:ok, view, _html} = live(conn, ~p"/trade")
+
+    render_hook(view, "search", %{"search" => %{"query" => "Unscoped Trade"}})
+    refute has_element?(view, "#trade-card-option-#{card.id}")
+  end
+
   test "trade search shows stable recovery states", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/trade")
 
@@ -640,19 +648,22 @@ defmodule TcgCheapWeb.TradeLiveTest do
     |> Kernel.==(1)
   end
 
-  defp card(prefix, name, number) do
+  defp card(prefix, name, number, fixture_opts \\ []) do
     suffix = System.unique_integer([:positive])
     set = Core.import_card_set!(%{tcgdex_id: "trade-set-#{suffix}", name: "Trade Set"})
 
-    TcgCheap.TestSupport.import_card_printing!(%{
-      tcgdex_id: "#{prefix}-#{suffix}",
-      name: name,
-      set_name: set.name,
-      collector_number: Integer.to_string(number),
-      card_set_id: set.id,
-      mapping_status: "matched",
-      cardmarket_product_id: suffix
-    })
+    TcgCheap.TestSupport.import_card_printing!(
+      %{
+        tcgdex_id: "#{prefix}-#{suffix}",
+        name: name,
+        set_name: set.name,
+        collector_number: Integer.to_string(number),
+        card_set_id: set.id,
+        mapping_status: "matched",
+        cardmarket_product_id: suffix
+      },
+      fixture_opts
+    )
   end
 
   defp snapshot(card, value, fetched_at \\ DateTime.utc_now()) do

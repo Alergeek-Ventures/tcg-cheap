@@ -84,6 +84,8 @@ config :tcg_cheap, Oban,
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,
      crontab: [
+       {"*/15 * * * *", TcgCheap.Catalogue.SinglesScopeBootstrapWorker, args: %{}},
+       {"0 14 * * *", TcgCheap.Pricing.Singles.ValuationRefreshWorker, args: %{}},
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
        # Daily at 16:00 UTC, after the 15:00 UTC NBP job.
@@ -98,6 +100,11 @@ config :tcg_cheap, :catalogue_sync,
   batch_size: 20,
   batch_delay_seconds: 900,
   budget_backoff_seconds: 3_600
+
+config :tcg_cheap, :singles_collection,
+  pitch_black_set_id: "me05",
+  rolling_rarities: ["Illustration rare", "Special illustration rare"],
+  chunk_size: 20
 
 config :tcg_cheap, :valuation_clock, &DateTime.utc_now/0
 

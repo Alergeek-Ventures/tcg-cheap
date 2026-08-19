@@ -20,8 +20,8 @@ defmodule TcgCheapWeb.CardDetailLive do
 
   @impl true
   def mount(%{"tcgdex_id" => tcgdex_id}, _session, socket) do
-    case Core.get_card_printing_by_tcgdex_id(tcgdex_id) do
-      {:ok, card} ->
+    case Core.get_public_card_printing_by_tcgdex_id(tcgdex_id) do
+      {:ok, card} when is_map(card) ->
         socket =
           socket
           |> assign(
@@ -358,7 +358,7 @@ defmodule TcgCheapWeb.CardDetailLive do
   defp reload_card_mapping(socket, card) do
     socket = clear_valuation_state(socket)
 
-    case Core.get_card_printing_by_tcgdex_id(card.tcgdex_id) do
+    case Core.get_public_card_printing_by_tcgdex_id(card.tcgdex_id) do
       {:ok, latest_card} ->
         {:ok,
          socket

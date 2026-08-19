@@ -37,7 +37,9 @@ defmodule TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges do
             WHERE current_cp.id = s.card_printing_id
               AND current_cp.mapping_status = 'matched'
               AND current_cp.cardmarket_product_id > 0
-              AND current_cp.cardmarket_product_id = s.cardmarket_product_id
+               AND current_cp.cardmarket_product_id = s.cardmarket_product_id
+              AND current_cp.collection_scopes <> '{}'
+              AND (current_cp.collection_expires_on IS NULL OR current_cp.collection_expires_on >= CURRENT_DATE)
           )
         ORDER BY s.card_printing_id, (s.fetched_at AT TIME ZONE 'UTC')::date,
           s.fetched_at DESC, s.id DESC

@@ -1,8 +1,8 @@
 # Pokémon Market & Trade Platform — Detailed MVP Implementation Plan
 
 - Updated: 2026-08-19
-- Sources: Product specification supplied by project owner; [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation
-- Raw: [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
+- Sources: Product specification supplied by project owner; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation
+- Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md)
 
 ## Current production deployment checkpoint — 2026-08-19
 
@@ -31,6 +31,14 @@ representative evidence, broader pilot/MVP work, and PostgreSQL
 The personal pilot is now deliberately staged around deployment rather than a broad public launch. The first gate is deployment through the existing Coolify environment. Public read pages remain public on the existing unlisted/internal domain, while administration remains authenticated. This does not change robots or noindex behavior. There is no archive/backfill scope: history is collected prospectively.
 
 For sealed stage one, include products released in the rolling last three years, with sourced MSRP/RRP when available, the current overall/Cardmarket benchmark, and retailer links. For singles stage one, include the full Pitch Black set, IR/SIR cards from the rolling last two years, and a curated set of playable Trainers/Items/Supporters; bulk singles remain out except for those playables. These are the current pilot priorities, not a silent deletion of the original MVP requirements below; the broader product scope, requirements, phases, and acceptance criteria remain historical authoritative requirements unless the owner explicitly supersedes them.
+
+### Approved production Singles collection scope
+
+`CardPrinting` uses fail-closed scopes `pitch_black_full`, `rolling_ir_sir`, `curated_playable`, and `legacy_local`, with expiry and provenance. Provider imports/briefs never auto-scope. Public Home search/recent, CardDetail, Trade, and mover SQL require active nonexpired scope. Migration backfill assigns preexisting local rows only to `legacy_local`, preserving useful state while empty production gains no broad rows; broad discovery remains private.
+
+Automatic bootstrap starts within 15 minutes and is successful-run unique for seven days. It strictly discovers TCGdex sets, imports every `me05` card, and dynamically imports only exact IR/SIR cards from the inclusive rolling prior two calendar years. Chunks are <=20, complete `cardCount` evidence is required, incomplete/transient evidence retries, and scanned non-target cards are never imported. Daily 14:00 UTC refresh keyset-paginates active scoped matched cards and enqueues stale/missing valuations; `ValuationWorker` remains sole provider-budget admission immediately before HTTP. Admin operations has a manual scoped trigger.
+
+`curated_playable` remains modeled but unpopulated: candidates require dated Limitless evidence, official legality evidence, and explicit editorial approval. No sealed production adapter is enabled. This documents approved behavior and research, not a claim that production data has already been collected.
 
 The deployment-foundation batch is implemented locally. The local, CI, and Coolify target is the exact multi-architecture OCI index `docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649495964b296ad7c0931658dbf99d3cf1b35bc994`, with amd64 and arm64 manifests, PostgreSQL 18.4, `pg_search` 0.25.2, and `pgvector` 0.8.4. Stock PostgreSQL current is 18.6; this is an explicit minor security/bugfix tradeoff to revisit on validated ParadeDB updates. Local Compose explicitly preloads `pg_search`, `pg_cron`, and `pg_stat_statements`. Existing compatible stock-PG18 volumes must not be reset: intentional container recreation/restart and `SHOW shared_preload_libraries` verification are required. Fresh ParadeDB may bootstrap extensions, while TCG Cheap-owned migrations/resources/queries currently require only existing Ash functions, `citext`, and `pg_trgm`, with no BM25/vector use.
 

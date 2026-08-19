@@ -105,6 +105,17 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     assert {:ok, []} = Core.list_homepage_price_changes(@as_of, 4)
   end
 
+  test "price changes exclude unscoped and expired cards" do
+    active = card("scoped-active")
+    unscoped = card("scoped-unscoped", scoped?: false)
+    expired = card("scoped-expired", expires_on: Date.add(Date.utc_today(), -1))
+
+    Enum.each([active, unscoped, expired], &snapshots(&1, [{8, "10"}, {0, "20"}]))
+
+    assert {:ok, [change]} = Core.list_homepage_price_changes(@as_of, 10)
+    assert change.card_printing_id == active.id
+  end
+
   test "recent releases are public, released, and bounded" do
     since = ~D[2026-07-01]
     older = released_product("older", ~D[2026-08-01])
@@ -139,15 +150,18 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     assert length(bounded) == 5
   end
 
-  defp card(label) do
-    TcgCheap.TestSupport.import_card_printing!(%{
-      tcgdex_id: "homepage-#{label}-#{System.unique_integer([:positive])}",
-      name: "Homepage #{label}",
-      set_name: "Homepage Set",
-      collector_number: "#{System.unique_integer([:positive])}",
-      mapping_status: "matched",
-      cardmarket_product_id: System.unique_integer([:positive])
-    })
+  defp card(label, fixture_opts \\ []) do
+    TcgCheap.TestSupport.import_card_printing!(
+      %{
+        tcgdex_id: "homepage-#{label}-#{System.unique_integer([:positive])}",
+        name: "Homepage #{label}",
+        set_name: "Homepage Set",
+        collector_number: "#{System.unique_integer([:positive])}",
+        mapping_status: "matched",
+        cardmarket_product_id: System.unique_integer([:positive])
+      },
+      fixture_opts
+    )
   end
 
   defp snapshots(card, points, policy \\ "tcgdex_cardmarket_v1", product_id \\ nil) do

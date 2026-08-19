@@ -2,7 +2,14 @@ defmodule TcgCheap.Operations.ManualRefresh do
   @moduledoc "Safe, bounded boundary for manually requesting canonical acquisition jobs."
 
   alias TcgCheap.Accounts.{Admin, AdminActor}
-  alias TcgCheap.Catalogue.{CatalogueSyncWorker, Retailer, SealedRetailerAcquisition}
+
+  alias TcgCheap.Catalogue.{
+    CatalogueSyncWorker,
+    Retailer,
+    SealedRetailerAcquisition,
+    SinglesScopeBootstrapWorker
+  }
+
   alias TcgCheap.Operations.{AcquisitionBudget, DataProvider, ImportIssues}
   alias TcgCheap.Pricing.{ExchangeRateAcquisition, ExchangeRateWorker}
   alias TcgCheap.Pricing.Singles.{ValuationAcquisition, ValuationWorker}
@@ -59,6 +66,19 @@ defmodule TcgCheap.Operations.ManualRefresh do
   def enqueue(_, _), do: {:error, :invalid_actor}
 
   defp fixed_targets(budget, persisted_statuses) do
+    singles_target = %{
+      kind: :singles_collection,
+      label: "Scoped Singles collection",
+      provider_key: "tcgdex_catalogue",
+      status:
+        target_status(
+          budget,
+          persisted_statuses,
+          "tcgdex_catalogue",
+          worker_configured?(SinglesScopeBootstrapWorker)
+        )
+    }
+
     catalogue_target = %{
       kind: :catalogue_sync,
       label: "TCGdex catalogue",
@@ -75,6 +95,7 @@ defmodule TcgCheap.Operations.ManualRefresh do
     catalogue_repair_target = catalogue_repair_target(budget, persisted_statuses)
 
     [
+      singles_target,
       catalogue_target,
       catalogue_repair_target,
       %{
@@ -228,6 +249,17 @@ defmodule TcgCheap.Operations.ManualRefresh do
              worker_configured?(CatalogueSyncWorker)
            ) do
       enqueue_job(&CatalogueSyncWorker.enqueue/0)
+    end
+  end
+
+  defp checked_enqueue(:singles_collection, budget, _admin) do
+    with :ok <-
+           provider_available?(
+             budget,
+             "tcgdex_catalogue",
+             worker_configured?(SinglesScopeBootstrapWorker)
+           ) do
+      enqueue_job(fn -> SinglesScopeBootstrapWorker.enqueue(Date.utc_today()) end)
     end
   end
 

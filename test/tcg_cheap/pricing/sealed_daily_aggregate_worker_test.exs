@@ -45,11 +45,17 @@ defmodule TcgCheap.Pricing.SealedDailyAggregateWorkerTest do
         _ -> nil
       end)
 
-    assert {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker, [args: nbp_args]} =
+    assert {"*/15 * * * *", TcgCheap.Catalogue.SinglesScopeBootstrapWorker, [args: %{}]} =
              Enum.at(crontab, 0)
 
+    assert {"0 14 * * *", TcgCheap.Pricing.Singles.ValuationRefreshWorker, [args: %{}]} =
+             Enum.at(crontab, 1)
+
+    assert {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker, [args: nbp_args]} =
+             Enum.at(crontab, 2)
+
     assert nbp_args == %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}
-    assert {"0 16 * * *", SealedDailyAggregateWorker, [args: %{}]} = Enum.at(crontab, 1)
+    assert {"0 16 * * *", SealedDailyAggregateWorker, [args: %{}]} = Enum.at(crontab, 3)
   end
 
   test "cancels malformed clock configuration and clock results" do

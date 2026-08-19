@@ -26,7 +26,7 @@ defmodule TcgCheapWeb.HomeLive do
     as_of_date = DateTime.to_date(as_of)
 
     {recent_cards, recent_cards_ok?} =
-      safe_discovery(fn -> TcgCheap.Core.list_recently_tracked_card_printings() end)
+      safe_discovery(fn -> TcgCheap.Core.list_public_recently_tracked_card_printings() end)
       |> then(fn {rows, ok?} -> {Enum.take(rows, @max_discovery_rows), ok?} end)
 
     {recent_sealed, recent_sealed_ok?} =
@@ -1008,7 +1008,7 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   defp search_locally(socket, query) do
-    case TcgCheap.Core.search_card_printings(query) do
+    case TcgCheap.Core.search_public_card_printings(query) do
       {:ok, results} when is_list(results) and results != [] ->
         options =
           results
@@ -1118,7 +1118,7 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   defp load_card_fallback(socket, query) do
-    case TcgCheap.Core.search_card_printings(query, 4) do
+    case TcgCheap.Core.search_public_card_printings(query, 4) do
       {:ok, cards} when is_list(cards) ->
         socket
         |> assign(fallback_cards_count: length(cards))

@@ -17,6 +17,7 @@ defmodule TcgCheapWeb.Admin.CardPrintingLive do
     panels(
       identity: "Identity",
       metadata: "Card metadata",
+      collection_scope: "Collection scope",
       mapping: "Cardmarket mapping",
       timing: "Timing"
     )
@@ -46,6 +47,15 @@ defmodule TcgCheapWeb.Admin.CardPrintingLive do
       field :regulation_mark, label: "Regulation mark", orderable: false, panel: :metadata
       field :standard_legal, label: "Standard legal", orderable: false, panel: :metadata
       field :expanded_legal, label: "Expanded legal", orderable: false, panel: :metadata
+
+      field :collection_scopes, label: "Scopes", orderable: false, panel: :collection_scope
+      field :collection_scope_source, label: "Source", orderable: false, panel: :collection_scope
+      field :collection_scoped_at, label: "Scoped at", orderable: false, panel: :collection_scope
+
+      field :collection_expires_on,
+        label: "Expires on",
+        orderable: false,
+        panel: :collection_scope
 
       field :mapping_status, label: "Mapping status", orderable: false, panel: :mapping
 

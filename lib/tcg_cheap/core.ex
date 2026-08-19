@@ -18,11 +18,32 @@ defmodule TcgCheap.Core do
       define :seed_card_printing_brief, action: :seed_brief
       define :get_card_printing_by_tcgdex_id, action: :by_tcgdex_id, args: [:tcgdex_id]
       define :list_card_printings_by_tcgdex_ids, action: :by_tcgdex_ids, args: [:tcgdex_ids]
+
+      define :list_singles_valuation_candidates,
+        action: :singles_valuation_candidates,
+        args: [:cursor, :limit]
+
+      define :get_public_card_printing_by_tcgdex_id,
+        action: :public_by_tcgdex_id,
+        args: [:tcgdex_id],
+        not_found_error?: false
+
+      define :list_public_card_printings_by_tcgdex_ids,
+        action: :public_by_tcgdex_ids,
+        args: [:tcgdex_ids]
+
       define :list_recently_tracked_card_printings, action: :recently_tracked
+      define :list_public_recently_tracked_card_printings, action: :public_recently_tracked
 
       define :search_card_printings,
         action: :search,
         args: [:query, {:optional, :limit}]
+
+      define :search_public_card_printings,
+        action: :public_search,
+        args: [:query, {:optional, :limit}]
+
+      define :set_card_printing_collection_scope, action: :set_collection_scope
 
       define :lock_card_printing_for_update, action: :lock_for_update_by_id, args: [:id]
 
