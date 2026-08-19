@@ -1,7 +1,7 @@
 # Reference Project Conventions
 
-- Updated: 2026-08-10
-- Sources: Read-only source audits of `/home/kosciak/projects/alergeek/firmowid` at commit `8a18f66aa28ac8444b5b3445fa3c7b6613fdf056`, `/home/kosciak/projects/alergeek/onside` at commit `ac8d1d942a086bfe868043274fc0f430f30aacef`, and current TCG Cheap code
+- Updated: 2026-08-19
+- Sources: Read-only source audits of Onside at commit `f059847c063e50e15f14f859bb6ac0814deb80ab`, Firmowid at commit `f7bc7ac6e51d0a0ebb9caca639ac4df98451f521`, and current TCG Cheap code
 - Raw: N/A — codebase update
 
 ## Audit status and authority
@@ -13,9 +13,7 @@ for backend-compatible Ash, Postgres, Oban, Req, scoped system actors, and
 operations; it is not a public-UI reference because its product frontend is an
 SPA. Neither repository defines TCG Cheap product requirements.
 
-The audits were read-only. Firmowid was clean at the audited commit. Onside
-already had an unrelated modified `shell.nix`; neither reference repository was
-changed.
+The audits were read-only; neither reference repository was changed.
 
 ## Audit coverage and evidence
 
@@ -34,7 +32,7 @@ changed.
 | Styling/assets | Firmowid uses Phoenix-managed Tailwind/esbuild and self-contained JS hooks (`firmowid/mix.exs:87-88,208-219`; `firmowid/assets/js/hooks/index.js:1-20`). Onside's product UI is React/Volt SPA (`onside/mix.exs:65-67`; `onside/lib/onside_web/volt_react_dev_entry_plugin.ex:1-54`). Adopt neither SPA architecture nor Volt; TCG Cheap remains standard LiveView with Nix/devenv and its existing Tailwind/esbuild pipeline (`tcg-cheap/mix.exs:66-67,98-114`). |
 | Tests/quality | Firmowid and Onside compile tests from `lib` and expose `mix check` (`firmowid/mix.exs:15-17`; `onside/mix.exs:15-17`). Firmowid has colocated tests and `test_paths: ["lib"]`; that colocated test convention is explicitly not adopted. TCG Cheap keeps standard `test/` structure and canonical `mix check`. |
 | Development | Firmowid uses Compose, Infisical, `mix setup`, and `mix dev.up` (`firmowid/README.md:5-23,121-153`). Onside uses worktree-specific ports, Caddy, Infisical, and `mix dev.up/down` (`onside/README.md:36-70`). Adopt reproducible lifecycle and isolation ideas, but TCG Cheap remains Nix/devenv, direct localhost, and deferred Caddy integration. |
-| Deployment/operations/docs | Firmowid documents S3-compatible storage and production environment variables (`firmowid/README.md:160-207`) and has container files under `firmowid/deployment/`. Onside has app and SeaweedFS container files and health/telemetry boundaries (`onside/deployment/Containerfile.app`; `onside/lib/onside_web/health_controller.ex:39-44`). TCG Cheap now adapts the verified pinned Debian release pattern, non-root runtime, release migration module, and JSON health boundary while separating liveness from readiness and adding its own deployment/operations runbook. A real production deployment, restore drill, and monitoring integration remain incomplete. |
+| Deployment/operations/docs | Firmowid documents S3-compatible storage and production environment variables and has container files under `firmowid/deployment/`. Onside has app and SeaweedFS container files and health/telemetry boundaries. TCG Cheap reuses the container/release/health patterns: pinned non-root image, release overlay migration command, and fail-closed readiness distinct from `/health/live` process liveness. It rejects self-hosted/private-action/runner-side migration and deployment workflows; the owner-provided Coolify webhook must migrate the private target database with the target image before promotion. Actual Coolify deployment, restore drill, and monitoring integration remain incomplete. |
 
 ## Decisions for TCG Cheap
 

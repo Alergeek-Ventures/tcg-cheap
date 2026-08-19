@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database-image:
+    name: Validate database image
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      image: ${{ steps.database-image.outputs.image }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Extract and validate database image
+        id: database-image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="$(awk '$1 == "image:" { print $2; exit }' local/compose.yml)"
+          expected='docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649495964b296ad7c0931658dbf99d3cf1b35bc994'
+          test "$image" = "$expected"
+          printf 'image=%s\n' "$image" >> "$GITHUB_OUTPUT"
+
+  check:
+    name: Mix check
+    needs: database-image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MIX_ENV: test
+      DB_PORT: "5432"
+      MIX_HOME: ${{ github.workspace }}/.mix
+    services:
+      postgres:
+        image: ${{ needs.database-image.outputs.image }}
+        env:
+          POSTGRES_DB: tcg_cheap_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tcg_cheap_test"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Elixir and OTP
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1
+        with:
+          elixir-version: 1.20.3
+          otp-version: 29.0
+
+      - name: Restore dependency and build caches
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            deps
+            _build
+            .mix
+            ~/.cache/rebar3
+          key: ${{ runner.os }}-elixir-1.20.3-otp-29.0-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-elixir-1.20.3-otp-29.0-
+
+      - name: Install Hex and Rebar
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+
+      - name: Fetch dependencies
+        run: mix deps.get
+
+      - name: Restore PLT cache
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: priv/plts
+          key: ${{ runner.os }}-plt-elixir-1.20.3-otp-29.0-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-plt-elixir-1.20.3-otp-29.0-
+
+      - name: Run canonical quality gate
+        run: mix check --verbose
+
+  container:
+    name: Build application container
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build application container
+        run: docker build --file deployment/Containerfile.app --tag tcg-cheap:ci .

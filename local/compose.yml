@@ -1,7 +1,11 @@
 services:
   # Keep this file to exactly one service: Podman Compose 1.6 cannot filter `ps -q` by service.
   postgres:
-    image: docker.io/library/postgres:18.4-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
+    image: docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649495964b296ad7c0931658dbf99d3cf1b35bc994
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_search,pg_cron,pg_stat_statements
     environment:
       POSTGRES_DB: tcg_cheap_dev
       POSTGRES_USER: postgres

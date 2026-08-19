@@ -83,7 +83,11 @@ if config_env() == :prod do
         """
     end
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host =
+    case String.trim(System.get_env("PHX_HOST") || "") do
+      "" -> raise "environment variable PHX_HOST is missing."
+      host -> host
+    end
 
   config :tcg_cheap, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 

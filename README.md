@@ -39,6 +39,22 @@ The default direct URLs are:
 - Phoenix: <http://localhost:4004>
 - PostgreSQL: `localhost:5436`
 
+The ParadeDB image ships `pg_search` and `pgvector` and may bootstrap their
+extension installation on a fresh database. Local Compose explicitly requests
+`pg_search`, `pg_cron`, and `pg_stat_statements` in
+`shared_preload_libraries`; `pg_search` must be preloaded before use. A
+compatible volume previously initialized under stock PostgreSQL may expose the
+extensions as available without having installed or preloaded them. The
+current local container should not be restarted blindly: this takes effect on
+the next intentional `mix dev.down` followed by `mix dev.up`. Verify with
+`SHOW shared_preload_libraries` and confirm it includes `pg_search` before any
+future migration enables pg_search.
+
+Do not use `mix dev.reset` or delete an existing local or production volume
+just to enable preload. Back up the data and recreate the container against
+the same compatible volume instead. TCG Cheap-owned migrations, resources,
+and queries do not currently depend on or use BM25 or vector functionality.
+
 Read `.server.port` for the current Phoenix port. Worktrunk assigns hashed
 ports to parallel worktrees, so use that port for direct `localhost` URLs (and
 for Tidewave at `http://localhost:{PORT}/tidewave/mcp`). Caddy integration is
@@ -64,6 +80,17 @@ needed.
 
 ## Deployment and operations
 
+Local development, CI, and the Coolify database target use the pinned ParadeDB
+image `docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649495964b296ad7c0931658dbf99d3cf1b35bc994`.
+See the [deployment and operations guide](docs/deployment-and-operations.md)
+for its PostgreSQL/extension compatibility and upgrade requirements.
+
 Production image build, release migrations, administrator provisioning,
 backups, rollback, and incident guidance are documented in
 [Deployment and operations](docs/deployment-and-operations.md).
+
+The repository is prepared as a public-repository Coolify deployment target:
+public read pages remain public while administration is protected. The actual
+Coolify deployment exercise is still pending; see the operations guide for
+the target variables, owner-provided migration webhook, health checks, and
+initial rollout plan.

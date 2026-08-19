@@ -22,3 +22,27 @@ devenv.local.nix
 *.pid
 *.log
 /tmp/
+
+# Local secrets and environment files
+/.env
+/.env.*
+!/.env.example
+
+# Local Elixir and JavaScript caches
+/.elixir_ls/
+/.mix/
+/priv/plts/
+/node_modules/
+/assets/node_modules/
+
+# Browser test artifacts
+/playwright-report/
+/test-results/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Private keys and certificates
+*.key
+*.pem

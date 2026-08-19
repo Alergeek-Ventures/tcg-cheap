@@ -1,0 +1,37 @@
+# Secrets and local configuration
+.env*
+*.key
+*.pem
+
+# VCS and local development state
+.git
+.github
+.direnv
+.devenv
+devenv.lock
+devenv.nix
+devenv.yaml
+.opencode
+
+# Build and dependency caches (the Containerfile copies source explicitly)
+_build
+deps
+node_modules
+assets/node_modules
+.elixir_ls
+priv/plts
+
+# Tests, documentation, and project knowledge base
+test
+tests
+docs
+knowledge-base
+*.md
+
+# Logs, uploads, and local runtime data
+*.log
+erl_crash.dump
+.server.port
+uploads
+tmp
+local
