@@ -282,6 +282,17 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       change set_attribute(:collection_expires_on, arg(:collection_expires_on))
     end
 
+    update :add_collection_scopes do
+      public? false
+      require_atomic? false
+      transaction? true
+      argument :incoming_scopes, {:array, :string}, allow_nil?: false
+      argument :incoming_expires_on, :date, allow_nil?: true
+      argument :scoped_at, :utc_datetime_usec, allow_nil?: false
+      validate TcgCheap.Catalogue.Validations.CollectionScope
+      change TcgCheap.Catalogue.Changes.AddCollectionScopes
+    end
+
     read :lock_for_update_by_id do
       argument :id, :uuid, allow_nil?: false
       get? true
@@ -371,6 +382,7 @@ defmodule TcgCheap.Catalogue.CardPrinting do
              :search,
              :public_search,
              :set_collection_scope,
+             :add_collection_scopes,
              :lock_for_update_by_id,
              :lock_for_update_by_tcgdex_id
            ]) do

@@ -132,6 +132,16 @@ provider.
 
 ## Production Singles collection operations
 
+### Owner direction — 2026-08-20
+
+All interested parties agreed that recurring source pulls are permitted for the
+internal MVP. The existing internal/unlisted domain
+<https://tcg-cheap.d.alergeek.me> is the demonstration surface. Sealed recurring
+acquisition is implemented locally and pending commit/deploy. Preserve budgets,
+rate limits, safety, attribution, and data-minimization requirements. If the
+demonstration is stopped, Coolify/app takedown is the operational stop; broad
+launch follows the stakeholder demo.
+
 ### Collection policy v2 — operational correction
 
 The bounded discovery policy is v2. A public unauthenticated observation on
@@ -163,11 +173,43 @@ imported. Daily at 14:00 UTC, refresh keyset-paginates active scoped matched
 cards and enqueues stale/missing valuations. `ValuationWorker` is the sole
 provider-budget admission immediately before HTTP.
 
-Operations provides a manual scoped collection trigger. `curated_playable` is
-modeled but empty until dated Limitless evidence, official legality evidence,
-and explicit editorial approval exist. No sealed production adapter is enabled.
-Do not treat implementation readiness as evidence that production data has
-already been collected.
+Operations provides a manual scoped collection trigger. `curated_playable` has
+dated official/Limitless/TCGdex evidence and explicit approval for local
+implementation; its seven-entry implementation exists locally but is not yet
+committed, deployed, or collected publicly. Sealed recurring acquisition is
+implemented locally and pending commit/deploy: the centrally configured weekly
+UTC schedule runs Monday at 01:00 for LootQuest (`regular_retailer`), 02:00 for
+CardzHouse (`lgs`), and 03:00 for BoosterPoint (`lgs`). Deployment configures six
+providers in total, and each sealed source is limited to 50 requests/hour,
+100/day, and 500/month. Provider controls can disable a source; taking the
+Coolify application down is the operational stop when needed.
+
+Current production checkpoint is commit `ccc394c`, with green CI run
+<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32285087422>.
+At 2026-08-19 18:16 UTC, exact public Pitch Black `me05-001` through at least
+`me05-040` had imported/scoped and rendered real Cardmarket aggregate snapshots
+(001 €0.02, 021 €0.02, 040 €0.03); Tropius autocomplete returned exact
+`me05-001`, unscoped `base1-001` remained not found, and browser console
+warnings/errors were zero. This closes initial production data validation, not
+complete 120-card or rolling IR/SIR coverage; collection remained budgeted and
+in progress.
+
+### Curated playable manifest — approved local implementation, pending deployment
+
+The fixed seven-entry policy version is `2026-08-19-naic`. A separate
+15-minute bootstrap is successful-run unique while retained by the configured
+seven-day Oban Pruner and creates seven priority-1 child jobs. Completed bootstrap
+and child jobs remain deduplicated while retained by that Pruner. Each child admits at most two TCGdex requests
+per card per attempt and validates exact identity, legality,
+and set;
+expiry is fixed and non-sliding. Shared Ash transaction plus row-lock scope
+merging applies rolling/Pitch Black/legacy/admin precedence, and matched cards
+enqueue valuation. No request-path HTTP or sealed adapter is involved; existing
+Pitch v2 remains independent. Rows become public only after successful deploy
+and import, then expire automatically. This batch is not yet committed,
+deployed, or collected publicly. The evidence manifest is [here](../knowledge-base/raw/2026-08-19-curated-playable-manifest.md),
+expires inclusive 2026-11-17. Representative evidence, backups, and monitoring
+remain required.
 
 ## First administrator
 
@@ -237,7 +279,9 @@ acquisition work while cached, stale data remains available; they are not a
 substitute for fixing credentials, limits, provider outages, or other source
 failures.
 
-Sealed adapters are disabled by default and must not be treated as a claim
-that production data exists. During an incident, keep serving the last known
-cached or explicitly stale data, label its age, and disable refreshes until
-source and persistence paths are safe.
+The three configured recurring sealed adapters—LootQuest, CardzHouse, and
+BoosterPoint—can each be disabled through persisted provider controls. If a
+broader stop is necessary, taking the app down in Coolify is the operational
+stop. While refresh is disabled, continue serving cached or stale data and
+label its age until source and persistence paths are safe; this does not claim
+that production data exists.

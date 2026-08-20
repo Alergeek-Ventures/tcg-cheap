@@ -1,5 +1,9 @@
 defmodule TcgCheap.Catalogue.SealedRetailers.BoosterPoint do
-  @moduledoc "Development/private-test BoosterPoint WooCommerce sealed adapter."
+  @moduledoc """
+  This fixed-policy adapter is approved for agreed recurring internal MVP acquisition. Persisted
+  provider controls, request budgets, exact source policy, and Coolify/app takedown are operational
+  safeguards.
+  """
 
   @behaviour TcgCheap.Catalogue.SealedRetailerAdapter
 

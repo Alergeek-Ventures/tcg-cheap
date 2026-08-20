@@ -105,7 +105,12 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     ]
 
     put_fixture(provider, set_id, ids, cards, "2024-08-19")
-    assert :ok = SinglesSetCollectionWorker.perform(job(set_id, 0))
+
+    assert :ok =
+             SinglesSetCollectionWorker.perform_on(
+               job(set_id, 0),
+               ~U[2026-08-19 12:00:00Z]
+             )
 
     assert TcgCheap.Core.get_card_printing_by_tcgdex_id!(Enum.at(ids, 0)).collection_scopes == [
              "rolling_ir_sir"
@@ -139,6 +144,21 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     set_id = hd(Map.keys(Agent.get(provider, & &1.sets)))
     assert :ok = SinglesSetCollectionWorker.perform(job(set_id, 0))
     assert Agent.get(provider, & &1.fetched) == []
+  end
+
+  test "delayed rolling execution skips an expired boundary card", %{provider: provider} do
+    id = hd(card_ids(1))
+    set_id = "sv-delayed-#{System.unique_integer([:positive])}"
+    put_fixture(provider, set_id, [id], [card(id, "Illustration Rare", 1)], "2024-08-19")
+
+    assert :ok =
+             SinglesSetCollectionWorker.perform_on(
+               job(set_id, 0),
+               ~U[2026-08-20 12:00:00Z]
+             )
+
+    assert Agent.get(provider, & &1.fetched) == []
+    assert {:error, _} = TcgCheap.Core.get_card_printing_by_tcgdex_id(id)
   end
 
   test "chunk continuation and rerun are idempotent", %{provider: provider} do
@@ -198,6 +218,34 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
       },
       priority: 1
     )
+  end
+
+  test "rolling refresh on a curated card retains finite max expiry", %{provider: provider} do
+    id = hd(card_ids(1))
+
+    existing =
+      TcgCheap.TestSupport.import_card_printing!(
+        %{tcgdex_id: id, name: "Card", set_name: "Set", collector_number: "1"},
+        scoped?: false
+      )
+
+    TcgCheap.TestSupport.set_collection_scope!(
+      existing,
+      %{
+        collection_scopes: ["curated_playable"],
+        collection_scope_source: "system",
+        collection_scoped_at: ~U[2025-01-01 00:00:00Z],
+        collection_expires_on: ~D[2026-11-17]
+      },
+      authorize?: false
+    )
+
+    set_id = "sv-refresh-#{System.unique_integer([:positive])}"
+    put_fixture(provider, set_id, [id], [card(id, "Illustration Rare", 123)], "2025-08-19")
+    assert :ok = SinglesSetCollectionWorker.perform(job(set_id, 0))
+    updated = TcgCheap.Core.get_card_printing_by_tcgdex_id!(id)
+    assert updated.collection_scopes == ["curated_playable", "rolling_ir_sir"]
+    assert updated.collection_expires_on == ~D[2027-08-19]
   end
 
   test "recent Pocket set is rejected before fetching or persisting cards", %{provider: provider} do
@@ -305,7 +353,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
         expires_on: nil
       )
 
-    TcgCheap.Core.set_card_printing_collection_scope!(
+    TcgCheap.TestSupport.set_collection_scope!(
       existing,
       %{
         collection_scopes: ["legacy_local"],

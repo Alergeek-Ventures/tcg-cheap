@@ -1,5 +1,54 @@
 # Wiki Log
 
+## [2026-08-20] Final review reconciliation | Sealed scheduling and worker boundaries
+
+- Scope: Added the delayed non-Pitch set expiry short-circuit, preserved terminal sealed bootstrap race outcomes as cancellation, restored the direct sealed homepage query body, and reconciled current deployment/product documentation with the exact three-source weekly schedule and six-provider post-deploy registry.
+- Current state: The local registry and Monday 01:00/02:00/03:00 UTC schedule are implemented pending commit/deploy. Each sealed source retains 50/hour, 100/day, and 500/month limits; provider disable controls and Coolify/app takedown remain operational controls. No permission or rights blocker is current state.
+- Validation: Canonical `devenv shell -- mix check --verbose` passed all static gates and 879 tests; focused worker/action tests passed; final delayed-expiry and sealed-bootstrap review findings were corrected; Ash codegen and git diff checks passed.
+- Final read-only review found and resolved three current-state documentation contradictions in deployment operations, the MVP implementation plan, and the application-foundation article.
+- Final review also reconciled bootstrap auto-registration and unmaterialized-provider semantics, and corrected the remaining current owner-direction contradictions in the durable current-state documentation.
+- Adapter moduledocs and the remaining implementation-vs-deployment wording were reconciled.
+
+## [2026-08-20] Owner-direction reconciliation | Permission contradiction lint
+
+- Decision: The private/out-of-band agreement is treated as reached and has no effect on repository work. No permission, rights, or publication state/gate belongs in code; Coolify takedown is the stop mechanism if needed.
+- Current-state correction: The exact three-source sealed adapter registry and Monday 01:00/02:00/03:00 UTC bootstrap are implemented locally and pending commit/deploy. Remaining work is representative evidence, mappings, reliability, monitoring/restore, model validation, and deployment. Third-party artwork/IP provenance remains a non-blocking evidence/attribution caveat.
+- Validation: Five durable articles remain indexed with exact metadata; deterministic wiki lint and heuristic current-state permission review completed, followed by `git diff --check`. Historical dated entries and immutable evidence were preserved.
+
+## [2026-08-20] Deterministic wiki lint | Owner-direction reconciliation
+
+- Validation: 5 durable articles; 5/5 indexed; 15/15 exact `Updated`/`Sources`/`Raw` metadata fields; 61 relative Markdown links checked; 0 broken links, missing-index entries, metadata errors, or auto-fixes. `git diff --check` passed.
+- Heuristic current-state review: The three requested articles and index now record settled agreed-MVP permission, private/out-of-band stakeholder communication, Coolify takedown, and engineering safeguards. Residual dated permission/rights wording is historical/superseded; broader technical evidence, artwork, reliability, and publication-scope caveats remain non-blocking engineering/product-scope notes, not permission uncertainty for MVP work.
+
+## [2026-08-20] Product-owner direction | Agreed MVP source permission settled
+
+- Decision: All interested source parties agreed that recurring pulls and use on the internal/unlisted demo domain are approved for the agreed MVP. The agreement and any later stakeholder conversation are private/out-of-band between the owner and sources. Permission is settled and non-blocking for repository implementation, validation, deployment, and demo work.
+- Boundary: Do not model permission/publication agreements as code gates, flags, rights state, or roadmap blockers. If the owner needs to stop the demo, taking the app down in Coolify is the operational mechanism; no application state machine is required. Fixed source adapters, budgets, rate limits, no access-control bypass, data validation, safety, attribution, and data-minimization controls remain engineering requirements.
+- Files: Updated `knowledge-base/wiki/architecture/application-foundation.md`, `knowledge-base/wiki/architecture/provider-acquisition-feasibility.md`, `knowledge-base/wiki/product/mvp-implementation-plan.md`, `knowledge-base/wiki/index.md`, and this log. Raw: N/A — product-owner direction; no immutable raw capture created.
+- Validation: Deterministic wiki lint and `git diff --check` run after this entry; counts are recorded in the following lint entry.
+
+## [2026-08-20] Internal sealed retailer validation bootstrap
+
+- Recurring sealed acquisition is agreed and implemented locally, pending commit/deploy. Server-owned Cron runs weekly in UTC on Monday at 01:00 LootQuest (`regular_retailer`), 02:00 CardzHouse (`lgs`), and 03:00 BoosterPoint (`lgs`), with exact policy version 1 and canonical source identities.
+- Each source is bounded to 50 requests/run (about 250/month at five weekly runs) against its persisted 50/hour, 100/day, 500/month zero-cost budget. If the canonical retailer is missing, it is registered from fixed server-owned metadata. A disabled or mismatched retailer cancels. An unmaterialized provider follows configured-active semantics until budget materialization; a persisted disabled provider cancels. Malformed configuration, lookup, or persistence fails closed. The worker only resolves canonical retailers and enqueues existing bounded child jobs; it performs no HTTP. Coolify/app takedown is the operational stop if needed; broad launch follows the stakeholder demo.
+
+## [2026-08-20] Product-owner clarification | Internal recurring MVP acquisition unblocked
+- Decision: All interested parties agreed in a group email that recurring source pulls are permitted for internal MVP validation for sources covered by the agreed MVP plan. The existing internal/unlisted domain <https://tcg-cheap.d.alergeek.me> is the required demonstration surface in the coming weeks; public acquisition/republication remains pending the final stakeholder decision after that demonstration.
+- Boundary: Sealed recurring acquisition is implemented locally and pending commit/deploy. Budgets, rate limits, safety, attribution, and data-minimization requirements remain in force; Coolify/app takedown is the operational stop if needed.
+- Files: Updated `README.md`, `PRODUCT.md`, `docs/deployment-and-operations.md`, the three current durable wiki articles, and `knowledge-base/wiki/index.md`. Raw: N/A — product-owner direction; no immutable raw capture created.
+- Validation: `git diff --check` passed after documentation-only edits.
+
+## [2026-08-19] Deterministic wiki lint | Curated playable policy finalization
+- Validation: 5 durable articles, 5/5 indexed, 15/15 required metadata fields. Durable articles + index: 66 relative Markdown links total = 21 wiki/non-raw + 45 raw. Entire knowledge base including log but excluding immutable raw contents: 69 relative links total = 22 wiki/non-raw + 47 raw. 0 broken links, missing index entries, deterministic errors, or auto-fixes.
+- Heuristic current-state review: Clean for partial `ccc394c` production, incomplete full Pitch/rolling coverage, curated pending deploy, per-attempt request bound, Pruner-backed completed dedupe, domain Ash scope merge, sealed disabled, and open rights/evidence/backups/monitoring.
+
+## [2026-08-19] Curated playable policy implementation and production validation documentation
+- Task completed: Added the fixed seven-card curated policy, with immutable official rotation, Limitless NAIC first/second-place, and exact TCGdex identity/legality evidence for the seven-entry `2026-08-19-naic` manifest. The evidence expires inclusive 2026-11-17 and claims no license or republication rights.
+- Production checkpoint: Recorded commit `ccc394c`, green CI run 32285087422, healthy database/7 Oban queues/3 providers, and 18:16 UTC validation of exact public `me05-001` through at least `me05-040`, real Cardmarket snapshots, exact Tropius autocomplete, unscoped `base1-001` not found, and zero browser console warnings/errors. This is initial validation, not full 120-card or rolling IR/SIR coverage.
+- Implementation boundary: The final architecture is a separate 15-minute curated bootstrap, seven priority-1 child jobs, and separate Cron/bootstrap/child workers. Completed bootstrap/child jobs are deduplicated while retained by the configured seven-day Pruner. Each card/attempt permits <=2 TCGdex requests, with exact fail-closed identity, legality, and set validation, fixed expiry, a transactional domain-specific Ash scope-add action using latest-row `FOR UPDATE` and precedence/expiry merge, and valuation enqueue. There is no request-path HTTP and no sealed adapter. Curated rows are not claimed collected/deployed; rights, sealed sources, representative evidence, backups, and monitoring remain open. The curated batch is local orchestration validated and pending commit/deployment/public collection; independent Pitch v2 remains a boundary.
+- Files: Updated `README.md`, `PRODUCT.md`, `docs/deployment-and-operations.md`, the three requested durable articles, index, and this log; added `knowledge-base/raw/2026-08-19-curated-playable-manifest.md`; implemented the curated policy/workers, the CardPrinting scope-add action/custom change/Core interface, Singles worker integration, focused tests, docs/wiki, and immutable raw manifest.
+- Validation: canonical `devenv shell -- mix check --verbose` passed all static gates and 871 tests; focused suites and deterministic external-lock concurrency regression passed; Ash codegen check and git diff --check passed; final multi-agent review was clean.
+
 ## [2026-08-19] Deterministic wiki lint | Collection policy v2 documentation
 - Validation: 5 articles; 5/5 indexed; 15/15 exact `Updated`/`Sources`/`Raw` metadata fields; 52 local Markdown links including 36 raw links; 0 broken links; 0 deterministic errors; 0 auto-fixes.
 - Heuristic review: Ordering remains explicitly observational rather than an API contract; no deployment/production-data claim was added; rights, sealed, representative-evidence, attribution, and curated-playable blockers remain.

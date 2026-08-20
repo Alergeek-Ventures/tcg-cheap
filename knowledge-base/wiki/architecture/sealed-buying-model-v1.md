@@ -1,8 +1,12 @@
 # Sealed Buying Model v1
 
-- Updated: 2026-08-10
+- Updated: 2026-08-20
 - Sources: [Detailed MVP Implementation Plan](../product/mvp-implementation-plan.md); [CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); project code; local synthetic validation
 - Raw: [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md)
+
+## Current owner direction — 2026-08-20 (Raw: N/A — product-owner direction)
+
+The agreed MVP source permission is settled and non-blocking. The agreement is private/out-of-band, treated as reached, has no effect on repository work, and no permission state or gate belongs in code. If needed, Coolify takedown is the operational stop mechanism. Older permission language below is historical and superseded; remaining work is representative evidence, mappings, reliability, model validation, and deployment.
 
 **Status:** `sealed_buying_model_v1` is the initial pure, deterministic, versioned
 sealed buying-policy implementation. Its weights and boundaries are provisional
@@ -13,7 +17,7 @@ authenticated read-only operations inspection.
 
 Private feasibility checkpoint: the approved `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` produced `limited / too_few_regular_retailers` with one regular retailer, and its guide produced `limited / limited_market_aggregate` at confidence `0.19`; no bands were fabricated. Browser search/detail showed one 899.99 PLN LootQuest offer and honest Limited-data messages with zero console errors. This validates sparse/Limited behavior only, not ready benchmark bands, representative Polish-market weights, multi-shop deduplication/outliers, recurring stock history, or public source rights.
 
-The later private CardzHouse and BoosterPoint runs do not change that model boundary: both real shops are deliberately `lgs`, not representative regular-retailer evidence; all new mappings remain review because no reliable GTINs were supplied; and no candidate was approved without an authenticated administrator. Jobs 88/89 retained 96/232 rows and unchanged jobs 90/91 retained exactly those counts, while current aggregate/guide/public-offer behavior remains unchanged. Public recurring acquisition/republication permission remains unresolved.
+The later private CardzHouse and BoosterPoint runs do not change that model boundary: both real shops are deliberately `lgs`, not representative regular-retailer evidence; all new mappings remain review because no reliable GTINs were supplied; and no candidate was approved without an authenticated administrator. Jobs 88/89 retained 96/232 rows and unchanged jobs 90/91 retained exactly those counts, while current aggregate/guide/public-offer behavior remains unchanged. Recurring acquisition is agreed; deployment and representative model evidence remain technical work.
 
 ## Decision
 
@@ -193,12 +197,11 @@ These are synthetic policy fixtures, not proof of Polish-market quality.
   while `SealedMarketHistory` renders an accessible fixed UTC-calendar-day SVG with
   benchmark line, typical-range band, missing-day gaps, no controls/interpolation,
   and a textual ledger using only canonical ready rows for the expected product.
-  Under the 2026-08-10 product-owner assumption, private/local/staging source polling and
-  real-data validation are permitted technical-feasibility work, subject to budgets, rate
-  limits, safety controls, attribution, and provider constraints. External permission
-  remains the boundary for public acquisition/republication and public launch; this is not
-  a legal authorization claim. Local persistence and public rendering remain technically
-  exercisable without claiming public source rights.
+   The 2026-08-10 product-owner assumption is historical and superseded by the 2026-08-20
+   direction above. Local source polling and real-data validation remain technical work
+   subject to budgets, rate limits, safety controls, attribution, and provider constraints.
+   Third-party artwork/IP provenance remains an evidence and attribution caveat, not a
+   work blocker or code gate.
 
 ## See Also
 

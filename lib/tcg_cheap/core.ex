@@ -43,7 +43,9 @@ defmodule TcgCheap.Core do
         action: :public_search,
         args: [:query, {:optional, :limit}]
 
-      define :set_card_printing_collection_scope, action: :set_collection_scope
+      define :add_card_printing_collection_scopes,
+        action: :add_collection_scopes,
+        args: [:incoming_scopes, :incoming_expires_on, :scoped_at]
 
       define :lock_card_printing_for_update, action: :lock_for_update_by_id, args: [:id]
 
@@ -224,7 +226,16 @@ defmodule TcgCheap.Core do
       define :register_retailer, action: :register
       define :disable_retailer, action: :disable
       define :enable_retailer, action: :enable
-      define :get_retailer_by_source_key, action: :by_source_key, args: [:source_key]
+
+      define :get_retailer_by_source_key,
+        action: :by_source_key,
+        args: [:source_key]
+
+      define :find_retailer_by_source_key,
+        action: :by_source_key,
+        args: [:source_key],
+        not_found_error?: false
+
       define :list_active_retailers, action: :active
     end
 

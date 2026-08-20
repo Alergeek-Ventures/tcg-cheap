@@ -58,6 +58,21 @@ config :tcg_cheap,
   ash_domains: [TcgCheap.Core, TcgCheap.Accounts, TcgCheap.Operations],
   token_signing_secret: :endpoint_secret_key_base
 
+config :tcg_cheap, :sealed_retailer_adapters, %{
+  "lootquest" => %{
+    adapter: TcgCheap.Catalogue.SealedRetailers.LootQuest,
+    options: [per_page: 100, max_pages: 10]
+  },
+  "cardzhouse" => %{
+    adapter: TcgCheap.Catalogue.SealedRetailers.CardzHouse,
+    options: [per_page: 100, max_pages: 10]
+  },
+  "boosterpoint" => %{
+    adapter: TcgCheap.Catalogue.SealedRetailers.BoosterPoint,
+    options: [per_page: 100, max_pages: 10]
+  }
+}
+
 config :tcg_cheap, :acquisition_health,
   stranded_after_seconds: 900,
   reconcile_limit: 100,
@@ -86,11 +101,19 @@ config :tcg_cheap, Oban,
      crontab: [
        {"*/15 * * * *", TcgCheap.Catalogue.SinglesScopeBootstrapWorker,
         args: %{"policy_version" => 2}},
+       {"*/15 * * * *", TcgCheap.Catalogue.CuratedPlayableBootstrapWorker,
+        args: %{"evidence_version" => "2026-08-19-naic"}},
        {"0 14 * * *", TcgCheap.Pricing.Singles.ValuationRefreshWorker, args: %{}},
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
        # Daily at 16:00 UTC, after the 15:00 UTC NBP job.
        {"0 16 * * *", TcgCheap.Pricing.SealedDailyAggregateWorker, args: %{}},
+       {"0 1 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
+        args: %{"policy_version" => 1, "source_key" => "lootquest"}},
+       {"0 2 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
+        args: %{"policy_version" => 1, "source_key" => "cardzhouse"}},
+       {"0 3 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
+        args: %{"policy_version" => 1, "source_key" => "boosterpoint"}},
        {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
      ]}
   ]
@@ -167,39 +190,35 @@ config :tcg_cheap, :acquisition_budget,
         monthly_spend_limit: "0.00"
       ]
     ] ++
-      (if config_env() == :dev do
-         [
-           [
-             provider_key: "sealed_retailer:lootquest",
-             display_name: "LootQuest sealed catalogue",
-             estimated_cost_per_request: "0.00",
-             hourly_request_limit: 50,
-             daily_request_limit: 100,
-             monthly_request_limit: 500,
-             monthly_spend_limit: "0.00"
-           ],
-           [
-             provider_key: "sealed_retailer:cardzhouse",
-             display_name: "CardzHouse sealed catalogue",
-             estimated_cost_per_request: "0.00",
-             hourly_request_limit: 50,
-             daily_request_limit: 100,
-             monthly_request_limit: 500,
-             monthly_spend_limit: "0.00"
-           ],
-           [
-             provider_key: "sealed_retailer:boosterpoint",
-             display_name: "BoosterPoint sealed catalogue",
-             estimated_cost_per_request: "0.00",
-             hourly_request_limit: 50,
-             daily_request_limit: 100,
-             monthly_request_limit: 500,
-             monthly_spend_limit: "0.00"
-           ]
-         ]
-       else
-         []
-       end)
+      [
+        [
+          provider_key: "sealed_retailer:lootquest",
+          display_name: "LootQuest sealed catalogue",
+          estimated_cost_per_request: "0.00",
+          hourly_request_limit: 50,
+          daily_request_limit: 100,
+          monthly_request_limit: 500,
+          monthly_spend_limit: "0.00"
+        ],
+        [
+          provider_key: "sealed_retailer:cardzhouse",
+          display_name: "CardzHouse sealed catalogue",
+          estimated_cost_per_request: "0.00",
+          hourly_request_limit: 50,
+          daily_request_limit: 100,
+          monthly_request_limit: 500,
+          monthly_spend_limit: "0.00"
+        ],
+        [
+          provider_key: "sealed_retailer:boosterpoint",
+          display_name: "BoosterPoint sealed catalogue",
+          estimated_cost_per_request: "0.00",
+          hourly_request_limit: 50,
+          daily_request_limit: 100,
+          monthly_request_limit: 500,
+          monthly_spend_limit: "0.00"
+        ]
+      ]
 
 # Configure the endpoint
 config :tcg_cheap, TcgCheapWeb.Endpoint,

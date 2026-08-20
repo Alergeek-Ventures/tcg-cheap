@@ -2,8 +2,9 @@ defmodule TcgCheap.Catalogue.SealedRetailers.LootQuest do
   @moduledoc """
   Normalizes LootQuest's public WooCommerce Store API into sealed listing values.
 
-  Private development configuration permits explicit technical test runs; public acquisition and
-  republication still require external permission.
+  This fixed-policy adapter is approved for agreed recurring internal MVP acquisition. Persisted
+  provider controls, request budgets, exact source policy, and Coolify/app takedown are operational
+  safeguards.
   """
 
   @behaviour TcgCheap.Catalogue.SealedRetailerAdapter

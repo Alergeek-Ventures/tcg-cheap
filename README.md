@@ -96,11 +96,37 @@ first administrator provisioning are complete. The deployment and operations
 guide remains the source of truth for future deploys, migration gating, admin
 provisioning, ParadeDB upgrades/preload, backups, rollback, and incidents.
 
+All interested parties agreed that recurring source pulls are permitted for the
+internal MVP. Recurring acquisition is implemented locally and pending
+commit/deploy. Budgets, rate limits, safety, attribution, and data-minimization
+requirements remain in force. Broad launch follows the stakeholder demo.
+The weekly schedule is Monday 01:00 UTC LootQuest (`regular_retailer`), 02:00
+CardzHouse (`lgs`), and 03:00 BoosterPoint (`lgs`); deployment expects six
+configured providers.
+
 The approved production Singles collection is fail-closed: Pitch Black full,
 rolling two-calendar-year IR/SIR, and explicitly approved curated playables
 only. Existing local rows are retained as `legacy_local`; provider imports do
 not grant public collection scope, and empty production does not receive broad
 catalogue rows. See the [MVP plan](knowledge-base/wiki/product/mvp-implementation-plan.md)
 and [operations guide](docs/deployment-and-operations.md) for the rules. This
-scope is documented before collection; it does not claim production data has
-been collected.
+initial scoped production validation succeeded for `me05-001` through at least
+`me05-040`; full 120-card Pitch Black coverage and rolling IR/SIR coverage
+remain incomplete.
+
+The curated-playable manifest evidence is dated 2026-08-19 and expires
+inclusive 2026-11-17. It covers seven exact Trainer/Item/Supporter identities
+from NAIC Limitless lists, cross-checked against official rotation and exact
+TCGdex legality; it must be replaced/reapproved before expiry. The current
+production checkpoint is commit `ccc394c`: CI run
+<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32285087422> is
+green, and production health reports the database, 7 Oban queues, and 3
+providers. By 18:16 UTC, exact public Pitch Black cards `me05-001` through at
+least `me05-040` had imported/scoped and rendered real Cardmarket aggregates
+(for example 001 €0.02, 021 €0.02, 040 €0.03); this is initial validation, not
+complete 120-card or rolling IR/SIR coverage.
+
+The curated implementation is local and pending commit, deployment, and public
+collection. Retained completed bootstrap and child jobs remain deduplicated while
+the configured seven-day Oban Pruner retains them. Each child permits at most two
+TCGdex requests per card per attempt.

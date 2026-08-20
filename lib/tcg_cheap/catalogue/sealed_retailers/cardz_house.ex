@@ -2,8 +2,9 @@ defmodule TcgCheap.Catalogue.SealedRetailers.CardzHouse do
   @moduledoc """
   Normalizes CardzHouse's WooCommerce Store API into sealed listing values.
 
-  This adapter is intended for private development and test use while public
-  acquisition and republication permission remain unresolved.
+  This fixed-policy adapter is approved for agreed recurring internal MVP acquisition. Persisted
+  provider controls, request budgets, exact source policy, and Coolify/app takedown are operational
+  safeguards.
   """
 
   @behaviour TcgCheap.Catalogue.SealedRetailerAdapter
