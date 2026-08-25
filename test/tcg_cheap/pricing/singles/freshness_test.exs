@@ -5,16 +5,16 @@ defmodule TcgCheap.Pricing.Singles.FreshnessTest do
 
   @now ~U[2026-08-07 12:00:00Z]
 
-  test "classifies a valuation as fresh for fewer than seven days" do
-    snapshot = snapshot_at(~U[2026-07-31 12:00:01Z])
+  test "classifies a valuation as fresh one second inside 24 hours" do
+    snapshot = snapshot_at(~U[2026-08-06 12:00:01Z])
 
     assert Freshness.status(snapshot, @now) == :fresh
     assert Freshness.status_at(snapshot.fetched_at, @now) == :fresh
     assert Freshness.fresh?(snapshot, @now)
   end
 
-  test "classifies a valuation as stale at the seven-day boundary" do
-    snapshot = snapshot_at(~U[2026-07-31 12:00:00Z])
+  test "classifies a valuation as stale at exactly 24 hours" do
+    snapshot = snapshot_at(~U[2026-08-06 12:00:00Z])
 
     assert Freshness.status(snapshot, @now) == :stale
     assert Freshness.status_at(snapshot.fetched_at, @now) == :stale

@@ -1,8 +1,12 @@
 # Pokémon Market & Trade Platform — Detailed MVP Implementation Plan
 
-- Updated: 2026-08-20
+- Updated: 2026-08-25
 - Sources: Product specification supplied by project owner; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation; [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 - Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
+
+## Current production checkpoint — 2026-08-25
+
+Production commit `02b8d65` is deployed; [CI run 32369920522](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32369920522) succeeded. Health reported a ready database, 7 Oban queues, and 6 providers. The fixed curated policy is deployed and all seven exact routes resolved publicly; the initial checkpoint had four valuations and three honest no-valuation states. Curated evidence expires 2026-11-17. The three-source sealed registry and Monday 01:00/02:00/03:00 UTC Cron are deployed. Jobs 916/917/918, Singles refresh 920, and aggregate 921 (15:01 UTC) were enqueued only; completion is unverified. Public sealed search for `151 Booster Bundle` returned no product, so approved production sealed catalogue/mappings remain incomplete. The strict 24-hour Singles change is the current release change being prepared, not a claim of pre-commit production verification.
 
 ## Current owner direction — 2026-08-20 (Raw: N/A — product-owner direction)
 
@@ -14,14 +18,14 @@ implementation, validation, deployment, and demo work. The existing
 internal/unlisted domain
 <https://tcg-cheap.d.alergeek.me> is the required demonstration surface in the
 coming weeks. Sealed recurring acquisition is agreed and implemented locally,
-pending commit, configuration, and deployment. If the owner needs to stop the
+deployed through Coolify; production completion remains unverified/incomplete. If the owner needs to stop the
 demo, taking the app down in Coolify is the operational mechanism; no
 application state machine is required. This owner direction does not need to be
 modeled as a permission, publication, or rights state. Fixed source adapters,
 budgets, rate limits, no access-control bypass, data validation, safety,
 attribution, and data minimization remain engineering requirements.
 
-## Current production deployment checkpoint — 2026-08-19
+## Historical/superseded production deployment checkpoint — 2026-08-19
 
 Production is online at <https://tcg-cheap.d.alergeek.me>. The product owner
 confirms that the pinned ParadeDB production setup is complete, automatic
@@ -31,7 +35,7 @@ connected LiveView search event, zero browser console warnings/errors, and
 successful GitHub CI run
 <https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32285087422>.
 `/health` reported database ready, 7 Oban queues, and 3 acquisition providers.
-The current checkpoint is deployed commit `ccc394c`. By
+The then-current checkpoint was deployed commit `ccc394c`. By
 2026-08-19 18:16 UTC, exact public Pitch Black `me05-001` through at least
 `me05-040` had imported/scoped and rendered real Cardmarket aggregates (001
 €0.02, 021 €0.02, 040 €0.03); exact Tropius autocomplete returned `me05-001`,
@@ -68,12 +72,11 @@ Policy v2 is deployed and is an operational correction, not a scope expansion.
 
 `CardPrinting` uses fail-closed scopes `pitch_black_full`, `rolling_ir_sir`, `curated_playable`, and `legacy_local`, with expiry and provenance. Provider imports/briefs never auto-scope. Public Home search/recent, CardDetail, Trade, and mover SQL require active nonexpired scope. Migration backfill assigns preexisting local rows only to `legacy_local`, preserving useful state while empty production gains no broad rows; broad discovery remains private.
 
-Automatic bootstrap starts within 15 minutes and is successful-run unique for seven days. It strictly discovers TCGdex sets, imports every `me05` card, and dynamically imports only exact IR/SIR cards from the inclusive rolling prior two calendar years. Chunks are <=20, complete `cardCount` evidence is required, incomplete/transient evidence retries, and scanned non-target cards are never imported. Daily 14:00 UTC refresh keyset-paginates active scoped matched cards and enqueues stale/missing valuations; `ValuationWorker` remains sole provider-budget admission immediately before HTTP. Admin operations has a manual scoped trigger.
+Automatic bootstrap starts within 15 minutes and is successful-run unique for seven days. It strictly discovers TCGdex sets, imports every `me05` card, and dynamically imports only exact IR/SIR cards from the inclusive rolling prior two calendar years. Chunks are <=20, complete `cardCount` evidence is required, incomplete/transient evidence retries, and scanned non-target cards are never imported. Daily 14:00 UTC refresh keyset-paginates every active, nonexpired, scoped, matched card, including fresh cards, and enqueues valuations; public on-demand remains missing/stale-only. Execution revalidates active scope before budget/HTTP admission. `ValuationWorker` remains sole provider-budget admission immediately before HTTP. Admin operations has a manual scoped trigger.
 
-`curated_playable` is implemented locally under fixed policy
+`curated_playable` is deployed under fixed policy
 `2026-08-19-naic`; its dated official/Limitless/TCGdex evidence was explicitly
-approved for that local implementation. It is not yet committed, deployed, or
-collected publicly. Its separate 15-minute bootstrap is successful-run
+approved for that local implementation. All seven curated routes resolved publicly, with initial evidence showing four valuations and three honest no-valuation states; full valuation coverage remains incomplete. Its separate 15-minute bootstrap is successful-run
 unique while retained by the configured seven-day Oban Pruner and creates seven
 priority-1 child jobs. Completed bootstrap and child jobs remain deduplicated while
 retained by that Pruner. Each
@@ -81,8 +84,8 @@ admits at most two TCGdex requests per card per attempt and validates exact
 identity/legality/set with fixed non-sliding expiry. Shared Ash transaction plus
 row-lock scope merging applies rolling/Pitch Black/legacy/admin precedence;
 matched cards enqueue valuation. No request-path HTTP or sealed adapter exists,
-and Pitch v2 remains independent. Curated rows become public only after
-successful deploy/import and expire automatically. See the [manifest evidence](../../raw/2026-08-19-curated-playable-manifest.md),
+and Pitch v2 remains independent. Curated rows are public after successful
+deploy/import and expire automatically. See the [manifest evidence](../../raw/2026-08-19-curated-playable-manifest.md),
 which expires inclusive 2026-11-17 and claims no license/republication rights.
 
 The deployment-foundation batch is implemented locally. The local, CI, and Coolify target is the exact multi-architecture OCI index `docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649495964b296ad7c0931658dbf99d3cf1b35bc994`, with amd64 and arm64 manifests, PostgreSQL 18.4, `pg_search` 0.25.2, and `pgvector` 0.8.4. Stock PostgreSQL current is 18.6; this is an explicit minor security/bugfix tradeoff to revisit on validated ParadeDB updates. Local Compose explicitly preloads `pg_search`, `pg_cron`, and `pg_stat_statements`. Existing compatible stock-PG18 volumes must not be reset: intentional container recreation/restart and `SHOW shared_preload_libraries` verification are required. Fresh ParadeDB may bootstrap extensions, while TCG Cheap-owned migrations/resources/queries currently require only existing Ash functions, `citext`, and `pg_trgm`, with no BM25/vector use.
@@ -91,7 +94,7 @@ The exact index manifest was verified; a fresh ParadeDB scratch reported expecte
 
 ## Current implementation checkpoint — 2026-08-14
 
-The reusable `TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI` now owns bounded fixed-policy WooCommerce Store API request/pagination/normalization mechanics; LootQuest was refactored onto it without intended behavior change. The exact three-source registry uses LootQuest (`regular_retailer`), CardzHouse (`lgs`, category 742), and BoosterPoint (`lgs`, category 61), with the locally implemented Monday 01:00/02:00/03:00 UTC bootstrap pending commit/deploy and independent zero-cost budgets of 50/hour, 100/day, and 500/month per source. Exact host/path/category/field policies, per-page admission, disabled redirects/retries, bounded pages/listings/body/time, strict PLN minor-unit conversion, conservative English filtering, and exact direct URL validation are enforced. Internal recurring pulls are approved under the 2026-08-20 owner direction; the sealed recurring schedule is implemented locally and pending deployment, not a permission blocker.
+The reusable `TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI` now owns bounded fixed-policy WooCommerce Store API request/pagination/normalization mechanics; LootQuest was refactored onto it without intended behavior change. The exact three-source registry uses LootQuest (`regular_retailer`), CardzHouse (`lgs`, category 742), and BoosterPoint (`lgs`, category 61), with the deployed Monday 01:00/02:00/03:00 UTC bootstrap and independent zero-cost budgets of 50/hour, 100/day, and 500/month per source. Exact host/path/category/field policies, per-page admission, disabled redirects/retries, bounded pages/listings/body/time, strict PLN minor-unit conversion, conservative English filtering, and exact direct URL validation are enforced. Internal recurring pulls are approved under the 2026-08-20 owner direction; the sealed recurring schedule is deployed through Coolify, not a permission blocker.
 
 Jobs 88 and 89 completed in one attempt with 2 and 4 admitted requests, retaining respectively 96 and 232 listings, immutable observations, review mappings, and decisions. CardzHouse was 13 in stock/83 sold out at PLN 22.95–1899.99; BoosterPoint was entirely sold out at PLN 3.99–990.00. Unchanged jobs 90/91 used 2/4 requests and retained exactly 96/232 rows, proving no duplicate observations/decisions. These real shops are deliberately `lgs`, not representative `regular_retailer` evidence. No reliable GTINs were supplied, so all new mappings remain `review`; title auto-match was not added. Candidates 8393 and 5423 remain unapproved without an authenticated admin actor, leaving aggregate/guide/public-offer behavior unchanged. Focused adapters passed 20 tests; combined adapter/worker/refresh passed 45 after review hardening; canonical `direnv exec . mix check --verbose` passed all static gates and 771 tests. Final review corrected `\A...\z` URL anchors, rejected newline-suffixed same-host URLs, and proved one admission/one request on 503.
 
@@ -111,7 +114,7 @@ Home Market movers are local-only, up to 10 total and capped at 5 risers/5 falle
 
 Current validation passes `direnv exec . mix check --verbose` with every static gate and 813 tests; eight focused identity/catalogue/operations/pricing/trade files pass 172 tests. The generated card-target grammar migration passed test-database down/up in addition to the three earlier recovery migrations. Final review found no actionable issue. A real browser opened the encoded punctuation Trade pick as `Unown · Unseen Forces Unown Collection · %3F` with no malformed warning, horizontal overflow, console warning, or console error. The earlier operations and Home browser evidence remains valid for those unchanged surfaces. Complete technical coverage for the remaining 10 provider-partial sets, representative exact-printing/Cardmarket mapping coverage, representative Polish multi-retailer validation, recurring history, production deployment/monitoring/restore, and real riser/faller evidence remain incomplete.
 
-**Status:** **Current product north star.** Unless the product owner explicitly supersedes this article, every requirement, implementation phase, documentation deliverable, and acceptance criterion listed below is authoritative and must be completed in full. Phase 3 trade/share is complete. Phase 4 now has source-neutral product/alias/retailer/listing/mapping/observation foundations, reusable bounded WooCommerce Store API request/pagination/normalization mechanics, the exact three-source registry (LootQuest `regular_retailer`, CardzHouse `lgs`, BoosterPoint `lgs`), an atomic unique refresh path, and the locally implemented Monday 01:00/02:00/03:00 UTC sealed bootstrap pending commit/deploy, an authenticated administrator review desk, and a local-only public Sealed search/detail foundation. Phase 5 now has a local-only versioned daily aggregate foundation, the pure provisional `sealed_buying_model_v1`, persisted versioned buying-guide snapshots/recomputation, and public rendering of persisted ready/Limited guides, plain-English explanations from persisted factors, and the fixed 30-day graph. Daily aggregate persistence atomically enqueues jobs identified by the exact current and preceding 30-day revisions, and historical corrections cascade through affected following guide dates; local snapshot reads retain model outputs and factors. Public guide projection validates bindings, exact source fingerprints, and invariants, failing closed on corruption or mismatch; stale bands remain previous/cached/outdated rather than current. A fail-closed request-level acquisition-budget foundation covers every in-tree operational TCGdex catalogue, TCGdex Cardmarket, NBP, and sealed-retailer request with provider/global UTC counters, estimated-spend caps, persisted provider kill switches, and passive automatic provider circuit opening from terminal source-facing failures. Public connected LiveViews additionally apply a bounded direct-peer IP throttle before stale/missing singles or NBP work can be enqueued. Authenticated AshBackpex and focused operations surfaces cover the implemented curation, inspection, safe manual execution, source-health, and provider-control slices documented below. Real catalogue/observations/model validation, actual-cost reconciliation, active provider probes, remaining operations/AshBackpex resources, homepage tuning/deployment, and other acceptance work remain incomplete. The overall MVP is not complete.
+**Status:** **Current product north star.** Unless the product owner explicitly supersedes this article, every requirement, implementation phase, documentation deliverable, and acceptance criterion listed below is authoritative and must be completed in full. Phase 3 trade/share is complete. Phase 4 now has source-neutral product/alias/retailer/listing/mapping/observation foundations, reusable bounded WooCommerce Store API request/pagination/normalization mechanics, the exact three-source registry (LootQuest `regular_retailer`, CardzHouse `lgs`, BoosterPoint `lgs`), an atomic unique refresh path, and the deployed Monday 01:00/02:00/03:00 UTC sealed bootstrap, an authenticated administrator review desk, and a local-only public Sealed search/detail foundation. Phase 5 now has a local-only versioned daily aggregate foundation, the pure provisional `sealed_buying_model_v1`, persisted versioned buying-guide snapshots/recomputation, and public rendering of persisted ready/Limited guides, plain-English explanations from persisted factors, and the fixed 30-day graph. Daily aggregate persistence atomically enqueues jobs identified by the exact current and preceding 30-day revisions, and historical corrections cascade through affected following guide dates; local snapshot reads retain model outputs and factors. Public guide projection validates bindings, exact source fingerprints, and invariants, failing closed on corruption or mismatch; stale bands remain previous/cached/outdated rather than current. A fail-closed request-level acquisition-budget foundation covers every in-tree operational TCGdex catalogue, TCGdex Cardmarket, NBP, and sealed-retailer request with provider/global UTC counters, estimated-spend caps, persisted provider kill switches, and passive automatic provider circuit opening from terminal source-facing failures. Public connected LiveViews additionally apply a bounded direct-peer IP throttle before stale/missing singles or NBP work can be enqueued. Authenticated AshBackpex and focused operations surfaces cover the implemented curation, inspection, safe manual execution, source-health, and provider-control slices documented below. Real catalogue/observations/model validation, actual-cost reconciliation, active provider probes, remaining operations/AshBackpex resources, homepage tuning/deployment, and other acceptance work remain incomplete. The overall MVP is not complete.
 **Historical permission status — 2026-08-10 (superseded):** The earlier owner assumption and its dated private-test evidence are retained as historical context. The 2026-08-20 owner direction above is authoritative current state: agreed-MVP permission is settled and non-blocking, and no permission/publication/rights state or gate is modeled for implementation, validation, deployment, or demo work.
 
 **Audience:** Long-running implementation agent
@@ -646,7 +649,7 @@ Use the free TCGdex embedded aggregate; do not scrape Cardmarket or pay for list
 
 ### 10.1 Freshness
 
-A singles valuation is fresh for **7 days**.
+A singles valuation is fresh for **24 hours**: strictly less than 24 hours is fresh, and exactly 24 hours is stale.
 
 ### 10.2 Missing data
 
@@ -660,7 +663,7 @@ When a card has never been priced:
 
 ### 10.3 Stale data
 
-When the latest valuation is older than 7 days:
+When the latest valuation is at least 24 hours old:
 
 - show the stale value immediately
 - show when it was last updated
@@ -680,6 +683,16 @@ Concurrent public requests for the same card and preset must reuse one in-flight
 - no date-range switcher
 - do not interpolate missing periods
 - when multiple snapshots occur on one day, the displayed daily point should use the last successful valuation of that day unless the chosen charting convention has a documented superior reason
+
+### 10.6 Daily proactive sweep
+
+The existing daily **14:00 UTC** `ValuationRefreshWorker` keyset-paginates and
+enqueues every active, nonexpired, scoped, matched pricing candidate, including
+currently fresh cards, so each daily sweep can produce an observation. Public
+on-demand work remains missing/stale-only. The bounded candidate query and
+canonical pricing validation exclude missing, unmatched, unscoped, and expired
+cards. Oban uniqueness/deduplication is retained, and provider budget admission
+remains solely in `ValuationWorker`; enqueueing performs no HTTP or budget use.
 
 ---
 
@@ -992,7 +1005,7 @@ Implement:
 
 - canonical card IDs only for on-demand fetches
 - no arbitrary user-supplied URLs or provider queries
-- 7-day card TTL
+- 24-hour card TTL
 - unique Oban jobs
 - per-IP request limiting
 - global hourly on-demand budget
@@ -1522,7 +1535,7 @@ If a source does not expose historical data, allow the collector to accumulate r
 2. Implement search and exact-printing result display.
 3. Implement Cardmarket/provider mapping.
 4. Implement `tcgdex_cardmarket_v1` aggregate valuation; preserve `default_v1` as historical/post-MVP code.
-5. Implement snapshots and 7-day TTL.
+5. Implement snapshots and 24-hour TTL.
 6. Implement on-demand refresh and PubSub updates.
 7. Implement single-card page and 30-day graph.
 
@@ -1540,10 +1553,10 @@ If a source does not expose historical data, allow the collector to accumulate r
 
 1. **Foundation begun, not complete:** Added source-neutral AshPostgres `SealedProduct` canonical official Polish-English SKU modeling. It supports stable slugs/search text, allowlisted types, series/set/release, optional finite positive PLN MSRP with paired provenance/source URL, image, PL/en/official flags, draft/approved/archived and current/discontinued states, source identity/provenance/private payload/timestamps. Draft-only source imports use stable source+source ID, allow slug corrections, and cannot overwrite reviewed rows; manual curation may omit source. Approval requires released/non-future and official PL/en; discontinued approved products remain readable and archive is soft/unpublished. No production SKUs are imported or curated, so this step is not complete.
 2. **Foundation advanced, not complete:** Added `SealedProductAlias` name/EAN review queues with normalized aliases, original values/provenance, pending/approved/rejected states, approved-per-product reads, and app/DB GTIN-8/12/13/14 ASCII normalization plus GS1 checksum enforcement and global canonical-product uniqueness. Imports are pending-only/idempotent and cannot overwrite reviewed aliases. The authenticated review desk can approve or reject pending aliases with canonical-product evidence and stale-row protection. Authenticated AshBackpex list/show plus manual pending create/stale-safe edit now supports local curation without letting provider-backed or reviewed evidence be rewritten. No production aliases/EANs/MSRP curation exists, so this step is not complete.
-3. **Recurring internal MVP acquisition implemented locally, pending commit/deploy:** Centrally configured LootQuest, CardzHouse, and BoosterPoint adapters use the exact Monday UTC 01:00/02:00/03:00 bootstrap, respectively, while retaining 50/hour, 100/day, and 500/month budgets per source. The reusable bounded WooCommerce Store API request/pagination/normalization mechanics support all three adapters. Historical/local job evidence (not production evidence) includes LootQuest job 58, which completed in one attempt with 5 admitted requests; 154 listings, 154 immutable observations, and initially 154 conservative review mappings were persisted because the source supplied no GTIN evidence. Obvious import/preorder/accessory candidates remained filtered. Every successful ingest ensures a mapping in the same transaction; invalid/ambiguous evidence refreshes review, one eligible approved exact EAN may promote mutable review to matched, terminal decisions resist source overwrite, and failures roll back the batch. One curated `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` and listing source ID 104164 were approved/confirmed; its aggregate is `limited / too_few_regular_retailers` and guide `limited / limited_market_aggregate` at confidence `0.19`, with no fabricated bands. Historical/local CardzHouse job 88 and BoosterPoint job 89, followed by idempotent jobs 90/91, retained 96/232 listings and immutable review-only evidence; both are LGS observations, not representative regular-retailer coverage, and neither new mapping was approved.
+3. **Recurring internal MVP acquisition deployed; production completion unverified/incomplete:** Centrally configured LootQuest, CardzHouse, and BoosterPoint adapters use the exact Monday UTC 01:00/02:00/03:00 bootstrap, respectively, while retaining 50/hour, 100/day, and 500/month budgets per source. The reusable bounded WooCommerce Store API request/pagination/normalization mechanics support all three adapters. Historical/local job evidence (not production evidence) includes LootQuest job 58, which completed in one attempt with 5 admitted requests; 154 listings, 154 immutable observations, and initially 154 conservative review mappings were persisted because the source supplied no GTIN evidence. Obvious import/preorder/accessory candidates remained filtered. Every successful ingest ensures a mapping in the same transaction; invalid/ambiguous evidence refreshes review, one eligible approved exact EAN may promote mutable review to matched, terminal decisions resist source overwrite, and failures roll back the batch. One curated `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` and listing source ID 104164 were approved/confirmed; its aggregate is `limited / too_few_regular_retailers` and guide `limited / limited_market_aggregate` at confidence `0.19`, with no fabricated bands. Historical/local CardzHouse job 88 and BoosterPoint job 89, followed by idempotent jobs 90/91, retained 96/232 listings and immutable review-only evidence; both are LGS observations, not representative regular-retailer coverage, and neither new mapping was approved.
 4. **Foundation advanced, not complete:** Added conservative exact-approved-GTIN matching and one human-reviewable listing-to-product mapping projection with pending/review/matched/rejected transitions, locked review decisions, approved-product validation, and import protection. The authenticated review desk exposes one-row-at-a-time approval/correction or reasoned rejection with retailer/listing/candidate/evidence context. A separate authenticated catalogue lists/shows all mappings and immutable created/baseline/approved/rejected/reopened decision snapshots; reasoned terminal correction stale-safely reopens a row into review while retaining prior decisions. Mapping/history generic reads are strict-admin protected, direct history recording is denied, and history failure rolls back the parent transition. Every product, alias, and mapping review submits the displayed `updated_at` version and revalidates both the supplied and transaction-locked record versions, so stale forms or mixed stale-record/current-token callers cannot silently act on newer evidence. No real production mappings exist.
 5. **Private evidence collected; foundation remains bounded:** Every successful current-listing ingest appends an immutable PLN price/stock/source observation only when content changes, and ensures a mapping in the same transaction. Job 58 collected 154 observations; a unique listing/check-time boundary rejects ambiguous same-timestamp changes and failed batches roll back. This does not establish recurring stock history or production/public data.
-6. **Public rendering implemented; Phase 4 remains incomplete:** Current listing rows retain direct URL, price, stock state, first/last-seen and last-checked audit timestamps, while immutable history feeds the daily aggregate path. Public reads require an approved released official PL/en product, a matched mapping, and active listing/retailer. `/` searches local approved canonical names plus approved name aliases with bounded deterministic PostgreSQL ranking and stable accessible options; `/sealed/:slug` shows canonical identity, release/status, optional provenance-backed MSRP, one cheapest in-stock listing per shop sorted by PLN price, and one most recently checked sold-out listing per shop within 30 days in a separate section. Persisted current-model guide snapshots provide exact ready four inclusive-ceiling Great/Fair/Expensive/Avoid ranges and plain-English explanations from persisted factors, or exact Limited data reasons/factors. `SealedMarketHistory` provides the fixed 30 UTC-calendar-day SVG and textual ledger. Projection/aggregate/history corruption or mismatch fails closed; older-ready/newest-limited combinations remain explicitly cached/outdated and stale bands are never current. No provider runs in public paths and stale Enter events cannot select prior autocomplete options. Source agreement is settled and non-blocking. Internal demo recurring acquisition is implemented locally pending deploy. Production catalogue/retailer evidence and real validation remain incomplete; no production data is claimed.
+6. **Public rendering implemented; Phase 4 remains incomplete:** Current listing rows retain direct URL, price, stock state, first/last-seen and last-checked audit timestamps, while immutable history feeds the daily aggregate path. Public reads require an approved released official PL/en product, a matched mapping, and active listing/retailer. `/` searches local approved canonical names plus approved name aliases with bounded deterministic PostgreSQL ranking and stable accessible options; `/sealed/:slug` shows canonical identity, release/status, optional provenance-backed MSRP, one cheapest in-stock listing per shop sorted by PLN price, and one most recently checked sold-out listing per shop within 30 days in a separate section. Persisted current-model guide snapshots provide exact ready four inclusive-ceiling Great/Fair/Expensive/Avoid ranges and plain-English explanations from persisted factors, or exact Limited data reasons/factors. `SealedMarketHistory` provides the fixed 30 UTC-calendar-day SVG and textual ledger. Projection/aggregate/history corruption or mismatch fails closed; older-ready/newest-limited combinations remain explicitly cached/outdated and stale bands are never current. No provider runs in public paths and stale Enter events cannot select prior autocomplete options. Source agreement is settled and non-blocking. Internal demo recurring acquisition is deployed; production completion remains unverified/incomplete. Production catalogue/retailer evidence and real validation remain incomplete; no production data is claimed.
 
 Generated Ash migration/snapshot sets `20260808160842_sealed_catalogue_foundation`, `20260808204902_sealed_retailer_listing_foundation`, `20260808213452_sealed_listing_observations`, the `20260808231641`/`20260808231642` administrator-authentication pair, `20260809003932_public_sealed_lookup`, `20260809140042`–`20260809145258` for sealed daily aggregates, `20260809163539`–`20260809185311` for persisted buying guides/source evidence/current-plus-history revision hardening, and `20260810033425`/`20260810033437` for immutable mapping decisions plus existing-row baseline were applied and reviewed. The public lookup migration adds concurrent GIN trigram indexes for canonical sealed names and aliases. The generated authentication-extension rollback was narrowly corrected because dropping shared pre-existing Ash functions was demonstrably unsafe. Product/alias/mapping review transitions use transaction-local row locks plus displayed-version checks; listing ingest uses a stable per-listing transaction advisory lock. Aggregate and guide app/database constraints cover version/currency/state, canonical limited reasons, finite ordered money, nonnegative/coherent coverage counts, evidence/calculation time, exact current/history source fingerprints, restrictive parent references, and one product/date/version row. Other app/database constraints continue covering review state, immutable mapping-decision transitions/snapshots/actors/evidence, identity, timestamp, locale, source, finite-money, stock/price, GTIN/checksum, URL, foreign-key, and unique observation-boundary invariants.
 
@@ -1604,7 +1617,7 @@ The MVP is complete only when all of the following are true.
 - card page shows image and identity metadata
 - card page shows current or stale EUR aggregate valuation under `tcgdex_cardmarket_v1`
 - aggregate source, selected metric, and methodology are visible; no seller/offer-count widget is required because the active source does not provide that field
-- 7-day TTL works
+- 24-hour TTL works
 - missing/stale data triggers one deduplicated Oban job
 - page updates through LiveView when the job completes
 - 30-day valuation history works with real data

@@ -24,7 +24,7 @@ progressive disclosure.
 
 - Exact image, name, set, and collector number; stable TCGdex identity remains in the route and result data, while accessible exact identity uses the card name, set, and collector number.
 - Current local EUR estimate when present, otherwise `Price unavailable`.
-- Plain `Updated …` or `May be outdated` freshness evidence from the existing seven-day `TcgCheap.Pricing.Singles.Freshness` policy.
+- Plain `Updated …` or `May be outdated` freshness evidence from the strict 24-hour `TcgCheap.Pricing.Singles.Freshness` policy.
 - One clear `View price` action; `/trade` is entered through Singles/card-detail actions, not as a third homepage feature.
 - Usable autocomplete is implemented: preserve query, caret/selection, focus, and composition across LiveView updates; use combobox/listbox semantics with stable `card-option-UUID` IDs, direct streamed `role=option` children, exactly one visible `aria-selected` active option, wrapping ArrowUp/ArrowDown, exact active Enter navigation, Escape close retaining query/focus, validated option click/touch navigation, and query-specific screen-reader status. Accessible names reference visible name/set/rarity/price/update IDs, with no nested interactive control.
 - The active option is visibly ruled. The bounded listbox uses `min(45svh, 32rem)` and scrolls internally; the hook keeps the active option in view without scrolling the page or input away. Results retain only the bounded max-10 records needed to reinsert adjacent stream items when the active assign changes.

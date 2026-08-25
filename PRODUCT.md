@@ -12,11 +12,11 @@ web
 
 - English-speaking Pokémon TCG players and collectors evaluating common in-shop singles trades.
 - English-speaking Polish sealed-product buyers evaluating products and prices.
-- The current public surface supports Singles and Sealed search/detail foundations plus local-only Home discovery. Three centrally configured sealed sources provide recurring internal MVP acquisition: LootQuest plus CardzHouse and BoosterPoint LGS evidence; the registry and weekly schedule are implemented locally pending commit/deploy.
+- The current public surface supports Singles and Sealed search/detail foundations plus local-only Home discovery. Three centrally configured sealed sources provide recurring internal MVP acquisition: LootQuest plus CardzHouse and BoosterPoint LGS evidence; the exact registry and weekly schedule are deployed through Coolify.
 
 ## Product Purpose
 
-Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices. The Phase 3 trade/share batch is complete. Sealed recurring acquisition now covers three centrally configured sources, with the exact local registry and schedule pending commit/deploy; the overall MVP remains incomplete.
+Provide locally searchable exact Pokémon TCG printings, honest aggregate Cardmarket estimates, and context for understanding trades and sealed-product prices. The Phase 3 trade/share batch is complete. Sealed recurring acquisition now covers three centrally configured sources, with the exact registry and schedule deployed; the overall MVP remains incomplete.
 
 The product has exactly two top-level customer features: **sealed product price comparison** and **singles price comparison**. Singles includes composing a trade and calculating the difference; trade is not a third equal homepage product category.
 
@@ -27,8 +27,7 @@ source pulls are permitted for internal MVP validation. The internal recurring
 acquisition/retention blocker is therefore closed for sources covered by the
 agreed MVP plan, and the product must be built and demonstrated on the existing
 internal/unlisted domain <https://tcg-cheap.d.alergeek.me> in the coming weeks.
-Sealed recurring acquisition is agreed and implemented locally, pending
-commit/deploy. The final broad-launch decision follows that demonstration. This
+Sealed recurring acquisition is agreed and deployed. The final broad-launch decision follows that demonstration. This
 direction does not permit bypassing access controls.
 Budgets, rate limits, safety, attribution, and data minimization remain
 mandatory.
@@ -47,7 +46,7 @@ Thesis-validation product built around local cached data and transparent uncerta
 
 - Phoenix LiveView application using Elixir, Ash, and PostgreSQL.
 - Singles are searched and identified by exact printing, including set and collector number plus distinguishing metadata. The exact TCGdex identity path covers observed punctuation IDs such as `exu-!` and literal `exu-%3F` without accepting malformed escapes, path/query delimiters, padded identity, or overlong segments.
-- Singles estimates are in EUR and target seven-day freshness. Home discovery is deliberately bounded to the fixed preceding 30 UTC dates, at least two daily points spanning one day, and at least 2% absolute movement.
+- Singles estimates are in EUR and target 24-hour freshness (strictly less than 24 hours is fresh; exactly 24 hours is stale). Home discovery is deliberately bounded to the fixed preceding 30 UTC dates, at least two daily points spanning one day, and at least 2% absolute movement.
 - Public Sealed search/detail reads local approved/projection data. Trade unit and row prices remain EUR; side totals and complete differences also show Decimal PLN using the latest locally cached NBP rate.
 - Provider calls must happen outside normal request paths; public requests should primarily read local cached data.
 - The public exact-printing search surface is the local-only Home LiveView over the cached catalogue. Home defaults to Singles and presents a compact wordmark with `Compare Pokémon prices`, a direct `Find a card` search, and one-column exact-printing price rows with image, name, set, collector number, optional rarity, price, update state, and one solid `View price` CTA. The shared external 250ms `CardAutocomplete` hook serves Home and Trade, preserving the focused input node, query, caret/selection, and focus through result updates; composition pauses search and searches once after compositionend, while Escape cancels a pending debounce.
@@ -58,7 +57,7 @@ Thesis-validation product built around local cached data and transparent uncerta
 - When a mode has no qualified movers, Home shows up to 10 real local `Recently tracked` rows instead of blank mover lanes. Singles rows retain exact identity and current valuation/freshness where available, otherwise `Price unavailable`; sealed rows are approved public releases within a five-year window. Copy explains that direction appears only after observations on at least two dates. Rows use direct `View price` or `View offers` links. The separate cross-category zero-search-result fallback remains unchanged.
 - The 2026-08-08 minimal Home correction remains the presentation baseline. It uses plain collector language: `€…` or `Price unavailable`, `Updated …` plus `May be outdated`, and no instructional filler on search idle; the discovery fallback instead gives the concise explanation that direction appears only after observations on two dates. Rows do not expose TCGdex, legality, policy, freshness, or local-data jargon. The completed autocomplete uses real combobox/listbox semantics, stable `card-option-UUID` stream IDs, bounded ten-option results, visible first/active options, wrapping ArrowUp/ArrowDown, exact active Enter selection, Escape close with query/focus retained, validated touch/click selection, and query-specific live status.
 - The approved colors, fonts, and warm square visual direction remain; this correction targets density, copy, jargon, and CTA clarity rather than replacing the visual system.
-- Public `/trade` is the completed Phase 3 surface inside Singles: a mobile-first warm square decision bench with deterministic URL-only card IDs/quantities, one local search, explicit add-left/add-right actions, merged quantity rows, local bulk valuation, EUR-plus-PLN totals/difference, stale/unpriced/incomplete states, bounded background acquisition, safe CardDetail return/pick flows, and explicit canonical share/copy. NBP evidence shows the exact rate, effective date, relative age, and pending/failed/no-cache states; cached conversion is retained while acquisition is pending or failed. Public Sealed search/detail exists as a local projection; recurring acquisition is implemented locally pending commit/deploy.
+- Public `/trade` is the completed Phase 3 surface inside Singles: a mobile-first warm square decision bench with deterministic URL-only card IDs/quantities, one local search, explicit add-left/add-right actions, merged quantity rows, local bulk valuation, EUR-plus-PLN totals/difference, stale/unpriced/incomplete states, bounded background acquisition, safe CardDetail return/pick flows, and explicit canonical share/copy. NBP evidence shows the exact rate, effective date, relative age, and pending/failed/no-cache states; cached conversion is retained while acquisition is pending or failed. Public Sealed search/detail exists as a local projection; recurring acquisition is deployed, while production catalogue completion remains unverified/incomplete.
 - Missing or stale data is preferable to fabricated data or silently exceeding acquisition constraints.
 
 ### Sealed catalogue foundation — Phase 4 begun, not complete
@@ -67,13 +66,13 @@ The current domain foundation is source-neutral and Polish-English official-SKU 
 
 `SealedProductAlias` supports name and EAN review, normalized aliases, original values and provenance, pending/approved/rejected queues, and approved-per-product reads. GTIN-8/12/13/14 ASCII normalization and GS1 checksum validation run in both application and database layers, with global uniqueness across canonical products. Imports are pending-only and idempotent and cannot overwrite reviewed aliases. Transaction-local row locks serialize product and alias review transitions and revalidate latest state and completeness under lock. Database constraints and indexes cover state/timestamp invariants, completeness, locale, source pairs, finite MSRP, canonical search fields, product type, GTIN/checksum, slugs, source identity, product foreign keys, and global EAN.
 
-This is the source-neutral/domain foundation plus current public Sealed search/detail projection for Phase 4. LootQuest, CardzHouse, and BoosterPoint recurring acquisition is implemented locally, pending commit/deploy. Weekly UTC runs are staggered Monday 01:00 LootQuest (`regular_retailer`), 02:00 CardzHouse (`lgs`), and 03:00 BoosterPoint (`lgs`). Deployment configures six providers total; each sealed source has 50/hour, 100/day, and 500/month limits, with provider disable controls and Coolify/app takedown as the operational stop. Latest private LootQuest refresh job 81 succeeded in one attempt with 5 admitted requests. Retained LootQuest state remains 154 listings, 154 immutable observations, 153 review mappings, 1 matched mapping, and 155 decisions, confirming unchanged refreshes do not append fake history. CardzHouse and BoosterPoint add LGS evidence, but no mappings are approved; no ready sealed bands or directional history are claimed. Broad launch follows the stakeholder demo.
+This is the source-neutral/domain foundation plus current public Sealed search/detail projection for Phase 4. LootQuest, CardzHouse, and BoosterPoint recurring acquisition is deployed; production completion remains unverified/incomplete. Weekly UTC runs are staggered Monday 01:00 LootQuest (`regular_retailer`), 02:00 CardzHouse (`lgs`), and 03:00 BoosterPoint (`lgs`). Deployment configures six providers total; each sealed source has 50/hour, 100/day, and 500/month limits, with provider disable controls and Coolify/app takedown as the operational stop. Latest private LootQuest refresh job 81 succeeded in one attempt with 5 admitted requests. Retained LootQuest state remains 154 listings, 154 immutable observations, 153 review mappings, 1 matched mapping, and 155 decisions, confirming unchanged refreshes do not append fake history. CardzHouse and BoosterPoint add LGS evidence, but no mappings are approved; no ready sealed bands or directional history are claimed. Broad launch follows the stakeholder demo.
 
 The curated `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` is approved and listing source ID 104164 is manually confirmed. Its local daily aggregate is `limited / too_few_regular_retailers` with one regular retailer; its guide is `limited / limited_market_aggregate`, confidence `0.19`, with no fabricated bands. Browser search/detail showed one 899.99 PLN LootQuest offer and honest Limited-data messages. The historical private TCGdex run exhausted all 218 set IDs at 192 synced, 15 excluded, 11 permanent failed, and 20,561 printings. A later live failed-set repair converted those 11 hard failures to partial, and the punctuation-ID correction plus one budget-admitted `exu` sync imported that set 28/28. Current private state is 203 sets, 20,964 printings, and 10 unresolved provider-partial sets. This is not a fully successful production import. Long-term reliability and complete production import remain open.
 
 Detailed private enrichment now covers exactly `sv01-001` through `sv01-011`: all 11 matched Cardmarket IDs 702298–702308 and all 11 have current `tcgdex_cardmarket_v1` valuations. These real local observations range from EUR 0.03 to EUR 5.04; Pineco remains EUR 5.04. This is not representative coverage of the 20,964-printing catalogue; the two restored `exu` rows are pending and unpriced. Every successful listing ingest ensures a mapping in the same transaction: missing/invalid/ambiguous evidence creates or refreshes review; one eligible approved exact EAN may create or promote a mutable pending/review mapping to matched through the locked/product-validated Ash action and immutable decision history; terminal matched/rejected decisions are protected from source overwrite; failures roll back the batch.
 
-## Current deployment checkpoint — 2026-08-19
+## Historical deployment checkpoint — 2026-08-19 (superseded by the 2026-08-25 production checkpoint)
 
 Production is online at <https://tcg-cheap.d.alergeek.me>. The product owner
 confirms that the pinned ParadeDB production setup is complete, automatic
@@ -116,15 +115,18 @@ It strictly discovers TCGdex sets, imports every `me05` card, and imports only
 exact IR/SIR cards from the inclusive rolling prior two calendar years, in
 chunks of at most 20. Complete set `cardCount` evidence is required;
 incomplete/transient evidence retries, and scanned non-target cards are never
-imported. Daily 14:00 UTC refresh keyset-paginates active scoped matched cards
-and enqueues stale/missing valuations; `ValuationWorker` remains the sole
-provider-budget admission immediately before HTTP. Operations provides a
-manual scoped trigger.
+imported. Daily 14:00 UTC refresh keyset-paginates every active, nonexpired,
+scoped, matched pricing candidate and proactively enqueues valuations, including
+fresh candidates; public on-demand work remains missing/stale-only.
+`ValuationWorker` remains the sole provider-budget admission immediately before
+HTTP. Operations provides a manual scoped trigger.
 
 `curated_playable` has a fixed seven-entry policy version `2026-08-19-naic`.
 The dated official/Limitless/TCGdex evidence was explicitly approved for local
-implementation, and the implementation exists locally. It is not yet
-committed, deployed, or collected publicly. Its separate 15-minute bootstrap
+implementation, and the implementation is deployed. All seven exact routes
+resolved at the initial checkpoint: four had valuations and three had honest
+no-valuation states. Full valuation and coverage remains incomplete. Its
+separate 15-minute bootstrap
 is successful-run unique while retained by the configured seven-day Oban Pruner
 and creates seven priority-1 child jobs. Completed bootstrap and child jobs remain
 deduplicated while retained by that Pruner. Each child admits at most two TCGdex requests per
@@ -141,7 +143,7 @@ monitoring remain open.
 
 ## Current implementation checkpoint — 2026-08-10
 
-The sealed retailer adapters use reusable `TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI` request, pagination, and normalization mechanics. The exact three-source registry and Monday 01:00/02:00/03:00 UTC schedule are implemented locally pending commit/deploy; deployment configures six providers total, each source has 50/hour, 100/day, and 500/month limits, and provider disable controls plus Coolify/app takedown provide operational stop controls. Their exact host/path/category/field policies enforce per-page admission, disabled redirects/retries, bounded pages/listings/body/time, strict PLN minor-unit conversion, conservative English sealed filtering, and exact direct-URL validation.
+The sealed retailer adapters use reusable `TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI` request, pagination, and normalization mechanics. The exact three-source registry and Monday 01:00/02:00/03:00 UTC schedule are deployed; deployment configures six providers total, each source has 50/hour, 100/day, and 500/month limits, and provider disable controls plus Coolify/app takedown provide operational stop controls. Their exact host/path/category/field policies enforce per-page admission, disabled redirects/retries, bounded pages/listings/body/time, strict PLN minor-unit conversion, conservative English sealed filtering, and exact direct-URL validation.
 
 The two real local shops are deliberately registered as `lgs`; they are not representative `regular_retailer` evidence. CardzHouse job 88 completed in one attempt with 2 admitted requests and retained 96 listings, 96 immutable observations, 96 review mappings, and 96 decisions: 13 in stock and 83 sold out, priced PLN 22.95–1899.99. BoosterPoint job 89 completed in one attempt with 4 admitted requests and retained 232 listings, observations, review mappings, and decisions; all 232 source rows currently report sold out, priced PLN 3.99–990.00. Unchanged reruns jobs 90 and 91 used 2 and 4 admitted requests and retained exactly 96 and 232 rows, proving no duplicate observations or decisions.
 

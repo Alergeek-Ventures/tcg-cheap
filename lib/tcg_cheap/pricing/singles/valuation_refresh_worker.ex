@@ -63,8 +63,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationRefreshWorker do
   end
 
   defp refresh_card(card, :ok) do
-    case ValuationAcquisition.enqueue_if_stale_background(card) do
-      {:fresh, _} -> {:cont, :ok}
+    case ValuationAcquisition.enqueue_background(card) do
       {:enqueued, _} -> {:cont, :ok}
       {:error, :unpriced_mapping} -> {:cont, :ok}
       {:error, _} -> {:halt, {:error, :persistence_failed}}

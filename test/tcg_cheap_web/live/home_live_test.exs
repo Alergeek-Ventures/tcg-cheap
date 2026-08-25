@@ -320,7 +320,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#card-search-set-#{first.id}", "Archive Set #{suffix} · #01")
   end
 
-  test "renders local active-policy estimates with seven-day freshness", %{conn: conn} do
+  test "renders local active-policy estimates with 24-hour freshness", %{conn: conn} do
     suffix = System.unique_integer([:positive])
     search_term = "valuation-bench-#{suffix}"
     now = DateTime.utc_now() |> DateTime.truncate(:second)

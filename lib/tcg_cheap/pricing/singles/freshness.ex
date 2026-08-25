@@ -1,11 +1,11 @@
 defmodule TcgCheap.Pricing.Singles.Freshness do
   @moduledoc """
-  Seven-day freshness classification for locally stored singles valuations.
+  24-hour freshness classification for locally stored singles valuations.
   """
 
   alias TcgCheap.Pricing.Singles.SingleValuationSnapshot
 
-  @ttl_seconds :timer.hours(24 * 7) |> div(1_000)
+  @ttl_seconds :timer.hours(24) |> div(1_000)
 
   @spec status(SingleValuationSnapshot.t() | nil, DateTime.t()) :: :fresh | :stale | :missing
   def status(nil, _now), do: :missing

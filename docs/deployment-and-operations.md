@@ -137,7 +137,7 @@ provider.
 All interested parties agreed that recurring source pulls are permitted for the
 internal MVP. The existing internal/unlisted domain
 <https://tcg-cheap.d.alergeek.me> is the demonstration surface. Sealed recurring
-acquisition is implemented locally and pending commit/deploy. Preserve budgets,
+acquisition is deployed through Coolify. Preserve budgets,
 rate limits, safety, attribution, and data-minimization requirements. If the
 demonstration is stopped, Coolify/app takedown is the operational stop; broad
 launch follows the stakeholder demo.
@@ -169,23 +169,27 @@ run for seven days. It discovers TCGdex sets, imports every `me05` card, and
 imports only exact IR/SIR cards from the inclusive rolling prior two calendar
 years. Chunks are at most 20; complete `cardCount` evidence is required;
 incomplete/transient evidence retries; scanned non-target cards are never
-imported. Daily at 14:00 UTC, refresh keyset-paginates active scoped matched
-cards and enqueues stale/missing valuations. `ValuationWorker` is the sole
+imported. Daily at 14:00 UTC, refresh keyset-paginates every active, nonexpired,
+scoped, matched card and enqueues valuations, including fresh cards; public
+on-demand remains missing/stale-only. `ValuationWorker` is the sole
 provider-budget admission immediately before HTTP.
 
 Operations provides a manual scoped collection trigger. `curated_playable` has
 dated official/Limitless/TCGdex evidence and explicit approval for local
-implementation; its seven-entry implementation exists locally but is not yet
-committed, deployed, or collected publicly. Sealed recurring acquisition is
-implemented locally and pending commit/deploy: the centrally configured weekly
+implementation; its seven-entry implementation is deployed, but production completion and collection remain unverified/incomplete. Sealed recurring acquisition is
+deployed through Coolify: the centrally configured weekly
 UTC schedule runs Monday at 01:00 for LootQuest (`regular_retailer`), 02:00 for
 CardzHouse (`lgs`), and 03:00 for BoosterPoint (`lgs`). Deployment configures six
 providers in total, and each sealed source is limited to 50 requests/hour,
 100/day, and 500/month. Provider controls can disable a source; taking the
 Coolify application down is the operational stop when needed.
 
-Current production checkpoint is commit `ccc394c`, with green CI run
-<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32285087422>.
+Current production checkpoint is commit `02b8d65`, with green CI run
+<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32369920522>.
+Production `/health` on 2026-08-25 reported database ready, 7 Oban queues, and
+6 configured providers. All seven exact curated card routes resolved publicly
+after the 2026-08-20 deploy; at that initial checkpoint four had valuations and
+three honestly showed no valuation. Do not infer later freshness from this checkpoint.
 At 2026-08-19 18:16 UTC, exact public Pitch Black `me05-001` through at least
 `me05-040` had imported/scoped and rendered real Cardmarket aggregate snapshots
 (001 €0.02, 021 €0.02, 040 €0.03); Tropius autocomplete returned exact
@@ -194,7 +198,7 @@ warnings/errors were zero. This closes initial production data validation, not
 complete 120-card or rolling IR/SIR coverage; collection remained budgeted and
 in progress.
 
-### Curated playable manifest — approved local implementation, pending deployment
+### Curated playable manifest — approved deployed implementation; production completion unverified
 
 The fixed seven-entry policy version is `2026-08-19-naic`. A separate
 15-minute bootstrap is successful-run unique while retained by the configured
@@ -206,8 +210,8 @@ expiry is fixed and non-sliding. Shared Ash transaction plus row-lock scope
 merging applies rolling/Pitch Black/legacy/admin precedence, and matched cards
 enqueue valuation. No request-path HTTP or sealed adapter is involved; existing
 Pitch v2 remains independent. Rows become public only after successful deploy
-and import, then expire automatically. This batch is not yet committed,
-deployed, or collected publicly. The evidence manifest is [here](../knowledge-base/raw/2026-08-19-curated-playable-manifest.md),
+and import, then expire automatically. This batch is deployed, but production
+completion and collection remain unverified/incomplete. The evidence manifest is [here](../knowledge-base/raw/2026-08-19-curated-playable-manifest.md),
 expires inclusive 2026-11-17. Representative evidence, backups, and monitoring
 remain required.
 

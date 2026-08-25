@@ -11,7 +11,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
   @spec enqueue(map() | String.t()) :: {:ok, Oban.Job.t()} | {:error, term()}
   def enqueue(input), do: with({:ok, card} <- resolve_card(input), do: insert(card))
 
-  @doc "Enqueue only when the current seven-day valuation is missing or stale."
+  @doc "Enqueue only when the current 24-hour valuation is missing or stale."
   @spec enqueue_if_stale(map() | String.t(), keyword()) ::
           {:fresh, TcgCheap.Pricing.Singles.SingleValuationSnapshot.t()}
           | {:enqueued, Oban.Job.t()}
@@ -55,6 +55,16 @@ defmodule TcgCheap.Pricing.Singles.ValuationAcquisition do
   end
 
   def enqueue_if_stale_background(_input, _opts), do: {:error, :invalid_options}
+
+  @doc "Enqueue trusted background refresh work without freshness gating or budget admission."
+  @spec enqueue_background(map() | String.t()) ::
+          {:enqueued, Oban.Job.t()} | {:error, term()}
+  def enqueue_background(input) do
+    with {:ok, card} <- resolve_card(input),
+         {:ok, job} <- insert(card) do
+      {:enqueued, job}
+    end
+  end
 
   @doc "Subscribe before requesting freshness, so callers can reconcile the result."
   def subscribe_and_request(input, opts \\ [])

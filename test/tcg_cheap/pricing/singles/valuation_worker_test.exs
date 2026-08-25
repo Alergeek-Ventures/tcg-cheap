@@ -329,6 +329,39 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     assert usage_counts("tcgdex_cardmarket") == %{}
   end
 
+  test "a delayed job cancelled after scope removal does not admit or call provider", %{
+    stub: stub
+  } do
+    card = create_card()
+
+    TcgCheap.TestSupport.set_collection_scope!(card, %{
+      collection_scopes: [],
+      collection_scope_source: nil,
+      collection_scoped_at: nil,
+      collection_expires_on: nil
+    })
+
+    assert {:cancel, :invalid_local_card} = perform_job(test_job(args(card)), [])
+    assert %{calls: 0} = Agent.get(stub, & &1)
+    assert usage_counts("tcgdex_cardmarket") == %{}
+  end
+
+  test "a delayed job cancelled after scope expiry does not admit or call provider", %{stub: stub} do
+    card = create_card()
+
+    TcgCheap.TestSupport.set_collection_scope!(card, %{
+      collection_scopes: ["legacy_local"],
+      collection_scope_source: "legacy",
+      collection_scoped_at:
+        DateTime.new!(Date.add(Date.utc_today(), -2), ~T[00:00:00], "Etc/UTC"),
+      collection_expires_on: Date.add(Date.utc_today(), -1)
+    })
+
+    assert {:cancel, :invalid_local_card} = perform_job(test_job(args(card)), [])
+    assert %{calls: 0} = Agent.get(stub, & &1)
+    assert usage_counts("tcgdex_cardmarket") == %{}
+  end
+
   test "enqueue accepts a local TCGdex ID and rejects invalid input" do
     card = create_card()
     assert {:ok, job} = ValuationAcquisition.enqueue(card.tcgdex_id)
@@ -337,7 +370,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     assert {:error, :invalid_local_card} = ValuationAcquisition.enqueue(%{})
   end
 
-  test "enqueue_if_stale enqueues missing and stale, but skips fresh at the seven-day boundary" do
+  test "enqueue_if_stale enqueues missing and stale at the 24-hour boundary" do
     missing = create_card()
     now = ~U[2026-08-14 12:00:00Z]
 
@@ -348,13 +381,13 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
              )
 
     fresh = create_card()
-    record_snapshot(fresh, ~U[2026-08-07 12:00:01Z])
+    record_snapshot(fresh, ~U[2026-08-13 12:00:01Z])
 
     assert {:fresh, _snapshot} =
              ValuationAcquisition.enqueue_if_stale(fresh, clock: fn -> now end)
 
     boundary = create_card()
-    record_snapshot(boundary, ~U[2026-08-07 12:00:00Z])
+    record_snapshot(boundary, ~U[2026-08-13 12:00:00Z])
 
     assert {:enqueued, _job} =
              ValuationAcquisition.enqueue_if_stale(boundary,
@@ -383,7 +416,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     fresh = create_card()
     stale = create_card()
     missing = create_card()
-    record_snapshot(fresh, ~U[2026-08-13 12:00:00Z])
+    record_snapshot(fresh, ~U[2026-08-13 12:00:01Z])
     record_snapshot(stale, ~U[2026-08-05 12:00:00Z])
 
     assert {:ok, results} =

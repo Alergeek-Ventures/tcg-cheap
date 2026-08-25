@@ -41,8 +41,16 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
   def perform(_job), do: {:cancel, :malformed_job_args}
 
   defp execute(job, identity, request_admitter) do
-    with {:ok, card} <- load_card(identity) do
+    with {:ok, card} <- load_card(identity),
+         {:ok, _public_card} <- load_public_card(identity.tcgdex_id) do
       acquire(job, card, request_admitter)
+    end
+  end
+
+  defp load_public_card(tcgdex_id) do
+    case Core.get_public_card_printing_by_tcgdex_id(tcgdex_id) do
+      {:ok, card} when is_map(card) -> {:ok, card}
+      _ -> {:cancel, :invalid_local_card}
     end
   end
 

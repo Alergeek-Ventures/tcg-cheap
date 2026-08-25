@@ -97,8 +97,8 @@ guide remains the source of truth for future deploys, migration gating, admin
 provisioning, ParadeDB upgrades/preload, backups, rollback, and incidents.
 
 All interested parties agreed that recurring source pulls are permitted for the
-internal MVP. Recurring acquisition is implemented locally and pending
-commit/deploy. Budgets, rate limits, safety, attribution, and data-minimization
+internal MVP. The exact curated policy and three-source recurring acquisition
+are deployed through Coolify. Budgets, rate limits, safety, attribution, and data-minimization
 requirements remain in force. Broad launch follows the stakeholder demo.
 The weekly schedule is Monday 01:00 UTC LootQuest (`regular_retailer`), 02:00
 CardzHouse (`lgs`), and 03:00 BoosterPoint (`lgs`); deployment expects six
@@ -118,15 +118,22 @@ The curated-playable manifest evidence is dated 2026-08-19 and expires
 inclusive 2026-11-17. It covers seven exact Trainer/Item/Supporter identities
 from NAIC Limitless lists, cross-checked against official rotation and exact
 TCGdex legality; it must be replaced/reapproved before expiry. The current
-production checkpoint is commit `ccc394c`: CI run
-<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32285087422> is
-green, and production health reports the database, 7 Oban queues, and 3
-providers. By 18:16 UTC, exact public Pitch Black cards `me05-001` through at
-least `me05-040` had imported/scoped and rendered real Cardmarket aggregates
+production checkpoint is commit `02b8d65`: CI run
+<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32369920522> is
+green, and production health on 2026-08-25 reported the database ready, 7 Oban
+queues, and 6 configured providers. The fixed curated policy is deployed; after
+the 2026-08-20 deploy, all seven exact card routes resolved publicly. At that
+initial checkpoint four had valuations and three honestly showed no valuation;
+no later freshness is claimed. By 18:16 UTC, exact public Pitch Black cards
+`me05-001` through at least `me05-040` had imported/scoped and rendered real Cardmarket aggregates
 (for example 001 €0.02, 021 €0.02, 040 €0.03); this is initial validation, not
 complete 120-card or rolling IR/SIR coverage.
 
-The curated implementation is local and pending commit, deployment, and public
-collection. Retained completed bootstrap and child jobs remain deduplicated while
+The curated implementation is deployed, but production completion remains
+unverified/incomplete. Retained completed bootstrap and child jobs remain deduplicated while
 the configured seven-day Oban Pruner retains them. Each child permits at most two
 TCGdex requests per card per attempt.
+The sealed registry and weekly Cron are deployed, but manual jobs 916/917/918,
+refresh 920, and aggregate 921 have unverified completion; public search for
+`151 Booster Bundle` returned no product, so approved sealed catalogue/mappings
+remain incomplete.
