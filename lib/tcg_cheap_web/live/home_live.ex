@@ -221,7 +221,7 @@ defmodule TcgCheapWeb.HomeLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash}>
-      <div class="decision-world">
+      <div class="decision-world home-world">
         <header id="decision-header" class="decision-header">
           <.link id="decision-wordmark" navigate={~p"/"}>TCG CHEAP</.link>
         </header>
@@ -254,6 +254,7 @@ defmodule TcgCheapWeb.HomeLive do
                 <.form for={@search_form} id="card-search-form">
                   <label for="card-search-query" class="sr-only">Search for a card</label>
                   <div class="search-field-wrap">
+                    <.fluent_icon name={:search} class="search-field-icon" />
                     <.input
                       field={@search_form[:query]}
                       type="search"
@@ -398,6 +399,7 @@ defmodule TcgCheapWeb.HomeLive do
                 <.form for={@search_form} id="sealed-search-form">
                   <label for="sealed-search-query" class="sr-only">Search for a sealed product</label>
                   <div class="search-field-wrap">
+                    <.fluent_icon name={:search} class="search-field-icon" />
                     <.input
                       field={@search_form[:query]}
                       type="search"
@@ -538,24 +540,29 @@ defmodule TcgCheapWeb.HomeLive do
       aria-labelledby="market-movers-title"
       hidden={@hidden}
     >
-      <h2 id="market-movers-title">Market activity</h2>
-      <p id="market-movers-intro">
-        Movers compare the first and latest daily prices in the most recent 30 UTC dates. A card
-        or product needs prices on at least two dates and a change of 2% or more.
-      </p>
-      <details id="price-details">
-        <summary>How prices work</summary>
-        <p :if={@mode == :singles}>
-          Singles prices are aggregate Cardmarket estimates retrieved through TCGdex. They are
-          estimates, not offers; condition and shipping can change the price. TCG Cheap is not
-          affiliated with Cardmarket or TCGdex.
-        </p>
-        <p :if={@mode == :sealed}>
-          Sealed prices are benchmarks built from approved local-shop observations. They are
-          estimates, not offers; condition and shipping can change the price. TCG Cheap is
-          independent from observed shops.
-        </p>
-      </details>
+      <div class="market-heading">
+        <h2 id="market-movers-title">Price movement</h2>
+        <details id="price-details">
+          <summary>
+            <.fluent_icon name={:info} />Method<.fluent_icon
+              name={:chevron_down}
+              class="disclosure-chevron"
+            />
+          </summary>
+          <p>
+            Movers compare first and latest daily prices across the most recent 30 UTC dates; at
+            least two dates and a change of 2% or more are required.
+          </p>
+          <p :if={@mode == :singles}>
+            Singles use aggregate Cardmarket estimates from TCGdex—not offers; condition and
+            shipping vary. TCG Cheap is not affiliated with Cardmarket or TCGdex.
+          </p>
+          <p :if={@mode == :sealed}>
+            Sealed benchmarks use approved local-shop observations—not offers; condition and
+            shipping vary. TCG Cheap is independent of observed shops.
+          </p>
+        </details>
+      </div>
       <div
         id="market-singles-panel"
         class="market-mode-panel"
@@ -718,7 +725,7 @@ defmodule TcgCheapWeb.HomeLive do
         <p class="recent-value">
           <strong>{estimate_display(Map.get(card, :tcgdex_cardmarket_v1_current_valuation))}</strong>
           <%= if valuation = Map.get(card, :tcgdex_cardmarket_v1_current_valuation) do %>
-            · {freshness_text(valuation)}
+            · <.fluent_icon name={:clock} />{freshness_text(valuation)}
           <% end %>
         </p>
       </div>
@@ -827,12 +834,17 @@ defmodule TcgCheapWeb.HomeLive do
         }>
           <span class="mover-movement"><strong>{movement_label(mover.change_percent)} {signed_percent(
             mover.change_percent
-          )}</strong></span>
+          )}</strong><.fluent_icon
+            name={:arrow_trending}
+            class={movement_icon_class(mover.change_percent)}
+          /></span>
           <span class="mover-price-range">€{format_eur(mover.start_value_eur)} → €{format_eur(
             mover.current_value_eur
           )}</span>
           <span class="mover-date-range">{date_range(mover.start_date, mover.current_date)}</span>
-          <span class="mover-freshness">{discovery_freshness_text(mover.current_fetched_at)}</span>
+          <span class="mover-freshness"><.fluent_icon name={:clock} />{discovery_freshness_text(
+            mover.current_fetched_at
+          )}</span>
         </p>
       </div>
     </.link>
@@ -860,12 +872,17 @@ defmodule TcgCheapWeb.HomeLive do
         }>
           <span class="mover-movement"><strong>{movement_label(mover.change_percent)} {signed_percent(
             mover.change_percent
-          )}</strong></span>
+          )}</strong><.fluent_icon
+            name={:arrow_trending}
+            class={movement_icon_class(mover.change_percent)}
+          /></span>
           <span class="mover-price-range">{format_eur(mover.start_benchmark_pln)} PLN → {format_eur(
             mover.current_benchmark_pln
           )} PLN</span>
           <span class="mover-date-range">{date_range(mover.start_date, mover.current_date)}</span>
-          <span class="mover-freshness">{checked_text(mover.current_checked_at)}</span>
+          <span class="mover-freshness"><.fluent_icon name={:clock} />{checked_text(
+            mover.current_checked_at
+          )}</span>
         </p>
       </div>
     </.link>
@@ -1045,6 +1062,10 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp movement_class(value) do
     if Decimal.compare(value, Decimal.new(0)) == :gt, do: "movement-rise", else: "movement-fall"
+  end
+
+  defp movement_icon_class(value) do
+    if Decimal.compare(value, Decimal.new(0)) == :lt, do: "movement-icon-down", else: nil
   end
 
   defp search_locally(socket, query) do

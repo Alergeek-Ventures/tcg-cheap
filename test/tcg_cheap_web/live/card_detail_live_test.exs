@@ -48,12 +48,16 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     assert has_element?(view, "#card-detail-identity")
     assert has_element?(view, "#card-detail-title", card.name)
+    assert has_element?(view, "#valuation-title", "Current estimate")
+    assert has_element?(view, "#history-title", "Price history")
+    assert has_element?(view, "#valuation-history-window", "Last 30 days")
     assert has_element?(view, "#archive-wordmark", "TCG CHEAP")
     refute has_element?(view, "#archive-header", "Card details")
     refute has_element?(view, "#card-detail-metadata", "TCGDEX ID")
     refute has_element?(view, "#card-detail-metadata", card.tcgdex_id)
     assert has_element?(view, "#card-detail-image-missing")
     refute has_element?(view, "#card-detail-image")
+    refute has_element?(view, ".card-detail-secondary")
 
     assert has_element?(
              view,
@@ -75,7 +79,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-unpriced")
     assert has_element?(view, "#valuation-fetching")
     assert has_element?(view, "#valuation-history-empty", "No price history yet.")
-    assert has_element?(view, "#valuation-history-collecting", "Not enough price history yet.")
+    refute has_element?(view, "#valuation-history-collecting")
 
     refute has_element?(
              view,
@@ -150,6 +154,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-basis", "Based on Cardmarket 7-day average via TCGdex.")
     assert has_element?(view, "#valuation-provenance")
     assert has_element?(view, "#valuation-provenance summary", "Estimate details")
+    assert has_element?(view, "#valuation-provenance summary .fluent-icon")
     assert has_element?(view, "#valuation-provenance", "Cardmarket via TCGdex")
     assert has_element?(view, "#valuation-provenance", "7-day average")
     assert has_element?(view, "#valuation-provenance", @policy)
@@ -227,7 +232,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     )
   end
 
-  test "printing details have distinct labels and legal format chips", %{conn: conn} do
+  test "printing details have distinct labels and quiet legal formats", %{conn: conn} do
     card =
       create_card("metadata",
         rarity: "Rare",
@@ -240,21 +245,12 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
 
-    assert has_element?(view, "#card-detail-metadata-title", "Printing details")
+    assert has_element?(view, "#card-detail-metadata-title", "Printing")
     assert has_element?(view, "#card-detail-metadata .card-detail-metadata-item dt", "Rarity")
     assert has_element?(view, "#card-detail-metadata .card-detail-metadata-item dd", "Rare")
 
-    assert has_element?(
-             view,
-             "#card-detail-metadata .archive-legality-chips .archive-chip-sage",
-             "Standard"
-           )
-
-    assert has_element?(
-             view,
-             "#card-detail-metadata .archive-legality-chips .archive-chip-indigo",
-             "Expanded"
-           )
+    assert has_element?(view, "#card-detail-metadata dd", "Standard · Expanded")
+    refute has_element?(view, "#card-detail-metadata .archive-chip")
 
     refute has_element?(view, "#card-detail-metadata", "TCGDEX ID")
     refute has_element?(view, "#card-detail-metadata", card.tcgdex_id)

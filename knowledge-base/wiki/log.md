@@ -1,5 +1,18 @@
 # Wiki Log
 
+## [2026-08-26] Local owner-directed Home/CardDetail UI correction
+
+- Task completed: Documented the local, uncommitted, not-deployed refinement; production remains at deployed UI commit `bafa237` and no production verification is implied. Home now removes the always-visible mover methodology paragraph, compacts `Price movement` with collapsed `Method`, reduces rules/boxes/whitespace, and retains signed prior→current/date/freshness evidence and exact behavior. CardDetail now uses calm warm paper, coherent desktop/mobile ordering, unboxed valuation/metadata/history, plain legal formats, quiet provenance, empty-printing suppression, corrected zero-history messaging, and one-point no-chart behavior.
+- UI boundary: Official Fluent UI System Icons Regular are selectively used for search/back/trade/info/disclosure/freshness/trend while text labels remain and icons are decorative; the full Microsoft MIT notice is in `THIRD_PARTY_NOTICES.md`. Shared Trade/Sealed decision-world styling was restored and scoped. The owner had rejected the prior production UI as clunky, over-bordered, and over-spaced.
+- Validation: Canonical `mix check --verbose` passed all gates and 883 tests; focused Home/CardDetail/Trade/Sealed suites passed 96 tests (Home/CardDetail 49); assets build/compile passed; desktop and 390px Home/CardDetail plus 390px shared Trade/Sealed checks had zero horizontal overflow, sampled controls were 48px, and current-page console warnings/errors were zero. One Impeccable detector pass reported design-ramp typography advisories before touched public metadata/date sizes were normalized to a 14px minimum. Final shared-scope, icon-class, and license-notice findings were corrected.
+- Files: Updated only `knowledge-base/wiki/architecture/application-foundation.md`, `knowledge-base/wiki/product/mvp-implementation-plan.md`, `knowledge-base/wiki/index.md`, and this log. Raw files, code, and historical/deployed records were preserved.
+- Remaining: Deployment and owner acceptance are pending; existing sealed catalogue/mapping and mover-history tuning limitations remain. Raw: N/A — codebase update.
+
+## [2026-08-26] Deterministic wiki lint | Local UI correction documentation
+
+- Validation: 5 durable articles, 5/5 indexed, 15/15 `Updated`/`Sources`/`Raw` metadata fields, 69 relative Markdown links (22 wiki/non-raw, 47 raw), 0 broken links, 0 deterministic errors, and 0 auto-fixes.
+- Heuristic review: Local/uncommitted/not-deployed UI wording is distinguished from deployed `bafa237`; no production verification claim was added. Immutable raw files and historical/deployed records remain preserved.
+
 ## [2026-08-26] Deterministic wiki lint | Public UI refinement post-deployment reconciliation
 
 - Validation: 5 durable articles, 5/5 indexed, 15/15 metadata fields, 69 relative Markdown links (22 wiki/non-raw, 47 raw), 0 broken links, 0 deterministic errors, and 0 auto-fixes.

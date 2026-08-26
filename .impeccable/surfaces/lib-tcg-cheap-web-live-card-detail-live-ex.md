@@ -30,17 +30,21 @@ related_targets: ["assets/css/app.css","lib/tcg_cheap_web/live/home_live.ex"]
 - Printing surfaces may use canonical TCGdex low WebP thumbnails and card detail uses the high WebP exact-printing image, both with no-referrer hotlinking. Missing images retain an honest line-art fallback.
 - The site is explicitly unofficial and non-affiliated; it makes no claim of independently licensed Pokémon art.
 - Put mobile identity and value first.
-- Preserve the archive-wall world.
+- Preserve `.archive-world` as the CSS scope name, but supersede the prior saturated orange archive board, three boxed columns/status boxes, colored legal-format chips, and giant framed chart.
+- Use calm warm paper with a subtle 1px header separator. Desktop is two columns: image plus one coherent detail column. Mobile order is identity → estimate → image → printing.
+- Keep valuation, metadata, and history unboxed; legal format is plain text; statuses/disclosure are quiet; chart width is sensible. Exact identity, data, provenance, and history behavior remain unchanged.
 - Use mobile-first stacking, at least 48px controls, and 33-50% lower mobile spatial density. Desktop content is capped at 1152px/72rem (within 1100-1200px), with 48px major section spacing and 24-32px panel spacing. Body is 16px, metadata is at least 14px, prose is at most 70ch, normal text contrast is at least 4.5:1, and focus is clear.
 - Retain Barlow Condensed 700 as the documented brand/asset exception because only the approved 700 asset exists; Azeret Mono is body/evidence, with no more than two typefaces.
 
 ## Direction
 
-Make a ruled archive identity/value sheet with a tissue history ledger.
+Make a calm warm-paper identity/value detail surface with coherent evidence and a quiet history ledger.
 
 ## Memorable moment
 
 The honest broken-line/dot history preserves missing days instead of implying false continuity.
+
+Selective search, back, trade/swap, information, disclosure chevron, freshness/clock, and trend-direction controls use Microsoft’s official Fluent UI System Icons Regular as decorative `aria-hidden` inline SVGs. Icons support labels rather than replacing necessary text; the full MIT notice is in `THIRD_PARTY_NOTICES.md`.
 
 ## Unresolved decisions
 

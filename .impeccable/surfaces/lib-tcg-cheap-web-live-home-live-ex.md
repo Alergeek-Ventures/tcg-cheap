@@ -10,8 +10,8 @@ related_targets: ["assets/css/app.css", "lib/tcg_cheap_web/components/layouts/ro
 This surface is intentionally distilled for ordinary collectors: plain card search first,
 compact exact-printing result rows, and one clear `View price` action. Stable TCGdex identity
 remains in the route and result data; accessible exact identity uses the card name, set, and
-collector number. Methodology, policy, and non-affiliation caveats remain available in
-progressive disclosure.
+collector number. Methodology, policy, and non-affiliation caveats remain complete but hidden
+by default in the collapsed icon-led `Method` disclosure.
 
 - **Scope:** `/`
 - **Mode:** Operate
@@ -28,7 +28,7 @@ progressive disclosure.
 - One clear `View price` action; `/trade` is entered through Singles/card-detail actions, not as a third homepage feature.
 - Usable autocomplete is implemented: preserve query, caret/selection, focus, and composition across LiveView updates; use combobox/listbox semantics with stable `card-option-UUID` IDs, direct streamed `role=option` children, exactly one visible `aria-selected` active option, wrapping ArrowUp/ArrowDown, exact active Enter navigation, Escape close retaining query/focus, validated option click/touch navigation, and query-specific screen-reader status. Accessible names reference visible name/set/rarity/price/update IDs, with no nested interactive control.
 - The active option is visibly ruled. The bounded listbox uses `min(45svh, 32rem)` and scrolls internally; the hook keeps the active option in view without scrolling the page or input away. Results retain only the bounded max-10 records needed to reinsert adjacent stream items when the active assign changes.
-- Keep legal/methodology honesty, exact-printing correctness, accessibility, and required caveats, but put technical detail behind concise secondary disclosure where feasible.
+- Keep legal/methodology honesty, exact-printing correctness, accessibility, and required caveats, but put technical detail behind concise secondary disclosure where feasible. `Price movement` is compact; Market separation is approximately 24px; supporting headings use title case.
 
 ## Constraints
 
@@ -36,15 +36,15 @@ progressive disclosure.
 - Local-only debounced exact-printing search; normalize and cap queries; no provider calls in render.
 - Validation is complete with LiveView regression coverage and real desktop/mobile browser typing one character at a time, focus/caret checks after every update, keyboard selection/Escape, composition-event simulation, no console errors, and no horizontal overflow.
 - Stream results with stable IDs, canonical low WebP images, no-referrer hotlinking, and an honest missing-image fallback.
-- Light, bright counter scene; square geometry; touch targets at least 48px; no horizontal overflow. Use mobile-first stacking, the 4/8/12/16/24/32/48/64px spacing scale on an 8px core grid, and reduce mobile spatial density by about 33-50%.
-- Current colors, fonts, and warm square direction are approved; simplify information density and copy rather than replacing the visual system.
+- Calm restrained warm-paper counter scene; square geometry; no noise texture or heavy perimeter borders on search, evidence, and Market rows; one subtle header/input separator; touch targets at least 48px; no horizontal overflow. Use mobile-first stacking, the 4/8/12/16/24/32/48/64px spacing scale on an 8px core grid, and reduce mobile spatial density by about 33-50%.
+- Search, movement, freshness, and disclosure use selective official Fluent UI System Icons Regular as decorative `aria-hidden` inline SVGs from Microsoft’s official regular set; icons support labels rather than replacing necessary text. The full MIT notice is in `THIRD_PARTY_NOTICES.md`. The `.home-world` scope owns Home styling; shared Trade/Sealed `.decision-world` styling remains unchanged.
 - Use a canonical 1152px/72rem desktop content container (within 1100-1200px), 48px major section spacing, and 24-32px desktop panel spacing. Body text is 16px, metadata is at least 14px, prose is at most 70ch, normal text contrast is at least 4.5:1, and focus is clear.
 - Keep Barlow Condensed 700 as the documented brand/asset exception because only the approved 700 asset exists; Azeret Mono is body/evidence and no third typeface is introduced.
 - Keep one primary task/action hierarchy with generous space around it. Repeated result-row `View price` CTAs are contextual, not competing page-level primaries.
 
 ## Direction
 
-Direction 7 from seed `ca73501c`: a card-shop valuation bench/laboratory comparison bench using warm board, tissue, and ink materials. Evidence slips replace archive labels; Barlow Condensed carries action hierarchy and Azeret Mono carries measurements.
+The owner-directed local refinement retains the warm square identity but makes Home calm and restrained: paper, bench, ink, selective orange emphasis, and semantic Fluent icons. Evidence remains inspectable without heavy borders; Barlow Condensed carries action hierarchy and Azeret Mono carries measurements.
 
 ## Memorable moment
 

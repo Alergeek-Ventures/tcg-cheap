@@ -1,17 +1,17 @@
 ---
 name: TCG Cheap Decision Surface
-description: A bright card-shop valuation bench for deciding about exact Pokémon TCG singles.
+description: A calm warm-paper decision surface for deciding about exact Pokémon TCG singles.
 colors:
-  box-board: "#c86c3f"
+  box-board: "#f1eadc"
   box-board-dark: "#a94f2f"
   ink: "#171614"
-  tissue: "#f6f0df"
+  tissue: "#fffdf8"
   sage: "#a9b69a"
   indigo: "#9fa8c8"
   lilac: "#c1b1c9"
   sunfade: "#e5bf70"
-  bench: "#f3ead7"
-  bench-light: "#fffaf0"
+  bench: "#f1eadc"
+  bench-light: "#fffdf8"
   paper: "#fffdf8"
   orange: "#b54125"
   muted: "#6d6256"
@@ -44,7 +44,7 @@ spacing:
   intermediateStep: "12px"
   container: "72rem"
   desktopMax: "1100-1200px"
-  desktopSectionGap: "48px"
+  desktopSectionGap: "24-48px by hierarchy"
   desktopPanelPadding: "24-32px"
   mobileDensityReduction: "33-50%"
 components:
@@ -53,7 +53,7 @@ components:
     textColor: "{colors.ink}"
     typography: "{typography.label}"
     rounded: "{rounded.square}"
-    padding: "16px 48px"
+    padding: "8px max(16px, 4vw)"
   mode-switch:
     backgroundColor: "{colors.bench}"
     textColor: "{colors.ink}"
@@ -63,12 +63,12 @@ components:
     backgroundColor: "{colors.bench-light}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "24px"
+    padding: "16px 20px"
   price-row:
     backgroundColor: "{colors.paper}"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "12px"
+    padding: "6px 12px"
   archive-active-label:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.tissue}"
@@ -76,16 +76,16 @@ components:
     rounded: "{rounded.square}"
     padding: "4px 8px"
   price-methodology:
-    backgroundColor: "{colors.tissue}"
+    backgroundColor: "transparent"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "12px 16px"
+    padding: "8px 0"
   printing-label:
-    backgroundColor: "{colors.tissue}"
+    backgroundColor: "transparent"
     textColor: "{colors.ink}"
     rounded: "{rounded.square}"
-    padding: "1rem"
-  archive-chip:
+    padding: "1rem 0"
+  archive-annotation:
     textColor: "{colors.ink}"
     typography: "{typography.label}"
     rounded: "{rounded.square}"
@@ -98,20 +98,20 @@ components:
 
 **Creative North Star: "The Card-Shop Valuation Bench"**
 
-Home is a light, bright counter scene: a warm bench supports compact paper-like price rows, black ink rules, and orange action emphasis. It is practical and decision-oriented rather than promotional. Condensed display type makes the call legible at a glance; monospaced data keeps identity and supporting detail precise.
+Home is a calm warm-paper counter scene: a warm bench supports compact paper-like price rows, restrained ink separators, and selective orange action emphasis. It is practical and decision-oriented rather than promotional. Condensed display type makes the call legible at a glance; monospaced data keeps identity and supporting detail precise.
 
-The Home decision-world favors square geometry, strong ruled edges, warm bench/paper/ink/orange color blocks, and a distilled vertical price-row system. It rejects generic rounded marketplace grids, glass surfaces, and decorative gradients. Search is the primary action; current, outdated, and unavailable states remain visible in plain collector language.
+The Home decision-world keeps its warm square identity while becoming calm and restrained: no noise texture, no heavy perimeter borders on search, evidence, or market rows, one subtle header/input separator, and approximately 24px Market separation. It rejects generic rounded marketplace grids, glass surfaces, and decorative gradients. Search is the primary action; current, outdated, and unavailable states remain visible in plain collector language.
 
-The `.archive-world` remains the visual contract for card detail. The archive world was scoped away from Home, not removed globally.
+The `.archive-world` remains the CSS scope name and visual contract for card detail. CardDetail now uses calm warm paper with a transparent, unboxed printing surface, one coherent detail column, plain-text legal format, and a restrained chart. The archive world was scoped away from Home, not removed globally.
 
 **Key Characteristics:**
-- Bright card-shop bench, paper, ink, and orange action grammar on Home.
+- Calm warm-paper bench, square identity, restrained ink separators, and selective orange action grammar on Home.
 - Exact-printing identity expressed through image, name, set, collector number, and optional rarity.
 - One accessible mode switch, direct `Find a card` search, one solid `View price` action, and restrained reveal motion.
 
 ## Colors
 
-The Home palette is a warm counter system: bench establishes the light field, paper carries evidence, ink makes the rules, orange marks actions and evidence notices, and muted text supports caveats.
+The Home palette is a calm warm counter system: `#f1eadc` bench establishes the light field, `#fffdf8` paper carries evidence, restrained ink makes the separators, orange marks actions and evidence notices, and muted text supports caveats. Shared Trade/Sealed `.decision-world` surfaces retain their stronger `#f3ead7` decision-world baseline. Do not add noise texture to Home.
 
 ### Primary
 - **Bench**: The warm light counter field for Home.
@@ -122,9 +122,7 @@ The Home palette is a warm counter system: bench establishes the light field, pa
 - **Fall**: Negative directional evidence on paper; canonical `#a6402f` keeps normal text contrast clear at `4.5:1` or better.
 
 ### Secondary
-- **Sage**: The status color for STANDARD archive chips.
-- **Indigo**: The status color for EXPANDED archive chips.
-- **Lilac**: The rarity chip color.
+- **Sage**, **Indigo**, and **Lilac**: Retained archive/data tokens where existing detail behavior requires them; legal format is plain text, not a colored chip.
 - **Sunfade**: The warm state-note surface and supporting archive accent.
 
 ### Neutral
@@ -133,7 +131,7 @@ The Home palette is a warm counter system: bench establishes the light field, pa
 
 Directional evidence uses `rise` and `fall` only as intentional accessible movement colors on paper. Derived warm art and state backgrounds use `color-mix()` from documented `paper`, `bench`, and `orange` tokens rather than introducing new literal colors.
 
-**The Scope Rule.** Use bench, bench-light, paper, ink, orange, and muted tokens inside `.decision-world` for Home. Preserve board/tissue/archive tokens inside `.archive-world` for card detail; neither world should silently inherit the other’s field or texture.
+**The Scope Rule.** Use bench, bench-light, paper, ink, orange, and muted tokens inside `.home-world` for Home. Shared Trade/Sealed `.decision-world` styling remains unchanged. Keep `.archive-world` as the CardDetail CSS scope only; neither world should silently inherit the other’s field or texture.
 
 ## Typography
 
@@ -154,9 +152,9 @@ Directional evidence uses `rise` and `fall` only as intentional accessible movem
 
 ## Layout
 
-The `.decision-world` uses a compact full-width counter header and a centered Home container capped at the canonical `1152px` (`72rem`), within an approved desktop range of `1100–1200px`. Major sections have `48px` desktop separation and actual cards/panels use `24–32px` desktop spacing; compact price and evidence rows are rows, not cards, and intentionally use denser `12–16px` padding. The intro places the wordmark/call beside the accessible mode switch; below `42rem` they stack and the switch becomes full width. Mobile-first layouts stack, reduce spatial density by about `33–50%`, and preserve at least `48px` for every control; the header uses `16px` inline padding on mobile. The decision title is `32–40px`, while mode and action controls use `48px` minimum heights. The direct search precedes one vertical list of price rows. Each row uses a `5.5rem minmax(0, 1fr)` image/content split (`4.75rem minmax(0, 1fr)` below `24rem`), with identity, estimate, update state, and one CTA in the content column; text wraps without horizontal overflow.
+The `.home-world` uses a compact full-width counter header and a centered Home container capped at the canonical `1152px` (`72rem`), within an approved desktop range of `1100–1200px`. Major sections use approximately `24–48px` separation by hierarchy, Market movers use approximately `24px`, and compact price/evidence rows are rows, not cards. The intro places the wordmark/call beside the accessible mode switch; below `42rem` they stack and the switch becomes full width. Mobile-first layouts stack, reduce spatial density by about `33–50%`, and preserve at least `48px` for every control; the header uses `16px` inline padding on mobile. The decision title is `32–40px`, while mode and action controls use `48px` minimum heights. The direct search precedes one vertical list of price rows. Each row uses a `5.5rem minmax(0, 1fr)` image/content split (`4.75rem minmax(0, 1fr)` below `24rem`), with identity, estimate, update state, and one CTA in the content column; text wraps without horizontal overflow. Shared Trade/Sealed `.decision-world` surfaces retain their existing stronger `#f3ead7` baseline.
 
-The decision header and result heading use `2px` ink rules. The search surface is the visual pause before results, with the input spanning the available width. Results are visible in the desktop viewport; mobile keeps mode, search, identity, estimate, and action usable in sequence.
+Home uses one subtle header/input separator rather than heavy perimeter rules. The search surface is the visual pause before results, with the input spanning the available width. Results are visible in the desktop viewport; mobile keeps mode, search, identity, estimate, and action usable in sequence.
 
 ### Action hierarchy and accessibility
 
@@ -168,27 +166,27 @@ Depth is physical but restrained. Bench, paper, and ink contrast do the structur
 
 ### Shadow Vocabulary
 - **Home:** No ornamental card or search shadow; bench, paper, ink, and rules provide depth.
-- **Archive detail:** Any restrained archive elevation remains scoped to `.archive-world` and is not a Home token.
+- **Archive detail:** CardDetail uses transparent, unboxed surfaces and material contrast rather than archive elevation; this remains scoped to `.archive-world` and is not a Home token.
 
 **The One-Shadow Rule.** Do not add ornamental elevation to labels, chips, or state notes; use rules and material contrast instead.
 
 ## Shapes
 
-The Home form language is square throughout: controls and price-row surfaces use zero-radius geometry, with borders doing the outlining. The search input is transparent with no box shadow and a `3px` ink underline; price rows use a `1.5px` ink border; header and result rules use ink lines. The printing-label art column and other archive-detail geometry remain part of `.archive-world`.
+The Home form language is square throughout: controls and price-row surfaces use zero-radius geometry. Search, evidence, and Market rows do not use heavy perimeter borders; separation comes from paper/bench contrast, spacing, and one subtle header/input separator. The printing-label art column and other archive-detail geometry remain part of `.archive-world`.
 
 ## Components
 
 ### Decision header / mode switch
 - **Character:** A compact counter masthead with an accessible Singles/Sealed-products choice.
-- **Shape:** Square geometry with a `2px` ink bottom rule.
+- **Shape:** Square geometry with one subtle ink separator.
 - **Color:** Bench field, ink wordmark/context, and an ink active mode with bench-light text. The decision world explicitly uses a light color scheme.
-- **Behavior:** The wordmark is a keyboard-focusable link with a `3px` ink focus outline offset by `5px`.
+- **Behavior:** The wordmark is a keyboard-focusable link with a clear ink focus outline and generous offset.
 
 ### Search surface / input
 - **Character:** A bright counter surface and the primary decision action.
-- **Shape:** Bench-light surface, square `2px` ink border. The input has no radius or shadow and ends in a `3px` ink underline.
+- **Shape:** Bench-light surface with square geometry; the input has no radius or shadow and uses the subtle shared separator.
 - **Typography:** Heading and query use Barlow Condensed 700; evidence help uses Azeret Mono.
-    - **Behavior:** The shared external `CardAutocomplete` hook searches local exact-printing data after `250ms`, without replacing or server-patching the focused input node. Query, caret/selection, and focus survive result updates; composition blocks intermediate searches and searches once after compositionend; Escape cancels pending debounce. Focus uses a `3px` orange outline.
+    - **Behavior:** The shared external `CardAutocomplete` hook searches local exact-printing data after `250ms`, without replacing or server-patching the focused input node. Query, caret/selection, and focus survive result updates; composition blocks intermediate searches and searches once after compositionend; Escape cancels pending debounce. Focus remains clearly visible.
 
 ### Autocomplete combobox / listbox
 - **Character:** A compact ruled suggestion bench attached to the search surface, not a second card grid.
@@ -198,24 +196,34 @@ The Home form language is square throughout: controls and price-row surfaces use
 
 ### Price row
 - **Character:** One exact printing’s identity and honest local estimate, ready for a counter decision.
-- **Shape:** Paper surface, `1.5px` ink border, a `5.5rem minmax(0, 1fr)` image/content split (narrowed to `4.75rem minmax(0, 1fr)` below `24rem`), and a `48px` minimum action target.
+- **Shape:** Calm paper row with compact `6–12px` spacing and no heavy perimeter border, a `5.5rem minmax(0, 1fr)` image/content split (narrowed to `4.75rem minmax(0, 1fr)` below `24rem`), and a `48px` minimum action target.
 - **Color:** Warm image backing, ink identity, orange emphasis, and paper surface.
 - **Behavior:** Uses a low WebP thumbnail when available; missing imagery remains explicit. Results reveal once with `bench-reveal`; reduced motion removes it.
 
 ### Card detail image
 - **Character:** Functional exact-printing identification, not promotional card merchandising.
-- **Shape:** The high WebP TCGdex image sits inside a square tissue-and-ink frame that belongs to the archive wall.
-- **Behavior:** The image supports identity verification while the ruled metadata and value/history sheet remain primary. Missing imagery uses the same honest line-art fallback.
+- **Shape:** The high WebP TCGdex image sits in a transparent, unboxed printing surface within the `.archive-world` detail layout.
+- **Behavior:** The image supports identity verification alongside one coherent, unboxed detail column. Missing imagery uses the same honest line-art fallback.
 
-### Archive chips
+### CardDetail layout
+- **Direction:** The prior saturated orange board, three boxed columns/status boxes, and giant framed chart are explicitly superseded.
+- **Desktop:** Calm warm paper, subtle 1px header separator, and two columns: image plus one coherent detail column.
+- **Mobile:** Identity → estimate → image → printing. Valuation, metadata, and history are unboxed; legal format is plain text; statuses and disclosure are quiet; the chart uses a sensible width.
+- **Boundary:** `.archive-world` remains the CSS scope name only. Preserve exact identity, data, provenance, and history behavior.
+
+### Archive annotations
 - **Character:** Small paper annotations, not calls to action.
-- **Shape:** Square `1px` ink border, compact padding (`4px 8px`), wrapping in a flexible row.
-- **Color:** Lilac marks rarity, sage marks STANDARD, and indigo marks EXPANDED; ink remains the text and border color.
+- **Shape:** Plain text annotations with quiet spacing; legal format is never a colored chip.
+- **Color:** Existing archive/data tokens remain available where behavior requires them, without turning legal format into a status treatment.
 
 ### State notes and price details
 - **Character:** Plain decision status: `Updated …`, `May be outdated`, `Price unavailable`, empty, invalid, unavailable, or error; never hidden behind a decorative empty state.
 - **Shape:** A `1px` top rule, vertical padding, and mono copy. Error notes use a sunfade surface and `1rem` padding.
-- **Behavior:** Idle has no explanatory copy; short-query, empty, and unavailable states stay short. Full policy, methodology, non-affiliation, and shipping caveats live in collapsed `How prices work` details. Sealed says honestly that it is not available yet.
+- **Behavior:** Idle has no explanatory copy; short-query, empty, and unavailable states stay short. Full policy, methodology, non-affiliation, and shipping caveats live in a collapsed icon-led `Method` disclosure. Sealed says honestly that it is not available yet.
+
+### Fluent UI icon system
+- **Semantic use:** Selective official Fluent UI System Icons Regular support search, back, trade/swap, information, disclosure chevron, freshness/clock, and trend direction.
+- **Implementation:** Icons are decorative `aria-hidden` inline SVGs from Microsoft’s official regular set. They support labels and never replace necessary text. The full MIT notice is recorded in `THIRD_PARTY_NOTICES.md`.
 
 ### Trade decision bench
 - **Character:** An Operate-mode extension of the card-shop valuation bench for an in-store two-sided decision.
@@ -228,13 +236,13 @@ The Home form language is square throughout: controls and price-row surfaces use
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep Home in the bright `.decision-world`; preserve `.archive-world` for card detail.
+- **Do** keep Home in the calm `.home-world`; preserve `.archive-world` for card detail.
 - **Do** make Singles the default and keep the mode switch keyboard-accessible with an honest unavailable Sealed state.
 - **Do** make `Find a card`, image/name/set/collector identity, price/update state, and one solid `View price` action obvious.
 - **Do** use Barlow Condensed for action hierarchy and Azeret Mono for body and evidence.
 - **Do** preserve square rules, 48px touch targets, the single reveal motion, and its reduced-motion fallback.
 - **Do** keep autocomplete active state visibly ruled, internally scrollable, keyboard/touch accessible, and stable through LiveView stream updates.
-- **Do** keep caveats available in collapsed `How prices work` details, use terse shipping language, and use low WebP thumbnails when available.
+- **Do** keep caveats complete but hidden by default in the collapsed `Method` disclosure, use terse shipping language, and use low WebP thumbnails when available.
 
 ### Don't:
 - **Don't** replace the decision bench with a generic rounded marketplace grid, glass, or decorative gradients.

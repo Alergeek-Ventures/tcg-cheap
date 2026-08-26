@@ -36,8 +36,10 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#decision-title", "Compare Pokémon prices")
     assert has_element?(view, "#card-search-query[placeholder='Name, set, or collector number']")
     assert has_element?(view, "#search-title:not(.sr-only)", "Find an exact printing")
-    assert has_element?(view, "#market-movers-intro", "first and latest daily prices")
-    assert has_element?(view, "#price-details summary", "How prices work")
+    assert has_element?(view, "#market-movers-title", "Price movement")
+    assert has_element?(view, "#price-details summary", "Method")
+    assert has_element?(view, "#price-details", "most recent 30 UTC dates")
+    refute has_element?(view, "#market-movers-intro")
   end
 
   test "switches to local sealed search and restores singles", %{conn: conn} do
@@ -394,7 +396,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
            )
 
     assert has_element?(view, "#price-details")
-    assert has_element?(view, "#market-movers-intro", "change of 2% or more")
+    assert has_element?(view, "#price-details", "at least two dates")
+    refute has_element?(view, "#market-movers-intro")
   end
 
   test "renders a valid low WebP thumbnail and fallback for missing images", %{conn: conn} do
@@ -625,7 +628,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     {:ok, view, _html} = live(conn, ~p"/")
 
     assert has_element?(view, "#market-movers")
-    assert has_element?(view, "#market-movers-title", "Market activity")
+    assert has_element?(view, "#market-movers-title", "Price movement")
     assert has_element?(view, "#market-singles-risers-list[phx-update=stream]")
     assert has_element?(view, "#market-singles-fallers-list[phx-update=stream]")
 
@@ -636,6 +639,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert has_element?(view, "#market-single-riser-#{first.id}", "€10.00 → €20.00")
     assert has_element?(view, "#market-single-riser-#{first.id}", "+100.00%")
+    assert has_element?(view, "#market-single-riser-#{first.id} .fluent-icon")
+    assert has_element?(view, "#market-single-riser-#{first.id} .mover-freshness .fluent-icon")
     assert has_element?(view, "#market-single-riser-#{first.id}", "Updated today")
 
     assert has_element?(
@@ -686,6 +691,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#idle-recent-card-#{card.id}", "Idle Set #{suffix} · #151")
     assert has_element?(view, "#idle-recent-card-#{card.id}", "€12.30")
     assert has_element?(view, "#idle-recent-card-#{card.id}", "Updated today")
+    assert has_element?(view, "#idle-recent-card-#{card.id} .recent-value .fluent-icon")
     refute has_element?(view, "#idle-recent-card-#{card.id}", "View price")
     refute has_element?(view, "#idle-recent-card-#{card.id}", "%")
   end
@@ -702,7 +708,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     refute has_element?(view, "#market-sealed-recent-direction-note")
 
-    assert has_element?(view, "#market-movers-title", "Market activity")
+    assert has_element?(view, "#market-movers-title", "Price movement")
 
     assert has_element?(
              view,
@@ -755,7 +761,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     {:ok, view, _html} = live(conn, ~p"/")
 
     assert has_element?(view, "#market-singles-recent")
-    assert has_element?(view, "#market-movers-title", "Market activity")
+    assert has_element?(view, "#market-movers-title", "Price movement")
     assert has_element?(view, "#market-singles-recent-title", "Recently tracked")
     assert has_element?(view, "#market-singles-recent-empty", "Search by name")
     refute has_element?(view, "#market-singles-risers")

@@ -116,7 +116,10 @@ defmodule TcgCheapWeb.CardDetailLive do
         </header>
         <main id="card-detail-main" class="archive-main">
           <div class="archive-container">
-            <.link id="card-detail-back" navigate={@back_path} class="archive-back">{@back_label}</.link>
+            <.link id="card-detail-back" navigate={@back_path} class="archive-back">
+              <.fluent_icon name={:arrow_left} />
+              {@back_label}
+            </.link>
             <div id="card-detail-overview" class="card-detail-archive-sheet">
               <section
                 id="card-detail-identity"
@@ -132,7 +135,7 @@ defmodule TcgCheapWeb.CardDetailLive do
                     id="card-detail-add-to-trade"
                     navigate={trade_pick_path(@tcgdex_id)}
                     class="card-detail-add-to-trade"
-                  >Add to a trade</.link>
+                  ><.fluent_icon name={:arrow_swap} />Add to a trade</.link>
                 </div>
                 <section
                   id="card-valuation"
@@ -140,7 +143,7 @@ defmodule TcgCheapWeb.CardDetailLive do
                   aria-labelledby="valuation-title"
                 >
                   <div class="section-rule">
-                    <h2 id="valuation-title">Current value</h2>
+                    <h2 id="valuation-title">Current estimate</h2>
                   </div>
                   <div id="valuation-live-region" role="status" aria-live="polite" aria-atomic="true">
                     <div
@@ -154,17 +157,17 @@ defmodule TcgCheapWeb.CardDetailLive do
                         :if={@valuation_status == :fresh}
                         id="valuation-fresh"
                         class="valuation-status-fresh"
-                      >{@valuation_freshness_text}</span>
+                      ><.fluent_icon name={:clock} />{@valuation_freshness_text}</span>
                       <span
                         :if={@valuation_status == :stale}
                         id="valuation-stale"
                         class="valuation-status-stale"
-                      >{@valuation_freshness_text} · May be outdated</span>
+                      ><.fluent_icon name={:clock} />{@valuation_freshness_text} · May be outdated</span>
                       <span
                         :if={@acquisition_state == :enqueued}
                         id="valuation-fetching"
                         class="valuation-status-fetching"
-                      >Fetching a local valuation…</span>
+                      ><.fluent_icon name={:clock} />Fetching a local valuation…</span>
                       <span
                         :if={@valuation_status in [:missing, :disconnected]}
                         id="valuation-unpriced"
@@ -199,7 +202,11 @@ defmodule TcgCheapWeb.CardDetailLive do
                       Based on {valuation_basis(@valuation)}.
                     </p>
                     <details id="valuation-provenance" class="valuation-provenance">
-                      <summary>Estimate details</summary>
+                      <summary>
+                        <.fluent_icon name={:info} />Estimate details<.fluent_icon name={
+                          :chevron_down
+                        } />
+                      </summary>
                       <dl>
                         <div>
                           <dt>Source</dt><dd>{valuation_source(@valuation.source)}</dd>
@@ -250,8 +257,11 @@ defmodule TcgCheapWeb.CardDetailLive do
                     </div>
                   <% end %>
                 </figure>
-                <div class="card-detail-secondary archive-metadata-group">
-                  <h2 id="card-detail-metadata-title">Printing details</h2>
+                <div
+                  :if={printing_metadata_present?(@card)}
+                  class="card-detail-secondary archive-metadata-group"
+                >
+                  <h2 id="card-detail-metadata-title">Printing</h2>
                   <dl id="card-detail-metadata" class="card-detail-metadata">
                     <div :if={@card.rarity} class="card-detail-metadata-item">
                       <dt class="archive-metadata-label">Rarity</dt><dd class="archive-metadata-value">
@@ -278,10 +288,7 @@ defmodule TcgCheapWeb.CardDetailLive do
                       class="card-detail-metadata-item"
                     >
                       <dt class="archive-metadata-label">Legal formats</dt>
-                      <dd class="archive-metadata-value archive-legality-chips">
-                        <span :if={@card.standard_legal} class="archive-chip archive-chip-sage">Standard</span>
-                        <span :if={@card.expanded_legal} class="archive-chip archive-chip-indigo">Expanded</span>
-                      </dd>
+                      <dd class="archive-metadata-value">{legal_formats(@card)}</dd>
                     </div>
                   </dl>
                 </div>
@@ -290,7 +297,8 @@ defmodule TcgCheapWeb.CardDetailLive do
 
             <section class="valuation-history" aria-labelledby="history-title">
               <div class="section-rule">
-                <h2 id="history-title">30-day price history</h2>
+                <h2 id="history-title">Price history</h2>
+                <span id="valuation-history-window">Last 30 days</span>
               </div>
               <p id="valuation-history-explanation" class="history-explanation">
                 Daily observations; missing days remain gaps.
@@ -303,7 +311,7 @@ defmodule TcgCheapWeb.CardDetailLive do
                 History could not be refreshed.
               </p>
               <p
-                :if={not @history_load_failed and length(@history_points) < 2}
+                :if={not @history_load_failed and length(@history_points) == 1}
                 id="valuation-history-collecting"
                 class="state-note"
               >
@@ -376,6 +384,26 @@ defmodule TcgCheapWeb.CardDetailLive do
   end
 
   def render(assigns), do: not_found_render(assigns)
+
+  defp legal_formats(%{standard_legal: true, expanded_legal: true}), do: "Standard · Expanded"
+  defp legal_formats(%{standard_legal: true}), do: "Standard"
+  defp legal_formats(%{expanded_legal: true}), do: "Expanded"
+
+  defp printing_metadata_present?(card) do
+    Enum.any?(
+      [
+        card.rarity,
+        card.category,
+        card.illustrator,
+        card.regulation_mark,
+        card.standard_legal,
+        card.expanded_legal
+      ],
+      &present?/1
+    )
+  end
+
+  defp present?(value), do: not is_nil(value) and value != false
 
   defp trade_pick_path(id), do: "/trade?pick=" <> URI.encode_www_form(id)
 

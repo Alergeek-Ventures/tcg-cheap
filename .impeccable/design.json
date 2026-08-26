@@ -4,8 +4,9 @@
   "title": "Design System: TCG Cheap Decision Surface",
   "extensions": {
     "worlds": [
-      { "name": "decision-world", "scope": "Home and Trade", "description": "Bright card-shop valuation bench for vertical price rows and a two-sided trade decision bench." },
-      { "name": "archive-world", "scope": "Card detail", "description": "Scoped archive-wall contract retained for exact-printing detail." }
+      { "name": "decision-world", "scope": "Trade and Sealed", "description": "Shared warm square decision bench styling; unchanged by the Home correction." },
+      { "name": "home-world", "scope": "Home", "description": "Calm restrained warm square surface for search, evidence, market movement, and exact-printing rows." },
+      { "name": "archive-world", "scope": "Card detail", "description": "CSS scope name retained for calm warm-paper exact-printing detail." }
     ],
     "colorMeta": {
       "bench": { "role": "primary", "displayName": "Bench", "canonical": "#f3ead7" },
@@ -16,7 +17,7 @@
       "muted": { "role": "secondary", "displayName": "Muted", "canonical": "#6d6256" },
       "rise": { "role": "directional-positive", "displayName": "Rise", "canonical": "#27714b", "description": "Positive directional evidence on paper; clear 4.5:1 contrast." },
       "fall": { "role": "directional-negative", "displayName": "Fall", "canonical": "#a6402f", "description": "Negative directional evidence on paper; clear 4.5:1 contrast." },
-      "archive-box-board": { "role": "archive", "displayName": "Archive box-board", "canonical": "#c86c3f" },
+      "archive-box-board": { "role": "legacy-archive", "displayName": "Archive box-board (legacy reference)", "canonical": "#c86c3f" },
       "archive-tissue": { "role": "archive", "displayName": "Archive tissue", "canonical": "#f6f0df" }
     },
     "typographyMeta": {
@@ -43,7 +44,7 @@
       "refersTo": "decision-header",
       "description": "Compact square-rule Home masthead for the local price-comparison task.",
       "html": "<header class=\"decision-header\"><a id=\"decision-wordmark\">TCG CHEAP</a><strong>Compare Pokémon prices</strong></header>",
-      "css": ".decision-header { border-bottom: 2px solid #201d19; background: #f3ead7; }"
+      "css": ".decision-header { border-bottom: 1px solid #201d19; background: #f3ead7; }"
     },
     {
       "name": "Mode Switch",
@@ -59,7 +60,7 @@
       "refersTo": "decision-search",
       "description": "Direct local exact-printing search with a 250ms debounce and no provider request.",
       "html": "<section class=\"decision-search\"><h2>Find a card</h2><input type=\"search\" placeholder=\"Card name, set, or number\" /></section>",
-      "css": ".decision-search { background: #fffaf0; border: 2px solid #201d19; } input { min-height: 48px; border-bottom: 3px solid #201d19; border-radius: 0; }"
+      "css": ".home-world .decision-search { background: #fffaf0; border: 0; } .home-world input { min-height: 48px; border-bottom: 1px solid #201d19; border-radius: 0; }"
     },
     {
       "name": "Autocomplete Combobox",
@@ -67,7 +68,7 @@
       "refersTo": "decision-search",
       "description": "Implemented shared external CardAutocomplete combobox/listbox: stable card-option-UUID stream IDs, one visible active option, internal bounded scrolling, and focus/caret-safe updates for Home and Trade.",
       "html": "<input role=\"combobox\" aria-expanded=\"true\" aria-controls=\"card-options\" aria-activedescendant=\"card-option-UUID\" /><div id=\"card-options\" role=\"listbox\"><div id=\"card-option-UUID\" role=\"option\" aria-selected=\"true\">Name · Set · rarity · €12.30 · Updated</div></div>",
-      "css": ".evidence-slips { max-height: min(45svh, 32rem); overflow-y: auto; } .evidence-slot.active-option .evidence-slip { background: color-mix(in srgb, var(--paper) 88%, var(--rule)); box-shadow: inset 0 0 0 3px var(--rule); }"
+      "css": ".evidence-slips { max-height: min(45svh, 32rem); overflow-y: auto; } .evidence-slot.active-option .evidence-slip { background: color-mix(in srgb, var(--paper) 88%, var(--rule)); box-shadow: inset 0 0 0 1px var(--rule); }"
     },
     {
       "name": "Price Row",
@@ -75,36 +76,36 @@
       "refersTo": "price-row",
       "description": "One vertical-list image-backed exact-printing row with a 5.5rem image column and flexible content column; narrow screens use a 4.75rem image column.",
       "html": "<article class=\"price-row\"><img alt=\"Exact printing\" /><div><strong>PIKACHU</strong><p>Scarlet & Violet · 001</p><span>€12.30 · Updated today</span><a>View price</a></div></article>",
-      "css": ".price-row { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); background: #fffdf8; border: 1.5px solid #201d19; animation: bench-reveal .45s ease-out both; } @media (max-width: 24rem) { .price-row { grid-template-columns: 4.75rem minmax(0, 1fr); } }"
+      "css": ".home-world .price-row { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); background: #fffdf8; border: 0; animation: bench-reveal .45s ease-out both; } @media (max-width: 24rem) { .home-world .price-row { grid-template-columns: 4.75rem minmax(0, 1fr); } }"
     },
     {
       "name": "Methodology and State Notes",
       "kind": "evidence",
       "refersTo": "price-methodology",
-      "description": "Collapsed How prices work disclosure containing policy, methodology, non-affiliation, shipping, and caveat detail.",
-      "html": "<details class=\"price-methodology\"><summary>How prices work</summary><p>Methodology, policy, and non-affiliation details.</p></details>",
-      "css": ".price-methodology { border-left: 4px solid #b54125; background: #fffaf0; color: #201d19; }"
+      "description": "Collapsed icon-led Method disclosure containing complete policy, methodology, non-affiliation, shipping, and caveat detail.",
+      "html": "<details class=\"price-methodology\"><summary><svg aria-hidden=\"true\"></svg>Method</summary><p>Methodology, policy, and non-affiliation details.</p></details>",
+      "css": ".price-methodology { border: 0; background: transparent; color: #201d19; }"
     },
     {
       "name": "Archive Detail Contract",
       "kind": "world",
       "refersTo": "archive-world",
-      "description": "The archive-world remains scoped to card detail and retains board/tissue/ink, square rules, and exact-printing framing.",
+      "description": "The archive-world CSS scope remains for calm warm-paper detail: two-column desktop layout, identity-first mobile order, unboxed valuation/metadata/history, and sensible chart width.",
       "html": "<main class=\"archive-world\">Card detail</main>",
       "css": ".archive-world { /* detail-only archive contract */ }"
     }
   ],
   "narrative": {
     "northStar": "The Card-Shop Valuation Bench",
-    "overview": "Home and Trade are bright card-shop counter scenes distilled for ordinary collectors: find a card, inspect honest value evidence, then operate a two-sided decision bench when comparing a trade. Warm bench, paper, ink, and orange tokens frame exact identity, current/stale/unpriced states, and clear actions. Archive-world remains the card-detail contract.",
+    "overview": "Home is a calm restrained warm-paper surface for ordinary collectors: find a card, inspect honest value evidence, movement, and freshness, then use the unchanged two-sided decision bench in Trade/Sealed. Archive-world remains the CardDetail CSS scope with superseded orange/boxed treatments replaced by coherent warm-paper detail.",
     "keyCharacteristics": [
-      "Square rules and warm bench/paper/ink/orange palette.",
+      "Warm square identity with restrained separators, no noise texture, and selective official Fluent UI System Icons Regular.",
       "Rise #27714b and fall #a6402f are intentional accessible positive/negative directional evidence colors on paper; derived warm art and state backgrounds use color-mix from documented paper, bench, and orange tokens rather than new literal colors.",
       "Barlow Condensed action hierarchy with Azeret Mono for body and evidence.",
-      "Accessible mode switch, direct Find a card search, honest unavailable Sealed mode, collapsed How prices work details, and one reveal motion with reduced-motion support."
+      "Accessible mode switch, direct Find a card search, honest unavailable Sealed mode, compact Price movement, collapsed icon-led Method details, and one reveal motion with reduced-motion support."
     ],
     "rules": [
-      { "name": "The Scope Rule", "body": "Keep the decision-world on Home and Trade and preserve archive-world for card detail; do not merge their visual contracts.", "section": "worlds" },
+      { "name": "The Scope Rule", "body": "Keep Home scoped by home-world; shared Trade/Sealed decision-world styling remains unchanged, and archive-world remains the CardDetail CSS scope.", "section": "worlds" },
       { "name": "The Evidence Rule", "body": "Show exact identity, discriminators, source/methodology, and current/fresh, stale, or unpriced status without fabricated precision.", "section": "evidence" },
       { "name": "The Action Rule", "body": "Give each screen one primary task/action hierarchy with generous surrounding space; contextual result-row CTAs do not compete with it. Use 48px targets, 4.5:1 normal text contrast, and clear keyboard focus.", "section": "interaction" },
       { "name": "The Focus Rule", "body": "Use the shared external 250ms CardAutocomplete hook so query, input node, focus, caret/selection, and composition survive result updates; keep active options stable, visibly ruled, and internally scrollable.", "section": "interaction" },
@@ -114,9 +115,9 @@
     ],
     "dos": [
       "Do keep Singles as the default Home mode and state Sealed honestly unavailable.",
-      "Do use square geometry, warm bench/paper/ink/orange tokens, and vertical price rows.",
+      "Do use calm square geometry, warm paper/bench/ink tokens, selective semantic icons, and vertical price rows without heavy perimeter borders.",
       "Do preserve the archive-world contract on card detail.",
-      "Do keep methodology, policy, non-affiliation, shipping, and unavailable-price caveats in collapsed details.",
+      "Do keep complete methodology, policy, non-affiliation, shipping, and unavailable-price caveats hidden by default in collapsed Method details.",
       "Do provide one bench-reveal motion and disable it for reduced motion."
     ],
     "donts": [
