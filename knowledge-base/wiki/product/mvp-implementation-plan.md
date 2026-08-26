@@ -4,12 +4,21 @@
 - Sources: Product specification supplied by project owner; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation; [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 - Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 
-## Current local owner-directed UI correction — 2026-08-26 (Raw: N/A — codebase update)
+## Current deployed owner-directed UI correction — 2026-08-26 (Raw: N/A — codebase update)
 
-Production remains deployed at UI commit `bafa237`; this refinement is local,
-uncommitted, and not deployed, so it does not claim production verification. The
-owner rejected the prior production UI as clunky, over-bordered, and over-spaced.
-Local Home removes the always-visible mover methodology paragraph, makes
+The UI correction commit `7a0f956` is pushed and deployed to production. GitHub
+[CI run 32970306496](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32970306496)
+succeeded. The owner rejected the prior production UI as clunky, over-bordered,
+and over-spaced. Production Home renders `Price movement`, has no
+`#market-movers-intro`, keeps `Method` collapsed by default, and renders the
+Fluent search icon. Production CardDetail at `/cards/me01-114` renders `Current
+estimate`, `Printing`, `Price history`, plain `Standard · Expanded`,
+valuation/provenance, and the existing two-point history. Production `/health`
+at 2026-08-26 12:50 UTC reported database ready, 7 Oban queues, and 6 providers.
+Connected 390px Home/CardDetail checks had zero horizontal overflow and zero
+console warnings/errors.
+
+Home removes the always-visible mover methodology paragraph, makes
 `Price movement` compact with collapsed `Method`, reduces visible rules/boxes/
 whitespace, and retains signed prior→current/date/freshness evidence and exact
 behavior.
@@ -32,10 +41,10 @@ checks had zero horizontal overflow, sampled controls were 48px, and current-pag
 console warnings/errors were zero. One Impeccable detector pass reported
 design-ramp typography advisories before touched public metadata/date sizes were
 normalized to a 14px minimum; final shared-scope, icon-class, and license-notice
-review findings were corrected. Deployment and owner acceptance are pending;
+review findings were corrected. Owner production testing/acceptance is pending;
 sealed catalogue/mapping and mover-history tuning limitations remain.
 
-## Current production checkpoint — 2026-08-26
+## Superseded production checkpoint — 2026-08-26 (`bafa237`)
 
 Production commit `bafa237` is deployed; [CI run 32963023189](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32963023189) succeeded. `/health` reports a ready database, 7 Oban queues, and 6 providers. The production root renders the exact-printing-first UI with Boss's Orders mover evidence (`€0.26→€0.28`, Aug 20→Aug 26, updated today) alongside simultaneous `Recently tracked` rows. `/cards/me01-114` renders Printing details, `€0.28`, `Cardmarket 7-day average via TCGdex`, exact provenance, and a two-point history summary/chart. Connected 390px root/card checks found no horizontal overflow or console warning/error. Strict 24-hour Singles behavior remains deployed from the prior commit. The three-source sealed registry and Monday 01:00/02:00/03:00 UTC Cron remain deployed; jobs 916/917/918, Singles refresh 920, and aggregate 921 (15:01 UTC) retain their enqueued-only, completion-unverified status. Approved production sealed catalogue/mappings remain incomplete.
 

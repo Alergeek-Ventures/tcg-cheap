@@ -56,7 +56,7 @@ Thesis-validation product built around local cached data and transparent uncerta
 - Home exposes full policy, methodology, and non-affiliation caveats in a collapsed methodology disclosure, uses terse shipping language, 48px-class touch targets, keyboard semantics, and one reveal motion with a reduced-motion fallback. The calm warm-square refinement removes noise texture and heavy perimeter borders, keeps one subtle header/input separator, spaces Market movers by about 24px, uses title-case supporting headings, and presents compact `Price movement` with icon-led collapsed `Method` detail. Search, movement, freshness, and disclosure use selective official Fluent UI System Icons Regular; methodology/non-affiliation remains complete but hidden by default. Local-only Market movers show up to 10 total rows, capped at 5 risers and 5 fallers; Singles require the current active policy and current Cardmarket mapping, while Sealed requires current recent ready mapping-confident aggregates and approved public products.
 - When a mode has no qualified movers, Home shows up to 10 real local `Recently tracked` rows instead of blank mover lanes. Singles rows retain exact identity and current valuation/freshness where available, otherwise `Price unavailable`; sealed rows are approved public releases within a five-year window. Copy explains that direction appears only after observations on at least two dates. Rows use direct `View price` or `View offers` links. The separate cross-category zero-search-result fallback remains unchanged.
 - The 2026-08-08 minimal Home correction remains the presentation baseline. It uses plain collector language: `€…` or `Price unavailable`, `Updated …` plus `May be outdated`, and no instructional filler on search idle; the discovery fallback instead gives the concise explanation that direction appears only after observations on two dates. Rows do not expose TCGdex, legality, policy, freshness, or local-data jargon. The completed autocomplete uses real combobox/listbox semantics, stable `card-option-UUID` stream IDs, bounded ten-option results, visible first/active options, wrapping ArrowUp/ArrowDown, exact active Enter selection, Escape close with query/focus retained, validated touch/click selection, and query-specific live status.
-- The approved warm square identity remains, now deliberately calm and restrained; the local refinement targets density, hierarchy, copy, jargon, and CTA clarity rather than replacing the product behavior or exact-data contract. The refinement is local and uncommitted, and is not deployed.
+- The approved warm square identity remains, now deliberately calm and restrained; the deployed UI correction commit `7a0f956` targets density, hierarchy, copy, jargon, and CTA clarity rather than replacing the product behavior or exact-data contract. Owner production testing/acceptance remains pending.
 - Public `/trade` is the completed Phase 3 surface inside Singles: a mobile-first warm square decision bench with deterministic URL-only card IDs/quantities, one local search, explicit add-left/add-right actions, merged quantity rows, local bulk valuation, EUR-plus-PLN totals/difference, stale/unpriced/incomplete states, bounded background acquisition, safe CardDetail return/pick flows, and explicit canonical share/copy. NBP evidence shows the exact rate, effective date, relative age, and pending/failed/no-cache states; cached conversion is retained while acquisition is pending or failed. Public Sealed search/detail exists as a local projection; recurring acquisition is deployed, while production catalogue completion remains unverified/incomplete.
 - Missing or stale data is preferable to fabricated data or silently exceeding acquisition constraints.
 
@@ -72,10 +72,17 @@ The curated `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` is approved an
 
 Detailed private enrichment now covers exactly `sv01-001` through `sv01-011`: all 11 matched Cardmarket IDs 702298–702308 and all 11 have current `tcgdex_cardmarket_v1` valuations. These real local observations range from EUR 0.03 to EUR 5.04; Pineco remains EUR 5.04. This is not representative coverage of the 20,964-printing catalogue; the two restored `exu` rows are pending and unpriced. Every successful listing ingest ensures a mapping in the same transaction: missing/invalid/ambiguous evidence creates or refreshes review; one eligible approved exact EAN may create or promote a mutable pending/review mapping to matched through the locked/product-validated Ash action and immutable decision history; terminal matched/rejected decisions are protected from source overwrite; failures roll back the batch.
 
-## Current deployment and local visual refinement — 2026-08-26
+## Current deployment and visual refinement — 2026-08-26
 
-Production remains deployed at commit `bafa237`. The current Home and CardDetail
-visual correction is local and uncommitted; it is not deployed. CardDetail
+The UI correction commit `7a0f956` is pushed and deployed to production; GitHub
+[CI run 32970306496](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32970306496)
+succeeded. Production `/health` at 2026-08-26 12:50 UTC reported database ready,
+7 Oban queues, and 6 providers. Production Home renders `Price movement`, has no
+`#market-movers-intro`, keeps `Method` collapsed by default, and renders the
+Fluent search icon. Production `/cards/me01-114` renders `Current estimate`,
+`Printing`, `Price history`, plain `Standard · Expanded`, valuation/provenance,
+and the existing two-point history. Connected 390px Home/CardDetail checks had
+zero horizontal overflow and zero console warnings/errors. CardDetail
 supersedes the prior saturated orange archive board, boxed columns/status boxes,
 colored legal-format treatments, and giant framed chart with calm warm paper:
 desktop uses image plus one coherent detail column, mobile orders identity →
@@ -92,7 +99,10 @@ metadata/date sizes were normalized to a 14px minimum. Review findings for
 shared `decision-world` scope, the permanent icon class, and the Microsoft
 notice were fixed.
 
-## Historical deployment checkpoint — 2026-08-19 (superseded by the 2026-08-25 production checkpoint)
+Owner production testing/acceptance remains pending; existing sealed
+catalogue/mapping and mover-history tuning limitations remain.
+
+## Historical/superseded deployment checkpoint — 2026-08-19 (superseded by the current 2026-08-26 checkpoint)
 
 Production is online at <https://tcg-cheap.d.alergeek.me>. The product owner
 confirms that the pinned ParadeDB production setup is complete, automatic

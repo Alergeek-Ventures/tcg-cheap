@@ -1,5 +1,16 @@
 # Wiki Log
 
+## [2026-08-26] Production UI correction deployment verification
+
+- Verified: UI correction commit `7a0f956` is pushed and deployed to production; [GitHub CI run 32970306496](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32970306496) succeeded. Production `/health` at 2026-08-26 12:50 UTC reported database ready, 7 Oban queues, and 6 providers.
+- Production UI: Home renders `Price movement`, has no `#market-movers-intro`, keeps `Method` collapsed by default, and renders the Fluent search icon. `/cards/me01-114` renders `Current estimate`, `Printing`, `Price history`, plain `Standard · Expanded`, valuation/provenance, and the existing two-point history.
+- Connected 390px Home/CardDetail checks had zero horizontal overflow and zero console warnings/errors. Owner production testing/acceptance remains pending; existing sealed catalogue/mapping and mover-history tuning limitations remain. Earlier `bafa237` production checkpoint wording is superseded by this verification. Files: `PRODUCT.md`, the application-foundation and MVP-plan articles, this index, and this log. Raw: N/A — codebase update.
+
+## [2026-08-26] Deterministic wiki lint | Production UI correction reconciliation
+
+- Validation: 5 durable articles, 5/5 indexed, 15/15 `Updated`/`Sources`/`Raw` metadata fields, 69 relative Markdown links (22 wiki/non-raw, 47 raw), 0 broken links, 0 deterministic errors, and 0 auto-fixes. `git diff --check` passed.
+- Heuristic review: Current articles and index now identify `7a0f956` as pushed/deployed and mark the earlier `bafa237` checkpoint superseded; owner production acceptance and sealed catalogue/mapping plus mover-history tuning limitations remain open. Immutable raw files and dated historical log entries were preserved.
+
 ## [2026-08-26] Local owner-directed Home/CardDetail UI correction
 
 - Task completed: Documented the local, uncommitted, not-deployed refinement; production remains at deployed UI commit `bafa237` and no production verification is implied. Home now removes the always-visible mover methodology paragraph, compacts `Price movement` with collapsed `Method`, reduces rules/boxes/whitespace, and retains signed prior→current/date/freshness evidence and exact behavior. CardDetail now uses calm warm paper, coherent desktop/mobile ordering, unboxed valuation/metadata/history, plain legal formats, quiet provenance, empty-printing suppression, corrected zero-history messaging, and one-point no-chart behavior.
