@@ -34,11 +34,10 @@ defmodule TcgCheapWeb.HomeLiveTest do
     refute has_element?(view, "#card-search-query[aria-describedby]")
     assert has_element?(view, "#card-search-results[phx-update=stream]")
     assert has_element?(view, "#decision-title", "Compare Pokémon prices")
-    assert has_element?(view, "#card-search-query[placeholder='Search cards']")
-    assert has_element?(view, "#search-title.sr-only")
-    refute has_element?(view, "#search-title:not(.sr-only)")
-    refute has_element?(view, "#market-movers-intro")
-    refute has_element?(view, "#price-details")
+    assert has_element?(view, "#card-search-query[placeholder='Name, set, or collector number']")
+    assert has_element?(view, "#search-title:not(.sr-only)", "Find an exact printing")
+    assert has_element?(view, "#market-movers-intro", "first and latest daily prices")
+    assert has_element?(view, "#price-details summary", "How prices work")
   end
 
   test "switches to local sealed search and restores singles", %{conn: conn} do
@@ -48,8 +47,9 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert has_element?(view, "#mode-sealed[aria-pressed=true]")
     assert has_element?(view, "#sealed-search-form")
-    assert has_element?(view, "#sealed-search-title.sr-only")
-    assert has_element?(view, "#sealed-search-query[placeholder='Search sealed products']")
+    assert has_element?(view, "#sealed-search-title:not(.sr-only)", "Find a sealed product")
+    assert has_element?(view, "#sealed-data-note.search-context", "shown when available")
+    assert has_element?(view, "#sealed-search-query[placeholder='Product name, set, or series']")
 
     assert has_element?(
              view,
@@ -393,9 +393,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
              "Estimate only · Condition and shipping may vary."
            )
 
-    refute has_element?(view, "#price-details")
-    refute has_element?(view, "#price-methodology")
-    refute has_element?(view, "#price-disclaimer")
+    assert has_element?(view, "#price-details")
+    assert has_element?(view, "#market-movers-intro", "change of 2% or more")
   end
 
   test "renders a valid low WebP thumbnail and fallback for missing images", %{conn: conn} do
@@ -618,12 +617,15 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
   test "renders singles market movers with evidence and direct routes", %{conn: conn} do
     suffix = System.unique_integer([:positive])
-    first = create_discovery_card("first-#{suffix}", "10", "20")
-    _second = create_discovery_card("second-#{suffix}", "20", "10")
+    {first, first_start, first_current} = create_discovery_card("first-#{suffix}", "10", "20")
+
+    {_second, _second_start, _second_current} =
+      create_discovery_card("second-#{suffix}", "20", "10")
+
     {:ok, view, _html} = live(conn, ~p"/")
 
     assert has_element?(view, "#market-movers")
-    assert has_element?(view, "#market-movers-title", "Market movers")
+    assert has_element?(view, "#market-movers-title", "Market activity")
     assert has_element?(view, "#market-singles-risers-list[phx-update=stream]")
     assert has_element?(view, "#market-singles-fallers-list[phx-update=stream]")
 
@@ -632,12 +634,18 @@ defmodule TcgCheapWeb.HomeLiveTest do
              "#market-single-riser-#{first.id}[href='/cards/#{first.tcgdex_id}']"
            )
 
-    assert has_element?(view, "#market-single-riser-#{first.id}", "€20.00")
+    assert has_element?(view, "#market-single-riser-#{first.id}", "€10.00 → €20.00")
     assert has_element?(view, "#market-single-riser-#{first.id}", "+100.00%")
     assert has_element?(view, "#market-single-riser-#{first.id}", "Updated today")
-    refute has_element?(view, "#market-single-riser-#{first.id}", "day span")
+
+    assert has_element?(
+             view,
+             "#market-single-riser-#{first.id}",
+             "#{Calendar.strftime(first_start, "%b %-d, %Y")} → #{Calendar.strftime(first_current, "%b %-d, %Y")}"
+           )
+
     refute has_element?(view, "#market-single-riser-#{first.id}", "View price")
-    assert has_element?(view, "#market-singles-recent[hidden]")
+    assert has_element?(view, "#market-singles-recent-title", "Recently tracked")
   end
 
   test "renders one-observation recently tracked singles without inventing direction", %{
@@ -694,9 +702,14 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     refute has_element?(view, "#market-sealed-recent-direction-note")
 
-    assert has_element?(view, "#market-movers-title", "Recently tracked")
-    assert has_element?(view, "#market-sealed-recent[aria-label='Recently tracked']")
-    refute has_element?(view, "#market-sealed-recent-title")
+    assert has_element?(view, "#market-movers-title", "Market activity")
+
+    assert has_element?(
+             view,
+             "#market-sealed-recent[aria-labelledby='market-sealed-recent-title']"
+           )
+
+    assert has_element?(view, "#market-sealed-recent-title", "Recent releases")
     assert has_element?(view, "#idle-recent-sealed-#{product.id}[href='/sealed/#{product.slug}']")
     assert has_element?(view, "#idle-recent-sealed-#{product.id}", product.name)
     refute has_element?(view, "#idle-recent-sealed-#{product.id}", "View offers")
@@ -742,17 +755,23 @@ defmodule TcgCheapWeb.HomeLiveTest do
     {:ok, view, _html} = live(conn, ~p"/")
 
     assert has_element?(view, "#market-singles-recent")
-    assert has_element?(view, "#market-movers-title", "Recently tracked")
-    refute has_element?(view, "#market-singles-recent-title")
-    assert has_element?(view, "#market-singles-recent-empty", "No recently tracked products yet.")
+    assert has_element?(view, "#market-movers-title", "Market activity")
+    assert has_element?(view, "#market-singles-recent-title", "Recently tracked")
+    assert has_element?(view, "#market-singles-recent-empty", "Search by name")
+    refute has_element?(view, "#market-singles-risers")
+    refute has_element?(view, "#market-singles-fallers")
 
     refute has_element?(view, "#market-singles-recent-direction-note")
   end
 
   test "switches to sealed market movers with signed PLN evidence", %{conn: conn} do
     suffix = System.unique_integer([:positive])
-    riser = create_sealed_mover("Sealed Riser #{suffix}", ["100.00", "120.00", "150.00"])
-    faller = create_sealed_mover("Sealed Faller #{suffix}", ["200.00", "180.00", "100.00"])
+
+    {riser, riser_start, riser_current} =
+      create_sealed_mover("Sealed Riser #{suffix}", ["100.00", "120.00", "150.00"])
+
+    {faller, _faller_start, _faller_current} =
+      create_sealed_mover("Sealed Faller #{suffix}", ["200.00", "180.00", "100.00"])
 
     {:ok, view, _html} = live(conn, ~p"/")
     assert has_element?(view, "#market-singles-panel:not([hidden])")
@@ -766,14 +785,21 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#market-sealed-faller-#{faller.id}[href='/sealed/#{faller.slug}']")
     assert has_element?(view, "#market-sealed-riser-#{riser.id}", "+50.00%")
     assert has_element?(view, "#market-sealed-faller-#{faller.id}", "-50.00%")
-    assert has_element?(view, "#market-sealed-riser-#{riser.id}", "150.00 PLN")
+    assert has_element?(view, "#market-sealed-riser-#{riser.id}", "100.00 PLN → 150.00 PLN")
+
+    assert has_element?(
+             view,
+             "#market-sealed-riser-#{riser.id}",
+             "#{Calendar.strftime(riser_start, "%b %-d, %Y")} → #{Calendar.strftime(riser_current, "%b %-d, %Y")}"
+           )
+
     assert has_element?(view, "#market-sealed-riser-#{riser.id}", "Checked today")
     refute has_element?(view, "#market-sealed-riser-#{riser.id}", "View offers")
-    assert has_element?(view, "#market-sealed-recent[hidden]")
+    assert has_element?(view, "#market-sealed-recent-title", "Recent releases")
   end
 
   test "keeps discovery streams mounted while hidden during search", %{conn: conn} do
-    product =
+    {product, _start_date, _current_date} =
       create_sealed_mover("Stream discovery #{System.unique_integer([:positive])}", [
         "100",
         "110",
@@ -783,7 +809,6 @@ defmodule TcgCheapWeb.HomeLiveTest do
     {:ok, view, _html} = live(conn, ~p"/")
 
     assert has_element?(view, "#market-sealed-risers-list[phx-update=stream]")
-    assert has_element?(view, "#market-sealed-fallers-list[phx-update=stream]")
     assert has_element?(view, "#market-sealed-riser-#{product.id}")
     render_hook(view, "search", %{"search" => %{"query" => "missing discovery"}})
     assert has_element?(view, "#market-movers[hidden]")
@@ -801,25 +826,38 @@ defmodule TcgCheapWeb.HomeLiveTest do
     render_hook(view, "search", %{"search" => %{"query" => "Fallback sealed"}})
     assert has_element?(view, "#sealed-fallback-list a[href='/sealed/#{product.slug}']")
     assert has_element?(view, "#card-search-summary", "1 sealed product suggestion")
+    render_click(element(view, "#switch-to-sealed-from-fallback"))
+    assert has_element?(view, "#mode-sealed[aria-pressed=true]")
+    assert has_element?(view, "#sealed-search-query[value='fallback sealed']")
+    assert has_element?(view, "#sealed-option-#{product.id}")
     refute has_element?(view, "#card-search-results a")
     refute has_element?(view, "#card-search-results #sealed-fallback-list")
   end
 
   test "offers singles when sealed products have no match", %{conn: conn} do
     suffix = System.unique_integer([:positive])
-    card = create_discovery_card("fallback-card-#{suffix}", "10", "11")
+
+    {card, _start_date, _current_date} =
+      create_discovery_card("fallback-card-#{suffix}", "10", "11")
+
     {:ok, view, _html} = live(conn, ~p"/")
     render_click(element(view, "#mode-sealed"))
 
     render_hook(view, "search", %{"search" => %{"query" => "Discovery fallback card #{suffix}"}})
     assert has_element?(view, "#card-fallback-list a[href='/cards/#{card.tcgdex_id}']")
     assert has_element?(view, "#sealed-search-summary", "1 single-card suggestion")
+    render_click(element(view, "#switch-to-singles-from-fallback"))
+    assert has_element?(view, "#mode-singles[aria-pressed=true]")
+    assert has_element?(view, "#card-search-query[value='discovery fallback card #{suffix}']")
+    assert has_element?(view, "#card-option-#{card.id}")
+    render_hook(view, "switch_mode_with_query", %{"mode" => "tampered"})
+    assert has_element?(view, "#mode-singles[aria-pressed=true]")
     refute has_element?(view, "#sealed-search-results #card-fallback-list")
   end
 
   test "does not show cross-category fallback when primary results exist", %{conn: conn} do
     suffix = System.unique_integer([:positive])
-    card = create_discovery_card("primary-#{suffix}", "10", "11")
+    {card, _start_date, _current_date} = create_discovery_card("primary-#{suffix}", "10", "11")
     product = create_sealed_product("Primary sealed #{suffix}")
     {:ok, view, _html} = live(conn, ~p"/")
 
@@ -934,7 +972,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
     end
 
-    card
+    {card, Date.add(DateTime.to_date(now), -8), DateTime.to_date(now)}
   end
 
   defp create_sealed_mover(name, values) do
@@ -970,6 +1008,6 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
     end
 
-    product
+    {product, Date.add(today, -14), today}
   end
 end

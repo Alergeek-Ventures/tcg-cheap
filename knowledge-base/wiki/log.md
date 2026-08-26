@@ -1,5 +1,18 @@
 # Wiki Log
 
+## [2026-08-26] Deterministic wiki lint | Public UI refinement
+
+- Validation: 5 durable articles, 5/5 indexed, 15/15 metadata fields, 69 relative Markdown links (22 wiki/non-raw, 47 raw), 0 broken links, 0 deterministic errors, and 0 auto-fixes.
+- Heuristic review: No contradiction found for simultaneous recent lanes, mover evidence, the query-preserving mode switch, Cardmarket via TCGdex, the one-point chart boundary, 883-test validation, or explicitly unverified UI deployment.
+
+## [2026-08-26] Public Home and CardDetail UI refinement
+
+- Task completed: Reconciled the public exact-printing-first Home and CardDetail behavior without narrowing the MVP scope. Home movers now show signed movement, prior→current values, exact date range, freshness, and collapsed source/methodology; empty riser/faller lanes stay hidden; active Singles `Recently tracked` and Sealed `Recent releases` (sorted by `release_date`) remain alongside movers; normalized query reruns across a zero-result mode switch; sealed catalogue copy stays honest about evidence. CardDetail now documents title-case metadata, one `Legal formats` field/chips, distinct fresh/stale/fetching/failure value states, `Cardmarket <metric> via TCGdex`, collapsed provenance, history summary, and the two-observation SVG/one-observation collecting boundary. Focus/caret/non-server-value-patch behavior is unchanged.
+- Files: Changed `assets/css/app.css`, `lib/tcg_cheap_web/live/home_live.ex`, `lib/tcg_cheap_web/live/card_detail_live.ex`, `test/tcg_cheap_web/live/home_live_test.exs`, `test/tcg_cheap_web/live/card_detail_live_test.exs`, `knowledge-base/wiki/architecture/application-foundation.md`, `knowledge-base/wiki/product/mvp-implementation-plan.md`, `knowledge-base/wiki/index.md`, and this log.
+- Critique/review: Applied the structured critique findings for hierarchy, provenance disclosure, lane visibility, metadata labels, and honest history; final read-only review found and corrected the remaining presentation and state-copy issues. The generated critique snapshot is not claimed as committed.
+- Validation: Focused 49 tests; canonical `mix check --verbose` passed all static gates and 883 tests; the Impeccable detector was clean on both LiveViews; desktop and 390px browser checks showed no horizontal overflow and no console warnings/errors.
+- Remaining boundaries: Production deployment verification is not yet done; sealed catalogue/mappings remain incomplete; mover real-history tuning remains open. Raw: N/A — codebase update. This entry does not claim the commit is deployed.
+
 ## [2026-08-25] Singles freshness correction and proactive daily valuation sweep
 
 - Task completed: Applied the owner-approved correction from a seven-day to a strict 24-hour public Singles valuation TTL; exactly 24 hours is stale. Public/on-demand acquisition remains missing/stale-only, while the daily 14:00 UTC `ValuationRefreshWorker` proactively enqueues every active, nonexpired, scoped, matched candidate, including fresh candidates. Provider budget admission remains solely in `ValuationWorker`; Oban uniqueness/deduplication and the bounded canonical candidate query remain unchanged.

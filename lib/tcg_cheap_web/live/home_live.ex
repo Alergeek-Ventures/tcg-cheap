@@ -108,6 +108,7 @@ defmodule TcgCheapWeb.HomeLive do
         %{assigns: %{mode: :sealed}} = socket
       ) do
     normalized = SearchText.normalize(query)
+
     socket = assign(socket, :search_query, normalized)
 
     cond do
@@ -121,6 +122,7 @@ defmodule TcgCheapWeb.HomeLive do
   @impl true
   def handle_event("search", %{"search" => %{"query" => query}}, socket) do
     normalized = SearchText.normalize(query)
+
     socket = assign(socket, :search_query, normalized)
 
     cond do
@@ -135,42 +137,26 @@ defmodule TcgCheapWeb.HomeLive do
 
   @impl true
   def handle_event("switch_mode", %{"mode" => "sealed"}, socket) do
-    {:noreply,
-     socket
-     |> assign(mode: :sealed, search_form: to_form(%{"query" => ""}, as: :search))
-     |> assign(
-       search_status: :idle,
-       result_count: 0,
-       search_query: "",
-       autocomplete_options: [],
-       active_option_id: nil,
-       fallback_cards_count: 0,
-       fallback_sealed_count: 0
-     )
-     |> stream(:card_results, [], reset: true)
-     |> stream(:sealed_results, [], reset: true)
-     |> stream(:fallback_cards, [], reset: true)
-     |> stream(:fallback_sealed, [], reset: true)}
+    {:noreply, reset_mode(socket, :sealed)}
   end
 
   def handle_event("switch_mode", %{"mode" => "singles"}, socket) do
-    {:noreply,
-     socket
-     |> assign(mode: :singles, search_form: to_form(%{"query" => ""}, as: :search))
-     |> assign(
-       search_status: :idle,
-       result_count: 0,
-       search_query: "",
-       autocomplete_options: [],
-       active_option_id: nil,
-       fallback_cards_count: 0,
-       fallback_sealed_count: 0
-     )
-     |> stream(:card_results, [], reset: true)
-     |> stream(:sealed_results, [], reset: true)
-     |> stream(:fallback_cards, [], reset: true)
-     |> stream(:fallback_sealed, [], reset: true)}
+    {:noreply, reset_mode(socket, :singles)}
   end
+
+  def handle_event("switch_mode_with_query", %{"mode" => "sealed"}, socket) do
+    query = socket.assigns.search_query
+    socket = reset_mode(socket, :sealed, query)
+    handle_event("search", %{"search" => %{"query" => query}}, socket)
+  end
+
+  def handle_event("switch_mode_with_query", %{"mode" => "singles"}, socket) do
+    query = socket.assigns.search_query
+    socket = reset_mode(socket, :singles, query)
+    handle_event("search", %{"search" => %{"query" => query}}, socket)
+  end
+
+  def handle_event("switch_mode_with_query", _params, socket), do: {:noreply, socket}
 
   def handle_event("switch_mode", _params, socket), do: {:noreply, socket}
 
@@ -264,7 +250,7 @@ defmodule TcgCheapWeb.HomeLive do
 
             <%= if @mode == :singles do %>
               <section class="decision-search" aria-labelledby="search-title">
-                <h2 id="search-title" class="sr-only">Find a card</h2>
+                <h2 id="search-title">Find an exact printing</h2>
                 <.form for={@search_form} id="card-search-form">
                   <label for="card-search-query" class="sr-only">Search for a card</label>
                   <div class="search-field-wrap">
@@ -281,7 +267,7 @@ defmodule TcgCheapWeb.HomeLive do
                       aria-controls="card-search-results"
                       aria-expanded={to_string(@autocomplete_options != [])}
                       aria-activedescendant={active_option_dom_id(@active_option_id)}
-                      placeholder="Search cards"
+                      placeholder="Name, set, or collector number"
                     />
                   </div>
                 </.form>
@@ -385,7 +371,7 @@ defmodule TcgCheapWeb.HomeLive do
                   Type at least 2 characters.
                 </div>
                 <div :if={@search_status == :empty} id="card-search-empty" class="state-note">
-                  No cards found.
+                  No cards found. Try a name, set, or collector number.
                 </div>
                 <div
                   :if={@search_status == :error}
@@ -404,7 +390,11 @@ defmodule TcgCheapWeb.HomeLive do
               </section>
             <% else %>
               <section class="decision-search" aria-labelledby="sealed-search-title">
-                <h2 id="sealed-search-title" class="sr-only">Find a sealed product</h2>
+                <h2 id="sealed-search-title">Find a sealed product</h2>
+                <p id="sealed-data-note" class="search-context">
+                  Only approved catalogue products appear; local-shop evidence is shown when available.
+                  The catalogue is still growing.
+                </p>
                 <.form for={@search_form} id="sealed-search-form">
                   <label for="sealed-search-query" class="sr-only">Search for a sealed product</label>
                   <div class="search-field-wrap">
@@ -421,7 +411,7 @@ defmodule TcgCheapWeb.HomeLive do
                       aria-controls="sealed-search-results"
                       aria-expanded={to_string(@autocomplete_options != [])}
                       aria-activedescendant={active_option_dom_id(@active_option_id)}
-                      placeholder="Search sealed products"
+                      placeholder="Product name, set, or series"
                     />
                   </div>
                 </.form>
@@ -548,24 +538,31 @@ defmodule TcgCheapWeb.HomeLive do
       aria-labelledby="market-movers-title"
       hidden={@hidden}
     >
-      <h2 id="market-movers-title">
-        {if active_mode_has_movers?(
-              @mode,
-              @singles_risers_count,
-              @singles_fallers_count,
-              @sealed_risers_count,
-              @sealed_fallers_count
-            ),
-            do: "Market movers",
-            else: "Recently tracked"}
-      </h2>
+      <h2 id="market-movers-title">Market activity</h2>
+      <p id="market-movers-intro">
+        Movers compare the first and latest daily prices in the most recent 30 UTC dates. A card
+        or product needs prices on at least two dates and a change of 2% or more.
+      </p>
+      <details id="price-details">
+        <summary>How prices work</summary>
+        <p :if={@mode == :singles}>
+          Singles prices are aggregate Cardmarket estimates retrieved through TCGdex. They are
+          estimates, not offers; condition and shipping can change the price. TCG Cheap is not
+          affiliated with Cardmarket or TCGdex.
+        </p>
+        <p :if={@mode == :sealed}>
+          Sealed prices are benchmarks built from approved local-shop observations. They are
+          estimates, not offers; condition and shipping can change the price. TCG Cheap is
+          independent from observed shops.
+        </p>
+      </details>
       <div
         id="market-singles-panel"
         class="market-mode-panel"
-        hidden={@mode != :singles or !@singles_available?}
+        hidden={@mode != :singles}
       >
         <.mover_lane
-          :if={@singles_risers_count + @singles_fallers_count > 0}
+          :if={@singles_risers_count > 0}
           title="Risers"
           id="market-singles-risers"
           count={@singles_risers_count}
@@ -574,7 +571,7 @@ defmodule TcgCheapWeb.HomeLive do
           kind={:single}
         />
         <.mover_lane
-          :if={@singles_risers_count + @singles_fallers_count > 0}
+          :if={@singles_fallers_count > 0}
           title="Fallers"
           id="market-singles-fallers"
           count={@singles_fallers_count}
@@ -586,10 +583,10 @@ defmodule TcgCheapWeb.HomeLive do
       <div
         id="market-sealed-panel"
         class="market-mode-panel"
-        hidden={@mode != :sealed or !@sealed_available?}
+        hidden={@mode != :sealed}
       >
         <.mover_lane
-          :if={@sealed_risers_count + @sealed_fallers_count > 0}
+          :if={@sealed_risers_count > 0}
           title="Risers"
           id="market-sealed-risers"
           count={@sealed_risers_count}
@@ -598,7 +595,7 @@ defmodule TcgCheapWeb.HomeLive do
           kind={:sealed}
         />
         <.mover_lane
-          :if={@sealed_risers_count + @sealed_fallers_count > 0}
+          :if={@sealed_fallers_count > 0}
           title="Fallers"
           id="market-sealed-fallers"
           count={@sealed_fallers_count}
@@ -613,10 +610,7 @@ defmodule TcgCheapWeb.HomeLive do
         count={@recent_cards_count}
         available?={@recent_cards_available?}
         kind={:single}
-        hidden={
-          @mode != :singles or !@singles_available? or
-            @singles_risers_count + @singles_fallers_count > 0
-        }
+        hidden={@mode != :singles}
       />
       <.recent_idle_ledger
         id="market-sealed-recent"
@@ -624,9 +618,7 @@ defmodule TcgCheapWeb.HomeLive do
         count={@recent_sealed_count}
         available?={@recent_sealed_available?}
         kind={:sealed}
-        hidden={
-          @mode != :sealed or !@sealed_available? or @sealed_risers_count + @sealed_fallers_count > 0
-        }
+        hidden={@mode != :sealed}
       />
       <p
         :if={
@@ -650,12 +642,18 @@ defmodule TcgCheapWeb.HomeLive do
 
   def recent_idle_ledger(assigns) do
     ~H"""
-    <section id={@id} class="market-recent-ledger" aria-label="Recently tracked" hidden={@hidden}>
+    <section
+      id={@id}
+      class="market-recent-ledger"
+      aria-labelledby={"#{@id}-title"}
+      hidden={@hidden}
+    >
+      <h3 id={"#{@id}-title"}>
+        {recent_heading(@kind)}
+      </h3>
       <%= if !@available? or @count == 0 do %>
         <p id={"#{@id}-empty"} class="market-empty">
-          {if @available?,
-            do: "No recently tracked products yet.",
-            else: "Recent local data is unavailable right now."}
+          {recent_empty_copy(@kind, @available?)}
         </p>
       <% else %>
         <div id={"#{@id}-list"} phx-update="stream" class="market-rows">
@@ -669,6 +667,21 @@ defmodule TcgCheapWeb.HomeLive do
     </section>
     """
   end
+
+  defp recent_heading(:single), do: "Recently tracked"
+  defp recent_heading(:sealed), do: "Recent releases"
+
+  defp recent_empty_copy(:single, true),
+    do: "No recent prices yet. Search by name, set, or collector number."
+
+  defp recent_empty_copy(:sealed, true),
+    do: "No approved sealed products yet. Search by product, set, or series."
+
+  defp recent_empty_copy(:single, false),
+    do: "Recent local data is unavailable. Try a search again later."
+
+  defp recent_empty_copy(:sealed, false),
+    do: "Approved sealed product data is unavailable. Try a product, set, or series search later."
 
   attr :streams, :any, required: true
 
@@ -812,10 +825,14 @@ defmodule TcgCheapWeb.HomeLive do
         <h4>{mover.name}</h4><p>{mover.set_name} · #{mover.collector_number}</p><p class={
           movement_class(mover.change_percent)
         }>
-          <strong>{movement_label(mover.change_percent)} {signed_percent(mover.change_percent)}</strong>
-          · €{format_eur(mover.current_value_eur)} · {discovery_freshness_text(
-            mover.current_fetched_at
-          )}
+          <span class="mover-movement"><strong>{movement_label(mover.change_percent)} {signed_percent(
+            mover.change_percent
+          )}</strong></span>
+          <span class="mover-price-range">€{format_eur(mover.start_value_eur)} → €{format_eur(
+            mover.current_value_eur
+          )}</span>
+          <span class="mover-date-range">{date_range(mover.start_date, mover.current_date)}</span>
+          <span class="mover-freshness">{discovery_freshness_text(mover.current_fetched_at)}</span>
         </p>
       </div>
     </.link>
@@ -841,8 +858,14 @@ defmodule TcgCheapWeb.HomeLive do
         <h4>{mover.name}</h4><p>{sealed_identity(mover)}</p><p class={
           movement_class(mover.change_percent)
         }>
-          <strong>{movement_label(mover.change_percent)} {signed_percent(mover.change_percent)}</strong>
-          · {format_eur(mover.current_benchmark_pln)} PLN · {checked_text(mover.current_checked_at)}
+          <span class="mover-movement"><strong>{movement_label(mover.change_percent)} {signed_percent(
+            mover.change_percent
+          )}</strong></span>
+          <span class="mover-price-range">{format_eur(mover.start_benchmark_pln)} PLN → {format_eur(
+            mover.current_benchmark_pln
+          )} PLN</span>
+          <span class="mover-date-range">{date_range(mover.start_date, mover.current_date)}</span>
+          <span class="mover-freshness">{checked_text(mover.current_checked_at)}</span>
         </p>
       </div>
     </.link>
@@ -863,6 +886,14 @@ defmodule TcgCheapWeb.HomeLive do
       aria-labelledby="sealed-fallback-title"
     >
       <h2 id="sealed-fallback-title">Sealed products instead</h2>
+      <p>These cross-mode suggestions may help when no exact single matches your search.</p>
+      <button
+        id="switch-to-sealed-from-fallback"
+        class="fallback-mode-switch"
+        type="button"
+        phx-click="switch_mode_with_query"
+        phx-value-mode="sealed"
+      >Search sealed products instead</button>
       <div id="sealed-fallback-list" phx-update="stream">
         <.link
           :for={{id, product} <- @streams.fallback_sealed}
@@ -878,6 +909,14 @@ defmodule TcgCheapWeb.HomeLive do
       aria-labelledby="card-fallback-title"
     >
       <h2 id="card-fallback-title">Singles instead</h2>
+      <p>These cross-mode suggestions may help when no exact sealed product matches your search.</p>
+      <button
+        id="switch-to-singles-from-fallback"
+        class="fallback-mode-switch"
+        type="button"
+        phx-click="switch_mode_with_query"
+        phx-value-mode="singles"
+      >Search singles instead</button>
       <div id="card-fallback-list" phx-update="stream">
         <.link
           :for={{id, card} <- @streams.fallback_cards}
@@ -903,7 +942,7 @@ defmodule TcgCheapWeb.HomeLive do
       Type at least 2 characters.
     </div>
     <div :if={@status == :empty} id="sealed-search-empty" class="state-note">
-      No sealed products found.
+      No sealed products found. Try a product name, set, or series.
     </div>
     <div :if={@status == :error} id="sealed-search-error" class="state-note state-error">
       Sealed product search is unavailable. Try again.
@@ -974,6 +1013,13 @@ defmodule TcgCheapWeb.HomeLive do
   defp format_eur(value) when is_binary(value), do: format_eur(Decimal.new(value))
   defp format_eur(value) when is_integer(value), do: format_eur(Decimal.new(value))
 
+  defp date_range(start_date, current_date) do
+    "#{format_short_date(start_date)} → #{format_short_date(current_date)}"
+  end
+
+  defp format_short_date(%Date{} = date), do: Calendar.strftime(date, "%b %-d, %Y")
+  defp format_short_date(_date), do: "Date unavailable"
+
   defp signed_percent(%Decimal{} = value) do
     sign = if Decimal.compare(value, Decimal.new(0)) == :lt, do: "", else: "+"
     sign <> (value |> Decimal.round(2) |> Decimal.to_string(:normal)) <> "%"
@@ -992,12 +1038,6 @@ defmodule TcgCheapWeb.HomeLive do
       |> Enum.take(div(@max_discovery_rows, 2))
     }
   end
-
-  defp active_mode_has_movers?(:singles, risers, fallers, _sealed_risers, _sealed_fallers),
-    do: risers + fallers > 0
-
-  defp active_mode_has_movers?(:sealed, _singles_risers, _singles_fallers, risers, fallers),
-    do: risers + fallers > 0
 
   defp movement_label(value) do
     if Decimal.compare(value, Decimal.new(0)) == :gt, do: "Rise", else: "Fall"
@@ -1052,6 +1092,24 @@ defmodule TcgCheapWeb.HomeLive do
          |> clear_fallback_streams()
          |> stream(:card_results, [], reset: true)}
     end
+  end
+
+  defp reset_mode(socket, mode, query \\ "") do
+    socket
+    |> assign(mode: mode, search_form: to_form(%{"query" => query}, as: :search))
+    |> assign(
+      search_status: :idle,
+      result_count: 0,
+      search_query: query,
+      autocomplete_options: [],
+      active_option_id: nil,
+      fallback_cards_count: 0,
+      fallback_sealed_count: 0
+    )
+    |> stream(:card_results, [], reset: true)
+    |> stream(:sealed_results, [], reset: true)
+    |> stream(:fallback_cards, [], reset: true)
+    |> stream(:fallback_sealed, [], reset: true)
   end
 
   defp search_sealed_locally(socket, query) do

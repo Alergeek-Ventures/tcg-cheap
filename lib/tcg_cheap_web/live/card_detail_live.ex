@@ -117,30 +117,54 @@ defmodule TcgCheapWeb.CardDetailLive do
         <main id="card-detail-main" class="archive-main">
           <div class="archive-container">
             <.link id="card-detail-back" navigate={@back_path} class="archive-back">{@back_label}</.link>
-            <div id="card-detail-overview">
+            <div id="card-detail-overview" class="card-detail-archive-sheet">
               <section
                 id="card-detail-identity"
-                class="card-detail-identity"
+                class="card-detail-identity archive-identity-sheet"
                 aria-labelledby="card-detail-title"
               >
-                <div class="card-detail-heading">
+                <div class="card-detail-heading archive-identity-group">
                   <h1 id="card-detail-title">{@card.name}</h1>
-                  <p class="card-detail-set">{@card.set_name} · NO. {@card.collector_number}</p>
+                  <p class="card-detail-set archive-printing-reference">
+                    {@card.set_name} · NO. {@card.collector_number}
+                  </p>
                   <.link
                     id="card-detail-add-to-trade"
                     navigate={trade_pick_path(@tcgdex_id)}
                     class="card-detail-add-to-trade"
                   >Add to a trade</.link>
                 </div>
-                <section id="card-valuation" class="valuation-panel" aria-labelledby="valuation-title">
+                <section
+                  id="card-valuation"
+                  class="valuation-panel archive-value-group"
+                  aria-labelledby="valuation-title"
+                >
                   <div class="section-rule">
                     <h2 id="valuation-title">Current value</h2>
                   </div>
                   <div id="valuation-live-region" role="status" aria-live="polite" aria-atomic="true">
-                    <div id="valuation-state" class="valuation-state">
-                      <span :if={@valuation_status == :fresh} id="valuation-fresh">{@valuation_freshness_text}</span>
-                      <span :if={@valuation_status == :stale} id="valuation-stale">May be outdated</span>
-                      <span :if={@acquisition_state == :enqueued} id="valuation-fetching">Fetching a local valuation…</span>
+                    <div
+                      id="valuation-state"
+                      class={[
+                        "valuation-state",
+                        valuation_state_class(@valuation_status, @acquisition_state, @refresh_failure)
+                      ]}
+                    >
+                      <span
+                        :if={@valuation_status == :fresh}
+                        id="valuation-fresh"
+                        class="valuation-status-fresh"
+                      >{@valuation_freshness_text}</span>
+                      <span
+                        :if={@valuation_status == :stale}
+                        id="valuation-stale"
+                        class="valuation-status-stale"
+                      >{@valuation_freshness_text} · May be outdated</span>
+                      <span
+                        :if={@acquisition_state == :enqueued}
+                        id="valuation-fetching"
+                        class="valuation-status-fetching"
+                      >Fetching a local valuation…</span>
                       <span
                         :if={@valuation_status in [:missing, :disconnected]}
                         id="valuation-unpriced"
@@ -148,8 +172,13 @@ defmodule TcgCheapWeb.CardDetailLive do
                       <span
                         :if={@valuation_status == :local_read_failure}
                         id="valuation-local-read-failure"
+                        class="valuation-status-failure"
                       >Local valuation read failed</span>
-                      <span :if={@refresh_failure} id="valuation-refresh-failed">
+                      <span
+                        :if={@refresh_failure}
+                        id="valuation-refresh-failed"
+                        class="valuation-status-failure"
+                      >
                         <%= if @valuation do %>
                           Refresh failed; cached estimate retained.
                         <% else %>
@@ -165,6 +194,33 @@ defmodule TcgCheapWeb.CardDetailLive do
                       <% end %>
                     </p>
                   </div>
+                  <%= if @valuation do %>
+                    <p id="valuation-basis" class="valuation-basis">
+                      Based on {valuation_basis(@valuation)}.
+                    </p>
+                    <details id="valuation-provenance" class="valuation-provenance">
+                      <summary>Estimate details</summary>
+                      <dl>
+                        <div>
+                          <dt>Source</dt><dd>{valuation_source(@valuation.source)}</dd>
+                        </div>
+                        <div>
+                          <dt>Metric</dt><dd>{valuation_metric(@valuation.source_metric)}</dd>
+                        </div>
+                        <div>
+                          <dt>Price model</dt><dd>{@valuation.policy_version}</dd>
+                        </div>
+                        <div>
+                          <dt>Observation time (UTC)</dt><dd>
+                            {utc_timestamp(@valuation.fetched_at)}
+                          </dd>
+                        </div>
+                      </dl>
+                      <p>
+                        This is an independent, non-affiliated estimate and not an offer to buy or sell.
+                      </p>
+                    </details>
+                  <% end %>
                   <p id="card-detail-price-note" class="estimate-note">
                     Estimate only · Condition and shipping may vary.
                   </p>
@@ -194,25 +250,38 @@ defmodule TcgCheapWeb.CardDetailLive do
                     </div>
                   <% end %>
                 </figure>
-                <div class="card-detail-secondary">
+                <div class="card-detail-secondary archive-metadata-group">
+                  <h2 id="card-detail-metadata-title">Printing details</h2>
                   <dl id="card-detail-metadata" class="card-detail-metadata">
-                    <div :if={@card.rarity}>
-                      <dt>RARITY</dt><dd>{@card.rarity}</dd>
+                    <div :if={@card.rarity} class="card-detail-metadata-item">
+                      <dt class="archive-metadata-label">Rarity</dt><dd class="archive-metadata-value">
+                        {@card.rarity}
+                      </dd>
                     </div>
-                    <div :if={@card.category}>
-                      <dt>CATEGORY</dt><dd>{@card.category}</dd>
+                    <div :if={@card.category} class="card-detail-metadata-item">
+                      <dt class="archive-metadata-label">Category</dt><dd class="archive-metadata-value">
+                        {@card.category}
+                      </dd>
                     </div>
-                    <div :if={@card.illustrator}>
-                      <dt>ILLUSTRATOR</dt><dd>{@card.illustrator}</dd>
+                    <div :if={@card.illustrator} class="card-detail-metadata-item">
+                      <dt class="archive-metadata-label">Illustrator</dt><dd class="archive-metadata-value">
+                        {@card.illustrator}
+                      </dd>
                     </div>
-                    <div :if={@card.regulation_mark}>
-                      <dt>REGULATION</dt><dd>{@card.regulation_mark}</dd>
+                    <div :if={@card.regulation_mark} class="card-detail-metadata-item">
+                      <dt class="archive-metadata-label">Regulation mark</dt><dd class="archive-metadata-value">
+                        {@card.regulation_mark}
+                      </dd>
                     </div>
-                    <div :if={@card.standard_legal}>
-                      <dt>LEGALITY</dt><dd>STANDARD</dd>
-                    </div>
-                    <div :if={@card.expanded_legal}>
-                      <dt>LEGALITY</dt><dd>EXPANDED</dd>
+                    <div
+                      :if={@card.standard_legal || @card.expanded_legal}
+                      class="card-detail-metadata-item"
+                    >
+                      <dt class="archive-metadata-label">Legal formats</dt>
+                      <dd class="archive-metadata-value archive-legality-chips">
+                        <span :if={@card.standard_legal} class="archive-chip archive-chip-sage">Standard</span>
+                        <span :if={@card.expanded_legal} class="archive-chip archive-chip-indigo">Expanded</span>
+                      </dd>
                     </div>
                   </dl>
                 </div>
@@ -223,6 +292,9 @@ defmodule TcgCheapWeb.CardDetailLive do
               <div class="section-rule">
                 <h2 id="history-title">30-day price history</h2>
               </div>
+              <p id="valuation-history-explanation" class="history-explanation">
+                Daily observations; missing days remain gaps.
+              </p>
               <p
                 :if={@history_load_failed}
                 id="valuation-history-error"
@@ -242,7 +314,33 @@ defmodule TcgCheapWeb.CardDetailLive do
                   No price history yet.
                 </p>
               <% else %>
+                <% summary = history_summary(@history_points) %>
+                <dl id="valuation-history-summary" class="history-summary">
+                  <div class="history-summary-item">
+                    <dt>First observed</dt>
+                    <dd>
+                      <time datetime={Date.to_iso8601(summary.first.date)}>
+                        {Date.to_iso8601(summary.first.date)}
+                      </time>
+                      <span>€{format_eur(summary.first.value_eur)}</span>
+                    </dd>
+                  </div>
+                  <div class="history-summary-item">
+                    <dt>Latest</dt>
+                    <dd>
+                      <time datetime={Date.to_iso8601(summary.latest.date)}>
+                        {Date.to_iso8601(summary.latest.date)}
+                      </time>
+                      <span>€{format_eur(summary.latest.value_eur)}</span>
+                    </dd>
+                  </div>
+                  <div class="history-summary-item">
+                    <dt>Observations</dt>
+                    <dd>{observation_count_text(summary.count)}</dd>
+                  </div>
+                </dl>
                 <svg
+                  :if={length(@history_points) >= 2}
                   id="valuation-history-chart"
                   viewBox="0 0 300 120"
                   role="img"
@@ -474,6 +572,43 @@ defmodule TcgCheapWeb.CardDetailLive do
   end
 
   defp positive_product_id?(product_id), do: is_integer(product_id) and product_id > 0
+
+  defp valuation_state_class(_status, _acquisition_state, true), do: "valuation-state-failure"
+
+  defp valuation_state_class(:local_read_failure, _acquisition_state, _failure),
+    do: "valuation-state-failure"
+
+  defp valuation_state_class(_status, :enqueued, _failure), do: "valuation-state-fetching"
+  defp valuation_state_class(:fresh, _acquisition_state, _failure), do: "valuation-state-fresh"
+  defp valuation_state_class(:stale, _acquisition_state, _failure), do: "valuation-state-stale"
+
+  defp valuation_state_class(_status, _acquisition_state, _failure),
+    do: "valuation-state-unavailable"
+
+  defp valuation_basis(%{source: "tcgdex_cardmarket", source_metric: metric}) do
+    "Cardmarket #{valuation_metric(metric)} via TCGdex"
+  end
+
+  defp valuation_basis(valuation) do
+    "#{valuation_source(valuation.source)} using #{valuation_metric(valuation.source_metric)}"
+  end
+
+  defp valuation_source("tcgdex_cardmarket"), do: "Cardmarket via TCGdex"
+  defp valuation_source(_source), do: "an external pricing source"
+
+  defp valuation_metric("avg7"), do: "7-day average"
+  defp valuation_metric("avg30"), do: "30-day average"
+  defp valuation_metric("trend"), do: "trend"
+  defp valuation_metric("avg"), do: "average"
+  defp valuation_metric("low"), do: "low price"
+  defp valuation_metric(_metric), do: "an aggregated market measure"
+
+  defp history_summary([first | _] = points) do
+    %{first: first, latest: List.last(points), count: length(points)}
+  end
+
+  defp observation_count_text(1), do: "1 observation"
+  defp observation_count_text(count), do: "#{count} observations"
 
   defp assign_history_plot(socket, points) do
     origin = socket.assigns.history_origin || ValuationHistory.window_start(DateTime.utc_now())
