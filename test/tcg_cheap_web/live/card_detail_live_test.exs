@@ -152,7 +152,13 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
              "Estimate only · Condition and shipping may vary."
            )
 
-    assert has_element?(view, "#valuation-info-trigger")
+    assert has_element?(
+             view,
+             "#valuation-price-row[phx-key=escape][phx-window-keydown]"
+           )
+
+    assert has_element?(view, "#valuation-info-trigger[phx-blur][phx-click-away]")
+
     assert has_element?(view, "#valuation-info-copy", "Cardmarket via TCGdex")
     assert has_element?(view, "#valuation-info-copy", "applied consistently to every card")
     refute has_element?(view, "#valuation-info-copy", "7-day average")
@@ -206,8 +212,13 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
            ) =~
              Date.to_iso8601(DateTime.to_date(fetched_at))
 
+    assert [_observations] =
+             document |> LazyHTML.query("#valuation-history-observations") |> LazyHTML.to_tree()
+
     assert [_ledger] =
-             document |> LazyHTML.query("#valuation-history-ledger.sr-only") |> LazyHTML.to_tree()
+             document
+             |> LazyHTML.query("#valuation-history-ledger:not(.sr-only)")
+             |> LazyHTML.to_tree()
 
     ledger = document |> LazyHTML.query("#valuation-history-ledger") |> LazyHTML.to_tree()
     assert inspect(ledger) =~ "12.35"
@@ -409,7 +420,8 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-fresh")
     assert has_element?(view, "#valuation-history-collecting", "Not enough price history yet.")
     assert has_element?(view, "#valuation-history-summary", "1 observation")
-    assert has_element?(view, "#valuation-history-ledger.sr-only")
+    assert has_element?(view, "#valuation-history-observations summary", "All observations")
+    assert has_element?(view, "#valuation-history-ledger:not(.sr-only)")
     refute has_element?(view, "#valuation-history-chart")
     refute has_element?(view, "#valuation-history-title")
     refute has_element?(view, "#valuation-history-description")
@@ -446,6 +458,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
     assert has_element?(view, "#valuation-history-chart")
     assert has_element?(view, "#valuation-history-chart-wrap .history-chart-plot")
+    assert has_element?(view, "#valuation-history-chart-wrap[phx-key=escape][phx-window-keydown]")
 
     assert has_element?(
              view,
@@ -454,7 +467,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     assert has_element?(
              view,
-             "#valuation-history-point-#{Date.to_iso8601(DateTime.to_date(now))}[type='button']"
+             "#valuation-history-point-#{Date.to_iso8601(DateTime.to_date(now))}[type='button'][phx-blur][phx-click-away]"
            )
 
     assert has_element?(
@@ -465,6 +478,8 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     assert has_element?(view, "#valuation-history-chart-wrap", "Max €42.00")
     assert has_element?(view, "#valuation-history-chart-wrap", "Min €40.00")
+    assert has_element?(view, "#valuation-history-observations summary", "2 observations")
+    assert has_element?(view, "#valuation-history-ledger:not(.sr-only)")
     window_start = now |> DateTime.to_date() |> Date.add(-29)
 
     assert has_element?(

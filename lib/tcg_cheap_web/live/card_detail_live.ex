@@ -191,7 +191,17 @@ defmodule TcgCheapWeb.CardDetailLive do
                         <% end %>
                       </span>
                     </div>
-                    <div class="valuation-price-row">
+                    <div
+                      id="valuation-price-row"
+                      class="valuation-price-row"
+                      phx-window-keydown={
+                        JS.add_class("tooltip-dismissed",
+                          to:
+                            "#valuation-price-row:has(#valuation-info-trigger:hover), #valuation-price-row:has(#valuation-info-trigger:focus)"
+                        )
+                      }
+                      phx-key="escape"
+                    >
                       <p id="valuation-value" class="valuation-value">
                         <%= if @valuation do %>
                           €{@valuation_display}
@@ -205,6 +215,12 @@ defmodule TcgCheapWeb.CardDetailLive do
                             id="valuation-info-trigger"
                             type="button"
                             aria-describedby="valuation-info-copy"
+                            phx-blur={
+                              JS.remove_class("tooltip-dismissed", to: "#valuation-price-row")
+                            }
+                            phx-click-away={
+                              JS.remove_class("tooltip-dismissed", to: "#valuation-price-row")
+                            }
                           >
                             <.fluent_icon name={:info} />
                             <span class="sr-only">About this estimate</span>
@@ -339,6 +355,13 @@ defmodule TcgCheapWeb.CardDetailLive do
                   :if={length(@history_points) >= 2}
                   id="valuation-history-chart-wrap"
                   class="history-chart-wrap"
+                  phx-window-keydown={
+                    JS.add_class("tooltip-dismissed",
+                      to:
+                        "#valuation-history-chart-wrap .history-point-target:hover, #valuation-history-chart-wrap .history-point-target:focus"
+                    )
+                  }
+                  phx-key="escape"
                 >
                   <div class="history-chart-labels" aria-hidden="true">
                     <span>Max €{format_eur(history_summary(@history_points).max)}</span>
@@ -378,6 +401,16 @@ defmodule TcgCheapWeb.CardDetailLive do
                           class={["history-point-target", point_edge_class(plot.x)]}
                           style={point_style(plot)}
                           aria-label={"#{Date.to_iso8601(point.date)}: €#{format_eur(point.value_eur)}"}
+                          phx-blur={
+                            JS.remove_class("tooltip-dismissed",
+                              to: "#valuation-history-point-#{Date.to_iso8601(point.date)}"
+                            )
+                          }
+                          phx-click-away={
+                            JS.remove_class("tooltip-dismissed",
+                              to: "#valuation-history-point-#{Date.to_iso8601(point.date)}"
+                            )
+                          }
                         >
                           <span role="tooltip">{Date.to_iso8601(point.date)} · €{format_eur(
                             point.value_eur
@@ -395,15 +428,22 @@ defmodule TcgCheapWeb.CardDetailLive do
                     </time>
                   </div>
                 </div>
-                <ol id="valuation-history-ledger" class="sr-only">
-                  <%= for point <- @history_points do %>
-                    <li id={"valuation-history-day-#{point.date}"}>
-                      <time datetime={Date.to_iso8601(point.date)}>{Date.to_iso8601(point.date)}</time>
-                      <strong>€{format_eur(point.value_eur)}</strong>
-                      <span>{utc_timestamp(point.fetched_at)}</span>
-                    </li>
-                  <% end %>
-                </ol>
+                <details id="valuation-history-observations" class="history-observations">
+                  <summary>
+                    <span>All observations</span>
+                    <span>{observation_count_text(length(@history_points))}</span>
+                    <.fluent_icon name={:chevron_down} />
+                  </summary>
+                  <ol id="valuation-history-ledger">
+                    <%= for point <- @history_points do %>
+                      <li id={"valuation-history-day-#{point.date}"}>
+                        <time datetime={Date.to_iso8601(point.date)}>{Date.to_iso8601(point.date)}</time>
+                        <strong>€{format_eur(point.value_eur)}</strong>
+                        <span>{utc_timestamp(point.fetched_at)}</span>
+                      </li>
+                    <% end %>
+                  </ol>
+                </details>
               <% end %>
             </section>
           </div>

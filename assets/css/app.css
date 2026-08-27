@@ -232,6 +232,7 @@
 .card-detail-world #valuation-info-trigger:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 .card-detail-world .valuation-tooltip { background: var(--ink); color: var(--tissue); display: none; font-size: .875rem; left: 0; line-height: 1.5; max-width: 32rem; padding: .75rem 1rem; position: absolute; top: calc(100% + .25rem); width: min(calc(100vw - 2rem), 32rem); z-index: 2; }
 .card-detail-world .valuation-info:hover .valuation-tooltip, .card-detail-world .valuation-info:focus-within .valuation-tooltip { display: block; }
+.card-detail-world .valuation-price-row.tooltip-dismissed .valuation-tooltip, .card-detail-world .history-point-target.tooltip-dismissed span { display: none !important; }
 .card-detail-world #valuation-history-chart { background: color-mix(in srgb, var(--tissue) 70%, var(--box-board)); border: 0; display: block; height: auto; margin-top: 1.5rem; max-width: 52rem; overflow: visible; width: 100%; }
 .card-detail-world .history-line { fill: none; stroke: var(--ink); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .sealed-detail-world #sealed-sold-out-section {
@@ -287,12 +288,23 @@
 .card-detail-world .history-point-target { background: transparent; border: 0; border-radius: 50%; cursor: help; height: 3rem; left: calc(var(--point-x) - 1.5rem); padding: 0; pointer-events: none; position: absolute; top: calc(var(--point-y) - 1.5rem); width: 3rem; }
 .card-detail-world .history-point-target:focus-visible { outline: 3px solid var(--ink); }
 .card-detail-world .history-point-target::before { background: var(--sunfade); border: 1px solid var(--ink); border-radius: 50%; content: ""; height: .375rem; left: 1.3125rem; pointer-events: auto; position: absolute; top: 1.3125rem; width: .375rem; }
-.card-detail-world .history-point-target span { background: var(--ink); color: var(--tissue); display: none; font-size: .875rem; max-width: min(18rem, calc(100vw - 2rem)); overflow-wrap: anywhere; padding: .5rem .75rem; position: absolute; top: 100%; white-space: normal; width: max-content; z-index: 2; }
+.card-detail-world .history-point-target span { background: var(--ink); color: var(--tissue); display: none; font-size: .875rem; max-width: min(18rem, calc(100vw - 2rem)); overflow-wrap: anywhere; padding: .5rem .75rem; pointer-events: auto; position: absolute; top: calc(50% + .1875rem); white-space: normal; width: max-content; z-index: 2; }
 .card-detail-world .history-point-target.point-center span { left: 50%; transform: translateX(-50%); }
 .card-detail-world .history-point-target.point-left span { left: 0; }
 .card-detail-world .history-point-target.point-right span { right: 0; }
 .card-detail-world .history-chart-axis { display: flex; font-size: .875rem; grid-column: 2; grid-row: 2; justify-content: space-between; margin: .5rem 0 0; padding: 0 1.5rem; }
 .card-detail-world .history-point-target:hover span, .card-detail-world .history-point-target:focus span { display: block; }
+.card-detail-world .history-observations { margin-top: 1rem; }
+.card-detail-world .history-observations summary { align-items: center; border-top: 1px solid rgb(23 22 20 / 18%); cursor: pointer; display: grid; font-size: .875rem; gap: .5rem; grid-template-columns: minmax(0, 1fr) auto auto; min-height: 3rem; padding: .5rem 0; }
+.card-detail-world .history-observations summary::marker { content: ""; }
+.card-detail-world .history-observations summary > span:first-child { font-weight: 700; }
+.card-detail-world .history-observations summary > span:nth-child(2) { color: var(--muted); }
+.card-detail-world .history-observations summary > .fluent-icon { transition: transform .2s ease; }
+.card-detail-world .history-observations[open] summary > .fluent-icon { transform: rotate(180deg); }
+.card-detail-world #valuation-history-ledger { list-style: none; margin: 0; padding: 0; }
+.card-detail-world #valuation-history-ledger li { border-top: 1px solid rgb(23 22 20 / 18%); display: grid; font-size: .875rem; gap: .5rem 1rem; grid-template-columns: 8rem 6rem minmax(0, 1fr); padding: .5rem 0; }
+.card-detail-world #valuation-history-ledger strong { font: 700 1rem/1.5 "Barlow Condensed", sans-serif; }
+.card-detail-world #valuation-history-ledger li > span { color: var(--muted); overflow-wrap: anywhere; text-align: right; }
 @media (max-width: 40rem) {
   .card-detail-world .card-detail-identity { gap: 1rem; padding-block: 1rem 1.5rem; }
   .card-detail-world .history-summary { gap: .5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -301,6 +313,8 @@
   .card-detail-world .history-summary dd time { display: block; font-size: .875rem; }
   .card-detail-world .history-summary dd span, .card-detail-world .history-summary-item:last-child dd { font-size: 1rem; }
   .card-detail-world .card-detail-metadata div { grid-template-columns: minmax(6.5rem, auto) minmax(0, 1fr); }
+  .card-detail-world #valuation-history-ledger li { grid-template-columns: minmax(0, 1fr) auto; }
+  .card-detail-world #valuation-history-ledger li > span { grid-column: 1 / -1; text-align: left; }
 }
 
 @media (max-width: 22rem) { .card-detail-world .history-summary { grid-template-columns: 1fr; } }
@@ -425,7 +439,7 @@
   .decision-world .detail-action { grid-column: 2; grid-row: 2; }
 }
 @media (max-width: 59.99rem) { .card-detail-world .valuation-history { margin-left: 0; max-width: none; } }
-@media (prefers-reduced-motion: reduce) { .decision-world .disclosure-chevron { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .decision-world .disclosure-chevron, .card-detail-world .history-observations summary > .fluent-icon { transition: none; } }
 
 /* The home surface is the only decision world using the quieter treatment above. */
 .decision-world.home-world { --bench: #f1eadc; --rule: rgb(32 29 25 / 18%); background-image: none; }
