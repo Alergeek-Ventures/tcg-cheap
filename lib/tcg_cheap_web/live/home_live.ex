@@ -223,7 +223,7 @@ defmodule TcgCheapWeb.HomeLive do
     <Layouts.app flash={@flash}>
       <div class="decision-world home-world">
         <header id="decision-header" class="decision-header">
-          <.link id="decision-wordmark" navigate={~p"/"}>TCG CHEAP</.link>
+          <.link id="decision-wordmark" navigate={~p"/"}><.fluent_icon name={:gift_card_add} />TCG CHEAP</.link>
         </header>
 
         <main id="decision-main" class="decision-main">
@@ -724,9 +724,6 @@ defmodule TcgCheapWeb.HomeLive do
         <p>{card.set_name} · #{card.collector_number}</p>
         <p class="recent-value">
           <strong>{estimate_display(Map.get(card, :tcgdex_cardmarket_v1_current_valuation))}</strong>
-          <%= if valuation = Map.get(card, :tcgdex_cardmarket_v1_current_valuation) do %>
-            · <.fluent_icon name={:clock} />{freshness_text(valuation)}
-          <% end %>
         </p>
       </div>
     </.link>
@@ -838,13 +835,6 @@ defmodule TcgCheapWeb.HomeLive do
             name={:arrow_trending}
             class={movement_icon_class(mover.change_percent)}
           /></span>
-          <span class="mover-price-range">€{format_eur(mover.start_value_eur)} → €{format_eur(
-            mover.current_value_eur
-          )}</span>
-          <span class="mover-date-range">{date_range(mover.start_date, mover.current_date)}</span>
-          <span class="mover-freshness"><.fluent_icon name={:clock} />{discovery_freshness_text(
-            mover.current_fetched_at
-          )}</span>
         </p>
       </div>
     </.link>
@@ -876,13 +866,6 @@ defmodule TcgCheapWeb.HomeLive do
             name={:arrow_trending}
             class={movement_icon_class(mover.change_percent)}
           /></span>
-          <span class="mover-price-range">{format_eur(mover.start_benchmark_pln)} PLN → {format_eur(
-            mover.current_benchmark_pln
-          )} PLN</span>
-          <span class="mover-date-range">{date_range(mover.start_date, mover.current_date)}</span>
-          <span class="mover-freshness"><.fluent_icon name={:clock} />{checked_text(
-            mover.current_checked_at
-          )}</span>
         </p>
       </div>
     </.link>
@@ -979,21 +962,6 @@ defmodule TcgCheapWeb.HomeLive do
     updated_text(valuation.fetched_at, Freshness.status(valuation, now), now)
   end
 
-  defp discovery_freshness_text(fetched_at) do
-    now = DateTime.utc_now()
-    updated_text(fetched_at, Freshness.status_at(fetched_at, now), now)
-  end
-
-  defp checked_text(checked_at) do
-    age = max(DateTime.diff(DateTime.utc_now(), checked_at, :day), 0)
-
-    case age do
-      0 -> "Checked today"
-      1 -> "Checked yesterday"
-      days -> "Checked #{days} days ago"
-    end
-  end
-
   defp sealed_identity(mover) do
     [human_product_type(mover.product_type), mover.series_name, mover.set_name]
     |> Enum.reject(&(is_nil(&1) or &1 == ""))
@@ -1029,13 +997,6 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp format_eur(value) when is_binary(value), do: format_eur(Decimal.new(value))
   defp format_eur(value) when is_integer(value), do: format_eur(Decimal.new(value))
-
-  defp date_range(start_date, current_date) do
-    "#{format_short_date(start_date)} → #{format_short_date(current_date)}"
-  end
-
-  defp format_short_date(%Date{} = date), do: Calendar.strftime(date, "%b %-d, %Y")
-  defp format_short_date(_date), do: "Date unavailable"
 
   defp signed_percent(%Decimal{} = value) do
     sign = if Decimal.compare(value, Decimal.new(0)) == :lt, do: "", else: "+"

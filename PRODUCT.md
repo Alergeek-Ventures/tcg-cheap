@@ -72,6 +72,12 @@ The curated `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` is approved an
 
 Detailed private enrichment now covers exactly `sv01-001` through `sv01-011`: all 11 matched Cardmarket IDs 702298–702308 and all 11 have current `tcgdex_cardmarket_v1` valuations. These real local observations range from EUR 0.03 to EUR 5.04; Pineco remains EUR 5.04. This is not representative coverage of the 20,964-printing catalogue; the two restored `exu` rows are pending and unpriced. Every successful listing ingest ensures a mapping in the same transaction: missing/invalid/ambiguous evidence creates or refreshes review; one eligible approved exact EAN may create or promote a mutable pending/review mapping to matched through the locked/product-validated Ash action and immutable decision history; terminal matched/rejected decisions are protected from source overwrite; failures roll back the batch.
 
+## Owner-directed pricing refinement — 2026-08-27 (pending deployment)
+
+The improved production surface is accepted as the baseline. The next implementation batch further distills Home discovery and makes CardDetail use its evidence space more effectively. Home movement rows are hooks: exact identity plus signed movement only; prior/current prices, dates, and freshness belong on detail. Recently tracked rows keep identity and current estimate without freshness text.
+
+CardDetail uses a larger image column, places compact Current estimate and Printing side by side at wide desktop, and lets history span the full 72rem container. The estimate uses a concise adjacent information tooltip: aggregated Cardmarket data via TCGdex, the same calculation for every card, and non-affiliation; exact metric, policy version, and timestamp are omitted. Trade is linked for comparison, but no unsupported algorithm selector is claimed. The history chart preserves gaps, adds min/max, exact window dates, guides, and exact date/EUR hover and keyboard-focus tooltips. One observation still renders summary and ledger without a chart. Official Fluent Gift Card Add Regular appears next to every public TCG CHEAP wordmark, rendered in Barlow Condensed 700. Exact identity, honest states, local-first acquisition, and 48px controls remain unchanged.
+
 ## Current deployment and visual refinement — 2026-08-26
 
 The UI correction commit `7a0f956` is pushed and deployed to production; GitHub

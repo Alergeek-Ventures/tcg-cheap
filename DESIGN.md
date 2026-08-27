@@ -106,7 +106,7 @@ The `.archive-world` remains the CSS scope name and visual contract for card det
 
 **Key Characteristics:**
 - Calm warm-paper bench, square identity, restrained ink separators, and selective orange action grammar on Home.
-- Exact-printing identity expressed through image, name, set, collector number, and optional rarity.
+- Exact-printing identity expressed through image, name, set, collector number, and optional rarity. Official Fluent Gift Card Add Regular sits beside every public TCG CHEAP wordmark; the wordmark is Barlow Condensed 700.
 - One accessible mode switch, direct `Find a card` search, one solid `View price` action, and restrained reveal motion.
 
 ## Colors
@@ -144,7 +144,7 @@ Directional evidence uses `rise` and `fall` only as intentional accessible movem
 - **H1 / decision call** (700, `32–40px`, 0.92): `Compare Pokémon prices` and the first-viewport task.
 - **H2 / action heading** (700, `24–28px`, 1): Search and disclosure headings; narrow display steps include `1.25rem` and `1.5rem` where the available width requires them.
 - **H3 / supporting heading** (700, `20–22px`): Section and panel headings.
-- **Price/name** (700, `1.45rem` name / `1.8rem` estimate, 0.9): Exact printing name and EUR estimate.
+- **Price/name** (700, `1.45rem` name / `1.8rem` estimate, 0.9): Exact printing name and compact EUR estimate.
 - **Body** (400, `16px`, 1.5–1.7): Explanatory and operational copy; prose stays at or below `70ch`.
 - **Row metadata/label** (400, `14px` minimum, 1.5–1.7): Set, collector number, rarity, update state, shipping note, and caveat copy.
 
@@ -152,7 +152,7 @@ Directional evidence uses `rise` and `fall` only as intentional accessible movem
 
 ## Layout
 
-The `.home-world` uses a compact full-width counter header and a centered Home container capped at the canonical `1152px` (`72rem`), within an approved desktop range of `1100–1200px`. Major sections use approximately `24–48px` separation by hierarchy, Market movers use approximately `24px`, and compact price/evidence rows are rows, not cards. The intro places the wordmark/call beside the accessible mode switch; below `42rem` they stack and the switch becomes full width. Mobile-first layouts stack, reduce spatial density by about `33–50%`, and preserve at least `48px` for every control; the header uses `16px` inline padding on mobile. The decision title is `32–40px`, while mode and action controls use `48px` minimum heights. The direct search precedes one vertical list of price rows. Each row uses a `5.5rem minmax(0, 1fr)` image/content split (`4.75rem minmax(0, 1fr)` below `24rem`), with identity, estimate, update state, and one CTA in the content column; text wraps without horizontal overflow. Shared Trade/Sealed `.decision-world` surfaces retain their existing stronger `#f3ead7` baseline.
+The `.home-world` uses a compact full-width counter header and a centered Home container capped at the canonical `1152px` (`72rem`), within an approved desktop range of `1100–1200px`. Major sections use approximately `24–48px` separation by hierarchy, Market movers use approximately `24px`, and compact price/evidence rows are rows, not cards. The intro places the wordmark/call beside the accessible mode switch; below `42rem` they stack and the switch becomes full width. Mobile-first layouts stack, reduce spatial density by about `33–50%`, and preserve at least `48px` for every control; the header uses `16px` inline padding on mobile. The decision title is `32–40px`, while mode and action controls use `48px` minimum heights. The direct search precedes one vertical list of price rows. Each row uses a `5.5rem minmax(0, 1fr)` image/content split (`4.75rem minmax(0, 1fr)` below `24rem`), with identity, estimate, and one CTA in the content column; text wraps without horizontal overflow. Movement rows are discovery hooks: exact identity and signed movement only. `Recently tracked` is identity plus current estimate, without freshness text. Shared Trade/Sealed `.decision-world` surfaces retain their existing stronger `#f3ead7` baseline.
 
 Home uses one subtle header/input separator rather than heavy perimeter rules. The search surface is the visual pause before results, with the input spanning the available width. Results are visible in the desktop viewport; mobile keeps mode, search, identity, estimate, and action usable in sequence.
 
@@ -205,10 +205,12 @@ The Home form language is square throughout: controls and price-row surfaces use
 - **Shape:** The high WebP TCGdex image sits in a transparent, unboxed printing surface within the `.archive-world` detail layout.
 - **Behavior:** The image supports identity verification alongside one coherent, unboxed detail column. Missing imagery uses the same honest line-art fallback.
 
+The meaningful image column is larger than the supporting detail region. At wide desktop, compact `Current estimate` and `Printing` sit side by side in the right region; mobile order is identity → estimate → image → Printing. History spans the full `72rem` detail container.
+
 ### CardDetail layout
 - **Direction:** The prior saturated orange board, three boxed columns/status boxes, and giant framed chart are explicitly superseded.
 - **Desktop:** Calm warm paper, subtle 1px header separator, and two columns: image plus one coherent detail column.
-- **Mobile:** Identity → estimate → image → printing. Valuation, metadata, and history are unboxed; legal format is plain text; statuses and disclosure are quiet; the chart uses a sensible width.
+- **Mobile:** Identity → estimate → image → Printing. Valuation, metadata, and history are unboxed; legal format is plain text; statuses and disclosure are quiet; history spans the full `72rem` detail container on desktop.
 - **Boundary:** `.archive-world` remains the CSS scope name only. Preserve exact identity, data, provenance, and history behavior.
 
 ### Archive annotations
@@ -220,6 +222,10 @@ The Home form language is square throughout: controls and price-row surfaces use
 - **Character:** Plain decision status: `Updated …`, `May be outdated`, `Price unavailable`, empty, invalid, unavailable, or error; never hidden behind a decorative empty state.
 - **Shape:** A `1px` top rule, vertical padding, and mono copy. Error notes use a sunfade surface and `1rem` padding.
 - **Behavior:** Idle has no explanatory copy; short-query, empty, and unavailable states stay short. Full policy, methodology, non-affiliation, and shipping caveats live in a collapsed icon-led `Method` disclosure. Sealed says honestly that it is not available yet.
+
+The estimate is compact and has an adjacent accessible `48px` information tooltip with concise consistent-calculation, source, and non-affiliation copy. It exposes no exact metric, policy version, or timestamp. Trade is linked for comparison only and does not support changing valuation algorithms.
+
+History preserves date gaps, shows min/max and exact window dates, uses horizontal guides, and exposes exact date/EUR tooltips on hover or focus. Point controls are keyboard-focusable. A one-point history remains summary/ledger only, with no chart.
 
 ### Fluent UI icon system
 - **Semantic use:** Selective official Fluent UI System Icons Regular support search, back, trade/swap, information, disclosure chevron, freshness/clock, and trend direction.

@@ -10,15 +10,15 @@ related_targets: ["assets/css/app.css","lib/tcg_cheap_web/live/home_live.ex"]
 - **Scope:** `/cards/:tcgdex_id`
 - **Mode:** Operate
 - **Audience:** A mobile in-shop trader/collector.
-- **Job:** Confirm the exact printing and understand the current aggregate estimate, its freshness, and its history.
+- **Job:** Confirm the exact printing and understand the compact current aggregate estimate, its freshness, and its history.
 - **Primary actions:** Read/verify, add this exact printing to a trade as a pending pick without choosing a side, then return through a canonical local `/trade` URL.
 
 ## Proof and content
 
 - Exact identity.
 - Local current, stale, and unpriced states.
-- Source, metric, policy, and UTC timestamp.
-- Fixed 30-day daily history with gaps, plus an accessible ledger.
+- Source and non-affiliation context through an adjacent accessible 48px info tooltip; no exact metric, policy version, or timestamp is exposed.
+- History with preserved date gaps, min/max, exact window dates, horizontal guides, and exact date/EUR hover/focus tooltips, plus keyboard-focusable point controls and an accessible ledger. One point remains summary/ledger only without a chart.
 - Canonical TCGdex-hosted high WebP exact-printing image when available, displayed with no-referrer hotlinking.
 - `Add to a trade` preserves the exact identity and accepts only a reconstructed local `/trade` return target; malformed or open-redirect targets are rejected.
 
@@ -29,16 +29,16 @@ related_targets: ["assets/css/app.css","lib/tcg_cheap_web/live/home_live.ex"]
 - Do not claim seller count, condition, language, or shipping.
 - Printing surfaces may use canonical TCGdex low WebP thumbnails and card detail uses the high WebP exact-printing image, both with no-referrer hotlinking. Missing images retain an honest line-art fallback.
 - The site is explicitly unofficial and non-affiliated; it makes no claim of independently licensed Pokémon art.
-- Put mobile identity and value first.
+- Put mobile identity and value first. The meaningful image column is larger; at wide desktop, compact `Current estimate` and `Printing` sit side by side in the right region. Mobile order is identity → estimate → image → Printing. History spans the full 72rem detail container.
 - Preserve `.archive-world` as the CSS scope name, but supersede the prior saturated orange archive board, three boxed columns/status boxes, colored legal-format chips, and giant framed chart.
-- Use calm warm paper with a subtle 1px header separator. Desktop is two columns: image plus one coherent detail column. Mobile order is identity → estimate → image → printing.
+- Use calm warm paper with a subtle 1px header separator. Desktop is two columns with a larger image plus one coherent detail region; its compact estimate and Printing panels sit side by side. Mobile order is identity → estimate → image → Printing.
 - Keep valuation, metadata, and history unboxed; legal format is plain text; statuses/disclosure are quiet; chart width is sensible. Exact identity, data, provenance, and history behavior remain unchanged.
 - Use mobile-first stacking, at least 48px controls, and 33-50% lower mobile spatial density. Desktop content is capped at 1152px/72rem (within 1100-1200px), with 48px major section spacing and 24-32px panel spacing. Body is 16px, metadata is at least 14px, prose is at most 70ch, normal text contrast is at least 4.5:1, and focus is clear.
-- Retain Barlow Condensed 700 as the documented brand/asset exception because only the approved 700 asset exists; Azeret Mono is body/evidence, with no more than two typefaces.
+- Retain Barlow Condensed 700 as the documented brand/asset exception because only the approved 700 asset exists; the official Fluent Gift Card Add Regular icon appears beside every public TCG CHEAP wordmark. Azeret Mono is body/evidence, with no more than two typefaces.
 
 ## Direction
 
-Make a calm warm-paper identity/value detail surface with coherent evidence and a quiet history ledger.
+Make a calm warm-paper identity/value detail surface with coherent evidence and a quiet history ledger. The estimate tooltip uses concise consistent-calculation, source, and non-affiliation copy; Trade is linked only for comparison and does not support changing valuation algorithms.
 
 ## Memorable moment
 

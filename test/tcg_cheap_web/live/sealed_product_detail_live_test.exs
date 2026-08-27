@@ -175,6 +175,7 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
     assert has_element?(view, ".sealed-detail-world")
     assert has_element?(view, "#decision-header")
     assert has_element?(view, "#decision-wordmark")
+    assert has_element?(view, "#decision-wordmark .fluent-icon")
     assert has_element?(view, "#sealed-detail-title", product.name)
     assert has_element?(view, "#sealed-detail-type", "Booster Box")
     assert has_element?(view, "#sealed-detail-msrp", "129.99 PLN")

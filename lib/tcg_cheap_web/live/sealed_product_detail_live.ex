@@ -43,7 +43,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     <Layouts.app flash={@flash}>
       <div class="decision-world sealed-detail-world">
         <header id="decision-header" class="decision-header">
-          <.link id="decision-wordmark" navigate={~p"/"}>TCG CHEAP</.link>
+          <.link id="decision-wordmark" navigate={~p"/"}><.fluent_icon name={:gift_card_add} />TCG CHEAP</.link>
         </header>
         <main id="sealed-detail-main" class="decision-main">
           <div class="decision-container">
@@ -158,7 +158,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     <Layouts.app flash={@flash}>
       <div class="decision-world sealed-detail-world">
         <header id="decision-header" class="decision-header">
-          <.link id="decision-wordmark" navigate={~p"/"}>TCG CHEAP</.link>
+          <.link id="decision-wordmark" navigate={~p"/"}><.fluent_icon name={:gift_card_add} />TCG CHEAP</.link>
         </header>
         <main id="sealed-detail-main" class="decision-main">
           <div class="decision-container">
@@ -584,7 +584,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
     <Layouts.app flash={@flash}>
       <div class="decision-world sealed-detail-world">
         <header id="decision-header" class="decision-header">
-          <.link id="decision-wordmark" navigate={~p"/"}>TCG CHEAP</.link>
+          <.link id="decision-wordmark" navigate={~p"/"}><.fluent_icon name={:gift_card_add} />TCG CHEAP</.link>
         </header>
         <main id="sealed-detail-main" class="decision-main">
           <div class="decision-container">

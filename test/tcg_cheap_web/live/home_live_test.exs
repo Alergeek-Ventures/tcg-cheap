@@ -10,6 +10,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert has_element?(view, "#decision-header")
     assert has_element?(view, "#decision-wordmark")
+    assert has_element?(view, "#decision-wordmark .fluent-icon")
     assert has_element?(view, "#mode-singles[aria-pressed=true]")
     assert has_element?(view, "#mode-sealed[aria-pressed=false]")
     assert has_element?(view, "#card-search-form")
@@ -620,7 +621,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
   test "renders singles market movers with evidence and direct routes", %{conn: conn} do
     suffix = System.unique_integer([:positive])
-    {first, first_start, first_current} = create_discovery_card("first-#{suffix}", "10", "20")
+    {first, _first_start, _first_current} = create_discovery_card("first-#{suffix}", "10", "20")
 
     {_second, _second_start, _second_current} =
       create_discovery_card("second-#{suffix}", "20", "10")
@@ -637,17 +638,12 @@ defmodule TcgCheapWeb.HomeLiveTest do
              "#market-single-riser-#{first.id}[href='/cards/#{first.tcgdex_id}']"
            )
 
-    assert has_element?(view, "#market-single-riser-#{first.id}", "€10.00 → €20.00")
     assert has_element?(view, "#market-single-riser-#{first.id}", "+100.00%")
     assert has_element?(view, "#market-single-riser-#{first.id} .fluent-icon")
-    assert has_element?(view, "#market-single-riser-#{first.id} .mover-freshness .fluent-icon")
-    assert has_element?(view, "#market-single-riser-#{first.id}", "Updated today")
-
-    assert has_element?(
-             view,
-             "#market-single-riser-#{first.id}",
-             "#{Calendar.strftime(first_start, "%b %-d, %Y")} → #{Calendar.strftime(first_current, "%b %-d, %Y")}"
-           )
+    refute has_element?(view, "#market-single-riser-#{first.id} .mover-price-range")
+    refute has_element?(view, "#market-single-riser-#{first.id} .mover-date-range")
+    refute has_element?(view, "#market-single-riser-#{first.id} .mover-freshness")
+    refute has_element?(view, "#market-single-riser-#{first.id}", "€10.00 → €20.00")
 
     refute has_element?(view, "#market-single-riser-#{first.id}", "View price")
     assert has_element?(view, "#market-singles-recent-title", "Recently tracked")
@@ -690,8 +686,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#idle-recent-card-#{card.id}", "Idle Card #{suffix}")
     assert has_element?(view, "#idle-recent-card-#{card.id}", "Idle Set #{suffix} · #151")
     assert has_element?(view, "#idle-recent-card-#{card.id}", "€12.30")
-    assert has_element?(view, "#idle-recent-card-#{card.id}", "Updated today")
-    assert has_element?(view, "#idle-recent-card-#{card.id} .recent-value .fluent-icon")
+    refute has_element?(view, "#idle-recent-card-#{card.id}", "Updated today")
+    refute has_element?(view, "#idle-recent-card-#{card.id} .recent-value .fluent-icon")
     refute has_element?(view, "#idle-recent-card-#{card.id}", "View price")
     refute has_element?(view, "#idle-recent-card-#{card.id}", "%")
   end
@@ -770,10 +766,10 @@ defmodule TcgCheapWeb.HomeLiveTest do
     refute has_element?(view, "#market-singles-recent-direction-note")
   end
 
-  test "switches to sealed market movers with signed PLN evidence", %{conn: conn} do
+  test "switches to compact sealed market mover hooks", %{conn: conn} do
     suffix = System.unique_integer([:positive])
 
-    {riser, riser_start, riser_current} =
+    {riser, _riser_start, _riser_current} =
       create_sealed_mover("Sealed Riser #{suffix}", ["100.00", "120.00", "150.00"])
 
     {faller, _faller_start, _faller_current} =
@@ -791,15 +787,11 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#market-sealed-faller-#{faller.id}[href='/sealed/#{faller.slug}']")
     assert has_element?(view, "#market-sealed-riser-#{riser.id}", "+50.00%")
     assert has_element?(view, "#market-sealed-faller-#{faller.id}", "-50.00%")
-    assert has_element?(view, "#market-sealed-riser-#{riser.id}", "100.00 PLN → 150.00 PLN")
-
-    assert has_element?(
-             view,
-             "#market-sealed-riser-#{riser.id}",
-             "#{Calendar.strftime(riser_start, "%b %-d, %Y")} → #{Calendar.strftime(riser_current, "%b %-d, %Y")}"
-           )
-
-    assert has_element?(view, "#market-sealed-riser-#{riser.id}", "Checked today")
+    refute has_element?(view, "#market-sealed-riser-#{riser.id} .mover-price-range")
+    refute has_element?(view, "#market-sealed-riser-#{riser.id} .mover-date-range")
+    refute has_element?(view, "#market-sealed-riser-#{riser.id} .mover-freshness")
+    refute has_element?(view, "#market-sealed-riser-#{riser.id}", "100.00 PLN → 150.00 PLN")
+    refute has_element?(view, "#market-sealed-riser-#{riser.id}", "Checked today")
     refute has_element?(view, "#market-sealed-riser-#{riser.id}", "View offers")
     assert has_element?(view, "#market-sealed-recent-title", "Recent releases")
   end

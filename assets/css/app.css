@@ -142,7 +142,7 @@
 .archive-world { font-size: 1rem; line-height: 1.6; }
 .archive-world .archive-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid rgb(23 22 20 / 18%); padding: .5rem max(1rem, 4vw); }
 .archive-world .archive-wordmark, .archive-world .archive-header-meta, .archive-world .label-data, .archive-world .archive-chip { font-family: "Azeret Mono", ui-monospace, monospace; }
-.archive-world .archive-wordmark { color: var(--ink); font-size: .875rem; font-weight: 700; letter-spacing: .12em; text-decoration: none; }
+.archive-world .archive-wordmark { align-items: center; color: var(--ink); display: inline-flex; font: 700 1.125rem/1 "Barlow Condensed", sans-serif; gap: .5rem; letter-spacing: .12em; min-height: 3rem; text-decoration: none; }
 .archive-world .archive-header-meta { display: flex; flex-wrap: wrap; gap: 1rem; font-size: .875rem; letter-spacing: .08em; text-align: right; }
 .archive-world .archive-header-meta span:last-child { color: var(--muted); padding: .25rem 0; }
 .archive-world .archive-main { padding: 2rem 1rem; }
@@ -212,7 +212,7 @@
 .card-detail-world .card-detail-placeholder { align-items: center; border: 0; display: flex; flex-direction: column; justify-content: center; min-height: 15rem; padding: .75rem 0; }
 .card-detail-world .card-detail-placeholder svg { fill: none; height: 12rem; max-width: 100%; stroke: var(--box-board-dark); stroke-width: 1.5; }
 .card-detail-world .card-detail-placeholder span, .archive-world .section-rule span { font-size: .875rem; letter-spacing: .08em; }
-.card-detail-world .card-detail-figure { background: transparent; margin: 0; max-width: 17rem; }
+.card-detail-world .card-detail-figure { background: transparent; margin: 0; max-width: 24rem; }
 .card-detail-world .card-detail-figure > img { border: 0; display: block; height: auto; max-height: 52rem; max-width: 100%; object-fit: contain; width: 100%; }
 .card-detail-world .card-detail-figure .card-image-missing { gap: .75rem; min-height: 15rem; width: 100%; }
 .card-detail-world .card-detail-heading h1 { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .75rem 0; max-width: 18ch; overflow-wrap: anywhere; }
@@ -225,10 +225,15 @@
 .archive-world .section-rule { align-items: baseline; border-bottom: 0; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
 .archive-world .section-rule h2 { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; }
 .card-detail-world .valuation-state { font-size: .875rem; margin-top: 1rem; min-height: 1.4rem; }
-.card-detail-world .valuation-value { font: 700 clamp(3rem, 10vw, 5rem)/.85 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .25rem 0 .5rem; }
+.card-detail-world .valuation-value { font: 700 clamp(2rem, 6vw, 3.25rem)/.85 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: .25rem 0 .5rem; }
+.card-detail-world .valuation-price-row { align-items: center; display: flex; gap: .5rem; position: relative; }
+.card-detail-world .valuation-info { position: static; }
+.card-detail-world #valuation-info-trigger { align-items: center; background: transparent; border: 0; color: var(--ink); cursor: help; display: inline-flex; justify-content: center; min-height: 3rem; min-width: 3rem; padding: .5rem; }
+.card-detail-world #valuation-info-trigger:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.card-detail-world .valuation-tooltip { background: var(--ink); color: var(--tissue); display: none; font-size: .875rem; left: 0; line-height: 1.5; max-width: 32rem; padding: .75rem 1rem; position: absolute; top: calc(100% + .25rem); width: min(calc(100vw - 2rem), 32rem); z-index: 2; }
+.card-detail-world .valuation-info:hover .valuation-tooltip, .card-detail-world .valuation-info:focus-within .valuation-tooltip { display: block; }
 .card-detail-world #valuation-history-chart { background: color-mix(in srgb, var(--tissue) 70%, var(--box-board)); border: 0; display: block; height: auto; margin-top: 1.5rem; max-width: 52rem; overflow: visible; width: 100%; }
 .card-detail-world .history-line { fill: none; stroke: var(--ink); stroke-width: 2; vector-effect: non-scaling-stroke; }
-.card-detail-world #valuation-history-chart circle { fill: var(--sunfade); stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .sealed-detail-world #sealed-sold-out-section {
   border-top: 1px solid var(--ink); margin-top: 1rem; padding-top: 0;
 }
@@ -236,7 +241,8 @@
   align-items: center; cursor: pointer; display: flex; font-weight: 700; min-height: 3rem; padding: .5rem 0;
 }
 .sealed-detail-world #sealed-sold-out-section[open] { padding-bottom: .5rem; }
-@media (min-width: 60rem) { .card-detail-world .card-detail-identity { border-bottom: 0; column-gap: 2rem; grid-template-areas: "placeholder heading" "placeholder valuation" "placeholder secondary"; grid-template-columns: minmax(14rem, 17rem) minmax(0, 1fr); } .card-detail-world #card-valuation { padding-top: .5rem; } }
+@media (min-width: 60rem) { .card-detail-world .card-detail-identity { border-bottom: 0; column-gap: 3rem; grid-template-areas: "placeholder heading" "placeholder valuation" "placeholder secondary"; grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr); } .card-detail-world #card-valuation { padding-top: .5rem; } }
+@media (min-width: 68rem) { .card-detail-world .card-detail-identity { column-gap: 2rem; grid-template-areas: "placeholder heading heading" "placeholder valuation secondary"; grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr) minmax(13rem, 18rem); } .card-detail-world .card-detail-secondary .card-detail-metadata { grid-template-columns: 1fr; } }
 @media (max-width: 40rem) { .card-detail-world .card-detail-placeholder { min-height: 11rem; max-width: 100%; } .card-detail-world .card-detail-placeholder svg { height: 8rem; } .card-detail-world .card-detail-figure > img { max-height: 75svh; } .card-detail-world .card-detail-metadata { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .card-detail-world * { animation: none !important; scroll-behavior: auto !important; } }
 
@@ -264,17 +270,6 @@
 .card-detail-world .valuation-state-fetching { color: var(--muted); }
 .card-detail-world .valuation-state-failure { color: var(--box-board-dark); }
 .card-detail-world .valuation-state-unavailable { color: var(--box-board-dark); }
-.card-detail-world .valuation-basis { font-size: .875rem; line-height: 1.6; margin: 1rem 0 0; max-width: 70ch; }
-.card-detail-world .valuation-provenance { border-top: 0; margin-top: 1rem; }
-.card-detail-world .valuation-provenance summary { align-items: center; cursor: pointer; display: flex; font-weight: 700; gap: .4rem; min-height: 3rem; padding: .5rem 0; }
-.card-detail-world .valuation-provenance summary::marker { content: ""; }
-.card-detail-world .valuation-provenance summary > .fluent-icon:last-child { transition: transform .2s ease; }
-.card-detail-world .valuation-provenance[open] summary > .fluent-icon:last-child { transform: rotate(180deg); }
-.card-detail-world .valuation-provenance dl { border-top: 0; display: grid; gap: 0 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
-.card-detail-world .valuation-provenance dl div { border-bottom: 0; padding: .5rem 0; }
-.card-detail-world .valuation-provenance dt { color: var(--muted); font-size: .875rem; letter-spacing: .08em; text-transform: uppercase; }
-.card-detail-world .valuation-provenance dd { font-size: .875rem; font-weight: 700; margin: .25rem 0 0; overflow-wrap: anywhere; }
-.card-detail-world .valuation-provenance > p { font-size: .875rem; line-height: 1.6; margin: 1rem 0 0; max-width: 70ch; }
 .card-detail-world .valuation-history { margin-top: 2rem; }
 .card-detail-world .history-explanation { color: var(--ink); font-size: .875rem; line-height: 1.6; margin: .75rem 0; max-width: 70ch; }
 .card-detail-world .history-summary { display: grid; gap: .5rem 1.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 1.5rem 0 0; }
@@ -284,10 +279,22 @@
 .card-detail-world .history-summary dd time { font-size: .875rem; overflow-wrap: anywhere; }
 .card-detail-world .history-summary dd span { font: 700 1.35rem/1 "Barlow Condensed", sans-serif; }
 .card-detail-world .history-summary-item:last-child dd { font: 700 1.35rem/1 "Barlow Condensed", sans-serif; }
-.card-detail-world #valuation-history-chart { margin-top: 1rem; }
+.card-detail-world .history-chart-wrap { display: grid; gap: 0 .75rem; grid-template-columns: max-content minmax(0, 1fr); margin-top: 1rem; width: 100%; }
+.card-detail-world .history-chart-labels { display: flex; flex-direction: column; font-size: .875rem; grid-column: 1; grid-row: 1; height: clamp(16rem, 36vw, 25rem); justify-content: space-between; padding: .5rem 0; }
+.card-detail-world .history-chart-plot { grid-column: 2; grid-row: 1; height: clamp(16rem, 36vw, 25rem); min-width: 0; overflow: visible; position: relative; width: 100%; }
+.card-detail-world #valuation-history-chart, .card-detail-world .history-point-targets { inset: 0 1.5rem; height: 100%; margin: 0; max-width: none; position: absolute; width: auto; }
+.card-detail-world .history-grid-line { stroke: var(--muted); stroke-opacity: .25; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.card-detail-world .history-point-target { background: transparent; border: 0; border-radius: 50%; cursor: help; height: 3rem; left: calc(var(--point-x) - 1.5rem); padding: 0; pointer-events: none; position: absolute; top: calc(var(--point-y) - 1.5rem); width: 3rem; }
+.card-detail-world .history-point-target:focus-visible { outline: 3px solid var(--ink); }
+.card-detail-world .history-point-target::before { background: var(--sunfade); border: 1px solid var(--ink); border-radius: 50%; content: ""; height: .375rem; left: 1.3125rem; pointer-events: auto; position: absolute; top: 1.3125rem; width: .375rem; }
+.card-detail-world .history-point-target span { background: var(--ink); color: var(--tissue); display: none; font-size: .875rem; max-width: min(18rem, calc(100vw - 2rem)); overflow-wrap: anywhere; padding: .5rem .75rem; position: absolute; top: 100%; white-space: normal; width: max-content; z-index: 2; }
+.card-detail-world .history-point-target.point-center span { left: 50%; transform: translateX(-50%); }
+.card-detail-world .history-point-target.point-left span { left: 0; }
+.card-detail-world .history-point-target.point-right span { right: 0; }
+.card-detail-world .history-chart-axis { display: flex; font-size: .875rem; grid-column: 2; grid-row: 2; justify-content: space-between; margin: .5rem 0 0; padding: 0 1.5rem; }
+.card-detail-world .history-point-target:hover span, .card-detail-world .history-point-target:focus span { display: block; }
 @media (max-width: 40rem) {
   .card-detail-world .card-detail-identity { gap: 1rem; padding-block: 1rem 1.5rem; }
-  .card-detail-world .valuation-provenance dl { grid-template-columns: 1fr; }
   .card-detail-world .history-summary { gap: .5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .card-detail-world .history-summary-item { padding: .5rem; }
   .card-detail-world .history-summary dd { display: block; }
@@ -301,7 +308,8 @@
 /* Home decision surface: distilled search, evidence, and price decisions. */
  .decision-world { --bench: #f3ead7; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --rule: #201d19; --orange: #b54125; --muted: #6d6256; --rise: #27714b; --fall: #a6402f; background: var(--bench); background-image: url("data:image/svg+xml,%3Csvg width='96' height='96' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E"); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; font-size: 1rem; line-height: 1.6; min-height: 100svh; }
 .decision-world .decision-header { align-items: center; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; padding: .5rem max(1rem, 4vw); }
-.decision-world #decision-wordmark { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; font-weight: 700; letter-spacing: .12em; min-height: 3rem; text-decoration: none; }
+.decision-world #decision-wordmark, .trade-world #trade-wordmark { align-items: center; color: var(--ink); display: inline-flex; font: 700 1.125rem/1 "Barlow Condensed", sans-serif; gap: .5rem; letter-spacing: .12em; min-height: 3rem; text-decoration: none; }
+.decision-world #decision-wordmark > .fluent-icon, .trade-world #trade-wordmark > .fluent-icon, .archive-world .archive-wordmark > .fluent-icon { height: 1.35rem; width: 1.35rem; }
 .decision-world .decision-main { overflow-x: clip; padding: 1.5rem 1rem 3rem; }
 .decision-world .decision-container { margin: 0 auto; max-width: 72rem; }
 .decision-world .decision-intro { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 1.25rem; }
@@ -416,9 +424,8 @@
   .decision-world .estimate-cell { grid-column: 1; }
   .decision-world .detail-action { grid-column: 2; grid-row: 2; }
 }
-@media (min-width: 60rem) { .card-detail-world .valuation-history { margin-left: calc(17rem + 2rem); max-width: calc(100% - 19rem); } }
 @media (max-width: 59.99rem) { .card-detail-world .valuation-history { margin-left: 0; max-width: none; } }
-@media (prefers-reduced-motion: reduce) { .decision-world .disclosure-chevron, .card-detail-world .valuation-provenance summary > .fluent-icon:last-child { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .decision-world .disclosure-chevron { transition: none; } }
 
 /* The home surface is the only decision world using the quieter treatment above. */
 .decision-world.home-world { --bench: #f1eadc; --rule: rgb(32 29 25 / 18%); background-image: none; }
@@ -518,7 +525,7 @@
 .trade-world .decision-container { max-width: 72rem; }
 .trade-world #trade-title { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0; text-transform: uppercase; }
 .trade-world #trade-task { font-size: 1rem; line-height: 1.6; margin-top: .5rem; max-width: 70ch; }
-.trade-world #trade-home-link, .trade-world #trade-wordmark { color: var(--ink); min-height: 3rem; display: inline-flex; align-items: center; font-size: .875rem; }
+.trade-world #trade-home-link { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; min-height: 3rem; }
 .trade-world #trade-home-link { justify-content: center; min-width: 3rem; text-align: center; }
 .trade-world .trade-staging { align-items: center; background: var(--paper); border: 2px solid var(--rule); display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; padding: 1rem; }
 .trade-world .trade-staging strong { flex: 1 1 100%; font: 700 1.35rem/.95 "Barlow Condensed", sans-serif; text-transform: uppercase; }

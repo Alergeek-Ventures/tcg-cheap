@@ -28,6 +28,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
     {:ok, view, _html} = live(conn, ~p"/trade")
 
     assert has_element?(view, "#trade-main")
+    assert has_element?(view, "#trade-wordmark .fluent-icon")
     assert has_element?(view, "#trade-title", "Build a trade")
     assert has_element?(view, "#trade-search-form")
     assert has_element?(view, "#trade-search-form .search-field-wrap #trade-search-query")

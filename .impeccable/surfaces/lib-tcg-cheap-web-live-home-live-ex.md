@@ -10,8 +10,9 @@ related_targets: ["assets/css/app.css", "lib/tcg_cheap_web/components/layouts/ro
 This surface is intentionally distilled for ordinary collectors: plain card search first,
 compact exact-printing result rows, and one clear `View price` action. Stable TCGdex identity
 remains in the route and result data; accessible exact identity uses the card name, set, and
-collector number. Methodology, policy, and non-affiliation caveats remain complete but hidden
-by default in the collapsed icon-led `Method` disclosure.
+collector number. Official Fluent Gift Card Add Regular appears beside the public TCG CHEAP
+wordmark, which uses Barlow Condensed 700; this applies to every public wordmark. Methodology, policy, and non-affiliation caveats
+remain complete but hidden by default in the collapsed icon-led `Method` disclosure.
 
 - **Scope:** `/`
 - **Mode:** Operate
@@ -23,12 +24,12 @@ by default in the collapsed icon-led `Method` disclosure.
 ## Proof and content
 
 - Exact image, name, set, and collector number; stable TCGdex identity remains in the route and result data, while accessible exact identity uses the card name, set, and collector number.
-- Current local EUR estimate when present, otherwise `Price unavailable`.
-- Plain `Updated …` or `May be outdated` freshness evidence from the strict 24-hour `TcgCheap.Pricing.Singles.Freshness` policy.
+- Movement rows are discovery hooks: exact identity and signed movement only; exact prices, observation dates, and freshness are reserved for CardDetail.
+- `Recently tracked` shows exact identity and current local EUR estimate when present, otherwise `Price unavailable`, without freshness text.
 - One clear `View price` action; `/trade` is entered through Singles/card-detail actions, not as a third homepage feature.
 - Usable autocomplete is implemented: preserve query, caret/selection, focus, and composition across LiveView updates; use combobox/listbox semantics with stable `card-option-UUID` IDs, direct streamed `role=option` children, exactly one visible `aria-selected` active option, wrapping ArrowUp/ArrowDown, exact active Enter navigation, Escape close retaining query/focus, validated option click/touch navigation, and query-specific screen-reader status. Accessible names reference visible name/set/rarity/price/update IDs, with no nested interactive control.
 - The active option is visibly ruled. The bounded listbox uses `min(45svh, 32rem)` and scrolls internally; the hook keeps the active option in view without scrolling the page or input away. Results retain only the bounded max-10 records needed to reinsert adjacent stream items when the active assign changes.
-- Keep legal/methodology honesty, exact-printing correctness, accessibility, and required caveats, but put technical detail behind concise secondary disclosure where feasible. `Price movement` is compact; Market separation is approximately 24px; supporting headings use title case.
+- Keep legal/methodology honesty, exact-printing correctness, accessibility, and required caveats, but put technical detail behind concise secondary disclosure where feasible. `Price movement` is compact; Market separation is approximately 24px; supporting headings use title case. Movement thresholds remain an implementation detail, not row content.
 
 ## Constraints
 

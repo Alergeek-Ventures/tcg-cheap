@@ -112,7 +112,9 @@ defmodule TcgCheapWeb.CardDetailLive do
     <Layouts.app flash={@flash}>
       <div class="archive-world card-detail-world">
         <header id="archive-header" class="archive-header">
-          <.link id="archive-wordmark" navigate={~p"/"} class="archive-wordmark">TCG CHEAP</.link>
+          <.link id="archive-wordmark" navigate={~p"/"} class="archive-wordmark"><.fluent_icon name={
+            :gift_card_add
+          } />TCG CHEAP</.link>
         </header>
         <main id="card-detail-main" class="archive-main">
           <div class="archive-container">
@@ -189,45 +191,31 @@ defmodule TcgCheapWeb.CardDetailLive do
                         <% end %>
                       </span>
                     </div>
-                    <p id="valuation-value" class="valuation-value">
-                      <%= if @valuation do %>
-                        €{@valuation_display}
-                      <% else %>
-                        ?
-                      <% end %>
-                    </p>
-                  </div>
-                  <%= if @valuation do %>
-                    <p id="valuation-basis" class="valuation-basis">
-                      Based on {valuation_basis(@valuation)}.
-                    </p>
-                    <details id="valuation-provenance" class="valuation-provenance">
-                      <summary>
-                        <.fluent_icon name={:info} />Estimate details<.fluent_icon name={
-                          :chevron_down
-                        } />
-                      </summary>
-                      <dl>
-                        <div>
-                          <dt>Source</dt><dd>{valuation_source(@valuation.source)}</dd>
-                        </div>
-                        <div>
-                          <dt>Metric</dt><dd>{valuation_metric(@valuation.source_metric)}</dd>
-                        </div>
-                        <div>
-                          <dt>Price model</dt><dd>{@valuation.policy_version}</dd>
-                        </div>
-                        <div>
-                          <dt>Observation time (UTC)</dt><dd>
-                            {utc_timestamp(@valuation.fetched_at)}
-                          </dd>
-                        </div>
-                      </dl>
-                      <p>
-                        This is an independent, non-affiliated estimate and not an offer to buy or sell.
+                    <div class="valuation-price-row">
+                      <p id="valuation-value" class="valuation-value">
+                        <%= if @valuation do %>
+                          €{@valuation_display}
+                        <% else %>
+                          ?
+                        <% end %>
                       </p>
-                    </details>
-                  <% end %>
+                      <%= if @valuation do %>
+                        <div class="valuation-info">
+                          <button
+                            id="valuation-info-trigger"
+                            type="button"
+                            aria-describedby="valuation-info-copy"
+                          >
+                            <.fluent_icon name={:info} />
+                            <span class="sr-only">About this estimate</span>
+                          </button>
+                          <span id="valuation-info-copy" role="tooltip" class="valuation-tooltip">
+                            Aggregated market data from Cardmarket via TCGdex is applied consistently to every card. Build a trade to compare cards. TCG Cheap is independent and not affiliated with either source.
+                          </span>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
                   <p id="card-detail-price-note" class="estimate-note">
                     Estimate only · Condition and shipping may vary.
                   </p>
@@ -347,24 +335,66 @@ defmodule TcgCheapWeb.CardDetailLive do
                     <dd>{observation_count_text(summary.count)}</dd>
                   </div>
                 </dl>
-                <svg
+                <div
                   :if={length(@history_points) >= 2}
-                  id="valuation-history-chart"
-                  viewBox="0 0 300 120"
-                  role="img"
-                  aria-labelledby="valuation-history-title valuation-history-description"
+                  id="valuation-history-chart-wrap"
+                  class="history-chart-wrap"
                 >
-                  <title id="valuation-history-title">30-day price history</title>
-                  <desc id="valuation-history-description">
-                    Daily price snapshots; gaps mean no observation.
-                  </desc>
-                  <%= for {path, index} <- Enum.with_index(@history_paths) do %>
-                    <path id={"valuation-history-segment-#{index}"} class="history-line" d={path} />
-                  <% end %>
-                  <%= for point <- @history_plot_points do %>
-                    <circle cx={point.x} cy={point.y} r="3" aria-hidden="true" />
-                  <% end %>
-                </svg>
+                  <div class="history-chart-labels" aria-hidden="true">
+                    <span>Max €{format_eur(history_summary(@history_points).max)}</span>
+                    <span>Min €{format_eur(history_summary(@history_points).min)}</span>
+                  </div>
+                  <div class="history-chart-plot">
+                    <svg
+                      id="valuation-history-chart"
+                      viewBox="0 0 300 120"
+                      preserveAspectRatio="none"
+                      role="img"
+                      aria-labelledby="valuation-history-title valuation-history-description"
+                    >
+                      <title id="valuation-history-title">30-day price history</title>
+                      <desc id="valuation-history-description">
+                        Daily price snapshots; gaps mean no observation.
+                      </desc>
+                      <%= for {path, index} <- Enum.with_index(@history_paths) do %>
+                        <path id={"valuation-history-segment-#{index}"} class="history-line" d={path} />
+                      <% end %>
+                      <%= for {y, index} <- Enum.with_index([10, 60, 110]) do %>
+                        <line
+                          id={"valuation-history-grid-#{index}"}
+                          class="history-grid-line"
+                          x1="5"
+                          x2="295"
+                          y1={y}
+                          y2={y}
+                        />
+                      <% end %>
+                    </svg>
+                    <div class="history-point-targets">
+                      <%= for {point, plot} <- Enum.zip(@history_points, @history_plot_points) do %>
+                        <button
+                          type="button"
+                          id={"valuation-history-point-#{Date.to_iso8601(point.date)}"}
+                          class={["history-point-target", point_edge_class(plot.x)]}
+                          style={point_style(plot)}
+                          aria-label={"#{Date.to_iso8601(point.date)}: €#{format_eur(point.value_eur)}"}
+                        >
+                          <span role="tooltip">{Date.to_iso8601(point.date)} · €{format_eur(
+                            point.value_eur
+                          )}</span>
+                        </button>
+                      <% end %>
+                    </div>
+                  </div>
+                  <div class="history-chart-axis" aria-hidden="true">
+                    <time datetime={Date.to_iso8601(DateTime.to_date(@history_origin))}>
+                      {format_chart_date(DateTime.to_date(@history_origin))}
+                    </time>
+                    <time datetime={Date.to_iso8601(Date.add(DateTime.to_date(@history_origin), 29))}>
+                      {format_chart_date(Date.add(DateTime.to_date(@history_origin), 29))}
+                    </time>
+                  </div>
+                </div>
                 <ol id="valuation-history-ledger" class="sr-only">
                   <%= for point <- @history_points do %>
                     <li id={"valuation-history-day-#{point.date}"}>
@@ -439,7 +469,9 @@ defmodule TcgCheapWeb.CardDetailLive do
     <Layouts.app flash={@flash}>
       <div class="archive-world card-detail-world">
         <header id="archive-header" class="archive-header">
-          <.link id="archive-wordmark" navigate={~p"/"} class="archive-wordmark">TCG CHEAP</.link>
+          <.link id="archive-wordmark" navigate={~p"/"} class="archive-wordmark"><.fluent_icon name={
+            :gift_card_add
+          } />TCG CHEAP</.link>
         </header><main class="archive-main">
           <section id="card-detail-not-found" class="state-note state-error">
             <h1>Card printing not found</h1><p>
@@ -613,26 +645,16 @@ defmodule TcgCheapWeb.CardDetailLive do
   defp valuation_state_class(_status, _acquisition_state, _failure),
     do: "valuation-state-unavailable"
 
-  defp valuation_basis(%{source: "tcgdex_cardmarket", source_metric: metric}) do
-    "Cardmarket #{valuation_metric(metric)} via TCGdex"
-  end
-
-  defp valuation_basis(valuation) do
-    "#{valuation_source(valuation.source)} using #{valuation_metric(valuation.source_metric)}"
-  end
-
-  defp valuation_source("tcgdex_cardmarket"), do: "Cardmarket via TCGdex"
-  defp valuation_source(_source), do: "an external pricing source"
-
-  defp valuation_metric("avg7"), do: "7-day average"
-  defp valuation_metric("avg30"), do: "30-day average"
-  defp valuation_metric("trend"), do: "trend"
-  defp valuation_metric("avg"), do: "average"
-  defp valuation_metric("low"), do: "low price"
-  defp valuation_metric(_metric), do: "an aggregated market measure"
-
   defp history_summary([first | _] = points) do
-    %{first: first, latest: List.last(points), count: length(points)}
+    values = Enum.map(points, & &1.value_eur)
+
+    %{
+      first: first,
+      latest: List.last(points),
+      count: length(points),
+      min: Enum.min(values, &(Decimal.compare(&1, &2) != :gt)),
+      max: Enum.max(values, &(Decimal.compare(&1, &2) != :lt))
+    }
   end
 
   defp observation_count_text(1), do: "1 observation"
@@ -646,6 +668,8 @@ defmodule TcgCheapWeb.CardDetailLive do
       history_plot_points: plot_points(points, origin)
     )
   end
+
+  defp format_chart_date(%Date{} = date), do: Calendar.strftime(date, "%b %-d")
 
   defp format_eur(%Decimal{} = value) do
     parts = value |> Decimal.round(2) |> Decimal.to_string(:normal) |> String.split(".", parts: 2)
@@ -665,6 +689,12 @@ defmodule TcgCheapWeb.CardDetailLive do
       }
     end)
   end
+
+  defp point_style(%{x: x, y: y}), do: "--point-x: #{x / 3}%; --point-y: #{y / 1.2}%"
+
+  defp point_edge_class(x) when x <= 60, do: "point-left"
+  defp point_edge_class(x) when x >= 240, do: "point-right"
+  defp point_edge_class(_x), do: "point-center"
 
   defp plot_paths([], _origin), do: []
 

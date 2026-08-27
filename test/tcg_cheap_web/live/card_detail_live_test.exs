@@ -52,6 +52,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#history-title", "Price history")
     assert has_element?(view, "#valuation-history-window", "Last 30 days")
     assert has_element?(view, "#archive-wordmark", "TCG CHEAP")
+    assert has_element?(view, "#archive-wordmark .fluent-icon")
     refute has_element?(view, "#archive-header", "Card details")
     refute has_element?(view, "#card-detail-metadata", "TCGDEX ID")
     refute has_element?(view, "#card-detail-metadata", card.tcgdex_id)
@@ -132,7 +133,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute has_element?(view, "img")
   end
 
-  test "a fresh cached valuation shows value, basis, and provenance", %{
+  test "a fresh cached valuation shows a concise calculation tooltip", %{
     conn: conn
   } do
     card = create_card("fresh")
@@ -151,22 +152,13 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
              "Estimate only · Condition and shipping may vary."
            )
 
-    assert has_element?(view, "#valuation-basis", "Based on Cardmarket 7-day average via TCGdex.")
-    assert has_element?(view, "#valuation-provenance")
-    assert has_element?(view, "#valuation-provenance summary", "Estimate details")
-    assert has_element?(view, "#valuation-provenance summary .fluent-icon")
-    assert has_element?(view, "#valuation-provenance", "Cardmarket via TCGdex")
-    assert has_element?(view, "#valuation-provenance", "7-day average")
-    assert has_element?(view, "#valuation-provenance", @policy)
-
-    assert has_element?(
-             view,
-             "#valuation-provenance",
-             Calendar.strftime(fetched_at, "%Y-%m-%d %H:%M:%S UTC")
-           )
-
-    assert has_element?(view, "#valuation-provenance", "non-affiliated")
-    refute has_element?(view, "#valuation-provenance[open]")
+    assert has_element?(view, "#valuation-info-trigger")
+    assert has_element?(view, "#valuation-info-copy", "Cardmarket via TCGdex")
+    assert has_element?(view, "#valuation-info-copy", "applied consistently to every card")
+    refute has_element?(view, "#valuation-info-copy", "7-day average")
+    refute has_element?(view, "#valuation-info-copy", @policy)
+    refute has_element?(view, "#valuation-basis")
+    refute has_element?(view, "#valuation-provenance")
     refute has_element?(view, "#archive-header", "PRINTING ARCHIVE")
 
     refute_enqueued(
@@ -453,6 +445,40 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
     assert has_element?(view, "#valuation-history-chart")
+    assert has_element?(view, "#valuation-history-chart-wrap .history-chart-plot")
+
+    assert has_element?(
+             view,
+             "#valuation-history-point-#{Date.to_iso8601(DateTime.to_date(now))}"
+           )
+
+    assert has_element?(
+             view,
+             "#valuation-history-point-#{Date.to_iso8601(DateTime.to_date(now))}[type='button']"
+           )
+
+    assert has_element?(
+             view,
+             "#valuation-history-point-#{Date.to_iso8601(DateTime.to_date(now))}",
+             "€42.00"
+           )
+
+    assert has_element?(view, "#valuation-history-chart-wrap", "Max €42.00")
+    assert has_element?(view, "#valuation-history-chart-wrap", "Min €40.00")
+    window_start = now |> DateTime.to_date() |> Date.add(-29)
+
+    assert has_element?(
+             view,
+             "#valuation-history-chart-wrap time[datetime='#{Date.to_iso8601(window_start)}']",
+             Calendar.strftime(window_start, "%b %-d")
+           )
+
+    assert has_element?(
+             view,
+             "#valuation-history-chart-wrap time[datetime='#{Date.to_iso8601(DateTime.to_date(now))}']",
+             Calendar.strftime(DateTime.to_date(now), "%b %-d")
+           )
+
     assert has_element?(view, "#valuation-history-description")
     assert has_element?(view, "#valuation-history-summary dt", "First observed")
     assert has_element?(view, "#valuation-history-summary dt", "Latest")
