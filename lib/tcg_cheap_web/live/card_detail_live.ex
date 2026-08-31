@@ -2,6 +2,7 @@ defmodule TcgCheapWeb.CardDetailLive do
   use TcgCheapWeb, :live_view
 
   alias TcgCheap.Catalogue.CardImage
+  alias TcgCheap.Catalogue.GlcLegality
   alias TcgCheap.Core
   alias TcgCheap.Pricing.Singles.{Freshness, ValuationAcquisition, ValuationHistory}
   alias TcgCheap.Trades.Composition
@@ -267,10 +268,7 @@ defmodule TcgCheapWeb.CardDetailLive do
                     </div>
                   <% end %>
                 </figure>
-                <div
-                  :if={printing_metadata_present?(@card)}
-                  class="card-detail-secondary archive-metadata-group"
-                >
+                <div class="card-detail-secondary archive-metadata-group">
                   <h2 id="card-detail-metadata-title">Printing</h2>
                   <dl id="card-detail-metadata" class="card-detail-metadata">
                     <div :if={@card.rarity} class="card-detail-metadata-item">
@@ -293,12 +291,55 @@ defmodule TcgCheapWeb.CardDetailLive do
                         {@card.regulation_mark}
                       </dd>
                     </div>
-                    <div
-                      :if={@card.standard_legal || @card.expanded_legal}
-                      class="card-detail-metadata-item"
-                    >
+                    <div class="card-detail-metadata-item">
                       <dt class="archive-metadata-label">Legal formats</dt>
-                      <dd class="archive-metadata-value">{legal_formats(@card)}</dd>
+                      <dd
+                        id="legal-formats"
+                        class="archive-metadata-value legal-formats"
+                        phx-window-keydown={
+                          JS.add_class("tooltip-dismissed",
+                            to:
+                              "#legal-formats:has(.legal-format-trigger:focus) .legal-format:has(.legal-format-trigger:focus), #legal-formats:not(:has(.legal-format-trigger:focus)) .legal-format:has(.legal-format-trigger:hover)"
+                          )
+                        }
+                        phx-key="escape"
+                      >
+                        <%= for format <- legal_format_details(@card) do %>
+                          <span
+                            id={"legal-format-#{format.key}"}
+                            class={["legal-format", "legal-format-#{format.status}"]}
+                            phx-hook=".TooltipReset"
+                            data-tooltip-target={"legal-format-#{format.key}"}
+                          >
+                            <button
+                              id={"legal-format-#{format.key}-trigger"}
+                              class="legal-format-trigger"
+                              type="button"
+                              aria-label={format.name}
+                              aria-describedby={"legal-format-#{format.key}-copy"}
+                              phx-blur={
+                                JS.remove_class("tooltip-dismissed",
+                                  to: "#legal-format-#{format.key}"
+                                )
+                              }
+                              phx-click-away={
+                                JS.remove_class("tooltip-dismissed",
+                                  to: "#legal-format-#{format.key}"
+                                )
+                              }
+                            >
+                              <.fluent_icon name={format.icon} class="size-6" />
+                            </button>
+                            <span
+                              id={"legal-format-#{format.key}-copy"}
+                              role="tooltip"
+                              class="legal-format-tooltip"
+                            >
+                              {format.tooltip}
+                            </span>
+                          </span>
+                        <% end %>
+                      </dd>
                     </div>
                   </dl>
                 </div>
@@ -448,25 +489,45 @@ defmodule TcgCheapWeb.CardDetailLive do
 
   def render(assigns), do: not_found_render(assigns)
 
-  defp legal_formats(%{standard_legal: true, expanded_legal: true}), do: "Standard · Expanded"
-  defp legal_formats(%{standard_legal: true}), do: "Standard"
-  defp legal_formats(%{expanded_legal: true}), do: "Expanded"
+  defp legal_format_details(card) do
+    glc_legal? = GlcLegality.legal?(card)
 
-  defp printing_metadata_present?(card) do
-    Enum.any?(
-      [
-        card.rarity,
-        card.category,
-        card.illustrator,
-        card.regulation_mark,
-        card.standard_legal,
-        card.expanded_legal
-      ],
-      &present?/1
-    )
+    [
+      format_detail("standard", "Standard", :card_ui, card.standard_legal),
+      format_detail("expanded", "Expanded", :stack, card.expanded_legal),
+      %{
+        key: "glc",
+        name: "Gym Leader Challenge",
+        icon: :ribbon,
+        status: if(glc_legal?, do: "legal", else: "not-legal"),
+        tooltip:
+          if(glc_legal?,
+            do: "Legal for Gym Leader Challenge.",
+            else: "Not eligible for Gym Leader Challenge."
+          )
+      }
+    ]
   end
 
-  defp present?(value), do: not is_nil(value) and value != false
+  defp format_detail(key, name, icon, true),
+    do: format_detail(key, name, icon, "legal", "Legal for #{name}.")
+
+  defp format_detail(key, name, icon, false),
+    do:
+      format_detail(
+        key,
+        name,
+        icon,
+        "not-legal",
+        "Not eligible for #{name}."
+      )
+
+  defp format_detail(key, name, icon, nil),
+    do: format_detail(key, name, icon, "unknown", "#{name} legality unavailable.")
+
+  defp format_detail(key, name, icon, status, qualifier) do
+    %{key: key, name: name, icon: icon, status: status, tooltip: qualifier}
+  end
 
   defp trade_pick_path(id), do: "/trade?pick=" <> URI.encode_www_form(id)
 

@@ -258,6 +258,17 @@
 .card-detail-world .card-detail-metadata div { align-items: baseline; border-bottom: 0; display: grid; gap: .5rem; grid-template-columns: minmax(7rem, auto) minmax(0, 1fr); padding: .35rem 0; }
 .card-detail-world .card-detail-metadata dt, .card-detail-world .archive-metadata-label { color: var(--ink); font-size: .875rem; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; }
 .card-detail-world .card-detail-metadata dd, .card-detail-world .archive-metadata-value { font-size: 1rem; font-weight: 700; justify-self: end; margin: 0; overflow-wrap: anywhere; text-align: right; }
+.card-detail-world .legal-formats { align-items: center; display: flex; gap: .35rem; justify-content: flex-end; position: relative; }
+.card-detail-world .legal-format { display: inline-flex; position: static; }
+.card-detail-world .legal-format-trigger { align-items: center; background: transparent; border: 1px solid var(--ink); color: var(--ink); cursor: pointer; display: inline-flex; height: 3rem; justify-content: center; min-width: 3rem; padding: .5rem; position: relative; }
+.card-detail-world .legal-format-trigger:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.card-detail-world .legal-format-legal .legal-format-trigger::after { background: var(--ink); bottom: -.25rem; content: ""; height: .5rem; position: absolute; right: -.25rem; width: .5rem; }
+.card-detail-world .legal-format-not-legal .legal-format-trigger { border-width: 2px; }
+.card-detail-world .legal-format-not-legal .legal-format-trigger::after { background: var(--ink); content: ""; height: 2px; inset: 50% -.2rem auto; position: absolute; transform: rotate(-45deg); width: calc(100% + .4rem); }
+.card-detail-world .legal-format-unknown .legal-format-trigger { border-style: dashed; }
+.card-detail-world .legal-format-tooltip { background: var(--ink); color: var(--tissue); cursor: default; display: none; font-size: .875rem; line-height: 1.5; max-width: 20rem; padding: .75rem 1rem; position: absolute; right: 0; top: calc(100% + .5rem); width: min(14rem, calc(100vw - 2rem)); z-index: 3; }
+.card-detail-world .legal-format:hover .legal-format-tooltip, .card-detail-world .legal-format:focus-within .legal-format-tooltip { display: block; }
+.card-detail-world .legal-format.tooltip-dismissed .legal-format-tooltip { display: none !important; }
 .card-detail-world .archive-legality-chips { align-items: center; display: flex; flex: 1 1 auto; flex-wrap: wrap; gap: .5rem; min-width: 0; }
 .card-detail-world .archive-legality-chips .archive-chip { flex: 0 0 auto; overflow-wrap: normal; white-space: nowrap; }
 .card-detail-world .archive-chip-sage, .card-detail-world .archive-chip-indigo { background: transparent; color: var(--muted); }

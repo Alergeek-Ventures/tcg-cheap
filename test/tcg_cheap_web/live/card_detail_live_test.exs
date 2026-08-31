@@ -58,7 +58,22 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute has_element?(view, "#card-detail-metadata", card.tcgdex_id)
     assert has_element?(view, "#card-detail-image-missing")
     refute has_element?(view, "#card-detail-image")
-    refute has_element?(view, ".card-detail-secondary")
+    assert has_element?(view, "#card-detail-metadata-title", "Printing")
+    assert has_element?(view, "#legal-format-standard.legal-format-unknown")
+    assert has_element?(view, "#legal-format-expanded.legal-format-unknown")
+    assert has_element?(view, "#legal-format-glc.legal-format-not-legal")
+    assert has_element?(view, "#legal-format-standard-trigger[aria-label='Standard']")
+
+    assert has_element?(
+             view,
+             "#legal-format-standard-trigger[aria-describedby='legal-format-standard-copy']"
+           )
+
+    assert has_element?(
+             view,
+             "#legal-format-standard-copy",
+             "Standard legality unavailable."
+           )
 
     assert has_element?(view, "#card-detail-price-note span", "Estimate only")
     assert has_element?(view, "#card-detail-price-note small", "Condition and shipping may vary.")
@@ -220,7 +235,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     )
   end
 
-  test "printing details have distinct labels and quiet legal formats", %{conn: conn} do
+  test "printing details have distinct labels and honest legal format icons", %{conn: conn} do
     card =
       create_card("metadata",
         rarity: "Rare",
@@ -237,11 +252,113 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#card-detail-metadata .card-detail-metadata-item dt", "Rarity")
     assert has_element?(view, "#card-detail-metadata .card-detail-metadata-item dd", "Rare")
 
-    assert has_element?(view, "#card-detail-metadata dd", "Standard · Expanded")
+    assert has_element?(view, "#legal-format-standard-trigger")
+    assert has_element?(view, "#legal-format-expanded-trigger")
+    assert has_element?(view, "#legal-format-glc-trigger")
+    assert has_element?(view, "#legal-format-standard.legal-format-legal")
+    assert has_element?(view, "#legal-format-expanded.legal-format-legal")
+    assert has_element?(view, "#legal-format-glc.legal-format-legal")
+
+    assert has_element?(
+             view,
+             "#legal-format-standard-copy",
+             "Legal for Standard."
+           )
+
+    assert has_element?(
+             view,
+             "#legal-format-glc-copy",
+             "Legal for Gym Leader Challenge."
+           )
+
+    assert has_element?(
+             view,
+             "#legal-format-standard-trigger[aria-describedby='legal-format-standard-copy']"
+           )
+
+    assert has_element?(view, "#legal-formats[phx-key=escape][phx-window-keydown]")
+
+    assert has_element?(
+             view,
+             "#legal-format-standard[phx-hook][data-tooltip-target='legal-format-standard']"
+           )
+
     refute has_element?(view, "#card-detail-metadata .archive-chip")
+    refute has_element?(view, "#card-detail-metadata", "Standard · Expanded")
 
     refute has_element?(view, "#card-detail-metadata", "TCGDEX ID")
     refute has_element?(view, "#card-detail-metadata", card.tcgdex_id)
+  end
+
+  test "legal format icons distinguish false and unavailable data", %{conn: conn} do
+    card = create_card("legality-honesty", standard_legal: false, expanded_legal: nil)
+
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+
+    assert has_element?(view, "#legal-formats")
+    assert has_element?(view, "#legal-format-standard.legal-format-not-legal")
+    assert has_element?(view, "#legal-format-expanded.legal-format-unknown")
+    assert has_element?(view, "#legal-format-glc.legal-format-not-legal")
+
+    assert has_element?(
+             view,
+             "#legal-format-standard-copy",
+             "Not eligible for Standard."
+           )
+
+    assert has_element?(
+             view,
+             "#legal-format-expanded-copy",
+             "Expanded legality unavailable."
+           )
+
+    assert has_element?(view, "#legal-format-standard-trigger[phx-blur][phx-click-away]")
+
+    assert has_element?(
+             view,
+             "#legal-format-expanded-trigger[aria-describedby='legal-format-expanded-copy']"
+           )
+
+    assert has_element?(
+             view,
+             "#legal-format-glc-copy",
+             "Not eligible for Gym Leader Challenge."
+           )
+  end
+
+  test "GLC marks an ordinary Pokémon legal", %{conn: conn} do
+    card = create_card("glc-legal", category: "Pokemon", name: "Pikachu")
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+
+    assert has_element?(view, "#legal-format-glc.legal-format-legal")
+    assert has_element?(view, "#legal-format-glc-copy", "Legal for Gym Leader Challenge.")
+  end
+
+  test "GLC marks rule-box and banned printings not eligible", %{conn: conn} do
+    rule_box = create_card("glc-rule-box", category: "Pokemon", name: "Pikachu V")
+    banned = create_card("glc-banned", category: "Trainer", tcgdex_id: "xy4-99")
+
+    {:ok, rule_view, _html} = live(conn, ~p"/cards/#{rule_box.tcgdex_id}")
+    {:ok, banned_view, _html} = live(conn, ~p"/cards/#{banned.tcgdex_id}")
+
+    assert has_element?(rule_view, "#legal-format-glc.legal-format-not-legal")
+    assert has_element?(banned_view, "#legal-format-glc.legal-format-not-legal")
+
+    assert has_element?(
+             banned_view,
+             "#legal-format-glc-copy",
+             "Not eligible for Gym Leader Challenge."
+           )
+  end
+
+  test "unknown Standard and Expanded legality use concise unavailable copy", %{conn: conn} do
+    card =
+      create_card("glc-unknown", category: "Trainer", standard_legal: nil, expanded_legal: nil)
+
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+
+    assert has_element?(view, "#legal-format-standard-copy", "Standard legality unavailable.")
+    assert has_element?(view, "#legal-format-expanded-copy", "Expanded legality unavailable.")
   end
 
   test "a valuation from a different cardmarket mapping is hidden from current and history", %{

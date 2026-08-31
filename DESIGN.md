@@ -102,7 +102,7 @@ Home is a calm warm-paper counter scene: a warm bench supports compact paper-lik
 
 The Home decision-world keeps its warm square identity while becoming calm and restrained: no noise texture, no heavy perimeter borders on search, evidence, or market rows, one subtle header/input separator, and approximately 24px Market separation. It rejects generic rounded marketplace grids, glass surfaces, and decorative gradients. Search is the primary action; current, outdated, and unavailable states remain visible in plain collector language.
 
-The `.archive-world` remains the CSS scope name and visual contract for card detail. CardDetail now uses calm warm paper with a transparent, unboxed printing surface, one coherent detail column, plain-text legal format, and a restrained chart. The archive world was scoped away from Home, not removed globally.
+The `.archive-world` remains the CSS scope name and visual contract for card detail. CardDetail now uses calm warm paper with a transparent, unboxed printing surface, one coherent detail column, neutral original Fluent UI format icons, and a restrained chart. Standard and Expanded statuses reflect current local card data; Gym Leader Challenge uses the versioned local `glc_local_2026-04-20` policy. Its conservative scope is Trainer cards and non-rule-box Pokémon not on the cited community ban list; other categories are not eligible. The policy is pending verification/deployment and does not replace future community-list review. The archive world was scoped away from Home, not removed globally.
 
 **Key Characteristics:**
 - Calm warm-paper bench, square identity, restrained ink separators, and selective orange action grammar on Home.
@@ -122,7 +122,8 @@ The Home palette is a calm warm counter system: `#f1eadc` bench establishes the 
 - **Fall**: Negative directional evidence on paper; canonical `#a6402f` keeps normal text contrast clear at `4.5:1` or better.
 
 ### Secondary
-- **Sage**, **Indigo**, and **Lilac**: Retained archive/data tokens where existing detail behavior requires them; legal format is plain text, not a colored chip.
+- **Sage**, **Indigo**, and **Lilac**: Retained archive/data tokens where existing detail behavior requires them.
+- **Legal format status**: Card UI (Standard), Stack (Expanded), and Ribbon (Gym Leader Challenge) are neutral official Microsoft Fluent UI System Icons Regular paths. Legal, not-legal, and unknown states also use shape/treatment, not color alone. GLC is a conservative local eligibility result under `glc_local_2026-04-20`, based on persisted name/category/printing ID only; it is not a complete rules engine and remains pending verification/deployment.
 - **Sunfade**: The warm state-note surface and supporting archive accent.
 
 ### Neutral

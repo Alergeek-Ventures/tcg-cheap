@@ -84,6 +84,8 @@ Production `/health` at 2026-08-27 17:30 UTC reported database ready, 7 Oban que
 
 The CardDetail/Home visual polish is locally implemented and verified, pending deployment. Responsive browser checks at 390px and 1440px found zero horizontal overflow or console warnings. Tooltip pointer/focus behavior, Escape dismissal, and recovery on a new hover cycle were verified. `mix check --verbose` passed 883 tests. No CI or production status is claimed for this work.
 
+Research note (2026-08-31, pending local verification/deployment): CardDetail now uses neutral Fluent UI icons and computes GLC eligibility under the versioned local `glc_local_2026-04-20` policy, effective 2026-04-20 through Dimension Valley. Trainer cards and non-rule-box Pokémon are eligible unless an exact printing or all-printings Double Colorless Energy entry is banned; other categories are not eligible. The [GLC rules](https://gymleaderchallenge.com/rules), [FAQ](https://gymleaderchallenge.com/faq), and [ban list](https://gymleaderchallenge.com/ban-list) remain the format authority. This conservative persisted-field/name heuristic does not replace future list review, and no production status is claimed.
+
 ## Current deployment and visual refinement — 2026-08-26
 
 The UI correction commit `7a0f956` is pushed and deployed to production; GitHub
