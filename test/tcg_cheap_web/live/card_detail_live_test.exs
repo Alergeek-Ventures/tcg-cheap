@@ -60,11 +60,8 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute has_element?(view, "#card-detail-image")
     refute has_element?(view, ".card-detail-secondary")
 
-    assert has_element?(
-             view,
-             "#card-detail-price-note",
-             "Estimate only · Condition and shipping may vary."
-           )
+    assert has_element?(view, "#card-detail-price-note span", "Estimate only")
+    assert has_element?(view, "#card-detail-price-note small", "Condition and shipping may vary.")
 
     assert has_element?(
              view,
@@ -146,11 +143,8 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-fresh", "Updated today")
     refute has_element?(view, "#valuation-title", "EUR / 7-DAY FRESHNESS")
 
-    assert has_element?(
-             view,
-             "#card-detail-price-note",
-             "Estimate only · Condition and shipping may vary."
-           )
+    assert has_element?(view, "#card-detail-price-note span", "Estimate only")
+    assert has_element?(view, "#card-detail-price-note small", "Condition and shipping may vary.")
 
     assert has_element?(
              view,
@@ -158,6 +152,11 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
            )
 
     assert has_element?(view, "#valuation-info-trigger[phx-blur][phx-click-away]")
+
+    assert has_element?(
+             view,
+             "#valuation-info[phx-hook][data-tooltip-target='valuation-price-row']"
+           )
 
     assert has_element?(view, "#valuation-info-copy", "Cardmarket via TCGdex")
     assert has_element?(view, "#valuation-info-copy", "applied consistently to every card")
@@ -190,20 +189,17 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert [] ==
              document |> LazyHTML.query("#valuation-history-description") |> LazyHTML.to_tree()
 
-    assert inspect(
-             document
-             |> LazyHTML.query("#valuation-history-explanation")
-             |> LazyHTML.to_tree()
-           ) =~
-             "Daily observations; missing days remain gaps."
+    assert [] ==
+             document |> LazyHTML.query("#valuation-history-explanation") |> LazyHTML.to_tree()
 
     assert inspect(document |> LazyHTML.query("#valuation-history-summary") |> LazyHTML.to_tree()) =~
-             "1 observation"
+             "Last update"
 
-    assert [_first_label, _latest_label, _observations_label] =
-             document
-             |> LazyHTML.query("#valuation-history-summary dt")
-             |> LazyHTML.to_tree()
+    refute inspect(document |> LazyHTML.query("#valuation-history-summary") |> LazyHTML.to_tree()) =~
+             "First observed"
+
+    refute inspect(document |> LazyHTML.query("#valuation-history-summary") |> LazyHTML.to_tree()) =~
+             "Observations"
 
     assert inspect(
              document
@@ -212,21 +208,10 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
            ) =~
              Date.to_iso8601(DateTime.to_date(fetched_at))
 
-    assert [_observations] =
+    assert [] ==
              document |> LazyHTML.query("#valuation-history-observations") |> LazyHTML.to_tree()
 
-    assert [_ledger] =
-             document
-             |> LazyHTML.query("#valuation-history-ledger:not(.sr-only)")
-             |> LazyHTML.to_tree()
-
-    ledger = document |> LazyHTML.query("#valuation-history-ledger") |> LazyHTML.to_tree()
-    assert inspect(ledger) =~ "12.35"
-
-    assert inspect(ledger) =~ Date.to_iso8601(DateTime.to_date(fetched_at))
-    assert inspect(ledger) =~ Calendar.strftime(fetched_at, "%Y-%m-%d %H:%M:%S UTC")
-
-    assert [] == document |> LazyHTML.query("#valuation-history-details") |> LazyHTML.to_tree()
+    assert [] == document |> LazyHTML.query("#valuation-history-ledger") |> LazyHTML.to_tree()
 
     refute_enqueued(
       repo: TcgCheap.Repo,
@@ -419,9 +404,9 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-value", "23.40")
     assert has_element?(view, "#valuation-fresh")
     assert has_element?(view, "#valuation-history-collecting", "Not enough price history yet.")
-    assert has_element?(view, "#valuation-history-summary", "1 observation")
-    assert has_element?(view, "#valuation-history-observations summary", "All observations")
-    assert has_element?(view, "#valuation-history-ledger:not(.sr-only)")
+    assert has_element?(view, "#valuation-history-summary", "Last update")
+    refute has_element?(view, "#valuation-history-observations")
+    refute has_element?(view, "#valuation-history-ledger")
     refute has_element?(view, "#valuation-history-chart")
     refute has_element?(view, "#valuation-history-title")
     refute has_element?(view, "#valuation-history-description")
@@ -467,7 +452,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     assert has_element?(
              view,
-             "#valuation-history-point-#{Date.to_iso8601(DateTime.to_date(now))}[type='button'][phx-blur][phx-click-away]"
+             "#valuation-history-point-#{Date.to_iso8601(DateTime.to_date(now))}[type='button'][phx-blur][phx-click-away][phx-hook][data-tooltip-target]"
            )
 
     assert has_element?(
@@ -478,8 +463,6 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     assert has_element?(view, "#valuation-history-chart-wrap", "Max €42.00")
     assert has_element?(view, "#valuation-history-chart-wrap", "Min €40.00")
-    assert has_element?(view, "#valuation-history-observations summary", "2 observations")
-    assert has_element?(view, "#valuation-history-ledger:not(.sr-only)")
     window_start = now |> DateTime.to_date() |> Date.add(-29)
 
     assert has_element?(
@@ -495,10 +478,11 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
            )
 
     assert has_element?(view, "#valuation-history-description")
-    assert has_element?(view, "#valuation-history-summary dt", "First observed")
-    assert has_element?(view, "#valuation-history-summary dt", "Latest")
-    assert has_element?(view, "#valuation-history-summary dt", "Observations")
-    assert has_element?(view, "#valuation-history-summary", "2 observations")
+    assert has_element?(view, "#valuation-history-summary dt", "Last update")
+    refute has_element?(view, "#valuation-history-summary dt", "First observed")
+    refute has_element?(view, "#valuation-history-summary dt", "Observations")
+    refute has_element?(view, "#valuation-history-explanation")
+    refute has_element?(view, "#valuation-history-observations")
 
     assert has_element?(
              view,

@@ -205,7 +205,7 @@ The Home form language is square throughout: controls and price-row surfaces use
 - **Shape:** The high WebP TCGdex image sits in a transparent, unboxed printing surface within the `.archive-world` detail layout.
 - **Behavior:** The image supports identity verification alongside one coherent, unboxed detail column. Missing imagery uses the same honest line-art fallback.
 
-The meaningful image column is larger than the supporting detail region. At wide desktop, compact `Current estimate` and `Printing` sit side by side in the right region; mobile order is identity → estimate → image → Printing. History spans the full `72rem` detail container.
+The meaningful image column is larger than the supporting detail region. At wide desktop, equal-width compact `Current estimate` and `Printing` columns sit side by side in the right region; mobile order is identity → estimate → image → Printing. History spans the full `72rem` detail container.
 
 ### CardDetail layout
 - **Direction:** The prior saturated orange board, three boxed columns/status boxes, and giant framed chart are explicitly superseded.
@@ -225,7 +225,7 @@ The meaningful image column is larger than the supporting detail region. At wide
 
 The estimate is compact and has an adjacent accessible `48px` information tooltip with concise consistent-calculation, source, and non-affiliation copy. It exposes no exact metric, policy version, or timestamp. Trade is linked for comparison only and does not support changing valuation algorithms.
 
-History preserves date gaps, shows min/max and exact window dates, uses horizontal guides, and exposes Escape-dismissible exact date/EUR tooltips on hover or focus. Point controls are keyboard-focusable, and a full-width collapsed disclosure exposes every exact observation for touch and detailed review. A one-point history remains summary/ledger only, with no chart.
+History preserves date gaps, shows min/max and exact window dates, and uses horizontal guides. It keeps a compact `Last update` date/EUR summary and exposes Escape-dismissible exact date/EUR tooltips on hover or focus. Point controls are keyboard-focusable; there is no observation ledger or count. A one-point history remains summary-only, with no chart.
 
 ### Fluent UI icon system
 - **Semantic use:** Selective official Fluent UI System Icons Regular support search, back, trade/swap, information, disclosure chevron, freshness/clock, and trend direction.

@@ -210,7 +210,12 @@ defmodule TcgCheapWeb.CardDetailLive do
                         <% end %>
                       </p>
                       <%= if @valuation do %>
-                        <div class="valuation-info">
+                        <div
+                          id="valuation-info"
+                          class="valuation-info"
+                          phx-hook=".TooltipReset"
+                          data-tooltip-target="valuation-price-row"
+                        >
                           <button
                             id="valuation-info-trigger"
                             type="button"
@@ -233,7 +238,8 @@ defmodule TcgCheapWeb.CardDetailLive do
                     </div>
                   </div>
                   <p id="card-detail-price-note" class="estimate-note">
-                    Estimate only · Condition and shipping may vary.
+                    <span>Estimate only</span>
+                    <small>Condition and shipping may vary.</small>
                   </p>
                 </section>
                 <figure class="card-detail-placeholder card-detail-figure">
@@ -304,9 +310,6 @@ defmodule TcgCheapWeb.CardDetailLive do
                 <h2 id="history-title">Price history</h2>
                 <span id="valuation-history-window">Last 30 days</span>
               </div>
-              <p id="valuation-history-explanation" class="history-explanation">
-                Daily observations; missing days remain gaps.
-              </p>
               <p
                 :if={@history_load_failed}
                 id="valuation-history-error"
@@ -329,26 +332,13 @@ defmodule TcgCheapWeb.CardDetailLive do
                 <% summary = history_summary(@history_points) %>
                 <dl id="valuation-history-summary" class="history-summary">
                   <div class="history-summary-item">
-                    <dt>First observed</dt>
-                    <dd>
-                      <time datetime={Date.to_iso8601(summary.first.date)}>
-                        {Date.to_iso8601(summary.first.date)}
-                      </time>
-                      <span>€{format_eur(summary.first.value_eur)}</span>
-                    </dd>
-                  </div>
-                  <div class="history-summary-item">
-                    <dt>Latest</dt>
+                    <dt>Last update</dt>
                     <dd>
                       <time datetime={Date.to_iso8601(summary.latest.date)}>
                         {Date.to_iso8601(summary.latest.date)}
                       </time>
                       <span>€{format_eur(summary.latest.value_eur)}</span>
                     </dd>
-                  </div>
-                  <div class="history-summary-item">
-                    <dt>Observations</dt>
-                    <dd>{observation_count_text(summary.count)}</dd>
                   </div>
                 </dl>
                 <div
@@ -377,7 +367,7 @@ defmodule TcgCheapWeb.CardDetailLive do
                     >
                       <title id="valuation-history-title">30-day price history</title>
                       <desc id="valuation-history-description">
-                        Daily price snapshots; gaps mean no observation.
+                        Price history with gaps for dates without an observation.
                       </desc>
                       <%= for {path, index} <- Enum.with_index(@history_paths) do %>
                         <path id={"valuation-history-segment-#{index}"} class="history-line" d={path} />
@@ -411,6 +401,8 @@ defmodule TcgCheapWeb.CardDetailLive do
                               to: "#valuation-history-point-#{Date.to_iso8601(point.date)}"
                             )
                           }
+                          phx-hook=".TooltipReset"
+                          data-tooltip-target={"valuation-history-point-#{Date.to_iso8601(point.date)}"}
                         >
                           <span role="tooltip">{Date.to_iso8601(point.date)} · €{format_eur(
                             point.value_eur
@@ -428,27 +420,28 @@ defmodule TcgCheapWeb.CardDetailLive do
                     </time>
                   </div>
                 </div>
-                <details id="valuation-history-observations" class="history-observations">
-                  <summary>
-                    <span>All observations</span>
-                    <span>{observation_count_text(length(@history_points))}</span>
-                    <.fluent_icon name={:chevron_down} />
-                  </summary>
-                  <ol id="valuation-history-ledger">
-                    <%= for point <- @history_points do %>
-                      <li id={"valuation-history-day-#{point.date}"}>
-                        <time datetime={Date.to_iso8601(point.date)}>{Date.to_iso8601(point.date)}</time>
-                        <strong>€{format_eur(point.value_eur)}</strong>
-                        <span>{utc_timestamp(point.fetched_at)}</span>
-                      </li>
-                    <% end %>
-                  </ol>
-                </details>
               <% end %>
             </section>
           </div>
         </main>
       </div>
+      <script :type={Phoenix.LiveView.ColocatedHook} name=".TooltipReset">
+        export default {
+          mounted() {
+            this.resetTooltip = () => {
+              const targetId = this.el.dataset.tooltipTarget
+              const target = targetId && document.getElementById(targetId)
+              if (!this.el.matches(":focus-within")) {
+                target?.classList.remove("tooltip-dismissed")
+              }
+            }
+            this.el.addEventListener("mouseleave", this.resetTooltip)
+          },
+          destroyed() {
+            this.el.removeEventListener("mouseleave", this.resetTooltip)
+          }
+        }
+      </script>
     </Layouts.app>
     """
   end
@@ -640,9 +633,6 @@ defmodule TcgCheapWeb.CardDetailLive do
     end
   end
 
-  defp utc_timestamp(%DateTime{} = dt),
-    do: Calendar.strftime(DateTime.shift_zone!(dt, "Etc/UTC"), "%Y-%m-%d %H:%M:%S UTC")
-
   defp apply_history_read(socket, {:ok, snapshots}, now) do
     points = ValuationHistory.daily_points(snapshots, now)
 
@@ -685,20 +675,15 @@ defmodule TcgCheapWeb.CardDetailLive do
   defp valuation_state_class(_status, _acquisition_state, _failure),
     do: "valuation-state-unavailable"
 
-  defp history_summary([first | _] = points) do
+  defp history_summary([_first | _] = points) do
     values = Enum.map(points, & &1.value_eur)
 
     %{
-      first: first,
       latest: List.last(points),
-      count: length(points),
       min: Enum.min(values, &(Decimal.compare(&1, &2) != :gt)),
       max: Enum.max(values, &(Decimal.compare(&1, &2) != :lt))
     }
   end
-
-  defp observation_count_text(1), do: "1 observation"
-  defp observation_count_text(count), do: "#{count} observations"
 
   defp assign_history_plot(socket, points) do
     origin = socket.assigns.history_origin || ValuationHistory.window_start(DateTime.utc_now())

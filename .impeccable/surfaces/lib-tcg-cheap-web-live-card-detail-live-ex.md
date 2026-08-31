@@ -18,7 +18,7 @@ related_targets: ["assets/css/app.css","lib/tcg_cheap_web/live/home_live.ex"]
 - Exact identity.
 - Local current, stale, and unpriced states.
 - Source and non-affiliation context through an adjacent accessible 48px info tooltip; no exact metric, policy version, or timestamp is exposed.
-- History with preserved date gaps, min/max, exact window dates, horizontal guides, and Escape-dismissible exact date/EUR hover/focus tooltips, plus keyboard-focusable point controls and a full-width collapsible observation ledger. One point remains summary/ledger only without a chart.
+- History with preserved date gaps, min/max, exact window dates, horizontal guides, and a compact Last update date/EUR summary. Exact date/EUR hover/focus tooltips are Escape-dismissible, and point controls are keyboard-focusable. There is no observation count, first-observed field, or ledger. One point remains summary-only without a chart.
 - Canonical TCGdex-hosted high WebP exact-printing image when available, displayed with no-referrer hotlinking.
 - `Add to a trade` preserves the exact identity and accepts only a reconstructed local `/trade` return target; malformed or open-redirect targets are rejected.
 
@@ -38,7 +38,7 @@ related_targets: ["assets/css/app.css","lib/tcg_cheap_web/live/home_live.ex"]
 
 ## Direction
 
-Make a calm warm-paper identity/value detail surface with coherent evidence and a quiet history ledger. The estimate tooltip uses concise consistent-calculation, source, and non-affiliation copy; Trade is linked only for comparison and does not support changing valuation algorithms.
+Make a calm warm-paper identity/value detail surface with coherent evidence and a compact history summary. The estimate tooltip uses concise consistent-calculation, source, and non-affiliation copy; Trade is linked only for comparison and does not support changing valuation algorithms.
 
 ## Memorable moment
 

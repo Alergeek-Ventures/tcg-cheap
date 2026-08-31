@@ -80,6 +80,10 @@ CardDetail uses a larger image column, places compact Current estimate and Print
 
 Production `/health` at 2026-08-27 17:30 UTC reported database ready, 7 Oban queues, and 6 providers. Connected production checks on Home and `/cards/me05-039` verified compact mover/recent rows, the new wordmark, mobile identity → estimate → image → Printing order, full-width history, three chart points, exact Jul 29 → Aug 27 window labels, working hover/Escape behavior, a full-width three-row observation ledger, zero horizontal overflow at 390px, and zero console warnings/errors. Wide desktop retained the 1152px overview/history container, 384px image, side-by-side estimate/Printing, and full-width history. Canonical `mix check --verbose` passed all gates and 883 tests.
 
+## Owner-directed visual polish — 2026-08-31
+
+The CardDetail/Home visual polish is locally implemented and verified, pending deployment. Responsive browser checks at 390px and 1440px found zero horizontal overflow or console warnings. Tooltip pointer/focus behavior, Escape dismissal, and recovery on a new hover cycle were verified. `mix check --verbose` passed 883 tests. No CI or production status is claimed for this work.
+
 ## Current deployment and visual refinement — 2026-08-26
 
 The UI correction commit `7a0f956` is pushed and deployed to production; GitHub
