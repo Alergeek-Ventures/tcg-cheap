@@ -242,8 +242,8 @@
   align-items: center; cursor: pointer; display: flex; font-weight: 700; min-height: 3rem; padding: .5rem 0;
 }
 .sealed-detail-world #sealed-sold-out-section[open] { padding-bottom: .5rem; }
-@media (min-width: 60rem) { .card-detail-world .card-detail-identity { border-bottom: 0; column-gap: 3rem; grid-template-areas: "placeholder heading" "placeholder valuation" "placeholder secondary"; grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr); } .card-detail-world #card-valuation { padding-top: .5rem; } }
-@media (min-width: 68rem) { .card-detail-world .card-detail-identity { column-gap: 2rem; grid-template-areas: "placeholder heading heading" "placeholder valuation secondary"; grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr) minmax(0, 1fr); } .card-detail-world .card-detail-secondary .card-detail-metadata { grid-template-columns: 1fr; } }
+@media (min-width: 60rem) { .card-detail-world .card-detail-identity { border-bottom: 0; column-gap: 3rem; grid-template-areas: "placeholder heading" "placeholder valuation" "placeholder secondary"; grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr); } }
+@media (min-width: 68rem) { .card-detail-world .card-detail-identity { column-gap: 2rem; grid-template-areas: "placeholder heading heading" "placeholder valuation secondary"; grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr) minmax(0, 1fr); } .card-detail-world #card-valuation { padding-top: 0; } .card-detail-world .card-detail-secondary .card-detail-metadata { grid-template-columns: 1fr; } }
 @media (max-width: 40rem) { .card-detail-world .card-detail-placeholder { min-height: 11rem; max-width: 100%; } .card-detail-world .card-detail-placeholder svg { height: 8rem; } .card-detail-world .card-detail-figure > img { max-height: 75svh; } .card-detail-world .card-detail-metadata { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .card-detail-world * { animation: none !important; scroll-behavior: auto !important; } }
 
@@ -257,7 +257,7 @@
 .card-detail-world .card-detail-metadata { gap: 0 1.5rem; }
 .card-detail-world .card-detail-metadata div { align-items: baseline; border-bottom: 0; display: grid; gap: .5rem; grid-template-columns: minmax(7rem, auto) minmax(0, 1fr); padding: .35rem 0; }
 .card-detail-world .card-detail-metadata dt, .card-detail-world .archive-metadata-label { color: var(--ink); font-size: .875rem; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; }
-.card-detail-world .card-detail-metadata dd, .card-detail-world .archive-metadata-value { font-size: 1rem; font-weight: 700; margin: 0; overflow-wrap: anywhere; }
+.card-detail-world .card-detail-metadata dd, .card-detail-world .archive-metadata-value { font-size: 1rem; font-weight: 700; justify-self: end; margin: 0; overflow-wrap: anywhere; text-align: right; }
 .card-detail-world .archive-legality-chips { align-items: center; display: flex; flex: 1 1 auto; flex-wrap: wrap; gap: .5rem; min-width: 0; }
 .card-detail-world .archive-legality-chips .archive-chip { flex: 0 0 auto; overflow-wrap: normal; white-space: nowrap; }
 .card-detail-world .archive-chip-sage, .card-detail-world .archive-chip-indigo { background: transparent; color: var(--muted); }
