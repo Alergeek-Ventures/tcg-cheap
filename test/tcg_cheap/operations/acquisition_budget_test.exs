@@ -46,6 +46,107 @@ defmodule TcgCheap.Operations.AcquisitionBudgetTest do
     assert Enum.sort(rows) == Enum.sort([["day", 2], ["hour", 2], ["month", 2]])
   end
 
+  test "returns exact delays to the next UTC budget windows" do
+    assert {:ok, 1} =
+             AcquisitionBudget.next_budget_window_delay(
+               :global_hourly_limit_reached,
+               ~U[2026-08-09 12:59:59Z]
+             )
+
+    assert {:ok, 1_800} =
+             AcquisitionBudget.next_budget_window_delay(
+               :hourly_limit_reached,
+               ~U[2026-08-09 12:30:00Z]
+             )
+
+    assert {:ok, 1} =
+             AcquisitionBudget.next_budget_window_delay(
+               :daily_limit_reached,
+               ~U[2026-08-09 23:59:59Z]
+             )
+
+    assert {:ok, 1} =
+             AcquisitionBudget.next_budget_window_delay(
+               :global_monthly_spend_limit_reached,
+               ~U[2026-01-31 23:59:59Z]
+             )
+
+    assert {:error, :not_retryable} =
+             AcquisitionBudget.next_budget_window_delay(
+               :provider_disabled,
+               ~U[2026-08-09 12:00:00Z]
+             )
+
+    assert {:error, :invalid_reason} =
+             AcquisitionBudget.next_budget_window_delay(
+               :not_a_budget_reason,
+               ~U[2026-08-09 12:00:00Z]
+             )
+
+    assert {:error, :invalid_clock} =
+             AcquisitionBudget.next_budget_window_delay(
+               :hourly_limit_reached,
+               %DateTime{~U[2026-08-09 12:00:00Z] | time_zone: "Europe/Warsaw"}
+             )
+
+    assert {:error, :invalid_clock} =
+             AcquisitionBudget.next_budget_window_delay(:hourly_limit_reached, :not_a_datetime)
+  end
+
+  test "classifies budget rejection reasons without consulting the clock" do
+    assert AcquisitionBudget.budget_reason_disposition(:hourly_limit_reached) == :hourly
+    assert AcquisitionBudget.budget_reason_disposition(:global_hourly_limit_reached) == :hourly
+    assert AcquisitionBudget.budget_reason_disposition(:daily_limit_reached) == :daily
+    assert AcquisitionBudget.budget_reason_disposition(:global_daily_limit_reached) == :daily
+
+    for reason <- [
+          :monthly_request_limit_reached,
+          :provider_monthly_spend_limit_reached,
+          :global_monthly_spend_limit_reached
+        ] do
+      assert AcquisitionBudget.budget_reason_disposition(reason) == :monthly
+    end
+
+    for reason <- [
+          :provider_disabled,
+          :invalid_provider_configuration,
+          :invalid_admission_configuration,
+          :invalid_admission_result,
+          :invalid_clock
+        ] do
+      assert AcquisitionBudget.budget_reason_disposition({:acquisition_budget_rejected, reason}) ==
+               :terminal
+    end
+
+    assert AcquisitionBudget.budget_reason_disposition(:budget_persistence_failed) == :unknown
+    assert AcquisitionBudget.budget_reason_disposition(:malformed_job_args) == :unknown
+    assert AcquisitionBudget.budget_reason_disposition(:other_reason) == :unknown
+  end
+
+  test "calculates remaining delay from an absolute reset" do
+    reset = ~U[2026-08-09 13:00:00Z]
+
+    assert {:ok, 1} =
+             AcquisitionBudget.remaining_budget_window_delay(
+               reset,
+               %DateTime{~U[2026-08-09 12:59:59Z] | microsecond: {500_000, 6}}
+             )
+
+    assert {:ok, 1} = AcquisitionBudget.remaining_budget_window_delay(reset, reset)
+
+    assert {:ok, 1} =
+             AcquisitionBudget.remaining_budget_window_delay(reset, ~U[2026-08-09 13:00:01Z])
+
+    assert {:error, :invalid_clock} =
+             AcquisitionBudget.remaining_budget_window_delay(
+               %DateTime{reset | time_zone: "Europe/Warsaw"},
+               reset
+             )
+
+    assert {:error, :invalid_clock} =
+             AcquisitionBudget.remaining_budget_window_delay(reset, :not_a_datetime)
+  end
+
   test "microseconds do not split hourly or daily windows", %{key: key} do
     %DateTime{} = base = next_unused_base()
     first = %DateTime{base | microsecond: {123_456, 6}}
@@ -157,6 +258,13 @@ defmodule TcgCheap.Operations.AcquisitionBudgetTest do
     assert {:error, :invalid_provider_configuration} = AcquisitionBudget.admit(other_key)
     assert {:ok, nil} = Operations.get_provider_by_key(key)
     assert usage_counts(key) == %{}
+  end
+
+  test "normalizes default admission configuration failures" do
+    Application.delete_env(:tcg_cheap, :acquisition_budget)
+
+    assert {:error, {:acquisition_budget_rejected, :invalid_provider_configuration}} =
+             AcquisitionBudget.admit_attempt("missing-provider")
   end
 
   test "refresh preserves a disabled provider and adds no usage", %{key: key} do

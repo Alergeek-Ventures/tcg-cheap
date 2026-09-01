@@ -174,6 +174,35 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
                    500
   end
 
+  test "budget window exhaustion snoozes after recording a retryable budget run", %{stub: stub} do
+    card = create_card()
+    assert :ok = ValuationAcquisition.subscribe(card)
+
+    for reason <- [:hourly_limit_reached, :global_hourly_limit_reached] do
+      Application.put_env(
+        :tcg_cheap,
+        :acquisition_budget_admitter,
+        BudgetStub
+      )
+
+      Application.put_env(
+        :tcg_cheap,
+        :valuation_budget_stub_result,
+        {:error, reason}
+      )
+
+      assert {:snooze, seconds} = perform_job(test_job(args(card), 5, 5), [])
+      assert seconds > 0
+      assert %{calls: 0} = Agent.get(stub, & &1)
+
+      run = latest_run("tcgdex_cardmarket")
+      assert run.status == "retryable_failure"
+      assert run.failure_category == "budget"
+      assert run.request_count == 0
+      refute_receive {:valuation_failed, _}
+    end
+  end
+
   test "budget persistence failure retries without callback and broadcasts on final attempt", %{
     stub: stub
   } do

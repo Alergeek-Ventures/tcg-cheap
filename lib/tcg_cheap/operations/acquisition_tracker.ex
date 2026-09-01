@@ -95,14 +95,28 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
 
   defp outcome(_tracker, {:cancel, reason}), do: {"cancelled", category(reason)}
 
+  defp outcome(tracker, {:error, rejection = {:acquisition_budget_rejected, _reason, _reset_at}}) do
+    case AcquisitionBudget.budget_reason_disposition(rejection) do
+      disposition when disposition in [:hourly, :daily, :monthly] ->
+        {"retryable_failure", :budget}
+
+      _ ->
+        outcome_error(tracker, rejection)
+    end
+  end
+
   defp outcome(tracker, {:error, reason}) do
+    outcome_error(tracker, reason)
+  end
+
+  defp outcome(tracker, _result), do: {error_status(tracker), :unknown}
+
+  defp outcome_error(tracker, reason) do
     status =
       if tracker.run.attempt >= tracker.run.max_attempts, do: "failed", else: "retryable_failure"
 
     {status, category(reason)}
   end
-
-  defp outcome(tracker, _result), do: {error_status(tracker), :unknown}
 
   defp error_status(tracker) do
     if tracker.run.attempt >= tracker.run.max_attempts, do: "failed", else: "retryable_failure"

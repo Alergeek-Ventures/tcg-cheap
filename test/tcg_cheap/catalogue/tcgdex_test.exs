@@ -133,6 +133,18 @@ defmodule TcgCheap.Catalogue.TcgdexTest do
                end
              )
 
+    reset_at = ~U[2026-09-02 00:00:00Z]
+    timestamped = make_ref()
+    Req.Test.stub(timestamped, fn _conn -> flunk("timestamped rejection reached HTTP") end)
+
+    assert {:error, {:acquisition_budget_rejected, :hourly_limit_reached, ^reset_at}} =
+             Tcgdex.fetch_set("base",
+               request_options: [plug: {Req.Test, timestamped}],
+               request_admitter: fn ->
+                 {:error, {:acquisition_budget_rejected, :hourly_limit_reached, reset_at}}
+               end
+             )
+
     admitted = make_ref()
     attempts = :counters.new(1, [:atomics])
 

@@ -98,6 +98,10 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorker do
   defp classify({:error, {:acquisition_budget_rejected, reason}}) when is_atom(reason),
     do: {:cancel, {:acquisition_budget_rejected, reason}}
 
+  defp classify({:error, {:acquisition_budget_rejected, reason, _reset_at}})
+       when is_atom(reason),
+       do: {:cancel, {:acquisition_budget_rejected, reason}}
+
   defp classify({:error, {:acquisition_budget_rejected, _reason}}),
     do: {:cancel, :acquisition_budget_rejected}
 

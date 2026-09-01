@@ -12,7 +12,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
     ]
 
   alias TcgCheap.Core
-  alias TcgCheap.Operations.AcquisitionTracker
+  alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionTracker}
   alias TcgCheap.Pricing.Singles.ValuationAcquisition
 
   @policy_version "tcgdex_cardmarket_v1"
@@ -32,6 +32,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
           tracker_options(identity.tcgdex_id),
           &execute(job, identity, &1)
         )
+        |> translate_budget_result()
 
       {:cancel, reason} ->
         {:cancel, reason}
@@ -39,6 +40,17 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
   end
 
   def perform(_job), do: {:cancel, :malformed_job_args}
+
+  defp translate_budget_result(
+         {kind,
+          {:acquisition_budget_rejected, _reason, %DateTime{time_zone: "Etc/UTC"} = reset_at}}
+       )
+       when kind in [:error, :cancel] do
+    {:ok, seconds} = AcquisitionBudget.remaining_budget_window_delay(reset_at, DateTime.utc_now())
+    {:snooze, seconds}
+  end
+
+  defp translate_budget_result(result), do: result
 
   defp execute(job, identity, request_admitter) do
     with {:ok, card} <- load_card(identity),
@@ -89,13 +101,26 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
     {:cancel, reason}
   end
 
-  defp retry_with_event(%Oban.Job{attempt: attempt, max_attempts: max_attempts}, card, reason)
+  defp retry_with_event(job, card, {:acquisition_budget_rejected, _reason, _reset_at} = rejection) do
+    case AcquisitionBudget.budget_reason_disposition(rejection) do
+      disposition when disposition in [:hourly, :daily, :monthly] -> {:error, rejection}
+      _ -> retry_with_event_terminal(job, card, rejection)
+    end
+  end
+
+  defp retry_with_event(job, card, reason), do: retry_with_event_terminal(job, card, reason)
+
+  defp retry_with_event_terminal(
+         %Oban.Job{attempt: attempt, max_attempts: max_attempts},
+         card,
+         reason
+       )
        when attempt >= max_attempts do
     broadcast_failure(card.id, reason)
     {:error, reason}
   end
 
-  defp retry_with_event(_job, _card, reason), do: {:error, reason}
+  defp retry_with_event_terminal(_job, _card, reason), do: {:error, reason}
 
   defp validate_args(%{
          "local_card_id" => local_card_id,
@@ -192,7 +217,10 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
     do: {:retry, :budget_persistence_failed}
 
   defp classify_response({:error, {:acquisition_budget_rejected, reason}}),
-    do: {:cancel, {:acquisition_budget_rejected, reason}}
+    do: budget_result(reason)
+
+  defp classify_response({:error, {:acquisition_budget_rejected, reason, reset_at}}),
+    do: budget_result({:acquisition_budget_rejected, reason, reset_at})
 
   defp classify_response({:error, reason}) when reason in @transient_tags,
     do: transient_reason(reason, nil)
@@ -224,6 +252,34 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
   defp classify_response({:error, _reason}), do: {:cancel, :malformed_provider_result}
 
   defp classify_response(_response), do: {:cancel, :malformed_provider_result}
+
+  defp budget_result(reason) do
+    rejection =
+      case reason do
+        {:acquisition_budget_rejected, _, _} = rejection -> rejection
+        reason -> {:acquisition_budget_rejected, reason}
+      end
+
+    case AcquisitionBudget.budget_reason_disposition(rejection) do
+      :terminal ->
+        {:cancel, rejection}
+
+      disposition when disposition in [:hourly, :daily, :monthly] ->
+        case rejection do
+          {:acquisition_budget_rejected, _, _} ->
+            {:retry, rejection}
+
+          {:acquisition_budget_rejected, reason} ->
+            {:ok, reset_at} =
+              AcquisitionBudget.next_budget_window_reset(rejection, DateTime.utc_now())
+
+            {:retry, {:acquisition_budget_rejected, reason, reset_at}}
+        end
+
+      _ ->
+        {:retry, rejection}
+    end
+  end
 
   defp validate_result(result, %{tcgdex_id: tcgdex_id}, card) do
     with true <- is_map(result),

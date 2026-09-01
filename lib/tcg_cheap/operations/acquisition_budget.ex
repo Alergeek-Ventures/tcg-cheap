@@ -10,6 +10,12 @@ defmodule TcgCheap.Operations.AcquisitionBudget do
 
   alias TcgCheap.Operations.DataProvider
 
+  @type budget_reason :: atom()
+  @type budget_rejection ::
+          {:acquisition_budget_rejected, budget_reason()}
+          | {:acquisition_budget_rejected, budget_reason(), DateTime.t()}
+  @type budget_reason_input :: budget_reason() | budget_rejection()
+
   @global_lock_key "tcg_cheap:acquisition_budget:global"
   @top_level_keys [
     :global_daily_request_limit,
@@ -27,6 +33,20 @@ defmodule TcgCheap.Operations.AcquisitionBudget do
     :daily_request_limit,
     :monthly_request_limit,
     :monthly_spend_limit
+  ]
+  @hourly_reasons [:hourly_limit_reached, :global_hourly_limit_reached]
+  @daily_reasons [:daily_limit_reached, :global_daily_limit_reached]
+  @monthly_reasons [
+    :monthly_request_limit_reached,
+    :provider_monthly_spend_limit_reached,
+    :global_monthly_spend_limit_reached
+  ]
+  @non_retryable_reasons [
+    :provider_disabled,
+    :invalid_provider_configuration,
+    :invalid_admission_configuration,
+    :invalid_admission_result,
+    :invalid_clock
   ]
 
   @spec admit(String.t(), keyword()) :: {:ok, map()} | {:error, atom()}
@@ -46,15 +66,10 @@ defmodule TcgCheap.Operations.AcquisitionBudget do
   @doc "Normalizes the admission result used by external-acquisition workers."
   @spec admit_attempt(String.t()) ::
           {:ok, map()}
-          | {:error, :budget_persistence_failed | {:acquisition_budget_rejected, term()}}
+          | {:error, :budget_persistence_failed | budget_rejection()}
   def admit_attempt(provider_key) do
     with {:ok, module} <- admission_module() do
-      case module.admit(provider_key) do
-        {:ok, admission} -> {:ok, admission}
-        {:error, :budget_persistence_failed} -> {:error, :budget_persistence_failed}
-        {:error, reason} -> {:error, {:acquisition_budget_rejected, reason}}
-        _ -> {:error, {:acquisition_budget_rejected, :invalid_admission_result}}
-      end
+      admit_with_module(module, provider_key)
     end
   rescue
     _ -> {:error, :budget_persistence_failed}
@@ -62,14 +77,150 @@ defmodule TcgCheap.Operations.AcquisitionBudget do
     _, _ -> {:error, :budget_persistence_failed}
   end
 
+  defp admit_with_module(__MODULE__, provider_key), do: production_admit_attempt(provider_key)
+
+  defp admit_with_module(module, provider_key) do
+    admitted_at = DateTime.utc_now()
+
+    case module.admit(provider_key) do
+      {:ok, admission} -> {:ok, admission}
+      {:error, :budget_persistence_failed} -> {:error, :budget_persistence_failed}
+      {:error, reason} -> normalize_rejection(reason, admitted_at)
+      _ -> {:error, {:acquisition_budget_rejected, :invalid_admission_result}}
+    end
+  end
+
+  defp production_admit_attempt(provider_key) do
+    with {:ok, config} <- provider_config(provider_key),
+         {:ok, now} <- valid_clock(&DateTime.utc_now/0) do
+      reserve(config, now, true)
+    else
+      {:error, reason} -> {:error, {:acquisition_budget_rejected, reason}}
+    end
+  end
+
   @doc "Admits one outbound provider request without exposing accounting details."
   @spec admit_request(String.t()) ::
-          :ok | {:error, :budget_persistence_failed | {:acquisition_budget_rejected, term()}}
+          :ok | {:error, :budget_persistence_failed | budget_rejection()}
   def admit_request(provider_key) do
     case admit_attempt(provider_key) do
       {:ok, _admission} -> :ok
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp normalize_rejection({:acquisition_budget_rejected, reason, %DateTime{} = reset}, _now) do
+    rejection = {:acquisition_budget_rejected, reason, reset}
+
+    case budget_reason_disposition(rejection) do
+      :terminal -> {:error, {:acquisition_budget_rejected, reason}}
+      _ -> {:error, rejection}
+    end
+  end
+
+  defp normalize_rejection({:acquisition_budget_rejected, reason}, now),
+    do: normalize_rejection(reason, now)
+
+  defp normalize_rejection(reason, now) do
+    rejection = {:acquisition_budget_rejected, reason}
+
+    case budget_reason_disposition(rejection) do
+      disposition when disposition in [:hourly, :daily, :monthly] ->
+        {:ok, reset} = next_budget_window_reset(rejection, now)
+        {:error, {:acquisition_budget_rejected, reason, reset}}
+
+      _ ->
+        {:error, rejection}
+    end
+  end
+
+  @doc "Classifies a budget rejection as window exhaustion, terminal, or unknown."
+  @spec budget_reason_disposition(budget_reason_input()) ::
+          :hourly | :daily | :monthly | :terminal | :unknown
+  def budget_reason_disposition(reason) do
+    case budget_reason(reason) do
+      reason when reason in @hourly_reasons -> :hourly
+      reason when reason in @daily_reasons -> :daily
+      reason when reason in @monthly_reasons -> :monthly
+      reason when reason in @non_retryable_reasons -> :terminal
+      _ -> :unknown
+    end
+  end
+
+  @doc "Returns the absolute UTC reset time for a normal budget-window rejection."
+  @spec next_budget_window_reset(budget_reason_input(), DateTime.t()) ::
+          {:ok, DateTime.t()} | {:error, :not_retryable | :invalid_reason | :invalid_clock}
+  def next_budget_window_reset(reason, %DateTime{time_zone: "Etc/UTC"} = now) do
+    case budget_reason_disposition(reason) do
+      :hourly -> {:ok, next_hour(now)}
+      :daily -> {:ok, next_day(now)}
+      :monthly -> {:ok, next_month(now)}
+      :terminal -> {:error, :not_retryable}
+      :unknown -> {:error, :invalid_reason}
+    end
+  end
+
+  def next_budget_window_reset(_reason, _now), do: {:error, :invalid_clock}
+
+  @doc "Returns the remaining delay to an absolute UTC reset, never less than one second."
+  @spec remaining_budget_window_delay(DateTime.t(), DateTime.t()) ::
+          {:ok, pos_integer()} | {:error, :invalid_clock}
+  def remaining_budget_window_delay(
+        %DateTime{time_zone: "Etc/UTC"} = reset_at,
+        %DateTime{time_zone: "Etc/UTC"} = completed_at
+      ) do
+    microseconds = DateTime.diff(reset_at, completed_at, :microsecond)
+    {:ok, max(1, Integer.ceil_div(microseconds, 1_000_000))}
+  end
+
+  def remaining_budget_window_delay(_reset_at, _completed_at), do: {:error, :invalid_clock}
+
+  @spec next_budget_window_delay(budget_reason_input(), DateTime.t()) ::
+          {:ok, pos_integer()} | {:error, :not_retryable | :invalid_reason | :invalid_clock}
+  def next_budget_window_delay(reason, now \\ DateTime.utc_now())
+
+  def next_budget_window_delay(reason, %DateTime{time_zone: "Etc/UTC"} = now)
+      when is_atom(reason) or is_tuple(reason) do
+    case next_budget_window_reset(reason, now) do
+      {:ok, reset_at} -> delay_until(now, reset_at)
+      error -> error
+    end
+  end
+
+  def next_budget_window_delay(_reason, _now), do: {:error, :invalid_clock}
+
+  defp budget_reason({:acquisition_budget_rejected, reason, %DateTime{time_zone: "Etc/UTC"}})
+       when is_atom(reason),
+       do: reason
+
+  defp budget_reason({:acquisition_budget_rejected, reason}) when is_atom(reason), do: reason
+  defp budget_reason(reason) when is_atom(reason), do: reason
+  defp budget_reason(_), do: nil
+
+  defp delay_until(now, boundary) do
+    microseconds = DateTime.diff(boundary, now, :microsecond)
+    seconds = Integer.ceil_div(microseconds, 1_000_000)
+    if seconds > 0, do: {:ok, seconds}, else: {:error, :invalid_clock}
+  end
+
+  defp next_hour(now),
+    do:
+      DateTime.add(
+        DateTime.truncate(now, :second),
+        3_600 - now.minute * 60 - now.second,
+        :second
+      )
+
+  defp next_day(now),
+    do: DateTime.new!(Date.add(DateTime.to_date(now), 1), ~T[00:00:00], "Etc/UTC")
+
+  defp next_month(now) do
+    now
+    |> DateTime.to_date()
+    |> Date.beginning_of_month()
+    |> Date.add(32)
+    |> Date.beginning_of_month()
+    |> then(&DateTime.new!(&1, ~T[00:00:00], "Etc/UTC"))
   end
 
   @doc "Returns the complete, validated server-side acquisition configuration."
@@ -269,7 +420,9 @@ defmodule TcgCheap.Operations.AcquisitionBudget do
       else: {:error, {:acquisition_budget_rejected, :invalid_admission_configuration}}
   end
 
-  defp reserve(config, %DateTime{} = now) do
+  defp reserve(config, now, timestamped? \\ false)
+
+  defp reserve(config, %DateTime{} = now, timestamped?) do
     hour = DateTime.truncate(%DateTime{now | minute: 0, second: 0}, :second)
     day = DateTime.truncate(%DateTime{now | hour: 0, minute: 0, second: 0}, :second)
     month = DateTime.new!(Date.new!(now.year, now.month, 1), Time.new!(0, 0, 0), "Etc/UTC")
@@ -321,13 +474,28 @@ defmodule TcgCheap.Operations.AcquisitionBudget do
              :global_hourly_limit_reached,
              :global_daily_limit_reached
            ] ->
-        {:error, reason}
+        {:error, decorate_rejection(reason, now, timestamped?)}
 
       _ ->
         {:error, :budget_persistence_failed}
     end
   rescue
     _ -> {:error, :budget_persistence_failed}
+  end
+
+  defp decorate_rejection(reason, _now, false), do: reason
+
+  defp decorate_rejection(reason, now, true) do
+    case budget_reason_disposition({:acquisition_budget_rejected, reason}) do
+      disposition when disposition in [:hourly, :daily, :monthly] ->
+        {:acquisition_budget_rejected, reason, elem(next_budget_window_reset(reason, now), 1)}
+
+      :terminal ->
+        {:acquisition_budget_rejected, reason}
+
+      _ ->
+        reason
+    end
   end
 
   defp usage_totals(provider_id, hour, day, month) do

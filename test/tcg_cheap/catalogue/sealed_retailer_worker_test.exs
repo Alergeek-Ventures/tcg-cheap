@@ -165,6 +165,24 @@ defmodule TcgCheap.Catalogue.SealedRetailerWorkerTest do
     assert usage_counts("sealed_retailer:worker-stub") == %{}
   end
 
+  test "timestamped budget rejection remains a budget cancellation", %{
+    retailer: retailer,
+    stub: stub
+  } do
+    Application.put_env(:tcg_cheap, :acquisition_budget_admitter, BudgetStub)
+
+    Application.put_env(
+      :tcg_cheap,
+      :sealed_retailer_budget_stub_result,
+      {:error, {:acquisition_budget_rejected, :provider_disabled, ~U[2026-09-02 00:00:00Z]}}
+    )
+
+    assert {:cancel, {:acquisition_budget_rejected, :provider_disabled}} =
+             SealedRetailerWorker.perform(job(retailer))
+
+    assert %{calls: 0} = Agent.get(stub, & &1)
+  end
+
   test "malformed admission configuration fails closed without usage", %{
     retailer: retailer,
     stub: stub

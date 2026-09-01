@@ -369,13 +369,18 @@ defmodule TcgCheap.Catalogue.ImporterTest do
       end
     end)
 
-    assert {:error, {:acquisition_budget_rejected, :hourly_limit_reached}} =
+    assert {:error,
+            {:acquisition_budget_rejected, :hourly_limit_reached,
+             %DateTime{time_zone: "Etc/UTC"} = reset_at}} =
              Importer.import_card("sv-base-1",
                provider_options: [
                  request_options: [plug: {Req.Test, name}, retry: :safe_transient, max_retries: 2]
                ]
              )
 
+    assert DateTime.compare(reset_at, DateTime.utc_now()) == :gt
+    assert reset_at.minute == 0
+    assert reset_at.second == 0
     assert :counters.get(requests, 1) == 1
     assert Agent.get(budget_stub, & &1) == 2
     assert Repo.aggregate(from(c in "card_printings"), :count, :id) == 0

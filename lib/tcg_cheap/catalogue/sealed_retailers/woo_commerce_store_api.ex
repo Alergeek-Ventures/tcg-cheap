@@ -187,6 +187,7 @@ defmodule TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI do
     case Keyword.get(options, :request_admitter, fn -> :ok end).() do
       :ok -> :ok
       {:error, :budget_persistence_failed} = error -> error
+      {:error, {:acquisition_budget_rejected, _, _}} = error -> error
       {:error, {:acquisition_budget_rejected, _}} = error -> error
       _ -> {:error, :invalid_admission_result}
     end

@@ -5,13 +5,12 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorker do
     max_attempts: 5,
     unique: [
       period: 7 * 24 * 60 * 60,
-      keys: [:policy_version],
       states: [:available, :scheduled, :executing, :retryable, :suspended, :completed],
       fields: [:worker, :args]
     ]
 
   alias TcgCheap.Catalogue.{CatalogueSyncWorker, SinglesSetCollectionWorker, Tcgdex}
-  alias TcgCheap.Operations.AcquisitionTracker
+  alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionTracker}
 
   @policy_version 2
 
@@ -77,11 +76,23 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorker do
             list_and_enqueue(provider, singles, admitter, as_of)
           end
         )
+        |> translate_budget_result()
 
       {:error, reason} ->
         {:cancel, reason}
     end
   end
+
+  defp translate_budget_result(
+         {kind,
+          {:acquisition_budget_rejected, _reason, %DateTime{time_zone: "Etc/UTC"} = reset_at}}
+       )
+       when kind in [:error, :cancel] do
+    {:ok, seconds} = AcquisitionBudget.remaining_budget_window_delay(reset_at, DateTime.utc_now())
+    {:snooze, seconds}
+  end
+
+  defp translate_budget_result(result), do: result
 
   defp list_and_enqueue(%{provider_options: _} = provider, singles, admitter, as_of) do
     options = Keyword.put(provider.provider_options, :request_admitter, admitter)
@@ -217,15 +228,11 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorker do
 
   defp classify_retriable(reason) do
     case AcquisitionTracker.classify(reason) do
+      :budget ->
+        budget_result(reason)
+
       category
-      when category in [
-             :budget,
-             :rate_limit,
-             :timeout,
-             :transport,
-             :provider_response,
-             :persistence
-           ] ->
+      when category in [:rate_limit, :timeout, :transport, :provider_response, :persistence] ->
         {:error, category_error(category)}
 
       category when category in [:configuration, :local_input] ->
@@ -236,7 +243,37 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorker do
     end
   end
 
-  defp category_error(:budget), do: :acquisition_budget_rejected
+  defp budget_result(reason) do
+    rejection = category_error(:budget, reason)
+
+    case AcquisitionBudget.budget_reason_disposition(rejection) do
+      :terminal ->
+        {:cancel, rejection}
+
+      disposition when disposition in [:hourly, :daily, :monthly] ->
+        case rejection do
+          {:acquisition_budget_rejected, _, %DateTime{time_zone: "Etc/UTC"}} ->
+            {:error, rejection}
+
+          {:acquisition_budget_rejected, reason} ->
+            {:ok, reset_at} =
+              AcquisitionBudget.next_budget_window_reset(rejection, DateTime.utc_now())
+
+            {:error, {:acquisition_budget_rejected, reason, reset_at}}
+        end
+
+      _ ->
+        {:error, rejection}
+    end
+  end
+
+  defp category_error(:budget, {:acquisition_budget_rejected, reason}),
+    do: {:acquisition_budget_rejected, reason}
+
+  defp category_error(:budget, {:acquisition_budget_rejected, reason, reset_at}),
+    do: {:acquisition_budget_rejected, reason, reset_at}
+
+  defp category_error(:budget, reason), do: {:acquisition_budget_rejected, reason}
   defp category_error(:rate_limit), do: :provider_rate_limited
   defp category_error(:timeout), do: :provider_timeout
   defp category_error(:transport), do: :provider_transport_error

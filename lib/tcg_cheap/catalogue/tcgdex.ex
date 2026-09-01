@@ -129,6 +129,7 @@ defmodule TcgCheap.Catalogue.Tcgdex do
     case Keyword.get(opts, :request_admitter, fn -> :ok end).() do
       :ok -> :ok
       {:error, :budget_persistence_failed} = error -> error
+      {:error, {:acquisition_budget_rejected, _reason, _reset_at}} = error -> error
       {:error, {:acquisition_budget_rejected, _reason}} = error -> error
       _ -> {:error, :invalid_admission_result}
     end

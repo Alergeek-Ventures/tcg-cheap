@@ -149,6 +149,41 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorkerTest do
     )
   end
 
+  test "uniqueness compares the complete bootstrap args" do
+    cron = Oban.insert!(SinglesScopeBootstrapWorker.new(%{"policy_version" => 2}))
+    same_cron = Oban.insert!(SinglesScopeBootstrapWorker.new(%{"policy_version" => 2}))
+    assert cron.id == same_cron.id
+
+    {1, _} =
+      TcgCheap.Repo.update_all(from(j in Oban.Job, where: j.id == ^cron.id),
+        set: [state: "completed", inserted_at: DateTime.add(DateTime.utc_now(), -1, :day)]
+      )
+
+    completed_cron = Oban.insert!(SinglesScopeBootstrapWorker.new(%{"policy_version" => 2}))
+    assert completed_cron.id == cron.id
+
+    {1, _} =
+      TcgCheap.Repo.update_all(from(j in Oban.Job, where: j.id == ^cron.id),
+        set: [inserted_at: DateTime.add(DateTime.utc_now(), -8, :day)]
+      )
+
+    rerun_cron = Oban.insert!(SinglesScopeBootstrapWorker.new(%{"policy_version" => 2}))
+    manual_args = %{"policy_version" => 2, "as_of" => "2026-08-19"}
+    manual = Oban.insert!(SinglesScopeBootstrapWorker.new(manual_args))
+    same_manual = Oban.insert!(SinglesScopeBootstrapWorker.new(manual_args))
+
+    other_manual =
+      Oban.insert!(
+        SinglesScopeBootstrapWorker.new(%{"policy_version" => 2, "as_of" => "2026-08-20"})
+      )
+
+    assert rerun_cron.id != cron.id
+    assert rerun_cron.id != manual.id
+    assert manual.id == same_manual.id
+    assert cron.id != manual.id
+    assert manual.id != other_manual.id
+  end
+
   test "unsupported and extra bootstrap payloads are malformed" do
     assert {:cancel, :malformed_job_args} =
              SinglesScopeBootstrapWorker.perform(
@@ -221,11 +256,50 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorkerTest do
     Agent.update(provider, &Map.put(&1, :sets, [%{"id" => id, "name" => "Set"}]))
     Agent.update(admissions, fn _ -> [{:error, :hourly_limit_reached}] end)
 
-    assert {:error, :acquisition_budget_rejected} =
+    assert {:snooze, seconds} =
              SinglesScopeBootstrapWorker.perform(job(%{"as_of" => "2026-08-19"}))
+
+    assert seconds > 0
+    assert Agent.get(provider, & &1.calls) == 0
+    run = latest_run("tcgdex_catalogue")
+    assert run.status == "retryable_failure"
+    assert run.failure_category == "budget"
+    assert run.request_count == 0
+    refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Catalogue.SinglesSetCollectionWorker)
+  end
+
+  test "disabled provider budget rejection is terminal", %{
+    provider: provider,
+    admissions: admissions
+  } do
+    Agent.update(provider, &Map.put(&1, :sets, [%{"id" => "sv01", "name" => "Set"}]))
+    Agent.update(admissions, fn _ -> [{:error, :provider_disabled}] end)
+
+    assert {:cancel, {:acquisition_budget_rejected, :provider_disabled}} =
+             SinglesScopeBootstrapWorker.perform(job(%{"as_of" => "2026-08-19"}))
+
+    assert %{status: "cancelled", failure_category: "budget", request_count: 0} =
+             latest_run("tcgdex_catalogue")
 
     assert Agent.get(provider, & &1.calls) == 0
     refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Catalogue.SinglesSetCollectionWorker)
+  end
+
+  test "preserves an attached budget reset through snooze translation", %{
+    provider: provider,
+    admissions: admissions
+  } do
+    reset_at = ~U[2099-01-01 00:00:00Z]
+
+    Agent.update(admissions, fn _ ->
+      [{:error, {:acquisition_budget_rejected, :hourly_limit_reached, reset_at}}]
+    end)
+
+    assert {:snooze, seconds} =
+             SinglesScopeBootstrapWorker.perform(job(%{"as_of" => "2026-08-19"}))
+
+    assert seconds > 2_000_000_000
+    assert Agent.get(provider, & &1.calls) == 0
   end
 
   test "legacy bootstrap payload is superseded without provider or budget calls", %{
@@ -289,4 +363,9 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorkerTest do
         ]
       ]
     ]
+
+  defp latest_run(provider_key),
+    do:
+      TcgCheap.Operations.list_recent_acquisition_runs!([provider_key], 1, authorize?: false)
+      |> hd()
 end

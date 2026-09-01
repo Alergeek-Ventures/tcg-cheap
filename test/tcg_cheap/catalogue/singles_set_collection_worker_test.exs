@@ -339,8 +339,14 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     assert {:error, :provider_timeout} = SinglesSetCollectionWorker.perform(job(set_id, 0))
     Agent.update(admissions, fn _ -> [{:error, :hourly_limit_reached}] end)
 
-    assert {:error, :acquisition_budget_rejected} =
+    assert {:snooze, seconds} =
              SinglesSetCollectionWorker.perform(job(set_id, 0))
+
+    assert seconds > 0
+    run = latest_run("tcgdex_catalogue")
+    assert run.status == "retryable_failure"
+    assert run.failure_category == "budget"
+    assert run.request_count == 0
   end
 
   test "legacy source and timestamp are retained", %{provider: provider} do
@@ -478,4 +484,9 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
         ]
       ]
     ]
+
+  defp latest_run(provider_key),
+    do:
+      TcgCheap.Operations.list_recent_acquisition_runs!([provider_key], 1, authorize?: false)
+      |> hd()
 end
