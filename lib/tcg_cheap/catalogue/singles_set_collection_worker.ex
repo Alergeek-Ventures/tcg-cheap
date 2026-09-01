@@ -19,7 +19,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
 
   alias TcgCheap.Core
   alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionTracker}
-  alias TcgCheap.Pricing.Singles.ValuationAcquisition
+  alias TcgCheap.Pricing.Singles.{TcgdexCardmarket, ValuationAcquisition, ValuationWorker}
 
   @policy_version 2
 
@@ -166,7 +166,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
            ),
          {:ok, local} <- imported_card(imported),
          {:ok, updated} <- add_scopes(local, target, release_date, scoped_at),
-         :ok <- maybe_enqueue_valuation(updated) do
+         :ok <- maybe_record_embedded_or_enqueue(updated, card, scoped_at) do
       {:cont, :ok}
     else
       {:error, reason} -> {:halt, {:error, reason}}
@@ -201,6 +201,76 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
   end
 
   defp maybe_enqueue_valuation(_), do: :ok
+
+  defp maybe_record_embedded_or_enqueue(card, provider_card, fetched_at) do
+    case TcgdexCardmarket.parse_embedded(card.tcgdex_id, provider_card, fetched_at) do
+      {:ok, result} ->
+        persist_embedded_if_current(card.tcgdex_id, result)
+
+      {:error, _reason} ->
+        maybe_enqueue_current(card.tcgdex_id)
+    end
+  end
+
+  defp maybe_enqueue_current(tcgdex_id) do
+    case Core.get_card_printing_by_tcgdex_id(tcgdex_id) do
+      {:ok, card} -> maybe_enqueue_valuation(card)
+      {:error, _} -> {:error, :persistence_failed}
+    end
+  end
+
+  defp persist_embedded_if_current(tcgdex_id, result) do
+    case Core.get_card_printing_by_tcgdex_id(tcgdex_id) do
+      {:ok, %{mapping_status: "matched", cardmarket_product_id: product_id} = card}
+      when is_integer(product_id) and product_id > 0 ->
+        case ValuationWorker.validate_result(result, %{tcgdex_id: tcgdex_id}, card) do
+          {:ok, attrs} -> record_embedded(attrs, tcgdex_id)
+          {:error, _} -> maybe_enqueue_valuation(card)
+        end
+
+      {:ok, %{mapping_status: status}} when status in ["unmatched", "review"] ->
+        :ok
+
+      {:ok, card} ->
+        maybe_enqueue_valuation(card)
+
+      {:error, _} ->
+        {:error, :persistence_failed}
+    end
+  end
+
+  @mapping_race_message "active-policy valuation must match the currently matched positive Cardmarket product"
+
+  defp record_embedded(attrs, tcgdex_id) do
+    case Core.record_single_valuation(attrs, authorize?: false) do
+      {:ok, _snapshot} ->
+        :ok
+
+      {:error, %Ash.Error.Invalid{} = error} ->
+        if mapping_race_error?(error),
+          do: refetch_after_mapping_race(tcgdex_id),
+          else: {:error, :persistence_failed}
+
+      {:error, _error} ->
+        {:error, :persistence_failed}
+    end
+  end
+
+  defp mapping_race_error?(%Ash.Error.Invalid{errors: [error]}),
+    do: error_message(error) == @mapping_race_message
+
+  defp mapping_race_error?(_error), do: false
+
+  defp error_message(%{message: message}) when is_binary(message), do: message
+  defp error_message(message) when is_binary(message), do: message
+  defp error_message(_error), do: nil
+
+  defp refetch_after_mapping_race(tcgdex_id) do
+    case Core.get_card_printing_by_tcgdex_id(tcgdex_id) do
+      {:ok, card} -> maybe_enqueue_valuation(card)
+      {:error, _} -> {:error, :persistence_failed}
+    end
+  end
 
   defp enqueue_next(_set_id, offset, total, _as_of, _config) when offset >= total, do: :ok
 

@@ -32,13 +32,18 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
   @visible_queue_limit 25
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:page_title, "Sealed review desk")
-     |> assign(:product_type_options, @product_type_options)
-     |> assign(:visible_queue_limit, @visible_queue_limit)
-     |> load_review_desk()}
+  def mount(params, _session, socket) do
+    socket =
+      socket
+      |> assign(:page_title, "Sealed review desk")
+      |> assign(:product_type_options, @product_type_options)
+      |> assign(:visible_queue_limit, @visible_queue_limit)
+      |> assign(:targeted_mapping_id, nil)
+
+    case Map.get(params, "mapping_id") do
+      nil -> {:ok, load_review_desk(socket)}
+      mapping_id -> mount_targeted_mapping(socket, mapping_id)
+    end
   end
 
   @impl true
@@ -565,27 +570,32 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
     {:noreply, fail(socket, "Review action was not accepted", :invalid_review_event)}
   end
 
-  defp load_review_desk(socket) do
+  defp load_review_desk(socket, targeted_mappings \\ nil) do
     actor = socket.assigns.current_admin
-    fetched_queue_limit = @visible_queue_limit + 1
 
-    products =
-      Core.list_sealed_product_draft_review_queue!(
-        query: [limit: fetched_queue_limit],
-        actor: actor
-      )
+    {products, aliases, mappings} =
+      case targeted_mappings do
+        nil ->
+          fetched_queue_limit = @visible_queue_limit + 1
 
-    aliases =
-      Core.list_sealed_product_alias_pending_queue!(
-        query: [limit: fetched_queue_limit],
-        actor: actor
-      )
+          {
+            Core.list_sealed_product_draft_review_queue!(
+              query: [limit: fetched_queue_limit],
+              actor: actor
+            ),
+            Core.list_sealed_product_alias_pending_queue!(
+              query: [limit: fetched_queue_limit],
+              actor: actor
+            ),
+            Core.list_listing_mapping_review_queue!(
+              query: [limit: fetched_queue_limit],
+              actor: actor
+            )
+          }
 
-    mappings =
-      Core.list_listing_mapping_review_queue!(
-        query: [limit: fetched_queue_limit],
-        actor: actor
-      )
+        mappings when is_list(mappings) ->
+          {[], [], mappings}
+      end
 
     approved_products = Core.list_public_sealed_products!(actor: actor)
     approved_product_ids = MapSet.new(approved_products, & &1.id)
@@ -651,6 +661,25 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
     |> stream(:listing_mappings, visible_mappings, reset: true)
   end
 
+  defp mount_targeted_mapping(socket, mapping_id) do
+    case Ecto.UUID.cast(mapping_id) do
+      {:ok, uuid} ->
+        case Core.get_listing_mapping_for_review(uuid, actor: socket.assigns.current_admin) do
+          {:ok, %ListingProductMapping{} = mapping} ->
+            {:ok, load_review_desk(assign(socket, :targeted_mapping_id, uuid), [mapping])}
+
+          {:ok, nil} ->
+            {:ok, unavailable_mapping_redirect(socket)}
+
+          {:error, error} ->
+            raise error
+        end
+
+      :error ->
+        {:ok, unavailable_mapping_redirect(socket)}
+    end
+  end
+
   defp queue_count(queue) when length(queue) > @visible_queue_limit,
     do: "#{@visible_queue_limit}+"
 
@@ -706,15 +735,35 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
   end
 
   defp succeed(socket, message) do
-    socket
-    |> put_flash(:info, message)
-    |> load_review_desk()
+    socket = put_flash(socket, :info, message)
+
+    case socket.assigns.targeted_mapping_id do
+      nil -> load_review_desk(socket)
+      _mapping_id -> redirect(socket, to: ~p"/admin/review")
+    end
   end
 
   defp fail(socket, message, error) do
     socket
     |> put_flash(:error, "#{message}. #{review_error(error)}")
-    |> load_review_desk()
+    |> reload_review_desk()
+  end
+
+  defp reload_review_desk(%{assigns: %{targeted_mapping_id: nil}} = socket),
+    do: load_review_desk(socket)
+
+  defp reload_review_desk(%{assigns: %{targeted_mapping_id: mapping_id}} = socket) do
+    case Core.get_listing_mapping_for_review(mapping_id, actor: socket.assigns.current_admin) do
+      {:ok, %ListingProductMapping{} = mapping} -> load_review_desk(socket, [mapping])
+      {:ok, nil} -> unavailable_mapping_redirect(socket)
+      {:error, error} -> raise error
+    end
+  end
+
+  defp unavailable_mapping_redirect(socket) do
+    socket
+    |> put_flash(:error, "That listing mapping is no longer available for review.")
+    |> redirect(to: ~p"/admin/review")
   end
 
   defp review_error(:stale_review), do: "Another review already changed this row."

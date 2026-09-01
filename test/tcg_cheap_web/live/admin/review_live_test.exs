@@ -167,6 +167,69 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
     refute has_element?(view, "#listing-mapping-queue article:nth-of-type(26)")
   end
 
+  test "targeted review shows and can approve a mapping beyond the queue limit", %{conn: conn} do
+    target = approved_product(%{name: "Target Product"})
+    shop = retailer()
+
+    filler_mappings =
+      Enum.map(1..25, fn index ->
+        filler = listing(shop, "listing-target-filler-#{index}")
+        Core.create_pending_listing_mapping!(%{retailer_listing_id: filler.id})
+      end)
+
+    target_listing = listing(shop, "listing-target")
+
+    mapping =
+      Core.create_review_listing_mapping!(%{
+        retailer_listing_id: target_listing.id,
+        candidate_product_id: target.id,
+        confidence: Decimal.new("0.9"),
+        evidence: %{method: "ean"},
+        reason: "Targeted review"
+      })
+
+    {:ok, view, _html} =
+      live(authenticated_conn(conn), ~p"/admin/review/mappings/#{mapping.id}")
+
+    assert has_element?(view, "#mapping-source-#{mapping.id}")
+    assert has_element?(view, "#approve-mapping-form-#{mapping.id}")
+    refute has_element?(view, "#draft-product-queue article")
+    refute has_element?(view, "#pending-alias-queue article")
+    refute has_element?(view, "#mapping-source-#{hd(filler_mappings).id}")
+
+    view
+    |> form("#approve-mapping-form-#{mapping.id}",
+      mapping: %{id: mapping.id, confirmed_product_id: target.id}
+    )
+    |> render_submit()
+
+    assert Ash.get!(ListingProductMapping, mapping.id, authorize?: false).status == "matched"
+  end
+
+  test "invalid and terminal targeted mappings do not render a docket", %{conn: conn} do
+    assert {:error, {:redirect, %{to: "/admin/review", flash: flash}}} =
+             live(authenticated_conn(conn), "/admin/review/mappings/not-a-uuid")
+
+    assert inspect(flash) =~ "no longer available"
+
+    target = approved_product(%{name: "Terminal Product"})
+    shop = retailer()
+    terminal_listing = listing(shop, "listing-terminal")
+
+    mapping =
+      Core.create_matched_listing_mapping!(%{
+        retailer_listing_id: terminal_listing.id,
+        confirmed_product_id: target.id,
+        confidence: Decimal.new("1"),
+        evidence: %{method: "admin"}
+      })
+
+    assert {:error, {:redirect, %{to: "/admin/review", flash: flash}}} =
+             live(authenticated_conn(conn), ~p"/admin/review/mappings/#{mapping.id}")
+
+    assert inspect(flash) =~ "no longer available"
+  end
+
   defp authenticated_conn(conn) do
     email = "review-admin-#{System.unique_integer([:positive])}@example.test"
 

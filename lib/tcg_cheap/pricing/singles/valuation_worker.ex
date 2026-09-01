@@ -281,7 +281,8 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
     end
   end
 
-  defp validate_result(result, %{tcgdex_id: tcgdex_id}, card) do
+  @doc false
+  def validate_result(result, %{tcgdex_id: tcgdex_id}, card) do
     with true <- is_map(result),
          ^tcgdex_id <- Map.get(result, :card_id),
          @policy_version <- normalize_policy(Map.get(result, :policy_version)),

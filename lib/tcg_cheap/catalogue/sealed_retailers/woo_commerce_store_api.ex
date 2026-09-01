@@ -49,7 +49,7 @@ defmodule TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI do
 
     with true <- MapSet.new(Map.keys(spec)) == MapSet.new(required),
          true <- valid_endpoint?(spec.endpoint, spec.canonical_host),
-         true <- is_integer(spec.category) and spec.category > 0,
+         true <- valid_category?(spec.category),
          true <- is_struct(spec.product_path, Regex),
          true <- valid_slugs?(spec.eligible_category_slugs),
          true <- is_struct(spec.exclusion, Regex),
@@ -59,6 +59,23 @@ defmodule TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI do
       _ -> {:error, :malformed_spec}
     end
   end
+
+  defp valid_category?(category) when is_integer(category), do: category > 0
+
+  defp valid_category?(category) when is_binary(category) do
+    with true <- Regex.match?(~r/\A[1-9][0-9]*(?:,[1-9][0-9]*)*\z/, category),
+         ids <- String.split(category, ","),
+         integers <- Enum.map(ids, &String.to_integer/1),
+         true <- length(integers) == length(Enum.uniq(integers)) do
+      true
+    else
+      _ -> false
+    end
+  rescue
+    _ -> false
+  end
+
+  defp valid_category?(_), do: false
 
   defp valid_endpoint?(endpoint, host) when is_binary(endpoint) and is_binary(host) do
     uri = URI.parse(endpoint)

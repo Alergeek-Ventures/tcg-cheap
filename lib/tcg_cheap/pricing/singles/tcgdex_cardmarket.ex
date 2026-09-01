@@ -77,6 +77,19 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarket do
 
   def fetch(_card_id, _opts), do: {:error, :invalid_card_id}
 
+  @doc "Parses Cardmarket pricing already present in a detailed catalogue payload."
+  @spec parse_embedded(term(), term(), term()) :: {:ok, result()} | {:error, error()}
+  def parse_embedded(card_id, payload, %DateTime{} = fetched_at)
+      when is_binary(card_id) and is_map(payload) do
+    if Tcgdex.valid_card_id?(card_id) do
+      parse_body(payload, card_id, clock: fn -> fetched_at end)
+    else
+      {:error, :invalid_card_id}
+    end
+  end
+
+  def parse_embedded(_, _, _), do: {:error, :invalid_options}
+
   defp fetch_card(card_id, opts) do
     requested_id = card_id
 
@@ -188,6 +201,15 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarket do
 
   defp decimal_value(value) when is_integer(value) do
     decimal_value(Decimal.new(value))
+  end
+
+  # Catalogue payloads are decoded with normal floats. Convert through their
+  # shortest decimal representation rather than Decimal.from_float/1, which
+  # would retain binary floating point artefacts.
+  defp decimal_value(value) when is_float(value) do
+    value |> :erlang.float_to_binary([:short]) |> Decimal.new() |> decimal_value()
+  rescue
+    ArgumentError -> :skip
   end
 
   defp decimal_value(%Decimal{} = value) do

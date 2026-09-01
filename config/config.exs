@@ -70,6 +70,10 @@ config :tcg_cheap, :sealed_retailer_adapters, %{
   "boosterpoint" => %{
     adapter: TcgCheap.Catalogue.SealedRetailers.BoosterPoint,
     options: [per_page: 100, max_pages: 10]
+  },
+  "pokebooster" => %{
+    adapter: TcgCheap.Catalogue.SealedRetailers.PokeBooster,
+    options: [per_page: 100, max_pages: 10]
   }
 }
 
@@ -114,6 +118,8 @@ config :tcg_cheap, Oban,
         args: %{"policy_version" => 1, "source_key" => "cardzhouse"}},
        {"0 3 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
         args: %{"policy_version" => 1, "source_key" => "boosterpoint"}},
+       {"0 4 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
+        args: %{"policy_version" => 1, "source_key" => "pokebooster"}},
        {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
      ]}
   ]
@@ -212,6 +218,15 @@ config :tcg_cheap, :acquisition_budget,
         [
           provider_key: "sealed_retailer:boosterpoint",
           display_name: "BoosterPoint sealed catalogue",
+          estimated_cost_per_request: "0.00",
+          hourly_request_limit: 50,
+          daily_request_limit: 100,
+          monthly_request_limit: 500,
+          monthly_spend_limit: "0.00"
+        ],
+        [
+          provider_key: "sealed_retailer:pokebooster",
+          display_name: "PokeBooster sealed catalogue",
           estimated_cost_per_request: "0.00",
           hourly_request_limit: 50,
           daily_request_limit: 100,

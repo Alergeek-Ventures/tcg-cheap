@@ -11,7 +11,8 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
     assert Map.keys(Worker.sources()) |> Enum.sort() == [
              "boosterpoint",
              "cardzhouse",
-             "lootquest"
+             "lootquest",
+             "pokebooster"
            ]
 
     assert Worker.sources() == %{
@@ -32,6 +33,12 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
                name: "BoosterPoint",
                category: "lgs",
                homepage_url: "https://boosterpoint.pl"
+             },
+             "pokebooster" => %{
+               slug: "pokebooster",
+               name: "PokeBooster",
+               category: "lgs",
+               homepage_url: "https://pokebooster.pl"
              }
            }
 
@@ -49,7 +56,8 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
              [
                {"0 1 * * 1", Worker, %{"policy_version" => 1, "source_key" => "lootquest"}},
                {"0 2 * * 1", Worker, %{"policy_version" => 1, "source_key" => "cardzhouse"}},
-               {"0 3 * * 1", Worker, %{"policy_version" => 1, "source_key" => "boosterpoint"}}
+               {"0 3 * * 1", Worker, %{"policy_version" => 1, "source_key" => "boosterpoint"}},
+               {"0 4 * * 1", Worker, %{"policy_version" => 1, "source_key" => "pokebooster"}}
              ]
 
     assert Application.fetch_env!(:tcg_cheap, :sealed_retailer_adapters) == %{
@@ -63,6 +71,10 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
              },
              "boosterpoint" => %{
                adapter: TcgCheap.Catalogue.SealedRetailers.BoosterPoint,
+               options: [per_page: 100, max_pages: 10]
+             },
+             "pokebooster" => %{
+               adapter: TcgCheap.Catalogue.SealedRetailers.PokeBooster,
                options: [per_page: 100, max_pages: 10]
              }
            }
@@ -131,7 +143,7 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
     assert states == [:available, :scheduled, :executing, :retryable, :suspended]
   end
 
-  test "keeps all six provider budgets and global limits" do
+  test "keeps all seven provider budgets and global limits" do
     budget = Application.fetch_env!(:tcg_cheap, :acquisition_budget)
     providers = Keyword.fetch!(budget, :providers)
 
@@ -145,7 +157,8 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
              "nbp",
              "sealed_retailer:lootquest",
              "sealed_retailer:cardzhouse",
-             "sealed_retailer:boosterpoint"
+             "sealed_retailer:boosterpoint",
+             "sealed_retailer:pokebooster"
            ]
   end
 

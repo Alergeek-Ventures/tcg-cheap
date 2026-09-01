@@ -140,11 +140,14 @@ defmodule TcgCheap.Catalogue.Tcgdex do
   end
 
   defp decode(body, kind, id) when is_binary(body) do
-    case Jason.decode(body) do
+    case decode_json(body, kind) do
       {:ok, value} -> normalize(value, kind, id)
       {:error, reason} -> {:error, {:decode_error, reason}}
     end
   end
+
+  defp decode_json(body, "cards"), do: Jason.decode(body, floats: :decimals)
+  defp decode_json(body, _kind), do: Jason.decode(body)
 
   defp response_body({size, chunks}) when is_integer(size) and is_list(chunks),
     do: {:ok, chunks |> Enum.reverse() |> IO.iodata_to_binary()}

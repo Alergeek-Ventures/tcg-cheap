@@ -57,6 +57,19 @@ defmodule TcgCheap.Catalogue.TcgdexTest do
     refute Map.has_key?(result, "_resource")
   end
 
+  test "preserves card pricing decimals during JSON decoding" do
+    name = make_ref()
+
+    Req.Test.stub(name, fn conn ->
+      Req.Test.text(conn, ~s({"id":"sv-base-1","pricing":{"cardmarket":{"avg7":1.234}}}))
+    end)
+
+    assert {:ok, %{"pricing" => %{"cardmarket" => %{"avg7" => %Decimal{} = value}}}} =
+             Tcgdex.fetch_card("sv-base-1", request_options: request_options(name))
+
+    assert Decimal.equal?(value, Decimal.new("1.234"))
+  end
+
   test "rejects malformed, non-200, invalid JSON and unsafe options" do
     name = make_ref()
     Req.Test.stub(name, fn conn -> Plug.Conn.send_resp(conn, 404, "missing") end)

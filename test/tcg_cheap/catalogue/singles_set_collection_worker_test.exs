@@ -91,6 +91,42 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     assert length(Agent.get(admissions, & &1)) == 7
   end
 
+  test "persists usable embedded pricing without enqueueing valuation", %{provider: provider} do
+    id = hd(card_ids(1))
+    scoped_at = ~U[2026-08-19 12:00:00Z]
+
+    priced =
+      card(id, "matched", 123)
+      |> Map.put("updated", "2026-08-18T10:00:00Z")
+      |> Map.put("pricing", %{
+        "cardmarket" => %{
+          "unit" => "EUR",
+          "idProduct" => 123,
+          "updated" => "2026-08-18T10:00:00Z",
+          "avg7" => 1.235,
+          "avg30" => 9.99
+        }
+      })
+
+    put_fixture(provider, "me05", [id], [priced])
+    assert :ok = SinglesSetCollectionWorker.perform_on(job("me05", 0), scoped_at)
+
+    card = TcgCheap.Core.get_card_printing_by_tcgdex_id!(id)
+
+    assert {:ok, [snapshot]} =
+             TcgCheap.Core.list_current_single_valuations(card.id, authorize?: false)
+
+    assert Decimal.equal?(snapshot.value_eur, Decimal.new("1.24"))
+    assert snapshot.source_metric == "avg7"
+    assert snapshot.policy_version == "tcgdex_cardmarket_v1"
+    assert snapshot.source == "tcgdex_cardmarket"
+    assert snapshot.currency == "EUR"
+    assert snapshot.cardmarket_product_id == 123
+    assert DateTime.compare(snapshot.fetched_at, scoped_at) == :eq
+    assert DateTime.compare(snapshot.provider_updated_at, ~U[2026-08-18 10:00:00Z]) == :eq
+    refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Pricing.Singles.ValuationWorker)
+  end
+
   test "rolling window selects exact IR/SIR rarities and expires two years later", %{
     provider: provider
   } do

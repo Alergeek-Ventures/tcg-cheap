@@ -161,6 +161,7 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
       argument :id, :uuid, allow_nil?: false
       get? true
       filter expr(id == ^arg(:id) and status in ["pending", "review"])
+      prepare build(load: [candidate_product: [], retailer_listing: [:retailer]])
     end
 
     read :matched_by_listing do

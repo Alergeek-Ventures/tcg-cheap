@@ -141,6 +141,31 @@ defmodule TcgCheap.Pricing.Singles.TcgdexCardmarketTest do
     assert Decimal.equal?(result.value_eur, Decimal.new("12.00"))
   end
 
+  test "parses embedded catalogue floats through decimal text" do
+    assert {:ok, result} =
+             TcgdexCardmarket.parse_embedded(
+               "base1-4",
+               %{
+                 "id" => "base1-4",
+                 "pricing" => %{
+                   "cardmarket" => %{
+                     "unit" => "EUR",
+                     "idProduct" => 273_699,
+                     "updated" => "2026-08-07T08:03:04.828Z",
+                     "avg7" => 1.234
+                   }
+                 }
+               },
+               @fetched_at
+             )
+
+    assert result.source_metric == :avg7
+    assert Decimal.equal?(result.value_eur, Decimal.new("1.23"))
+    assert result.fetched_at == @fetched_at
+    assert result.provider_updated_at == ~U[2026-08-07 08:03:04.828Z]
+    assert result.cardmarket_product_id == 273_699
+  end
+
   test "rounds raw numeric JSON half up without float arithmetic" do
     name =
       stub_response(~s({"id":"base1-4","pricing":{"cardmarket":{"unit":"EUR","avg7":1.235}}}))
