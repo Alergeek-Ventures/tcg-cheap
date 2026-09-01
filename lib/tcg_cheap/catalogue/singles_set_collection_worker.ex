@@ -226,7 +226,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
     full = if set_id == config.pitch_black_set_id, do: ["pitch_black_full"], else: []
 
     rolling =
-      if release >= Date.shift(as_of, year: -2) and release <= as_of and
+      if date_between?(release, Date.shift(as_of, year: -2), as_of) and
            Date.compare(Date.shift(release, year: 2), DateTime.to_date(scoped_at)) in [:eq, :gt] and
            is_binary(card["rarity"]) and
            String.downcase(String.trim(card["rarity"])) in config.rolling_rarities,
@@ -239,7 +239,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
   defp selected_set?(set_id, release, as_of, config),
     do:
       set_id == config.pitch_black_set_id or
-        (release >= Date.shift(as_of, year: -2) and release <= as_of)
+        date_between?(release, Date.shift(as_of, year: -2), as_of)
 
   defp set_active_at_scope?(set_id, _release, config, _scoped_at)
        when set_id == config.pitch_black_set_id,
@@ -256,8 +256,17 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
        )
        when is_binary(name) and name != "" and is_binary(release) do
     case {actual_id, Date.from_iso8601(release)} do
-      {^set_id, {:ok, date}} when date <= as_of and is_map(serie) ->
-        if Map.get(serie, "id") in config.paper_series_ids, do: :ok, else: {:error, :out_of_scope}
+      {^set_id, {:ok, date}} when is_map(serie) ->
+        cond do
+          date_on_or_before?(date, as_of) and Map.get(serie, "id") in config.paper_series_ids ->
+            :ok
+
+          date_on_or_before?(date, as_of) ->
+            {:error, :out_of_scope}
+
+          true ->
+            {:error, :invalid_provider_response}
+        end
 
       _ ->
         {:error, :invalid_provider_response}
@@ -265,6 +274,12 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
   end
 
   defp validate_set(_, _, _, _), do: {:error, :invalid_provider_response}
+
+  defp date_on_or_before?(date, boundary),
+    do: Date.compare(date, boundary) in [:lt, :eq]
+
+  defp date_between?(date, earliest, latest),
+    do: date_on_or_before?(earliest, date) and date_on_or_before?(date, latest)
 
   defp validate_coverage(%{"cardCount" => count, "cards" => cards})
        when is_map(count) and is_list(cards) do

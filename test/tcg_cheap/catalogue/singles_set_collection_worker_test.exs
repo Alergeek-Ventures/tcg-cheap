@@ -146,6 +146,44 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     assert Agent.get(provider, & &1.fetched) == []
   end
 
+  test "current set with a release date before the as_of date is collected", %{provider: provider} do
+    id = hd(card_ids(1))
+    set_id = "sv-current-#{System.unique_integer([:positive])}"
+    put_fixture(provider, set_id, [id], [card(id, "Illustration Rare", 1)], "2026-07-17")
+
+    job = Map.update!(job(set_id, 0), :args, &Map.put(&1, "as_of", "2026-09-01"))
+
+    assert :ok = SinglesSetCollectionWorker.perform(job)
+    assert Agent.get(provider, & &1.fetched) == [id]
+  end
+
+  test "set released after as_of is rejected before fetching or persisting cards", %{
+    provider: provider
+  } do
+    id = hd(card_ids(1))
+    set_id = "sv-future-#{System.unique_integer([:positive])}"
+    put_fixture(provider, set_id, [id], [card(id, "Illustration Rare", 1)], "2026-10-02")
+
+    job = Map.update!(job(set_id, 0), :args, &Map.put(&1, "as_of", "2026-09-01"))
+
+    assert {:cancel, :provider_response} = SinglesSetCollectionWorker.perform(job)
+    assert Agent.get(provider, & &1.fetched) == []
+    assert {:error, _} = TcgCheap.Core.get_card_printing_by_tcgdex_id(id)
+  end
+
+  test "old set is safely skipped rather than treated as a provider failure", %{
+    provider: provider
+  } do
+    id = hd(card_ids(1))
+    set_id = "sv-old-#{System.unique_integer([:positive])}"
+    put_fixture(provider, set_id, [id], [card(id, "Illustration Rare", 1)], "2023-03-31")
+
+    job = Map.update!(job(set_id, 0), :args, &Map.put(&1, "as_of", "2026-09-01"))
+
+    assert :ok = SinglesSetCollectionWorker.perform(job)
+    assert Agent.get(provider, & &1.fetched) == []
+  end
+
   test "delayed rolling execution skips an expired boundary card", %{provider: provider} do
     id = hd(card_ids(1))
     set_id = "sv-delayed-#{System.unique_integer([:positive])}"
