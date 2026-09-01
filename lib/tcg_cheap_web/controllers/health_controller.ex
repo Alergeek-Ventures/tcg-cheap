@@ -6,7 +6,8 @@ defmodule TcgCheapWeb.HealthController do
   def live(conn, _params) do
     respond(conn, 200, %{
       status: "healthy",
-      timestamp: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
+      timestamp: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
+      revision: Health.revision()
     })
   end
 

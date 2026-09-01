@@ -4,8 +4,27 @@ defmodule TcgCheap.Operations.Health do
   alias TcgCheap.Operations.AcquisitionBudget
 
   @timeout 2_000
+  @git_object_id ~r/\A[0-9a-fA-F]{7,64}\z/
 
-  @spec check(keyword()) :: %{status: String.t(), timestamp: String.t(), checks: map()}
+  @spec revision() :: String.t()
+  def revision do
+    case System.get_env("SOURCE_COMMIT") do
+      source_commit when is_binary(source_commit) ->
+        source_commit = String.trim(source_commit)
+
+        if Regex.match?(@git_object_id, source_commit), do: source_commit, else: "unknown"
+
+      _ ->
+        "unknown"
+    end
+  end
+
+  @spec check(keyword()) :: %{
+          status: String.t(),
+          timestamp: String.t(),
+          revision: String.t(),
+          checks: map()
+        }
   def check(opts \\ []) when is_list(opts) do
     checks = %{
       database: run_check(Keyword.get(opts, :database, &database_check/0), "database ready", nil),
@@ -26,6 +45,7 @@ defmodule TcgCheap.Operations.Health do
     %{
       status: status,
       timestamp: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
+      revision: revision(),
       checks: checks
     }
   end

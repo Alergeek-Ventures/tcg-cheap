@@ -24,7 +24,7 @@ defmodule TcgCheap.MixProject do
   def application do
     [
       mod: {TcgCheap.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :os_mon]
     ]
   end
 
@@ -56,6 +56,10 @@ defmodule TcgCheap.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ash_phoenix, "~> 2.0"},
       {:ash_backpex, "~> 0.1.12"},
+      {:phoenix_live_dashboard, "~> 0.8.7"},
+      {:live_dashboard_logger, "~> 0.0.3"},
+      {:oban_web, "~> 2.12"},
+      {:ecto_psql_extras, "~> 0.8.8"},
       {:ash_postgres, "~> 2.0"},
       {:oban, "~> 2.23"},
       {:ash, "~> 3.0"},

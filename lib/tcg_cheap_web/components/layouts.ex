@@ -153,6 +153,16 @@ defmodule TcgCheapWeb.Layouts do
             <Backpex.HTML.CoreComponents.icon name="hero-exclamation-triangle" class="size-5" />
             Import issues
           </Backpex.HTML.Layout.sidebar_item>
+          <Backpex.HTML.Layout.sidebar_item
+            current_url={@current_url}
+            navigate={~p"/admin/dashboard"}
+          >
+            <Backpex.HTML.CoreComponents.icon name="hero-chart-bar" class="size-5" />
+            Runtime dashboard
+          </Backpex.HTML.Layout.sidebar_item>
+          <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate={~p"/admin/oban"}>
+            <Backpex.HTML.CoreComponents.icon name="hero-queue-list" class="size-5" /> Oban dashboard
+          </Backpex.HTML.Layout.sidebar_item>
         </:sidebar>
         <Backpex.HTML.Layout.flash_messages flash={@flash} />
         {render_slot(@inner_block)}

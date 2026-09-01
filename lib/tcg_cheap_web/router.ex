@@ -3,19 +3,20 @@ defmodule TcgCheapWeb.Router do
   use AshAuthentication.Phoenix.Router
 
   import Backpex.Router
+  import Oban.Web.Router
+  import Phoenix.LiveDashboard.Router
 
+  # sobelow_skip ["Config.CSP"]
+  # CSP is generated per request by TcgCheapWeb.CSPNonce, which Sobelow cannot trace through the custom plug.
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, html: {TcgCheapWeb.Layouts, :root}
     plug :protect_from_forgery
+    plug :put_secure_browser_headers
 
-    plug :put_secure_browser_headers,
-         %{
-           "content-security-policy" =>
-             "default-src 'self'; script-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data: https://assets.tcgdex.net; style-src 'self' 'unsafe-inline'"
-         }
+    plug TcgCheapWeb.CSPNonce
 
     plug :load_from_session
   end
@@ -54,6 +55,29 @@ defmodule TcgCheapWeb.Router do
 
   scope "/admin", TcgCheapWeb.Admin do
     pipe_through [:browser, :admin]
+
+    live_dashboard "/dashboard",
+      metrics: {TcgCheapWeb.Telemetry, :metrics},
+      ecto_repos: [TcgCheap.Repo],
+      allow_destructive_actions: false,
+      additional_pages: [live_logs: LiveDashboardLogger],
+      request_logger: true,
+      csp_nonce_assign_key: :csp_nonce,
+      on_mount: [
+        AshAuthentication.Phoenix.LiveSession,
+        {TcgCheapWeb.AdminAuth, :require_admin},
+        LiveDashboardLogger.Hooks
+      ]
+
+    oban_dashboard("/oban",
+      oban_name: Oban,
+      resolver: TcgCheapWeb.ObanResolver,
+      csp_nonce_assign_key: :csp_nonce,
+      on_mount: [
+        AshAuthentication.Phoenix.LiveSession,
+        {TcgCheapWeb.AdminAuth, :require_admin}
+      ]
+    )
 
     backpex_routes()
 

@@ -108,6 +108,14 @@ configured Coolify release gate, not GitHub-hosted CI:
 /app/bin/migrate
 ```
 
+The `pg_stat_statements` migration requires `pg_stat_statements` to be present
+in PostgreSQL's `shared_preload_libraries` setting. It checks that setting
+using `pg_settings` before creating the extension and raises a PostgreSQL
+exception when the library is not preloaded. Therefore, a missing preload
+causes `/app/bin/migrate` to exit non-zero; the release gate must fail the
+deployment and prevent the new image from being routed until the setting is
+corrected and PostgreSQL has been restarted.
+
 The migration command is a deployment gate: a non-zero exit must fail the
 Coolify webhook/deployment and prevent the new release from being routed.
 Inspect migration logs and correct the database or schema issue before
@@ -129,6 +137,44 @@ The endpoints are:
 
 Both endpoints are served on internal port `4004` and do not call an external
 provider.
+
+Both responses include a secret-safe `revision`. Coolify supplies the deployed
+runtime's `SOURCE_COMMIT`; the application trims and validates it as a Git
+object ID and normalizes a missing or invalid value to `unknown`. This makes it
+possible to compare the running revision with Git without baking a commit ID
+into the image.
+
+## Operator observability
+
+The authenticated operator surfaces are:
+
+- `/admin/dashboard` — Phoenix LiveDashboard with Ecto Stats, OS/VM metrics,
+  Request Logger, and live application logs.
+- `/admin/oban` — Oban jobs, queues, crons, metrics, and operational controls.
+
+Both routes use the existing admin authentication. There are no public runtime
+or log pages. The LiveDashboard Logger is live-only and best-effort: it has no
+prior history or persistence, and its backend is active only while the page is
+being viewed. Use persisted Oban jobs and acquisition records for durable
+operational evidence.
+
+The `ecto_psql_extras` integration and the `pg_stat_statements` migration enable
+database diagnostics in Ecto Stats, including the Calls and Outliers views.
+
+### Post-deploy verification
+
+After a successful release, verify:
+
+- `/health` and `/health/live` respond and report the expected non-secret
+  `revision` (or `unknown` when `SOURCE_COMMIT` is unavailable); compare it
+  with the deployed revision in Git.
+- An authenticated visit to `/admin/dashboard` renders, including Ecto Stats,
+  and its Request Logger and live logs are available.
+- An authenticated visit to `/admin/oban` renders all seven configured queues
+  and the configured cron entries, with metrics and controls available.
+- Ecto Stats renders the Calls and Outliers diagnostics.
+- Live application logs appear while the dashboard is open; do not treat their
+  absence before viewing as evidence of a failure.
 
 ## Production Singles collection operations
 
