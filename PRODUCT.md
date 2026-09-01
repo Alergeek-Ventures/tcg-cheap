@@ -86,6 +86,12 @@ The CardDetail/Home visual polish rollout is deployed in commits `8919a57` (visu
 
 Connected production checks at 320px and 1440px found zero horizontal overflow and console warnings, centered the 24px search icon/text, verified the estimate/Printing exact heading baseline, right-aligned Printing values, and aligned chart SVG/targets. They also verified Last update/no explanation/count/ledger behavior, tooltip Escape and recovery, Standard/Expanded/Gym Leader Challenge Fluent icons, and the Dhelmise local GLC legal result. CardDetail computes GLC eligibility under the implemented versioned local `glc_local_2026-04-20` policy; the [GLC rules](https://gymleaderchallenge.com/rules), [FAQ](https://gymleaderchallenge.com/faq), and [ban list](https://gymleaderchallenge.com/ban-list) links are provided, with future-review limitations retained. This records the implemented policy behavior and does not claim exact eligibility beyond that policy.
 
+## Owner-directed operator observability rollout — 2026-09-01
+
+Implementation commit `d641d01` is deployed. Successful [CI](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33509547612) covered the container build, DB image validation, and canonical gate; canonical local/CI validation passed 905 tests. Dependencies, base images, and devenv were refreshed, and the Hex audit reported no advisories. Production `/health` reported healthy with revision `d641d013b6721e26ce78772f7226a58aa1fa9acf`, DB ready, 7 Oban queues, and 6 providers.
+
+The authenticated `/admin/dashboard` surface includes Phoenix LiveDashboard, Ecto Stats with `pg_stat_statements`, Request Logger, and live-only application logs; `/admin/oban` exposes jobs, queues, crons, and controls. Both routes redirect unauthenticated visitors to sign-in. Authenticated production dashboard internals await owner-provided credentials; no authenticated production test is claimed.
+
 ## Current deployment and visual refinement — 2026-08-26
 
 The UI correction commit `7a0f956` is pushed and deployed to production; GitHub
