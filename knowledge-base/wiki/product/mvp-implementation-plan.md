@@ -1,8 +1,16 @@
 # Pokémon Market & Trade Platform — Detailed MVP Implementation Plan
 
-- Updated: 2026-08-26
+- Updated: 2026-09-02
 - Sources: Product specification supplied by project owner; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation; [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 - Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
+
+## Current local batch — 2026-09-02 (Raw: [provider capture](../../raw/2026-09-02-boosterland-colligere-store-apis.md))
+
+This north-star implementation is local, uncommitted, and not deployed. Pending provider state is six sealed sources/nine total providers; Boosterland and Colligere add bounded `lgs` Woo Store API sources at Monday 05:00/06:00 UTC (categories 40/23; 50/hour, 100/day, 500/month). Smoke returned 8/35 eligible listings and made no persistence or production-ingestion claim. Production remains four sealed sources/seven providers, 127 cards, 643 valuations, and 19 approved sealed products.
+
+All canonical non-Pocket paper cards are public with staged detail/pricing and a EUR 1 Singles riser floor. Home mode/query are canonical URL state. Sealed readiness is the strict public gate, not approval alone; incomplete approved rows remain internal mapping/curation targets. The manifest is 19 details/13 prices/17 images, with strict six-root image provenance, image-bearing mapping qualification, visible active offers, and idempotent hidden source-derived drafts. Max-attempt pricing persistence snoozes without advancing the serial chain; listing-derived drafts require the exact pending/review mapping under a transaction-local lock. ExternalUrl and image policies align application and PostgreSQL constraints for Sealed and retailer homepage/listing/observation URLs, rejecting malformed ports, credentials, whitespace/control characters, and invalid retailer subdomain labels.
+
+Migration policy is forward-only: no `down`/`ecto.rollback` quality gate; repair with a new forward migration and recover disasters from tested backup/PITR. Image rollback is separate and requires proven schema compatibility. Fresh and existing databases applied forward successfully. Canonical `mix check --verbose` passed all static checks/Dialyzer and 1,018 tests; desktop and 390px browser checks passed image fallback, second-offer retention, 48px actions, canonical URL/back behavior, overflow, and console checks.
 
 ## Current deployed owner-directed UI correction — 2026-08-26 (Raw: N/A — codebase update)
 

@@ -6,6 +6,9 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
+  alias TcgCheap.Catalogue.ExternalImage
+  @postgres_allowlisted_url_pattern ExternalImage.postgres_allowlisted_url_pattern()
+
   postgres do
     table "listing_product_mappings"
     repo TcgCheap.Repo
@@ -188,7 +191,37 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
                  confirmed_product.officially_distributed == true and
                  confirmed_product.market == "PL" and
                  confirmed_product.language == "en" and
-                 confirmed_product.distribution_status in ["current", "discontinued"]
+                 confirmed_product.distribution_status in ["current", "discontinued"] and
+                 not is_nil(confirmed_product.description) and
+                 fragment("btrim(?)", confirmed_product.description) != "" and
+                 confirmed_product.contents != [] and
+                 not is_nil(confirmed_product.official_url) and
+                 fragment("btrim(?)", confirmed_product.official_url) != "" and
+                 not is_nil(confirmed_product.details_source) and
+                 fragment("btrim(?)", confirmed_product.details_source) != "" and
+                 not is_nil(confirmed_product.details_source_url) and
+                 fragment("btrim(?)", confirmed_product.details_source_url) != "" and
+                 ((not is_nil(confirmed_product.image_url) and
+                     fragment("btrim(?)", confirmed_product.image_url) != "" and
+                     not is_nil(confirmed_product.image_source) and
+                     fragment("btrim(?)", confirmed_product.image_source) != "" and
+                     not is_nil(confirmed_product.image_source_url) and
+                     fragment("btrim(?)", confirmed_product.image_source_url) != "") or
+                    exists(confirmed_product.public_image_mappings)) and
+                 (confirmed_product.product_type not in [
+                    "booster_pack",
+                    "sleeved_booster",
+                    "booster_bundle",
+                    "booster_box",
+                    "elite_trainer_box",
+                    "tin",
+                    "collection_box",
+                    "trainer_toolkit"
+                  ] or
+                    (not is_nil(confirmed_product.pack_count) and
+                       confirmed_product.pack_count > 0 and
+                       not is_nil(confirmed_product.cards_per_pack) and
+                       confirmed_product.cards_per_pack > 0))
              )
 
       prepare build(
@@ -200,6 +233,22 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
                   "retailer_listing.source_listing_id": :asc
                 ]
               )
+    end
+
+    read :public_image do
+      filter expr(
+               status == "matched" and retailer_listing.status == "active" and
+                 retailer_listing.retailer.status == "active" and
+                 not is_nil(retailer_listing.image_url) and
+                 fragment("btrim(?)", retailer_listing.image_url) != "" and
+                 fragment(
+                   "? ~* ?",
+                   retailer_listing.image_url,
+                   @postgres_allowlisted_url_pattern
+                 )
+             )
+
+      prepare build(load: [retailer_listing: [:retailer]])
     end
 
     read :lock_for_update_by_id do
@@ -226,6 +275,7 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
              :matched_by_listing,
              :by_listing,
              :public_for_product,
+             :public_image,
              :lock_for_update_by_id
            ]) do
       authorize_if always()
@@ -254,8 +304,8 @@ defmodule TcgCheap.Catalogue.ListingProductMapping do
     uuid_primary_key :id
     attribute :status, :string, allow_nil?: false, default: "pending", public?: true
     attribute :confidence, :decimal, public?: true
-    attribute :evidence, :map, public?: true
-    attribute :reason, :string, public?: true, constraints: [max_length: 2_000]
+    attribute :evidence, :map, public?: false
+    attribute :reason, :string, public?: false, constraints: [max_length: 2_000]
     attribute :approved_at, :utc_datetime_usec, public?: true
     attribute :rejected_at, :utc_datetime_usec, public?: true
     create_timestamp :inserted_at

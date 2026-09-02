@@ -1,7 +1,7 @@
 defmodule TcgCheap.Pricing.SealedListingObservation do
   @moduledoc "An immutable observation of a sealed retailer listing."
 
-  alias TcgCheap.Catalogue.SealedIdentifier
+  alias TcgCheap.Catalogue.{ExternalUrl, SealedIdentifier}
 
   use Ash.Resource,
     domain: TcgCheap.Core,
@@ -22,7 +22,7 @@ defmodule TcgCheap.Pricing.SealedListingObservation do
       check_constraint [:source_title, :normalized_title, :direct_url],
                        "sealed_listing_observations_identity_invariant",
                        check:
-                         "btrim(source_title) <> '' AND btrim(normalized_title) <> '' AND direct_url ~ '^https://[^/?#[:space:]]+(/|[/?#].*)?$'"
+                         "btrim(source_title) <> '' AND btrim(normalized_title) <> '' AND #{ExternalUrl.postgres_url_check("direct_url")}"
 
       check_constraint [:gtin], "sealed_listing_observations_gtin_invariant",
         check: "gtin IS NULL OR #{SealedIdentifier.postgres_gtin_check("gtin")}"

@@ -57,9 +57,30 @@ defmodule TcgCheap.Pricing.Sealed.Actions.HomepagePriceChanges do
              JOIN history h ON h.sealed_product_id = c.sealed_product_id
              JOIN sealed_products p ON p.id = c.sealed_product_id
              WHERE p.publication_status = 'approved' AND p.release_date <= ($2::timestamptz AT TIME ZONE 'UTC')::date
-               AND p.market = 'PL' AND p.language = 'en' AND p.officially_distributed
-               AND p.distribution_status IN ('current', 'discontinued')
-               AND h.start_benchmark > 0
+                AND p.market = 'PL' AND p.language = 'en' AND p.officially_distributed
+                AND p.distribution_status IN ('current', 'discontinued')
+                AND btrim(p.description) <> '' AND cardinality(p.contents) > 0
+                AND btrim(p.official_url) <> '' AND btrim(p.details_source) <> ''
+                AND btrim(p.details_source_url) <> ''
+                AND (
+                  (btrim(p.image_url) <> '' AND btrim(p.image_source) <> ''
+                    AND btrim(p.image_source_url) <> '')
+                  OR EXISTS (
+                    SELECT 1
+                    FROM listing_product_mappings m
+                    JOIN retailer_listings rl ON rl.id = m.retailer_listing_id
+                    JOIN retailers r ON r.id = rl.retailer_id
+                    WHERE m.confirmed_product_id = p.id AND m.status = 'matched'
+                      AND rl.status = 'active' AND r.status = 'active'
+                      AND btrim(rl.image_url) <> ''
+                  )
+                )
+                AND (p.product_type NOT IN (
+                  'booster_pack', 'sleeved_booster', 'booster_bundle', 'booster_box',
+                  'elite_trainer_box', 'tin', 'collection_box', 'trainer_toolkit'
+                ) OR (p.pack_count IS NOT NULL AND p.pack_count > 0
+                  AND p.cards_per_pack IS NOT NULL AND p.cards_per_pack > 0))
+                AND h.start_benchmark > 0
                AND abs(((c.benchmark_pln - h.start_benchmark) / NULLIF(h.start_benchmark, 0)) * 100) >= 2
            ), balanced AS (
              (SELECT * FROM qualified WHERE change_percent > 0 ORDER BY movement DESC, current_date DESC, id ASC LIMIT ((LEAST(GREATEST($3::integer, 1), 10) + 1) / 2))

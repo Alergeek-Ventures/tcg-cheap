@@ -61,7 +61,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
   end
 
   test "accepts a URL-encoded punctuation pick", %{conn: conn} do
-    set = Core.import_card_set!(%{tcgdex_id: "exu", name: "Destined Rivals"})
+    set = Core.import_card_set!(%{tcgdex_id: "exu", name: "Destined Rivals", series_id: "sv"})
 
     card =
       TcgCheap.TestSupport.import_card_printing!(%{
@@ -471,7 +471,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
   end
 
   test "trade search cannot stage an unscoped known card", %{conn: conn} do
-    card = card("unscoped", "Unscoped Trade", 3, scoped?: false)
+    card = card("unscoped", "Unscoped Trade", 3, scoped?: false, card_set?: false)
     {:ok, view, _html} = live(conn, ~p"/trade")
 
     render_hook(view, "search", %{"search" => %{"query" => "Unscoped Trade"}})
@@ -651,7 +651,13 @@ defmodule TcgCheapWeb.TradeLiveTest do
 
   defp card(prefix, name, number, fixture_opts \\ []) do
     suffix = System.unique_integer([:positive])
-    set = Core.import_card_set!(%{tcgdex_id: "trade-set-#{suffix}", name: "Trade Set"})
+
+    set =
+      Core.import_card_set!(%{
+        tcgdex_id: "trade-set-#{suffix}",
+        name: "Trade Set",
+        series_id: "sv"
+      })
 
     TcgCheap.TestSupport.import_card_printing!(
       %{
@@ -659,7 +665,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
         name: name,
         set_name: set.name,
         collector_number: Integer.to_string(number),
-        card_set_id: set.id,
+        card_set_id: if(Keyword.get(fixture_opts, :card_set?, true), do: set.id, else: nil),
         mapping_status: "matched",
         cardmarket_product_id: suffix
       },

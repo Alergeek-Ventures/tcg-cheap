@@ -1,5 +1,23 @@
 # Wiki Log
 
+## [2026-09-02] Final pre-commit hardening | Forward constraints and serialized progress
+
+- Task completed: Recorded final hardening across pricing persistence, serial detail enrichment, listing-derived draft review, and external URL/image validation. Max-attempt pricing persistence snoozes without advancing the serial chain; listing-derived drafts require the exact pending/review mapping under a transaction-local lock; ExternalUrl and image policies align application and PostgreSQL constraints for Sealed and retailer homepage/listing/observation URLs, rejecting malformed ports, credentials, whitespace/control characters, and invalid retailer subdomain labels.
+- Files/areas: pricing and detail-enrichment workers, catalogue draft/mapping changes, ExternalUrl/ExternalImage policies, generated Ash migration/snapshots, and focused pricing/catalogue/URL/image/constraint tests. Generated forward migration: `20260902124310_harden_external_url_constraints.exs`.
+- Validation: Focused tests passed; complete fresh and existing forward migration application passed; `git diff --check` and Ash codegen passed; independent review findings were resolved; canonical validation passed all static checks/Dialyzer and 1,018 tests. Production remains undeployed.
+- Raw: N/A — codebase update.
+
+## [2026-09-02] Owner forward-only migration decision and local batch reconciliation
+
+- Decision: Database migrations are forward-only. `down`/`ecto.rollback` checks are not a quality gate; correct schema/data issues with new forward migrations and recover disasters from tested backup/PITR. Image rollback is separate and only follows proven schema compatibility. Historical rollback records remain historical.
+- Current state: Local work is uncommitted/not deployed. Production remains four sealed sources/seven providers, 127 cards, 643 valuations, and 19 approved sealed products. Pending local state is six sealed sources/nine providers; Boosterland and Colligere bounded smoke returned 8/35 eligible listings with no persistence or production-ingestion claim. Immutable [provider capture](../raw/2026-09-02-boosterland-colligere-store-apis.md) records endpoints, samples, robots/terms, PokeNest rejection, and observed 402/404 candidates.
+- Behavior/validation: Reconciled canonical catalogue/Home/Sealed publication readiness, image provenance and fallback, offer visibility, source-derived drafts, and URL state. Fresh disposable and existing DBs applied forward; canonical `mix check --verbose` passed all static checks/Dialyzer and 1,018 tests. Desktop/390px browser checks passed image, offer, URL/back, 48px action, overflow, and console checks; temporary QA records were removed.
+- Files: Updated `PRODUCT.md`, `README.md`, `docs/deployment-and-operations.md`, the three current wiki articles, index, and this log; added the immutable raw capture. No application code/tests/migrations changed. Raw: [capture](../raw/2026-09-02-boosterland-colligere-store-apis.md).
+
+## [2026-09-02] Deterministic wiki lint | Forward-only/local batch reconciliation
+
+- Validation: 5 durable articles, 5/5 indexed, 15/15 exact `Updated`/`Sources`/`Raw` metadata fields, all relative wiki/raw links resolved, and `git diff --check` passed. No auto-fixes; immutable historical sections were preserved.
+
 ## [2026-08-26] Production UI correction deployment verification
 
 - Verified: UI correction commit `7a0f956` is pushed and deployed to production; [GitHub CI run 32970306496](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32970306496) succeeded. Production `/health` at 2026-08-26 12:50 UTC reported database ready, 7 Oban queues, and 6 providers.

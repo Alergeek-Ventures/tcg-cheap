@@ -1,5 +1,6 @@
 defmodule TcgCheap.Catalogue.Validations.Retailer do
   @moduledoc "Validates retailer identity fields."
+  alias TcgCheap.Catalogue.ExternalUrl
   use Ash.Resource.Validation
 
   @impl true
@@ -21,18 +22,11 @@ defmodule TcgCheap.Catalogue.Validations.Retailer do
       not is_binary(name) or String.trim(name) == "" ->
         {:error, field: :name, message: "must not be blank"}
 
-      not is_nil(url) and not https_url?(url) ->
+      not is_nil(url) and not ExternalUrl.valid?(url) ->
         {:error, field: :homepage_url, message: "must be HTTPS with a host"}
 
       true ->
         :ok
     end
   end
-
-  defp https_url?(value) when is_binary(value) do
-    uri = URI.parse(String.trim(value))
-    uri.scheme == "https" and is_binary(uri.host) and String.trim(uri.host) != ""
-  end
-
-  defp https_url?(_), do: false
 end

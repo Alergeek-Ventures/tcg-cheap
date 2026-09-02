@@ -389,19 +389,25 @@ defmodule TcgCheap.Catalogue.SearchTest do
     token = unique_token("persisted")
     tcgdex_id = unique_token("persisted-id")
 
-    TcgCheap.TestSupport.import_card_printing!(%{
-      tcgdex_id: tcgdex_id,
-      name: "  Initial   Name  ",
-      set_name: "Initial Set",
-      collector_number: "A_1"
-    })
+    TcgCheap.TestSupport.import_card_printing!(
+      %{
+        tcgdex_id: tcgdex_id,
+        name: "  Initial   Name  ",
+        set_name: "Initial Set",
+        collector_number: "A_1"
+      },
+      card_set?: false
+    )
 
-    TcgCheap.TestSupport.import_card_printing!(%{
-      tcgdex_id: tcgdex_id,
-      name: "Updated #{token}",
-      set_name: "Updated Set #{token}",
-      collector_number: "B_2"
-    })
+    TcgCheap.TestSupport.import_card_printing!(
+      %{
+        tcgdex_id: tcgdex_id,
+        name: "Updated #{token}",
+        set_name: "Updated Set #{token}",
+        collector_number: "B_2"
+      },
+      card_set?: false
+    )
 
     assert [updated] = Core.search_card_printings!("updated #{token}")
     assert updated.tcgdex_id == tcgdex_id

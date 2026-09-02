@@ -27,6 +27,7 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
     reject_alias
     approve_mapping
     reject_mapping
+    create_product_draft
   )
 
   @visible_queue_limit 25
@@ -178,11 +179,99 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
                         type="url"
                         label="MSRP source URL"
                       />
+                    </section>
+                    <section class="admin-form-section admin-form-section--details">
+                      <h4>Product details</h4>
+                      <.input
+                        field={form[:description]}
+                        id={"product-#{product.id}-description"}
+                        type="textarea"
+                        label="Description"
+                      />
+                      <.input
+                        field={form[:contents]}
+                        id={"product-#{product.id}-contents"}
+                        type="textarea"
+                        label="Contents (one item per line)"
+                      />
+                      <.input
+                        field={form[:pack_count]}
+                        id={"product-#{product.id}-pack-count"}
+                        type="number"
+                        label="Pack count"
+                      />
+                      <.input
+                        field={form[:cards_per_pack]}
+                        id={"product-#{product.id}-cards-per-pack"}
+                        type="number"
+                        label="Cards per pack"
+                      />
+                      <.input
+                        field={form[:official_url]}
+                        id={"product-#{product.id}-official-url"}
+                        type="url"
+                        label="Official product URL"
+                      />
+                      <.input
+                        field={form[:details_source]}
+                        id={"product-#{product.id}-details-source"}
+                        type="text"
+                        label="Details source"
+                      />
+                      <.input
+                        field={form[:details_source_url]}
+                        id={"product-#{product.id}-details-source-url"}
+                        type="url"
+                        label="Details source URL"
+                      />
+                    </section>
+                    <section class="admin-form-section admin-form-section--reference-price">
+                      <h4>Official reference price</h4>
+                      <.input
+                        field={form[:official_price_amount]}
+                        id={"product-#{product.id}-official-price"}
+                        type="number"
+                        step="0.01"
+                        label="Amount"
+                      />
+                      <.input
+                        field={form[:official_price_currency]}
+                        id={"product-#{product.id}-official-currency"}
+                        type="text"
+                        label="Currency"
+                      />
+                      <.input
+                        field={form[:official_price_source]}
+                        id={"product-#{product.id}-official-price-source"}
+                        type="text"
+                        label="Price source"
+                      />
+                      <.input
+                        field={form[:official_price_source_url]}
+                        id={"product-#{product.id}-official-price-source-url"}
+                        type="url"
+                        label="Price source URL"
+                      />
+                    </section>
+                    <section class="admin-form-section admin-form-section--image-provenance">
+                      <h4>Image provenance</h4>
                       <.input
                         field={form[:image_url]}
                         id={"product-#{product.id}-image-url"}
                         type="url"
-                        label="Image URL"
+                        label="Canonical image URL"
+                      />
+                      <.input
+                        field={form[:image_source]}
+                        id={"product-#{product.id}-image-source"}
+                        type="text"
+                        label="Image source"
+                      />
+                      <.input
+                        field={form[:image_source_url]}
+                        id={"product-#{product.id}-image-source-url"}
+                        type="url"
+                        label="Image source URL"
                       />
                     </section>
                     <section class="admin-form-section admin-form-section--publication">
@@ -391,6 +480,16 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
                         </button>
                       </.form>
 
+                      <button
+                        id={"create-product-draft-#{mapping.id}"}
+                        type="button"
+                        class="secondary-action"
+                        phx-click="create_product_draft"
+                        phx-value-id={mapping.id}
+                      >
+                        Create product draft
+                      </button>
+
                       <.form
                         for={reject_form}
                         id={"reject-mapping-form-#{mapping.id}"}
@@ -445,6 +544,7 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
     attrs =
       params
       |> Map.drop(["id", "expected_updated_at"])
+      |> parse_contents()
       |> nil_if_blank()
       |> Map.put(:expected_updated_at, expected_updated_at)
 
@@ -506,6 +606,23 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
       {:noreply, succeed(socket, "Alias rejected.")}
     else
       {:error, error} -> {:noreply, fail(socket, "Alias was not rejected", error)}
+    end
+  end
+
+  def handle_event(
+        "create_product_draft",
+        %{"id" => id},
+        socket
+      ) do
+    with {:ok, %ListingProductMapping{} = mapping} <- get_mapping(id, socket),
+         {:ok, _product} <-
+           Core.create_sealed_product_draft_from_listing(
+             mapping.retailer_listing_id,
+             actor: socket.assigns.current_admin
+           ) do
+      {:noreply, succeed(socket, "Product draft created from retailer listing.")}
+    else
+      {:error, error} -> {:noreply, fail(socket, "Product draft was not created", error)}
     end
   end
 
@@ -597,7 +714,7 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
           {[], [], mappings}
       end
 
-    approved_products = Core.list_public_sealed_products!(actor: actor)
+    approved_products = Core.list_approved_sealed_products!(actor: actor)
     approved_product_ids = MapSet.new(approved_products, & &1.id)
     visible_products = Enum.take(products, @visible_queue_limit)
     visible_aliases = Enum.take(aliases, @visible_queue_limit)
@@ -705,10 +822,40 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
         "msrp_source" => product.msrp_source,
         "msrp_source_url" => product.msrp_source_url,
         "image_url" => product.image_url,
+        "description" => product.description,
+        "contents" => Enum.join(product.contents || [], "\n"),
+        "pack_count" => product.pack_count,
+        "cards_per_pack" => product.cards_per_pack,
+        "official_url" => product.official_url,
+        "details_source" => product.details_source,
+        "details_source_url" => product.details_source_url,
+        "official_price_amount" => product.official_price_amount,
+        "official_price_currency" => product.official_price_currency,
+        "official_price_source" => product.official_price_source,
+        "official_price_source_url" => product.official_price_source_url,
+        "image_source" => product.image_source,
+        "image_source_url" => product.image_source_url,
         "officially_distributed" => product.officially_distributed
       },
       as: :product
     )
+  end
+
+  defp parse_contents(params) do
+    case Map.fetch(params, "contents") do
+      {:ok, value} when is_binary(value) ->
+        Map.put(params, "contents", String.split(value, "\n", trim: true))
+
+      {:ok, value} when is_list(value) ->
+        Map.put(
+          params,
+          "contents",
+          Enum.filter(value, &(is_binary(&1) and String.trim(&1) != ""))
+        )
+
+      _ ->
+        params
+    end
   end
 
   defp get_product(id, socket) do

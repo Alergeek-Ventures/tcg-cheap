@@ -1,5 +1,7 @@
 defmodule TcgCheap.Catalogue.Retailer do
   @moduledoc "A source-neutral retailer identity."
+  alias TcgCheap.Catalogue.ExternalUrl
+
   use Ash.Resource,
     otp_app: :tcg_cheap,
     domain: TcgCheap.Core,
@@ -23,7 +25,7 @@ defmodule TcgCheap.Catalogue.Retailer do
         check: "status IN ('active', 'disabled')"
 
       check_constraint [:homepage_url], "retailers_homepage_url_invariant",
-        check: "homepage_url IS NULL OR homepage_url ~ '^https://[^/?#[:space:]]+(/|[/?#].*)?$'"
+        check: "homepage_url IS NULL OR #{ExternalUrl.postgres_url_check("homepage_url")}"
     end
   end
 

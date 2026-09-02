@@ -32,7 +32,7 @@ defmodule TcgCheap.Pricing.SealedDailyAggregateWorkerTest do
     assert {:cancel, :malformed_job_args} = perform_job(job(%{"unexpected" => true}), [])
   end
 
-  test "configures one worker and both ordered daily cron entries" do
+  test "configures workers and ordered cron entries" do
     oban = Application.fetch_env!(:tcg_cheap, Oban)
     assert Keyword.get(oban, :queues)[:sealed_aggregates] == 1
     assert Keyword.get(oban, :queues)[:sealed_buying_guides] == 1
@@ -45,8 +45,8 @@ defmodule TcgCheap.Pricing.SealedDailyAggregateWorkerTest do
         _ -> nil
       end)
 
-    assert {"*/15 * * * *", TcgCheap.Catalogue.SinglesScopeBootstrapWorker,
-            [args: %{"policy_version" => 2}]} =
+    assert {"*/15 * * * *", TcgCheap.Catalogue.SinglesCatalogueBootstrapWorker,
+            [args: %{"policy_version" => 1}]} =
              Enum.at(crontab, 0)
 
     assert {"*/15 * * * *", TcgCheap.Catalogue.CuratedPlayableBootstrapWorker,
@@ -345,7 +345,17 @@ defmodule TcgCheap.Pricing.SealedDailyAggregateWorkerTest do
         name: "Worker Product",
         product_type: "booster_box",
         officially_distributed: true,
-        release_date: DateTime.to_date(@as_of)
+        release_date: DateTime.to_date(@as_of),
+        description: "A complete worker sealed product record.",
+        contents: ["36 booster packs"],
+        pack_count: 36,
+        cards_per_pack: 10,
+        official_url: "https://www.pokemon.com/products/worker-product",
+        details_source: "Worker test catalogue",
+        details_source_url: "https://www.pokemon.com/details/worker-product",
+        image_url: "https://assets.pokemon.com/worker-#{System.unique_integer([:positive])}.jpg",
+        image_source: "Official product images",
+        image_source_url: "https://www.pokemon.com/images/worker-product"
       })
 
     Core.approve_sealed_product!(draft, %{expected_updated_at: draft.updated_at},

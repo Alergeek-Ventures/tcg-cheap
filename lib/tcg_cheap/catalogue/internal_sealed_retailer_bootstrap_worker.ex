@@ -38,6 +38,18 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker do
       name: "PokeBooster",
       category: "lgs",
       homepage_url: "https://pokebooster.pl"
+    },
+    "boosterland" => %{
+      slug: "boosterland",
+      name: "Boosterland",
+      category: "lgs",
+      homepage_url: "https://boosterland.pl"
+    },
+    "colligere" => %{
+      slug: "colligere",
+      name: "Colligere",
+      category: "lgs",
+      homepage_url: "https://colligere.pl"
     }
   }
 

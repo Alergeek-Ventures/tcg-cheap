@@ -32,6 +32,9 @@ defmodule TcgCheapWeb.Admin.SealedProductLive do
     panels(
       identity: "Identity",
       market: "Polish market evidence",
+      details: "Product details",
+      reference_price: "Official reference price",
+      image_provenance: "Image provenance",
       review: "Review state"
     )
 
@@ -94,6 +97,25 @@ defmodule TcgCheapWeb.Admin.SealedProductLive do
         panel(:market)
       end
 
+      field :description, panel: :details
+
+      field :contents do
+        only([:show])
+        panel(:details)
+      end
+
+      field :pack_count, module: Backpex.Fields.Number, panel: :details
+      field :cards_per_pack, module: Backpex.Fields.Number, panel: :details
+      field :official_url, panel: :details
+      field :details_source, panel: :details
+      field :details_source_url, panel: :details
+      field :official_price_amount, module: Backpex.Fields.Number, panel: :reference_price
+      field :official_price_currency, panel: :reference_price
+      field :official_price_source, panel: :reference_price
+      field :official_price_source_url, panel: :reference_price
+      field :image_source, panel: :image_provenance
+      field :image_source_url, panel: :image_provenance
+
       field :publication_status do
         only([:index, :show, :edit])
         readonly(true)
@@ -136,8 +158,25 @@ defmodule TcgCheapWeb.Admin.SealedProductLive do
 
   def update_changeset(product, params, metadata) do
     actor = metadata |> Keyword.fetch!(:assigns) |> Map.fetch!(:current_user)
-    params = Map.put(params, "expected_updated_at", product.updated_at)
+
+    params =
+      params
+      |> normalize_params()
+      |> Map.put("expected_updated_at", product.updated_at)
 
     Ash.Changeset.for_update(product, :revise_draft, params, actor: actor)
+  end
+
+  defp normalize_params(params) do
+    Map.new(params, fn
+      {key, value} when is_binary(value) ->
+        case String.trim(value) do
+          "" -> {key, nil}
+          value -> {key, value}
+        end
+
+      pair ->
+        pair
+    end)
   end
 end

@@ -1,7 +1,7 @@
 defmodule TcgCheapWeb.SealedProductDetailLive do
   use TcgCheapWeb, :live_view
 
-  alias TcgCheap.Catalogue.PublicSealedProductProjection
+  alias TcgCheap.Catalogue.{ExternalImage, ExternalUrl, PublicSealedProductProjection}
   alias TcgCheap.Core
   alias TcgCheap.Pricing.SealedBuyingGuidePublicProjection
   alias TcgCheap.Pricing.SealedDailyAggregateCalculator
@@ -48,38 +48,121 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
         <main id="sealed-detail-main" class="decision-main">
           <div class="decision-container">
             <.link id="sealed-detail-back" navigate={~p"/"}>Back to search</.link>
-            <div class="sealed-detail-overview">
+            <div id="sealed-detail-hero" class="sealed-detail-overview">
+              <figure id="sealed-detail-media" class="sealed-product-media">
+                <%= if @product_image_url do %>
+                  <img
+                    id="sealed-detail-product-image"
+                    src={@product_image_url}
+                    alt={@product.name <> " packaging"}
+                  />
+                <% else %>
+                  <div
+                    id="sealed-detail-product-placeholder"
+                    class="sealed-product-placeholder"
+                    role="img"
+                    aria-label={@product.name <> " packaging image unavailable"}
+                  >
+                    <.fluent_icon name={:gift_card_add} />
+                    <span>Packaging image unavailable</span>
+                  </div>
+                <% end %>
+                <figcaption id="sealed-detail-image-source">
+                  <%= if @product_image_source_url do %>
+                    Image:
+                    <a href={@product_image_source_url} target="_blank" rel="noopener noreferrer">{@product_image_source}</a>
+                  <% else %>
+                    No image source published.
+                  <% end %>
+                </figcaption>
+              </figure>
               <section id="sealed-detail-identity" aria-labelledby="sealed-detail-title">
                 <h1 id="sealed-detail-title">{@product.name}</h1>
                 <p id="sealed-detail-type">{human_product_type(@product.product_type)}</p>
-                <p :if={@product.series_name || @product.set_name} id="sealed-detail-collection">
-                  {collection(@product)}
-                </p>
-                <p id="sealed-detail-release">
-                  {format_release_date(@product.release_date)}
-                </p>
-                <p id="sealed-detail-status">{human_status(@product.distribution_status)}</p>
-                <p id="sealed-detail-msrp">
-                  <%= if finite_decimal?(@product.msrp_pln) do %>
-                    MSRP: {format_pln(@product.msrp_pln)} PLN
-                  <% else %>
-                    MSRP unavailable
-                  <% end %>
-                </p>
-              </section>
-
-              <section
-                id="sealed-detail-market-snapshot"
-                class="state-note"
-                aria-labelledby="sealed-detail-market-snapshot-title"
-              >
-                <h2 id="sealed-detail-market-snapshot-title">Price guide</h2>
-                {aggregate_content(@aggregate_state, @aggregate, @aggregate_current?)}
+                <dl id="sealed-detail-metadata" class="sealed-detail-metadata">
+                  <div>
+                    <dt>Series / set</dt><dd id="sealed-detail-collection">
+                      {collection(@product) || "Not published"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Release date</dt><dd id="sealed-detail-release">
+                      {format_release_date(@product.release_date)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt><dd id="sealed-detail-status">
+                      {human_status(@product.distribution_status)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Market / language</dt><dd id="sealed-detail-market-language">
+                      {@product.market} / {@product.language}
+                    </dd>
+                  </div>
+                  <div :if={@product.pack_count}>
+                    <dt>Pack count</dt><dd id="sealed-detail-pack-count">{@product.pack_count}</dd>
+                  </div>
+                  <div :if={@product.cards_per_pack}>
+                    <dt>Cards per pack</dt><dd id="sealed-detail-cards-per-pack">
+                      {@product.cards_per_pack}
+                    </dd>
+                  </div>
+                </dl>
+                <div id="sealed-detail-decision-strip" class="sealed-decision-strip">
+                  <div id="sealed-detail-best-offer">
+                    <span>Best available</span><strong>{best_offer_price(@best_offer)}</strong><small>{best_offer_retailer(
+                      @best_offer
+                    )}</small>
+                  </div>
+                  <div id="sealed-detail-market-snapshot">
+                    <span>Local reference</span><h2
+                      id="sealed-detail-market-snapshot-title"
+                      class="sr-only"
+                    >Price guide</h2>{aggregate_content(
+                      @aggregate_state,
+                      @aggregate,
+                      @aggregate_current?
+                    )}
+                  </div>
+                  <div id="sealed-detail-reference-price">
+                    <span>Reference price</span>{reference_price_content(@product)}
+                  </div>
+                </div>
               </section>
             </div>
 
+            <section
+              :if={details_visible?(@product)}
+              id="sealed-detail-information"
+              aria-labelledby="sealed-detail-information-title"
+            >
+              <h2 id="sealed-detail-information-title">Product information</h2>
+              <p :if={@product.description} id="sealed-detail-description">{@product.description}</p>
+              <div
+                :if={is_list(@product.contents) and @product.contents != []}
+                id="sealed-detail-contents"
+              >
+                <h3>What’s inside</h3><ul>
+                  <li :for={item <- @product.contents}>{item}</li>
+                </ul>
+              </div>
+              <p :if={valid_direct_url?(@product.official_url)} id="sealed-detail-official">
+                <a href={@product.official_url} target="_blank" rel="noopener noreferrer">Official product page</a>
+              </p>
+              <p :if={@product.details_source} id="sealed-detail-details-provenance">
+                Details: {@product.details_source}
+                <%= if valid_direct_url?(@product.details_source_url) do %>
+                  ·
+                  <a href={@product.details_source_url} target="_blank" rel="noopener noreferrer">source</a>
+                <% end %>
+              </p>
+            </section>
+
             <section id="sealed-current-section" aria-labelledby="sealed-current-title">
-              <h2 id="sealed-current-title">Offers</h2>
+              <h2 id="sealed-current-title">
+                Offers <small id="sealed-current-count">({@current_offer_count} current)</small>
+              </h2>
               <p
                 :if={@current_offer_count == 0 and is_nil(@read_error)}
                 id="sealed-current-empty"
@@ -102,7 +185,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
               id="sealed-detail-buying-guide"
               aria-labelledby="sealed-detail-buying-guide-title"
             >
-              <h2 id="sealed-detail-buying-guide-title">Price guide</h2>
+              <h2 id="sealed-detail-buying-guide-title">Buying guide</h2>
               {buying_guide_content(@buying_guide_state)}
             </section>
 
@@ -111,7 +194,7 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
               id="sealed-market-history-section"
               aria-labelledby="sealed-market-history-title"
             >
-              <h2 id="sealed-market-history-title">30-day market history</h2>
+              <h2 id="sealed-market-history-title">Market history</h2>
               {history_content(@market_history, @market_history_state)}
             </section>
 
@@ -236,6 +319,10 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
       page_title: product.name,
       state: :product,
       product: product,
+      best_offer: List.first(projection.current),
+      product_image_url: product_image_url(product, projection),
+      product_image_source: product_image_source(product, projection),
+      product_image_source_url: product_image_source_url(product, projection),
       current_offer_count: length(projection.current),
       sold_out_offer_count: length(projection.sold_out),
       read_error: read_error,
@@ -610,8 +697,103 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
   defp human_status("discontinued"), do: "Discontinued"
   defp human_status(_), do: "Current"
 
-  defp collection(product),
-    do: Enum.filter([product.series_name, product.set_name], & &1) |> Enum.join(" · ")
+  defp collection(product) do
+    collection =
+      [product.series_name, product.set_name]
+      |> Enum.filter(&(is_binary(&1) and String.trim(&1) != ""))
+      |> Enum.join(" · ")
+
+    case collection do
+      "" -> nil
+      collection -> collection
+    end
+  end
+
+  defp product_image_url(product, projection) do
+    cond do
+      valid_image_url?(product.image_url) -> product.image_url
+      image = fallback_image(projection) -> image
+      true -> nil
+    end
+  end
+
+  defp product_image_source(product, projection) do
+    cond do
+      valid_image_url?(product.image_url) -> product.image_source || "Product record"
+      image_offer = fallback_image_offer(projection) -> image_offer.retailer.name
+      true -> nil
+    end
+  end
+
+  defp product_image_source_url(product, projection) do
+    cond do
+      valid_image_url?(product.image_url) and valid_direct_url?(product.image_source_url) ->
+        product.image_source_url
+
+      image_offer = fallback_image_offer(projection) ->
+        image_offer.listing.direct_url
+
+      true ->
+        nil
+    end
+  end
+
+  defp fallback_image(projection),
+    do: fallback_image_offer(projection) |> then(&(&1 && &1.listing.image_url))
+
+  defp fallback_image_offer(projection) do
+    (projection.current ++ projection.sold_out)
+    |> Enum.find(&valid_image_url?(&1.listing.image_url))
+  end
+
+  defp valid_image_url?(url), do: ExternalImage.valid?(url)
+
+  defp details_visible?(product),
+    do:
+      product.description || (is_list(product.contents) and product.contents != []) ||
+        valid_direct_url?(product.official_url) ||
+        product.details_source
+
+  defp best_offer_price(nil), do: "No current offer"
+  defp best_offer_price(offer), do: price_or_unavailable(offer.listing.current_price_pln)
+  defp best_offer_retailer(nil), do: "Limited local availability"
+  defp best_offer_retailer(offer), do: offer.retailer.name
+
+  defp reference_price_content(product) do
+    assigns = %{product: product}
+
+    ~H"""
+    <%= cond do %>
+      <% finite_decimal?(@product.msrp_pln) -> %>
+        <strong id="sealed-detail-msrp">{format_pln(@product.msrp_pln)} PLN</strong><small>{price_source(
+          @product.msrp_source,
+          @product.msrp_source_url
+        )}</small>
+      <% finite_decimal?(@product.official_price_amount) -> %>
+        <strong id="sealed-detail-official-price">{Decimal.to_string(
+          @product.official_price_amount,
+          :normal
+        )} {@product.official_price_currency}</strong><small>Official listed price · {price_source(
+          @product.official_price_source,
+          @product.official_price_source_url
+        )}</small>
+      <% true -> %>
+        <strong id="sealed-detail-msrp">Not published <small>(MSRP unavailable)</small></strong>
+    <% end %>
+    """
+  end
+
+  defp price_source(source, url) do
+    assigns = %{source: source || "Source unavailable", url: url}
+
+    ~H"""
+    <%= if valid_direct_url?(@url) do %>
+      <a href={@url} target="_blank" rel="noopener noreferrer">{@source}</a>
+    <% else %>
+      {@source}
+    <% end %>
+    """
+  end
 
   defp format_release_date(%Date{} = date), do: Calendar.strftime(date, "%b %-d, %Y")
   defp format_release_date(_), do: "unavailable"
@@ -657,12 +839,5 @@ defmodule TcgCheapWeb.SealedProductDetailLive do
 
   defp checked_text(_), do: "Checked unavailable"
 
-  defp valid_direct_url?(value) when is_binary(value) do
-    uri = URI.parse(value)
-    uri.scheme == "https" and is_binary(uri.host) and uri.host != "" and is_nil(uri.userinfo)
-  rescue
-    URI.Error -> false
-  end
-
-  defp valid_direct_url?(_), do: false
+  defp valid_direct_url?(value), do: ExternalUrl.valid?(value)
 end

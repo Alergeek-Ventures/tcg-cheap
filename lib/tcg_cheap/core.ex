@@ -17,10 +17,23 @@ defmodule TcgCheap.Core do
       define :create_card_printing, action: :create
       define :seed_card_printing_brief, action: :seed_brief
       define :get_card_printing_by_tcgdex_id, action: :by_tcgdex_id, args: [:tcgdex_id]
+
+      define :mark_card_printing_pricing_checked,
+        action: :mark_pricing_checked,
+        args: [:checked_at]
+
+      define :mark_card_printing_details_enrichment_failed,
+        action: :mark_details_enrichment_failed,
+        args: [:failed_at]
+
       define :list_card_printings_by_tcgdex_ids, action: :by_tcgdex_ids, args: [:tcgdex_ids]
 
       define :list_singles_valuation_candidates,
         action: :singles_valuation_candidates,
+        args: [:cursor, :limit]
+
+      define :list_detail_enrichment_candidates,
+        action: :detail_enrichment_candidates,
         args: [:cursor, :limit]
 
       define :get_public_card_printing_by_tcgdex_id,
@@ -154,8 +167,14 @@ defmodule TcgCheap.Core do
 
     resource TcgCheap.Catalogue.SealedProduct do
       define :create_sealed_product_draft, action: :create_draft
+
+      define :create_sealed_product_draft_from_listing,
+        action: :create_draft_from_listing,
+        args: [:retailer_listing_id]
+
       define :import_sealed_product_draft, action: :import_draft
       define :revise_sealed_product_draft, action: :revise_draft
+      define :enrich_approved_sealed_product, action: :enrich_approved
       define :approve_sealed_product, action: :approve
       define :archive_sealed_product, action: :archive
       define :mark_sealed_product_discontinued, action: :mark_discontinued
@@ -172,6 +191,8 @@ defmodule TcgCheap.Core do
         not_found_error?: false
 
       define :list_public_sealed_products, action: :public_catalogue
+
+      define :list_approved_sealed_products, action: :approved_catalogue
 
       define :list_recent_public_sealed_products,
         action: :recent_public_releases,
@@ -246,6 +267,11 @@ defmodule TcgCheap.Core do
       define :get_retailer_listing,
         action: :by_source_listing,
         args: [:retailer_id, :source_listing_id]
+
+      define :get_retailer_listing_by_id,
+        action: :by_id,
+        args: [:id],
+        not_found_error?: false
 
       define :list_active_retailer_listings, action: :active_for_retailer, args: [:retailer_id]
     end

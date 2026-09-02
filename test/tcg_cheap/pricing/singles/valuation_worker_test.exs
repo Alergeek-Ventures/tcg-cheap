@@ -361,7 +361,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
   test "a delayed job cancelled after scope removal does not admit or call provider", %{
     stub: stub
   } do
-    card = create_card()
+    card = create_card(card_set?: false)
 
     TcgCheap.TestSupport.set_collection_scope!(card, %{
       collection_scopes: [],
@@ -376,7 +376,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
   end
 
   test "a delayed job cancelled after scope expiry does not admit or call provider", %{stub: stub} do
-    card = create_card()
+    card = create_card(card_set?: false)
 
     TcgCheap.TestSupport.set_collection_scope!(card, %{
       collection_scopes: ["legacy_local"],
@@ -534,17 +534,20 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorkerTest do
     refute :completed in options.states
   end
 
-  defp create_card do
+  defp create_card(opts \\ []) do
     suffix = System.unique_integer([:positive])
 
-    TcgCheap.TestSupport.import_card_printing!(%{
-      tcgdex_id: "base1-4-worker-#{suffix}",
-      name: "Charizard",
-      set_name: "Base Set",
-      collector_number: "4",
-      mapping_status: "matched",
-      cardmarket_product_id: 123
-    })
+    TcgCheap.TestSupport.import_card_printing!(
+      %{
+        tcgdex_id: "base1-4-worker-#{suffix}",
+        name: "Charizard",
+        set_name: "Base Set",
+        collector_number: "4",
+        mapping_status: "matched",
+        cardmarket_product_id: 123
+      },
+      opts
+    )
   end
 
   defp test_job(args) do

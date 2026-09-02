@@ -6,10 +6,11 @@ defmodule TcgCheap.Catalogue.Preparations.SearchPublicSealedProducts do
   import Ash.Query
 
   alias Ash.Error.Query.InvalidArgument
+  alias TcgCheap.Catalogue.Preparations.PublicSealedProduct
   alias TcgCheap.Catalogue.SearchText
 
   @impl true
-  def prepare(query, _opts, _context) do
+  def prepare(query, _opts, context) do
     normalized = SearchText.normalize(Ash.Query.get_argument(query, :query))
 
     if length(String.graphemes(normalized)) < 2 do
@@ -22,25 +23,14 @@ defmodule TcgCheap.Catalogue.Preparations.SearchPublicSealedProducts do
         )
       )
     else
+      pattern = "%" <> escape_like(normalized) <> "%"
+
       query
-      |> Ash.Query.filter(expr(^candidate_filter(normalized)))
+      |> PublicSealedProduct.prepare([], context)
+      |> Ash.Query.filter(expr(^matching_name_or_alias(pattern)))
       |> sort(ranking(normalized))
       |> Ash.Query.limit(Ash.Query.get_argument(query, :limit))
     end
-  end
-
-  defp candidate_filter(normalized) do
-    pattern = "%" <> escape_like(normalized) <> "%"
-
-    expr(^public_product_filter() and ^matching_name_or_alias(pattern))
-  end
-
-  defp public_product_filter do
-    expr(
-      publication_status == "approved" and release_date <= today() and
-        officially_distributed == true and market == "PL" and language == "en" and
-        distribution_status in ["current", "discontinued"]
-    )
   end
 
   defp matching_name_or_alias(pattern) do

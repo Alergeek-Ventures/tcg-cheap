@@ -1,7 +1,7 @@
 defmodule TcgCheap.Catalogue.Validations.RetailerListing do
   @moduledoc "Validates normalized retailer listing projections and observation times."
   use Ash.Resource.Validation
-  alias TcgCheap.Catalogue.SealedIdentifier
+  alias TcgCheap.Catalogue.{ExternalImage, ExternalUrl, SealedIdentifier}
   @impl true
   # The validation deliberately enumerates independent persistence invariants.
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
@@ -9,6 +9,7 @@ defmodule TcgCheap.Catalogue.Validations.RetailerListing do
     title = Ash.Changeset.get_attribute(changeset, :source_title)
     source_listing_id = Ash.Changeset.get_attribute(changeset, :source_listing_id)
     url = Ash.Changeset.get_attribute(changeset, :direct_url)
+    image_url = Ash.Changeset.get_attribute(changeset, :image_url)
     gtin = Ash.Changeset.get_attribute(changeset, :gtin)
     status = Ash.Changeset.get_attribute(changeset, :stock_status)
     price = Ash.Changeset.get_attribute(changeset, :current_price_pln)
@@ -25,6 +26,9 @@ defmodule TcgCheap.Catalogue.Validations.RetailerListing do
 
       not https_url?(url) ->
         {:error, field: :direct_url, message: "must be HTTPS with a host"}
+
+      not valid_image_or_nil?(image_url) ->
+        {:error, field: :image_url, message: "must be an allowed HTTPS image URL"}
 
       not is_nil(gtin) and not SealedIdentifier.valid_ean?(gtin) ->
         {:error, field: :gtin, message: "must be a valid GTIN"}
@@ -51,11 +55,14 @@ defmodule TcgCheap.Catalogue.Validations.RetailerListing do
   end
 
   defp https_url?(value) when is_binary(value) do
-    uri = URI.parse(String.trim(value))
-    uri.scheme == "https" and is_binary(uri.host) and String.trim(uri.host) != ""
+    ExternalUrl.valid?(value)
   end
 
   defp https_url?(_), do: false
+
+  defp valid_image_or_nil?(nil), do: true
+  defp valid_image_or_nil?(%Ash.NotLoaded{}), do: true
+  defp valid_image_or_nil?(value), do: ExternalImage.valid?(value)
 
   defp positive_decimal?(%Decimal{coef: coef} = value) when is_integer(coef),
     do: Decimal.compare(value, Decimal.new(0)) == :gt

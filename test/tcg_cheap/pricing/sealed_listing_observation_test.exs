@@ -70,6 +70,18 @@ defmodule TcgCheap.Pricing.SealedListingObservationTest do
     assert latest.id == observation.id
   end
 
+  test "database rejects an alphabetic observation URL port" do
+    retailer = shop()
+    listing = ingest(retailer.id)
+    observation = Core.record_sealed_listing_observation!(observation_attrs(listing, %{}))
+
+    assert {:error, %Postgrex.Error{postgres: %{code: :check_violation}}} =
+             Repo.query(
+               "UPDATE sealed_listing_observations SET direct_url = 'https://shop.example:bad/path' WHERE id = $1",
+               [Ecto.UUID.dump!(observation.id)]
+             )
+  end
+
   test "unchanged content deduplicates while check times advance and Decimal scale is ignored" do
     retailer = shop()
     listing = ingest(retailer.id)

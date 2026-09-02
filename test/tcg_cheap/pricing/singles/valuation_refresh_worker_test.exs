@@ -139,15 +139,11 @@ defmodule TcgCheap.Pricing.Singles.ValuationRefreshWorkerTest do
     jobs = all_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
 
     assert Enum.map(jobs, & &1.args["tcgdex_id"]) |> Enum.sort() ==
-             Enum.sort(Enum.map([missing, stale, fresh], & &1.tcgdex_id))
+             Enum.sort(Enum.map([missing, stale, fresh, expired, unscoped], & &1.tcgdex_id))
 
     refute Enum.any?(
              jobs,
-             &(&1.args["tcgdex_id"] in [
-                 expired.tcgdex_id,
-                 unmatched.tcgdex_id,
-                 unscoped.tcgdex_id
-               ])
+             &(&1.args["tcgdex_id"] in [unmatched.tcgdex_id])
            )
 
     assert provider_usage_count() == before_usage_count
@@ -171,7 +167,13 @@ defmodule TcgCheap.Pricing.Singles.ValuationRefreshWorkerTest do
       set_name: "Set",
       collector_number: "1",
       mapping_status: "matched",
-      cardmarket_product_id: 100 + System.unique_integer([:positive])
+      cardmarket_product_id: 100 + System.unique_integer([:positive]),
+      card_set_id:
+        Core.import_card_set!(%{
+          tcgdex_id: "set-#{label}-#{System.unique_integer([:positive])}",
+          name: "Set #{label}",
+          series_id: "sv"
+        }).id
     }
 
   defp budget_config,

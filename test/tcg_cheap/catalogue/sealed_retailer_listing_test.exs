@@ -3,6 +3,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingTest do
 
   alias TcgCheap.Catalogue.{SealedListingMatcher, SealedRetailerAdapter}
   alias TcgCheap.Core
+  alias TcgCheap.Repo
 
   defp retailer_attrs(overrides) do
     Map.merge(
@@ -50,7 +51,17 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingTest do
           name: "Example Sealed Product",
           product_type: "booster_box",
           officially_distributed: true,
-          release_date: Date.utc_today()
+          release_date: Date.utc_today(),
+          description: "A complete sealed product.",
+          contents: ["36 booster packs"],
+          pack_count: 36,
+          cards_per_pack: 10,
+          official_url: "https://example.com/product",
+          details_source: "Publisher",
+          details_source_url: "https://example.com/details",
+          image_url: "https://assets.pokemon.com/image.jpg",
+          image_source: "Publisher",
+          image_source_url: "https://example.com/image-source"
         },
         overrides
       )
@@ -106,6 +117,26 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingTest do
     assert updated.current_price_pln == Decimal.new("20.25")
   end
 
+  test "listing image URL is persisted and updated by a newer observation" do
+    shop = retailer()
+    first = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    row = listing(shop.id, %{first_seen_at: first, last_seen_at: first, last_checked_at: first})
+
+    newer = DateTime.add(first, 60, :second)
+
+    Core.ingest_retailer_listing!(
+      listing_attrs(shop.id, %{
+        source_listing_id: row.source_listing_id,
+        image_url: "https://lootquest.pl/wp-content/uploads/new.jpg",
+        last_seen_at: newer,
+        last_checked_at: newer
+      })
+    )
+
+    assert Core.get_retailer_listing!(shop.id, row.source_listing_id).image_url ==
+             "https://lootquest.pl/wp-content/uploads/new.jpg"
+  end
+
   test "listing validates HTTPS, source identity, GTIN, price and time ordering" do
     shop = retailer()
     base = listing_attrs(shop.id)
@@ -128,6 +159,27 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingTest do
       assert %Decimal{} =
                listing(shop.id, %{stock_status: status, current_price_pln: Decimal.new("1")}).current_price_pln
     end
+  end
+
+  test "database rejects an alphabetic listing URL port" do
+    shop = retailer()
+    row = listing(shop.id)
+
+    assert {:error, %Postgrex.Error{postgres: %{code: :check_violation}}} =
+             Repo.query(
+               "UPDATE retailer_listings SET direct_url = 'https://shop.example:bad/path' WHERE id = $1",
+               [Ecto.UUID.dump!(row.id)]
+             )
+  end
+
+  test "database rejects an alphabetic retailer homepage port" do
+    shop = retailer()
+
+    assert {:error, %Postgrex.Error{postgres: %{code: :check_violation}}} =
+             Repo.query(
+               "UPDATE retailers SET homepage_url = 'https://shop.example:bad/path' WHERE id = $1",
+               [Ecto.UUID.dump!(shop.id)]
+             )
   end
 
   test "disabled listing is not silently re-enabled by ingest" do
@@ -193,6 +245,11 @@ defmodule TcgCheap.Catalogue.SealedRetailerListingTest do
         ] do
       assert {:error, :malformed_listing} = SealedRetailerAdapter.new(Map.merge(base, invalid))
     end
+
+    assert {:error, :malformed_listing} =
+             SealedRetailerAdapter.new(
+               Map.put(base, :image_url, "https://user:pass@example.com/image")
+             )
   end
 
   test "matcher only matches one eligible approved alias" do

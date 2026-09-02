@@ -268,7 +268,8 @@ defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorkerTest do
           mapping_status: "matched",
           cardmarket_product_id: 123
         },
-        scoped?: false
+        scoped?: false,
+        card_set?: false
       )
 
     TcgCheap.TestSupport.set_collection_scope!(
@@ -309,7 +310,8 @@ defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorkerTest do
           set_name: "Mega Evolution",
           collector_number: "131"
         },
-        scoped?: false
+        scoped?: false,
+        card_set?: false
       )
 
     TcgCheap.TestSupport.set_collection_scope!(

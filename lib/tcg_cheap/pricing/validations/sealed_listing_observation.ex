@@ -2,7 +2,7 @@ defmodule TcgCheap.Pricing.Validations.SealedListingObservation do
   @moduledoc "Validates sealed listing observation persistence invariants."
   use Ash.Resource.Validation
 
-  alias TcgCheap.Catalogue.{SealedIdentifier, SearchText}
+  alias TcgCheap.Catalogue.{ExternalUrl, SealedIdentifier, SearchText}
 
   @impl true
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
@@ -48,12 +48,7 @@ defmodule TcgCheap.Pricing.Validations.SealedListingObservation do
     end
   end
 
-  defp https_url?(value) when is_binary(value) do
-    uri = URI.parse(String.trim(value))
-    uri.scheme == "https" and is_binary(uri.host) and String.trim(uri.host) != ""
-  end
-
-  defp https_url?(_), do: false
+  defp https_url?(value), do: ExternalUrl.valid?(value)
 
   defp positive_decimal?(%Decimal{coef: coef} = value) when is_integer(coef),
     do: Decimal.compare(value, Decimal.new(0)) == :gt

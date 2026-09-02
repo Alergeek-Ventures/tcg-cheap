@@ -12,6 +12,7 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorker do
       fields: [:worker, :args]
     ]
 
+  alias TcgCheap.Catalogue.SinglesEnrichmentBootstrapWorker
   alias TcgCheap.Catalogue.Sync
   alias TcgCheap.Operations
   alias TcgCheap.Operations.AcquisitionTracker
@@ -238,10 +239,15 @@ defmodule TcgCheap.Catalogue.CatalogueSyncWorker do
 
   defp batch_result({:error, reason}, _config), do: safe_failure(reason)
 
-  defp batch_result({:ok, %{status: "running"}}, config),
-    do: {:snooze, config.batch_delay_seconds}
+  defp batch_result({:ok, %{status: "running"}}, config) do
+    _ = SinglesEnrichmentBootstrapWorker.enqueue()
+    {:snooze, config.batch_delay_seconds}
+  end
 
-  defp batch_result({:ok, %{status: "completed", failed_sets: 0}}, _config), do: :ok
+  defp batch_result({:ok, %{status: "completed", failed_sets: 0}}, _config) do
+    _ = SinglesEnrichmentBootstrapWorker.enqueue()
+    :ok
+  end
 
   defp batch_result({:ok, %{status: "completed"}}, _config),
     do: {:cancel, :catalogue_sync_incomplete}

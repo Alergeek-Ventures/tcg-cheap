@@ -40,6 +40,19 @@ defmodule TcgCheap.Pricing.HomepageSealedPriceChangesTest do
     assert first.current_calculated_at == @as_of
   end
 
+  test "does not publish movers for an approved product missing factual metadata" do
+    product = product("incomplete-mover")
+    points(product, "10", "20")
+
+    Repo.query!(
+      "UPDATE sealed_products SET image_url = NULL, image_source = NULL, image_source_url = NULL WHERE id = $1",
+      [Ecto.UUID.dump!(product.id)]
+    )
+
+    assert {:ok, changes} = Core.list_homepage_sealed_price_changes(@as_of, 10)
+    refute Enum.any?(changes, &(&1.sealed_product_id == product.id))
+  end
+
   test "excludes insufficient, out-of-window, stale, future, non-public, and unconfident evidence" do
     fewer = product("fewer")
     aggregate(fewer, ~D[2026-08-10], "20", current?: true)
@@ -108,6 +121,16 @@ defmodule TcgCheap.Pricing.HomepageSealedPriceChangesTest do
         product_type: "tin",
         series_name: "Homepage Series",
         set_name: "Homepage Set",
+        description: "A complete sealed product for homepage tests.",
+        contents: ["Tin", "Booster packs"],
+        pack_count: 4,
+        cards_per_pack: 10,
+        official_url: "https://example.com/products/homepage",
+        details_source: "Official product page",
+        details_source_url: "https://example.com/products/homepage/details",
+        image_url: "https://assets.tcgdex.net/en/sealed/homepage.jpg",
+        image_source: "Official product page",
+        image_source_url: "https://example.com/products/homepage/image",
         officially_distributed: Keyword.get(opts, :officially_distributed, true),
         release_date: ~D[2026-08-01]
       })

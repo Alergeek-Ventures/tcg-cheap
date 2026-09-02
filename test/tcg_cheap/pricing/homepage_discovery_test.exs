@@ -51,6 +51,33 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     assert only.tcgdex_id == up.tcgdex_id
   end
 
+  test "riser value floor excludes low-value risers without affecting fallers" do
+    low_riser = card("low-riser")
+    exact_floor_riser = card("exact-floor-riser")
+    valid_riser = card("valid-riser")
+    low_faller = card("low-faller")
+
+    snapshots(low_riser, [{8, "0.10"}, {0, "0.50"}])
+    snapshots(exact_floor_riser, [{8, "0.80"}, {0, "1.00"}])
+    snapshots(valid_riser, [{8, "10"}, {0, "11"}])
+    snapshots(low_faller, [{8, "2"}, {0, "0.50"}])
+
+    assert {:ok, changes} = Core.list_homepage_price_changes(@as_of, 3)
+
+    assert Enum.map(changes, & &1.tcgdex_id) == [
+             low_faller.tcgdex_id,
+             exact_floor_riser.tcgdex_id,
+             valid_riser.tcgdex_id
+           ]
+
+    assert Decimal.equal?(
+             Enum.find(changes, &(&1.card_printing_id == exact_floor_riser.id)).current_value_eur,
+             Decimal.new("1.00")
+           )
+
+    refute Enum.any?(changes, &(&1.card_printing_id == low_riser.id))
+  end
+
   test "price changes use UTC daily closes and the inclusive 30-date window" do
     card = card("utc-boundary")
     as_of_date = DateTime.to_date(@as_of)
@@ -105,15 +132,71 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     assert {:ok, []} = Core.list_homepage_price_changes(@as_of, 4)
   end
 
-  test "price changes exclude unscoped and expired cards" do
+  test "Pocket cards are excluded from every public and pricing paper-card read" do
+    paper = card("paper-regression")
+
+    pocket_set =
+      Core.import_card_set!(%{
+        tcgdex_id: "pocket-set-#{System.unique_integer([:positive])}",
+        name: "Pocket Set",
+        series_id: "tcgp"
+      })
+
+    pocket =
+      TcgCheap.TestSupport.import_card_printing!(
+        %{
+          tcgdex_id: "pocket-regression-#{System.unique_integer([:positive])}",
+          name: "Pocket Regression",
+          set_name: pocket_set.name,
+          collector_number: "1",
+          card_set_id: pocket_set.id,
+          mapping_status: "matched",
+          cardmarket_product_id: System.unique_integer([:positive]),
+          last_synced_at: DateTime.utc_now()
+        },
+        scoped?: false
+      )
+
+    snapshots(paper, [{8, "10"}, {0, "20"}])
+    snapshots(pocket, [{8, "10"}, {0, "20"}])
+
+    assert {:ok, %{} = exact} = Core.get_public_card_printing_by_tcgdex_id(paper.tcgdex_id)
+    assert exact.id == paper.id
+    assert {:ok, nil} = Core.get_public_card_printing_by_tcgdex_id(pocket.tcgdex_id)
+
+    assert {:ok, bulk} =
+             Core.list_public_card_printings_by_tcgdex_ids([paper.tcgdex_id, pocket.tcgdex_id])
+
+    assert Enum.map(bulk, & &1.id) == [paper.id]
+    assert {:ok, search} = Core.search_public_card_printings(paper.tcgdex_id)
+    assert Enum.map(search, & &1.id) == [paper.id]
+    assert {:ok, pocket_search} = Core.search_public_card_printings(pocket_set.name)
+    assert pocket_search == []
+    assert {:ok, recent} = Core.list_public_recently_tracked_card_printings()
+    refute Enum.any?(recent, &(&1.id == pocket.id))
+    assert Enum.any?(recent, &(&1.id == paper.id))
+    assert {:ok, valuation} = Core.list_singles_valuation_candidates(nil, 100, authorize?: false)
+    assert Enum.any?(valuation, &(&1.id == paper.id))
+    refute Enum.any?(valuation, &(&1.id == pocket.id))
+    assert {:ok, details} = Core.list_detail_enrichment_candidates(nil, 100, authorize?: false)
+    assert Enum.any?(details, &(&1.id == paper.id))
+    refute Enum.any?(details, &(&1.id == pocket.id))
+    assert {:ok, movements} = Core.list_homepage_price_changes(@as_of, 10)
+    assert Enum.any?(movements, &(&1.card_printing_id == paper.id))
+    refute Enum.any?(movements, &(&1.card_printing_id == pocket.id))
+  end
+
+  test "price changes do not gate paper cards on scope metadata or expiry" do
     active = card("scoped-active")
     unscoped = card("scoped-unscoped", scoped?: false)
     expired = card("scoped-expired", expires_on: Date.add(Date.utc_today(), -1))
 
     Enum.each([active, unscoped, expired], &snapshots(&1, [{8, "10"}, {0, "20"}]))
 
-    assert {:ok, [change]} = Core.list_homepage_price_changes(@as_of, 10)
-    assert change.card_printing_id == active.id
+    assert {:ok, changes} = Core.list_homepage_price_changes(@as_of, 10)
+
+    assert Enum.sort(Enum.map(changes, & &1.card_printing_id)) ==
+             Enum.sort([active.id, unscoped.id, expired.id])
   end
 
   test "recent releases are public, released, and bounded" do
@@ -157,8 +240,15 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
         name: "Homepage #{label}",
         set_name: "Homepage Set",
         collector_number: "#{System.unique_integer([:positive])}",
+        last_synced_at: DateTime.utc_now(),
         mapping_status: "matched",
-        cardmarket_product_id: System.unique_integer([:positive])
+        cardmarket_product_id: System.unique_integer([:positive]),
+        card_set_id:
+          Core.import_card_set!(%{
+            tcgdex_id: "set-#{label}-#{System.unique_integer([:positive])}",
+            name: "Homepage Set #{label}",
+            series_id: "sv"
+          }).id
       },
       fixture_opts
     )
@@ -194,7 +284,18 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
       name: slug,
       product_type: "tin",
       officially_distributed: true,
-      release_date: date
+      release_date: date,
+      description: "A complete #{slug} sealed product record.",
+      contents: ["Sealed product contents"],
+      pack_count: 4,
+      cards_per_pack: 10,
+      official_url: "https://www.pokemon.com/products/#{slug}",
+      details_source: "Homepage test catalogue",
+      details_source_url: "https://www.pokemon.com/details/#{slug}",
+      image_url:
+        "https://assets.pokemon.com/homepage-#{slug}-#{System.unique_integer([:positive])}.jpg",
+      image_source: "Official product images",
+      image_source_url: "https://www.pokemon.com/images/#{slug}"
     }
 
   defp released_product(slug, date) do

@@ -33,13 +33,14 @@ defmodule TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges do
           AND s.fetched_at <= $2::timestamptz
           AND EXISTS (
             SELECT 1
-            FROM card_printings AS current_cp
+             FROM card_printings AS current_cp
+             JOIN card_sets AS current_cs ON current_cs.id = current_cp.card_set_id
             WHERE current_cp.id = s.card_printing_id
               AND current_cp.mapping_status = 'matched'
-              AND current_cp.cardmarket_product_id > 0
+               AND current_cp.cardmarket_product_id > 0
                AND current_cp.cardmarket_product_id = s.cardmarket_product_id
-              AND current_cp.collection_scopes <> '{}'
-              AND (current_cp.collection_expires_on IS NULL OR current_cp.collection_expires_on >= CURRENT_DATE)
+               AND current_cs.series_id IS NOT NULL
+               AND current_cs.series_id <> 'tcgp'
           )
         ORDER BY s.card_printing_id, (s.fetched_at AT TIME ZONE 'UTC')::date,
           s.fetched_at DESC, s.id DESC
@@ -68,7 +69,7 @@ defmodule TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges do
         WHERE e.newest_current
             AND abs(((e.current_value_eur - e.start_value_eur) / NULLIF(e.start_value_eur, 0)) * 100) >= 2
       ), balanced AS (
-        (SELECT * FROM qualified WHERE change_percent > 0
+        (SELECT * FROM qualified WHERE change_percent > 0 AND current_value_eur >= 1.00::numeric
          ORDER BY movement DESC, current_fetched_at DESC, tcgdex_id ASC LIMIT ((LEAST(GREATEST($3::integer, 1), 10) + 1) / 2))
         UNION ALL
         (SELECT * FROM qualified WHERE change_percent < 0

@@ -1,0 +1,371 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_listing_id",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_title",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "normalized_title",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "direct_url",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "image_url",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "gtin",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "current_price_pln",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"PLN\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "currency",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"unknown\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "stock_status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"active\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "status",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "first_seen_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "last_seen_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "last_checked_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_payload",
+      "type": "map"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_tenant?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "retailer_listings_retailer_id_fkey",
+        "on_delete": "delete",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "retailers"
+      },
+      "scale": null,
+      "size": null,
+      "source": "retailer_id",
+      "type": "uuid"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [
+    {
+      "attribute": [
+        "source_listing_id",
+        "source_title",
+        "normalized_title",
+        "direct_url"
+      ],
+      "base_filter": null,
+      "check": "btrim(source_listing_id) <> '' AND btrim(source_title) <> '' AND btrim(normalized_title) <> '' AND direct_url ~* '^https://[^/:@?#[:space:][:cntrl:]]+(:[0-9]+)?(/|[/?#][^[:space:][:cntrl:]]*)?$'",
+      "name": "retailer_listings_identity_invariant"
+    },
+    {
+      "attribute": [
+        "image_url"
+      ],
+      "base_filter": null,
+      "check": "image_url IS NULL OR image_url ~* '^https://((assets\\.tcgdex\\.net|assets\\.pokemon\\.com|www\\.pokemon\\.com|mcdn\\.pokemon\\.com)|([a-z0-9-]+\\.)*(lootquest\\.pl|cardzhouse\\.pl|boosterpoint\\.pl|pokebooster\\.pl|boosterland\\.pl|colligere\\.pl))(:443)?(/|[/?#][^[:space:][:cntrl:]]*)?$'",
+      "name": "retailer_listings_image_url_invariant"
+    },
+    {
+      "attribute": [
+        "gtin"
+      ],
+      "base_filter": null,
+      "check": "gtin IS NULL OR gtin ~ '^[0-9]+$' AND ((length(gtin) = 8 AND mod(10 - mod(3 * substring(gtin, 1, 1)::integer + 1 * substring(gtin, 2, 1)::integer + 3 * substring(gtin, 3, 1)::integer + 1 * substring(gtin, 4, 1)::integer + 3 * substring(gtin, 5, 1)::integer + 1 * substring(gtin, 6, 1)::integer + 3 * substring(gtin, 7, 1)::integer, 10), 10) = substring(gtin, 8, 1)::integer) OR (length(gtin) = 12 AND mod(10 - mod(3 * substring(gtin, 1, 1)::integer + 1 * substring(gtin, 2, 1)::integer + 3 * substring(gtin, 3, 1)::integer + 1 * substring(gtin, 4, 1)::integer + 3 * substring(gtin, 5, 1)::integer + 1 * substring(gtin, 6, 1)::integer + 3 * substring(gtin, 7, 1)::integer + 1 * substring(gtin, 8, 1)::integer + 3 * substring(gtin, 9, 1)::integer + 1 * substring(gtin, 10, 1)::integer + 3 * substring(gtin, 11, 1)::integer, 10), 10) = substring(gtin, 12, 1)::integer) OR (length(gtin) = 13 AND mod(10 - mod(1 * substring(gtin, 1, 1)::integer + 3 * substring(gtin, 2, 1)::integer + 1 * substring(gtin, 3, 1)::integer + 3 * substring(gtin, 4, 1)::integer + 1 * substring(gtin, 5, 1)::integer + 3 * substring(gtin, 6, 1)::integer + 1 * substring(gtin, 7, 1)::integer + 3 * substring(gtin, 8, 1)::integer + 1 * substring(gtin, 9, 1)::integer + 3 * substring(gtin, 10, 1)::integer + 1 * substring(gtin, 11, 1)::integer + 3 * substring(gtin, 12, 1)::integer, 10), 10) = substring(gtin, 13, 1)::integer) OR (length(gtin) = 14 AND mod(10 - mod(3 * substring(gtin, 1, 1)::integer + 1 * substring(gtin, 2, 1)::integer + 3 * substring(gtin, 3, 1)::integer + 1 * substring(gtin, 4, 1)::integer + 3 * substring(gtin, 5, 1)::integer + 1 * substring(gtin, 6, 1)::integer + 3 * substring(gtin, 7, 1)::integer + 1 * substring(gtin, 8, 1)::integer + 3 * substring(gtin, 9, 1)::integer + 1 * substring(gtin, 10, 1)::integer + 3 * substring(gtin, 11, 1)::integer + 1 * substring(gtin, 12, 1)::integer + 3 * substring(gtin, 13, 1)::integer, 10), 10) = substring(gtin, 14, 1)::integer))",
+      "name": "retailer_listings_gtin_invariant"
+    },
+    {
+      "attribute": [
+        "currency"
+      ],
+      "base_filter": null,
+      "check": "currency = 'PLN'",
+      "name": "retailer_listings_currency_invariant"
+    },
+    {
+      "attribute": [
+        "stock_status",
+        "current_price_pln"
+      ],
+      "base_filter": null,
+      "check": "stock_status IN ('in_stock', 'sold_out', 'unknown') AND (stock_status <> 'in_stock' OR (current_price_pln IS NOT NULL AND current_price_pln > 0))",
+      "name": "retailer_listings_stock_price_invariant"
+    },
+    {
+      "attribute": [
+        "status"
+      ],
+      "base_filter": null,
+      "check": "status IN ('active', 'disabled')",
+      "name": "retailer_listings_status_invariant"
+    },
+    {
+      "attribute": [
+        "current_price_pln"
+      ],
+      "base_filter": null,
+      "check": "current_price_pln IS NULL OR (current_price_pln > 0 AND current_price_pln <> 'NaN'::numeric AND current_price_pln <> 'Infinity'::numeric AND current_price_pln <> '-Infinity'::numeric)",
+      "name": "retailer_listings_price_finite_invariant"
+    },
+    {
+      "attribute": [
+        "first_seen_at",
+        "last_seen_at",
+        "last_checked_at"
+      ],
+      "base_filter": null,
+      "check": "first_seen_at <= last_seen_at AND last_seen_at <= last_checked_at",
+      "name": "retailer_listings_times_invariant"
+    }
+  ],
+  "create_table_options": null,
+  "custom_indexes": [
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "retailer_id"
+      ],
+      "fields": [
+        {
+          "type": "string",
+          "value": "retailer_id"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": "retailer_listings_retailer_id_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "F1053B9DDB19DD2662AF87C4D2362858632792DF60DBA0CE752FF3CFA1BF5E07",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "retailer_listings_unique_retailer_source_listing_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "retailer_id"
+        },
+        {
+          "type": "atom",
+          "value": "source_listing_id"
+        }
+      ],
+      "name": "unique_retailer_source_listing",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.TcgCheap.Repo",
+  "schema": null,
+  "table": "retailer_listings"
+}

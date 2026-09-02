@@ -553,6 +553,8 @@ defmodule TcgCheap.Catalogue.ImporterTest do
     assert imported.card.cardmarket_product_id == 321
     assert imported.outcome == :imported
     assert imported.card.last_synced_at == ~U[2026-03-01 00:00:00.123456Z]
+    assert imported.card.details_synced_at == ~U[2026-03-01 00:00:00.123456Z]
+    assert imported.card.pricing_checked_at == ~U[2026-03-01 00:00:00.123456Z]
   end
 
   test "accepts punctuation card IDs with a strict set ID" do

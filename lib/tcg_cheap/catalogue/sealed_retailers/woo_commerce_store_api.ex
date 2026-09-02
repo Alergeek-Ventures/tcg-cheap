@@ -1,6 +1,7 @@
 defmodule TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI do
   @moduledoc false
 
+  alias TcgCheap.Catalogue.ExternalImage
   alias TcgCheap.Catalogue.SealedRetailerAdapter
 
   defstruct [
@@ -16,7 +17,7 @@ defmodule TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI do
   @max_listings 1_000
   @max_response_bytes 2_000_000
   @allowed [:plug, :clock, :per_page, :max_pages, :request_admitter]
-  @fields "id,name,permalink,prices,categories,tags,is_purchasable,is_in_stock,is_on_backorder"
+  @fields "id,name,permalink,prices,categories,tags,images,is_purchasable,is_in_stock,is_on_backorder"
 
   @doc false
   def new!(spec) when is_map(spec) do
@@ -313,23 +314,27 @@ defmodule TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI do
         source_title: title,
         direct_url: url,
         current_price_pln: price,
+        image_url: first_image_url(product["images"], spec.canonical_host),
         currency: "PLN",
         stock_status: stock,
         first_seen_at: now,
         last_seen_at: now,
         last_checked_at: now,
         source_payload:
-          Map.take(product, [
+          product
+          |> Map.take([
             "id",
             "name",
             "permalink",
             "prices",
             "categories",
             "tags",
+            "images",
             "is_purchasable",
             "is_in_stock",
             "is_on_backorder"
           ])
+          |> maybe_bound_images()
       }
 
       SealedRetailerAdapter.new(Map.from_struct(attrs))
@@ -438,4 +443,24 @@ defmodule TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI do
 
   defp stock(%{"is_in_stock" => false}), do: {:ok, "sold_out"}
   defp stock(_), do: {:ok, "unknown"}
+
+  defp first_image_url(images, retailer_host) when is_list(images) do
+    images
+    |> Enum.take(10)
+    |> Enum.find_value(fn
+      %{"src" => src} when is_binary(src) ->
+        if ExternalImage.valid?(src, [retailer_host]), do: src
+
+      _ ->
+        nil
+    end)
+  end
+
+  defp first_image_url(_, _), do: nil
+
+  defp maybe_bound_images(%{"images" => images} = payload) when is_list(images),
+    do: %{payload | "images" => Enum.take(images, 10)}
+
+  defp maybe_bound_images(%{"images" => _} = payload), do: %{payload | "images" => []}
+  defp maybe_bound_images(payload), do: payload
 end

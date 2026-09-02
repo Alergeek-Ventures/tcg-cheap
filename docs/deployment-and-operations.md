@@ -121,6 +121,22 @@ Coolify webhook/deployment and prevent the new release from being routed.
 Inspect migration logs and correct the database or schema issue before
 retrying.
 
+Database migrations are forward-only. Do not run, use, or require `down` or
+`ecto.rollback` checks as a quality gate. Correct schema or data issues with a
+new forward migration; recover disasters from a tested backup or PITR. Existing
+historical down/up validation records remain historical evidence only. Image
+rollback is a separate deployment concern and is permitted only when schema
+compatibility has been proven; never reverse database migrations.
+
+As of the 2026-09-02 local batch, the pending configuration has six sealed
+sources and nine total providers. Boosterland (category 40, Monday 05:00 UTC)
+and Colligere (category 23, Monday 06:00 UTC) are `lgs` Woo Store API sources,
+bounded to 50 requests/hour, 100/day, and 500/month. Their bounded smoke found
+8 and 35 eligible listings respectively, without persistence or production
+ingestion. Local work is uncommitted and not deployed; production remains the
+previous four sealed sources/seven providers and 127 cards, 643 valuations, and
+19 approved sealed products.
+
 ## Health checks
 
 Enable health checks for the application resource in Coolify. Once enabled,

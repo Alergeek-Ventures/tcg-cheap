@@ -344,6 +344,8 @@
 .decision-world .evidence-slip { animation: bench-reveal .45s ease-out both; background: var(--paper); border: 0; display: grid; grid-template-columns: 4.25rem minmax(0, 1fr); min-width: 0; }
 .decision-world .evidence-art { align-items: center; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); border-right: 0; display: flex; justify-content: center; min-width: 0; padding: .35rem; }
 .decision-world .evidence-art img { aspect-ratio: 245 / 337; border: 0; display: block; height: auto; max-width: 100%; object-fit: contain; width: 100%; }
+.decision-world .evidence-art .sealed-package-image { aspect-ratio: 578 / 325; object-fit: contain; }
+.decision-world .market-thumb .sealed-package-image { aspect-ratio: 578 / 325; height: auto; object-fit: contain; }
 .decision-world .evidence-art > svg { fill: none; height: 4.5rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
 .decision-world .card-image-missing { align-items: center; display: flex; justify-content: center; min-height: 5rem; }
 .decision-world .card-image-missing svg { fill: none; height: 4.25rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
@@ -536,6 +538,33 @@
 .sealed-detail-world #sealed-detail-not-found p, .sealed-detail-world #sealed-detail-data-error p { font-size: .875rem; line-height: 1.6; }
 @media (max-width: 46rem) { .sealed-detail-world .sealed-detail-overview { grid-template-columns: 1fr; } .sealed-detail-world .sealed-offer { align-items: start; grid-template-columns: minmax(0, 1fr) auto; } .sealed-detail-world .sealed-offer-price, .sealed-detail-world .sealed-offer-stock, .sealed-detail-world .sealed-offer-checked { grid-column: 1; grid-row: auto; } .sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { grid-column: 2; grid-row: 1 / 5; } }
 @media (max-width: 27rem) { .sealed-detail-world .sealed-offer { grid-template-columns: 1fr; } .sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { grid-column: 1; grid-row: auto; justify-self: start; margin-top: .25rem; width: 100%; } }
+
+/* Sealed product sheet: packaging is the anchor; evidence remains immediately scannable. */
+.sealed-detail-world .sealed-detail-overview { align-items: stretch; gap: 1.25rem; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
+.sealed-detail-world .sealed-product-media { align-items: center; background: var(--paper); border: 2px solid var(--rule); display: flex; flex-direction: column; justify-content: center; margin: 0; min-height: 25rem; padding: 1rem; }
+.sealed-detail-world .sealed-product-media img { display: block; height: min(58svh, 34rem); max-width: 100%; object-fit: contain; width: 100%; }
+.sealed-detail-world .sealed-product-placeholder { align-items: center; color: var(--muted); display: flex; flex: 1; flex-direction: column; gap: .75rem; justify-content: center; text-align: center; }
+.sealed-detail-world .sealed-product-placeholder .fluent-icon { height: 7rem; width: 7rem; }
+.sealed-detail-world #sealed-detail-image-source { color: var(--muted); font-size: .875rem; line-height: 1.5; margin-top: .75rem; max-width: 55ch; overflow-wrap: anywhere; text-align: center; }
+.sealed-detail-world #sealed-detail-image-source a, .sealed-detail-world #sealed-detail-information a { color: inherit; text-decoration: underline; text-underline-offset: .2rem; }
+.sealed-detail-world .sealed-detail-metadata { display: grid; gap: 0; margin-top: 1rem; }
+.sealed-detail-world .sealed-detail-metadata div { border-top: 1px solid rgb(32 29 25 / 25%); display: grid; gap: .75rem; grid-template-columns: minmax(8rem, auto) minmax(0, 1fr); padding: .45rem 0; }
+.sealed-detail-world .sealed-detail-metadata dt { color: var(--muted); font-size: .875rem; text-transform: uppercase; }
+.sealed-detail-world .sealed-detail-metadata dd { font-size: .875rem; font-weight: 700; margin: 0; overflow-wrap: anywhere; }
+.sealed-detail-world .sealed-decision-strip { border-top: 2px solid var(--rule); display: grid; gap: .75rem; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 1rem; padding-top: .75rem; }
+.sealed-detail-world .sealed-decision-strip > div { min-width: 0; }
+.sealed-detail-world .sealed-decision-strip span, .sealed-detail-world .sealed-decision-strip small { display: block; font-size: .875rem; line-height: 1.4; }
+.sealed-detail-world .sealed-decision-strip strong { display: block; font: 700 clamp(1.25rem, 3vw, 2rem)/1 "Barlow Condensed", sans-serif; margin: .25rem 0; overflow-wrap: anywhere; }
+.sealed-detail-world .sealed-decision-strip small { color: var(--muted); overflow-wrap: anywhere; }
+.sealed-detail-world #sealed-detail-local-reference p { margin: .25rem 0; }
+.sealed-detail-world #sealed-detail-information { border-top: 2px solid var(--rule); margin-top: 1.5rem; max-width: 70ch; padding-top: .75rem; }
+.sealed-detail-world #sealed-detail-information h2 { font: 700 1.75rem/1 "Barlow Condensed", sans-serif; margin: 0 0 .75rem; text-transform: uppercase; }
+.sealed-detail-world #sealed-detail-information h3 { font: 700 1.25rem/1 "Barlow Condensed", sans-serif; margin: 1rem 0 .5rem; text-transform: uppercase; }
+.sealed-detail-world #sealed-detail-information p, .sealed-detail-world #sealed-detail-information li { font-size: .875rem; line-height: 1.65; }
+.sealed-detail-world #sealed-detail-information ul { list-style: square; margin: 0; padding-left: 1.25rem; }
+.sealed-detail-world #sealed-current-count { color: var(--muted); font: 400 .875rem "Azeret Mono", ui-monospace, monospace; text-transform: none; }
+@media (max-width: 46rem) { .sealed-detail-world .sealed-detail-overview { grid-template-columns: 1fr; } .sealed-detail-world .sealed-product-media { min-height: 16rem; } .sealed-detail-world .sealed-product-media img { height: min(52svh, 27rem); } }
+@media (max-width: 30rem) { .sealed-detail-world .sealed-decision-strip { grid-template-columns: 1fr; } .sealed-detail-world .sealed-decision-strip > div { border-top: 1px solid rgb(32 29 25 / 25%); padding-top: .5rem; } }
 
 /* Trade foundation: a symmetric valuation ledger on the same square bench. */
 .trade-world .decision-container { max-width: 72rem; }

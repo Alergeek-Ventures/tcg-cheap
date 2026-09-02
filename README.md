@@ -86,7 +86,7 @@ See the [deployment and operations guide](docs/deployment-and-operations.md)
 for its PostgreSQL/extension compatibility and upgrade requirements.
 
 Production image build, automatic release migrations, administrator provisioning,
-backups, rollback, and incident guidance are documented in
+backups, forward-only schema recovery, and incident guidance are documented in
 [Deployment and operations](docs/deployment-and-operations.md).
 
 Production is online at <https://tcg-cheap.d.alergeek.me>. Public read pages
@@ -94,7 +94,13 @@ remain public while administration is protected. The product owner confirms
 that the pinned ParadeDB production setup, automatic release migrations, and
 first administrator provisioning are complete. The deployment and operations
 guide remains the source of truth for future deploys, migration gating, admin
-provisioning, ParadeDB upgrades/preload, backups, rollback, and incidents.
+provisioning, ParadeDB upgrades/preload, backups, forward-only schema recovery,
+image rollback compatibility, and incidents.
+
+Database migrations are forward-only. Do not run or require `down`/`ecto.rollback`
+checks as a quality gate; fix schema/data issues with a new forward migration and
+recover disasters from tested backup/PITR. Image rollback is separate and only
+allowed after proving schema compatibility; it never reverses the database.
 
 All interested parties agreed that recurring source pulls are permitted for the
 internal MVP. The exact curated policy and three-source recurring acquisition

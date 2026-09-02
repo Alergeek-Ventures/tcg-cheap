@@ -115,6 +115,9 @@ defmodule TcgCheap.Catalogue.CardPrinting do
         :mapping_updated_at,
         :source_payload,
         :last_synced_at,
+        :details_synced_at,
+        :details_enrichment_failed_at,
+        :pricing_checked_at,
         :cardmarket_product_id,
         :mapping_status,
         :mapping_review_reason,
@@ -122,6 +125,7 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       ]
 
       change TcgCheap.Catalogue.Changes.SetSearchText
+      validate TcgCheap.Catalogue.Validations.MappingInvariant
       upsert? true
       upsert_identity :unique_tcgdex_id
     end
@@ -187,9 +191,7 @@ defmodule TcgCheap.Catalogue.CardPrinting do
         constraints: [min: 1, max: 1_000]
 
       filter expr(
-               collection_scopes != [] and
-                 (is_nil(collection_expires_on) or collection_expires_on >= today()) and
-                 mapping_status == "matched" and
+               mapping_status == "matched" and
                  not is_nil(cardmarket_product_id) and cardmarket_product_id > 0 and
                  (is_nil(^arg(:cursor)) or tcgdex_id > ^arg(:cursor))
              )
@@ -199,17 +201,16 @@ defmodule TcgCheap.Catalogue.CardPrinting do
                 sort: [tcgdex_id: :asc, id: :asc],
                 limit: arg(:limit)
               )
+
+      prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
     end
 
     read :public_by_tcgdex_id do
       argument :tcgdex_id, :string, allow_nil?: false
       get? true
 
-      filter expr(
-               tcgdex_id == ^arg(:tcgdex_id) and not is_nil(collection_scopes) and
-                 collection_scopes != [] and
-                 (is_nil(collection_expires_on) or collection_expires_on >= today())
-             )
+      filter expr(tcgdex_id == ^arg(:tcgdex_id))
+      prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
     end
 
     read :public_by_tcgdex_ids do
@@ -217,12 +218,10 @@ defmodule TcgCheap.Catalogue.CardPrinting do
         allow_nil?: false,
         constraints: [max_length: 100, items: [max_length: 160], nil_items?: false]
 
-      filter expr(
-               tcgdex_id in ^arg(:tcgdex_ids) and collection_scopes != [] and
-                 (is_nil(collection_expires_on) or collection_expires_on >= today())
-             )
+      filter expr(tcgdex_id in ^arg(:tcgdex_ids))
 
       prepare build(load: [:card_set, :tcgdex_cardmarket_v1_current_valuation])
+      prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
     end
 
     read :recently_tracked do
@@ -236,16 +235,15 @@ defmodule TcgCheap.Catalogue.CardPrinting do
     end
 
     read :public_recently_tracked do
-      filter expr(
-               not is_nil(last_synced_at) and collection_scopes != [] and
-                 (is_nil(collection_expires_on) or collection_expires_on >= today())
-             )
+      filter expr(not is_nil(last_synced_at))
 
       prepare build(
                 load: [:tcgdex_cardmarket_v1_current_valuation],
                 sort: [last_synced_at: :desc, tcgdex_id: :asc, id: :asc],
                 limit: 10
               )
+
+      prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
     end
 
     read :search do
@@ -258,6 +256,23 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
       argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]
       prepare TcgCheap.Catalogue.Preparations.PublicSearch
+    end
+
+    read :detail_enrichment_candidates do
+      argument :cursor, :string, allow_nil?: true
+
+      argument :limit, :integer,
+        allow_nil?: false,
+        default: 1_000,
+        constraints: [min: 1, max: 1_000]
+
+      filter expr(
+               is_nil(pricing_checked_at) and
+                 (is_nil(^arg(:cursor)) or tcgdex_id > ^arg(:cursor))
+             )
+
+      prepare build(load: [:card_set], sort: [tcgdex_id: :asc, id: :asc], limit: arg(:limit))
+      prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
     end
 
     update :set_collection_scope do
@@ -280,6 +295,20 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       change set_attribute(:collection_scope_source, arg(:collection_scope_source))
       change set_attribute(:collection_scoped_at, arg(:collection_scoped_at))
       change set_attribute(:collection_expires_on, arg(:collection_expires_on))
+    end
+
+    update :mark_pricing_checked do
+      public? false
+      skip_global_validations? true
+      argument :checked_at, :utc_datetime_usec, allow_nil?: false
+      change atomic_set(:pricing_checked_at, expr(^arg(:checked_at)))
+    end
+
+    update :mark_details_enrichment_failed do
+      public? false
+      skip_global_validations? true
+      argument :failed_at, :utc_datetime_usec, allow_nil?: false
+      change atomic_set(:details_enrichment_failed_at, expr(^arg(:failed_at)))
     end
 
     update :add_collection_scopes do
@@ -381,6 +410,7 @@ defmodule TcgCheap.Catalogue.CardPrinting do
              :public_recently_tracked,
              :search,
              :public_search,
+             :detail_enrichment_candidates,
              :set_collection_scope,
              :add_collection_scopes,
              :lock_for_update_by_id,
@@ -413,7 +443,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
     validate one_of(:mapping_status, ["pending", "matched", "unmatched", "review"])
     validate one_of(:mapping_authority, ["provider", "administrator"])
     validate compare(:cardmarket_product_id, greater_than: 0)
-    validate TcgCheap.Catalogue.Validations.MappingInvariant
   end
 
   attributes do
@@ -475,6 +504,9 @@ defmodule TcgCheap.Catalogue.CardPrinting do
     attribute :mapping_updated_at, :utc_datetime_usec, public?: true
     attribute :source_payload, :map, public?: false, select_by_default?: false
     attribute :last_synced_at, :utc_datetime_usec, public?: true
+    attribute :details_synced_at, :utc_datetime_usec, public?: true
+    attribute :details_enrichment_failed_at, :utc_datetime_usec, public?: false
+    attribute :pricing_checked_at, :utc_datetime_usec, public?: true
     attribute :cardmarket_product_id, :integer, public?: true
 
     attribute :mapping_status, :string do

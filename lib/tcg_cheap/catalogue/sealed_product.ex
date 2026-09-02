@@ -1,5 +1,8 @@
 defmodule TcgCheap.Catalogue.SealedProduct do
   @moduledoc "Source-neutral canonical catalogue entry for an officially distributed sealed product."
+  alias TcgCheap.Catalogue.ExternalImage
+  alias TcgCheap.Catalogue.ExternalUrl
+
   use Ash.Resource,
     otp_app: :tcg_cheap,
     domain: TcgCheap.Core,
@@ -37,6 +40,40 @@ defmodule TcgCheap.Catalogue.SealedProduct do
                        check:
                          "((msrp_pln IS NULL AND msrp_currency = 'PLN' AND msrp_source IS NULL) OR (msrp_pln IS NOT NULL AND msrp_pln > 0 AND msrp_currency = 'PLN' AND msrp_source IS NOT NULL AND btrim(msrp_source) <> ''))",
                        message: "MSRP must be positive with a nonblank PLN source, or absent"
+
+      check_constraint [:msrp_source_url], "sealed_products_msrp_source_url_invariant",
+        check: "msrp_source_url IS NULL OR #{ExternalUrl.postgres_url_check("msrp_source_url")}"
+
+      check_constraint [:official_url], "sealed_products_official_url_invariant",
+        check: "official_url IS NULL OR #{ExternalUrl.postgres_url_check("official_url")}"
+
+      check_constraint [
+                         :official_price_amount,
+                         :official_price_currency,
+                         :official_price_source,
+                         :official_price_source_url
+                       ],
+                       "sealed_products_official_price_invariant",
+                       check:
+                         "((official_price_amount IS NULL AND official_price_currency IS NULL AND official_price_source IS NULL AND official_price_source_url IS NULL) OR (official_price_amount IS NOT NULL AND official_price_currency IS NOT NULL AND official_price_source IS NOT NULL AND official_price_source_url IS NOT NULL AND official_price_amount > 0 AND official_price_amount <> 'NaN'::numeric AND official_price_amount <> 'Infinity'::numeric AND official_price_amount <> '-Infinity'::numeric AND official_price_currency IN ('PLN','USD','EUR') AND btrim(official_price_source) <> '' AND #{ExternalUrl.postgres_url_check("official_price_source_url")}))"
+
+      check_constraint [:image_url, :image_source, :image_source_url],
+                       "sealed_products_image_provenance_invariant",
+                       check:
+                         "((image_url IS NULL AND image_source IS NULL AND image_source_url IS NULL) OR (image_url IS NOT NULL AND image_source IS NOT NULL AND image_source_url IS NOT NULL AND #{ExternalImage.postgres_allowlisted_url_check("image_url")} AND btrim(image_source) <> '' AND #{ExternalUrl.postgres_url_check("image_source_url")}))"
+
+      check_constraint [
+                         :description,
+                         :contents,
+                         :pack_count,
+                         :cards_per_pack,
+                         :official_url,
+                         :details_source,
+                         :details_source_url
+                       ],
+                       "sealed_products_details_provenance_invariant",
+                       check:
+                         "((description IS NULL AND contents = '{}'::text[] AND pack_count IS NULL AND cards_per_pack IS NULL AND official_url IS NULL AND details_source IS NULL AND details_source_url IS NULL) OR (details_source IS NOT NULL AND details_source_url IS NOT NULL AND btrim(details_source) <> '' AND #{ExternalUrl.postgres_url_check("details_source_url")}))"
 
       check_constraint [:market, :language, :officially_distributed],
                        "sealed_products_distribution_invariant",
@@ -78,6 +115,19 @@ defmodule TcgCheap.Catalogue.SealedProduct do
         :msrp_source,
         :msrp_source_url,
         :image_url,
+        :description,
+        :contents,
+        :pack_count,
+        :cards_per_pack,
+        :official_url,
+        :details_source,
+        :details_source_url,
+        :official_price_amount,
+        :official_price_currency,
+        :official_price_source,
+        :official_price_source_url,
+        :image_source,
+        :image_source_url,
         :officially_distributed,
         :source,
         :source_id,
@@ -92,6 +142,20 @@ defmodule TcgCheap.Catalogue.SealedProduct do
       validate TcgCheap.Catalogue.Validations.SealedProductFields
     end
 
+    create :create_draft_from_listing do
+      argument :retailer_listing_id, :uuid, allow_nil?: false
+      accept []
+      change TcgCheap.Catalogue.Changes.CreateSealedProductDraftFromListing
+      change TcgCheap.Catalogue.Changes.SetSealedProductSearchText
+      validate TcgCheap.Catalogue.Validations.SealedProductIdentity
+      validate {TcgCheap.Catalogue.Validations.SourceIdentity, required?: true}
+      validate TcgCheap.Catalogue.Validations.SealedProductFields
+      upsert? true
+      upsert_identity :unique_source_id
+      upsert_fields []
+      return_skipped_upsert? true
+    end
+
     create :admin_create_draft do
       accept [
         :slug,
@@ -104,6 +168,19 @@ defmodule TcgCheap.Catalogue.SealedProduct do
         :msrp_source,
         :msrp_source_url,
         :image_url,
+        :description,
+        :contents,
+        :pack_count,
+        :cards_per_pack,
+        :official_url,
+        :details_source,
+        :details_source_url,
+        :official_price_amount,
+        :official_price_currency,
+        :official_price_source,
+        :official_price_source_url,
+        :image_source,
+        :image_source_url,
         :officially_distributed
       ]
 
@@ -125,6 +202,19 @@ defmodule TcgCheap.Catalogue.SealedProduct do
         :msrp_source,
         :msrp_source_url,
         :image_url,
+        :description,
+        :contents,
+        :pack_count,
+        :cards_per_pack,
+        :official_url,
+        :details_source,
+        :details_source_url,
+        :official_price_amount,
+        :official_price_currency,
+        :official_price_source,
+        :official_price_source_url,
+        :image_source,
+        :image_source_url,
         :officially_distributed,
         :source,
         :source_id,
@@ -152,6 +242,19 @@ defmodule TcgCheap.Catalogue.SealedProduct do
         :msrp_source,
         :msrp_source_url,
         :image_url,
+        :description,
+        :contents,
+        :pack_count,
+        :cards_per_pack,
+        :official_url,
+        :details_source,
+        :details_source_url,
+        :official_price_amount,
+        :official_price_currency,
+        :official_price_source,
+        :official_price_source_url,
+        :image_source,
+        :image_source_url,
         :officially_distributed,
         :source,
         :source_id,
@@ -182,6 +285,19 @@ defmodule TcgCheap.Catalogue.SealedProduct do
         :msrp_source,
         :msrp_source_url,
         :image_url,
+        :description,
+        :contents,
+        :pack_count,
+        :cards_per_pack,
+        :official_url,
+        :details_source,
+        :details_source_url,
+        :official_price_amount,
+        :official_price_currency,
+        :official_price_source,
+        :official_price_source_url,
+        :image_source,
+        :image_source_url,
         :officially_distributed,
         :source,
         :source_id,
@@ -223,6 +339,37 @@ defmodule TcgCheap.Catalogue.SealedProduct do
               mode: :product_approval}
     end
 
+    update :enrich_approved do
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
+
+      accept [
+        :description,
+        :contents,
+        :pack_count,
+        :cards_per_pack,
+        :official_url,
+        :details_source,
+        :details_source_url,
+        :official_price_amount,
+        :official_price_currency,
+        :official_price_source,
+        :official_price_source_url,
+        :image_url,
+        :image_source,
+        :image_source_url
+      ]
+
+      require_atomic? false
+      validate TcgCheap.Catalogue.Validations.SealedProductFields
+
+      change {TcgCheap.Catalogue.Changes.LockAndValidateReview,
+              resource: __MODULE__,
+              lock_action: :lock_for_update_by_id,
+              status_attribute: :publication_status,
+              expected_status: "approved",
+              version_argument: :expected_updated_at}
+    end
+
     update :archive do
       argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
       accept []
@@ -255,31 +402,20 @@ defmodule TcgCheap.Catalogue.SealedProduct do
       argument :slug, :string, allow_nil?: false
       get? true
 
-      filter expr(
-               slug == ^arg(:slug) and publication_status == "approved" and
-                 officially_distributed == true and market == "PL" and language == "en" and
-                 release_date <= today() and
-                 distribution_status in ["current", "discontinued"]
-             )
+      filter expr(slug == ^arg(:slug))
+      prepare TcgCheap.Catalogue.Preparations.PublicSealedProduct
     end
 
     read :public_by_id do
       argument :id, :uuid, allow_nil?: false
       get? true
 
-      filter expr(
-               id == ^arg(:id) and publication_status == "approved" and
-                 officially_distributed == true and market == "PL" and language == "en" and
-                 release_date <= today() and distribution_status in ["current", "discontinued"]
-             )
+      filter expr(id == ^arg(:id))
+      prepare TcgCheap.Catalogue.Preparations.PublicSealedProduct
     end
 
     read :public_catalogue do
-      filter expr(
-               publication_status == "approved" and release_date <= today() and
-                 officially_distributed == true and market == "PL" and language == "en" and
-                 distribution_status in ["current", "discontinued"]
-             )
+      prepare TcgCheap.Catalogue.Preparations.PublicSealedProduct
 
       prepare build(sort: [name: :asc, slug: :asc])
     end
@@ -288,12 +424,8 @@ defmodule TcgCheap.Catalogue.SealedProduct do
       argument :since, :date, allow_nil?: false
       argument :as_of, :date, allow_nil?: false
 
-      filter expr(
-               publication_status == "approved" and release_date >= ^arg(:since) and
-                 release_date <= ^arg(:as_of) and
-                 officially_distributed == true and market == "PL" and language == "en" and
-                 distribution_status in ["current", "discontinued"]
-             )
+      filter expr(release_date >= ^arg(:since) and release_date <= ^arg(:as_of))
+      prepare TcgCheap.Catalogue.Preparations.PublicSealedProduct
 
       prepare build(sort: [release_date: :desc, name: :asc, slug: :asc], limit: 10)
     end
@@ -302,6 +434,11 @@ defmodule TcgCheap.Catalogue.SealedProduct do
       argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
       argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]
       prepare TcgCheap.Catalogue.Preparations.SearchPublicSealedProducts
+    end
+
+    read :approved_catalogue do
+      filter expr(publication_status == "approved")
+      prepare build(sort: [name: :asc, slug: :asc])
     end
 
     read :draft_review_queue do
@@ -335,8 +472,11 @@ defmodule TcgCheap.Catalogue.SealedProduct do
     policy action([
              :read,
              :admin_create_draft,
+             :create_draft_from_listing,
              :admin_catalogue,
+             :approved_catalogue,
              :revise_draft,
+             :enrich_approved,
              :approve,
              :archive,
              :mark_discontinued,
@@ -371,6 +511,25 @@ defmodule TcgCheap.Catalogue.SealedProduct do
     attribute :msrp_source, :string, public?: true
     attribute :msrp_source_url, :string, public?: true, constraints: [max_length: 2_000]
     attribute :image_url, :string, public?: true, constraints: [max_length: 2_000]
+    attribute :description, :string, public?: true, constraints: [max_length: 2_000]
+
+    attribute :contents, {:array, :string},
+      allow_nil?: false,
+      default: [],
+      public?: true,
+      constraints: [max_length: 20, items: [max_length: 240]]
+
+    attribute :pack_count, :integer, public?: true, constraints: [min: 1, max: 100]
+    attribute :cards_per_pack, :integer, public?: true, constraints: [min: 1, max: 100]
+    attribute :official_url, :string, public?: true, constraints: [max_length: 2_000]
+    attribute :details_source, :string, public?: true, constraints: [max_length: 500]
+    attribute :details_source_url, :string, public?: true, constraints: [max_length: 2_000]
+    attribute :official_price_amount, :decimal, public?: true
+    attribute :official_price_currency, :string, public?: true
+    attribute :official_price_source, :string, public?: true, constraints: [max_length: 500]
+    attribute :official_price_source_url, :string, public?: true, constraints: [max_length: 2_000]
+    attribute :image_source, :string, public?: true, constraints: [max_length: 500]
+    attribute :image_source_url, :string, public?: true, constraints: [max_length: 2_000]
     attribute :market, :string, allow_nil?: false, default: "PL", public?: true
     attribute :language, :string, allow_nil?: false, default: "en", public?: true
     attribute :officially_distributed, :boolean, allow_nil?: false, default: false, public?: true
@@ -389,6 +548,19 @@ defmodule TcgCheap.Catalogue.SealedProduct do
 
   relationships do
     has_many :aliases, TcgCheap.Catalogue.SealedProductAlias
+
+    has_many :public_image_mappings, TcgCheap.Catalogue.ListingProductMapping do
+      destination_attribute :confirmed_product_id
+      public? true
+      read_action :public_image
+
+      filter expr(
+               status == "matched" and retailer_listing.status == "active" and
+                 retailer_listing.retailer.status == "active" and
+                 not is_nil(retailer_listing.image_url) and
+                 fragment("btrim(?)", retailer_listing.image_url) != ""
+             )
+    end
 
     has_many :approved_name_aliases, TcgCheap.Catalogue.SealedProductAlias do
       filter expr(kind == "name" and review_status == "approved")

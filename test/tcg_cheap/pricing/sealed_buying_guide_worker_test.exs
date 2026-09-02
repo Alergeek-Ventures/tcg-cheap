@@ -502,7 +502,17 @@ defmodule TcgCheap.Pricing.SealedBuyingGuideWorkerTest do
       officially_distributed: true,
       release_date: DateTime.to_date(@as_of),
       msrp_pln: msrp,
-      msrp_source: if(msrp, do: "test", else: nil)
+      msrp_source: if(msrp, do: "test", else: nil),
+      description: "A complete guide worker sealed product record.",
+      contents: ["36 booster packs"],
+      pack_count: 36,
+      cards_per_pack: 10,
+      official_url: "https://www.pokemon.com/products/guide-worker",
+      details_source: "Guide worker test catalogue",
+      details_source_url: "https://www.pokemon.com/details/guide-worker",
+      image_url: "https://assets.pokemon.com/guide-#{System.unique_integer([:positive])}.jpg",
+      image_source: "Official product images",
+      image_source_url: "https://www.pokemon.com/images/guide-worker"
     }
 
     draft = Core.create_sealed_product_draft!(attrs)

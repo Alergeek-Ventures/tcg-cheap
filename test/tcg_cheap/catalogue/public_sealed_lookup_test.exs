@@ -3,6 +3,7 @@ defmodule TcgCheap.Catalogue.PublicSealedLookupTest do
 
   alias TcgCheap.Catalogue.PublicSealedProductProjection
   alias TcgCheap.Core
+  alias TcgCheap.Repo
 
   defp product(name) do
     draft =
@@ -10,6 +11,16 @@ defmodule TcgCheap.Catalogue.PublicSealedLookupTest do
         slug: "lookup-#{System.unique_integer([:positive])}",
         name: name,
         product_type: "booster_box",
+        description: "A complete sealed product for lookup tests.",
+        contents: ["36 booster packs"],
+        pack_count: 36,
+        cards_per_pack: 10,
+        official_url: "https://example.com/products/lookup",
+        details_source: "Official product page",
+        details_source_url: "https://example.com/products/lookup/details",
+        image_url: "https://assets.tcgdex.net/en/sealed/lookup.jpg",
+        image_source: "Official product page",
+        image_source_url: "https://example.com/products/lookup/image",
         officially_distributed: true,
         release_date: Date.utc_today()
       })
@@ -441,5 +452,34 @@ defmodule TcgCheap.Catalogue.PublicSealedLookupTest do
     assert Enum.map(Core.list_public_listing_mappings_for_product!(target.id), & &1.id) == [
              mapping.id
            ]
+
+    Repo.query!(
+      "UPDATE sealed_products SET image_url = NULL, image_source = NULL, image_source_url = NULL WHERE id = $1",
+      [Ecto.UUID.dump!(target.id)]
+    )
+
+    for image_url <- [
+          "https://boosterland.pl/images/fallback.jpg",
+          "https://cdn.colligere.pl/images/fallback.jpg"
+        ] do
+      Repo.query!(
+        "UPDATE retailer_listings SET image_url = $1 WHERE id = $2",
+        [image_url, Ecto.UUID.dump!(mapping.retailer_listing_id)]
+      )
+
+      assert [fallback] = Core.list_public_listing_mappings_for_product!(target.id)
+      assert fallback.id == mapping.id
+    end
+
+    assert {:ok, public_target} = Core.get_public_sealed_product_by_id(target.id)
+    assert public_target.id == target.id
+    [public_mapping] = public_target.public_image_mappings
+    assert match?(%Ash.NotLoaded{}, public_mapping.evidence)
+    assert match?(%Ash.NotLoaded{}, public_mapping.reason)
+    assert match?(%Ash.NotLoaded{}, public_mapping.retailer_listing.source_payload)
+    assert match?(%Ash.NotLoaded{}, public_mapping.retailer_listing.retailer)
+
+    Core.disable_retailer_listing!(listing)
+    assert Core.list_public_listing_mappings_for_product!(target.id) == []
   end
 end

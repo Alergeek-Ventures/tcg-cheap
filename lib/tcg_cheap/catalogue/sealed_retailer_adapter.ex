@@ -6,7 +6,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
   Adapters must invoke it immediately before every outbound request and return its
   error without performing that request. Fixture-only callers may omit it.
   """
-  alias TcgCheap.Catalogue.{SealedIdentifier, SearchText}
+  alias TcgCheap.Catalogue.{ExternalImage, ExternalUrl, SealedIdentifier, SearchText}
 
   defmodule Listing do
     @moduledoc "Normalized listing value returned by an adapter."
@@ -24,6 +24,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
       :source_title,
       :normalized_title,
       :direct_url,
+      :image_url,
       :gtin,
       :current_price_pln,
       :currency,
@@ -54,6 +55,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
       | source_listing_id: trim(listing.source_listing_id),
         source_title: trim(listing.source_title),
         direct_url: trim(listing.direct_url),
+        image_url: trim(listing.image_url),
         normalized_title: SearchText.normalize(trim(listing.source_title)),
         gtin: normalize_gtin(listing.gtin),
         currency: listing.currency || "PLN",
@@ -72,6 +74,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
       valid_string?(listing.source_listing_id, 240) and valid_string?(title, 500) and
         valid_string?(listing.direct_url, 2_000) and
         https_url?(listing.direct_url) and
+        (is_nil(listing.image_url) or ExternalImage.valid?(listing.image_url)) and
         (is_nil(listing.gtin) or
            SealedIdentifier.valid_ean?(listing.gtin)) and listing.currency == "PLN" and
         listing.stock_status in ["in_stock", "sold_out", "unknown"] and times_ok and
@@ -94,10 +97,7 @@ defmodule TcgCheap.Catalogue.SealedRetailerAdapter do
   defp normalize_gtin(nil), do: nil
   defp normalize_gtin(value), do: SealedIdentifier.normalize(:ean, value)
 
-  defp https_url?(value) when is_binary(value) do
-    uri = URI.parse(value)
-    uri.scheme == "https" and is_binary(uri.host) and String.trim(uri.host) != ""
-  end
+  defp https_url?(value), do: ExternalUrl.valid?(value)
 
   defp cast_positive_price(nil), do: nil
 

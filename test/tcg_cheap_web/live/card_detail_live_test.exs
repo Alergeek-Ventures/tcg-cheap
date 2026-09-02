@@ -31,12 +31,12 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute has_element?(view, "#card-detail-not-found", "provider")
   end
 
-  test "a known but unscoped printing is publicly not found", %{conn: conn} do
-    card = create_card("unscoped", scoped?: false)
+  test "a known but unscoped printing is publicly visible", %{conn: conn} do
+    card = create_card("unscoped", scoped?: false, card_set?: true)
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
 
-    assert has_element?(view, "#card-detail-not-found")
-    refute has_element?(view, "#card-detail-identity")
+    assert has_element?(view, "#card-detail-identity")
+    assert has_element?(view, "#card-detail-title", card.name)
   end
 
   test "a missing valuation renders the full local-card detail and queues acquisition", %{
@@ -90,7 +90,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute has_element?(view, "not affiliated")
     assert has_element?(view, "#valuation-value", "?")
     assert has_element?(view, "#valuation-unpriced")
-    assert has_element?(view, "#valuation-fetching")
+    assert has_element?(view, "#card-detail-enrichment-status")
     assert has_element?(view, "#valuation-history-empty", "No price history yet.")
     refute has_element?(view, "#valuation-history-collecting")
 
@@ -110,11 +110,38 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert [job] =
              all_enqueued(
                repo: TcgCheap.Repo,
-               worker: ValuationWorker,
-               args: %{"local_card_id" => card.id}
+               worker: TcgCheap.Catalogue.CardDetailEnrichmentWorker,
+               args: %{
+                 "local_card_id" => card.id,
+                 "tcgdex_id" => card.tcgdex_id,
+                 "policy_version" => 1,
+                 "continue" => false
+               }
              )
 
-    assert job.args["tcgdex_id"] == card.tcgdex_id
+    assert job.priority == 0
+  end
+
+  test "details-synced cards with unchecked pricing queue priority acquisition", %{conn: conn} do
+    card = create_card("pricing-pending", details_synced_at: DateTime.utc_now())
+
+    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
+
+    assert has_element?(view, "#card-detail-identity")
+
+    assert [job] =
+             all_enqueued(
+               repo: TcgCheap.Repo,
+               worker: TcgCheap.Catalogue.CardDetailEnrichmentWorker,
+               args: %{
+                 "local_card_id" => card.id,
+                 "tcgdex_id" => card.tcgdex_id,
+                 "policy_version" => 1,
+                 "continue" => false
+               }
+             )
+
+    assert job.priority == 0
   end
 
   test "a valid TCGdex image renders the high WebP detail image", %{conn: conn} do
@@ -458,7 +485,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
   end
 
   test "a stale cached valuation remains visible while refresh is queued", %{conn: conn} do
-    card = create_card("stale")
+    card = create_card("stale", details_synced_at: DateTime.utc_now())
     now = DateTime.utc_now() |> DateTime.truncate(:second)
     record_snapshot(card, Decimal.new("17.20"), DateTime.add(now, -8, :day))
 
@@ -489,7 +516,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     assert has_element?(view, "#valuation-value", "?")
     assert has_element?(view, "#valuation-unpriced")
-    assert has_element?(view, "#valuation-refresh-failed")
+    assert has_element?(view, "#card-detail-enrichment-failed")
     refute has_element?(view, "#valuation-fetching")
 
     refute_enqueued(
@@ -532,7 +559,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
   end
 
   test "a terminal refresh failure retains a stale cached value without fetching", %{conn: conn} do
-    card = create_card("failure")
+    card = create_card("failure", details_synced_at: DateTime.utc_now())
     now = DateTime.utc_now() |> DateTime.truncate(:second)
     record_snapshot(card, Decimal.new("31.10"), DateTime.add(now, -8, :day))
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
@@ -614,8 +641,8 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
   defp create_card(label, overrides \\ []) do
     suffix = System.unique_integer([:positive])
-    fixture_opts = Keyword.take(overrides, [:scoped?, :expires_on])
-    attribute_overrides = Keyword.drop(overrides, [:scoped?, :expires_on])
+    fixture_opts = Keyword.take(overrides, [:scoped?, :expires_on, :card_set?])
+    attribute_overrides = Keyword.drop(overrides, [:scoped?, :expires_on, :card_set?])
 
     attrs = %{
       tcgdex_id: "detail-#{label}-#{suffix}",

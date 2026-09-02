@@ -300,7 +300,8 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     existing =
       TcgCheap.TestSupport.import_card_printing!(
         %{tcgdex_id: id, name: "Card", set_name: "Set", collector_number: "1"},
-        scoped?: false
+        scoped?: false,
+        card_set?: false
       )
 
     TcgCheap.TestSupport.set_collection_scope!(
@@ -430,7 +431,8 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     existing =
       TcgCheap.TestSupport.import_card_printing!(
         %{tcgdex_id: id, name: "Old", set_name: "Old", collector_number: "1"},
-        expires_on: nil
+        expires_on: nil,
+        card_set?: false
       )
 
     TcgCheap.TestSupport.set_collection_scope!(

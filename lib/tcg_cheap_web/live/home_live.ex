@@ -1,7 +1,7 @@
 defmodule TcgCheapWeb.HomeLive do
   use TcgCheapWeb, :live_view
 
-  alias TcgCheap.Catalogue.CardImage
+  alias TcgCheap.Catalogue.{CardImage, ExternalImage}
   alias TcgCheap.Catalogue.SearchText
   alias TcgCheap.Pricing.Singles.Freshness
 
@@ -102,58 +102,56 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   @impl true
-  def handle_event(
-        "search",
-        %{"search" => %{"query" => query}},
-        %{assigns: %{mode: :sealed}} = socket
-      ) do
-    normalized = SearchText.normalize(query)
+  def handle_params(params, uri, socket) do
+    mode = mode_from_params(params)
+    query = params |> Map.get("q", "") |> normalize_query_param()
+    canonical_path = home_path(mode, query)
 
-    socket = assign(socket, :search_query, normalized)
+    socket =
+      socket
+      |> assign(
+        mode: mode,
+        search_query: query,
+        search_form: to_form(%{"query" => query}, as: :search)
+      )
+      |> reset_search_state()
 
-    cond do
-      normalized == "" -> clear_sealed_results(socket, :idle)
-      length(String.graphemes(normalized)) < 2 -> clear_sealed_results(socket, :short)
-      length(String.graphemes(normalized)) > 100 -> clear_sealed_results(socket, :invalid)
-      true -> search_sealed_locally(socket, normalized)
+    if canonical_uri?(uri, canonical_path) do
+      execute_search(socket, query)
+    else
+      {:noreply, push_patch(socket, to: canonical_path, replace: true)}
     end
   end
 
   @impl true
-  def handle_event("search", %{"search" => %{"query" => query}}, socket) do
+  def handle_event(
+        "search",
+        %{"search" => %{"query" => query}},
+        socket
+      ) do
     normalized = SearchText.normalize(query)
-
-    socket = assign(socket, :search_query, normalized)
-
-    cond do
-      normalized == "" -> clear_results(socket, :idle)
-      length(String.graphemes(normalized)) < 2 -> clear_results(socket, :short)
-      length(String.graphemes(normalized)) > 100 -> clear_results(socket, :invalid)
-      true -> search_locally(socket, normalized)
-    end
+    {:noreply, push_patch(socket, to: home_path(socket.assigns.mode, normalized), replace: true)}
   end
 
   def handle_event("search", _params, socket), do: {:noreply, socket}
 
   @impl true
   def handle_event("switch_mode", %{"mode" => "sealed"}, socket) do
-    {:noreply, reset_mode(socket, :sealed)}
+    {:noreply, push_patch(socket, to: home_path(:sealed, ""))}
   end
 
   def handle_event("switch_mode", %{"mode" => "singles"}, socket) do
-    {:noreply, reset_mode(socket, :singles)}
+    {:noreply, push_patch(socket, to: home_path(:singles, ""))}
   end
 
   def handle_event("switch_mode_with_query", %{"mode" => "sealed"}, socket) do
     query = socket.assigns.search_query
-    socket = reset_mode(socket, :sealed, query)
-    handle_event("search", %{"search" => %{"query" => query}}, socket)
+    {:noreply, push_patch(socket, to: home_path(:sealed, query))}
   end
 
   def handle_event("switch_mode_with_query", %{"mode" => "singles"}, socket) do
     query = socket.assigns.search_query
-    socket = reset_mode(socket, :singles, query)
-    handle_event("search", %{"search" => %{"query" => query}}, socket)
+    {:noreply, push_patch(socket, to: home_path(:singles, query))}
   end
 
   def handle_event("switch_mode_with_query", _params, socket), do: {:noreply, socket}
@@ -439,13 +437,24 @@ defmodule TcgCheapWeb.HomeLive do
                     tabindex="-1"
                   >
                     <article id={"sealed-search-result-#{result.id}"} class="evidence-slip">
-                      <div
-                        class="evidence-art"
-                        id={"sealed-art-#{result.id}"}
-                        role="img"
-                        aria-label={"No image is available for #{result.name}."}
-                      >
-                        <svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 14 36 5l24 9v68l-24 9-24-9zM12 14l24 9 24-9M36 23v68M22 39h28M22 49h20" /></svg>
+                      <div class="evidence-art" id={"sealed-art-#{result.id}"}>
+                        <%= if image_url = sealed_image_url(result) do %>
+                          <img
+                            id={"sealed-search-image-#{result.id}"}
+                            class="sealed-package-image"
+                            src={image_url}
+                            alt={result.name <> " packaging"}
+                            width="578"
+                            height="325"
+                            loading="lazy"
+                            decoding="async"
+                            referrerpolicy="no-referrer"
+                          />
+                        <% else %>
+                          <div role="img" aria-label={"No image is available for #{result.name}."}>
+                            <svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 14 36 5l24 9v68l-24 9-24-9zM12 14l24 9 24-9M36 23v68M22 39h28M22 49h20" /></svg>
+                          </div>
+                        <% end %>
                       </div>
                       <div class="evidence-copy">
                         <div class="evidence-identity">
@@ -739,12 +748,13 @@ defmodule TcgCheapWeb.HomeLive do
       class="market-row market-sealed-row"
     >
       <div class="market-thumb market-package">
-        <%= if image_url = CardImage.thumbnail_url(product.image_url) do %>
+        <%= if image_url = sealed_image_url(product) do %>
           <img
+            class="sealed-package-image"
             src={image_url}
-            alt=""
-            width="80"
-            height="110"
+            alt={product.name <> " packaging"}
+            width="578"
+            height="325"
             loading="lazy"
             decoding="async"
             referrerpolicy="no-referrer"
@@ -968,6 +978,37 @@ defmodule TcgCheapWeb.HomeLive do
     |> Enum.join(" · ")
   end
 
+  defp sealed_image_url(product) do
+    cond do
+      ExternalImage.valid?(Map.get(product, :image_url)) -> Map.get(product, :image_url)
+      image = retailer_image_url(product) -> image
+      true -> nil
+    end
+  end
+
+  defp retailer_image_url(product) do
+    case Map.get(product, :public_image_mappings, []) do
+      mappings when is_list(mappings) ->
+        Enum.find_value(mappings, &retailer_mapping_image/1)
+
+      _ ->
+        nil
+    end
+  end
+
+  defp retailer_mapping_image(mapping) do
+    mapping
+    |> Map.get(:retailer_listing)
+    |> valid_retailer_image()
+  end
+
+  defp valid_retailer_image(listing) when is_map(listing) do
+    image_url = Map.get(listing, :image_url)
+    if ExternalImage.valid?(image_url), do: image_url
+  end
+
+  defp valid_retailer_image(_listing), do: nil
+
   defp updated_text(fetched_at, status, now) do
     age = max(DateTime.diff(now, fetched_at, :day), 0)
 
@@ -1076,13 +1117,54 @@ defmodule TcgCheapWeb.HomeLive do
     end
   end
 
-  defp reset_mode(socket, mode, query \\ "") do
+  defp execute_search(socket, "") do
+    clear_results_for_mode(socket, :idle)
+  end
+
+  defp execute_search(socket, query) do
+    grapheme_count = length(String.graphemes(query))
+
+    cond do
+      grapheme_count < 2 -> clear_results_for_mode(socket, :short)
+      grapheme_count > 100 -> clear_results_for_mode(socket, :invalid)
+      socket.assigns.mode == :sealed -> search_sealed_locally(socket, query)
+      true -> search_locally(socket, query)
+    end
+  end
+
+  defp normalize_query_param(value) when is_binary(value), do: SearchText.normalize(value)
+  defp normalize_query_param(_value), do: ""
+
+  defp mode_from_params(%{"mode" => "sealed"}), do: :sealed
+  defp mode_from_params(_params), do: :singles
+
+  defp home_path(mode, query) do
+    params =
+      case {mode, query} do
+        {:sealed, ""} -> [mode: "sealed"]
+        {:sealed, query} -> [mode: "sealed", q: query]
+        {:singles, ""} -> []
+        {:singles, query} -> [q: query]
+      end
+
+    case URI.encode_query(params) do
+      "" -> ~p"/"
+      query_string -> ~p"/" <> "?" <> query_string
+    end
+  end
+
+  defp canonical_uri?(uri, canonical_path) do
+    incoming = URI.parse(uri)
+    canonical = URI.parse(canonical_path)
+
+    incoming.path == canonical.path and incoming.query == canonical.query
+  end
+
+  defp reset_search_state(socket) do
     socket
-    |> assign(mode: mode, search_form: to_form(%{"query" => query}, as: :search))
     |> assign(
       search_status: :idle,
       result_count: 0,
-      search_query: query,
       autocomplete_options: [],
       active_option_id: nil,
       fallback_cards_count: 0,

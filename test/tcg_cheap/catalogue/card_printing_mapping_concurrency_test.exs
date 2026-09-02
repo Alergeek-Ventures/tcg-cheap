@@ -20,14 +20,17 @@ defmodule TcgCheap.Catalogue.CardPrintingMappingConcurrencyTest do
           )
 
         card =
-          TcgCheap.TestSupport.import_card_printing!(%{
-            tcgdex_id: "card-mapping-race-#{suffix}",
-            name: "Race card",
-            set_name: "Race set",
-            collector_number: "1",
-            mapping_status: "matched",
-            cardmarket_product_id: 123
-          })
+          TcgCheap.TestSupport.import_card_printing!(
+            %{
+              tcgdex_id: "card-mapping-race-#{suffix}",
+              name: "Race card",
+              set_name: "Race set",
+              collector_number: "1",
+              mapping_status: "matched",
+              cardmarket_product_id: 123
+            },
+            card_set?: false
+          )
 
         {card, %Admin{id: admin_id, email: email}}
       end)

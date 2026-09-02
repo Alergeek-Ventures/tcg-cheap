@@ -43,6 +43,104 @@ defmodule TcgCheapWeb.HomeLiveTest do
     refute has_element?(view, "#market-movers-intro")
   end
 
+  test "restores sealed mode and a normalized query from the URL", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_patch(view, "/?mode=sealed&q=%20x%20")
+
+    assert has_element?(view, "#mode-sealed[aria-pressed=true]")
+    assert has_element?(view, "#sealed-search-query[value='x']")
+    assert has_element?(view, "#sealed-search-short")
+  end
+
+  test "canonicalizes malformed query params in one replace patch", %{conn: conn} do
+    query = "  Mixed   Query  "
+    canonical = "/?" <> URI.encode_query(%{q: "mixed query"})
+
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    render_patch(
+      view,
+      "/?" <> URI.encode_query(%{mode: "unsupported", q: query, irrelevant: "yes"})
+    )
+
+    assert_patch(view, canonical)
+    assert has_element?(view, "#mode-singles[aria-pressed=true]")
+    assert has_element?(view, "#card-search-query[value='mixed query']")
+  end
+
+  test "removes blank singles queries and redundant mode params", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_patch(view, "/?mode=singles&q=%20%20&extra=ignored")
+
+    assert_patch(view, "/")
+    assert has_element?(view, "#mode-singles[aria-pressed=true]")
+    assert has_element?(view, "#card-search-query[value='']")
+  end
+
+  test "keeps canonical sealed query URLs stable", %{conn: conn} do
+    canonical = "/?mode=sealed&" <> URI.encode_query(%{q: "sealed query"})
+    {:ok, view, _html} = live(conn, canonical)
+
+    assert has_element?(view, "#mode-sealed[aria-pressed=true]")
+    assert has_element?(view, "#sealed-search-query[value='sealed query']")
+  end
+
+  test "restores initial sealed mode and an empty state from the URL", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/?mode=sealed")
+
+    assert has_element?(view, "#mode-sealed[aria-pressed=true]")
+    assert has_element?(view, "#sealed-search-query[value='']")
+    refute has_element?(view, "#sealed-search-short")
+    refute has_element?(view, "#sealed-search-empty")
+  end
+
+  test "restores a singles query and invalid search state from the URL", %{conn: conn} do
+    query = String.duplicate("é", 101)
+    {:ok, view, _html} = live(conn, "/?" <> URI.encode_query(%{q: query}))
+
+    assert has_element?(view, "#mode-singles[aria-pressed=true]")
+    assert has_element?(view, "#card-search-query")
+    assert has_element?(view, "#card-search-summary", "Search too long")
+    assert has_element?(view, "#card-search-invalid")
+  end
+
+  test "direct-loads a normalized singles query and its matching results", %{conn: conn} do
+    {name, first, second} = create_same_name_printings("Direct singles")
+    url = "/?" <> URI.encode_query(%{q: "  #{name}  "})
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_patch(view, url)
+
+    assert has_element?(view, "#card-search-query[value='#{String.downcase(name)}']")
+    assert has_element?(view, "#card-search-result-#{first.id}")
+    assert has_element?(view, "#card-search-result-#{second.id}")
+  end
+
+  test "direct-loads a normalized sealed query and its matching results", %{conn: conn} do
+    product = create_sealed_product("Direct Sealed #{System.unique_integer([:positive])}")
+    url = "/?" <> URI.encode_query(mode: "sealed", q: "  #{product.name}  ")
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_patch(view, url)
+
+    assert has_element?(view, "#sealed-search-query[value='#{String.downcase(product.name)}']")
+    assert has_element?(view, "#sealed-search-result-#{product.id}")
+  end
+
+  test "mode and search changes patch canonical URLs", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    render_click(element(view, "#mode-sealed"))
+    assert_patch(view, "/?mode=sealed")
+
+    query = "Sealed Query"
+    render_hook(view, "search", %{"search" => %{"query" => query}})
+    assert_patch(view, "/?mode=sealed&" <> URI.encode_query(%{q: String.downcase(query)}))
+
+    render_click(element(view, "#mode-singles"))
+    assert_patch(view, "/")
+  end
+
   test "switches to local sealed search and restores singles", %{conn: conn} do
     {:ok, view, _html} = live(conn, ~p"/")
 
@@ -72,17 +170,27 @@ defmodule TcgCheapWeb.HomeLiveTest do
     refute has_element?(view, "#sealed-search-form")
   end
 
-  test "CSP allows only the TCGdex image host", %{conn: conn} do
+  test "CSP allows only the approved image hosts", %{conn: conn} do
     response = get(conn, "/")
     [policy] = get_resp_header(response, "content-security-policy")
 
-    assert Regex.match?(~r/img-src 'self' data: https:\/\/assets\.tcgdex\.net(?:;|$)/, policy)
-    refute policy =~ "img-src 'self' data: https://assets.tcgdex.net https://"
+    assert [img_src] = Regex.run(~r/(img-src[^;]*)/, policy, capture: :all_but_first)
+
+    assert img_src ==
+             "img-src 'self' data: https://assets.tcgdex.net https://assets.pokemon.com https://www.pokemon.com https://mcdn.pokemon.com https://lootquest.pl https://*.lootquest.pl https://cardzhouse.pl https://*.cardzhouse.pl https://boosterpoint.pl https://*.boosterpoint.pl https://pokebooster.pl https://*.pokebooster.pl https://boosterland.pl https://*.boosterland.pl https://colligere.pl https://*.colligere.pl"
+
+    refute policy =~ " img-src 'self' data: https:;"
   end
 
   test "searches approved sealed products by canonical name and approved alias", %{conn: conn} do
     suffix = System.unique_integer([:positive])
-    product = create_sealed_product("Public Sealed #{suffix}")
+
+    product =
+      create_sealed_product("Public Sealed #{suffix}", %{
+        image_url: "https://assets.pokemon.com/home-sealed-#{suffix}.jpg",
+        image_source: "Official images",
+        image_source_url: "https://example.com/home-image"
+      })
 
     alias_row =
       Core.create_sealed_product_alias!(%{
@@ -106,7 +214,65 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#sealed-option-#{product.id}[role=option][aria-selected=true]")
     assert has_element?(view, "#sealed-search-name-#{product.id}", product.name)
     assert has_element?(view, "#sealed-search-summary", "1 sealed product")
-    refute has_element?(view, "#sealed-search-result-#{product.id} img")
+
+    assert has_element?(
+             view,
+             "#sealed-search-image-#{product.id}[src='https://assets.pokemon.com/home-sealed-#{suffix}.jpg'][alt='#{product.name} packaging'][loading='lazy'][decoding='async'][referrerpolicy='no-referrer']"
+           )
+  end
+
+  test "sealed search uses a matched active retailer image when canonical image is absent", %{
+    conn: conn
+  } do
+    suffix = System.unique_integer([:positive])
+
+    product = create_sealed_product("Retailer image sealed #{suffix}")
+
+    retailer =
+      Core.register_retailer!(%{
+        slug: "home-image-shop-#{suffix}",
+        source_key: "home-image-source-#{suffix}",
+        name: "Image Shop",
+        category: "regular_retailer",
+        homepage_url: "https://shop.example"
+      })
+
+    listing =
+      Core.ingest_retailer_listing!(%{
+        retailer_id: retailer.id,
+        source_listing_id: "home-image-listing-#{suffix}",
+        source_title: product.name,
+        image_url: "https://lootquest.pl/images/#{suffix}.jpg",
+        direct_url: "https://shop.example/product",
+        current_price_pln: Decimal.new("10"),
+        stock_status: "in_stock",
+        first_seen_at: DateTime.utc_now(),
+        last_seen_at: DateTime.utc_now(),
+        last_checked_at: DateTime.utc_now()
+      })
+
+    map_listing(product.id, listing)
+
+    product =
+      Core.enrich_approved_sealed_product!(
+        product,
+        %{
+          image_url: nil,
+          image_source: nil,
+          image_source_url: nil,
+          expected_updated_at: product.updated_at
+        },
+        authorize?: false
+      )
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_click(element(view, "#mode-sealed"))
+    render_hook(view, "search", %{"search" => %{"query" => product.name}})
+
+    assert has_element?(
+             view,
+             "#sealed-search-image-#{product.id}[src='https://lootquest.pl/images/#{suffix}.jpg']"
+           )
   end
 
   test "sealed selection is bounded to current options", %{conn: conn} do
@@ -240,6 +406,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
       Core.import_card_set(%{
         tcgdex_id: "set-#{suffix}",
         name: "Archive Set #{suffix}",
+        series_id: "sv",
         standard_legal: true,
         expanded_legal: true
       })
@@ -331,7 +498,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
     {:ok, set} =
       Core.import_card_set(%{
         tcgdex_id: Ecto.UUID.generate(),
-        name: "Valuation Set #{suffix}"
+        name: "Valuation Set #{suffix}",
+        series_id: "sv"
       })
 
     {:ok, fresh} =
@@ -408,7 +576,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
     {:ok, set} =
       Core.import_card_set(%{
         tcgdex_id: "image-set-#{suffix}",
-        name: "Image Set #{suffix}"
+        name: "Image Set #{suffix}",
+        series_id: "sv"
       })
 
     {:ok, imported} =
@@ -514,7 +683,11 @@ defmodule TcgCheapWeb.HomeLiveTest do
     name = "Keyboard Archive #{suffix}"
 
     {:ok, set} =
-      Core.import_card_set(%{tcgdex_id: Ecto.UUID.generate(), name: "Keyboard Set #{suffix}"})
+      Core.import_card_set(%{
+        tcgdex_id: Ecto.UUID.generate(),
+        name: "Keyboard Set #{suffix}",
+        series_id: "sv"
+      })
 
     {:ok, first} =
       TcgCheap.TestSupport.import_card_printing(%{
@@ -825,6 +998,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#sealed-fallback-list a[href='/sealed/#{product.slug}']")
     assert has_element?(view, "#card-search-summary", "1 sealed product suggestion")
     render_click(element(view, "#switch-to-sealed-from-fallback"))
+    assert_patch(view, "/?mode=sealed&" <> URI.encode_query(%{q: "fallback sealed"}))
     assert has_element?(view, "#mode-sealed[aria-pressed=true]")
     assert has_element?(view, "#sealed-search-query[value='fallback sealed']")
     assert has_element?(view, "#sealed-option-#{product.id}")
@@ -907,7 +1081,11 @@ defmodule TcgCheapWeb.HomeLiveTest do
     name = "#{label} #{suffix}"
 
     {:ok, set} =
-      Core.import_card_set(%{tcgdex_id: Ecto.UUID.generate(), name: "Set #{suffix}"})
+      Core.import_card_set(%{
+        tcgdex_id: Ecto.UUID.generate(),
+        name: "Set #{suffix}",
+        series_id: "sv"
+      })
 
     {:ok, first} =
       TcgCheap.TestSupport.import_card_printing(%{
@@ -930,17 +1108,55 @@ defmodule TcgCheapWeb.HomeLiveTest do
     {name, first, second}
   end
 
-  defp create_sealed_product(name) do
+  defp create_sealed_product(name, overrides \\ %{}) do
+    suffix = System.unique_integer([:positive])
+
     draft =
-      Core.create_sealed_product_draft!(%{
-        slug: "home-#{System.unique_integer([:positive])}",
-        name: name,
-        product_type: "booster_box",
-        officially_distributed: true,
-        release_date: Date.utc_today()
-      })
+      Core.create_sealed_product_draft!(
+        Map.merge(
+          %{
+            slug: "home-#{suffix}",
+            name: name,
+            product_type: "booster_box",
+            officially_distributed: true,
+            release_date: Date.utc_today(),
+            description: "A complete sealed product record.",
+            contents: ["Booster packs"],
+            official_url: "https://example.com/home-product",
+            details_source: "Home test catalogue",
+            details_source_url: "https://example.com/home-details",
+            pack_count: 36,
+            cards_per_pack: 10,
+            image_url: "https://assets.pokemon.com/home-sealed-#{suffix}.jpg",
+            image_source: "Official images",
+            image_source_url: "https://example.com/home-image"
+          },
+          overrides
+        )
+      )
 
     Core.approve_sealed_product!(draft, %{expected_updated_at: draft.updated_at},
+      authorize?: false
+    )
+  end
+
+  defp map_listing(product_id, listing) do
+    review =
+      Core.create_review_listing_mapping!(%{
+        retailer_listing_id: listing.id,
+        confidence: Decimal.new("1"),
+        evidence: %{"source" => "test"},
+        reason: "test"
+      })
+
+    Core.approve_listing_mapping!(
+      review,
+      %{
+        confirmed_product_id: product_id,
+        confidence: Decimal.new("1"),
+        evidence: %{"source" => "test"},
+        expected_updated_at: review.updated_at
+      },
       authorize?: false
     )
   end

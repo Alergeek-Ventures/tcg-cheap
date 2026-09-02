@@ -46,9 +46,7 @@ defmodule TcgCheap.Catalogue.Importer do
 
   def import_fetched_card(card, set, expected_card_id, opts)
       when is_map(card) and is_map(set) and is_binary(expected_card_id) and is_list(opts) do
-    if Keyword.keyword?(opts) and Tcgdex.valid_card_id?(expected_card_id) and
-         Keyword.keys(opts) |> Enum.uniq() == Keyword.keys(opts) and
-         Enum.all?(Keyword.keys(opts), &(&1 in [:synced_at, :expected_set_id])) do
+    if valid_fetched_card_options?(opts, expected_card_id) do
       expected_set_id = Keyword.get(opts, :expected_set_id)
 
       with :ok <- validate_optional_expected_set_id(expected_set_id),
@@ -57,7 +55,7 @@ defmodule TcgCheap.Catalogue.Importer do
            :ok <- validate_expected_id(expected_set_id),
            :ok <- validate_payload(card, set, expected_card_id, expected_set_id),
            {:ok, synced_at} <- valid_synced_at(Keyword.get(opts, :synced_at)) do
-        persist(card, set, synced_at)
+        persist(card, set, synced_at, Keyword.get(opts, :pricing_checked?, true))
       end
     else
       {:error, :invalid_options}
@@ -65,6 +63,17 @@ defmodule TcgCheap.Catalogue.Importer do
   end
 
   def import_fetched_card(_, _, _, _), do: {:error, :invalid_options}
+
+  defp valid_fetched_card_options?(opts, expected_card_id) do
+    Keyword.keyword?(opts) and Tcgdex.valid_card_id?(expected_card_id) and
+      unique_option_keys?(opts) and allowed_fetched_card_options?(opts) and
+      is_boolean(Keyword.get(opts, :pricing_checked?, true))
+  end
+
+  defp unique_option_keys?(opts), do: Keyword.keys(opts) |> Enum.uniq() == Keyword.keys(opts)
+
+  defp allowed_fetched_card_options?(opts),
+    do: Enum.all?(Keyword.keys(opts), &(&1 in [:synced_at, :expected_set_id, :pricing_checked?]))
 
   defp unwrap_import_result({:ok, %{card: card}}), do: {:ok, card}
   defp unwrap_import_result(error), do: error
@@ -134,7 +143,7 @@ defmodule TcgCheap.Catalogue.Importer do
         AcquisitionBudget.admit_request("tcgdex_catalogue")
       end)
 
-  defp persist(card, set, synced_at) do
+  defp persist(card, set, synced_at, pricing_checked?) do
     Ash.transact(
       [
         CardSet,
@@ -148,7 +157,7 @@ defmodule TcgCheap.Catalogue.Importer do
         lock_card(card)
         {:ok, existing} = Core.lock_card_printing_for_update_by_tcgdex_id(card["id"])
         incoming = card_attributes(card, set, synced_at)
-        persist_checked(card, set, incoming, synced_at, existing, target_set)
+        persist_checked(card, set, incoming, synced_at, existing, target_set, pricing_checked?)
       end
     )
     |> case do
@@ -169,7 +178,7 @@ defmodule TcgCheap.Catalogue.Importer do
     exception -> {:error, exception}
   end
 
-  defp persist_checked(card, set, incoming, synced_at, existing, target_set) do
+  defp persist_checked(card, set, incoming, synced_at, existing, target_set, pricing_checked?) do
     if cross_set_conflict?(existing, target_set) do
       {:error, {:card_set_conflict, %{tcgdex_id: card["id"]}}}
     else
@@ -178,27 +187,37 @@ defmodule TcgCheap.Catalogue.Importer do
         set,
         preserve_administrator_mapping(existing, incoming),
         synced_at,
-        target_set
+        target_set,
+        pricing_checked?
       )
     end
   end
 
-  defp persist_if_fresh(existing, set, incoming, synced_at, target_set) do
+  defp persist_if_fresh(existing, set, incoming, synced_at, target_set, pricing_checked?) do
     if stale?(existing, incoming),
       do: %{card: existing, outcome: :stale},
-      else: persist_nonstale(existing, set, incoming, synced_at, target_set)
+      else: persist_nonstale(existing, set, incoming, synced_at, target_set, pricing_checked?)
   end
 
-  defp persist_nonstale(existing, set, incoming, synced_at, target_set) do
+  defp persist_nonstale(existing, set, incoming, synced_at, target_set, pricing_checked?) do
     imported_set = target_set || Core.import_card_set!(Normalizer.set_attributes(set, synced_at))
     mapping_changed? = not is_nil(existing) and mapping_changed?(existing, incoming)
 
     with :ok <- archive_provider_valuations(existing, incoming),
-         card <- import_card_printing!(Map.put(incoming, :card_set_id, imported_set.id)),
+         card <-
+           incoming
+           |> Map.put(:card_set_id, imported_set.id)
+           |> maybe_set_pricing_checked(pricing_checked?)
+           |> import_card_printing!(),
          :ok <- record_import_decision(existing, card) do
       %{card: card, outcome: :imported, mapping_changed?: mapping_changed?}
     end
   end
+
+  defp maybe_set_pricing_checked(attrs, true),
+    do: Map.put(attrs, :pricing_checked_at, attrs.last_synced_at)
+
+  defp maybe_set_pricing_checked(attrs, false), do: Map.put(attrs, :pricing_checked_at, nil)
 
   defp preserve_administrator_mapping(%{mapping_authority: "administrator"} = current, incoming) do
     Map.merge(
@@ -410,6 +429,9 @@ defmodule TcgCheap.Catalogue.Importer do
       mapping_updated_at: cardmarket_updated_at(card),
       source_payload: card,
       last_synced_at: synced_at,
+      details_synced_at: synced_at,
+      details_enrichment_failed_at: nil,
+      pricing_checked_at: synced_at,
       cardmarket_product_id: product_id,
       mapping_status: status,
       mapping_review_reason: reason

@@ -25,7 +25,7 @@ defmodule TcgCheap.Catalogue.BoosterPointTest do
 
       assert conn.params == %{
                "_fields" =>
-                 "id,name,permalink,prices,categories,tags,is_purchasable,is_in_stock,is_on_backorder",
+                 "id,name,permalink,prices,categories,tags,images,is_purchasable,is_in_stock,is_on_backorder",
                "category" => "61",
                "page" => "1",
                "per_page" => "100"

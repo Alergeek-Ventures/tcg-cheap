@@ -74,6 +74,14 @@ config :tcg_cheap, :sealed_retailer_adapters, %{
   "pokebooster" => %{
     adapter: TcgCheap.Catalogue.SealedRetailers.PokeBooster,
     options: [per_page: 100, max_pages: 10]
+  },
+  "boosterland" => %{
+    adapter: TcgCheap.Catalogue.SealedRetailers.Boosterland,
+    options: [per_page: 100, max_pages: 3]
+  },
+  "colligere" => %{
+    adapter: TcgCheap.Catalogue.SealedRetailers.Colligere,
+    options: [per_page: 100, max_pages: 3]
   }
 }
 
@@ -103,8 +111,8 @@ config :tcg_cheap, Oban,
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,
      crontab: [
-       {"*/15 * * * *", TcgCheap.Catalogue.SinglesScopeBootstrapWorker,
-        args: %{"policy_version" => 2}},
+       {"*/15 * * * *", TcgCheap.Catalogue.SinglesCatalogueBootstrapWorker,
+        args: %{"policy_version" => 1}},
        {"*/15 * * * *", TcgCheap.Catalogue.CuratedPlayableBootstrapWorker,
         args: %{"evidence_version" => "2026-08-19-naic"}},
        {"0 14 * * *", TcgCheap.Pricing.Singles.ValuationRefreshWorker, args: %{}},
@@ -120,6 +128,10 @@ config :tcg_cheap, Oban,
         args: %{"policy_version" => 1, "source_key" => "boosterpoint"}},
        {"0 4 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
         args: %{"policy_version" => 1, "source_key" => "pokebooster"}},
+       {"0 5 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
+        args: %{"policy_version" => 1, "source_key" => "boosterland"}},
+       {"0 6 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
+        args: %{"policy_version" => 1, "source_key" => "colligere"}},
        {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
      ]}
   ]
@@ -227,6 +239,24 @@ config :tcg_cheap, :acquisition_budget,
         [
           provider_key: "sealed_retailer:pokebooster",
           display_name: "PokeBooster sealed catalogue",
+          estimated_cost_per_request: "0.00",
+          hourly_request_limit: 50,
+          daily_request_limit: 100,
+          monthly_request_limit: 500,
+          monthly_spend_limit: "0.00"
+        ],
+        [
+          provider_key: "sealed_retailer:boosterland",
+          display_name: "Boosterland sealed catalogue",
+          estimated_cost_per_request: "0.00",
+          hourly_request_limit: 50,
+          daily_request_limit: 100,
+          monthly_request_limit: 500,
+          monthly_spend_limit: "0.00"
+        ],
+        [
+          provider_key: "sealed_retailer:colligere",
+          display_name: "Colligere sealed catalogue",
           estimated_cost_per_request: "0.00",
           hourly_request_limit: 50,
           daily_request_limit: 100,

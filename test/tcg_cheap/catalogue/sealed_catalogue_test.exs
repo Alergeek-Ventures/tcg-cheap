@@ -4,6 +4,48 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
   alias TcgCheap.Catalogue.SealedIdentifier
   alias TcgCheap.Core
 
+  test "accepts a complete factual metadata set without changing MSRP semantics" do
+    assert {:ok, product} =
+             Core.create_sealed_product_draft(
+               attrs(%{
+                 description: "A complete product description",
+                 contents: ["36 booster packs", "Promo card"],
+                 pack_count: 36,
+                 cards_per_pack: 10,
+                 official_url: "https://example.com/product",
+                 details_source: "Publisher",
+                 details_source_url: "https://example.com/details",
+                 official_price_amount: Decimal.new("49.99"),
+                 official_price_currency: "USD",
+                 official_price_source: "Publisher",
+                 official_price_source_url: "https://example.com/price",
+                 image_url: "https://assets.pokemon.com/image.jpg",
+                 image_source: "Publisher",
+                 image_source_url: "https://example.com/image-source"
+               })
+             )
+
+    assert product.contents == ["36 booster packs", "Promo card"]
+    assert product.official_price_currency == "USD"
+    assert is_nil(product.msrp_pln)
+  end
+
+  test "rejects unsafe external URLs and incomplete provenance" do
+    assert {:error, _} =
+             Core.create_sealed_product_draft(
+               attrs(%{official_url: "https://user@example.com/item"})
+             )
+
+    assert {:error, _} =
+             Core.create_sealed_product_draft(
+               attrs(%{
+                 description: "Details",
+                 details_source: nil,
+                 details_source_url: "https://example.com/details with-space"
+               })
+             )
+  end
+
   defp attrs(overrides \\ %{}) do
     Map.merge(
       %{
@@ -17,7 +59,25 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
 
   defp approved_product(overrides \\ %{}) do
     attrs =
-      attrs(Map.merge(%{officially_distributed: true, release_date: Date.utc_today()}, overrides))
+      attrs(
+        Map.merge(
+          %{
+            officially_distributed: true,
+            release_date: Date.utc_today(),
+            description: "A complete approved product.",
+            contents: ["36 booster packs"],
+            pack_count: 36,
+            cards_per_pack: 10,
+            official_url: "https://example.com/product",
+            details_source: "Publisher",
+            details_source_url: "https://example.com/details",
+            image_url: "https://assets.pokemon.com/image.jpg",
+            image_source: "Publisher",
+            image_source_url: "https://example.com/image-source"
+          },
+          overrides
+        )
+      )
 
     draft = Core.create_sealed_product_draft!(attrs)
 
@@ -35,6 +95,29 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
       },
       authorize?: false
     )
+  end
+
+  test "approved products missing factual metadata stay internal-only" do
+    token = System.unique_integer([:positive])
+
+    product =
+      approved_product(%{
+        name: "Incomplete #{token}",
+        image_url: nil,
+        image_source: nil,
+        image_source_url: nil
+      })
+
+    administrator = admin()
+
+    assert {:ok, nil} = Core.get_public_sealed_product_by_slug(product.slug)
+    assert {:ok, nil} = Core.get_public_sealed_product_by_id(product.id)
+    assert {:ok, []} = Core.list_public_sealed_products()
+    assert {:ok, []} = Core.search_public_sealed_products("incomplete #{token}")
+    assert {:ok, []} = Core.list_recent_public_sealed_products(Date.utc_today(), Date.utc_today())
+
+    assert {:ok, approved} = Core.list_approved_sealed_products(actor: administrator)
+    assert Enum.any?(approved, &(&1.id == product.id))
   end
 
   test "drafts are permissive and normalized but unpublished" do
@@ -73,6 +156,86 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
     assert Core.create_sealed_product_draft!(
              attrs(%{msrp_pln: Decimal.new("1"), msrp_source: "official"})
            ).msrp_currency == "PLN"
+  end
+
+  test "official price requires a complete finite positive tuple and safe provenance" do
+    valid = %{
+      official_price_amount: Decimal.new("12.50"),
+      official_price_currency: "USD",
+      official_price_source: "Publisher",
+      official_price_source_url: "https://example.com/price"
+    }
+
+    assert Core.create_sealed_product_draft!(attrs(valid)).official_price_currency == "USD"
+
+    for invalid <- [
+          Map.delete(valid, :official_price_amount),
+          Map.delete(valid, :official_price_currency),
+          Map.delete(valid, :official_price_source),
+          Map.delete(valid, :official_price_source_url),
+          %{valid | official_price_amount: Decimal.new("0")},
+          %{valid | official_price_amount: Decimal.new("-1")},
+          %{valid | official_price_amount: "NaN"},
+          %{valid | official_price_amount: "Infinity"},
+          %{valid | official_price_currency: "GBP"},
+          %{valid | official_price_source: "   "},
+          %{valid | official_price_source_url: "https://user:pass@example.com/price"},
+          %{valid | official_price_source_url: "https://example.com/price with-space"},
+          %{valid | official_price_source_url: "https://example.com/price\u0000"}
+        ] do
+      assert_raise Ash.Error.Invalid, fn -> Core.create_sealed_product_draft!(attrs(invalid)) end
+    end
+  end
+
+  test "image provenance is all-or-nothing and requires safe URLs" do
+    assert Core.create_sealed_product_draft!(attrs()).image_url == nil
+
+    valid = %{
+      image_url: "https://assets.pokemon.com/image.jpg",
+      image_source: "Publisher",
+      image_source_url: "https://example.com/image"
+    }
+
+    assert Core.create_sealed_product_draft!(attrs(valid)).image_url == valid.image_url
+
+    for invalid <- [
+          %{valid | image_url: nil},
+          %{valid | image_source: "   "},
+          %{valid | image_source_url: "https://user@example.com/image"},
+          %{valid | image_source_url: "http://example.com/image"},
+          %{valid | image_url: "https://example.com/image\u0001"}
+        ] do
+      assert_raise Ash.Error.Invalid, fn -> Core.create_sealed_product_draft!(attrs(invalid)) end
+    end
+  end
+
+  test "details provenance and factual bounds are enforced" do
+    valid = %{
+      description: "Details",
+      contents: ["36 booster packs"],
+      pack_count: 36,
+      cards_per_pack: 10,
+      official_url: "https://example.com/product",
+      details_source: "Publisher",
+      details_source_url: "https://example.com/details"
+    }
+
+    assert Core.create_sealed_product_draft!(attrs(valid)).contents == ["36 booster packs"]
+
+    for invalid <- [
+          Map.delete(valid, :details_source),
+          Map.delete(valid, :details_source_url),
+          %{valid | contents: List.duplicate("item", 21)},
+          %{valid | contents: ["   "]},
+          %{valid | contents: [String.duplicate("x", 241)]},
+          %{valid | pack_count: 0},
+          %{valid | pack_count: 101},
+          %{valid | cards_per_pack: 0},
+          %{valid | cards_per_pack: 101},
+          %{valid | official_url: "https://user@example.com/product"}
+        ] do
+      assert_raise Ash.Error.Invalid, fn -> Core.create_sealed_product_draft!(attrs(invalid)) end
+    end
   end
 
   test "approval enforces draft, official PL/en, release, and MSRP requirements" do
@@ -233,6 +396,73 @@ defmodule TcgCheap.Catalogue.SealedCatalogueTest do
 
     assert Core.import_sealed_product_draft!(Map.put(corrected_source, :name, "Still Protected")).name ==
              archived.name
+  end
+
+  test "approved enrichment is admin-only, stale-safe, metadata-only, and import-protected" do
+    administrator = admin()
+
+    approved =
+      approved_product(%{name: "Stable identity", source: "provider", source_id: "stable"})
+
+    assert {:error, %Ash.Error.Forbidden{}} =
+             Core.enrich_approved_sealed_product(approved, %{
+               description: "Nope",
+               details_source: "Publisher",
+               details_source_url: "https://example.com/details",
+               expected_updated_at: approved.updated_at
+             })
+
+    enriched =
+      Core.enrich_approved_sealed_product!(
+        approved,
+        %{
+          description: "Curated description",
+          details_source: "Publisher",
+          details_source_url: "https://example.com/details",
+          expected_updated_at: approved.updated_at
+        },
+        actor: administrator
+      )
+
+    assert {enriched.description, enriched.publication_status, enriched.slug, enriched.name} ==
+             {"Curated description", "approved", approved.slug, approved.name}
+
+    assert {:error, stale_error} =
+             Core.enrich_approved_sealed_product(
+               approved,
+               %{
+                 description: "Stale",
+                 details_source: "Publisher",
+                 details_source_url: "https://example.com/details",
+                 expected_updated_at: approved.updated_at
+               },
+               actor: administrator
+             )
+
+    assert Exception.message(stale_error) =~ "record changed after it was loaded"
+
+    assert_raise Ash.Error.Forbidden, fn ->
+      Core.revise_sealed_product_draft!(
+        enriched,
+        %{name: "Not allowed", expected_updated_at: enriched.updated_at},
+        actor: administrator
+      )
+    end
+
+    imported =
+      Core.import_sealed_product_draft!(%{
+        slug: approved.slug,
+        name: "Provider overwrite",
+        product_type: "booster_box",
+        source: "provider",
+        source_id: "stable",
+        description: "Provider overwrite",
+        details_source: "Provider",
+        details_source_url: "https://provider.example/details"
+      })
+
+    assert {imported.name, imported.description, imported.publication_status} ==
+             {approved.name, enriched.description, "approved"}
   end
 
   test "public reads include released current/discontinued products, not drafts or archived" do

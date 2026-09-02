@@ -1,6 +1,6 @@
 defmodule TcgCheap.Catalogue.RetailerListing do
   @moduledoc "The current local projection of a retailer listing."
-  alias TcgCheap.Catalogue.SealedIdentifier
+  alias TcgCheap.Catalogue.{ExternalImage, ExternalUrl, SealedIdentifier}
 
   use Ash.Resource,
     otp_app: :tcg_cheap,
@@ -20,7 +20,10 @@ defmodule TcgCheap.Catalogue.RetailerListing do
       check_constraint [:source_listing_id, :source_title, :normalized_title, :direct_url],
                        "retailer_listings_identity_invariant",
                        check:
-                         "btrim(source_listing_id) <> '' AND btrim(source_title) <> '' AND btrim(normalized_title) <> '' AND direct_url ~ '^https://[^/?#[:space:]]+(/|[/?#].*)?$'"
+                         "btrim(source_listing_id) <> '' AND btrim(source_title) <> '' AND btrim(normalized_title) <> '' AND #{ExternalUrl.postgres_url_check("direct_url")}"
+
+      check_constraint [:image_url], "retailer_listings_image_url_invariant",
+        check: "image_url IS NULL OR #{ExternalImage.postgres_allowlisted_url_check("image_url")}"
 
       check_constraint [:gtin], "retailer_listings_gtin_invariant",
         check: "gtin IS NULL OR #{SealedIdentifier.postgres_gtin_check("gtin")}"
@@ -62,6 +65,7 @@ defmodule TcgCheap.Catalogue.RetailerListing do
         :source_listing_id,
         :source_title,
         :direct_url,
+        :image_url,
         :gtin,
         :current_price_pln,
         :currency,
@@ -83,6 +87,7 @@ defmodule TcgCheap.Catalogue.RetailerListing do
         :source_title,
         :normalized_title,
         :direct_url,
+        :image_url,
         :gtin,
         :current_price_pln,
         :currency,
@@ -116,6 +121,13 @@ defmodule TcgCheap.Catalogue.RetailerListing do
              )
     end
 
+    read :by_id do
+      argument :id, :uuid, allow_nil?: false
+      get? true
+      filter expr(id == ^arg(:id))
+      prepare build(load: [:retailer])
+    end
+
     read :active_for_retailer do
       argument :retailer_id, :uuid, allow_nil?: false
       filter expr(retailer_id == ^arg(:retailer_id) and status == "active")
@@ -145,7 +157,7 @@ defmodule TcgCheap.Catalogue.RetailerListing do
       authorize_if always()
     end
 
-    policy action([:read, :admin_catalogue]) do
+    policy action([:read, :admin_catalogue, :by_id]) do
       access_type :strict
       forbid_unless TcgCheap.Accounts.Checks.Admin
       authorize_if always()
@@ -174,6 +186,8 @@ defmodule TcgCheap.Catalogue.RetailerListing do
       allow_nil?: false,
       public?: true,
       constraints: [max_length: 2_000]
+
+    attribute :image_url, :string, public?: true, constraints: [max_length: 2_000]
 
     attribute :gtin, :string, public?: true, constraints: [max_length: 14]
     attribute :current_price_pln, :decimal, public?: true

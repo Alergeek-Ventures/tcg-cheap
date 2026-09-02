@@ -9,8 +9,10 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
 
   test "publishes the fixed policy, registry, and Monday schedule" do
     assert Map.keys(Worker.sources()) |> Enum.sort() == [
+             "boosterland",
              "boosterpoint",
              "cardzhouse",
+             "colligere",
              "lootquest",
              "pokebooster"
            ]
@@ -39,6 +41,18 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
                name: "PokeBooster",
                category: "lgs",
                homepage_url: "https://pokebooster.pl"
+             },
+             "boosterland" => %{
+               slug: "boosterland",
+               name: "Boosterland",
+               category: "lgs",
+               homepage_url: "https://boosterland.pl"
+             },
+             "colligere" => %{
+               slug: "colligere",
+               name: "Colligere",
+               category: "lgs",
+               homepage_url: "https://colligere.pl"
              }
            }
 
@@ -57,7 +71,9 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
                {"0 1 * * 1", Worker, %{"policy_version" => 1, "source_key" => "lootquest"}},
                {"0 2 * * 1", Worker, %{"policy_version" => 1, "source_key" => "cardzhouse"}},
                {"0 3 * * 1", Worker, %{"policy_version" => 1, "source_key" => "boosterpoint"}},
-               {"0 4 * * 1", Worker, %{"policy_version" => 1, "source_key" => "pokebooster"}}
+               {"0 4 * * 1", Worker, %{"policy_version" => 1, "source_key" => "pokebooster"}},
+               {"0 5 * * 1", Worker, %{"policy_version" => 1, "source_key" => "boosterland"}},
+               {"0 6 * * 1", Worker, %{"policy_version" => 1, "source_key" => "colligere"}}
              ]
 
     assert Application.fetch_env!(:tcg_cheap, :sealed_retailer_adapters) == %{
@@ -76,6 +92,14 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
              "pokebooster" => %{
                adapter: TcgCheap.Catalogue.SealedRetailers.PokeBooster,
                options: [per_page: 100, max_pages: 10]
+             },
+             "boosterland" => %{
+               adapter: TcgCheap.Catalogue.SealedRetailers.Boosterland,
+               options: [per_page: 100, max_pages: 3]
+             },
+             "colligere" => %{
+               adapter: TcgCheap.Catalogue.SealedRetailers.Colligere,
+               options: [per_page: 100, max_pages: 3]
              }
            }
   end
@@ -158,7 +182,9 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
              "sealed_retailer:lootquest",
              "sealed_retailer:cardzhouse",
              "sealed_retailer:boosterpoint",
-             "sealed_retailer:pokebooster"
+             "sealed_retailer:pokebooster",
+             "sealed_retailer:boosterland",
+             "sealed_retailer:colligere"
            ]
   end
 

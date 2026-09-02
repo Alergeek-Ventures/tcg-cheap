@@ -7,6 +7,7 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
   alias TcgCheap.Accounts
   alias TcgCheap.Catalogue.{ListingProductMapping, SealedProduct, SealedProductAlias}
   alias TcgCheap.Core
+  alias TcgCheap.Repo
 
   test "an administrator can revise and approve a complete product draft", %{conn: conn} do
     product =
@@ -45,6 +46,39 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
 
     refute has_element?(view, "#product-review-form-#{product.id}")
     assert Ash.get!(SealedProduct, product.id, authorize?: false).publication_status == "approved"
+  end
+
+  test "review metadata fields have unique IDs and contents are stored one item per line", %{
+    conn: conn
+  } do
+    product = draft_product()
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+
+    for suffix <-
+          ~w(description contents pack-count cards-per-pack official-url details-source details-source-url official-price official-currency official-price-source official-price-source-url image-url image-source image-source-url) do
+      assert has_element?(view, "#product-#{product.id}-#{suffix}")
+    end
+
+    view
+    |> form("#product-review-form-#{product.id}",
+      product: %{
+        id: product.id,
+        contents: "36 booster packs\nPromo card",
+        description: "Curated details",
+        pack_count: "36",
+        cards_per_pack: "10",
+        official_url: "https://example.com/product",
+        details_source: "Publisher",
+        details_source_url: "https://example.com/details"
+      }
+    )
+    |> render_submit()
+
+    saved = Ash.get!(SealedProduct, product.id, authorize?: false)
+    assert saved.contents == ["36 booster packs", "Promo card"]
+
+    assert {saved.description, saved.details_source_url} ==
+             {"Curated details", "https://example.com/details"}
   end
 
   test "a stale product form cannot overwrite a newer review", %{conn: conn} do
@@ -138,6 +172,89 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
     rejected = Ash.get!(ListingProductMapping, reject_mapping.id, authorize?: false)
     assert {rejected.status, rejected.reason} == {"rejected", "Not an official English product"}
     refute has_element?(view, "#reject-mapping-form-#{reject_mapping.id}")
+  end
+
+  test "an administrator can create a product draft from a mapping", %{conn: conn} do
+    shop = retailer()
+    target_listing = listing(shop, "listing-create-draft")
+    mapping = Core.create_pending_listing_mapping!(%{retailer_listing_id: target_listing.id})
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+    assert has_element?(view, "#create-product-draft-#{mapping.id}")
+
+    view |> element("#create-product-draft-#{mapping.id}") |> render_click()
+
+    assert has_element?(view, "#draft-product-queue article", target_listing.source_title)
+    assert Repo.aggregate(SealedProduct, :count, :id) == 1
+    assert has_element?(view, "[role=alert]", "Product draft created from retailer listing.")
+  end
+
+  test "draft creation derives facts from the listing, not client parameters", %{conn: conn} do
+    shop = retailer()
+    target_listing = listing(shop, "listing-client-facts")
+    mapping = Core.create_pending_listing_mapping!(%{retailer_listing_id: target_listing.id})
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+
+    view
+    |> element("#create-product-draft-#{mapping.id}")
+    |> render_click(%{"title" => "Bogus title", "source" => "https://evil.example"})
+
+    [product] = Ash.read!(SealedProduct, authorize?: false)
+
+    assert {product.name, product.source, product.source_id} ==
+             {target_listing.source_title, "retailer:#{shop.source_key}",
+              target_listing.source_listing_id}
+  end
+
+  test "repeated draft creation is idempotent and preserves server edits", %{conn: conn} do
+    shop = retailer()
+    target_listing = listing(shop, "listing-repeat-click")
+    mapping = Core.create_pending_listing_mapping!(%{retailer_listing_id: target_listing.id})
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+    view |> element("#create-product-draft-#{mapping.id}") |> render_click()
+    [product] = Ash.read!(SealedProduct, authorize?: false)
+
+    edited =
+      Core.revise_sealed_product_draft!(
+        product,
+        %{name: "Server edit", expected_updated_at: product.updated_at},
+        authorize?: false
+      )
+
+    view |> element("#create-product-draft-#{mapping.id}") |> render_click()
+    assert has_element?(view, "#draft-product-queue article", "Server edit")
+    assert Repo.aggregate(SealedProduct, :count, :id) == 1
+    reloaded = Ash.get!(SealedProduct, edited.id, authorize?: false)
+    assert reloaded.name == "Server edit"
+    assert has_element?(view, "[role=alert]", "Product draft created from retailer listing.")
+  end
+
+  test "mapping choices include approved products hidden from public reads", %{conn: conn} do
+    target = approved_product(%{name: "Incomplete Curation Product"})
+
+    Repo.query!(
+      "UPDATE sealed_products SET image_url = NULL, image_source = NULL, image_source_url = NULL WHERE id = $1",
+      [Ecto.UUID.dump!(target.id)]
+    )
+
+    shop = retailer()
+    target_listing = listing(shop, "listing-incomplete-curation")
+
+    mapping =
+      Core.create_review_listing_mapping!(%{
+        retailer_listing_id: target_listing.id,
+        candidate_product_id: target.id,
+        confidence: Decimal.new("0.9"),
+        evidence: %{method: "test"},
+        reason: "Needs curation"
+      })
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+
+    assert has_element?(
+             view,
+             "#approve-mapping-form-#{mapping.id} select option[value='#{target.id}']"
+           )
   end
 
   test "overflow queues show only the visible limit and bounded count", %{
@@ -254,7 +371,17 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
         %{
           slug: "review-product-#{System.unique_integer([:positive])}",
           name: "Review Product",
-          product_type: "booster_box"
+          product_type: "booster_box",
+          description: "A complete sealed product for review tests.",
+          contents: ["36 booster packs"],
+          pack_count: 36,
+          cards_per_pack: 10,
+          official_url: "https://example.com/products/review",
+          details_source: "Official product page",
+          details_source_url: "https://example.com/products/review/details",
+          image_url: "https://assets.tcgdex.net/en/sealed/review.jpg",
+          image_source: "Official product page",
+          image_source_url: "https://example.com/products/review/image"
         },
         overrides
       )

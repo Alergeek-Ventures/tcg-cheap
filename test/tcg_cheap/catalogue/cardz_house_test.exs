@@ -24,7 +24,7 @@ defmodule TcgCheap.Catalogue.CardzHouseTest do
 
       assert conn.params == %{
                "_fields" =>
-                 "id,name,permalink,prices,categories,tags,is_purchasable,is_in_stock,is_on_backorder",
+                 "id,name,permalink,prices,categories,tags,images,is_purchasable,is_in_stock,is_on_backorder",
                "category" => "742",
                "page" => "1",
                "per_page" => "100"
@@ -66,6 +66,30 @@ defmodule TcgCheap.Catalogue.CardzHouseTest do
     end)
 
     assert {:error, :malformed_shape} = CardzHouse.fetch_listings(@retailer, options(name))
+  end
+
+  test "keeps the first safe image among ten candidates and bounds payload images" do
+    name = make_ref()
+    [product | _] = fixture()
+
+    images =
+      [
+        %{"src" => "https://user:pass@evil.example/bad.jpg"},
+        %{"src" => "http://evil.example/bad.jpg"},
+        %{"src" => "https://cdn.cardzhouse.pl/good.jpg"}
+      ] ++
+        Enum.map(1..8, &%{"src" => "https://cdn.cardzhouse.pl/extra-#{&1}.jpg"}) ++
+        [%{"src" => "https://cdn.cardzhouse.pl/eleven.jpg"}]
+
+    Req.Test.stub(name, fn conn ->
+      conn
+      |> Plug.Conn.put_resp_header("x-wp-totalpages", "1")
+      |> Req.Test.json([Map.put(product, "images", images)])
+    end)
+
+    assert {:ok, [listing]} = CardzHouse.fetch_listings(@retailer, options(name))
+    assert listing.image_url == "https://cdn.cardzhouse.pl/good.jpg"
+    assert length(listing.source_payload["images"]) == 10
   end
 
   test "rejects same-host product links with a trailing newline" do

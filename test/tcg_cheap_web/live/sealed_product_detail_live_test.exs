@@ -211,6 +211,245 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
     refute has_element?(view, "#sealed-detail-msrp", "unavailable from local records")
   end
 
+  test "canonical product image and source take precedence over listing image", %{conn: conn} do
+    product =
+      product(%{
+        image_url: "https://assets.pokemon.com/product.jpg",
+        image_source: "Official images",
+        image_source_url: "https://example.com/product"
+      })
+
+    retailer = Core.register_retailer!(retailer_attrs())
+
+    listing =
+      listing(retailer.id, DateTime.utc_now(), %{
+        image_url: "https://lootquest.pl/wp-content/uploads/listing.jpg"
+      })
+
+    map_listing(product.id, listing)
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+
+    assert has_element?(
+             view,
+             "#sealed-detail-product-image[src='https://assets.pokemon.com/product.jpg']"
+           )
+
+    assert has_element?(
+             view,
+             "#sealed-detail-image-source a[href='https://example.com/product']",
+             "Official images"
+           )
+
+    refute has_element?(
+             view,
+             "#sealed-detail-product-image[src='https://lootquest.pl/wp-content/uploads/listing.jpg']"
+           )
+  end
+
+  test "safe listing image is a fallback with retailer direct source", %{conn: conn} do
+    product = product()
+    retailer = Core.register_retailer!(retailer_attrs())
+
+    listing =
+      listing(retailer.id, DateTime.utc_now(), %{
+        image_url: "https://lootquest.pl/wp-content/uploads/listing.jpg",
+        direct_url: "https://shop.example/box"
+      })
+
+    map_listing(product.id, listing)
+
+    product =
+      Core.enrich_approved_sealed_product!(
+        product,
+        %{
+          image_url: nil,
+          image_source: nil,
+          image_source_url: nil,
+          expected_updated_at: product.updated_at
+        },
+        authorize?: false
+      )
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+
+    assert has_element?(
+             view,
+             "#sealed-detail-product-image[src='https://lootquest.pl/wp-content/uploads/listing.jpg']"
+           )
+
+    assert has_element?(
+             view,
+             "#sealed-detail-image-source a[href='https://shop.example/box']",
+             retailer.name
+           )
+  end
+
+  test "unsafe listing image is rejected and products without images are hidden", %{
+    conn: conn
+  } do
+    product = product()
+    retailer = Core.register_retailer!(retailer_attrs())
+
+    assert_raise Ash.Error.Invalid, fn ->
+      listing(retailer.id, DateTime.utc_now(), %{image_url: "javascript:alert(1)"})
+    end
+
+    product =
+      Core.enrich_approved_sealed_product!(
+        product,
+        %{
+          image_url: nil,
+          image_source: nil,
+          image_source_url: nil,
+          expected_updated_at: product.updated_at
+        },
+        authorize?: false
+      )
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+    assert has_element?(view, "#sealed-detail-not-found")
+    refute has_element?(view, "#sealed-detail-product-image")
+  end
+
+  test "approved but factually incomplete products are not publicly exposed", %{conn: conn} do
+    product = product(%{description: nil})
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+
+    assert has_element?(view, "#sealed-detail-not-found")
+    refute has_element?(view, "#sealed-detail-title")
+  end
+
+  test "renders sealed metadata, description, contents, official page, and provenance", %{
+    conn: conn
+  } do
+    product =
+      product(%{
+        series_name: "Scarlet & Violet",
+        set_name: "Base Set",
+        pack_count: 36,
+        cards_per_pack: 10,
+        description: "A sealed booster display.",
+        contents: ["36 booster packs", "36 code cards"],
+        official_url: "https://example.com/official",
+        details_source: "Publisher database",
+        details_source_url: "https://example.com/details"
+      })
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+
+    assert has_element?(view, "#sealed-detail-collection", "Scarlet & Violet · Base Set")
+    assert has_element?(view, "#sealed-detail-pack-count", "36")
+    assert has_element?(view, "#sealed-detail-cards-per-pack", "10")
+    assert has_element?(view, "#sealed-detail-market-language", "PL / en")
+    assert has_element?(view, "#sealed-detail-description", product.description)
+    assert has_element?(view, "#sealed-detail-contents li", "36 booster packs")
+    assert has_element?(view, "#sealed-detail-official a[href='https://example.com/official']")
+
+    assert has_element?(
+             view,
+             "#sealed-detail-details-provenance a[href='https://example.com/details']",
+             "source"
+           )
+  end
+
+  test "local PLN MSRP with source link wins over official listed price", %{conn: conn} do
+    product =
+      product(%{
+        msrp_pln: Decimal.new("129.99"),
+        msrp_source: "Local catalogue",
+        msrp_source_url: "https://example.com/msrp",
+        official_price_amount: Decimal.new("39.99"),
+        official_price_currency: "USD",
+        official_price_source: "Publisher",
+        official_price_source_url: "https://example.com/official-price"
+      })
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+
+    assert has_element?(view, "#sealed-detail-msrp", "129.99 PLN")
+
+    assert has_element?(
+             view,
+             "#sealed-detail-reference-price a[href='https://example.com/msrp']",
+             "Local catalogue"
+           )
+
+    refute has_element?(view, "#sealed-detail-official-price")
+  end
+
+  test "official listed USD fallback is explicitly labeled and not converted", %{conn: conn} do
+    product =
+      product(%{
+        official_price_amount: Decimal.new("39.99"),
+        official_price_currency: "USD",
+        official_price_source: "Publisher",
+        official_price_source_url: "https://example.com/official-price"
+      })
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+    assert has_element?(view, "#sealed-detail-official-price", "39.99 USD")
+    assert has_element?(view, "#sealed-detail-reference-price", "Official listed price")
+    refute has_element?(view, "#sealed-detail-reference-price", "PLN MSRP")
+    refute has_element?(view, "#sealed-detail-reference-price", "39.99 PLN")
+  end
+
+  test "cheapest current offer drives hero and current count", %{conn: conn} do
+    product = product()
+
+    retailer =
+      Core.register_retailer!(Map.put(retailer_attrs(), :name, "Expensive Detail Shop"))
+
+    cheapest_retailer =
+      Core.register_retailer!(Map.put(retailer_attrs(), :name, "Cheapest Detail Shop"))
+
+    now = DateTime.utc_now()
+    expensive = listing(retailer.id, now, %{current_price_pln: Decimal.new("20.00")})
+    cheapest = listing(cheapest_retailer.id, now, %{current_price_pln: Decimal.new("11.00")})
+    map_listing(product.id, expensive)
+    map_listing(product.id, cheapest)
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+    assert has_element?(view, "#sealed-detail-best-offer", "11.00 PLN")
+    assert has_element?(view, "#sealed-detail-best-offer", cheapest_retailer.name)
+    refute has_element?(view, "#sealed-detail-best-offer", retailer.name)
+    assert has_element?(view, "#sealed-current-count", "(2 current)")
+  end
+
+  test "no current offer and limited reference remain honest", %{conn: conn} do
+    product = product(%{msrp_pln: Decimal.new("99.00"), msrp_source: "Catalogue"})
+
+    record_aggregate!(product, Date.utc_today(), %{
+      status: "limited",
+      limited_reason: "no_fresh_current_offers",
+      fresh_regular_retailer_count: 0,
+      fresh_lgs_count: 0,
+      benchmark_pln: nil,
+      typical_low_pln: nil,
+      typical_high_pln: nil
+    })
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+    assert has_element?(view, "#sealed-detail-best-offer", "No current offer")
+    assert has_element?(view, "#sealed-current-empty", "No current local offers yet")
+    assert has_element?(view, "#sealed-detail-aggregate-limited", "Limited data")
+    assert has_element?(view, "#sealed-detail-msrp", "99.00 PLN")
+  end
+
+  test "visible buying and market history sections have stable headings", %{conn: conn} do
+    product = product()
+    today = Date.utc_today()
+    record_aggregate!(product, Date.add(today, -14))
+    record_aggregate!(product, Date.add(today, -7))
+    source = record_aggregate!(product, today)
+    record_guide!(source, %{})
+
+    {:ok, view, _html} = live(conn, ~p"/sealed/#{product.slug}")
+    assert has_element?(view, "#sealed-detail-buying-guide-title", "Buying guide")
+    assert has_element?(view, "#sealed-market-history-title", "Market history")
+  end
+
   test "renders a graph ledger with a genuine missing-day gap", %{conn: conn} do
     product = product()
     today = Date.utc_today()
@@ -480,7 +719,17 @@ defmodule TcgCheapWeb.SealedProductDetailLiveTest do
           name: "Detail Booster Box",
           product_type: "booster_box",
           officially_distributed: true,
-          release_date: Date.utc_today()
+          release_date: Date.utc_today(),
+          description: "A complete sealed product record.",
+          contents: ["Booster packs"],
+          official_url: "https://example.com/detail-product",
+          details_source: "Detail test catalogue",
+          details_source_url: "https://example.com/detail-details",
+          pack_count: 36,
+          cards_per_pack: 10,
+          image_url: "https://assets.pokemon.com/detail-product.jpg",
+          image_source: "Official images",
+          image_source_url: "https://example.com/detail-image"
         },
         overrides
       )

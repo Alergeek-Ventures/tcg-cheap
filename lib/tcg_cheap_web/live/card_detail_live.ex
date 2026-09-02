@@ -1,6 +1,7 @@
 defmodule TcgCheapWeb.CardDetailLive do
   use TcgCheapWeb, :live_view
 
+  alias TcgCheap.Catalogue.CardDetailAcquisition
   alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Catalogue.GlcLegality
   alias TcgCheap.Core
@@ -37,13 +38,16 @@ defmodule TcgCheapWeb.CardDetailLive do
           |> reload_valuation(card)
 
         if connected?(socket) do
-          socket =
-            handle_acquisition_result(
-              socket,
-              ValuationAcquisition.subscribe_and_request(card,
-                request_admitter: PublicAcquisitionLimiter.admitter(socket.assigns.public_address)
-              )
+          :ok = ValuationAcquisition.subscribe(card)
+
+          detail =
+            CardDetailAcquisition.subscribe_and_request(card,
+              public_address: socket.assigns.public_address
             )
+
+          socket = handle_detail_result(socket, detail)
+
+          socket = maybe_request_valuation(socket)
 
           {:ok, reload_valuation(socket, socket.assigns.card)}
         else
@@ -107,6 +111,35 @@ defmodule TcgCheapWeb.CardDetailLive do
 
   def handle_info({:card_mapping_changed, _event}, socket), do: {:noreply, socket}
 
+  def handle_info(
+        {:card_detail_enrichment_completed, %{tcgdex_id: id}},
+        %{assigns: %{tcgdex_id: id}} = socket
+      ) do
+    case Core.get_public_card_printing_by_tcgdex_id(id) do
+      {:ok, card} ->
+        socket =
+          socket
+          |> assign_card(card)
+          |> assign(enrichment_pending: false, enrichment_failed: false)
+
+        {:noreply, reload_valuation(socket, card)}
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_info({:card_detail_enrichment_completed, _event}, socket), do: {:noreply, socket}
+
+  def handle_info(
+        {:card_detail_enrichment_failed, %{tcgdex_id: id}},
+        %{assigns: %{tcgdex_id: id}} = socket
+      ),
+      do: {:noreply, assign(socket, enrichment_pending: false, enrichment_failed: true)}
+
+  def handle_info({:card_detail_enrichment_failed, _event}, socket), do: {:noreply, socket}
+  def handle_info({:card_detail_enrichment_deferred, _event}, socket), do: {:noreply, socket}
+
   @impl true
   def render(%{card: _card} = assigns) do
     ~H"""
@@ -145,6 +178,12 @@ defmodule TcgCheapWeb.CardDetailLive do
                   class="valuation-panel archive-value-group"
                   aria-labelledby="valuation-title"
                 >
+                  <p :if={@enrichment_pending} id="card-detail-enrichment-status" role="status">
+                    Loading card details…
+                  </p>
+                  <p :if={@enrichment_failed} id="card-detail-enrichment-failed" role="status">
+                    Card details could not be loaded.
+                  </p>
                   <div class="section-rule">
                     <h2 id="valuation-title">Current estimate</h2>
                   </div>
@@ -590,7 +629,33 @@ defmodule TcgCheapWeb.CardDetailLive do
       refresh_failure: nil,
       acquisition_state: :idle,
       history_origin: nil,
-      history_load_failed: false
+      history_load_failed: false,
+      enrichment_pending: false,
+      enrichment_failed: false
+    )
+  end
+
+  defp handle_detail_result(socket, {:ok, card, {:enqueued, _job}}),
+    do: socket |> assign_card(card) |> assign(enrichment_pending: true)
+
+  defp handle_detail_result(socket, {:ok, card, {:fresh, _}}),
+    do: socket |> assign_card(card) |> assign(enrichment_pending: false)
+
+  defp handle_detail_result(socket, {:ok, card, {:error, _}}),
+    do: socket |> assign_card(card) |> assign(enrichment_pending: false, enrichment_failed: true)
+
+  defp handle_detail_result(socket, {:error, _}),
+    do: assign(socket, enrichment_pending: false, enrichment_failed: true)
+
+  defp maybe_request_valuation(%{assigns: %{card: %{details_synced_at: nil}}} = socket),
+    do: assign(socket, acquisition_state: :idle)
+
+  defp maybe_request_valuation(socket) do
+    handle_acquisition_result(
+      socket,
+      ValuationAcquisition.subscribe_and_request(socket.assigns.card,
+        request_admitter: PublicAcquisitionLimiter.admitter(socket.assigns.public_address)
+      )
     )
   end
 

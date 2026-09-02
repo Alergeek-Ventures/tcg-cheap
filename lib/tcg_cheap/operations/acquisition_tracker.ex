@@ -309,7 +309,8 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
         "single_valuation",
         "exchange_rate",
         "sealed_retailer_refresh",
-        "card_catalogue_sync"
+        "card_catalogue_sync",
+        "card_catalogue_enrichment"
       ] and
       valid_text?(target, 240) and valid_text?(worker, 240) and valid_text?(queue, 160)
   end
