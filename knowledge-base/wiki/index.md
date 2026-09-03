@@ -2,11 +2,11 @@
 
 ## Architecture
 
-- [Application Foundation](architecture/application-foundation.md) — Current forward-only migration policy, local 2026-09-02 catalogue/provider batch, canonical public Singles/Sealed behavior, hardened URL/image constraints, and 1,018-test/browser validation alongside preserved history. Updated 2026-09-02.
-- [Provider and Acquisition Feasibility](architecture/provider-acquisition-feasibility.md) — Current Boosterland/Colligere bounded Woo sources, rejected/failed candidates, local-vs-production boundary, strict publication readiness, and forward-only validation. Updated 2026-09-02.
+- [Application Foundation](architecture/application-foundation.md) — Production revision d55a26b with healthy seven-queue/nine-provider runtime, 19 sourced Sealed rows, canonical image/publication corrections, persisted retailer evidence, and forward-only validation alongside preserved history. Updated 2026-09-03.
+- [Provider and Acquisition Feasibility](architecture/provider-acquisition-feasibility.md) — Production-verified Boosterland/Colligere acquisition with six active retailers, persisted 8/37 listings, bounded budgets/schedules, strict image/facts publication gates, and no Singles-offer provider. Updated 2026-09-03.
 - [Reference Project Conventions](architecture/reference-project-conventions.md) — Read-only audits at current Onside/Firmowid commits, distinguishing the live reused container/release/health patterns from rejected self-hosted/private-action/runner-side deployment workflows. Updated 2026-08-19.
-- [Sealed Buying Model v1](architecture/sealed-buying-model-v1.md) — Provisional deterministic `sealed_buying_model_v1` ADR, deployed three-source schedule, sparse/Limited evidence, and incomplete representative mapped retailer evidence and real model validation. Updated 2026-08-25.
+- [Sealed Buying Model v1](architecture/sealed-buying-model-v1.md) — Provisional deterministic `sealed_buying_model_v1` ADR, six-source production acquisition evidence, sparse/Limited behavior, and incomplete retailer mappings and real model validation. Updated 2026-09-03.
 
 ## Product
 
-- [Detailed MVP Implementation Plan](product/mvp-implementation-plan.md) — **Current MVP North Star.** Records the local 2026-09-02 full-catalogue/Sealed behavior, pending six-source provider state, production baseline, hardened URL/image constraints, forward-only migrations, and 1,018-test/browser validation while preserving historical requirements and checkpoints. Updated 2026-09-02.
+- [Detailed MVP Implementation Plan](product/mvp-implementation-plan.md) — **Current MVP North Star.** Records production revision d55a26b, passed CI, nine providers, verified catalogue/image/offer behavior, persisted retailer acquisition, and remaining evidence/mapping/Singles-offer boundaries while preserving historical requirements and checkpoints. Updated 2026-09-03.

@@ -128,14 +128,17 @@ historical down/up validation records remain historical evidence only. Image
 rollback is a separate deployment concern and is permitted only when schema
 compatibility has been proven; never reverse database migrations.
 
-As of the 2026-09-02 local batch, the pending configuration has six sealed
-sources and nine total providers. Boosterland (category 40, Monday 05:00 UTC)
-and Colligere (category 23, Monday 06:00 UTC) are `lgs` Woo Store API sources,
-bounded to 50 requests/hour, 100/day, and 500/month. Their bounded smoke found
-8 and 35 eligible listings respectively, without persistence or production
-ingestion. Local work is uncommitted and not deployed; production remains the
-previous four sealed sources/seven providers and 127 cards, 643 valuations, and
-19 approved sealed products.
+Production revision `d55a26b1368084bbaf7a25b65a2211f437e6c540` is deployed; CI runs
+[33747809832](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33747809832)
+and [33748881597](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33748881597)
+passed. `/health` and `/health/live` return 200 with database and Oban healthy,
+seven queues, and nine providers. Six active sealed retailers are configured:
+LootQuest, CardzHouse, BoosterPoint, PokeBooster, Boosterland, and Colligere.
+Boosterland (category 40, Monday 05:00 UTC) and Colligere (category 23, Monday
+06:00 UTC) are `lgs` Woo Store API sources, bounded to 50 requests/hour,
+100/day, and 500/month. Each bootstrapped successfully with one admitted
+request, persisting 8 and 37 active listings respectively, with no related
+import issues. No production Singles-offer provider exists.
 
 ## Health checks
 
@@ -153,6 +156,11 @@ The endpoints are:
 
 Both endpoints are served on internal port `4004` and do not call an external
 provider.
+
+The current production checks also verified public Pitch Black search routes for
+its Booster Box/Pack/ETB and Pitch Black Booster Box/ETB, plus Destined Rivals
+Booster Box routes: all returned 200 with loaded canonical images and current
+offers.
 
 Both responses include a secret-safe `revision`. Coolify supplies the deployed
 runtime's `SOURCE_COMMIT`; the application trims and validates it as a Git
@@ -176,6 +184,21 @@ operational evidence.
 
 The `ecto_psql_extras` integration and the `pg_stat_statements` migration enable
 database diagnostics in Ecto Stats, including the Calls and Outliers views.
+
+## Current Sealed catalogue state — 2026-09-03
+
+All 19 approved Sealed products have complete sourced details and positive
+applicable pack counts. Thirteen have complete official USD price tuples and
+17 have complete canonical image tuples. Pitch Black Binacle 3-pack and SV151
+Booster Bundle intentionally remain image-null unless qualified retailer
+evidence exists; missing authoritative PLN MSRP/facts remain unset.
+
+The root cause of the image gap was legacy unsourced images preserved by initial
+enrichment and subsequently removed by image hardening. Forward-only migration
+`20260903102840` corrected that state, and forward-only migration
+`20260903111025` corrected the Pitch Black ETB type. Preserve the forward-only
+policy: fix future schema/data issues with new migrations, never roll back the
+database.
 
 ### Post-deploy verification
 
@@ -239,17 +262,22 @@ provider-budget admission immediately before HTTP.
 Operations provides a manual scoped collection trigger. `curated_playable` has
 dated official/Limitless/TCGdex evidence and explicit approval for local
 implementation; its seven-entry implementation is deployed, but production completion and collection remain unverified/incomplete. Sealed recurring acquisition is
-deployed through Coolify: the centrally configured weekly
-UTC schedule runs Monday at 01:00 for LootQuest (`regular_retailer`), 02:00 for
-CardzHouse (`lgs`), and 03:00 for BoosterPoint (`lgs`). Deployment configures six
+deployed through Coolify: the centrally configured weekly UTC schedule runs
+Monday at 01:00 for LootQuest (`regular_retailer`), 02:00 for CardzHouse
+(`lgs`), 03:00 for BoosterPoint (`lgs`), 04:00 for PokeBooster (`lgs`), 05:00 for
+Boosterland (`lgs`), and 06:00 for Colligere (`lgs`). Deployment configures nine
 providers in total, and each sealed source is limited to 50 requests/hour,
-100/day, and 500/month. Provider controls can disable a source; taking the
-Coolify application down is the operational stop when needed.
+100/day, and 500/month. Boosterland and Colligere each bootstrapped with one
+admitted request and persisted 8 and 37 active listings respectively, with no
+related import issues. Provider controls can disable a source; taking the
+Coolify application down is the operational stop when needed. No production
+Singles-offer provider exists.
 
-Current production checkpoint is commit `02b8d65`, with green CI run
-<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32369920522>.
-Production `/health` on 2026-08-25 reported database ready, 7 Oban queues, and
-6 configured providers. All seven exact curated card routes resolved publicly
+Current production checkpoint is revision `d55a26b1368084bbaf7a25b65a2211f437e6c540`, with green CI runs
+<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33747809832> and
+<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33748881597>.
+Production `/health` and `/health/live` return 200 with database and Oban healthy,
+7 Oban queues, and 9 configured providers. All seven exact curated card routes resolved publicly
 after the 2026-08-20 deploy; at that initial checkpoint four had valuations and
 three honestly showed no valuation. Do not infer later freshness from this checkpoint.
 At 2026-08-19 18:16 UTC, exact public Pitch Black `me05-001` through at least
@@ -345,9 +373,9 @@ acquisition work while cached, stale data remains available; they are not a
 substitute for fixing credentials, limits, provider outages, or other source
 failures.
 
-The three configured recurring sealed adapters—LootQuest, CardzHouse, and
-BoosterPoint—can each be disabled through persisted provider controls. If a
-broader stop is necessary, taking the app down in Coolify is the operational
-stop. While refresh is disabled, continue serving cached or stale data and
-label its age until source and persistence paths are safe; this does not claim
-that production data exists.
+The six configured recurring sealed adapters—LootQuest, CardzHouse,
+BoosterPoint, PokeBooster, Boosterland, and Colligere—can each be disabled
+through persisted provider controls. If a broader stop is necessary, taking the
+app down in Coolify is the operational stop. While refresh is disabled, continue
+serving cached or stale data and label its age until source and persistence paths
+are safe; this does not claim that the catalogue is complete.

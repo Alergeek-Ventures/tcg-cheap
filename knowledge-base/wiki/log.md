@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-09-03] Production acquisition, catalogue, and image reconciliation
+
+- Task: Reconciled current documentation to production revision `d55a26b1368084bbaf7a25b65a2211f437e6c540`, replacing stale pending/local-only claims while preserving clearly dated history.
+- Files: Updated only `PRODUCT.md`, `docs/deployment-and-operations.md`, `knowledge-base/wiki/index.md`, `knowledge-base/wiki/log.md`, `knowledge-base/wiki/architecture/application-foundation.md`, `knowledge-base/wiki/architecture/provider-acquisition-feasibility.md`, `knowledge-base/wiki/architecture/sealed-buying-model-v1.md`, and `knowledge-base/wiki/product/mvp-implementation-plan.md`; no raw file, code, or other documentation changed.
+- Validation: Recorded passed CI runs [33747809832](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33747809832) and [33748881597](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33748881597), production `/health` and `/health/live` HTTP 200 with healthy DB/Oban/seven queues/nine providers, persisted Boosterland/Colligere evidence, and browser checks for Pitch Black/Destined Rivals routes with loaded images/offers and no console/page errors. Deterministic read-only wiki validation passed: 5/5 indexed durable articles, exactly 15/15 `Updated`/`Sources`/`Raw` metadata fields, 76 relative Markdown links across the durable articles plus index/log, and 0 broken links. `git diff --check` passed.
+- Remaining boundaries: Pitch Black Binacle 3-pack and SV151 Booster Bundle remain unpublished while image-null without qualified retailer image evidence; retailer mappings and real buying-model validation require review; no production Singles-offer provider exists. Missing authoritative PLN MSRP/facts remain unset.
+
 ## [2026-09-02] Final pre-commit hardening | Forward constraints and serialized progress
 
 - Task completed: Recorded final hardening across pricing persistence, serial detail enrichment, listing-derived draft review, and external URL/image validation. Max-attempt pricing persistence snoozes without advancing the serial chain; listing-derived drafts require the exact pending/review mapping under a transaction-local lock; ExternalUrl and image policies align application and PostgreSQL constraints for Sealed and retailer homepage/listing/observation URLs, rejecting malformed ports, credentials, whitespace/control characters, and invalid retailer subdomain labels.

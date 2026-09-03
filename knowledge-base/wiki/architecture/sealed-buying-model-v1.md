@@ -1,12 +1,12 @@
 # Sealed Buying Model v1
 
-- Updated: 2026-08-25
-- Sources: [Detailed MVP Implementation Plan](../product/mvp-implementation-plan.md); [CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); project code; local synthetic validation
-- Raw: [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md)
+- Updated: 2026-09-03
+- Sources: [Detailed MVP Implementation Plan](../product/mvp-implementation-plan.md); [CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); project code; production validation; local synthetic validation
+- Raw: [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [Boosterland and Colligere Store API capture](../../raw/2026-09-02-boosterland-colligere-store-apis.md)
 
 ## Current owner direction — 2026-08-20 (Raw: N/A — product-owner direction)
 
-The agreed MVP source permission is settled and non-blocking. The agreement is private/out-of-band, treated as reached, has no permission state or gate in code. The exact three-source registry and Monday 01:00/02:00/03:00 UTC Cron are deployed. If needed, Coolify takedown is the operational stop mechanism. Older permission language below is historical and superseded; representative mapped regular-retailer evidence, mappings, reliability, and model validation remain incomplete.
+The agreed MVP source permission is settled and non-blocking. The agreement is private/out-of-band, treated as reached, and has no permission state or gate in code. Production now runs six recurring sealed sources—LootQuest, CardzHouse, BoosterPoint, PokeBooster, Boosterland, and Colligere—on Monday 01:00–06:00 UTC staggered schedules, within independent 50/hour, 100/day, and 500/month budgets. If needed, Coolify takedown is the operational stop mechanism. Representative mappings, reliability, and model validation remain incomplete.
 
 **Status:** `sealed_buying_model_v1` is the initial pure, deterministic, versioned
 sealed buying-policy implementation. Its weights and boundaries are provisional
@@ -16,6 +16,10 @@ through a fail-closed projection. Its exact current policy is also available thr
 authenticated read-only operations inspection.
 
 Private feasibility checkpoint: the approved `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` produced `limited / too_few_regular_retailers` with one regular retailer, and its guide produced `limited / limited_market_aggregate` at confidence `0.19`; no bands were fabricated. Browser search/detail showed one 899.99 PLN LootQuest offer and honest Limited-data messages with zero console errors. This validates sparse/Limited behavior only, not ready benchmark bands, representative Polish-market weights, multi-shop deduplication/outliers, recurring stock history, or public source rights.
+
+## Current production evidence — 2026-09-03
+
+Production revision `d55a26b1368084bbaf7a25b65a2211f437e6c540` passed CI runs 33747809832 and 33748881597. `/health` and `/health/live` returned 200 with healthy DB/Oban, seven queues, and nine providers. Six retailers are active; Boosterland and Colligere each used one admitted bootstrap request and persisted 8/37 active listings without related import issues. Nineteen approved Sealed products have sourced complete facts and positive applicable pack counts; 13 have complete official USD reference-price tuples and 17 complete canonical image tuples. Pitch Black search exposes Box/Pack/ETB, and verified Pitch Black Box/ETB plus Destined Rivals Box routes returned 200 with canonical images/offers and no page/console errors. This evidence supports the deployed provisional/Limited model boundary, not ready bands: retailer mappings and real buying-model validation remain incomplete, and no production Singles-offer provider exists.
 
 The later private CardzHouse and BoosterPoint runs do not change that model boundary: both real shops are deliberately `lgs`, not representative regular-retailer evidence; all new mappings remain review because no reliable GTINs were supplied; and no candidate was approved without an authenticated administrator. Jobs 88/89 retained 96/232 rows and unchanged jobs 90/91 retained exactly those counts, while current aggregate/guide/public-offer behavior remains unchanged. Recurring acquisition is deployed; representative mapped regular-retailer evidence and real model validation remain incomplete.
 
