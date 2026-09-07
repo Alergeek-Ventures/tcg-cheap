@@ -3,7 +3,13 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
 
   use TcgCheapWeb, :live_view
 
-  alias TcgCheap.Catalogue.{ListingProductMapping, SealedProduct, SealedProductAlias}
+  alias TcgCheap.Catalogue.{
+    CardmarketExpansionMapping,
+    ListingProductMapping,
+    SealedProduct,
+    SealedProductAlias
+  }
+
   alias TcgCheap.Core
 
   @product_type_options [
@@ -36,7 +42,7 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
   def mount(params, _session, socket) do
     socket =
       socket
-      |> assign(:page_title, "Sealed review desk")
+      |> assign(:page_title, "Catalogue review desk")
       |> assign(:product_type_options, @product_type_options)
       |> assign(:visible_queue_limit, @visible_queue_limit)
       |> assign(:targeted_mapping_id, nil)
@@ -60,14 +66,94 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
           <div class="admin-container">
             <section class="admin-intro" aria-labelledby="admin-review-title">
               <div>
-                <h1 id="admin-review-title">Sealed review desk</h1>
-                <p>Verify identity before publishing.</p>
+                <h1 id="admin-review-title">Catalogue review desk</h1>
+                <p>Verify evidence before publishing catalogue decisions.</p>
               </div>
               <nav id="admin-queue-nav" aria-label="Review queues">
                 <a href="#draft-products">Products <strong>{@queue_counts.products}</strong></a>
                 <a href="#pending-aliases">Aliases <strong>{@queue_counts.aliases}</strong></a>
                 <a href="#listing-mappings">Mappings <strong>{@queue_counts.mappings}</strong></a>
+                <a href="#cardmarket-expansion-reviews">Expansions
+                <strong>{@queue_counts.expansions}</strong></a>
               </nav>
+            </section>
+
+            <section
+              id="cardmarket-expansion-reviews"
+              class="admin-queue"
+              aria-labelledby="cardmarket-expansion-reviews-title"
+            >
+              <div class="admin-section-rule">
+                <h2 id="cardmarket-expansion-reviews-title">Cardmarket expansions</h2>
+                <span>
+                  {if @cardmarket_expansion_review_status == :unavailable,
+                    do: "Unavailable",
+                    else: "#{@queue_counts.expansions} waiting"}
+                </span>
+              </div>
+              <p
+                :if={@queue_limit_notes.expansions}
+                id="cardmarket-expansion-review-limit"
+                class="admin-queue-limit"
+              >
+                {@queue_limit_notes.expansions}
+              </p>
+              <div id="cardmarket-expansion-review-queue" class="admin-dockets" phx-update="stream">
+                <p
+                  :if={@cardmarket_expansion_review_status == :empty}
+                  id="cardmarket-expansion-review-empty"
+                  class="admin-empty"
+                >
+                  No Cardmarket expansion reviews need approval.
+                </p>
+                <p
+                  :if={@cardmarket_expansion_review_status == :unavailable}
+                  id="cardmarket-expansion-review-unavailable"
+                  class="admin-state-error"
+                >
+                  Unable to load Cardmarket expansion reviews. No healthy or empty state is being assumed.
+                </p>
+                <article
+                  :for={{dom_id, mapping} <- @streams.cardmarket_expansion_reviews}
+                  id={dom_id}
+                  class="admin-docket"
+                >
+                  <% form = Map.fetch!(@cardmarket_expansion_forms, mapping.id) %>
+                  <h3>{mapping.card_set.name}</h3>
+                  <p>Cardmarket expansion {mapping.expansion_id} · {mapping.anchor_count} anchors</p>
+                  <p id={"cardmarket-expansion-#{mapping.id}-review-reason"}>
+                    Reason: {mapping.review_reason}
+                  </p>
+                  <p id={"cardmarket-expansion-#{mapping.id}-evidence"}>
+                    Evidence: {format_evidence(mapping.evidence)}
+                  </p>
+                  <.form
+                    for={form}
+                    id={"approve-cardmarket-expansion-form-#{mapping.id}"}
+                    phx-submit="approve_cardmarket_expansion"
+                  >
+                    <.input
+                      field={form[:source_mapping_id]}
+                      id={"cardmarket-expansion-#{mapping.id}-source"}
+                      type="hidden"
+                    />
+                    <.input
+                      field={form[:expected_updated_at]}
+                      id={"cardmarket-expansion-#{mapping.id}-version"}
+                      type="hidden"
+                    />
+                    <.input
+                      field={form[:reason]}
+                      id={"cardmarket-expansion-#{mapping.id}-approval-reason"}
+                      type="text"
+                      label="Approval reason"
+                      required
+                      maxlength="2000"
+                    />
+                    <button id={"approve-cardmarket-expansion-#{mapping.id}"} type="submit">Approve expansion</button>
+                  </.form>
+                </article>
+              </div>
             </section>
 
             <section id="draft-products" class="admin-queue" aria-labelledby="draft-products-title">
@@ -537,6 +623,29 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
 
   @impl true
   def handle_event(
+        "approve_cardmarket_expansion",
+        %{"cardmarket_expansion_mapping" => params},
+        socket
+      ) do
+    with {:ok, %CardmarketExpansionMapping{} = mapping} <-
+           get_cardmarket_mapping(params["source_mapping_id"], socket),
+         {:ok, _} <-
+           Core.approve_cardmarket_expansion(
+             mapping.card_set,
+             %{
+               source_mapping_id: mapping.id,
+               reason: params["reason"],
+               expected_updated_at: params["expected_updated_at"]
+             },
+             actor: socket.assigns.current_admin
+           ) do
+      {:noreply, succeed(socket, "Cardmarket expansion approved.")}
+    else
+      {:error, error} -> {:noreply, fail(socket, "Cardmarket expansion was not approved", error)}
+    end
+  end
+
+  def handle_event(
         "revise_product",
         %{"product" => %{"id" => id, "expected_updated_at" => expected_updated_at} = params},
         socket
@@ -714,6 +823,8 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
           {[], [], mappings}
       end
 
+    {expansions, cardmarket_expansion_review_status} = cardmarket_review_queue(actor)
+
     approved_products = Core.list_approved_sealed_products!(actor: actor)
     approved_product_ids = MapSet.new(approved_products, & &1.id)
     visible_products = Enum.take(products, @visible_queue_limit)
@@ -723,18 +834,35 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
     queue_counts = %{
       products: queue_count(products),
       aliases: queue_count(aliases),
-      mappings: queue_count(mappings)
+      mappings: queue_count(mappings),
+      expansions: expansion_queue_count(expansions, cardmarket_expansion_review_status)
     }
 
     queue_limit_notes = %{
       products: queue_limit_note(products),
       aliases: queue_limit_note(aliases),
-      mappings: queue_limit_note(mappings)
+      mappings: queue_limit_note(mappings),
+      expansions: expansion_queue_limit_note(expansions, cardmarket_expansion_review_status)
     }
 
     socket
     |> assign(:queue_counts, queue_counts)
     |> assign(:queue_limit_notes, queue_limit_notes)
+    |> assign(:cardmarket_expansion_review_status, cardmarket_expansion_review_status)
+    |> assign(
+      :cardmarket_expansion_forms,
+      Map.new(Enum.take(expansions, @visible_queue_limit), fn mapping ->
+        {mapping.id,
+         to_form(
+           %{
+             "source_mapping_id" => mapping.id,
+             "expected_updated_at" => DateTime.to_iso8601(mapping.card_set.updated_at),
+             "reason" => ""
+           },
+           as: :cardmarket_expansion_mapping
+         )}
+      end)
+    )
     |> assign(:product_forms, Map.new(visible_products, &{&1.id, product_form(&1)}))
     |> assign(
       :approved_product_options,
@@ -776,7 +904,27 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
     |> stream(:draft_products, visible_products, reset: true)
     |> stream(:pending_aliases, visible_aliases, reset: true)
     |> stream(:listing_mappings, visible_mappings, reset: true)
+    |> stream(:cardmarket_expansion_reviews, Enum.take(expansions, @visible_queue_limit),
+      reset: true
+    )
   end
+
+  defp cardmarket_review_queue(actor) do
+    with {:ok, batch} when not is_nil(batch) <-
+           Core.get_latest_successful_cardmarket_bulk_batch(actor: actor),
+         {:ok, mappings} <- Core.list_cardmarket_expansion_review_queue(batch.id, actor: actor) do
+      {mappings, if(mappings == [], do: :empty, else: :ok)}
+    else
+      {:ok, nil} -> {[], :empty}
+      _ -> {[], :unavailable}
+    end
+  end
+
+  defp expansion_queue_count(_queue, :unavailable), do: "Unavailable"
+  defp expansion_queue_count(queue, _status), do: queue_count(queue)
+
+  defp expansion_queue_limit_note(_queue, :unavailable), do: nil
+  defp expansion_queue_limit_note(queue, _status), do: queue_limit_note(queue)
 
   defp mount_targeted_mapping(socket, mapping_id) do
     case Ecto.UUID.cast(mapping_id) do
@@ -881,6 +1029,19 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
     end
   end
 
+  defp get_cardmarket_mapping(id, socket) do
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} ->
+        case Core.get_cardmarket_expansion_mapping(uuid, actor: socket.assigns.current_admin) do
+          {:ok, nil} -> {:error, :stale_review}
+          result -> result
+        end
+
+      :error ->
+        {:error, :stale_review}
+    end
+  end
+
   defp succeed(socket, message) do
     socket = put_flash(socket, :info, message)
 
@@ -952,5 +1113,71 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
   defp format_decimal(value), do: Decimal.to_string(value, :normal)
 
   defp format_evidence(nil), do: "No structured evidence"
-  defp format_evidence(evidence), do: Jason.encode!(evidence)
+
+  defp format_evidence(evidence) when is_map(evidence) do
+    evidence
+    |> project_evidence()
+    |> Jason.encode!()
+    |> String.slice(0, 2_000)
+  rescue
+    _ -> "Structured evidence unavailable"
+  end
+
+  defp format_evidence(_), do: "Structured evidence unavailable"
+
+  defp project_evidence(evidence) do
+    %{}
+    |> put_evidence_list(evidence, "anchor_card_printing_ids", &safe_uuid?/1)
+    |> put_evidence_list(evidence, "anchor_cardmarket_product_ids", &positive_integer?/1)
+    |> put_evidence_scalar(evidence, "set_expansion_degree")
+    |> put_evidence_scalar(evidence, "expansion_set_degree")
+  end
+
+  @max_evidence_list_length 50
+
+  defp put_evidence_list(acc, evidence, key, validator) do
+    case evidence_value(evidence, key) do
+      value when is_list(value) ->
+        {values, discarded} =
+          value
+          |> Enum.filter(validator)
+          |> Enum.split(@max_evidence_list_length)
+
+        acc = Map.put(acc, key, values)
+
+        if discarded == [] do
+          acc
+        else
+          Map.put(acc, "#{key}_truncated_count", length(discarded))
+        end
+
+      _ ->
+        acc
+    end
+  end
+
+  defp put_evidence_scalar(acc, evidence, key) do
+    case evidence_value(evidence, key) do
+      value when is_integer(value) and value >= 0 and value <= 1_000_000 ->
+        Map.put(acc, key, value)
+
+      _ ->
+        acc
+    end
+  end
+
+  defp evidence_value(evidence, key), do: Map.get(evidence, key, Map.get(evidence, atom_key(key)))
+
+  defp atom_key("anchor_card_printing_ids"), do: :anchor_card_printing_ids
+  defp atom_key("anchor_cardmarket_product_ids"), do: :anchor_cardmarket_product_ids
+  defp atom_key("set_expansion_degree"), do: :set_expansion_degree
+  defp atom_key("expansion_set_degree"), do: :expansion_set_degree
+
+  defp safe_uuid?(value) when is_binary(value) do
+    match?({:ok, _}, Ecto.UUID.cast(value))
+  end
+
+  defp safe_uuid?(_value), do: false
+
+  defp positive_integer?(value), do: is_integer(value) and value > 0 and value <= 1_000_000_000
 end

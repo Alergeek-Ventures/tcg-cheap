@@ -33,7 +33,11 @@ defmodule TcgCheap.Catalogue.Preparations.Search do
       |> Ash.Query.filter(expr(^candidate))
       |> sort(ranking(normalized))
       |> Ash.Query.limit(Ash.Query.get_argument(query, :limit))
-      |> load([:card_set, :tcgdex_cardmarket_v1_current_valuation])
+      |> load([
+        :card_set,
+        :tcgdex_cardmarket_v1_current_valuation,
+        :cardmarket_bulk_v1_current_valuation
+      ])
     end
   end
 

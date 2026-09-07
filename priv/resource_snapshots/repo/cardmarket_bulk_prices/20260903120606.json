@@ -1,0 +1,347 @@
+{
+  "attributes": [
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"gen_random_uuid()\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": true,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "cardmarket_product_id",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "51",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "category_id",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "avg",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "low",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "trend",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "avg1",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "avg7",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "avg30",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "avg_holo",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "low_holo",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "trend_holo",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "avg1_holo",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "avg7_holo",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "avg30_holo",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "selected_metric",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "selected_value_eur",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_updated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_tenant?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "cardmarket_bulk_prices_last_batch_id_fkey",
+        "on_delete": "restrict",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "cardmarket_bulk_batches"
+      },
+      "scale": null,
+      "size": null,
+      "source": "last_batch_id",
+      "type": "uuid"
+    }
+  ],
+  "base_filter": null,
+  "check_constraints": [
+    {
+      "attribute": [
+        "cardmarket_product_id",
+        "category_id"
+      ],
+      "base_filter": null,
+      "check": "cardmarket_product_id > 0 AND category_id = 51",
+      "name": "cardmarket_bulk_prices_pokemon_category"
+    },
+    {
+      "attribute": [
+        "selected_metric",
+        "selected_value_eur"
+      ],
+      "base_filter": null,
+      "check": "((selected_metric IS NULL AND selected_value_eur IS NULL) OR (selected_metric IS NOT NULL AND selected_value_eur IS NOT NULL)) AND (selected_metric IS NULL OR selected_metric IN ('avg7', 'avg30', 'trend', 'avg', 'low'))",
+      "name": "cardmarket_bulk_prices_selected_metric_coherence"
+    },
+    {
+      "attribute": [
+        "avg",
+        "low",
+        "trend",
+        "avg1",
+        "avg7",
+        "avg30",
+        "avg_holo",
+        "low_holo",
+        "trend_holo",
+        "avg1_holo",
+        "avg7_holo",
+        "avg30_holo",
+        "selected_value_eur"
+      ],
+      "base_filter": null,
+      "check": "(avg IS NULL OR (avg > 0 AND avg <> 'NaN' AND avg <> 'Infinity' AND avg <> '-Infinity')) AND (low IS NULL OR (low > 0 AND low <> 'NaN' AND low <> 'Infinity' AND low <> '-Infinity')) AND (trend IS NULL OR (trend > 0 AND trend <> 'NaN' AND trend <> 'Infinity' AND trend <> '-Infinity')) AND (avg1 IS NULL OR (avg1 > 0 AND avg1 <> 'NaN' AND avg1 <> 'Infinity' AND avg1 <> '-Infinity')) AND (avg7 IS NULL OR (avg7 > 0 AND avg7 <> 'NaN' AND avg7 <> 'Infinity' AND avg7 <> '-Infinity')) AND (avg30 IS NULL OR (avg30 > 0 AND avg30 <> 'NaN' AND avg30 <> 'Infinity' AND avg30 <> '-Infinity')) AND (avg_holo IS NULL OR (avg_holo > 0 AND avg_holo <> 'NaN' AND avg_holo <> 'Infinity' AND avg_holo <> '-Infinity')) AND (low_holo IS NULL OR (low_holo > 0 AND low_holo <> 'NaN' AND low_holo <> 'Infinity' AND low_holo <> '-Infinity')) AND (trend_holo IS NULL OR (trend_holo > 0 AND trend_holo <> 'NaN' AND trend_holo <> 'Infinity' AND trend_holo <> '-Infinity')) AND (avg1_holo IS NULL OR (avg1_holo > 0 AND avg1_holo <> 'NaN' AND avg1_holo <> 'Infinity' AND avg1_holo <> '-Infinity')) AND (avg7_holo IS NULL OR (avg7_holo > 0 AND avg7_holo <> 'NaN' AND avg7_holo <> 'Infinity' AND avg7_holo <> '-Infinity')) AND (avg30_holo IS NULL OR (avg30_holo > 0 AND avg30_holo <> 'NaN' AND avg30_holo <> 'Infinity' AND avg30_holo <> '-Infinity')) AND (selected_value_eur IS NULL OR (selected_value_eur > 0 AND selected_value_eur <> 'NaN' AND selected_value_eur <> 'Infinity' AND selected_value_eur <> '-Infinity'))",
+      "name": "cardmarket_bulk_prices_values_positive_finite"
+    }
+  ],
+  "create_table_options": null,
+  "custom_indexes": [
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "last_batch_id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "last_batch_id"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    }
+  ],
+  "custom_statements": [],
+  "has_create_action": true,
+  "hash": "3291173E4874554CAD78C2D7BF4B6BFEC7D0DF94152AFBD1AD1B3A8F60100F9C",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "cardmarket_bulk_prices_unique_cardmarket_product_id_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "cardmarket_product_id"
+        }
+      ],
+      "name": "unique_cardmarket_product_id",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
+  "multitenancy": {
+    "attribute": null,
+    "global": null,
+    "strategy": null
+  },
+  "repo": "Elixir.TcgCheap.Repo",
+  "schema": null,
+  "table": "cardmarket_bulk_prices"
+}

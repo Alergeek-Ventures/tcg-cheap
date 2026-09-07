@@ -12,24 +12,36 @@ defmodule TcgCheap.Pricing.Singles.ValuationRefreshWorker do
   alias TcgCheap.Catalogue.Tcgdex
   alias TcgCheap.Core
   alias TcgCheap.Pricing.Singles.ValuationAcquisition
+  alias TcgCheap.Pricing.Singles.ValuationPolicy
   def timeout(_), do: :timer.seconds(120)
 
   def enqueue, do: %{} |> new() |> Oban.insert()
 
-  def perform(%Oban.Job{args: args}) when map_size(args) == 0 do
-    perform_page(nil, page_size())
+  def perform(%Oban.Job{} = job), do: perform_for_policy(job, ValuationPolicy.active_policy())
+  def perform(_), do: {:cancel, :malformed_job_args}
+
+  @doc false
+  def perform_for_policy(%Oban.Job{args: args}, policy) when map_size(args) == 0 do
+    if policy == ValuationPolicy.bulk_policy(), do: :ok, else: perform_page(nil, page_size())
   end
 
-  def perform(%Oban.Job{args: %{"cursor" => cursor, "limit" => limit} = args})
+  def perform_for_policy(
+        %Oban.Job{args: %{"cursor" => cursor, "limit" => limit} = args},
+        policy
+      )
       when map_size(args) == 2 and is_binary(cursor) and is_integer(limit) and limit in 1..1_000 do
-    if Tcgdex.valid_card_id?(cursor) do
-      perform_page(cursor, limit)
+    if policy == ValuationPolicy.bulk_policy() do
+      :ok
     else
-      {:cancel, :malformed_job_args}
+      if Tcgdex.valid_card_id?(cursor) do
+        perform_page(cursor, limit)
+      else
+        {:cancel, :malformed_job_args}
+      end
     end
   end
 
-  def perform(_), do: {:cancel, :malformed_job_args}
+  def perform_for_policy(_, _), do: {:cancel, :malformed_job_args}
 
   defp perform_page(cursor, limit) do
     case Core.list_singles_valuation_candidates(cursor, limit, authorize?: false) do

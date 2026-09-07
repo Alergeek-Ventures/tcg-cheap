@@ -1,6 +1,6 @@
 defmodule TcgCheap.Catalogue.Importer do
   @moduledoc "Imports one TCGdex card and its set atomically and idempotently."
-  alias TcgCheap.Catalogue.{CardPrinting, CardSet, Normalizer, Tcgdex}
+  alias TcgCheap.Catalogue.{CardPrinting, CardSet, MaterialVariant, Normalizer, Tcgdex}
   alias TcgCheap.Core
   alias TcgCheap.Operations.AcquisitionBudget
   alias TcgCheap.Pricing.Singles.ValuationAcquisition
@@ -448,15 +448,15 @@ defmodule TcgCheap.Catalogue.Importer do
     ids = Enum.uniq(ids)
     variants = Map.get(card, "variants", %{})
     detailed = Map.get(card, "variants_detailed", %{})
-    material = material_descriptors(variants, detailed)
+    material = MaterialVariant.descriptors(variants, detailed)
 
     mapping_from(material, ids)
   end
 
   defp mapping_from(material, ids) do
     cond do
-      material_review?(material) ->
-        {"review", material_reason(material), nil}
+      MaterialVariant.conflict?(material) ->
+        {"review", MaterialVariant.reason(material), nil}
 
       length(material.identities) > 1 ->
         {"review", "multiple material identities", nil}
@@ -474,115 +474,6 @@ defmodule TcgCheap.Catalogue.Importer do
         {"matched", nil, hd(ids)}
     end
   end
-
-  defp material_review?(material) do
-    material.first_edition or material.w_promo or material.stamps != [] or material.jumbo or
-      material.pre_release
-  end
-
-  defp material_descriptors(variants, detailed) do
-    detailed_records = records(detailed)
-
-    first_edition =
-      Map.get(variants, "firstEdition") == true or
-        Enum.any?(detailed_records, &(Map.get(&1, "firstEdition") == true))
-
-    w_promo =
-      Map.get(variants, "wPromo") == true or
-        Enum.any?(detailed_records, &(Map.get(&1, "wPromo") == true))
-
-    stamps = detailed_records |> Enum.flat_map(&stamp_values/1) |> Enum.uniq() |> Enum.sort()
-
-    jumbo =
-      Map.get(variants, "jumbo") == true or
-        Enum.any?(detailed_records, &(Map.get(&1, "jumbo") == true))
-
-    pre_release =
-      Map.get(variants, "preRelease") == true or
-        Enum.any?(detailed_records, &(Map.get(&1, "preRelease") == true))
-
-    identities =
-      detailed_records
-      |> Enum.map(&material_identity/1)
-      |> Enum.reject(&is_nil/1)
-      |> Enum.uniq()
-      |> Enum.sort()
-
-    %{
-      first_edition: first_edition,
-      w_promo: w_promo,
-      stamps: stamps,
-      jumbo: jumbo,
-      pre_release: pre_release,
-      identities: identities
-    }
-  end
-
-  defp material_reason(material) do
-    cond do
-      material.first_edition -> "firstEdition variant"
-      material.w_promo -> "wPromo variant"
-      material.stamps != [] -> "stamped variant: " <> Enum.join(material.stamps, ",")
-      material.jumbo -> "jumbo variant"
-      material.pre_release -> "preRelease variant"
-    end
-  end
-
-  defp records(value) when is_list(value), do: Enum.flat_map(value, &records/1)
-
-  defp records(%{} = value) do
-    own =
-      if Enum.any?(
-           Map.keys(value),
-           &(&1 in [
-               "type",
-               "subtype",
-               "stamp",
-               "stamps",
-               "size",
-               "firstEdition",
-               "wPromo",
-               "jumbo",
-               "preRelease",
-               "foil"
-             ])
-         ),
-         do: [value],
-         else: []
-
-    own ++ Enum.flat_map(Map.values(value), &records/1)
-  end
-
-  defp records(_), do: []
-
-  defp stamp_values(record) do
-    [Map.get(record, "stamp"), Map.get(record, "stamps")]
-    |> List.flatten()
-    |> Enum.filter(&(is_binary(&1) and String.trim(&1) != ""))
-    |> Enum.map(&String.trim/1)
-  end
-
-  defp material_identity(record) do
-    subtype = nonblank(Map.get(record, "subtype"))
-    size = nonblank(Map.get(record, "size"))
-    foil = nonblank(Map.get(record, "foil"))
-
-    values = %{
-      "subtype" => if(subtype in [nil, "unlimited"], do: nil, else: subtype),
-      "size" => if(size in [nil, "standard"], do: nil, else: size),
-      "foil" => foil
-    }
-
-    values = Enum.reject(values, fn {_key, value} -> value in [nil, false, "", []] end)
-    if values == [], do: nil, else: inspect(values, pretty: false)
-  end
-
-  defp nonblank(value) when is_binary(value) do
-    value = String.trim(value)
-    if value == "", do: nil, else: value
-  end
-
-  defp nonblank(_), do: nil
 
   defp asset_url(value, kind), do: Normalizer.asset_url(value, kind)
 

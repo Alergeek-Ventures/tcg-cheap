@@ -3,7 +3,14 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
 
   use TcgCheapWeb, :live_view
 
-  alias TcgCheap.Operations.{BuyingModelInspection, ManualRefresh, Overview}
+  alias TcgCheap.Operations.{
+    BuyingModelInspection,
+    CardmarketBulkCoverage,
+    ManualRefresh,
+    Overview
+  }
+
+  alias TcgCheap.Pricing.Singles.ValuationPolicy
 
   @operation_events ~w(disable_provider enable_provider)
 
@@ -27,12 +34,18 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:manual_exchange_rate, nil)
      |> assign(:manual_valuation, nil)
      |> assign(:manual_available_count, 0)
+     |> assign(:cardmarket_coverage_loaded?, false)
+     |> assign(:cardmarket_coverage_ready?, false)
+     |> assign(:cardmarket_coverage, nil)
+     |> assign(:cardmarket_requested_policy, ValuationPolicy.requested_policy())
+     |> assign(:cardmarket_active_policy, ValuationPolicy.default_policy())
      |> assign(:manual_form, to_form(%{"tcgdex_id" => ""}, as: :manual_refresh))
      |> stream_configure(:job_state_counts, dom_id: &job_state_dom_id/1)
      |> stream(:job_state_counts, [], reset: true)
      |> stream(:manual_retailers, [], reset: true)
      |> load_buying_model()
      |> load_manual()
+     |> load_cardmarket_coverage()
      |> load_overview()}
   end
 
@@ -58,7 +71,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                   </p>
                 </details>
               </div>
-              <%= if @overview_ready? or @model_ready? or @manual_ready? do %>
+              <%= if @overview_ready? or @model_ready? or @manual_ready? or @cardmarket_coverage_loaded? do %>
                 <nav id="admin-operations-nav" aria-label="Operations sections">
                   <%= if @overview_ready? do %>
                     <a href="#operations-global-ledger">Global <strong>UTC</strong></a>
@@ -71,6 +84,9 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                   </a>
                   <a href="#operations-manual-refresh">
                     Manual <strong>{@manual_available_count}</strong>
+                  </a>
+                  <a href="#operations-cardmarket-coverage">
+                    Cardmarket <strong>{if(@cardmarket_coverage_ready?, do: 1, else: 0)}</strong>
                   </a>
                 </nav>
               <% end %>
@@ -325,6 +341,338 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                 </p>
               </section>
             <% end %>
+
+            <section
+              id="operations-cardmarket-coverage"
+              class="admin-queue"
+              aria-labelledby="operations-cardmarket-coverage-title"
+            >
+              <div class="admin-section-rule">
+                <h2 id="operations-cardmarket-coverage-title">Cardmarket bulk coverage</h2><span>Read only · shadow evidence</span>
+              </div>
+              <p class="admin-disclosure">
+                Read-only shadow evidence for private coverage. This is not a public cutover and does not queue work.
+              </p>
+              <div class="admin-dockets">
+                <article id="cardmarket-coverage-cutover" class="admin-docket">
+                  <div class="admin-docket-heading">
+                    <div>
+                      <h3>Public policy cutover readiness</h3>
+                      <p>Read-only decision evidence; this surface does not toggle cutover.</p>
+                    </div>
+                    <span>{if(@cardmarket_coverage_ready?,
+                      do: coverage_readiness(@cardmarket_coverage.cutover),
+                      else: "NOT READY"
+                    )}</span>
+                  </div>
+                  <dl id="cardmarket-coverage-policy-ledger" class="admin-ledger">
+                    <div>
+                      <dt>Requested public policy</dt><dd id="cardmarket-coverage-requested-policy">
+                        {@cardmarket_requested_policy}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Active public policy</dt><dd id="cardmarket-coverage-active-policy">
+                        {@cardmarket_active_policy}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Public cutover</dt><dd id="cardmarket-coverage-readiness">
+                        {if(@cardmarket_coverage_ready?,
+                          do: coverage_readiness(@cardmarket_coverage.cutover),
+                          else: "NOT READY"
+                        )}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Failed readiness checks</dt><dd id="cardmarket-coverage-failed-checks">
+                        {if(@cardmarket_coverage_ready?,
+                          do: failed_checks(@cardmarket_coverage.cutover.failed_checks),
+                          else: "Coverage report unavailable"
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                </article>
+              </div>
+              <%= if @cardmarket_coverage_ready? do %>
+                <div
+                  id="cardmarket-coverage-batch-ledger"
+                  class="admin-dockets"
+                >
+                  <article class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <div>
+                        <h3>Latest batch</h3><p>Upstream evidence and bounded batch facts.</p>
+                      </div>
+                      <span>{coverage_status(@cardmarket_coverage.status)}</span>
+                    </div>
+                    <%= if @cardmarket_coverage.latest_batch do %>
+                      <dl class="admin-ledger">
+                        <div>
+                          <dt>Product upstream UTC</dt><dd>
+                            {datetime(@cardmarket_coverage.latest_batch.product_created_at)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Price upstream UTC</dt><dd>
+                            {datetime(@cardmarket_coverage.latest_batch.price_created_at)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Fetched UTC</dt><dd>
+                            {datetime(@cardmarket_coverage.latest_batch.fetched_at)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Completed UTC</dt><dd>
+                            {datetime(@cardmarket_coverage.latest_batch.completed_at)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Age</dt><dd>{age(@cardmarket_coverage.latest_batch.age_seconds)}</dd>
+                        </div>
+                        <div>
+                          <dt>Policy / parser</dt><dd>
+                            {@cardmarket_coverage.latest_batch.policy_version} / {@cardmarket_coverage.latest_batch.parser_version}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Product SHA-256</dt><dd>
+                            {bounded_hash(@cardmarket_coverage.latest_batch.product_sha256)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Price SHA-256</dt><dd>
+                            {bounded_hash(@cardmarket_coverage.latest_batch.price_sha256)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Product / price bytes</dt><dd>
+                            {bytes(@cardmarket_coverage.latest_batch.product_byte_size)} / {bytes(
+                              @cardmarket_coverage.latest_batch.price_byte_size
+                            )}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Declared products</dt><dd>
+                            {@cardmarket_coverage.latest_batch.product_row_count}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Combined prices</dt><dd>
+                            {@cardmarket_coverage.latest_batch.price_row_count}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Singles</dt><dd>
+                            {@cardmarket_coverage.latest_batch.singles_price_row_count}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Priceable</dt><dd>
+                            {@cardmarket_coverage.latest_batch.priceable_singles_count}
+                          </dd>
+                        </div>
+                      </dl>
+                    <% else %>
+                      <p id="cardmarket-coverage-no-batch" class="admin-empty">
+                        No successful Cardmarket bulk batch observed. Canonical mapping and detail evidence remains below.
+                      </p>
+                    <% end %>
+                  </article>
+                </div>
+
+                <div class="admin-dockets">
+                  <article class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <h3>Coverage funnel</h3><span>COUNTS</span>
+                    </div>
+                    <dl id="cardmarket-coverage-funnel" class="admin-ledger">
+                      <div>
+                        <dt>Latest staged products / prices / priceable</dt><dd>
+                          {funnel_counts(@cardmarket_coverage.counts, [
+                            :staged_products,
+                            :staged_prices,
+                            :priceable_staged_prices
+                          ])}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Linked matched products / printings</dt><dd>
+                          {funnel_counts(@cardmarket_coverage.counts, [
+                            :staged_products_linked,
+                            :matched_printings_linked
+                          ])}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Latest-batch current valuations</dt><dd>
+                          {@cardmarket_coverage.counts.latest_batch_current_valuations}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Mapped but unpriced</dt><dd>
+                          {@cardmarket_coverage.counts.unpriced_matched_printings}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Current policy valuations</dt><dd>
+                          {@cardmarket_coverage.counts.current_valuations}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+
+                  <article id="cardmarket-coverage-comparison" class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <h3>Shadow comparison</h3><span>TCGDEX / BULK</span>
+                    </div>
+                    <dl id="cardmarket-coverage-comparison-ledger" class="admin-ledger">
+                      <div>
+                        <dt>Current TCGdex / bulk valuations</dt><dd>
+                          {@cardmarket_coverage.comparison.current_tcgdex_count} / {@cardmarket_coverage.comparison.current_bulk_count}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Overlap</dt><dd>{@cardmarket_coverage.comparison.overlap}</dd>
+                      </div>
+                      <div>
+                        <dt>Within-tolerance agreement</dt><dd>
+                          {@cardmarket_coverage.comparison.overlap_value_agreement} / {@cardmarket_coverage.comparison.overlap}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Bulk-only / TCGdex-only</dt><dd>
+                          {@cardmarket_coverage.comparison.bulk_only} / {@cardmarket_coverage.comparison.tcgdex_only}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+
+                  <article id="cardmarket-coverage-latest-batch-valuation" class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <h3>Latest-batch valuation evidence</h3><span>BOUNDED COUNTS</span>
+                    </div>
+                    <dl id="cardmarket-coverage-latest-batch-valuation-ledger" class="admin-ledger">
+                      <div>
+                        <dt>Valuations</dt><dd>
+                          {@cardmarket_coverage.comparison.latest_batch_valuation_count}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Approved</dt><dd>
+                          {@cardmarket_coverage.comparison.latest_batch_approved_valuations}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Exact metric matches</dt><dd>
+                          {@cardmarket_coverage.comparison.latest_batch_exact_valuations}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Ambiguous / unapproved</dt><dd>
+                          {@cardmarket_coverage.comparison.latest_batch_ambiguous_or_unapproved}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+
+                  <article class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <h3>Mapping status</h3><span>CANONICAL</span>
+                    </div>
+                    <dl id="cardmarket-coverage-mapping-status" class="admin-ledger">
+                      <div>
+                        <dt>Canonical paper total</dt><dd>
+                          {@cardmarket_coverage.counts.canonical_printings}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Mapping pending</dt><dd>{@cardmarket_coverage.counts.mapping_pending}</dd>
+                      </div>
+                      <div>
+                        <dt>Mapping matched</dt><dd>{@cardmarket_coverage.counts.mapping_matched}</dd>
+                      </div>
+                      <div>
+                        <dt>Mapping unmatched</dt><dd>
+                          {@cardmarket_coverage.counts.mapping_unmatched}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Mapping review</dt><dd>{@cardmarket_coverage.counts.mapping_review}</dd>
+                      </div>
+                      <div>
+                        <dt>Detail pending / failures</dt><dd>
+                          {@cardmarket_coverage.counts.details_pending} / {@cardmarket_coverage.counts.detail_failures}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Pricing check pending</dt><dd>
+                          {@cardmarket_coverage.counts.pricing_check_pending}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+
+                  <article class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <h3>Source observation</h3><span>HEALTH</span>
+                    </div>
+                    <dl id="cardmarket-coverage-source" class="admin-ledger">
+                      <div>
+                        <dt>Observation</dt><dd>
+                          {coverage_source_state(@cardmarket_coverage.source)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Status</dt><dd>{coverage_source_status(@cardmarket_coverage.source)}</dd>
+                      </div>
+                      <div>
+                        <dt>Success / failure UTC</dt><dd>
+                          {coverage_source_time(@cardmarket_coverage.source, :last_succeeded_at)} / {coverage_source_time(
+                            @cardmarket_coverage.source,
+                            :last_failed_at
+                          )}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Failure category</dt><dd>
+                          {coverage_source_category(@cardmarket_coverage.source)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Failure streak / circuit</dt><dd>
+                          {coverage_source_streak(@cardmarket_coverage.source)} / {coverage_source_circuit(
+                            @cardmarket_coverage.source
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+
+                  <article class="admin-docket">
+                    <div class="admin-docket-heading">
+                      <h3>Previous batch</h3><span>METADATA ONLY</span>
+                    </div>
+                    <dl id="cardmarket-coverage-previous" class="admin-ledger">
+                      <div>
+                        <dt>Previous batch metadata</dt><dd>
+                          {previous_metadata(@cardmarket_coverage.previous_batch)}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+                </div>
+              <% else %>
+                <div id="cardmarket-coverage-unavailable" class="admin-state-error">
+                  <h2>Cardmarket coverage unavailable</h2>
+                  <p>
+                    Shadow evidence failed validation. No healthy, empty, or cutover state is being assumed.
+                  </p>
+                </div>
+              <% end %>
+            </section>
 
             <section
               id="operations-buying-model"
@@ -834,6 +1182,31 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
     end
   end
 
+  defp load_cardmarket_coverage(socket) do
+    case CardmarketBulkCoverage.load(socket.assigns.current_admin) do
+      {:ok, report} ->
+        requested_policy = ValuationPolicy.requested_policy()
+        active_policy = ValuationPolicy.selection(readiness: report.cutover)
+
+        socket
+        |> assign(:cardmarket_coverage_loaded?, true)
+        |> assign(:cardmarket_coverage_ready?, true)
+        |> assign(:cardmarket_coverage, report)
+        |> assign(:cardmarket_requested_policy, requested_policy)
+        |> assign(:cardmarket_active_policy, active_policy)
+
+      {:error, _reason} ->
+        requested_policy = ValuationPolicy.requested_policy()
+
+        socket
+        |> assign(:cardmarket_coverage_loaded?, true)
+        |> assign(:cardmarket_coverage_ready?, false)
+        |> assign(:cardmarket_coverage, nil)
+        |> assign(:cardmarket_requested_policy, requested_policy)
+        |> assign(:cardmarket_active_policy, ValuationPolicy.default_policy())
+    end
+  end
+
   defp load_overview(socket) do
     case Overview.load(socket.assigns.current_admin) do
       {:ok, overview} ->
@@ -950,6 +1323,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp operation_name("single_valuation"), do: "Single valuation"
   defp operation_name("exchange_rate"), do: "EUR/PLN rate"
   defp operation_name("sealed_retailer_refresh"), do: "Sealed retailer refresh"
+  defp operation_name("cardmarket_bulk_sync"), do: "Cardmarket bulk sync"
   defp operation_name(_), do: "Acquisition"
   defp run_status(%{overdue?: true, status: "running"}), do: "OVERDUE"
   defp run_status(%{status: status}), do: run_status(status)
@@ -963,6 +1337,90 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp run_failure(category), do: failure_name(category)
   defp job_state_dom_id(entry), do: "operations-job-state-#{entry.state}"
   defp job_state(state), do: state |> String.replace("_", " ") |> String.upcase()
+
+  defp coverage_status(:ok), do: "EVIDENCE READY"
+  defp coverage_status(:no_batch), do: "NO SUCCESSFUL BATCH"
+  defp coverage_status(_), do: "UNKNOWN"
+  defp coverage_readiness(%{ready?: true}), do: "READY"
+  defp coverage_readiness(_), do: "NOT READY"
+
+  defp failed_checks([]), do: "All gates passed"
+
+  defp failed_checks(checks) when is_list(checks),
+    do: Enum.map_join(checks, ", ", &failed_check_label/1)
+
+  defp failed_checks(_), do: "Unknown failure"
+
+  defp failed_check_label(:latest_and_previous_batches), do: "Latest and previous batches"
+  defp failed_check_label(:source_healthy_and_current), do: "Source healthy and current"
+  defp failed_check_label(:row_count_anomaly_bounded), do: "Row-count anomaly bounded"
+  defp failed_check_label(:materialization_complete), do: "Materialization complete"
+  defp failed_check_label(:approved_mapping_evidence), do: "Approved mapping evidence"
+  defp failed_check_label(:staged_value_metric_agreement), do: "Staged value/metric agreement"
+  defp failed_check_label(:no_ambiguous_or_unapproved), do: "No ambiguous or unapproved values"
+  defp failed_check_label(:material_coverage_gain), do: "Material coverage gain"
+  defp failed_check_label(:overlap_value_agreement), do: "Overlap value agreement"
+
+  defp failed_check_label(check) when is_atom(check) do
+    check
+    |> Atom.to_string()
+    |> String.replace("_", " ")
+    |> String.slice(0, 64)
+    |> String.capitalize()
+  end
+
+  defp failed_check_label(_), do: "Unknown check"
+  defp age(seconds) when is_integer(seconds) and seconds < 60, do: "#{seconds} seconds"
+  defp age(seconds) when is_integer(seconds) and seconds < 3600, do: "#{div(seconds, 60)} minutes"
+
+  defp age(seconds) when is_integer(seconds) and seconds < 86_400,
+    do: "#{div(seconds, 3600)} hours"
+
+  defp age(seconds) when is_integer(seconds) and seconds >= 86_400,
+    do: "#{div(seconds, 86_400)} days"
+
+  defp age(_), do: "Unknown"
+
+  defp bytes(value) when is_integer(value) and value < 1024, do: "#{value} B"
+
+  defp bytes(value) when is_integer(value) and value < 1_048_576,
+    do: format_unit(value / 1024, "KiB")
+
+  defp bytes(value) when is_integer(value), do: format_unit(value / 1_048_576, "MiB")
+  defp bytes(_), do: "Unknown"
+
+  defp format_unit(value, unit), do: :erlang.float_to_binary(value, decimals: 1) <> " " <> unit
+
+  defp bounded_hash(value) when is_binary(value), do: String.slice(value, 0, 12) <> "…"
+  defp bounded_hash(_), do: "Unknown"
+
+  defp funnel_counts(counts, keys), do: Enum.map_join(keys, " / ", &Map.fetch!(counts, &1))
+
+  defp coverage_source_state(nil), do: "NO OBSERVATION"
+  defp coverage_source_state(%{freshness: :not_observed}), do: "NO OBSERVATION"
+  defp coverage_source_state(source), do: source.freshness |> source_state()
+  defp coverage_source_status(nil), do: "None"
+  defp coverage_source_status(source), do: run_status(source.last_status)
+  defp coverage_source_time(nil, _), do: "None yet"
+  defp coverage_source_time(source, field), do: health_time(source, field)
+  defp coverage_source_category(nil), do: "None"
+
+  defp coverage_source_category(source),
+    do: health_failure(%{last_failure_category: source.last_failure_category})
+
+  defp coverage_source_streak(nil), do: "0"
+  defp coverage_source_streak(source), do: Integer.to_string(source.consecutive_failures)
+  defp coverage_source_circuit(nil), do: "CLOSED"
+
+  defp coverage_source_circuit(source),
+    do: circuit_state(%{circuit_opened_at: source.circuit_opened_at})
+
+  defp previous_metadata(nil), do: "None observed"
+
+  defp previous_metadata(batch),
+    do:
+      "#{datetime(batch.completed_at)} · #{batch.policy_version} / #{batch.parser_version} · " <>
+        "#{bounded_hash(batch.product_sha256)} / #{bounded_hash(batch.price_sha256)}"
 
   defp failure_name(category),
     do: category |> String.replace("_", " ") |> String.capitalize()

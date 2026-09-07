@@ -179,7 +179,54 @@ defmodule TcgCheap.Catalogue.CardPrinting do
         constraints: [max_length: 100, items: [max_length: 160], nil_items?: false]
 
       filter expr(tcgdex_id in ^arg(:tcgdex_ids))
-      prepare build(load: [:card_set, :tcgdex_cardmarket_v1_current_valuation])
+
+      prepare build(
+                load: [
+                  :card_set,
+                  :tcgdex_cardmarket_v1_current_valuation,
+                  :cardmarket_bulk_v1_current_valuation
+                ]
+              )
+    end
+
+    read :cardmarket_anchors do
+      filter expr(
+               mapping_status == "matched" and not is_nil(card_set_id) and
+                 cardmarket_product_id > 0
+             )
+
+      prepare build(
+                select: [
+                  :id,
+                  :card_set_id,
+                  :cardmarket_product_id,
+                  :name,
+                  :mapping_authority,
+                  :mapping_status,
+                  :mapping_review_reason,
+                  :updated_at
+                ]
+              )
+    end
+
+    read :cardmarket_by_set do
+      argument :card_set_id, :uuid, allow_nil?: false
+      filter expr(card_set_id == ^arg(:card_set_id))
+
+      prepare build(
+                select: [
+                  :id,
+                  :card_set_id,
+                  :cardmarket_product_id,
+                  :name,
+                  :variant_data,
+                  :mapping_status,
+                  :mapping_authority,
+                  :mapping_review_reason,
+                  :details_synced_at,
+                  :updated_at
+                ]
+              )
     end
 
     read :singles_valuation_candidates do
@@ -197,7 +244,10 @@ defmodule TcgCheap.Catalogue.CardPrinting do
              )
 
       prepare build(
-                load: [:tcgdex_cardmarket_v1_current_valuation],
+                load: [
+                  :tcgdex_cardmarket_v1_current_valuation,
+                  :cardmarket_bulk_v1_current_valuation
+                ],
                 sort: [tcgdex_id: :asc, id: :asc],
                 limit: arg(:limit)
               )
@@ -210,6 +260,15 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       get? true
 
       filter expr(tcgdex_id == ^arg(:tcgdex_id))
+
+      prepare build(
+                load: [
+                  :card_set,
+                  :tcgdex_cardmarket_v1_current_valuation,
+                  :cardmarket_bulk_v1_current_valuation
+                ]
+              )
+
       prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
     end
 
@@ -220,7 +279,14 @@ defmodule TcgCheap.Catalogue.CardPrinting do
 
       filter expr(tcgdex_id in ^arg(:tcgdex_ids))
 
-      prepare build(load: [:card_set, :tcgdex_cardmarket_v1_current_valuation])
+      prepare build(
+                load: [
+                  :card_set,
+                  :tcgdex_cardmarket_v1_current_valuation,
+                  :cardmarket_bulk_v1_current_valuation
+                ]
+              )
+
       prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
     end
 
@@ -228,7 +294,10 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       filter expr(not is_nil(last_synced_at))
 
       prepare build(
-                load: [:tcgdex_cardmarket_v1_current_valuation],
+                load: [
+                  :tcgdex_cardmarket_v1_current_valuation,
+                  :cardmarket_bulk_v1_current_valuation
+                ],
                 sort: [last_synced_at: :desc, tcgdex_id: :asc, id: :asc],
                 limit: 10
               )
@@ -238,7 +307,10 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       filter expr(not is_nil(last_synced_at))
 
       prepare build(
-                load: [:tcgdex_cardmarket_v1_current_valuation],
+                load: [
+                  :tcgdex_cardmarket_v1_current_valuation,
+                  :cardmarket_bulk_v1_current_valuation
+                ],
                 sort: [last_synced_at: :desc, tcgdex_id: :asc, id: :asc],
                 limit: 10
               )
@@ -349,7 +421,7 @@ defmodule TcgCheap.Catalogue.CardPrinting do
 
       argument :reason, :string,
         allow_nil?: false,
-        constraints: [min_length: 1, max_length: 2_000]
+        constraints: [min_length: 1, max_length: 1_981]
 
       require_atomic? false
       transaction? true
@@ -374,7 +446,7 @@ defmodule TcgCheap.Catalogue.CardPrinting do
 
       argument :reason, :string,
         allow_nil?: false,
-        constraints: [min_length: 1, max_length: 2_000]
+        constraints: [min_length: 1, max_length: 1_981]
 
       require_atomic? false
       transaction? true
@@ -394,6 +466,52 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       change atomic_set(:mapping_updated_at, expr(now()))
       change TcgCheap.Catalogue.Changes.ArchiveCardPrintingValuations
       change {TcgCheap.Catalogue.Changes.RecordCardPrintingMappingDecision, event: "reopened"}
+    end
+
+    update :cardmarket_bulk_auto_match do
+      public? false
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
+      argument :evidence_timestamp, :utc_datetime_usec, allow_nil?: false
+      argument :cardmarket_product_id, :integer, allow_nil?: false, constraints: [min: 1]
+      argument :superseded_evidence_id, :uuid, allow_nil?: true
+      require_atomic? false
+      transaction? true
+
+      touches_resources [
+        TcgCheap.Catalogue.CardPrintingMappingDecision,
+        TcgCheap.Pricing.Singles.SingleValuationSnapshot
+      ]
+
+      change {TcgCheap.Catalogue.Changes.CardmarketBulkMapping, mode: :match}
+      change TcgCheap.Catalogue.Changes.ArchiveCardPrintingValuations
+
+      change {TcgCheap.Catalogue.Changes.RecordCardPrintingMappingDecision,
+              event: "provider_updated"}
+    end
+
+    update :cardmarket_bulk_review do
+      public? false
+      argument :expected_updated_at, :utc_datetime_usec, allow_nil?: false
+      argument :evidence_timestamp, :utc_datetime_usec, allow_nil?: false
+
+      argument :reason, :string,
+        allow_nil?: false,
+        constraints: [min_length: 1, max_length: 1_981]
+
+      require_atomic? false
+      transaction? true
+
+      touches_resources [
+        TcgCheap.Catalogue.CardPrintingMappingDecision,
+        TcgCheap.Pricing.Singles.SingleValuationSnapshot
+      ]
+
+      argument :superseded_evidence_id, :uuid, allow_nil?: true
+      change {TcgCheap.Catalogue.Changes.CardmarketBulkMapping, mode: :review}
+      change TcgCheap.Catalogue.Changes.ArchiveCardPrintingValuations
+
+      change {TcgCheap.Catalogue.Changes.RecordCardPrintingMappingDecision,
+              event: "provider_updated"}
     end
   end
 
@@ -416,6 +534,15 @@ defmodule TcgCheap.Catalogue.CardPrinting do
              :lock_for_update_by_id,
              :lock_for_update_by_tcgdex_id
            ]) do
+      authorize_if always()
+    end
+
+    policy action([:cardmarket_anchors, :cardmarket_by_set]) do
+      forbid_unless TcgCheap.Accounts.Checks.Admin
+      authorize_if always()
+    end
+
+    bypass action([:cardmarket_bulk_auto_match, :cardmarket_bulk_review]) do
       authorize_if always()
     end
 
@@ -543,6 +670,18 @@ defmodule TcgCheap.Catalogue.CardPrinting do
 
       filter expr(
                current? == true and policy_version == "tcgdex_cardmarket_v1" and
+                 cardmarket_product_id == parent(cardmarket_product_id)
+             )
+
+      sort fetched_at: :desc
+    end
+
+    has_one :cardmarket_bulk_v1_current_valuation,
+            TcgCheap.Pricing.Singles.SingleValuationSnapshot do
+      allow_nil? true
+
+      filter expr(
+               current? == true and policy_version == "cardmarket_bulk_v1" and
                  cardmarket_product_id == parent(cardmarket_product_id)
              )
 

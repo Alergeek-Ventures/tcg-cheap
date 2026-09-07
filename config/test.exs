@@ -3,6 +3,11 @@ config :ash, policies: [show_policy_breakdowns?: true], disable_async?: true
 config :tcg_cheap, :token_signing_secret, "tcg-cheap-test-auth-secret"
 config :tcg_cheap, Oban, testing: :manual
 
+config :tcg_cheap, :cardmarket_bulk_plausibility,
+  minimum_product_rows: 1,
+  minimum_singles_price_rows: 1,
+  minimum_priceable_singles_rows: 1
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used

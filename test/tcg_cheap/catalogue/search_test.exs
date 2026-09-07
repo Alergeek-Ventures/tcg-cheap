@@ -355,6 +355,46 @@ defmodule TcgCheap.Catalogue.SearchTest do
     assert missing_result.tcgdex_cardmarket_v1_current_valuation == nil
   end
 
+  test "public search loads both current Cardmarket valuations without an actor" do
+    token = unique_token("public-valuations")
+
+    card =
+      printing(token,
+        name: "Pikachu #{token}",
+        mapping_status: "matched",
+        cardmarket_product_id: System.unique_integer([:positive])
+      )
+
+    tcgdex_valuation =
+      Core.record_single_valuation!(%{
+        card_printing_id: card.id,
+        value_eur: Decimal.new("12.34"),
+        currency: "EUR",
+        policy_version: "tcgdex_cardmarket_v1",
+        source: "test",
+        source_metric: "trend",
+        fetched_at: DateTime.utc_now(),
+        cardmarket_product_id: card.cardmarket_product_id
+      })
+
+    bulk_valuation =
+      Core.record_single_valuation!(%{
+        card_printing_id: card.id,
+        value_eur: Decimal.new("10.00"),
+        currency: "EUR",
+        policy_version: "cardmarket_bulk_v1",
+        source: "test",
+        source_metric: "trend",
+        fetched_at: DateTime.utc_now(),
+        cardmarket_product_id: card.cardmarket_product_id
+      })
+
+    assert {:ok, [result]} = Core.search_public_card_printings("pikachu", 1)
+    assert result.id == card.id
+    assert result.tcgdex_cardmarket_v1_current_valuation.id == tcgdex_valuation.id
+    assert result.cardmarket_bulk_v1_current_valuation.id == bulk_valuation.id
+  end
+
   test "search does not preload a current valuation from another Cardmarket product" do
     token = unique_token("stale-valuation")
 

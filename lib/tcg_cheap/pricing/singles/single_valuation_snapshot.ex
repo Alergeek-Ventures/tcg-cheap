@@ -104,6 +104,13 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
       constraints items: [instance_of: TcgCheap.Pricing.Singles.HomepagePriceChange]
       argument :as_of, :utc_datetime_usec, allow_nil?: false
       argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 10]
+
+      argument :policy_version, :string,
+        allow_nil?: false,
+        default: "tcgdex_cardmarket_v1"
+
+      validate one_of(:policy_version, ["tcgdex_cardmarket_v1", "cardmarket_bulk_v1"])
+
       run TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges
     end
 
@@ -131,6 +138,13 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
     bypass accessing_from(
              TcgCheap.Catalogue.CardPrinting,
              :tcgdex_cardmarket_v1_current_valuation
+           ) do
+      authorize_if always()
+    end
+
+    bypass accessing_from(
+             TcgCheap.Catalogue.CardPrinting,
+             :cardmarket_bulk_v1_current_valuation
            ) do
       authorize_if always()
     end

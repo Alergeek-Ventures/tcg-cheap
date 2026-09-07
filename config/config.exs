@@ -89,7 +89,7 @@ config :tcg_cheap, :acquisition_health,
   stranded_after_seconds: 900,
   reconcile_limit: 100,
   circuit_breaker_failure_threshold: 5,
-  stale_after_seconds: %{"nbp" => 129_600}
+  stale_after_seconds: %{"nbp" => 129_600, "cardmarket_bulk" => 129_600}
 
 config :backpex,
   pubsub_server: TcgCheap.PubSub,
@@ -103,6 +103,7 @@ config :tcg_cheap, Oban,
     exchange_rates: 1,
     catalogue_sync: 1,
     operations: 1,
+    cardmarket_bulk: 1,
     sealed_retailers: 1,
     sealed_aggregates: 1,
     sealed_buying_guides: 1
@@ -120,6 +121,7 @@ config :tcg_cheap, Oban,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
        # Daily at 16:00 UTC, after the 15:00 UTC NBP job.
        {"0 16 * * *", TcgCheap.Pricing.SealedDailyAggregateWorker, args: %{}},
+       {"0 3 * * *", TcgCheap.Pricing.CardmarketBulk.SyncWorker, args: %{}},
        {"0 1 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
         args: %{"policy_version" => 1, "source_key" => "lootquest"}},
        {"0 2 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
@@ -150,6 +152,22 @@ config :tcg_cheap, :singles_collection,
   chunk_size: 20
 
 config :tcg_cheap, :valuation_clock, &DateTime.utc_now/0
+config :tcg_cheap, :public_singles_valuation_policy, "tcgdex_cardmarket_v1"
+
+# Conservative, persisted-evidence-only cutover defaults. These are deliberately
+# bounded so an operator cannot accidentally make the bulk selector permissive.
+config :tcg_cheap, :cardmarket_bulk_cutover,
+  relative_value_tolerance: 0.05,
+  row_count_anomaly_bound: 0.10,
+  minimum_coverage_gain: 100,
+  minimum_coverage_ratio: 1.10,
+  minimum_overlap: 100,
+  minimum_agreement_ratio: 0.95
+
+config :tcg_cheap, :cardmarket_bulk_plausibility,
+  minimum_product_rows: 10_000,
+  minimum_singles_price_rows: 10_000,
+  minimum_priceable_singles_rows: 5_000
 
 config :tcg_cheap, :admin_login_limiter,
   limit: 5,
@@ -166,6 +184,10 @@ config :tcg_cheap, :public_acquisition_limiter,
 config :tcg_cheap, :valuation_provider,
   adapter: TcgCheap.Pricing.Singles.TcgdexCardmarket,
   options: []
+
+config :tcg_cheap, :cardmarket_bulk,
+  adapter: TcgCheap.Pricing.CardmarketBulk.Adapter,
+  adapter_options: []
 
 config :tcg_cheap, :exchange_rate_clock, &DateTime.utc_now/0
 config :tcg_cheap, :sealed_daily_aggregate_clock, &DateTime.utc_now/0
@@ -196,6 +218,15 @@ config :tcg_cheap, :acquisition_budget,
         hourly_request_limit: 100,
         daily_request_limit: 1_000,
         monthly_request_limit: 20_000,
+        monthly_spend_limit: "0.00"
+      ],
+      [
+        provider_key: "cardmarket_bulk",
+        display_name: "Cardmarket Bulk Pricing",
+        estimated_cost_per_request: "0.00",
+        hourly_request_limit: 10,
+        daily_request_limit: 10,
+        monthly_request_limit: 310,
         monthly_spend_limit: "0.00"
       ],
       [

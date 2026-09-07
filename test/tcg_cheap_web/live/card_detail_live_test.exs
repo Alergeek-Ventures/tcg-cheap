@@ -5,7 +5,14 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
   use TcgCheapWeb.ConnCase, async: false
 
   alias TcgCheap.Core
-  alias TcgCheap.Pricing.Singles.{ValuationAcquisition, ValuationWorker}
+
+  alias TcgCheap.Pricing.Singles.{
+    ValuationAcquisition,
+    ValuationPolicy,
+    ValuationPolicyCache,
+    ValuationWorker
+  }
+
   alias TcgCheapWeb.PublicAcquisitionLimiter
 
   @policy "tcgdex_cardmarket_v1"
@@ -213,6 +220,61 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
       worker: ValuationWorker,
       args: %{"local_card_id" => card.id}
     )
+  end
+
+  test "valuation acquisition and tooltip copy follow the selected policy" do
+    assert TcgCheapWeb.CardDetailLive.valuation_acquisition_enabled?(
+             ValuationPolicy.tcgdex_policy()
+           )
+
+    refute TcgCheapWeb.CardDetailLive.valuation_acquisition_enabled?(
+             ValuationPolicy.bulk_policy()
+           )
+
+    tcgdex_copy =
+      TcgCheapWeb.CardDetailLive.valuation_source_copy(ValuationPolicy.tcgdex_policy())
+
+    bulk_copy = TcgCheapWeb.CardDetailLive.valuation_source_copy(ValuationPolicy.bulk_policy())
+
+    assert tcgdex_copy =~ "Cardmarket via TCGdex"
+    assert bulk_copy =~ "Cardmarket daily/bulk price-guide data"
+    refute bulk_copy =~ "catalogue data"
+    refute bulk_copy =~ ValuationPolicy.bulk_policy_version()
+    refute bulk_copy =~ "avg7"
+  end
+
+  test "mounted detail refreshes policy source and history after invalidation", %{conn: conn} do
+    card = create_card("mounted-policy")
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    record_policy_snapshot(card, "12.30", ValuationPolicy.tcgdex_policy(), "tcgdex", now)
+    record_policy_snapshot(card, "99.99", ValuationPolicy.bulk_policy(), "cardmarket_bulk", now)
+
+    previous = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
+
+    Application.put_env(
+      :tcg_cheap,
+      :public_singles_valuation_policy,
+      ValuationPolicy.bulk_policy()
+    )
+
+    seed_bulk_policy_cache()
+
+    on_exit(fn ->
+      Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous)
+      ValuationPolicyCache.invalidate()
+    end)
+
+    path = ~p"/cards/#{card.tcgdex_id}"
+    {:ok, view, _html} = live(conn, path)
+    assert has_element?(view, "#valuation-value", "99.99")
+    assert has_element?(view, "#valuation-info-copy", "daily/bulk")
+    assert has_element?(view, "#valuation-history-summary", "99.99")
+
+    ValuationPolicyCache.invalidate()
+    assert has_element?(view, "#valuation-value", "12.30")
+    assert has_element?(view, "#valuation-info-copy", "Cardmarket via TCGdex")
+    assert has_element?(view, "#valuation-history-summary", "12.30")
+    assert has_element?(view, "#card-detail-title", card.name)
   end
 
   test "a fresh cached valuation is present in the disconnected response", %{conn: conn} do
@@ -669,6 +731,28 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
       fetched_at: fetched_at,
       cardmarket_product_id: product_id || card.cardmarket_product_id
     })
+  end
+
+  defp record_policy_snapshot(card, value, policy, source, fetched_at) do
+    Core.record_single_valuation!(%{
+      card_printing_id: card.id,
+      value_eur: Decimal.new(value),
+      policy_version: policy,
+      source: source,
+      source_metric: "avg7",
+      fetched_at: fetched_at,
+      cardmarket_product_id: card.cardmarket_product_id
+    })
+  end
+
+  defp seed_bulk_policy_cache do
+    :sys.replace_state(ValuationPolicyCache, fn state ->
+      %{
+        state
+        | policy: ValuationPolicy.bulk_policy(),
+          expires_at: System.monotonic_time(:millisecond) + 30_000
+      }
+    end)
   end
 
   defp unique_ip do

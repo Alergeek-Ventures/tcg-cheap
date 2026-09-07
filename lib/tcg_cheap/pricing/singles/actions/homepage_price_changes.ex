@@ -3,17 +3,20 @@ defmodule TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges do
   use Ash.Resource.Actions.Implementation
 
   alias TcgCheap.Pricing.Singles.HomepagePriceChange
+  alias TcgCheap.Pricing.Singles.ValuationPolicy
   alias TcgCheap.Repo
-
-  @policy "tcgdex_cardmarket_v1"
 
   @impl true
   def run(input, _opts, _context) do
-    %{as_of: as_of, limit: limit} = input.arguments
+    %{as_of: as_of, limit: limit, policy_version: policy_version} = input.arguments
 
-    case query([@policy, as_of, limit]) do
-      {:ok, %{rows: rows}} -> {:ok, Enum.map(rows, &to_change/1)}
-      {:error, reason} -> {:error, {:homepage_price_changes_query_failed, reason}}
+    if policy_version in ValuationPolicy.policies() do
+      case query([policy_version, as_of, limit]) do
+        {:ok, %{rows: rows}} -> {:ok, Enum.map(rows, &to_change/1)}
+        {:error, reason} -> {:error, {:homepage_price_changes_query_failed, reason}}
+      end
+    else
+      {:error, {:homepage_price_changes_query_failed, :unsupported_policy}}
     end
   rescue
     exception -> {:error, {:homepage_price_changes_query_failed, exception}}

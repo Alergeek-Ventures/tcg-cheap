@@ -5,7 +5,15 @@ defmodule TcgCheapWeb.CardDetailLive do
   alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Catalogue.GlcLegality
   alias TcgCheap.Core
-  alias TcgCheap.Pricing.Singles.{Freshness, ValuationAcquisition, ValuationHistory}
+
+  alias TcgCheap.Pricing.Singles.{
+    Freshness,
+    ValuationAcquisition,
+    ValuationHistory,
+    ValuationPolicy,
+    ValuationPolicyCache
+  }
+
   alias TcgCheap.Trades.Composition
   alias TcgCheapWeb.PublicAcquisitionLimiter
 
@@ -24,6 +32,8 @@ defmodule TcgCheapWeb.CardDetailLive do
   def mount(%{"tcgdex_id" => tcgdex_id}, _session, socket) do
     case Core.get_public_card_printing_by_tcgdex_id(tcgdex_id) do
       {:ok, card} when is_map(card) ->
+        policy_version = ValuationPolicy.active_policy()
+
         socket =
           socket
           |> assign(
@@ -31,32 +41,44 @@ defmodule TcgCheapWeb.CardDetailLive do
             card: card,
             card_image_url: CardImage.detail_url(card.image_url),
             tcgdex_id: tcgdex_id,
-            policy_version: ValuationAcquisition.policy_version(),
+            policy_version: policy_version,
             public_address: public_address(socket)
           )
           |> assign_valuation(:disconnected)
           |> reload_valuation(card)
 
-        if connected?(socket) do
-          :ok = ValuationAcquisition.subscribe(card)
-
-          detail =
-            CardDetailAcquisition.subscribe_and_request(card,
-              public_address: socket.assigns.public_address
-            )
-
-          socket = handle_detail_result(socket, detail)
-
-          socket = maybe_request_valuation(socket)
-
-          {:ok, reload_valuation(socket, socket.assigns.card)}
-        else
-          {:ok, socket}
-        end
+        connected_mount(socket, card, policy_version)
 
       _ ->
         {:ok, assign(socket, page_title: "Printing not found", tcgdex_id: tcgdex_id)}
     end
+  end
+
+  defp connected_mount(socket, card, policy_version) do
+    if connected?(socket) do
+      :ok = ValuationPolicyCache.subscribe()
+      maybe_subscribe_valuation(card, policy_version)
+
+      detail =
+        CardDetailAcquisition.subscribe_and_request(card,
+          public_address: socket.assigns.public_address
+        )
+
+      socket = socket |> handle_detail_result(detail) |> maybe_request_valuation()
+      {:ok, reload_valuation(socket, socket.assigns.card)}
+    else
+      {:ok, socket}
+    end
+  end
+
+  defp subscribe_valuation_if_enabled(socket, card, policy) do
+    maybe_subscribe_valuation(card, policy)
+    socket
+  end
+
+  defp maybe_subscribe_valuation(card, policy_version) do
+    if valuation_acquisition_enabled?(policy_version),
+      do: :ok = ValuationAcquisition.subscribe(card)
   end
 
   defp public_address(socket) do
@@ -69,23 +91,31 @@ defmodule TcgCheapWeb.CardDetailLive do
   @impl true
   def handle_info(
         {:valuation_completed, %{card_printing_id: id}},
-        %{assigns: %{card: %{id: id} = card}} = socket
+        %{assigns: %{card: %{id: id} = card, policy_version: policy}} = socket
       ) do
-    {:noreply,
-     reload_valuation(assign(socket, refresh_failure: nil, acquisition_state: :completed), card)}
+    if valuation_acquisition_enabled?(policy) do
+      {:noreply,
+       reload_valuation(assign(socket, refresh_failure: nil, acquisition_state: :completed), card)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_info({:valuation_completed, _event}, socket), do: {:noreply, socket}
 
   def handle_info(
         {:valuation_failed, %{card_printing_id: id, reason: _reason}},
-        %{assigns: %{card: %{id: id} = card}} = socket
+        %{assigns: %{card: %{id: id} = card, policy_version: policy}} = socket
       ) do
-    {:noreply,
-     socket
-     |> assign(acquisition_state: :failed)
-     |> reload_valuation(card)
-     |> assign(refresh_failure: true)}
+    if valuation_acquisition_enabled?(policy) do
+      {:noreply,
+       socket
+       |> assign(acquisition_state: :failed)
+       |> reload_valuation(card)
+       |> assign(refresh_failure: true)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_info({:valuation_failed, _event}, socket), do: {:noreply, socket}
@@ -96,12 +126,7 @@ defmodule TcgCheapWeb.CardDetailLive do
       ) do
     case reload_card_mapping(socket, card) do
       {:ok, socket} ->
-        result =
-          ValuationAcquisition.subscribe_and_request(socket.assigns.card,
-            request_admitter: PublicAcquisitionLimiter.admitter(socket.assigns.public_address)
-          )
-
-        socket = handle_acquisition_result(socket, result)
+        socket = maybe_request_valuation_after_mapping(socket)
         {:noreply, reload_valuation(socket, socket.assigns.card)}
 
       {:error, socket} ->
@@ -139,6 +164,32 @@ defmodule TcgCheapWeb.CardDetailLive do
 
   def handle_info({:card_detail_enrichment_failed, _event}, socket), do: {:noreply, socket}
   def handle_info({:card_detail_enrichment_deferred, _event}, socket), do: {:noreply, socket}
+
+  @impl true
+  def handle_info(:valuation_policy_invalidated, socket) do
+    policy = ValuationPolicy.active_policy()
+
+    if policy == socket.assigns.policy_version do
+      {:noreply, socket}
+    else
+      case Core.get_public_card_printing_by_tcgdex_id(socket.assigns.tcgdex_id) do
+        {:ok, card} ->
+          socket =
+            socket
+            |> assign(policy_version: policy, acquisition_state: :idle)
+            |> assign_card(card)
+            |> assign_valuation(:disconnected)
+            |> subscribe_valuation_if_enabled(card, policy)
+            |> reload_valuation(card)
+            |> maybe_request_valuation()
+
+          {:noreply, socket}
+
+        _ ->
+          {:noreply, socket}
+      end
+    end
+  end
 
   @impl true
   def render(%{card: _card} = assigns) do
@@ -271,7 +322,7 @@ defmodule TcgCheapWeb.CardDetailLive do
                             <span class="sr-only">About this estimate</span>
                           </button>
                           <span id="valuation-info-copy" role="tooltip" class="valuation-tooltip">
-                            Aggregated market data from Cardmarket via TCGdex is applied consistently to every card. Build a trade to compare cards. TCG Cheap is independent and not affiliated with either source.
+                            {valuation_source_copy(@policy_version)}
                           </span>
                         </div>
                       <% end %>
@@ -528,6 +579,19 @@ defmodule TcgCheapWeb.CardDetailLive do
 
   def render(assigns), do: not_found_render(assigns)
 
+  @doc false
+  def valuation_acquisition_enabled?(policy),
+    do: policy == ValuationPolicy.tcgdex_policy()
+
+  @doc false
+  def valuation_source_copy(policy) do
+    if policy == ValuationPolicy.bulk_policy() do
+      "Aggregated Cardmarket daily/bulk price-guide data is applied consistently to every card. Build a trade to compare cards. TCG Cheap is independent and not affiliated with Cardmarket."
+    else
+      "Aggregated market data from Cardmarket via TCGdex is applied consistently to every card. Build a trade to compare cards. TCG Cheap is independent and not affiliated with either source."
+    end
+  end
+
   defp legal_format_details(card) do
     glc_legal? = GlcLegality.legal?(card)
 
@@ -650,7 +714,31 @@ defmodule TcgCheapWeb.CardDetailLive do
   defp maybe_request_valuation(%{assigns: %{card: %{details_synced_at: nil}}} = socket),
     do: assign(socket, acquisition_state: :idle)
 
-  defp maybe_request_valuation(socket) do
+  defp maybe_request_valuation(%{assigns: %{policy_version: policy}} = socket) do
+    if valuation_acquisition_enabled?(policy) do
+      request_valuation(socket)
+    else
+      assign(socket, acquisition_state: :idle)
+    end
+  end
+
+  defp maybe_request_valuation_after_mapping(
+         %{assigns: %{card: card, policy_version: policy}} = socket
+       ) do
+    if valuation_request_allowed_after_mapping?(card, policy) do
+      request_valuation(socket)
+    else
+      assign(socket, acquisition_state: :idle)
+    end
+  end
+
+  defp valuation_request_allowed_after_mapping?(card, policy) do
+    policy == ValuationPolicy.tcgdex_policy() and
+      card.mapping_status == "matched" and
+      positive_product_id?(card.cardmarket_product_id)
+  end
+
+  defp request_valuation(socket) do
     handle_acquisition_result(
       socket,
       ValuationAcquisition.subscribe_and_request(socket.assigns.card,

@@ -10,7 +10,7 @@ defmodule TcgCheap.Pricing.Singles.Changes.ReplaceCurrentSnapshot do
 
   alias TcgCheap.Core
 
-  @active_policy_version "tcgdex_cardmarket_v1"
+  @current_public_policy_versions ["tcgdex_cardmarket_v1", "cardmarket_bulk_v1"]
 
   @impl true
   def change(changeset, _opts, _context) do
@@ -22,7 +22,7 @@ defmodule TcgCheap.Pricing.Singles.Changes.ReplaceCurrentSnapshot do
     policy_version = Ash.Changeset.get_attribute(changeset, :policy_version)
 
     with {:ok, card_printing} <- lock_card_printing(card_printing_id),
-         :ok <- validate_active_policy_mapping(changeset, card_printing, policy_version),
+         :ok <- validate_current_public_policy_mapping(changeset, card_printing, policy_version),
          {:ok, current} <- current_snapshot(card_printing_id, policy_version),
          :ok <- archive_current(current) do
       changeset
@@ -35,11 +35,12 @@ defmodule TcgCheap.Pricing.Singles.Changes.ReplaceCurrentSnapshot do
     Core.lock_card_printing_for_update(card_printing_id)
   end
 
-  defp validate_active_policy_mapping(_changeset, _card_printing, policy_version)
-       when policy_version != @active_policy_version,
+  defp validate_current_public_policy_mapping(_changeset, _card_printing, policy_version)
+       when policy_version not in @current_public_policy_versions,
        do: :ok
 
-  defp validate_active_policy_mapping(changeset, card_printing, @active_policy_version) do
+  defp validate_current_public_policy_mapping(changeset, card_printing, policy_version)
+       when policy_version in @current_public_policy_versions do
     snapshot_product_id = Ash.Changeset.get_attribute(changeset, :cardmarket_product_id)
 
     if card_printing.mapping_status == "matched" and

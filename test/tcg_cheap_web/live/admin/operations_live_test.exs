@@ -99,6 +99,22 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     end)
 
     assert has_element?(view, "#operations-manual-refresh")
+    assert has_element?(view, "#operations-cardmarket-coverage")
+    assert has_element?(view, "#admin-operations-nav a[href='#operations-cardmarket-coverage']")
+    assert has_element?(view, "#cardmarket-coverage-batch-ledger")
+    assert has_element?(view, "#cardmarket-coverage-funnel")
+    assert has_element?(view, "#cardmarket-coverage-mapping-status")
+    assert has_element?(view, "#cardmarket-coverage-source")
+    assert has_element?(view, "#cardmarket-coverage-previous")
+    assert has_element?(view, "#cardmarket-coverage-batch-ledger", "NO SUCCESSFUL BATCH")
+    assert has_element?(view, "#cardmarket-coverage-no-batch")
+    assert has_element?(view, "#cardmarket-coverage-requested-policy")
+    assert has_element?(view, "#cardmarket-coverage-readiness", "NOT READY")
+    assert has_element?(view, "#cardmarket-coverage-active-policy", "tcgdex_cardmarket_v1")
+    assert has_element?(view, "#cardmarket-coverage-failed-checks")
+    assert has_element?(view, "#cardmarket-coverage-comparison")
+    assert has_element?(view, "#cardmarket-coverage-latest-batch-valuation")
+    refute has_element?(view, "#cardmarket-coverage-unavailable")
     assert has_element?(view, "#manual-refresh-valuation-form")
     assert has_element?(view, "#manual-refresh-exchange-rate[phx-disable-with]")
     assert has_element?(view, "#manual-refresh-retailer-stream[phx-update=stream]")
@@ -493,6 +509,29 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert job_count() == before
     view |> element("#provider-action-#{provider_id(key)}") |> render_click()
     assert job_count() == before
+  end
+
+  test "coverage evidence is read only and preserves the existing operations desk", %{conn: conn} do
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+
+    assert has_element?(view, "#operations-cardmarket-coverage", "shadow evidence")
+    assert has_element?(view, "#operations-cardmarket-coverage", "not a public cutover")
+    assert has_element?(view, "#operations-global-ledger")
+    assert has_element?(view, "#operations-buying-model")
+    assert has_element?(view, "#operations-manual-refresh")
+    refute has_element?(view, "#operations-cardmarket-coverage button")
+    refute has_element?(view, "#cardmarket-coverage-unavailable")
+  end
+
+  test "invalid coverage evidence fails closed but remains discoverable", %{conn: conn} do
+    Application.put_env(:tcg_cheap, :acquisition_health, [])
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
+
+    assert has_element?(view, "#operations-cardmarket-coverage")
+    assert has_element?(view, "#admin-operations-nav a[href='#operations-cardmarket-coverage']")
+    assert has_element?(view, "#cardmarket-coverage-unavailable")
+    refute has_element?(view, "#cardmarket-coverage-funnel")
+    assert has_element?(view, "#operations-buying-model")
   end
 
   defp authenticated_conn(conn) do

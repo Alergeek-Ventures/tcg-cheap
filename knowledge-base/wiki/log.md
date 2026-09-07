@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-09-07] Cardmarket bulk Singles correction and final validation
+
+- Task: Corrected and reconciled documentation for the completed local Cardmarket bulk Singles implementation: seven forward-only migrations, nonblank `dateAdded`, exact immutable same-batch mapping/materialization safeguards, catalogue/readiness gates, supervised policy-cache behavior, and final rollout boundary. All implementation remains local/uncommitted/not deployed; production remains `d55a26b1368084bbaf7a25b65a2211f437e6c540`.
+- Files: Updated only the seven requested documentation files: `docs/deployment-and-operations.md`, `PRODUCT.md`, `knowledge-base/wiki/architecture/application-foundation.md`, `knowledge-base/wiki/architecture/provider-acquisition-feasibility.md`, `knowledge-base/wiki/product/mvp-implementation-plan.md`, `knowledge-base/wiki/index.md`, and this log. No code, migrations, snapshots, tests, or immutable raw files were modified by this documentation pass.
+- Validation: Historical pre-final-gate shadow evidence remains recorded as 169 TCGdex, 244 bulk, 169 overlap/agreement, 75 bulk-only, and 244 exact values; it does not prove readiness. Canonical `mix check --verbose` passed all static gates/Dialyzer and 1,162 tests; final read-only review found no actionable or critical/high findings. `git diff --check` and deterministic wiki audit passed.
+- Remaining/deployment boundaries: No production sync, migration application, readiness, CI, browser, or import verification has been performed. Initial deployment must verify all seven migrations, reconcile a canonical coherent TCGdex `all_sets` catalogue before cutover, and confirm no active run/unresolved catalogue-set issues, policy/cache behavior, queue/provider/Cron, and bounded operations counts. Cutover is only later after all readiness gates and two distinct successful batches; migrations are never rolled back. Raw: N/A — codebase update.
+
 ## [2026-09-03] Production acquisition, catalogue, and image reconciliation
 
 - Task: Reconciled current documentation to production revision `d55a26b1368084bbaf7a25b65a2211f437e6c540`, replacing stale pending/local-only claims while preserving clearly dated history.

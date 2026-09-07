@@ -119,6 +119,52 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
     assert retained.current?
   end
 
+  test "rejects a stale bulk product and preserves the matching current snapshot" do
+    card = create_card_printing()
+    policy = "cardmarket_bulk_v1"
+
+    first =
+      Core.record_single_valuation!(
+        snapshot_attributes(card, %{
+          policy_version: policy,
+          source: "cardmarket_bulk",
+          cardmarket_product_id: card.cardmarket_product_id
+        })
+      )
+
+    assert {:error, error} =
+             Core.record_single_valuation(
+               snapshot_attributes(card, %{
+                 policy_version: policy,
+                 source: "cardmarket_bulk",
+                 value_eur: Decimal.new("512.00"),
+                 cardmarket_product_id: card.cardmarket_product_id + 1
+               })
+             )
+
+    assert Exception.message(error) =~ "currently matched positive Cardmarket product"
+    assert {:ok, current} = Core.get_current_single_valuation(card.id, policy)
+    assert current.id == first.id
+    assert current.cardmarket_product_id == card.cardmarket_product_id
+    assert [retained] = Core.list_single_valuation_history!(card.id, policy)
+    assert retained.id == first.id
+    assert retained.current?
+
+    replacement =
+      Core.record_single_valuation!(
+        snapshot_attributes(card, %{
+          policy_version: policy,
+          source: "cardmarket_bulk",
+          value_eur: Decimal.new("512.00"),
+          cardmarket_product_id: card.cardmarket_product_id
+        })
+      )
+
+    assert {:ok, current} = Core.get_current_single_valuation(card.id, policy)
+    assert current.id == replacement.id
+    assert current.cardmarket_product_id == card.cardmarket_product_id
+  end
+
   test "rejects non-positive values and non-EUR aggregate snapshots" do
     card = create_card_printing()
 

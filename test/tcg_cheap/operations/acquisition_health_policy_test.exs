@@ -19,8 +19,10 @@ defmodule TcgCheap.Operations.AcquisitionHealthPolicyTest do
     assert {:ok, policy} = AcquisitionHealthPolicy.load()
     assert policy.reconcile_limit == 100
     assert policy.circuit_breaker_failure_threshold == 5
-    assert policy.stale_after_seconds == %{"nbp" => 129_600}
-    assert {:ok, ^policy} = AcquisitionHealthPolicy.validate_provider_keys(policy, ["nbp"])
+    assert policy.stale_after_seconds == %{"nbp" => 129_600, "cardmarket_bulk" => 129_600}
+
+    assert {:ok, ^policy} =
+             AcquisitionHealthPolicy.validate_provider_keys(policy, ["nbp", "cardmarket_bulk"])
 
     assert {:error, :invalid_acquisition_health_configuration} =
              AcquisitionHealthPolicy.validate_provider_keys(policy, ["tcgdex_cardmarket"])

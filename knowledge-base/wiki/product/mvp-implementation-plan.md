@@ -1,8 +1,57 @@
 # Pokémon Market & Trade Platform — Detailed MVP Implementation Plan
 
-- Updated: 2026-09-03
+- Updated: 2026-09-07
 - Sources: Product specification supplied by project owner; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation; [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 - Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
+
+## Cardmarket bulk shadow implementation checkpoint — 2026-09-07 (Raw: N/A — codebase update)
+
+The Cardmarket bulk Singles path is complete locally, uncommitted, and not
+deployed. Production remains revision
+`d55a26b1368084bbaf7a25b65a2211f437e6c540`; no production sync, readiness,
+deployment, CI, browser, or cutover evidence is claimed. Seven local forward-only
+migrations are `20260903120603_cardmarket_bulk_v1.exs`,
+`20260903134323_cardmarket_bulk_crosswalk.exs`,
+`20260907102216_harden_cardmarket_bulk_pipeline.exs`,
+`20260907102604_harden_cardmarket_bulk_pipeline_constraints.exs`,
+`20260907110602_cardmarket_expansion_review.exs`,
+`20260907111314_cardmarket_expansion_review_hardening.exs`, and
+`20260907134317_cardmarket_evidence_identity.exs`; `20260907102216`,
+`20260907111314`, and `20260907134317` intentionally raise on down, and
+rollback is forbidden for all seven.
+
+The daily 03:00 UTC queue/provider uses fixed product/price URLs, category 51
+Pokémon Single, a 32 MiB response cap and 100,000-row cap, no redirect/retry, 5s connect and 15s
+receive/request timeouts, and a 15-minute monotonic deadline with 30s cleanup
+margin. Lifecycle is staged/succeeded/failed; first-batch floors are 10,000
+products, 10,000 Singles prices, and 5,000 priceable Singles. Exact
+materialization requires same-successful-batch product, price, expansion
+mapping, and card mapping evidence, only anchor/auto_matched card evidence;
+missing, ambiguous, unapproved, or cross-batch data fails closed.
+
+The parser requires nonblank product `dateAdded`. Mapping supports safe
+same-batch A→B→A correction from immutable exact evidence, never overwrites
+administrator mappings, and materialization is concurrent same-batch idempotent.
+
+Expansion approval is latest-successful-batch exact pair only, with immutable
+actor/version history and decision-specific replay. Review shows 25 rows plus
+`25+`, performs authorized reads, uses a 1,000-row fail-closed resolution scan,
+and renders bounded safe evidence. Successful persisted sync/replay publishes
+mapping invalidations only after commit; notification failures retry and
+idempotently re-notify. Rollback and normal attempt-1 no-op broadcast nothing.
+
+Exact policy values are `tcgdex_cardmarket_v1` and `cardmarket_bulk_v1`;
+malformed/missing/error/unready evidence falls back to TCGdex. Readiness additionally requires a completed coherent nonfuture `all_sets` TCGdex catalogue run, no active catalogue run, and zero unresolved partial/malformed/failed catalogue-set issues; operations exposes bounded catalogue counts. It also requires persisted UTC nonfuture fresh fetched/completed/product-created/
+price-created evidence within 129,600 seconds/36h and existing thresholds.
+Coverage gain/overlap/agreement use only latest-batch approved exact staged-value/metric-matching valuations. Local evidence was 169 TCGdex, 244 bulk, 169 overlap, 75 bulk-only, and 244
+latest exact/approved/unambiguous values; cutover remained not ready.
+The supervised policy cache is max 30 seconds, refreshes automatically,
+broadcasts effective expiry changes, reconciles timed-out callers fail closed,
+and mounted Home/CardDetail/Trade refresh policy-dependent data without mixing
+or requesting TCGdex under bulk. Canonical local `mix check --verbose` passed
+all static gates/Dialyzer and 1,162 tests; final read-only review found no
+actionable or critical/high findings. No CI/deployment/browser/import
+verification has been performed.
 
 ## Current production state — 2026-09-03 (Raw: [provider capture](../../raw/2026-09-02-boosterland-colligere-store-apis.md))
 

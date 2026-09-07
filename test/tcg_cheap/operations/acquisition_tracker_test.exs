@@ -83,6 +83,15 @@ defmodule TcgCheap.Operations.AcquisitionTrackerTest do
              :timeout
   end
 
+  test "cardmarket bulk provider response failures use fixed categories" do
+    assert AcquisitionTracker.classify({:malformed, :invalid_json}) == :provider_response
+    assert AcquisitionTracker.classify({:oversized, 1_048_577}) == :provider_response
+    assert AcquisitionTracker.classify({:http_error, :rate_limited}) == :rate_limit
+
+    assert AcquisitionTracker.classify({:http_error, {:unexpected_status, 503}}) ==
+             :provider_response
+  end
+
   test "only successful admissions count and raw failures become fixed categories", %{
     provider_key: provider_key,
     actor: actor

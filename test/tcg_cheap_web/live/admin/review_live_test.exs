@@ -5,8 +5,17 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
 
   alias AshAuthentication.Phoenix.Plug, as: AuthenticationPlug
   alias TcgCheap.Accounts
-  alias TcgCheap.Catalogue.{ListingProductMapping, SealedProduct, SealedProductAlias}
+
+  alias TcgCheap.Catalogue.{
+    CardSet,
+    CardSetCardmarketMappingDecision,
+    ListingProductMapping,
+    SealedProduct,
+    SealedProductAlias
+  }
+
   alias TcgCheap.Core
+  alias TcgCheap.Pricing.CardmarketBulk.MappingReplayWorker
   alias TcgCheap.Repo
 
   test "an administrator can revise and approve a complete product draft", %{conn: conn} do
@@ -347,6 +356,267 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
     assert inspect(flash) =~ "no longer available"
   end
 
+  test "expansion review displays bounded evidence and keeps display and input IDs distinct", %{
+    conn: conn
+  } do
+    %{batch: batch, mapping: mapping} = expansion_review_fixture()
+    assert {:ok, latest} = Core.get_latest_successful_cardmarket_bulk_batch(authorize?: false)
+    assert latest.id == batch.id
+
+    assert {:ok, [^mapping]} =
+             Core.list_cardmarket_expansion_mappings_for_batch(batch.id, authorize?: false)
+
+    assert mapping.status == "review"
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+
+    assert has_element?(view, "#cardmarket-expansion-#{mapping.id}-review-reason")
+    assert has_element?(view, "#cardmarket-expansion-#{mapping.id}-approval-reason")
+    assert has_element?(view, "#approve-cardmarket-expansion-form-#{mapping.id}")
+    assert has_element?(view, "#cardmarket-expansion-#{mapping.id}-evidence")
+
+    assert has_element?(
+             view,
+             "#cardmarket-expansion-#{mapping.id}-evidence",
+             "anchor_card_printing_ids"
+           )
+
+    refute has_element?(view, "#cardmarket-expansion-#{mapping.id}-evidence", "secret_token")
+    refute has_element?(view, "#cardmarket-expansion-#{mapping.id}-reason")
+  end
+
+  test "expansion queue excludes resolved rows before applying its visible limit", %{conn: conn} do
+    %{batch: batch, mapping: unresolved} = expansion_review_fixture()
+
+    Enum.each(1..27, fn index ->
+      card_set =
+        Core.import_card_set!(
+          %{
+            tcgdex_id: "resolved-review-set-#{System.unique_integer([:positive])}",
+            name: "Resolved review set #{index}",
+            series_id: "review-series"
+          },
+          authorize?: false
+        )
+
+      expansion_id = 910_000 + index
+
+      Core.record_cardmarket_expansion_mapping!(
+        %{
+          source_batch_id: batch.id,
+          card_set_id: card_set.id,
+          expansion_id: expansion_id,
+          status: "review",
+          authority: "system",
+          anchor_count: 1,
+          evidence: %{method: "resolved-test"},
+          review_reason: "Resolved row"
+        },
+        authorize?: false
+      )
+
+      Repo.query!(
+        "UPDATE card_sets SET cardmarket_expansion_id = $1, cardmarket_mapping_status = 'matched', cardmarket_mapping_authority = 'administrator', cardmarket_mapping_reason = 'Resolved in test' WHERE id = $2",
+        [expansion_id, Ecto.UUID.dump!(card_set.id)]
+      )
+    end)
+
+    Enum.each(1..26, fn index ->
+      card_set =
+        Core.import_card_set!(
+          %{
+            tcgdex_id: "unresolved-review-set-#{System.unique_integer([:positive])}",
+            name: "Unresolved review set #{index}",
+            series_id: "review-series"
+          },
+          authorize?: false
+        )
+
+      Core.record_cardmarket_expansion_mapping!(
+        %{
+          source_batch_id: batch.id,
+          card_set_id: card_set.id,
+          expansion_id: 920_000 + index,
+          status: "review",
+          authority: "system",
+          anchor_count: 1,
+          evidence: %{method: "unresolved-test"},
+          review_reason: "Unresolved row"
+        },
+        authorize?: false
+      )
+    end)
+
+    Repo.query!(
+      "UPDATE cardmarket_expansion_mappings SET inserted_at = NOW() - interval '1 second' WHERE id = $1",
+      [Ecto.UUID.dump!(unresolved.id)]
+    )
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+
+    assert has_element?(view, "#cardmarket-expansion-review-queue", "Review Set")
+
+    assert has_element?(
+             view,
+             "#cardmarket-expansion-reviews .admin-section-rule span",
+             "25+ waiting"
+           )
+
+    assert has_element?(view, "#approve-cardmarket-expansion-form-#{unresolved.id}")
+  end
+
+  test "expansion queue fails closed when the batch exceeds its bounded scan", %{conn: conn} do
+    %{batch: batch, card_set: card_set, mapping: mapping} = expansion_review_fixture()
+
+    Enum.each(1..1_000, fn index ->
+      Core.record_cardmarket_expansion_mapping!(
+        %{
+          source_batch_id: batch.id,
+          card_set_id: card_set.id,
+          expansion_id: 930_000 + index,
+          status: "review",
+          authority: "system",
+          anchor_count: 1,
+          evidence: %{method: "overflow-test"},
+          review_reason: "Overflow row"
+        },
+        authorize?: false
+      )
+    end)
+
+    {admin_conn, admin} = authenticated_conn_with_admin(conn)
+
+    assert {:error, {:cardmarket_review_queue_overflow, 1_000}} =
+             Core.list_cardmarket_expansion_review_queue(batch.id, actor: admin)
+
+    {:ok, view, _html} = live(admin_conn, ~p"/admin/review")
+    refute has_element?(view, "#approve-cardmarket-expansion-form-#{mapping.id}")
+    assert has_element?(view, "#cardmarket-expansion-review-unavailable")
+    refute has_element?(view, "#cardmarket-expansion-review-empty")
+
+    refute has_element?(
+             view,
+             "#cardmarket-expansion-reviews .admin-section-rule span",
+             "0 waiting"
+           )
+  end
+
+  test "expansion review renders an honest empty state when a successful batch has no reviews", %{
+    conn: conn
+  } do
+    %{mapping: mapping} = expansion_review_fixture()
+    # The fixture's mapping is resolved before loading the queue.
+    Repo.query!(
+      "UPDATE cardmarket_expansion_mappings SET status = 'approved', review_reason = NULL WHERE id = $1",
+      [Ecto.UUID.dump!(mapping.id)]
+    )
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+
+    assert has_element?(view, "#cardmarket-expansion-review-empty")
+
+    assert has_element?(
+             view,
+             "#cardmarket-expansion-reviews .admin-section-rule span",
+             "0 waiting"
+           )
+
+    refute has_element?(view, "#cardmarket-expansion-review-unavailable")
+  end
+
+  test "blank expansion approval is rejected safely", %{conn: conn} do
+    %{mapping: mapping} = expansion_review_fixture()
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+
+    view
+    |> form("#approve-cardmarket-expansion-form-#{mapping.id}",
+      cardmarket_expansion_mapping: %{reason: " "}
+    )
+    |> render_submit()
+
+    assert has_element?(view, "#approve-cardmarket-expansion-form-#{mapping.id}")
+    assert has_element?(view, "[role=alert]", "Cardmarket expansion was not approved")
+  end
+
+  test "successful expansion submission resolves competing candidates and records history", %{
+    conn: conn
+  } do
+    %{batch: batch, card_set: card_set, mapping: mapping} = expansion_review_fixture()
+
+    competing =
+      Core.record_cardmarket_expansion_mapping!(
+        %{
+          source_batch_id: batch.id,
+          card_set_id: card_set.id,
+          expansion_id: mapping.expansion_id + 1,
+          status: "review",
+          authority: "system",
+          anchor_count: 1,
+          evidence: %{method: "competing"},
+          review_reason: "Competing candidate"
+        },
+        authorize?: false
+      )
+
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+    assert has_element?(view, "#approve-cardmarket-expansion-form-#{mapping.id}")
+    assert has_element?(view, "#approve-cardmarket-expansion-form-#{competing.id}")
+
+    view
+    |> form("#approve-cardmarket-expansion-form-#{mapping.id}",
+      cardmarket_expansion_mapping: %{reason: "Approved from review desk"}
+    )
+    |> render_submit()
+
+    refute has_element?(view, "#approve-cardmarket-expansion-form-#{mapping.id}")
+    refute has_element?(view, "#approve-cardmarket-expansion-form-#{competing.id}")
+    {:ok, updated} = Ash.get(CardSet, card_set.id, authorize?: false, action: :read)
+
+    assert {updated.cardmarket_expansion_id, updated.cardmarket_mapping_authority} ==
+             {mapping.expansion_id, "administrator"}
+
+    assert {:ok, [decision]} =
+             Ash.read(Ash.Query.for_read(CardSetCardmarketMappingDecision, :read, %{}),
+               authorize?: false
+             )
+
+    assert {decision.source_mapping_id, decision.source_batch_id} == {mapping.id, batch.id}
+
+    assert [%{args: %{"batch_id" => batch_id, "decision_id" => decision_id}}] =
+             Oban.Testing.all_enqueued(repo: TcgCheap.Repo, worker: MappingReplayWorker)
+
+    assert {batch_id, decision_id} == {batch.id, decision.id}
+  end
+
+  test "stale expansion submission shows a safe error and does not overwrite correction", %{
+    conn: conn
+  } do
+    %{mapping: mapping, card_set: card_set} = expansion_review_fixture()
+    {admin_conn, admin} = authenticated_conn_with_admin(conn)
+    {:ok, view, _html} = live(admin_conn, ~p"/admin/review")
+
+    assert {:ok, _approved} =
+             Core.approve_cardmarket_expansion(
+               card_set,
+               %{
+                 source_mapping_id: mapping.id,
+                 reason: "Changed outside the mounted form",
+                 expected_updated_at: card_set.updated_at
+               },
+               actor: admin
+             )
+
+    view
+    |> form("#approve-cardmarket-expansion-form-#{mapping.id}",
+      cardmarket_expansion_mapping: %{reason: "Stale form submission"}
+    )
+    |> render_submit()
+
+    assert has_element?(view, "[role=alert]", "Cardmarket expansion was not approved")
+    {:ok, unchanged} = Ash.get(CardSet, card_set.id, authorize?: false, action: :read)
+    assert unchanged.cardmarket_mapping_reason == "Changed outside the mounted form"
+  end
+
   defp authenticated_conn(conn) do
     email = "review-admin-#{System.unique_integer([:positive])}@example.test"
 
@@ -363,6 +633,23 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
     conn
     |> init_test_session(%{})
     |> AuthenticationPlug.store_in_session(admin)
+  end
+
+  defp authenticated_conn_with_admin(conn) do
+    email = "review-admin-#{System.unique_integer([:positive])}@example.test"
+
+    admin =
+      Accounts.register_admin!(
+        %{
+          email: email,
+          password: "correct horse battery staple",
+          password_confirmation: "correct horse battery staple"
+        },
+        authorize?: false
+      )
+
+    conn = conn |> init_test_session(%{}) |> AuthenticationPlug.store_in_session(admin)
+    {conn, admin}
   end
 
   defp draft_product(overrides \\ %{}) do
@@ -433,5 +720,67 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
       last_seen_at: now,
       last_checked_at: now
     })
+  end
+
+  defp expansion_review_fixture do
+    now = DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    suffix = System.unique_integer([:positive])
+
+    batch =
+      Core.complete_cardmarket_bulk_batch!(
+        %{
+          policy_version: "tcgdex_cardmarket_v1",
+          parser_version: "review-test",
+          product_created_at: now,
+          price_created_at: now,
+          fetched_at: now,
+          completed_at: now,
+          product_sha256:
+            Base.encode16(:crypto.hash(:sha256, "review-products-#{suffix}"), case: :lower),
+          price_sha256:
+            Base.encode16(:crypto.hash(:sha256, "review-prices-#{suffix}"), case: :lower),
+          product_byte_size: 1,
+          price_byte_size: 1,
+          product_row_count: 1,
+          price_row_count: 1,
+          singles_price_row_count: 1,
+          priceable_singles_count: 1
+        },
+        authorize?: false
+      )
+
+    card_set =
+      Core.import_card_set!(
+        %{
+          tcgdex_id: "review-set-#{suffix}",
+          name: "Review Set #{suffix}",
+          series_id: "review-series"
+        },
+        authorize?: false
+      )
+
+    mapping =
+      Core.record_cardmarket_expansion_mapping!(
+        %{
+          source_batch_id: batch.id,
+          card_set_id: card_set.id,
+          expansion_id: 900_000 + suffix,
+          status: "review",
+          authority: "system",
+          anchor_count: 1,
+          evidence: %{
+            "anchor_card_printing_ids" => [Ecto.UUID.generate()],
+            "anchor_cardmarket_product_ids" => [123_456],
+            "set_expansion_degree" => 1,
+            "expansion_set_degree" => 2,
+            "secret_token" => "do-not-render",
+            "nested_oversized_value" => String.duplicate("x", 2_500)
+          },
+          review_reason: "Candidate needs administrator confirmation"
+        },
+        authorize?: false
+      )
+
+    %{batch: batch, card_set: card_set, mapping: mapping}
   end
 end

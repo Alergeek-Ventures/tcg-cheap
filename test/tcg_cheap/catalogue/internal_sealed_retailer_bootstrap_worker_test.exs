@@ -167,7 +167,7 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
     assert states == [:available, :scheduled, :executing, :retryable, :suspended]
   end
 
-  test "keeps all seven provider budgets and global limits" do
+  test "keeps configured provider budgets and global limits" do
     budget = Application.fetch_env!(:tcg_cheap, :acquisition_budget)
     providers = Keyword.fetch!(budget, :providers)
 
@@ -178,6 +178,7 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
     assert Enum.map(providers, &Keyword.fetch!(&1, :provider_key)) == [
              "tcgdex_catalogue",
              "tcgdex_cardmarket",
+             "cardmarket_bulk",
              "nbp",
              "sealed_retailer:lootquest",
              "sealed_retailer:cardzhouse",

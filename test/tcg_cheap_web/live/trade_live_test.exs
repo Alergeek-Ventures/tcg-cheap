@@ -7,11 +7,19 @@ defmodule TcgCheapWeb.TradeLiveTest do
   alias TcgCheap.Core
   alias TcgCheap.Pricing.ExchangeRate
   alias TcgCheap.Pricing.ExchangeRateWorker
-  alias TcgCheap.Pricing.Singles.{ValuationAcquisition, ValuationWorker}
+
+  alias TcgCheap.Pricing.Singles.{
+    ValuationAcquisition,
+    ValuationPolicy,
+    ValuationPolicyCache,
+    ValuationWorker
+  }
+
   alias TcgCheap.Trades.Composition
   alias TcgCheapWeb.PublicAcquisitionLimiter
 
   @policy "tcgdex_cardmarket_v1"
+  @bulk_policy "cardmarket_bulk_v1"
 
   setup %{conn: conn} do
     address = unique_ip()
@@ -44,6 +52,65 @@ defmodule TcgCheapWeb.TradeLiveTest do
     refute has_element?(view, "#trade-share")
     refute has_element?(view, "#trade-share-status")
     assert has_element?(view, ".trade-empty", "Add cards to this side.")
+  end
+
+  test "uses one selected policy for totals and row estimates without mixing", %{conn: conn} do
+    card = card("policy-consistency", "Policy Consistency", 1)
+    snapshot(card, "1.25", DateTime.utc_now(), @policy)
+    snapshot(card, "9.75", DateTime.utc_now(), @bulk_policy)
+
+    previous = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
+    Application.put_env(:tcg_cheap, :public_singles_valuation_policy, @policy)
+
+    on_exit(fn -> Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous) end)
+
+    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
+
+    assert has_element?(view, "#trade-left-total-eur", "€1.25")
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "€1.25")
+    refute has_element?(view, "#trade-left-total-eur", "€9.75")
+  end
+
+  test "bulk policy remains gated by persisted readiness" do
+    previous_policy = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
+    Application.put_env(:tcg_cheap, :public_singles_valuation_policy, @bulk_policy)
+
+    on_exit(fn ->
+      Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous_policy)
+    end)
+
+    assert ValuationPolicy.selection(readiness: %{ready?: false}) ==
+             ValuationPolicy.tcgdex_policy()
+
+    assert ValuationPolicy.selection(readiness: %{ready?: true}) ==
+             ValuationPolicy.bulk_policy()
+  end
+
+  test "mounted trade refreshes row and total after policy invalidation", %{conn: conn} do
+    card = card("mounted-policy", "Mounted Policy", 1)
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    snapshot(card, "12.30", now, @policy)
+    snapshot(card, "99.99", now, @bulk_policy)
+
+    previous = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
+    Application.put_env(:tcg_cheap, :public_singles_valuation_policy, @bulk_policy)
+    seed_bulk_policy_cache()
+
+    on_exit(fn ->
+      Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous)
+      ValuationPolicyCache.invalidate()
+    end)
+
+    path = "/trade?left=#{card.tcgdex_id}:1"
+    {:ok, view, _html} = live(conn, path)
+    assert has_element?(view, "#trade-left-total-eur", "€99.99")
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "€99.99")
+    assert has_element?(view, "#trade-share[data-trade-path*='#{card.tcgdex_id}']")
+
+    ValuationPolicyCache.invalidate()
+    assert has_element?(view, "#trade-left-total-eur", "€12.30")
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "€12.30")
+    assert has_element?(view, "#trade-share[data-trade-path*='#{card.tcgdex_id}']")
   end
 
   test "a populated side reveals comparison, rate evidence, and share controls", %{conn: conn} do
@@ -673,11 +740,11 @@ defmodule TcgCheapWeb.TradeLiveTest do
     )
   end
 
-  defp snapshot(card, value, fetched_at \\ DateTime.utc_now()) do
+  defp snapshot(card, value, fetched_at \\ DateTime.utc_now(), policy \\ @policy) do
     Core.record_single_valuation!(%{
       card_printing_id: card.id,
       value_eur: Decimal.new(value),
-      policy_version: @policy,
+      policy_version: policy,
       source: "test",
       source_metric: "avg7",
       fetched_at: fetched_at,
@@ -750,5 +817,15 @@ defmodule TcgCheapWeb.TradeLiveTest do
       |> Keyword.fetch!(:limit)
 
     for _attempt <- 1..limit, do: assert(:ok = PublicAcquisitionLimiter.reserve(address))
+  end
+
+  defp seed_bulk_policy_cache do
+    :sys.replace_state(ValuationPolicyCache, fn state ->
+      %{
+        state
+        | policy: ValuationPolicy.bulk_policy(),
+          expires_at: System.monotonic_time(:millisecond) + 30_000
+      }
+    end)
   end
 end

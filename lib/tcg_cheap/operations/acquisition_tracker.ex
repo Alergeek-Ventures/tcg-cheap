@@ -169,6 +169,8 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
   defp category({:provider_callback_error, _function, _outcome}), do: :provider_response
   defp category({:decode_error, _reason}), do: :provider_response
   defp category({:malformed_response, _reason}), do: :provider_response
+  defp category({:malformed, _reason}), do: :provider_response
+  defp category({:oversized, _reason}), do: :provider_response
 
   defp category(reason)
        when reason in [
@@ -228,6 +230,7 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
 
   defp http_category(408), do: :timeout
   defp http_category(429), do: :rate_limit
+  defp http_category(:rate_limited), do: :rate_limit
   defp http_category(_), do: :provider_response
 
   defp attrs(job, opts) do
@@ -310,7 +313,8 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
         "exchange_rate",
         "sealed_retailer_refresh",
         "card_catalogue_sync",
-        "card_catalogue_enrichment"
+        "card_catalogue_enrichment",
+        "cardmarket_bulk_sync"
       ] and
       valid_text?(target, 240) and valid_text?(worker, 240) and valid_text?(queue, 160)
   end

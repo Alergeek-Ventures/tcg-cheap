@@ -4,6 +4,8 @@ defmodule TcgCheapWeb.HomeLive do
   alias TcgCheap.Catalogue.{CardImage, ExternalImage}
   alias TcgCheap.Catalogue.SearchText
   alias TcgCheap.Pricing.Singles.Freshness
+  alias TcgCheap.Pricing.Singles.ValuationPolicy
+  alias TcgCheap.Pricing.Singles.ValuationPolicyCache
 
   @max_autocomplete_options 10
   @max_discovery_rows 6
@@ -12,10 +14,15 @@ defmodule TcgCheapWeb.HomeLive do
   @impl true
   def mount(_params, _session, socket) do
     as_of = DateTime.utc_now()
+    valuation_policy = ValuationPolicy.active_policy()
 
     {price_changes, price_changes_ok?} =
       safe_discovery(fn ->
-        TcgCheap.Core.list_homepage_price_changes(as_of, @max_discovery_rows)
+        TcgCheap.Core.list_homepage_price_changes_for_policy(
+          as_of,
+          @max_discovery_rows,
+          valuation_policy
+        )
       end)
 
     {sealed_price_changes, sealed_price_changes_ok?} =
@@ -46,6 +53,7 @@ defmodule TcgCheapWeb.HomeLive do
      |> assign(
        page_title: "Compare Pokémon prices",
        mode: :singles,
+       valuation_policy: valuation_policy,
        search_form: to_form(%{"query" => ""}, as: :search),
        search_status: :idle,
        result_count: 0,
@@ -98,7 +106,58 @@ defmodule TcgCheapWeb.HomeLive do
      |> stream(:fallback_cards, [])
      |> stream(:fallback_sealed, [])
      |> stream(:idle_recent_cards, recent_cards)
-     |> stream(:idle_recent_sealed, recent_sealed)}
+     |> stream(:idle_recent_sealed, recent_sealed)
+     |> maybe_subscribe_policy()}
+  end
+
+  @impl true
+  def handle_info(:valuation_policy_invalidated, socket) do
+    policy = ValuationPolicy.active_policy()
+
+    if policy == socket.assigns.valuation_policy do
+      {:noreply, socket}
+    else
+      refresh_policy_surface(socket, policy)
+    end
+  end
+
+  defp maybe_subscribe_policy(socket) do
+    if connected?(socket), do: :ok = ValuationPolicyCache.subscribe()
+    socket
+  end
+
+  defp refresh_policy_surface(socket, policy) do
+    as_of = DateTime.utc_now()
+
+    {price_changes, price_changes_ok?} =
+      safe_discovery(fn ->
+        TcgCheap.Core.list_homepage_price_changes_for_policy(as_of, @max_discovery_rows, policy)
+      end)
+
+    {single_risers, single_fallers} = split_movers(price_changes)
+
+    {recent_cards, recent_cards_ok?} =
+      safe_discovery(fn -> TcgCheap.Core.list_public_recently_tracked_card_printings() end)
+      |> then(fn {rows, ok?} -> {Enum.take(rows, @max_discovery_rows), ok?} end)
+
+    socket =
+      socket
+      |> assign(
+        valuation_policy: policy,
+        singles_risers_count: length(single_risers),
+        singles_fallers_count: length(single_fallers),
+        singles_movers_available?: price_changes_ok?,
+        recent_cards_count: length(recent_cards),
+        recent_cards_available?: recent_cards_ok?
+      )
+      |> stream(:market_single_risers, single_risers, reset: true)
+      |> stream(:market_single_fallers, single_fallers, reset: true)
+      |> stream(:idle_recent_cards, recent_cards, reset: true)
+
+    case socket.assigns.mode do
+      :singles -> execute_search(socket, socket.assigns.search_query)
+      :sealed -> {:noreply, socket}
+    end
   end
 
   @impl true
@@ -295,7 +354,7 @@ defmodule TcgCheapWeb.HomeLive do
                     class={["evidence-slot", @active_option_id == stream_id && "active-option"]}
                     role="option"
                     aria-selected={to_string(@active_option_id == stream_id)}
-                    aria-labelledby={option_labelledby(result)}
+                    aria-labelledby={option_labelledby(result, @valuation_policy)}
                     phx-click="select_option"
                     phx-value-tcgdex-id={result.tcgdex_id}
                     tabindex="-1"
@@ -348,14 +407,12 @@ defmodule TcgCheapWeb.HomeLive do
                             >{result.rarity}</span>
                           </div>
                         </div>
+                        <% valuation = ValuationPolicy.current_valuation(result, @valuation_policy) %>
                         <div class="estimate-cell">
-                          <strong id={"card-estimate-#{result.id}"}>{estimate_display(
-                            Map.get(result, :tcgdex_cardmarket_v1_current_valuation)
-                          )}</strong>
-                          <span
-                            :if={Map.get(result, :tcgdex_cardmarket_v1_current_valuation)}
-                            id={"card-freshness-#{result.id}"}
-                          >{freshness_text(Map.get(result, :tcgdex_cardmarket_v1_current_valuation))}</span>
+                          <strong id={"card-estimate-#{result.id}"}>{estimate_display(valuation)}</strong>
+                          <span :if={valuation} id={"card-freshness-#{result.id}"}>
+                            {freshness_text(valuation)}
+                          </span>
                         </div>
                         <span
                           id={"card-select-action-#{result.id}"}
@@ -499,6 +556,7 @@ defmodule TcgCheapWeb.HomeLive do
             <.market_movers
               streams={@streams}
               mode={@mode}
+              valuation_policy={@valuation_policy}
               singles_risers_count={@singles_risers_count}
               singles_fallers_count={@singles_fallers_count}
               sealed_risers_count={@sealed_risers_count}
@@ -529,6 +587,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   attr :streams, :map, required: true
   attr :mode, :atom, required: true
+  attr :valuation_policy, :string, required: true
   attr :singles_risers_count, :integer, required: true
   attr :singles_fallers_count, :integer, required: true
   attr :sealed_risers_count, :integer, required: true
@@ -563,8 +622,9 @@ defmodule TcgCheapWeb.HomeLive do
             least two dates and a change of 2% or more are required.
           </p>
           <p :if={@mode == :singles}>
-            Singles use aggregate Cardmarket estimates from TCGdex—not offers; condition and
-            shipping vary. TCG Cheap is not affiliated with Cardmarket or TCGdex.
+            Singles use aggregate Cardmarket estimates—not offers; TCGdex supplies canonical card
+            identity. Condition and shipping vary. TCG Cheap is not affiliated with Cardmarket or
+            TCGdex.
           </p>
           <p :if={@mode == :sealed}>
             Sealed benchmarks use approved local-shop observations—not offers; condition and
@@ -626,6 +686,7 @@ defmodule TcgCheapWeb.HomeLive do
         count={@recent_cards_count}
         available?={@recent_cards_available?}
         kind={:single}
+        valuation_policy={@valuation_policy}
         hidden={@mode != :singles}
       />
       <.recent_idle_ledger
@@ -634,6 +695,7 @@ defmodule TcgCheapWeb.HomeLive do
         count={@recent_sealed_count}
         available?={@recent_sealed_available?}
         kind={:sealed}
+        valuation_policy={@valuation_policy}
         hidden={@mode != :sealed}
       />
       <p
@@ -654,6 +716,7 @@ defmodule TcgCheapWeb.HomeLive do
   attr :count, :integer, required: true
   attr :available?, :boolean, required: true
   attr :kind, :atom, required: true
+  attr :valuation_policy, :string, required: true
   attr :hidden, :boolean, required: true
 
   def recent_idle_ledger(assigns) do
@@ -674,7 +737,7 @@ defmodule TcgCheapWeb.HomeLive do
       <% else %>
         <div id={"#{@id}-list"} phx-update="stream" class="market-rows">
           <%= if @kind == :single do %>
-            <.recent_single_rows streams={@streams} />
+            <.recent_single_rows streams={@streams} valuation_policy={@valuation_policy} />
           <% else %>
             <.recent_sealed_rows streams={@streams} />
           <% end %>
@@ -700,6 +763,7 @@ defmodule TcgCheapWeb.HomeLive do
     do: "Approved sealed product data is unavailable. Try a product, set, or series search later."
 
   attr :streams, :any, required: true
+  attr :valuation_policy, :string, required: true
 
   def recent_single_rows(assigns) do
     ~H"""
@@ -728,11 +792,12 @@ defmodule TcgCheapWeb.HomeLive do
           ><svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 4h38l10 10v78H12zM50 4v12h10M20 28h32M20 38h24M20 70h32M20 78h18" /></svg></span>
         <% end %>
       </div>
+      <% valuation = ValuationPolicy.current_valuation(card, @valuation_policy) %>
       <div class="market-copy">
         <h4>{card.name}</h4>
         <p>{card.set_name} · #{card.collector_number}</p>
         <p class="recent-value">
-          <strong>{estimate_display(Map.get(card, :tcgdex_cardmarket_v1_current_valuation))}</strong>
+          <strong>{estimate_display(valuation)}</strong>
         </p>
       </div>
     </.link>
@@ -965,7 +1030,6 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp estimate_display(nil), do: "Price unavailable"
   defp estimate_display(%{value_eur: value}), do: "€" <> format_eur(value)
-  defp estimate_display(_), do: "Price unavailable"
 
   defp freshness_text(valuation) do
     now = DateTime.utc_now()
@@ -1405,13 +1469,13 @@ defmodule TcgCheapWeb.HomeLive do
   defp card_link_label(result),
     do: "#{result.name}, #{result.set_name}, collector number #{result.collector_number}"
 
-  defp option_labelledby(result) do
+  defp option_labelledby(result, valuation_policy) do
     [
       "card-search-name-#{result.id}",
       "card-search-set-#{result.id}",
       if(rarity_present?(result.rarity), do: "card-rarity-#{result.id}"),
       "card-estimate-#{result.id}",
-      if(Map.get(result, :tcgdex_cardmarket_v1_current_valuation),
+      if(ValuationPolicy.current_valuation(result, valuation_policy),
         do: "card-freshness-#{result.id}"
       )
     ]

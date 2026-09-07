@@ -43,7 +43,7 @@ defmodule TcgCheap.Operations.AcquisitionRun do
 
       check_constraint [:operation], "acquisition_runs_operation_invariant",
         check:
-          "operation IN ('single_valuation','exchange_rate','sealed_retailer_refresh','card_catalogue_sync','card_catalogue_enrichment')"
+          "operation IN ('single_valuation','exchange_rate','sealed_retailer_refresh','card_catalogue_sync','card_catalogue_enrichment','cardmarket_bulk_sync')"
     end
   end
 
@@ -105,7 +105,8 @@ defmodule TcgCheap.Operations.AcquisitionRun do
                  "exchange_rate",
                  "sealed_retailer_refresh",
                  "card_catalogue_sync",
-                 "card_catalogue_enrichment"
+                 "card_catalogue_enrichment",
+                 "cardmarket_bulk_sync"
                ])
 
       change {TcgCheap.Operations.Changes.SourceHealthLifecycle, event: :start}

@@ -52,7 +52,7 @@ Thesis-validation product built around local cached data and transparent uncerta
 - The public exact-printing search surface is the local-only Home LiveView over the cached catalogue. Home defaults to Singles and presents a compact wordmark with `Compare Pokémon prices`, a direct `Find a card` search, and one-column exact-printing price rows with image, name, set, collector number, optional rarity, price, update state, and one solid `View price` CTA. The shared external 250ms `CardAutocomplete` hook serves Home and Trade, preserving the focused input node, query, caret/selection, and focus through result updates; composition pauses search and searches once after compositionend, while Escape cancels a pending debounce. Home mode and query are canonical URL state (`/`, `?q=`, `?mode=sealed`, and their combination); search replaces history, and mode changes plus back/forward restore deterministically, with cross-mode fallbacks preserving the query.
 - Home has an accessible Singles/Sealed mode switch. Sealed search/detail reads only local approved/projection data and honestly shows Limited data when evidence is sparse; it does not claim public live acquisition. Public Sealed reads require approved/released/official PL-English distribution, complete sourced details, positive counts for pack-bearing products, an official URL and details provenance, and either complete canonical image provenance or a matched active listing from an active retailer with a valid allowlisted image. Incomplete approved rows remain internal and available for mapping/curation.
 - The sealed foundation now includes canonical AshPostgres `SealedProduct` and reviewable `SealedProductAlias` resources, plus the current local public Sealed search/detail projection. Production curation currently has 19 approved sealed products and zero drafts; all 19 have complete sourced details and positive applicable pack counts. A product is draft-only until an administrator approves the required completeness; discontinued approved products remain readable and archive is soft/unpublished. Source imports are pending-only and cannot overwrite reviewed rows. This is a curated snapshot, not a claim that the catalogue is complete.
-- Search preloads the active `tcgdex_cardmarket_v1` valuation relationship with the printing, avoiding an N+1 valuation read. Estimates explicitly distinguish current/fresh, stale, and unpriced states.
+- Public card reads preload both exact current valuation relationships and resolve one selected policy consistently, avoiding N+1 valuation reads and source mixing. The selected policy may be the deployed/default `tcgdex_cardmarket_v1` or the implemented conditional `cardmarket_bulk_v1`; estimates explicitly distinguish current/fresh, stale, and unpriced states.
 - Home exposes full policy, methodology, and non-affiliation caveats in a collapsed methodology disclosure, uses terse shipping language, 48px-class touch targets, keyboard semantics, and one reveal motion with a reduced-motion fallback. The calm warm-square refinement removes noise texture and heavy perimeter borders, keeps one subtle header/input separator, spaces Market movers by about 24px, uses title-case supporting headings, and presents compact `Price movement` with icon-led collapsed `Method` detail. Search, movement, freshness, and disclosure use selective official Fluent UI System Icons Regular; methodology/non-affiliation remains complete but hidden by default. Local-only Market movers show up to 10 total rows, capped at 5 risers and 5 fallers; Singles risers additionally require a current EUR 1.00 floor, while fallers/recent rows retain their prior qualification and Sealed retains current recent ready mapping-confident aggregates and approved public products.
 - When a mode has no qualified movers, Home shows up to 10 real local `Recently tracked` rows instead of blank mover lanes. Singles rows retain exact identity and current valuation/freshness where available, otherwise `Price unavailable`; sealed rows are approved public releases within a five-year window. Copy explains that direction appears only after observations on at least two dates. Rows use direct `View price` or `View offers` links. The separate cross-category zero-search-result fallback remains unchanged.
 - The 2026-08-08 minimal Home correction remains the presentation baseline. It uses plain collector language: `€…` or `Price unavailable`, `Updated …` plus `May be outdated`, and no instructional filler on search idle; the discovery fallback instead gives the concise explanation that direction appears only after observations on two dates. Rows do not expose TCGdex, legality, policy, freshness, or local-data jargon. The completed autocomplete uses real combobox/listbox semantics, stable `card-option-UUID` stream IDs, bounded ten-option results, visible first/active options, wrapping ArrowUp/ArrowDown, exact active Enter selection, Escape close with query/focus retained, validated touch/click selection, and query-specific live status.
@@ -71,6 +71,70 @@ This is the source-neutral/domain foundation plus current public Sealed search/d
 The curated `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` is approved. It has one current LootQuest offer plus mapped sold-out LGS evidence, so its aggregate and guide remain Limited rather than presenting fabricated buying bands. The historical private TCGdex run exhausted all 218 set IDs at 192 synced, 15 excluded, 11 permanent failed, and 20,561 printings. A later live failed-set repair converted those 11 hard failures to partial, and the punctuation-ID correction plus one budget-admitted `exu` sync imported that set 28/28. Current private state is 203 sets, 20,964 printings, and 10 unresolved provider-partial sets. This is not a fully successful production import. Long-term reliability and complete production import remain open.
 
 At the 2026-09-01 checkpoint, production-scoped Singles has 127 cards and 643 retained valuation snapshots. The 120-card Pitch Black scope is complete; rolling IR/SIR enrichment remains incomplete. Every successful listing ingest ensures a mapping in the same transaction: missing/invalid/ambiguous evidence creates or refreshes review; one eligible approved exact EAN may create or promote a mutable pending/review mapping to matched through the locked/product-validated Ash action and immutable decision history; terminal matched/rejected decisions are protected from source overwrite; failures roll back the batch.
+
+## Cardmarket bulk shadow implementation checkpoint — 2026-09-07
+
+The local, uncommitted, not-deployed Singles bulk implementation is a
+source-neutral selected-policy boundary. Production remains revision
+`d55a26b1368084bbaf7a25b65a2211f437e6c540`; no production sync, migration,
+readiness, browser, CI, or cutover evidence is claimed. The seven local forward-only
+migrations are `20260903120603_cardmarket_bulk_v1.exs`,
+`20260903134323_cardmarket_bulk_crosswalk.exs`,
+`20260907102216_harden_cardmarket_bulk_pipeline.exs`,
+`20260907102604_harden_cardmarket_bulk_pipeline_constraints.exs`,
+`20260907110602_cardmarket_expansion_review.exs`,
+`20260907111314_cardmarket_expansion_review_hardening.exs`, and
+`20260907134317_cardmarket_evidence_identity.exs`. The `20260907102216`,
+`20260907111314`, and `20260907134317` migrations intentionally raise on `down`;
+operational policy forbids rollback for all seven.
+
+The sync uses fixed product and price-guide URLs, category 51 Pokémon Single,
+a 32 MiB response cap and 100,000-row cap, no redirects or retries, 5s connect and 15s
+receive/request timeouts, and a 15-minute monotonic worker/end-to-end deadline
+with a 30-second cleanup margin. Batches move through `staged`, `succeeded`,
+or `failed`; first-batch floors are 10,000 products, 10,000 Singles prices,
+and 5,000 priceable Singles. Exact materialization requires product, price,
+expansion-mapping, and card-mapping evidence from the same successful batch;
+only anchor/auto_matched card evidence is accepted. Missing, ambiguous,
+unapproved, or cross-batch data fails closed. The parser requires nonblank product
+`dateAdded`; mapping supports safe same-batch A→B→A correction from immutable
+exact evidence, never overwrites administrator mappings, and materialization is
+concurrent same-batch idempotent.
+
+Expansion approval is the latest-successful-batch exact pair only, with
+immutable actor/version history and decision-specific replay. Review renders 25
+rows plus a `25+` sentinel, performs authorized reads, uses a 1,000-row
+fail-closed resolution scan, and renders only bounded safe evidence. Successful
+sync and replay publish mapping invalidations only after commit; notification
+failures are retryable and retries idempotently re-notify persisted batches.
+Rollback and normal attempt-1 no-op produce no broadcasts.
+
+`PUBLIC_SINGLES_VALUATION_POLICY` recognizes only `tcgdex_cardmarket_v1` and
+`cardmarket_bulk_v1`; unset, malformed, missing, errored, or unready evidence
+falls back to TCGdex. Readiness additionally requires a completed coherent
+nonfuture `all_sets` TCGdex catalogue run, no active catalogue run, and zero
+unresolved partial/malformed/failed catalogue-set issues; operations exposes
+bounded catalogue counts. It also requires persisted UTC, nonfuture, fresh
+successful fetched/completed/product-created/price-created evidence within
+129,600 seconds/36h, existing count/materialization/mapping/agreement,
+coverage, and overlap thresholds. Coverage gain/overlap/agreement use only
+latest-batch approved exact staged-value/metric-matching valuations. Local shadow evidence was one successful
+batch: TCGdex 169, bulk 244, overlap/agreement 169, bulk-only 75, and 244
+latest approved/exact/0-ambiguous valuations; cutover was not ready.
+
+The first deploy must explicitly set
+`PUBLIC_SINGLES_VALUATION_POLICY=tcgdex_cardmarket_v1` (runtime omission is
+currently equivalent but operationally insufficient). Public bulk policy
+disables the daily TCGdex sweep and cancels already-queued TCGdex valuation
+HTTP work. Cutover requires all readiness gates and two distinct successful
+batches; until then, no production synchronization or readiness is implied.
+The supervised policy cache is max 30 seconds, refreshes automatically,
+broadcasts effective expiry changes, reconciles timed-out callers fail closed,
+and mounted Home/CardDetail/Trade refresh policy-dependent data without mixing
+or requesting TCGdex under bulk. Canonical `mix check --verbose` passed all
+static gates/Dialyzer and 1,162 tests; final read-only review found no actionable
+or critical/high findings. No CI/deployment/browser/import verification has been
+performed.
 
 ## Owner-directed pricing refinement — 2026-08-27
 

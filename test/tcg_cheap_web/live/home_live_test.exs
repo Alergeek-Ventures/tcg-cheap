@@ -1,8 +1,9 @@
 defmodule TcgCheapWeb.HomeLiveTest do
   import Phoenix.LiveViewTest
-  use TcgCheapWeb.ConnCase
+  use TcgCheapWeb.ConnCase, async: false
 
   alias TcgCheap.Core
+  alias TcgCheap.Pricing.Singles.{ValuationPolicy, ValuationPolicyCache}
   alias TcgCheapWeb.HomeLive
 
   test "mounts the singles decision surface by default", %{conn: conn} do
@@ -567,6 +568,116 @@ defmodule TcgCheapWeb.HomeLiveTest do
     assert has_element?(view, "#price-details")
     assert has_element?(view, "#price-details", "at least two dates")
     refute has_element?(view, "#market-movers-intro")
+  end
+
+  test "does not mix valuation policies when both snapshots are present", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    search_term = "policy-mix-#{suffix}"
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    {:ok, set} =
+      Core.import_card_set(%{
+        tcgdex_id: Ecto.UUID.generate(),
+        name: "Policy Mix Set #{suffix}",
+        series_id: "sv"
+      })
+
+    {:ok, card} =
+      TcgCheap.TestSupport.import_card_printing(%{
+        tcgdex_id: Ecto.UUID.generate(),
+        name: "Policy Mix #{search_term}",
+        set_name: set.name,
+        collector_number: "01",
+        card_set_id: set.id,
+        mapping_status: "matched",
+        cardmarket_product_id: System.unique_integer([:positive])
+      })
+
+    for {policy, value, source} <- [
+          {ValuationPolicy.tcgdex_policy(), "12.30", "tcgdex"},
+          {ValuationPolicy.bulk_policy(), "99.99", "cardmarket_bulk"}
+        ] do
+      Core.record_single_valuation!(%{
+        card_printing_id: card.id,
+        value_eur: Decimal.new(value),
+        currency: "EUR",
+        policy_version: policy,
+        source: source,
+        source_metric: "average",
+        fetched_at: now,
+        cardmarket_product_id: card.cardmarket_product_id
+      })
+    end
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_hook(view, "search", %{"search" => %{"query" => search_term}})
+
+    assert has_element?(view, "#card-estimate-#{card.id}", "€12.30")
+    refute has_element?(view, "#card-estimate-#{card.id}", "€99.99")
+  end
+
+  test "mounted search refreshes from bulk to TCGdex after policy invalidation", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    search_term = "mounted-policy-#{suffix}"
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    {:ok, set} =
+      Core.import_card_set(%{
+        tcgdex_id: Ecto.UUID.generate(),
+        name: "Mounted Set",
+        series_id: "sv"
+      })
+
+    {:ok, card} =
+      TcgCheap.TestSupport.import_card_printing(%{
+        tcgdex_id: Ecto.UUID.generate(),
+        name: "Mounted #{search_term}",
+        set_name: set.name,
+        collector_number: "01",
+        card_set_id: set.id,
+        mapping_status: "matched",
+        cardmarket_product_id: System.unique_integer([:positive])
+      })
+
+    for {policy, value, source} <- [
+          {ValuationPolicy.tcgdex_policy(), "12.30", "tcgdex"},
+          {ValuationPolicy.bulk_policy(), "99.99", "cardmarket_bulk"}
+        ] do
+      Core.record_single_valuation!(%{
+        card_printing_id: card.id,
+        value_eur: Decimal.new(value),
+        currency: "EUR",
+        policy_version: policy,
+        source: source,
+        source_metric: "average",
+        fetched_at: now,
+        cardmarket_product_id: card.cardmarket_product_id
+      })
+    end
+
+    previous = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
+
+    Application.put_env(
+      :tcg_cheap,
+      :public_singles_valuation_policy,
+      ValuationPolicy.bulk_policy()
+    )
+
+    seed_bulk_policy_cache()
+
+    on_exit(fn ->
+      Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous)
+      ValuationPolicyCache.invalidate()
+    end)
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_hook(view, "search", %{"search" => %{"query" => search_term}})
+    assert_patch(view, "/?" <> URI.encode_query(%{q: String.downcase(search_term)}))
+    assert has_element?(view, "#card-estimate-#{card.id}", "€99.99")
+
+    ValuationPolicyCache.invalidate()
+    assert has_element?(view, "#card-estimate-#{card.id}", "€12.30")
+    assert has_element?(view, "#card-search-query[value='#{String.downcase(search_term)}']")
   end
 
   test "renders a valid low WebP thumbnail and fallback for missing images", %{conn: conn} do
@@ -1223,5 +1334,15 @@ defmodule TcgCheapWeb.HomeLiveTest do
     end
 
     {product, Date.add(today, -14), today}
+  end
+
+  defp seed_bulk_policy_cache do
+    :sys.replace_state(ValuationPolicyCache, fn state ->
+      %{
+        state
+        | policy: ValuationPolicy.bulk_policy(),
+          expires_at: System.monotonic_time(:millisecond) + 30_000
+      }
+    end)
   end
 end

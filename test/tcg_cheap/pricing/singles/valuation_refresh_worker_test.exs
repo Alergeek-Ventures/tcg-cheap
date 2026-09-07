@@ -2,7 +2,9 @@ defmodule TcgCheap.Pricing.Singles.ValuationRefreshWorkerTest do
   use TcgCheap.DataCase, async: false
   import Oban.Testing
   alias TcgCheap.Core
-  alias TcgCheap.Pricing.Singles.{ValuationRefreshWorker, ValuationWorker}
+  alias TcgCheap.Pricing.Singles.ValuationPolicy
+  alias TcgCheap.Pricing.Singles.ValuationRefreshWorker
+  alias TcgCheap.Pricing.Singles.ValuationWorker
   alias TcgCheap.Repo
 
   defmodule ProviderStub do
@@ -155,6 +157,31 @@ defmodule TcgCheap.Pricing.Singles.ValuationRefreshWorkerTest do
     assert :ok = ValuationRefreshWorker.perform(%Oban.Job{args: %{}})
     assert [job] = all_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
     assert job.args["tcgdex_id"] == card.tcgdex_id
+  end
+
+  test "a selected bulk policy skips the refresh without enqueuing valuation jobs" do
+    assert :ok =
+             ValuationRefreshWorker.perform_for_policy(
+               %Oban.Job{args: %{}},
+               ValuationPolicy.bulk_policy()
+             )
+
+    assert all_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker) == []
+  end
+
+  test "the injected policy boundary preserves tcgdex refresh behavior" do
+    card = candidate("injected-policy", ~D[2027-01-01])
+
+    assert :ok =
+             ValuationRefreshWorker.perform_for_policy(
+               %Oban.Job{args: %{}},
+               ValuationPolicy.tcgdex_policy()
+             )
+
+    assert [%{args: %{"tcgdex_id" => id}}] =
+             all_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
+
+    assert id == card.tcgdex_id
   end
 
   defp candidate(label, expires),

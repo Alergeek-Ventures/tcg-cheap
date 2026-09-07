@@ -14,6 +14,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
   alias TcgCheap.Core
   alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionTracker}
   alias TcgCheap.Pricing.Singles.ValuationAcquisition
+  alias TcgCheap.Pricing.Singles.ValuationPolicy
 
   @policy_version "tcgdex_cardmarket_v1"
   @currency "EUR"
@@ -25,21 +26,32 @@ defmodule TcgCheap.Pricing.Singles.ValuationWorker do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: args} = job) when is_map(args) do
+    perform_for_policy(job, ValuationPolicy.active_policy())
+  end
+
+  def perform(_job), do: {:cancel, :malformed_job_args}
+
+  @doc false
+  def perform_for_policy(%Oban.Job{args: args} = job, policy) when is_map(args) do
     case validate_args(args) do
       {:ok, identity} ->
-        AcquisitionTracker.run(
-          job,
-          tracker_options(identity.tcgdex_id),
-          &execute(job, identity, &1)
-        )
-        |> translate_budget_result()
+        if policy == ValuationPolicy.bulk_policy() do
+          {:cancel, :bulk_policy_active}
+        else
+          AcquisitionTracker.run(
+            job,
+            tracker_options(identity.tcgdex_id),
+            &execute(job, identity, &1)
+          )
+          |> translate_budget_result()
+        end
 
       {:cancel, reason} ->
         {:cancel, reason}
     end
   end
 
-  def perform(_job), do: {:cancel, :malformed_job_args}
+  def perform_for_policy(_, _), do: {:cancel, :malformed_job_args}
 
   defp translate_budget_result(
          {kind,
