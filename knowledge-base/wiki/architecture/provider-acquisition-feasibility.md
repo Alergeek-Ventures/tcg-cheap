@@ -4,13 +4,17 @@
 - Sources: [Production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [Curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [Provider/source experiment capture](../../raw/2026-08-07-provider-source-experiments.md); [Scrappy singles acquisition spike](../../raw/2026-08-07-scrappy-singles-acquisition-spike.md); [NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [LootQuest Store API capture](../../raw/2026-08-09-lootquest-store-api.md); [CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [current MVP north star](../product/mvp-implementation-plan.md); project code and validation; [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 - Raw: [2026-09-02 Boosterland and Colligere Store APIs](../../raw/2026-09-02-boosterland-colligere-store-apis.md); [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-07 provider/source experiments](../../raw/2026-08-07-provider-source-experiments.md); [2026-08-07 scrappy singles acquisition spike](../../raw/2026-08-07-scrappy-singles-acquisition-spike.md); [2026-08-08 NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [2026-08-09 LootQuest Store API](../../raw/2026-08-09-lootquest-store-api.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 
-## Cardmarket bulk shadow rollout — 2026-09-07 (Raw: N/A — codebase update)
+## Cardmarket bulk rollout and handoff — 2026-09-07 (Raw: N/A — codebase update)
 
-Cardmarket bulk acquisition is implemented locally, uncommitted and not
-deployed. Production remains revision
-`d55a26b1368084bbaf7a25b65a2211f437e6c540`; no production sync/readiness,
-deployment, CI, browser, or cutover evidence is claimed. Seven forward-only
-migrations exist locally: `20260903120603_cardmarket_bulk_v1.exs`,
+Implementation commit `b7afc9049a8af42dd569f44d2c140cb58f64221c` (`b7afc90`) was
+pushed and deployed on 2026-09-07. GitHub CI run
+[34160080003](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34160080003)
+passed all three jobs and the canonical 1,162 tests. At approximately 20:40 UTC,
+`/health` and `/health/live` were healthy at the exact `b7afc9049a8af42dd569f44d2c140cb58f64221c` SHA, with the
+database ready, eight Oban queues, and ten acquisition providers. The configured
+release migration gate succeeded for traffic promotion; exact inspection of the
+seven migration table rows remains operator verification. Seven forward-only
+migrations exist: `20260903120603_cardmarket_bulk_v1.exs`,
 `20260903134323_cardmarket_bulk_crosswalk.exs`,
 `20260907102216_harden_cardmarket_bulk_pipeline.exs`,
 `20260907102604_harden_cardmarket_bulk_pipeline_constraints.exs`,
@@ -19,6 +23,16 @@ migrations exist locally: `20260903120603_cardmarket_bulk_v1.exs`,
 `20260907134317_cardmarket_evidence_identity.exs`. The `20260907102216`,
 `20260907111314`, and `20260907134317` down paths intentionally raise; all
 seven are operationally forward-only.
+
+Public connected smoke passed Home/search, valid `/cards/sv08-238`,
+`/trade?left=sv08-238:1`, matching EUR 263.65 detail/trade, and history, with
+Cardmarket via TCGdex as the effective source. The 390px and 1440px checks had
+no overflow and zero console warnings/errors. `/cards/tk-sm-r-14` is absent/not
+valid in production, not a regression. No administrator authentication was
+available, so the explicit Coolify policy variable, `/admin/operations`,
+Oban/dashboard, exact migration rows, Cron, first sync/import counts, and
+persisted readiness remain unverified. Effective public policy is TCGdex;
+bulk remains disabled pending the first real sync and two-batch readiness/cutover.
 
 The daily 03:00 UTC queue/provider uses fixed product/price URLs, category 51
 Pokémon Single, a 32 MiB response cap and 100,000-row cap, no redirect/retry, 5s connect and 15s receive/request
@@ -51,13 +65,14 @@ broadcasts effective expiry changes, reconciles timed-out callers fail closed,
 and mounted Home/CardDetail/Trade refresh policy-dependent data without mixing
 or requesting TCGdex under bulk. Canonical local `mix check --verbose` passed
 all static gates/Dialyzer and 1,162 tests; final read-only review found no
-actionable or critical/high findings. No CI/deployment/browser/import
-verification has been performed.
+actionable or critical/high findings. First sync/import counts, persisted
+readiness, and admin-only operational evidence remain unverified; CI, deployment,
+health, and public smoke verification are recorded above.
 
 ### Current Singles source status and controls
 
 TCGdex remains the deployed/default aggregate baseline under
-`tcgdex_cardmarket_v1`. Cardmarket bulk is an implemented local shadow
+`tcgdex_cardmarket_v1`. Cardmarket bulk is a deployed but disabled shadow
 candidate, selectable only after an explicit `cardmarket_bulk_v1` request and
 persisted readiness evidence; the policy otherwise fails closed to TCGdex.
 Both sources are aggregate-only and do not prove seller-level fields,
@@ -66,10 +81,11 @@ UTC TCGdex refresh is a no-op and the daily 03:00 UTC bulk sync is the
 acquisition path. The configured source-health boundary is 36 hours where a
 current successful acquisition is required. Existing provider controls,
 budgets, mapping locks, review routing, and `/admin/operations` evidence remain
-the operational controls; next actions are a second distinct successful bulk
-batch and readiness review, not a claim of cutover or production acceptance.
+the operational controls; next actions are the first real production sync and
+later a second distinct successful bulk batch, followed by readiness review, not
+a claim of cutover or production acceptance.
 
-## Current production provider state — 2026-09-03 (Raw: [capture](../../raw/2026-09-02-boosterland-colligere-store-apis.md))
+## Historical production provider state — 2026-09-03 (Raw: [capture](../../raw/2026-09-02-boosterland-colligere-store-apis.md))
 
 Production revision `d55a26b1368084bbaf7a25b65a2211f437e6c540` is verified by passed CI runs [33747809832](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33747809832) and [33748881597](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33748881597). `/health` and `/health/live` returned 200 with healthy DB/Oban, seven queues, and nine providers. Boosterland (category 40, Monday 05:00 UTC) and Colligere (category 23, Monday 06:00 UTC) are active persisted `lgs` sources: one admitted request each, 8 and 37 active listings, six active retailers overall, no related import issues, and independent 50/hour, 100/day, 500/month budgets. PokeNest was rejected under terms §16; other candidates showed 402/404.
 
@@ -195,7 +211,7 @@ For private/local/staging technical-feasibility work and self-testing around the
 
 **Current status / next actions:** The existing adapter contracts, bounded workers, observation/history storage, local aggregate/model paths, and public fail-closed projections remain the technical boundary. The bounded current TCGdex discovery smoke succeeds, live failed-set repair is validated, and `exu` now imports all 28 observed identities. The remaining catalogue task is not another blind hard-failure retry: investigate or cross-check the 10 provider-partial sets, preserve partial honesty, and expand representative detailed mapping/valuation coverage before claiming a complete available catalogue. The six-source registry and Monday 01:00–06:00 UTC staggered sealed bootstrap are deployed across nine providers; Boosterland/Colligere persisted 8/37 active listings after one admitted request each. Continue exercises only as needed under the independent budgets and safety controls. Representative multi-retailer validation, completion of the production catalogue/mappings, and field mappings, attribution evidence, storage behavior, and publication-scope validation remain technical work.
 
-**Status:** TCGdex embedded Cardmarket aggregate pricing remains the deployed/default `$0`, unauthenticated Singles MVP baseline under `tcgdex_cardmarket_v1`; the implemented `cardmarket_bulk_v1` path is a local shadow candidate selected only after explicit request plus persisted readiness. Sealed retains its source-neutral product, alias, retailer, current-listing, mapping-review, immutable observation, atomic refresh, versioned local daily aggregate/benchmark, and persisted provisional buying-guide foundations plus six centrally configured WooCommerce adapters: LootQuest, CardzHouse, BoosterPoint, PokeBooster, Boosterland, and Colligere. The six-source registry is deployed with Monday 01:00–06:00 UTC staggered bootstrap; each source has a budget of 50/hour, 100/day, and 500/month. Production has 19 approved Sealed products and persisted Boosterland/Colligere evidence, while retailer mappings remain review and no ready sealed bands or real model validation are claimed.
+**Status:** TCGdex embedded Cardmarket aggregate pricing remains the effective deployed/default `$0`, unauthenticated Singles MVP baseline under `tcgdex_cardmarket_v1`; the deployed `cardmarket_bulk_v1` path remains disabled and selectable only after explicit request plus persisted readiness. Sealed retains its source-neutral product, alias, retailer, current-listing, mapping-review, immutable observation, atomic refresh, versioned local daily aggregate/benchmark, and persisted provisional buying-guide foundations plus six centrally configured WooCommerce adapters: LootQuest, CardzHouse, BoosterPoint, PokeBooster, Boosterland, and Colligere. The six-source registry is deployed with Monday 01:00–06:00 UTC staggered bootstrap; each source has a budget of 50/hour, 100/day, and 500/month. Production has 19 approved Sealed products and persisted Boosterland/Colligere evidence, while retailer mappings remain review and no ready sealed bands or real model validation are claimed.
 
 The approved `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` and manually confirmed listing source ID 104164 yielded local aggregate `limited / too_few_regular_retailers` with one regular retailer, and guide `limited / limited_market_aggregate` at confidence `0.19`, with no fabricated bands. TCGdex detailed private enrichment covers exactly `sv01-001` through `sv01-011`; all 11 match Cardmarket IDs 702298 through 702308 and all 11 have current `tcgdex_cardmarket_v1` valuations. Real local values range from EUR 0.03 to EUR 5.04, with Pineco at EUR 5.04; these 11 mappings are not representative coverage of the current 20,964 printings. The historical full run and its cancelled job remain valid execution evidence, while the newer repair converted its 11 hard failures to partial and the `exu` correction reduced unresolved partials to 10. This remains incomplete private coverage rather than a successful production import; remaining work is technical evidence and reliability.
 
@@ -228,7 +244,7 @@ Direct Cardmarket browser GET for the documented TCG Scraper Charizard Obsidian 
 | Candidate | Decision and evidence |
 | --- | --- |
 | TCGdex embedded Cardmarket aggregate | **Selected MVP source.** Free and unauthenticated. Use policy `tcgdex_cardmarket_v1`; select the first finite positive EUR value in `avg7`, `avg30`, `trend`, `avg`, `low`. It does not prove language, condition, seller identity/count, finish-specific exactness, or shipping to Poland. |
-| Cardmarket bulk product/price-guide | **Implemented local shadow candidate.** Fixed daily product-list and price-guide sources, strict Singles filtering, immutable batch/mapping evidence, and `cardmarket_bulk_v1` snapshots. Select only after explicit policy request plus persisted readiness; the 03:00 UTC sync supplies acquisition and the 14:00 UTC TCGdex fan-out is a no-op under bulk. Aggregate-only: it does not prove seller-level fields or shipping to Poland. |
+| Cardmarket bulk product/price-guide | **Deployed but disabled candidate.** Fixed daily product-list and price-guide sources, strict Singles filtering, immutable batch/mapping evidence, and `cardmarket_bulk_v1` snapshots. Select only after explicit policy request plus persisted readiness; the 03:00 UTC sync supplies acquisition and the 14:00 UTC TCGdex fan-out is a no-op under bulk. Aggregate-only: it does not prove seller-level fields or shipping to Poland. |
 | Apify Phantom Coder | **Post-MVP experiment candidate.** Documents seller identity, condition, language, quantity, EUR/currency rows, seller-country input, max 1–500 results, and $0.005/listing Free / $0.004 Starter; reports 97.1% successful runs. Destination eligibility is absent. Signup stalled at identity/hCaptcha; no account creation is claimed. |
 | Parse.bot Cardmarket API | **Post-MVP experiment candidate.** Documents seller usernames, condition, attributes, price, quantity, comments, pagination to Cardmarket’s 300 cap, and seller-country filtering; Free 100 credits or Hobby $30/1,000 credits, listing calls 2 credits. Destination eligibility is absent. Signup stalled at hCaptcha; no credentialed call. |
 | cardmarketapi.com | **Indicative/aggregate fallback only.** Successful HTTP 200, but empirical listings lack seller identity, quantity, and destination. Its `avg5` is five listings, not five distinct sellers. Current Starter $49.99 leaves no safety margin and the plan API says 500/day. |

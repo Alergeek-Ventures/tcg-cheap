@@ -4,12 +4,17 @@
 - Sources: Product specification supplied by project owner; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation; [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 - Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 
-## Cardmarket bulk shadow implementation checkpoint — 2026-09-07 (Raw: N/A — codebase update)
+## Cardmarket bulk rollout and handoff — 2026-09-07 (Raw: N/A — codebase update)
 
-The Cardmarket bulk Singles path is complete locally, uncommitted, and not
-deployed. Production remains revision
-`d55a26b1368084bbaf7a25b65a2211f437e6c540`; no production sync, readiness,
-deployment, CI, browser, or cutover evidence is claimed. Seven local forward-only
+The Cardmarket bulk Singles path was delivered in implementation commit
+`b7afc9049a8af42dd569f44d2c140cb58f64221c` (`b7afc90`), pushed and deployed on
+2026-09-07. GitHub CI run
+[34160080003](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34160080003)
+passed all three jobs and the canonical 1,162 tests. At approximately 20:40 UTC,
+`/health` and `/health/live` were healthy at the exact `b7afc9049a8af42dd569f44d2c140cb58f64221c` SHA, with the
+database ready, eight Oban queues, and ten acquisition providers. The configured
+release migration gate succeeded for traffic promotion; exact inspection of the
+seven migration table rows remains operator verification. Seven forward-only
 migrations are `20260903120603_cardmarket_bulk_v1.exs`,
 `20260903134323_cardmarket_bulk_crosswalk.exs`,
 `20260907102216_harden_cardmarket_bulk_pipeline.exs`,
@@ -19,6 +24,16 @@ migrations are `20260903120603_cardmarket_bulk_v1.exs`,
 `20260907134317_cardmarket_evidence_identity.exs`; `20260907102216`,
 `20260907111314`, and `20260907134317` intentionally raise on down, and
 rollback is forbidden for all seven.
+
+Public connected smoke passed Home/search, valid `/cards/sv08-238`,
+`/trade?left=sv08-238:1`, matching EUR 263.65 detail/trade, and history, with
+Cardmarket via TCGdex as the effective source. The 390px and 1440px checks had
+no overflow and zero console warnings/errors. `/cards/tk-sm-r-14` is absent/not
+valid in production, not a regression. No administrator authentication was
+available, so the explicit Coolify policy variable, `/admin/operations`,
+Oban/dashboard, exact migration rows, Cron, first sync/import counts, and
+persisted readiness remain unverified. Effective public policy is TCGdex;
+bulk remains disabled pending the first real sync and two-batch readiness/cutover.
 
 The daily 03:00 UTC queue/provider uses fixed product/price URLs, category 51
 Pokémon Single, a 32 MiB response cap and 100,000-row cap, no redirect/retry, 5s connect and 15s
@@ -50,10 +65,11 @@ broadcasts effective expiry changes, reconciles timed-out callers fail closed,
 and mounted Home/CardDetail/Trade refresh policy-dependent data without mixing
 or requesting TCGdex under bulk. Canonical local `mix check --verbose` passed
 all static gates/Dialyzer and 1,162 tests; final read-only review found no
-actionable or critical/high findings. No CI/deployment/browser/import
-verification has been performed.
+actionable or critical/high findings. First sync/import counts, persisted readiness,
+and admin-only operational evidence remain unverified; CI, deployment, health, and
+public smoke verification are recorded above.
 
-## Current production state — 2026-09-03 (Raw: [provider capture](../../raw/2026-09-02-boosterland-colligere-store-apis.md))
+## Historical production state — 2026-09-03 (Raw: [provider capture](../../raw/2026-09-02-boosterland-colligere-store-apis.md))
 
 This north-star is verified in production at revision `d55a26b1368084bbaf7a25b65a2211f437e6c540`; CI runs [33747809832](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33747809832) and [33748881597](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33748881597) passed. `/health` and `/health/live` returned 200 with healthy DB/Oban, seven queues, and nine providers. Production has 19 approved Sealed rows with sourced complete facts and positive applicable pack counts, 13 complete official USD reference-price tuples, and 17 complete canonical image tuples.
 
@@ -217,7 +233,7 @@ Current validation is the 2026-08-26 gate: canonical `mix check --verbose` passe
 **Status:** **Current product north star.** Unless the product owner explicitly supersedes this article, every requirement, implementation phase, documentation deliverable, and acceptance criterion listed below is authoritative and must be completed in full. Phase 3 trade/share is complete. Phase 4 now has source-neutral product/alias/retailer/listing/mapping/observation foundations, reusable bounded WooCommerce Store API request/pagination/normalization mechanics, a six-source production registry (LootQuest `regular_retailer`; CardzHouse, BoosterPoint, PokeBooster, Boosterland, and Colligere `lgs`) across nine total providers, an atomic unique refresh path, and the deployed Monday 01:00–06:00 staggered sealed bootstrap, an authenticated administrator review desk, and a local-only public Sealed search/detail foundation. Phase 5 now has a local-only versioned daily aggregate foundation, the pure provisional `sealed_buying_model_v1`, persisted versioned buying-guide snapshots/recomputation, and public rendering of persisted ready/Limited guides, plain-English explanations from persisted factors, and the fixed 30-day graph. Daily aggregate persistence atomically enqueues jobs identified by the exact current and preceding 30-day revisions, and historical corrections cascade through affected following guide dates; local snapshot reads retain model outputs and factors. Public guide projection validates bindings, exact source fingerprints, and invariants, failing closed on corruption or mismatch; stale bands remain previous/cached/outdated rather than current. A fail-closed request-level acquisition-budget foundation covers every in-tree operational TCGdex catalogue, TCGdex Cardmarket, NBP, and sealed-retailer request with provider/global UTC counters, estimated-spend caps, persisted provider kill switches, and passive automatic provider circuit opening from terminal source-facing failures. Public connected LiveViews additionally apply a bounded direct-peer IP throttle before stale/missing singles or NBP work can be enqueued. Authenticated AshBackpex and focused operations surfaces cover the implemented curation, inspection, safe manual execution, source-health, and provider-control slices documented below. Real catalogue/observations/model validation, actual-cost reconciliation, active provider probes, remaining operations/AshBackpex resources, homepage tuning/deployment, and other acceptance work remain incomplete. The overall MVP is not complete.
 **Historical permission status — 2026-08-10 (superseded):** The earlier owner assumption and its dated private-test evidence are retained as historical context. The 2026-08-20 owner direction above is authoritative current state: agreed-MVP permission is settled and non-blocking, and no permission/publication/rights state or gate is modeled for implementation, validation, deployment, or demo work.
 
-**Current production reconciliation — 2026-09-03:** The authoritative current state is revision `d55a26b1368084bbaf7a25b65a2211f437e6c540`, with passed CI runs 33747809832 and 33748881597, healthy `/health` and `/health/live` (200), seven Oban queues, and nine providers. Boosterland/Colligere are persisted active sources with six active retailers, one admitted request each, 8/37 active listings, no related import issues, and 50/hour, 100/day, 500/month budgets on Monday 05:00/06:00 UTC. Production Sealed evidence is 19 sourced complete rows with positive applicable pack counts, 13 complete official USD reference-price tuples, and 17 complete canonical image tuples. Public Pitch Black search exposes Booster Box/Pack/ETB; verified Pitch Black Booster Box/ETB and Destined Rivals Booster Box routes return 200 with images/offers and no browser console/page errors. Forward-only image correction `20260903102840` preceded ETB product-type correction `20260903111025`. Binacle 3-pack and SV151 Booster Bundle remain image-null and unpublished; authoritative PLN MSRP/facts remain unset; retailer mappings and real buying-model validation require review; no Singles-offer provider exists.
+**Historical production reconciliation — 2026-09-03:** The authoritative current state at that dated checkpoint was revision `d55a26b1368084bbaf7a25b65a2211f437e6c540`, with passed CI runs 33747809832 and 33748881597, healthy `/health` and `/health/live` (200), seven Oban queues, and nine providers. Boosterland/Colligere are persisted active sources with six active retailers, one admitted request each, 8/37 active listings, no related import issues, and 50/hour, 100/day, 500/month budgets on Monday 05:00/06:00 UTC. Production Sealed evidence is 19 sourced complete rows with positive applicable pack counts, 13 complete official USD reference-price tuples, and 17 complete canonical image tuples. Public Pitch Black search exposes Booster Box/Pack/ETB; verified Pitch Black Booster Box/ETB and Destined Rivals Booster Box routes return 200 with images/offers and no browser console/page errors. Forward-only image correction `20260903102840` preceded ETB product-type correction `20260903111025`. Binacle 3-pack and SV151 Booster Bundle remain image-null and unpublished; authoritative PLN MSRP/facts remain unset; retailer mappings and real buying-model validation require review; no Singles-offer provider exists.
 
 
 **Audience:** Long-running implementation agent

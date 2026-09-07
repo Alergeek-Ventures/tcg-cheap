@@ -72,12 +72,14 @@ The curated `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` is approved. I
 
 At the 2026-09-01 checkpoint, production-scoped Singles has 127 cards and 643 retained valuation snapshots. The 120-card Pitch Black scope is complete; rolling IR/SIR enrichment remains incomplete. Every successful listing ingest ensures a mapping in the same transaction: missing/invalid/ambiguous evidence creates or refreshes review; one eligible approved exact EAN may create or promote a mutable pending/review mapping to matched through the locked/product-validated Ash action and immutable decision history; terminal matched/rejected decisions are protected from source overwrite; failures roll back the batch.
 
-## Cardmarket bulk shadow implementation checkpoint — 2026-09-07
+## Cardmarket bulk rollout checkpoint — 2026-09-07
 
-The local, uncommitted, not-deployed Singles bulk implementation is a
-source-neutral selected-policy boundary. Production remains revision
-`d55a26b1368084bbaf7a25b65a2211f437e6c540`; no production sync, migration,
-readiness, browser, CI, or cutover evidence is claimed. The seven local forward-only
+The deployed Singles bulk implementation is a source-neutral selected-policy
+boundary. Implementation commit `b7afc9049a8af42dd569f44d2c140cb58f64221c`
+(`b7afc90`) was pushed and deployed on 2026-09-07. Public smoke and CI passed,
+but no first production sync, persisted readiness, or cutover is claimed. The
+configured migration release gate succeeded for traffic promotion; the migration
+table and exact seven migration rows still require operator verification. The seven
 migrations are `20260903120603_cardmarket_bulk_v1.exs`,
 `20260903134323_cardmarket_bulk_crosswalk.exs`,
 `20260907102216_harden_cardmarket_bulk_pipeline.exs`,
@@ -122,19 +124,39 @@ latest-batch approved exact staged-value/metric-matching valuations. Local shado
 batch: TCGdex 169, bulk 244, overlap/agreement 169, bulk-only 75, and 244
 latest approved/exact/0-ambiguous valuations; cutover was not ready.
 
-The first deploy must explicitly set
-`PUBLIC_SINGLES_VALUATION_POLICY=tcgdex_cardmarket_v1` (runtime omission is
-currently equivalent but operationally insufficient). Public bulk policy
-disables the daily TCGdex sweep and cancels already-queued TCGdex valuation
-HTTP work. Cutover requires all readiness gates and two distinct successful
-batches; until then, no production synchronization or readiness is implied.
+Implementation commit `b7afc9049a8af42dd569f44d2c140cb58f64221c` (`b7afc90`) was
+pushed and deployed on 2026-09-07. GitHub [CI run
+34160080003](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34160080003)
+passed all three jobs: app container, DB image validation, and canonical `mix
+check` (1,162 tests). At about 20:40 UTC, production `/health` and
+`/health/live` reported healthy at exact revision `b7afc9049a8af42dd569f44d2c140cb58f64221c`, with DB ready,
+Oban ready with 8 queues, and acquisition budget ready with 10 providers. The
+configured migration release gate succeeded for traffic promotion, but the
+migration table and exact seven migration rows were not directly inspected and
+still require operator verification. Connected public smoke passed Home over
+LiveView, search, valid `/cards/sv08-238`, and
+`/trade?left=sv08-238:1`; detail and trade agreed at EUR 263.65, history
+rendered, the effective source tooltip identified Cardmarket via TCGdex, and
+there were no console warnings/errors or horizontal overflow at 390px/1440px.
+`/cards/tk-sm-r-14` is not a valid/present production printing and is not an
+application regression.
+
+The initial-deployment requirement is to explicitly set
+`PUBLIC_SINGLES_VALUATION_POLICY=tcgdex_cardmarket_v1`; the explicit Coolify
+environment variable was not directly verified. Public bulk policy disables the
+daily TCGdex sweep and cancels already-queued TCGdex valuation HTTP work.
+Cutover requires all readiness gates and two distinct successful batches; the
+first real sync and readiness/cutover remain pending, so bulk must remain
+disabled and no production synchronization or readiness is implied.
 The supervised policy cache is max 30 seconds, refreshes automatically,
 broadcasts effective expiry changes, reconciles timed-out callers fail closed,
 and mounted Home/CardDetail/Trade refresh policy-dependent data without mixing
-or requesting TCGdex under bulk. Canonical `mix check --verbose` passed all
-static gates/Dialyzer and 1,162 tests; final read-only review found no actionable
-or critical/high findings. No CI/deployment/browser/import verification has been
-performed.
+or requesting TCGdex under bulk. Canonical CI passed all static gates/Dialyzer
+and 1,162 tests. Authentication to `/admin/operations`, Oban, and the dashboard
+was unavailable, so the exact migration rows, Cron entry, first Cardmarket
+sync/import counts, and persisted readiness were not directly verified.
+Effective public behavior remains TCGdex; the first real sync and cutover remain
+pending.
 
 ## Owner-directed pricing refinement — 2026-08-27
 

@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-09-07] Cardmarket bulk rollout and handoff reconciliation
+
+- Task: Reconciled the Cardmarket bulk rollout from local/uncommitted wording to implementation commit `b7afc9049a8af42dd569f44d2c140cb58f64221c` (`b7afc90`), pushed/deployed 2026-09-07, while preserving implementation constraints and dated historical evidence.
+- Files: Updated exactly `knowledge-base/wiki/architecture/application-foundation.md`, `knowledge-base/wiki/architecture/provider-acquisition-feasibility.md`, `knowledge-base/wiki/product/mvp-implementation-plan.md`, `knowledge-base/wiki/index.md`, and `knowledge-base/wiki/log.md`. No immutable raw files or other files were modified.
+- Validation: GitHub CI run [34160080003](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34160080003) passed all 3 jobs and 1,162 tests. At ~20:40 UTC exact-SHA `/health` and `/health/live` were healthy with DB ready, 8 Oban queues, and 10 providers; the migration release gate succeeded. Connected Home/search, `sv08-238` detail/trade, EUR 263.65 matching values, history, and 390px/1440px smoke passed with no overflow or console warnings/errors. `git diff --check` passed.
+- Remaining boundaries: Exact seven migration rows are operator verification. No admin authentication was available, so the explicit Coolify policy variable, `/admin/operations`, Oban/dashboard, Cron, first sync/import counts, and persisted readiness remain unverified. `/cards/tk-sm-r-14` is absent/not valid in production, not a regression. Effective public policy is TCGdex; bulk remains disabled pending first real sync and two-batch readiness/cutover. Raw: N/A — codebase update.
+
 ## [2026-09-07] Cardmarket bulk Singles correction and final validation
 
 - Task: Corrected and reconciled documentation for the completed local Cardmarket bulk Singles implementation: seven forward-only migrations, nonblank `dateAdded`, exact immutable same-batch mapping/materialization safeguards, catalogue/readiness gates, supervised policy-cache behavior, and final rollout boundary. All implementation remains local/uncommitted/not deployed; production remains `d55a26b1368084bbaf7a25b65a2211f437e6c540`.

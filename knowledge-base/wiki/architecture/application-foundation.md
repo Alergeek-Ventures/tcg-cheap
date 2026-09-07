@@ -4,12 +4,17 @@
 - Sources: Project code; local validation; `PRODUCT.md`; `DESIGN.md`; `.impeccable/design.json`; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 - Raw: [2026-09-02 Boosterland and Colligere Store APIs](../../raw/2026-09-02-boosterland-colligere-store-apis.md); [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-08 NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [2026-08-09 LootQuest Store API](../../raw/2026-08-09-lootquest-store-api.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 
-## Cardmarket bulk shadow implementation — 2026-09-07 (Raw: N/A — codebase update)
+## Cardmarket bulk rollout and handoff — 2026-09-07 (Raw: N/A — codebase update)
 
-The local implementation is complete but uncommitted and not deployed. Preserve
-production checkpoint `d55a26b1368084bbaf7a25b65a2211f437e6c540`; no production
-sync, migration, readiness, CI, browser, or cutover evidence is implied. Seven
-local forward-only migrations exist: `20260903120603_cardmarket_bulk_v1.exs`,
+Implementation commit `b7afc9049a8af42dd569f44d2c140cb58f64221c` (`b7afc90`) was
+pushed and deployed on 2026-09-07. GitHub CI run
+[34160080003](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34160080003)
+passed all three jobs and the canonical 1,162 tests. At approximately 20:40 UTC,
+`/health` and `/health/live` were healthy at the exact `b7afc9049a8af42dd569f44d2c140cb58f64221c` SHA, with the
+database ready, eight Oban queues, and ten acquisition providers. The configured
+release migration gate succeeded for traffic promotion; exact inspection of the
+seven migration table rows remains operator verification. Seven forward-only
+migrations exist: `20260903120603_cardmarket_bulk_v1.exs`,
 `20260903134323_cardmarket_bulk_crosswalk.exs`,
 `20260907102216_harden_cardmarket_bulk_pipeline.exs`,
 `20260907102604_harden_cardmarket_bulk_pipeline_constraints.exs`,
@@ -18,6 +23,16 @@ local forward-only migrations exist: `20260903120603_cardmarket_bulk_v1.exs`,
 `20260907134317_cardmarket_evidence_identity.exs`. The `20260907102216`,
 `20260907111314`, and `20260907134317` down paths intentionally raise; rollback
 is forbidden operationally for all seven.
+
+Public connected smoke passed Home/search, valid `/cards/sv08-238`,
+`/trade?left=sv08-238:1`, matching EUR 263.65 detail/trade, and history, with
+Cardmarket via TCGdex as the effective source. The 390px and 1440px checks had
+no overflow and zero console warnings/errors. `/cards/tk-sm-r-14` is absent/not
+valid in production, not a regression. No administrator authentication was
+available, so the explicit Coolify policy variable, `/admin/operations`,
+Oban/dashboard, exact migration rows, Cron, first sync/import counts, and
+persisted readiness remain unverified. Effective public policy is TCGdex;
+bulk remains disabled pending the first real sync and two-batch readiness/cutover.
 
 The daily 03:00 UTC sync uses fixed product/price URLs, category 51 Pokémon
 Single, a 32 MiB response cap and 100,000-row cap, no redirect/retry, 5s connect and 15s receive/request
@@ -56,10 +71,11 @@ gates/Dialyzer and 1,162 tests; the supervised policy cache is max 30 seconds,
 refreshes automatically, broadcasts effective expiry changes, reconciles timed-out
 callers fail closed, and mounted Home/CardDetail/Trade refresh policy-dependent
 data without mixing or requesting TCGdex under bulk. Final read-only review found
-no actionable or critical/high findings; no CI/deployment/browser/import
-verification has been performed.
+no actionable or critical/high findings. First sync/import counts, persisted
+readiness, and admin-only operational evidence remain unverified; CI, deployment,
+health, and public smoke verification are recorded above.
 
-## Current production state — 2026-09-03
+## Historical production state — 2026-09-03
 
 Revision `d55a26b1368084bbaf7a25b65a2211f437e6c540` is the verified production state. CI runs [33747809832](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33747809832) and [33748881597](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33748881597) passed. `/health` and `/health/live` returned HTTP 200; the database and Oban are healthy, with seven queues and nine providers. Production has 19 approved Sealed rows with sourced complete facts and positive applicable pack counts, 13 complete official USD reference-price tuples, and 17 complete canonical image tuples. Missing authoritative PLN MSRP/facts remain unset.
 
@@ -205,7 +221,7 @@ stop if the owner needs to stop the demo.
 
 `TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI` owns the reusable bounded fixed-policy WooCommerce Store API request, pagination, and normalization mechanics. The deployed registry now covers nine providers, including active Boosterland and Colligere `lgs` sources at Monday 05:00/06:00 UTC; source budgets remain 50/hour, 100/day, and 500/month. Six retailers are active, and Boosterland/Colligere persisted 8/37 active listings after one admitted request each with no related import issues. Fixed host/path/category/field policies enforce per-page admission, no redirects/retries, bounded pages/listings/body/time, strict PLN minor units, conservative English sealed filtering, and exact direct URL validation. Older three-source/job-88–91 counts remain historical evidence; current retailer mappings still require review.
 
-TCG Cheap is a Phoenix LiveView application using the `TcgCheap.Core` Ash domain and `TcgCheap.Repo` AshPostgres repository. The local catalogue includes `CardSet` and exact-identity `CardPrinting` storage, with metadata, legalities, assets, source payload, sync timestamps, and conservative Cardmarket mapping state. `CardSet` is nullable for legacy/minimal records. Deployed/default Singles acquisition remains the TCGdex aggregate background boundary; the implemented conditional Cardmarket bulk policy is a local shadow candidate. Neither is called by public rendering or events, and no seller/offer count is fabricated.
+TCG Cheap is a Phoenix LiveView application using the `TcgCheap.Core` Ash domain and `TcgCheap.Repo` AshPostgres repository. The local catalogue includes `CardSet` and exact-identity `CardPrinting` storage, with metadata, legalities, assets, source payload, sync timestamps, and conservative Cardmarket mapping state. `CardSet` is nullable for legacy/minimal records. Deployed/default Singles acquisition remains the TCGdex aggregate background boundary; the deployed conditional Cardmarket bulk policy remains disabled pending explicit selection and persisted readiness. Neither is called by public rendering or events, and no seller/offer count is fabricated.
 
 Phase 4 has a canonical source-neutral sealed foundation. `SealedProduct` models stable canonical slugs, normalized name/search text, allowlisted product types, series/set/release, optional finite positive PLN MSRP with paired provenance/source URL, image, official PL/en flags, draft/approved/archived publication, current/discontinued state, source identity/provenance/private payload, and timestamps. Source imports are draft-only, keyed by stable source/source ID, may correct draft slugs, and cannot overwrite reviewed rows; manual curation can omit source. Approval enforces released/non-future and official PL/en completeness. Discontinued approved products remain readable; archive is soft/unpublished. `SealedProductAlias` models normalized name/EAN review values with original values/provenance, pending/approved/rejected queues, and approved-per-product reads. GTIN-8/12/13/14 ASCII normalization and GS1 checksum are enforced in app and DB, with canonical-product global uniqueness. Imports are pending-only/idempotent and cannot overwrite reviewed aliases.
 

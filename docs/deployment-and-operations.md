@@ -131,11 +131,22 @@ historical down/up validation records remain historical evidence only. Image
 rollback is a separate deployment concern and is permitted only when schema
 compatibility has been proven; never reverse database migrations.
 
-Production revision `d55a26b1368084bbaf7a25b65a2211f437e6c540` is deployed; CI runs
-[33747809832](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33747809832)
-and [33748881597](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33748881597)
-passed. `/health` and `/health/live` return 200 with database and Oban healthy,
-seven queues, and nine providers. Six active sealed retailers are configured:
+Implementation commit `b7afc9049a8af42dd569f44d2c140cb58f64221c` (`b7afc90`) was
+pushed and deployed on 2026-09-07. GitHub [CI run
+34160080003](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34160080003)
+passed all three jobs: app container, DB image validation, and canonical `mix
+check` (1,162 tests). At about 20:40 UTC, production `/health` and
+`/health/live` reported healthy with exact revision `b7afc9049a8af42dd569f44d2c140cb58f64221c`, DB ready, Oban
+ready with 8 queues, and acquisition budget ready with 10 providers. The
+configured migration release gate necessarily succeeded for traffic promotion;
+the migration table and exact seven migration rows were not directly inspected,
+so that operator verification remains required. Connected public smoke passed
+Home over LiveView, search, valid `/cards/sv08-238`, and
+`/trade?left=sv08-238:1`; detail and trade agreed at EUR 263.65, history
+rendered, the effective source tooltip identified Cardmarket via TCGdex, and
+there were no console warnings/errors or horizontal overflow at 390px/1440px.
+`/cards/tk-sm-r-14` is not a valid/present production printing and is not an
+application regression. Six active sealed retailers are configured:
 LootQuest, CardzHouse, BoosterPoint, PokeBooster, Boosterland, and Colligere.
 Boosterland (category 40, Monday 05:00 UTC) and Colligere (category 23, Monday
 06:00 UTC) are `lgs` Woo Store API sources, bounded to 50 requests/hour,
@@ -220,10 +231,11 @@ After a successful release, verify:
 
 ## Cardmarket bulk Singles shadow rollout and cutover
 
-The Cardmarket bulk implementation is complete locally but is uncommitted and
-not deployed as of 2026-09-07. Production remains
-`d55a26b1368084bbaf7a25b65a2211f437e6c540`; this is a deployment runbook, not
-production sync, readiness, browser, CI, or cutover evidence. The seven local
+The Cardmarket bulk implementation is deployed in
+`b7afc9049a8af42dd569f44d2c140cb58f64221c`; this is deployment and public-smoke
+evidence, not evidence of a first real sync, persisted readiness, or cutover.
+The configured migration release gate succeeded, but the migration table and
+exact seven migration rows still require direct operator verification. The seven
 forward-only migrations are `20260903120603_cardmarket_bulk_v1.exs`,
 `20260903134323_cardmarket_bulk_crosswalk.exs`,
 `20260907102216_harden_cardmarket_bulk_pipeline.exs`,
@@ -311,10 +323,17 @@ real sync and effective policy must be checked before any later cutover.
 The supervised policy cache is max 30 seconds, refreshes automatically,
 broadcasts effective expiry changes, and reconciles timed-out callers fail
 closed. Mounted Home, CardDetail, and Trade refresh policy-dependent data; bulk
-does not mix with or request TCGdex. Canonical local `mix check --verbose` passed
-all static gates/Dialyzer and 1,162 tests. Final read-only review found no
-actionable or critical/high code findings. No CI, deployment, browser, or import
-verification has been performed.
+does not mix with or request TCGdex. Canonical CI passed all static gates/Dialyzer
+and 1,162 tests. Public smoke verified Home, search, `/cards/sv08-238`, and
+`/trade?left=sv08-238:1`; detail and trade agreed at EUR 263.65, history
+rendered, and the effective source was Cardmarket via TCGdex. No console
+warnings/errors or horizontal overflow were observed at 390px/1440px.
+Authentication to `/admin/operations`, Oban, and the dashboard was unavailable,
+so the explicit Coolify environment variable, exact migration rows, Cron entry,
+first Cardmarket sync/import counts, and persisted readiness were not directly
+verified. Effective public behavior remains TCGdex; bulk must remain disabled.
+The first real sync and readiness/cutover are pending, and cutover still
+requires every readiness gate plus two distinct successful batches.
 
 ## Production Singles collection operations
 
@@ -374,10 +393,10 @@ related import issues. Provider controls can disable a source; taking the
 Coolify application down is the operational stop when needed. No production
 Singles-offer provider exists.
 
-Current production checkpoint is revision `d55a26b1368084bbaf7a25b65a2211f437e6c540`, with green CI runs
+The 2026-09-03 sealed-catalogue checkpoint was revision `d55a26b1368084bbaf7a25b65a2211f437e6c540`, with green CI runs
 <https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33747809832> and
 <https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33748881597>.
-Production `/health` and `/health/live` return 200 with database and Oban healthy,
+Production `/health` and `/health/live` returned 200 with database and Oban healthy,
 7 Oban queues, and 9 configured providers. All seven exact curated card routes resolved publicly
 after the 2026-08-20 deploy; at that initial checkpoint four had valuations and
 three honestly showed no valuation. Do not infer later freshness from this checkpoint.
