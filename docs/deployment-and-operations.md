@@ -255,11 +255,19 @@ forward from the next valid batch.
 
 The generated migration
 `20260908110348_remove_legacy_singles_pricing.exs` removes `pricing_checked_at`.
-Apply it through the normal release gate; migrations are forward-only and must
-not be rolled back. This documentation checkpoint records release
-`68b73cc624e0ac6f450bf1c0af05bdc35eaaf565`, deployed 2026-09-08, CI
-`34212821835` with 1,117 tests, and production Home/card/trade smoke at EUR
-263.65. Final commit/deploy remains pending at documentation time.
+It passed the configured release gate; migrations are forward-only and must not
+be rolled back. Cleanup release `f73af22656de11e5e84c6c301da560bdde719119`
+deployed 2026-09-08 after CI `34225801330` passed the canonical 1,065-test gate
+and container/database-image jobs. `/health` and `/health/live` returned 200 at
+the exact revision with the database and Oban ready, 7 queues, and 9 budget
+providers. Connected public Home/search, `/cards/sv08-238`, and
+`/trade?left=sv08-238:1` matched at EUR 263.65; 390px had no overflow and the
+fresh retest had zero console warnings/errors. An initial rollout/proxy 502 was
+transient and did not reproduce after traffic settled.
+
+Direct migration-table inspection, authenticated admin Operations/Oban/Cron
+checks, and a production invalidation-event exercise remain operator-only and
+unverified in this handoff.
 
 ### Post-deploy bulk verification
 

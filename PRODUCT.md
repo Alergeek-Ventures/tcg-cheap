@@ -74,14 +74,19 @@ The curated `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` is approved. I
 
 ## Current bulk-only checkpoint — 2026-09-08
 
-The fixed public/new-write Singles policy is `cardmarket_bulk_v1`. Release
-`68b73cc624e0ac6f450bf1c0af05bdc35eaaf565` was deployed on 2026-09-08; CI
-`34212821835` passed 1,117 tests, and production Home/card/trade smoke agreed at
-EUR 263.65. Cardmarket bulk sync runs daily at 03:00 UTC. TCGdex remains limited
-to catalogue/detail/image enrichment and Cardmarket identity mapping. Historical
-`tcgdex_cardmarket_v1` snapshots remain readable, but cannot be selected or newly
-written. The generated `pricing_checked_at` removal migration is present and this
-documentation checkpoint remains pending its final commit/deploy.
+The fixed public/new-write Singles policy is `cardmarket_bulk_v1`. Cleanup release
+`f73af22656de11e5e84c6c301da560bdde719119` deployed on 2026-09-08 after CI
+`34225801330` passed the canonical 1,065-test gate and container/database-image
+jobs. `/health` and `/health/live` returned 200 at the exact revision with the
+database and Oban ready, 7 queues, and 9 budget providers; connected public
+Home/search, `/cards/sv08-238`, and `/trade?left=sv08-238:1` matched at EUR
+263.65, with no 390px overflow and zero console warnings/errors on the fresh
+retest. An initial rollout/proxy 502 was transient and did not recur after
+traffic settled. Cardmarket bulk sync runs daily at 03:00 UTC. TCGdex remains
+limited to catalogue/detail/image enrichment and Cardmarket identity mapping.
+Historical `tcgdex_cardmarket_v1` snapshots remain readable, but cannot be
+selected or newly written. The generated `pricing_checked_at` removal migration
+passed the configured release gate.
 
 Bulk sync and materialization remain fail-closed for anomaly/plausibility,
 malformed, same-successful-batch, and exact mapping checks. Mapping and batch

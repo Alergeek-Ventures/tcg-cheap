@@ -6,12 +6,16 @@
 
 ## Current Singles architecture and production checkpoint — 2026-09-08 (Raw: N/A — codebase update)
 
-Bulk-only release `68b73cc624e0ac6f450bf1c0af05bdc35eaaf565` deployed 2026-09-08.
-CI [34212821835](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34212821835)
-passed 1,117 tests; production health and browser Home/card/trade smoke passed
-at EUR 263.65. Cleanup removes old Provider/Offer/default_v1 modules and
-interfaces and `pricing_checked_at` via generated migration; final commit/deploy
-is pending at documentation time.
+Cleanup release `f73af22656de11e5e84c6c301da560bdde719119` deployed 2026-09-08.
+CI [34225801330](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34225801330)
+passed the canonical 1,065-test gate and container/database-image jobs.
+`/health` and `/health/live` returned 200 at the exact revision with the database
+and Oban ready, 7 queues, and 9 budget providers. Connected public Home/search,
+`/cards/sv08-238`, and `/trade?left=sv08-238:1` matched at EUR 263.65; 390px had
+no overflow and the fresh retest had zero console warnings/errors. An initial
+rollout/proxy 502 was transient and did not reproduce after traffic settled.
+The generated `20260908110348_remove_legacy_singles_pricing.exs` passed the
+configured release gate.
 
 `cardmarket_bulk_v1` is the fixed public/new-write Singles source. TCGdex is
 catalogue/detail/image/Cardmarket identity only. Historical

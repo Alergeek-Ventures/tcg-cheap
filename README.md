@@ -115,10 +115,15 @@ handling, forward-only migrations, and incident response.
 The six sealed schedules are Monday 01:00 UTC LootQuest, 02:00 CardzHouse,
 03:00 BoosterPoint, 04:00 PokeBooster, 05:00 Boosterland, and 06:00 Colligere.
 Budgets, rate limits, safety, attribution, and data minimization remain in force.
-Release `68b73cc624e0ac6f450bf1c0af05bdc35eaaf565` deployed on 2026-09-08; CI
-`34212821835` passed 1,117 tests and production smoke showed EUR 263.65.
-The generated `pricing_checked_at` removal migration is pending final
-commit/deploy at documentation time.
+Cleanup release `f73af22656de11e5e84c6c301da560bdde719119` deployed on 2026-09-08;
+CI `34225801330` passed the canonical 1,065-test gate and container/database-image
+jobs. `/health` and `/health/live` returned 200 at the exact revision with the
+database and Oban ready, 7 queues, and 9 budget providers. Connected public
+Home/search, `/cards/sv08-238`, and `/trade?left=sv08-238:1` matched at EUR
+263.65; the 390px retest had no overflow or console warnings/errors. An initial
+rollout/proxy 502 was transient and did not recur after traffic settled. The
+generated `pricing_checked_at` removal migration passed the configured release
+gate.
 
 ## Historical/superseded production notes
 
