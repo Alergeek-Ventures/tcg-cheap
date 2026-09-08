@@ -526,7 +526,7 @@ defmodule TcgCheap.Operations.AcquisitionTrackerTest do
       attempt: attempt,
       max_attempts: max_attempts,
       worker: "Worker",
-      queue: "valuations"
+      queue: "cardmarket_bulk"
     }
 
   defp tracker_options(provider_key),

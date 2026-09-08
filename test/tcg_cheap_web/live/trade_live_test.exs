@@ -8,11 +8,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
   alias TcgCheap.Pricing.ExchangeRate
   alias TcgCheap.Pricing.ExchangeRateWorker
 
-  alias TcgCheap.Pricing.Singles.{
-    ValuationNotifications,
-    ValuationPolicy,
-    ValuationWorker
-  }
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
 
   alias TcgCheap.Trades.Composition
   alias TcgCheapWeb.PublicAcquisitionLimiter
@@ -52,7 +48,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, ".trade-empty", "Add cards to this side.")
   end
 
-  test "uses one selected policy for totals and row estimates without mixing", %{conn: conn} do
+  test "uses the fixed bulk valuation for totals and row estimates", %{conn: conn} do
     card = card("policy-consistency", "Policy Consistency", 1)
     snapshot(card, "1.25")
 
@@ -61,11 +57,6 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-left-total-eur", "€1.25")
     assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "€1.25")
     refute has_element?(view, "#trade-left-total-eur", "€9.75")
-  end
-
-  test "bulk policy remains fixed" do
-    assert ValuationPolicy.selection(readiness: %{ready?: false}) == @bulk_policy
-    assert ValuationPolicy.selection(readiness: %{ready?: true}) == @bulk_policy
   end
 
   test "mounted trade refreshes after a bulk mapping notification", %{conn: conn} do
@@ -220,12 +211,6 @@ defmodule TcgCheapWeb.TradeLiveTest do
     refute has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Update failed")
     assert has_element?(view, "#trade-rate-evidence", "Rate update failed")
     refute_enqueued(repo: TcgCheap.Repo, worker: ExchangeRateWorker)
-
-    refute_enqueued(
-      repo: TcgCheap.Repo,
-      worker: ValuationWorker,
-      args: %{"local_card_id" => card.id}
-    )
   end
 
   test "exchange completion updates PLN without remounting and malformed completion is ignored",
@@ -335,8 +320,6 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-row-left-#{unknown}", unknown)
     assert has_element?(view, "#trade-left-total", "€0.00 + ? (3 unpriced)")
     assert has_element?(view, "#trade-comparison", "Comparison incomplete")
-
-    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
   end
 
   test "malformed, truncated, and invalid picks warn without raw staged values", %{conn: conn} do
@@ -360,17 +343,16 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-card-freshness-#{card.id}", "May be outdated")
   end
 
-  test "fresh composition rows show today's update without acquiring", %{conn: conn} do
+  test "fresh composition rows show today's update", %{conn: conn} do
     card = card("fresh-row", "Fresh Row", 1)
     snapshot(card, "3.40")
 
     {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
 
     assert has_element?(view, "#trade-freshness-left-#{card.tcgdex_id}", "Updated today")
-    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
   end
 
-  test "stale rows acquire once, show age, and retain their total", %{conn: conn} do
+  test "stale rows show age and retain their total", %{conn: conn} do
     card = card("stale-row", "Stale Row", 1)
     snapshot(card, "4.20", DateTime.add(DateTime.utc_now(), -8, :day))
 
@@ -384,24 +366,17 @@ defmodule TcgCheapWeb.TradeLiveTest do
 
     refute has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Updating…")
     assert has_element?(view, "#trade-left-total", "€4.20")
-    assert queued_jobs(card) == []
-
     render_click(element(view, "#trade-increment-left-#{card.tcgdex_id}"))
-    assert queued_jobs(card) == []
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Qty 2")
+    assert has_element?(view, "#trade-left-total", "€8.40")
   end
 
-  test "missing known rows reconcile after completion without remounting", %{conn: conn} do
+  test "missing known rows reload after a mapping notification", %{conn: conn} do
     card = card("completion-row", "Completion Row", 1)
     {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:2")
 
     assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Price unavailable")
     assert has_element?(view, "#trade-left-total", "€0.00 + ? (2 unpriced)")
-    assert queued_jobs(card) == []
-
-    send(view.pid, {:valuation_completed, %{card_printing_id: Ecto.UUID.generate()}})
-    render(view)
-    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Price unavailable")
-
     snapshot(card, "2.75")
 
     Phoenix.PubSub.broadcast(
@@ -415,7 +390,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-left-total", "€5.50")
   end
 
-  test "mapping changes clear the old total and reacquire the canonical printing", %{conn: conn} do
+  test "mapping changes clear the old total and reload the canonical printing", %{conn: conn} do
     card = card("mapping-event", "Mapping Event", 1)
     snapshot(card, "8.10")
     {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
@@ -441,27 +416,6 @@ defmodule TcgCheapWeb.TradeLiveTest do
 
     render(view)
     assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Price unavailable")
-    assert queued_jobs(card) == []
-  end
-
-  test "stale valuation failures retain cached estimates and ignore unrelated cards", %{
-    conn: conn
-  } do
-    card = card("failed-row", "Failed Row", 1)
-    snapshot(card, "6.10", DateTime.add(DateTime.utc_now(), -8, :day))
-    {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
-
-    send(view.pid, {:valuation_failed, %{card_printing_id: Ecto.UUID.generate()}})
-    render(view)
-    refute has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "cached estimate kept")
-
-    send(view.pid, {:valuation_failed, %{card_printing_id: card.id}})
-    render(view)
-
-    refute has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Update failed")
-    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "€6.10")
-
-    assert has_element?(view, "#trade-left-total", "€6.10")
   end
 
   test "arrow navigation reinserts exactly one active result and click stages it", %{conn: conn} do
@@ -486,7 +440,6 @@ defmodule TcgCheapWeb.TradeLiveTest do
     {:ok, view, _html} = live(conn, ~p"/trade")
 
     render_hook(view, "search", %{"search" => %{"query" => "Searchable"}})
-    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
 
     assert has_element?(
              view,
@@ -575,7 +528,6 @@ defmodule TcgCheapWeb.TradeLiveTest do
     first = card("mutate-a", "Mutation A", 1)
     second = card("mutate-b", "Mutation B", 2)
     {:ok, view, _html} = live(conn, "/trade?pick=#{first.tcgdex_id}")
-    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
 
     render_click(element(view, "#add-to-left"))
     expected_path = "/trade?left=#{first.tcgdex_id}%3A1"
@@ -720,7 +672,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
       card_printing_id: card.id,
       value_eur: Decimal.new(value),
       policy_version: policy,
-      source: "test",
+      source: "cardmarket_bulk",
       source_metric: "avg7",
       fetched_at: fetched_at,
       cardmarket_product_id: card.cardmarket_product_id
@@ -767,14 +719,6 @@ defmodule TcgCheapWeb.TradeLiveTest do
         fetched_at: DateTime.utc_now()
       },
       overrides
-    )
-  end
-
-  defp queued_jobs(card) do
-    all_enqueued(
-      repo: TcgCheap.Repo,
-      worker: ValuationWorker,
-      args: %{"local_card_id" => card.id}
     )
   end
 

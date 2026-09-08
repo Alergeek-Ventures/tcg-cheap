@@ -30,8 +30,6 @@ defmodule TcgCheapWeb.CardDetailLive do
   def mount(%{"tcgdex_id" => tcgdex_id}, _session, socket) do
     case Core.get_public_card_printing_by_tcgdex_id(tcgdex_id) do
       {:ok, card} when is_map(card) ->
-        policy_version = ValuationPolicy.active_policy()
-
         socket =
           socket
           |> assign(
@@ -39,44 +37,32 @@ defmodule TcgCheapWeb.CardDetailLive do
             card: card,
             card_image_url: CardImage.detail_url(card.image_url),
             tcgdex_id: tcgdex_id,
-            policy_version: policy_version,
             public_address: public_address(socket)
           )
           |> assign_valuation(:disconnected)
           |> reload_valuation(card)
 
-        connected_mount(socket, card, policy_version)
+        connected_mount(socket, card)
 
       _ ->
         {:ok, assign(socket, page_title: "Printing not found", tcgdex_id: tcgdex_id)}
     end
   end
 
-  defp connected_mount(socket, card, policy_version) do
+  defp connected_mount(socket, card) do
     if connected?(socket) do
       :ok = ValuationNotifications.subscribe(card)
-      maybe_subscribe_valuation(card, policy_version)
 
       detail =
         CardDetailAcquisition.subscribe_and_request(card,
           public_address: socket.assigns.public_address
         )
 
-      socket = socket |> handle_detail_result(detail) |> maybe_request_valuation()
+      socket = socket |> handle_detail_result(detail)
       {:ok, reload_valuation(socket, socket.assigns.card)}
     else
       {:ok, socket}
     end
-  end
-
-  defp subscribe_valuation_if_enabled(socket, card, policy) do
-    maybe_subscribe_valuation(card, policy)
-    socket
-  end
-
-  defp maybe_subscribe_valuation(card, policy_version) do
-    if valuation_acquisition_enabled?(policy_version),
-      do: :ok = ValuationNotifications.subscribe(card)
   end
 
   defp public_address(socket) do
@@ -89,34 +75,12 @@ defmodule TcgCheapWeb.CardDetailLive do
   @impl true
   def handle_info(
         {:valuation_completed, %{card_printing_id: id}},
-        %{assigns: %{card: %{id: id} = card, policy_version: policy}} = socket
+        %{assigns: %{card: %{id: id} = card}} = socket
       ) do
-    if valuation_acquisition_enabled?(policy) do
-      {:noreply,
-       reload_valuation(assign(socket, refresh_failure: nil, acquisition_state: :completed), card)}
-    else
-      {:noreply, socket}
-    end
+    {:noreply, reload_valuation(socket, card)}
   end
 
   def handle_info({:valuation_completed, _event}, socket), do: {:noreply, socket}
-
-  def handle_info(
-        {:valuation_failed, %{card_printing_id: id, reason: _reason}},
-        %{assigns: %{card: %{id: id} = card, policy_version: policy}} = socket
-      ) do
-    if valuation_acquisition_enabled?(policy) do
-      {:noreply,
-       socket
-       |> assign(acquisition_state: :failed)
-       |> reload_valuation(card)
-       |> assign(refresh_failure: true)}
-    else
-      {:noreply, socket}
-    end
-  end
-
-  def handle_info({:valuation_failed, _event}, socket), do: {:noreply, socket}
 
   def handle_info(
         {:card_mapping_changed, %{card_printing_id: id}},
@@ -124,8 +88,7 @@ defmodule TcgCheapWeb.CardDetailLive do
       ) do
     case reload_card_mapping(socket, card) do
       {:ok, socket} ->
-        socket = maybe_request_valuation_after_mapping(socket)
-        {:noreply, reload_valuation(socket, socket.assigns.card)}
+        {:noreply, socket}
 
       {:error, socket} ->
         {:noreply, socket}
@@ -162,32 +125,6 @@ defmodule TcgCheapWeb.CardDetailLive do
 
   def handle_info({:card_detail_enrichment_failed, _event}, socket), do: {:noreply, socket}
   def handle_info({:card_detail_enrichment_deferred, _event}, socket), do: {:noreply, socket}
-
-  @impl true
-  def handle_info(:valuation_policy_invalidated, socket) do
-    policy = ValuationPolicy.active_policy()
-
-    if policy == socket.assigns.policy_version do
-      {:noreply, socket}
-    else
-      case Core.get_public_card_printing_by_tcgdex_id(socket.assigns.tcgdex_id) do
-        {:ok, card} ->
-          socket =
-            socket
-            |> assign(policy_version: policy, acquisition_state: :idle)
-            |> assign_card(card)
-            |> assign_valuation(:disconnected)
-            |> subscribe_valuation_if_enabled(card, policy)
-            |> reload_valuation(card)
-            |> maybe_request_valuation()
-
-          {:noreply, socket}
-
-        _ ->
-          {:noreply, socket}
-      end
-    end
-  end
 
   @impl true
   def render(%{card: _card} = assigns) do
@@ -241,7 +178,7 @@ defmodule TcgCheapWeb.CardDetailLive do
                       id="valuation-state"
                       class={[
                         "valuation-state",
-                        valuation_state_class(@valuation_status, @acquisition_state, @refresh_failure)
+                        valuation_state_class(@valuation_status)
                       ]}
                     >
                       <span
@@ -255,11 +192,6 @@ defmodule TcgCheapWeb.CardDetailLive do
                         class="valuation-status-stale"
                       ><.fluent_icon name={:clock} />{@valuation_freshness_text} · May be outdated</span>
                       <span
-                        :if={@acquisition_state == :enqueued}
-                        id="valuation-fetching"
-                        class="valuation-status-fetching"
-                      ><.fluent_icon name={:clock} />Fetching a local valuation…</span>
-                      <span
                         :if={@valuation_status in [:missing, :disconnected]}
                         id="valuation-unpriced"
                       >No valuation yet</span>
@@ -268,17 +200,6 @@ defmodule TcgCheapWeb.CardDetailLive do
                         id="valuation-local-read-failure"
                         class="valuation-status-failure"
                       >Local valuation read failed</span>
-                      <span
-                        :if={@refresh_failure}
-                        id="valuation-refresh-failed"
-                        class="valuation-status-failure"
-                      >
-                        <%= if @valuation do %>
-                          Refresh failed; cached estimate retained.
-                        <% else %>
-                          Refresh failed; no local estimate is available.
-                        <% end %>
-                      </span>
                     </div>
                     <div
                       id="valuation-price-row"
@@ -320,7 +241,7 @@ defmodule TcgCheapWeb.CardDetailLive do
                             <span class="sr-only">About this estimate</span>
                           </button>
                           <span id="valuation-info-copy" role="tooltip" class="valuation-tooltip">
-                            {valuation_source_copy(@policy_version)}
+                            {valuation_source_copy()}
                           </span>
                         </div>
                       <% end %>
@@ -578,17 +499,9 @@ defmodule TcgCheapWeb.CardDetailLive do
   def render(assigns), do: not_found_render(assigns)
 
   @doc false
-  def valuation_acquisition_enabled?(policy),
-    do: policy == ValuationPolicy.tcgdex_policy()
-
-  @doc false
-  def valuation_source_copy(policy) do
-    if policy == ValuationPolicy.bulk_policy() do
+  def valuation_source_copy,
+    do:
       "Aggregated Cardmarket daily/bulk price-guide data is applied consistently to every card. Build a trade to compare cards. TCG Cheap is independent and not affiliated with Cardmarket."
-    else
-      "Aggregated market data from Cardmarket via TCGdex is applied consistently to every card. Build a trade to compare cards. TCG Cheap is independent and not affiliated with either source."
-    end
-  end
 
   defp legal_format_details(card) do
     glc_legal? = GlcLegality.legal?(card)
@@ -688,8 +601,6 @@ defmodule TcgCheapWeb.CardDetailLive do
       history_points: [],
       history_paths: [],
       history_plot_points: [],
-      refresh_failure: nil,
-      acquisition_state: :idle,
       history_origin: nil,
       history_load_failed: false,
       enrichment_pending: false,
@@ -709,17 +620,10 @@ defmodule TcgCheapWeb.CardDetailLive do
   defp handle_detail_result(socket, {:error, _}),
     do: assign(socket, enrichment_pending: false, enrichment_failed: true)
 
-  defp maybe_request_valuation(%{assigns: %{card: %{details_synced_at: nil}}} = socket),
-    do: assign(socket, acquisition_state: :idle)
-
-  defp maybe_request_valuation(socket), do: assign(socket, acquisition_state: :idle)
-
-  defp maybe_request_valuation_after_mapping(socket), do: assign(socket, acquisition_state: :idle)
-
   defp reload_valuation(socket, card) do
     socket = clear_valuation_state(socket)
     now = DateTime.utc_now()
-    policy_version = socket.assigns.policy_version
+    policy_version = ValuationPolicy.policy_version()
     current = Core.get_current_single_valuation(card.id, policy_version)
 
     history = public_history(card, policy_version, ValuationHistory.window_start(now))
@@ -832,17 +736,11 @@ defmodule TcgCheapWeb.CardDetailLive do
 
   defp positive_product_id?(product_id), do: is_integer(product_id) and product_id > 0
 
-  defp valuation_state_class(_status, _acquisition_state, true), do: "valuation-state-failure"
+  defp valuation_state_class(:local_read_failure), do: "valuation-state-failure"
 
-  defp valuation_state_class(:local_read_failure, _acquisition_state, _failure),
-    do: "valuation-state-failure"
-
-  defp valuation_state_class(_status, :enqueued, _failure), do: "valuation-state-fetching"
-  defp valuation_state_class(:fresh, _acquisition_state, _failure), do: "valuation-state-fresh"
-  defp valuation_state_class(:stale, _acquisition_state, _failure), do: "valuation-state-stale"
-
-  defp valuation_state_class(_status, _acquisition_state, _failure),
-    do: "valuation-state-unavailable"
+  defp valuation_state_class(:fresh), do: "valuation-state-fresh"
+  defp valuation_state_class(:stale), do: "valuation-state-stale"
+  defp valuation_state_class(_status), do: "valuation-state-unavailable"
 
   defp history_summary([_first | _] = points) do
     values = Enum.map(points, & &1.value_eur)

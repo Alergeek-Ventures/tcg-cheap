@@ -42,7 +42,6 @@ end
 
 defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorkerTest do
   use TcgCheap.DataCase, async: false
-  import Oban.Testing
 
   alias TcgCheap.Catalogue.{CuratedPlayableCollectionWorker, CuratedPlayablePolicy}
 
@@ -108,8 +107,6 @@ defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorkerTest do
     imported = TcgCheap.Core.get_card_printing_by_tcgdex_id!(entry.tcgdex_id)
     assert imported.collection_scopes == ["curated_playable"]
     assert imported.collection_expires_on == ~D[2026-11-17]
-
-    refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Pricing.Singles.ValuationWorker)
   end
 
   test "unknown, malformed, and out-of-window jobs do not call provider or admission", %{
@@ -412,8 +409,6 @@ defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorkerTest do
 
       assert :ok =
                CuratedPlayableCollectionWorker.perform_on(job(entry.tcgdex_id), ~D[2026-08-19])
-
-      refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Pricing.Singles.ValuationWorker)
     end
   end
 
@@ -456,15 +451,6 @@ defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorkerTest do
         [
           provider_key: "tcgdex_catalogue",
           display_name: "TCGdex",
-          estimated_cost_per_request: "0.00",
-          hourly_request_limit: 100,
-          daily_request_limit: 1000,
-          monthly_request_limit: 20_000,
-          monthly_spend_limit: "0.00"
-        ],
-        [
-          provider_key: "tcgdex_cardmarket",
-          display_name: "Cardmarket",
           estimated_cost_per_request: "0.00",
           hourly_request_limit: 100,
           daily_request_limit: 1000,

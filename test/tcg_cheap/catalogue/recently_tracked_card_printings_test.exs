@@ -29,7 +29,7 @@ defmodule TcgCheap.Catalogue.RecentlyTrackedCardPrintingsTest do
     assert Enum.map(result, & &1.id) == expected
   end
 
-  test "loads the current bulk valuation while leaving historical valuation unloaded" do
+  test "loads the current bulk valuation" do
     card =
       TcgCheap.TestSupport.import_card_printing!(%{
         tcgdex_id: "valued-recent-#{System.unique_integer([:positive])}",
@@ -54,7 +54,6 @@ defmodule TcgCheap.Catalogue.RecentlyTrackedCardPrintingsTest do
 
     assert {:ok, [result]} = Core.list_recently_tracked_card_printings()
     assert result.cardmarket_bulk_v1_current_valuation.id == valuation.id
-    assert %Ash.NotLoaded{} = result.tcgdex_cardmarket_v1_current_valuation
     assert %Ash.NotLoaded{} = result.source_payload
     assert %Ash.NotLoaded{} = result.variant_data
     assert %Ash.NotLoaded{} = result.search_name

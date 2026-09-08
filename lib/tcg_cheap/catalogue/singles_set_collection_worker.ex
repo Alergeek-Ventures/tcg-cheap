@@ -19,7 +19,6 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
 
   alias TcgCheap.Core
   alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionTracker}
-  alias TcgCheap.Pricing.Singles.EmbeddedValuation
 
   @policy_version 2
 
@@ -165,8 +164,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorker do
              expected_set_id: set_id
            ),
          {:ok, local} <- imported_card(imported),
-         {:ok, updated} <- add_scopes(local, target, release_date, scoped_at),
-         :ok <- EmbeddedValuation.record_or_enqueue(updated, card, scoped_at) do
+         {:ok, _updated} <- add_scopes(local, target, release_date, scoped_at) do
       {:cont, :ok}
     else
       {:error, reason} -> {:halt, {:error, reason}}

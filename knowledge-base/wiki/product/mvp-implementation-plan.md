@@ -1,10 +1,32 @@
 # Pokémon Market & Trade Platform — Detailed MVP Implementation Plan
 
-- Updated: 2026-09-07
+- Updated: 2026-09-08
 - Sources: Product specification supplied by project owner; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation; [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 - Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 
-## Cardmarket bulk rollout and handoff — 2026-09-07 (Raw: N/A — codebase update)
+## Current Singles rollout and handoff — 2026-09-08 (Raw: N/A — codebase update)
+
+The bulk-only Singles release `68b73cc624e0ac6f450bf1c0af05bdc35eaaf565` was
+deployed on 2026-09-08. CI [34212821835](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34212821835)
+passed 1,117 tests; production health and browser Home/card/trade smoke passed
+with matching EUR 263.65 values. Cleanup removes old Provider/Offer/default_v1
+modules and interfaces and removes `pricing_checked_at` through a generated
+migration; final commit/deploy is pending at documentation time.
+
+The MVP Singles source is fixed to `cardmarket_bulk_v1` for public reads and
+new writes. TCGdex is catalogue/detail/image/Cardmarket identity only.
+Historical `tcgdex_cardmarket_v1` snapshots remain readable but are not
+selectable or newly writable. There is no fallback, selectable policy,
+cutover/readiness gate, policy cache, per-card pricing worker, acquisition path,
+or 14:00 sweep; the fixed bulk sync runs daily at 03:00 UTC.
+
+Home, CardDetail, and Trade are local public surfaces and show stale/unpriced
+states honestly. Batch and mapping invalidations refresh mounted surfaces after
+commit. Strict malformed/plausibility/row-anomaly validation, exact mapping,
+and same-successful-batch materialization fail closed. Admin source, batch,
+catalogue, mapping, detail, and materialization diagnostics are read-only.
+
+## Historical Cardmarket bulk rollout and handoff — 2026-09-07 (Raw: N/A — codebase update)
 
 The Cardmarket bulk Singles path was delivered in implementation commit
 `b7afc9049a8af42dd569f44d2c140cb58f64221c` (`b7afc90`), pushed and deployed on
@@ -188,7 +210,7 @@ Policy v2 is deployed and is an operational correction, not a scope expansion.
 
 `CardPrinting` uses fail-closed scopes `pitch_black_full`, `rolling_ir_sir`, `curated_playable`, and `legacy_local`, with expiry and provenance. Provider imports/briefs never auto-scope. Public Home search/recent, CardDetail, Trade, and mover SQL require active nonexpired scope. Migration backfill assigns preexisting local rows only to `legacy_local`, preserving useful state while empty production gains no broad rows; broad discovery remains private.
 
-Automatic bootstrap starts within 15 minutes and is successful-run unique for seven days. It strictly discovers TCGdex sets, imports every `me05` card, and dynamically imports only exact IR/SIR cards from the inclusive rolling prior two calendar years. Chunks are <=20, complete `cardCount` evidence is required, incomplete/transient evidence retries, and scanned non-target cards are never imported. Daily 14:00 UTC refresh keyset-paginates every active, nonexpired, scoped, matched card, including fresh cards, and enqueues valuations; public on-demand remains missing/stale-only. Execution revalidates active scope before budget/HTTP admission. `ValuationWorker` remains sole provider-budget admission immediately before HTTP. Admin operations has a manual scoped trigger.
+The dated pilot bootstrap remains historical evidence for catalogue scope only. Current Singles valuation no longer uses its 14:00 refresh, on-demand path, `ValuationWorker`, or manual trigger: `cardmarket_bulk_v1` is the sole public/new-write source and runs only in the daily 03:00 UTC bulk sync.
 
 `curated_playable` is deployed under fixed policy
 `2026-08-19-naic`; its dated official/Limitless/TCGdex evidence was explicitly
@@ -230,11 +252,25 @@ Home Market movers are local-only, up to 10 total and capped at 5 risers/5 falle
 
 Current validation is the 2026-08-26 gate: canonical `mix check --verbose` passed all static checks and 883 tests; focused Home/CardDetail coverage passed 49 tests; both Impeccable detectors were clean; and desktop/390px browser checks found no horizontal overflow or console warning/error. The generated card-target grammar migration still passed test-database down/up, the three earlier catalogue recovery migrations remain valid, and the encoded punctuation Trade pick still renders `Unown · Unseen Forces Unown Collection · %3F` without a malformed warning. Bafa237 UI deployment verification is complete; complete technical coverage for the remaining 10 provider-partial sets, representative exact-printing/Cardmarket mapping coverage, representative Polish multi-retailer validation, sealed catalogue/mappings/model validation, recurring history, monitoring/restore, and real-history mover tuning remain incomplete.
 
-**Status:** **Current product north star.** Unless the product owner explicitly supersedes this article, every requirement, implementation phase, documentation deliverable, and acceptance criterion listed below is authoritative and must be completed in full. Phase 3 trade/share is complete. Phase 4 now has source-neutral product/alias/retailer/listing/mapping/observation foundations, reusable bounded WooCommerce Store API request/pagination/normalization mechanics, a six-source production registry (LootQuest `regular_retailer`; CardzHouse, BoosterPoint, PokeBooster, Boosterland, and Colligere `lgs`) across nine total providers, an atomic unique refresh path, and the deployed Monday 01:00–06:00 staggered sealed bootstrap, an authenticated administrator review desk, and a local-only public Sealed search/detail foundation. Phase 5 now has a local-only versioned daily aggregate foundation, the pure provisional `sealed_buying_model_v1`, persisted versioned buying-guide snapshots/recomputation, and public rendering of persisted ready/Limited guides, plain-English explanations from persisted factors, and the fixed 30-day graph. Daily aggregate persistence atomically enqueues jobs identified by the exact current and preceding 30-day revisions, and historical corrections cascade through affected following guide dates; local snapshot reads retain model outputs and factors. Public guide projection validates bindings, exact source fingerprints, and invariants, failing closed on corruption or mismatch; stale bands remain previous/cached/outdated rather than current. A fail-closed request-level acquisition-budget foundation covers every in-tree operational TCGdex catalogue, TCGdex Cardmarket, NBP, and sealed-retailer request with provider/global UTC counters, estimated-spend caps, persisted provider kill switches, and passive automatic provider circuit opening from terminal source-facing failures. Public connected LiveViews additionally apply a bounded direct-peer IP throttle before stale/missing singles or NBP work can be enqueued. Authenticated AshBackpex and focused operations surfaces cover the implemented curation, inspection, safe manual execution, source-health, and provider-control slices documented below. Real catalogue/observations/model validation, actual-cost reconciliation, active provider probes, remaining operations/AshBackpex resources, homepage tuning/deployment, and other acceptance work remain incomplete. The overall MVP is not complete.
+**Status:** **Current product north star.** Unless the product owner explicitly supersedes this article, every requirement, implementation phase, documentation deliverable, and acceptance criterion listed below remains authoritative and must be completed in full. Detailed phase statuses below remain authoritative for their respective areas. The adjacent 2026-09-08 Singles boundary governs Singles: `cardmarket_bulk_v1` is the sole public/new-write source, with local-only public reads and the fixed daily 03:00 UTC bulk synchronization. This status does not narrow the Sealed, trade, catalogue, NBP, operations, quality, documentation, or other MVP requirements.
 **Historical permission status — 2026-08-10 (superseded):** The earlier owner assumption and its dated private-test evidence are retained as historical context. The 2026-08-20 owner direction above is authoritative current state: agreed-MVP permission is settled and non-blocking, and no permission/publication/rights state or gate is modeled for implementation, validation, deployment, or demo work.
 
 **Historical production reconciliation — 2026-09-03:** The authoritative current state at that dated checkpoint was revision `d55a26b1368084bbaf7a25b65a2211f437e6c540`, with passed CI runs 33747809832 and 33748881597, healthy `/health` and `/health/live` (200), seven Oban queues, and nine providers. Boosterland/Colligere are persisted active sources with six active retailers, one admitted request each, 8/37 active listings, no related import issues, and 50/hour, 100/day, 500/month budgets on Monday 05:00/06:00 UTC. Production Sealed evidence is 19 sourced complete rows with positive applicable pack counts, 13 complete official USD reference-price tuples, and 17 complete canonical image tuples. Public Pitch Black search exposes Booster Box/Pack/ETB; verified Pitch Black Booster Box/ETB and Destined Rivals Booster Box routes return 200 with images/offers and no browser console/page errors. Forward-only image correction `20260903102840` preceded ETB product-type correction `20260903111025`. Binacle 3-pack and SV151 Booster Bundle remain image-null and unpublished; authoritative PLN MSRP/facts remain unset; retailer mappings and real buying-model validation require review; no Singles-offer provider exists.
 
+
+**Current Singles implementation boundary (2026-09-08):** The north star remains
+fully authoritative; this update does not narrow Sealed or operations. Public
+and new-write Singles pricing is fixed to `cardmarket_bulk_v1`, with daily
+03:00 UTC bulk sync. TCGdex is catalogue/detail/image/Cardmarket identity only.
+Historical `tcgdex_cardmarket_v1` snapshots remain retained/readable but are not
+selectable or newly writable. There is no fallback, selectable policy,
+cutover/readiness gate, policy cache, per-card pricing worker, acquisition path,
+or 14:00 sweep. Home, CardDetail, and Trade are local public surfaces with
+honest stale/unpriced states; batch and mapping invalidations refresh mounted
+surfaces after commit. Strict malformed/plausibility/row-anomaly validation,
+exact mapping, and same-successful-batch materialization fail closed. Admin
+source, batch, catalogue, mapping, detail, and materialization diagnostics are
+read-only.
 
 **Audience:** Long-running implementation agent
 
@@ -599,7 +635,7 @@ Required content:
 - fixed 30-day price graph
 - action to start or continue a trade with this card
 
-If pricing is missing or stale, the page renders immediately and initiates the background behavior described later.
+If pricing is missing or stale, the page renders immediately with local unpriced/stale state and does not initiate Singles pricing work. TCGdex detail enrichment is a separate background concern.
 
 ### 7.4 Sealed-product page
 
@@ -658,7 +694,7 @@ MVP requirements:
 - preserve set, collector number, rarity, legalities, regulation mark, images, and other matching metadata
 - retain cards after rotation
 
-Use TCGdex for the MVP metadata/catalogue and embedded Cardmarket aggregate pricing where available. Pokémon TCG API may remain a fallback/cross-check. Verify coverage, licensing, exact-printing fidelity, image reliability, and mapping suitability; unresolved material mappings go to review.
+Use TCGdex for the MVP metadata/catalogue, detail imagery, and Cardmarket identity only. `cardmarket_bulk_v1` is the sole public and newly writable Singles valuation source; verify coverage, licensing, exact-printing fidelity, image reliability, and mapping suitability. Unresolved material mappings go to review.
 
 ### 8.2 Card variants
 
@@ -718,13 +754,13 @@ Only approved products appear in public search. Ambiguous or unmatched listings 
 
 ### 9.1 Aggregate MVP policy
 
-The active MVP uses the free, unauthenticated TCGdex embedded Cardmarket aggregate pricing source. The versioned policy is `tcgdex_cardmarket_v1`. It is intentionally an estimate for thesis validation: it does not claim English/Near Mint filtering, Poland shipping eligibility, or seller-level precision. Low-impact finish differences may be simplified; ambiguous or materially different variants remain missing/review rather than guessed.
+The active MVP uses the Cardmarket bulk product/price-guide source under the fixed policy `cardmarket_bulk_v1`. It is the sole public and newly writable Singles valuation source. TCGdex supplies catalogue/detail/image/Cardmarket identity only. The aggregate remains an estimate: it does not claim language/condition filtering, seller-level precision, or Poland shipping eligibility. Low-impact finish differences may be simplified; ambiguous or materially different variants remain missing/review rather than guessed.
 
-For one exact card printing, select the first finite positive EUR value in this exact order: `avg7`, `avg30`, `trend`, `avg`, `low`. Use Decimal arithmetic and display the selected value to two decimal places. Store the selected source metric/method, source/provider, card identity, fetched timestamp, provider pricing update timestamp when parseable, and current/archive status. The active source does not provide a seller/offer count; it is unavailable and must never be fabricated. Any future shared storage field for that count may be nullable/optional.
+For one exact card printing, materialize only a finite positive EUR bulk value that passes plausibility checks and exact Cardmarket identity mapping. Use Decimal arithmetic and display the value to two decimal places. Store the source metric/method, source/provider, card identity, successful batch identity, fetched timestamp, provider pricing update timestamp when parseable, and current/archive status. The bulk source does not provide a seller/offer count; it is unavailable and must never be fabricated. Any shared storage field for that count may be nullable/optional.
 
 The UI and methodology copy must say that this is an aggregate Cardmarket estimate. It cannot prove language, condition, seller identity, finish-specific exactness, or shipping to Poland. Shipping is not calculated. Quantity still multiplies the unit estimate, but does not imply availability of multiple copies.
 
-The previously implemented `default_v1` five-lowest-distinct-seller offer algorithm remains historical/post-MVP capability and must not be the active MVP methodology. Preserve its code and history for a future seller-level source; do not expose its promises in the MVP.
+Historical `tcgdex_cardmarket_v1` snapshots remain readable but cannot be selected or newly written. The previously implemented `default_v1` seller-level algorithm is also historical/post-MVP and must not be exposed as active MVP methodology.
 
 ### 9.2 Missing aggregate value
 
@@ -748,11 +784,11 @@ Right side:  €35.10
 Difference:  Cannot be determined precisely
 ```
 
-### 9.4 Provider request shape
+### 9.4 Bulk materialization shape
 
-Use the free TCGdex embedded aggregate; do not scrape Cardmarket or pay for listing-level data for the active singles MVP. Every stored valuation snapshot must still include:
+Use the fixed Cardmarket bulk product/price-guide source for the active Singles MVP; do not use TCGdex pricing calls, scrape Cardmarket, or pay for listing-level data. Every stored valuation snapshot must still include:
   - card printing
-  - policy version (`tcgdex_cardmarket_v1`)
+  - policy version (`cardmarket_bulk_v1`)
   - calculated EUR value
   - source/provider
   - calculation method
@@ -764,7 +800,7 @@ Use the free TCGdex embedded aggregate; do not scrape Cardmarket or pay for list
 
 ---
 
-## 10. Singles freshness, on-demand acquisition, and history
+## 10. Singles freshness, bulk synchronization, and history
 
 ### 10.1 Freshness
 
@@ -772,13 +808,13 @@ A singles valuation is fresh for **24 hours**: strictly less than 24 hours is fr
 
 ### 10.2 Missing data
 
-When a card has never been priced:
+When a card has never been priced or is absent from the latest successful bulk materialization:
 
 - render the card page or trade row immediately
-- show a fetching or unavailable state
-- enqueue one unique Oban refresh job
-- update the LiveView automatically when the job completes
-- never block the page on the external provider request
+- show an unavailable/unpriced state
+- do not enqueue public Singles pricing work
+- reread local data after a successful bulk batch or committed mapping change
+- never block the page on an external provider request
 
 ### 10.3 Stale data
 
@@ -786,32 +822,25 @@ When the latest valuation is at least 24 hours old:
 
 - show the stale value immediately
 - show when it was last updated
-- enqueue one deduplicated refresh job
-- update the LiveView automatically after completion
-- keep the stale value if the refresh fails
+- do not enqueue a per-card refresh job
+- keep and visibly label the stale value until a successful bulk sync
 
-### 10.4 Deduplication
+### 10.4 Bulk synchronization and deduplication
 
-Concurrent public requests for the same card and preset must reuse one in-flight job. Use Oban uniqueness and a database-backed freshness check.
+The daily 03:00 UTC bulk sync is the only Singles pricing acquisition path. There is no public Singles enqueue, per-card pricing worker, on-demand acquisition, fallback, selectable policy, readiness/cutover process, or policy cache. Bulk materialization is exact-ID, paper-only/non-Pocket, finite-positive, plausibility-checked, row-count-anomaly protected, and limited to evidence from the same successful batch. Mapping changes and successful materialization invalidations are committed before mounted public views reread local values.
 
 ### 10.5 History
 
-- each successful fetch creates a timestamped valuation snapshot
+- each successful bulk materialization creates a timestamped valuation snapshot
 - retain snapshots indefinitely
 - the public graph shows the last 30 days only
 - no date-range switcher
 - do not interpolate missing periods
 - when multiple snapshots occur on one day, the displayed daily point should use the last successful valuation of that day unless the chosen charting convention has a documented superior reason
 
-### 10.6 Daily proactive sweep
+### 10.6 Daily bulk sync
 
-The existing daily **14:00 UTC** `ValuationRefreshWorker` keyset-paginates and
-enqueues every active, nonexpired, scoped, matched pricing candidate, including
-currently fresh cards, so each daily sweep can produce an observation. Public
-on-demand work remains missing/stale-only. The bounded candidate query and
-canonical pricing validation exclude missing, unmatched, unscoped, and expired
-cards. Oban uniqueness/deduplication is retained, and provider budget admission
-remains solely in `ValuationWorker`; enqueueing performs no HTTP or budget use.
+The daily **03:00 UTC** Cardmarket bulk sync fetches the fixed product and price-guide inputs and materializes exact local values only from the same successful batch. Missing values remain unpriced and stale values remain visibly stale until a successful bulk sync. Public pages read only local data and perform no pricing provider calls.
 
 ---
 
@@ -838,7 +867,7 @@ Requirements:
 - encode left-side card IDs and quantities
 - encode right-side card IDs and quantities
 - do not encode price snapshots
-- opening the link always uses the latest available cached valuation and current `tcgdex_cardmarket_v1` policy
+- opening the link always uses the latest available local valuation under fixed `cardmarket_bulk_v1`; historical TCGdex snapshots are readable only
 - card names may change without breaking the URL because stable IDs are authoritative
 - update the URL as the trade changes without full-page reloads
 
@@ -1050,10 +1079,10 @@ Data sources will make or break the product. Treat source selection as an explic
 
 ### 15.1 Singles research
 
-For the active MVP, document and fixture-test TCGdex embedded Cardmarket aggregate pricing. Seller-level alternatives are post-MVP research only. Evaluate current options for:
+For the active MVP, document and fixture-test the fixed Cardmarket bulk product/price-guide source. TCGdex pricing is historical/read-only and seller-level alternatives are post-MVP research only. Evaluate current options for:
 
 - exact printing matching
-- aggregate metric availability and field semantics
+- bulk product/price-guide field semantics and exact-ID mapping
 - data freshness and provider update timestamps
 - historic data availability
 - API stability
@@ -1092,7 +1121,7 @@ Identify:
 Create a concise decision record before locking integrations. It must contain:
 
 - sources evaluated
-- primary and fallback choices
+- primary choice and explicitly rejected fallback/cutover paths
 - real aggregate request tests (and bounded scrape experiments only when relevant to later sealed/post-MVP research)
 - coverage examples
 - matching accuracy examples
@@ -1104,7 +1133,7 @@ Create a concise decision record before locking integrations. It must contain:
 
 ### 15.5 Aggregate-first/no-scraping MVP policy
 
-The active singles MVP selects free, unauthenticated TCGdex embedded Cardmarket aggregates and avoids scraping where practical. The selected singles source has **$0 acquisition cost** and requires no credentials. This does not decide every broader sealed-product source: sealed distributor and retailer research remains open and must be evaluated separately.
+The active singles MVP selects the fixed `cardmarket_bulk_v1` source. TCGdex is limited to catalogue/detail/image/Cardmarket identity and historical snapshots are read-only. This does not decide every broader sealed-product source: sealed distributor and retailer research remains open and must be evaluated separately.
 
 Use canonical identifiers and known source URLs only; never accept arbitrary user-supplied URLs. Keep any future credentials out of git and provider-specific secrets server-side. Do not bypass authentication, payment, or CAPTCHA controls. Scraping or paid providers may be researched for post-MVP seller-level capability, but are not part of the active singles methodology.
 
@@ -1122,33 +1151,28 @@ The application must track estimated and actual external acquisition cost and en
 
 Implement:
 
-- canonical card IDs only for on-demand fetches
+- canonical card IDs and exact Cardmarket IDs for bulk materialization
 - no arbitrary user-supplied URLs or provider queries
-- 24-hour card TTL
-- unique Oban jobs
-- per-IP request limiting
-- global hourly on-demand budget
-- global daily on-demand budget
 - monthly provider budget
 - provider quota tracking
 - circuit breakers / kill switches
-- graceful fallback to stale data or `?`
+- graceful display of stale data or `?`; no pricing-provider fallback path
 
-The concrete hourly and daily numbers should be derived from the selected provider’s price model and made configurable.
+The bulk sync uses its fixed bounded request/deadline protections; no public Singles hourly/daily on-demand quota exists.
 
 ### 16.3 Prioritization
 
 When budget is constrained, prioritize:
 
-1. user-requested uncached singles
-2. stale popular singles
-3. newly released or highly active sealed products
-4. current sealed products with changing availability
+1. the fixed scheduled Cardmarket bulk synchronization
+2. newly released or highly active sealed products
+3. current sealed products with changing availability
+4. missing TCGdex card-detail enrichment and stale/missing NBP observations
 5. older or unavailable sealed products
 
 Never silently spend beyond the cap to improve freshness.
 
-### 16.4 Implemented request-admission foundation — 2026-08-09
+### 16.4 Historical request-admission foundation — 2026-08-09 (superseded for Singles pricing)
 
 Every in-tree operational outbound request now enters one fail-closed PostgreSQL admission transaction immediately before HTTP. This covers TCGdex catalogue requests made by `Importer`, `Sync`, and `Enrichment`; TCGdex Cardmarket valuation requests; NBP exchange-rate requests; and every page of a configured sealed-retailer refresh. Metered adapters disable internal Req retries, so an HTTP attempt cannot hide additional uncounted retries; later Oban or caller retries require a new admission. Adapter contracts require the injected zero-arity request admitter to run before each outbound request. Budget rejection prevents the request, while budget-persistence failure is retryable in workers and otherwise returns an explicit error.
 
@@ -1156,11 +1180,11 @@ Every in-tree operational outbound request now enters one fail-closed PostgreSQL
 
 This is a strong foundation, not completion of all Section 16 requirements. Active sources currently have zero acquisition cost, and estimated cost is conservatively reserved before HTTP. Public per-IP acquisition throttling is now implemented at the connected LiveView enqueue boundary as described below, the focused authenticated usage/failure ledger is documented in Section 16.6, and passive outcome-driven automatic circuit breaking is documented in Section 16.9. Actual-cost reconciliation for future paid responses, acquisition priority classes, and active provider probing remain required.
 
-### 16.5 Implemented public per-IP acquisition throttle — 2026-08-09
+### 16.5 Implemented public per-IP acquisition throttle — 2026-08-09 (current detail/NBP scope)
 
 Connected card-detail and trade LiveViews obtain the direct transport peer through Phoenix LiveView `:peer_data`; forwarded headers are deliberately not trusted. A supervised single-node fixed-window limiter allows 30 acquisition candidates per direct peer per hour by default, keeps at most 10,000 peer entries, prunes expired windows, serializes concurrent reservations, and fails closed for invalid/missing addresses or bounded-capacity exhaustion. The limit is configurable and is an abuse-smoothing control for the current one-VPS/direct-connection architecture, not a replacement for the persisted provider/global hard budget.
 
-Only stale or missing work consumes the peer quota. Fresh local singles valuations and today's cached NBP rate do not reserve. Card-detail reserves immediately before a valuation job insert; Trade reserves separately for every canonical stale/missing card, so a large URL-backed composition cannot bypass the bound, while independently allowed cards may still enqueue. A stale/missing public NBP request reserves once before enqueue. Missing admitters and callbacks that raise, throw, exit, or return malformed values fail closed; direct trusted `enqueue` functions remain available for Cron/manual internal work and still pass through worker-level provider/global budget admission before HTTP. Rejection leaves stale values or `?`/PLN-unavailable states usable and queues no rejected job.
+Only missing TCGdex detail enrichment and stale/missing NBP work consume the peer quota. Singles pricing is never reserved or enqueued: stale and unpriced Singles values remain local until bulk synchronization. Card-detail reserves immediately before a detail-enrichment job insert; Trade reserves for stale/missing NBP work only. Missing admitters and callbacks that raise, throw, exit, or return malformed values fail closed. Rejection leaves stale values or `?`/PLN-unavailable states usable and queues no rejected job.
 
 The peer limiter is intentionally in memory: a process/application restart clears its windows, while the PostgreSQL provider/global hourly, daily, monthly, and spend controls remain the durable hard-stop layer. If deployment later introduces a reverse proxy, explicitly trusted client-address resolution must be designed and tested before relying on per-client buckets; otherwise the direct peer would correctly be the proxy address and clients would share one bucket. Caddy/trusted-proxy integration remains deferred.
 
@@ -1170,7 +1194,7 @@ Authenticated `/admin/operations` reads a strictly validated maximum-100-provide
 
 Provider enable/disable actions accept only configured keys and require an administrator actor plus the displayed `updated_at`. A custom Ash change locks and compares the latest row inside the action transaction before applying the opposite state. Concurrent same-version controls allow one update, and admission-versus-disable races preserve one linear order. Unchanged acquisition upserts no longer touch `updated_at`, avoiding control-token churn during normal traffic; real configuration changes still invalidate old controls. Counters remain estimated reservations before HTTP. At this checkpoint actual paid-cost reconciliation, automated circuit breaking, and broader operational actions remained required; the later Section 16.9 circuit slice and Section 21 diagnostic slices supersede only those stated gaps.
 
-### 16.7 Implemented acquisition-run and source-health evidence — 2026-08-10
+### 16.7 Historical acquisition-run and source-health evidence — 2026-08-10 (superseded for Singles pricing)
 
 `AcquisitionRun` now durably identifies each TCGdex catalogue synchronization, TCGdex Cardmarket valuation, NBP exchange-rate, and configured sealed-retailer Oban attempt. It retains only canonical provider/operation/target identity, worker/queue/job attempt metadata, running/succeeded/retryable-failure/failed/cancelled status, a fixed secret-free failure category, admitted request count, and timestamps. Same persisted job/attempt execution is single-use; a valid snooze is successful evidence for that bounded batch. A normal worker result is not reported when run finalization fails; later attempts atomically reconcile lower still-running attempts for the same job/provider as failed/unknown. Independently, a unique 15-minute reconciler repairs the oldest at-most-100 attempts still running at or beyond the 15-minute boundary, using provider advisory locks plus row locks and preserving request counts. The running-only partial index keeps this scan bounded by active evidence rather than retained terminal history.
 
@@ -1178,7 +1202,7 @@ Provider enable/disable actions accept only configured keys and require an admin
 
 The operations desk projects health onto configured provider dockets and at most 25 recent configured-provider runs by default, with a hard maximum of 50. A strict shared configuration marks NBP current/stale/not-yet-observed from its last successful tracked acquisition while explicitly marking unscheduled TCGdex providers on demand; running rows at the stranded boundary render overdue until reconciliation. Raw arguments, payloads, exceptions, and provider error detail do not enter persistence or LiveView state. This remains passive evidence rather than an active probe; the later Section 16.9 adds outcome-driven circuit automation without adding synthetic health requests.
 
-### 16.8 Implemented safe canonical manual refresh — 2026-08-10
+### 16.8 Historical safe canonical manual refresh — 2026-08-10 (superseded for Singles)
 
 The authenticated operations desk exposes a separate bounded manual-refresh panel. Fixed controls enqueue only the canonical full TCGdex catalogue synchronization, NBP EUR/PLN, and exact locally imported TCGdex Cardmarket valuation jobs. Configured sealed-retailer controls are derived from at most 100 server-side adapter entries, an active canonical local retailer, and the corresponding `sealed_retailer:<source_key>` budget provider; the browser submits only the local retailer UUID. Malformed worker/adapter/provider configuration fails the affected target closed without hiding the rest of a valid operations overview.
 
@@ -1229,7 +1253,7 @@ Use one PostgreSQL database for application data and Oban.
 
 Normal public page rendering must not make blocking external provider calls.
 
-The allowed pattern is:
+For TCGdex detail enrichment and NBP acquisition, the allowed pattern is:
 
 1. read cached/local state
 2. render immediately
@@ -1237,12 +1261,19 @@ The allowed pattern is:
 4. subscribe through Phoenix PubSub
 5. update the LiveView when the job completes
 
+Sealed acquisition is scheduled/manual background work; public Sealed reads are
+local-only and do not use this public enqueue/PubSub pattern.
+
+Singles pricing is excluded from this enqueue/PubSub pattern. Singles pages read
+local `cardmarket_bulk_v1` values; successful 03:00 UTC bulk materialization and
+committed mapping changes invalidate mounted views, which reread local data.
+
 ### 18.3 Provider adapters
 
 Create explicit boundaries equivalent to:
 
 - `CardCatalogProvider`
-- `SinglesPricingProvider`
+- fixed `cardmarket_bulk_v1` bulk sync/materialization boundary
 - `SealedCatalogProvider` or distributor importer
 - one `SealedRetailerAdapter` per retailer/source
 - `ExchangeRateProvider`
@@ -1307,9 +1338,7 @@ Follow Firmowid conventions even when names differ. The following is a conceptua
 
 | Resource | Purpose |
 |---|---|
-| `PricingPreset` | Internal versioned singles policy; MVP uses `tcgdex_cardmarket_v1` |
-| `SingleValuationSnapshot` | Timestamped EUR valuation and methodology |
-| `SingleOfferObservation` | Optional seller-level observations when returned at no extra cost |
+| `SingleValuationSnapshot` | Fixed `cardmarket_bulk_v1`-derived current/new writes; retained historical TCGdex snapshots remain readable only |
 | `SealedListingObservation` | Timestamped PLN price and stock observation |
 | `SealedDailyAggregate` | Daily benchmark, range, availability, and source counts |
 | `SealedBuyingGuideSnapshot` | Model version, confidence, bands, and explanation factors |
@@ -1339,8 +1368,7 @@ Implement jobs equivalent to:
 
 - card catalogue synchronization
 - card-to-pricing-provider mapping/backfill
-- on-demand single valuation refresh
-- scheduled popular-single refresh
+- daily Cardmarket bulk Singles sync/materialization
 - sealed distributor catalogue import
 - per-retailer sealed listing refresh
 - sealed listing matching
@@ -1386,7 +1414,7 @@ Required admin capabilities:
 - inspect stale sources
 - inspect provider quota and cost usage
 - enable/disable a provider or retailer adapter
-- trigger a safe manual refresh
+- inspect read-only Singles source/batch/mapping/detail/materialization diagnostics
 - inspect the current buying-model configuration/version
 
 AshBackpex is an evolving integration. Pin compatible versions. Where an operational workflow cannot be expressed safely or clearly in AshBackpex, add a focused custom authenticated LiveView rather than forcing it into generic CRUD.
@@ -1403,7 +1431,7 @@ AshBackpex is an evolving integration. Pin compatible versions. Where an operati
 
 **Implemented singles inspection slice — 2026-08-10:** `/admin/catalogue/card-sets`, `/admin/catalogue/cards`, and `/admin/catalogue/valuations` provide authenticated read-only index/show inspection of safe set/card identity, embedded external Cardmarket mapping state, and immutable current/archive valuation provenance. Private payload/variant/search-normalization attributes are deselected by default, generic reads require an administrator, public exact-card and valuation relationship paths remain narrowly authorized, and no create/edit/delete/correction action is exposed.
 
-**Implemented safe manual refresh slice — 2026-08-10:** `/admin/operations` now offers fixed NBP refresh, exact local-card valuation refresh, and explicitly configured active sealed-retailer refresh. The typed coordinator validates persisted administrator identity, provider/adapter configuration, provider status, and canonical local targets before calling the existing unique enqueue APIs. It reports queued versus already queued work and accepts no arbitrary provider, URL, worker, arguments, or retained job. Generic arbitrary retry remains absent by design; terminal work is requeued only through a newly validated canonical target.
+**Current Singles operations boundary — 2026-09-08:** Singles source, batch, mapping, detail, and materialization diagnostics are read-only. There is no manual Singles refresh/retry/readiness/cutover control, public Singles enqueue, or per-card pricing action. The existing dated manual-refresh checkpoint remains historical for the then-active external-acquisition workers.
 
 **Implemented resumable catalogue refresh slice — 2026-08-10:** The same desk now also offers one fixed TCGdex catalogue target. It can only enqueue/reuse the worker-owned `%{"scope" => "all_sets"}` job; discovery, durable progress, request admission, failure classification, batching, and resume behavior remain server-owned. No browser input can select a set, provider, adapter, URL, arguments, or retained job. This supersedes only the earlier catalogue-sync limitation, while generic arbitrary retry remains absent by design.
 
@@ -1411,7 +1439,7 @@ AshBackpex is an evolving integration. Pin compatible versions. Where an operati
 
 **Implemented TCGdex import-issue inspection slice — 2026-08-10:** `/admin/operations/import-issues` provides authenticated read-only index/show inspection of normalized TCGdex catalogue sync/enrichment failures and unmatched/ambiguous mapping outcomes. Canonical issue identity retains first/latest occurrence without raw diagnostics, concurrent repeats converge, operation/target/category matrices are enforced in app and database, and recording failure is isolated from import behavior. The generic read is strict-admin protected and no create/edit/delete UI exists. At that checkpoint, sealed-source diagnostics and card external-mapping correction/history remained separate unfinished boundaries; the later card-mapping and sealed-retailer diagnostics slices below supersede those two limitations.
 
-**Implemented card external-mapping correction/history slice — 2026-08-10:** `/admin/catalogue/cards/:id/correct` provides a reasoned stale-safe exact Cardmarket product correction or reopen-to-review workflow, and `/admin/catalogue/card-mapping-history` exposes immutable scalar-only decisions. Mapping authority, transaction-local locks, displayed versions, valuation archival, decision writes, provider-import preservation, restrictive references, and an importer-private raw upsert make correction reversible and auditable without exposing raw payloads or generic destructive CRUD. Active `tcgdex_cardmarket_v1` persistence and public search/current/history/trade projections are product-ID bound; old mapping epochs remain retained history only. Mapping changes notify already mounted canonical CardDetail and Trade consumers after commit, including unresolved-to-matched transitions.
+**Implemented card external-mapping correction/history slice — 2026-08-10 (historical policy wording retained only where dated):** `/admin/catalogue/cards/:id/correct` provides a reasoned stale-safe exact Cardmarket product correction or reopen-to-review workflow, and `/admin/catalogue/card-mapping-history` exposes immutable scalar-only decisions. Mapping authority, transaction-local locks, displayed versions, valuation archival, decision writes, provider-import preservation, restrictive references, and an importer-private raw upsert make correction reversible and auditable without exposing raw payloads or generic destructive CRUD. Current public/new-write valuation is fixed `cardmarket_bulk_v1`; retained old-epoch TCGdex snapshots remain readable only. Mapping changes notify already mounted canonical CardDetail and Trade consumers after commit.
 
 **Implemented sealed-retailer import-diagnostics slice — 2026-08-10:** The same authenticated `/admin/operations/import-issues` index/show now includes normalized configured sealed-retailer refresh failures. The worker records only after canonical job-argument validation and projects one safe provider/operation/stage/local-retailer/kind/code identity; repeated attempts converge while advancing only the newest occurrence. Adapter detail never enters `ImportIssue`, and malformed/unknown tuple outcomes are sanitized before Oban retention. Existing worker retry/cancel behavior remains intact, diagnostic persistence is non-authoritative, and app/database matrices reject cross-provider operations, invalid stages/targets, unsafe provider identities, malformed retailer UUIDs, and incoherent categories. No mutation route, live source, or production evidence is added.
 
@@ -1433,14 +1461,17 @@ Support narrow screens without horizontal page scrolling.
 
 ### 22.2 Loading and freshness states
 
-Every price surface must distinguish:
+Singles price surfaces must distinguish:
 
 - fresh
 - stale but usable
-- fetching
-- limited data
 - unavailable / never valued
-- provider failure with cached fallback
+- local read error
+
+Singles has no pricing-fetching or pricing-provider-failure state: stale and
+unpriced values remain local until bulk synchronization. NBP, sealed, and
+TCGdex detail-enrichment surfaces may separately expose their own pending,
+failure, or limited states.
 
 Do not replace stale data with a blank screen.
 
@@ -1450,7 +1481,7 @@ Show concise methodology text, for example:
 
 **Superseding presentation guidance:** Keep the primary task path to plain collector language and the fewest words needed for the action or state. Technical methodology, provider/policy labels, local-data wording, freshness detail, IDs, and required caveats may remain available in a concise disclosure, but should not be repeated across the main search and comparison path. Legal and methodological honesty remains mandatory.
 
-> Aggregate Cardmarket estimate from TCGdex (`tcgdex_cardmarket_v1`); language, condition, seller identity, finish, and Poland shipping are not verified.
+> Aggregate Cardmarket estimate from the fixed bulk source (`cardmarket_bulk_v1`); language, condition, seller identity, finish, and Poland shipping are not verified.
 
 For an unavailable aggregate:
 
@@ -1543,6 +1574,9 @@ Do not prematurely introduce distributed infrastructure.
 
 Cover:
 
+- fixed `cardmarket_bulk_v1` metric selection and successful bulk materialization
+- historical `tcgdex_cardmarket_v1` readability with no selectable/new-write path
+- exact Cardmarket ID, same-successful-batch, paper-only/non-Pocket, plausibility, and row-count-anomaly safeguards
 - aggregate metric-priority selection
 - non-finite/non-positive aggregate values
 - exact priority order and Decimal two-decimal formatting
@@ -1556,6 +1590,8 @@ Cover:
 - URL encode/decode round trips
 - duplicate card merge
 - stale/fresh TTL behavior
+- stale/unpriced Singles rendering never enqueues pricing work
+- source-specific PubSub invalidations: bulk materialization and mapping changes reread local values; detail/NBP invalidations remain separate
 - budget rejection
 - job uniqueness
 - sealed outlier handling
@@ -1586,8 +1622,8 @@ Cover:
 - autocomplete regression: typing retains input focus, query, caret/selection, and IME/composition state across every update; result updates do not replace the input or steal focus
 - autocomplete combobox/listbox semantics, stable option IDs, visible active option, ArrowUp/ArrowDown, Enter exact-printing selection, Escape close, touch/click selection, and screen-reader status
 - cross-category fallback suggestions
-- single page missing-price refresh state
-- stale single refresh state
+- single page missing-price/unpriced state
+- stale single state retained until bulk sync
 - trade add-left/add-right flow
 - quantity changes
 - share URL restoration
@@ -1653,9 +1689,9 @@ If a source does not expose historical data, allow the collector to accumulate r
 1. **Production-safe execution and live repair validated; coverage remains incomplete:** Strict set/printing import has a canonical resumable Oban path with one validated discovery list, durable checkpoints, bounded budget-aware batches, and typed manual queue/reuse. Valid incomplete provider coverage is retained as explicit partial evidence; hard failed set IDs can be retried through a separate scope-safe server-derived repair job without list rediscovery. TCGdex catalogue requests retain aligned deadlines, a 2 MiB streamed response ceiling, no redirects, strict 1,000-set cardinality, exact timeout evidence, and an exact card-ID grammar that covers the observed `!`/literal `%HH` identities without permitting path delimiters. The private failed-set job processed the 11 historical failures in one attempt with 11 admitted requests and converted all to partial rather than hard failure. A one-request follow-up corrected `exu` to 28/28; 10 provider-partial sets, long-term reliability, representative mapping, and production coverage remain outstanding.
 2. Implement search and exact-printing result display.
 3. Implement Cardmarket/provider mapping.
-4. Implement `tcgdex_cardmarket_v1` aggregate valuation; preserve `default_v1` as historical/post-MVP code.
+4. Implement `cardmarket_bulk_v1` valuation materialization; retain historical `tcgdex_cardmarket_v1` snapshots as readable only.
 5. Implement snapshots and 24-hour TTL.
-6. Implement on-demand refresh and PubSub updates.
+6. Implement post-commit batch/mapping invalidations and local rereads; no public Singles enqueue.
 7. Implement single-card page and 30-day graph.
 
 ### Phase 3 — Trade calculator
@@ -1705,10 +1741,17 @@ The automatic provider circuit-breaker batch brings canonical validation to 736 
 
 ### Phase 6 — Homepage, hardening, and deployment
 
-1. **Current balanced local implementation complete; production population/caching remains:** Home keeps visible exact-printing search primary. Movers show signed movement, prior→current values, exact date range, freshness, and collapsed source/methodology; up to 10 rows are balanced at up to 5 risers and 5 fallers using two daily dates spanning one day and at least 2% movement within the preceding 30 UTC dates. Empty riser/faller lanes do not render. Active-mode Singles retains `Recently tracked` and Sealed retains `Recent releases` because that stream is sorted by `release_date`, both visible alongside movers. A zero-result mode switch preserves and reruns the normalized query; cross-category recovery remains bounded and secondary. Sealed catalogue copy does not imply evidence for every approved product. Focus, caret, and non-server-value-patch behavior remain unchanged. CardDetail uses title-case metadata with one `Legal formats` field/chips, a value panel distinguishing fresh/stale/fetching/failure, `Cardmarket <metric> via TCGdex`, collapsed source/metric/model/exact-UTC provenance, and a first/latest/count history summary; SVG is limited to two or more observations, while one observation remains collecting with an accessible ledger and honest gaps.
+**Current Singles boundary (2026-09-08):** Homepage, CardDetail, and Trade read
+only local `cardmarket_bulk_v1` values. Missing values stay unpriced and stale
+values stay visibly stale until the successful 03:00 UTC bulk sync; committed
+batch/mapping invalidations cause mounted views to reread local values. There is
+no public Singles pricing enqueue, per-card worker, fallback, policy cache,
+readiness/cutover control, manual refresh/retry, or 14:00 pricing sweep.
+
+1. **Current balanced local implementation complete; production population remains:** Home keeps visible exact-printing search primary. Movers show signed movement, prior→current values, exact date range, freshness, and collapsed source/methodology; up to 10 rows are balanced at up to 5 risers and 5 fallers using two daily dates spanning one day and at least 2% movement within the preceding 30 UTC dates. Empty riser/faller lanes do not render. Active-mode Singles retains `Recently tracked` and Sealed retains `Recent releases` because that stream is sorted by `release_date`, both visible alongside movers. A zero-result mode switch preserves and reruns the normalized query; cross-category recovery remains bounded and secondary. Sealed catalogue copy does not imply evidence for every approved product. Focus, caret, and non-server-value-patch behavior remain unchanged. CardDetail uses title-case metadata with one `Legal formats` field/chips, a value panel distinguishing fresh/stale/unpriced/read-error, fixed Cardmarket bulk provenance, collapsed source/metric/model/exact-UTC provenance, and a first/latest/count history summary; SVG is limited to two or more observations, while one observation remains collecting with an accessible ledger and honest gaps.
 2. **Blocked on real catalogue evidence:** Tune primary ranking and strong-versus-weak cross-category fallback using measured collision cases after production catalogues exist. The current zero-match fallback is intentionally conservative.
 3. **Foundation advanced, not complete:** request-level provider/global UTC limits, estimated-spend caps, persisted provider kill switches, passive outcome-driven automatic circuit opening, a bounded direct-peer public acquisition throttle, authenticated current usage/failure visibility, persisted external acquisition attempts, source-health lifecycle/broad/circuit streak evidence, strict scheduled-source freshness projection, overdue evidence, and periodic terminal stranded-run reconciliation are implemented; actual-cost reconciliation, priority classes, active automated health probes, and trusted-proxy client-address handling for a future proxied deployment remain.
-4. **AshBackpex catalogue expanded plus focused operations desks implemented; broader admin incomplete:** authenticated sealed-product list/show/draft create/stale-safe edit, manual pending alias list/show/create/stale-safe edit, curated stale-safe retailer management/category/status control, read-only current retailer-listing inspection, mapping list/show, immutable decision-history list/show, card-set/card identity plus embedded external-mapping inspection and reasoned correction/history, immutable single-valuation snapshot inspection, and normalized TCGdex catalogue plus configured sealed-retailer refresh issue inspection now exist in pinned AshBackpex. Consequential product/alias and pending sealed-listing mapping decisions stay in the focused review desk; terminal listing and card mapping correction use stale-safe focused confirmations. Authenticated current quota/estimated-spend ledgers, all-state retained Oban counts plus a bounded secret-safe newest-job ledger across external and local-only workers, bounded external-attempt evidence, source-health freshness and automatic-circuit evidence, overdue detection, periodic stranded repair, stale-safe provider controls, typed safe manual refresh/requeue for every existing external-acquisition worker including the server-derived failed-set repair scope, and exact read-only buying-model configuration/version inspection also exist. Active provider probes, arbitrary retained-job replay, actual-cost reconciliation, acquisition priorities, and broader operational workflows remain.
+4. **AshBackpex catalogue expanded plus focused operations desks implemented; broader admin incomplete:** authenticated sealed-product list/show/draft create/stale-safe edit, manual pending alias list/show/create/stale-safe edit, curated stale-safe retailer management/category/status control, read-only current retailer-listing inspection, mapping list/show, immutable decision-history list/show, card-set/card identity plus embedded external-mapping inspection and reasoned correction/history, immutable single-valuation snapshot inspection, and normalized TCGdex catalogue plus configured sealed-retailer refresh issue inspection now exist in pinned AshBackpex. Consequential product/alias and pending sealed-listing mapping decisions stay in the focused review desk; terminal listing and card mapping correction use stale-safe focused confirmations. Authenticated current quota/estimated-spend ledgers, all-state retained Oban counts plus a bounded secret-safe newest-job ledger across external and local-only workers, bounded external-attempt evidence, source-health freshness and automatic-circuit evidence, overdue detection, periodic stranded repair, stale-safe provider controls, and exact read-only buying-model configuration/version inspection also exist. Typed manual refresh controls exclude Singles pricing and apply only to unrelated catalogue/detail, NBP, and sealed workflows. Active provider probes, arbitrary retained-job replay, actual-cost reconciliation, acquisition priorities, and broader operational workflows remain.
 5. **Deployment health foundation implemented; broader monitoring remains:** Public JSON liveness and fail-closed readiness endpoints now distinguish process availability from PostgreSQL/Oban/acquisition-configuration readiness. The readiness projection checks every configured unpaused production queue without provider traffic or raw diagnostics, and the container uses fail-closed `/health` readiness for Coolify promotion while `/health/live` remains separate process liveness. Active external source probes, alerts, metrics export, and production monitoring integration remain unfinished.
 6. **Automated suite current; live repair complete but catalogue still partial:** Canonical validation passes 813 tests and all static gates. The private 218-ID historical run's 11 hard failures were processed by the live scope-safe repair in one attempt; all became partial, and the punctuation-ID correction plus one budget-admitted `exu` sync reduced current unresolved partial coverage to 10 sets while retaining 20,964 printings. Representative mapping coverage, complete provider coverage, accumulated observation/history validation, search collision/ranking tuning, sealed observations/stock transitions, and Polish-market buying-model validation remain open under budgets and safety controls.
 7. **Initial deployment/operations documentation and release path implemented; production exercise remains:** A pinned non-root OTP release image, release-safe migration/admin commands, environment guidance, health verification, backup/restore expectations, rollback constraints, and Oban/provider incident runbook are present and locally container-verified. An actual production deployment, backup restore drill, trusted-proxy/TLS topology, and production operational acceptance still remain.
@@ -1734,11 +1777,11 @@ The MVP is complete only when all of the following are true.
 
 - exact card printings are searchable
 - card page shows image and identity metadata
-- card page shows current or stale EUR aggregate valuation under `tcgdex_cardmarket_v1`
+- card page shows current or stale EUR aggregate valuation under `cardmarket_bulk_v1`
 - aggregate source, selected metric, and methodology are visible; no seller/offer-count widget is required because the active source does not provide that field
 - 24-hour TTL works
-- missing/stale data triggers one deduplicated Oban job
-- page updates through LiveView when the job completes
+- missing/stale data remains local and does not trigger a public pricing job
+- page rereads local data after a committed successful bulk batch or mapping change
 - 30-day valuation history works with real data
 
 ### 29.3 Trade calculator
@@ -1820,11 +1863,10 @@ Also document the exact local paths or commit references of Firmowid and Onside 
 The agent must decide these through research and testing, not by asking the product owner unless access is genuinely blocked:
 
 - exact card metadata provider
-- exact Cardmarket data provider or direct access method
 - exact Polish distributor/MSRP source
 - exact regular retailers and LGS sources
 - exact sealed refresh cadences
-- exact hourly/daily on-demand quotas
+- fixed bulk-sync acquisition limits and no public Singles on-demand quota
 - exact chart library or LiveView hook
 - exact robust range calculation
 - initial sealed-model weights and confidence thresholds
@@ -1832,6 +1874,10 @@ The agent must decide these through research and testing, not by asking the prod
 - exact Ash resource/module names consistent with Firmowid
 
 Each decision must stay within the product rules and budget above and be recorded in an ADR where material.
+
+**Closed Singles decision (2026-09-08):** `cardmarket_bulk_v1` is the sole
+public/new-write source, synchronized daily at 03:00 UTC. There is no fallback,
+selectable alternate source, or public Singles on-demand quota.
 
 ---
 
@@ -1849,7 +1895,7 @@ Do **not** expose:
 - shipping normalization
 - separate fetches for arbitrary settings combinations
 
-The internal model should remain versionable so these can be added later, but the MVP uses one fixed aggregate policy, `tcgdex_cardmarket_v1`.
+The internal model should remain versionable so these can be added later, but the MVP uses one fixed aggregate policy, `cardmarket_bulk_v1`.
 
 Earlier exploration also considered server-persisted trade links and frozen prices. The final MVP uses URL-only trade composition and always evaluates against the latest locally cached data.
 

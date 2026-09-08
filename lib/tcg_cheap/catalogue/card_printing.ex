@@ -117,7 +117,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
         :last_synced_at,
         :details_synced_at,
         :details_enrichment_failed_at,
-        :pricing_checked_at,
         :cardmarket_product_id,
         :mapping_status,
         :mapping_review_reason,
@@ -189,22 +188,35 @@ defmodule TcgCheap.Catalogue.CardPrinting do
     end
 
     read :cardmarket_anchors do
+      argument :cursor, :string, allow_nil?: true
+
+      argument :limit, :integer,
+        allow_nil?: false,
+        default: 1_000,
+        constraints: [min: 1, max: 1_000]
+
       filter expr(
                mapping_status == "matched" and not is_nil(card_set_id) and
-                 cardmarket_product_id > 0
+                 cardmarket_product_id > 0 and
+                 (is_nil(^arg(:cursor)) or tcgdex_id > ^arg(:cursor))
              )
+
+      prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
 
       prepare build(
                 select: [
                   :id,
                   :card_set_id,
+                  :tcgdex_id,
                   :cardmarket_product_id,
                   :name,
                   :mapping_authority,
                   :mapping_status,
                   :mapping_review_reason,
                   :updated_at
-                ]
+                ],
+                sort: [tcgdex_id: :asc, id: :asc],
+                limit: arg(:limit)
               )
     end
 
@@ -226,31 +238,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
                   :updated_at
                 ]
               )
-    end
-
-    read :singles_valuation_candidates do
-      argument :cursor, :string, allow_nil?: true
-
-      argument :limit, :integer,
-        allow_nil?: false,
-        default: 1_000,
-        constraints: [min: 1, max: 1_000]
-
-      filter expr(
-               mapping_status == "matched" and
-                 not is_nil(cardmarket_product_id) and cardmarket_product_id > 0 and
-                 (is_nil(^arg(:cursor)) or tcgdex_id > ^arg(:cursor))
-             )
-
-      prepare build(
-                load: [
-                  :cardmarket_bulk_v1_current_valuation
-                ],
-                sort: [tcgdex_id: :asc, id: :asc],
-                limit: arg(:limit)
-              )
-
-      prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
     end
 
     read :public_by_tcgdex_id do
@@ -333,7 +320,8 @@ defmodule TcgCheap.Catalogue.CardPrinting do
         constraints: [min: 1, max: 1_000]
 
       filter expr(
-               is_nil(pricing_checked_at) and
+               is_nil(details_synced_at) and
+                 is_nil(details_enrichment_failed_at) and
                  (is_nil(^arg(:cursor)) or tcgdex_id > ^arg(:cursor))
              )
 
@@ -361,13 +349,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       change set_attribute(:collection_scope_source, arg(:collection_scope_source))
       change set_attribute(:collection_scoped_at, arg(:collection_scoped_at))
       change set_attribute(:collection_expires_on, arg(:collection_expires_on))
-    end
-
-    update :mark_pricing_checked do
-      public? false
-      skip_global_validations? true
-      argument :checked_at, :utc_datetime_usec, allow_nil?: false
-      change atomic_set(:pricing_checked_at, expr(^arg(:checked_at)))
     end
 
     update :mark_details_enrichment_failed do
@@ -627,7 +608,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
     attribute :last_synced_at, :utc_datetime_usec, public?: true
     attribute :details_synced_at, :utc_datetime_usec, public?: true
     attribute :details_enrichment_failed_at, :utc_datetime_usec, public?: false
-    attribute :pricing_checked_at, :utc_datetime_usec, public?: true
     attribute :cardmarket_product_id, :integer, public?: true
 
     attribute :mapping_status, :string do
@@ -657,18 +637,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
   relationships do
     belongs_to :card_set, TcgCheap.Catalogue.CardSet, public?: true
     has_many :valuation_snapshots, TcgCheap.Pricing.Singles.SingleValuationSnapshot
-
-    has_one :tcgdex_cardmarket_v1_current_valuation,
-            TcgCheap.Pricing.Singles.SingleValuationSnapshot do
-      allow_nil? true
-
-      filter expr(
-               current? == true and policy_version == "tcgdex_cardmarket_v1" and
-                 cardmarket_product_id == parent(cardmarket_product_id)
-             )
-
-      sort fetched_at: :desc
-    end
 
     has_one :cardmarket_bulk_v1_current_valuation,
             TcgCheap.Pricing.Singles.SingleValuationSnapshot do

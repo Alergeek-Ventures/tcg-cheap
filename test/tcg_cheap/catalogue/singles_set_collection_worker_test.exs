@@ -81,8 +81,6 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     cards = Enum.map(ids, &TcgCheap.Core.get_card_printing_by_tcgdex_id!/1)
     assert Enum.all?(cards, &(&1.collection_scopes == ["pitch_black_full"]))
 
-    refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Pricing.Singles.ValuationWorker)
-
     # One catalogue request for the set and one for each card.
     assert length(Agent.get(admissions, & &1)) == 7
   end
@@ -112,7 +110,6 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     card = TcgCheap.Core.get_card_printing_by_tcgdex_id!(id)
 
     assert {:ok, []} = TcgCheap.Core.list_current_single_valuations(card.id, authorize?: false)
-    refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Pricing.Singles.ValuationWorker)
   end
 
   test "rolling window selects exact IR/SIR rarities and expires two years later", %{
@@ -531,15 +528,6 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
         [
           provider_key: "tcgdex_catalogue",
           display_name: "TCGdex",
-          estimated_cost_per_request: "0.00",
-          hourly_request_limit: 100,
-          daily_request_limit: 1000,
-          monthly_request_limit: 20_000,
-          monthly_spend_limit: "0.00"
-        ],
-        [
-          provider_key: "tcgdex_cardmarket",
-          display_name: "Cardmarket",
           estimated_cost_per_request: "0.00",
           hourly_request_limit: 100,
           daily_request_limit: 1000,

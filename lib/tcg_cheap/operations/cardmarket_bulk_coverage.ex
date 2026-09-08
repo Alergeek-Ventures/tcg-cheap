@@ -10,16 +10,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
 
   @policy "cardmarket_bulk_v1"
   @provider "cardmarket_bulk"
-  @cutover_keys [
-    :relative_value_tolerance,
-    :row_count_anomaly_bound,
-    :minimum_coverage_gain,
-    :minimum_coverage_ratio,
-    :minimum_overlap,
-    :minimum_agreement_ratio
-  ]
-
-  @doc "Loads the persisted coverage evidence for internal, fail-closed decisions."
+  @doc "Loads persisted Cardmarket bulk coverage evidence and diagnostics."
   def load_system(opts \\ []), do: load_report(nil, opts, false)
 
   @spec load(Admin.t(), keyword()) :: {:ok, map()} | {:error, term()}
@@ -42,9 +33,8 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
          {:ok, health} <- source_health(actor, admin?),
          :ok <- validate_health(health, now),
          {:ok, catalogue} <- catalogue_evidence(actor, admin?, now),
-         {:ok, comparison} <- comparison(latest, previous) do
-      readiness =
-        readiness(latest, previous, counts, comparison, health, policy, catalogue, now)
+         {:ok, materialization} <- materialization(latest) do
+      diagnostics = diagnostics(latest, previous, policy, now)
 
       {:ok,
        %{
@@ -58,9 +48,8 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
          counts: counts,
          source: source_projection(health, policy, now),
          catalogue: catalogue,
-         comparison: comparison,
-         cutover: readiness,
-         cutover_readiness: readiness
+         materialization: materialization,
+         diagnostics: diagnostics
        }}
     else
       {:error, _} = error -> error
@@ -72,54 +61,23 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
   defp parse_options(opts) when is_list(opts) do
     keys = Keyword.keys(opts)
 
-    if Keyword.keyword?(opts) and keys == Enum.uniq(keys) and keys -- [:clock] == [] and
-         is_function(Keyword.get(opts, :clock, &DateTime.utc_now/0), 0) and
-         valid_cutover_config?(),
-       do: {:ok, Keyword.get(opts, :clock, &DateTime.utc_now/0)},
-       else: {:error, :invalid_cardmarket_bulk_coverage_input}
+    if(
+      Keyword.keyword?(opts) and keys == Enum.uniq(keys) and keys -- [:clock] == [] and
+        is_function(Keyword.get(opts, :clock, &DateTime.utc_now/0), 0) and
+        valid_anomaly_config?(),
+      do: {:ok, Keyword.get(opts, :clock, &DateTime.utc_now/0)},
+      else: {:error, :invalid_cardmarket_bulk_coverage_input}
+    )
   end
 
   defp parse_options(_), do: {:error, :invalid_cardmarket_bulk_coverage_input}
 
-  defp valid_cutover_config? do
-    config = Application.get_env(:tcg_cheap, :cardmarket_bulk_cutover)
+  defp valid_anomaly_config? do
+    config = Application.get_env(:tcg_cheap, :cardmarket_bulk)
+    bound = if is_list(config), do: Keyword.get(config, :row_count_anomaly_bound), else: nil
 
-    is_list(config) and Keyword.keyword?(config) and valid_cutover_keys?(config) and
-      valid_cutover_values?(config)
+    Keyword.keyword?(config) and is_number(bound) and bound >= 0 and bound <= 1
   end
-
-  defp valid_cutover_keys?(config) do
-    keys = Keyword.keys(config)
-    Enum.sort(keys) == Enum.sort(@cutover_keys) and length(keys) == length(Enum.uniq(keys))
-  end
-
-  defp valid_cutover_values?(config) do
-    valid_fraction?(Keyword.get(config, :relative_value_tolerance)) and
-      valid_fraction?(Keyword.get(config, :row_count_anomaly_bound)) and
-      positive_integer?(Keyword.get(config, :minimum_coverage_gain)) and
-      finite_number_at_least?(Keyword.get(config, :minimum_coverage_ratio), 1) and
-      positive_integer?(Keyword.get(config, :minimum_overlap)) and
-      finite_number_between?(Keyword.get(config, :minimum_agreement_ratio), 0, 1, false)
-  end
-
-  defp positive_integer?(value), do: is_integer(value) and value > 0
-
-  defp valid_fraction?(value), do: finite_number_between?(value, 0, 1, true)
-
-  defp finite_number_at_least?(value, minimum),
-    do: finite_number?(value) and value >= minimum
-
-  defp finite_number_between?(value, minimum, maximum, inclusive_minimum),
-    do:
-      finite_number?(value) and value <= maximum and
-        if(inclusive_minimum, do: value >= minimum, else: value > minimum)
-
-  defp finite_number?(value) when is_integer(value), do: true
-
-  defp finite_number?(value) when is_float(value),
-    do: value < Float.max_finite() and value > -Float.max_finite()
-
-  defp finite_number?(_), do: false
 
   defp valid_clock(clock) do
     case clock.() do
@@ -271,7 +229,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
           (SELECT count(*) FROM canonical WHERE mapping_status='pending'), (SELECT count(*) FROM canonical WHERE mapping_status='matched'),
           (SELECT count(*) FROM canonical WHERE mapping_status='unmatched'), (SELECT count(*) FROM canonical WHERE mapping_status='review'),
           (SELECT count(*) FROM canonical WHERE details_synced_at IS NULL), (SELECT count(*) FROM canonical WHERE details_enrichment_failed_at IS NOT NULL),
-          (SELECT count(*) FROM canonical WHERE pricing_checked_at IS NULL), (SELECT count(*) FROM staged_products), (SELECT count(*) FROM staged_prices),
+           (SELECT count(*) FROM staged_products), (SELECT count(*) FROM staged_prices),
           (SELECT count(*) FROM staged_prices WHERE selected_value_eur IS NOT NULL AND selected_value_eur > 0),
           (SELECT count(DISTINCT p.id) FROM staged_products p JOIN canonical c ON c.cardmarket_product_id=p.cardmarket_product_id AND c.mapping_status='matched'),
           (SELECT count(DISTINCT c.id) FROM canonical c JOIN staged_products p ON p.cardmarket_product_id=c.cardmarket_product_id WHERE c.mapping_status='matched'),
@@ -290,7 +248,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
     _ -> {:error, :coverage_query_failed}
   end
 
-  defp validate_counts_row(row) when is_list(row) and length(row) == 16 do
+  defp validate_counts_row(row) when is_list(row) and length(row) == 15 do
     keys = [
       :canonical_printings,
       :mapping_pending,
@@ -299,7 +257,6 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
       :mapping_review,
       :details_pending,
       :detail_failures,
-      :pricing_check_pending,
       :staged_products,
       :staged_prices,
       :priceable_staged_prices,
@@ -333,8 +290,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
 
   defp bounded_catalogue_counts?(c) do
     c.details_pending <= c.canonical_printings and
-      c.detail_failures <= c.details_pending and
-      c.pricing_check_pending <= c.canonical_printings
+      c.detail_failures <= c.details_pending
   end
 
   defp staging_coherent?(c, nil),
@@ -362,24 +318,18 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
   end
 
   # This query intentionally uses the exact card -> product mapping, rather than
-  # names or sets, so every reported comparison remains conservative.
-  defp comparison(batch, previous) do
-    if is_nil(batch), do: {:ok, empty_comparison()}, else: comparison_query(batch, previous)
-  end
+  # names or sets, so every reported materialization remains conservative.
+  defp materialization(nil), do: {:ok, empty_materialization()}
 
-  defp comparison_query(batch, previous) do
+  defp materialization(batch) do
     result =
       TcgCheap.Repo.query(
         """
-        WITH canonical AS (
+         WITH canonical AS (
           SELECT cp.id, cp.card_set_id, cp.cardmarket_product_id
           FROM card_printings cp JOIN card_sets cs ON cs.id=cp.card_set_id
           WHERE cs.tcgdex_id <> 'tcgp' AND cp.mapping_status='matched'
-        ), tcg AS (
-          SELECT DISTINCT v.card_printing_id, v.value_eur FROM single_valuation_snapshots v
-          JOIN canonical c ON c.id=v.card_printing_id AND c.cardmarket_product_id=v.cardmarket_product_id
-          WHERE v."current?"=true AND v.policy_version='tcgdex_cardmarket_v1'
-         ), prices AS (
+        ), prices AS (
           SELECT p.cardmarket_product_id, p.selected_value_eur, p.selected_metric
           FROM cardmarket_bulk_prices p WHERE p.last_batch_id=$1::uuid
         ), products AS (
@@ -425,41 +375,29 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
            FROM valid
            WHERE accepted
          )
-         SELECT
-           (SELECT count(*) FROM tcg),
-           (SELECT count(*) FROM accepted),
-           (SELECT count(*) FROM tcg t JOIN accepted b ON b.card_printing_id=t.card_printing_id),
-           (SELECT count(*) FROM tcg t JOIN accepted b ON b.card_printing_id=t.card_printing_id
-             WHERE abs(t.value_eur-b.value_eur)/GREATEST(t.value_eur,b.value_eur) <= $4),
-           (SELECT count(*) FROM valuations),
-           (SELECT count(*) FROM valid WHERE approved),
-           (SELECT count(*) FROM valid WHERE accepted),
-           (SELECT count(*) FROM valid WHERE NOT approved)
+          SELECT
+            (SELECT count(*) FROM valuations),
+            (SELECT count(*) FROM valid WHERE approved),
+            (SELECT count(*) FROM accepted),
+            (SELECT count(*) FROM valid WHERE NOT approved)
         """,
         [
           Ecto.UUID.dump!(batch.id),
           batch.fetched_at,
-          batch.price_created_at,
-          relative_tolerance()
+          batch.price_created_at
         ]
       )
 
     case result do
-      {:ok, %{rows: [[tcgdex, bulk, overlap, agreement, latest, approved, exact, ambiguous]]}}
-      when is_integer(tcgdex) and is_integer(bulk) and is_integer(overlap) ->
+      {:ok, %{rows: [[latest, approved, exact, ambiguous]]}}
+      when is_integer(latest) and is_integer(approved) and is_integer(exact) and
+             is_integer(ambiguous) ->
         {:ok,
          %{
-           current_tcgdex_count: tcgdex,
-           current_bulk_count: bulk,
-           overlap: overlap,
-           bulk_only: max(bulk - overlap, 0),
-           tcgdex_only: max(tcgdex - overlap, 0),
            latest_batch_valuation_count: latest,
-           latest_batch_approved_valuations: approved,
-           latest_batch_exact_valuations: exact,
-           overlap_value_agreement: agreement,
-           latest_batch_ambiguous_or_unapproved: ambiguous,
-           previous_product_row_count: previous && previous.product_row_count
+           approved_evidence_count: approved,
+           exact_selected_value_metric_count: exact,
+           ambiguous_or_unapproved_count: ambiguous
          }}
 
       _ ->
@@ -469,45 +407,12 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
     _ -> {:error, :coverage_query_failed}
   end
 
-  defp empty_comparison do
+  defp empty_materialization do
     %{
-      current_tcgdex_count: 0,
-      current_bulk_count: 0,
-      overlap: 0,
-      bulk_only: 0,
-      tcgdex_only: 0,
       latest_batch_valuation_count: 0,
-      latest_batch_approved_valuations: 0,
-      latest_batch_exact_valuations: 0,
-      overlap_value_agreement: 0,
-      latest_batch_ambiguous_or_unapproved: 0,
-      previous_product_row_count: nil
-    }
-  end
-
-  defp readiness(latest, previous, counts, comparison, health, policy, catalogue, now) do
-    checks = %{
-      canonical_catalogue_complete: catalogue.complete?,
-      latest_and_previous_batches: batches_ready?(latest, previous),
-      source_healthy_and_current: source_ready?(health, policy, now),
-      batch_evidence_fresh: batch_evidence_fresh?(latest, policy, now),
-      row_count_anomaly_bounded: row_count_anomaly_bounded?(latest, previous),
-      materialization_complete: materialization_complete?(latest, comparison, counts),
-      approved_mapping_evidence: approved_mapping_evidence?(latest, comparison),
-      staged_value_metric_agreement: staged_value_metric_agreement?(comparison),
-      no_ambiguous_or_unapproved: comparison.latest_batch_ambiguous_or_unapproved == 0,
-      material_coverage_gain:
-        coverage_gain?(comparison.current_bulk_count, comparison.current_tcgdex_count),
-      overlap_value_agreement: overlap_value_agreement?(comparison)
-    }
-
-    failed = checks |> Enum.filter(fn {_key, value} -> not value end) |> Enum.map(&elem(&1, 0))
-
-    %{
-      ready?: failed == [],
-      checks: checks,
-      failed_checks: failed,
-      reason: if(failed == [], do: :ready, else: hd(failed))
+      approved_evidence_count: 0,
+      exact_selected_value_metric_count: 0,
+      ambiguous_or_unapproved_count: 0
     }
   end
 
@@ -651,7 +556,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
   end
 
   # ImportIssue's unresolved_catalogue_sets action predates partial issues and
-  # therefore cannot represent the complete cutover predicate. Keep this query
+  # therefore cannot represent the complete discovery predicate. Keep this query
   # scalar and bounded: no issue payloads or provider secrets enter the report.
   defp unresolved_catalogue_issue_count do
     result =
@@ -675,14 +580,6 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
     end
   rescue
     _ -> {:error, :catalogue_issue_query_failed}
-  end
-
-  defp batches_ready?(latest, previous), do: not is_nil(latest) and not is_nil(previous)
-
-  defp source_ready?(health, policy, now) do
-    health != nil and health.last_status == "succeeded" and
-      AcquisitionHealthPolicy.provider_state(policy, @provider, health.last_succeeded_at, now) ==
-        :current
   end
 
   defp batch_evidence_fresh?(
@@ -730,22 +627,11 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
       )
   end
 
-  defp materialization_complete?(latest, comparison, counts),
-    do:
-      latest != nil and
-        comparison.latest_batch_valuation_count == counts.matched_linked_positive_prices
-
-  defp approved_mapping_evidence?(latest, comparison),
-    do:
-      latest != nil and
-        comparison.latest_batch_approved_valuations == comparison.latest_batch_valuation_count
-
-  defp staged_value_metric_agreement?(comparison),
-    do: comparison.latest_batch_exact_valuations == comparison.latest_batch_valuation_count
-
-  defp overlap_value_agreement?(comparison) do
-    comparison.overlap >= min_overlap() and comparison.overlap > 0 and
-      comparison.overlap_value_agreement / comparison.overlap >= agreement_ratio()
+  defp diagnostics(latest, previous, policy, now) do
+    %{
+      batch_evidence_fresh?: batch_evidence_fresh?(latest, policy, now),
+      row_count_anomaly_bounded?: row_count_anomaly_bounded?(latest, previous)
+    }
   end
 
   defp relative_anomaly?(latest, previous)
@@ -754,20 +640,10 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
 
   defp relative_anomaly?(_, _), do: false
 
-  defp coverage_config(key, default),
-    do: Application.get_env(:tcg_cheap, :cardmarket_bulk_cutover, []) |> Keyword.get(key, default)
-
-  defp relative_tolerance, do: coverage_config(:relative_value_tolerance, 0.05)
-  defp row_anomaly_bound, do: coverage_config(:row_count_anomaly_bound, 0.10)
-
-  defp coverage_gain?(bulk, tcg) when is_integer(bulk) and is_integer(tcg) do
-    bulk - tcg >= coverage_config(:minimum_coverage_gain, 100) and
-      (tcg == 0 or bulk / tcg >= coverage_config(:minimum_coverage_ratio, 1.10))
-  end
-
-  defp coverage_gain?(_, _), do: false
-  defp min_overlap, do: coverage_config(:minimum_overlap, 100)
-  defp agreement_ratio, do: coverage_config(:minimum_agreement_ratio, 0.95)
+  defp row_anomaly_bound,
+    do:
+      Application.get_env(:tcg_cheap, :cardmarket_bulk, [])
+      |> Keyword.get(:row_count_anomaly_bound)
 
   defp source_health(actor, admin?) do
     case TcgCheap.Operations.list_source_health([@provider], actor: actor, authorize?: admin?) do

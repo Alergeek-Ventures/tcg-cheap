@@ -10,8 +10,8 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
       Core.record_single_valuation!(%{
         card_printing_id: card.id,
         value_eur: Decimal.new("411.69"),
-        policy_version: "tcgdex_cardmarket_v1",
-        source: "tcgdex_cardmarket",
+        policy_version: "cardmarket_bulk_v1",
+        source: "cardmarket_bulk",
         source_metric: "avg7",
         fetched_at: ~U[2026-08-07 12:00:00.000000Z],
         provider_updated_at: ~U[2026-08-07 08:03:04.828000Z],
@@ -50,9 +50,7 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
 
   test "replaces the current snapshot while retaining policy-specific history" do
     card = create_card_printing()
-    policy = "tcgdex_cardmarket_v1-#{System.unique_integer([:positive])}"
-    other_policy = "tcgdex_cardmarket_v2-#{System.unique_integer([:positive])}"
-
+    policy = "cardmarket_bulk_v1"
     assert {:ok, nil} = Core.get_current_single_valuation(card.id, policy)
 
     first = Core.record_single_valuation!(snapshot_attributes(card, %{policy_version: policy}))
@@ -66,15 +64,8 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
         })
       )
 
-    other =
-      Core.record_single_valuation!(
-        snapshot_attributes(card, %{policy_version: other_policy, value_eur: Decimal.new("99.00")})
-      )
-
     assert {:ok, current} = Core.get_current_single_valuation(card.id, policy)
     assert current.id == replacement.id
-    assert {:ok, other_current} = Core.get_current_single_valuation(card.id, other_policy)
-    assert other_current.id == other.id
 
     assert [newest, oldest] = Core.list_single_valuation_history!(card.id, policy)
     assert newest.id == replacement.id
@@ -84,7 +75,7 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
 
   test "an invalid replacement preserves the prior current snapshot" do
     card = create_card_printing()
-    policy = "tcgdex_cardmarket_v1-#{System.unique_integer([:positive])}"
+    policy = "cardmarket_bulk_v1"
     first = Core.record_single_valuation!(snapshot_attributes(card, %{policy_version: policy}))
 
     assert {:error, _error} =
@@ -113,9 +104,9 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
              )
 
     assert Exception.message(error) =~ "currently matched positive Cardmarket product"
-    assert {:ok, current} = Core.get_current_single_valuation(card.id, "tcgdex_cardmarket_v1")
+    assert {:ok, current} = Core.get_current_single_valuation(card.id, "cardmarket_bulk_v1")
     assert current.id == first.id
-    assert [retained] = Core.list_single_valuation_history!(card.id, "tcgdex_cardmarket_v1")
+    assert [retained] = Core.list_single_valuation_history!(card.id, "cardmarket_bulk_v1")
     assert retained.current?
   end
 
@@ -156,7 +147,7 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
           policy_version: policy,
           source: "cardmarket_bulk",
           value_eur: Decimal.new("512.00"),
-          cardmarket_product_id: card.cardmarket_product_id
+          cardmarket_product_id: Map.get(card, :cardmarket_product_id, 273_699)
         })
       )
 
@@ -204,10 +195,11 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotTest do
       %{
         card_printing_id: card.id,
         value_eur: Decimal.new("411.69"),
-        policy_version: "tcgdex_cardmarket_v1",
-        source: "tcgdex_cardmarket",
+        policy_version: "cardmarket_bulk_v1",
+        source: "cardmarket_bulk",
         source_metric: "avg7",
-        fetched_at: ~U[2026-08-07 12:00:00.000000Z]
+        fetched_at: ~U[2026-08-07 12:00:00.000000Z],
+        cardmarket_product_id: Map.get(card, :cardmarket_product_id, 273_699)
       },
       overrides
     )

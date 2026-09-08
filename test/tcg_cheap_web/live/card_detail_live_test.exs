@@ -6,13 +6,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
   alias TcgCheap.Core
 
-  alias TcgCheap.Pricing.Singles.{
-    ValuationNotifications,
-    ValuationPolicy,
-    ValuationWorker
-  }
-
-  alias TcgCheapWeb.PublicAcquisitionLimiter
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
 
   @policy "cardmarket_bulk_v1"
 
@@ -45,7 +39,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#card-detail-title", card.name)
   end
 
-  test "a missing valuation renders the full local-card detail and queues acquisition", %{
+  test "a missing valuation renders the full local-card detail", %{
     conn: conn
   } do
     card = create_card("missing")
@@ -128,26 +122,17 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert job.priority == 0
   end
 
-  test "details-synced cards with unchecked pricing queue priority acquisition", %{conn: conn} do
+  test "details-synced cards do not enqueue catalogue enrichment", %{conn: conn} do
     card = create_card("pricing-pending", details_synced_at: DateTime.utc_now())
 
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
 
     assert has_element?(view, "#card-detail-identity")
 
-    assert [job] =
-             all_enqueued(
-               repo: TcgCheap.Repo,
-               worker: TcgCheap.Catalogue.CardDetailEnrichmentWorker,
-               args: %{
-                 "local_card_id" => card.id,
-                 "tcgdex_id" => card.tcgdex_id,
-                 "policy_version" => 1,
-                 "continue" => false
-               }
-             )
-
-    assert job.priority == 0
+    assert all_enqueued(
+             repo: TcgCheap.Repo,
+             worker: TcgCheap.Catalogue.CardDetailEnrichmentWorker
+           ) == []
   end
 
   test "a valid TCGdex image renders the high WebP detail image", %{conn: conn} do
@@ -213,40 +198,21 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute has_element?(view, "#valuation-basis")
     refute has_element?(view, "#valuation-provenance")
     refute has_element?(view, "#archive-header", "PRINTING ARCHIVE")
-
-    refute_enqueued(
-      repo: TcgCheap.Repo,
-      worker: ValuationWorker,
-      args: %{"local_card_id" => card.id}
-    )
   end
 
-  test "valuation acquisition and tooltip copy follow the selected policy" do
-    assert TcgCheapWeb.CardDetailLive.valuation_acquisition_enabled?(
-             ValuationPolicy.tcgdex_policy()
-           )
-
-    refute TcgCheapWeb.CardDetailLive.valuation_acquisition_enabled?(
-             ValuationPolicy.bulk_policy()
-           )
-
-    tcgdex_copy =
-      TcgCheapWeb.CardDetailLive.valuation_source_copy(ValuationPolicy.tcgdex_policy())
-
-    bulk_copy = TcgCheapWeb.CardDetailLive.valuation_source_copy(ValuationPolicy.bulk_policy())
-
-    assert tcgdex_copy =~ "Cardmarket via TCGdex"
-    assert bulk_copy =~ "Cardmarket daily/bulk price-guide data"
-    refute bulk_copy =~ "catalogue data"
-    refute bulk_copy =~ ValuationPolicy.bulk_policy_version()
-    refute bulk_copy =~ "avg7"
-  end
-
-  test "mounted detail refreshes after a bulk mapping notification", %{conn: conn} do
+  test "mounted detail reloads after a bulk mapping notification", %{conn: conn} do
     card = create_card("mounted-policy")
     now = DateTime.utc_now() |> DateTime.truncate(:second)
-    record_policy_snapshot(card, "12.30", ValuationPolicy.tcgdex_policy(), "tcgdex", now)
-    record_policy_snapshot(card, "99.99", ValuationPolicy.bulk_policy(), "cardmarket_bulk", now)
+
+    TcgCheap.TestSupport.insert_historical_single_valuation!(%{
+      card_printing_id: card.id,
+      value_eur: Decimal.new("12.30"),
+      source_metric: "avg7",
+      fetched_at: now,
+      cardmarket_product_id: card.cardmarket_product_id
+    })
+
+    record_snapshot(card, Decimal.new("99.99"), now)
 
     path = ~p"/cards/#{card.tcgdex_id}"
     {:ok, view, _html} = live(conn, path)
@@ -305,12 +271,6 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
              document |> LazyHTML.query("#valuation-history-observations") |> LazyHTML.to_tree()
 
     assert [] == document |> LazyHTML.query("#valuation-history-ledger") |> LazyHTML.to_tree()
-
-    refute_enqueued(
-      repo: TcgCheap.Repo,
-      worker: ValuationWorker,
-      args: %{"local_card_id" => card.id}
-    )
   end
 
   test "printing details have distinct labels and honest legal format icons", %{conn: conn} do
@@ -475,7 +435,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-history-empty")
   end
 
-  test "a mounted card clears the old valuation epoch when its mapping changes", %{conn: conn} do
+  test "a mounted card clears the old valuation when its mapping changes", %{conn: conn} do
     card = create_card("mapping-event")
     now = DateTime.utc_now() |> DateTime.truncate(:second)
     old_product_id = card.cardmarket_product_id
@@ -506,7 +466,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-history-empty")
   end
 
-  test "an unresolved card requests acquisition after a later matched mapping", %{conn: conn} do
+  test "an unresolved card reloads after a later matched mapping", %{conn: conn} do
     card = create_card("mapping-later", mapping_status: "unmatched", cardmarket_product_id: nil)
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
     assert has_element?(view, "#valuation-unpriced")
@@ -526,11 +486,11 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     )
 
     render(view)
-    refute has_element?(view, "#valuation-fetching")
-    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
+    assert has_element?(view, "#valuation-unpriced")
+    assert has_element?(view, "#valuation-value", "?")
   end
 
-  test "a stale cached valuation remains visible while refresh is queued", %{conn: conn} do
+  test "a stale cached valuation remains visible", %{conn: conn} do
     card = create_card("stale", details_synced_at: DateTime.utc_now())
     now = DateTime.utc_now() |> DateTime.truncate(:second)
     record_snapshot(card, Decimal.new("17.20"), DateTime.add(now, -8, :day))
@@ -540,28 +500,6 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-value", "17.20")
     assert has_element?(view, "#valuation-stale", "May be outdated")
     assert has_element?(view, "#valuation-stale", "Updated 8 days ago · May be outdated")
-    refute has_element?(view, "#valuation-fetching")
-    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
-  end
-
-  test "a peer at the public acquisition limit keeps local fallback and queues no refresh", %{
-    conn: conn
-  } do
-    card = create_card("public-limit")
-    fill_public_limit(conn.remote_ip)
-
-    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
-
-    assert has_element?(view, "#valuation-value", "?")
-    assert has_element?(view, "#valuation-unpriced")
-    assert has_element?(view, "#card-detail-enrichment-failed")
-    refute has_element?(view, "#valuation-fetching")
-
-    refute_enqueued(
-      repo: TcgCheap.Repo,
-      worker: ValuationWorker,
-      args: %{"local_card_id" => card.id}
-    )
   end
 
   test "a valuation completion updates value, freshness and history chart", %{conn: conn} do
@@ -578,7 +516,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
              Phoenix.PubSub.broadcast(
                TcgCheap.PubSub,
                ValuationNotifications.topic(card),
-               {:card_mapping_changed, %{card_printing_id: card.id}}
+               {:valuation_completed, %{card_printing_id: card.id}}
              )
 
     render(view)
@@ -592,27 +530,6 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute has_element?(view, "#valuation-history-title")
     refute has_element?(view, "#valuation-history-description")
     refute has_element?(view, "#valuation-history-details")
-    refute has_element?(view, "#valuation-fetching")
-  end
-
-  test "a terminal refresh failure retains a stale cached value without fetching", %{conn: conn} do
-    card = create_card("failure", details_synced_at: DateTime.utc_now())
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
-    record_snapshot(card, Decimal.new("31.10"), DateTime.add(now, -8, :day))
-    {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
-
-    assert :ok =
-             Phoenix.PubSub.broadcast(
-               TcgCheap.PubSub,
-               ValuationNotifications.topic(card),
-               {:valuation_failed, %{card_printing_id: card.id, reason: :provider_not_found}}
-             )
-
-    render(view)
-    assert has_element?(view, "#valuation-value", "31.10")
-    assert has_element?(view, "#valuation-stale")
-    refute has_element?(view, "#valuation-refresh-failed")
-    refute has_element?(view, "#valuation-fetching")
   end
 
   test "daily history leaves a chart gap for an absent UTC calendar day", %{conn: conn} do
@@ -708,31 +625,10 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     })
   end
 
-  defp record_policy_snapshot(card, value, policy, source, fetched_at) do
-    Core.record_single_valuation!(%{
-      card_printing_id: card.id,
-      value_eur: Decimal.new(value),
-      policy_version: policy,
-      source: source,
-      source_metric: "avg7",
-      fetched_at: fetched_at,
-      cardmarket_product_id: card.cardmarket_product_id
-    })
-  end
-
   defp unique_ip do
     n = System.unique_integer([:positive])
 
     {0x2001, 0xDB8, 0, 0, n >>> 48 &&& 0xFFFF, n >>> 32 &&& 0xFFFF, n >>> 16 &&& 0xFFFF,
      n &&& 0xFFFF}
-  end
-
-  defp fill_public_limit(address) do
-    limit =
-      :tcg_cheap
-      |> Application.fetch_env!(:public_acquisition_limiter)
-      |> Keyword.fetch!(:limit)
-
-    for _attempt <- 1..limit, do: assert(:ok = PublicAcquisitionLimiter.reserve(address))
   end
 end

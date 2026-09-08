@@ -180,7 +180,7 @@ defmodule TcgCheap.Operations.OverviewTest do
       attempt: 2,
       max_attempts: 5,
       worker: "TcgCheap.TestWorker",
-      queue: "valuations"
+      queue: "cardmarket_bulk"
     }
 
     assert {:cancel, {:provider_rate_limited, "bearer-secret"}} =

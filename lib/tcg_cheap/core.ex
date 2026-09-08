@@ -118,22 +118,14 @@ defmodule TcgCheap.Core do
       define :get_card_printing_by_tcgdex_id, action: :by_tcgdex_id, args: [:tcgdex_id]
       define :cardmarket_bulk_auto_match_card_printing, action: :cardmarket_bulk_auto_match
       define :cardmarket_bulk_review_card_printing, action: :cardmarket_bulk_review
-      define :list_cardmarket_anchors, action: :cardmarket_anchors
+      define :list_cardmarket_anchors, action: :cardmarket_anchors, args: [:cursor, :limit]
       define :list_cardmarket_cards_by_set, action: :cardmarket_by_set, args: [:card_set_id]
-
-      define :mark_card_printing_pricing_checked,
-        action: :mark_pricing_checked,
-        args: [:checked_at]
 
       define :mark_card_printing_details_enrichment_failed,
         action: :mark_details_enrichment_failed,
         args: [:failed_at]
 
       define :list_card_printings_by_tcgdex_ids, action: :by_tcgdex_ids, args: [:tcgdex_ids]
-
-      define :list_singles_valuation_candidates,
-        action: :singles_valuation_candidates,
-        args: [:cursor, :limit]
 
       define :list_detail_enrichment_candidates,
         action: :detail_enrichment_candidates,
@@ -210,10 +202,6 @@ defmodule TcgCheap.Core do
       define :list_homepage_price_changes,
         action: :homepage_price_changes,
         args: [:as_of, {:optional, :limit}]
-
-      define :list_homepage_price_changes_for_policy,
-        action: :homepage_price_changes,
-        args: [:as_of, {:optional, :limit}, :policy_version]
 
       define :list_admin_single_valuation_snapshots, action: :admin_catalogue
     end

@@ -3,19 +3,11 @@ defmodule TcgCheap.Pricing.Singles.ValuationPolicyTest do
 
   alias TcgCheap.Pricing.Singles.ValuationPolicy
 
-  test "bulk is the only deterministic public selection" do
-    assert ValuationPolicy.requested_policy() == ValuationPolicy.bulk_policy()
-    assert ValuationPolicy.default_policy() == ValuationPolicy.bulk_policy()
-    assert ValuationPolicy.selection() == ValuationPolicy.bulk_policy()
-    assert ValuationPolicy.selection(readiness: %{ready?: false}) == ValuationPolicy.bulk_policy()
-    assert ValuationPolicy.selection(readiness: %{ready?: true}) == ValuationPolicy.bulk_policy()
-    assert ValuationPolicy.selection(%{readiness: :ignored}) == ValuationPolicy.bulk_policy()
+  test "bulk is the only deterministic public policy" do
+    assert ValuationPolicy.policy_version() == "cardmarket_bulk_v1"
   end
 
-  test "historical TCGdex is not selectable" do
-    assert ValuationPolicy.current_valuation(
-             %{cardmarket_product_id: 1},
-             ValuationPolicy.tcgdex_policy()
-           ) == nil
+  test "current valuation requires the exact bulk relationship" do
+    assert ValuationPolicy.current_valuation(%{cardmarket_product_id: 1}) == nil
   end
 end

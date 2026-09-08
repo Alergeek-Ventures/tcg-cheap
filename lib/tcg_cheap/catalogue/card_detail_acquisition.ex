@@ -16,7 +16,7 @@ defmodule TcgCheap.Catalogue.CardDetailAcquisition do
   def subscribe(card),
     do: Phoenix.PubSub.subscribe(TcgCheap.PubSub, CardDetailEnrichmentWorker.topic(card))
 
-  defp request(%{pricing_checked_at: nil} = card, opts) do
+  defp request(%{details_synced_at: nil, details_enrichment_failed_at: nil} = card, opts) do
     case PublicAcquisitionLimiter.admitter(Keyword.get(opts, :public_address)).() do
       :ok -> CardDetailEnrichmentWorker.enqueue(card, false, priority: 0) |> result()
       {:error, reason} -> {:error, reason}

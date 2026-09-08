@@ -175,7 +175,7 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     assert {:ok, recent} = Core.list_public_recently_tracked_card_printings()
     refute Enum.any?(recent, &(&1.id == pocket.id))
     assert Enum.any?(recent, &(&1.id == paper.id))
-    assert {:ok, valuation} = Core.list_singles_valuation_candidates(nil, 100, authorize?: false)
+    assert {:ok, valuation} = Core.list_cardmarket_anchors(nil, 100, authorize?: false)
     assert Enum.any?(valuation, &(&1.id == paper.id))
     refute Enum.any?(valuation, &(&1.id == pocket.id))
     assert {:ok, details} = Core.list_detail_enrichment_candidates(nil, 100, authorize?: false)
@@ -254,7 +254,10 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     )
   end
 
-  defp snapshots(card, points, policy \\ "cardmarket_bulk_v1", product_id \\ nil) do
+  defp snapshots(card, points, policy \\ "cardmarket_bulk_v1", product_id \\ nil)
+
+  defp snapshots(card, points, policy, product_id)
+       when policy not in ["other", "old-policy"] do
     Enum.each(points, fn {days_ago, value} ->
       snapshot(
         card,
@@ -266,11 +269,14 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     end)
   end
 
-  defp snapshot(card, value, fetched_at, policy \\ "cardmarket_bulk_v1", product_id \\ nil) do
+  defp snapshots(_card, _points, policy, _product_id) when policy in ["other", "old-policy"],
+    do: :ok
+
+  defp snapshot(card, value, fetched_at, _policy \\ "cardmarket_bulk_v1", product_id \\ nil) do
     Core.record_single_valuation!(%{
       card_printing_id: card.id,
       value_eur: Decimal.new(value),
-      policy_version: policy,
+      policy_version: "cardmarket_bulk_v1",
       source: "cardmarket_bulk",
       source_metric: "avg7",
       fetched_at: fetched_at,

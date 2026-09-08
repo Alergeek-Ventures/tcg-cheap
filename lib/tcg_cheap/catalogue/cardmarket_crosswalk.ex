@@ -32,9 +32,51 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
   def run(_), do: {:error, :invalid_batch}
 
   defp load_anchors do
-    case Core.list_cardmarket_anchors(authorize?: false) do
-      {:ok, rows} -> {:ok, rows}
-      {:error, reason} -> {:error, {:persistence, reason}}
+    load_anchor_page(nil, [])
+  end
+
+  defp load_anchor_page(cursor, acc) do
+    case Core.list_cardmarket_anchors(cursor, @chunk, authorize?: false) do
+      {:ok, []} ->
+        {:ok, Enum.reverse(acc)}
+
+      {:ok, rows} when is_list(rows) ->
+        case anchor_page_cursor(rows, cursor) do
+          {:ok, next_cursor} ->
+            # Keep pages in the accumulator in reverse order and reverse once at
+            # the end, rather than repeatedly appending pages to a growing list.
+            load_anchor_page(next_cursor, Enum.reverse(rows, acc))
+
+          :error ->
+            {:error, {:persistence, :malformed_cardmarket_anchors_page}}
+        end
+
+      {:error, reason} ->
+        {:error, {:persistence, reason}}
+
+      other ->
+        {:error, {:persistence, {:malformed_cardmarket_anchors_response, other}}}
+    end
+  end
+
+  defp anchor_page_cursor(rows, cursor) do
+    result =
+      Enum.reduce_while(rows, cursor, fn
+        %CardPrinting{tcgdex_id: tcgdex_id}, previous
+        when is_binary(tcgdex_id) and byte_size(tcgdex_id) > 0 ->
+          if is_nil(previous) or tcgdex_id > previous do
+            {:cont, tcgdex_id}
+          else
+            {:halt, :error}
+          end
+
+        _row, _previous ->
+          {:halt, :error}
+      end)
+
+    case result do
+      :error -> :error
+      next_cursor when is_binary(next_cursor) -> {:ok, next_cursor}
     end
   end
 
@@ -48,10 +90,14 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
       query = Ash.Query.filter(query, expr(last_batch_id == ^batch_id))
 
       case Ash.read(query, domain: TcgCheap.Core, authorize?: false) do
-        {:ok, rows} -> {:cont, {:ok, rows ++ acc}}
+        {:ok, rows} -> {:cont, {:ok, Enum.reverse(rows, acc)}}
         {:error, reason} -> {:halt, {:error, {:persistence, reason}}}
       end
     end)
+    |> case do
+      {:ok, rows} -> {:ok, Enum.reverse(rows)}
+      error -> error
+    end
   end
 
   defp observed_pairs(anchors, products) do

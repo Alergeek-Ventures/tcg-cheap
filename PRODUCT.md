@@ -52,12 +52,12 @@ Thesis-validation product built around local cached data and transparent uncerta
 - The public exact-printing search surface is the local-only Home LiveView over the cached catalogue. Home defaults to Singles and presents a compact wordmark with `Compare Pokémon prices`, a direct `Find a card` search, and one-column exact-printing price rows with image, name, set, collector number, optional rarity, price, update state, and one solid `View price` CTA. The shared external 250ms `CardAutocomplete` hook serves Home and Trade, preserving the focused input node, query, caret/selection, and focus through result updates; composition pauses search and searches once after compositionend, while Escape cancels a pending debounce. Home mode and query are canonical URL state (`/`, `?q=`, `?mode=sealed`, and their combination); search replaces history, and mode changes plus back/forward restore deterministically, with cross-mode fallbacks preserving the query.
 - Home has an accessible Singles/Sealed mode switch. Sealed search/detail reads only local approved/projection data and honestly shows Limited data when evidence is sparse; it does not claim public live acquisition. Public Sealed reads require approved/released/official PL-English distribution, complete sourced details, positive counts for pack-bearing products, an official URL and details provenance, and either complete canonical image provenance or a matched active listing from an active retailer with a valid allowlisted image. Incomplete approved rows remain internal and available for mapping/curation.
 - The sealed foundation now includes canonical AshPostgres `SealedProduct` and reviewable `SealedProductAlias` resources, plus the current local public Sealed search/detail projection. Production curation currently has 19 approved sealed products and zero drafts; all 19 have complete sourced details and positive applicable pack counts. A product is draft-only until an administrator approves the required completeness; discontinued approved products remain readable and archive is soft/unpublished. Source imports are pending-only and cannot overwrite reviewed rows. This is a curated snapshot, not a claim that the catalogue is complete.
-- Public card reads preload both exact current valuation relationships and resolve one selected policy consistently, avoiding N+1 valuation reads and source mixing. The selected policy may be the deployed/default `tcgdex_cardmarket_v1` or the implemented conditional `cardmarket_bulk_v1`; estimates explicitly distinguish current/fresh, stale, and unpriced states.
+- Public card reads use the fixed `cardmarket_bulk_v1` policy and local exact current Cardmarket bulk snapshots. TCGdex supplies catalogue, detail, image, and Cardmarket identity mapping only; it is never a Singles price fallback. Estimates explicitly distinguish current/fresh, stale, and unpriced states. Historical `tcgdex_cardmarket_v1` snapshots remain retained and readable, but cannot be selected or newly written.
 - Home exposes full policy, methodology, and non-affiliation caveats in a collapsed methodology disclosure, uses terse shipping language, 48px-class touch targets, keyboard semantics, and one reveal motion with a reduced-motion fallback. The calm warm-square refinement removes noise texture and heavy perimeter borders, keeps one subtle header/input separator, spaces Market movers by about 24px, uses title-case supporting headings, and presents compact `Price movement` with icon-led collapsed `Method` detail. Search, movement, freshness, and disclosure use selective official Fluent UI System Icons Regular; methodology/non-affiliation remains complete but hidden by default. Local-only Market movers show up to 10 total rows, capped at 5 risers and 5 fallers; Singles risers additionally require a current EUR 1.00 floor, while fallers/recent rows retain their prior qualification and Sealed retains current recent ready mapping-confident aggregates and approved public products.
 - When a mode has no qualified movers, Home shows up to 10 real local `Recently tracked` rows instead of blank mover lanes. Singles rows retain exact identity and current valuation/freshness where available, otherwise `Price unavailable`; sealed rows are approved public releases within a five-year window. Copy explains that direction appears only after observations on at least two dates. Rows use direct `View price` or `View offers` links. The separate cross-category zero-search-result fallback remains unchanged.
 - The 2026-08-08 minimal Home correction remains the presentation baseline. It uses plain collector language: `€…` or `Price unavailable`, `Updated …` plus `May be outdated`, and no instructional filler on search idle; the discovery fallback instead gives the concise explanation that direction appears only after observations on two dates. Rows do not expose TCGdex, legality, policy, freshness, or local-data jargon. The completed autocomplete uses real combobox/listbox semantics, stable `card-option-UUID` stream IDs, bounded ten-option results, visible first/active options, wrapping ArrowUp/ArrowDown, exact active Enter selection, Escape close with query/focus retained, validated touch/click selection, and query-specific live status.
 - The approved warm square identity remains, now deliberately calm and restrained; the deployed UI correction commit `7a0f956` targets density, hierarchy, copy, jargon, and CTA clarity rather than replacing the product behavior or exact-data contract. Owner production testing/acceptance remains pending.
-- Public `/trade` is the completed Phase 3 surface inside Singles: a mobile-first warm square decision bench with deterministic URL-only card IDs/quantities, one local search, explicit add-left/add-right actions, merged quantity rows, local bulk valuation, EUR-plus-PLN totals/difference, stale/unpriced/incomplete states, bounded background acquisition, safe CardDetail return/pick flows, and explicit canonical share/copy. NBP evidence shows the exact rate, effective date, relative age, and pending/failed/no-cache states; cached conversion is retained while acquisition is pending or failed. Public Sealed search/detail and recurring six-retailer production acquisition are verified; overall catalogue completeness, retailer mappings, Singles offers, and buying-model validation remain incomplete.
+- Public `/trade` is the completed Phase 3 surface inside Singles: a mobile-first warm square decision bench with deterministic URL-only card IDs/quantities, one local search, explicit add-left/add-right actions, merged quantity rows, local bulk valuation, EUR-plus-PLN totals/difference, stale/unpriced/incomplete states, safe CardDetail return/pick flows, and explicit canonical share/copy. NBP evidence shows the exact rate, effective date, relative age, and pending/failed/no-cache states; cached conversion is retained while acquisition is pending or failed. Public Home, CardDetail, and Trade read local exact current bulk snapshots and never trigger Singles pricing HTTP for missing or stale values. Mapping and batch invalidations reload mounted views. Public Sealed search/detail and recurring six-retailer production acquisition are verified; overall catalogue completeness, retailer mappings, Singles offers, and buying-model validation remain incomplete.
 - Missing or stale data is preferable to fabricated data or silently exceeding acquisition constraints.
 
 ### Sealed catalogue foundation — Phase 4 begun, not complete
@@ -70,9 +70,28 @@ This is the source-neutral/domain foundation plus current public Sealed search/d
 
 The curated `Pokémon TCG: Scarlet & Violet—151 Booster Bundle` is approved. It has one current LootQuest offer plus mapped sold-out LGS evidence, so its aggregate and guide remain Limited rather than presenting fabricated buying bands. The historical private TCGdex run exhausted all 218 set IDs at 192 synced, 15 excluded, 11 permanent failed, and 20,561 printings. A later live failed-set repair converted those 11 hard failures to partial, and the punctuation-ID correction plus one budget-admitted `exu` sync imported that set 28/28. Current private state is 203 sets, 20,964 printings, and 10 unresolved provider-partial sets. This is not a fully successful production import. Long-term reliability and complete production import remain open.
 
-At the 2026-09-01 checkpoint, production-scoped Singles has 127 cards and 643 retained valuation snapshots. The 120-card Pitch Black scope is complete; rolling IR/SIR enrichment remains incomplete. Every successful listing ingest ensures a mapping in the same transaction: missing/invalid/ambiguous evidence creates or refreshes review; one eligible approved exact EAN may create or promote a mutable pending/review mapping to matched through the locked/product-validated Ash action and immutable decision history; terminal matched/rejected decisions are protected from source overwrite; failures roll back the batch.
+**Historical 2026-09-01 checkpoint (superseded):** production-scoped Singles had 127 cards and 643 retained valuation snapshots. The 120-card Pitch Black scope was complete; rolling IR/SIR enrichment remained incomplete. Every successful listing ingest ensured a mapping in the same transaction: missing/invalid/ambiguous evidence created or refreshed review; one eligible approved exact EAN could create or promote a mutable pending/review mapping to matched through the locked/product-validated Ash action and immutable decision history; terminal matched/rejected decisions were protected from source overwrite; failures rolled back the batch.
 
-## Cardmarket bulk rollout checkpoint — 2026-09-07
+## Current bulk-only checkpoint — 2026-09-08
+
+The fixed public/new-write Singles policy is `cardmarket_bulk_v1`. Release
+`68b73cc624e0ac6f450bf1c0af05bdc35eaaf565` was deployed on 2026-09-08; CI
+`34212821835` passed 1,117 tests, and production Home/card/trade smoke agreed at
+EUR 263.65. Cardmarket bulk sync runs daily at 03:00 UTC. TCGdex remains limited
+to catalogue/detail/image enrichment and Cardmarket identity mapping. Historical
+`tcgdex_cardmarket_v1` snapshots remain readable, but cannot be selected or newly
+written. The generated `pricing_checked_at` removal migration is present and this
+documentation checkpoint remains pending its final commit/deploy.
+
+Bulk sync and materialization remain fail-closed for anomaly/plausibility,
+malformed, same-successful-batch, and exact mapping checks. Mapping and batch
+invalidations reload mounted views. Public Home, CardDetail, and Trade use local
+exact current bulk snapshots and show stale or unpriced values honestly; missing
+or stale values do not trigger Singles pricing HTTP. NBP acquisition remains.
+Admin Operations shows read-only source, batch, catalogue/mapping/detail, and
+materialization diagnostics, not cutover/readiness or TCGdex comparison.
+
+## Historical/superseded Cardmarket bulk rollout checkpoint — 2026-09-07
 
 The deployed Singles bulk implementation is a source-neutral selected-policy
 boundary. Implementation commit `b7afc9049a8af42dd569f44d2c140cb58f64221c`
@@ -111,9 +130,9 @@ sync and replay publish mapping invalidations only after commit; notification
 failures are retryable and retries idempotently re-notify persisted batches.
 Rollback and normal attempt-1 no-op produce no broadcasts.
 
-`PUBLIC_SINGLES_VALUATION_POLICY` recognizes only `tcgdex_cardmarket_v1` and
-`cardmarket_bulk_v1`; unset, malformed, missing, errored, or unready evidence
-falls back to TCGdex. Readiness additionally requires a completed coherent
+**Historical policy behavior:** the former selectable policies accepted
+`tcgdex_cardmarket_v1` and `cardmarket_bulk_v1`; unset, malformed, missing,
+errored, or unready evidence fell back to TCGdex. Readiness additionally required a completed coherent
 nonfuture `all_sets` TCGdex catalogue run, no active catalogue run, and zero
 unresolved partial/malformed/failed catalogue-set issues; operations exposes
 bounded catalogue counts. It also requires persisted UTC, nonfuture, fresh
@@ -141,14 +160,15 @@ there were no console warnings/errors or horizontal overflow at 390px/1440px.
 `/cards/tk-sm-r-14` is not a valid/present production printing and is not an
 application regression.
 
-The initial-deployment requirement is to explicitly set
-`PUBLIC_SINGLES_VALUATION_POLICY=tcgdex_cardmarket_v1`; the explicit Coolify
-environment variable was not directly verified. Public bulk policy disables the
+The initial-deployment requirement was to explicitly select the former TCGdex
+policy; the explicit Coolify environment variable was not directly verified.
+The historical public bulk policy disabled the
 daily TCGdex sweep and cancels already-queued TCGdex valuation HTTP work.
 Cutover requires all readiness gates and two distinct successful batches; the
 first real sync and readiness/cutover remain pending, so bulk must remain
 disabled and no production synchronization or readiness is implied.
-The supervised policy cache is max 30 seconds, refreshes automatically,
+**Historical implementation detail (superseded):** the supervised policy cache
+was max 30 seconds, refreshed automatically,
 broadcasts effective expiry changes, reconciles timed-out callers fail closed,
 and mounted Home/CardDetail/Trade refresh policy-dependent data without mixing
 or requesting TCGdex under bulk. Canonical CI passed all static gates/Dialyzer
@@ -158,7 +178,7 @@ sync/import counts, and persisted readiness were not directly verified.
 Effective public behavior remains TCGdex; the first real sync and cutover remain
 pending.
 
-## Owner-directed pricing refinement — 2026-08-27
+## Historical/superseded owner-directed pricing refinement — 2026-08-27
 
 The accepted refinement is deployed in commits `cedd80e` and `9556fbf`; GitHub CI runs [33096381670](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33096381670) and [33098246258](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33098246258) passed. Home movement rows are now hooks with exact identity plus signed movement only; prior/current prices, dates, and freshness belong on detail. Recently tracked rows keep identity and current estimate without freshness text. Every public TCG CHEAP wordmark uses Barlow Condensed 700 beside the official Fluent Gift Card Add Regular icon.
 
@@ -172,13 +192,13 @@ The CardDetail/Home visual polish rollout is deployed in commits `8919a57` (visu
 
 Connected production checks at 320px and 1440px found zero horizontal overflow and console warnings, centered the 24px search icon/text, verified the estimate/Printing exact heading baseline, right-aligned Printing values, and aligned chart SVG/targets. They also verified Last update/no explanation/count/ledger behavior, tooltip Escape and recovery, Standard/Expanded/Gym Leader Challenge Fluent icons, and the Dhelmise local GLC legal result. CardDetail computes GLC eligibility under the implemented versioned local `glc_local_2026-04-20` policy; the [GLC rules](https://gymleaderchallenge.com/rules), [FAQ](https://gymleaderchallenge.com/faq), and [ban list](https://gymleaderchallenge.com/ban-list) links are provided, with future-review limitations retained. This records the implemented policy behavior and does not claim exact eligibility beyond that policy.
 
-## Owner-directed operator observability rollout — 2026-09-01
+## Historical/superseded owner-directed operator observability rollout — 2026-09-01
 
 Implementation commit `d641d01` is deployed. Successful [CI](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33509547612) covered the container build, DB image validation, and canonical gate; canonical local/CI validation passed 905 tests. Dependencies, base images, and devenv were refreshed, and the Hex audit reported no advisories. Production `/health` reported healthy with revision `d641d013b6721e26ce78772f7226a58aa1fa9acf`, DB ready, 7 Oban queues, and 6 providers.
 
 The authenticated `/admin/dashboard` surface includes Phoenix LiveDashboard, Ecto Stats with `pg_stat_statements`, Request Logger, and live-only application logs; `/admin/oban` exposes jobs, queues, crons, and controls. Both routes redirect unauthenticated visitors to sign-in.
 
-## Authenticated production operations audit and recovery — 2026-09-01
+## Historical/superseded authenticated production operations audit and recovery — 2026-09-01
 
 The authenticated audit covered Operations, Oban, LiveDashboard/Ecto Stats, review desk, cards, valuations, products, and import issues. Initial state was 5 card sets, 67 card printings, 415 historical valuation snapshots, 0 sealed products/aliases/import issues, 436 retailer listings/mapping records, and 25+ pending listing mappings; there were no product or alias drafts. No sealed product was created or approved because canonical product identity/evidence did not yet exist.
 
@@ -196,7 +216,7 @@ CardzHouse job 2247 completed in 3.727s, with last success `2026-09-01T15:03:09.
 
 Listings and listing-product mappings are now 444 each, up from 436. Review remains 0 product drafts, 0 aliases, and 25+ pending mappings; no sealed approval was made because canonical identity evidence is absent. Ecto Stats findings remain small duplicate indexes only; cache ratios, bloat, and foreign-key checks are healthy. Residual product follow-up is limited to canonical sealed identity curation/mapping and allowing the already scheduled budget-safe Singles continuation to resume.
 
-## Production curation, acquisition, and valuation checkpoint — 2026-09-01
+## Historical/superseded production curation, acquisition, and valuation checkpoint — 2026-09-01
 
 The deployed code revision is `8a006b918550b5a43661cb0d4b79c1f04c537976`, [CI run 33538027076](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33538027076) passed, and production `/health` is healthy. Four recurring sealed sources are active: LootQuest, CardzHouse, BoosterPoint, and PokeBooster; PokeBooster runs Monday at 04:00 UTC under the same 50/hour, 100/day, and 500/month budget. Its refresh succeeded with one admitted request, raising listings from 444 to 473; the circuit is active and closed with zero failures.
 
@@ -206,7 +226,7 @@ The scoped Singles replay after embedded-pricing deployment increased retained v
 
 Official evidence corrects the Ascended Heroes Booster Bundle launch date to April 24, 2026, per the [official Pokémon product showcase](https://www.pokemon.com/us/pokemon-news/pokemon-tcg-mega-evolution-ascended-heroes-product-showcase). Forward migration `20260901180425_correct_ascended_heroes_booster_bundle_release_date.exs` corrects the approved immutable row from Jan 30 to Apr 24 on deployment; the Ascended Heroes ETB remains February 20, 2026, and Pokémon Day 2026 remains January 30, 2026. Approved rows intentionally remain non-editable; the precise data migration preserves that review invariant.
 
-## Owner-directed catalogue and Sealed-detail expansion — current production state 2026-09-03
+## Historical/superseded owner-directed catalogue and Sealed-detail expansion — 2026-09-03
 
 Revision `d55a26b1368084bbaf7a25b65a2211f437e6c540` is deployed; CI runs [33747809832](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33747809832) and [33748881597](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33748881597) passed. `/health` and `/health/live` return 200 with database and Oban healthy, seven queues, and nine providers. Public Singles no longer use collection-scope metadata as publication gating: every locally imported card with a canonical non-`tcgp` paper set is searchable and readable. Scope fields remain provenance and prioritization metadata only. The seven-day-unique full-catalogue bootstrap runs from the 15-minute cron wrapper; set briefs become local/public, and one-card detail enrichment is sequential and budget-safe.
 
@@ -220,7 +240,7 @@ Local desktop/mobile visual verification recorded the official image natural siz
 
 Approval itself does not require every factual field: the strict gate is public publication/readiness. Incomplete approved rows remain internal mapping/curation targets.
 
-## Current deployment and visual refinement — 2026-08-26
+## Historical/superseded deployment and visual refinement — 2026-08-26
 
 The UI correction commit `7a0f956` is pushed and deployed to production; GitHub
 [CI run 32970306496](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32970306496)

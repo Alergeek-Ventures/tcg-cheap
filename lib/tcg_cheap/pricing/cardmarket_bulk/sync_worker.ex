@@ -115,13 +115,15 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorker do
   end
 
   defp valid_config_keys?(value),
-    do: Enum.sort(Keyword.keys(value)) == [:adapter, :adapter_options]
+    do: Enum.sort(Keyword.keys(value)) == [:adapter, :adapter_options, :row_count_anomaly_bound]
 
   defp valid_adapter_config?(value) do
     adapter = Keyword.get(value, :adapter)
     adapter_options = Keyword.get(value, :adapter_options, [])
+    anomaly_bound = Keyword.get(value, :row_count_anomaly_bound)
 
-    valid_adapter?(adapter) and valid_adapter_options?(adapter_options)
+    valid_adapter?(adapter) and valid_adapter_options?(adapter_options) and
+      valid_anomaly_bound?(anomaly_bound)
   end
 
   defp valid_adapter?(adapter) when is_atom(adapter) do
@@ -135,6 +137,12 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorker do
   defp valid_adapter_options?(options) do
     Keyword.keyword?(options) and Enum.all?(Keyword.keys(options), &(&1 in [:request_options]))
   end
+
+  defp valid_anomaly_bound?(bound) when is_integer(bound), do: bound in 0..1
+
+  defp valid_anomaly_bound?(bound) when is_float(bound), do: bound >= 0 and bound <= 1
+
+  defp valid_anomaly_bound?(_), do: false
 
   defp classify({:timeout, _} = r), do: {:error, r}
   defp classify({:acquisition_budget_rejected, _reason} = r), do: budget_classification(r)

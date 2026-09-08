@@ -142,7 +142,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Sync do
 
   defp valid_anomaly_config? do
     bound =
-      Application.get_env(:tcg_cheap, :cardmarket_bulk_cutover, [])
+      Application.get_env(:tcg_cheap, :cardmarket_bulk, [])
       |> Keyword.get(:row_count_anomaly_bound, 0.10)
 
     is_number(bound) and bound >= 0 and bound <= 1
@@ -445,7 +445,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Sync do
 
   defp anomaly_bound,
     do:
-      Application.get_env(:tcg_cheap, :cardmarket_bulk_cutover, [])
+      Application.get_env(:tcg_cheap, :cardmarket_bulk, [])
       |> Keyword.get(:row_count_anomaly_bound, 0.10)
 
   defp lock!, do: Repo.query!("SELECT pg_advisory_xact_lock($1)", [@lock_key])

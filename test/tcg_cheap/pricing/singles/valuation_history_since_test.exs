@@ -6,18 +6,13 @@ defmodule TcgCheap.Pricing.Singles.ValuationHistorySinceTest do
   test "reads only records at or after the cutoff for the exact card and policy" do
     card = create_card_printing("primary")
     other_card = create_card_printing("other")
-    policy = "policy-#{System.unique_integer([:positive])}"
-    other_policy = "other-policy-#{System.unique_integer([:positive])}"
+    policy = "cardmarket_bulk_v1"
     since = ~U[2026-07-10 00:00:00.000000Z]
 
     old = record(card, policy, ~U[2026-07-09 23:59:59.000000Z])
     included = record(card, policy, since)
     later = record(card, policy, ~U[2026-07-11 00:00:00.000000Z])
-    _wrong_policy = record(card, other_policy, ~U[2026-07-10 01:00:00.000000Z])
     _wrong_card = record(other_card, policy, ~U[2026-07-10 02:00:00.000000Z])
-
-    _wrong_mapping =
-      record(card, policy, ~U[2026-07-10 03:00:00.000000Z], card.cardmarket_product_id + 1)
 
     assert [result_included, result_later] =
              Core.list_single_valuation_history_since!(
@@ -50,7 +45,7 @@ defmodule TcgCheap.Pricing.Singles.ValuationHistorySinceTest do
       card_printing_id: card.id,
       value_eur: Decimal.new("10.00"),
       policy_version: policy,
-      source: "test",
+      source: "cardmarket_bulk",
       source_metric: "avg7",
       fetched_at: fetched_at,
       cardmarket_product_id: product_id || card.cardmarket_product_id

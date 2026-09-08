@@ -2,6 +2,25 @@ defmodule TcgCheap.TestSupport do
   @moduledoc "Low-level card printing fixtures for tests."
 
   alias TcgCheap.Catalogue.{CardPrinting, CardSet}
+  alias TcgCheap.Pricing.Singles.SingleValuationSnapshot
+  alias TcgCheap.Repo
+
+  @historical_keys [
+    :id,
+    :card_printing_id,
+    :value_eur,
+    :source_metric,
+    :fetched_at,
+    :provider_updated_at,
+    :cardmarket_product_id
+  ]
+  @historical_required_keys [
+    :card_printing_id,
+    :value_eur,
+    :source_metric,
+    :fetched_at,
+    :cardmarket_product_id
+  ]
 
   @doc "Creates a card printing through the importer-only action for low-level fixtures."
   def import_card_printing(attrs, opts \\ []) do
@@ -63,6 +82,72 @@ defmodule TcgCheap.TestSupport do
       card
       |> Ash.Changeset.for_update(:set_collection_scope, attrs)
       |> Ash.update!(authorize?: false)
+
+  @doc "Inserts a retained historical TCGdex snapshot without invoking the bulk-only action."
+  def insert_historical_single_valuation!(attrs) when is_map(attrs) do
+    validate_historical_keys!(attrs)
+    validate_historical_required_keys!(attrs)
+    validate_historical_source_metric!(attrs.source_metric)
+    validate_historical_value!(attrs.value_eur)
+    validate_historical_product_id!(attrs.cardmarket_product_id)
+
+    id = Map.get(attrs, :id, Ecto.UUID.generate())
+    dumped_id = Ecto.UUID.dump!(id)
+    dumped_card_printing_id = Ecto.UUID.dump!(attrs.card_printing_id)
+
+    row =
+      Map.merge(
+        %{
+          id: dumped_id,
+          card_printing_id: dumped_card_printing_id,
+          currency: "EUR",
+          policy_version: "tcgdex_cardmarket_v1",
+          source: "tcgdex_cardmarket",
+          current?: false
+        },
+        Map.drop(attrs, [:id, :card_printing_id])
+      )
+
+    Repo.insert_all("single_valuation_snapshots", [row])
+    Ash.get!(SingleValuationSnapshot, id, authorize?: false)
+  end
+
+  defp validate_historical_keys!(attrs) do
+    case Map.keys(attrs) -- @historical_keys do
+      [] ->
+        :ok
+
+      keys ->
+        raise ArgumentError,
+              "historical valuation fixture has unsupported attributes: #{inspect(keys)}"
+    end
+  end
+
+  defp validate_historical_required_keys!(attrs) do
+    Enum.each(@historical_required_keys, fn key ->
+      if is_nil(Map.get(attrs, key)),
+        do: raise(ArgumentError, "historical valuation fixture is missing required attributes")
+    end)
+  end
+
+  defp validate_historical_source_metric!(source_metric) do
+    unless is_binary(source_metric) and String.trim(source_metric) != "" do
+      raise ArgumentError, "historical valuation fixture requires a non-empty source metric"
+    end
+  end
+
+  defp validate_historical_value!(value) do
+    unless Decimal.compare(Decimal.new(value), Decimal.new(0)) == :gt do
+      raise ArgumentError, "historical valuation fixture requires a positive value"
+    end
+  end
+
+  defp validate_historical_product_id!(product_id) do
+    unless is_integer(product_id) and product_id > 0 do
+      raise ArgumentError,
+            "historical valuation fixture requires a positive Cardmarket product ID"
+    end
+  end
 
   defp maybe_scope({:ok, card}, opts) do
     if Keyword.get(opts, :scoped?, true), do: {:ok, scope!(card, opts)}, else: {:ok, card}

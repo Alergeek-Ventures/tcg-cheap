@@ -9,7 +9,7 @@ defmodule TcgCheap.Catalogue.CardPrintingMappingDecisionTest do
     Catalogue.Importer,
     Core,
     Pricing.Singles.SingleValuationSnapshot,
-    Pricing.Singles.ValuationAcquisition
+    Pricing.Singles.ValuationNotifications
   }
 
   test "imports record one decision and unchanged imports record none" do
@@ -67,10 +67,10 @@ defmodule TcgCheap.Catalogue.CardPrintingMappingDecisionTest do
             reopened.mapping_review_reason} == {"review", nil, "Recheck"}
 
     assert {:ok, nil} =
-             Core.get_current_single_valuation(card.id, "tcgdex_cardmarket_v1")
+             Core.get_current_single_valuation(card.id, "cardmarket_bulk_v1")
 
     assert [archived] =
-             Core.list_single_valuation_history!(card.id, "tcgdex_cardmarket_v1")
+             Core.list_single_valuation_history!(card.id, "cardmarket_bulk_v1")
 
     assert archived.id == valuation.id
     refute archived.current?
@@ -112,13 +112,13 @@ defmodule TcgCheap.Catalogue.CardPrintingMappingDecisionTest do
     id = "provider-#{System.unique_integer([:positive])}"
     card = import_card(id)
     valuation = record_valuation(card)
-    Phoenix.PubSub.subscribe(TcgCheap.PubSub, ValuationAcquisition.topic(card))
+    Phoenix.PubSub.subscribe(TcgCheap.PubSub, ValuationNotifications.topic(card))
     changed = import_card(id, 456, "2026-08-10T10:00:00Z")
     assert_receive {:card_mapping_changed, %{card_printing_id: card_id}}
     assert card_id == card.id
     assert changed.id == card.id
     assert {:ok, [%{event: "imported"}, %{event: "provider_updated"}]} = history(card.id)
-    assert {:ok, nil} = Core.get_current_single_valuation(card.id, "tcgdex_cardmarket_v1")
+    assert {:ok, nil} = Core.get_current_single_valuation(card.id, "cardmarket_bulk_v1")
 
     refute Ash.get!(SingleValuationSnapshot, valuation.id, domain: Core, authorize?: false).current?
 
@@ -192,15 +192,6 @@ defmodule TcgCheap.Catalogue.CardPrintingMappingDecisionTest do
     assert {:ok, []} = history(card.id)
   end
 
-  test "unresolved mappings are rejected before enqueue" do
-    card = card("unmatched")
-
-    assert {:error, :unpriced_mapping} =
-             ValuationAcquisition.enqueue_if_stale(card,
-               request_admitter: fn -> raise "called" end
-             )
-  end
-
   defp history(id), do: Core.list_card_printing_mapping_decision_history(id, authorize?: false)
 
   defp import_card(id, product_id \\ 123, updated \\ nil) do
@@ -238,8 +229,8 @@ defmodule TcgCheap.Catalogue.CardPrintingMappingDecisionTest do
       card_printing_id: card.id,
       value_eur: Decimal.new("10.00"),
       currency: "EUR",
-      policy_version: "tcgdex_cardmarket_v1",
-      source: "tcgdex_cardmarket",
+      policy_version: "cardmarket_bulk_v1",
+      source: "cardmarket_bulk",
       source_metric: "avg7",
       fetched_at: DateTime.utc_now(),
       cardmarket_product_id: card.cardmarket_product_id

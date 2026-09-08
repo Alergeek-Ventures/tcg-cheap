@@ -351,15 +351,6 @@ defmodule TcgCheap.Catalogue.SinglesScopeBootstrapWorkerTest do
           daily_request_limit: 1000,
           monthly_request_limit: 20_000,
           monthly_spend_limit: "0.00"
-        ],
-        [
-          provider_key: "tcgdex_cardmarket",
-          display_name: "Cardmarket",
-          estimated_cost_per_request: "0.00",
-          hourly_request_limit: 100,
-          daily_request_limit: 1000,
-          monthly_request_limit: 20_000,
-          monthly_spend_limit: "0.00"
         ]
       ]
     ]

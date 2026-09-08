@@ -60,26 +60,16 @@ defmodule TcgCheap.Trades.Valuation do
   @spec evaluate(Composition.t(), map(), DateTime.t()) :: t()
   def evaluate(%Composition{} = composition, cards_by_tcgdex_id, %DateTime{} = now)
       when is_map(cards_by_tcgdex_id) do
-    left = evaluate_side(composition.left, cards_by_tcgdex_id, now, ValuationPolicy.bulk_policy())
+    left = evaluate_side(composition.left, cards_by_tcgdex_id, now)
 
     right =
-      evaluate_side(composition.right, cards_by_tcgdex_id, now, ValuationPolicy.bulk_policy())
+      evaluate_side(composition.right, cards_by_tcgdex_id, now)
 
     %Evaluation{left: left, right: right, comparison: compare_sides(left, right)}
   end
 
-  @doc "Evaluates using an explicit Singles valuation policy."
-  @spec evaluate(Composition.t(), map(), DateTime.t(), String.t()) :: t()
-  def evaluate(%Composition{} = composition, cards_by_tcgdex_id, %DateTime{} = now, policy)
-      when is_map(cards_by_tcgdex_id) do
-    left = evaluate_side(composition.left, cards_by_tcgdex_id, now, policy)
-    right = evaluate_side(composition.right, cards_by_tcgdex_id, now, policy)
-
-    %Evaluation{left: left, right: right, comparison: compare_sides(left, right)}
-  end
-
-  defp evaluate_side(items, cards, now, policy) do
-    rows = Enum.map(items, &evaluate_row(&1, cards, now, policy))
+  defp evaluate_side(items, cards, now) do
+    rows = Enum.map(items, &evaluate_row(&1, cards, now))
     known_total = Enum.reduce(rows, Decimal.new(0), &add_row_value/2)
     unvalued_quantity = Enum.reduce(rows, 0, &add_unvalued_quantity/2)
 
@@ -92,9 +82,9 @@ defmodule TcgCheap.Trades.Valuation do
     }
   end
 
-  defp evaluate_row({id, quantity}, cards, now, policy) do
+  defp evaluate_row({id, quantity}, cards, now) do
     card = Map.get(cards, id)
-    valuation = valuation(card, policy)
+    valuation = valuation(card)
     unit_value = valuation && valuation.value_eur
 
     %Row{
@@ -108,7 +98,7 @@ defmodule TcgCheap.Trades.Valuation do
     }
   end
 
-  defp valuation(card, policy), do: ValuationPolicy.current_valuation(card, policy)
+  defp valuation(card), do: ValuationPolicy.current_valuation(card)
 
   defp add_row_value(%Row{row_value: nil}, total), do: total
   defp add_row_value(%Row{row_value: value}, total), do: Decimal.add(total, value)

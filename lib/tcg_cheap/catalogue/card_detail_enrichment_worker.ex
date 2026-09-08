@@ -105,39 +105,22 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
   end
 
   defp enrich_checked(
-         %{details_enrichment_failed_at: failed_at, pricing_checked_at: nil} = card,
-         _tcgdex_id,
-         continuation?,
-         _admitter,
-         synced_at
-       )
-       when not is_nil(failed_at) do
-    pricing_only(card, continuation?, synced_at)
-  end
-
-  # A successful import persists the provider payload before pricing. Resume that
-  # staged completion from the payload instead of fetching details again.
-  defp enrich_checked(
-         %{details_synced_at: details_synced_at, pricing_checked_at: nil} = card,
-         _tcgdex_id,
-         continuation?,
-         _admitter,
-         synced_at
-       )
-       when not is_nil(details_synced_at) do
-    pricing_only(card, continuation?, synced_at, Map.get(card, :source_payload) || %{})
-  end
-
-  defp enrich_checked(
-         %{pricing_checked_at: checked} = card,
+         %{details_enrichment_failed_at: failed_at} = card,
          _tcgdex_id,
          continuation?,
          _admitter,
          _synced_at
        )
-       when not is_nil(checked) do
-    if continuation?, do: maybe_continue(true, card), else: :ok
-  end
+       when not is_nil(failed_at), do: maybe_continue(continuation?, card)
+
+  defp enrich_checked(
+         %{details_synced_at: synced_at} = card,
+         _tcgdex_id,
+         continuation?,
+         _admitter,
+         _now
+       )
+       when not is_nil(synced_at), do: maybe_continue(continuation?, card)
 
   defp enrich_checked(card, tcgdex_id, continuation?, admitter, synced_at) do
     with {:ok, provider} <- CatalogueSyncWorker.provider_config(),
@@ -148,27 +131,8 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
              Keyword.put(provider.provider_options, :request_admitter, admitter)
            ),
          {:ok, _imported} <- import_card(card, payload, synced_at),
-         {:ok, fresh} <- Core.get_card_printing_by_tcgdex_id(tcgdex_id),
-         :ok <- mark_pricing_checked(fresh, synced_at) do
+         {:ok, fresh} <- Core.get_card_printing_by_tcgdex_id(tcgdex_id) do
       maybe_continue(continuation?, fresh)
-    end
-  end
-
-  # Once detail enrichment has failed, the provider must not be called again.
-  # The retryable part is only the pricing fallback and its persistence.
-  defp pricing_only(card, continuation?, synced_at) do
-    pricing_only(card, continuation?, synced_at, %{})
-  end
-
-  defp pricing_only(card, continuation?, synced_at, provider_card) do
-    _ = provider_card
-
-    case mark_pricing_checked(card, synced_at) do
-      :ok ->
-        maybe_continue(continuation?, card)
-
-      {:error, _} ->
-        {:error, :persistence_failed}
     end
   end
 
@@ -223,8 +187,7 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
 
     Importer.import_fetched_card(payload, minimal, card.tcgdex_id,
       synced_at: synced_at,
-      expected_set_id: set.tcgdex_id,
-      pricing_checked?: false
+      expected_set_id: set.tcgdex_id
     )
   end
 
@@ -274,8 +237,7 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
   defp permanent_failure(continuation?, tcgdex_id, reason, synced_at, job) do
     with :ok <- record_issue(tcgdex_id, reason),
          {:ok, card} <- Core.get_card_printing_by_tcgdex_id(tcgdex_id),
-         {:ok, failed_card} <- mark_details_enrichment_failed(card, synced_at),
-         :ok <- mark_pricing_checked(failed_card, synced_at),
+         {:ok, _failed_card} <- mark_details_enrichment_failed(card, synced_at),
          :ok <- maybe_continue_after(continuation?, tcgdex_id) do
       {:cancel, :provider_response}
     else
@@ -315,18 +277,10 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
         failure_category(reason)
       )
 
-  defp mark_pricing_checked(card, checked_at) when is_map(card) do
-    case Core.mark_card_printing_pricing_checked(card, checked_at, authorize?: false) do
-      {:ok, _} -> :ok
-      _ -> {:error, :persistence_failed}
-    end
-  end
-
   defp terminal_retryable_failure(continuation?, tcgdex_id, reason, checked_at) do
     with :ok <- record_issue(tcgdex_id, reason),
          {:ok, card} <- Core.get_card_printing_by_tcgdex_id(tcgdex_id),
-         {:ok, failed_card} <- mark_details_enrichment_failed(card, checked_at),
-         :ok <- mark_pricing_checked(failed_card, checked_at),
+         {:ok, _failed_card} <- mark_details_enrichment_failed(card, checked_at),
          :ok <- if(continuation?, do: continue_after(tcgdex_id), else: :ok) do
       {:cancel, :provider_response}
     else

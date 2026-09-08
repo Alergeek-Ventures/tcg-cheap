@@ -3,7 +3,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
   use TcgCheapWeb.ConnCase, async: false
 
   alias TcgCheap.Core
-  alias TcgCheap.Pricing.Singles.ValuationPolicy
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
   alias TcgCheapWeb.HomeLive
 
   test "mounts the singles decision surface by default", %{conn: conn} do
@@ -595,21 +595,16 @@ defmodule TcgCheapWeb.HomeLiveTest do
         cardmarket_product_id: System.unique_integer([:positive])
       })
 
-    for {policy, value, source} <- [
-          {ValuationPolicy.tcgdex_policy(), "12.30", "tcgdex"},
-          {ValuationPolicy.bulk_policy(), "99.99", "cardmarket_bulk"}
-        ] do
-      Core.record_single_valuation!(%{
-        card_printing_id: card.id,
-        value_eur: Decimal.new(value),
-        currency: "EUR",
-        policy_version: policy,
-        source: source,
-        source_metric: "average",
-        fetched_at: now,
-        cardmarket_product_id: card.cardmarket_product_id
-      })
-    end
+    Core.record_single_valuation!(%{
+      card_printing_id: card.id,
+      value_eur: Decimal.new("99.99"),
+      currency: "EUR",
+      policy_version: "cardmarket_bulk_v1",
+      source: "cardmarket_bulk",
+      source_metric: "average",
+      fetched_at: now,
+      cardmarket_product_id: card.cardmarket_product_id
+    })
 
     {:ok, view, _html} = live(conn, ~p"/")
     render_hook(view, "search", %{"search" => %{"query" => search_term}})
@@ -641,21 +636,16 @@ defmodule TcgCheapWeb.HomeLiveTest do
         cardmarket_product_id: System.unique_integer([:positive])
       })
 
-    for {policy, value, source} <- [
-          {ValuationPolicy.tcgdex_policy(), "12.30", "tcgdex"},
-          {ValuationPolicy.bulk_policy(), "99.99", "cardmarket_bulk"}
-        ] do
-      Core.record_single_valuation!(%{
-        card_printing_id: card.id,
-        value_eur: Decimal.new(value),
-        currency: "EUR",
-        policy_version: policy,
-        source: source,
-        source_metric: "average",
-        fetched_at: now,
-        cardmarket_product_id: card.cardmarket_product_id
-      })
-    end
+    Core.record_single_valuation!(%{
+      card_printing_id: card.id,
+      value_eur: Decimal.new("99.99"),
+      currency: "EUR",
+      policy_version: "cardmarket_bulk_v1",
+      source: "cardmarket_bulk",
+      source_metric: "average",
+      fetched_at: now,
+      cardmarket_product_id: card.cardmarket_product_id
+    })
 
     {:ok, view, _html} = live(conn, ~p"/")
     render_hook(view, "search", %{"search" => %{"query" => search_term}})
@@ -664,6 +654,50 @@ defmodule TcgCheapWeb.HomeLiveTest do
 
     assert has_element?(view, "#card-estimate-#{card.id}", "€99.99")
     assert has_element?(view, "#card-search-query[value='#{String.downcase(search_term)}']")
+  end
+
+  test "mounted search removes a stale valuation after a mapping notification", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    search_term = "mapping-refresh-#{suffix}"
+    card = create_home_card(search_term)
+
+    {:ok, snapshot} =
+      Core.record_single_valuation(%{
+        card_printing_id: card.id,
+        value_eur: Decimal.new("99.99"),
+        currency: "EUR",
+        policy_version: "cardmarket_bulk_v1",
+        source: "cardmarket_bulk",
+        source_metric: "average",
+        fetched_at: DateTime.utc_now(),
+        cardmarket_product_id: card.cardmarket_product_id
+      })
+
+    {:ok, view, _html} = live(conn, ~p"/")
+    render_hook(view, "search", %{"search" => %{"query" => search_term}})
+    assert has_element?(view, "#card-estimate-#{card.id}", "€99.99")
+
+    Core.archive_single_valuation!(snapshot)
+
+    Phoenix.PubSub.broadcast(
+      TcgCheap.PubSub,
+      ValuationNotifications.topic(card),
+      {:card_mapping_changed, %{card_printing_id: card.id}}
+    )
+
+    refute has_element?(view, "#card-estimate-#{card.id}", "€99.99")
+    assert has_element?(view, "#card-estimate-#{card.id}", "Price unavailable")
+
+    render_hook(view, "autocomplete_key", %{"key" => "ArrowDown"})
+    refute has_element?(view, "#card-estimate-#{card.id}", "€99.99")
+    assert has_element?(view, "#card-search-query[value='#{search_term}']")
+  end
+
+  test "ignores malformed and unrelated mapping notifications", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/")
+    send(view.pid, {:card_mapping_changed, %{card_printing_id: 123}})
+    send(view.pid, {:card_mapping_changed, %{card_printing_id: Ecto.UUID.generate()}})
+    assert has_element?(view, "#card-search-results[phx-update=stream]")
   end
 
   test "renders a valid low WebP thumbnail and fallback for missing images", %{conn: conn} do
@@ -962,6 +996,48 @@ defmodule TcgCheapWeb.HomeLiveTest do
     refute has_element?(view, "#idle-recent-card-#{card.id}", "%")
   end
 
+  test "collection invalidation adds a recently tracked card absent at mount", %{conn: conn} do
+    suffix = System.unique_integer([:positive])
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    card =
+      TcgCheap.TestSupport.import_card_printing!(%{
+        tcgdex_id: "collection-recent-#{suffix}",
+        name: "Collection Recent #{suffix}",
+        set_name: "Collection Set #{suffix}",
+        collector_number: "001",
+        last_synced_at: now,
+        mapping_status: "matched",
+        cardmarket_product_id: suffix
+      })
+
+    Core.record_single_valuation!(%{
+      card_printing_id: card.id,
+      value_eur: Decimal.new("12.30"),
+      policy_version: "cardmarket_bulk_v1",
+      source: "cardmarket_bulk",
+      source_metric: "avg7",
+      fetched_at: now,
+      cardmarket_product_id: suffix
+    })
+
+    refute has_element?(view, "#idle-recent-card-#{card.id}")
+
+    for _ <- 1..5 do
+      Phoenix.PubSub.broadcast(
+        TcgCheap.PubSub,
+        ValuationNotifications.collection_topic(),
+        {:singles_collection_invalidated, %{}}
+      )
+    end
+
+    Process.sleep(150)
+
+    assert has_element?(view, "#idle-recent-card-#{card.id}")
+    assert has_element?(view, "#idle-recent-card-#{card.id}", "Collection Recent #{suffix}")
+  end
+
   test "renders recently approved sealed products after switching mode", %{conn: conn} do
     product = create_sealed_product("Idle sealed #{System.unique_integer([:positive])}")
     {:ok, view, _html} = live(conn, ~p"/")
@@ -1203,6 +1279,27 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
 
     {name, first, second}
+  end
+
+  defp create_home_card(search_term) do
+    suffix = System.unique_integer([:positive])
+
+    {:ok, set} =
+      Core.import_card_set(%{
+        tcgdex_id: Ecto.UUID.generate(),
+        name: "Home Refresh Set #{suffix}",
+        series_id: "sv"
+      })
+
+    TcgCheap.TestSupport.import_card_printing!(%{
+      tcgdex_id: "home-refresh-#{suffix}",
+      name: search_term,
+      set_name: set.name,
+      collector_number: "01",
+      card_set_id: set.id,
+      mapping_status: "matched",
+      cardmarket_product_id: System.unique_integer([:positive])
+    })
   end
 
   defp create_sealed_product(name, overrides \\ %{}) do

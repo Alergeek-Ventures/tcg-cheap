@@ -8,7 +8,8 @@ defmodule TcgCheapWeb.Admin.CardCatalogueLiveTest do
   alias TcgCheap.Catalogue.CardPrintingMappingDecision
   alias TcgCheap.Catalogue.CardSet
   alias TcgCheap.Core
-  alias TcgCheap.Pricing.Singles.{SingleValuationSnapshot, ValuationAcquisition}
+  alias TcgCheap.Pricing.Singles.SingleValuationSnapshot
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
 
   test "catalogue roots redirect unauthenticated visitors", %{conn: conn} do
     for path <- [
@@ -146,6 +147,7 @@ defmodule TcgCheapWeb.Admin.CardCatalogueLiveTest do
     {card, _set, current, _archived} = catalogue_fixture()
     admin = admin_fixture()
     conn = authenticated_conn(conn, admin)
+    Phoenix.PubSub.subscribe(TcgCheap.PubSub, ValuationNotifications.topic(card))
 
     {:ok, correction_view, _html} =
       live(conn, "/admin/catalogue/cards/#{card.id}/correct")
@@ -167,7 +169,6 @@ defmodule TcgCheapWeb.Admin.CardCatalogueLiveTest do
     assert Ash.get!(SingleValuationSnapshot, current.id, domain: Core, authorize?: false).current?
 
     corrected_product_id = card.cardmarket_product_id + 10
-    Phoenix.PubSub.subscribe(TcgCheap.PubSub, ValuationAcquisition.topic(card))
 
     correction_result =
       correction_view
@@ -323,19 +324,13 @@ defmodule TcgCheapWeb.Admin.CardCatalogueLiveTest do
     now = DateTime.utc_now()
 
     archived =
-      Core.record_single_valuation!(
-        %{
-          card_printing_id: card.id,
-          value_eur: Decimal.new("0.75"),
-          currency: "EUR",
-          policy_version: "tcgdex_cardmarket_v1",
-          source: "Cardmarket",
-          source_metric: "average",
-          fetched_at: DateTime.add(now, -60, :second),
-          cardmarket_product_id: suffix
-        },
-        authorize?: false
-      )
+      TcgCheap.TestSupport.insert_historical_single_valuation!(%{
+        card_printing_id: card.id,
+        value_eur: Decimal.new("0.75"),
+        source_metric: "average",
+        fetched_at: DateTime.add(now, -60, :second),
+        cardmarket_product_id: suffix
+      })
 
     current =
       Core.record_single_valuation!(
@@ -344,7 +339,7 @@ defmodule TcgCheapWeb.Admin.CardCatalogueLiveTest do
           value_eur: Decimal.new("0.99"),
           currency: "EUR",
           policy_version: "cardmarket_bulk_v1",
-          source: "Cardmarket",
+          source: "cardmarket_bulk",
           source_metric: "average",
           fetched_at: now,
           cardmarket_product_id: suffix

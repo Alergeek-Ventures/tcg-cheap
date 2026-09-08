@@ -102,6 +102,26 @@ checks as a quality gate; fix schema/data issues with a new forward migration an
 recover disasters from tested backup/PITR. Image rollback is separate and only
 allowed after proving schema compatibility; it never reverses the database.
 
+## Current production operations — 2026-09-08
+
+The fixed public/new-write Singles policy is `cardmarket_bulk_v1`. Cardmarket
+bulk sync runs daily at 03:00 UTC; TCGdex is catalogue/detail/image enrichment
+and Cardmarket identity mapping only, never a Singles price fallback. Public
+Home, CardDetail, and Trade read local exact current bulk snapshots and show
+stale or unpriced values honestly. NBP acquisition remains. See the
+[operations guide](docs/deployment-and-operations.md) for sync checks, anomaly
+handling, forward-only migrations, and incident response.
+
+The six sealed schedules are Monday 01:00 UTC LootQuest, 02:00 CardzHouse,
+03:00 BoosterPoint, 04:00 PokeBooster, 05:00 Boosterland, and 06:00 Colligere.
+Budgets, rate limits, safety, attribution, and data minimization remain in force.
+Release `68b73cc624e0ac6f450bf1c0af05bdc35eaaf565` deployed on 2026-09-08; CI
+`34212821835` passed 1,117 tests and production smoke showed EUR 263.65.
+The generated `pricing_checked_at` removal migration is pending final
+commit/deploy at documentation time.
+
+## Historical/superseded production notes
+
 All interested parties agreed that recurring source pulls are permitted for the
 internal MVP. The exact curated policy and three-source recurring acquisition
 are deployed through Coolify. Budgets, rate limits, safety, attribution, and data-minimization

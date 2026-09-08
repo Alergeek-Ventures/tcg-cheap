@@ -280,6 +280,7 @@ defmodule TcgCheapWeb.Admin.CardPrintingMappingCorrectionLive do
            ) do
         {:ok, updated_card} ->
           ValuationNotifications.notify_mapping_changed(updated_card)
+          ValuationNotifications.notify_collection_changed()
 
           {:noreply,
            socket
@@ -369,6 +370,7 @@ defmodule TcgCheapWeb.Admin.CardPrintingMappingCorrectionLive do
          ) do
       {:ok, updated_card} ->
         ValuationNotifications.notify_mapping_changed(updated_card)
+        ValuationNotifications.notify_collection_changed()
 
         {:noreply,
          socket

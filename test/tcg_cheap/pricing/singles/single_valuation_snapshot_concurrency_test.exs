@@ -4,6 +4,7 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotConcurrencyTest do
   import Ecto.Query
 
   alias Ecto.Adapters.SQL.Sandbox
+  alias TcgCheap.Catalogue.CardSet
   alias TcgCheap.Core
   alias TcgCheap.Pricing.Singles.SingleValuationSnapshot
   alias TcgCheap.Repo
@@ -12,13 +13,29 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotConcurrencyTest do
     card =
       Sandbox.unboxed_run(Repo, fn ->
         suffix = System.unique_integer([:positive])
+        tcgdex_id = "base1-concurrent-#{suffix}"
 
-        Core.create_card_printing!(%{
-          tcgdex_id: "base1-concurrent-#{suffix}",
-          name: "Charizard",
-          set_name: "Base Set",
-          collector_number: "4"
-        })
+        card =
+          TcgCheap.TestSupport.import_card_printing!(
+            %{
+              tcgdex_id: tcgdex_id,
+              name: "Charizard",
+              set_name: "Base Set",
+              collector_number: "4",
+              mapping_status: "matched",
+              cardmarket_product_id: 273_699
+            },
+            card_set?: false
+          )
+
+        assert Repo.aggregate(
+                 from(card_set in CardSet,
+                   where: card_set.tcgdex_id == ^"fixture-set-#{tcgdex_id}"
+                 ),
+                 :count
+               ) == 0
+
+        card
       end)
 
     on_exit(fn ->
@@ -39,7 +56,7 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotConcurrencyTest do
   end
 
   test "concurrent recordings use independent transactions", %{card: card} do
-    policy = "tcgdex_cardmarket_concurrent-#{System.unique_integer([:positive])}"
+    policy = "cardmarket_bulk_v1"
     parent = self()
 
     tasks =
@@ -82,10 +99,11 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshotConcurrencyTest do
       %{
         card_printing_id: card.id,
         value_eur: Decimal.new("411.69"),
-        policy_version: "tcgdex_cardmarket_v1",
-        source: "tcgdex_cardmarket",
+        policy_version: "cardmarket_bulk_v1",
+        source: "cardmarket_bulk",
         source_metric: "avg7",
-        fetched_at: ~U[2026-08-07 12:00:00.000000Z]
+        fetched_at: ~U[2026-08-07 12:00:00.000000Z],
+        cardmarket_product_id: card.cardmarket_product_id
       },
       overrides
     )

@@ -29,7 +29,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
   def run(_), do: {:error, :invalid_batch}
 
   defp page(batch, cursor, counts) do
-    case Core.list_singles_valuation_candidates(cursor, @limit, authorize?: false) do
+    case Core.list_cardmarket_anchors(cursor, @limit, authorize?: false) do
       {:ok, []} ->
         {:ok, counts}
 

@@ -24,10 +24,6 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerAdmission do
   end
 end
 
-defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerFailingValuation do
-  def record_or_enqueue(_card, _provider_card, _fetched_at), do: {:error, :persistence_failed}
-end
-
 defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
   use TcgCheap.DataCase, async: false
 
@@ -38,14 +34,10 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
   alias TcgCheap.Catalogue.CardDetailEnrichmentWorkerTestProvider, as: ProviderHelper
   alias TcgCheap.Core
   alias TcgCheap.Operations
-  alias TcgCheap.Pricing.Singles.ValuationWorker
 
   setup do
     previous_sync = Application.get_env(:tcg_cheap, :catalogue_sync)
     previous_admitter = Application.get_env(:tcg_cheap, :acquisition_budget_admitter)
-
-    previous_valuation =
-      Application.get_env(:tcg_cheap, :card_detail_enrichment_embedded_valuation)
 
     {:ok, provider} =
       Agent.start_link(fn -> %{fetch_cards: 0, result: {:ok, payload("sv1-1")}} end)
@@ -66,7 +58,6 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
     on_exit(fn ->
       restore(:catalogue_sync, previous_sync)
       restore(:acquisition_budget_admitter, previous_admitter)
-      restore(:card_detail_enrichment_embedded_valuation, previous_valuation)
       Application.delete_env(:tcg_cheap, :detail_worker_admissions)
     end)
 
@@ -89,7 +80,6 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
     stored = Core.get_card_printing_by_tcgdex_id!(card.tcgdex_id)
     assert stored.name == "Fetched #{card.tcgdex_id}"
     assert stored.details_synced_at != nil
-    assert stored.pricing_checked_at == stored.details_synced_at
     assert stored.collector_number == "1"
     assert stored.set_name == "Set"
 
@@ -98,12 +88,6 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
       worker: CardDetailEnrichmentWorker,
       args: %{"tcgdex_id" => next.tcgdex_id, "continue" => true},
       priority: 5
-    )
-
-    refute_enqueued(
-      repo: TcgCheap.Repo,
-      worker: ValuationWorker,
-      args: %{"card_printing_id" => card.id}
     )
 
     assert_receive {:card_detail_enrichment_completed, %{local_card_id: id}} when id == card.id
@@ -153,29 +137,9 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
     assert duplicate_background.conflict?
   end
 
-  test "checked cards skip the provider, continue in background, and no-op navigation", %{
+  test "staged detail imports resume enrichment without fetching and continue", %{
     provider: provider
   } do
-    {card, next} = cards()
-
-    assert {:ok, _} =
-             Core.mark_card_printing_pricing_checked(card, DateTime.utc_now(), authorize?: false)
-
-    assert :ok = CardDetailEnrichmentWorker.perform(job(card, true, 31))
-    assert {:ok, []} = Core.list_current_single_valuations(card.id, authorize?: false)
-    assert %{fetch_cards: 0} = Agent.get(provider, & &1)
-
-    assert_enqueued(
-      repo: TcgCheap.Repo,
-      worker: CardDetailEnrichmentWorker,
-      args: %{"tcgdex_id" => next.tcgdex_id, "continue" => true}
-    )
-
-    assert :ok = CardDetailEnrichmentWorker.perform(job(card, false, 32))
-    assert %{fetch_cards: 0} = Agent.get(provider, & &1)
-  end
-
-  test "staged detail imports resume pricing without fetching and continue", %{provider: provider} do
     synced_at = ~U[2026-03-01 00:00:00.123456Z]
     {card, next} = cards(details_synced_at: synced_at, source_payload: :matching_payload)
 
@@ -184,7 +148,6 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
 
     stored = Core.get_card_printing_by_tcgdex_id!(card.tcgdex_id)
     assert stored.details_synced_at == synced_at
-    assert stored.pricing_checked_at != nil
 
     assert {:ok, []} = Core.list_current_single_valuations(card.id, authorize?: false)
 
@@ -196,34 +159,16 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
     )
   end
 
-  test "max-attempt pricing persistence failures snooze without advancing", %{provider: provider} do
-    synced_at = ~U[2026-03-01 00:00:00.123456Z]
-    {card, _next} = cards(details_synced_at: synced_at, source_payload: :matching_payload)
-
-    Application.put_env(
-      :tcg_cheap,
-      :card_detail_enrichment_embedded_valuation,
-      TcgCheap.Catalogue.CardDetailEnrichmentWorkerFailingValuation
-    )
-
-    assert :ok = CardDetailEnrichmentWorker.perform(job(card, true, 38, 5))
-    assert %{fetch_cards: 0} = Agent.get(provider, & &1)
-    assert_enqueued(repo: TcgCheap.Repo, worker: CardDetailEnrichmentWorker)
-
-    stored = Core.get_card_printing_by_tcgdex_id!(card.tcgdex_id)
-    assert stored.pricing_checked_at != nil
-    assert {:ok, []} = Core.list_current_single_valuations(card.id, authorize?: false)
-  end
-
-  test "permanent failures mark pricing checked and repeated execution skips provider", %{
-    provider: provider
-  } do
+  test "permanent failures mark detail enrichment failed and repeated execution skips provider",
+       %{
+         provider: provider
+       } do
     {card, next} = cards()
     Agent.update(provider, &%{&1 | result: {:error, {:http_error, 404}}})
 
     assert {:cancel, :provider_response} = CardDetailEnrichmentWorker.perform(job(card, true, 33))
     checked = Core.get_card_printing_by_tcgdex_id!(card.tcgdex_id)
-    assert checked.pricing_checked_at
+    assert checked.details_enrichment_failed_at
 
     assert_enqueued(
       repo: TcgCheap.Repo,

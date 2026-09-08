@@ -1,5 +1,17 @@
 # Wiki Log
 
+## [2026-09-08] Singles bulk-only architecture and production reconciliation
+
+- Task: Applied the llm-wiki codebase-update workflow while preserving the MVP plan as the current north star and retaining all unrelated Sealed/operations requirements. Reconciled Singles to fixed `cardmarket_bulk_v1` public/new-write pricing, TCGdex catalogue/detail/image/Cardmarket identity, honest stale/unpriced local surfaces, post-commit batch/mapping invalidations, strict bulk evidence/materialization safeguards, and read-only admin diagnostics.
+- Files: Updated exactly `knowledge-base/wiki/architecture/application-foundation.md`, `knowledge-base/wiki/architecture/provider-acquisition-feasibility.md`, `knowledge-base/wiki/product/mvp-implementation-plan.md`, `knowledge-base/wiki/index.md`, and `knowledge-base/wiki/log.md`. No `knowledge-base/raw` or other file was modified.
+- Validation: canonical `direnv exec . mix check --verbose` passed all static gates/Dialyzer and 1,065 tests; final whole-diff multi-agent review was clean after fixing collection-level Home invalidation/debounce and test-database fixture leakage; deterministic wiki lint remains recorded below; `git diff --check` passed.
+- Deployment boundary: Bulk-only release `68b73cc624e0ac6f450bf1c0af05bdc35eaaf565` was deployed 2026-09-08; CI run [34212821835](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34212821835) passed 1,117 tests, production health/browser Home/card/trade smoke passed at EUR 263.65. Cleanup removes old Provider/Offer/default_v1 modules/config/interfaces and `pricing_checked_at` through generated migration; final commit/deploy remains pending at documentation time. Raw: N/A — codebase update.
+
+## [2026-09-08] Deterministic wiki lint | Singles bulk-only reconciliation
+
+- Validation: 5 durable articles, 5/5 indexed, 15/15 exact `Updated`/`Sources`/`Raw` metadata fields, 76 relative Markdown links checked (22 wiki/internal and 54 raw links), all resolved when checked against their respective roots, and `git diff --check` passed. No auto-fixes.
+- Heuristic review: Active Singles passages were reconciled to fixed `cardmarket_bulk_v1` public/new-write behavior, TCGdex identity/catalogue/detail/image-only use, retained readable historical snapshots, no fallback/selectable policy/cutover/readiness/cache/per-card worker/acquisition/14:00 sweep, 03:00 bulk sync, honest stale/unpriced UI, invalidation refresh, strict materialization, and read-only diagnostics. Intentional stale terms remain only in clearly dated historical sections, including prior `tcgdex_cardmarket_v1` active-policy wording and historical Provider/Offer/default_v1 references.
+
 ## [2026-09-07] Cardmarket bulk rollout and handoff reconciliation
 
 - Task: Reconciled the Cardmarket bulk rollout from local/uncommitted wording to implementation commit `b7afc9049a8af42dd569f44d2c140cb58f64221c` (`b7afc90`), pushed/deployed 2026-09-07, while preserving implementation constraints and dated historical evidence.

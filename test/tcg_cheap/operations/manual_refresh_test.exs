@@ -20,13 +20,11 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
   alias TcgCheap.Operations
   alias TcgCheap.Operations.{AcquisitionBudget, ImportIssues, ManualRefresh, Overview}
   alias TcgCheap.Pricing.ExchangeRateWorker
-  alias TcgCheap.Pricing.Singles.ValuationWorker
 
   setup do
     previous_budget = Application.get_env(:tcg_cheap, :acquisition_budget)
     previous_adapters = Application.get_env(:tcg_cheap, :sealed_retailer_adapters)
     previous_exchange = Application.get_env(:tcg_cheap, :exchange_rate_provider)
-    previous_valuation = Application.get_env(:tcg_cheap, :valuation_provider)
     previous_catalogue = Application.get_env(:tcg_cheap, :catalogue_sync)
 
     Application.put_env(:tcg_cheap, :acquisition_budget, budget())
@@ -36,7 +34,6 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
       restore(:acquisition_budget, previous_budget)
       restore(:sealed_retailer_adapters, previous_adapters)
       restore(:exchange_rate_provider, previous_exchange)
-      restore(:valuation_provider, previous_valuation)
       restore(:catalogue_sync, previous_catalogue)
     end)
 
@@ -162,6 +159,13 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     refute_enqueued(repo: TcgCheap.Repo, worker: CatalogueSyncWorker)
   end
 
+  test "does not expose or enqueue retired TCGdex valuations", %{admin: admin} do
+    assert {:error, :invalid_target} =
+             ManualRefresh.enqueue(admin, {:single_valuation, "base1-4"})
+
+    assert all_enqueued(repo: TcgCheap.Repo) == []
+  end
+
   test "repair discovery overflow leaves unrelated targets available", %{admin: admin} do
     timestamp = ~U[2026-01-01 00:00:00.000000Z]
 
@@ -190,15 +194,6 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     assert repair.status == :unavailable
     assert repair.failure_count == nil
     assert exchange.status == :available
-  end
-
-  test "does not expose or enqueue retired TCGdex valuations", %{admin: admin} do
-    card = card()
-
-    assert {:error, :invalid_target} =
-             ManualRefresh.enqueue(admin, {:single_valuation, card.tcgdex_id})
-
-    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
   end
 
   test "derives sealed source identity from the active local retailer", %{admin: admin} do
@@ -242,7 +237,7 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     assert {:error, :disabled} = ManualRefresh.enqueue(admin, :exchange_rate)
     refute_enqueued(repo: TcgCheap.Repo, worker: ExchangeRateWorker)
 
-    Application.put_env(:tcg_cheap, :acquisition_budget, budget([provider("tcgdex_cardmarket")]))
+    Application.put_env(:tcg_cheap, :acquisition_budget, budget([provider("tcgdex_catalogue")]))
 
     assert {:ok, targets} = ManualRefresh.targets(admin)
     assert Enum.find(targets, &(&1.kind == :exchange_rate)).status == :unconfigured
@@ -292,7 +287,6 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
       budget([
         provider("nbp"),
         provider("tcgdex_catalogue"),
-        provider("tcgdex_cardmarket"),
         provider("sealed_retailer:manual-refresh-stub")
       ])
     )
@@ -304,19 +298,6 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
       category: "regular_retailer",
       homepage_url: "https://example.test/manual-refresh",
       source_payload: %{"secret" => "retailer-source-secret"}
-    })
-  end
-
-  defp card do
-    unique = System.unique_integer([:positive])
-
-    TcgCheap.TestSupport.import_card_printing!(%{
-      tcgdex_id: "manual-card-#{unique}",
-      name: "Manual card #{unique}",
-      set_name: "Manual set",
-      collector_number: Integer.to_string(unique),
-      mapping_status: "matched",
-      cardmarket_product_id: unique
     })
   end
 
@@ -334,8 +315,7 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
   defp budget(
          providers \\ [
            provider("tcgdex_catalogue"),
-           provider("nbp"),
-           provider("tcgdex_cardmarket")
+           provider("nbp")
          ]
        ) do
     [

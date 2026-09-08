@@ -49,6 +49,8 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
       change {TcgCheap.Pricing.Singles.Changes.ReplaceCurrentSnapshot, []}
       validate compare(:value_eur, greater_than: 0)
       validate one_of(:currency, ["EUR"])
+      validate one_of(:policy_version, ["cardmarket_bulk_v1"])
+      validate one_of(:source, ["cardmarket_bulk"])
     end
 
     update :archive do
@@ -105,12 +107,6 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
       argument :as_of, :utc_datetime_usec, allow_nil?: false
       argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 10]
 
-      argument :policy_version, :string,
-        allow_nil?: false,
-        default: "cardmarket_bulk_v1"
-
-      validate one_of(:policy_version, ["tcgdex_cardmarket_v1", "cardmarket_bulk_v1"])
-
       run TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges
     end
 
@@ -132,13 +128,6 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
              :history_since_for_card_and_policy,
              :homepage_price_changes
            ]) do
-      authorize_if always()
-    end
-
-    bypass accessing_from(
-             TcgCheap.Catalogue.CardPrinting,
-             :tcgdex_cardmarket_v1_current_valuation
-           ) do
       authorize_if always()
     end
 

@@ -4,6 +4,7 @@ defmodule TcgCheapWeb.HomeLive do
   alias TcgCheap.Catalogue.{CardImage, ExternalImage}
   alias TcgCheap.Catalogue.SearchText
   alias TcgCheap.Pricing.Singles.Freshness
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
   alias TcgCheap.Pricing.Singles.ValuationPolicy
 
   @max_autocomplete_options 10
@@ -13,15 +14,10 @@ defmodule TcgCheapWeb.HomeLive do
   @impl true
   def mount(_params, _session, socket) do
     as_of = DateTime.utc_now()
-    valuation_policy = ValuationPolicy.active_policy()
 
     {price_changes, price_changes_ok?} =
       safe_discovery(fn ->
-        TcgCheap.Core.list_homepage_price_changes_for_policy(
-          as_of,
-          @max_discovery_rows,
-          valuation_policy
-        )
+        TcgCheap.Core.list_homepage_price_changes(as_of, @max_discovery_rows)
       end)
 
     {sealed_price_changes, sealed_price_changes_ok?} =
@@ -52,7 +48,6 @@ defmodule TcgCheapWeb.HomeLive do
      |> assign(
        page_title: "Compare Pokémon prices",
        mode: :singles,
-       valuation_policy: valuation_policy,
        search_form: to_form(%{"query" => ""}, as: :search),
        search_status: :idle,
        result_count: 0,
@@ -70,7 +65,15 @@ defmodule TcgCheapWeb.HomeLive do
        recent_cards_count: length(recent_cards),
        recent_sealed_count: length(recent_sealed),
        fallback_cards_count: 0,
-       fallback_sealed_count: 0
+       fallback_sealed_count: 0,
+       home_search_cards: [],
+       home_fallback_cards: [],
+       home_recent_cards: recent_cards,
+       home_single_movers: single_risers ++ single_fallers,
+       subscribed_mapping_ids: MapSet.new(),
+       subscribed_valuation_collection?: false,
+       collection_refresh_timer: nil,
+       collection_refresh_token: nil
      )
      |> stream_configure(:card_results, dom_id: fn result -> "card-option-#{result.id}" end)
      |> stream_configure(:sealed_results, dom_id: fn result -> "sealed-option-#{result.id}" end)
@@ -105,53 +108,49 @@ defmodule TcgCheapWeb.HomeLive do
      |> stream(:fallback_cards, [])
      |> stream(:fallback_sealed, [])
      |> stream(:idle_recent_cards, recent_cards)
-     |> stream(:idle_recent_sealed, recent_sealed)}
+     |> stream(:idle_recent_sealed, recent_sealed)
+     |> maybe_sync_mapping_subscriptions()}
   end
 
   @impl true
-  def handle_info(:valuation_policy_invalidated, socket) do
-    policy = ValuationPolicy.active_policy()
-
-    if policy == socket.assigns.valuation_policy do
-      {:noreply, socket}
+  def handle_info({:card_mapping_changed, %{card_printing_id: id}}, socket)
+      when is_binary(id) do
+    if MapSet.member?(socket.assigns.subscribed_mapping_ids, id) do
+      {:noreply, refresh_home_card(socket, id)}
     else
-      refresh_policy_surface(socket, policy)
+      {:noreply, socket}
     end
   end
 
-  defp refresh_policy_surface(socket, policy) do
-    as_of = DateTime.utc_now()
+  def handle_info({:singles_collection_invalidated, payload}, socket)
+      when is_map(payload) and map_size(payload) == 0 do
+    cancel_collection_refresh(socket.assigns.collection_refresh_timer)
+    token = make_ref()
+    timer = Process.send_after(self(), {:refresh_singles_collection, token}, 100)
 
-    {price_changes, price_changes_ok?} =
-      safe_discovery(fn ->
-        TcgCheap.Core.list_homepage_price_changes_for_policy(as_of, @max_discovery_rows, policy)
-      end)
-
-    {single_risers, single_fallers} = split_movers(price_changes)
-
-    {recent_cards, recent_cards_ok?} =
-      safe_discovery(fn -> TcgCheap.Core.list_public_recently_tracked_card_printings() end)
-      |> then(fn {rows, ok?} -> {Enum.take(rows, @max_discovery_rows), ok?} end)
-
-    socket =
-      socket
-      |> assign(
-        valuation_policy: policy,
-        singles_risers_count: length(single_risers),
-        singles_fallers_count: length(single_fallers),
-        singles_movers_available?: price_changes_ok?,
-        recent_cards_count: length(recent_cards),
-        recent_cards_available?: recent_cards_ok?
-      )
-      |> stream(:market_single_risers, single_risers, reset: true)
-      |> stream(:market_single_fallers, single_fallers, reset: true)
-      |> stream(:idle_recent_cards, recent_cards, reset: true)
-
-    case socket.assigns.mode do
-      :singles -> execute_search(socket, socket.assigns.search_query)
-      :sealed -> {:noreply, socket}
-    end
+    {:noreply,
+     assign(socket,
+       collection_refresh_timer: timer,
+       collection_refresh_token: token
+     )}
   end
+
+  def handle_info(
+        {:refresh_singles_collection, token},
+        %{assigns: %{collection_refresh_token: token}} = socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(collection_refresh_timer: nil, collection_refresh_token: nil)
+     |> refresh_singles_discovery()}
+  end
+
+  def handle_info({:refresh_singles_collection, _stale_token}, socket), do: {:noreply, socket}
+
+  def handle_info(_, socket), do: {:noreply, socket}
+
+  defp cancel_collection_refresh(nil), do: :ok
+  defp cancel_collection_refresh(timer), do: Process.cancel_timer(timer)
 
   @impl true
   def handle_params(params, uri, socket) do
@@ -347,7 +346,7 @@ defmodule TcgCheapWeb.HomeLive do
                     class={["evidence-slot", @active_option_id == stream_id && "active-option"]}
                     role="option"
                     aria-selected={to_string(@active_option_id == stream_id)}
-                    aria-labelledby={option_labelledby(result, @valuation_policy)}
+                    aria-labelledby={option_labelledby(result)}
                     phx-click="select_option"
                     phx-value-tcgdex-id={result.tcgdex_id}
                     tabindex="-1"
@@ -400,7 +399,7 @@ defmodule TcgCheapWeb.HomeLive do
                             >{result.rarity}</span>
                           </div>
                         </div>
-                        <% valuation = ValuationPolicy.current_valuation(result, @valuation_policy) %>
+                        <% valuation = ValuationPolicy.current_valuation(result) %>
                         <div class="estimate-cell">
                           <strong id={"card-estimate-#{result.id}"}>{estimate_display(valuation)}</strong>
                           <span :if={valuation} id={"card-freshness-#{result.id}"}>
@@ -549,7 +548,6 @@ defmodule TcgCheapWeb.HomeLive do
             <.market_movers
               streams={@streams}
               mode={@mode}
-              valuation_policy={@valuation_policy}
               singles_risers_count={@singles_risers_count}
               singles_fallers_count={@singles_fallers_count}
               sealed_risers_count={@sealed_risers_count}
@@ -580,7 +578,6 @@ defmodule TcgCheapWeb.HomeLive do
 
   attr :streams, :map, required: true
   attr :mode, :atom, required: true
-  attr :valuation_policy, :string, required: true
   attr :singles_risers_count, :integer, required: true
   attr :singles_fallers_count, :integer, required: true
   attr :sealed_risers_count, :integer, required: true
@@ -679,7 +676,6 @@ defmodule TcgCheapWeb.HomeLive do
         count={@recent_cards_count}
         available?={@recent_cards_available?}
         kind={:single}
-        valuation_policy={@valuation_policy}
         hidden={@mode != :singles}
       />
       <.recent_idle_ledger
@@ -688,7 +684,6 @@ defmodule TcgCheapWeb.HomeLive do
         count={@recent_sealed_count}
         available?={@recent_sealed_available?}
         kind={:sealed}
-        valuation_policy={@valuation_policy}
         hidden={@mode != :sealed}
       />
       <p
@@ -709,7 +704,6 @@ defmodule TcgCheapWeb.HomeLive do
   attr :count, :integer, required: true
   attr :available?, :boolean, required: true
   attr :kind, :atom, required: true
-  attr :valuation_policy, :string, required: true
   attr :hidden, :boolean, required: true
 
   def recent_idle_ledger(assigns) do
@@ -730,7 +724,7 @@ defmodule TcgCheapWeb.HomeLive do
       <% else %>
         <div id={"#{@id}-list"} phx-update="stream" class="market-rows">
           <%= if @kind == :single do %>
-            <.recent_single_rows streams={@streams} valuation_policy={@valuation_policy} />
+            <.recent_single_rows streams={@streams} />
           <% else %>
             <.recent_sealed_rows streams={@streams} />
           <% end %>
@@ -756,7 +750,6 @@ defmodule TcgCheapWeb.HomeLive do
     do: "Approved sealed product data is unavailable. Try a product, set, or series search later."
 
   attr :streams, :any, required: true
-  attr :valuation_policy, :string, required: true
 
   def recent_single_rows(assigns) do
     ~H"""
@@ -785,7 +778,7 @@ defmodule TcgCheapWeb.HomeLive do
           ><svg viewBox="0 0 72 96" aria-hidden="true"><path d="M12 4h38l10 10v78H12zM50 4v12h10M20 28h32M20 38h24M20 70h32M20 78h18" /></svg></span>
         <% end %>
       </div>
-      <% valuation = ValuationPolicy.current_valuation(card, @valuation_policy) %>
+      <% valuation = ValuationPolicy.current_valuation(card) %>
       <div class="market-copy">
         <h4>{card.name}</h4>
         <p>{card.set_name} · #{card.collector_number}</p>
@@ -1143,10 +1136,12 @@ defmodule TcgCheapWeb.HomeLive do
            search_status: :results,
            result_count: length(results),
            autocomplete_options: options,
-           active_option_id: List.first(options).dom_id
+           active_option_id: List.first(options).dom_id,
+           home_search_cards: Enum.map(options, & &1.result)
          )
          |> clear_fallback_streams()
-         |> stream(:card_results, Enum.map(options, & &1.result), reset: true)}
+         |> stream(:card_results, Enum.map(options, & &1.result), reset: true)
+         |> maybe_sync_mapping_subscriptions()}
 
       {:ok, []} ->
         {:noreply,
@@ -1155,10 +1150,12 @@ defmodule TcgCheapWeb.HomeLive do
            search_status: :empty,
            result_count: 0,
            autocomplete_options: [],
-           active_option_id: nil
+           active_option_id: nil,
+           home_search_cards: []
          )
          |> load_sealed_fallback(query)
-         |> stream(:card_results, [], reset: true)}
+         |> stream(:card_results, [], reset: true)
+         |> maybe_sync_mapping_subscriptions()}
 
       {:error, _reason} ->
         {:noreply,
@@ -1167,10 +1164,12 @@ defmodule TcgCheapWeb.HomeLive do
            search_status: :error,
            result_count: 0,
            autocomplete_options: [],
-           active_option_id: nil
+           active_option_id: nil,
+           home_search_cards: []
          )
          |> clear_fallback_streams()
-         |> stream(:card_results, [], reset: true)}
+         |> stream(:card_results, [], reset: true)
+         |> maybe_sync_mapping_subscriptions()}
     end
   end
 
@@ -1225,12 +1224,14 @@ defmodule TcgCheapWeb.HomeLive do
       autocomplete_options: [],
       active_option_id: nil,
       fallback_cards_count: 0,
-      fallback_sealed_count: 0
+      fallback_sealed_count: 0,
+      home_search_cards: []
     )
     |> stream(:card_results, [], reset: true)
     |> stream(:sealed_results, [], reset: true)
     |> stream(:fallback_cards, [], reset: true)
     |> stream(:fallback_sealed, [], reset: true)
+    |> maybe_sync_mapping_subscriptions()
   end
 
   defp search_sealed_locally(socket, query) do
@@ -1248,7 +1249,8 @@ defmodule TcgCheapWeb.HomeLive do
            active_option_id: List.first(options).dom_id
          )
          |> clear_fallback_streams()
-         |> stream(:sealed_results, Enum.map(options, & &1.result), reset: true)}
+         |> stream(:sealed_results, Enum.map(options, & &1.result), reset: true)
+         |> maybe_sync_mapping_subscriptions()}
 
       {:ok, []} ->
         {:noreply,
@@ -1278,16 +1280,17 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp clear_fallback_streams(socket) do
     socket
-    |> assign(fallback_cards_count: 0, fallback_sealed_count: 0)
+    |> assign(fallback_cards_count: 0, fallback_sealed_count: 0, home_fallback_cards: [])
     |> stream(:fallback_cards, [], reset: true)
     |> stream(:fallback_sealed, [], reset: true)
+    |> maybe_sync_mapping_subscriptions()
   end
 
   defp load_sealed_fallback(socket, query) do
     case TcgCheap.Core.search_public_sealed_products(query, 4) do
       {:ok, products} when is_list(products) ->
         socket
-        |> assign(fallback_sealed_count: length(products))
+        |> assign(fallback_sealed_count: length(products), home_fallback_cards: [])
         |> stream(:fallback_sealed, products, reset: true)
         |> stream(:fallback_cards, [], reset: true)
 
@@ -1300,12 +1303,191 @@ defmodule TcgCheapWeb.HomeLive do
     case TcgCheap.Core.search_public_card_printings(query, 4) do
       {:ok, cards} when is_list(cards) ->
         socket
-        |> assign(fallback_cards_count: length(cards))
+        |> assign(fallback_cards_count: length(cards), home_fallback_cards: cards)
         |> stream(:fallback_cards, cards, reset: true)
         |> stream(:fallback_sealed, [], reset: true)
 
       _ ->
         clear_fallback_streams(socket)
+    end
+  end
+
+  defp maybe_sync_mapping_subscriptions(socket) do
+    if connected?(socket) do
+      socket =
+        if socket.assigns.subscribed_valuation_collection? do
+          socket
+        else
+          :ok = ValuationNotifications.subscribe_collection()
+          assign(socket, :subscribed_valuation_collection?, true)
+        end
+
+      wanted = visible_mapping_ids(socket)
+      subscribed = socket.assigns.subscribed_mapping_ids
+
+      Enum.each(MapSet.difference(subscribed, wanted), fn id ->
+        Phoenix.PubSub.unsubscribe(TcgCheap.PubSub, ValuationNotifications.topic(id))
+      end)
+
+      Enum.each(MapSet.difference(wanted, subscribed), fn id ->
+        :ok = ValuationNotifications.subscribe(id)
+      end)
+
+      assign(socket, :subscribed_mapping_ids, wanted)
+    else
+      socket
+    end
+  end
+
+  defp refresh_singles_discovery(socket) do
+    as_of = DateTime.utc_now()
+
+    {price_changes, price_changes_ok?} =
+      safe_discovery(fn ->
+        TcgCheap.Core.list_homepage_price_changes(as_of, @max_discovery_rows)
+      end)
+
+    {recent_cards, recent_cards_ok?} =
+      safe_discovery(fn -> TcgCheap.Core.list_public_recently_tracked_card_printings() end)
+      |> then(fn {rows, ok?} -> {Enum.take(rows, @max_discovery_rows), ok?} end)
+
+    {single_risers, single_fallers} = split_movers(price_changes)
+
+    socket
+    |> assign(
+      singles_movers_available?: price_changes_ok?,
+      singles_risers_count: length(single_risers),
+      singles_fallers_count: length(single_fallers),
+      recent_cards_available?: recent_cards_ok?,
+      recent_cards_count: length(recent_cards),
+      home_recent_cards: recent_cards,
+      home_single_movers: single_risers ++ single_fallers
+    )
+    |> stream(:market_single_risers, single_risers, reset: true)
+    |> stream(:market_single_fallers, single_fallers, reset: true)
+    |> stream(:idle_recent_cards, recent_cards, reset: true)
+    |> maybe_sync_mapping_subscriptions()
+  end
+
+  defp visible_mapping_ids(socket) do
+    [:home_search_cards, :home_fallback_cards, :home_recent_cards, :home_single_movers]
+    |> Enum.flat_map(&Map.get(socket.assigns, &1, []))
+    |> Enum.map(fn card -> Map.get(card, :id) || Map.get(card, :card_printing_id) end)
+    |> Enum.reject(&is_nil/1)
+    |> MapSet.new()
+  end
+
+  defp refresh_home_card(socket, id) do
+    cards =
+      socket.assigns.home_search_cards ++
+        socket.assigns.home_fallback_cards ++ socket.assigns.home_recent_cards
+
+    case Enum.find(cards, &(Map.get(&1, :id) == id)) do
+      %{tcgdex_id: tcgdex_id} ->
+        fresh =
+          case TcgCheap.Core.list_public_card_printings_by_tcgdex_ids([tcgdex_id]) do
+            {:ok, [card | _]} -> card
+            _ -> nil
+          end
+
+        socket
+        |> refresh_card_collection(:home_search_cards, :card_results, id, fresh)
+        |> refresh_card_collection(:home_fallback_cards, :fallback_cards, id, fresh)
+        |> refresh_card_collection(:home_recent_cards, :idle_recent_cards, id, fresh)
+        |> refresh_mover_card(id)
+        |> maybe_sync_mapping_subscriptions()
+
+      nil ->
+        refresh_mover_card(socket, id)
+    end
+  end
+
+  defp refresh_card_collection(socket, assign_key, stream_name, id, fresh) do
+    records = Map.get(socket.assigns, assign_key, [])
+
+    case Enum.find(records, &(&1.id == id)) do
+      nil ->
+        socket
+
+      old ->
+        socket
+        |> assign(assign_key, update_records(records, id, fresh))
+        |> sync_search_option_state(assign_key, id, fresh)
+        |> update_card_stream(stream_name, old, fresh)
+    end
+  end
+
+  defp update_records(records, id, nil), do: Enum.reject(records, &(&1.id == id))
+  defp update_records(records, id, fresh), do: Enum.map(records, &replace_record(&1, id, fresh))
+
+  defp replace_record(%{id: id}, id, fresh), do: fresh
+  defp replace_record(record, _id, _fresh), do: record
+
+  defp update_card_stream(socket, stream_name, old, nil),
+    do: stream_delete(socket, stream_name, old)
+
+  defp update_card_stream(socket, stream_name, _old, fresh),
+    do: stream_insert(socket, stream_name, fresh)
+
+  defp sync_search_option_state(socket, :home_search_cards, id, fresh) do
+    options = socket.assigns.autocomplete_options
+
+    options = update_search_options(options, id, fresh)
+
+    active_option_id =
+      case Enum.find(options, &(&1.dom_id == socket.assigns.active_option_id)) do
+        nil ->
+          fallback_active_option_id(options)
+
+        _option ->
+          socket.assigns.active_option_id
+      end
+
+    assign(socket,
+      autocomplete_options: options,
+      result_count:
+        if(fresh, do: socket.assigns.result_count, else: max(socket.assigns.result_count - 1, 0)),
+      active_option_id: active_option_id
+    )
+  end
+
+  defp sync_search_option_state(socket, _assign_key, _id, _fresh), do: socket
+
+  defp update_search_options(options, id, nil),
+    do: Enum.reject(options, &(&1.result.id == id))
+
+  defp update_search_options(options, id, fresh),
+    do: Enum.map(options, &update_search_option(&1, id, fresh))
+
+  defp update_search_option(%{result: %{id: id}} = option, id, fresh),
+    do: %{option | result: fresh}
+
+  defp update_search_option(option, _id, _fresh), do: option
+
+  defp fallback_active_option_id([]), do: nil
+  defp fallback_active_option_id([option | _options]), do: option.dom_id
+
+  defp refresh_mover_card(socket, id) do
+    if Enum.any?(socket.assigns.home_single_movers, &(Map.get(&1, :card_printing_id) == id)) do
+      {changes, ok?} =
+        safe_discovery(fn ->
+          TcgCheap.Core.list_homepage_price_changes(DateTime.utc_now(), @max_discovery_rows)
+        end)
+
+      {risers, fallers} = split_movers(changes)
+
+      socket
+      |> assign(
+        singles_movers_available?: ok?,
+        singles_risers_count: length(risers),
+        singles_fallers_count: length(fallers),
+        home_single_movers: risers ++ fallers
+      )
+      |> stream(:market_single_risers, risers, reset: true)
+      |> stream(:market_single_fallers, fallers, reset: true)
+      |> maybe_sync_mapping_subscriptions()
+    else
+      socket
     end
   end
 
@@ -1325,10 +1507,12 @@ defmodule TcgCheapWeb.HomeLive do
        search_status: status,
        result_count: 0,
        autocomplete_options: [],
-       active_option_id: nil
+       active_option_id: nil,
+       home_search_cards: []
      )
      |> clear_fallback_streams()
-     |> stream(:card_results, [], reset: true)}
+     |> stream(:card_results, [], reset: true)
+     |> maybe_sync_mapping_subscriptions()}
   end
 
   defp clear_sealed_results(socket, status) do
@@ -1338,10 +1522,12 @@ defmodule TcgCheapWeb.HomeLive do
        search_status: status,
        result_count: 0,
        autocomplete_options: [],
-       active_option_id: nil
+       active_option_id: nil,
+       home_search_cards: []
      )
      |> clear_fallback_streams()
-     |> stream(:sealed_results, [], reset: true)}
+     |> stream(:sealed_results, [], reset: true)
+     |> maybe_sync_mapping_subscriptions()}
   end
 
   defp clear_results_for_mode(%{assigns: %{mode: :sealed}} = socket, status),
@@ -1462,13 +1648,13 @@ defmodule TcgCheapWeb.HomeLive do
   defp card_link_label(result),
     do: "#{result.name}, #{result.set_name}, collector number #{result.collector_number}"
 
-  defp option_labelledby(result, valuation_policy) do
+  defp option_labelledby(result) do
     [
       "card-search-name-#{result.id}",
       "card-search-set-#{result.id}",
       if(rarity_present?(result.rarity), do: "card-rarity-#{result.id}"),
       "card-estimate-#{result.id}",
-      if(ValuationPolicy.current_valuation(result, valuation_policy),
+      if(ValuationPolicy.current_valuation(result),
         do: "card-freshness-#{result.id}"
       )
     ]

@@ -99,7 +99,6 @@ config :backpex,
 config :tcg_cheap, Oban,
   repo: TcgCheap.Repo,
   queues: [
-    valuations: 4,
     exchange_rates: 1,
     catalogue_sync: 1,
     operations: 1,
@@ -150,17 +149,6 @@ config :tcg_cheap, :singles_collection,
   rolling_rarities: ["Illustration rare", "Special illustration rare"],
   chunk_size: 20
 
-config :tcg_cheap, :valuation_clock, &DateTime.utc_now/0
-# Public selection is fixed to bulk; row-anomaly safety and read-only diagnostics
-# still consume these cutover settings.
-config :tcg_cheap, :cardmarket_bulk_cutover,
-  relative_value_tolerance: 0.05,
-  row_count_anomaly_bound: 0.10,
-  minimum_coverage_gain: 100,
-  minimum_coverage_ratio: 1.10,
-  minimum_overlap: 100,
-  minimum_agreement_ratio: 0.95
-
 config :tcg_cheap, :cardmarket_bulk_plausibility,
   minimum_product_rows: 10_000,
   minimum_singles_price_rows: 10_000,
@@ -180,7 +168,8 @@ config :tcg_cheap, :public_acquisition_limiter,
 
 config :tcg_cheap, :cardmarket_bulk,
   adapter: TcgCheap.Pricing.CardmarketBulk.Adapter,
-  adapter_options: []
+  adapter_options: [],
+  row_count_anomaly_bound: 0.10
 
 config :tcg_cheap, :exchange_rate_clock, &DateTime.utc_now/0
 config :tcg_cheap, :sealed_daily_aggregate_clock, &DateTime.utc_now/0

@@ -62,8 +62,6 @@ defmodule TcgCheap.Catalogue.BulkReadTest do
 
     assert Enum.find(results, &(&1.tcgdex_id == second.tcgdex_id)).cardmarket_bulk_v1_current_valuation ==
              nil
-
-    assert %Ash.NotLoaded{} = first_result.tcgdex_cardmarket_v1_current_valuation
   end
 
   test "rejects more than one hundred IDs before querying" do
@@ -71,7 +69,7 @@ defmodule TcgCheap.Catalogue.BulkReadTest do
     assert {:error, _error} = Core.list_card_printings_by_tcgdex_ids(ids)
   end
 
-  test "bulk printing read leaves historical valuation unloaded" do
+  test "bulk printing read leaves a stale mapped valuation unresolved" do
     suffix = token("stale-bulk")
 
     card =
@@ -100,6 +98,6 @@ defmodule TcgCheap.Catalogue.BulkReadTest do
     )
 
     assert [result] = Core.list_card_printings_by_tcgdex_ids!([card.tcgdex_id])
-    assert %Ash.NotLoaded{} = result.tcgdex_cardmarket_v1_current_valuation
+    assert result.cardmarket_bulk_v1_current_valuation == nil
   end
 end

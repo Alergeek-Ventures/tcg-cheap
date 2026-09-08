@@ -729,7 +729,7 @@ defmodule TcgCheapWeb.Admin.ReviewLiveTest do
     batch =
       Core.complete_cardmarket_bulk_batch!(
         %{
-          policy_version: "tcgdex_cardmarket_v1",
+          policy_version: "cardmarket_bulk_v1",
           parser_version: "review-test",
           product_created_at: now,
           price_created_at: now,

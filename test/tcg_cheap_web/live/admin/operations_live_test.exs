@@ -107,12 +107,9 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#cardmarket-coverage-previous")
     assert has_element?(view, "#cardmarket-coverage-batch-ledger", "NO SUCCESSFUL BATCH")
     assert has_element?(view, "#cardmarket-coverage-no-batch")
-    assert has_element?(view, "#cardmarket-coverage-requested-policy")
-    assert has_element?(view, "#cardmarket-coverage-readiness", "NOT READY")
-    assert has_element?(view, "#cardmarket-coverage-active-policy", "cardmarket_bulk_v1")
-    assert has_element?(view, "#cardmarket-coverage-failed-checks")
-    assert has_element?(view, "#cardmarket-coverage-comparison")
-    assert has_element?(view, "#cardmarket-coverage-latest-batch-valuation")
+    assert has_element?(view, "#cardmarket-coverage-catalogue")
+    assert has_element?(view, "#cardmarket-coverage-diagnostics")
+    assert has_element?(view, "#cardmarket-coverage-materialization")
     refute has_element?(view, "#cardmarket-coverage-unavailable")
     assert has_element?(view, "#manual-refresh-exchange-rate[phx-disable-with]")
     assert has_element?(view, "#manual-refresh-retailer-stream[phx-update=stream]")
@@ -156,7 +153,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
   end
 
   test "manual controls enqueue only the canonical target shapes", %{conn: conn, key: key} do
-    {_card, retailer} = configure_manual_targets(key)
+    retailer = configure_manual_targets(key)
     {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
     html = render(view)
 
@@ -293,7 +290,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
                  attempt: 1,
                  max_attempts: 1,
                  worker: "TcgCheap.TestWorker",
-                 queue: "valuations"
+                 queue: "cardmarket_bulk"
                },
                [
                  provider_key: key,
@@ -343,7 +340,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
       attempt: 1,
       max_attempts: 5,
       worker: "TcgCheap.TestWorker",
-      queue: "valuations"
+      queue: "cardmarket_bulk"
     }
 
     assert {:error, {:provider_rate_limited, "bearer-secret"}} =
@@ -478,8 +475,10 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
   test "coverage evidence is read only and preserves the existing operations desk", %{conn: conn} do
     {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
 
-    assert has_element?(view, "#operations-cardmarket-coverage", "shadow evidence")
-    assert has_element?(view, "#operations-cardmarket-coverage", "not a public cutover")
+    assert has_element?(view, "#operations-cardmarket-coverage", "operational evidence")
+    assert has_element?(view, "#cardmarket-coverage-funnel", "Cardmarket bulk valuations")
+    refute has_element?(view, "#operations-cardmarket-coverage", "Current policy")
+    refute has_element?(view, "#operations-cardmarket-coverage", "cutover")
     assert has_element?(view, "#operations-global-ledger")
     assert has_element?(view, "#operations-buying-model")
     assert has_element?(view, "#operations-manual-refresh")
@@ -540,22 +539,11 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
         provider("other-#{key}"),
         provider("nbp"),
         provider("tcgdex_catalogue"),
-        provider("tcgdex_cardmarket"),
         provider("sealed_retailer:web-manual-refresh")
       ]
     )
 
     unique = System.unique_integer([:positive])
-
-    card =
-      TcgCheap.TestSupport.import_card_printing!(%{
-        tcgdex_id: "web-manual-card-#{unique}",
-        name: "Web manual card #{unique}",
-        set_name: "Web manual set",
-        collector_number: Integer.to_string(unique),
-        mapping_status: "matched",
-        cardmarket_product_id: unique
-      })
 
     retailer =
       Core.register_retailer!(%{
@@ -567,7 +555,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
         source_payload: %{"secret" => "retailer-source-secret"}
       })
 
-    {card, retailer}
+    retailer
   end
 
   defp budget_config(key) do

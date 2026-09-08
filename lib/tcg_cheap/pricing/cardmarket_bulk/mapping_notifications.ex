@@ -6,21 +6,25 @@ defmodule TcgCheap.Pricing.CardmarketBulk.MappingNotifications do
 
   @page_size 500
 
-  @doc "Publishes one mapping-change event per distinct printing in a batch."
+  @doc "Publishes card mapping events and one collection invalidation per successful batch."
   @spec notify_batch(String.t()) :: :ok | {:error, term()}
   def notify_batch(batch_id) when is_binary(batch_id) do
-    case evidence_ids(batch_id) do
-      {:ok, ids} ->
-        case notify_ids(ids) do
-          :ok -> :ok
-          {:error, reason} -> {:error, {:mapping_notification_failed, reason}}
-        end
-
-      {:error, reason} ->
-        {:error, {:mapping_notification_failed, reason}}
+    with {:ok, ids} <- evidence_ids(batch_id),
+         :ok <- notify_ids(ids),
+         :ok <- notify_collection() do
+      :ok
+    else
+      {:error, reason} -> {:error, {:mapping_notification_failed, reason}}
     end
   rescue
     error -> {:error, {:mapping_notification_failed, error}}
+  end
+
+  defp notify_collection do
+    case ValuationNotifications.notify_collection_changed() do
+      :ok -> :ok
+      {:error, reason} -> {:error, {:collection_notification_failed, reason}}
+    end
   end
 
   defp evidence_ids(batch_id), do: read_pages(batch_id, 0, MapSet.new())

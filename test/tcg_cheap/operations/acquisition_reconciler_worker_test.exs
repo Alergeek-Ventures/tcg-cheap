@@ -3,7 +3,6 @@ defmodule TcgCheap.Operations.AcquisitionReconcilerWorkerTest do
 
   alias TcgCheap.Operations.AcquisitionReconcilerWorker
   alias TcgCheap.Pricing.ExchangeRateWorker
-  alias TcgCheap.Pricing.Singles.ValuationWorker
 
   setup do
     previous = Application.get_env(:tcg_cheap, :acquisition_health)
@@ -67,7 +66,6 @@ defmodule TcgCheap.Operations.AcquisitionReconcilerWorkerTest do
   end
 
   test "external acquisition timeouts remain bounded" do
-    assert ValuationWorker.timeout(%Oban.Job{}) == 60_000
     assert ExchangeRateWorker.timeout(%Oban.Job{}) == 60_000
     assert AcquisitionReconcilerWorker.timeout(%Oban.Job{}) == 60_000
   end

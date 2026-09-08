@@ -66,12 +66,12 @@ defmodule TcgCheap.Catalogue.CardPrintingMappingConcurrencyTest do
     Sandbox.unboxed_run(Repo, fn ->
       updated = Core.get_card_printing_by_tcgdex_id!(card.tcgdex_id)
       assert {updated.mapping_authority, updated.cardmarket_product_id} == {"administrator", 456}
-      assert {:ok, nil} = Core.get_current_single_valuation(card.id, "tcgdex_cardmarket_v1")
+      assert {:ok, nil} = Core.get_current_single_valuation(card.id, "cardmarket_bulk_v1")
 
       assert {:ok, [%{event: "corrected", cardmarket_product_id: 456}]} =
                Core.list_card_printing_mapping_decision_history(card.id, authorize?: false)
 
-      assert Core.list_single_valuation_history!(card.id, "tcgdex_cardmarket_v1")
+      assert Core.list_single_valuation_history!(card.id, "cardmarket_bulk_v1")
              |> Enum.all?(&(not &1.current? and &1.cardmarket_product_id == 123))
     end)
   end
@@ -112,14 +112,14 @@ defmodule TcgCheap.Catalogue.CardPrintingMappingConcurrencyTest do
     Sandbox.unboxed_run(Repo, fn ->
       updated = Core.get_card_printing_by_tcgdex_id!(card.tcgdex_id)
       assert {updated.mapping_status, updated.cardmarket_product_id} == {"review", nil}
-      assert {:ok, nil} = Core.get_current_single_valuation(card.id, "tcgdex_cardmarket_v1")
+      assert {:ok, nil} = Core.get_current_single_valuation(card.id, "cardmarket_bulk_v1")
 
       assert {:ok, decisions} =
                Core.list_card_printing_mapping_decision_history(card.id, authorize?: false)
 
       assert Enum.map(decisions, & &1.event) == ["corrected", "reopened"]
 
-      assert Core.list_single_valuation_history!(card.id, "tcgdex_cardmarket_v1")
+      assert Core.list_single_valuation_history!(card.id, "cardmarket_bulk_v1")
              |> Enum.all?(&(not &1.current? and &1.cardmarket_product_id == 123))
     end)
   end
@@ -150,7 +150,7 @@ defmodule TcgCheap.Catalogue.CardPrintingMappingConcurrencyTest do
 
     Sandbox.unboxed_run(Repo, fn ->
       updated = Core.get_card_printing_by_tcgdex_id!(card.tcgdex_id)
-      assert {:ok, nil} = Core.get_current_single_valuation(card.id, "tcgdex_cardmarket_v1")
+      assert {:ok, nil} = Core.get_current_single_valuation(card.id, "cardmarket_bulk_v1")
 
       assert {:ok, decisions} =
                Core.list_card_printing_mapping_decision_history(card.id, authorize?: false)
@@ -198,8 +198,8 @@ defmodule TcgCheap.Catalogue.CardPrintingMappingConcurrencyTest do
     %{
       card_printing_id: card.id,
       value_eur: Decimal.new(value),
-      policy_version: "tcgdex_cardmarket_v1",
-      source: "test",
+      policy_version: "cardmarket_bulk_v1",
+      source: "cardmarket_bulk",
       source_metric: "avg7",
       fetched_at: DateTime.utc_now(),
       cardmarket_product_id: product_id

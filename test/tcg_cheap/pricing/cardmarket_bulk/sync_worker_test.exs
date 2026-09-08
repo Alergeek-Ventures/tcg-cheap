@@ -48,7 +48,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorkerTest do
   alias TcgCheap.Core
   alias TcgCheap.Operations
   alias TcgCheap.Pricing.CardmarketBulk.{Adapter, SyncWorker}
-  alias TcgCheap.Pricing.Singles.ValuationAcquisition
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
 
   @provider "cardmarket_bulk"
   @now ~U[2026-09-03 10:00:00Z]
@@ -77,7 +77,8 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorkerTest do
 
     Application.put_env(:tcg_cheap, :cardmarket_bulk,
       adapter: TcgCheap.Pricing.CardmarketBulk.SyncWorkerTestAdapter,
-      adapter_options: []
+      adapter_options: [],
+      row_count_anomaly_bound: 0.10
     )
 
     Application.put_env(:tcg_cheap, :acquisition_budget, budget_config())
@@ -113,11 +114,29 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorkerTest do
     assert Operations.list_recent_acquisition_runs!([@provider], 1, authorize?: false) == []
   end
 
-  test "missing and malformed config cancel before provider work", %{state: state} do
-    Application.delete_env(:tcg_cheap, :cardmarket_bulk)
-    assert {:cancel, :invalid_configuration} = SyncWorker.perform(job(%{}))
-    Application.put_env(:tcg_cheap, :cardmarket_bulk, adapter: String, adapter_options: [])
-    assert {:cancel, :invalid_configuration} = SyncWorker.perform(job(%{}))
+  test "missing, malformed, extra, and invalid anomaly config cancel before provider work", %{
+    state: state
+  } do
+    invalid_configs = [
+      nil,
+      [adapter: TcgCheap.Pricing.CardmarketBulk.SyncWorkerTestAdapter, adapter_options: []],
+      config(extra_key: true),
+      config(row_count_anomaly_bound: -0.01),
+      config(row_count_anomaly_bound: 1.01),
+      config(row_count_anomaly_bound: :nan),
+      config(row_count_anomaly_bound: :infinity)
+    ]
+
+    for value <- invalid_configs do
+      if is_nil(value) do
+        Application.delete_env(:tcg_cheap, :cardmarket_bulk)
+      else
+        Application.put_env(:tcg_cheap, :cardmarket_bulk, value)
+      end
+
+      assert {:cancel, :invalid_configuration} = SyncWorker.perform(job(%{}))
+    end
+
     assert Agent.get(state, & &1.calls) == 0
   end
 
@@ -224,12 +243,15 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorkerTest do
     })
 
     card_id = pending.id
-    assert :ok = ValuationAcquisition.subscribe(pending)
+    Phoenix.PubSub.subscribe(TcgCheap.PubSub, ValuationNotifications.topic(pending))
+    assert :ok = ValuationNotifications.subscribe_collection()
 
     assert :ok = SyncWorker.perform(job(%{}))
     assert %{calls: 2} = Agent.get(state, & &1)
     assert latest_run().request_count == 2
     assert_receive {:card_mapping_changed, %{card_printing_id: ^card_id}}
+    assert_receive {:singles_collection_invalidated, %{}}
+    refute_receive {:singles_collection_invalidated, %{}}
 
     assert {:ok, refreshed} =
              Core.get_card_printing_by_tcgdex_id(pending.tcgdex_id, authorize?: false)
@@ -242,9 +264,12 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorkerTest do
 
     assert :ok = SyncWorker.perform(job(%{}))
     refute_receive {:card_mapping_changed, %{card_printing_id: ^card_id}}
+    refute_receive {:singles_collection_invalidated, %{}}
 
     assert :ok = SyncWorker.perform(job(%{}, 2))
     assert_receive {:card_mapping_changed, %{card_printing_id: ^card_id}}
+    assert_receive {:singles_collection_invalidated, %{}}
+    refute_receive {:singles_collection_invalidated, %{}}
   end
 
   defp job(args, attempt \\ 1),
@@ -264,7 +289,8 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorkerTest do
   defp set_outcome(%{products: products, prices: prices}) do
     Application.put_env(:tcg_cheap, :cardmarket_bulk,
       adapter: TcgCheap.Pricing.CardmarketBulk.SyncWorkerTestAdapter,
-      adapter_options: []
+      adapter_options: [],
+      row_count_anomaly_bound: 0.10
     )
 
     Agent.update(Application.fetch_env!(:tcg_cheap, :cardmarket_bulk_sync_test_state), fn s ->
@@ -355,6 +381,17 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorkerTest do
         ]
       ]
     ]
+  end
+
+  defp config(overrides) do
+    Keyword.merge(
+      [
+        adapter: TcgCheap.Pricing.CardmarketBulk.SyncWorkerTestAdapter,
+        adapter_options: [],
+        row_count_anomaly_bound: 0.10
+      ],
+      overrides
+    )
   end
 
   defp restore(key, nil), do: Application.delete_env(:tcg_cheap, key)

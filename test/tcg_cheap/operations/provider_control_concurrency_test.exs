@@ -68,7 +68,7 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
                   attempt: 1,
                   max_attempts: 1,
                   worker: "TcgCheap.ConcurrentWorker",
-                  queue: "valuations"
+                  queue: "cardmarket_bulk"
                 },
                 provider_key: key,
                 operation: "single_valuation",
@@ -114,7 +114,7 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
                 attempt: 1,
                 max_attempts: 1,
                 worker: "ManualDisableWorker",
-                queue: "valuations"
+                queue: "cardmarket_bulk"
               },
               provider_key: key,
               operation: "single_valuation",
@@ -154,7 +154,7 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
               attempt: 1,
               max_attempts: 1,
               worker: "ManualEnableWorker",
-              queue: "valuations"
+              queue: "cardmarket_bulk"
             },
             provider_key: key,
             operation: "single_valuation",
@@ -198,7 +198,7 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
                 attempt: 1,
                 max_attempts: 1,
                 worker: "CircuitAdmissionWorker",
-                queue: "valuations"
+                queue: "cardmarket_bulk"
               },
               provider_key: key,
               operation: "single_valuation",
@@ -251,7 +251,7 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
                 attempt: 1,
                 max_attempts: 1,
                 worker: "CircuitControlWorker",
-                queue: "valuations"
+                queue: "cardmarket_bulk"
               },
               provider_key: key,
               operation: "single_valuation",
@@ -299,7 +299,7 @@ defmodule TcgCheap.Operations.ProviderControlConcurrencyTest do
                   attempt: 1,
                   max_attempts: 5,
                   worker: "TcgCheap.MixedWorker#{index}",
-                  queue: "valuations"
+                  queue: "cardmarket_bulk"
                 },
                 provider_key: key,
                 operation: "single_valuation",

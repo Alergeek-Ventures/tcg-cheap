@@ -37,6 +37,49 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalkTest do
     assert anchor.cardmarket_product_id == remapped_product_id(101)
   end
 
+  test "processes an eligible anchor beyond the first cursor page" do
+    batch = batch()
+    missing_set = set()
+    eligible_set = set()
+    prefix = unique("paged-anchor")
+
+    anchors =
+      for index <- 0..1_000 do
+        set_id = if index == 1_000, do: eligible_set.id, else: missing_set.id
+        product_id = remapped_product_id(10_000 + index)
+
+        %{
+          id: Ecto.UUID.generate() |> Ecto.UUID.dump!(),
+          tcgdex_id: "#{prefix}-#{String.pad_leading(Integer.to_string(index), 4, "0")}",
+          name: "Anchor #{index}",
+          set_name: if(index == 1_000, do: eligible_set.name, else: missing_set.name),
+          collector_number: Integer.to_string(index),
+          card_set_id: Ecto.UUID.dump!(set_id),
+          cardmarket_product_id: product_id,
+          mapping_status: "matched",
+          mapping_authority: "provider"
+        }
+      end
+
+    {1_001, _} = Repo.insert_all("card_printings", anchors)
+    product(batch, 10, "Anchor 1000", 11_000)
+
+    assert {:ok, summary} = CardmarketCrosswalk.run(batch)
+    assert summary.anchors == 1_001
+    assert summary.missing_anchor_products == 1_000
+    assert summary.preserved == 1
+
+    target_id = "#{prefix}-1000"
+
+    assert {:ok, target} = Core.get_card_printing_by_tcgdex_id(target_id, authorize?: false)
+    assert target.mapping_status == "matched"
+
+    assert {:ok, evidence} =
+             Core.list_cardmarket_card_mapping_evidence_for_batch(batch.id, authorize?: false)
+
+    assert Enum.any?(evidence, &(&1.card_printing_id == target.id and &1.decision == "anchor"))
+  end
+
   test "brief cards with candidates are reviewed instead of name matched" do
     batch = batch()
     set = set()
@@ -500,7 +543,7 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalkTest do
     suffix = unique("batch")
 
     attrs = %{
-      policy_version: "tcgdex_cardmarket_v1",
+      policy_version: "cardmarket_bulk_v1",
       parser_version: "test",
       product_created_at: now,
       price_created_at: now,

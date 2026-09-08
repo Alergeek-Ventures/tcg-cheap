@@ -353,10 +353,9 @@ defmodule TcgCheap.Catalogue.SearchTest do
     assert valued_result.cardmarket_bulk_v1_current_valuation.value_eur == Decimal.new("12.34")
     assert missing_result
     assert missing_result.cardmarket_bulk_v1_current_valuation == nil
-    assert %Ash.NotLoaded{} = missing_result.tcgdex_cardmarket_v1_current_valuation
   end
 
-  test "public search loads bulk valuation and leaves historical valuation unloaded" do
+  test "public search loads the current bulk valuation" do
     token = unique_token("public-valuations")
 
     card =
@@ -372,7 +371,7 @@ defmodule TcgCheap.Catalogue.SearchTest do
         value_eur: Decimal.new("10.00"),
         currency: "EUR",
         policy_version: "cardmarket_bulk_v1",
-        source: "test",
+        source: "cardmarket_bulk",
         source_metric: "trend",
         fetched_at: DateTime.utc_now(),
         cardmarket_product_id: card.cardmarket_product_id
@@ -380,11 +379,10 @@ defmodule TcgCheap.Catalogue.SearchTest do
 
     assert {:ok, [result]} = Core.search_public_card_printings("pikachu", 1)
     assert result.id == card.id
-    assert %Ash.NotLoaded{} = result.tcgdex_cardmarket_v1_current_valuation
     assert result.cardmarket_bulk_v1_current_valuation.id == bulk_valuation.id
   end
 
-  test "search leaves historical valuation unloaded when its Cardmarket product is stale" do
+  test "search resolves nil when the mapped bulk valuation has a stale product" do
     token = unique_token("stale-valuation")
 
     card =
@@ -411,7 +409,7 @@ defmodule TcgCheap.Catalogue.SearchTest do
     )
 
     assert [result] = Core.search_card_printings!("stale #{token}")
-    assert %Ash.NotLoaded{} = result.tcgdex_cardmarket_v1_current_valuation
+    assert result.cardmarket_bulk_v1_current_valuation == nil
   end
 
   test "persisted search text is normalized and refreshed by both upsert actions" do

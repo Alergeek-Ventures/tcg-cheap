@@ -15,14 +15,12 @@ defmodule TcgCheapWeb.TradeLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    valuation_policy = ValuationPolicy.active_policy()
     {exchange_rate, exchange_rate_status} = local_exchange_rate()
 
     {:ok,
      socket
      |> assign(
        page_title: "Build a trade",
-       valuation_policy: valuation_policy,
        composition: %Composition{},
        cards: %{},
        rows: %{left: [], right: []},
@@ -34,8 +32,6 @@ defmodule TcgCheapWeb.TradeLive do
        result_count: 0,
        autocomplete_options: [],
        active_option_id: nil,
-       requested_card_ids: MapSet.new(),
-       acquisition_states: %{},
        totals: %{
          left: Decimal.new(0),
          right: Decimal.new(0),
@@ -72,7 +68,9 @@ defmodule TcgCheapWeb.TradeLive do
     warning = warning_for(meta, pick_warning, read_warning || pick_read_warning)
 
     socket = assign(socket, :share_status, nil)
-    {:noreply, rebuild_and_request(socket, composition, cards, warning, selected_card)}
+
+    {:noreply,
+     rebuild(socket, composition, cards, warning, selected_card) |> request_exchange_rate()}
   end
 
   @impl true
@@ -94,53 +92,7 @@ defmodule TcgCheapWeb.TradeLive do
   def handle_info({:exchange_rate_failed, %{reason: _reason}}, socket),
     do: {:noreply, assign(socket, exchange_rate_status: :failed)}
 
-  @impl true
-  def handle_info(:valuation_policy_invalidated, socket) do
-    policy = ValuationPolicy.active_policy()
-
-    if policy == socket.assigns.valuation_policy do
-      {:noreply, socket}
-    else
-      composition = socket.assigns.composition
-      {cards, read_warning} = load_cards(composition_ids(composition))
-      {cards, selected_card, pick_warning} = load_pick(cards, selected_pick(socket))
-
-      socket =
-        socket
-        |> assign(
-          valuation_policy: policy,
-          requested_card_ids: MapSet.new(),
-          acquisition_states: %{}
-        )
-        |> rebuild_and_request(
-          composition,
-          cards,
-          read_warning || pick_warning || socket.assigns.warning,
-          selected_card
-        )
-
-      refresh_search(socket)
-    end
-  end
-
   def handle_info(_, socket), do: {:noreply, socket}
-
-  defp selected_pick(%{assigns: %{selected_card: %{tcgdex_id: id}}}), do: id
-  defp selected_pick(_socket), do: nil
-
-  defp refresh_search(socket) do
-    case socket.assigns.search_query do
-      "" ->
-        {:noreply, socket}
-
-      query ->
-        cond do
-          length(String.graphemes(query)) < 2 -> clear_results(socket, :short)
-          length(String.graphemes(query)) > 100 -> clear_results(socket, :invalid)
-          true -> search(socket, query)
-        end
-    end
-  end
 
   @impl true
   def handle_event("search", %{"search" => %{"query" => query}}, socket) do
@@ -327,12 +279,8 @@ defmodule TcgCheapWeb.TradeLive do
                       >
                         {card.set_name} · {card.collector_number}
                       </p><div class="estimate-cell">
-                        <strong id={"trade-card-price-#{card.id}"}>{estimate_display(
-                          card,
-                          @valuation_policy
-                        )}</strong><span id={"trade-card-freshness-#{card.id}"}>{freshness_text(
-                          card,
-                          @valuation_policy
+                        <strong id={"trade-card-price-#{card.id}"}>{estimate_display(card)}</strong><span id={"trade-card-freshness-#{card.id}"}>{freshness_text(
+                          card
                         )}</span>
                       </div>
                     </div>
@@ -348,8 +296,8 @@ defmodule TcgCheapWeb.TradeLive do
             >
               <strong id="trade-selected-name">{selected_name(@selected_card)}</strong>
               <span id="trade-selected-set">{selected_set(@selected_card)}</span>
-              <span id="trade-selected-price">{estimate_display(@selected_card, @valuation_policy)}</span>
-              <span id="trade-selected-freshness">{freshness_text(@selected_card, @valuation_policy)}</span><button
+              <span id="trade-selected-price">{estimate_display(@selected_card)}</span>
+              <span id="trade-selected-freshness">{freshness_text(@selected_card)}</span><button
                 :if={not Map.get(@selected_card, :unavailable?, false)}
                 id="add-to-left"
                 type="button"
@@ -418,8 +366,6 @@ defmodule TcgCheapWeb.TradeLive do
                             navigate={trade_detail_path(row.id, @composition)}
                           >View card</.link>
                           <span id={"trade-freshness-#{side}-#{row.id}"}>{row.freshness_display}</span>
-                          <span :if={row.acquisition_state == :fetching}>Updating…</span>
-                          <span :if={row.acquisition_state == :failed && row.status == :stale}>Update failed · Cached estimate kept.</span>
                         <% else %>
                           <h3>Card unavailable</h3><p>{row.id}</p>
                         <% end %>
@@ -526,21 +472,12 @@ defmodule TcgCheapWeb.TradeLive do
       Valuation.evaluate(
         composition,
         cards,
-        DateTime.utc_now(),
-        socket.assigns.valuation_policy
+        DateTime.utc_now()
       )
 
     rows = %{
-      left:
-        present_rows(
-          evaluation.left.rows,
-          socket.assigns.acquisition_states
-        ),
-      right:
-        present_rows(
-          evaluation.right.rows,
-          socket.assigns.acquisition_states
-        )
+      left: present_rows(evaluation.left.rows),
+      right: present_rows(evaluation.right.rows)
     }
 
     totals = %{
@@ -562,13 +499,6 @@ defmodule TcgCheapWeb.TradeLive do
       selected_card: selected,
       announcement: announcement(composition, evaluation)
     )
-  end
-
-  defp rebuild_and_request(socket, composition, cards, warning, selected) do
-    socket = rebuild(socket, composition, cards, warning, selected)
-    socket = request_exchange_rate(socket)
-    socket = request_acquisition(socket)
-    rebuild(socket, composition, cards, warning, selected)
   end
 
   defp local_exchange_rate do
@@ -607,10 +537,6 @@ defmodule TcgCheapWeb.TradeLive do
     if usable_rate?(rate) and newer_rate?(rate, socket.assigns.exchange_rate),
       do: assign(socket, exchange_rate: rate, exchange_rate_status: :ready),
       else: assign(socket, :exchange_rate_status, :failed)
-  end
-
-  defp request_acquisition(socket) do
-    socket
   end
 
   defp public_address(socket) do
@@ -683,26 +609,15 @@ defmodule TcgCheapWeb.TradeLive do
       {:ok, _card} ->
         selected = selected_after_reload(socket.assigns.selected_card, cards)
         reset = reset_mapping_state(socket, tcgdex_id, cards, selected)
-        {:noreply, rebuild_after_mapping_request(reset, cards, selected)}
+        {:noreply, reset}
 
       :error ->
         {:noreply, socket}
     end
   end
 
-  defp reset_mapping_state(socket, tcgdex_id, cards, selected) do
-    socket
-    |> assign(
-      requested_card_ids: MapSet.delete(socket.assigns.requested_card_ids, tcgdex_id),
-      acquisition_states: Map.delete(socket.assigns.acquisition_states, tcgdex_id)
-    )
-    |> rebuild(socket.assigns.composition, cards, socket.assigns.warning, selected)
-  end
-
-  defp rebuild_after_mapping_request(socket, cards, selected) do
-    socket
-    |> request_acquisition()
-    |> rebuild(socket.assigns.composition, cards, socket.assigns.warning, selected)
+  defp reset_mapping_state(socket, _tcgdex_id, cards, selected) do
+    rebuild(socket, socket.assigns.composition, cards, socket.assigns.warning, selected)
   end
 
   defp mapping_read_failed(socket, tcgdex_id) do
@@ -710,11 +625,7 @@ defmodule TcgCheapWeb.TradeLive do
 
     {:noreply,
      socket
-     |> assign(
-       cards: cards,
-       requested_card_ids: MapSet.delete(socket.assigns.requested_card_ids, tcgdex_id),
-       acquisition_states: Map.delete(socket.assigns.acquisition_states, tcgdex_id)
-     )
+     |> assign(cards: cards)
      |> rebuild(
        socket.assigns.composition,
        cards,
@@ -817,7 +728,7 @@ defmodule TcgCheapWeb.TradeLive do
   defp apply_mutation(:remove, composition, :right, id),
     do: Composition.remove(composition, :right, id)
 
-  defp present_rows(rows, acquisition_states),
+  defp present_rows(rows),
     do:
       Enum.map(rows, fn row ->
         card = row.card
@@ -828,10 +739,9 @@ defmodule TcgCheapWeb.TradeLive do
           set_name: card && card.set_name,
           collector_number: card && card.collector_number,
           image_url: card && CardImage.thumbnail_url(card.image_url),
-          unit_display: unit_display(row, Map.get(acquisition_states, row.id)),
+          unit_display: unit_display(row),
           total_display: if(row.row_value, do: "€" <> eur(row.row_value), else: "?"),
-          freshness_display: freshness_text(row.valuation),
-          acquisition_state: Map.get(acquisition_states, row.id),
+          freshness_display: freshness_value(row.valuation),
           value: value
         })
       end)
@@ -848,29 +758,24 @@ defmodule TcgCheapWeb.TradeLive do
     "Trade updated: #{left_count} card#{if left_count == 1, do: "", else: "s"} on left and #{right_count} on right. #{comparison(evaluation)}."
   end
 
-  defp estimate_display(card, valuation_policy) do
-    case ValuationPolicy.current_valuation(card, valuation_policy) do
+  defp estimate_display(card) do
+    case ValuationPolicy.current_valuation(card) do
       %{value_eur: value} -> "€" <> eur(value)
       _ -> "Price unavailable"
     end
   end
 
-  defp unit_display(%{unit_value: value}, _state) when not is_nil(value), do: "€" <> eur(value)
-  defp unit_display(%{card: card}, :fetching) when not is_nil(card), do: "Fetching estimate…"
+  defp unit_display(%{unit_value: value}) when not is_nil(value), do: "€" <> eur(value)
+  defp unit_display(_), do: "Price unavailable"
 
-  defp unit_display(%{card: card}, :failed) when not is_nil(card),
-    do: "Price unavailable · Update failed"
-
-  defp unit_display(_, _), do: "Price unavailable"
-
-  defp freshness_text(card, valuation_policy) do
+  defp freshness_text(card) do
     card
-    |> ValuationPolicy.current_valuation(valuation_policy)
-    |> freshness_text()
+    |> ValuationPolicy.current_valuation()
+    |> freshness_value()
   end
 
-  defp freshness_text(nil), do: "No update available"
-  defp freshness_text(valuation), do: freshness_label(valuation)
+  defp freshness_value(nil), do: "No update available"
+  defp freshness_value(valuation), do: freshness_label(valuation)
 
   defp freshness_label(valuation) do
     case Map.get(valuation, :fetched_at) do
@@ -1109,8 +1014,6 @@ defmodule TcgCheapWeb.TradeLive do
         selected_card: card,
         autocomplete_options: [],
         active_option_id: nil,
-        requested_card_ids: MapSet.new(),
-        acquisition_states: %{},
         search_status: :idle,
         result_count: 0
       )

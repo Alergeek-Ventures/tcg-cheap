@@ -15,13 +15,13 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
         ["coverage-#{System.unique_integer([:positive])}@example.com"]
       )
 
-    previous_cutover = Application.get_env(:tcg_cheap, :cardmarket_bulk_cutover)
+    previous_bulk = Application.get_env(:tcg_cheap, :cardmarket_bulk)
     fixture_clock = DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.add(1, :day)
 
     Process.put(:cardmarket_bulk_coverage_fixture_clock, fixture_clock)
 
     on_exit(fn ->
-      Application.put_env(:tcg_cheap, :cardmarket_bulk_cutover, previous_cutover)
+      Application.put_env(:tcg_cheap, :cardmarket_bulk, previous_bulk)
       Process.delete(:cardmarket_bulk_coverage_fixture_clock)
     end)
 
@@ -59,14 +59,15 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
     assert report.counts.staged_prices == 0
     assert report.counts.current_valuations == 0
     refute report.catalogue.complete?
-    assert :canonical_catalogue_complete in report.cutover.failed_checks
+    refute report.catalogue.complete?
+    refute report.diagnostics.batch_evidence_fresh?
   end
 
   test "fails closed without a completed catalogue discovery run", %{actor: actor} do
     assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
     refute report.catalogue.complete?
     assert report.catalogue.discovered_sets == 0
-    assert report.cutover.checks.canonical_catalogue_complete == false
+    refute report.catalogue.complete?
   end
 
   test "fails closed for an incomplete or running catalogue run", %{actor: actor} do
@@ -80,7 +81,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
     assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
     refute report.catalogue.complete?
     assert report.catalogue.running?
-    assert report.cutover.checks.canonical_catalogue_complete == false
+    refute report.catalogue.complete?
   end
 
   test "fails closed for a nonfuture requirement on completed discovery", %{actor: actor} do
@@ -103,7 +104,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
 
     assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
     refute report.catalogue.complete?
-    assert report.cutover.checks.canonical_catalogue_complete == false
+    refute report.catalogue.complete?
   end
 
   test "fails closed for unresolved partial catalogue issues", %{actor: actor} do
@@ -122,7 +123,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
 
     assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
     assert report.catalogue.unresolved_issue_count == 1
-    refute report.cutover.checks.canonical_catalogue_complete
+    refute report.catalogue.complete?
   end
 
   test "a clock before batch timestamps fails closed", %{actor: actor} do
@@ -237,10 +238,10 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
     assert report.previous_batch.priceable_singles_count == previous.priceable_singles_count
   end
 
-  test "counts canonical mapping, detail, and pricing states excluding Pocket", %{actor: actor} do
-    card_with_status("pending", %{details_synced_at: nil, pricing_checked_at: nil})
-    card_with_status("matched", %{details_synced_at: clock(), pricing_checked_at: nil}, 1)
-    card_with_status("unmatched", %{details_synced_at: clock(), pricing_checked_at: clock()})
+  test "counts canonical mapping and detail states excluding Pocket", %{actor: actor} do
+    card_with_status("pending", %{details_synced_at: nil})
+    card_with_status("matched", %{details_synced_at: clock()}, 1)
+    card_with_status("unmatched", %{details_synced_at: clock()})
     card_with_status("review", %{details_enrichment_failed_at: clock()}, nil, "needs review")
     _pocket = card("pocket", card_set?: false)
 
@@ -252,30 +253,6 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
     assert counts.mapping_review == 1
     assert counts.details_pending == 2
     assert counts.detail_failures == 1
-    assert counts.pricing_check_pending == 3
-  end
-
-  test "current valuations exclude archived, other policy, and mismatched products", %{
-    actor: actor
-  } do
-    product_id = System.unique_integer([:positive])
-    card = card(product_id)
-    record_valuation(card, product_id, "cardmarket_bulk_v1", false)
-    record_valuation(card, product_id, "cardmarket_bulk_v1", true)
-    record_valuation(card, product_id, "other_policy", true)
-    other = card(product_id)
-    mismatched = record_valuation(other, product_id, "cardmarket_bulk_v1", true)
-
-    # Exercise the coverage reader's defensive mismatch filter without asking
-    # the public valuation action to violate its active-policy invariant.
-    TcgCheap.Repo.query!(
-      "UPDATE single_valuation_snapshots SET cardmarket_product_id = $1 WHERE id = $2",
-      [product_id + 1, Ecto.UUID.dump!(mismatched.id)]
-    )
-
-    assert {:ok, %{counts: counts}} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert counts.current_valuations == 1
-    assert counts.latest_batch_current_valuations == 0
   end
 
   test "projects succeeded/current and failed/stale source health", %{actor: actor} do
@@ -295,136 +272,6 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
     assert source.freshness == :stale
   end
 
-  test "complete persisted evidence reports accurate ready cutover", %{actor: actor} do
-    Application.put_env(:tcg_cheap, :cardmarket_bulk_cutover,
-      relative_value_tolerance: 0.05,
-      row_count_anomaly_bound: 0.10,
-      minimum_coverage_gain: 1,
-      minimum_coverage_ratio: 1.1,
-      minimum_overlap: 1,
-      minimum_agreement_ratio: 1.0
-    )
-
-    _previous =
-      batch(%{
-        product_row_count: 2,
-        price_row_count: 2,
-        singles_price_row_count: 2,
-        priceable_singles_count: 2
-      })
-
-    now = clock()
-
-    latest =
-      batch(%{
-        product_created_at: DateTime.add(now, -3_600, :second),
-        price_created_at: DateTime.add(now, -3_600, :second),
-        fetched_at: DateTime.add(now, -1_800, :second),
-        completed_at: DateTime.add(now, -900, :second),
-        product_row_count: 2,
-        price_row_count: 2,
-        singles_price_row_count: 2,
-        priceable_singles_count: 2
-      })
-
-    set =
-      Core.import_card_set!(
-        %{
-          tcgdex_id: "coverage-ready-set-#{System.unique_integer([:positive])}",
-          name: "Coverage Ready Set",
-          series_id: "coverage-ready",
-          series_name: "Coverage Ready"
-        },
-        authorize?: false
-      )
-
-    mapping = approve_mapping(latest, set)
-
-    {:ok, catalogue_run} =
-      TcgCheap.Operations.start_catalogue_sync_run(
-        [set.tcgdex_id],
-        DateTime.add(clock(), -7_200, :second),
-        authorize?: false
-      )
-
-    {:ok, _catalogue_run} =
-      TcgCheap.Operations.advance_catalogue_sync_run(
-        catalogue_run,
-        0,
-        set.tcgdex_id,
-        "synced",
-        DateTime.add(clock(), -3_600, :second),
-        authorize?: false
-      )
-
-    cards =
-      for index <- 1..2 do
-        product_id = 10_000 + System.unique_integer([:positive])
-
-        card =
-          TcgCheap.TestSupport.import_card_printing!(%{
-            tcgdex_id: "coverage-ready-#{System.unique_integer([:positive])}",
-            name: "Ready Card #{index}",
-            set_name: set.name,
-            collector_number: "#{index}",
-            card_set_id: set.id,
-            mapping_status: "matched",
-            cardmarket_product_id: product_id
-          })
-
-        insert_staging(latest, product_id)
-        record_mapping_evidence(latest, mapping, card, product_id)
-        {card, product_id}
-      end
-
-    [{card, product_1}, {overlap_card, product_2}] = cards
-    record_ready_valuation(card, product_1, "cardmarket_bulk_v1", Decimal.new("12"), latest)
-
-    record_ready_valuation(
-      overlap_card,
-      product_2,
-      "cardmarket_bulk_v1",
-      Decimal.new("12"),
-      latest
-    )
-
-    record_ready_valuation(card, product_1, "tcgdex_cardmarket_v1", Decimal.new("12"), latest)
-    insert_health("succeeded", clock(), DateTime.add(clock(), -60, :second))
-
-    assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert report.comparison.current_bulk_count == 2
-    assert report.comparison.current_tcgdex_count == 1
-    assert report.comparison.overlap == 1
-    assert report.comparison.overlap_value_agreement == 1
-    assert report.comparison.latest_batch_valuation_count == 2
-    assert report.comparison.latest_batch_approved_valuations == 2
-    assert report.comparison.latest_batch_exact_valuations == 2
-    assert report.comparison.latest_batch_ambiguous_or_unapproved == 0
-    assert report.cutover.ready?
-    assert report.cutover.failed_checks == []
-  end
-
-  test "coverage readiness treats only the administrator's exact expansion as approved", %{
-    actor: actor
-  } do
-    %{latest: latest} = ready_fixture()
-
-    TcgCheap.Repo.query!(
-      "UPDATE cardmarket_expansion_mappings SET status = 'review', review_reason = 'Administrator exact-pair regression' WHERE source_batch_id = $1",
-      [Ecto.UUID.dump!(latest.id)]
-    )
-
-    TcgCheap.Repo.query!(
-      "UPDATE card_sets SET cardmarket_expansion_id = 1, cardmarket_mapping_status = 'matched', cardmarket_mapping_authority = 'administrator', cardmarket_mapping_reason = 'Administrator exact-pair regression', cardmarket_mapping_evidence_at = $1",
-      [latest.completed_at]
-    )
-
-    assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert report.comparison.latest_batch_approved_valuations == 2
-    assert report.comparison.latest_batch_exact_valuations == 2
-    assert report.comparison.latest_batch_ambiguous_or_unapproved == 0
-  end
-
   test "fails closed for stale or failed source health", %{actor: actor} do
     ready_fixture()
 
@@ -435,8 +282,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
     insert_health("failed", clock(), DateTime.add(clock(), -172_800, :second))
 
     assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert report.cutover.checks.source_healthy_and_current == false
-    assert :source_healthy_and_current in report.cutover.failed_checks
+    assert report.source.freshness == :stale
   end
 
   for {field, label} <- [
@@ -452,8 +298,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
       update_batch_count(anomalous_batch, unquote(field), anomalous_value)
 
       assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-      assert report.cutover.checks.row_count_anomaly_bounded == false
-      assert :row_count_anomaly_bounded in report.cutover.failed_checks
+      assert report.diagnostics.row_count_anomaly_bounded? == false
     end
   end
 
@@ -466,8 +311,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
     )
 
     assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert report.cutover.checks.approved_mapping_evidence == false
-    assert :approved_mapping_evidence in report.cutover.failed_checks
+    assert report.materialization.approved_evidence_count == 0
   end
 
   test "fails closed when mapping evidence is from the wrong batch", %{actor: actor} do
@@ -479,8 +323,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
     )
 
     assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert report.cutover.checks.approved_mapping_evidence == false
-    assert :approved_mapping_evidence in report.cutover.failed_checks
+    assert report.materialization.approved_evidence_count == 0
   end
 
   test "fails closed for staged selected value or metric mismatch", %{actor: actor} do
@@ -492,92 +335,11 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
     )
 
     assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert report.cutover.checks.staged_value_metric_agreement == false
-    assert :staged_value_metric_agreement in report.cutover.failed_checks
+    assert report.materialization.exact_selected_value_metric_count == 0
   end
 
-  test "fails closed for inadequate material coverage gain", %{actor: actor} do
-    ready_fixture(minimum_coverage_gain: 2)
-
-    assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert report.cutover.checks.material_coverage_gain == false
-    assert :material_coverage_gain in report.cutover.failed_checks
-  end
-
-  test "ignores stale bulk valuations when comparing latest coverage", %{actor: actor} do
-    %{latest: latest, previous: previous} = ready_fixture(minimum_overlap: 2)
-
-    for _ <- 1..2 do
-      product_id = System.unique_integer([:positive])
-      stale_card = card(product_id)
-
-      record_ready_valuation(
-        stale_card,
-        product_id,
-        "cardmarket_bulk_v1",
-        Decimal.new("12"),
-        previous
-      )
-
-      record_ready_valuation(
-        stale_card,
-        product_id,
-        "tcgdex_cardmarket_v1",
-        Decimal.new("12"),
-        previous
-      )
-    end
-
-    TcgCheap.Repo.query!(
-      "UPDATE cardmarket_bulk_prices SET selected_metric = 'avg30' WHERE last_batch_id = $1",
-      [Ecto.UUID.dump!(latest.id)]
-    )
-
-    assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert report.comparison.latest_batch_valuation_count == 2
-    assert report.comparison.latest_batch_exact_valuations == 0
-    assert report.comparison.current_bulk_count == 0
-    assert report.comparison.overlap == 0
-    refute report.cutover.checks.material_coverage_gain
-    refute report.cutover.checks.overlap_value_agreement
-  end
-
-  test "fails closed for insufficient overlap", %{actor: actor} do
-    ready_fixture(minimum_overlap: 2)
-
-    assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert report.cutover.checks.overlap_value_agreement == false
-    assert :overlap_value_agreement in report.cutover.failed_checks
-  end
-
-  test "fails closed when overlap is outside relative tolerance", %{actor: actor} do
-    ready_fixture()
-
-    TcgCheap.Repo.query!(
-      "UPDATE single_valuation_snapshots SET value_eur = 20 WHERE policy_version = 'tcgdex_cardmarket_v1'"
-    )
-
-    assert {:ok, report} = CardmarketBulkCoverage.load(actor, clock: &clock/0)
-    assert report.cutover.checks.overlap_value_agreement == false
-    assert :overlap_value_agreement in report.cutover.failed_checks
-  end
-
-  defp ready_fixture(overrides \\ []) do
-    Application.put_env(
-      :tcg_cheap,
-      :cardmarket_bulk_cutover,
-      Keyword.merge(
-        [
-          relative_value_tolerance: 0.05,
-          row_count_anomaly_bound: 0.10,
-          minimum_coverage_gain: 1,
-          minimum_coverage_ratio: 1.1,
-          minimum_overlap: 1,
-          minimum_agreement_ratio: 1.0
-        ],
-        overrides
-      )
-    )
+  defp ready_fixture do
+    Application.put_env(:tcg_cheap, :cardmarket_bulk, row_count_anomaly_bound: 0.10)
 
     previous =
       batch(%{
@@ -660,7 +422,6 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
       latest
     )
 
-    record_ready_valuation(card, product_1, "tcgdex_cardmarket_v1", Decimal.new("12"), latest)
     insert_health("succeeded", clock(), DateTime.add(clock(), -60, :second))
     %{previous: previous, latest: latest, catalogue_set_id: set.tcgdex_id}
   end
@@ -743,33 +504,6 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverageTest do
   end
 
   defp unique_hash, do: :crypto.hash(:sha256, Ecto.UUID.generate()) |> Base.encode16(case: :lower)
-
-  defp record_valuation(card, product_id, policy, current?) do
-    {:ok, snapshot} =
-      Core.record_single_valuation(
-        %{
-          card_printing_id: card.id,
-          value_eur: Decimal.new("12"),
-          currency: "EUR",
-          policy_version: policy,
-          source: "cardmarket_bulk",
-          source_metric: "avg7",
-          fetched_at: ~U[2026-09-01 10:00:00Z],
-          provider_updated_at: ~U[2026-09-01 09:00:00Z],
-          cardmarket_product_id: product_id
-        },
-        authorize?: false
-      )
-
-    unless current?,
-      do:
-        TcgCheap.Repo.query!(
-          "UPDATE single_valuation_snapshots SET \"current?\" = false WHERE id = $1",
-          [Ecto.UUID.dump!(snapshot.id)]
-        )
-
-    snapshot
-  end
 
   defp insert_health(status, now, succeeded_at) do
     if status == "succeeded" do

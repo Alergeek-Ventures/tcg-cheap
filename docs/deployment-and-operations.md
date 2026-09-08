@@ -71,9 +71,6 @@ Optional variables:
   bytes.
 - `PORT` — internal listener port; defaults to `4004`.
 - `POOL_SIZE`, `ECTO_IPV6`, and `DNS_CLUSTER_QUERY` — runtime tuning/options.
-- `PUBLIC_SINGLES_VALUATION_POLICY` — optional public Singles valuation policy;
-  only `tcgdex_cardmarket_v1` and `cardmarket_bulk_v1` are recognized. Leave it
-  unset (or use `tcgdex_cardmarket_v1`) until bulk readiness passes.
 
 Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` only for the one-shot administrator
 provisioning command below. Do not commit any of these values or bake them
@@ -229,7 +226,51 @@ After a successful release, verify:
 - Live application logs appear while the dashboard is open; do not treat their
   absence before viewing as evidence of a failure.
 
-## Cardmarket bulk Singles shadow rollout and cutover
+## Cardmarket bulk Singles operations — fixed source
+
+The public/new-write Singles source is fixed to `cardmarket_bulk_v1`; there is
+no policy switch, cutover, valuation queue, per-card valuation worker, or daily
+Singles pricing sweep. Cardmarket bulk sync runs daily at 03:00 UTC from the
+fixed product and price-guide sources. TCGdex is limited to catalogue/detail/image
+enrichment and Cardmarket identity mapping; it is never a Singles price fallback.
+Historical `tcgdex_cardmarket_v1` snapshots remain retained/readable but cannot
+be selected or newly written.
+
+### Sync checks and incident runbook
+
+After each scheduled sync, inspect the read-only Operations diagnostics for the
+source, batch lifecycle, catalogue/mapping/detail enrichment, and materialization.
+Confirm the batch is successful, current, coherent, and exact. Anomaly and
+plausibility thresholds, malformed input, same-successful-batch requirements,
+and exact mapping checks remain fail-closed. Review mapping and batch
+invalidations; mounted Home, CardDetail, and Trade must reload their local data.
+
+Public pages read local exact current bulk snapshots. They show stale or
+unpriced values honestly, and missing/stale values do not trigger Singles
+pricing HTTP. NBP acquisition remains independent. During an incident, leave
+the last successful local snapshot readable, stop/retry the bulk sync only
+through its bounded operational controls, and do not bypass validation or
+substitute TCGdex pricing. Investigate failed/anomalous batches and recover
+forward from the next valid batch.
+
+The generated migration
+`20260908110348_remove_legacy_singles_pricing.exs` removes `pricing_checked_at`.
+Apply it through the normal release gate; migrations are forward-only and must
+not be rolled back. This documentation checkpoint records release
+`68b73cc624e0ac6f450bf1c0af05bdc35eaaf565`, deployed 2026-09-08, CI
+`34212821835` with 1,117 tests, and production Home/card/trade smoke at EUR
+263.65. Final commit/deploy remains pending at documentation time.
+
+### Post-deploy bulk verification
+
+Verify `/health` and `/health/live`, the expected revision, the 03:00 UTC Cron,
+the latest batch diagnostics, and authenticated Operations. Confirm Home,
+CardDetail, and Trade render the same local current value, preserve honest
+stale/unpriced states, and reload after mapping or batch invalidation. Do not
+look for readiness/cutover controls or a TCGdex comparison; Operations is
+read-only diagnostics.
+
+## Historical/superseded Cardmarket bulk shadow rollout and cutover
 
 The Cardmarket bulk implementation is deployed in
 `b7afc9049a8af42dd569f44d2c140cb58f64221c`; this is deployment and public-smoke
@@ -272,11 +313,11 @@ The parser requires nonblank product `dateAdded`. Mapping supports safe
 same-batch A→B→A correction from immutable exact evidence, never overwrites
 administrator mappings, and materialization is concurrent same-batch idempotent.
 
-### Initial deployment and shadow procedure
+### Historical initial deployment and shadow procedure (retained for record)
 
-1. First deploy with `PUBLIC_SINGLES_VALUATION_POLICY=tcgdex_cardmarket_v1`
-   explicitly. Runtime omission currently defaults equivalently, but omission
-   is not operationally acceptable; do not activate bulk.
+1. Historical procedure: the former selectable policy was deployed before the
+   fixed-source release. This step is superseded; do not configure a policy
+   switch or activate a second Singles pricing source.
 2. Pass the migration gate, confirm all seven migrations are applied, then
    verify effective policy is TCGdex, the queue/provider/Cron, and
    `/admin/operations`.
@@ -289,8 +330,7 @@ administrator mappings, and materialization is concurrent same-batch idempotent.
    unresolved partial/malformed/failed catalogue-set issues, and bounded
    catalogue counts in `/admin/operations`.
 5. Review expansion decisions using the latest-successful-batch exact pair;
-   only after every readiness gate passes and two distinct successful batches
-   exist, set `PUBLIC_SINGLES_VALUATION_POLICY=cardmarket_bulk_v1` and restart.
+   this historical cutover step is superseded by the fixed-source runbook above.
 
 Readiness additionally requires a completed coherent nonfuture `all_sets`
 TCGdex catalogue run, no active catalogue run, and zero unresolved
@@ -316,11 +356,12 @@ totals consistently use bulk without per-card fallback or source mixing; routine
 TCGdex per-card valuation acquisition/sweep is a no-op. Both valuation histories
 remain preserved and CardDetail metadata enrichment remains independent.
 
-There is no database rollback procedure. To deactivate bulk, set the variable
-to TCGdex and restart; do not delete history or reverse migrations. The first
-real sync and effective policy must be checked before any later cutover.
+There is no database rollback procedure. The former deactivation-by-variable
+procedure is superseded; do not delete history or reverse migrations. The fixed
+source runbook above is authoritative.
 
-The supervised policy cache is max 30 seconds, refreshes automatically,
+Historical implementation detail (superseded): the supervised policy cache was
+max 30 seconds, refreshed automatically,
 broadcasts effective expiry changes, and reconciles timed-out callers fail
 closed. Mounted Home, CardDetail, and Trade refresh policy-dependent data; bulk
 does not mix with or request TCGdex. Canonical CI passed all static gates/Dialyzer
@@ -335,7 +376,21 @@ verified. Effective public behavior remains TCGdex; bulk must remain disabled.
 The first real sync and readiness/cutover are pending, and cutover still
 requires every readiness gate plus two distinct successful batches.
 
-## Production Singles collection operations
+## Production Singles catalogue and detail enrichment
+
+TCGdex acquisition is catalogue/detail enrichment only. It discovers and stores
+local exact printings, detailed metadata, and images, and supports Cardmarket
+identity mapping. It does not acquire Singles prices, provide a price fallback,
+or enqueue per-card valuation work. Public pricing reads Cardmarket bulk
+snapshots only; missing or stale values remain visibly missing or stale.
+
+Catalogue/detail failures, malformed evidence, ambiguous identity, and mapping
+uncertainty fail closed. Successful mapping or batch changes publish invalidations
+after commit so mounted public views reload. The admin Operations surface shows
+read-only catalogue, mapping, detail, and materialization diagnostics. Sealed
+acquisition and its six Monday schedules remain independent.
+
+## Historical/superseded Production Singles collection operations
 
 ### Owner direction — 2026-08-20
 

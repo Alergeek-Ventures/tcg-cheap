@@ -191,6 +191,36 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncTest do
     assert baseline.status == "succeeded"
   end
 
+  test "uses the cardmarket bulk anomaly bound instead of the removed cutover config" do
+    previous_bulk = Application.get_env(:tcg_cheap, :cardmarket_bulk)
+    previous_cutover = Application.get_env(:tcg_cheap, :cardmarket_bulk_cutover)
+
+    on_exit(fn ->
+      Application.put_env(:tcg_cheap, :cardmarket_bulk, previous_bulk)
+
+      if is_nil(previous_cutover) do
+        Application.delete_env(:tcg_cheap, :cardmarket_bulk_cutover)
+      else
+        Application.put_env(:tcg_cheap, :cardmarket_bulk_cutover, previous_cutover)
+      end
+    end)
+
+    Application.put_env(:tcg_cheap, :cardmarket_bulk, row_count_anomaly_bound: 1.0)
+    Application.put_env(:tcg_cheap, :cardmarket_bulk_cutover, row_count_anomaly_bound: 0.0)
+
+    assert {:ok, %{batch: batch}} =
+             Sync.run(
+               opts(
+                 :good,
+                 ~U[2026-09-03 13:00:00Z],
+                 ~U[2026-09-03 11:00:00Z],
+                 System.unique_integer([:positive])
+               )
+             )
+
+    assert batch.status == "succeeded"
+  end
+
   test "after-stage failure rolls back callback and projection writes but retains failed batch" do
     parent = self()
 
