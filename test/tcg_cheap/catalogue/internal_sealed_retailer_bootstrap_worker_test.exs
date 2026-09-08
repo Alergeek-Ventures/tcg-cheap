@@ -177,7 +177,6 @@ defmodule TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorkerTest do
 
     assert Enum.map(providers, &Keyword.fetch!(&1, :provider_key)) == [
              "tcgdex_catalogue",
-             "tcgdex_cardmarket",
              "cardmarket_bulk",
              "nbp",
              "sealed_retailer:lootquest",

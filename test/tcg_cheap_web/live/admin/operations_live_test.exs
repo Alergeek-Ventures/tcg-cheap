@@ -23,7 +23,6 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
   alias TcgCheap.Operations.AcquisitionTracker
   alias TcgCheap.Operations.ImportIssues
   alias TcgCheap.Pricing.ExchangeRateWorker
-  alias TcgCheap.Pricing.Singles.ValuationWorker
 
   setup do
     previous = Application.get_env(:tcg_cheap, :acquisition_budget)
@@ -110,12 +109,11 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#cardmarket-coverage-no-batch")
     assert has_element?(view, "#cardmarket-coverage-requested-policy")
     assert has_element?(view, "#cardmarket-coverage-readiness", "NOT READY")
-    assert has_element?(view, "#cardmarket-coverage-active-policy", "tcgdex_cardmarket_v1")
+    assert has_element?(view, "#cardmarket-coverage-active-policy", "cardmarket_bulk_v1")
     assert has_element?(view, "#cardmarket-coverage-failed-checks")
     assert has_element?(view, "#cardmarket-coverage-comparison")
     assert has_element?(view, "#cardmarket-coverage-latest-batch-valuation")
     refute has_element?(view, "#cardmarket-coverage-unavailable")
-    assert has_element?(view, "#manual-refresh-valuation-form")
     assert has_element?(view, "#manual-refresh-exchange-rate[phx-disable-with]")
     assert has_element?(view, "#manual-refresh-retailer-stream[phx-update=stream]")
     assert has_element?(view, "#manual-refresh-catalogue[disabled]")
@@ -126,7 +124,6 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
     assert has_element?(view, "#manual-refresh-catalogue-repair-status", "NO FAILURES")
     assert has_element?(view, "#manual-refresh-catalogue-repair-count", "0")
     assert has_element?(view, "#manual-refresh-exchange-rate[disabled]")
-    assert has_element?(view, "#manual-refresh-valuation[disabled]")
   end
 
   test "buying model inspection exposes current provisional policy without edit controls", %{
@@ -159,7 +156,7 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
   end
 
   test "manual controls enqueue only the canonical target shapes", %{conn: conn, key: key} do
-    {card, retailer} = configure_manual_targets(key)
+    {_card, retailer} = configure_manual_targets(key)
     {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
     html = render(view)
 
@@ -198,21 +195,6 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
         "table" => "A",
         "base_currency" => "EUR",
         "quote_currency" => "PLN"
-      }
-    )
-
-    view
-    |> form("#manual-refresh-valuation-form", manual_refresh: %{tcgdex_id: card.tcgdex_id})
-    |> render_submit()
-
-    assert_enqueued(
-      repo: TcgCheap.Repo,
-      worker: ValuationWorker,
-      args: %{
-        "local_card_id" => card.id,
-        "tcgdex_id" => card.tcgdex_id,
-        "policy_version" => "tcgdex_cardmarket_v1",
-        "currency" => "EUR"
       }
     )
 
@@ -258,24 +240,6 @@ defmodule TcgCheapWeb.Admin.OperationsLiveTest do
       worker: CatalogueSyncWorker,
       args: %{"scope" => "failed_sets"}
     )
-  end
-
-  test "manual valuation keeps invalid input and queues nothing", %{conn: conn, key: key} do
-    configure_manual_targets(key)
-    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/operations")
-    invalid_id = "missing-manual-card"
-
-    view
-    |> form("#manual-refresh-valuation-form", manual_refresh: %{tcgdex_id: invalid_id})
-    |> render_submit()
-
-    assert has_element?(
-             view,
-             "#manual-refresh-valuation-form input[value='#{invalid_id}']"
-           )
-
-    assert has_element?(view, "#flash-error", "not queued")
-    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
   end
 
   test "manual retailer event rejects a tampered local identifier", %{conn: conn, key: key} do

@@ -15,7 +15,6 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
   alias TcgCheap.Catalogue.{CatalogueSyncWorker, Importer}
   alias TcgCheap.Core
   alias TcgCheap.Operations.{AcquisitionBudget, AcquisitionTracker, ImportIssues}
-  alias TcgCheap.Pricing.Singles.EmbeddedValuation
 
   @policy_version 1
   @provider_key "tcgdex_catalogue"
@@ -150,7 +149,6 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
            ),
          {:ok, _imported} <- import_card(card, payload, synced_at),
          {:ok, fresh} <- Core.get_card_printing_by_tcgdex_id(tcgdex_id),
-         :ok <- embedded_valuation().record_or_enqueue(fresh, payload, synced_at),
          :ok <- mark_pricing_checked(fresh, synced_at) do
       maybe_continue(continuation?, fresh)
     end
@@ -163,11 +161,14 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
   end
 
   defp pricing_only(card, continuation?, synced_at, provider_card) do
-    with :ok <- embedded_valuation().record_or_enqueue(card, provider_card, synced_at),
-         :ok <- mark_pricing_checked(card, synced_at) do
-      maybe_continue(continuation?, card)
-    else
-      {:error, _} -> {:error, :persistence_failed}
+    _ = provider_card
+
+    case mark_pricing_checked(card, synced_at) do
+      :ok ->
+        maybe_continue(continuation?, card)
+
+      {:error, _} ->
+        {:error, :persistence_failed}
     end
   end
 
@@ -274,7 +275,6 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
     with :ok <- record_issue(tcgdex_id, reason),
          {:ok, card} <- Core.get_card_printing_by_tcgdex_id(tcgdex_id),
          {:ok, failed_card} <- mark_details_enrichment_failed(card, synced_at),
-         :ok <- embedded_valuation().record_or_enqueue(failed_card, %{}, synced_at),
          :ok <- mark_pricing_checked(failed_card, synced_at),
          :ok <- maybe_continue_after(continuation?, tcgdex_id) do
       {:cancel, :provider_response}
@@ -326,7 +326,6 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
     with :ok <- record_issue(tcgdex_id, reason),
          {:ok, card} <- Core.get_card_printing_by_tcgdex_id(tcgdex_id),
          {:ok, failed_card} <- mark_details_enrichment_failed(card, checked_at),
-         :ok <- embedded_valuation().record_or_enqueue(failed_card, %{}, checked_at),
          :ok <- mark_pricing_checked(failed_card, checked_at),
          :ok <- if(continuation?, do: continue_after(tcgdex_id), else: :ok) do
       {:cancel, :provider_response}
@@ -403,10 +402,6 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
 
   defp insert_result({:ok, _}), do: :ok
   defp insert_result({:error, _}), do: {:error, :persistence_failed}
-
-  defp embedded_valuation do
-    Application.get_env(:tcg_cheap, :card_detail_enrichment_embedded_valuation, EmbeddedValuation)
-  end
 
   defp broadcast(local_id, tcgdex_id, result) do
     event =

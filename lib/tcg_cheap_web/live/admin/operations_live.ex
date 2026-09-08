@@ -32,7 +32,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:manual_singles_collection, nil)
      |> assign(:manual_catalogue_repair, nil)
      |> assign(:manual_exchange_rate, nil)
-     |> assign(:manual_valuation, nil)
      |> assign(:manual_available_count, 0)
      |> assign(:cardmarket_coverage_loaded?, false)
      |> assign(:cardmarket_coverage_ready?, false)
@@ -951,39 +950,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                       >Queue EUR / PLN refresh</button>
                     </div>
                   </article>
-
-                  <article id="manual-refresh-valuation-panel" class="admin-docket">
-                    <div class="admin-docket-heading">
-                      <div>
-                        <h3>Single valuation</h3>
-                        <p>One exact locally imported TCGdex printing.</p>
-                      </div>
-                      <span id="manual-refresh-valuation-status">
-                        {manual_status(@manual_valuation)}
-                      </span>
-                    </div>
-                    <.form
-                      for={@manual_form}
-                      id="manual-refresh-valuation-form"
-                      phx-submit="manual_single_valuation"
-                    >
-                      <.input
-                        field={@manual_form[:tcgdex_id]}
-                        type="text"
-                        label="Exact TCGdex ID"
-                        maxlength="240"
-                        autocomplete="off"
-                      />
-                      <div class="admin-decision-row">
-                        <button
-                          id="manual-refresh-valuation"
-                          type="submit"
-                          phx-disable-with="Queueing…"
-                          disabled={@manual_valuation.status != :available}
-                        >Queue valuation refresh</button>
-                      </div>
-                    </.form>
-                  </article>
                 </div>
 
                 <div
@@ -1043,34 +1009,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
 
   def handle_event("manual_exchange_rate", _params, socket),
     do: manual_enqueue(:exchange_rate, "EUR / PLN refresh", socket)
-
-  def handle_event("manual_single_valuation", %{"manual_refresh" => %{"tcgdex_id" => id}}, socket) do
-    case ManualRefresh.enqueue(socket.assigns.current_admin, {:single_valuation, id}) do
-      {:ok, result} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, manual_flash(result, "valuation"))
-         |> assign(:manual_form, to_form(%{"tcgdex_id" => id}, as: :manual_refresh))}
-
-      {:error, _} ->
-        {:noreply,
-         socket
-         |> put_flash(
-           :error,
-           "Valuation was not queued. Check the exact TCGdex ID and try again."
-         )
-         |> assign(:manual_form, to_form(%{"tcgdex_id" => id}, as: :manual_refresh))}
-    end
-  end
-
-  def handle_event("manual_single_valuation", _params, socket),
-    do:
-      {:noreply,
-       put_flash(
-         socket,
-         :error,
-         "Valuation was not queued. Check the exact TCGdex ID and try again."
-       )}
 
   def handle_event("manual_sealed_retailer", %{"retailer-id" => id}, socket),
     do: manual_enqueue({:sealed_retailer, id}, "Sealed retailer refresh", socket)
@@ -1149,9 +1087,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
 
         exchange = Enum.find(targets, &(&1.kind == :exchange_rate)) || %{status: :unconfigured}
 
-        valuation =
-          Enum.find(targets, &(&1.kind == :single_valuation)) || %{status: :unconfigured}
-
         retailers =
           targets
           |> Enum.filter(&(&1.kind == :sealed_retailer))
@@ -1165,7 +1100,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         |> assign(:manual_singles_collection, singles_collection)
         |> assign(:manual_catalogue_repair, catalogue_repair)
         |> assign(:manual_exchange_rate, exchange)
-        |> assign(:manual_valuation, valuation)
         |> assign(:manual_available_count, Enum.count(targets, &(&1.status == :available)))
         |> stream(:manual_retailers, retailers, reset: true)
 
@@ -1176,7 +1110,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         |> assign(:manual_singles_collection, nil)
         |> assign(:manual_catalogue_repair, nil)
         |> assign(:manual_exchange_rate, nil)
-        |> assign(:manual_valuation, nil)
         |> assign(:manual_available_count, 0)
         |> stream(:manual_retailers, [], reset: true)
     end

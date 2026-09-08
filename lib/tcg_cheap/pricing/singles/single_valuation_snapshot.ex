@@ -107,7 +107,7 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
 
       argument :policy_version, :string,
         allow_nil?: false,
-        default: "tcgdex_cardmarket_v1"
+        default: "cardmarket_bulk_v1"
 
       validate one_of(:policy_version, ["tcgdex_cardmarket_v1", "cardmarket_bulk_v1"])
 

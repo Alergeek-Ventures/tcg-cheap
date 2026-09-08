@@ -29,7 +29,7 @@ defmodule TcgCheap.Catalogue.RecentlyTrackedCardPrintingsTest do
     assert Enum.map(result, & &1.id) == expected
   end
 
-  test "loads an optional current valuation without selecting private source fields" do
+  test "loads the current bulk valuation while leaving historical valuation unloaded" do
     card =
       TcgCheap.TestSupport.import_card_printing!(%{
         tcgdex_id: "valued-recent-#{System.unique_integer([:positive])}",
@@ -45,15 +45,16 @@ defmodule TcgCheap.Catalogue.RecentlyTrackedCardPrintingsTest do
       Core.record_single_valuation!(%{
         card_printing_id: card.id,
         value_eur: Decimal.new("12.50"),
-        policy_version: "tcgdex_cardmarket_v1",
-        source: "tcgdex_cardmarket",
+        policy_version: "cardmarket_bulk_v1",
+        source: "cardmarket_bulk",
         source_metric: "avg7",
         fetched_at: ~U[2026-08-10 12:00:00Z],
         cardmarket_product_id: card.cardmarket_product_id
       })
 
     assert {:ok, [result]} = Core.list_recently_tracked_card_printings()
-    assert result.tcgdex_cardmarket_v1_current_valuation.id == valuation.id
+    assert result.cardmarket_bulk_v1_current_valuation.id == valuation.id
+    assert %Ash.NotLoaded{} = result.tcgdex_cardmarket_v1_current_valuation
     assert %Ash.NotLoaded{} = result.source_payload
     assert %Ash.NotLoaded{} = result.variant_data
     assert %Ash.NotLoaded{} = result.search_name

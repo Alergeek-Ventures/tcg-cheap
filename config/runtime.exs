@@ -23,10 +23,6 @@ end
 config :tcg_cheap, TcgCheapWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4004"))]
 
-config :tcg_cheap,
-       :public_singles_valuation_policy,
-       System.get_env("PUBLIC_SINGLES_VALUATION_POLICY", "tcgdex_cardmarket_v1")
-
 if config_env() == :dev do
   # Reload browser tabs when matching files change.
   config :tcg_cheap, TcgCheapWeb.Endpoint,

@@ -1,60 +1,21 @@
 defmodule TcgCheap.Pricing.Singles.ValuationPolicyTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   alias TcgCheap.Pricing.Singles.ValuationPolicy
 
-  setup do
-    previous = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
-    on_exit(fn -> Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous) end)
-    :ok
-  end
-
-  test "defaults and malformed values fail closed" do
-    Application.delete_env(:tcg_cheap, :public_singles_valuation_policy)
-    assert ValuationPolicy.requested_policy() == ValuationPolicy.tcgdex_policy()
-
-    Application.put_env(:tcg_cheap, :public_singles_valuation_policy, "not-a-policy")
-    assert ValuationPolicy.requested_policy() == ValuationPolicy.tcgdex_policy()
-
-    assert ValuationPolicy.selection(readiness: %{ready?: true}) ==
-             ValuationPolicy.tcgdex_policy()
-  end
-
-  test "bulk requires explicit request and ready evidence" do
-    Application.put_env(:tcg_cheap, :public_singles_valuation_policy, "cardmarket_bulk_v1")
-
-    assert ValuationPolicy.selection(readiness: %{ready?: false}) ==
-             ValuationPolicy.tcgdex_policy()
-
+  test "bulk is the only deterministic public selection" do
+    assert ValuationPolicy.requested_policy() == ValuationPolicy.bulk_policy()
+    assert ValuationPolicy.default_policy() == ValuationPolicy.bulk_policy()
+    assert ValuationPolicy.selection() == ValuationPolicy.bulk_policy()
+    assert ValuationPolicy.selection(readiness: %{ready?: false}) == ValuationPolicy.bulk_policy()
     assert ValuationPolicy.selection(readiness: %{ready?: true}) == ValuationPolicy.bulk_policy()
+    assert ValuationPolicy.selection(%{readiness: :ignored}) == ValuationPolicy.bulk_policy()
   end
 
-  test "selection accepts only a single readiness option" do
-    Application.put_env(
-      :tcg_cheap,
-      :public_singles_valuation_policy,
-      ValuationPolicy.bulk_policy()
-    )
-
-    assert ValuationPolicy.selection(readiness: %{ready?: true}) == ValuationPolicy.bulk_policy()
-
-    assert ValuationPolicy.selection(readiness: %{ready?: true}, readiness: %{ready?: true}) ==
+  test "historical TCGdex is not selectable" do
+    assert ValuationPolicy.current_valuation(
+             %{cardmarket_product_id: 1},
              ValuationPolicy.tcgdex_policy()
-
-    assert ValuationPolicy.selection(%{readiness: %{ready?: true}}) ==
-             ValuationPolicy.tcgdex_policy()
-
-    assert ValuationPolicy.selection(readiness: :not_a_readiness_report) ==
-             ValuationPolicy.tcgdex_policy()
-  end
-
-  test "injected readiness does not load coverage from the database" do
-    Application.put_env(
-      :tcg_cheap,
-      :public_singles_valuation_policy,
-      ValuationPolicy.bulk_policy()
-    )
-
-    assert ValuationPolicy.selection(readiness: %{ready?: true}) == ValuationPolicy.bulk_policy()
+           ) == nil
   end
 end

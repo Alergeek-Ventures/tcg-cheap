@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.Admin.CardPrintingMappingCorrectionLive do
 
   alias TcgCheap.Catalogue.CardPrinting
   alias TcgCheap.Core
-  alias TcgCheap.Pricing.Singles.ValuationAcquisition
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
 
   require Ash.Query
 
@@ -279,7 +279,7 @@ defmodule TcgCheapWeb.Admin.CardPrintingMappingCorrectionLive do
              actor: socket.assigns.current_user
            ) do
         {:ok, updated_card} ->
-          ValuationAcquisition.notify_mapping_changed(updated_card)
+          ValuationNotifications.notify_mapping_changed(updated_card)
 
           {:noreply,
            socket
@@ -368,7 +368,7 @@ defmodule TcgCheapWeb.Admin.CardPrintingMappingCorrectionLive do
            actor: socket.assigns.current_user
          ) do
       {:ok, updated_card} ->
-        ValuationAcquisition.notify_mapping_changed(updated_card)
+        ValuationNotifications.notify_mapping_changed(updated_card)
 
         {:noreply,
          socket

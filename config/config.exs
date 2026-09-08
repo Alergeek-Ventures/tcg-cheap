@@ -116,7 +116,6 @@ config :tcg_cheap, Oban,
         args: %{"policy_version" => 1}},
        {"*/15 * * * *", TcgCheap.Catalogue.CuratedPlayableBootstrapWorker,
         args: %{"evidence_version" => "2026-08-19-naic"}},
-       {"0 14 * * *", TcgCheap.Pricing.Singles.ValuationRefreshWorker, args: %{}},
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
        # Daily at 16:00 UTC, after the 15:00 UTC NBP job.
@@ -152,10 +151,8 @@ config :tcg_cheap, :singles_collection,
   chunk_size: 20
 
 config :tcg_cheap, :valuation_clock, &DateTime.utc_now/0
-config :tcg_cheap, :public_singles_valuation_policy, "tcgdex_cardmarket_v1"
-
-# Conservative, persisted-evidence-only cutover defaults. These are deliberately
-# bounded so an operator cannot accidentally make the bulk selector permissive.
+# Public selection is fixed to bulk; row-anomaly safety and read-only diagnostics
+# still consume these cutover settings.
 config :tcg_cheap, :cardmarket_bulk_cutover,
   relative_value_tolerance: 0.05,
   row_count_anomaly_bound: 0.10,
@@ -181,10 +178,6 @@ config :tcg_cheap, :public_acquisition_limiter,
   max_entries: 10_000,
   prune_interval_ms: 60_000
 
-config :tcg_cheap, :valuation_provider,
-  adapter: TcgCheap.Pricing.Singles.TcgdexCardmarket,
-  options: []
-
 config :tcg_cheap, :cardmarket_bulk,
   adapter: TcgCheap.Pricing.CardmarketBulk.Adapter,
   adapter_options: []
@@ -205,15 +198,6 @@ config :tcg_cheap, :acquisition_budget,
       [
         provider_key: "tcgdex_catalogue",
         display_name: "TCGdex Catalogue",
-        estimated_cost_per_request: "0.00",
-        hourly_request_limit: 100,
-        daily_request_limit: 1_000,
-        monthly_request_limit: 20_000,
-        monthly_spend_limit: "0.00"
-      ],
-      [
-        provider_key: "tcgdex_cardmarket",
-        display_name: "TCGdex Cardmarket",
         estimated_cost_per_request: "0.00",
         hourly_request_limit: 100,
         daily_request_limit: 1_000,

@@ -2,7 +2,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.MappingNotifications do
   @moduledoc "Publishes valuation invalidations for Cardmarket mapping evidence."
 
   alias TcgCheap.Catalogue.CardmarketCardMappingEvidence
-  alias TcgCheap.Pricing.Singles.ValuationAcquisition
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
 
   @page_size 500
 
@@ -54,7 +54,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.MappingNotifications do
 
   defp notify_ids(ids) do
     Enum.reduce_while(ids, :ok, fn id, :ok ->
-      case ValuationAcquisition.notify_mapping_changed(id) do
+      case ValuationNotifications.notify_mapping_changed(id) do
         :ok -> {:cont, :ok}
         {:error, reason} -> {:halt, {:error, {:notification_failed, reason}}}
       end

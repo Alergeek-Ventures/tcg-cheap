@@ -54,7 +54,6 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
              :catalogue_sync,
              :catalogue_repair,
              :exchange_rate,
-             :single_valuation,
              :sealed_retailer
            ]
 
@@ -193,30 +192,13 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     assert exchange.status == :available
   end
 
-  test "queues a valuation only for one exact local printing", %{admin: admin} do
+  test "does not expose or enqueue retired TCGdex valuations", %{admin: admin} do
     card = card()
 
-    assert {:ok, %{status: :queued}} =
+    assert {:error, :invalid_target} =
              ManualRefresh.enqueue(admin, {:single_valuation, card.tcgdex_id})
 
-    assert_enqueued(
-      repo: TcgCheap.Repo,
-      worker: ValuationWorker,
-      args: %{
-        "local_card_id" => card.id,
-        "tcgdex_id" => card.tcgdex_id,
-        "policy_version" => "tcgdex_cardmarket_v1",
-        "currency" => "EUR"
-      }
-    )
-
-    assert {:error, :invalid_target} =
-             ManualRefresh.enqueue(admin, {:single_valuation, "missing-card"})
-
-    assert {:error, :invalid_target} =
-             ManualRefresh.enqueue(admin, {:single_valuation, String.duplicate("x", 241)})
-
-    assert length(all_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)) == 1
+    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
   end
 
   test "derives sealed source identity from the active local retailer", %{admin: admin} do

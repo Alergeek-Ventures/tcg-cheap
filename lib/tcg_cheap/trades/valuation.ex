@@ -60,8 +60,10 @@ defmodule TcgCheap.Trades.Valuation do
   @spec evaluate(Composition.t(), map(), DateTime.t()) :: t()
   def evaluate(%Composition{} = composition, cards_by_tcgdex_id, %DateTime{} = now)
       when is_map(cards_by_tcgdex_id) do
-    left = evaluate_side(composition.left, cards_by_tcgdex_id, now, :legacy_tcgdex)
-    right = evaluate_side(composition.right, cards_by_tcgdex_id, now, :legacy_tcgdex)
+    left = evaluate_side(composition.left, cards_by_tcgdex_id, now, ValuationPolicy.bulk_policy())
+
+    right =
+      evaluate_side(composition.right, cards_by_tcgdex_id, now, ValuationPolicy.bulk_policy())
 
     %Evaluation{left: left, right: right, comparison: compare_sides(left, right)}
   end
@@ -105,9 +107,6 @@ defmodule TcgCheap.Trades.Valuation do
       row_value: if(unit_value, do: Decimal.mult(unit_value, Decimal.new(quantity)))
     }
   end
-
-  defp valuation(card, :legacy_tcgdex),
-    do: card && Map.get(card, :tcgdex_cardmarket_v1_current_valuation)
 
   defp valuation(card, policy), do: ValuationPolicy.current_valuation(card, policy)
 

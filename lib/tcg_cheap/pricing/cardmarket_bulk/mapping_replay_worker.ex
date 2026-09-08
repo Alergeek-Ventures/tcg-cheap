@@ -17,7 +17,6 @@ defmodule TcgCheap.Pricing.CardmarketBulk.MappingReplayWorker do
   alias TcgCheap.Catalogue.CardSetCardmarketMappingDecision
   alias TcgCheap.Pricing.CardmarketBulk.{Batch, MappingNotifications, Materializer}
   alias TcgCheap.Pricing.Singles.SingleValuationSnapshot
-  alias TcgCheap.Pricing.Singles.ValuationPolicyCache
   require Ash.Query
   import Ash.Expr
 
@@ -78,7 +77,6 @@ defmodule TcgCheap.Pricing.CardmarketBulk.MappingReplayWorker do
     )
     |> case do
       {:ok, _} ->
-        ValuationPolicyCache.invalidate()
         MappingNotifications.notify_batch(batch.id)
 
       {:error, reason} ->

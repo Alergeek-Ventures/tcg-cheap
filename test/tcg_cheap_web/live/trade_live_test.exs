@@ -9,16 +9,14 @@ defmodule TcgCheapWeb.TradeLiveTest do
   alias TcgCheap.Pricing.ExchangeRateWorker
 
   alias TcgCheap.Pricing.Singles.{
-    ValuationAcquisition,
+    ValuationNotifications,
     ValuationPolicy,
-    ValuationPolicyCache,
     ValuationWorker
   }
 
   alias TcgCheap.Trades.Composition
   alias TcgCheapWeb.PublicAcquisitionLimiter
 
-  @policy "tcgdex_cardmarket_v1"
   @bulk_policy "cardmarket_bulk_v1"
 
   setup %{conn: conn} do
@@ -56,13 +54,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
 
   test "uses one selected policy for totals and row estimates without mixing", %{conn: conn} do
     card = card("policy-consistency", "Policy Consistency", 1)
-    snapshot(card, "1.25", DateTime.utc_now(), @policy)
-    snapshot(card, "9.75", DateTime.utc_now(), @bulk_policy)
-
-    previous = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
-    Application.put_env(:tcg_cheap, :public_singles_valuation_policy, @policy)
-
-    on_exit(fn -> Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous) end)
+    snapshot(card, "1.25")
 
     {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
 
@@ -71,35 +63,15 @@ defmodule TcgCheapWeb.TradeLiveTest do
     refute has_element?(view, "#trade-left-total-eur", "€9.75")
   end
 
-  test "bulk policy remains gated by persisted readiness" do
-    previous_policy = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
-    Application.put_env(:tcg_cheap, :public_singles_valuation_policy, @bulk_policy)
-
-    on_exit(fn ->
-      Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous_policy)
-    end)
-
-    assert ValuationPolicy.selection(readiness: %{ready?: false}) ==
-             ValuationPolicy.tcgdex_policy()
-
-    assert ValuationPolicy.selection(readiness: %{ready?: true}) ==
-             ValuationPolicy.bulk_policy()
+  test "bulk policy remains fixed" do
+    assert ValuationPolicy.selection(readiness: %{ready?: false}) == @bulk_policy
+    assert ValuationPolicy.selection(readiness: %{ready?: true}) == @bulk_policy
   end
 
-  test "mounted trade refreshes row and total after policy invalidation", %{conn: conn} do
+  test "mounted trade refreshes after a bulk mapping notification", %{conn: conn} do
     card = card("mounted-policy", "Mounted Policy", 1)
     now = DateTime.utc_now() |> DateTime.truncate(:second)
-    snapshot(card, "12.30", now, @policy)
     snapshot(card, "99.99", now, @bulk_policy)
-
-    previous = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
-    Application.put_env(:tcg_cheap, :public_singles_valuation_policy, @bulk_policy)
-    seed_bulk_policy_cache()
-
-    on_exit(fn ->
-      Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous)
-      ValuationPolicyCache.invalidate()
-    end)
 
     path = "/trade?left=#{card.tcgdex_id}:1"
     {:ok, view, _html} = live(conn, path)
@@ -107,9 +79,14 @@ defmodule TcgCheapWeb.TradeLiveTest do
     assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "€99.99")
     assert has_element?(view, "#trade-share[data-trade-path*='#{card.tcgdex_id}']")
 
-    ValuationPolicyCache.invalidate()
-    assert has_element?(view, "#trade-left-total-eur", "€12.30")
-    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "€12.30")
+    Phoenix.PubSub.broadcast(
+      TcgCheap.PubSub,
+      ValuationNotifications.topic(card),
+      {:card_mapping_changed, %{card_printing_id: card.id}}
+    )
+
+    assert has_element?(view, "#trade-left-total-eur", "€99.99")
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "€99.99")
     assert has_element?(view, "#trade-share[data-trade-path*='#{card.tcgdex_id}']")
   end
 
@@ -240,7 +217,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
     {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1")
 
     assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Price unavailable")
-    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Update failed")
+    refute has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Update failed")
     assert has_element?(view, "#trade-rate-evidence", "Rate update failed")
     refute_enqueued(repo: TcgCheap.Repo, worker: ExchangeRateWorker)
 
@@ -353,17 +330,13 @@ defmodule TcgCheapWeb.TradeLiveTest do
     unknown = "unknown-#{System.unique_integer([:positive])}"
     {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:1,#{unknown}:2")
 
-    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Fetching estimate…")
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Price unavailable")
     assert has_element?(view, "#trade-row-left-#{unknown}", "Card unavailable")
     assert has_element?(view, "#trade-row-left-#{unknown}", unknown)
     assert has_element?(view, "#trade-left-total", "€0.00 + ? (3 unpriced)")
     assert has_element?(view, "#trade-comparison", "Comparison incomplete")
 
-    assert_enqueued(
-      repo: TcgCheap.Repo,
-      worker: ValuationWorker,
-      args: %{"tcgdex_id" => card.tcgdex_id}
-    )
+    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
   end
 
   test "malformed, truncated, and invalid picks warn without raw staged values", %{conn: conn} do
@@ -409,28 +382,34 @@ defmodule TcgCheapWeb.TradeLiveTest do
              "Updated 8 days ago · May be outdated"
            )
 
-    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Updating…")
+    refute has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Updating…")
     assert has_element?(view, "#trade-left-total", "€4.20")
-    assert length(queued_jobs(card)) == 1
+    assert queued_jobs(card) == []
 
     render_click(element(view, "#trade-increment-left-#{card.tcgdex_id}"))
-    assert length(queued_jobs(card)) == 1
+    assert queued_jobs(card) == []
   end
 
   test "missing known rows reconcile after completion without remounting", %{conn: conn} do
     card = card("completion-row", "Completion Row", 1)
     {:ok, view, _html} = live(conn, "/trade?left=#{card.tcgdex_id}:2")
 
-    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Fetching estimate…")
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Price unavailable")
     assert has_element?(view, "#trade-left-total", "€0.00 + ? (2 unpriced)")
-    assert length(queued_jobs(card)) == 1
+    assert queued_jobs(card) == []
 
     send(view.pid, {:valuation_completed, %{card_printing_id: Ecto.UUID.generate()}})
     render(view)
-    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Fetching estimate…")
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Price unavailable")
 
     snapshot(card, "2.75")
-    send(view.pid, {:valuation_completed, %{card_printing_id: card.id}})
+
+    Phoenix.PubSub.broadcast(
+      TcgCheap.PubSub,
+      ValuationNotifications.topic(card),
+      {:card_mapping_changed, %{card_printing_id: card.id}}
+    )
+
     render(view)
     assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "€2.75")
     assert has_element?(view, "#trade-left-total", "€5.50")
@@ -456,14 +435,13 @@ defmodule TcgCheapWeb.TradeLiveTest do
 
     Phoenix.PubSub.broadcast(
       TcgCheap.PubSub,
-      ValuationAcquisition.topic(card),
+      ValuationNotifications.topic(card),
       {:card_mapping_changed, %{card_printing_id: card.id}}
     )
 
     render(view)
-    refute has_element?(view, "#trade-left-total", "€8.10")
-    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Fetching estimate…")
-    assert length(queued_jobs(card)) == 1
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Price unavailable")
+    assert queued_jobs(card) == []
   end
 
   test "stale valuation failures retain cached estimates and ignore unrelated cards", %{
@@ -480,11 +458,8 @@ defmodule TcgCheapWeb.TradeLiveTest do
     send(view.pid, {:valuation_failed, %{card_printing_id: card.id}})
     render(view)
 
-    assert has_element?(
-             view,
-             "#trade-row-left-#{card.tcgdex_id}",
-             "Update failed · Cached estimate kept."
-           )
+    refute has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "Update failed")
+    assert has_element?(view, "#trade-row-left-#{card.tcgdex_id}", "€6.10")
 
     assert has_element?(view, "#trade-left-total", "€6.10")
   end
@@ -740,7 +715,7 @@ defmodule TcgCheapWeb.TradeLiveTest do
     )
   end
 
-  defp snapshot(card, value, fetched_at \\ DateTime.utc_now(), policy \\ @policy) do
+  defp snapshot(card, value, fetched_at \\ DateTime.utc_now(), policy \\ @bulk_policy) do
     Core.record_single_valuation!(%{
       card_printing_id: card.id,
       value_eur: Decimal.new(value),
@@ -817,15 +792,5 @@ defmodule TcgCheapWeb.TradeLiveTest do
       |> Keyword.fetch!(:limit)
 
     for _attempt <- 1..limit, do: assert(:ok = PublicAcquisitionLimiter.reserve(address))
-  end
-
-  defp seed_bulk_policy_cache do
-    :sys.replace_state(ValuationPolicyCache, fn state ->
-      %{
-        state
-        | policy: ValuationPolicy.bulk_policy(),
-          expires_at: System.monotonic_time(:millisecond) + 30_000
-      }
-    end)
   end
 end

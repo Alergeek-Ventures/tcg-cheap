@@ -15,7 +15,6 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorker do
   alias TcgCheap.Operations.AcquisitionBudget
   alias TcgCheap.Operations.AcquisitionTracker
   alias TcgCheap.Pricing.CardmarketBulk.{MappingNotifications, Materializer, Sync}
-  alias TcgCheap.Pricing.Singles.ValuationPolicyCache
 
   @doc "The intended maximum runtime for a bulk attempt, in milliseconds."
   def timeout, do: :timer.minutes(15)
@@ -54,7 +53,6 @@ defmodule TcgCheap.Pricing.CardmarketBulk.SyncWorker do
       run_sync(config, admit, job.attempt)
     end)
   after
-    ValuationPolicyCache.invalidate()
   end
 
   defp acquisition_metadata do

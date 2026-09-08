@@ -7,15 +7,14 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
   alias TcgCheap.Core
 
   alias TcgCheap.Pricing.Singles.{
-    ValuationAcquisition,
+    ValuationNotifications,
     ValuationPolicy,
-    ValuationPolicyCache,
     ValuationWorker
   }
 
   alias TcgCheapWeb.PublicAcquisitionLimiter
 
-  @policy "tcgdex_cardmarket_v1"
+  @policy "cardmarket_bulk_v1"
 
   setup %{conn: conn} do
     address = unique_ip()
@@ -207,7 +206,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
              "#valuation-info[phx-hook][data-tooltip-target='valuation-price-row']"
            )
 
-    assert has_element?(view, "#valuation-info-copy", "Cardmarket via TCGdex")
+    assert has_element?(view, "#valuation-info-copy", "daily/bulk")
     assert has_element?(view, "#valuation-info-copy", "applied consistently to every card")
     refute has_element?(view, "#valuation-info-copy", "7-day average")
     refute has_element?(view, "#valuation-info-copy", @policy)
@@ -243,26 +242,11 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     refute bulk_copy =~ "avg7"
   end
 
-  test "mounted detail refreshes policy source and history after invalidation", %{conn: conn} do
+  test "mounted detail refreshes after a bulk mapping notification", %{conn: conn} do
     card = create_card("mounted-policy")
     now = DateTime.utc_now() |> DateTime.truncate(:second)
     record_policy_snapshot(card, "12.30", ValuationPolicy.tcgdex_policy(), "tcgdex", now)
     record_policy_snapshot(card, "99.99", ValuationPolicy.bulk_policy(), "cardmarket_bulk", now)
-
-    previous = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
-
-    Application.put_env(
-      :tcg_cheap,
-      :public_singles_valuation_policy,
-      ValuationPolicy.bulk_policy()
-    )
-
-    seed_bulk_policy_cache()
-
-    on_exit(fn ->
-      Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous)
-      ValuationPolicyCache.invalidate()
-    end)
 
     path = ~p"/cards/#{card.tcgdex_id}"
     {:ok, view, _html} = live(conn, path)
@@ -270,10 +254,15 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-info-copy", "daily/bulk")
     assert has_element?(view, "#valuation-history-summary", "99.99")
 
-    ValuationPolicyCache.invalidate()
-    assert has_element?(view, "#valuation-value", "12.30")
-    assert has_element?(view, "#valuation-info-copy", "Cardmarket via TCGdex")
-    assert has_element?(view, "#valuation-history-summary", "12.30")
+    Phoenix.PubSub.broadcast(
+      TcgCheap.PubSub,
+      ValuationNotifications.topic(card),
+      {:card_mapping_changed, %{card_printing_id: card.id}}
+    )
+
+    assert has_element?(view, "#valuation-value", "99.99")
+    assert has_element?(view, "#valuation-info-copy", "daily/bulk")
+    assert has_element?(view, "#valuation-history-summary", "99.99")
     assert has_element?(view, "#card-detail-title", card.name)
   end
 
@@ -508,7 +497,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     Phoenix.PubSub.broadcast(
       TcgCheap.PubSub,
-      ValuationAcquisition.topic(card),
+      ValuationNotifications.topic(card),
       {:card_mapping_changed, %{card_printing_id: card.id}}
     )
 
@@ -532,18 +521,13 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
 
     Phoenix.PubSub.broadcast(
       TcgCheap.PubSub,
-      ValuationAcquisition.topic(card),
+      ValuationNotifications.topic(card),
       {:card_mapping_changed, %{card_printing_id: card.id}}
     )
 
     render(view)
-    assert has_element?(view, "#valuation-fetching")
-
-    assert_enqueued(
-      repo: TcgCheap.Repo,
-      worker: ValuationWorker,
-      args: %{"local_card_id" => card.id}
-    )
+    refute has_element?(view, "#valuation-fetching")
+    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
   end
 
   test "a stale cached valuation remains visible while refresh is queued", %{conn: conn} do
@@ -556,16 +540,8 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert has_element?(view, "#valuation-value", "17.20")
     assert has_element?(view, "#valuation-stale", "May be outdated")
     assert has_element?(view, "#valuation-stale", "Updated 8 days ago · May be outdated")
-    assert has_element?(view, "#valuation-fetching")
-
-    assert [job] =
-             all_enqueued(
-               repo: TcgCheap.Repo,
-               worker: ValuationWorker,
-               args: %{"local_card_id" => card.id}
-             )
-
-    assert job.args["tcgdex_id"] == card.tcgdex_id
+    refute has_element?(view, "#valuation-fetching")
+    refute_enqueued(repo: TcgCheap.Repo, worker: ValuationWorker)
   end
 
   test "a peer at the public acquisition limit keeps local fallback and queues no refresh", %{
@@ -592,18 +568,17 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     card = create_card("completion")
     {:ok, view, _html} = live(conn, ~p"/cards/#{card.tcgdex_id}")
 
-    snapshot =
-      record_snapshot(
-        card,
-        Decimal.new("23.40"),
-        DateTime.utc_now() |> DateTime.truncate(:second)
-      )
+    record_snapshot(
+      card,
+      Decimal.new("23.40"),
+      DateTime.utc_now() |> DateTime.truncate(:second)
+    )
 
     assert :ok =
              Phoenix.PubSub.broadcast(
                TcgCheap.PubSub,
-               ValuationAcquisition.topic(card),
-               {:valuation_completed, %{card_printing_id: card.id, snapshot: snapshot}}
+               ValuationNotifications.topic(card),
+               {:card_mapping_changed, %{card_printing_id: card.id}}
              )
 
     render(view)
@@ -629,14 +604,14 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
     assert :ok =
              Phoenix.PubSub.broadcast(
                TcgCheap.PubSub,
-               ValuationAcquisition.topic(card),
+               ValuationNotifications.topic(card),
                {:valuation_failed, %{card_printing_id: card.id, reason: :provider_not_found}}
              )
 
     render(view)
     assert has_element?(view, "#valuation-value", "31.10")
     assert has_element?(view, "#valuation-stale")
-    assert has_element?(view, "#valuation-refresh-failed")
+    refute has_element?(view, "#valuation-refresh-failed")
     refute has_element?(view, "#valuation-fetching")
   end
 
@@ -726,7 +701,7 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
       card_printing_id: card.id,
       value_eur: value,
       policy_version: @policy,
-      source: "tcgdex_cardmarket",
+      source: "cardmarket_bulk",
       source_metric: "avg7",
       fetched_at: fetched_at,
       cardmarket_product_id: product_id || card.cardmarket_product_id
@@ -743,16 +718,6 @@ defmodule TcgCheapWeb.CardDetailLiveTest do
       fetched_at: fetched_at,
       cardmarket_product_id: card.cardmarket_product_id
     })
-  end
-
-  defp seed_bulk_policy_cache do
-    :sys.replace_state(ValuationPolicyCache, fn state ->
-      %{
-        state
-        | policy: ValuationPolicy.bulk_policy(),
-          expires_at: System.monotonic_time(:millisecond) + 30_000
-      }
-    end)
   end
 
   defp unique_ip do

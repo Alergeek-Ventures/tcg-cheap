@@ -122,7 +122,7 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     card = card("old-mapping")
     old_product_id = card.cardmarket_product_id
 
-    snapshots(card, [{8, "10"}, {0, "20"}], "tcgdex_cardmarket_v1", old_product_id)
+    snapshots(card, [{8, "10"}, {0, "20"}], "cardmarket_bulk_v1", old_product_id)
 
     Repo.query!(
       "UPDATE card_printings SET cardmarket_product_id = $2 WHERE id = $1",
@@ -254,7 +254,7 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     )
   end
 
-  defp snapshots(card, points, policy \\ "tcgdex_cardmarket_v1", product_id \\ nil) do
+  defp snapshots(card, points, policy \\ "cardmarket_bulk_v1", product_id \\ nil) do
     Enum.each(points, fn {days_ago, value} ->
       snapshot(
         card,
@@ -266,12 +266,12 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
     end)
   end
 
-  defp snapshot(card, value, fetched_at, policy \\ "tcgdex_cardmarket_v1", product_id \\ nil) do
+  defp snapshot(card, value, fetched_at, policy \\ "cardmarket_bulk_v1", product_id \\ nil) do
     Core.record_single_valuation!(%{
       card_printing_id: card.id,
       value_eur: Decimal.new(value),
       policy_version: policy,
-      source: "tcgdex_cardmarket",
+      source: "cardmarket_bulk",
       source_metric: "avg7",
       fetched_at: fetched_at,
       cardmarket_product_id: product_id || card.cardmarket_product_id

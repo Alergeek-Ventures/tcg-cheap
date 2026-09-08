@@ -3,7 +3,7 @@ defmodule TcgCheap.Catalogue.Importer do
   alias TcgCheap.Catalogue.{CardPrinting, CardSet, MaterialVariant, Normalizer, Tcgdex}
   alias TcgCheap.Core
   alias TcgCheap.Operations.AcquisitionBudget
-  alias TcgCheap.Pricing.Singles.ValuationAcquisition
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
   alias TcgCheap.Repo
 
   @spec import_card(String.t(), keyword()) :: {:ok, map()} | {:error, term()}
@@ -162,7 +162,7 @@ defmodule TcgCheap.Catalogue.Importer do
     )
     |> case do
       {:ok, %{mapping_changed?: true, card: card} = result} ->
-        ValuationAcquisition.notify_mapping_changed(card)
+        ValuationNotifications.notify_mapping_changed(card)
         {:ok, Map.delete(result, :mapping_changed?)}
 
       {:ok, %{mapping_changed?: false} = result} ->

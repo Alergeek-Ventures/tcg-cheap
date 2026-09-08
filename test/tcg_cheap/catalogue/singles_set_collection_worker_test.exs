@@ -65,7 +65,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     %{provider: provider, admissions: admissions}
   end
 
-  test "me05 imports both cards, applies pitch scope, and enqueues only matched valuation", %{
+  test "me05 imports both cards and applies pitch scope without valuation acquisition", %{
     provider: provider,
     admissions: admissions
   } do
@@ -81,17 +81,15 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
     cards = Enum.map(ids, &TcgCheap.Core.get_card_printing_by_tcgdex_id!/1)
     assert Enum.all?(cards, &(&1.collection_scopes == ["pitch_black_full"]))
 
-    assert Enum.map(
-             all_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Pricing.Singles.ValuationWorker),
-             & &1.args["tcgdex_id"]
-           ) == [hd(ids)]
+    refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Pricing.Singles.ValuationWorker)
 
-    # One catalogue request for the set and one for each card; valuation
-    # enqueueing is trusted background work and does not consume this budget.
+    # One catalogue request for the set and one for each card.
     assert length(Agent.get(admissions, & &1)) == 7
   end
 
-  test "persists usable embedded pricing without enqueueing valuation", %{provider: provider} do
+  test "metadata collection persists no embedded valuation and enqueues no valuation", %{
+    provider: provider
+  } do
     id = hd(card_ids(1))
     scoped_at = ~U[2026-08-19 12:00:00Z]
 
@@ -113,17 +111,7 @@ defmodule TcgCheap.Catalogue.SinglesSetCollectionWorkerTest do
 
     card = TcgCheap.Core.get_card_printing_by_tcgdex_id!(id)
 
-    assert {:ok, [snapshot]} =
-             TcgCheap.Core.list_current_single_valuations(card.id, authorize?: false)
-
-    assert Decimal.equal?(snapshot.value_eur, Decimal.new("1.24"))
-    assert snapshot.source_metric == "avg7"
-    assert snapshot.policy_version == "tcgdex_cardmarket_v1"
-    assert snapshot.source == "tcgdex_cardmarket"
-    assert snapshot.currency == "EUR"
-    assert snapshot.cardmarket_product_id == 123
-    assert DateTime.compare(snapshot.fetched_at, scoped_at) == :eq
-    assert DateTime.compare(snapshot.provider_updated_at, ~U[2026-08-18 10:00:00Z]) == :eq
+    assert {:ok, []} = TcgCheap.Core.list_current_single_valuations(card.id, authorize?: false)
     refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Pricing.Singles.ValuationWorker)
   end
 

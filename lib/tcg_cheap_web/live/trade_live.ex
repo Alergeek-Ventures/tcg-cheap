@@ -6,13 +6,12 @@ defmodule TcgCheapWeb.TradeLive do
   alias TcgCheap.Core
   alias TcgCheap.Pricing.ExchangeRate
   alias TcgCheap.Pricing.ExchangeRateAcquisition
-  alias TcgCheap.Pricing.Singles.{Freshness, ValuationAcquisition, ValuationPolicy}
-  alias TcgCheap.Pricing.Singles.ValuationPolicyCache
+  alias TcgCheap.Pricing.Singles.{Freshness, ValuationPolicy}
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
   alias TcgCheap.Trades.{Composition, Valuation}
   alias TcgCheapWeb.PublicAcquisitionLimiter
 
   @max_options 10
-  @max_acquisition 100
 
   @impl true
   def mount(_params, _session, socket) do
@@ -49,17 +48,12 @@ defmodule TcgCheapWeb.TradeLive do
        exchange_rate: exchange_rate,
        exchange_rate_status: exchange_rate_status,
        exchange_rate_requested?: false,
+       subscribed_mapping_ids: MapSet.new(),
        share_status: nil,
        public_address: public_address(socket)
      )
      |> stream_configure(:card_results, dom_id: fn result -> "trade-card-option-#{result.id}" end)
-     |> stream(:card_results, [])
-     |> maybe_subscribe_policy()}
-  end
-
-  defp maybe_subscribe_policy(socket) do
-    if connected?(socket), do: :ok = ValuationPolicyCache.subscribe()
-    socket
+     |> stream(:card_results, [])}
   end
 
   @impl true
@@ -73,6 +67,7 @@ defmodule TcgCheapWeb.TradeLive do
 
     {cards, read_warning} = load_cards(composition_ids)
     {cards, selected_card, pick_read_warning} = load_pick(cards, pick)
+    socket = sync_mapping_subscriptions(socket, cards)
     selected_card = selected_card || if(is_nil(pick), do: socket.assigns.selected_card, else: nil)
     warning = warning_for(meta, pick_warning, read_warning || pick_read_warning)
 
@@ -81,60 +76,6 @@ defmodule TcgCheapWeb.TradeLive do
   end
 
   @impl true
-  def handle_info({:valuation_completed, %{card_printing_id: id}}, socket) when is_binary(id) do
-    if tcgdex_acquisition_enabled?(socket) and current_card_id?(socket, id) do
-      case load_cards(composition_ids(socket.assigns.composition)) do
-        {cards, nil} ->
-          tcgdex_id = card_tcgdex_id(cards, id)
-
-          socket =
-            assign(
-              socket,
-              :acquisition_states,
-              Map.put(socket.assigns.acquisition_states, tcgdex_id, :fresh)
-            )
-
-          {:noreply,
-           rebuild(
-             socket,
-             socket.assigns.composition,
-             cards,
-             socket.assigns.warning,
-             socket.assigns.selected_card
-           )}
-
-        _ ->
-          {:noreply, socket}
-      end
-    else
-      {:noreply, socket}
-    end
-  end
-
-  def handle_info({:valuation_failed, %{card_printing_id: id}}, socket) when is_binary(id) do
-    if tcgdex_acquisition_enabled?(socket) and current_card_id?(socket, id) do
-      tcgdex_id = card_tcgdex_id(socket.assigns.cards, id)
-
-      socket =
-        assign(
-          socket,
-          :acquisition_states,
-          Map.put(socket.assigns.acquisition_states, tcgdex_id, :failed)
-        )
-
-      {:noreply,
-       rebuild(
-         socket,
-         socket.assigns.composition,
-         socket.assigns.cards,
-         socket.assigns.warning,
-         socket.assigns.selected_card
-       )}
-    else
-      {:noreply, socket}
-    end
-  end
-
   def handle_info({:card_mapping_changed, %{card_printing_id: id}}, socket)
       when is_binary(id) do
     mapping_changed(socket, id)
@@ -669,37 +610,7 @@ defmodule TcgCheapWeb.TradeLive do
   end
 
   defp request_acquisition(socket) do
-    if connected?(socket) and tcgdex_acquisition_enabled?(socket) do
-      ids = composition_ids(socket.assigns.composition)
-      new_ids = Enum.reject(ids, &MapSet.member?(socket.assigns.requested_card_ids, &1))
-      cards = new_ids |> Enum.map(&Map.get(socket.assigns.cards, &1)) |> Enum.reject(&is_nil/1)
-      requested_ids = MapSet.new(new_ids)
-
-      case cards do
-        [] ->
-          assign(
-            socket,
-            :requested_card_ids,
-            MapSet.union(socket.assigns.requested_card_ids, requested_ids)
-          )
-
-        cards ->
-          result =
-            ValuationAcquisition.subscribe_and_request_many(
-              Enum.take(cards, @max_acquisition),
-              request_admitter: PublicAcquisitionLimiter.admitter(socket.assigns.public_address)
-            )
-
-          states = acquisition_states(result, new_ids)
-
-          assign(socket,
-            requested_card_ids: MapSet.union(socket.assigns.requested_card_ids, requested_ids),
-            acquisition_states: Map.merge(socket.assigns.acquisition_states, states)
-          )
-      end
-    else
-      socket
-    end
+    socket
   end
 
   defp public_address(socket) do
@@ -709,23 +620,33 @@ defmodule TcgCheapWeb.TradeLive do
     end
   end
 
-  defp acquisition_state({:fresh, _}), do: :fresh
-  defp acquisition_state({:enqueued, _}), do: :fetching
-  defp acquisition_state({:error, _}), do: :failed
-
-  defp acquisition_states({:ok, results}, _ids),
-    do: Map.new(results, fn {id, status} -> {id, acquisition_state(status)} end)
-
-  defp acquisition_states({:error, _}, ids), do: Map.new(ids, &{&1, :failed})
-
   defp composition_ids(composition),
     do: (composition.left ++ composition.right) |> Enum.map(&elem(&1, 0)) |> Enum.uniq()
 
-  defp current_card_id?(socket, id),
-    do: card_tcgdex_id(socket.assigns.cards, id) in composition_ids(socket.assigns.composition)
+  defp sync_mapping_subscriptions(socket, cards) do
+    if connected?(socket) do
+      ids =
+        cards
+        |> Map.values()
+        |> Enum.map(&Map.get(&1, :id))
+        |> Enum.filter(&is_binary/1)
+        |> MapSet.new()
 
-  defp tcgdex_acquisition_enabled?(socket),
-    do: socket.assigns.valuation_policy == ValuationPolicy.tcgdex_policy()
+      subscribed = socket.assigns.subscribed_mapping_ids
+
+      Enum.each(MapSet.difference(subscribed, ids), fn id ->
+        Phoenix.PubSub.unsubscribe(TcgCheap.PubSub, ValuationNotifications.topic(id))
+      end)
+
+      Enum.each(MapSet.difference(ids, subscribed), fn id ->
+        :ok = ValuationNotifications.subscribe(%{id: id})
+      end)
+
+      assign(socket, :subscribed_mapping_ids, ids)
+    else
+      socket
+    end
+  end
 
   defp selected_after_reload(nil, _cards), do: nil
 

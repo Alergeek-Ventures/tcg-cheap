@@ -12,9 +12,7 @@ defmodule TcgCheap.Operations.ManualRefresh do
 
   alias TcgCheap.Operations.{AcquisitionBudget, DataProvider, ImportIssues}
   alias TcgCheap.Pricing.{ExchangeRateAcquisition, ExchangeRateWorker}
-  alias TcgCheap.Pricing.Singles.{ValuationAcquisition, ValuationWorker}
 
-  @max_card_id 240
   @max_adapters 100
   @max_source_key 144
 
@@ -108,18 +106,6 @@ defmodule TcgCheap.Operations.ManualRefresh do
             persisted_statuses,
             "nbp",
             worker_configured?(ExchangeRateWorker)
-          )
-      },
-      %{
-        kind: :single_valuation,
-        label: "TCGdex Cardmarket",
-        provider_key: "tcgdex_cardmarket",
-        status:
-          target_status(
-            budget,
-            persisted_statuses,
-            "tcgdex_cardmarket",
-            worker_configured?(ValuationWorker)
           )
       }
     ]
@@ -280,19 +266,6 @@ defmodule TcgCheap.Operations.ManualRefresh do
     end
   end
 
-  defp checked_enqueue({:single_valuation, id}, budget, _admin) do
-    with :ok <- valid_card_id(id),
-         :ok <-
-           provider_available?(
-             budget,
-             "tcgdex_cardmarket",
-             worker_configured?(ValuationWorker)
-           ),
-         {:ok, card} <- canonical_card(id) do
-      enqueue_job(fn -> ValuationAcquisition.enqueue(card) end)
-    end
-  end
-
   defp checked_enqueue({:sealed_retailer, id}, budget, admin) do
     with {:ok, uuid} <- cast_uuid(id),
          {:ok, retailer} <- active_retailer(uuid, admin),
@@ -306,22 +279,6 @@ defmodule TcgCheap.Operations.ManualRefresh do
   end
 
   defp checked_enqueue(_, _, _), do: {:error, :invalid_target}
-
-  defp valid_card_id(id) when is_binary(id) and byte_size(id) in 1..@max_card_id do
-    if id == String.trim(id), do: :ok, else: {:error, :invalid_target}
-  end
-
-  defp valid_card_id(_), do: {:error, :invalid_target}
-
-  defp canonical_card(id) do
-    case TcgCheap.Core.get_card_printing_by_tcgdex_id(id) do
-      {:ok, card} ->
-        {:ok, card}
-
-      {:error, error} ->
-        if(not_found?(error), do: {:error, :invalid_target}, else: {:error, error})
-    end
-  end
 
   defp cast_uuid(id) when is_binary(id) do
     case Ecto.UUID.cast(id) do

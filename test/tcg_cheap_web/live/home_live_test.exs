@@ -3,7 +3,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
   use TcgCheapWeb.ConnCase, async: false
 
   alias TcgCheap.Core
-  alias TcgCheap.Pricing.Singles.{ValuationPolicy, ValuationPolicyCache}
+  alias TcgCheap.Pricing.Singles.ValuationPolicy
   alias TcgCheapWeb.HomeLive
 
   test "mounts the singles decision surface by default", %{conn: conn} do
@@ -530,8 +530,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
         card_printing_id: card.id,
         value_eur: Decimal.new(value),
         currency: "EUR",
-        policy_version: "tcgdex_cardmarket_v1",
-        source: "tcgdex",
+        policy_version: "cardmarket_bulk_v1",
+        source: "cardmarket_bulk",
         source_metric: "cardmarket_average_sell_price",
         fetched_at: fetched_at,
         cardmarket_product_id: card.cardmarket_product_id
@@ -570,7 +570,9 @@ defmodule TcgCheapWeb.HomeLiveTest do
     refute has_element?(view, "#market-movers-intro")
   end
 
-  test "does not mix valuation policies when both snapshots are present", %{conn: conn} do
+  test "uses the fixed Cardmarket bulk snapshot when historical snapshots are present", %{
+    conn: conn
+  } do
     suffix = System.unique_integer([:positive])
     search_term = "policy-mix-#{suffix}"
     now = DateTime.utc_now() |> DateTime.truncate(:second)
@@ -612,11 +614,11 @@ defmodule TcgCheapWeb.HomeLiveTest do
     {:ok, view, _html} = live(conn, ~p"/")
     render_hook(view, "search", %{"search" => %{"query" => search_term}})
 
-    assert has_element?(view, "#card-estimate-#{card.id}", "€12.30")
-    refute has_element?(view, "#card-estimate-#{card.id}", "€99.99")
+    assert has_element?(view, "#card-estimate-#{card.id}", "€99.99")
+    refute has_element?(view, "#card-estimate-#{card.id}", "€12.30")
   end
 
-  test "mounted search refreshes from bulk to TCGdex after policy invalidation", %{conn: conn} do
+  test "mounted search renders the bulk valuation", %{conn: conn} do
     suffix = System.unique_integer([:positive])
     search_term = "mounted-policy-#{suffix}"
     now = DateTime.utc_now() |> DateTime.truncate(:second)
@@ -655,28 +657,12 @@ defmodule TcgCheapWeb.HomeLiveTest do
       })
     end
 
-    previous = Application.get_env(:tcg_cheap, :public_singles_valuation_policy)
-
-    Application.put_env(
-      :tcg_cheap,
-      :public_singles_valuation_policy,
-      ValuationPolicy.bulk_policy()
-    )
-
-    seed_bulk_policy_cache()
-
-    on_exit(fn ->
-      Application.put_env(:tcg_cheap, :public_singles_valuation_policy, previous)
-      ValuationPolicyCache.invalidate()
-    end)
-
     {:ok, view, _html} = live(conn, ~p"/")
     render_hook(view, "search", %{"search" => %{"query" => search_term}})
     assert_patch(view, "/?" <> URI.encode_query(%{q: String.downcase(search_term)}))
     assert has_element?(view, "#card-estimate-#{card.id}", "€99.99")
 
-    ValuationPolicyCache.invalidate()
-    assert has_element?(view, "#card-estimate-#{card.id}", "€12.30")
+    assert has_element?(view, "#card-estimate-#{card.id}", "€99.99")
     assert has_element?(view, "#card-search-query[value='#{String.downcase(search_term)}']")
   end
 
@@ -953,8 +939,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
     Core.record_single_valuation!(%{
       card_printing_id: card.id,
       value_eur: Decimal.new("12.30"),
-      policy_version: "tcgdex_cardmarket_v1",
-      source: "tcgdex_cardmarket",
+      policy_version: "cardmarket_bulk_v1",
+      source: "cardmarket_bulk",
       source_metric: "avg7",
       fetched_at: now,
       cardmarket_product_id: suffix
@@ -1021,8 +1007,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
         Core.record_single_valuation!(%{
           card_printing_id: card.id,
           value_eur: Decimal.new("#{index}.00"),
-          policy_version: "tcgdex_cardmarket_v1",
-          source: "tcgdex_cardmarket",
+          policy_version: "cardmarket_bulk_v1",
+          source: "cardmarket_bulk",
           source_metric: "avg7",
           fetched_at: DateTime.add(now, -index, :day),
           cardmarket_product_id: card.cardmarket_product_id
@@ -1289,8 +1275,8 @@ defmodule TcgCheapWeb.HomeLiveTest do
       Core.record_single_valuation!(%{
         card_printing_id: card.id,
         value_eur: Decimal.new(value),
-        policy_version: "tcgdex_cardmarket_v1",
-        source: "tcgdex_cardmarket",
+        policy_version: "cardmarket_bulk_v1",
+        source: "cardmarket_bulk",
         source_metric: "avg7",
         fetched_at: DateTime.add(now, -days_ago * 86_400, :second),
         cardmarket_product_id: card.cardmarket_product_id
@@ -1334,15 +1320,5 @@ defmodule TcgCheapWeb.HomeLiveTest do
     end
 
     {product, Date.add(today, -14), today}
-  end
-
-  defp seed_bulk_policy_cache do
-    :sys.replace_state(ValuationPolicyCache, fn state ->
-      %{
-        state
-        | policy: ValuationPolicy.bulk_policy(),
-          expires_at: System.monotonic_time(:millisecond) + 30_000
-      }
-    end)
   end
 end

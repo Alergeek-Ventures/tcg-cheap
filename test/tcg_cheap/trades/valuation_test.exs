@@ -54,7 +54,15 @@ defmodule TcgCheap.Trades.ValuationTest do
   end
 
   defp card(%SingleValuationSnapshot{} = valuation),
-    do: %{tcgdex_cardmarket_v1_current_valuation: valuation}
+    do: %{
+      cardmarket_product_id: 1,
+      cardmarket_bulk_v1_current_valuation: %{
+        valuation
+        | policy_version: "cardmarket_bulk_v1",
+          current?: true,
+          cardmarket_product_id: 1
+      }
+    }
 
   defp card(value), do: card(valuation(value, DateTime.add(@now, -1, :hour)))
 

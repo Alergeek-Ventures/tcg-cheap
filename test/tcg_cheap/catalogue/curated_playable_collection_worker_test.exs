@@ -89,7 +89,7 @@ defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorkerTest do
     %{agent: agent, admissions: admissions}
   end
 
-  test "validates, admits exactly card then set, imports, scopes, and queues matched valuation",
+  test "validates, admits exactly card then set, imports, and scopes without valuation acquisition",
        %{agent: agent, admissions: admissions} do
     entry = CuratedPlayablePolicy.entry("me01-131")
 
@@ -109,11 +109,7 @@ defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorkerTest do
     assert imported.collection_scopes == ["curated_playable"]
     assert imported.collection_expires_on == ~D[2026-11-17]
 
-    assert_enqueued(
-      repo: TcgCheap.Repo,
-      worker: TcgCheap.Pricing.Singles.ValuationWorker,
-      args: %{"tcgdex_id" => entry.tcgdex_id}
-    )
+    refute_enqueued(repo: TcgCheap.Repo, worker: TcgCheap.Pricing.Singles.ValuationWorker)
   end
 
   test "unknown, malformed, and out-of-window jobs do not call provider or admission", %{

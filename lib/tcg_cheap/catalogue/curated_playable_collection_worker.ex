@@ -14,7 +14,6 @@ defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorker do
   alias TcgCheap.Catalogue.{CatalogueSyncWorker, CuratedPlayablePolicy, Importer}
   alias TcgCheap.Core
   alias TcgCheap.Operations.AcquisitionTracker
-  alias TcgCheap.Pricing.Singles.ValuationAcquisition
 
   def timeout(_), do: :timer.seconds(360)
 
@@ -97,15 +96,14 @@ defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorker do
              expected_set_id: entry.set_id
            ),
          {:ok, local} <- Core.get_card_printing_by_tcgdex_id(entry.tcgdex_id),
-         {:ok, updated} <-
+         {:ok, _updated} <-
            Core.add_card_printing_collection_scopes(
              local,
              ["curated_playable"],
              CuratedPlayablePolicy.expires_on(),
              scoped_at,
              authorize?: false
-           ),
-         :ok <- maybe_valuation(updated) do
+           ) do
       :ok
     else
       _ -> {:error, :persistence_failed}
@@ -152,17 +150,6 @@ defmodule TcgCheap.Catalogue.CuratedPlayableCollectionWorker do
   defp set_link?(%{"id" => id}, id), do: true
   defp set_link?(id, id) when is_binary(id), do: true
   defp set_link?(_, _), do: false
-
-  defp maybe_valuation(%{mapping_status: "matched"} = card) do
-    case ValuationAcquisition.enqueue_if_stale_background(card) do
-      {:fresh, _} -> :ok
-      {:enqueued, _} -> :ok
-      {:error, :unpriced_mapping} -> :ok
-      _ -> {:error, :persistence_failed}
-    end
-  end
-
-  defp maybe_valuation(_), do: :ok
 
   defp safe_fetch(module, function, args) do
     case apply(module, function, args) do

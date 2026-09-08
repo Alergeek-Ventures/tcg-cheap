@@ -10,7 +10,6 @@ defmodule TcgCheap.Application do
     children = [
       TcgCheapWeb.Telemetry,
       TcgCheap.Repo,
-      TcgCheap.Pricing.Singles.ValuationPolicyCache,
       {AshAuthentication.Supervisor, otp_app: :tcg_cheap},
       {TcgCheapWeb.AdminLoginLimiter, Application.get_env(:tcg_cheap, :admin_login_limiter, [])},
       {TcgCheapWeb.PublicAcquisitionLimiter,

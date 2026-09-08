@@ -183,7 +183,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       prepare build(
                 load: [
                   :card_set,
-                  :tcgdex_cardmarket_v1_current_valuation,
                   :cardmarket_bulk_v1_current_valuation
                 ]
               )
@@ -245,7 +244,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
 
       prepare build(
                 load: [
-                  :tcgdex_cardmarket_v1_current_valuation,
                   :cardmarket_bulk_v1_current_valuation
                 ],
                 sort: [tcgdex_id: :asc, id: :asc],
@@ -264,7 +262,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       prepare build(
                 load: [
                   :card_set,
-                  :tcgdex_cardmarket_v1_current_valuation,
                   :cardmarket_bulk_v1_current_valuation
                 ]
               )
@@ -282,7 +279,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       prepare build(
                 load: [
                   :card_set,
-                  :tcgdex_cardmarket_v1_current_valuation,
                   :cardmarket_bulk_v1_current_valuation
                 ]
               )
@@ -295,7 +291,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
 
       prepare build(
                 load: [
-                  :tcgdex_cardmarket_v1_current_valuation,
                   :cardmarket_bulk_v1_current_valuation
                 ],
                 sort: [last_synced_at: :desc, tcgdex_id: :asc, id: :asc],
@@ -308,7 +303,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
 
       prepare build(
                 load: [
-                  :tcgdex_cardmarket_v1_current_valuation,
                   :cardmarket_bulk_v1_current_valuation
                 ],
                 sort: [last_synced_at: :desc, tcgdex_id: :asc, id: :asc],

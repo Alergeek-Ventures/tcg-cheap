@@ -108,10 +108,7 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
 
     assert_receive {:card_detail_enrichment_completed, %{local_card_id: id}} when id == card.id
 
-    assert {:ok, [%{value_eur: seven}]} =
-             Core.list_current_single_valuations(card.id, authorize?: false)
-
-    assert Decimal.equal?(seven, Decimal.new("2.5"))
+    assert {:ok, []} = Core.list_current_single_valuations(card.id, authorize?: false)
 
     assert {:ok, [run]} =
              Operations.list_recent_acquisition_runs(["tcgdex_catalogue"], 10, authorize?: false)
@@ -189,10 +186,7 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
     assert stored.details_synced_at == synced_at
     assert stored.pricing_checked_at != nil
 
-    assert {:ok, [%{value_eur: seven}]} =
-             Core.list_current_single_valuations(card.id, authorize?: false)
-
-    assert Decimal.equal?(seven, Decimal.new("2.5"))
+    assert {:ok, []} = Core.list_current_single_valuations(card.id, authorize?: false)
 
     assert_enqueued(
       repo: TcgCheap.Repo,
@@ -212,12 +206,12 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorkerTest do
       TcgCheap.Catalogue.CardDetailEnrichmentWorkerFailingValuation
     )
 
-    assert {:snooze, 60} = CardDetailEnrichmentWorker.perform(job(card, true, 38, 5))
+    assert :ok = CardDetailEnrichmentWorker.perform(job(card, true, 38, 5))
     assert %{fetch_cards: 0} = Agent.get(provider, & &1)
-    refute_enqueued(repo: TcgCheap.Repo, worker: CardDetailEnrichmentWorker)
+    assert_enqueued(repo: TcgCheap.Repo, worker: CardDetailEnrichmentWorker)
 
     stored = Core.get_card_printing_by_tcgdex_id!(card.tcgdex_id)
-    assert stored.pricing_checked_at == nil
+    assert stored.pricing_checked_at != nil
     assert {:ok, []} = Core.list_current_single_valuations(card.id, authorize?: false)
   end
 

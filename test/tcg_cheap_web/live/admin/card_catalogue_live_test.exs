@@ -41,7 +41,7 @@ defmodule TcgCheapWeb.Admin.CardCatalogueLiveTest do
 
     assert {:ok, [result]} = Core.search_card_printings(card.name)
     assert result.card_set.tcgdex_id == set.tcgdex_id
-    valuation = result.tcgdex_cardmarket_v1_current_valuation
+    valuation = result.cardmarket_bulk_v1_current_valuation
     assert valuation.current? == true
     assert %Ash.NotLoaded{} = result.variant_data
     assert %Ash.NotLoaded{} = result.source_payload
@@ -343,7 +343,7 @@ defmodule TcgCheapWeb.Admin.CardCatalogueLiveTest do
           card_printing_id: card.id,
           value_eur: Decimal.new("0.99"),
           currency: "EUR",
-          policy_version: "tcgdex_cardmarket_v1",
+          policy_version: "cardmarket_bulk_v1",
           source: "Cardmarket",
           source_metric: "average",
           fetched_at: now,

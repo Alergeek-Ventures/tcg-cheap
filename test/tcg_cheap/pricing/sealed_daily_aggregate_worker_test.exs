@@ -53,14 +53,11 @@ defmodule TcgCheap.Pricing.SealedDailyAggregateWorkerTest do
             [args: %{"evidence_version" => "2026-08-19-naic"}]} =
              Enum.at(crontab, 1)
 
-    assert {"0 14 * * *", TcgCheap.Pricing.Singles.ValuationRefreshWorker, [args: %{}]} =
+    assert {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker, [args: nbp_args]} =
              Enum.at(crontab, 2)
 
-    assert {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker, [args: nbp_args]} =
-             Enum.at(crontab, 3)
-
     assert nbp_args == %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}
-    assert {"0 16 * * *", SealedDailyAggregateWorker, [args: %{}]} = Enum.at(crontab, 4)
+    assert {"0 16 * * *", SealedDailyAggregateWorker, [args: %{}]} = Enum.at(crontab, 3)
   end
 
   test "cancels malformed clock configuration and clock results" do

@@ -5,7 +5,6 @@ defmodule TcgCheapWeb.HomeLive do
   alias TcgCheap.Catalogue.SearchText
   alias TcgCheap.Pricing.Singles.Freshness
   alias TcgCheap.Pricing.Singles.ValuationPolicy
-  alias TcgCheap.Pricing.Singles.ValuationPolicyCache
 
   @max_autocomplete_options 10
   @max_discovery_rows 6
@@ -106,8 +105,7 @@ defmodule TcgCheapWeb.HomeLive do
      |> stream(:fallback_cards, [])
      |> stream(:fallback_sealed, [])
      |> stream(:idle_recent_cards, recent_cards)
-     |> stream(:idle_recent_sealed, recent_sealed)
-     |> maybe_subscribe_policy()}
+     |> stream(:idle_recent_sealed, recent_sealed)}
   end
 
   @impl true
@@ -119,11 +117,6 @@ defmodule TcgCheapWeb.HomeLive do
     else
       refresh_policy_surface(socket, policy)
     end
-  end
-
-  defp maybe_subscribe_policy(socket) do
-    if connected?(socket), do: :ok = ValuationPolicyCache.subscribe()
-    socket
   end
 
   defp refresh_policy_surface(socket, policy) do

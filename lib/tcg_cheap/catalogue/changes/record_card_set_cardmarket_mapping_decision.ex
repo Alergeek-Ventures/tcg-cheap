@@ -4,7 +4,6 @@ defmodule TcgCheap.Catalogue.Changes.RecordCardSetCardmarketMappingDecision do
   alias TcgCheap.Accounts.Admin
   alias TcgCheap.Catalogue.CardmarketExpansionMapping
   alias TcgCheap.Pricing.CardmarketBulk.MappingReplayWorker
-  alias TcgCheap.Pricing.Singles.ValuationPolicyCache
 
   def change(changeset, _opts, context),
     do:
@@ -13,7 +12,6 @@ defmodule TcgCheap.Catalogue.Changes.RecordCardSetCardmarketMappingDecision do
       |> Ash.Changeset.after_transaction(&invalidate_after_commit/2)
 
   defp invalidate_after_commit(_changeset, {:ok, _result} = outcome) do
-    ValuationPolicyCache.invalidate()
     outcome
   end
 
