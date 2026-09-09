@@ -10,4 +10,10 @@ defmodule TcgCheap.Catalogue.SearchText do
   end
 
   def normalize(_value), do: ""
+
+  def normalize_cardmarket_name(value) do
+    value
+    |> normalize()
+    |> String.replace(~r/[‘’ʼ＇]/u, "'")
+  end
 end

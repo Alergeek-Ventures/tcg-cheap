@@ -1,5 +1,17 @@
 # Wiki Log
 
+## [2026-09-09] Local Cardmarket mapping repair documentation
+
+- Task: Applied the llm-wiki codebase-update workflow for the completed local Cardmarket mapping repair while preserving all historical text and unrelated Sealed/operations MVP requirements. Recorded healthy production revision `0f661a07e22db1f8e2ce910fc2a6bbcbdfc6d0a8`, local/uncommitted/not-deployed status, `me01-119`/`851190`/€0.52 evidence, strict TCGdex identity extraction, Cardmarket-only folding, append-only evidence identity, generated forward-only migration, and operator-only `LatestBatchRecoveryWorker` behavior.
+- Files: Updated exactly `knowledge-base/wiki/architecture/application-foundation.md`, `knowledge-base/wiki/architecture/provider-acquisition-feasibility.md`, `knowledge-base/wiki/product/mvp-implementation-plan.md`, `knowledge-base/wiki/index.md`, and `knowledge-base/wiki/log.md`. Raw: N/A — codebase update. No `knowledge-base/raw/` or non-wiki file was modified.
+- Validation: `direnv exec . mix check --verbose` passed all static gates, Dialyzer, and 1,091 tests; generated code is Ash-codegen-clean; the exact new unique index was observed in the test DB; final review found no critical/high issues and corrected one medium documentation ambiguity; `git diff --check` passed. Residual risks are brief evidence-write locking during non-concurrent index replacement and safely skipped concurrent catalogue updates requiring remaining-review verification.
+- Remaining boundary: Commit/push/CI/Coolify migration/deploy, running-release RPC enqueue, authenticated Oban/Operations inspection, exact evidence/materialization verification, and public CardDetail/Trade/browser verification remain pending/unclaimed. The correction does not narrow Sealed or operations MVP requirements.
+
+## [2026-09-09] Deterministic wiki lint | Local Cardmarket mapping repair
+
+- Validation: 5 durable articles, 5/5 indexed, 15/15 exact `Updated`/`Sources`/`Raw` metadata fields, 76 relative Markdown links checked (22 wiki/internal and 54 raw links), all resolved against their respective roots, immutable raw untouched, and `git diff --check` passed. 0 deterministic issues and 0 auto-fixes.
+- Heuristic review: Current/local Cardmarket mapping repair, one-time operator-only latest-batch recovery, production/unpriced and deployment boundaries, source identity rules, evidence uniqueness, idempotent persistence/at-least-once PubSub, queue timing, residual risks, validation, and pending operator/public verification are recorded consistently; all historical text and unrelated Sealed/operations requirements remain preserved.
+
 ## [2026-09-08] Singles bulk-only architecture and production reconciliation
 
 - Task: Applied the llm-wiki codebase-update workflow while preserving the MVP plan as the current north star and retaining all unrelated Sealed/operations requirements. Reconciled Singles to fixed `cardmarket_bulk_v1` public/new-write pricing, TCGdex catalogue/detail/image/Cardmarket identity, honest stale/unpriced local surfaces, post-commit batch/mapping invalidations, strict bulk evidence/materialization safeguards, and read-only admin diagnostics.

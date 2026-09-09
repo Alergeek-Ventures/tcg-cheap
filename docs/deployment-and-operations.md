@@ -278,6 +278,58 @@ stale/unpriced states, and reload after mapping or batch invalidation. Do not
 look for readiness/cutover controls or a TCGdex comparison; Operations is
 read-only diagnostics.
 
+### One-time Cardmarket mapping recovery (2026-09-09 release)
+
+The local 2026-09-09 correction fixes strict TCGdex→Cardmarket identity
+extraction and material handling, including Unicode-apostrophe matching. It
+does not change the source contract: TCGdex remains metadata/identity only and
+Cardmarket bulk remains the sole Singles price source. The generated,
+forward-only evidence-index migration
+`20260909095551_append_cardmarket_mapping_evidence_decisions.exs` permits
+append-only review→anchor evidence for the same successful batch; it does not
+rewrite immutable history.
+
+This is a one-time recovery after this release, not a deploy hook. Deployment
+and all migrations must complete first, and `/health` must show the intended
+fixed revision before enqueueing. Deploying alone does not enqueue recovery,
+and the normal 03:00 UTC sync does not rescan legacy reviews.
+
+From the running Coolify container, run exactly this release RPC (not `eval`,
+startup, migration, or web-control commands):
+
+```sh
+/app/bin/tcg_cheap rpc 'IO.inspect(TcgCheap.Pricing.CardmarketBulk.LatestBatchRecoveryWorker.enqueue(), label: "cardmarket_mapping_recovery_v1")'
+```
+
+Inspect the RPC result: `conflict?: false` means the canonical job was newly
+inserted; `conflict?: true` means the unique canonical job already exists, so do
+not enqueue another. Inspect that canonical job in `/admin/oban`. Its args must
+remain exactly the fixed revision `cardmarket_mapping_recovery_v1`; it has a
+maximum of five attempts and replays only the latest successful Cardmarket bulk
+batch. The recovery makes no provider HTTP requests, freezes at most 100,000
+candidates, and fails closed on strict immutable-history, provider, and
+current-version checks. It preserves administrator-owned mappings and
+arbitrary/unverified reviews,
+does not overwrite immutable history, appends eligible review→anchor evidence,
+and database persistence is idempotent. Run it only once after this release.
+PubSub invalidations are at-least-once across retries; consumers must tolerate
+duplicate events.
+Recovery performs sequential per-card writes and can occupy the
+single-concurrency `cardmarket_bulk` queue. Run it outside the 03:00 UTC
+sync window, monitor its duration, and treat the 100,000 candidate cap as a
+safety ceiling rather than expected volume.
+
+If it fails, do not alter its args or revision and do not bypass validation.
+Inspect the Oban job error and retry history. A scan-cap failure performs no
+recovery. Do not manually repeat or substitute a legacy/HTTP path.
+
+Verify the job completed successfully, then verify in Operations the exact
+materialization and absence of ambiguity; verify immutable review and anchor
+evidence/history; and check `/cards/me01-119`, Trade, and the expected latest
+staged `avg7` (incident checkpoint: €0.52). Also check browser console/network
+health and `/health`. This documents the procedure only: it does not claim
+deployment or production execution.
+
 ## Historical/superseded Cardmarket bulk shadow rollout and cutover
 
 The Cardmarket bulk implementation is deployed in
@@ -356,8 +408,9 @@ approved exact staged-value/metric-matching valuations. Malformed configuration/
 and unready/error states fall back to TCGdex. Review shows 25 rows plus `25+`,
 uses authorized reads, scans at most 1,000 rows fail-closed, and renders only
 bounded safe evidence. Successful persisted sync/replay publishes mapping
-invalidations only after commit; retryable notification failure re-notifies
-idempotently. No rollback or normal attempt-1 no-op broadcasts.
+invalidations only after commit; database persistence is idempotent but retryable
+notification delivery is at-least-once and may duplicate. No rollback or normal
+attempt-1 no-op broadcasts.
 
 When active, Home/search/recent/movers, CardDetail current/history, and Trade
 totals consistently use bulk without per-card fallback or source mixing; routine

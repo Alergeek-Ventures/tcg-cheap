@@ -37,6 +37,49 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalkTest do
     assert anchor.cardmarket_product_id == remapped_product_id(101)
   end
 
+  test "Cardmarket apostrophe folding matches a canonical name" do
+    batch = batch()
+    set = set()
+    card(set, "Anchor", mapping_status: "matched", product_id: 111)
+    target = card(set, "Lillie's Determination")
+    product(batch, 7, "anchor", 111)
+    product(batch, 7, "Lillie’s Determination", 112)
+
+    assert {:ok, summary} = CardmarketCrosswalk.run(batch)
+    assert summary.auto_matched == 1
+
+    assert {:ok, matched} =
+             Core.get_card_printing_by_tcgdex_id(target.tcgdex_id, authorize?: false)
+
+    assert matched.cardmarket_product_id == remapped_product_id(112)
+
+    assert {:ok, evidence} =
+             Core.list_cardmarket_card_mapping_evidence_for_batch(batch.id, authorize?: false)
+
+    row = Enum.find(evidence, &(&1.card_printing_id == target.id))
+    assert row.normalized_card_name == "lillie's determination"
+  end
+
+  test "Cardmarket straight and curly apostrophes are duplicate staged names" do
+    batch = batch()
+    set = set()
+    card(set, "Anchor", mapping_status: "matched", product_id: 121)
+    target = card(set, "Lillie's Determination")
+    product(batch, 7, "anchor", 121)
+    product(batch, 7, "Lillie's Determination", 122)
+    product(batch, 7, "Lillie’s Determination", 123)
+
+    assert {:ok, summary} = CardmarketCrosswalk.run(batch)
+    assert summary.auto_matched == 0
+    assert summary.review == 1
+
+    assert {:ok, refreshed} =
+             Core.get_card_printing_by_tcgdex_id(target.tcgdex_id, authorize?: false)
+
+    assert refreshed.mapping_status == "review"
+    assert refreshed.mapping_review_reason == "cardmarket_bulk_v1:duplicate staged product name"
+  end
+
   test "processes an eligible anchor beyond the first cursor page" do
     batch = batch()
     missing_set = set()
@@ -292,6 +335,80 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalkTest do
            end)
 
     assert {:error, _} = Core.record_cardmarket_card_mapping_evidence(%{}, authorize?: true)
+  end
+
+  test "appends anchor evidence after a prior review on the same batch" do
+    batch = batch()
+    set = set()
+    card(set, "Anchor", mapping_status: "matched", product_id: 551)
+    target = card(set, "Target")
+    product(batch, 5, "anchor", 551)
+    product(batch, 5, "target", 552)
+    product(batch, 5, "target", 553)
+
+    assert {:ok, first} = CardmarketCrosswalk.run(batch)
+    assert first.review == 1
+
+    assert {:ok, reviewed} =
+             Core.get_card_printing_by_tcgdex_id(target.tcgdex_id, authorize?: false)
+
+    assert reviewed.mapping_status == "review"
+
+    Repo.query!(
+      "UPDATE card_printings SET mapping_status = 'matched', mapping_authority = 'provider', mapping_review_reason = NULL, cardmarket_product_id = $1 WHERE id = $2",
+      [remapped_product_id(552), Ecto.UUID.dump!(target.id)]
+    )
+
+    assert {:ok, second} = CardmarketCrosswalk.run(batch)
+    assert second.preserved == 1
+
+    assert {:ok, evidence} =
+             Core.list_cardmarket_card_mapping_evidence_for_batch(batch.id, authorize?: false)
+
+    target_evidence = Enum.filter(evidence, &(&1.card_printing_id == target.id))
+    assert Enum.count(target_evidence, &(&1.decision == "review")) == 1
+    assert Enum.count(target_evidence, &(&1.decision == "anchor")) == 1
+
+    history_count =
+      length(Core.list_card_printing_mapping_decision_history!(target.id, authorize?: false))
+
+    assert {:ok, third} = CardmarketCrosswalk.run(batch)
+    assert third.already_processed == 2
+
+    assert {:ok, evidence_after} =
+             Core.list_cardmarket_card_mapping_evidence_for_batch(batch.id, authorize?: false)
+
+    assert length(evidence_after) == length(evidence)
+
+    assert length(Core.list_card_printing_mapping_decision_history!(target.id, authorize?: false)) ==
+             history_count
+  end
+
+  test "pending cards are not skipped by prior unmatched evidence" do
+    batch = batch()
+    set = set()
+    card(set, "Anchor", mapping_status: "matched", product_id: 561)
+    target = card(set, "Target")
+    product(batch, 5, "anchor", 561)
+
+    assert {:ok, first} = CardmarketCrosswalk.run(batch)
+    assert first.unmatched == 1
+
+    assert {:ok, pending} =
+             Core.get_card_printing_by_tcgdex_id(target.tcgdex_id, authorize?: false)
+
+    assert pending.mapping_status == "pending"
+
+    product(batch, 5, "target", 562)
+
+    assert {:ok, second} = CardmarketCrosswalk.run(batch)
+    assert second.auto_matched == 1
+
+    assert {:ok, refreshed} =
+             Core.get_card_printing_by_tcgdex_id(target.tcgdex_id, authorize?: false)
+
+    assert refreshed.mapping_status == "matched"
+    assert refreshed.cardmarket_product_id == remapped_product_id(562)
   end
 
   test "administrator-owned cards survive replay with superseded auto-match evidence" do

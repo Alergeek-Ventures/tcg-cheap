@@ -1,7 +1,7 @@
 defmodule TcgCheap.Catalogue.MaterialVariantTest do
   use ExUnit.Case, async: true
 
-  alias TcgCheap.Catalogue.MaterialVariant
+  alias TcgCheap.Catalogue.{CardmarketMapping, MaterialVariant}
 
   test "preserves importer material flags and deterministic reasons" do
     for {key, reason} <- [
@@ -56,6 +56,62 @@ defmodule TcgCheap.Catalogue.MaterialVariantTest do
     end
 
     refute MaterialVariant.conflict?(%{"firstEdition" => false, "wPromo" => false})
+  end
+
+  test "unmapped promotional details do not poison mapped ordinary details" do
+    classification =
+      CardmarketMapping.classify(
+        %{},
+        %{},
+        [
+          %{
+            "type" => "normal",
+            "subtype" => "unlimited",
+            "size" => "standard",
+            "pricing" => %{"cardmarket" => %{"idProduct" => 851_190}}
+          },
+          %{
+            "type" => "reverse",
+            "subtype" => "unlimited",
+            "size" => "standard",
+            "pricing" => %{"cardmarket" => %{"idProduct" => 851_190}}
+          },
+          %{"type" => "stamped", "stamp" => "cosmos"},
+          %{"type" => "stamped", "stamp" => "gold"}
+        ]
+      )
+
+    assert classification == %{
+             status: "matched",
+             reason: nil,
+             cardmarket_product_id: 851_190
+           }
+  end
+
+  test "mapped material descriptors and conflicting IDs require review" do
+    for detail <- [
+          %{
+            "type" => "normal",
+            "foil" => "pokeball",
+            "pricing" => %{"cardmarket" => %{"idProduct" => 851_190}}
+          },
+          %{
+            "type" => "normal",
+            "size" => "oversized",
+            "pricing" => %{"cardmarket" => %{"idProduct" => 851_190}}
+          }
+        ] do
+      assert CardmarketMapping.classify(%{}, %{}, [detail]).status == "review"
+    end
+
+    assert CardmarketMapping.classify(
+             %{},
+             %{},
+             [
+               %{"pricing" => %{"cardmarket" => %{"idProduct" => 1}}},
+               %{"pricing" => %{"cardmarket" => %{"idProduct" => 2}}}
+             ]
+           ).reason == "multiple Cardmarket product IDs"
   end
 
   test "detects obvious Cardmarket markers but allows benign names" do

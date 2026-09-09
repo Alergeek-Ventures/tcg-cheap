@@ -33,8 +33,8 @@ defmodule TcgCheap.Pricing.CardmarketBulk.MappingNotifications do
     query =
       CardmarketCardMappingEvidence
       |> Ash.Query.for_read(:by_batch, %{source_batch_id: batch_id})
-      |> Ash.Query.select([:card_printing_id])
-      |> Ash.Query.sort(card_printing_id: :asc)
+      |> Ash.Query.select([:card_printing_id, :id])
+      |> Ash.Query.sort(card_printing_id: :asc, id: :asc)
       |> Ash.Query.limit(@page_size)
       |> Ash.Query.offset(offset)
 
@@ -43,7 +43,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.MappingNotifications do
         ids = Enum.reduce(records, ids, &MapSet.put(&2, &1.card_printing_id))
 
         if length(records) < @page_size do
-          {:ok, MapSet.to_list(ids)}
+          {:ok, ids |> MapSet.to_list() |> Enum.sort()}
         else
           read_pages(batch_id, offset + @page_size, ids)
         end

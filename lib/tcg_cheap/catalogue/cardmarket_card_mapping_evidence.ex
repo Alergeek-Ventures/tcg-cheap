@@ -9,8 +9,8 @@ defmodule TcgCheap.Catalogue.CardmarketCardMappingEvidence do
     table "cardmarket_card_mapping_evidence"
     repo TcgCheap.Repo
 
-    identity_index_names unique_batch_mapping_card_printing:
-                           "cm_card_evidence_batch_mapping_printing_idx"
+    identity_index_names unique_batch_mapping_card_decision_product:
+                           "cm_card_evidence_batch_mapping_decision_product_idx"
 
     custom_indexes do
       index [:source_batch_id]
@@ -118,10 +118,14 @@ defmodule TcgCheap.Catalogue.CardmarketCardMappingEvidence do
   end
 
   identities do
-    identity :unique_batch_mapping_card_printing, [
-      :source_batch_id,
-      :expansion_mapping_id,
-      :card_printing_id
-    ]
+    identity :unique_batch_mapping_card_decision_product,
+             [
+               :source_batch_id,
+               :expansion_mapping_id,
+               :card_printing_id,
+               :decision,
+               :cardmarket_product_id
+             ],
+             nils_distinct?: false
   end
 end

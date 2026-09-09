@@ -62,7 +62,8 @@ defmodule TcgCheap.Pricing.CardmarketBulk.MappingReplayWorker do
     end
   end
 
-  defp replay(batch) do
+  @doc "Replays the exact materialization sequence for a succeeded batch."
+  def replay_succeeded_batch(%Batch{status: "succeeded"} = batch) do
     Ash.transact(
       [
         CardmarketExpansionMapping,
@@ -83,4 +84,8 @@ defmodule TcgCheap.Pricing.CardmarketBulk.MappingReplayWorker do
         {:error, reason}
     end
   end
+
+  def replay_succeeded_batch(_), do: {:error, :batch_not_succeeded}
+
+  defp replay(batch), do: replay_succeeded_batch(batch)
 end

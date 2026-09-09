@@ -1,6 +1,5 @@
 defmodule TcgCheap.Catalogue.MaterialVariant do
   @moduledoc "Conservative material-variant semantics shared by importing and crosswalking."
-
   @record_keys ~w(type subtype stamp stamps size firstEdition wPromo jumbo preRelease foil)
 
   @spec descriptors(map() | list(), map() | list()) :: map()
@@ -30,6 +29,9 @@ defmodule TcgCheap.Catalogue.MaterialVariant do
         |> Enum.sort()
     }
   end
+
+  @doc "Evaluates Cardmarket-filtered details while retaining top-level variant flags."
+  def cardmarket_descriptors(variants, detailed), do: descriptors(variants, detailed)
 
   def conflict?(%{first_edition: _} = material),
     do:

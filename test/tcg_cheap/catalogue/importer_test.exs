@@ -5,6 +5,7 @@ defmodule TcgCheap.Catalogue.ImporterTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias TcgCheap.{Catalogue.Importer, Core, Repo}
+  alias TcgCheap.Pricing.Singles.ValuationNotifications
 
   defmodule MismatchProvider do
     def fetch_card(_, _),
@@ -128,6 +129,37 @@ defmodule TcgCheap.Catalogue.ImporterTest do
          }}
 
     def fetch_set(_, _), do: {:ok, %{"id" => "foil-material-set", "name" => "Set"}}
+  end
+
+  defmodule LilliesProvider do
+    def fetch_card(_, _),
+      do:
+        {:ok,
+         %{
+           "id" => "me01-119",
+           "name" => "Lillie's Determination",
+           "localId" => "119",
+           "set" => %{"id" => "me01"},
+           "pricing" => %{"cardmarket" => %{"idProduct" => 851_190}},
+           "variants_detailed" => [
+             %{
+               "type" => "normal",
+               "subtype" => "unlimited",
+               "size" => "standard",
+               "pricing" => %{"cardmarket" => %{"idProduct" => 851_190}}
+             },
+             %{
+               "type" => "reverse",
+               "subtype" => "unlimited",
+               "size" => "standard",
+               "pricing" => %{"cardmarket" => %{"idProduct" => 851_190}}
+             },
+             %{"type" => "stamped", "stamp" => "cosmos"},
+             %{"type" => "stamped", "stamp" => "gold"}
+           ]
+         }}
+
+    def fetch_set(_, _), do: {:ok, %{"id" => "me01", "name" => "Mega Evolution"}}
   end
 
   defmodule OtherProviderProductProvider do
@@ -496,6 +528,12 @@ defmodule TcgCheap.Catalogue.ImporterTest do
     assert card.mapping_review_reason =~ "material descriptor"
   end
 
+  test "mapped ordinary details ignore unmapped stamped promotional details" do
+    assert {:ok, card} = Importer.import_card("me01-119", provider: LilliesProvider)
+    assert card.mapping_status == "matched"
+    assert card.cardmarket_product_id == 851_190
+  end
+
   test "an idProduct from another pricing provider does not match" do
     assert {:ok, card} =
              Importer.import_card("other-provider-product",
@@ -554,6 +592,93 @@ defmodule TcgCheap.Catalogue.ImporterTest do
     assert imported.outcome == :imported
     assert imported.card.last_synced_at == ~U[2026-03-01 00:00:00.123456Z]
     assert imported.card.details_synced_at == ~U[2026-03-01 00:00:00.123456Z]
+  end
+
+  test "does not overwrite a newer provider mapping with a stale expected version" do
+    suffix = System.unique_integer([:positive])
+    card_id = "stale-version-card-#{suffix}"
+    set_id = "stale-version-set-#{suffix}"
+    set = %{"id" => set_id, "name" => "Set"}
+
+    payload = fn product ->
+      %{
+        "id" => card_id,
+        "name" => "Card",
+        "localId" => "1",
+        "set" => %{"id" => set_id},
+        "pricing" => %{"cardmarket" => %{"idProduct" => product}}
+      }
+    end
+
+    assert {:ok, first} =
+             Importer.import_fetched_card(payload.(101), set, card_id,
+               expected_set_id: set_id,
+               synced_at: ~U[2026-03-01 00:00:00Z]
+             )
+
+    assert {:ok, newer} =
+             Importer.import_fetched_card(payload.(202), set, card_id,
+               expected_set_id: set_id,
+               synced_at: ~U[2026-03-02 00:00:00Z]
+             )
+
+    assert DateTime.compare(newer.card.updated_at, first.card.updated_at) == :gt
+
+    assert {:ok, %{outcome: :stale}} =
+             Importer.import_fetched_card(payload.(303), set, card_id,
+               expected_set_id: set_id,
+               expected_updated_at: first.card.updated_at,
+               synced_at: ~U[2026-03-03 00:00:00Z]
+             )
+
+    assert Core.get_card_printing_by_tcgdex_id!(card_id, authorize?: false).cardmarket_product_id ==
+             202
+  end
+
+  test "removes internal mapping change metadata and suppresses false notifications" do
+    card_id = "notify-card-#{System.unique_integer([:positive])}"
+    set_id = "notify-set-#{System.unique_integer([:positive])}"
+    set = %{"id" => set_id, "name" => "Notify Set"}
+
+    payload = fn product ->
+      %{
+        "id" => card_id,
+        "name" => "Notify Card",
+        "localId" => "1",
+        "set" => %{"id" => set_id},
+        "pricing" => %{"cardmarket" => %{"idProduct" => product}}
+      }
+    end
+
+    assert {:ok, first} =
+             Importer.import_fetched_card(%{payload.(101) | "pricing" => %{}}, set, card_id,
+               expected_set_id: set_id,
+               synced_at: ~U[2026-03-01 00:00:00Z]
+             )
+
+    assert ValuationNotifications.subscribe_collection() == :ok
+    assert ValuationNotifications.subscribe(first.card) == :ok
+
+    assert {:ok, changed} =
+             Importer.import_fetched_card(payload.(101), set, card_id,
+               expected_set_id: set_id,
+               synced_at: ~U[2026-03-02 00:00:00Z]
+             )
+
+    assert_receive {:card_mapping_changed, _}
+    assert_receive {:singles_collection_invalidated, %{}}
+
+    assert {:ok, suppressed} =
+             Importer.import_fetched_card(payload.(102), set, card_id,
+               expected_set_id: set_id,
+               synced_at: ~U[2026-03-03 00:00:00Z],
+               notify?: false
+             )
+
+    assert Enum.sort(Map.keys(changed)) == Enum.sort(Map.keys(suppressed))
+    refute Map.has_key?(suppressed, :mapping_changed?)
+    refute_receive {:card_mapping_changed, _}, 50
+    refute_receive {:singles_collection_invalidated, %{}}, 50
   end
 
   test "accepts punctuation card IDs with a strict set ID" do

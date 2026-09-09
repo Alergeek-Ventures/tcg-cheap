@@ -1,8 +1,22 @@
 # Pokémon Market & Trade Platform — Detailed MVP Implementation Plan
 
-- Updated: 2026-09-08
+- Updated: 2026-09-09
 - Sources: Product specification supplied by project owner; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); project validation; [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
 - Raw: [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
+
+## Current local Cardmarket mapping repair — 2026-09-09 (Raw: N/A — codebase update)
+
+Production remains healthy at revision `0f661a07e22db1f8e2ce910fc2a6bbcbdfc6d0a8`, while this correction is local, uncommitted, and not deployed. `/cards/me01-119` remains unpriced until deployment plus the explicit one-time worker. Incident evidence: Lillie's Determination `me01-119`, Cardmarket product `851190`, latest staged `avg7` checkpoint €0.52.
+
+The fix strictly extracts sanctioned direct TCGdex Cardmarket identities, rejects unrelated/nested price/value containers, and stops unmapped promotional/stamped details poisoning mapped normal/reverse details; mapped nonstandard/conflicting material still reviews. Cardmarket-only Unicode/straight-apostrophe folding is applied. TCGdex remains metadata/identity only and `cardmarket_bulk_v1` remains the sole public/new-write price source.
+
+Append-only evidence uses unique identity `(source_batch_id, expansion_mapping_id, card_printing_id, decision, cardmarket_product_id)` with `NULLS NOT DISTINCT`, allowing deterministic same-batch review→anchor while rejecting exact duplicates. Generated forward-only migration: `20260909095551_append_cardmarket_mapping_evidence_decisions.exs`; rollback requires reconciliation because new valid evidence pairs violate the old identity.
+
+The one-time operator-only `LatestBatchRecoveryWorker` revision `cardmarket_mapping_recovery_v1` uses latest successful batch only, no provider HTTP, retained-job uniqueness, max five attempts, freezes up to 100,000 provider-review candidates with max+1 cap check before writes, records exact immutable system/provider/current-timestamp history, validates persisted payload/set data, checks expected version at lock time, preserves administrator mappings and arbitrary/unverified reviews, then replays exact same-successful-batch materialization. Database persistence is idempotent; PubSub is at-least-once and may duplicate. Sequential writes can occupy the single-concurrency queue, so run outside 03:00 UTC and monitor. Deploy alone and normal sync do not invoke it.
+
+Local validation: `direnv exec . mix check --verbose` passed all static gates, Dialyzer, and 1,091 tests; generated code is Ash-codegen-clean; the exact new unique index was observed in the test DB; and `git diff --check` passed. Final review found no critical/high issues and corrected its one medium documentation ambiguity. Residual risks are brief evidence-write locking during non-concurrent index replacement and safely skipped concurrent catalogue updates requiring post-run remaining-review verification.
+
+Remaining boundary: commit/push/CI/Coolify migration/deploy, enqueue from running release RPC, authenticated Oban/Operations inspection, exact evidence/materialization verification, and public CardDetail/Trade/browser verification are all pending/unclaimed. This does not narrow any Sealed or operations MVP requirement below.
 
 ## Current Singles rollout and handoff — 2026-09-08 (Raw: N/A — codebase update)
 

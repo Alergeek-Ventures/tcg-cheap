@@ -1,6 +1,6 @@
 defmodule TcgCheap.Catalogue.Importer do
   @moduledoc "Imports one TCGdex card and its set atomically and idempotently."
-  alias TcgCheap.Catalogue.{CardPrinting, CardSet, MaterialVariant, Normalizer, Tcgdex}
+  alias TcgCheap.Catalogue.{CardmarketMapping, CardPrinting, CardSet, Normalizer, Tcgdex}
   alias TcgCheap.Core
   alias TcgCheap.Operations.AcquisitionBudget
   alias TcgCheap.Pricing.Singles.ValuationNotifications
@@ -50,12 +50,14 @@ defmodule TcgCheap.Catalogue.Importer do
       expected_set_id = Keyword.get(opts, :expected_set_id)
 
       with :ok <- validate_optional_expected_set_id(expected_set_id),
+           {:ok, expected_updated_at} <-
+             valid_expected_updated_at(Keyword.get(opts, :expected_updated_at)),
            {:ok, set_id} <- set_id(card),
            expected_set_id <- expected_set_id || set_id,
            :ok <- validate_expected_id(expected_set_id),
            :ok <- validate_payload(card, set, expected_card_id, expected_set_id),
            {:ok, synced_at} <- valid_synced_at(Keyword.get(opts, :synced_at)) do
-        persist(card, set, synced_at)
+        persist(card, set, synced_at, Keyword.get(opts, :notify?, true), expected_updated_at)
       end
     else
       {:error, :invalid_options}
@@ -72,7 +74,12 @@ defmodule TcgCheap.Catalogue.Importer do
   defp unique_option_keys?(opts), do: Keyword.keys(opts) |> Enum.uniq() == Keyword.keys(opts)
 
   defp allowed_fetched_card_options?(opts),
-    do: Enum.all?(Keyword.keys(opts), &(&1 in [:synced_at, :expected_set_id]))
+    do:
+      Enum.all?(
+        Keyword.keys(opts),
+        &(&1 in [:synced_at, :expected_set_id, :notify?, :expected_updated_at])
+      ) and
+        (not Keyword.has_key?(opts, :notify?) or is_boolean(Keyword.get(opts, :notify?)))
 
   defp unwrap_import_result({:ok, %{card: card}}), do: {:ok, card}
   defp unwrap_import_result(error), do: error
@@ -142,7 +149,7 @@ defmodule TcgCheap.Catalogue.Importer do
         AcquisitionBudget.admit_request("tcgdex_catalogue")
       end)
 
-  defp persist(card, set, synced_at) do
+  defp persist(card, set, synced_at, notify?, expected_updated_at) do
     Ash.transact(
       [
         CardSet,
@@ -155,21 +162,20 @@ defmodule TcgCheap.Catalogue.Importer do
         target_set = existing_set(set["id"])
         lock_card(card)
         {:ok, existing} = Core.lock_card_printing_for_update_by_tcgdex_id(card["id"])
-        incoming = card_attributes(card, set, synced_at)
-        persist_checked(card, set, incoming, synced_at, existing, target_set)
+        persist_checked(card, set, synced_at, existing, target_set, expected_updated_at)
       end
     )
     |> case do
       {:ok, %{mapping_changed?: true, card: card} = result} ->
-        ValuationNotifications.notify_mapping_changed(card)
-        ValuationNotifications.notify_collection_changed()
-        {:ok, Map.delete(result, :mapping_changed?)}
+        if notify? do
+          ValuationNotifications.notify_mapping_changed(card)
+          ValuationNotifications.notify_collection_changed()
+        end
 
-      {:ok, %{mapping_changed?: false} = result} ->
         {:ok, Map.delete(result, :mapping_changed?)}
 
       {:ok, result} ->
-        {:ok, result}
+        {:ok, Map.delete(result, :mapping_changed?)}
 
       {:error, reason} ->
         {:error, unwrap_conflict(reason)}
@@ -178,17 +184,24 @@ defmodule TcgCheap.Catalogue.Importer do
     exception -> {:error, exception}
   end
 
-  defp persist_checked(card, set, incoming, synced_at, existing, target_set) do
-    if cross_set_conflict?(existing, target_set) do
-      {:error, {:card_set_conflict, %{tcgdex_id: card["id"]}}}
-    else
-      persist_if_fresh(
-        existing,
-        set,
-        preserve_administrator_mapping(existing, incoming),
-        synced_at,
-        target_set
-      )
+  defp persist_checked(card, set, synced_at, existing, target_set, expected_updated_at) do
+    cond do
+      not matching_expected_version?(existing, expected_updated_at) ->
+        %{card: existing, outcome: :stale}
+
+      cross_set_conflict?(existing, target_set) ->
+        {:error, {:card_set_conflict, %{tcgdex_id: card["id"]}}}
+
+      true ->
+        incoming = card_attributes(card, set, synced_at)
+
+        persist_if_fresh(
+          existing,
+          set,
+          preserve_administrator_mapping(existing, incoming),
+          synced_at,
+          target_set
+        )
     end
   end
 
@@ -335,6 +348,13 @@ defmodule TcgCheap.Catalogue.Importer do
   defp stale_dimension?(_existing, nil), do: true
   defp stale_dimension?(existing, incoming), do: DateTime.compare(incoming, existing) == :lt
 
+  defp matching_expected_version?(nil, nil), do: true
+  defp matching_expected_version?(nil, _expected), do: false
+  defp matching_expected_version?(_existing, nil), do: true
+
+  defp matching_expected_version?(existing, expected),
+    do: DateTime.compare(existing.updated_at, expected) == :eq
+
   defp set_id(%{"set" => %{"id" => id}}) when is_binary(id) and id != "" do
     if Tcgdex.valid_set_id?(id), do: {:ok, id}, else: {:error, :invalid_id}
   end
@@ -352,6 +372,16 @@ defmodule TcgCheap.Catalogue.Importer do
   defp validate_expected_id(_), do: {:error, :invalid_id}
   defp validate_optional_expected_set_id(nil), do: :ok
   defp validate_optional_expected_set_id(id), do: validate_expected_id(id)
+
+  defp valid_expected_updated_at(nil), do: {:ok, nil}
+
+  defp valid_expected_updated_at(%DateTime{} = datetime) do
+    {:ok, datetime |> DateTime.shift_zone!("Etc/UTC") |> DateTime.truncate(:microsecond)}
+  rescue
+    _ -> {:error, :invalid_options}
+  end
+
+  defp valid_expected_updated_at(_), do: {:error, :invalid_options}
 
   defp validate_payload(card, set, expected_card_id, expected_set_id) do
     case validate_card_identity(card, expected_card_id) do
@@ -433,90 +463,14 @@ defmodule TcgCheap.Catalogue.Importer do
   defp canonical_local_id(value), do: Normalizer.canonical_local_id(value)
 
   defp mapping(card) do
-    ids =
-      cardmarket_ids(Map.get(card, "pricing", %{})) ++
-        detailed_cardmarket_ids(Map.get(card, "variants_detailed", %{}))
-
-    ids = Enum.uniq(ids)
     variants = Map.get(card, "variants", %{})
     detailed = Map.get(card, "variants_detailed", %{})
-    material = MaterialVariant.descriptors(variants, detailed)
+    classification = CardmarketMapping.classify(card, variants, detailed)
 
-    mapping_from(material, ids)
-  end
-
-  defp mapping_from(material, ids) do
-    cond do
-      MaterialVariant.conflict?(material) ->
-        {"review", MaterialVariant.reason(material), nil}
-
-      length(material.identities) > 1 ->
-        {"review", "multiple material identities", nil}
-
-      material.identities != [] ->
-        {"review", "material descriptor: " <> hd(material.identities), nil}
-
-      length(ids) > 1 ->
-        {"review", "multiple Cardmarket product IDs", nil}
-
-      ids == [] ->
-        {"unmatched", nil, nil}
-
-      true ->
-        {"matched", nil, hd(ids)}
-    end
+    {classification.status, classification.reason, classification.cardmarket_product_id}
   end
 
   defp asset_url(value, kind), do: Normalizer.asset_url(value, kind)
-
-  defp cardmarket_ids(pricing) when is_map(pricing) or is_list(pricing) do
-    pricing
-    |> cardmarket_entries()
-    |> Enum.flat_map(&ids_from_cardmarket/1)
-    |> Enum.uniq()
-  end
-
-  defp cardmarket_ids(_), do: []
-
-  defp cardmarket_entries(value) when is_map(value) do
-    case Map.get(value, "cardmarket") do
-      nil -> []
-      cardmarket -> [cardmarket]
-    end
-  end
-
-  defp cardmarket_entries(value) when is_list(value),
-    do: Enum.flat_map(value, &cardmarket_entries/1)
-
-  defp cardmarket_entries(_), do: []
-
-  defp ids_from_cardmarket(value) when is_map(value) do
-    [
-      positive_int(Map.get(value, "idProduct"))
-      | Map.values(value) |> Enum.flat_map(&ids_from_cardmarket/1)
-    ]
-    |> Enum.reject(&is_nil/1)
-  end
-
-  defp ids_from_cardmarket(value) when is_list(value),
-    do: Enum.flat_map(value, &ids_from_cardmarket/1)
-
-  defp ids_from_cardmarket(_), do: []
-
-  defp detailed_cardmarket_ids(value) when is_map(value) do
-    own =
-      case Map.get(value, "pricing") do
-        pricing when is_map(pricing) or is_list(pricing) -> cardmarket_ids(pricing)
-        _ -> []
-      end
-
-    own ++ Enum.flat_map(Map.values(value), &detailed_cardmarket_ids/1)
-  end
-
-  defp detailed_cardmarket_ids(value) when is_list(value),
-    do: Enum.flat_map(value, &detailed_cardmarket_ids/1)
-
-  defp detailed_cardmarket_ids(_), do: []
 
   defp valid_local_id?(value) when is_integer(value), do: true
   defp valid_local_id?(value) when is_binary(value), do: String.trim(value) != ""
@@ -557,9 +511,6 @@ defmodule TcgCheap.Catalogue.Importer do
       _ -> nil
     end
   end
-
-  defp positive_int(value) when is_integer(value) and value > 0, do: value
-  defp positive_int(_), do: nil
 
   defp parse_datetime(value) when is_binary(value) do
     case DateTime.from_iso8601(value) do

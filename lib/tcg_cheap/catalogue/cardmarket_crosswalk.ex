@@ -194,13 +194,22 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
 
     case Ash.read(query, domain: TcgCheap.Core, authorize?: false) do
       {:ok, rows} ->
+        rows = Enum.sort_by(rows, &{&1.inserted_at, &1.id})
+
         {:ok,
          Enum.reduce(rows, %{}, fn row, acc ->
            Map.update(
              acc,
              row.card_printing_id,
-             %{row.expansion_mapping_id => row},
-             &Map.put(&1, row.expansion_mapping_id, row)
+             %{row.expansion_mapping_id => [row]},
+             fn evidence_by_mapping ->
+               Map.update(
+                 evidence_by_mapping,
+                 row.expansion_mapping_id,
+                 [row],
+                 fn rows -> [row | rows] end
+               )
+             end
            )
          end)}
 
@@ -274,8 +283,11 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
 
   defp cards_for_set(set_id) do
     case Core.list_cardmarket_cards_by_set(set_id, authorize?: false) do
-      {:ok, cards} -> {:ok, Enum.sort_by(cards, &{SearchText.normalize(&1.name), &1.id})}
-      {:error, reason} -> {:error, {:persistence, reason}}
+      {:ok, cards} ->
+        {:ok, Enum.sort_by(cards, &{SearchText.normalize_cardmarket_name(&1.name), &1.id})}
+
+      {:error, reason} ->
+        {:error, {:persistence, reason}}
     end
   end
 
@@ -289,8 +301,8 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
   end
 
   defp process_cards(batch, mapping, cards, products, existing, used_products, counts) do
-    card_names = Enum.frequencies_by(cards, &SearchText.normalize(&1.name))
-    product_names = Enum.frequencies_by(products, &SearchText.normalize(&1.name))
+    card_names = Enum.frequencies_by(cards, &SearchText.normalize_cardmarket_name(&1.name))
+    product_names = Enum.frequencies_by(products, &SearchText.normalize_cardmarket_name(&1.name))
 
     context = %{
       batch: batch,
@@ -307,9 +319,9 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
   end
 
   defp process_card(card, context, card_evidence, counts) do
-    evidence = Map.get(card_evidence, context.mapping.id)
+    evidence = Map.get(card_evidence, context.mapping.id, [])
 
-    case already_processed?(card, evidence) do
+    case already_processed?(card, evidence, context.products) do
       true ->
         {:cont, {:ok, Map.update!(counts, :already_processed, &(&1 + 1))}}
 
@@ -320,7 +332,8 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
             candidates:
               Enum.filter(
                 context.products,
-                &(SearchText.normalize(&1.name) == SearchText.normalize(card.name))
+                &(SearchText.normalize_cardmarket_name(&1.name) ==
+                    SearchText.normalize_cardmarket_name(card.name))
               ),
             existing_evidence: evidence,
             superseded_evidence: superseded_auto_match(card, context.mapping, card_evidence),
@@ -406,9 +419,14 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
   defp incomplete_details?(card), do: is_nil(card.details_synced_at)
 
   defp superseded_auto_match(card, mapping, evidence_by_mapping) do
-    Enum.find_value(evidence_by_mapping, fn {mapping_id, evidence} ->
-      (mapping_id != mapping.id and evidence.decision == "auto_matched" and
-         evidence.cardmarket_product_id == card.cardmarket_product_id) && evidence
+    evidence_by_mapping
+    |> Enum.reject(fn {mapping_id, _evidence} -> mapping_id == mapping.id end)
+    |> Enum.sort_by(&elem(&1, 0))
+    |> Enum.find_value(fn {_mapping_id, evidence_rows} ->
+      Enum.find(evidence_rows, fn evidence ->
+        evidence.decision == "auto_matched" and
+          evidence.cardmarket_product_id == card.cardmarket_product_id
+      end)
     end)
   end
 
@@ -461,7 +479,8 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
         context.card,
         reason,
         evidence(context),
-        context.counts
+        context.counts,
+        context.existing_evidence
       )
 
   defp persist_classification({:review, reason}, context),
@@ -537,16 +556,28 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
       card.mapping_status == "matched" and
         card.cardmarket_product_id in Enum.map(products, & &1.cardmarket_product_id)
 
-  defp already_processed?(_card, %{decision: decision}) when decision in ["review", "unmatched"],
-    do: true
+  defp already_processed?(card, evidence_rows, products) when is_list(evidence_rows) do
+    matched_anchor? = anchor_match?(%{card: card, products: products})
 
-  defp already_processed?(card, %{decision: decision, cardmarket_product_id: product_id})
-       when decision in ["anchor", "auto_matched"],
-       do:
-         card.mapping_status == "matched" and
-           product_id == card.cardmarket_product_id
+    Enum.any?(evidence_rows, fn
+      %{decision: "review"} ->
+        card.mapping_status == "review" or
+          (card.mapping_status == "matched" and not matched_anchor?)
 
-  defp already_processed?(_card, _evidence), do: false
+      %{decision: "unmatched"} ->
+        card.mapping_status == "unmatched" or
+          (card.mapping_status == "matched" and not matched_anchor?)
+
+      %{decision: decision, cardmarket_product_id: product_id}
+      when decision in ["anchor", "auto_matched"] ->
+        card.mapping_status == "matched" and product_id == card.cardmarket_product_id
+
+      _ ->
+        false
+    end)
+  end
+
+  defp already_processed?(_card, _evidence, _products), do: false
 
   defp administrator_mapping?(card),
     do: card.mapping_authority == "administrator"
@@ -558,7 +589,7 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
 
   defp unsafe_reason(card, candidates, card_names, product_names, used_products) do
     cond do
-      Map.get(card_names, SearchText.normalize(card.name), 0) > 1 ->
+      Map.get(card_names, SearchText.normalize_cardmarket_name(card.name), 0) > 1 ->
         @prefix <> "duplicate canonical name"
 
       MaterialVariant.conflict?(card.variant_data) ->
@@ -567,7 +598,7 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
       candidates == [] ->
         nil
 
-      Map.get(product_names, SearchText.normalize(card.name), 0) > 1 ->
+      Map.get(product_names, SearchText.normalize_cardmarket_name(card.name), 0) > 1 ->
         @prefix <> "duplicate staged product name"
 
       Enum.any?(candidates, &MaterialVariant.obvious_cardmarket_marker?(&1.name)) ->
@@ -678,15 +709,18 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
     end
   end
 
-  defp transition_evidence(
-         _context = %{existing_evidence: %{decision: decision, cardmarket_product_id: product_id}},
-         _updated
-       )
-       when decision in ["anchor", "auto_matched"] and product_id != nil,
-       do: {:ok, :existing}
-
   defp transition_evidence(context, updated) do
-    record_transition_evidence(context, updated)
+    if Enum.any?(context.existing_evidence, fn
+         %{decision: decision, cardmarket_product_id: product_id} ->
+           decision == context.decision and product_id == context.product_id
+
+         _ ->
+           false
+       end) do
+      {:ok, :existing}
+    else
+      record_transition_evidence(context, updated)
+    end
   end
 
   defp record_transition_evidence(context, updated) do
@@ -702,8 +736,10 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
     )
   end
 
-  defp review_without_mutation(batch, mapping, card, reason, evidence, counts),
-    do:
+  defp review_without_mutation(batch, mapping, card, reason, evidence, counts, existing_evidence) do
+    if Enum.any?(existing_evidence, &(&1.decision == "review")) do
+      {:cont, {:ok, Map.update!(counts, :preserved, &(&1 + 1))}}
+    else
       persist_evidence(
         batch,
         mapping,
@@ -715,6 +751,8 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
         Map.merge(evidence, %{"preserved" => true})
       )
       |> increment(counts, :preserved)
+    end
+  end
 
   defp persist_evidence(batch, mapping, card, decision, product, reason, authority, evidence),
     do: record_evidence(batch, mapping, card, decision, product, reason, authority, evidence)
@@ -727,7 +765,7 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
         card_printing_id: card.id,
         decision: decision,
         cardmarket_product_id: product,
-        normalized_card_name: SearchText.normalize(card.name),
+        normalized_card_name: SearchText.normalize_cardmarket_name(card.name),
         review_reason: reason,
         authority: authority,
         evidence: evidence
