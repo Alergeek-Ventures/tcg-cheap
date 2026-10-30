@@ -637,6 +637,20 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-search-icon { color: var(--muted); height: 1.5rem; left: 0; pointer-events: none; position: absolute; top: 50%; transform: translateY(-50%); width: 1.5rem; z-index: 1; }
 .guide-world .guide-search-input { background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; box-shadow: none; color: var(--ink); font: 700 1.5rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .5rem 0 .5rem 2.25rem; width: 100%; }
 .guide-world .guide-search-input::placeholder { color: var(--muted); opacity: 1; }
+.guide-world .guide-search-field:has(.guide-scan-open:not([hidden])) .guide-search-input { padding-right: 3.25rem; }
+.guide-world .guide-scan-open { align-items: center; background: transparent; border: 0; color: var(--ink); cursor: pointer; display: flex; height: 3rem; justify-content: center; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 3rem; }
+.guide-world .guide-scan-open[hidden] { display: none; }
+.guide-world .guide-scan-open .fluent-icon { height: 1.5rem; width: 1.5rem; }
+.guide-world .guide-scan-open:hover { color: var(--orange); }
+.guide-world .guide-scan-open:focus-visible, .guide-world .guide-scan-dialog button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.guide-world .guide-scan-dialog { background: var(--paper); border: 0; margin: auto; color: var(--ink); max-width: min(32rem, calc(100vw - 2rem)); padding: 1rem; width: 100%; }
+.guide-world .guide-scan-dialog::backdrop { background: rgb(32 29 25 / 60%); }
+.guide-world .guide-scan-dialog h2 { font-size: 1.5rem; margin-bottom: .75rem; }
+.guide-world .guide-scan-dialog video { aspect-ratio: 4 / 3; background: var(--ink); display: block; object-fit: cover; width: 100%; }
+.guide-world .guide-scan-dialog video[hidden] { display: none; }
+.guide-world .guide-scan-dialog p { margin: .75rem 0; }
+.guide-world .guide-scan-dialog p:empty { display: none; }
+.guide-world .guide-scan-dialog button { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; margin-top: .75rem; min-height: 3rem; padding: 0 1.5rem; text-transform: uppercase; }
 .guide-world .guide-results-heading, .guide-world .product-section-heading { align-items: baseline; border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .25rem 1rem; justify-content: space-between; margin-bottom: .5rem; padding-bottom: .5rem; }
 .guide-world .guide-results-heading h2, .guide-world .product-section-heading h2 { font-size: clamp(1.5rem, 3vw, 1.75rem); line-height: 1; }
 .guide-world .guide-results-heading p, .guide-world .product-section-heading p { color: var(--muted); font-size: .875rem; margin: 0; }

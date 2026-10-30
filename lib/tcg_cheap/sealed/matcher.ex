@@ -17,8 +17,8 @@ defmodule TcgCheap.Sealed.Matcher do
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
   history. Titles for preorders, multi-item bundles, empty, damaged, opened or
-  used boxes, singles and accessories are excluded outright. Otherwise an EAN
-  seen on a manually assigned offer wins over the title.
+  used boxes, singles and accessories are excluded outright. Otherwise a known
+  EAN (`TcgCheap.Sealed.known_eans/0`) wins over the title.
   """
 
   @stopwords ~w(pokemon tcg the and of s a z na i w edycja karty kart karta oryginalne oryginalny
@@ -137,8 +137,8 @@ defmodule TcgCheap.Sealed.Matcher do
   @type result :: {:matched, term()} | :unmatched | :ambiguous | {:excluded, String.t()}
 
   @doc """
-  Builds a match index over products. `eans` maps an EAN to the product id of
-  a manually assigned offer that carried it.
+  Builds a match index over products. `eans` maps a known EAN to its
+  product id.
   """
   @spec index([product()], %{String.t() => term()}) :: t()
   def index(products, eans \\ %{}) do

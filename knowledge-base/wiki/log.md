@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-10-30] Barcode lookup and scanner
+
+- Task: Owner chose to grow EAN coverage through the agent (MCP) and to try a simple scanner. Products got an `eans` list (`set_eans` action, GS1 check digit verified); `TcgCheap.Sealed.known_eans/0` merges product EANs with manually assigned offers' EANs (conflicts dropped) and feeds both the matcher and the public lookup. The home search opens the product for a known EAN/UPC; a camera button appears only where `BarcodeDetector` exists.
+- Files: `product/buying-and-trading-guide.md` (Barcodes, Pages).
+- Validation: `mix check` passed; in the running app a typed and a direct-link UPC opened the product, an unknown EAN showed the hint, and a stubbed `BarcodeDetector` with a fake camera scanned and navigated; camera denial shows a message.
+- Remaining: Only manually assigned offers and agent-set codes count; the MCP tool for setting EANs follows with the MCP server. Browsers without `BarcodeDetector` show no camera button [CONTEXT MISSING: support in iOS Safari not verified on a device].
+
 ## [2026-10-30] Evergreen documentation rewrite
 
 - Task: After the owner's 2026-10-30 simplification (buying guide live, trading guide next) and the deletion of production (pre-first-deployment, squashed migrations), rewrote the wiki to describe only the current system. History stays in git.

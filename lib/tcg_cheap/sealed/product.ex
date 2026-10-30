@@ -66,6 +66,17 @@ defmodule TcgCheap.Sealed.Product do
       accept [:available, :lowest_price, :image_url]
     end
 
+    update :set_eans do
+      description "Replaces the product's barcodes (EAN-13 or UPC-A, check digit verified)."
+      argument :eans, {:array, :string}, allow_nil?: false
+      change TcgCheap.Sealed.Changes.SetEans
+    end
+
+    read :with_eans do
+      description "Products with at least one known barcode."
+      filter expr(fragment("cardinality(?) > 0", eans))
+    end
+
     read :by_slug do
       argument :slug, :string, allow_nil?: false
       get? true
@@ -110,6 +121,14 @@ defmodule TcgCheap.Sealed.Product do
     attribute :cardmarket_price_updated_on, :date, public?: true
     attribute :available, :boolean, allow_nil?: false, default: false, public?: true
     attribute :lowest_price, :decimal, public?: true
+
+    attribute :eans, {:array, :string} do
+      description "EAN-13 barcodes printed on the product, maintained by an admin or agent."
+      allow_nil? false
+      default []
+      public? true
+    end
+
     create_timestamp :inserted_at
     update_timestamp :updated_at
   end

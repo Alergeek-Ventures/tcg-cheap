@@ -2,14 +2,16 @@ defmodule TcgCheapWeb.HomeLive do
   @moduledoc """
   The buying guide: the Cardmarket sealed catalogue with the cheapest Polish
   price and a verdict, searchable (`?q=`), filterable by kind (`?rodzaj=`) and
-  paged with "Pokaż więcej".
+  paged with "Pokaż więcej". A known barcode, typed or scanned with the phone
+  camera, opens its product directly.
   """
 
   use TcgCheapWeb, :live_view
 
   import TcgCheapWeb.GuideComponents
 
-  alias TcgCheap.Sealed.{Guide, Kinds}
+  alias TcgCheap.Sealed
+  alias TcgCheap.Sealed.{Ean, Guide, Kinds}
   alias TcgCheapWeb.Polish
 
   @max_query_length 100
@@ -34,17 +36,25 @@ defmodule TcgCheapWeb.HomeLive do
       |> String.slice(0, @max_query_length)
 
     kind = Map.get(@kind_params, params["rodzaj"])
+
+    case Sealed.product_for_barcode(query) do
+      %{slug: slug} -> {:noreply, push_navigate(socket, to: ~p"/produkty/#{slug}")}
+      nil -> {:noreply, list(socket, query, kind)}
+    end
+  end
+
+  defp list(socket, query, kind) do
     {summaries, more?, count} = Guide.browse(query, kind, 0, DateTime.utc_now())
 
-    {:noreply,
-     socket
-     |> assign(:query, query)
-     |> assign(:kind, kind)
-     |> assign(:form, to_form(%{"q" => query}))
-     |> assign(:result_count, count)
-     |> assign(:loaded, length(summaries))
-     |> assign(:more?, more?)
-     |> stream(:products, summaries, reset: true)}
+    socket
+    |> assign(:query, query)
+    |> assign(:barcode?, Ean.normalize(query) != nil)
+    |> assign(:kind, kind)
+    |> assign(:form, to_form(%{"q" => query}))
+    |> assign(:result_count, count)
+    |> assign(:loaded, length(summaries))
+    |> assign(:more?, more?)
+    |> stream(:products, summaries, reset: true)
   end
 
   @impl true
@@ -115,6 +125,27 @@ defmodule TcgCheapWeb.HomeLive do
                   phx-debounce="300"
                   placeholder="np. Pitch Black ETB"
                 />
+                <div id="guide-scan" class="guide-scan" phx-hook=".BarcodeScan" phx-update="ignore">
+                  <button
+                    id="guide-scan-open"
+                    type="button"
+                    class="guide-scan-open"
+                    aria-label="Skanuj kod kreskowy"
+                    hidden
+                  >
+                    <.fluent_icon name={:barcode} class="size-6" />
+                  </button>
+                  <dialog
+                    id="guide-scan-dialog"
+                    class="guide-scan-dialog"
+                    aria-labelledby="guide-scan-title"
+                  >
+                    <h2 id="guide-scan-title">Skieruj aparat na kod kreskowy</h2>
+                    <video id="guide-scan-video" muted playsinline></video>
+                    <p id="guide-scan-status" aria-live="polite"></p>
+                    <button id="guide-scan-close" type="button">Zamknij</button>
+                  </dialog>
+                </div>
               </div>
               <input :if={@kind} type="hidden" name="rodzaj" value={@kind} />
             </.form>
@@ -136,6 +167,59 @@ defmodule TcgCheapWeb.HomeLive do
                 aria-current={if(@kind == kind, do: "true")}
               >{label}</.link>
             </nav>
+            <script :type={Phoenix.LiveView.ColocatedHook} name=".BarcodeScan">
+              // Only where the browser can read barcodes natively (e.g. Chrome on
+              // Android); elsewhere the code can still be typed in.
+              export default {
+                async mounted() {
+                  if (!("BarcodeDetector" in window)) return
+                  const supported = await BarcodeDetector.getSupportedFormats()
+                  const formats = ["ean_13", "upc_a"].filter(format => supported.includes(format))
+                  if (formats.length === 0) return
+                  this.detector = new BarcodeDetector({formats})
+                  this.dialog = this.el.querySelector("dialog")
+                  this.video = this.el.querySelector("video")
+                  this.status = this.el.querySelector("[aria-live]")
+                  const open = this.el.querySelector("#guide-scan-open")
+                  open.hidden = false
+                  open.addEventListener("click", () => this.start())
+                  this.el.querySelector("#guide-scan-close").addEventListener("click", () => this.dialog.close())
+                  this.dialog.addEventListener("close", () => this.stop())
+                },
+                destroyed() { this.stop() },
+                async start() {
+                  this.status.textContent = ""
+                  this.video.hidden = false
+                  this.dialog.showModal()
+                  try {
+                    this.stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}})
+                  } catch {
+                    this.video.hidden = true
+                    this.status.textContent = "Brak dostępu do aparatu. Wpisz cyfry spod kodu kreskowego."
+                    return
+                  }
+                  this.video.srcObject = this.stream
+                  await this.video.play()
+                  this.scan()
+                },
+                async scan() {
+                  if (!this.stream) return
+                  const [code] = await this.detector.detect(this.video).catch(() => [])
+                  if (code) {
+                    this.dialog.close()
+                    this.pushEvent("search", {q: code.rawValue})
+                  } else {
+                    this.timer = setTimeout(() => this.scan(), 200)
+                  }
+                },
+                stop() {
+                  clearTimeout(this.timer)
+                  this.stream?.getTracks().forEach(track => track.stop())
+                  this.stream = null
+                  if (this.video) this.video.srcObject = null
+                }
+              }
+            </script>
             <script :type={Phoenix.LiveView.ColocatedHook} name=".ActiveKind">
               // On a phone the kinds scroll sideways; keep the chosen one in view.
               export default {
@@ -165,10 +249,13 @@ defmodule TcgCheapWeb.HomeLive do
             </div>
             <ul id="guide-products" class="guide-products" phx-update="stream">
               <li id="guide-products-empty" class="guide-empty hidden only:block">
-                <%= if @kind do %>
-                  Nic nie znaleźliśmy w tym rodzaju. Spróbuj samej nazwy dodatku albo wybierz „Wszystkie”.
-                <% else %>
-                  Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black.
+                <%= cond do %>
+                  <% @barcode? -> %>
+                    Nie znamy jeszcze tego kodu kreskowego. Wpisz nazwę produktu, np. Pitch Black ETB.
+                  <% @kind -> %>
+                    Nic nie znaleźliśmy w tym rodzaju. Spróbuj samej nazwy dodatku albo wybierz „Wszystkie”.
+                  <% true -> %>
+                    Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black.
                 <% end %>
               </li>
               <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">

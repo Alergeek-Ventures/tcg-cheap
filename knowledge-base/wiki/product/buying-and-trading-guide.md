@@ -42,8 +42,14 @@ versioned pricing models.
 - **Shops.** Six Polish shops with public WooCommerce Store APIs — LootQuest,
   CardzHouse, BoosterPoint, PokeBooster, Boosterland, Colligere — are fetched
   once a day each. Offers are matched to products automatically by strict
-  title rules (and by EANs learned from manual assignments); an unmatched
-  offer is better than a wrong one.
+  title rules, or by a known EAN; an unmatched offer is better than a wrong
+  one.
+- **Barcodes.** Known EANs are a product's own list (filled in by an admin or
+  an agent; Cardmarket publishes none) plus the EANs of offers assigned to it
+  manually; a code claimed by two products identifies neither. Typing a known
+  EAN/UPC into the search, or scanning it with the phone camera where the
+  browser supports `BarcodeDetector` (e.g. Chrome on Android), opens the
+  product directly; an unknown code says so.
 - **Manual fixes.** An administrator can assign an unmatched or wrongly
   matched offer to any catalogue product, keep an offer unmatched for good, or
   hand it back to automatic matching. Automatic matching never overwrites a
@@ -60,7 +66,8 @@ versioned pricing models.
   Without current stock the verdict is **Brak w sklepach** (with the last
   known price); with stock but no typical price it is **Za mało danych**.
 - **Pages.** `/` lists and searches products (filter by kind; in stock first,
-  then newest) with the cheapest current price and verdict.
+  then newest; a known barcode jumps to its product) with the cheapest current
+  price and verdict.
   `/produkty/:slug` shows the verdict and thresholds, every current offer
   (in stock first, cheapest first, with links to the shop), the Cardmarket
   price, and a 90-day price chart.

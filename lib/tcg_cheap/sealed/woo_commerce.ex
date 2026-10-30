@@ -12,7 +12,7 @@ defmodule TcgCheap.Sealed.WooCommerce do
 
   require Logger
 
-  alias TcgCheap.Sealed.Shop
+  alias TcgCheap.Sealed.{Ean, Shop}
 
   @per_page 100
   @max_body_bytes 2_000_000
@@ -149,7 +149,7 @@ defmodule TcgCheap.Sealed.WooCommerce do
          title: title,
          url: url,
          image_url: image_url(shop, product["images"]),
-         ean: ean(product["sku"]),
+         ean: Ean.normalize(product["sku"]),
          price: price,
          in_stock: in_stock?(product)
        }}
@@ -258,31 +258,6 @@ defmodule TcgCheap.Sealed.WooCommerce do
   end
 
   defp price(_prices), do: :error
-
-  # A 12- or 13-digit SKU counts as an EAN only when its GS1 check digit is right.
-  defp ean(sku) when is_binary(sku) do
-    code =
-      case String.trim(sku) do
-        <<_::binary-size(12)>> = code -> "0" <> code
-        code -> code
-      end
-
-    if String.match?(code, ~r/\A[0-9]{13}\z/) and check_digit_valid?(code), do: code
-  end
-
-  defp ean(_sku), do: nil
-
-  defp check_digit_valid?(code) do
-    digits = code |> String.graphemes() |> Enum.map(&String.to_integer/1)
-
-    sum =
-      digits
-      |> Enum.with_index()
-      |> Enum.map(fn {digit, index} -> if rem(index, 2) == 1, do: digit * 3, else: digit end)
-      |> Enum.sum()
-
-    rem(sum, 10) == 0
-  end
 
   defp in_stock?(product) do
     product["is_in_stock"] == true and product["is_purchasable"] == true and

@@ -10,7 +10,7 @@ defmodule TcgCheap.Sealed do
 
   use Ash.Domain, otp_app: :tcg_cheap
 
-  alias TcgCheap.Sealed.Offer
+  alias TcgCheap.Sealed.{Ean, Offer}
 
   @current_for_seconds 3 * 86_400
 
@@ -21,6 +21,9 @@ defmodule TcgCheap.Sealed do
       define :get_product_by_slug, action: :by_slug, args: [:slug], not_found_error?: false
       define :browse_products, action: :browse, args: [{:optional, :query}, {:optional, :kind}]
       define :set_product_availability, action: :set_availability
+      define :set_product_eans, action: :set_eans, args: [:eans]
+      define :get_product, action: :read, get_by: [:id], not_found_error?: false
+      define :list_products_with_eans, action: :with_eans
     end
 
     resource TcgCheap.Sealed.Offer do
@@ -69,5 +72,42 @@ defmodule TcgCheap.Sealed do
       end
 
     Enum.filter(offers, &(DateTime.compare(&1.last_seen_at, Map.fetch!(latest, &1.shop)) == :eq))
+  end
+
+  @doc """
+  Every known barcode and its product: a product's own EANs and the EANs of
+  offers assigned to it manually. A code claimed by two products identifies
+  neither and is left out.
+  """
+  @spec known_eans() :: %{String.t() => Ecto.UUID.t()}
+  def known_eans do
+    from_products =
+      for product <- list_products_with_eans!(), ean <- product.eans, do: {ean, product.id}
+
+    from_offers =
+      for %Offer{ean: ean, product_id: id} <- list_manual_offers!(),
+          is_binary(ean) and not is_nil(id),
+          do: {ean, id}
+
+    (from_products ++ from_offers)
+    |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+    |> Enum.flat_map(fn {ean, ids} ->
+      case Enum.uniq(ids) do
+        [id] -> [{ean, id}]
+        _conflict -> []
+      end
+    end)
+    |> Map.new()
+  end
+
+  @doc "The product identified by a scanned or typed barcode, if it is known."
+  @spec product_for_barcode(String.t()) :: TcgCheap.Sealed.Product.t() | nil
+  def product_for_barcode(code) do
+    with ean when is_binary(ean) <- Ean.normalize(code),
+         {:ok, id} <- Map.fetch(known_eans(), ean) do
+      get_product!(id)
+    else
+      _unknown -> nil
+    end
   end
 end

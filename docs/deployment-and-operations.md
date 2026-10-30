@@ -173,7 +173,8 @@ docker exec tcg-cheap /app/bin/tcg_cheap rpc 'TcgCheap.Sealed.CatalogueImportWor
 - **Unmatched offer:** in `/admin/buying-guide`, click *Assign…* next to it,
   search for the product and choose it. Prices, availability and today's
   daily price are recomputed at once. Automatic matching never overrides it,
-  and its EAN then matches the same product in other shops.
+  and its EAN then matches the same product in other shops and opens it
+  from the public search or barcode scanner.
 - **Wrong automatic match:** find the offer in *Matched offers* (filter by
   title), then either *Reassign…* it to the right product or choose
   *Never match* to keep it out of every verdict.

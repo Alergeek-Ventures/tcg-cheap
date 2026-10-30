@@ -68,17 +68,7 @@ defmodule TcgCheap.Sealed.Refresh do
 
   defp rematch_offers(products) do
     offers = Sealed.list_offers!()
-
-    # An EAN manually assigned to two different products identifies neither.
-    eans =
-      for %Offer{manual?: true, ean: ean, product_id: id} <- offers,
-          is_binary(ean) and not is_nil(id),
-          reduce: %{} do
-        acc -> Map.update(acc, ean, id, &if(&1 == id, do: id, else: :conflict))
-      end
-      |> Map.reject(fn {_ean, id} -> id == :conflict end)
-
-    index = Matcher.index(products, eans)
+    index = Matcher.index(products, Sealed.known_eans())
 
     for %Offer{manual?: false} = offer <- offers,
         id = Matcher.product_id(offer, index),
