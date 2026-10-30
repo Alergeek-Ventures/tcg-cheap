@@ -1,375 +1,173 @@
 # Application Foundation
 
-- Updated: 2026-09-09
-- Sources: Project code; local validation; `PRODUCT.md`; `DESIGN.md`; `.impeccable/design.json`; [2026-08-19 production Singles scope source capture](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-10 CardzHouse and BoosterPoint Store API capture](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card-ID capture](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
-- Raw: [2026-09-02 Boosterland and Colligere Store APIs](../../raw/2026-09-02-boosterland-colligere-store-apis.md); [2026-08-19 production Singles scope sources](../../raw/2026-08-19-production-singles-scope-sources.md); [2026-08-19 curated playable manifest](../../raw/2026-08-19-curated-playable-manifest.md); [2026-08-08 NBP API EUR rate](../../raw/2026-08-08-nbp-api-eur-rate.md); [2026-08-09 LootQuest Store API](../../raw/2026-08-09-lootquest-store-api.md); [2026-08-10 CardzHouse and BoosterPoint Store APIs](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md); [2026-08-14 TCGdex punctuation card IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md); [2026-08-19 TCGdex set ordering and series capture](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md)
-
-## Current local Cardmarket mapping repair — 2026-09-09 (Raw: N/A — codebase update)
-
-Production remains healthy at revision `0f661a07e22db1f8e2ce910fc2a6bbcbdfc6d0a8`, but this correction is local, uncommitted, and not deployed. `/cards/me01-119` therefore remains unpriced until deployment and the explicit one-time worker run. Incident evidence is Lillie's Determination `me01-119`, Cardmarket product `851190`, and latest staged `avg7` checkpoint €0.52.
-
-The repair extracts only strict sanctioned direct TCGdex Cardmarket identities, rejects unrelated or nested price/value containers, and prevents unmapped promotional/stamped details from poisoning mapped normal/reverse details. Mapped nonstandard or conflicting material still goes to review. Cardmarket-only Unicode and straight-apostrophe folding is applied; TCGdex remains metadata/identity only and `cardmarket_bulk_v1` remains the sole public/new-write price source.
-
-Append-only evidence now has unique identity `(source_batch_id, expansion_mapping_id, card_printing_id, decision, cardmarket_product_id)` with `NULLS NOT DISTINCT`, allowing deterministic same-batch review→anchor while rejecting exact duplicates. Generated forward-only migration: `20260909095551_append_cardmarket_mapping_evidence_decisions.exs`; rollback requires reconciliation because new valid evidence pairs violate the old identity.
-
-The one-time operator-only `LatestBatchRecoveryWorker` revision is `cardmarket_mapping_recovery_v1`: latest successful batch only, no provider HTTP, retained-job uniqueness, max five attempts, freezes up to 100,000 provider-review candidates with a max+1 cap check before writes, and records exact immutable system/provider/current-timestamp history. It validates persisted payloads/sets, checks expected version at lock time, preserves administrator mappings and arbitrary/unverified reviews, then replays exact same-successful-batch materialization. Database persistence is idempotent; PubSub is at-least-once and may duplicate. Sequential writes can occupy the single-concurrency queue, so run outside 03:00 UTC and monitor. Deploy alone and normal sync do not invoke it.
-
-Local validation: canonical `direnv exec . mix check --verbose` passed all static gates, Dialyzer, and 1,091 tests; generated code is Ash-codegen-clean; the exact new unique index was observed in the test DB; and `git diff --check` passed. Final review found no critical/high issues; its one medium documentation ambiguity was corrected. Residual risks are a brief evidence-write lock during non-concurrent index replacement and safely skipped concurrent catalogue updates, which require post-run remaining-review verification.
-
-Remaining boundary: commit/push/CI/Coolify migration/deploy, enqueue from the running release RPC, authenticated Oban/Operations inspection, exact evidence/materialization verification, and public CardDetail/Trade/browser verification are pending and unclaimed.
-
-## Current Singles architecture and production checkpoint — 2026-09-08 (Raw: N/A — codebase update)
-
-Cleanup release `f73af22656de11e5e84c6c301da560bdde719119` deployed 2026-09-08.
-CI [34225801330](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/34225801330)
-passed the canonical 1,065-test gate and container/database-image jobs.
-`/health` and `/health/live` returned 200 at the exact revision with the database
-and Oban ready, 7 queues, and 9 budget providers. Connected public Home/search,
-`/cards/sv08-238`, and `/trade?left=sv08-238:1` matched at EUR 263.65; 390px had
-no overflow and the fresh retest had zero console warnings/errors. An initial
-rollout/proxy 502 was transient and did not reproduce after traffic settled.
-The generated `20260908110348_remove_legacy_singles_pricing.exs` passed the
-configured release gate.
-
-`cardmarket_bulk_v1` is the fixed public/new-write Singles source. TCGdex is
-catalogue/detail/image/Cardmarket identity only. Historical
-`tcgdex_cardmarket_v1` snapshots remain readable but are not selectable or newly
-writable. There is no fallback, selectable policy, cutover/readiness process,
-policy cache, per-card pricing worker, acquisition path, or 14:00 sweep. The
-fixed bulk sync runs daily at 03:00 UTC.
-
-Home, CardDetail, and Trade are local public surfaces and show stale/unpriced
-states honestly. Mapping and batch invalidations refresh mounted surfaces after
-commit. Strict malformed/plausibility/row-anomaly validation, exact mapping,
-and same-successful-batch materialization fail closed. Admin source, batch,
-catalogue, mapping, detail, and materialization diagnostics are read-only.
-
-## Historical production state — 2026-09-03
-
-Revision `d55a26b1368084bbaf7a25b65a2211f437e6c540` is the verified production state. CI runs [33747809832](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33747809832) and [33748881597](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/33748881597) passed. `/health` and `/health/live` returned HTTP 200; the database and Oban are healthy, with seven queues and nine providers. Production has 19 approved Sealed rows with sourced complete facts and positive applicable pack counts, 13 complete official USD reference-price tuples, and 17 complete canonical image tuples. Missing authoritative PLN MSRP/facts remain unset.
-
-Boosterland and Colligere are persisted active acquisition sources: six active retailers, one admitted request each during bootstrap, 8 and 37 active listings respectively, no related import issues, budgets of 50/hour, 100/day, and 500/month, and Monday 05:00/06:00 UTC schedules. Pitch Black Binacle 3-pack and SV151 Booster Bundle intentionally remain image-null and unpublished without qualified retailer image evidence. The forward-only corrections were `20260903102840` (image) followed by `20260903111025` (Pitch Black ETB product type). Public Pitch Black search exposes Booster Box, Pack, and ETB. Pitch Black Booster Box/ETB and Destined Rivals Booster Box returned 200 with canonical images/offers and no browser console/page errors.
-
-The local catalogue makes canonical non-Pocket paper cards public with staged detail/pricing and a EUR 1 riser floor; Home mode/query use canonical URL state. Sealed publication readiness, not approval alone, requires factual evidence; incomplete approved rows remain internal mapping/curation targets. The manifest covers 19 details, 13 prices, and 17 images, with strict six-root image provenance and image-bearing mapping qualification while active offers remain visible.
-
-Migrations are forward-only: no `down`/`ecto.rollback` quality gate; fix issues with a new forward migration and recover disasters from tested backup/PITR. Image rollback is separate and only follows proven schema compatibility. Forward application succeeded on fresh and existing DBs. The implementation and production/browser validation passed the recorded CI gates; canonical image/offer route checks had no browser console/page errors. At max pricing attempts, persistence snoozes without advancing the serial detail chain; listing-derived drafts require an exact `pending`/`review` mapping under a transaction-local lock.
-
-## Current deployed owner-directed UI correction — 2026-08-26 (Raw: N/A — codebase update)
-
-The UI correction commit `7a0f956` is pushed and deployed to production. GitHub
-[CI run 32970306496](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32970306496)
-succeeded. The owner rejected the prior production UI as clunky, over-bordered,
-and over-spaced. Production Home renders `Price movement`, has no
-`#market-movers-intro`, keeps `Method` collapsed by default, and renders the
-Fluent search icon. Production CardDetail at `/cards/me01-114` renders `Current
-estimate`, `Printing`, `Price history`, plain `Standard · Expanded`,
-valuation/provenance, and the existing two-point history. Production `/health`
-at 2026-08-26 12:50 UTC reported database ready, 7 Oban queues, and 6 providers.
-Connected 390px Home/CardDetail checks had zero horizontal overflow and zero
-console warnings/errors.
-
-Home removes the always-visible mover methodology paragraph, uses compact
-`Price movement` with collapsed `Method`, reduces visible rules/boxes/whitespace,
-and retains signed prior→current/date/freshness evidence and exact behavior.
-
-Local CardDetail replaces saturated orange, three boxed columns/status boxes,
-chips, and a giant chart with calm warm paper; desktop uses image plus one
-coherent detail column, while mobile orders identity/estimate/image/printing.
-Valuation, metadata, and history are unboxed; legal formats are plain; provenance
-is quiet and disclosed; empty printing is suppressed; zero-history has one
-message; and the no-chart boundary is one point. Official Fluent UI System Icons
-Regular are selectively used for search/back/trade/info/disclosure/freshness/
-trend. Text labels remain and icons are decorative; the full Microsoft MIT notice
-is in `THIRD_PARTY_NOTICES.md`. Shared Trade/Sealed decision-world styling was
-explicitly restored and scoped to prevent accidental regression.
-
-Validation passed canonical `mix check --verbose` (all gates, 883 tests), focused
-Home/CardDetail/Trade/Sealed suites (96 total; Home/CardDetail 49), and assets
-build/compile. Desktop and 390px Home/CardDetail plus 390px shared Trade/Sealed
-checks had zero horizontal overflow; sampled controls were 48px; current-page
-console warnings/errors were zero. One Impeccable detector pass reported
-design-ramp typography advisories before touched public metadata/date sizes were
-normalized to a 14px minimum. Final review findings for shared scope, icon class,
-and license notice were corrected. Owner production testing/acceptance remains
-pending; sealed catalogue/mapping and mover-history tuning limitations remain.
-
-## Superseded production checkpoint — 2026-08-26 (`bafa237`)
-
-Production is deployed at commit `bafa237`; [CI run 32963023189](https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32963023189) succeeded. `/health` reports a ready database, 7 Oban queues, and 6 providers. The production root renders the exact-printing-first UI with Boss's Orders mover evidence (`€0.26→€0.28`, Aug 20→Aug 26, updated today) alongside simultaneous `Recently tracked` rows. `/cards/me01-114` renders Printing details, `€0.28`, `Cardmarket 7-day average via TCGdex`, exact provenance, and a two-point history summary/chart. Connected 390px root/card checks found no horizontal overflow or console warning/error. Strict 24-hour Singles behavior remains deployed from the prior commit. The three-source sealed registry and Monday 01:00/02:00/03:00 UTC Cron remain deployed; jobs 916/917/918, Singles refresh 920, and aggregate 921 (15:01 UTC) retain their enqueued-only, completion-unverified status. Approved production sealed catalogue/mappings remain incomplete.
-
-## Historical Singles freshness correction — 2026-08-25 (superseded by 2026-09-08 bulk-only boundary; Raw: N/A — codebase update)
-
-This dated checkpoint records the former strict 24-hour TTL and 14:00 UTC
-on-demand/proactive refresh behavior. The current 2026-09-08 boundary supersedes
-that Singles behavior: `cardmarket_bulk_v1` is the sole public/new-write source,
-the daily 03:00 UTC bulk sync is the only pricing acquisition path, and no
-per-card `ValuationWorker` or public on-demand enqueue exists.
-
-## Current owner direction — 2026-08-20 (Raw: N/A — product-owner direction)
-
-All interested source parties agreed that recurring source pulls and use on the
-internal/unlisted demo domain are permitted for the agreed MVP. The agreement,
-and any later stakeholder conversation, is private and out-of-band between the
-owner and sources. Permission is settled and non-blocking for repository
-implementation, validation, deployment, and demo work. The existing
-internal/unlisted domain
-<https://tcg-cheap.d.alergeek.me> is the required demonstration surface in the
-coming weeks. Sealed recurring acquisition is agreed and implemented locally,
-deployed through Coolify. If the owner needs to stop the demo, taking the app down
-in Coolify is the operational mechanism; no application state machine is
-required. Fixed source adapters, budgets, rate limits, no access-control
-bypass, data validation, safety, attribution, and data-minimization controls
-remain mandatory engineering requirements. No permission/publication gate or
-rights state is modeled in the application.
-
-## Deployment foundation — 2026-08-19
-
-## Production Singles collection boundary — 2026-08-19
-
-**Historical/superseded 2026-08-19 checkpoint:** Production validation at commit `ccc394c` used green CI run
-<https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32285087422> and
-healthy database/7 Oban queues/3 providers. By 18:16 UTC, exact public
-`me05-001` through at least `me05-040` had imported/scoped with real Cardmarket
-snapshots (001 €0.02, 021 €0.02, 040 €0.03); exact Tropius autocomplete worked,
-unscoped `base1-001` was not found, and browser console warnings/errors were
-zero. This closes initial production data validation, not full 120-card or
-rolling IR/SIR coverage; collection remained budgeted/in progress.
-
-The curated implementation was then explicitly approved locally and pending commit
-and deployment: fixed policy
-`2026-08-19-naic`, separate 15-minute successful-run-unique bootstrap, seven
-priority-1 child jobs, and completed bootstrap/child deduplication while retained
-by the configured seven-day Oban Pruner, with at most two TCGdex requests per card per attempt,
-exact identity/legality/set validation, and
-fixed non-sliding expiry. Shared Ash transaction plus row-lock merging applies
-rolling/Pitch Black/legacy/admin precedence; matched cards enqueue valuation.
-There is no request-path HTTP or sealed adapter, and Pitch v2 remains
-independent. Curated rows then became public only after successful deploy/import
-and expired automatically. See the
-[immutable manifest](../../raw/2026-08-19-curated-playable-manifest.md).
-
-Collection policy v2 corrects fail-slow startup caused by the observed
-oldest-first-ish provider order without assuming an ordering contract. Initial
-discovery applies a bounded candidate ID-prefix prefilter for configured
-`sv`/`me`, followed by authoritative strict fetched `serie.id` revalidation;
-`tcgp` is excluded at fetched evidence. `me05` initial/continuations have
-priority 0, an active rolling set continuation has priority 1, and untouched
-rolling initial scans have priority 2. Chunks, budgets, and public scope stay
-unchanged. Cron and manual triggers carry the exact policy version, and legacy
-queued v1 jobs self-cancel before provider admission, consuming no provider
-budget. This also avoids Pocket fanout. Policy v2 is deployed; this is an
-operational correction and does not expand scope.
-
-`CardPrinting` has fail-closed scopes `pitch_black_full`, `rolling_ir_sir`, `curated_playable`, and `legacy_local`, with expiry and provenance. Provider imports/briefs never auto-scope. Public Home search/recent, CardDetail, Trade, and mover SQL require active nonexpired scope; broad unscoped discovery remains private. Migration backfill marks preexisting local rows only as `legacy_local`, preserving useful state while empty production gains no broad rows.
-
-Automatic bootstrap starts within 15 minutes and is successful-run unique for seven days. It strictly discovers TCGdex sets, imports every `me05` card, and dynamically imports only exact IR/SIR cards from the inclusive rolling prior two calendar years. Chunks are <=20, complete `cardCount` evidence is required, incomplete/transient evidence retries, and scanned non-target cards are never imported. Daily 14:00 UTC refresh keyset-paginates every active, nonexpired, scoped, matched candidate and enqueues valuations, including fresh valuations; public on-demand remains missing/stale-only. `ValuationWorker` remains sole provider-budget admission immediately before HTTP. Admin operations has a manual scoped trigger. The curated seven-entry batch has dated official/Limitless/TCGdex evidence and explicit local approval; all seven curated routes resolved publicly, with initial evidence showing four valuations and three honest no-valuation states; full valuation coverage remains incomplete. At that historical checkpoint, the then-current three-source sealed registry and Monday 01:00/02:00/03:00 UTC weekly bootstrap were deployed through Coolify.
-
-The local, CI, and Coolify deployment target is the exact multi-architecture OCI index `docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649495964b296ad7c0931658dbf99d3cf1b35bc994`, containing amd64 and arm64 manifests. It bundles PostgreSQL 18.4, `pg_search` 0.25.2, and `pgvector` 0.8.4. The product owner confirms this pinned ParadeDB production setup is complete. Stock PostgreSQL current is 18.6, so choosing this target is an explicit minor security/bugfix tradeoff to revisit on validated ParadeDB updates.
-
-Local Compose explicitly preloads `pg_search`, `pg_cron`, and `pg_stat_statements`. Existing compatible stock-PG18 volumes must not be reset: applying the target requires intentional container recreation/restart and verification with `SHOW shared_preload_libraries`. A fresh ParadeDB instance may bootstrap the extensions, but TCG Cheap-owned migrations, resources, and queries currently depend only on existing Ash functions, `citext`, and `pg_trgm`; they do not use BM25 or vector features. The current persisted local database remains intact with 20,964 card printings, 1 sealed product, and 94 Oban jobs; it reports PostgreSQL 18.4 and extension availability. Its currently running container has an empty `shared_preload_libraries` value and was deliberately not restarted, so the new Compose setting takes effect on the next intentional `mix dev.down`/`mix dev.up`.
-
-Public GitHub-hosted CI runs canonical `mix check --verbose` against the ParadeDB target and validates the container build. It contains no production application or database secrets and performs no migrations or deployment. `.dockerignore` excludes development/runtime material; `rel/overlays/bin/migrate` is copied into the release as `/app/bin/migrate`. `deployment/Containerfile.app` copies release overlays and uses fail-closed `/health` readiness for Coolify promotion because Coolify gives Dockerfile health-check precedence. `/health/live` remains process liveness, and `PHX_HOST` is required.
-
-The exact-index manifest was verified. A fresh ParadeDB scratch instance reported the expected PostgreSQL/extension versions and preload configuration; canonical `mix check --verbose` passed all static gates and 813 tests against ParadeDB; the target app image build passed; `/app/bin/migrate` migrated an empty ParadeDB database; and app `/health` plus Docker HEALTHCHECK passed with PostgreSQL, Oban's 7 queues, and 3 acquisition providers. Temporary app/scratch containers, image, and database were cleaned. Production is online at <https://tcg-cheap.d.alergeek.me>. At that 2026-08-19 historical checkpoint, production ran commit `ccc394c` with green CI run <https://github.com/Alergeek-Ventures/tcg-cheap/actions/runs/32285087422>; by 18:16 UTC exact public `me05-001` through at least `me05-040` had imported/scoped and rendered real Cardmarket snapshots. Initial production validation is complete, while collection remains budgeted/in progress and does not claim all 120 cards or rolling IR/SIR completion.
-
-The configured release migration gate runs migrations against the private target database using the target image before promotion. No sibling `deploy-production` workflow is reused. The product owner confirms automatic release migrations and first administrator provisioning are complete. Keep the migration gate, admin one-shot procedure, domain/TLS configuration, and ParadeDB preload/upgrade checks for future deploys. Backup-restore drill, external monitoring/alerts, complete 120-card Pitch Black coverage, complete rolling IR/SIR coverage, and PostgreSQL 18.4-versus-18.6 update risk remain open.
-
-## Historical permission boundary — 2026-08-10 (superseded current-state wording)
-
-The then-current product-owner assumption permitted source-permission assumptions for private/local/staging technical-feasibility work around the already-deployed app, before public source acquisition or sealed-adapter deployment. LootQuest, CardzHouse, and BoosterPoint were registered only in development for explicit manual private testing; no sealed Cron/public schedule existed. This was not a legal conclusion or a claim of actual third-party authorization, and did not permit access-control circumvention. The 2026-08-20 owner direction supersedes this passage as current-state guidance; the dated evidence remains historical.
-
-## Current state
-
-Permission for the agreed MVP sources is settled by the 2026-08-20 owner
-direction and is non-blocking for implementation, validation, deployment, and
-demo work. Any stakeholder conversation is private/out-of-band; no permission,
-publication, or rights state belongs in the application. Existing safeguards
-remain engineering requirements, and Coolify/app takedown is the operational
-stop if the owner needs to stop the demo.
-
-`TcgCheap.Catalogue.SealedRetailers.WooCommerceStoreAPI` owns the reusable bounded fixed-policy WooCommerce Store API request, pagination, and normalization mechanics. The deployed registry now covers nine providers, including active Boosterland and Colligere `lgs` sources at Monday 05:00/06:00 UTC; source budgets remain 50/hour, 100/day, and 500/month. Six retailers are active, and Boosterland/Colligere persisted 8/37 active listings after one admitted request each with no related import issues. Fixed host/path/category/field policies enforce per-page admission, no redirects/retries, bounded pages/listings/body/time, strict PLN minor units, conservative English sealed filtering, and exact direct URL validation. Older three-source/job-88–91 counts remain historical evidence; current retailer mappings still require review.
-
-TCG Cheap is a Phoenix LiveView application using the `TcgCheap.Core` Ash domain and `TcgCheap.Repo` AshPostgres repository. The local catalogue includes `CardSet` and exact-identity `CardPrinting` storage, with metadata, legalities, assets, source payload, sync timestamps, and conservative Cardmarket mapping state. `CardSet` is nullable for legacy/minimal records. Public and newly writable Singles valuation is fixed to `cardmarket_bulk_v1`; TCGdex is catalogue/detail/image/Cardmarket identity only. Historical `tcgdex_cardmarket_v1` snapshots remain readable but cannot be selected or newly written. No pricing provider is called by public rendering or events, and no seller/offer count is fabricated.
-
-Phase 4 has a canonical source-neutral sealed foundation. `SealedProduct` models stable canonical slugs, normalized name/search text, allowlisted product types, series/set/release, optional finite positive PLN MSRP with paired provenance/source URL, image, official PL/en flags, draft/approved/archived publication, current/discontinued state, source identity/provenance/private payload, and timestamps. Source imports are draft-only, keyed by stable source/source ID, may correct draft slugs, and cannot overwrite reviewed rows; manual curation can omit source. Approval enforces released/non-future and official PL/en completeness. Discontinued approved products remain readable; archive is soft/unpublished. `SealedProductAlias` models normalized name/EAN review values with original values/provenance, pending/approved/rejected queues, and approved-per-product reads. GTIN-8/12/13/14 ASCII normalization and GS1 checksum are enforced in app and DB, with canonical-product global uniqueness. Imports are pending-only/idempotent and cannot overwrite reviewed aliases.
-
-The foundation now also includes bounded recurring production sealed acquisition, agreed and deployed through Coolify: weekly UTC runs are staggered Monday 01:00 LootQuest (`regular_retailer`), 02:00 CardzHouse (`lgs`), 03:00 BoosterPoint (`lgs`), 04:00 PokeBooster (`lgs`), 05:00 Boosterland (`lgs`), and 06:00 Colligere (`lgs`). Each source permits at most 50 requests per run and has independent 50/hour, 100/day, and 500/month budgets. Boosterland and Colligere each bootstrapped with one admitted request and persisted 8/37 active listings; six retailers are active and no related import issues were reported. The foundation also includes `Retailer` regular-retailer/LGS identity, a source-neutral `SealedRetailerAdapter` normalized contract, `RetailerListing` as the active local current projection, conservative exact-approved-GTIN `SealedListingMatcher`, and one reviewable `ListingProductMapping` per listing. Every successful listing ingest ensures a mapping in the same transaction: missing/invalid/ambiguous evidence creates or refreshes review; one eligible approved exact EAN may create or promote mutable pending/review evidence to matched through the locked/product-validated Ash action and immutable decision history; terminal matched/rejected decisions are source-protected. A failed batch rolls back.
-
-`SealedListingObservation` is immutable PLN price/stock/source history appended in the same transaction as a successful listing ingest. A stable per-retailer/source-listing advisory lock closes the concurrent first-insert upsert race and remains held through observation recording. Stale `last_seen_at`/`last_checked_at` input cannot regress the projection. Unchanged later checks advance projection audit timestamps without duplicate history; changed title/URL/GTIN/Decimal price/stock/payload appends, including transitions back to a prior state. One observation is allowed per listing/provider check timestamp, ambiguous same-timestamp changes roll back, and restrictive foreign keys prevent observation loss through hard listing deletion. App and DB constraints enforce HTTPS, normalized titles, valid GTINs, PLN-only finite positive optional prices, in-stock price presence, stock states, identities, and timestamp ordering.
-
-`SealedRetailerRefresh` completes provider fetches before writes, revalidates at most 1,000 normalized JSON-safe listing values, rejects malformed/duplicate batches before persistence, and locks/revalidates the canonical active retailer before atomically ingesting the full batch while dispatching Ash notifications only after commit. A retailer disabled during fetch cannot receive later writes, and a failed later row rolls back earlier writes. Missing rows remain untouched rather than becoming fabricated sold-out transitions. `SealedRetailerAcquisition` accepts only a canonical active retailer and an explicitly configured source-key adapter; `SealedRetailerWorker` uses active-state uniqueness on retailer/source, queue concurrency one, a finite six-minute execution timeout, bounded retry/backoff and Retry-After handling, and permanent/transient failure separation. The six-source adapter registry is deployed through Coolify, with Monday 01:00–06:00 UTC staggered bootstrap; the worker resolves canonical retailers and enqueues bounded child jobs without HTTP.
-
-The six fixed-host WooCommerce Store API adapters are production-deployed for the agreed-MVP sealed bootstrap. Each has a request budget bounded at 50/hour, 100/day, and 500/month, allowing five worst-case 10-page attempts. The shared helper and each adapter request only listing identity, price, category/tag, purchasability, stock, and backorder fields; bound pagination and payload/execution limits; preserve exact requested source payload; and do not infer GTIN from retailer SKU. The six-source registry and Monday 01:00–06:00 UTC staggered schedule are deployed through Coolify.
-
-Product/alias/mapping review transitions use transaction-local row locks and revalidate latest state/completeness under lock. Human mapping review and terminal correction require the displayed `updated_at` to match both the supplied record and locked latest row, preventing stale forms or mixed stale-record/current-token callers from acting on newer evidence. Generated migration/snapshot sets `20260808160842_sealed_catalogue_foundation`, `20260808204902_sealed_retailer_listing_foundation`, `20260808213452_sealed_listing_observations`, the `20260808231641`/`20260808231642` administrator-authentication pair, `20260809003932_public_sealed_lookup`, `20260809140042`–`20260809145258` for daily aggregates, `20260809163539`–`20260809185311` for persisted guides and exact history identity, and `20260810033425`/`20260810033437` for mapping decisions/baselines were reviewed; the generated authentication-extension rollback was narrowly corrected to retain shared pre-existing Ash functions. Production now has 19 curated approved Sealed products and persisted retailer/listing evidence, including the Boosterland/Colligere bootstrap results; this does not establish complete catalogue coverage, complete mappings, or fabricated price/history. This production boundary does not describe the later local public guide/graph implementation: Phase 4 extends through a public local-data projection and Phase 5 has persisted local aggregate/model, guide, and graph foundations, with representative multi-source validation still pending.
-
-`TcgCheap.Accounts` now provides the restricted administrator identity and persisted AshAuthentication token resource. There is no public registration route: `mix admin.provision` reads a bounded email/password only from environment variables. Password sign-in renews and clears the prior session before storing the token; sign-out revokes tokens and disconnects the LiveView socket. Production reuses `SECRET_KEY_BASE` unless a separate minimum-32-byte `ADMIN_AUTH_SIGNING_SECRET` is supplied; development reuses its endpoint secret through a non-secret sentinel and tests use isolated configuration. Sign-in attempts are atomically limited by both remote IP and normalized bounded email, with a fixed-window entry cap, periodic expiry, and fail-closed overload behavior.
-
-Authenticated `/admin/review` is a focused custom LiveView because the evidence-led approve/reject workflow is not generic CRUD. Admin-only Ash policies protect queue reads and human product/alias/mapping transitions independently of route plugs. The desk streams draft products, pending aliases, and pending/review listing mappings; preloads product/retailer evidence; supports product correction/approval/archive, alias approval/rejection, and mapping confirmation/reasoned rejection; and reloads every queue after a decision. It remains the consequential decision surface rather than being forced into generic CRUD.
-
-The six-resource AshBackpex description immediately below and its read-only Singles checkpoint are historical. The authenticated catalogue now has ten resources: `/admin/catalogue/card-sets`, `/admin/catalogue/cards`, and `/admin/catalogue/valuations` expose safe set/card identity and immutable valuation provenance, while `/admin/catalogue/card-mapping-history` exposes immutable Cardmarket mapping decisions. Generic reads are strict-admin protected while operational imports/locks/search/exact-ID/bulk and valuation record/history actions remain explicit; narrowly required relationships remain available. `CardSet.source_payload` plus `CardPrinting` source payload, variant data, and normalized search columns are not selected by default and remain `Ash.NotLoaded` unless trusted internal code explicitly selects them. Generic create/edit/delete and destructive history actions remain absent; exact card rows instead link to the focused correction workflow. Unique TCGdex-ID ordering keeps set/card pagination stable, and valuation/history ledgers retain stable bounded ordering under AshBackpex `0.1.12`.
-
-The authenticated pinned AshBackpex `0.1.12` / Backpex `0.19.6` catalogue now has six resources. `/admin/catalogue/products` lists/shows sealed products, creates manually curated drafts, and revises drafts through the existing row-lock/version action; approved rows remain inspectable but not editable. `/admin/catalogue/aliases` lists/shows all name/EAN aliases, creates normalized manual pending aliases against a typeahead-selected product, and stale-safely revises only manual pending rows. Provider-backed pending aliases plus approved/rejected decisions are read-only; the revision transaction re-reads all provider evidence before writing, source payloads are never configured as fields, and approval/rejection stays in `/admin/review`. `/admin/catalogue/retailers` lists/shows/creates curated retailer identities and stale-safely revises name/slug/category/homepage/status while keeping the provider source key immutable after creation. `/admin/catalogue/listings` is read-only and displays current retailer, listing identity, PLN price/currency, stock/projection state, direct URL, and first/last/check audit times. `/admin/catalogue/mappings` lists/shows every mapping without raw evidence payloads; matched/rejected rows link to a focused reasoned confirmation that reopens the latest terminal row into `/admin/review`. `/admin/catalogue/mapping-history` lists/shows newest-first immutable transition snapshots and safe evidence/actor fields. The generated routes share the existing administrator Plug plus LiveView session, and the admin actor is deliberately mirrored to AshBackpex's required `current_user` assign. Delete/bulk-delete, manual listing writes, and direct history writes are absent. Primary generic reads used by this AshBackpex release are strict-admin protected; public sealed search now traverses only a filtered approved-name alias relationship, while other narrow relationship authorization preserves public matched-offer and aggregate traversal without opening direct generic reads. Because this pre-1.0 adapter executes generic queries and supports one UI sort, alias/listing pagination uses stable UUID order, retailer pagination uses unique slug order, and correction-oriented mappings/history intentionally use descending record/event time. Approval/archive plus pending alias/mapping decisions stay in `/admin/review`, and the broader required resource set remains unfinished.
-
-`CardPrintingMappingDecision` now retains immutable imported/baseline/provider-updated/corrected/reopened Cardmarket mapping snapshots with scalar status/product/reason/version evidence and system or persisted-administrator attribution. `/admin/catalogue/cards/:id/correct` requires a positive Cardmarket product ID or a reasoned reopen, locks and revalidates the displayed card version, rejects no-op/stale transitions, archives every current valuation, and records the decision in the same transaction. Administrator authority survives later provider imports; provider-owned mapping changes retain history and archive affected current valuations. The raw card upsert action is internal to the importer and is absent from the `Core` code interface, preventing other supported production entry points from bypassing those invariants. Direct decision writes and destructive actions are denied, existing cards receive deterministic baselines, and restrictive references prevent unexplained history loss.
-
-`cardmarket_bulk_v1` values are mapping-bound end to end. Recording locks the
-card and accepts only the currently matched positive Cardmarket product ID;
-unresolved or changed mappings fail closed. Historical TCGdex snapshots remain
-readable but cannot contribute to current totals, graphs, discovery movement,
-or new writes. Batch and mapping invalidations broadcast after commit;
-connected CardDetail and Trade consumers re-read and refresh mounted surfaces.
-
-The NBP backend now adds an AshPostgres `ExchangeRate` resource as the canonical NBP Table A EUR/PLN observation store: one positive Decimal rate per effective date, with publication number and fetched timestamp. Same-date upserts refresh the rate, publication number, and fetch time; later effective dates remain available as history. Generated Ash migration and resource snapshot were applied and reviewed. `ExchangeRateProvider.Result` defines the provider contract, and strict `NbpExchangeRate` uses Req against the HTTPS latest Table A EUR endpoint, decodes the canonical Decimal JSON shape, validates future dates and malformed/non-positive values, and maps transport/status/schema failures explicitly. `ExchangeRateWorker` runs at queue concurrency 1 with active-state uniqueness, retry/cancel behavior, and PubSub completion/failure events. `ExchangeRateAcquisition` subscribes before enqueueing and requests at most once per UTC day based on fetched freshness; weekends and holidays carry forward the latest published rate. Static Cron configuration is `0 15 * * *` UTC. No HTTP runs in LiveView or normal request paths, and the live official adapter smoke observed 4.3010 for 2026-08-07, publication `152/A/NBP/2026`.
-
-`TcgCheap.Operations` now provides a fail-closed external-request admission foundation. `DataProvider` persists a stable provider key, display name, active/disabled kill switch, estimated per-request cost, coherent hourly/daily/monthly request limits, and a provider monthly estimated-spend cap no greater than US$50. `BudgetUsage` retains provider UTC hour/day/month request and estimated-spend counters. `AcquisitionBudget` strictly validates the complete application configuration, preserves disabled database status during config synchronization, normalizes UTC window boundaries to whole seconds, and uses one PostgreSQL advisory lock plus one transaction to lock/upsert the provider, aggregate provider/global usage, reject a limit, and atomically increment all three windows. Global hourly/daily request limits and global monthly estimated-spend are shared across providers, so concurrent admissions cannot pass stale counters.
-
-`TcgCheapWeb.PublicAcquisitionLimiter` adds the public abuse-control layer that was previously missing. It is a bounded supervised single-node fixed-window limiter keyed only by validated direct transport IPv4/IPv6 peers obtained through LiveView `:peer_data`; it does not trust forwarded headers. The default is 30 stale/missing acquisition candidates per peer per hour with at most 10,000 entries and minute pruning. Concurrent reservations serialize, expired entries are reclaimed, and invalid/missing peers or capacity exhaustion fail closed. CardDetail reserves only immediately before missing TCGdex detail-enrichment enqueue; Trade reserves only for stale/missing public NBP enqueue. Singles pricing never reserves or enqueues work. Fresh local values/rates consume no quota, missing/malformed/raising admitters queue nothing, and Cron/manual direct enqueue paths remain unthrottled by peer while retaining worker-level persisted budget admission.
-
-Operational request callbacks remain available for catalogue, NBP, and sealed-retailer acquisition. Singles pricing uses only the fixed 03:00 UTC Cardmarket bulk sync; no public pricing-provider call, per-card pricing worker, or public Singles enqueue exists. The in-tree acquisition controls retain their existing budget/circuit safeguards for unrelated sources. A future reverse proxy requires explicitly trusted client-address resolution or all clients correctly share the proxy's direct-peer bucket; current Caddy integration remains deferred.
-
-Authenticated `/admin/operations` now adds the focused admin usage/failure slice that was previously missing. `TcgCheap.Operations.Overview` validates a persisted administrator, consumes at most 100 configured providers, queries only their current UTC usage rows, aggregates global current-window totals in SQL, counts every canonical retained Oban state, and projects at most 25 newest inserted jobs plus 25 configured-provider acquisition runs by default (50 hard maximum for each). The all-state ledger covers external and local-only workers; the application state list must exactly match PostgreSQL's `oban_job_state` set. Job arguments, metadata, raw provider failures, and exception text never reach LiveView state, and only failure/cancel states receive a fixed normalized category. The newest-job query uses insertion ID order backed by the Oban primary key. The UI fails closed to an unavailable state on configuration/state-set/query errors and states that spend is estimated pre-HTTP reservation, not actual cost.
-
-Configured provider controls are Ash-policy protected and stale-safe. Enable/disable accepts the displayed `updated_at`; a custom non-atomic Ash change takes the shared provider/source advisory lock plus a transaction-local provider row lock, checks the latest opposite state/version, and only then changes status. Normal unchanged acquisition upserts skip the provider update and preserve that version, while real configuration changes update it. Concurrent same-version transitions permit one winner, and admission-versus-disable coverage proves a request is not admitted after disable wins. Manual disable does not claim a circuit opening; successful manual re-enable clears retained circuit evidence in the same transaction.
-
-`AcquisitionRun` records supported TCGdex catalogue/detail enrichment, NBP exchange-rate, configured sealed-retailer, and Cardmarket bulk attempts when tracked, with stable job/attempt identity, canonical target, worker/queue metadata, safe lifecycle status/category, admitted request count, and timestamps. Retained historical valuation runs remain inspectable where present, but no new TCGdex pricing attempts or per-card valuation worker exists. A successful admission increments the run-local counter only after durable budget reservation; reconciliation remains idempotent and bounded for supported acquisition workers.
-
-`SourceHealth` retains each configured provider's last start/success/failure, last safe outcome/category, serialized broad consecutive-failure streak, source-facing circuit-failure streak, and optional circuit-open timestamp. Its database constraints close nullable-status and contradictory terminal-time loopholes, require nonnegative circuit evidence, and require every opening to have a positive streak plus coherent failure time; the overview rejects future evidence and an open circuit bound to an active provider. A strict shared policy makes NBP stale after 36 hours without a successful tracked acquisition, marks no-success-yet separately, labels unscheduled TCGdex providers on demand, and requires a bounded circuit threshold (five by default). Fixed rate-limit, timeout, transport, and provider-response outcomes increment the circuit streak; budget, persistence, configuration, local-input, unknown, and reconciler outcomes do not. The operations desk uses one evidence clock, renders freshness, overdue rows, circuit state/progress, and the bounded ledger without raw arguments, payloads, exceptions, or failure detail, and fails closed on malformed configuration/evidence. Valid local-card/retailer preflight cancellations are included after canonical job validation.
-
-Automatic opening is passive and terminal-outcome driven rather than an active probe. Retryable source failures build the dedicated streak but preserve later Oban retries. At or above threshold, a failed/cancelled completion disables the configured provider and writes the opening timestamp in the same transaction as run/health finalization; an unpersisted configured provider is first materialized. Shared provider/source locking preserves concurrent increments, linearizes opening against admission and manual status control, and prevents a request from being admitted after disable wins. A success resets a closed streak but cannot close a circuit opened by another in-flight attempt. Generated migrations/snapshots `20260810135856_automatic_provider_circuit_breaker` and `20260810142702_harden_provider_circuit_evidence` add and harden the retained fields. Active synthetic probes, half-open trial traffic, alerting, actual-cost reconciliation, and priority classes remain absent.
-
-Operations retains typed controls for unrelated catalogue, NBP, and sealed-retailer workflows. Singles source, batch, mapping, detail, and materialization diagnostics are read-only: there is no manual Singles refresh/retry/readiness/cutover control, no public Singles enqueue, and no per-card pricing action. This custom desk remains distinct from broad AshBackpex CRUD and still does not add actual-cost reconciliation, active provider probes, or arbitrary retained-job replay.
-
-`Operations.BuyingModelInspection` adds an independently loaded read-only policy boundary to the same authenticated desk. It revalidates a persisted administrator, strictly validates the exact `sealed_buying_model_v1` shape and Limited-reason order, and compares a deterministic full-policy fingerprint before projecting only bounded presentation rows. The projection covers the delegated `sealed_market_daily_v1` version, reference/confidence weights, hard five-shop versus confidence-target eight-shop distinction, freshness/history/trend rules, sold-out recency and majority scarcity, availability thresholds, aggregate guardrails, band adjustments, Decimal context, rounding, and fail-closed reason precedence. Model policy now explicitly publishes the previously code-only sold-out-majority and Great/Fair/Expensive guardrail rules. Any same-version value drift or malformed shape renders the model section unavailable without hiding an otherwise valid provider desk. The section is visibly provisional/synthetic-only and contains no edit, recomputation, provider, or job action.
-
-`ImportIssue` now retains secret-safe diagnostics from TCGdex catalogue Sync/Enrichment and configured sealed-retailer refresh workers. One row identifies the exact provider/operation/stage/canonical target/normalized kind/code combination, preserves `first_seen_at`, and advances `last_seen_at` only for a newer occurrence under a conditional atomic upsert. Catalogue set issues additionally retain optional resolution time: partial/malformed/failed lifecycle rows resolve atomically per set after later usable evidence, delayed older evidence cannot reopen them, and newer evidence reopens them. Private internal-only resolution watermarks plus a per-set advisory lock preserve that outcome across different issue identities and concurrent record/resolve ordering; equal-time partial evidence remains unresolved while equal-time hard evidence resolves. Current partial coverage has its own kind/code and remains unresolved but outside hard-failure repair. Sealed failures use the canonical local retailer UUID and separate retailer-fetch, listing-validation, and listing-import stages. A shared normalization boundary reduces partial, malformed, unmatched, ambiguous, budget, rate-limit, timeout, transport, provider-response, persistence, configuration, local-input, and unknown reasons to fixed categories before persistence; raw payloads, response detail, URLs, source listing IDs, provider options, exceptions, and callback details are discarded. App and database constraints enforce coherent provider-operation, operation-stage, stage-target, kind-code, target-key, resolution, and timestamp matrices. A lifecycle-write failure never rolls back already valid catalogue data, but the sync fails retryably before checkpointing that set so stale repair evidence cannot be presented as converged. TCGdex Sync contains malformed, raised, thrown, or exited list/set callbacks so a broken set can remain a bounded diagnostic while later sets continue; sealed worker tuple outcomes are independently sanitized before Oban retention.
-
-Authenticated `/admin/operations/import-issues` is a read-only AshBackpex index/show surface for those normalized TCGdex and sealed-retailer rows. Generic reads are strict-admin protected and no create/edit/delete UI is exposed. Because AshBackpex `0.1.12` applies only one ordering column, the list uses stable UUID ordering instead of a false newest-first claim; first/last occurrence timestamps remain visible. This is bounded import diagnostics, not raw debugging storage, live source evidence, or a replacement for acquisition-run/source-health evidence.
-
-The production-readiness boundary now separates public process liveness from dependency readiness. `/health/live` returns only a no-store healthy/timestamp projection and remains the process-liveness endpoint. `/health` performs one bounded local `SELECT 1`, requires the named Oban root and every configured unpaused queue outside manual/inline test modes, and validates the complete acquisition-budget configuration. Any malformed callback/result, exception, throw, exit, missing/paused queue, database failure, or invalid budget configuration returns a fixed secret-safe error projection and HTTP 503. Coolify promotion uses this fail-closed readiness endpoint because the Dockerfile health check takes precedence. Health checks never invoke an external source, return raw errors, or mutate state.
-
-`TcgCheap.Release` now runs forward migrations through `Ecto.Migrator.with_repo/3` and provisions one administrator through a temporary repository boundary without starting the full application, endpoint, Oban queues, or Cron. Shared provisioning keeps the existing Mix task and release command aligned; rejected Ash/password detail is never rendered to operator output. `deployment/Containerfile.app` is a pinned multi-stage Elixir/OTP 29 build with application-before-assets ordering, a minimal Debian runtime, UTF-8 locale, non-root UID 10001, configurable port, required `PHX_HOST`, release overlays, and fail-closed readiness health metadata. The image, release migration, non-root identity, and host-network liveness/readiness were locally verified; a real production deployment is now present at the current checkpoint, with initial production data validation complete; backup restore drill and external monitoring/alerts remain open.
-
-The repository is developed in a Nix devenv with Elixir, PostgreSQL, Podman/Compose,
-Worktrunk, Tailwind, and esbuild tooling. The active Singles path uses the fixed
-`cardmarket_bulk_v1` source and 03:00 UTC bulk sync; TCGdex remains catalogue,
-detail, image, and Cardmarket-identity infrastructure. Historical Provider,
-Offer, and `default_v1` modules/interfaces are removed by the current cleanup.
-No provider call runs on a public render path.
-
-Singles acquisition is fixed to the 03:00 UTC `cardmarket_bulk_v1` sync. TCGdex
-does not provide active pricing writes; its retained historical
-`tcgdex_cardmarket_v1` snapshots are readable only. There is no fallback,
-selectable policy, readiness/cutover process, policy cache, per-card pricing
-worker, 14:00 sweep, or seller/offer-count claim. Public UI remains honest about
-stale and unpriced values.
-
-Strict TCGdex set enumeration and brief-card sync fetch provider payloads outside writes. Impossible totals, duplicate identities, and cross-set conflicts still fail atomically; when a valid provider total exceeds returned briefs or individual briefs are malformed, Sync retains the valid set/cards in one transaction and reports explicit partial coverage rather than claiming completeness. It preserves enriched rows/images and seeds pending minimal cards. Exact card identity now covers the observed `!` and literal percent-escape forms such as `exu-%3F` under a 128-byte, no-padding/no-delimiter grammar; set IDs retain the narrower grammar. The same rule protects Sync, Enrichment, Importer, exact-card and Cardmarket fixed-host requests, diagnostic card targets, Trade URL state, and Trade picks. Literal `%3F` is encoded as `%253F` for provider paths, while malformed escapes, raw slash/colon/comma, whitespace, and overlong values fail closed. Catalogue Sync uses per-set locking and the same per-card transaction advisory lock as the full importer, sorting brief card IDs before locking. This closes the intermittent brief/full unique-ID race and prevents lock-order cycles across overlapping sets. Provider fetches remain outside transactions. TCG Pocket sets are excluded as designed. The one-card importer also uses `FOR UPDATE` and source/mapping timestamps to reject stale responses. Import and brief sync consistently acquire PostgreSQL advisory locks set-before-card; real concurrent Sync plus fetched Importer coverage passed 20/20 repetitions.
-
-`CatalogueSyncWorker` historically completed the private run across all 218 set IDs at 192 synced, 15 excluded, 11 permanent failed, and 20,561 card printings; Oban job 54 intentionally ended `cancelled / catalogue_sync_incomplete`. The worker now checkpoints separate partial outcomes and supports a second `failed_sets` scope derived from unresolved hard issues without set-list discovery. Scope-specific Oban uniqueness permits both requests to wait independently, while the single active-run invariant and scope checks ensure only the owner scope processes; the other snoozes. A later private failed-set job completed in one attempt with 11 admitted requests and converted all 11 hard rows into partial outcomes, proving live repair and issue lifecycle behavior. It returned no complete set because provider arrays were shorter than their declared totals or contained then-unsupported identities. The identity correction plus one subsequent budget-admitted `exu` request imported all 28 printings—including `exu-!` and `exu-%3F`—and resolved that partial. Current private state is 203 sets, 20,964 printings, and 10 unresolved provider-partial sets. Representative mapping, complete provider coverage, and long-term production reliability remain open technical work.
-
-Mapping is conservative: only one explicit Cardmarket ID with no material ambiguity is matched; first-edition, `wPromo`, stamps, pre-release, jumbo, special foil, nonstandard-size or material subtypes, multiple material identities, and multiple Cardmarket IDs are review states with no guessed ID. Finish-only normal/reverse/holo differences may be simplified. `TcgCheap.Catalogue.Enrichment.enrich_set/2` fetches a detailed set and card details through its separate bounded background enrichment path, validates exact identity before writes, and preserves stale provider detail data safely. Singles valuation is separate: `SingleValuationSnapshot` retains fixed `cardmarket_bulk_v1` values with source/metric, batch, mapping, fetched, provider-update, and current/archive evidence. Public Singles values are materialized only from exact same-successful-batch evidence; there is no 14:00 sweep or per-card pricing acquisition. Public pages read local values only.
-
-Local exact-printing search is exposed as `TcgCheap.Core.search_card_printings`. Private persisted fields derive from name, set, collector number, and TCGdex ID through shared Unicode NFKC, whitespace collapse, trim, and lowercase normalization; SQL backfill parity uses PostgreSQL 18 `pg_unicode_fast`. Four concurrent GIN trigram indexes support escaped contains and `%` candidates. Ranking is deterministic and bounded (exact IDs/names/collectors/sets, prefixes, similarities, Standard legality tie-break, stable identity); default 10, hard max 20, effective minimum 2. All mapping statuses and non-Standard cards remain searchable; exact printings are never collapsed and `CardSet` is loaded.
-
-`/` is now a public local-only exact-printing search surface in `HomeLive`. It uses the shared external 250ms `CardAutocomplete` hook used by Home and Trade, backend-shared normalization, effective minimum 2/max 100 handling, and LiveView stream resets. The focused input is never server-value patched: query, node, focus, caret/selection survive result updates; composition pauses search until compositionend and Escape cancels debounce. Idle, short, invalid, empty, error, and results states have stable accessible IDs and `aria-live`; same-count result updates still change the query-specific status. Same-name printings remain separate and show original name/set/collector plus optional rarity; exact TCGdex identity remains in internal routing/data. No provider HTTP runs from render/event paths and no price is invented. Current commit `52a9c0d` renders approved TCGdex imagery only through the strict `CardImage` boundary: canonical `https://assets.tcgdex.net` URLs, low WebP search images, no-referrer, exact CSP host, no proxy/cache, and honest missing/invalid fallback.
-
-Home now uses a scoped `decision-world`: a bright card-shop valuation bench distilled for ordinary collectors with warm bench/paper/ink/orange tokens, square rules, Barlow Condensed action hierarchy, Azeret Mono supporting copy, an accessible Singles/Sealed switch, and category-specific direct search. Visible exact-printing search is primary. Singles rows show image, name, set, collector number, optional rarity, `€…` or `Price unavailable`, `Updated …` plus `May be outdated`, and one solid `View price` CTA. Sealed rows use canonical identity, type, series/set, release date, discontinued state, an honest no-image placeholder, and one `View offers` action; catalogue copy does not imply every approved product has evidence. Full policy/methodology/non-affiliation caveats are collapsed under `How prices work`; rows avoid provider/policy/local-data jargon. Singles remains the default and uses only current local `cardmarket_bulk_v1` values. Home loads the current valuation relationship without dual-policy selection or TCGdex pricing fallback. A zero-result mode switch preserves and reruns the normalized query; bounded cross-category recovery remains outside the primary listbox. The `archive-world` remains scoped to card detail and was not removed globally. Generic shared Layout remains neutral.
-
-When Home is idle, it can additionally show stream-backed local discovery ledgers without filler. Market movers return up to 10 total rows, capped at 5 risers and 5 fallers, from the fixed preceding 30 UTC dates. They require at least two distinct daily points spanning at least one day and at least 2% absolute movement; each mover shows signed movement, prior→current values, the exact date range, freshness, and collapsed source/methodology. Empty riser/faller lanes do not render. Singles in the active mode retain `Recently tracked`; Sealed retains `Recent releases` because that stream is sorted by `release_date`; both remain visible alongside movers. Singles additionally require current active-policy/current Cardmarket mapping, while Sealed requires current recent ready mapping-confident aggregates and approved public products. This deliberate 1-day/2% threshold surfaces more bounded local evidence than the superseded 7-day/5% rule and remains subject to real-history tuning. Both reads fail independently, call no provider, remain hidden while the primary search is active without discarding their streams, and the separate cross-category zero-search-result fallback remains independent.
-
-Public Sealed is local-only. `SealedProduct.search_public` normalizes a bounded query, searches approved canonical names and approved name aliases, uses concurrent GIN trigram indexes plus deterministic exact/alias/prefix/similarity ranking, and never exposes drafts, future releases, unofficial/non-PL/non-English rows, or EAN aliases. Stable streamed options share the focus-preserving autocomplete behavior; Enter carries the current input value, and Home plus Trade reject stale cached selections. `/sealed/:slug` reads approved local identity and matched evidence only. `PublicSealedProductProjection` selects one cheapest in-stock listing per active shop and one most recently checked sold-out listing per shop within 30 days, then sorts current offers by Decimal PLN and sold-out evidence chronologically. Detail shows optional provenance-backed MSRP, release/distribution status, shop category, stock, UTC last check, direct HTTPS link, shipping exclusion, and separate current/sold-out empty/error states. No provider HTTP runs in public paths.
-
-`SealedDailyAggregate` now retains one immutable-identity/updatable-content row per approved product, UTC date, and calculation version, with version/currency/status, canonical limited reason, finite ordered benchmark/range, regular/LGS and sold-out/stale/source counts, latest nonfuture evidence time, calculation time, snapshot-time MSRP, explicit mapping confidence, and policy-relevant normalized source evidence needed to reconstruct the projection/model input. Newer same-day calculations upsert while stale regressions fail; versions and dates remain queryable. App plus generated database constraints enforce state/reason/count/time/money coherence, at least five regular retailers for ready state, ready evidence presence, unique coverage no lower than fresh category coverage, and restrictive product deletion. `sealed_market_daily_v1` is a pure Decimal calculator: it validates all loaded evidence, rejects category contradictions, chooses one cheapest fresh in-stock offer per retailer after freshness filtering, keeps LGS out of the primary benchmark, deduplicates one latest eligible sold-out listing per retailer, buckets sold-out evidence at inclusive 14/30-day boundaries, removes Tukey 1.5-IQR outliers, and stores a half-up two-decimal median with the inlier min/max range. Empty, sparse, and insufficient-inlier results remain canonical Limited data rather than receiving values.
-
-`SealedDailyAggregateWorker` is a local-only Oban job with queue concurrency one, active-state uniqueness, bounded attempts, strict empty arguments/clock, and a daily 16:00 UTC Cron after NBP. It reads every public approved product and all active matched listings, excludes mappings approved after its captured time, passes all current/sold-out evidence to the calculator so a stale cheap duplicate cannot hide a fresh listing, skips products with no as-of mapping instead of inventing history, and converges safely through the protected daily upsert. Aggregate persistence atomically enqueues exact current-plus-history revision jobs for the changed date and every persisted following date whose 30-day guide window consumes it; any dependency read or enqueue failure rolls back the aggregate. It makes no external request and does not invoke or control sealed retailer adapters. Public sealed detail reads the newest current-version aggregate locally; valid ready data renders benchmark/range/count/date/evidence and methodology, currentness requires a recent aggregate plus nonfuture evidence within the seven-day policy, a newest limited result can retain the independently bounded latest older ready snapshot as explicitly cached/outdated, and invalid/unreadable state fails closed.
-
-`SealedBuyingModel` implements the pure provisional `sealed_buying_model_v1` boundary documented in [Sealed Buying Model v1](sealed-buying-model-v1.md). It consumes one validated current `sealed_market_daily_v1` aggregate, a 30-day ready/limited history, snapshot-time MSRP, exact fresh per-retailer LGS evidence, latest-per-retailer sold-out price evidence, and explicit mapping confidence. A fixed decimal128/half-up context makes results independent of caller process settings. The inspectable policy gives the regular benchmark/MSRP/LGS/sold-out reference weights `0.55/0.25/0.10/0.10`, a six-part confidence score with a `0.65` ready threshold, inclusive seven-day freshness, three points spanning seven days, ±5% trend thresholds, availability/availability-trend thresholds, recency weights `1.00/0.35`, the strict recent-sold-out-majority scarcity rule, aggregate low/benchmark/high band guardrails, and explicit Great/Fair/Expensive/Avoid intervals. Hard failures and weak coherent states remain distinct; uncertain mapping, limited aggregate, stale evidence, insufficient history, low confidence, or rounded-boundary collision returns no bands.
-
-`SealedBuyingGuideSnapshot` now persists one updatable product/date/model-version result with ready/Limited state, reference and three ceilings, confidence, trend/change, availability states, component centers, ordered explanation factors, source aggregate identity/time, and canonical SHA-256 fingerprints for the current aggregate plus the exact preceding 30-day revision set. Its create action locks and re-fingerprints the current and supporting aggregate rows before deriving product/date, with restrictive product/aggregate references and database decision-table constraints. `SealedBuyingGuideWorker` uses both fingerprints in active-state uniqueness, enqueues a latest successor when either source changes, retries transient aggregate/product/history/persistence failures, rebuilds aggregate output from retained source evidence before calling the pure model, and exposes latest/latest-ready/history local reads through `Core`.
-
-The public `/sealed/:slug` path now consumes persisted current-model guide snapshots locally; it never recomputes the model or calls providers. `SealedBuyingGuidePublicProjection` validates expected product binding, exact source aggregate and preceding-history fingerprints, time/version/currency/state/money/factor/trend invariants, and source-relative history. Corrupt, mismatched, or unreadable data fails closed. Exact ready guides render four inclusive-ceiling Great/Fair/Expensive/Avoid ranges with plain-English explanations from persisted factors; exact Limited guides render collector-readable Limited data reasons/factors. Older-ready and newest-limited/older-ready combinations remain explicitly previous/cached/outdated, and stale bands are never labelled current.
-
-`SealedDailyAggregatePublic` centralizes defensive public aggregate validation. `SealedMarketHistory` renders a fixed 30 UTC-calendar-day accessible SVG with benchmark line, typical-range band, missing-day gaps, no controls/interpolation, and a textual daily ledger; only canonical ready rows for the expected product are plotted. Phase 5 public rendering/graph/plain-English explanation items are implemented in code, awaiting real Polish data/model validation. Recurring internal-demo acquisition is deployed through Coolify; remaining work is active probing/operations, evidence/validation, discovery/tuning, production sealed catalogue/mappings/model validation, and monitoring/restore. No production sealed rows or fabricated production history are claimed, and temporary browser fixture rows were deleted and counts verified zero.
-
-The public `/cards/:tcgdex_id` exact-printing detail is now linked from local search. It is local-first: the initial render and events read the local printing and current `cardmarket_bulk_v1` valuation, while a disconnected/static local valuation and bounded-history read remains useful without a provider. Missing TCGdex detail enrichment may use its separate background job; Singles pricing never does. Bulk and mapping invalidations trigger local rereads. The value panel clearly distinguishes fresh, stale, unpriced, and read-error states, with an insufficient-history collecting state until real observations accrue.
-
-History is a fixed 30 UTC-calendar-date query/projection: at most the latest fetched/created observation with a stable ID per day, with no future or older points and gaps left disconnected. Metadata uses title-case label/value pairs with one `Legal formats` field/chips. The value basis is fixed Cardmarket bulk (`cardmarket_bulk_v1`); collapsed provenance includes source, metric, batch, and exact UTC time. A visible summary gives first/latest observation and count. SVG renders only with at least two observations; one observation keeps collecting state, summary, and accessible ledger, and gaps remain honest. Mobile identity and value come first. Approved TCGdex detail imagery uses high WebP through `CardImage`; invalid or missing assets fall back honestly. The visible disclaimer names Pokémon, Nintendo, TCGdex, Cardmarket, and listed companies. Third-party artwork rights are not independently proven, and broader reuse/self-hosting remains unapproved. Card detail now exposes a side-neutral `Add to a trade` CTA with strict local return/pick reconstruction. The surface brief is `.impeccable/surfaces/lib-tcg-cheap-web-live-card-detail-live-ex.md`.
-
-## Product-owner correction and current state
-
-The newest 2026-08-08 owner report identified the former autocomplete focus-loss path; that blocker is implemented and current. The shared external hook preserves query, input node, focus, caret/selection, and composition across Home and Trade. Stable `card-option-UUID` stream IDs, direct option semantics, one active/`aria-selected` option, wrapping keyboard navigation, exact Enter selection, Escape close, validated touch/click selection, and query-specific live status are implemented. The bounded listbox scrolls internally at `min(45svh, 32rem)` and keeps the active option visible without moving page/input scroll. Provider calls remain outside request paths.
-
-The 2026-08-08 product-owner correction superseded the prior Home wording density and technical presentation. The two top-level customer features remain sealed product price comparison and singles price comparison; trade composition and difference calculation belong inside Singles. Colors, fonts, and the warm square visual direction remain approved. Phase 3 trade/share is complete: NBP conversion, dated evidence, and explicit canonical share/copy are public inside Singles. The overall MVP remains incomplete; source agreement is settled and non-blocking, recurring internal-demo acquisition is deployed through Coolify, and remaining work includes active probing/operations, evidence/validation, discovery/tuning, production sealed catalogue/mappings/model validation, and monitoring/restore.
-
-The 2026-08-08 minimal Home correction remains the current presentation baseline, now with usable shared autocomplete for Singles and Sealed. Its exact identity, accessibility, legal/methodology honesty, collapsed required caveats, local-only stream behavior, approved visual direction, plain states, and clear CTAs remain requirements. The completed Phase 3 URL-backed trade/share flow is inside Singles with a side-neutral CardDetail CTA and strict return flow. Sealed now exposes approved local identity/MSRP/shop and aggregate evidence plus fail-closed persisted current-model guide/history projection; no provider or model recomputation runs in the public path.
-
-## Validation and limitations
-
-Current final validation is the 2026-08-26 gate: canonical `mix check --verbose` passed all static gates and 883 tests, focused Home/CardDetail coverage passed 49 tests, both Impeccable detectors were clean, and desktop/390px browser checks found no horizontal overflow or console warning/error. The generated card-target grammar migration passed test-database down/up; the earlier three catalogue recovery migrations and race coverage remain valid. The encoded `/trade?pick=exu-%253F` browser check still rendered `Unown` with the `%3F` collector identity without a malformed warning. Bafa237 UI deployment verification is complete; complete provider-partial coverage, representative mapping, sealed catalogue/mappings/model validation, recurring real history, mover tuning, monitoring/restore, and production-scale query-plan validation remain limitations.
-
-## Local development
-
-- PostgreSQL runs through the worktree's Compose project on loopback port 5436 by default (`DB_PORT` can override it).
-- Phoenix development server runs on port 4004.
-- Worktrunk provides isolated parallel worktrees and port/environment separation.
-- The direct localhost workflow is current; Caddy/domain integration is deferred.
-- Development lifecycle is managed with `mix dev.up` and `mix dev.down`; non-main worktree identities include a short hash of the original branch to prevent sanitized-name collisions. `dev.up` verifies the expected Compose `postgres` service, restarts its exact Phoenix tmux session, and requires a 2xx HTTP response before reporting readiness.
-- Theme initialization is bundled in the self-hosted JavaScript asset rather than emitted as a raw inline script. Browser CSP explicitly allows self-hosted scripts/connect/images and self plus inline styles required by LiveView runtime behavior.
-
-The importer/sync boundary has fixture-backed deterministic coverage for provider errors, retries, idempotency, rollback, stale-response rejection, mapping review, assets, punctuation IDs/path encoding, database constraints, set enumeration, brief validation, partial/count mismatch behavior, preservation, cross-set conflicts, TCG Pocket exclusion, aggregate failure reporting, scope isolation, issue lifecycle, and failed-set repair selection. Focused search coverage passed 14 tests; SQL/Elixir Unicode parity and live PostgreSQL `EXPLAIN` index usage were verified. Caddy integration and CI remain deferred. Third-party artwork rights are not independently proven (and broader reuse/self-hosting is not approved), while UTC daily grouping with Europe/Warsaw presentation remains an explicit limitation. Private failed-set repair execution is now proven; complete coverage for 10 provider-partial sets, representative exact-printing/Cardmarket mapping, and ranking validation remain open.
-
-Card detail and mapping-bound valuation history are complete for this local-first surface. The shared autocomplete and Phase 3 URL-only EUR/PLN trade/share flow are complete and validated. Public Sealed local search/identity/MSRP/current-and-recent-sold-out offer evidence, the versioned daily benchmark/range, persisted local guide recomputation, and fail-closed public guide/graph/factor projection are implemented. Request-level provider/global budget admission, persisted provider kill switches, passive automatic circuit opening, bounded direct-peer public acquisition throttling, focused authenticated usage/failure/provider-control visibility, all-state retained Oban counts and bounded newest-job evidence across external and local-only workers, persisted external-attempt/source-health evidence, passive scheduled-source freshness, overdue projection, periodic stranded-run reconciliation, resumable full-catalogue synchronization, typed canonical manual refresh/requeue, exact read-only buying-model inspection, authenticated AshBackpex sealed-product/manual-alias/retailer curation, retailer-listing/mapping/history inspection, card-set/card/external-mapping correction and decision history, valuation-snapshot inspection, and normalized TCGdex catalogue plus configured sealed-retailer import-issue inspection are implemented. Actual-cost reconciliation, active source probes, production sealed acquisition/data, real catalogue/observations/model validation, arbitrary retained-job replay, acquisition priorities, and broader scheduling remain unfinished; the authenticated sealed review desk is implemented. Ranking needs real full-catalogue tuning. No provider request runs in public paths.
-
-**Historical sealed-foundation validation checkpoint (superseded by the current status above):** This checkpoint validated monotonic stale protection, unchanged-check deduplication, Decimal equality, price/stock transitions, same-timestamp conflict rollback, exact app/SQL invariants, independent transaction concurrency, fixture-only source normalization, bounded acquisition, redirect/error behavior, page-count drift, all-before-write validation, disable-during-fetch revalidation, atomic batch rollback, missing-row preservation, real Oban completion/uniqueness release, disabled configuration/Cron boundaries, administrator authentication/authorization, dual IP/account throttling, bounded limiter state, and stale review rejection. The focused admin/catalogue suite passed 56 tests. Canonical `direnv exec . mix check --verbose` passed 356 tests with Ash codegen, Sobelow, format, compile, unused dependencies, xref, Credo, and Dialyzer clean. Desktop and 390px browser checks covered redirect/sign-in, evidence queues, one mutation, sign-out/re-access rejection, 44px controls, no horizontal overflow, and no console warnings/errors; temporary records were deleted and verified absent. At that checkpoint, no production seed, configured retailer adapter, or fabricated history existed. The current registry and schedule are recorded in the current status above; the next production step was representative SKU/alias/MSRP curation and deployment validation, and the review path could accept that evidence safely.
-
-The public Sealed batch added 63 focused lookup/Home/Trade/detail tests and passed the canonical 378-test `direnv exec . mix check --verbose` gate with all static checks clean. Final code review was clean after chronological sold-out ordering, stale Enter rejection, and offer-read error truthfulness were hardened. Browser validation at 1008px and 390px covered character-by-character focus retention, one selected keyboard option, exact navigation, cheapest-per-shop/current-versus-sold-out evidence, long retailer names, local not-found behavior, 44px controls, no overflow, and no console warnings/errors. Temporary product/retailer/listing/mapping/observation rows were deleted and verified absent.
-
-The daily aggregate batch adds calculator, persistence, worker, and public-state coverage; aggregate-focused plus adjacent Cron tests pass 58 cases. Canonical `direnv exec . mix check --verbose` passes 436 tests with all static checks clean and zero Dialyzer/Credo findings. Final review is clean after freshness-before-retailer-deduplication, sold-out per-retailer deduplication, source-coverage constraints, explicit Limited data labels, older cached-ready fallback, and UI complexity were corrected. Desktop 1008px and mobile 390px browser validation shows the current benchmark/range/count/evidence snapshot and methodology without horizontal overflow, with a 44px-plus summary control and no current-page console warning/error. Temporary product/aggregate rows were deleted and verified zero.
-
-The pure buying-model batch adds 37 focused deterministic tests and brings all pricing coverage to 179 tests. Canonical `direnv exec . mix check --verbose` passes 473 tests with Ash codegen, Sobelow, format, warnings-as-errors compile, unused dependencies, xref, Credo, and Dialyzer clean. Coverage includes fixed Decimal-context isolation/restoration, exact 7/14/30-day boundaries, history span/window behavior, malformed aggregate/evidence rejection, LGS and sold-out deduplication/count coherence, hard limited-reason precedence, confidence/reference/band outputs, four explicit interval semantics, rounded-boundary fail-closed behavior, and every required synthetic model case. This batch changes no public surface and makes no new browser claim.
-
-The public sealed guide/graph slice brings canonical validation to 523 passing tests. The four focused public aggregate/guide/history/LiveView files pass 29 tests; assets build passes; final code review is clean. Browser validation at desktop 1000px and mobile 390px showed ready bands/reasons/graph/ledger, no horizontal overflow, sampled controls at least 44px, and no console warnings/errors. The Impeccable detector showed only the two known square-border false positives plus design-system advisories; graph colors use existing tokens. Temporary browser fixture rows were deleted and counts verified zero. This validates local behavior only and makes no production-data claim.
-
-The public per-IP acquisition-throttle batch brings canonical validation to 533 passing tests. Focused limiter/acquisition/worker/CardDetail/Trade coverage passes 81 tests; format, Ash codegen, Sobelow, warnings-as-errors compile, unused dependencies, xref, Credo, and Dialyzer are clean, and final code review has no actionable findings. Tests cover IPv4/IPv6 isolation, exact and concurrent bounds, bounded-capacity fail-closed behavior, expiry reclamation, fresh-data bypass, one reservation per stale/missing bulk card, partial admission, callback failure, direct-peer LiveView propagation, and rejected no-job cached/`?` fallback. This changes behavior but no layout, so no new browser visual claim is made.
-
-The authenticated operations-ledger batch brings canonical validation to 550 passing tests. Focused operations plus adjacent metered-worker coverage passes 76 tests, including configuration/provider query bounds, global/current-provider accounting, secret-safe bounded job projection, unchanged-version preservation, same-version concurrent controls, and admission/disable linearization. Canonical format, Ash codegen, Sobelow, warnings-as-errors compile, unused dependencies, xref, Credo, and Dialyzer are clean; final review is clean. Browser validation at desktop 1000px and mobile 390px shows honest current ledgers, provider controls, and empty failure state with no horizontal overflow, controls above 44px, and no console warning/error; one NBP disable/re-enable restored active state. Temporary browser artifacts and administrator/session data were removed.
-
-The initial AshBackpex product batch brought canonical validation to 557 passing tests. The retailer/listing expansion now brings canonical validation to 562 tests, with 65 focused/adjacent retailer, public sealed, detail, and aggregate regressions passing before the full gate. Canonical format, Ash codegen, Sobelow, warnings-as-errors compile, unused dependencies, xref, Credo, and Dialyzer are clean; final code review is clean after relationship traversal and deterministic generic-query pagination were corrected. Browser validation at desktop and 390px covered retailer/listing navigation, read-only listing evidence, a real retailer category/status save, immutable source identity, internal table scrolling with no page overflow, 44px generated controls and row links, and no current-page console warning/error. Detector output remains the two known square-border false positives plus existing design-system advisories; no new finding points at the admin additions.
-
-The homepage discovery/cross-category recovery batch brings canonical validation to 571 passing tests. Focused discovery, freshness, and Home LiveView coverage passes 34 cases, including UTC daily-close/window boundaries, meaningful-change thresholds, release eligibility/window/order, stream retention, both recovery directions, persistent announcements, and clearing. Canonical format, Ash codegen, Sobelow, warnings-as-errors compile, unused dependencies, xref, Credo, and Dialyzer are clean. Desktop 1000px and mobile 390px browser checks show even rows, two-to-one-column reflow, no horizontal overflow, 45px mode controls, 67px-plus direct links, recovery outside listboxes with collapsed primary comboboxes, and no console warning/error. Temporary browser rows were deleted and verified absent; detector output remains the two known square-border false positives plus existing design-system advisories.
-
-The acquisition observability/source-health batch brings canonical validation to 588 passing tests. It covers secret-free classification, admitted-request counts, preflight cancellation, terminal versus retryable outcomes, mandatory finalization, duplicate persisted attempts, stranded lower-attempt reconciliation, concurrent streak serialization, bounded protected projections, and redirect-free metered adapters. Migration rollback/up was exercised with real failed rows. Desktop 1000px and mobile 390px browser checks showed provider health plus the bounded acquisition ledger, no horizontal overflow, and no current-page console warning/error; temporary run, health, administrator, token, and session data were deleted and verified absent. Final read-only review was clean. The absence of a periodic terminal stranded-run reconciler remains explicit.
-
-The later acquisition-health hardening batch brings canonical validation to 640 passing tests and supersedes that final limitation: a periodic terminal reconciler, strict scheduled-source freshness policy, overdue projection, one-clock overview evidence, explicit valuation/exchange worker timeouts, running-only partial index, and strict source-health state/chronology constraint are implemented. Focused operations/worker/admin coverage passes 101 tests. Migration rollback/up and live schema inspection passed; browser validation covered freshness, overdue, and reconciled failure behavior. Temporary runtime evidence and administrator/session records were removed, and final read-only review found no actionable issue. At that checkpoint active provider probes/circuit breaking, actual cost, priorities, production evidence, and deployment remained open; the later circuit batch closes passive outcome-driven breaking only.
-
-The automatic provider circuit-breaker batch brings canonical validation to 736 passing tests. Focused operations/worker/admin coverage passes 146 tests across strict category/threshold policy, retryable and terminal outcomes, excluded failures, success/open races, manual status semantics, invalid-evidence rollback, provider materialization, and concurrent completion/admission/control serialization. Generated migrations/snapshots `20260810135856` and `20260810142702` were reviewed; static checks and final multi-agent review are clean. Authenticated desktop and 390px browser checks showed closed-state and `0 / 5` threshold evidence for all three configured providers without operations-page console warning/error or horizontal overflow; temporary administrator/token rows were removed.
-
-The safe-manual-refresh batch brings canonical validation to 653 passing tests. Twenty-four focused coordinator/LiveView tests cover persisted-admin validation, exact canonical NBP/card/retailer jobs, active duplicate reuse, malformed and tampered targets, bounded adapter configuration, provider disable/unconfigured behavior, secret-free UI projection, provider-control synchronization, and invalid-card input preservation. Static checks, Dialyzer, Credo, Sobelow, Ash codegen, the mechanical detector, and final review are clean. Browser checks at desktop and 390px found 44.8px controls, correct stacking, no horizontal overflow or console warning/error, and no provider request; the temporary administrator and tokens were deleted and verified absent.
-
-The sealed alias-catalogue batch brings canonical validation to 595 passing tests. Focused alias domain/public-search/AshBackpex coverage passes 39 tests, including strict generic reads, actor protection, normalization/GTIN errors, manual-only revision, stale-version rejection, provider-payload protection, reviewed/provider read-only behavior, and approved-name-only public search traversal. `mix check --verbose` passes format, Ash codegen, Sobelow, warnings-as-errors compile, unused dependencies, xref, Credo, Dialyzer, and all tests. Desktop and 390px browser checks covered authenticated list/new creation, typeahead product selection, normalized pending evidence, provider row read-only behavior, hidden source payload, internal table scrolling without page overflow, 44px generated actions, and no console warning/error. The Impeccable detector returned no findings; temporary aliases, product, administrator, tokens, and session state were deleted and verified absent. Final code review was clean. This adds no production alias evidence and does not complete mapping/card admin or source access.
-
-The mapping catalogue/correction-history batch brings canonical validation to 614 passing tests. Focused mapping history/catalogue plus review coverage passes 23 tests for strict reads, denied direct history fabrication, import and migration baselines, transactional rollback, stale-record/current-token rejection, safe evidence projection, reasoned terminal reopen, and secret-free rendering. The generated schema migration and separate baseline migration were reviewed; rollback/up and one real rejected-row backfill were exercised. Desktop and 390px browser checks covered authentication, mapping/history navigation, blank and successful correction, return to review, 45px controls, no horizontal page overflow, and no console warnings/errors. Temporary rows, administrator, tokens, and browser session were deleted and verified absent. Final read-only review was clean after chronological admin ordering was corrected. This adds no production mapping evidence.
-
-The read-only Singles catalogue/valuation batch brings canonical validation to 618 passing tests. Focused coverage proves authenticated routes and admin reads, denied anonymous generic reads, preserved explicit public/operational actions and relationship projections, `Ash.NotLoaded` private payload/variant/search fields, safe card mapping and valuation provenance rendering, immutable current/archive rows, and absent mutation actions. Catalogue/singles plus Home/CardDetail/Trade regressions pass 327 tests. Desktop and 390px browser checks covered card/valuation navigation, internal table scroll without page overflow, both valuation states, and no console warnings/errors; temporary records, administrator, and tokens were removed. The Impeccable detector and final read-only code review were clean. This adds no production catalogue or mapping evidence.
-
-The buying-model-inspection batch brings canonical validation to 657 passing tests. Fifty-six focused model/inspection/LiveView tests cover exact policy identity and safe ordering, malformed/nonfinite rejection, deterministic same-version policy fingerprinting, persisted-admin validation, independent overview failure, complete operative rule rendering, and absent model controls. Desktop 1000px and mobile 390px checks confirmed the hard five-shop versus confidence-target eight-shop distinction, ordered Limited reasons, 44.8px navigation, no horizontal overflow, and no console warning/error. The detector and final read-only review were clean after the sold-out-majority, aggregate-guardrail, copy, and same-version-drift findings were corrected. Temporary administrator/token rows were deleted and verified absent.
-
-The card external-mapping correction/history batch brings canonical validation to 689 passing tests. `direnv exec . mix check --verbose` passes format, Ash codegen, Sobelow, warnings-as-errors compile, unused dependencies, the updated compile-connected xref ceiling, Credo, Dialyzer, and the full suite. Focused catalogue/import/pricing/CardDetail/Trade/admin suites and independent transaction races cover correction and reopen versus valuation writes plus administrator correction versus provider import. All seven generated mapping/history/baseline/constraint and mismatched-current archival migrations are applied; live PostgreSQL inspection found all six expected mapping constraints and zero mismatched active-policy current rows. The reason-expansion migration is intentionally irreversible because rollback would erase immutable administrator evidence. Browser validation at 1000px and 390px covered invalid-input preservation, authenticated correction, reasoned reopen, immutable actor-attributed history, valuation archival, 44px-class controls, no horizontal page overflow, and no console warning/error; temporary card/valuation/decision/admin/token rows were removed and verified absent. Final multi-agent review is clean after historical-epoch filtering, raw-import exposure, rollback/reason invariants, mutation-race, and subscribe/broadcast race findings were corrected. This adds no production mapping evidence.
-
-## Phase 3 trade/share — complete
-
-The public `/trade` route is implemented inside Singles as a URL-only, mobile-first decision bench. It safely parses deterministic `left=id:qty,...&right=id:qty,...` state, merges/caps duplicates, sorts canonically, restores through `handle_params`, and updates every add/increment/decrement/remove through `push_patch`. It uses one local search and explicit side actions; untrusted events cannot inject rows. A bounded Ash read preloads up to 100 cards with their sets and current `cardmarket_bulk_v1` valuations, avoiding N+1 reads.
-
-`TcgCheap.Trades.Valuation` is pure Decimal EUR unit/row/side/difference calculation. Stale values count, unknown/unvalued rows remain removable but unpriced, and incomplete totals/differences are marked. Side totals show EUR plus PLN; complete differences show both currencies, and NBP evidence is exact, dated, and age-labelled. Missing or stale compositions render immediately and remain local until the next successful 03:00 UTC bulk sync; no public Singles pricing job is enqueued. Committed batch/mapping invalidations trigger local rereads.
-
-The shared external `CardAutocomplete` hook serves Home and Trade. CardDetail has a side-neutral pending-pick CTA and strict local `/trade` return reconstruction. The trade surface has symmetric desktop ledgers, stacked mobile sides, square 44px controls, exact identity, relative update labels, acquisition states, and no 390px overflow. NBP EUR/PLN is a local backend/cache boundary with daily freshness and carry-forward behavior. `TradeShare` canonicalizes an absolute URL from `Composition.to_path`; clipboard and legacy fallback feedback are accessible and stale-result safe. Sealed public capability, public accounts, server trade persistence, snapshots, and provider HTTP in public paths remain unavailable; administrator authentication is separate and internal.
-
-Validation: focused TradeLive coverage passed with 26 tests; assets build passed separately; canonical `direnv exec . mix check --verbose` passed with 258 tests, zero Dialyzer errors, no Credo issues, and Ash codegen, Sobelow, format, compile, xref, unused-dependency, Credo, and Dialyzer passing. Browser desktop 1008px/mobile 390px checks covered long names, large totals, exact rate/PLN, canonical Clipboard API/fallback, cleanup/focus restoration, failure feedback, 44px controls, no overflow, and no console errors/warnings. Temporary records/rates/jobs were deleted and verified zero. Final code review was clean.
+- Updated: 2026-10-30
+- Sources: Project code (`lib/`, `config/config.exs`, `config/runtime.exs`, `priv/repo/migrations/`), [deployment guide](../../../docs/deployment-and-operations.md)
+- Raw: N/A — codebase update
+
+One Phoenix LiveView + Ash + Oban application on PostgreSQL. The product is
+described in the [Buying and Trading Guide](../product/buying-and-trading-guide.md);
+this article describes how the code implements it.
+
+## Domains
+
+| Ash domain | Purpose | Main code |
+| --- | --- | --- |
+| `TcgCheap.Sealed` | Buying guide: products, shop offers, daily prices | `lib/tcg_cheap/sealed/` |
+| `TcgCheap.Core` | Singles catalogue (TCGdex), Cardmarket bulk prices and mappings, valuation snapshots, NBP exchange rates | `lib/tcg_cheap/catalogue/`, `lib/tcg_cheap/pricing/` |
+| `TcgCheap.Operations` | Acquisition budget, runs, source health, catalogue sync progress, import issues (singles and NBP only) | `lib/tcg_cheap/operations/` |
+| `TcgCheap.Accounts` | Provisioned administrators (AshAuthentication password + tokens); no public sign-up | `lib/tcg_cheap/accounts/` |
+
+The trade modules (`lib/tcg_cheap/trades/`, no Ash domain) are plain code: a
+URL-safe trade composition and pure valuation arithmetic.
+
+The schema is one squashed set of Ash-generated migrations
+(`priv/repo/migrations/`) plus the Oban jobs migration. Extensions used:
+`citext`, `pg_trgm` and Ash SQL functions; PostgreSQL ≥ 18.4
+(`TcgCheap.Repo.min_pg_version/0`).
+
+## Buying guide (sealed)
+
+```text
+Cardmarket products_nonsingles_6.json + price_guide_6.json
+  └─ CatalogueImportWorker (03:30 UTC) ─ CatalogueImport ─┐
+Six WooCommerce Store APIs                                 ├─ Refresh.recompute
+  └─ FetchWorker per shop (04:00–06:30 UTC) ─ Refresh.run ─┘     │
+                                                                  ├─ re-match offers (Matcher)
+                                                                  ├─ DailyPrice per product/day
+                                                                  └─ Product availability, lowest price, image
+Public pages ─ Guide (read model) ─ PriceGuide.verdict
+```
+
+- **Resources.** `Product` (keyed by Cardmarket id, with kind, derived set
+  name, Cardmarket trend/low/avg in EUR, slug, search text, availability,
+  lowest price, image), `Offer` (one per shop product; title, URL, price,
+  stock, EAN, image, `last_seen_at`, matched product, `manual?`), and
+  `DailyPrice` (per product and day: lowest in-stock shop price, shops in
+  stock, Cardmarket trend).
+- **Catalogue import.** `TcgCheap.Sealed.CatalogueImport` downloads both files
+  through the bounded `TcgCheap.Pricing.CardmarketBulk.Adapter`, builds rows
+  with `TcgCheap.Sealed.Catalogue` (kinds from `TcgCheap.Sealed.Kinds`; Coins
+  and Lots excluded; cases and displays of tins/blisters become `case`) and
+  upserts everything in one transaction, then recomputes.
+- **Shop fetch.** `TcgCheap.Sealed.Shops` fixes each shop's host, category
+  ids, accepted category slugs, permalink shape and page limit.
+  `TcgCheap.Sealed.WooCommerce` reads 100 products per page, at most
+  `max_pages` pages and 2 MB per page, follows no redirects, skips invalid
+  products and fails the whole fetch on any transport, status, pagination or
+  shape problem. `TcgCheap.Sealed.Refresh.run/2` upserts offers and
+  recomputes in one transaction; a failed fetch writes nothing and Oban
+  retries (3 attempts).
+- **Current offers.** An offer counts when it was seen in its shop's latest
+  successful fetch and that fetch is at most 3 days old
+  (`TcgCheap.Sealed.current_offers/1`). Removing a shop therefore drops its
+  offers from verdicts within 3 days.
+- **Matching.** `TcgCheap.Sealed.Matcher` normalises titles and names
+  (diacritics, synonyms such as ETB, Polish language words, series prefixes).
+  A product matches when all its name tokens are in the title, every
+  qualifier in the title (box, case, half, mini, center, languages, …) is in
+  the name, and at most two title words stay unexplained; the most specific
+  product wins and ties stay unmatched. Preorders, multi-packs, empty boxes,
+  singles and accessories are excluded. An EAN seen on a manually assigned
+  offer wins over the title. Every recompute re-matches all non-manual
+  offers, so catalogue or rule changes apply retroactively.
+- **Verdict.** `TcgCheap.Sealed.PriceGuide` (see the product article for the
+  rule); `TcgCheap.Sealed.Guide` assembles summaries, offers, 90-day history
+  and the EUR/PLN rate for the LiveViews.
+- **Web.** `TcgCheapWeb.HomeLive` (`/`), `TcgCheapWeb.ProductLive`
+  (`/produkty/:slug`), shared `TcgCheapWeb.GuideComponents`, and
+  `TcgCheapWeb.Admin.BuyingGuideLive` (`/admin/buying-guide`). Manual
+  assignment and clearing run in a transaction together with
+  `Refresh.recompute/1`. Image hosts allowed by CSP are derived from the shop
+  list (`TcgCheap.Catalogue.ExternalImage`).
+- Sealed jobs are not subject to the acquisition budget or run tracking;
+  their operational evidence is the Oban job history and offer `last_seen_at`.
+
+## Singles (trading guide, to be simplified in phase 2)
+
+- **Catalogue.** TCGdex is the card identity source (`TcgCheap.Catalogue.Tcgdex`,
+  `CardSet`, `CardPrinting`). `SinglesCatalogueBootstrapWorker` (cron every
+  15 minutes, unique per week) queues the resumable, budget-aware
+  `CatalogueSyncWorker` (all sets and card briefs) and the serial
+  `CardDetailEnrichmentWorker` chain. A card detail page can also request
+  enrichment on demand, limited per client IP
+  (`TcgCheapWeb.PublicAcquisitionLimiter`, 30 per hour). Public reads show
+  canonical paper cards (TCG Pocket excluded).
+- **Collection scopes.** Printings carry informational scopes
+  (`pitch_black_full`, `rolling_ir_sir`, `curated_playable`, `legacy_local`).
+  `SinglesScopeBootstrapWorker`/`SinglesSetCollectionWorker` (manual trigger
+  from `/admin/operations`, no cron) collect the Pitch Black and rolling
+  IR/SIR scopes; `CuratedPlayableBootstrapWorker` collects curated playables
+  from a fixed manifest (`CuratedPlayablePolicy`) that is valid until
+  2026-11-17 and queues nothing afterwards. Public reads are not filtered by scope.
+- **Prices.** `TcgCheap.Pricing.CardmarketBulk.SyncWorker` (03:00 UTC)
+  downloads Cardmarket's `products_singles_6.json` and `price_guide_6.json`,
+  checks plausibility (row minimums and a 10% row-count anomaly bound), keeps
+  the compressed raw responses per batch, crosswalks TCGdex sets/printings to
+  Cardmarket expansions/products conservatively
+  (`TcgCheap.Catalogue.CardmarketCrosswalk`, anchored on TCGdex's Cardmarket
+  ids), and materialises one current `SingleValuationSnapshot` per mapped
+  printing in EUR using the first available of avg7, avg30, trend, avg, low.
+  The only valuation policy is `cardmarket_bulk_v1`; TCGdex is never a price
+  source. Valuations older than 24 hours are shown as stale.
+- **Corrections.** Administrators can correct a printing's Cardmarket mapping
+  (`/admin/catalogue/cards/:id/correct`); decisions are immutable history and
+  `MappingReplayWorker` replays the crosswalk and materialisation.
+- **Trade.** `/trade` keeps the trade in the URL as TCGdex ids and quantities
+  (`TcgCheap.Trades.Composition`), totals both sides in EUR
+  (`TcgCheap.Trades.Valuation`; unvalued cards are listed but excluded from
+  totals) and in PLN with the stored NBP rate, requesting a fresh rate in the
+  background when needed.
+- **Exchange rate.** `TcgCheap.Pricing.ExchangeRateWorker` stores the NBP
+  table A EUR/PLN mid rate daily at 15:00 UTC; the buying guide uses the
+  latest stored rate on or before today.
+- **Operations.** `TcgCheap.Operations.AcquisitionBudget` admits external
+  requests for the three configured providers (`tcgdex_catalogue`,
+  `cardmarket_bulk`, `nbp`) within hourly/daily/monthly limits;
+  `AcquisitionReconcilerWorker` (every 15 minutes) repairs stranded runs;
+  source health treats `nbp`/`cardmarket_bulk` as stale after 36 hours
+  (`:acquisition_health` config). `/admin/operations`
+  shows provider health and offers manual refreshes; Backpex pages under
+  `/admin/catalogue/*` and `/admin/operations/import-issues` are read-only
+  inspection.
+
+## Jobs
+
+Oban queues (concurrency 1 each): `exchange_rates`, `catalogue_sync`,
+`operations`, `cardmarket_bulk`, `sealed`. Completed jobs are pruned after 7
+days. Schedules (UTC) are in `config/config.exs`:
+
+| Cron | Worker |
+| --- | --- |
+| `*/15 * * * *` | `SinglesCatalogueBootstrapWorker`, `CuratedPlayableBootstrapWorker`, `AcquisitionReconcilerWorker` |
+| `0 3 * * *` | `Pricing.CardmarketBulk.SyncWorker` |
+| `30 3 * * *` | `Sealed.CatalogueImportWorker` |
+| `0 4`, `30 4`, `0 5`, `30 5`, `0 6`, `30 6` | `Sealed.FetchWorker` for lootquest, cardzhouse, boosterpoint, pokebooster, boosterland, colligere |
+| `0 15 * * *` | `Pricing.ExchangeRateWorker` (NBP) |
+
+## Key decisions
+
+- Public pages never call external services synchronously; they read local
+  data and show missing or stale data honestly.
+- Untrusted feeds are validated strictly and fail closed: a partial or
+  malformed fetch writes nothing.
+- Money is `Decimal`; Cardmarket values stay in EUR and are converted with the
+  stored NBP rate only for display and the sealed fallback.
+- Sealed matching prefers no match over a wrong match; a human fixes the rest
+  in `/admin/buying-guide`.
+- Administration is behind provisioned admin accounts with login throttling
+  (`TcgCheapWeb.AdminLoginLimiter`); there is no public registration.
+- `/health` is fail-closed readiness (database, Oban, acquisition budget);
+  `/health/live` is liveness only.
+
+## Validation
+
+`mix check` is the gate: format, Ash codegen check, Sobelow, warnings-as-errors
+compile, unused dependencies, Credo strict, Dialyzer and tests. CI
+(`.github/workflows/ci.yml`) runs it against the pinned ParadeDB image and
+builds `deployment/Containerfile.app`.
 
 ## See Also
 
-- [Detailed MVP Implementation Plan](../product/mvp-implementation-plan.md)
-- [Reference Project Conventions](reference-project-conventions.md)
-- [Provider and Acquisition Feasibility](provider-acquisition-feasibility.md)
-- [Sealed Buying Model v1](sealed-buying-model-v1.md)
+- [Buying and Trading Guide](../product/buying-and-trading-guide.md)
+- [Data Sources](data-sources.md)
+- [Engineering Conventions](reference-project-conventions.md)
