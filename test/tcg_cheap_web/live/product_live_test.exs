@@ -47,7 +47,7 @@ defmodule TcgCheapWeb.ProductLiveTest do
     assert has_element?(view, "#product-name", "Pitch Black Booster Box")
     assert has_element?(view, "#product-kind", "Booster Box")
     assert has_element?(view, "#product-set", "Pitch Black")
-    assert has_element?(view, "#product-added", "30 kwietnia 2026")
+    assert has_element?(view, "#product-added", "od 30 kwietnia 2026")
     assert has_element?(view, "#product-back[href='/']")
     assert has_element?(view, ".product-image-placeholder svg[aria-label='Brak zdjęcia']")
   end
@@ -119,7 +119,12 @@ defmodule TcgCheapWeb.ProductLiveTest do
     {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
 
     # 200 € × 4.20 = 840 zł.
-    assert has_element?(view, "#verdict-reason", "Typowa cena według Cardmarket: 840\u00A0zł")
+    assert has_element?(
+             view,
+             "#verdict-reason",
+             "Typowa cena na Cardmarket (europejska giełda, bez wysyłki): 840\u00A0zł"
+           )
+
     assert has_element?(view, "#verdict-badge.verdict-good")
     assert has_element?(view, "#cardmarket-trend", "200,00\u00A0€")
     assert has_element?(view, "#cardmarket-trend", "840\u00A0zł")
@@ -134,7 +139,7 @@ defmodule TcgCheapWeb.ProductLiveTest do
     {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
     assert has_element?(view, "#verdict-badge.verdict-insufficient_data", "Za mało danych")
     # Three past days plus today's offer.
-    assert has_element?(view, "#verdict-reason", "Mamy ceny z 4 dni")
+    assert has_element?(view, "#verdict-reason", "Znamy ceny dopiero z 4 dni")
     refute has_element?(view, "#verdict-thresholds")
   end
 
@@ -143,7 +148,7 @@ defmodule TcgCheapWeb.ProductLiveTest do
     box_offer!(product, in_stock: false)
 
     {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
-    assert has_element?(view, "#verdict-badge.verdict-out_of_stock", "Brak w sklepach")
+    assert has_element?(view, "#verdict-badge.verdict-out_of_stock", "Brak na stanie")
     assert has_element?(view, "#verdict-reason", "Ostatnio najtaniej: 820,00\u00A0zł")
     assert has_element?(view, "#threshold-good")
     refute has_element?(view, "#verdict-thresholds [aria-current]")
@@ -212,10 +217,24 @@ defmodule TcgCheapWeb.ProductLiveTest do
     assert has_element?(
              view,
              "#price-history-summary-shops",
-             "od 820,00\u00A0zł do 900,00\u00A0zł"
+             "820,00\u00A0zł–900,00\u00A0zł"
            )
 
     assert has_element?(view, "#price-history-summary-cardmarket", "840,00\u00A0zł")
+  end
+
+  test "a single day of history is a sentence, not a chart", %{conn: conn, product: product} do
+    exchange_rate!("4.0000")
+    daily_price!(product.id, Date.utc_today(), "820", cardmarket_trend: "210")
+
+    {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
+    refute has_element?(view, "#price-history svg")
+
+    assert has_element?(
+             view,
+             "#price-history-single",
+             "820,00\u00A0zł w sklepach i 840,00\u00A0zł na Cardmarket"
+           )
   end
 
   test "no history yet", %{conn: conn, product: product} do

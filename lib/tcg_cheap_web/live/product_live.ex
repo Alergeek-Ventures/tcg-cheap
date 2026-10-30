@@ -52,20 +52,12 @@ defmodule TcgCheapWeb.ProductLive do
             />
             <section id="product-identity" class="product-identity" aria-labelledby="product-name">
               <h1 id="product-name">{@page.product.name}</h1>
-              <dl class="product-facts">
-                <div>
-                  <dt class="sr-only">Rodzaj</dt>
-                  <dd id="product-kind">{Kinds.label(@page.product.kind)}</dd>
-                </div>
-                <div :if={@page.product.set_name}>
-                  <dt class="sr-only">Dodatek</dt>
-                  <dd id="product-set">{@page.product.set_name}</dd>
-                </div>
-                <div :if={@page.product.cardmarket_added_on} class="product-fact-added">
-                  <dt>Na Cardmarket od</dt>
-                  <dd id="product-added">{Polish.date(@page.product.cardmarket_added_on)}</dd>
-                </div>
-              </dl>
+              <p class="product-facts">
+                <span id="product-kind">{Kinds.label(@page.product.kind)}</span><span
+                  :if={@page.product.set_name}
+                  id="product-set"
+                > · {@page.product.set_name}</span>
+              </p>
             </section>
             <.verdict_block verdict={@page.verdict} />
           </div>
@@ -159,26 +151,35 @@ defmodule TcgCheapWeb.ProductLive do
       </div>
       <%= if @product.cardmarket_trend || @product.cardmarket_low do %>
         <dl class="cardmarket-prices">
-          <div :if={@product.cardmarket_trend} id="cardmarket-trend">
-            <dt>Trend</dt>
-            <dd>
-              {Polish.eur(@product.cardmarket_trend)}
-              <span :if={@cardmarket_pln}>≈ {Polish.zloty(@cardmarket_pln)}</span>
-            </dd>
-          </div>
-          <div :if={@product.cardmarket_low} id="cardmarket-low">
-            <dt>Najniższa oferta</dt>
-            <dd>{Polish.eur(@product.cardmarket_low)}</dd>
-          </div>
-          <div :if={@product.cardmarket_avg} id="cardmarket-avg">
-            <dt>Średnia sprzedaży</dt>
-            <dd>{Polish.eur(@product.cardmarket_avg)}</dd>
-          </div>
+          <.cardmarket_price
+            :if={@product.cardmarket_trend}
+            id="cardmarket-trend"
+            label="Typowa cena (trend)"
+            eur={@product.cardmarket_trend}
+            eur_pln={@eur_pln}
+          />
+          <.cardmarket_price
+            :if={@product.cardmarket_low}
+            id="cardmarket-low"
+            label="Najtańsza oferta"
+            eur={@product.cardmarket_low}
+            eur_pln={@eur_pln}
+          />
+          <.cardmarket_price
+            :if={@product.cardmarket_avg}
+            id="cardmarket-avg"
+            label="Średnia sprzedaży"
+            eur={@product.cardmarket_avg}
+            eur_pln={@eur_pln}
+          />
         </dl>
         <p class="guide-note">
           Cardmarket to europejska giełda – ceny w euro, bez wysyłki z innych krajów.
           <span :if={@eur_pln}>
             Przeliczenie po kursie NBP {Polish.rate(@eur_pln.rate)} zł z {Polish.date(@eur_pln.date)}.
+          </span>
+          <span :if={@product.cardmarket_added_on} id="product-added">
+            Produkt jest na Cardmarket od {Polish.date(@product.cardmarket_added_on)}.
           </span>
         </p>
       <% else %>
@@ -187,6 +188,24 @@ defmodule TcgCheapWeb.ProductLive do
         </p>
       <% end %>
     </section>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :label, :string, required: true
+  attr :eur, Decimal, required: true
+  attr :eur_pln, :map, default: nil
+
+  defp cardmarket_price(assigns) do
+    assigns = assign(assigns, :pln, Guide.to_pln(assigns.eur, assigns.eur_pln))
+
+    ~H"""
+    <div id={@id}>
+      <dt>{@label}</dt>
+      <dd>
+        {Polish.eur(@eur)} <span :if={@pln}>≈ {Polish.zloty(@pln)}</span>
+      </dd>
+    </div>
     """
   end
 
@@ -200,7 +219,7 @@ defmodule TcgCheapWeb.ProductLive do
       },
       %{
         key: "cardmarket",
-        label: "Trend Cardmarket (w zł)",
+        label: "Cardmarket (w zł)",
         class: "cardmarket",
         points:
           Enum.map(page.history, &{&1.date, Guide.to_pln(&1.cardmarket_trend, page.eur_pln)})
@@ -326,25 +345,33 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp reason(%{status: status, typical: typical, typical_source: :cardmarket})
        when status in [:good, :normal, :expensive],
-       do: "Typowa cena według Cardmarket: #{Polish.zloty(typical)}."
+       do: cardmarket_typical(typical)
 
   defp reason(%{status: :insufficient_data, days_with_stock: days}) do
-    "Mamy ceny z #{Polish.plural(days, "dnia", "dni", "dni")} z ostatnich #{PriceGuide.window_days()}, " <>
-      "a Cardmarket nie podaje ceny. Ocenimy cenę, gdy zbierzemy co najmniej #{PriceGuide.min_days_with_stock()} dni."
+    "Znamy ceny dopiero z #{Polish.plural(days, "dnia", "dni", "dni")}, a potrzebujemy #{PriceGuide.min_days_with_stock()}. " <>
+      "Cardmarket nie podaje ceny tego produktu, więc na razie go nie oceniamy."
   end
 
-  defp reason(%{status: :out_of_stock, last_known: %{price: price, date: date}}),
-    do:
-      "Teraz żaden sklep nie ma tego produktu na stanie. Ostatnio najtaniej: #{Polish.price(price)} (#{Polish.date(date)})."
+  defp reason(%{status: :out_of_stock} = verdict) do
+    ["Teraz żaden sklep nie ma tego produktu na stanie.", last_known(verdict), typical(verdict)]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" ")
+  end
 
-  defp reason(%{
-         status: :out_of_stock,
-         typical: %Decimal{} = typical,
-         typical_source: :cardmarket
-       }),
-       do:
-         "Teraz żaden sklep nie ma tego produktu na stanie. Typowa cena według Cardmarket: #{Polish.zloty(typical)}."
+  defp last_known(%{last_known: %{price: price, date: date}}),
+    do: "Ostatnio najtaniej: #{Polish.price(price)} (#{Polish.date(date)})."
 
-  defp reason(%{status: :out_of_stock}),
-    do: "Teraz żaden sklep nie ma tego produktu na stanie i nie znamy jeszcze jego ceny."
+  defp last_known(_verdict), do: nil
+
+  defp typical(%{typical: %Decimal{} = typical, typical_source: :shops}),
+    do: "Typowa cena z ostatnich #{PriceGuide.window_days()} dni: #{Polish.zloty(typical)}."
+
+  defp typical(%{typical: %Decimal{} = typical, typical_source: :cardmarket}),
+    do: cardmarket_typical(typical)
+
+  defp typical(%{last_known: nil}), do: "Nie znamy jeszcze jego ceny."
+  defp typical(_verdict), do: nil
+
+  defp cardmarket_typical(typical),
+    do: "Typowa cena na Cardmarket (europejska giełda, bez wysyłki): #{Polish.zloty(typical)}."
 end

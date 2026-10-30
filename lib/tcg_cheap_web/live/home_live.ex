@@ -88,8 +88,7 @@ defmodule TcgCheapWeb.HomeLive do
           <section class="guide-intro" aria-labelledby="guide-title">
             <h1 id="guide-title">Sprawdź, czy cena jest dobra</h1>
             <p id="guide-promise">
-              Boostery, ETB i boxy Pokémon TCG: najniższa cena w polskich sklepach
-              i od razu ocena – dobra, normalna czy drogo.
+              Najniższa cena w polskich sklepach i ocena, czy to dobra cena.
             </p>
           </section>
 
@@ -166,7 +165,11 @@ defmodule TcgCheapWeb.HomeLive do
             </div>
             <ul id="guide-products" class="guide-products" phx-update="stream">
               <li id="guide-products-empty" class="guide-empty hidden only:block">
-                Nic nie pasuje do wyszukiwania. Spróbuj samej nazwy dodatku albo innego rodzaju.
+                <%= if @kind do %>
+                  Nic nie znaleźliśmy w tym rodzaju. Spróbuj samej nazwy dodatku albo wybierz „Wszystkie”.
+                <% else %>
+                  Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black.
+                <% end %>
               </li>
               <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">
                 <.link navigate={~p"/produkty/#{summary.product.slug}"} class="guide-product-link">
@@ -179,23 +182,34 @@ defmodule TcgCheapWeb.HomeLive do
                   <div class="guide-product-copy">
                     <h3 class="guide-product-name">{summary.product.name}</h3>
                     <p class="guide-product-meta">{product_meta(summary.product)}</p>
+                  </div>
+                  <div class="guide-product-deal">
                     <p
                       :if={summary.verdict.cheapest || summary.cardmarket_pln}
                       class="guide-product-price"
                     >
                       <%= if summary.verdict.cheapest do %>
                         <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
-                        <span>· {shop_name(summary.verdict.cheapest)}</span>
+                        <span>{shop_name(summary.verdict.cheapest)}</span>
                       <% else %>
                         <span>Cardmarket ≈ {Polish.zloty(summary.cardmarket_pln)}</span>
                       <% end %>
                     </p>
+                    <p class="guide-product-judgement">
+                      <.verdict_badge
+                        status={summary.verdict.status}
+                        id={"verdict-#{summary.product.slug}"}
+                        class="guide-product-verdict"
+                      />
+                      <span
+                        :if={
+                          summary.verdict.typical_source == :cardmarket and
+                            summary.verdict.status in [:good, :normal, :expensive]
+                        }
+                        class="guide-product-source"
+                      >wg Cardmarket</span>
+                    </p>
                   </div>
-                  <.verdict_badge
-                    status={summary.verdict.status}
-                    id={"verdict-#{summary.product.slug}"}
-                    class="guide-product-verdict"
-                  />
                 </.link>
               </li>
             </ul>

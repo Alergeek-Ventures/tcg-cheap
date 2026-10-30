@@ -144,93 +144,101 @@ defmodule TcgCheapWeb.GuideComponents do
 
     ~H"""
     <figure id={@id} class="price-chart">
-      <%= if @chart.empty? do %>
-        <p id={"#{@id}-empty"} class="guide-note">
-          Nie mamy jeszcze historii cen tego produktu.
-        </p>
-      <% else %>
-        <ul class="price-chart-legend" aria-hidden="true">
-          <li :for={line <- @chart.lines} :if={line.points != []} class={"legend-#{line.class}"}>
-            {line.label}
-          </li>
-          <li :if={@chart.typical_y} class="legend-typical">Typowa cena</li>
-        </ul>
-        <div class="price-chart-frame">
-          <div class="price-chart-scale" aria-hidden="true">
-            <span :for={tick <- @chart.y_ticks} style={"--at: #{tick.at}%"}>{tick.label}</span>
-          </div>
-          <div class="price-chart-plot">
-            <svg
-              viewBox={"0 0 #{@chart.width} #{@chart.height}"}
-              preserveAspectRatio="none"
-              role="img"
-              aria-labelledby={"#{@id}-summary"}
-            >
-              <line
-                :for={tick <- @chart.y_ticks}
-                class="price-chart-grid"
-                x1="0"
-                x2={@chart.width}
-                y1={tick.y}
-                y2={tick.y}
-              />
-              <line
-                :for={tick <- @chart.x_ticks}
-                class="price-chart-grid price-chart-grid-month"
-                x1={tick.x}
-                x2={tick.x}
-                y1="0"
-                y2={@chart.height}
-              />
-              <line
-                :if={@chart.typical_y}
-                class="price-chart-typical"
-                x1="0"
-                x2={@chart.width}
-                y1={@chart.typical_y}
-                y2={@chart.typical_y}
-              />
-              <%= for line <- @chart.lines do %>
-                <polyline
-                  :for={segment <- line.segments}
-                  class={["price-chart-line", "price-chart-#{line.class}"]}
-                  points={segment}
+      <%= cond do %>
+        <% @chart.empty? -> %>
+          <p id={"#{@id}-empty"} class="guide-note">
+            Nie mamy jeszcze historii cen tego produktu.
+          </p>
+        <% @chart.single -> %>
+          <p id={"#{@id}-single"} class="guide-note">
+            Mamy dopiero jeden pomiar: {single_measurement(@chart.single)}. Wykres pojawi się po
+            kolejnym dniu.
+          </p>
+        <% true -> %>
+          <ul class="price-chart-legend" aria-hidden="true">
+            <li :for={line <- @chart.lines} :if={line.points != []} class={"legend-#{line.class}"}>
+              {line.label}
+            </li>
+            <li :if={@chart.typical_y} class="legend-typical">Typowa cena</li>
+          </ul>
+          <div class="price-chart-frame">
+            <div class="price-chart-scale" aria-hidden="true">
+              <span :for={tick <- @chart.y_ticks} style={"--at: #{tick.at}%"}>{tick.label}</span>
+            </div>
+            <div class="price-chart-plot">
+              <svg
+                viewBox={"0 0 #{@chart.width} #{@chart.height}"}
+                preserveAspectRatio="none"
+                role="img"
+                aria-labelledby={"#{@id}-summary"}
+              >
+                <line
+                  :for={tick <- @chart.y_ticks}
+                  class="price-chart-grid"
+                  x1="0"
+                  x2={@chart.width}
+                  y1={tick.y}
+                  y2={tick.y}
                 />
                 <line
-                  :for={{x, y} <- line.singles}
-                  class={["price-chart-dot", "price-chart-#{line.class}"]}
-                  x1={x}
-                  x2={x}
-                  y1={y}
-                  y2={y}
+                  :for={tick <- @chart.x_ticks}
+                  class="price-chart-grid price-chart-grid-month"
+                  x1={tick.x}
+                  x2={tick.x}
+                  y1="0"
+                  y2={@chart.height}
                 />
-              <% end %>
-            </svg>
+                <line
+                  :if={@chart.typical_y}
+                  class="price-chart-typical"
+                  x1="0"
+                  x2={@chart.width}
+                  y1={@chart.typical_y}
+                  y2={@chart.typical_y}
+                />
+                <%= for line <- @chart.lines do %>
+                  <polyline
+                    :for={segment <- line.segments}
+                    class={["price-chart-line", "price-chart-#{line.class}"]}
+                    points={segment}
+                  />
+                  <line
+                    :for={{x, y} <- line.singles}
+                    class={["price-chart-dot", "price-chart-#{line.class}"]}
+                    x1={x}
+                    x2={x}
+                    y1={y}
+                    y2={y}
+                  />
+                <% end %>
+              </svg>
+              <span
+                :if={@chart.typical_y}
+                class="price-chart-typical-label"
+                style={"--at: #{@chart.typical_at}%"}
+                aria-hidden="true"
+              >
+                typowa {Polish.zloty(@typical)}
+              </span>
+            </div>
+            <div class="price-chart-axis" aria-hidden="true">
+              <span :for={tick <- @chart.x_ticks} class={tick.edge} style={"--at: #{tick.at}%"}>
+                {tick.label}
+              </span>
+            </div>
+          </div>
+          <figcaption id={"#{@id}-summary"}>
             <span
-              :if={@chart.typical_y}
-              class="price-chart-typical-label"
-              style={"--at: #{@chart.typical_at}%"}
-              aria-hidden="true"
+              :for={line <- @chart.lines}
+              :if={line.points != []}
+              id={"#{@id}-summary-#{line.key}"}
             >
-              typowa {Polish.zloty(@typical)}
+              {line.label}: {Polish.price(line.min_price)}–{Polish.price(line.max_price)} ({Polish.short_date(
+                line.first_date
+              )} – {Polish.short_date(line.last_date)}).
             </span>
-          </div>
-          <div class="price-chart-axis" aria-hidden="true">
-            <span :for={tick <- @chart.x_ticks} class={tick.edge} style={"--at: #{tick.at}%"}>
-              {tick.label}
-            </span>
-          </div>
-        </div>
-        <figcaption id={"#{@id}-summary"}>
-          <span :for={line <- @chart.lines} :if={line.points != []} id={"#{@id}-summary-#{line.key}"}>
-            {line.label} od {Polish.date(line.first_date)} do {Polish.date(line.last_date)}: od {Polish.price(
-              line.min_price
-            )} do {Polish.price(line.max_price)}.
-          </span>
-          <span :if={@typical}>
-            Linia przerywana to typowa cena ({Polish.zloty(@typical)}).
-          </span>
-        </figcaption>
+            <span :if={@typical}>Linia przerywana: typowa cena {Polish.zloty(@typical)}.</span>
+          </figcaption>
       <% end %>
     </figure>
     """
@@ -250,30 +258,54 @@ defmodule TcgCheapWeb.GuideComponents do
         Map.put(line, :points, points)
       end)
 
-    all_prices = Enum.flat_map(series, &Enum.map(&1.points, fn {_date, price} -> price end))
+    points = Enum.flat_map(series, & &1.points)
+    all_prices = Enum.map(points, &elem(&1, 1))
+    dates = points |> Enum.map(&elem(&1, 0)) |> Enum.uniq()
 
-    if all_prices == [] do
-      %{empty?: true}
-    else
-      prices = all_prices ++ List.wrap(typical)
-      {low, high, step} = price_scale(prices)
-      days = max(Date.diff(to, from), 1)
+    cond do
+      all_prices == [] ->
+        %{empty?: true, single: nil}
 
-      x = fn date -> Float.round(Date.diff(date, from) / days * @width, 2) end
-      y = fn price -> Float.round((high - to_float(price)) / (high - low) * @height, 2) end
+      length(dates) == 1 ->
+        %{empty?: false, single: Enum.filter(series, &(&1.points != []))}
 
-      %{
-        empty?: false,
-        width: @width,
-        height: @height,
-        y_ticks: y_ticks(low, high, step, y),
-        x_ticks: x_ticks(from, to, x),
-        typical_y: typical && y.(typical),
-        typical_at: typical && percent(y.(typical), @height),
-        lines: Enum.map(series, &line(&1, x, y))
-      }
+      true ->
+        plot(series, all_prices, from, to, typical)
     end
   end
+
+  defp plot(series, all_prices, from, to, typical) do
+    {low, high, step} = price_scale(all_prices ++ List.wrap(typical))
+    days = max(Date.diff(to, from), 1)
+
+    x = fn date -> Float.round(Date.diff(date, from) / days * @width, 2) end
+    y = fn price -> Float.round((high - to_float(price)) / (high - low) * @height, 2) end
+
+    %{
+      empty?: false,
+      single: nil,
+      width: @width,
+      height: @height,
+      y_ticks: y_ticks(low, high, step, y),
+      x_ticks: x_ticks(from, to, x),
+      typical_y: typical && y.(typical),
+      typical_at: typical && percent(y.(typical), @height),
+      lines: Enum.map(series, &line(&1, x, y))
+    }
+  end
+
+  # "820,00 zł w sklepach i 840,00 zł na Cardmarket (30 paź)"
+  defp single_measurement([%{points: [{date, _}]} | _] = lines) do
+    prices =
+      Enum.map_join(lines, " i ", fn %{points: [{_d, price}]} = line ->
+        "#{Polish.price(price)} #{single_label(line.key)}"
+      end)
+
+    "#{prices} (#{Polish.short_date(date)})"
+  end
+
+  defp single_label("shops"), do: "w sklepach"
+  defp single_label(_key), do: "na Cardmarket"
 
   # A round złoty scale with three to five gridlines that contains every price.
   defp price_scale(prices) do
@@ -412,5 +444,5 @@ defmodule TcgCheapWeb.GuideComponents do
   def verdict_label(:normal), do: "Normalna cena"
   def verdict_label(:expensive), do: "Drogo"
   def verdict_label(:insufficient_data), do: "Za mało danych"
-  def verdict_label(:out_of_stock), do: "Brak w sklepach"
+  def verdict_label(:out_of_stock), do: "Brak na stanie"
 end
