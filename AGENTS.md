@@ -20,8 +20,10 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
 - Keep frontend work in the standard Phoenix LiveView/assets structure.
 - Use Ash-generated migrations and snapshots for Ash resource changes; do not
   hand-edit generated output unless generated SQL is demonstrably incorrect.
-- `mix check` is the canonical quality gate, including non-mutating formatting and Ash codegen checks. Use `mix check --no-test` while
-  iterating on static checks and `mix check --verbose` for command output.
+- `mix check` is the canonical quality gate (formatting, Ash codegen, Sobelow,
+  compile warnings, unused deps, Credo, Dialyzer); `mix check --verbose` shows
+  command output. The project has no automated test suite by owner decision:
+  verify changes in the running app (and through the MCP tools) instead.
 - Fix real Sobelow findings; use narrow, explained skips only for intentional
   findings.
 

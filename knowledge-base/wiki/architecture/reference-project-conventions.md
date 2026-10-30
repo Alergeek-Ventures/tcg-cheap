@@ -13,26 +13,27 @@ product requirements.
 - Feature/domain-first namespaces with explicit Ash domains, resources,
   specific actions, policies and code interfaces; Ash-generated migrations and
   snapshots (`mix ash.codegen`).
-- Req for every external HTTP call, behind a narrow client module with a test
-  seam (`Req.Test` plugs).
+- Req for every external HTTP call, behind a narrow client module.
 - Standard Phoenix LiveView layouts, components, `to_form` forms, unique DOM
-  ids and a standard `test/` tree; Tailwind and esbuild through Phoenix.
-- Oban for all background work, with explicit queues, unique jobs and worker
-  tests; jobs carry explicit ids in their args.
+  ids; Tailwind and esbuild through Phoenix.
+- Oban for all background work, with explicit queues and unique jobs; jobs
+  carry explicit ids in their args.
 - AshAuthentication password/token sign-in only for provisioned administrators.
 - AshBackpex/Backpex only for read-only admin inspection of singles resources;
   focused LiveViews for workflows generic CRUD cannot express
   (`/admin/buying-guide`, `/admin/operations`, mapping correction).
 - Nix/devenv + direnv with per-worktree `mix dev.up`/`mix dev.down` and
-  direct localhost ports; `mix check` as the single quality gate.
+  direct localhost ports; `mix check` (static checks only) as the single
+  quality gate.
 - Container pattern: pinned, non-root release image, release overlay
   `bin/migrate`, fail-closed `/health` readiness separate from `/health/live`.
 - `Decimal` for money and exchange rates (never floats).
 
 ## Rejected
 
-- Firmowid's `simple_form` `:let` forms, process-dictionary tenancy and
-  colocated tests in `lib/`.
+- Firmowid's `simple_form` `:let` forms and process-dictionary tenancy.
+- An automated test suite: by owner decision (2026-10-30) changes are
+  verified in the running app instead.
 - Onside's React/Volt SPA frontend, AshAdmin and RPC layers; the UI is
   LiveView only.
 - AshOban, multitenancy and storage libraries until a concrete requirement

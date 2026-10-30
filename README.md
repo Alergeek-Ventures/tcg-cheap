@@ -46,8 +46,7 @@ ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD='a long password' mix admin.provisi
 ## Quality gate
 
 ```sh
-mix check            # format, Ash codegen, Sobelow, compile, deps, Credo, Dialyzer, tests
-mix check --no-test  # static checks only
+mix check   # format, Ash codegen, Sobelow, compile, deps, Credo, Dialyzer
 ```
 
 After changing Ash resources, generate migrations and snapshots with

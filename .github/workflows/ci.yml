@@ -37,27 +37,11 @@ jobs:
 
   check:
     name: Mix check
-    needs: database-image
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       MIX_ENV: test
-      DB_PORT: "5432"
       MIX_HOME: ${{ github.workspace }}/.mix
-    services:
-      postgres:
-        image: ${{ needs.database-image.outputs.image }}
-        env:
-          POSTGRES_DB: tcg_cheap_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d tcg_cheap_test"
-          --health-interval 2s
-          --health-timeout 5s
-          --health-retries 30
 
     steps:
       - name: Checkout repository

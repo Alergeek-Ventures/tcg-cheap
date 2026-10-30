@@ -170,9 +170,10 @@ days. Schedules (UTC) are in `config/config.exs`:
 ## Validation
 
 `mix check` is the gate: format, Ash codegen check, Sobelow, warnings-as-errors
-compile, unused dependencies, Credo strict, Dialyzer and tests. CI
-(`.github/workflows/ci.yml`) runs it against the pinned ParadeDB image and
-builds `deployment/Containerfile.app`.
+compile, unused dependencies, Credo strict and Dialyzer. There is no
+automated test suite (owner decision); changes are verified in the running
+app. CI (`.github/workflows/ci.yml`) runs the gate, validates the pinned
+ParadeDB image and builds `deployment/Containerfile.app`.
 
 ## See Also
 

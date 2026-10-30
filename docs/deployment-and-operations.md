@@ -181,7 +181,7 @@ docker exec tcg-cheap /app/bin/tcg_cheap rpc 'TcgCheap.Sealed.CatalogueImportWor
   returns to automatic matching.
 
   If the same mistake repeats, fix the rule in `TcgCheap.Sealed.Matcher`
-  (synonyms, qualifiers, exclusions) with a test; every shop fetch re-matches
+  (synonyms, qualifiers, exclusions); every shop fetch re-matches
   all automatic offers.
 
 ### Add or remove a shop
@@ -195,7 +195,7 @@ A shop must expose the public WooCommerce Store API
 2. Add a daily `TcgCheap.Sealed.FetchWorker` cron entry with
    `args: %{"shop" => "<key>"}` in `config/config.exs`, in a free half-hour
    slot after 03:30.
-3. Extend the tests (`test/tcg_cheap/sealed/`), run `mix check` and deploy.
+3. Run `mix check`, check the shop in the running app and deploy.
 
 To remove a shop, delete both entries and deploy; its offers stop counting
 within 3 days, and its stored history stays.
