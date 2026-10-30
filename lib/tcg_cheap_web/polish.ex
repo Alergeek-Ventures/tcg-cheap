@@ -2,7 +2,7 @@ defmodule TcgCheapWeb.Polish do
   @moduledoc "Polish formatting for prices, dates and counts in the public UI."
 
   # A no-break space keeps "1 299,99 zł" on one line.
-  @nbsp " "
+  @nbsp "\u00A0"
 
   @months ~w(stycznia lutego marca kwietnia maja czerwca lipca sierpnia września października listopada grudnia)
 

@@ -36,7 +36,7 @@ defmodule TcgCheapWeb.HomeLiveTest do
     {:ok, view, _html} = live(conn, ~p"/")
 
     assert has_element?(view, "#guide-products > li:nth-child(2)#product-#{box.slug}")
-    assert has_element?(view, "#product-#{box.slug} .guide-product-price", "799,94 zł")
+    assert has_element?(view, "#product-#{box.slug} .guide-product-price", "799,94\u00A0zł")
     assert has_element?(view, "#product-#{box.slug} .guide-product-price", "Colligere")
   end
 

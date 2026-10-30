@@ -72,7 +72,7 @@ defmodule TcgCheapWeb.ProductLiveTest do
     {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
 
     assert has_element?(view, "#verdict-badge.verdict-good", "Dobra cena")
-    assert has_element?(view, "#verdict-price", "798,00 zł")
+    assert has_element?(view, "#verdict-price", "798,00\u00A0zł")
 
     assert has_element?(
              view,
@@ -80,12 +80,18 @@ defmodule TcgCheapWeb.ProductLiveTest do
              "Colligere"
            )
 
-    assert has_element?(view, "#verdict-reason", "Typowa cena z ostatnich 30 dni: 840 zł")
+    assert has_element?(view, "#verdict-reason", "Typowa cena z ostatnich 30 dni: 840\u00A0zł")
 
-    assert has_element?(view, "#verdict-difference", "Teraz o 42 zł (5%) taniej.")
-    assert has_element?(view, "#verdict-thresholds #threshold-good[aria-current]", "do 798 zł")
-    assert has_element?(view, "#verdict-thresholds #threshold-normal", "do 924 zł")
-    assert has_element?(view, "#verdict-thresholds #threshold-expensive", "powyżej 924 zł")
+    assert has_element?(view, "#verdict-difference", "Teraz o 42\u00A0zł (5%) taniej.")
+
+    assert has_element?(
+             view,
+             "#verdict-thresholds #threshold-good[aria-current]",
+             "do 798\u00A0zł"
+           )
+
+    assert has_element?(view, "#verdict-thresholds #threshold-normal", "do 924\u00A0zł")
+    assert has_element?(view, "#verdict-thresholds #threshold-expensive", "powyżej 924\u00A0zł")
     refute has_element?(view, "#threshold-normal[aria-current]")
 
     assert has_element?(view, ".product-image img[src^='https://colligere.pl/']")
@@ -113,11 +119,11 @@ defmodule TcgCheapWeb.ProductLiveTest do
     {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
 
     # 200 € × 4.20 = 840 zł.
-    assert has_element?(view, "#verdict-reason", "Typowa cena według Cardmarket: 840 zł")
+    assert has_element?(view, "#verdict-reason", "Typowa cena według Cardmarket: 840\u00A0zł")
     assert has_element?(view, "#verdict-badge.verdict-good")
-    assert has_element?(view, "#cardmarket-trend", "200,00 €")
-    assert has_element?(view, "#cardmarket-trend", "840 zł")
-    assert has_element?(view, "#cardmarket-low", "180,00 €")
+    assert has_element?(view, "#cardmarket-trend", "200,00\u00A0€")
+    assert has_element?(view, "#cardmarket-trend", "840\u00A0zł")
+    assert has_element?(view, "#cardmarket-low", "180,00\u00A0€")
     assert has_element?(view, "#product-cardmarket", "4,2")
   end
 
@@ -138,7 +144,7 @@ defmodule TcgCheapWeb.ProductLiveTest do
 
     {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
     assert has_element?(view, "#verdict-badge.verdict-out_of_stock", "Brak w sklepach")
-    assert has_element?(view, "#verdict-reason", "Ostatnio najtaniej: 820,00 zł")
+    assert has_element?(view, "#verdict-reason", "Ostatnio najtaniej: 820,00\u00A0zł")
     assert has_element?(view, "#threshold-good")
     refute has_element?(view, "#verdict-thresholds [aria-current]")
     refute has_element?(view, "#verdict-difference")
@@ -202,8 +208,14 @@ defmodule TcgCheapWeb.ProductLiveTest do
     assert has_element?(view, "#price-history svg[role=img] polyline.price-chart-shops")
     assert has_element?(view, "#price-history svg polyline.price-chart-cardmarket")
     assert has_element?(view, "#price-history svg line.price-chart-dot")
-    assert has_element?(view, "#price-history-summary-shops", "od 820,00 zł do 900,00 zł")
-    assert has_element?(view, "#price-history-summary-cardmarket", "840,00 zł")
+
+    assert has_element?(
+             view,
+             "#price-history-summary-shops",
+             "od 820,00\u00A0zł do 900,00\u00A0zł"
+           )
+
+    assert has_element?(view, "#price-history-summary-cardmarket", "840,00\u00A0zł")
   end
 
   test "no history yet", %{conn: conn, product: product} do
