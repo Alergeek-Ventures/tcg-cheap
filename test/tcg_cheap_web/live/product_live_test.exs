@@ -4,58 +4,72 @@ defmodule TcgCheapWeb.ProductLiveTest do
   import Phoenix.LiveViewTest
   import TcgCheap.SealedFixtures
 
+  alias TcgCheap.Sealed.Refresh
   alias TcgCheapWeb.ProductLive.NotFound
 
-  @slug "pokemon-tcg-pitch-black-booster-box"
+  setup do
+    product =
+      product!(
+        name: "Pitch Black Booster Box",
+        cardmarket_trend: Decimal.new("200.00"),
+        cardmarket_low: Decimal.new("180.00"),
+        cardmarket_avg: Decimal.new("190.00"),
+        cardmarket_price_updated_on: Date.utc_today()
+      )
 
-  defp history!(prices) do
+    %{product: product}
+  end
+
+  defp history!(product, prices) do
     prices
     |> Enum.with_index(1)
     |> Enum.each(fn {price, days_ago} ->
-      daily_price!(@slug, Date.add(Date.utc_today(), -days_ago), price)
+      daily_price!(product.id, Date.add(Date.utc_today(), -days_ago), price)
     end)
   end
 
-  defp box_offer!(attrs) do
-    offer!(
-      Map.merge(
-        %{
-          product_slug: @slug,
-          title: "Pokémon TCG: Mega Evolution – Pitch Black – Booster Box",
-          url: "https://colligere.pl/sklep/pokemon-tcg-mega-evolution-pitch-black-booster-box/",
-          price: Decimal.new("799.94")
-        },
-        Map.new(attrs)
-      )
-    )
+  defp box_offer!(product, attrs \\ []) do
+    offer = offer!(Map.merge(%{product_id: product.id}, Map.new(attrs)))
+    Refresh.recompute(DateTime.utc_now())
+    offer
   end
 
   # Median 840: good up to 798 zł, normal up to 924 zł.
   @history ~w(820 830 840 840 840 850 860)
 
-  test "identity, release date, Polish language and the back link", %{conn: conn} do
-    {:ok, view, html} = live(conn, ~p"/produkty/#{@slug}")
+  test "identity, Cardmarket date, Polish language and the back link", %{
+    conn: conn,
+    product: product
+  } do
+    {:ok, view, html} = live(conn, ~p"/produkty/#{product.slug}")
 
     assert html =~ ~s(lang="pl")
     assert has_element?(view, "#product-name", "Pitch Black Booster Box")
     assert has_element?(view, "#product-kind", "Booster Box")
     assert has_element?(view, "#product-set", "Pitch Black")
-    assert has_element?(view, "#product-release", "17 lipca 2026")
+    assert has_element?(view, "#product-added", "30 kwietnia 2026")
     assert has_element?(view, "#product-back[href='/']")
-    assert has_element?(view, "#guide-footnote", "LootQuest")
+    assert has_element?(view, ".product-image-placeholder svg[aria-label='Brak zdjęcia']")
   end
 
-  test "good price: cheapest offer, reason and whole-złoty thresholds", %{conn: conn} do
-    history!(@history)
-    box_offer!(price: Decimal.new("798.50"))
+  test "good price from Polish history with whole-złoty thresholds", %{
+    conn: conn,
+    product: product
+  } do
+    history!(product, @history)
 
-    box_offer!(
+    box_offer!(product,
+      price: Decimal.new("798.50"),
+      image_url: "https://colligere.pl/wp-content/uploads/box.webp"
+    )
+
+    box_offer!(product,
       shop: "cardzhouse",
       price: Decimal.new("899.99"),
       url: "https://cardzhouse.pl/product/pitch-black-booster-box/"
     )
 
-    {:ok, view, _html} = live(conn, ~p"/produkty/#{@slug}")
+    {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
 
     assert has_element?(view, "#verdict-badge.verdict-good", "Dobra cena")
     assert has_element?(view, "#verdict-price", "798,50 zł")
@@ -74,85 +88,92 @@ defmodule TcgCheapWeb.ProductLiveTest do
              "Do 798 zł – dobra, 799–924 zł – normalna, powyżej – drogo"
            )
 
-    assert has_element?(view, "#verdict-method", "mediana")
+    assert has_element?(view, ".product-image img[src^='https://colligere.pl/']")
   end
 
-  test "normal and expensive prices", %{conn: conn} do
-    history!(@history)
-    offer = box_offer!(price: Decimal.new("924.99"))
-
-    {:ok, view, _html} = live(conn, ~p"/produkty/#{@slug}")
+  test "normal and expensive prices", %{conn: conn, product: product} do
+    history!(product, @history)
+    offer = box_offer!(product, price: Decimal.new("924.99"))
+    {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
     assert has_element?(view, "#verdict-badge.verdict-normal", "Normalna cena")
 
-    offer!(
-      Map.from_struct(offer)
-      |> Map.take([:shop, :shop_product_id, :title, :url, :product_slug])
-      |> Map.put(:price, Decimal.new("925"))
-    )
-
-    {:ok, view, _html} = live(conn, ~p"/produkty/#{@slug}")
+    box_offer!(product, shop_product_id: offer.shop_product_id, price: Decimal.new("925"))
+    {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
     assert has_element?(view, "#verdict-badge.verdict-expensive", "Drogo")
   end
 
-  test "insufficient data explains how many days are known", %{conn: conn} do
-    history!(~w(820 830 840))
-    box_offer!([])
+  test "without enough Polish history the Cardmarket trend is the reference", %{
+    conn: conn,
+    product: product
+  } do
+    exchange_rate!("4.2000")
+    history!(product, ~w(820 830))
+    box_offer!(product, price: Decimal.new("790"))
 
-    {:ok, view, _html} = live(conn, ~p"/produkty/#{@slug}")
+    {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
+
+    # 200 € × 4.20 = 840 zł.
+    assert has_element?(view, "#verdict-reason", "Typowa cena według Cardmarket: 840 zł")
+    assert has_element?(view, "#verdict-badge.verdict-good")
+    assert has_element?(view, "#cardmarket-trend", "200,00 €")
+    assert has_element?(view, "#cardmarket-trend", "840 zł")
+    assert has_element?(view, "#cardmarket-low", "180,00 €")
+    assert has_element?(view, "#product-cardmarket", "4,2")
+  end
+
+  test "insufficient data without Polish history or a rate", %{conn: conn, product: product} do
+    history!(product, ~w(820 830 840))
+    box_offer!(product)
+
+    {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
     assert has_element?(view, "#verdict-badge.verdict-insufficient_data", "Za mało danych")
-    assert has_element?(view, "#verdict-reason", "Mamy ceny z 3 dni")
-    assert has_element?(view, "#verdict-price", "799,94 zł")
+    # Three past days plus today's offer.
+    assert has_element?(view, "#verdict-reason", "Mamy ceny z 4 dni")
     refute has_element?(view, "#verdict-thresholds")
   end
 
-  test "out of stock shows the last known lowest price and still the thresholds", %{conn: conn} do
-    history!(@history)
-    box_offer!(in_stock: false)
+  test "out of stock shows the last known lowest price", %{conn: conn, product: product} do
+    history!(product, @history)
+    box_offer!(product, in_stock: false)
 
-    {:ok, view, _html} = live(conn, ~p"/produkty/#{@slug}")
+    {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
     assert has_element?(view, "#verdict-badge.verdict-out_of_stock", "Brak w sklepach")
     assert has_element?(view, "#verdict-reason", "Ostatnio najtaniej: 820,00 zł")
-    assert has_element?(view, "#verdict-thresholds")
     assert has_element?(view, "#offer-list .offer-unavailable .offer-stock", "Niedostępny")
   end
 
-  test "out of stock without any history", %{conn: conn} do
-    {:ok, view, _html} = live(conn, ~p"/produkty/#{@slug}")
-    assert has_element?(view, "#verdict-reason", "nie znamy jeszcze jego ceny")
-    assert has_element?(view, "#offer-list-empty")
-    assert has_element?(view, "#price-history-empty")
-  end
-
-  test "offers are in stock first then by price, with shop, freshness and an outbound link", %{
-    conn: conn
+  test "offers are in stock first then by price, with freshness and an outbound link", %{
+    conn: conn,
+    product: product
   } do
     yesterday = DateTime.add(DateTime.utc_now(), -1, :day)
 
     expensive =
-      box_offer!(
+      offer!(
+        product_id: product.id,
         shop: "lootquest",
         price: Decimal.new("999.99"),
         url: "https://lootquest.pl/produkt/pitch-black-booster-box/",
         last_seen_at: yesterday
       )
 
-    cheap_unavailable =
-      box_offer!(
+    unavailable =
+      offer!(
+        product_id: product.id,
         shop: "cardzhouse",
         price: Decimal.new("700"),
         in_stock: false,
         url: "https://cardzhouse.pl/product/pitch-black-booster-box/"
       )
 
-    cheap = box_offer!([])
+    cheap = box_offer!(product)
 
-    {:ok, view, _html} = live(conn, ~p"/produkty/#{@slug}")
+    {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
 
     assert has_element?(view, "#offer-list > li:nth-child(2)#offers-#{cheap.id}")
     assert has_element?(view, "#offer-list > li:nth-child(3)#offers-#{expensive.id}")
-    assert has_element?(view, "#offer-list > li:nth-child(4)#offers-#{cheap_unavailable.id}")
+    assert has_element?(view, "#offer-list > li:nth-child(4)#offers-#{unavailable.id}")
     assert has_element?(view, "#offers-#{expensive.id} .offer-checked", "wczoraj")
-    assert has_element?(view, "#offers-#{cheap.id} .offer-checked", "dziś")
 
     assert has_element?(
              view,
@@ -160,16 +181,32 @@ defmodule TcgCheapWeb.ProductLiveTest do
            )
   end
 
-  test "the 90-day chart is server-rendered SVG with a text summary", %{conn: conn} do
-    history!(@history)
-    daily_price!(@slug, Date.add(Date.utc_today(), -20), nil)
-    daily_price!(@slug, Date.add(Date.utc_today(), -21), "900")
+  test "the chart shows the Polish lowest price and the Cardmarket trend in złoty", %{
+    conn: conn,
+    product: product
+  } do
+    exchange_rate!("4.0000")
 
-    {:ok, view, _html} = live(conn, ~p"/produkty/#{@slug}")
-    assert has_element?(view, "#price-history svg[role=img] polyline.price-chart-line")
+    for days_ago <- 1..5 do
+      daily_price!(product.id, Date.add(Date.utc_today(), -days_ago), "820",
+        cardmarket_trend: "210"
+      )
+    end
+
+    daily_price!(product.id, Date.add(Date.utc_today(), -20), "900")
+
+    {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
+    assert has_element?(view, "#price-history svg[role=img] polyline.price-chart-shops")
+    assert has_element?(view, "#price-history svg polyline.price-chart-cardmarket")
     assert has_element?(view, "#price-history svg line.price-chart-dot")
-    assert has_element?(view, "#price-history svg line.price-chart-typical")
-    assert has_element?(view, "#price-history-summary", "od 820,00 zł do 900,00 zł")
+    assert has_element?(view, "#price-history-summary-shops", "od 820,00 zł do 900,00 zł")
+    assert has_element?(view, "#price-history-summary-cardmarket", "840,00 zł")
+  end
+
+  test "no history yet", %{conn: conn, product: product} do
+    {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
+    assert has_element?(view, "#price-history-empty")
+    assert has_element?(view, "#offer-list-empty")
   end
 
   test "an unknown product is a 404", %{conn: conn} do

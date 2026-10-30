@@ -1,7 +1,7 @@
 defmodule TcgCheap.Sealed do
   @moduledoc """
-  The buying guide: shop offers for curated sealed products and their daily
-  lowest prices.
+  The buying guide: the Cardmarket sealed catalogue, shop offers matched to
+  it, and daily prices.
 
   An offer is *current* when it was seen in its shop's latest successful
   fetch and that fetch happened within the last 3 days. Offers a shop no
@@ -15,17 +15,32 @@ defmodule TcgCheap.Sealed do
   @current_for_seconds 3 * 86_400
 
   resources do
+    resource TcgCheap.Sealed.Product do
+      define :import_product, action: :import
+      define :list_products, action: :read
+      define :get_product_by_slug, action: :by_slug, args: [:slug], not_found_error?: false
+      define :list_products_by_ids, action: :by_ids, args: [:ids]
+      define :browse_products, action: :browse, args: [{:optional, :query}, {:optional, :kind}]
+      define :set_product_availability, action: :set_availability
+    end
+
     resource TcgCheap.Sealed.Offer do
       define :upsert_offer, action: :upsert
-      define :assign_offer_product, action: :assign_product, args: [:product_slug]
+      define :match_offer, action: :match, args: [:product_id]
+      define :assign_offer_manually, action: :assign_manually, args: [:product_id]
+      define :clear_manual_offer, action: :clear_manual
+      define :get_offer, action: :read, get_by: [:id]
       define :list_offers, action: :read
       define :list_offers_seen_since, action: :seen_since, args: [:since]
+      define :list_manual_offers, action: :manual
     end
 
     resource TcgCheap.Sealed.DailyPrice do
-      define :record_daily_price, action: :record
-      define :list_daily_prices_since, action: :since, args: [:since]
-      define :list_price_history, action: :history, args: [:product_slug, :since]
+      define :record_shop_price, action: :record_shop_price
+      define :record_cardmarket_trend, action: :record_cardmarket_trend
+      define :list_daily_prices_since, action: :since, args: [:since, :product_ids]
+      define :list_daily_prices_on, action: :on, args: [:date]
+      define :list_price_history, action: :history, args: [:product_id, :since]
     end
   end
 

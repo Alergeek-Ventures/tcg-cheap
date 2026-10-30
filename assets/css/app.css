@@ -658,6 +658,31 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-footnote p { margin: 0; max-width: 70ch; }
 .guide-world .guide-note { color: var(--muted); font-size: .875rem; }
 
+/* Kind chips, paging and the Cardmarket reference. */
+.guide-world .guide-kinds { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.guide-world .guide-kinds a { align-items: center; border: 1px solid var(--rule); color: var(--ink); display: inline-flex; font: 700 1rem/1 "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 .9rem; text-decoration: none; }
+.guide-world .guide-kinds a:hover { border-color: var(--ink); }
+.guide-world .guide-kinds a[aria-current] { background: var(--ink); border-color: var(--ink); color: var(--bench-light); }
+.guide-world .guide-more { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: 1rem; }
+.guide-world .guide-more button { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 1.5rem; text-transform: uppercase; }
+.guide-world .guide-more button:hover { background: var(--orange); }
+.guide-world .guide-more button:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+.guide-world .guide-more p { color: var(--muted); font-size: .875rem; margin: 0; }
+.guide-world .product-image-placeholder svg path { fill: none; stroke: var(--muted); stroke-linejoin: round; stroke-width: 1.5; }
+.guide-world .cardmarket-prices { display: grid; gap: .25rem 2rem; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); margin: 0 0 .75rem; }
+.guide-world .cardmarket-prices div { display: grid; gap: .1rem; }
+.guide-world .cardmarket-prices dt { color: var(--muted); font-size: .875rem; }
+.guide-world .cardmarket-prices dd { font: 700 1.5rem/1.1 "Barlow Condensed", sans-serif; margin: 0; }
+.guide-world .cardmarket-prices dd span { color: var(--muted); font: 400 .875rem "Azeret Mono", ui-monospace, monospace; margin-left: .35rem; }
+.guide-world .price-chart-legend { display: flex; flex-wrap: wrap; font-size: .875rem; gap: .25rem 1.25rem; list-style: none; margin: 0 0 .5rem; padding: 0; }
+.guide-world .price-chart-legend li::before { content: ""; display: inline-block; height: 0; margin-right: .4rem; vertical-align: middle; width: 1.5rem; }
+.guide-world .price-chart-legend .legend-shops::before { border-top: 3px solid var(--ink); }
+.guide-world .price-chart-legend .legend-cardmarket::before { border-top: 3px dotted var(--indigo-ink, #3d4a8a); }
+.guide-world .price-chart-legend .legend-typical::before { border-top: 2px dashed var(--orange); }
+.guide-world .price-chart-cardmarket { stroke: #3d4a8a; stroke-dasharray: 2 4; }
+.guide-world .price-chart-dot.price-chart-cardmarket { stroke-dasharray: none; }
+.guide-world .price-chart figcaption span { display: block; }
+
 /* Verdict badges: text plus a mark and a border treatment, never color alone. */
 .guide-world .verdict-badge { align-items: center; border: 2px solid currentColor; display: inline-flex; font: 700 .95rem/1 "Barlow Condensed", sans-serif; gap: .4rem; letter-spacing: .04em; padding: .4rem .6rem; text-transform: uppercase; white-space: nowrap; }
 .guide-world .verdict-mark { font-family: "Azeret Mono", ui-monospace, monospace; font-size: .9rem; }
@@ -673,7 +698,7 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .product-hero-image { max-width: 32rem; width: 100%; }
 .guide-world #product-name { font-size: clamp(2rem, 5vw, 2.5rem); letter-spacing: -.03em; line-height: 1; overflow-wrap: anywhere; }
 .guide-world .product-facts { display: grid; gap: .25rem; margin: 1rem 0 0; }
-.guide-world .product-facts div { display: grid; gap: 1rem; grid-template-columns: 6.5rem minmax(0, 1fr); }
+.guide-world .product-facts div { display: grid; gap: 1rem; grid-template-columns: 9.5rem minmax(0, 1fr); }
 .guide-world .product-facts dt { color: var(--muted); font-size: .875rem; }
 .guide-world .product-facts dd { font-weight: 700; margin: 0; overflow-wrap: anywhere; }
 .guide-world .verdict-block { background: var(--paper); display: grid; gap: 1rem 2rem; grid-template-columns: minmax(0, 1fr); margin-bottom: 2rem; padding: 1.5rem; }
@@ -733,3 +758,6 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .admin-table thead th { border-bottom: 2px solid var(--ink); font: 700 1rem "Barlow Condensed", sans-serif; text-transform: uppercase; }
 .admin-table a { color: var(--ink); overflow-wrap: anywhere; }
 .admin-table th[scope="row"], .admin-table .admin-nowrap { white-space: nowrap; }
+.admin-results { display: grid; gap: .5rem; list-style: none; margin: .75rem 0; padding: 0; }
+.admin-results li { align-items: center; background: var(--paper); border: 1px solid rgb(32 29 25 / 25%); display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; padding: .5rem .75rem; }
+.admin-results li span { display: grid; font-size: .875rem; }

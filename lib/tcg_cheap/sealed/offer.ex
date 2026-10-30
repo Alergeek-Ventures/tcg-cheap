@@ -1,5 +1,10 @@
 defmodule TcgCheap.Sealed.Offer do
-  @moduledoc "One product listed by a shop, as last seen in that shop's feed."
+  @moduledoc """
+  One product listed by a shop, as last seen in that shop's feed.
+
+  `product_id` is set by automatic matching, or by an administrator when
+  `manual?` is true; automatic matching never overwrites a manual assignment.
+  """
 
   use Ash.Resource,
     otp_app: :tcg_cheap,
@@ -10,9 +15,13 @@ defmodule TcgCheap.Sealed.Offer do
     table "sealed_offers"
     repo TcgCheap.Repo
 
+    references do
+      reference :product, on_delete: :nilify
+    end
+
     custom_indexes do
       index [:last_seen_at]
-      index [:product_slug, :last_seen_at]
+      index [:product_id, :last_seen_at]
     end
   end
 
@@ -29,7 +38,6 @@ defmodule TcgCheap.Sealed.Offer do
         :ean,
         :price,
         :in_stock,
-        :product_slug,
         :last_seen_at
       ]
 
@@ -43,20 +51,37 @@ defmodule TcgCheap.Sealed.Offer do
         :ean,
         :price,
         :in_stock,
-        :product_slug,
         :last_seen_at,
         :updated_at
       ]
     end
 
-    update :assign_product do
-      accept [:product_slug]
+    update :match do
+      description "Automatic matching; refuses to touch manual assignments."
+      accept [:product_id]
+      validate attribute_equals(:manual?, false)
+    end
+
+    update :assign_manually do
+      accept [:product_id]
+      change set_attribute(:manual?, true)
+      validate present(:product_id)
+    end
+
+    update :clear_manual do
+      change set_attribute(:manual?, false)
+      change set_attribute(:product_id, nil)
     end
 
     read :seen_since do
       argument :since, :utc_datetime_usec, allow_nil?: false
       filter expr(last_seen_at >= ^arg(:since))
       prepare build(sort: [shop: :asc, price: :asc, id: :asc])
+    end
+
+    read :manual do
+      filter expr(manual? == true)
+      prepare build(sort: [shop: :asc, title: :asc], load: [:product])
     end
   end
 
@@ -103,15 +128,14 @@ defmodule TcgCheap.Sealed.Offer do
 
     attribute :price, :decimal, allow_nil?: false, public?: true
     attribute :in_stock, :boolean, allow_nil?: false, public?: true
-
-    attribute :product_slug, :string do
-      public? true
-      constraints max_length: 160
-    end
-
+    attribute :manual?, :boolean, allow_nil?: false, default: false, public?: true
     attribute :last_seen_at, :utc_datetime_usec, allow_nil?: false, public?: true
     create_timestamp :inserted_at
     update_timestamp :updated_at
+  end
+
+  relationships do
+    belongs_to :product, TcgCheap.Sealed.Product, public?: true
   end
 
   identities do

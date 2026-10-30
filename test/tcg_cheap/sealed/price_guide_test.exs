@@ -101,4 +101,33 @@ defmodule TcgCheap.Sealed.PriceGuideTest do
     assert %{status: :out_of_stock, last_known: nil, typical: nil} =
              PriceGuide.verdict([], [], @today)
   end
+
+  describe "Cardmarket fallback" do
+    test "is used when Polish shops have fewer than 7 stocked days" do
+      verdict = PriceGuide.verdict(days(~w(620 630)), [offer("600")], @today, Decimal.new("640"))
+
+      assert verdict.status == :good
+      assert verdict.typical_source == :cardmarket
+      assert verdict.good_max == 608
+      assert verdict.normal_max == 704
+    end
+
+    test "never replaces a Polish typical price" do
+      verdict = PriceGuide.verdict(days(@history), [offer("640")], @today, Decimal.new("100"))
+      assert verdict.typical_source == :shops
+      assert Decimal.equal?(verdict.typical, 640)
+    end
+
+    test "without it there is not enough data" do
+      verdict = PriceGuide.verdict(days(~w(620)), [offer("600")], @today, nil)
+      assert verdict.status == :insufficient_data
+      assert verdict.typical_source == nil
+    end
+
+    test "out of stock still reports the Cardmarket reference" do
+      verdict = PriceGuide.verdict([], [], @today, Decimal.new("640"))
+      assert verdict.status == :out_of_stock
+      assert verdict.typical_source == :cardmarket
+    end
+  end
 end

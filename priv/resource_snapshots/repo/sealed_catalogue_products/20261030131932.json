@@ -21,7 +21,19 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "attempt_key",
+      "source": "cardmarket_id",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "name",
       "type": "text"
     },
     {
@@ -33,55 +45,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "provider_key",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "operation",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "target_key",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "worker",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "queue",
+      "source": "kind",
       "type": "text"
     },
     {
@@ -93,11 +57,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "job_id",
+      "source": "cardmarket_category_id",
       "type": "bigint"
     },
     {
-      "allow_nil?": false,
+      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -105,11 +69,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "attempt",
+      "source": "cardmarket_expansion_id",
       "type": "bigint"
     },
     {
-      "allow_nil?": false,
+      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -117,19 +81,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "max_attempts",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"running\"",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "status",
+      "source": "set_name",
       "type": "text"
     },
     {
@@ -141,20 +93,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "failure_category",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "0",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "request_count",
-      "type": "bigint"
+      "source": "cardmarket_added_on",
+      "type": "date"
     },
     {
       "allow_nil?": false,
@@ -165,8 +105,20 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "started_at",
-      "type": "utc_datetime_usec"
+      "source": "slug",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "search_text",
+      "type": "text"
     },
     {
       "allow_nil?": true,
@@ -177,8 +129,80 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "finished_at",
-      "type": "utc_datetime_usec"
+      "source": "image_url",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "cardmarket_trend",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "cardmarket_low",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "cardmarket_avg",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "cardmarket_price_updated_on",
+      "type": "date"
+    },
+    {
+      "allow_nil?": false,
+      "default": "false",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "available",
+      "type": "boolean"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "lowest_price",
+      "type": "decimal"
     },
     {
       "allow_nil?": false,
@@ -206,98 +230,24 @@
     }
   ],
   "base_filter": null,
-  "check_constraints": [
-    {
-      "attribute": [
-        "attempt_key"
-      ],
-      "base_filter": null,
-      "check": "btrim(attempt_key) <> ''",
-      "name": "acquisition_runs_attempt_key_invariant"
-    },
-    {
-      "attribute": [
-        "attempt",
-        "max_attempts"
-      ],
-      "base_filter": null,
-      "check": "attempt > 0 AND max_attempts > 0 AND attempt <= max_attempts",
-      "name": "acquisition_runs_attempt_bounds"
-    },
-    {
-      "attribute": [
-        "request_count"
-      ],
-      "base_filter": null,
-      "check": "request_count >= 0",
-      "name": "acquisition_runs_request_count_nonnegative"
-    },
-    {
-      "attribute": [
-        "status",
-        "finished_at",
-        "failure_category"
-      ],
-      "base_filter": null,
-      "check": "(status = 'running' AND finished_at IS NULL AND failure_category IS NULL) OR (status = 'succeeded' AND finished_at IS NOT NULL AND failure_category IS NULL) OR (status IN ('retryable_failure','failed','cancelled') AND finished_at IS NOT NULL AND failure_category IS NOT NULL)",
-      "name": "acquisition_runs_lifecycle_invariant"
-    },
-    {
-      "attribute": [
-        "started_at",
-        "finished_at"
-      ],
-      "base_filter": null,
-      "check": "finished_at IS NULL OR finished_at >= started_at",
-      "name": "acquisition_runs_timestamp_invariant"
-    },
-    {
-      "attribute": [
-        "status"
-      ],
-      "base_filter": null,
-      "check": "status IN ('running','succeeded','retryable_failure','failed','cancelled')",
-      "name": "acquisition_runs_status_invariant"
-    },
-    {
-      "attribute": [
-        "failure_category"
-      ],
-      "base_filter": null,
-      "check": "failure_category IS NULL OR failure_category IN ('budget','rate_limit','timeout','transport','provider_response','persistence','configuration','local_input','unknown')",
-      "name": "acquisition_runs_failure_category_invariant"
-    },
-    {
-      "attribute": [
-        "operation"
-      ],
-      "base_filter": null,
-      "check": "operation IN ('single_valuation','exchange_rate','card_catalogue_sync','card_catalogue_enrichment','cardmarket_bulk_sync')",
-      "name": "acquisition_runs_operation_invariant"
-    }
-  ],
+  "check_constraints": [],
   "create_table_options": null,
   "custom_indexes": [
     {
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "provider_key",
-        "started_at",
-        "id"
+        "available",
+        "cardmarket_added_on"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "provider_key"
+          "value": "available"
         },
         {
           "type": "atom",
-          "value": "started_at"
-        },
-        {
-          "type": "atom",
-          "value": "id"
+          "value": "cardmarket_added_on"
         }
       ],
       "include": null,
@@ -315,17 +265,12 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "started_at",
-        "id"
+        "kind"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "started_at"
-        },
-        {
-          "type": "atom",
-          "value": "id"
+          "value": "kind"
         }
       ],
       "include": null,
@@ -337,24 +282,38 @@
       "table": null,
       "unique": false,
       "using": null,
-      "where": "status = 'running'"
+      "where": null
     }
   ],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "8155F80D5974E852C2EE599736891586414E270F4C850384E0E6296826310078",
+  "hash": "8F9BD32ADB57977E5CE03EC4B3CC639B6076FCAA5BA74A172C661CFE4BD0542C",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "acquisition_runs_unique_attempt_key_index",
+      "index_name": "sealed_catalogue_products_cardmarket_id_index",
       "keys": [
         {
           "type": "atom",
-          "value": "attempt_key"
+          "value": "cardmarket_id"
         }
       ],
-      "name": "unique_attempt_key",
+      "name": "cardmarket_id",
+      "nils_distinct?": true,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "sealed_catalogue_products_slug_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "slug"
+        }
+      ],
+      "name": "slug",
       "nils_distinct?": true,
       "where": null
     }
@@ -366,5 +325,5 @@
   },
   "repo": "Elixir.TcgCheap.Repo",
   "schema": null,
-  "table": "acquisition_runs"
+  "table": "sealed_catalogue_products"
 }

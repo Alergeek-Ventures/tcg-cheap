@@ -109,16 +109,16 @@
       "type": "boolean"
     },
     {
-      "allow_nil?": true,
-      "default": "nil",
+      "allow_nil?": false,
+      "default": "false",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "product_slug",
-      "type": "text"
+      "source": "manual?",
+      "type": "boolean"
     },
     {
       "allow_nil?": false,
@@ -155,6 +155,39 @@
       "size": null,
       "source": "updated_at",
       "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_tenant?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "sealed_offers_product_id_fkey",
+        "on_delete": "nilify",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "sealed_catalogue_products"
+      },
+      "scale": null,
+      "size": null,
+      "source": "product_id",
+      "type": "uuid"
     }
   ],
   "base_filter": null,
@@ -188,13 +221,13 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "product_slug",
+        "product_id",
         "last_seen_at"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "product_slug"
+          "value": "product_id"
         },
         {
           "type": "atom",
@@ -215,7 +248,7 @@
   ],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "AC09FD4ABBB7BE997CBC0E7E49715789F4590665EC8059A3F8530A0BC699FF0A",
+  "hash": "0271993C60B69C2ADE6EB6523F998ACD83C4E9C0A2371F809D6C753D9F0580F0",
   "identities": [
     {
       "all_tenants?": false,

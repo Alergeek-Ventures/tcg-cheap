@@ -72,12 +72,24 @@ defmodule TcgCheap.Repo.Migrations.AddSealedBuyingGuide do
              """
            )
 
-    create table(:sealed_daily_prices, primary_key: false) do
+    create table(:sealed_catalogue_products, primary_key: false) do
       add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
-      add :product_slug, :text, null: false
-      add :date, :date, null: false
+      add :cardmarket_id, :bigint, null: false
+      add :name, :text, null: false
+      add :kind, :text, null: false
+      add :cardmarket_category_id, :bigint
+      add :cardmarket_expansion_id, :bigint
+      add :set_name, :text
+      add :cardmarket_added_on, :date
+      add :slug, :text, null: false
+      add :search_text, :text, null: false, default: ""
+      add :image_url, :text
+      add :cardmarket_trend, :decimal
+      add :cardmarket_low, :decimal
+      add :cardmarket_avg, :decimal
+      add :cardmarket_price_updated_on, :date
+      add :available, :boolean, null: false, default: false
       add :lowest_price, :decimal
-      add :shops_in_stock, :bigint, null: false, default: 0
 
       add :inserted_at, :utc_datetime_usec,
         null: false,
@@ -88,7 +100,45 @@ defmodule TcgCheap.Repo.Migrations.AddSealedBuyingGuide do
         default: fragment("(now() AT TIME ZONE 'utc')")
     end
 
-    create unique_index(:sealed_daily_prices, [:product_slug, :date],
+    create unique_index(:sealed_catalogue_products, [:cardmarket_id],
+             name: "sealed_catalogue_products_cardmarket_id_index"
+           )
+
+    create unique_index(:sealed_catalogue_products, [:slug],
+             name: "sealed_catalogue_products_slug_index"
+           )
+
+    create index(:sealed_catalogue_products, [:available, :cardmarket_added_on])
+
+    create index(:sealed_catalogue_products, [:kind])
+
+    create table(:sealed_daily_prices, primary_key: false) do
+      add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
+      add :date, :date, null: false
+      add :lowest_price, :decimal
+      add :shops_in_stock, :bigint, null: false, default: 0
+      add :cardmarket_trend, :decimal
+
+      add :inserted_at, :utc_datetime_usec,
+        null: false,
+        default: fragment("(now() AT TIME ZONE 'utc')")
+
+      add :updated_at, :utc_datetime_usec,
+        null: false,
+        default: fragment("(now() AT TIME ZONE 'utc')")
+
+      add :product_id,
+          references(:sealed_catalogue_products,
+            column: :id,
+            name: "sealed_daily_prices_product_id_fkey",
+            type: :uuid,
+            prefix: "public",
+            on_delete: :delete_all
+          ),
+          null: false
+    end
+
+    create unique_index(:sealed_daily_prices, [:product_id, :date],
              name: "sealed_daily_prices_product_day_index"
            )
 
@@ -102,7 +152,7 @@ defmodule TcgCheap.Repo.Migrations.AddSealedBuyingGuide do
       add :ean, :text
       add :price, :decimal, null: false
       add :in_stock, :boolean, null: false
-      add :product_slug, :text
+      add :manual?, :boolean, null: false, default: false
       add :last_seen_at, :utc_datetime_usec, null: false
 
       add :inserted_at, :utc_datetime_usec,
@@ -112,6 +162,15 @@ defmodule TcgCheap.Repo.Migrations.AddSealedBuyingGuide do
       add :updated_at, :utc_datetime_usec,
         null: false,
         default: fragment("(now() AT TIME ZONE 'utc')")
+
+      add :product_id,
+          references(:sealed_catalogue_products,
+            column: :id,
+            name: "sealed_offers_product_id_fkey",
+            type: :uuid,
+            prefix: "public",
+            on_delete: :nilify_all
+          )
     end
 
     create unique_index(:sealed_offers, [:shop, :shop_product_id],
@@ -120,13 +179,15 @@ defmodule TcgCheap.Repo.Migrations.AddSealedBuyingGuide do
 
     create index(:sealed_offers, [:last_seen_at])
 
-    create index(:sealed_offers, [:product_slug, :last_seen_at])
+    create index(:sealed_offers, [:product_id, :last_seen_at])
   end
 
   def down do
-    drop_if_exists index(:sealed_offers, [:product_slug, :last_seen_at])
+    drop_if_exists index(:sealed_offers, [:product_id, :last_seen_at])
 
     drop_if_exists index(:sealed_offers, [:last_seen_at])
+
+    drop constraint(:sealed_offers, "sealed_offers_product_id_fkey")
 
     drop_if_exists unique_index(:sealed_offers, [:shop, :shop_product_id],
                      name: "sealed_offers_shop_product_index"
@@ -134,11 +195,27 @@ defmodule TcgCheap.Repo.Migrations.AddSealedBuyingGuide do
 
     drop table(:sealed_offers)
 
-    drop_if_exists unique_index(:sealed_daily_prices, [:product_slug, :date],
+    drop constraint(:sealed_daily_prices, "sealed_daily_prices_product_id_fkey")
+
+    drop_if_exists unique_index(:sealed_daily_prices, [:product_id, :date],
                      name: "sealed_daily_prices_product_day_index"
                    )
 
     drop table(:sealed_daily_prices)
+
+    drop_if_exists index(:sealed_catalogue_products, [:kind])
+
+    drop_if_exists index(:sealed_catalogue_products, [:available, :cardmarket_added_on])
+
+    drop_if_exists unique_index(:sealed_catalogue_products, [:slug],
+                     name: "sealed_catalogue_products_slug_index"
+                   )
+
+    drop_if_exists unique_index(:sealed_catalogue_products, [:cardmarket_id],
+                     name: "sealed_catalogue_products_cardmarket_id_index"
+                   )
+
+    drop table(:sealed_catalogue_products)
 
     drop_if_exists constraint(:import_issues, :import_issues_stage_target_invariant)
 

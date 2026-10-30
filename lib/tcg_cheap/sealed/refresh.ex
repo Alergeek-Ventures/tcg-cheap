@@ -2,16 +2,16 @@ defmodule TcgCheap.Sealed.Refresh do
   @moduledoc """
   Fetches one shop and stores the result in a single transaction.
 
-  A successful fetch upserts every offer seen, re-matches all stored offers
-  (the catalogue may have changed since they were stored) and recomputes
-  today's daily price for every catalogue product. A failed fetch writes
-  nothing.
+  A successful fetch upserts every offer seen and then `recompute/1`s: all
+  stored offers are re-matched (the catalogue may have changed; manual
+  assignments are kept), today's lowest shop price is recorded per product,
+  and each product's availability, lowest price and image are refreshed. A
+  failed fetch writes nothing.
   """
 
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Catalogue, DailyPrice, Matcher, Offer, WooCommerce}
-  alias TcgCheap.Sealed.Shop
+  alias TcgCheap.Sealed.{DailyPrice, Matcher, Offer, Shop, WooCommerce}
 
   @spec run(Shop.t(), keyword()) :: {:ok, %{offers: non_neg_integer()}} | {:error, term()}
   def run(%Shop{} = shop, opts \\ []) do
@@ -20,26 +20,27 @@ defmodule TcgCheap.Sealed.Refresh do
     with {:ok, fetched} <- WooCommerce.fetch(shop, Keyword.get(opts, :req_options, [])) do
       Repo.transaction(fn ->
         upsert_offers(shop, fetched, now)
-        rematch_offers()
-        record_daily_prices(now)
+        recompute(now)
         %{offers: length(fetched)}
       end)
     end
   end
 
+  @doc "Re-matches offers and refreshes daily shop prices and product availability."
+  @spec recompute(DateTime.t()) :: :ok
+  def recompute(%DateTime{} = now) do
+    products = Sealed.list_products!()
+    rematch_offers(products)
+    current = now |> Sealed.current_offers() |> Enum.filter(& &1.product_id)
+    record_shop_prices(current, DateTime.to_date(now))
+    update_products(products, current)
+    :ok
+  end
+
   defp upsert_offers(_shop, [], _now), do: :ok
 
   defp upsert_offers(shop, fetched, now) do
-    products = Catalogue.all()
-
-    inputs =
-      Enum.map(fetched, fn offer ->
-        Map.merge(offer, %{
-          shop: shop.key,
-          product_slug: Matcher.product_slug(offer, products),
-          last_seen_at: now
-        })
-      end)
+    inputs = Enum.map(fetched, &Map.merge(&1, %{shop: shop.key, last_seen_at: now}))
 
     %Ash.BulkResult{status: :success} =
       Ash.bulk_create!(inputs, Offer, :upsert,
@@ -49,43 +50,82 @@ defmodule TcgCheap.Sealed.Refresh do
       )
   end
 
-  defp rematch_offers do
-    products = Catalogue.all()
+  defp rematch_offers(products) do
+    offers = Sealed.list_offers!()
 
-    Enum.each(Sealed.list_offers!(), fn offer ->
-      slug = Matcher.product_slug(offer, products)
+    eans =
+      for %Offer{manual?: true, ean: ean, product_id: id} <- offers,
+          is_binary(ean) and not is_nil(id),
+          into: %{},
+          do: {ean, id}
+
+    index = Matcher.index(products, eans)
+
+    for %Offer{manual?: false} = offer <- offers,
+        id = Matcher.product_id(offer, index),
+        id != offer.product_id do
       # Nothing subscribes to offer notifications; drop them inside the transaction.
-      if slug != offer.product_slug,
-        do: Sealed.assign_offer_product!(offer, slug, return_notifications?: true)
-    end)
+      Sealed.match_offer!(offer, id, return_notifications?: true)
+    end
   end
 
-  defp record_daily_prices(now) do
-    today = DateTime.to_date(now)
+  defp record_shop_prices(current, today) do
+    by_product = current |> Enum.filter(& &1.in_stock) |> Enum.group_by(& &1.product_id)
 
-    by_product =
-      now
-      |> Sealed.current_offers()
-      |> Enum.filter(&(&1.in_stock and is_binary(&1.product_slug)))
-      |> Enum.group_by(& &1.product_slug)
+    previously_priced =
+      for %{lowest_price: %Decimal{}, product_id: id} <- Sealed.list_daily_prices_on!(today),
+          do: id
+
+    ids = Enum.uniq(Enum.map(current, & &1.product_id) ++ previously_priced)
 
     inputs =
-      for product <- Catalogue.all() do
-        offers = Map.get(by_product, product.slug, [])
+      Enum.map(ids, fn id ->
+        offers = Map.get(by_product, id, [])
 
         %{
-          product_slug: product.slug,
+          product_id: id,
           date: today,
           lowest_price: offers |> Enum.map(& &1.price) |> Enum.min(Decimal, fn -> nil end),
           shops_in_stock: offers |> Enum.map(& &1.shop) |> Enum.uniq() |> length()
         }
-      end
+      end)
 
+    bulk_record(inputs, :record_shop_price)
+  end
+
+  defp update_products(products, current) do
+    by_product = Enum.group_by(current, & &1.product_id)
+
+    for product <- products,
+        offers = Map.get(by_product, product.id, []),
+        wanted = availability(product, offers),
+        wanted != Map.take(product, [:available, :lowest_price, :image_url]) do
+      Sealed.set_product_availability!(product, wanted, return_notifications?: true)
+    end
+  end
+
+  defp availability(product, offers) do
+    in_stock = offers |> Enum.filter(& &1.in_stock) |> Enum.sort_by(& &1.price, Decimal)
+    best_image = Enum.find_value(in_stock ++ offers, & &1.image_url)
+
+    %{
+      available: in_stock != [],
+      lowest_price: List.first(in_stock) && hd(in_stock).price,
+      image_url: best_image || product.image_url
+    }
+  end
+
+  @doc false
+  def bulk_record([], _action), do: :ok
+
+  def bulk_record(inputs, action) do
     %Ash.BulkResult{status: :success} =
-      Ash.bulk_create!(inputs, DailyPrice, :record,
+      Ash.bulk_create!(inputs, DailyPrice, action,
         domain: Sealed,
         return_errors?: true,
         stop_on_error?: true
       )
+
+    :ok
   end
 end

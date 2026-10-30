@@ -46,3 +46,6 @@ config :phoenix,
 # The buying-guide fetch never reaches the network in tests.
 config :tcg_cheap, TcgCheap.Sealed.FetchWorker,
   req_options: [plug: {Req.Test, TcgCheap.Sealed.WooCommerce}]
+
+config :tcg_cheap, TcgCheap.Sealed.CatalogueImportWorker,
+  request_options: [plug: {Req.Test, TcgCheap.Sealed.CatalogueImport}]

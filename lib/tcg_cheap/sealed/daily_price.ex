@@ -1,9 +1,9 @@
 defmodule TcgCheap.Sealed.DailyPrice do
   @moduledoc """
-  The lowest in-stock price of a catalogue product on one day.
-
-  `lowest_price` is nil (and `shops_in_stock` zero) on a day when no shop had
-  the product in stock.
+  One product's prices on one day: the lowest in-stock price in Polish shops
+  (nil, with `shops_in_stock` zero, when no shop had it) and the Cardmarket
+  trend in EUR. Shop fetches and the catalogue import each write their own
+  columns.
   """
 
   use Ash.Resource,
@@ -14,28 +14,45 @@ defmodule TcgCheap.Sealed.DailyPrice do
   postgres do
     table "sealed_daily_prices"
     repo TcgCheap.Repo
+
+    references do
+      reference :product, on_delete: :delete
+    end
   end
 
   actions do
     defaults [:read]
 
-    create :record do
-      accept [:product_slug, :date, :lowest_price, :shops_in_stock]
+    create :record_shop_price do
+      accept [:product_id, :date, :lowest_price, :shops_in_stock]
       upsert? true
       upsert_identity :product_day
       upsert_fields [:lowest_price, :shops_in_stock, :updated_at]
     end
 
+    create :record_cardmarket_trend do
+      accept [:product_id, :date, :cardmarket_trend]
+      upsert? true
+      upsert_identity :product_day
+      upsert_fields [:cardmarket_trend, :updated_at]
+    end
+
     read :since do
       argument :since, :date, allow_nil?: false
-      filter expr(date >= ^arg(:since))
-      prepare build(sort: [product_slug: :asc, date: :asc])
+      argument :product_ids, {:array, :uuid}, allow_nil?: false
+      filter expr(date >= ^arg(:since) and product_id in ^arg(:product_ids))
+      prepare build(sort: [product_id: :asc, date: :asc])
+    end
+
+    read :on do
+      argument :date, :date, allow_nil?: false
+      filter expr(date == ^arg(:date))
     end
 
     read :history do
-      argument :product_slug, :string, allow_nil?: false
+      argument :product_id, :uuid, allow_nil?: false
       argument :since, :date, allow_nil?: false
-      filter expr(product_slug == ^arg(:product_slug) and date >= ^arg(:since))
+      filter expr(product_id == ^arg(:product_id) and date >= ^arg(:since))
       prepare build(sort: [date: :asc])
     end
   end
@@ -47,21 +64,19 @@ defmodule TcgCheap.Sealed.DailyPrice do
 
   attributes do
     uuid_primary_key :id
-
-    attribute :product_slug, :string do
-      allow_nil? false
-      public? true
-      constraints max_length: 160
-    end
-
     attribute :date, :date, allow_nil?: false, public?: true
     attribute :lowest_price, :decimal, public?: true
     attribute :shops_in_stock, :integer, allow_nil?: false, default: 0, public?: true
+    attribute :cardmarket_trend, :decimal, public?: true
     create_timestamp :inserted_at
     update_timestamp :updated_at
   end
 
+  relationships do
+    belongs_to :product, TcgCheap.Sealed.Product, allow_nil?: false, public?: true
+  end
+
   identities do
-    identity :product_day, [:product_slug, :date]
+    identity :product_day, [:product_id, :date]
   end
 end

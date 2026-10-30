@@ -89,7 +89,9 @@ config :tcg_cheap, Oban,
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
        {"0 3 * * *", TcgCheap.Pricing.CardmarketBulk.SyncWorker, args: %{}},
-       # Buying guide: one fetch per shop, staggered between 04:00 and 06:30 UTC.
+       # Buying guide: the Cardmarket sealed catalogue after the singles bulk sync,
+       # then one fetch per shop, staggered between 04:00 and 06:30 UTC.
+       {"30 3 * * *", TcgCheap.Sealed.CatalogueImportWorker, args: %{}},
        {"0 4 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "lootquest"}},
        {"30 4 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "cardzhouse"}},
        {"0 5 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "boosterpoint"}},

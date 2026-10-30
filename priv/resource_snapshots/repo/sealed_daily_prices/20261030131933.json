@@ -21,18 +21,6 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "product_slug",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
       "source": "date",
       "type": "date"
     },
@@ -61,6 +49,18 @@
       "type": "bigint"
     },
     {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "cardmarket_trend",
+      "type": "decimal"
+    },
+    {
       "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
@@ -83,6 +83,39 @@
       "size": null,
       "source": "updated_at",
       "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_tenant?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "sealed_daily_prices_product_id_fkey",
+        "on_delete": "delete",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "sealed_catalogue_products"
+      },
+      "scale": null,
+      "size": null,
+      "source": "product_id",
+      "type": "uuid"
     }
   ],
   "base_filter": null,
@@ -91,7 +124,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "4879F82CAAC3D5E86E1386328278A6192BF4B2A0CDEE22C929D156848E5C9C2E",
+  "hash": "60B1EE7B2872E2492B95ED7F22971911C3BF58742D4B017FE487D25CFCED4E1D",
   "identities": [
     {
       "all_tenants?": false,
@@ -100,7 +133,7 @@
       "keys": [
         {
           "type": "atom",
-          "value": "product_slug"
+          "value": "product_id"
         },
         {
           "type": "atom",

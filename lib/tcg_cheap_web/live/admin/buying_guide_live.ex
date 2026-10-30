@@ -1,34 +1,130 @@
 defmodule TcgCheapWeb.Admin.BuyingGuideLive do
   @moduledoc """
-  Read-only buying-guide desk: what each shop's last fetch returned and which
-  current offers match no catalogue product (candidates for new entries).
+  Buying-guide desk: what each shop's last fetch returned, the current offers
+  that match no catalogue product, and manual assignments. Assigning an offer
+  to a product (or clearing that assignment) is the only write action; manual
+  assignments are never overwritten by automatic matching.
   """
 
   use TcgCheapWeb, :live_view
 
+  alias TcgCheap.Repo
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Catalogue, Matcher, Shops}
+  alias TcgCheap.Sealed.{Kinds, Matcher, Refresh, Shops}
   alias TcgCheapWeb.Polish
+
+  @result_limit 10
 
   @impl true
   def mount(_params, _session, socket) do
+    {:ok,
+     socket
+     |> assign(:page_title, "Buying guide")
+     |> assign(:assigning, nil)
+     |> assign(:results, [])
+     |> assign(:search_form, to_form(%{"query" => ""}, as: :product_search))
+     |> load()}
+  end
+
+  @impl true
+  def handle_event("start_assign", %{"offer-id" => id}, socket) do
+    case Sealed.get_offer(id) do
+      {:ok, offer} ->
+        {:noreply,
+         socket
+         |> assign(:assigning, offer)
+         |> assign(:results, search(offer.title))
+         |> assign(:search_form, to_form(%{"query" => offer.title}, as: :product_search))}
+
+      _ ->
+        {:noreply, put_flash(socket, :error, "That offer no longer exists.")}
+    end
+  end
+
+  def handle_event("cancel_assign", _params, socket),
+    do: {:noreply, socket |> assign(:assigning, nil) |> assign(:results, [])}
+
+  def handle_event("search_products", %{"product_search" => %{"query" => query}}, socket)
+      when is_binary(query) do
+    {:noreply,
+     socket
+     |> assign(:results, search(query))
+     |> assign(:search_form, to_form(%{"query" => query}, as: :product_search))}
+  end
+
+  def handle_event(
+        "assign",
+        %{"product-id" => product_id},
+        %{assigns: %{assigning: offer}} = socket
+      )
+      when not is_nil(offer) do
+    case write(fn ->
+           Sealed.assign_offer_manually(offer, product_id, return_notifications?: true)
+         end) do
+      :ok ->
+        {:noreply,
+         socket
+         |> assign(:assigning, nil)
+         |> assign(:results, [])
+         |> put_flash(:info, "Offer assigned.")
+         |> load()}
+
+      :error ->
+        {:noreply, put_flash(socket, :error, "The offer could not be assigned.")}
+    end
+  end
+
+  def handle_event("clear_manual", %{"offer-id" => id}, socket) do
+    with {:ok, offer} <- Sealed.get_offer(id),
+         :ok <- write(fn -> Sealed.clear_manual_offer(offer, return_notifications?: true) end) do
+      {:noreply, socket |> put_flash(:info, "Manual assignment cleared.") |> load()}
+    else
+      _ -> {:noreply, put_flash(socket, :error, "The assignment could not be cleared.")}
+    end
+  end
+
+  def handle_event(_event, _params, socket), do: {:noreply, socket}
+
+  # Applies an assignment and immediately re-derives prices from it.
+  defp write(action) do
+    result =
+      Repo.transaction(fn ->
+        # Nothing subscribes to offer notifications; they are dropped.
+        case action.() do
+          {:ok, _offer, _notifications} -> Refresh.recompute(DateTime.utc_now())
+          {:error, error} -> Repo.rollback(error)
+        end
+      end)
+
+    if match?({:ok, _}, result), do: :ok, else: :error
+  end
+
+  defp search(query) do
+    query
+    |> Sealed.browse_products!(nil, page: [limit: @result_limit])
+    |> Map.fetch!(:results)
+  end
+
+  defp load(socket) do
     now = DateTime.utc_now()
     offers = Sealed.list_offers!()
     current = Sealed.current_offers(now)
 
     {unmatched, excluded} =
       current
-      |> Enum.reject(& &1.product_slug)
+      |> Enum.reject(& &1.product_id)
       |> Enum.split_with(&(not Matcher.excluded?(&1.title)))
 
-    {:ok,
-     socket
-     |> assign(:page_title, "Buying guide")
-     |> assign(:shops, shop_rows(offers, current))
-     |> assign(:product_count, length(Catalogue.all()))
-     |> assign(:unmatched_count, length(unmatched))
-     |> assign(:excluded_count, length(excluded))
-     |> stream(:unmatched, Enum.sort_by(unmatched, &{&1.shop, &1.title}))}
+    manual = Sealed.list_manual_offers!()
+
+    socket
+    |> assign(:shops, shop_rows(offers, current))
+    |> assign(:product_count, Ash.count!(Sealed.Product, domain: Sealed))
+    |> assign(:unmatched_count, length(unmatched))
+    |> assign(:excluded_count, length(excluded))
+    |> assign(:manual_count, length(manual))
+    |> stream(:unmatched, Enum.sort_by(unmatched, &{&1.shop, &1.title}), reset: true)
+    |> stream(:manual, manual, reset: true)
   end
 
   @impl true
@@ -46,10 +142,9 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
               <div>
                 <h1 id="admin-buying-guide-title">Buying guide</h1>
                 <p>
-                  {@product_count} catalogue products. Shops are fetched once a day; an offer counts while it was in
-                  its shop's latest fetch (at most 3 days old). To cover an unmatched offer, add a product to
-                  <code>TcgCheap.Sealed.Catalogue</code>
-                  and deploy.
+                  {@product_count} catalogue products imported daily from Cardmarket. Shops are fetched once a day;
+                  an offer counts while it was in its shop's latest fetch (at most 3 days old). Offers are matched
+                  automatically; assign the rest by hand below.
                 </p>
               </div>
             </section>
@@ -88,6 +183,55 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
             </section>
 
             <section
+              :if={@assigning}
+              id="buying-guide-assign"
+              class="admin-queue"
+              aria-labelledby="buying-guide-assign-title"
+            >
+              <div class="admin-section-rule">
+                <h2 id="buying-guide-assign-title">Assign offer</h2>
+                <span>{Shops.name(@assigning.shop)} · {@assigning.title}</span>
+              </div>
+              <.form
+                for={@search_form}
+                id="buying-guide-product-search"
+                phx-change="search_products"
+                phx-submit="search_products"
+              >
+                <.input
+                  field={@search_form[:query]}
+                  type="search"
+                  label="Search the catalogue"
+                  autocomplete="off"
+                  phx-debounce="300"
+                />
+              </.form>
+              <ul id="buying-guide-product-results" class="admin-results">
+                <li :if={@results == []} id="buying-guide-no-results">No matching products.</li>
+                <li :for={product <- @results} id={"result-#{product.id}"}>
+                  <span>
+                    <strong>{product.name}</strong>
+                    {Kinds.label(product.kind)}{if product.set_name, do: " · #{product.set_name}"} · Cardmarket #{product.cardmarket_id}
+                  </span>
+                  <button
+                    type="button"
+                    id={"assign-#{product.id}"}
+                    phx-click="assign"
+                    phx-value-product-id={product.id}
+                  >Assign</button>
+                </li>
+              </ul>
+              <button
+                type="button"
+                id="buying-guide-cancel-assign"
+                class="secondary-action"
+                phx-click="cancel_assign"
+              >
+                Cancel
+              </button>
+            </section>
+
+            <section
               id="buying-guide-unmatched"
               class="admin-queue"
               aria-labelledby="buying-guide-unmatched-title"
@@ -95,7 +239,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
               <div class="admin-section-rule">
                 <h2 id="buying-guide-unmatched-title">Unmatched offers</h2>
                 <span id="buying-guide-unmatched-count">
-                  {@unmatched_count} unmatched · {@excluded_count} excluded (non-English, preorder, bundle, accessory)
+                  {@unmatched_count} unmatched · {@excluded_count} excluded (preorder, bundle of many, accessory)
                 </span>
               </div>
               <div class="admin-table-wrap">
@@ -106,11 +250,12 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
                       <th scope="col">Title</th>
                       <th scope="col">Price</th>
                       <th scope="col">Stock</th>
+                      <th scope="col"><span class="sr-only">Action</span></th>
                     </tr>
                   </thead>
                   <tbody id="buying-guide-unmatched-list" phx-update="stream">
                     <tr id="buying-guide-unmatched-empty" class="hidden only:table-row">
-                      <td colspan="4">Every current offer matches a catalogue product.</td>
+                      <td colspan="5">Every current offer matches a catalogue product.</td>
                     </tr>
                     <tr :for={{dom_id, offer} <- @streams.unmatched} id={dom_id}>
                       <td class="admin-nowrap">{Shops.name(offer.shop)}</td>
@@ -120,6 +265,60 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
                       <td class="admin-nowrap">{Polish.price(offer.price)}</td>
                       <td class="admin-nowrap">
                         {if offer.in_stock, do: "in stock", else: "out of stock"}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          id={"start-assign-#{offer.id}"}
+                          phx-click="start_assign"
+                          phx-value-offer-id={offer.id}
+                        >Assign…</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section
+              id="buying-guide-manual"
+              class="admin-queue"
+              aria-labelledby="buying-guide-manual-title"
+            >
+              <div class="admin-section-rule">
+                <h2 id="buying-guide-manual-title">Manual assignments</h2>
+                <span>{@manual_count} kept regardless of automatic matching</span>
+              </div>
+              <div class="admin-table-wrap">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Shop</th>
+                      <th scope="col">Offer</th>
+                      <th scope="col">Product</th>
+                      <th scope="col"><span class="sr-only">Action</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="buying-guide-manual-list" phx-update="stream">
+                    <tr id="buying-guide-manual-empty" class="hidden only:table-row">
+                      <td colspan="4">No manual assignments.</td>
+                    </tr>
+                    <tr :for={{dom_id, offer} <- @streams.manual} id={dom_id}>
+                      <td class="admin-nowrap">{Shops.name(offer.shop)}</td>
+                      <td>{offer.title}</td>
+                      <td>
+                        <.link :if={offer.product} navigate={~p"/produkty/#{offer.product.slug}"}>
+                          {offer.product.name}
+                        </.link>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          id={"clear-manual-#{offer.id}"}
+                          class="secondary-action"
+                          phx-click="clear_manual"
+                          phx-value-offer-id={offer.id}
+                        >Clear</button>
                       </td>
                     </tr>
                   </tbody>
@@ -144,18 +343,16 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
           shop_offers -> Sealed.latest_per_shop(shop_offers)
         end
 
-      matched = Enum.filter(seen, & &1.product_slug)
-
       %{
         key: shop.key,
         name: shop.name,
         last_fetch: seen |> List.first() |> then(&(&1 && &1.last_seen_at)),
         seen: length(seen),
-        matched: length(matched),
+        matched: Enum.count(seen, & &1.product_id),
         matched_in_stock:
           current_by_shop
           |> Map.get(shop.key, [])
-          |> Enum.count(&(&1.product_slug && &1.in_stock))
+          |> Enum.count(&(&1.product_id && &1.in_stock))
       }
     end
   end

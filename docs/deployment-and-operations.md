@@ -143,7 +143,8 @@ Home over LiveView, search, valid `/cards/sv08-238`, and
 rendered, the effective source tooltip identified Cardmarket via TCGdex, and
 there were no console warnings/errors or horizontal overflow at 390px/1440px.
 `/cards/tk-sm-r-14` is not a valid/present production printing and is not an
-application regression. Six active sealed retailers are configured:
+application regression. (Superseded on 2026-10-30 by the buying guide; kept as
+a record.) Six active sealed retailers were configured:
 LootQuest, CardzHouse, BoosterPoint, PokeBooster, Boosterland, and Colligere.
 Boosterland (category 40, Monday 05:00 UTC) and Colligere (category 23, Monday
 06:00 UTC) are `lgs` Woo Store API sources, bounded to 50 requests/hour,
@@ -196,20 +197,44 @@ operational evidence.
 The `ecto_psql_extras` integration and the `pg_stat_statements` migration enable
 database diagnostics in Ecto Stats, including the Calls and Outliers views.
 
-## Current Sealed catalogue state — 2026-09-03
+## Buying guide (sealed products)
 
-All 19 approved Sealed products have complete sourced details and positive
-applicable pack counts. Thirteen have complete official USD price tuples and
-17 have complete canonical image tuples. Pitch Black Binacle 3-pack and SV151
-Booster Bundle intentionally remain image-null unless qualified retailer
-evidence exists; missing authoritative PLN MSRP/facts remain unset.
+The public buying guide (`/`, `/produkty/:slug`, Polish UI) answers one
+question: is today's lowest price for a sealed Pokémon TCG product good?
 
-The root cause of the image gap was legacy unsourced images preserved by initial
-enrichment and subsequently removed by image hardening. Forward-only migration
-`20260903102840` corrected that state, and forward-only migration
-`20260903111025` corrected the Pitch Black ETB type. Preserve the forward-only
-policy: fix future schema/data issues with new migrations, never roll back the
-database.
+- **Catalogue.** `TcgCheap.Sealed.CatalogueImportWorker` runs daily at 03:30
+  UTC (after the 03:00 Singles bulk sync). It downloads Cardmarket's public
+  `products_nonsingles_6.json` and the sealed rows of `price_guide_6.json`
+  through the bounded `TcgCheap.Pricing.CardmarketBulk.Adapter`, and upserts
+  every product except Coins and Lots (about 4,400 products, incl. cases and
+  non-English editions) with its kind, a set name derived from names sharing a
+  Cardmarket expansion, and the latest Cardmarket trend/low/avg in EUR.
+  Products missing from a later file are kept. Nothing is curated in code.
+- **Shops.** `TcgCheap.Sealed.FetchWorker` fetches LootQuest 04:00, CardzHouse
+  04:30, BoosterPoint 05:00, PokeBooster 05:30, Boosterland 06:00 and Colligere
+  06:30 UTC through their public WooCommerce Store API (fixed host, at most
+  3–10 pages, 2 MB per page, no redirects, strict field validation). A
+  successful fetch upserts offers, re-matches every stored offer, records
+  today's lowest in-stock price per product and refreshes product
+  availability and images; a failed fetch writes nothing and Oban retries.
+- **Matching** (`TcgCheap.Sealed.Matcher`) is automatic: every word of a
+  Cardmarket name must appear in the shop title, every kind/edition word of
+  the title (box, case, half, mini, center, JP, …) must appear in the name,
+  at most two title words may stay unexplained, and the most specific product
+  wins; ties stay unmatched. Preorders, multi-item bundles, empty boxes and
+  accessories are excluded. An EAN seen on a manually assigned offer wins.
+- **Manual fixes.** `/admin/buying-guide` lists per-shop fetch results and the
+  current unmatched offers. An administrator can assign an offer to any
+  catalogue product (search by name) or clear that assignment; automatic
+  matching never overwrites a manual assignment. This is the only write action.
+- **Verdict** (`TcgCheap.Sealed.PriceGuide`): the typical price is the median
+  of the daily lowest Polish in-stock price over the last 30 days when there
+  are at least 7 stocked days, otherwise the Cardmarket trend converted with
+  the latest stored NBP EUR/PLN rate ("według Cardmarket"). Good ≤ 95%,
+  normal ≤ 110%, expensive above; limits in whole złoty. MSRP is never used.
+- **Stop.** Disable a shop by removing its cron entry (or its entry in
+  `TcgCheap.Sealed.Shops`) and deploying; already stored offers stop counting
+  after 3 days.
 
 ### Post-deploy verification
 
@@ -497,7 +522,8 @@ provider-budget admission immediately before HTTP.
 
 Operations provides a manual scoped collection trigger. `curated_playable` has
 dated official/Limitless/TCGdex evidence and explicit approval for local
-implementation; its seven-entry implementation is deployed, but production completion and collection remain unverified/incomplete. Sealed recurring acquisition is
+implementation; its seven-entry implementation is deployed, but production completion and collection remain unverified/incomplete. (Superseded on 2026-10-30: see
+[Buying guide (sealed products)](#buying-guide-sealed-products).) Sealed recurring acquisition was
 deployed through Coolify: the centrally configured weekly UTC schedule runs
 Monday at 01:00 for LootQuest (`regular_retailer`), 02:00 for CardzHouse
 (`lgs`), 03:00 for BoosterPoint (`lgs`), 04:00 for PokeBooster (`lgs`), 05:00 for
@@ -609,9 +635,9 @@ acquisition work while cached, stale data remains available; they are not a
 substitute for fixing credentials, limits, provider outages, or other source
 failures.
 
-The six configured recurring sealed adapters—LootQuest, CardzHouse,
-BoosterPoint, PokeBooster, Boosterland, and Colligere—can each be disabled
-through persisted provider controls. If a broader stop is necessary, taking the
-app down in Coolify is the operational stop. While refresh is disabled, continue
+The six buying-guide shops—LootQuest, CardzHouse, BoosterPoint, PokeBooster,
+Boosterland, and Colligere—are no longer budget providers; stop one by removing
+its cron entry and deploying (see the buying-guide section). If a broader stop is
+necessary, taking the app down in Coolify is the operational stop. While refresh is disabled, continue
 serving cached or stale data and label its age until source and persistence paths
 are safe; this does not claim that the catalogue is complete.

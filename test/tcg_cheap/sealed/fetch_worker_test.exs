@@ -4,50 +4,43 @@ defmodule TcgCheap.Sealed.FetchWorkerTest do
   import TcgCheap.SealedFixtures
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Catalogue, FetchWorker, Refresh, Shops}
+  alias TcgCheap.Sealed.{FetchWorker, Refresh, Shops}
 
-  @booster "pokemon-tcg-pitch-black-booster-pack"
-  @booster_box "pokemon-tcg-pitch-black-booster-box"
-
-  defp perform(shop), do: FetchWorker.perform(%Oban.Job{args: %{"shop" => shop}})
-
-  defp today, do: Date.utc_today()
-
-  defp daily(slug) do
-    Sealed.list_price_history!(slug, today()) |> List.first()
+  setup do
+    %{products: import_catalogue!()}
   end
 
-  test "stores every seen offer with its match and records today's lowest prices" do
+  defp perform(shop), do: FetchWorker.perform(%Oban.Job{args: %{"shop" => shop}})
+  defp today, do: Date.utc_today()
+  defp daily(product), do: Sealed.list_price_history!(product.id, today()) |> List.first()
+  defp reload(product), do: Sealed.get_product_by_slug!(product.slug)
+
+  test "stores offers, matches them and records today's lowest price", %{products: products} do
     stub_feed([feed("colligere")])
     assert :ok = perform("colligere")
 
     offers = Sealed.list_offers!()
     assert length(offers) == 4
-    assert Enum.all?(offers, &(&1.shop == "colligere"))
-
     booster = Enum.find(offers, &(&1.shop_product_id == "16799"))
-    assert booster.product_slug == @booster
-    assert Decimal.equal?(booster.price, "24.95")
+    assert booster.product_id == products["Pitch Black Booster"].id
 
-    assert Decimal.equal?(daily(@booster).lowest_price, "24.95")
-    assert daily(@booster).shops_in_stock == 1
-    assert Decimal.equal?(daily(@booster_box).lowest_price, "799.94")
+    assert Decimal.equal?(daily(products["Pitch Black Booster"]).lowest_price, "24.95")
+    assert daily(products["Pitch Black Booster"]).shops_in_stock == 1
+    assert %Decimal{} = daily(products["Pitch Black Booster"]).cardmarket_trend
 
-    # Every catalogue product gets today's row, stocked or not.
-    assert length(Sealed.list_daily_prices_since!(today())) == length(Catalogue.all())
-
-    assert %{lowest_price: nil, shops_in_stock: 0} =
-             daily("pokemon-tcg-scarlet-violet-151-booster-bundle")
+    box = reload(products["Pitch Black Booster Box"])
+    assert box.available
+    assert Decimal.equal?(box.lowest_price, "799.94")
+    assert String.starts_with?(box.image_url, "https://colligere.pl/")
   end
 
-  test "a second fetch updates offers in place and takes the cheapest shop" do
+  test "a second shop and a price change update the lowest price", %{products: products} do
+    booster = products["Pitch Black Booster"]
     stub_feed([feed("colligere")])
     assert :ok = perform("colligere")
     stub_feed([feed("cardzhouse")])
     assert :ok = perform("cardzhouse")
-
-    assert Decimal.equal?(daily(@booster).lowest_price, "24.95")
-    assert daily(@booster).shops_in_stock == 2
+    assert daily(booster).shops_in_stock == 2
 
     cheaper =
       Enum.map(feed("colligere"), fn
@@ -57,61 +50,52 @@ defmodule TcgCheap.Sealed.FetchWorkerTest do
 
     stub_feed([cheaper])
     assert :ok = perform("colligere")
-
-    assert length(Enum.filter(Sealed.list_offers!(), &(&1.shop == "colligere"))) == 4
-    assert Decimal.equal?(daily(@booster).lowest_price, "21.99")
+    assert Decimal.equal?(daily(booster).lowest_price, "21.99")
+    assert Decimal.equal?(reload(booster).lowest_price, "21.99")
   end
 
-  test "offers missing from a shop's latest fetch stop counting" do
+  test "offers missing from a shop's latest fetch stop counting", %{products: products} do
     stub_feed([feed("colligere")])
     assert :ok = perform("colligere")
-
-    without_booster = Enum.reject(feed("colligere"), &(&1["id"] == 16_799))
-    stub_feed([without_booster])
+    stub_feed([Enum.reject(feed("colligere"), &(&1["id"] == 16_799))])
     assert :ok = perform("colligere")
 
-    assert %{lowest_price: nil} = daily(@booster)
-    refute Enum.any?(Sealed.current_offers(DateTime.utc_now()), &(&1.shop_product_id == "16799"))
+    assert %{lowest_price: nil, shops_in_stock: 0} = daily(products["Pitch Black Booster"])
+    refute reload(products["Pitch Black Booster"]).available
   end
 
-  test "re-matches every stored offer, including other shops'" do
-    offer =
+  test "manual assignments survive automatic matching and feed the EAN index", %{
+    products: products
+  } do
+    pc_etb = products["Pitch Black Pokémon Center Elite Trainer Box"]
+
+    manual =
       offer!(
         shop: "lootquest",
         title: "Pokémon TCG: Pitch Black – Booster",
-        product_slug: "stale-slug"
+        ean: "0820650000001",
+        product_id: pc_etb.id,
+        manual?: true
       )
 
-    stub_feed([feed("colligere")])
-    assert :ok = perform("colligere")
-
-    assert Ash.get!(Sealed.Offer, offer.id, domain: Sealed).product_slug == @booster
-  end
-
-  test "out-of-stock and stale offers do not set the lowest price" do
-    offer!(shop: "lootquest", price: Decimal.new("10"), in_stock: false)
-
-    offer!(
-      shop: "cardzhouse",
-      price: Decimal.new("11"),
-      last_seen_at: DateTime.add(DateTime.utc_now(), -4, :day)
-    )
+    sibling = offer!(shop: "cardzhouse", title: "Coś zupełnie innego", ean: "0820650000001")
 
     stub_feed([feed("colligere")])
     assert :ok = perform("colligere")
 
-    assert Decimal.equal?(daily(@booster).lowest_price, "24.95")
+    assert Sealed.get_offer!(manual.id).product_id == pc_etb.id
+    assert Sealed.get_offer!(sibling.id).product_id == pc_etb.id
   end
 
   test "a failed fetch writes nothing" do
     stub_feed([feed("colligere")])
     assert :ok = perform("colligere")
-    before = {Sealed.list_offers!(), Sealed.list_daily_prices_since!(today())}
+    before = {Sealed.list_offers!(), Sealed.list_daily_prices_on!(today())}
 
     Req.Test.stub(Sealed.WooCommerce, &Plug.Conn.send_resp(&1, 500, "boom"))
     assert {:error, {:http_status, 500}} = perform("colligere")
 
-    page_two_fails = fn conn ->
+    Req.Test.stub(Sealed.WooCommerce, fn conn ->
       conn = Plug.Conn.fetch_query_params(conn)
 
       if conn.query_params["page"] == "1",
@@ -120,12 +104,22 @@ defmodule TcgCheap.Sealed.FetchWorkerTest do
           |> Plug.Conn.put_resp_header("x-wp-totalpages", "2")
           |> Req.Test.json(feed("cardzhouse")),
         else: Plug.Conn.send_resp(conn, 500, "boom")
-    end
+    end)
 
-    Req.Test.stub(Sealed.WooCommerce, page_two_fails)
     assert {:error, {:http_status, 500}} = perform("cardzhouse")
+    assert {Sealed.list_offers!(), Sealed.list_daily_prices_on!(today())} == before
+  end
 
-    assert {Sealed.list_offers!(), Sealed.list_daily_prices_since!(today())} == before
+  test "an empty feed still refreshes prices", %{products: products} do
+    stub_feed([feed("colligere")])
+    assert :ok = perform("colligere")
+    stub_feed([[]])
+    {:ok, shop} = Shops.fetch("boosterland")
+
+    assert {:ok, %{offers: 0}} =
+             Refresh.run(shop, req_options: [plug: {Req.Test, Sealed.WooCommerce}])
+
+    assert Decimal.equal?(daily(products["Pitch Black Booster"]).lowest_price, "24.95")
   end
 
   test "rejects unknown shops and malformed arguments" do
@@ -133,15 +127,11 @@ defmodule TcgCheap.Sealed.FetchWorkerTest do
     assert {:cancel, :malformed_args} = FetchWorker.perform(%Oban.Job{args: %{}})
   end
 
-  test "jobs are unique per shop" do
+  test "jobs are unique per shop and every shop is scheduled daily" do
     assert {:ok, first} = FetchWorker.enqueue("colligere")
-    assert {:ok, second} = FetchWorker.enqueue("colligere")
-    assert second.conflict?
-    assert first.id == second.id
-    assert {:ok, %{conflict?: false}} = FetchWorker.enqueue("lootquest")
-  end
+    assert {:ok, %{conflict?: true, id: id}} = FetchWorker.enqueue("colligere")
+    assert id == first.id
 
-  test "every shop has a daily cron entry" do
     {Oban.Plugins.Cron, opts} =
       :tcg_cheap
       |> Application.fetch_env!(Oban)
@@ -153,21 +143,5 @@ defmodule TcgCheap.Sealed.FetchWorkerTest do
           do: job_opts[:args]["shop"]
 
     assert Enum.sort(scheduled) == Enum.sort(Shops.keys())
-  end
-
-  test "an empty feed still refreshes daily prices" do
-    stub_feed([feed("colligere")])
-    assert :ok = perform("colligere")
-
-    Req.Test.stub(Sealed.WooCommerce, fn conn ->
-      conn |> Plug.Conn.put_resp_header("x-wp-totalpages", "1") |> Req.Test.json([])
-    end)
-
-    {:ok, shop} = Shops.fetch("boosterland")
-
-    assert {:ok, %{offers: 0}} =
-             Refresh.run(shop, req_options: [plug: {Req.Test, Sealed.WooCommerce}])
-
-    assert Decimal.equal?(daily(@booster).lowest_price, "24.95")
   end
 end

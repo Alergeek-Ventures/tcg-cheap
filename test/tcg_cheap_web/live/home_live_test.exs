@@ -4,87 +4,111 @@ defmodule TcgCheapWeb.HomeLiveTest do
   import Phoenix.LiveViewTest
   import TcgCheap.SealedFixtures
 
-  alias TcgCheap.Sealed.Catalogue
+  alias TcgCheap.Sealed.Refresh
 
-  @booster "pokemon-tcg-pitch-black-booster-pack"
+  setup do
+    %{products: import_catalogue!()}
+  end
 
-  test "renders the Polish promise, search, navigation and every product newest first", %{
-    conn: conn
-  } do
+  test "renders the Polish promise, search, kinds and navigation", %{conn: conn} do
     {:ok, view, html} = live(conn, ~p"/")
 
     assert html =~ ~s(lang="pl")
     assert has_element?(view, "#guide-title", "Sprawdź, czy cena jest dobra")
     assert has_element?(view, "#guide-search-form input#guide-search-query[name=q]")
     assert has_element?(view, "label[for=guide-search-query]", "Szukaj produktu")
+    assert has_element?(view, "#kind-all[aria-current]", "Wszystkie")
+    assert has_element?(view, "#kind-elite_trainer_box", "Elite Trainer Box")
     assert has_element?(view, "#site-nav-buying[aria-current=page][href='/']", "Zakupy")
     assert has_element?(view, "#site-nav-trading[href='/trade']", "Wymiany")
-    assert has_element?(view, "#guide-footnote", "Ceny bez kosztów wysyłki")
-    refute has_element?(view, "#mode-switch")
-
-    count = length(Catalogue.all())
-    assert has_element?(view, "#guide-result-count", "#{count} produktów")
-
-    [newest | _] = Catalogue.all()
-    assert has_element?(view, "#guide-products > li:nth-child(2)#product-#{newest.slug}")
+    assert has_element?(view, "#guide-result-count", "60 produktów")
+    assert has_element?(view, "#guide-footnote", "Cardmarket")
   end
 
-  test "rows show the cheapest current offer, its shop and the verdict", %{conn: conn} do
-    offer!(price: Decimal.new("24.95"))
-    offer!(shop: "lootquest", price: Decimal.new("29.99"))
-    offer!(shop: "cardzhouse", price: Decimal.new("19.99"), in_stock: false)
+  test "products in stock in Poland come first, then the newest", %{
+    conn: conn,
+    products: products
+  } do
+    box = products["Pitch Black Booster Box"]
+    offer!(product_id: box.id)
+    Refresh.recompute(DateTime.utc_now())
 
     {:ok, view, _html} = live(conn, ~p"/")
 
-    row = "#product-#{@booster}"
-    assert has_element?(view, "#{row} a[href='/produkty/#{@booster}']")
-    assert has_element?(view, "#{row} .guide-product-price", "24,95 zł")
-    assert has_element?(view, "#{row} .guide-product-price", "Colligere")
-    assert has_element?(view, "#verdict-#{@booster}.verdict-insufficient_data", "Za mało danych")
+    assert has_element?(view, "#guide-products > li:nth-child(2)#product-#{box.slug}")
+    assert has_element?(view, "#product-#{box.slug} .guide-product-price", "799,94 zł")
+    assert has_element?(view, "#product-#{box.slug} .guide-product-price", "Colligere")
+  end
+
+  test "pages with Pokaż więcej", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/")
+    assert has_element?(view, "#guide-products > li.guide-product", "")
+    assert view |> element("#guide-products") |> render() |> count_rows() == 30
+
+    view |> element("#guide-more") |> render_click()
+    assert view |> element("#guide-products") |> render() |> count_rows() == 60
+    refute has_element?(view, "#guide-more")
+  end
+
+  test "searching filters through the database and keeps the query in the URL", %{
+    conn: conn,
+    products: products
+  } do
+    {:ok, view, _html} = live(conn, ~p"/")
+
+    view |> form("#guide-search-form", %{q: "pitch black etb"}) |> render_change()
+    assert_patch(view, "/?q=pitch+black+etb")
+
+    assert has_element?(view, "#product-#{products["Pitch Black Elite Trainer Box"].slug}")
 
     assert has_element?(
              view,
-             "#verdict-pokemon-tcg-scarlet-violet-151-booster-bundle.verdict-out_of_stock",
-             "Brak w sklepach"
+             "#product-#{products["Pitch Black Pokémon Center Elite Trainer Box"].slug}"
            )
+
+    refute has_element?(view, "#product-#{products["Pitch Black Booster"].slug}")
   end
 
-  test "a judged price shows its verdict on the list", %{conn: conn} do
-    for days_ago <- 1..7, do: daily_price!(@booster, Date.add(Date.utc_today(), -days_ago), "30")
-    offer!(price: Decimal.new("24.95"))
+  test "kind chips filter and combine with the query", %{conn: conn, products: products} do
+    {:ok, view, _html} = live(conn, ~p"/?q=pitch")
+    view |> element("#kind-booster") |> render_click()
+    assert_patch(view, "/?q=pitch&rodzaj=booster")
 
-    {:ok, view, _html} = live(conn, ~p"/")
-    assert has_element?(view, "#verdict-#{@booster}.verdict-good", "Dobra cena")
+    assert has_element?(view, "#kind-booster[aria-current]")
+    assert has_element?(view, "#product-#{products["Pitch Black Booster"].slug}")
+    assert has_element?(view, "#product-#{products["Pitch Black Sleeved Booster"].slug}")
+    refute has_element?(view, "#product-#{products["Pitch Black Booster Box"].slug}")
+    assert has_element?(view, "#guide-result-count", "2 produkty")
   end
 
-  test "searching filters the list and keeps the query in the URL", %{conn: conn} do
-    {:ok, view, _html} = live(conn, ~p"/")
-
-    view |> form("#guide-search-form", %{q: "pitch black booster box"}) |> render_change()
-    assert_patch(view, "/?q=pitch+black+booster+box")
-
-    assert has_element?(view, "#product-pokemon-tcg-pitch-black-booster-box")
-    refute has_element?(view, "#product-#{@booster}")
-    assert has_element?(view, "#guide-result-count", "1 produkt")
-    assert has_element?(view, "#guide-results-title", "Wyniki wyszukiwania")
-  end
-
-  test "a query in the URL is applied on load, and no results shows the empty state", %{
-    conn: conn
-  } do
-    {:ok, view, _html} = live(conn, ~p"/?q=etb 151")
-    assert has_element?(view, "#guide-search-query[value='etb 151']")
-    assert has_element?(view, "#product-pokemon-tcg-scarlet-violet-151-elite-trainer-box")
+  test "an unknown kind is ignored and no results show the empty state", %{conn: conn} do
+    {:ok, view, _html} = live(conn, ~p"/?rodzaj=nope")
+    assert has_element?(view, "#kind-all[aria-current]")
 
     {:ok, view, _html} = live(conn, ~p"/?q=digimon")
-    assert has_element?(view, "#guide-products-empty", "digimon")
+    assert has_element?(view, "#guide-products-empty")
     assert has_element?(view, "#guide-result-count", "0 produktów")
   end
 
-  test "clearing the search shows everything again", %{conn: conn} do
-    {:ok, view, _html} = live(conn, ~p"/?q=pitch")
-    view |> form("#guide-search-form", %{q: "  "}) |> render_change()
-    assert_patch(view, ~p"/")
-    assert has_element?(view, "#guide-result-count", "#{length(Catalogue.all())} produktów")
+  test "out-of-stock rows show the Cardmarket reference in złoty", %{
+    conn: conn,
+    products: products
+  } do
+    exchange_rate!("4.2500")
+    box = products["Pitch Black Booster Box"]
+
+    {:ok, view, _html} = live(conn, ~p"/?q=pitch black booster box")
+    expected = box.cardmarket_trend |> Decimal.mult("4.25") |> TcgCheapWeb.Polish.zloty()
+
+    assert has_element?(
+             view,
+             "#product-#{box.slug} .guide-product-price",
+             "Cardmarket ≈ #{expected}"
+           )
+
+    assert has_element?(view, "#verdict-#{box.slug}.verdict-out_of_stock")
   end
+
+  defp count_rows(html),
+    do: html |> LazyHTML.from_fragment() |> LazyHTML.query("li.guide-product") |> Enum.count()
 end

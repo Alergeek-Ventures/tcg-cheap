@@ -2,9 +2,11 @@ defmodule TcgCheap.Sealed.PriceGuide do
   @moduledoc """
   Judges the cheapest price you can buy a product at right now.
 
-  The typical price is the median of the daily lowest in-stock price over the
-  last 30 days, counting only days when some shop had stock; at least 7 such
-  days are required. A price is good up to 95% of the typical price, normal up
+  The typical price is the median of the daily lowest in-stock price in
+  Polish shops over the last 30 days, counting only days when some shop had
+  stock, when there are at least 7 such days. Otherwise it falls back to the
+  Cardmarket trend converted to PLN with the latest NBP rate; without either
+  there is not enough data. A price is good up to 95% of the typical price, normal up
   to 110%, and expensive above that. Both limits are rounded down to whole
   złoty and prices are compared in whole złoty (grosze dropped), so a price
   seen in a physical shop can be judged against the limits directly. The
@@ -24,6 +26,7 @@ defmodule TcgCheap.Sealed.PriceGuide do
           status: status(),
           cheapest: offer() | nil,
           typical: Decimal.t() | nil,
+          typical_source: :shops | :cardmarket | nil,
           days_with_stock: non_neg_integer(),
           good_max: integer() | nil,
           normal_max: integer() | nil,
@@ -34,11 +37,11 @@ defmodule TcgCheap.Sealed.PriceGuide do
   def min_days_with_stock, do: @min_days_with_stock
 
   @doc """
-  The verdict for a product given its daily history and its current in-stock
-  offers on `today`.
+  The verdict for a product given its daily history, its current in-stock
+  offers on `today`, and the Cardmarket trend in PLN used as a fallback.
   """
-  @spec verdict([day()], [offer()], Date.t()) :: t()
-  def verdict(history, in_stock_offers, %Date{} = today) do
+  @spec verdict([day()], [offer()], Date.t(), Decimal.t() | nil) :: t()
+  def verdict(history, in_stock_offers, %Date{} = today, cardmarket_pln \\ nil) do
     window_start = Date.add(today, -(@window_days - 1))
 
     prices =
@@ -46,13 +49,20 @@ defmodule TcgCheap.Sealed.PriceGuide do
           Date.compare(date, window_start) != :lt and Date.compare(date, today) != :gt,
           do: price
 
-    typical = if length(prices) >= @min_days_with_stock, do: median(prices)
+    {typical, source} =
+      cond do
+        length(prices) >= @min_days_with_stock -> {median(prices), :shops}
+        match?(%Decimal{}, cardmarket_pln) -> {cardmarket_pln, :cardmarket}
+        true -> {nil, nil}
+      end
+
     cheapest = Enum.min_by(in_stock_offers, & &1.price, Decimal, fn -> nil end)
 
     base = %{
       status: nil,
       cheapest: cheapest,
       typical: typical,
+      typical_source: source,
       days_with_stock: length(prices),
       good_max: typical && whole_zloty(Decimal.mult(typical, @good_factor)),
       normal_max: typical && whole_zloty(Decimal.mult(typical, @normal_factor)),

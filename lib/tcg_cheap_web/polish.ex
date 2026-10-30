@@ -14,6 +14,20 @@ defmodule TcgCheapWeb.Polish do
     group(whole) <> "," <> fraction <> @nbsp <> "zł"
   end
 
+  @doc ~S'Formats a Cardmarket price in euro: "1 299,99 €".'
+  @spec eur(Decimal.t()) :: String.t()
+  def eur(%Decimal{} = value) do
+    [whole, fraction] =
+      value |> Decimal.round(2) |> Decimal.to_string(:normal) |> String.split(".")
+
+    group(whole) <> "," <> fraction <> @nbsp <> "€"
+  end
+
+  @doc ~S'Formats an exchange rate: "4,2563".'
+  @spec rate(Decimal.t()) :: String.t()
+  def rate(%Decimal{} = value),
+    do: value |> Decimal.round(4) |> Decimal.to_string(:normal) |> String.replace(".", ",")
+
   @doc ~S'Formats a whole number of złoty: "1 299 zł".'
   @spec zloty(integer() | Decimal.t()) :: String.t()
   def zloty(%Decimal{} = value), do: value |> Decimal.round(0) |> Decimal.to_integer() |> zloty()
