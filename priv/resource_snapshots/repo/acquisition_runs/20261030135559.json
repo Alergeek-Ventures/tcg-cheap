@@ -21,19 +21,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "event",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "from_status",
+      "source": "attempt_key",
       "type": "text"
     },
     {
@@ -45,7 +33,55 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "to_status",
+      "source": "provider_key",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "operation",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "target_key",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "worker",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "queue",
       "type": "text"
     },
     {
@@ -57,11 +93,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "from_cardmarket_product_id",
+      "source": "job_id",
       "type": "bigint"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -69,7 +105,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "cardmarket_product_id",
+      "source": "attempt",
       "type": "bigint"
     },
     {
@@ -81,7 +117,19 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "mapping_authority",
+      "source": "max_attempts",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"running\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "status",
       "type": "text"
     },
     {
@@ -93,20 +141,20 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "reason",
+      "source": "failure_category",
       "type": "text"
     },
     {
-      "allow_nil?": true,
-      "default": "nil",
+      "allow_nil?": false,
+      "default": "0",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "source_mapping_evidence_at",
-      "type": "utc_datetime_usec"
+      "source": "request_count",
+      "type": "bigint"
     },
     {
       "allow_nil?": false,
@@ -117,22 +165,10 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "printing_version_at",
+      "source": "started_at",
       "type": "utc_datetime_usec"
     },
     {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "actor_type",
-      "type": "text"
-    },
-    {
       "allow_nil?": true,
       "default": "nil",
       "generated?": false,
@@ -141,20 +177,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "actor_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "actor_email",
-      "type": "citext"
+      "source": "finished_at",
+      "type": "utc_datetime_usec"
     },
     {
       "allow_nil?": false,
@@ -170,89 +194,86 @@
     },
     {
       "allow_nil?": false,
-      "default": "nil",
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "index_where": null,
-        "match_tenant?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "card_printing_mapping_decisions_card_printing_id_fkey",
-        "on_delete": "restrict",
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "card_printings"
-      },
+      "references": null,
       "scale": null,
       "size": null,
-      "source": "card_printing_id",
-      "type": "uuid"
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
     }
   ],
   "base_filter": null,
   "check_constraints": [
     {
       "attribute": [
-        "event",
-        "from_status",
-        "to_status",
-        "from_cardmarket_product_id"
+        "attempt_key"
       ],
       "base_filter": null,
-      "check": "((from_status = 'matched' AND from_cardmarket_product_id IS NOT NULL AND from_cardmarket_product_id > 0) OR (from_status IS NULL OR from_status IN ('pending', 'unmatched', 'review')) AND from_cardmarket_product_id IS NULL) AND ((event = 'imported' AND from_status IS NULL AND to_status IN ('pending', 'matched', 'unmatched', 'review')) OR (event = 'baseline' AND from_status IS NULL AND to_status IN ('pending', 'matched', 'unmatched', 'review')) OR (event = 'provider_updated' AND from_status IN ('pending', 'matched', 'unmatched', 'review') AND to_status IN ('pending', 'matched', 'unmatched', 'review')) OR (event = 'corrected' AND from_status IN ('pending', 'matched', 'unmatched', 'review') AND to_status = 'matched') OR (event = 'reopened' AND from_status IN ('matched', 'unmatched') AND to_status = 'review'))",
-      "name": "card_printing_mapping_decisions_transition_invariant"
+      "check": "btrim(attempt_key) <> ''",
+      "name": "acquisition_runs_attempt_key_invariant"
     },
     {
       "attribute": [
-        "event",
-        "to_status",
-        "cardmarket_product_id",
-        "reason"
+        "attempt",
+        "max_attempts"
       ],
       "base_filter": null,
-      "check": "((to_status = 'matched' AND cardmarket_product_id IS NOT NULL AND cardmarket_product_id > 0 AND ((event = 'corrected' AND reason IS NOT NULL AND btrim(reason) <> '') OR (event <> 'corrected' AND reason IS NULL))) OR (to_status IN ('pending', 'unmatched') AND cardmarket_product_id IS NULL AND reason IS NULL) OR (to_status = 'review' AND cardmarket_product_id IS NULL AND reason IS NOT NULL AND btrim(reason) <> '')) AND char_length(coalesce(reason, '')) <= 2000",
-      "name": "card_printing_mapping_decisions_state_invariant"
+      "check": "attempt > 0 AND max_attempts > 0 AND attempt <= max_attempts",
+      "name": "acquisition_runs_attempt_bounds"
     },
     {
       "attribute": [
-        "mapping_authority"
+        "request_count"
       ],
       "base_filter": null,
-      "check": "mapping_authority IN ('provider', 'administrator')",
-      "name": "card_printing_mapping_decisions_authority_invariant"
+      "check": "request_count >= 0",
+      "name": "acquisition_runs_request_count_nonnegative"
     },
     {
       "attribute": [
-        "actor_type",
-        "actor_id",
-        "actor_email"
+        "status",
+        "finished_at",
+        "failure_category"
       ],
       "base_filter": null,
-      "check": "(actor_type = 'system' AND actor_id IS NULL AND actor_email IS NULL) OR (actor_type = 'administrator' AND actor_id IS NOT NULL AND actor_email IS NOT NULL AND btrim(actor_email) <> '')",
-      "name": "card_printing_mapping_decisions_actor_invariant"
+      "check": "(status = 'running' AND finished_at IS NULL AND failure_category IS NULL) OR (status = 'succeeded' AND finished_at IS NOT NULL AND failure_category IS NULL) OR (status IN ('retryable_failure','failed','cancelled') AND finished_at IS NOT NULL AND failure_category IS NOT NULL)",
+      "name": "acquisition_runs_lifecycle_invariant"
     },
     {
       "attribute": [
-        "event",
-        "mapping_authority",
-        "actor_type"
+        "started_at",
+        "finished_at"
       ],
       "base_filter": null,
-      "check": "(event IN ('imported', 'provider_updated', 'baseline') AND mapping_authority = 'provider' AND actor_type = 'system') OR (event IN ('corrected', 'reopened') AND mapping_authority = 'administrator' AND actor_type = 'administrator')",
-      "name": "card_printing_mapping_decisions_event_authority_actor_invariant"
+      "check": "finished_at IS NULL OR finished_at >= started_at",
+      "name": "acquisition_runs_timestamp_invariant"
+    },
+    {
+      "attribute": [
+        "status"
+      ],
+      "base_filter": null,
+      "check": "status IN ('running','succeeded','retryable_failure','failed','cancelled')",
+      "name": "acquisition_runs_status_invariant"
+    },
+    {
+      "attribute": [
+        "failure_category"
+      ],
+      "base_filter": null,
+      "check": "failure_category IS NULL OR failure_category IN ('budget','rate_limit','timeout','transport','provider_response','persistence','configuration','local_input','unknown')",
+      "name": "acquisition_runs_failure_category_invariant"
+    },
+    {
+      "attribute": [
+        "operation"
+      ],
+      "base_filter": null,
+      "check": "operation IN ('single_valuation','exchange_rate','card_catalogue_sync','card_catalogue_enrichment','cardmarket_bulk_sync')",
+      "name": "acquisition_runs_operation_invariant"
     }
   ],
   "create_table_options": null,
@@ -261,18 +282,18 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "card_printing_id",
-        "inserted_at",
+        "provider_key",
+        "started_at",
         "id"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "card_printing_id"
+          "value": "provider_key"
         },
         {
           "type": "atom",
-          "value": "inserted_at"
+          "value": "started_at"
         },
         {
           "type": "atom",
@@ -289,12 +310,55 @@
       "unique": false,
       "using": null,
       "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "started_at",
+        "id"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "started_at"
+        },
+        {
+          "type": "atom",
+          "value": "id"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": null,
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": "status = 'running'"
     }
   ],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "8063C60F6F90802FD454E4D5AFF87CCE3044942A534DB2E1F9B40D72BC2C57FC",
-  "identities": [],
+  "hash": "E76BE473DB7FE7F8AA5730D0578C38D426CAF39B8F2624CE30E6A7E6D550AD2B",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "acquisition_runs_unique_attempt_key_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "attempt_key"
+        }
+      ],
+      "name": "unique_attempt_key",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
     "attribute": null,
     "global": null,
@@ -302,6 +366,6 @@
   },
   "repo": "Elixir.TcgCheap.Repo",
   "schema": null,
-  "table": "card_printing_mapping_decisions",
+  "table": "acquisition_runs",
   "temporal": null
 }

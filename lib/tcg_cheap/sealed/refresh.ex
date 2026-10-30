@@ -6,7 +6,8 @@ defmodule TcgCheap.Sealed.Refresh do
   stored offers are re-matched (the catalogue may have changed; manual
   assignments are kept), today's lowest shop price is recorded per product,
   and each product's availability, lowest price and image are refreshed. A
-  failed fetch writes nothing.
+  failed fetch writes nothing; a shop listing no products at all counts as
+  failed, so its last offers simply age out instead of staying current.
   """
 
   alias TcgCheap.Repo
@@ -17,18 +18,35 @@ defmodule TcgCheap.Sealed.Refresh do
   def run(%Shop{} = shop, opts \\ []) do
     now = Keyword.get_lazy(opts, :now, &DateTime.utc_now/0)
 
-    with {:ok, fetched} <- WooCommerce.fetch(shop, Keyword.get(opts, :req_options, [])) do
-      Repo.transaction(fn ->
-        upsert_offers(shop, fetched, now)
-        recompute(now)
-        %{offers: length(fetched)}
-      end)
+    case WooCommerce.fetch(shop, Keyword.get(opts, :req_options, [])) do
+      {:ok, []} ->
+        {:error, :empty_feed}
+
+      {:ok, fetched} ->
+        Repo.transaction(
+          fn ->
+            upsert_offers(shop, fetched, now)
+            recompute(now)
+            %{offers: length(fetched)}
+          end,
+          timeout: transaction_timeout()
+        )
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
-  @doc "Re-matches offers and refreshes daily shop prices and product availability."
+  @doc "How long a transaction that recomputes prices may take."
+  def transaction_timeout, do: :timer.minutes(5)
+
+  @doc """
+  Re-matches offers and refreshes daily shop prices and product availability.
+  Must run inside a transaction; concurrent recomputations are serialized.
+  """
   @spec recompute(DateTime.t()) :: :ok
   def recompute(%DateTime{} = now) do
+    Repo.query!("SELECT pg_advisory_xact_lock(hashtext('tcg_cheap:sealed_recompute'))")
     products = Sealed.list_products!()
     rematch_offers(products)
     current = now |> Sealed.current_offers() |> Enum.filter(& &1.product_id)
@@ -36,8 +54,6 @@ defmodule TcgCheap.Sealed.Refresh do
     update_products(products, current)
     :ok
   end
-
-  defp upsert_offers(_shop, [], _now), do: :ok
 
   defp upsert_offers(shop, fetched, now) do
     inputs = Enum.map(fetched, &Map.merge(&1, %{shop: shop.key, last_seen_at: now}))
@@ -53,11 +69,14 @@ defmodule TcgCheap.Sealed.Refresh do
   defp rematch_offers(products) do
     offers = Sealed.list_offers!()
 
+    # An EAN manually assigned to two different products identifies neither.
     eans =
       for %Offer{manual?: true, ean: ean, product_id: id} <- offers,
           is_binary(ean) and not is_nil(id),
-          into: %{},
-          do: {ean, id}
+          reduce: %{} do
+        acc -> Map.update(acc, ean, id, &if(&1 == id, do: id, else: :conflict))
+      end
+      |> Map.reject(fn {_ean, id} -> id == :conflict end)
 
     index = Matcher.index(products, eans)
 

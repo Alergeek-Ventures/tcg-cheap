@@ -21,83 +21,23 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "shop",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "shop_product_id",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "title",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "url",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "image_url",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "ean",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "price",
+      "source": "value_eur",
       "type": "decimal"
     },
     {
       "allow_nil?": false,
+      "default": "\"EUR\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "currency",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -105,8 +45,68 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "in_stock",
-      "type": "boolean"
+      "source": "policy_version",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "source_metric",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "fetched_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "provider_updated_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "cardmarket_product_id",
+      "type": "bigint"
     },
     {
       "allow_nil?": false,
@@ -117,23 +117,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "manual?",
+      "source": "current?",
       "type": "boolean"
     },
     {
       "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "last_seen_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
       "precision": null,
@@ -141,23 +129,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "inserted_at",
+      "source": "created_at",
       "type": "utc_datetime_usec"
     },
     {
       "allow_nil?": false,
-      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "updated_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -177,16 +153,16 @@
           "global": null,
           "strategy": null
         },
-        "name": "sealed_offers_product_id_fkey",
-        "on_delete": "nilify",
+        "name": "single_valuation_snapshots_card_printing_id_fkey",
+        "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "sealed_products"
+        "table": "card_printings"
       },
       "scale": null,
       "size": null,
-      "source": "product_id",
+      "source": "card_printing_id",
       "type": "uuid"
     }
   ],
@@ -198,12 +174,22 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "last_seen_at"
+        "card_printing_id",
+        "policy_version",
+        "fetched_at"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "last_seen_at"
+          "value": "card_printing_id"
+        },
+        {
+          "type": "atom",
+          "value": "policy_version"
+        },
+        {
+          "type": "atom",
+          "value": "fetched_at"
         }
       ],
       "include": null,
@@ -221,17 +207,50 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "product_id",
-        "last_seen_at"
+        "policy_version",
+        "fetched_at",
+        "card_printing_id"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "product_id"
+          "value": "policy_version"
         },
         {
           "type": "atom",
-          "value": "last_seen_at"
+          "value": "fetched_at"
+        },
+        {
+          "type": "atom",
+          "value": "card_printing_id"
+        }
+      ],
+      "include": null,
+      "include_base_filter?": true,
+      "message": null,
+      "name": "single_valuation_snapshots_homepage_window_index",
+      "nulls_distinct": true,
+      "prefix": null,
+      "table": null,
+      "unique": false,
+      "using": null,
+      "where": null
+    },
+    {
+      "all_tenants?": false,
+      "concurrently": false,
+      "error_fields": [
+        "card_printing_id",
+        "policy_version"
+      ],
+      "fields": [
+        {
+          "type": "atom",
+          "value": "card_printing_id"
+        },
+        {
+          "type": "atom",
+          "value": "policy_version"
         }
       ],
       "include": null,
@@ -241,34 +260,15 @@
       "nulls_distinct": true,
       "prefix": null,
       "table": null,
-      "unique": false,
+      "unique": true,
       "using": null,
-      "where": null
+      "where": "\"current?\" = TRUE"
     }
   ],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "8AC831C0D98F3383E86C7127C80D36314B0AC374A43E1DF8645B6888487C6D76",
-  "identities": [
-    {
-      "all_tenants?": false,
-      "base_filter": null,
-      "index_name": "sealed_offers_shop_product_index",
-      "keys": [
-        {
-          "type": "atom",
-          "value": "shop"
-        },
-        {
-          "type": "atom",
-          "value": "shop_product_id"
-        }
-      ],
-      "name": "shop_product",
-      "nils_distinct?": true,
-      "where": null
-    }
-  ],
+  "hash": "2894B3D362F5518FD46CB67689C403FD3E3A58842B68186382FD53BD22F1DAD7",
+  "identities": [],
   "multitenancy": {
     "attribute": null,
     "global": null,
@@ -276,6 +276,6 @@
   },
   "repo": "Elixir.TcgCheap.Repo",
   "schema": null,
-  "table": "sealed_offers",
+  "table": "single_valuation_snapshots",
   "temporal": null
 }

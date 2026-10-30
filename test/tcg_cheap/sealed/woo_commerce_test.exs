@@ -159,7 +159,7 @@ defmodule TcgCheap.Sealed.WooCommerceTest do
       assert Enum.all?(offers, &is_nil(&1.image_url))
     end
 
-    test "decodes entities and reads EANs only from 12–13 digit SKUs" do
+    test "decodes entities and reads EANs only from 12–13 digit SKUs with a valid check digit" do
       stub_feed([
         [
           product(%{
@@ -168,15 +168,17 @@ defmodule TcgCheap.Sealed.WooCommerceTest do
             "sku" => "196214144606"
           }),
           product(%{"id" => 2, "sku" => "0196214144606"}),
-          product(%{"id" => 3, "sku" => "196214146273-1-1"})
+          product(%{"id" => 3, "sku" => "196214146273-1-1"}),
+          product(%{"id" => 4, "sku" => "0196214144607"})
         ]
       ])
 
-      assert {:ok, [first, second, third]} = fetch()
+      assert {:ok, [first, second, third, fourth]} = fetch()
       assert first.title == "Booster & Box – \"151\" &bogus;"
       assert first.ean == "0196214144606"
       assert second.ean == "0196214144606"
       assert third.ean == nil
+      assert fourth.ean == nil
     end
 
     test "returns each shop product once" do

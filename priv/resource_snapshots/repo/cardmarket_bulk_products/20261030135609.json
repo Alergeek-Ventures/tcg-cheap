@@ -21,6 +21,54 @@
       "references": null,
       "scale": null,
       "size": null,
+      "source": "cardmarket_product_id",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "51",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "category_id",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"Pokémon Single\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "category_name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
       "source": "expansion_id",
       "type": "bigint"
     },
@@ -33,47 +81,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "status",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "authority",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "anchor_count",
+      "source": "metacard_id",
       "type": "bigint"
     },
     {
       "allow_nil?": false,
-      "default": "%{}",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "evidence",
-      "type": "map"
-    },
-    {
-      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -81,19 +93,19 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "review_reason",
+      "source": "source_date_added",
       "type": "text"
     },
     {
       "allow_nil?": false,
-      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "default": "nil",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "inserted_at",
+      "source": "source_updated_at",
       "type": "utc_datetime_usec"
     },
     {
@@ -117,7 +129,7 @@
           "global": null,
           "strategy": null
         },
-        "name": "cardmarket_expansion_mappings_source_batch_id_fkey",
+        "name": "cardmarket_bulk_products_last_batch_id_fkey",
         "on_delete": "restrict",
         "on_update": null,
         "primary_key?": true,
@@ -126,40 +138,7 @@
       },
       "scale": null,
       "size": null,
-      "source": "source_batch_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "index_where": null,
-        "match_tenant?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "cardmarket_expansion_mappings_card_set_id_fkey",
-        "on_delete": "restrict",
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "card_sets"
-      },
-      "scale": null,
-      "size": null,
-      "source": "card_set_id",
+      "source": "last_batch_id",
       "type": "uuid"
     }
   ],
@@ -167,30 +146,24 @@
   "check_constraints": [
     {
       "attribute": [
-        "status",
-        "review_reason",
+        "cardmarket_product_id",
+        "category_id",
+        "category_name",
         "expansion_id",
-        "anchor_count"
+        "metacard_id"
       ],
       "base_filter": null,
-      "check": "expansion_id > 0 AND anchor_count > 0 AND ((status = 'approved' AND review_reason IS NULL) OR (status = 'review' AND review_reason IS NOT NULL AND btrim(review_reason) <> '')) AND char_length(coalesce(review_reason, '')) <= 2000",
-      "name": "cardmarket_expansion_mappings_invariant"
+      "check": "cardmarket_product_id > 0 AND category_id = 51 AND category_name = 'Pokémon Single' AND expansion_id > 0 AND metacard_id >= 0",
+      "name": "cardmarket_bulk_products_identity_invariant"
     },
     {
       "attribute": [
-        "authority"
+        "name",
+        "source_date_added"
       ],
       "base_filter": null,
-      "check": "authority IN ('system', 'administrator')",
-      "name": "cardmarket_expansion_mappings_authority_invariant"
-    },
-    {
-      "attribute": [
-        "evidence"
-      ],
-      "base_filter": null,
-      "check": "evidence <> '{}'::jsonb",
-      "name": "cardmarket_expansion_mappings_evidence_present"
+      "check": "btrim(name) <> '' AND btrim(source_date_added) <> ''",
+      "name": "cardmarket_bulk_products_text_present"
     }
   ],
   "create_table_options": null,
@@ -199,35 +172,12 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "source_batch_id"
+        "last_batch_id"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "source_batch_id"
-        }
-      ],
-      "include": null,
-      "include_base_filter?": true,
-      "message": null,
-      "name": null,
-      "nulls_distinct": true,
-      "prefix": null,
-      "table": null,
-      "unique": false,
-      "using": null,
-      "where": null
-    },
-    {
-      "all_tenants?": false,
-      "concurrently": false,
-      "error_fields": [
-        "card_set_id"
-      ],
-      "fields": [
-        {
-          "type": "atom",
-          "value": "card_set_id"
+          "value": "last_batch_id"
         }
       ],
       "include": null,
@@ -244,27 +194,19 @@
   ],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "1FE135450B6664701922E64EE0F393058EFA6E905EE273FE0E2B05EF0FF2A946",
+  "hash": "3093CDA6B8D5B809B869C88B9FA6B7B4F5EB7168050BED41577713366945B0A3",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "cm_expansion_map_batch_set_expansion_idx",
+      "index_name": "cardmarket_bulk_products_unique_cardmarket_product_id_index",
       "keys": [
         {
           "type": "atom",
-          "value": "source_batch_id"
-        },
-        {
-          "type": "atom",
-          "value": "card_set_id"
-        },
-        {
-          "type": "atom",
-          "value": "expansion_id"
+          "value": "cardmarket_product_id"
         }
       ],
-      "name": "unique_batch_set_expansion",
+      "name": "unique_cardmarket_product_id",
       "nils_distinct?": true,
       "where": null
     }
@@ -276,6 +218,6 @@
   },
   "repo": "Elixir.TcgCheap.Repo",
   "schema": null,
-  "table": "cardmarket_expansion_mappings",
+  "table": "cardmarket_bulk_products",
   "temporal": null
 }

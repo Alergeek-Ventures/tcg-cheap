@@ -1307,6 +1307,8 @@ defmodule TcgCheap.Repo.Migrations.InitialSchema do
              name: "sealed_daily_prices_product_day_index"
            )
 
+    create index(:sealed_daily_prices, [:date])
+
     create table(:sealed_offers, primary_key: false) do
       add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
       add :shop, :text, null: false
@@ -1515,6 +1517,8 @@ defmodule TcgCheap.Repo.Migrations.InitialSchema do
                    )
 
     drop table(:sealed_offers)
+
+    drop_if_exists index(:sealed_daily_prices, [:date])
 
     drop_if_exists unique_index(:sealed_daily_prices, [:product_id, :date],
                      name: "sealed_daily_prices_product_day_index"

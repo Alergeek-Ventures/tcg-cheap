@@ -8,8 +8,9 @@ defmodule TcgCheap.Sealed.PriceGuide do
   Cardmarket trend converted to PLN with the latest NBP rate; without either
   there is not enough data. A price is good up to 95% of the typical price, normal up
   to 110%, and expensive above that. Both limits are rounded down to whole
-  złoty and prices are compared in whole złoty (grosze dropped), so a price
-  seen in a physical shop can be judged against the limits directly. The
+  złoty, so a price seen in a physical shop can be judged against the shown
+  limits directly and no price above 95%/110% of the typical one is rated
+  better than it is. The
   verdict is never anchored on an official (MSRP) price: only prices you can
   actually buy at count.
   """
@@ -76,11 +77,9 @@ defmodule TcgCheap.Sealed.PriceGuide do
   defp status(_cheapest, %{typical: nil}), do: :insufficient_data
 
   defp status(%{price: price}, %{good_max: good_max, normal_max: normal_max}) do
-    zloty = whole_zloty(price)
-
     cond do
-      zloty <= good_max -> :good
-      zloty <= normal_max -> :normal
+      Decimal.compare(price, good_max) != :gt -> :good
+      Decimal.compare(price, normal_max) != :gt -> :normal
       true -> :expensive
     end
   end

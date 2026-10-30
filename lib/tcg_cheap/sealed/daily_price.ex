@@ -18,6 +18,10 @@ defmodule TcgCheap.Sealed.DailyPrice do
     references do
       reference :product, on_delete: :delete
     end
+
+    custom_indexes do
+      index [:date]
+    end
   end
 
   actions do
@@ -47,6 +51,13 @@ defmodule TcgCheap.Sealed.DailyPrice do
     read :on do
       argument :date, :date, allow_nil?: false
       filter expr(date == ^arg(:date))
+    end
+
+    read :last_stocked do
+      description "The latest day on which some Polish shop had the product."
+      argument :product_id, :uuid, allow_nil?: false
+      filter expr(product_id == ^arg(:product_id) and not is_nil(lowest_price))
+      prepare build(sort: [date: :desc], limit: 1)
     end
 
     read :history do

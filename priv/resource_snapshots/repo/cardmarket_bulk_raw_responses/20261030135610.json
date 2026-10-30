@@ -21,19 +21,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "value_eur",
-      "type": "decimal"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"EUR\"",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "currency",
+      "source": "endpoint_kind",
       "type": "text"
     },
     {
@@ -45,7 +33,31 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "policy_version",
+      "source": "source_url",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"application/json\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "content_type",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"gzip\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "content_encoding",
       "type": "text"
     },
     {
@@ -57,7 +69,31 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "source",
+      "source": "source_byte_size",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "compressed_byte_size",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "sha256",
       "type": "text"
     },
     {
@@ -69,8 +105,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "source_metric",
-      "type": "text"
+      "source": "body",
+      "type": "binary"
     },
     {
       "allow_nil?": false,
@@ -85,7 +121,7 @@
       "type": "utc_datetime_usec"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -93,43 +129,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "provider_updated_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "cardmarket_product_id",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "false",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "current?",
-      "type": "boolean"
-    },
-    {
-      "allow_nil?": false,
-      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "created_at",
+      "source": "upstream_created_at",
       "type": "utc_datetime_usec"
     },
     {
@@ -153,43 +153,80 @@
           "global": null,
           "strategy": null
         },
-        "name": "single_valuation_snapshots_card_printing_id_fkey",
-        "on_delete": null,
+        "name": "cardmarket_bulk_raw_responses_batch_id_fkey",
+        "on_delete": "restrict",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "card_printings"
+        "table": "cardmarket_bulk_batches"
       },
       "scale": null,
       "size": null,
-      "source": "card_printing_id",
+      "source": "batch_id",
       "type": "uuid"
     }
   ],
   "base_filter": null,
-  "check_constraints": [],
+  "check_constraints": [
+    {
+      "attribute": [
+        "endpoint_kind",
+        "content_type",
+        "content_encoding"
+      ],
+      "base_filter": null,
+      "check": "endpoint_kind IN ('products', 'prices') AND content_type = 'application/json' AND content_encoding = 'gzip'",
+      "name": "cardmarket_bulk_raw_responses_kind_invariant"
+    },
+    {
+      "attribute": [
+        "endpoint_kind",
+        "source_url"
+      ],
+      "base_filter": null,
+      "check": "(endpoint_kind = 'products' AND source_url = 'https://downloads.s3.cardmarket.com/productCatalog/productList/products_singles_6.json') OR (endpoint_kind = 'prices' AND source_url = 'https://downloads.s3.cardmarket.com/productCatalog/priceGuide/price_guide_6.json')",
+      "name": "cardmarket_bulk_raw_responses_url_invariant"
+    },
+    {
+      "attribute": [
+        "source_byte_size",
+        "compressed_byte_size",
+        "body"
+      ],
+      "base_filter": null,
+      "check": "source_byte_size > 0 AND compressed_byte_size > 0 AND octet_length(body) = compressed_byte_size",
+      "name": "cardmarket_bulk_raw_responses_body_invariant"
+    },
+    {
+      "attribute": [
+        "sha256"
+      ],
+      "base_filter": null,
+      "check": "sha256 ~ '^[0-9a-fA-F]{64}$'",
+      "name": "cardmarket_bulk_raw_responses_hash_hex"
+    },
+    {
+      "attribute": [
+        "fetched_at",
+        "upstream_created_at"
+      ],
+      "base_filter": null,
+      "check": "fetched_at >= upstream_created_at",
+      "name": "cardmarket_bulk_raw_responses_timestamps_coherent"
+    }
+  ],
   "create_table_options": null,
   "custom_indexes": [
     {
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "card_printing_id",
-        "policy_version",
-        "fetched_at"
+        "batch_id"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "card_printing_id"
-        },
-        {
-          "type": "atom",
-          "value": "policy_version"
-        },
-        {
-          "type": "atom",
-          "value": "fetched_at"
+          "value": "batch_id"
         }
       ],
       "include": null,
@@ -202,73 +239,31 @@
       "unique": false,
       "using": null,
       "where": null
-    },
-    {
-      "all_tenants?": false,
-      "concurrently": false,
-      "error_fields": [
-        "policy_version",
-        "fetched_at",
-        "card_printing_id"
-      ],
-      "fields": [
-        {
-          "type": "atom",
-          "value": "policy_version"
-        },
-        {
-          "type": "atom",
-          "value": "fetched_at"
-        },
-        {
-          "type": "atom",
-          "value": "card_printing_id"
-        }
-      ],
-      "include": null,
-      "include_base_filter?": true,
-      "message": null,
-      "name": "single_valuation_snapshots_homepage_window_index",
-      "nulls_distinct": true,
-      "prefix": null,
-      "table": null,
-      "unique": false,
-      "using": null,
-      "where": null
-    },
-    {
-      "all_tenants?": false,
-      "concurrently": false,
-      "error_fields": [
-        "card_printing_id",
-        "policy_version"
-      ],
-      "fields": [
-        {
-          "type": "atom",
-          "value": "card_printing_id"
-        },
-        {
-          "type": "atom",
-          "value": "policy_version"
-        }
-      ],
-      "include": null,
-      "include_base_filter?": true,
-      "message": null,
-      "name": null,
-      "nulls_distinct": true,
-      "prefix": null,
-      "table": null,
-      "unique": true,
-      "using": null,
-      "where": "\"current?\" = TRUE"
     }
   ],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "AEAEEEB80D1FBBC69805CEA4431BE2054BB94BA1EA71685A0F48AAEB532A1EE6",
-  "identities": [],
+  "hash": "688A7C2A307ADDF836ECC0CB0EF146D8F90009CED027B0415C264D8BECBE1B1F",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "cardmarket_bulk_raw_responses_unique_batch_endpoint_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "batch_id"
+        },
+        {
+          "type": "atom",
+          "value": "endpoint_kind"
+        }
+      ],
+      "name": "unique_batch_endpoint",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
     "attribute": null,
     "global": null,
@@ -276,6 +271,6 @@
   },
   "repo": "Elixir.TcgCheap.Repo",
   "schema": null,
-  "table": "single_valuation_snapshots",
+  "table": "cardmarket_bulk_raw_responses",
   "temporal": null
 }

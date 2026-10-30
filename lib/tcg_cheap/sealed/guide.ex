@@ -14,7 +14,6 @@ defmodule TcgCheap.Sealed.Guide do
         }
 
   def history_days, do: @history_days
-  def page_size, do: @page_size
 
   @doc """
   One page of the public list: products matching the query and kind, in
@@ -39,11 +38,7 @@ defmodule TcgCheap.Sealed.Guide do
     rate = eur_pln(today)
     ids = Enum.map(products, & &1.id)
 
-    offers =
-      now
-      |> Sealed.current_offers()
-      |> Enum.filter(&(&1.product_id in ids))
-      |> Enum.group_by(& &1.product_id)
+    offers = now |> Sealed.current_offers(ids) |> Enum.group_by(& &1.product_id)
 
     history =
       today
@@ -75,16 +70,26 @@ defmodule TcgCheap.Sealed.Guide do
 
         offers =
           now
-          |> Sealed.current_offers()
-          |> Enum.filter(&(&1.product_id == product.id))
+          |> Sealed.current_offers([product.id])
           |> Enum.sort_by(&{not &1.in_stock, Decimal.to_float(&1.price), &1.shop})
 
-        history = Sealed.list_price_history!(product.id, Date.add(today, -(@history_days - 1)))
+        since = Date.add(today, -(@history_days - 1))
+        history = Sealed.list_price_history!(product.id, since)
+
+        verdict_history = with_last_stocked_day(history, product.id, since)
 
         {:ok,
          product
-         |> summary(offers, history, today, rate)
+         |> summary(offers, verdict_history, today, rate)
          |> Map.merge(%{offers: offers, history: history, today: today, eur_pln: rate})}
+    end
+  end
+
+  # The last known price shown when out of stock may predate the chart.
+  defp with_last_stocked_day(history, product_id, since) do
+    case Sealed.get_last_stocked_day!(product_id) do
+      %{date: date} = day -> if Date.before?(date, since), do: [day | history], else: history
+      nil -> history
     end
   end
 

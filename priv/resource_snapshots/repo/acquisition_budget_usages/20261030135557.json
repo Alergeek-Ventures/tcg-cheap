@@ -18,102 +18,6 @@
       "generated?": false,
       "precision": null,
       "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "cardmarket_product_id",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "name",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "51",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "category_id",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"Pokémon Single\"",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "category_name",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "expansion_id",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "metacard_id",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "source_date_added",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "source_updated_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
       "references": {
         "deferrable": false,
         "destination_attribute": "id",
@@ -129,41 +33,109 @@
           "global": null,
           "strategy": null
         },
-        "name": "cardmarket_bulk_products_last_batch_id_fkey",
-        "on_delete": "restrict",
+        "name": "acquisition_budget_usages_provider_id_fkey",
+        "on_delete": null,
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "cardmarket_bulk_batches"
+        "table": "acquisition_data_providers"
       },
       "scale": null,
       "size": null,
-      "source": "last_batch_id",
+      "source": "provider_id",
       "type": "uuid"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "window_kind",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "window_started_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "request_count",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"0\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "estimated_spend_usd",
+      "type": "decimal"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "inserted_at",
+      "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "updated_at",
+      "type": "utc_datetime_usec"
     }
   ],
   "base_filter": null,
   "check_constraints": [
     {
       "attribute": [
-        "cardmarket_product_id",
-        "category_id",
-        "category_name",
-        "expansion_id",
-        "metacard_id"
+        "window_kind"
       ],
       "base_filter": null,
-      "check": "cardmarket_product_id > 0 AND category_id = 51 AND category_name = 'Pokémon Single' AND expansion_id > 0 AND metacard_id >= 0",
-      "name": "cardmarket_bulk_products_identity_invariant"
+      "check": "window_kind IN ('hour', 'day', 'month')",
+      "name": "acquisition_budget_usages_window_kind_invariant"
     },
     {
       "attribute": [
-        "name",
-        "source_date_added"
+        "request_count",
+        "estimated_spend_usd"
       ],
       "base_filter": null,
-      "check": "btrim(name) <> '' AND btrim(source_date_added) <> ''",
-      "name": "cardmarket_bulk_products_text_present"
+      "check": "request_count >= 0 AND estimated_spend_usd >= 0 AND estimated_spend_usd < 1000000000",
+      "name": "acquisition_budget_usages_nonnegative_invariant"
     }
   ],
   "create_table_options": null,
@@ -172,12 +144,17 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "last_batch_id"
+        "window_kind",
+        "window_started_at"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "last_batch_id"
+          "value": "window_kind"
+        },
+        {
+          "type": "atom",
+          "value": "window_started_at"
         }
       ],
       "include": null,
@@ -193,20 +170,28 @@
     }
   ],
   "custom_statements": [],
-  "has_create_action": true,
-  "hash": "A3C0BC722C8E075A644863653ED0888DBA9D3CDA7E303855A83EFC2307CC84AC",
+  "has_create_action": false,
+  "hash": "B2DE00F052383B98D90330A094A7C6FE2F08A51A30D7A4A48EFFC61B78E355A3",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "cardmarket_bulk_products_unique_cardmarket_product_id_index",
+      "index_name": "acquisition_budget_usages_unique_provider_window_index",
       "keys": [
         {
           "type": "atom",
-          "value": "cardmarket_product_id"
+          "value": "provider_id"
+        },
+        {
+          "type": "atom",
+          "value": "window_kind"
+        },
+        {
+          "type": "atom",
+          "value": "window_started_at"
         }
       ],
-      "name": "unique_cardmarket_product_id",
+      "name": "unique_provider_window",
       "nils_distinct?": true,
       "where": null
     }
@@ -218,6 +203,6 @@
   },
   "repo": "Elixir.TcgCheap.Repo",
   "schema": null,
-  "table": "cardmarket_bulk_products",
+  "table": "acquisition_budget_usages",
   "temporal": null
 }

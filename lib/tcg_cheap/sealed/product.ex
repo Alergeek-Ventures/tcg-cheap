@@ -72,11 +72,6 @@ defmodule TcgCheap.Sealed.Product do
       filter expr(slug == ^arg(:slug))
     end
 
-    read :by_ids do
-      argument :ids, {:array, :uuid}, allow_nil?: false
-      filter expr(id in ^arg(:ids))
-    end
-
     read :browse do
       description "Products for the public list: in stock in Poland first, then newest."
       argument :query, :string, default: ""

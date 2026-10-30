@@ -21,19 +21,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "cardmarket_id",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "name",
+      "source": "shop",
       "type": "text"
     },
     {
@@ -45,11 +33,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "kind",
+      "source": "shop_product_id",
       "type": "text"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -57,44 +45,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "cardmarket_category_id",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "cardmarket_expansion_id",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "set_name",
+      "source": "title",
       "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "cardmarket_added_on",
-      "type": "date"
     },
     {
       "allow_nil?": false,
@@ -105,19 +57,7 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "slug",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"\"",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "search_text",
+      "source": "url",
       "type": "text"
     },
     {
@@ -141,11 +81,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "cardmarket_trend",
-      "type": "decimal"
+      "source": "ean",
+      "type": "text"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -153,11 +93,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "cardmarket_low",
+      "source": "price",
       "type": "decimal"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -165,20 +105,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "cardmarket_avg",
-      "type": "decimal"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "cardmarket_price_updated_on",
-      "type": "date"
+      "source": "in_stock",
+      "type": "boolean"
     },
     {
       "allow_nil?": false,
@@ -189,11 +117,11 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "available",
+      "source": "manual?",
       "type": "boolean"
     },
     {
-      "allow_nil?": true,
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -201,8 +129,8 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "lowest_price",
-      "type": "decimal"
+      "source": "last_seen_at",
+      "type": "utc_datetime_usec"
     },
     {
       "allow_nil?": false,
@@ -227,6 +155,39 @@
       "size": null,
       "source": "updated_at",
       "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_tenant?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "sealed_offers_product_id_fkey",
+        "on_delete": "nilify",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "sealed_products"
+      },
+      "scale": null,
+      "size": null,
+      "source": "product_id",
+      "type": "uuid"
     }
   ],
   "base_filter": null,
@@ -237,17 +198,12 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "available",
-        "cardmarket_added_on"
+        "last_seen_at"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "available"
-        },
-        {
-          "type": "atom",
-          "value": "cardmarket_added_on"
+          "value": "last_seen_at"
         }
       ],
       "include": null,
@@ -265,12 +221,17 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "kind"
+        "product_id",
+        "last_seen_at"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "kind"
+          "value": "product_id"
+        },
+        {
+          "type": "atom",
+          "value": "last_seen_at"
         }
       ],
       "include": null,
@@ -287,33 +248,23 @@
   ],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "8D8993056FE23AF153E104F010C63D73674218D464CF756251207072030E1B01",
+  "hash": "A5D50A315FBE542322B980435DEAED2A7EA9847229E8E43B025397DBD8F1E36D",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "sealed_products_cardmarket_id_index",
+      "index_name": "sealed_offers_shop_product_index",
       "keys": [
         {
           "type": "atom",
-          "value": "cardmarket_id"
-        }
-      ],
-      "name": "cardmarket_id",
-      "nils_distinct?": true,
-      "where": null
-    },
-    {
-      "all_tenants?": false,
-      "base_filter": null,
-      "index_name": "sealed_products_slug_index",
-      "keys": [
+          "value": "shop"
+        },
         {
           "type": "atom",
-          "value": "slug"
+          "value": "shop_product_id"
         }
       ],
-      "name": "slug",
+      "name": "shop_product",
       "nils_distinct?": true,
       "where": null
     }
@@ -325,6 +276,6 @@
   },
   "repo": "Elixir.TcgCheap.Repo",
   "schema": null,
-  "table": "sealed_products",
+  "table": "sealed_offers",
   "temporal": null
 }

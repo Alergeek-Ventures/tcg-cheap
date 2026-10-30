@@ -14,54 +14,6 @@
     },
     {
       "allow_nil?": false,
-      "default": "\"nbp\"",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "source",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"A\"",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "table",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"EUR\"",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "base_currency",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"PLN\"",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "quote_currency",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -69,11 +21,35 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "rate",
+      "source": "date",
+      "type": "date"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "lowest_price",
       "type": "decimal"
     },
     {
       "allow_nil?": false,
+      "default": "0",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "shops_in_stock",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": true,
       "default": "nil",
       "generated?": false,
       "precision": null,
@@ -81,31 +57,19 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "effective_date",
-      "type": "date"
+      "source": "cardmarket_trend",
+      "type": "decimal"
     },
     {
       "allow_nil?": false,
-      "default": "nil",
+      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "publication_number",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "fetched_at",
+      "source": "inserted_at",
       "type": "utc_datetime_usec"
     },
     {
@@ -117,8 +81,41 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "created_at",
+      "source": "updated_at",
       "type": "utc_datetime_usec"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "index_where": null,
+        "match_tenant?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "sealed_daily_prices_product_id_fkey",
+        "on_delete": "delete",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "sealed_products"
+      },
+      "scale": null,
+      "size": null,
+      "source": "product_id",
+      "type": "uuid"
     }
   ],
   "base_filter": null,
@@ -129,37 +126,12 @@
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "source",
-        "table",
-        "base_currency",
-        "quote_currency",
-        "effective_date",
-        "fetched_at"
+        "date"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "source"
-        },
-        {
-          "type": "atom",
-          "value": "table"
-        },
-        {
-          "type": "atom",
-          "value": "base_currency"
-        },
-        {
-          "type": "atom",
-          "value": "quote_currency"
-        },
-        {
-          "type": "atom",
-          "value": "effective_date"
-        },
-        {
-          "type": "atom",
-          "value": "fetched_at"
+          "value": "date"
         }
       ],
       "include": null,
@@ -176,35 +148,23 @@
   ],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "A5D570E8947091498EC5C12E97C5FDC247A8800B1A1F5CE0137F4A437D5E82C0",
+  "hash": "058C9FA9835A39E4F5E928FC9C200B8B9D751717A542DD64929C62D0D0D4BD40",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "exchange_rates_canonical_observation_index",
+      "index_name": "sealed_daily_prices_product_day_index",
       "keys": [
         {
           "type": "atom",
-          "value": "source"
+          "value": "product_id"
         },
         {
           "type": "atom",
-          "value": "table"
-        },
-        {
-          "type": "atom",
-          "value": "base_currency"
-        },
-        {
-          "type": "atom",
-          "value": "quote_currency"
-        },
-        {
-          "type": "atom",
-          "value": "effective_date"
+          "value": "date"
         }
       ],
-      "name": "canonical_observation",
+      "name": "product_day",
       "nils_distinct?": true,
       "where": null
     }
@@ -216,6 +176,6 @@
   },
   "repo": "Elixir.TcgCheap.Repo",
   "schema": null,
-  "table": "exchange_rates",
+  "table": "sealed_daily_prices",
   "temporal": null
 }

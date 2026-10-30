@@ -19,7 +19,6 @@ defmodule TcgCheap.Sealed do
       define :import_product, action: :import
       define :list_products, action: :read
       define :get_product_by_slug, action: :by_slug, args: [:slug], not_found_error?: false
-      define :list_products_by_ids, action: :by_ids, args: [:ids]
       define :browse_products, action: :browse, args: [{:optional, :query}, {:optional, :kind}]
       define :set_product_availability, action: :set_availability
     end
@@ -32,6 +31,12 @@ defmodule TcgCheap.Sealed do
       define :get_offer, action: :read, get_by: [:id]
       define :list_offers, action: :read
       define :list_offers_seen_since, action: :seen_since, args: [:since]
+
+      define :list_offers_seen_since_for_products,
+        action: :seen_since_for_products,
+        args: [:since, :product_ids]
+
+      define :list_latest_shop_fetches, action: :latest_fetches, args: [:since]
       define :list_manual_offers, action: :manual
     end
 
@@ -41,32 +46,27 @@ defmodule TcgCheap.Sealed do
       define :list_daily_prices_since, action: :since, args: [:since, :product_ids]
       define :list_daily_prices_on, action: :on, args: [:date]
       define :list_price_history, action: :history, args: [:product_id, :since]
+
+      define :get_last_stocked_day,
+        action: :last_stocked,
+        args: [:product_id],
+        get?: true,
+        not_found_error?: false
     end
   end
 
-  @doc "How long an offer may go unseen before it stops counting."
-  @spec current_for_seconds() :: pos_integer()
-  def current_for_seconds, do: @current_for_seconds
+  @doc "Every current offer, or only those of the given products (see the module documentation)."
+  @spec current_offers(DateTime.t(), [Ecto.UUID.t()] | :all) :: [Offer.t()]
+  def current_offers(%DateTime{} = now, product_ids \\ :all) do
+    since = DateTime.add(now, -@current_for_seconds, :second)
+    latest = since |> list_latest_shop_fetches!() |> Map.new(&{&1.shop, &1.last_seen_at})
 
-  @doc "Every current offer (see the module documentation)."
-  @spec current_offers(DateTime.t()) :: [Offer.t()]
-  def current_offers(%DateTime{} = now) do
-    now
-    |> DateTime.add(-@current_for_seconds, :second)
-    |> list_offers_seen_since!()
-    |> latest_per_shop()
-  end
-
-  @doc "Keeps only the offers seen in each shop's latest fetch."
-  @spec latest_per_shop([Offer.t()]) :: [Offer.t()]
-  def latest_per_shop(offers) do
-    latest =
-      Enum.reduce(offers, %{}, fn offer, acc ->
-        Map.update(acc, offer.shop, offer.last_seen_at, &later(&1, offer.last_seen_at))
-      end)
+    offers =
+      case product_ids do
+        :all -> list_offers_seen_since!(since)
+        ids -> list_offers_seen_since_for_products!(since, ids)
+      end
 
     Enum.filter(offers, &(DateTime.compare(&1.last_seen_at, Map.fetch!(latest, &1.shop)) == :eq))
   end
-
-  defp later(a, b), do: if(DateTime.compare(a, b) == :lt, do: b, else: a)
 end

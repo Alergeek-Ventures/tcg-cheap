@@ -33,7 +33,7 @@ defmodule TcgCheap.Sealed.CatalogueImport do
           Refresh.recompute(now)
           %{products: length(rows)}
         end,
-        timeout: :timer.minutes(5)
+        timeout: Refresh.transaction_timeout()
       )
     end
   end

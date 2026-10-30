@@ -73,12 +73,12 @@ defmodule TcgCheap.Sealed.FetchWorkerTest do
       offer!(
         shop: "lootquest",
         title: "Pokémon TCG: Pitch Black – Booster",
-        ean: "0820650000001",
+        ean: "0820650000003",
         product_id: pc_etb.id,
         manual?: true
       )
 
-    sibling = offer!(shop: "cardzhouse", title: "Coś zupełnie innego", ean: "0820650000001")
+    sibling = offer!(shop: "cardzhouse", title: "Coś zupełnie innego", ean: "0820650000003")
 
     stub_feed([feed("colligere")])
     assert :ok = perform("colligere")
@@ -110,15 +110,19 @@ defmodule TcgCheap.Sealed.FetchWorkerTest do
     assert {Sealed.list_offers!(), Sealed.list_daily_prices_on!(today())} == before
   end
 
-  test "an empty feed still refreshes prices", %{products: products} do
+  test "a shop listing no products counts as a failed fetch and writes nothing", %{
+    products: products
+  } do
     stub_feed([feed("colligere")])
     assert :ok = perform("colligere")
+    offers = Sealed.list_offers!()
     stub_feed([[]])
-    {:ok, shop} = Shops.fetch("boosterland")
+    {:ok, shop} = Shops.fetch("colligere")
 
-    assert {:ok, %{offers: 0}} =
+    assert {:error, :empty_feed} =
              Refresh.run(shop, req_options: [plug: {Req.Test, Sealed.WooCommerce}])
 
+    assert Sealed.list_offers!() == offers
     assert Decimal.equal?(daily(products["Pitch Black Booster"]).lowest_price, "24.95")
   end
 

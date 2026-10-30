@@ -16,9 +16,9 @@ defmodule TcgCheap.Sealed.Matcher do
 
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
-  history. Titles for preorders, multi-item bundles, empty boxes, singles and
-  accessories are excluded outright. An EAN seen on a manually assigned offer
-  wins over the title.
+  history. Titles for preorders, multi-item bundles, empty, damaged, opened or
+  used boxes, singles and accessories are excluded outright. Otherwise an EAN
+  seen on a manually assigned offer wins over the title.
   """
 
   @stopwords ~w(pokemon tcg the and of s a z na i w edycja karty kart karta oryginalne oryginalny
@@ -44,7 +44,6 @@ defmodule TcgCheap.Sealed.Matcher do
     {"min tin", "mini tin"},
     {"puszka", "tin"},
     {"seria", "series"},
-    {"ultra premium", "ultra premium"},
     {"simplified chinese", "sch"},
     {"traditional chinese", "tch"},
     {"s ch", "sch"},
@@ -102,6 +101,11 @@ defmodule TcgCheap.Sealed.Matcher do
     "pusty",
     "pusta",
     "puste",
+    "damaged",
+    "opened",
+    "used",
+    "bez folii",
+    "repack",
     "single",
     "singles",
     "pojedyncza",
@@ -116,6 +120,9 @@ defmodule TcgCheap.Sealed.Matcher do
     "code card",
     "kod"
   ]
+
+  # Polish word stems for damaged, opened or used items ("uszkodzone", "otwarty", "używany"…).
+  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan)/
 
   @multiples ~r/(?:\A| )(?:x ?\d{1,3}|\d{1,3} ?x|\d{1,3} (?:sztuk|szt|pcs))(?: |\z)/
 
@@ -162,9 +169,14 @@ defmodule TcgCheap.Sealed.Matcher do
   @doc "Matches an offer (`:title`, optional `:ean`) against an index."
   @spec match(map(), t()) :: result()
   def match(%{title: title} = offer, %__MODULE__{} = index) when is_binary(title) do
-    case Map.fetch(index.eans, Map.get(offer, :ean) || "") do
+    normalized = normalize(title)
+
+    with nil <- exclusion(normalized),
+         :error <- Map.fetch(index.eans, Map.get(offer, :ean) || "") do
+      title |> offer_tokens(index.sets) |> best(index)
+    else
       {:ok, id} -> {:matched, id}
-      :error -> match_title(title, index)
+      reason -> {:excluded, reason}
     end
   end
 
@@ -180,15 +192,6 @@ defmodule TcgCheap.Sealed.Matcher do
   @doc "Whether a title is excluded outright (preorder, bundle of many, accessory…)."
   @spec excluded?(String.t()) :: boolean()
   def excluded?(title), do: exclusion(normalize(title)) != nil
-
-  defp match_title(title, index) do
-    normalized = normalize(title)
-
-    case exclusion(normalized) do
-      nil -> title |> offer_tokens(index.sets) |> best(index)
-      reason -> {:excluded, reason}
-    end
-  end
 
   defp best(offer_tokens, index) do
     offer_set = MapSet.new(offer_tokens)
@@ -283,6 +286,7 @@ defmodule TcgCheap.Sealed.Matcher do
 
     cond do
       phrase = Enum.find(@exclusions, &String.contains?(padded, " " <> &1 <> " ")) -> phrase
+      Regex.match?(@damaged, normalized) -> "damaged or used"
       Regex.match?(@multiples, normalized) -> "multiple items"
       true -> nil
     end

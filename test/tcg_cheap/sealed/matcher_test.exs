@@ -93,7 +93,12 @@ defmodule TcgCheap.Sealed.MatcherTest do
     # Synthetic.
     {"Pokémon TCG: Pitch Black – Elite Trainer Box (pusty)", "pusty"},
     {"Pokémon TCG: Pitch Black – Koszulki na karty", "koszulki"},
-    {"Pokémon TCG: Pitch Black – Booster Box 6 sztuk", "multiple items"}
+    {"Pokémon TCG: Pitch Black – Booster Box 6 sztuk", "multiple items"},
+    {"Pokémon TCG: Pitch Black – Booster Box – uszkodzone opakowanie", "damaged or used"},
+    {"Pokémon TCG: Pitch Black – Booster Box (otwarty)", "damaged or used"},
+    {"Pokémon TCG: Pitch Black – Booster Box używany", "damaged or used"},
+    {"Pokémon TCG: Pitch Black – Booster Box damaged", "damaged"},
+    {"Pokémon TCG: Pitch Black – Booster Box bez folii", "bez folii"}
   ]
 
   test "real shop titles match the right Cardmarket product", %{index: index} do
@@ -122,14 +127,22 @@ defmodule TcgCheap.Sealed.MatcherTest do
     index =
       Matcher.index(
         [%{id: :a, name: "Pitch Black Booster"}, %{id: :b, name: "Chaos Rising Booster"}],
-        %{"0820650000001" => :a}
+        %{"0820650000003" => :a}
       )
 
-    assert Matcher.match(%{title: "Chaos Rising Booster", ean: "0820650000001"}, index) ==
+    assert Matcher.match(%{title: "Chaos Rising Booster", ean: "0820650000003"}, index) ==
              {:matched, :a}
 
     assert Matcher.match(%{title: "Chaos Rising Booster", ean: "0000000000000"}, index) ==
              {:matched, :b}
+  end
+
+  test "an excluded title stays excluded even with a known EAN" do
+    index =
+      Matcher.index([%{id: :a, name: "Pitch Black Booster"}], %{"0820650000003" => :a})
+
+    assert Matcher.match(%{title: "Pitch Black Booster PREORDER", ean: "0820650000003"}, index) ==
+             {:excluded, "preorder"}
   end
 
   test "the most specific product wins; equally specific ones are ambiguous" do

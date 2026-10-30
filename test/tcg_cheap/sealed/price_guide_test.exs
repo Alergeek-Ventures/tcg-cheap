@@ -18,24 +18,31 @@ defmodule TcgCheap.Sealed.PriceGuideTest do
   # Seven stocked days with a median of exactly 640.
   @history ~w(620 630 640 640 640 650 660)
 
-  test "good up to 95% of the typical price, in whole złoty" do
-    verdict = PriceGuide.verdict(days(@history), [offer("608.99"), offer("700")], @today)
+  test "good up to 95% of the typical price, rounded down to whole złoty" do
+    verdict = PriceGuide.verdict(days(@history), [offer("608"), offer("700")], @today)
 
     assert verdict.status == :good
     assert Decimal.equal?(verdict.typical, 640)
     assert verdict.good_max == 608
     assert verdict.normal_max == 704
     assert verdict.days_with_stock == 7
-    assert Decimal.equal?(verdict.cheapest.price, "608.99")
+    assert Decimal.equal?(verdict.cheapest.price, "608")
   end
 
-  test "normal from the first złoty above the good limit up to 110%" do
-    assert PriceGuide.verdict(days(@history), [offer("609")], @today).status == :normal
-    assert PriceGuide.verdict(days(@history), [offer("704.99")], @today).status == :normal
+  test "normal above the good limit up to the 110% limit" do
+    assert PriceGuide.verdict(days(@history), [offer("608.01")], @today).status == :normal
+    assert PriceGuide.verdict(days(@history), [offer("704")], @today).status == :normal
   end
 
-  test "expensive above 110%" do
-    assert PriceGuide.verdict(days(@history), [offer("705")], @today).status == :expensive
+  test "expensive above the 110% limit" do
+    assert PriceGuide.verdict(days(@history), [offer("704.01")], @today).status == :expensive
+  end
+
+  test "a price above 95% of the typical price is never good" do
+    verdict = PriceGuide.verdict(days(~w(25 25 25 25 25 25 25)), [offer("23.99")], @today)
+
+    assert verdict.good_max == 23
+    assert verdict.status == :normal
   end
 
   test "the median of an even number of days averages the middle two" do

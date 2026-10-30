@@ -88,13 +88,16 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
   # Applies an assignment and immediately re-derives prices from it.
   defp write(action) do
     result =
-      Repo.transaction(fn ->
-        # Nothing subscribes to offer notifications; they are dropped.
-        case action.() do
-          {:ok, _offer, _notifications} -> Refresh.recompute(DateTime.utc_now())
-          {:error, error} -> Repo.rollback(error)
-        end
-      end)
+      Repo.transaction(
+        fn ->
+          # Nothing subscribes to offer notifications; they are dropped.
+          case action.() do
+            {:ok, _offer, _notifications} -> Refresh.recompute(DateTime.utc_now())
+            {:error, error} -> Repo.rollback(error)
+          end
+        end,
+        timeout: Refresh.transaction_timeout()
+      )
 
     if match?({:ok, _}, result), do: :ok, else: :error
   end
@@ -335,16 +338,20 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
     """
   end
 
+  # The offers seen in a shop's latest fetch, however long ago it was.
+  defp latest_fetch([]), do: []
+
+  defp latest_fetch(offers) do
+    latest = offers |> Enum.map(& &1.last_seen_at) |> Enum.max(DateTime)
+    Enum.filter(offers, &(DateTime.compare(&1.last_seen_at, latest) == :eq))
+  end
+
   defp shop_rows(offers, current) do
     by_shop = Enum.group_by(offers, & &1.shop)
     current_by_shop = Enum.group_by(current, & &1.shop)
 
     for shop <- Shops.all() do
-      seen =
-        case Map.get(by_shop, shop.key, []) do
-          [] -> []
-          shop_offers -> Sealed.latest_per_shop(shop_offers)
-        end
+      seen = by_shop |> Map.get(shop.key, []) |> latest_fetch()
 
       %{
         key: shop.key,

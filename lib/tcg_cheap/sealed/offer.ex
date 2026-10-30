@@ -79,6 +79,20 @@ defmodule TcgCheap.Sealed.Offer do
       prepare build(sort: [shop: :asc, price: :asc, id: :asc])
     end
 
+    read :seen_since_for_products do
+      argument :since, :utc_datetime_usec, allow_nil?: false
+      argument :product_ids, {:array, :uuid}, allow_nil?: false
+      filter expr(last_seen_at >= ^arg(:since) and product_id in ^arg(:product_ids))
+      prepare build(sort: [shop: :asc, price: :asc, id: :asc])
+    end
+
+    read :latest_fetches do
+      description "One offer per shop carrying the time of the shop's latest fetch."
+      argument :since, :utc_datetime_usec, allow_nil?: false
+      filter expr(last_seen_at >= ^arg(:since))
+      prepare build(distinct: [:shop], distinct_sort: [last_seen_at: :desc])
+    end
+
     read :manual do
       filter expr(manual? == true)
       prepare build(sort: [shop: :asc, title: :asc], load: [:product])

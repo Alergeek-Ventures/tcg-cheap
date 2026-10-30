@@ -14,47 +14,50 @@
     },
     {
       "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "index_where": null,
-        "match_tenant?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "acquisition_budget_usages_provider_id_fkey",
-        "on_delete": null,
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "acquisition_data_providers"
-      },
-      "scale": null,
-      "size": null,
-      "source": "provider_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
+      "default": "\"nbp\"",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "window_kind",
+      "source": "source",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"A\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "table",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"EUR\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "base_currency",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "\"PLN\"",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "quote_currency",
       "type": "text"
     },
     {
@@ -66,43 +69,43 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "window_started_at",
-      "type": "utc_datetime_usec"
-    },
-    {
-      "allow_nil?": false,
-      "default": "0",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "request_count",
-      "type": "bigint"
-    },
-    {
-      "allow_nil?": false,
-      "default": "\"0\"",
-      "generated?": false,
-      "precision": null,
-      "primary_key?": false,
-      "references": null,
-      "scale": null,
-      "size": null,
-      "source": "estimated_spend_usd",
+      "source": "rate",
       "type": "decimal"
     },
     {
       "allow_nil?": false,
-      "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
+      "default": "nil",
       "generated?": false,
       "precision": null,
       "primary_key?": false,
       "references": null,
       "scale": null,
       "size": null,
-      "source": "inserted_at",
+      "source": "effective_date",
+      "type": "date"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "publication_number",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "precision": null,
+      "primary_key?": false,
+      "references": null,
+      "scale": null,
+      "size": null,
+      "source": "fetched_at",
       "type": "utc_datetime_usec"
     },
     {
@@ -114,47 +117,49 @@
       "references": null,
       "scale": null,
       "size": null,
-      "source": "updated_at",
+      "source": "created_at",
       "type": "utc_datetime_usec"
     }
   ],
   "base_filter": null,
-  "check_constraints": [
-    {
-      "attribute": [
-        "window_kind"
-      ],
-      "base_filter": null,
-      "check": "window_kind IN ('hour', 'day', 'month')",
-      "name": "acquisition_budget_usages_window_kind_invariant"
-    },
-    {
-      "attribute": [
-        "request_count",
-        "estimated_spend_usd"
-      ],
-      "base_filter": null,
-      "check": "request_count >= 0 AND estimated_spend_usd >= 0 AND estimated_spend_usd < 1000000000",
-      "name": "acquisition_budget_usages_nonnegative_invariant"
-    }
-  ],
+  "check_constraints": [],
   "create_table_options": null,
   "custom_indexes": [
     {
       "all_tenants?": false,
       "concurrently": false,
       "error_fields": [
-        "window_kind",
-        "window_started_at"
+        "source",
+        "table",
+        "base_currency",
+        "quote_currency",
+        "effective_date",
+        "fetched_at"
       ],
       "fields": [
         {
           "type": "atom",
-          "value": "window_kind"
+          "value": "source"
         },
         {
           "type": "atom",
-          "value": "window_started_at"
+          "value": "table"
+        },
+        {
+          "type": "atom",
+          "value": "base_currency"
+        },
+        {
+          "type": "atom",
+          "value": "quote_currency"
+        },
+        {
+          "type": "atom",
+          "value": "effective_date"
+        },
+        {
+          "type": "atom",
+          "value": "fetched_at"
         }
       ],
       "include": null,
@@ -170,28 +175,36 @@
     }
   ],
   "custom_statements": [],
-  "has_create_action": false,
-  "hash": "065CA7CB6B063A2A2951266D7CA09D1EBC9EE0075A740B4A29D3CDDE93F17811",
+  "has_create_action": true,
+  "hash": "7AD18904DE84658A790350602A6DB24EF451602E28E868242D5DD91B1BE4542D",
   "identities": [
     {
       "all_tenants?": false,
       "base_filter": null,
-      "index_name": "acquisition_budget_usages_unique_provider_window_index",
+      "index_name": "exchange_rates_canonical_observation_index",
       "keys": [
         {
           "type": "atom",
-          "value": "provider_id"
+          "value": "source"
         },
         {
           "type": "atom",
-          "value": "window_kind"
+          "value": "table"
         },
         {
           "type": "atom",
-          "value": "window_started_at"
+          "value": "base_currency"
+        },
+        {
+          "type": "atom",
+          "value": "quote_currency"
+        },
+        {
+          "type": "atom",
+          "value": "effective_date"
         }
       ],
-      "name": "unique_provider_window",
+      "name": "canonical_observation",
       "nils_distinct?": true,
       "where": null
     }
@@ -203,6 +216,6 @@
   },
   "repo": "Elixir.TcgCheap.Repo",
   "schema": null,
-  "table": "acquisition_budget_usages",
+  "table": "exchange_rates",
   "temporal": null
 }

@@ -59,7 +59,7 @@ defmodule TcgCheapWeb.ProductLiveTest do
     history!(product, @history)
 
     box_offer!(product,
-      price: Decimal.new("798.50"),
+      price: Decimal.new("798"),
       image_url: "https://colligere.pl/wp-content/uploads/box.webp"
     )
 
@@ -72,7 +72,7 @@ defmodule TcgCheapWeb.ProductLiveTest do
     {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
 
     assert has_element?(view, "#verdict-badge.verdict-good", "Dobra cena")
-    assert has_element?(view, "#verdict-price", "798,50 zł")
+    assert has_element?(view, "#verdict-price", "798,00 zł")
 
     assert has_element?(
              view,
@@ -93,11 +93,11 @@ defmodule TcgCheapWeb.ProductLiveTest do
 
   test "normal and expensive prices", %{conn: conn, product: product} do
     history!(product, @history)
-    offer = box_offer!(product, price: Decimal.new("924.99"))
+    offer = box_offer!(product, price: Decimal.new("924"))
     {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
     assert has_element?(view, "#verdict-badge.verdict-normal", "Normalna cena")
 
-    box_offer!(product, shop_product_id: offer.shop_product_id, price: Decimal.new("925"))
+    box_offer!(product, shop_product_id: offer.shop_product_id, price: Decimal.new("924.01"))
     {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
     assert has_element?(view, "#verdict-badge.verdict-expensive", "Drogo")
   end
