@@ -3,12 +3,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
 
   use TcgCheapWeb, :live_view
 
-  alias TcgCheap.Operations.{
-    BuyingModelInspection,
-    CardmarketBulkCoverage,
-    ManualRefresh,
-    Overview
-  }
+  alias TcgCheap.Operations.{CardmarketBulkCoverage, ManualRefresh, Overview}
 
   @operation_events ~w(disable_provider enable_provider)
 
@@ -23,8 +18,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:run_count, 0)
      |> assign(:job_count, 0)
      |> assign(:total_retained_jobs, 0)
-     |> assign(:model_ready?, false)
-     |> assign(:buying_model, nil)
      |> assign(:manual_ready?, false)
      |> assign(:manual_catalogue, nil)
      |> assign(:manual_singles_collection, nil)
@@ -37,8 +30,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
      |> assign(:manual_form, to_form(%{"tcgdex_id" => ""}, as: :manual_refresh))
      |> stream_configure(:job_state_counts, dom_id: &job_state_dom_id/1)
      |> stream(:job_state_counts, [], reset: true)
-     |> stream(:manual_retailers, [], reset: true)
-     |> load_buying_model()
      |> load_manual()
      |> load_cardmarket_coverage()
      |> load_overview()}
@@ -69,7 +60,7 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                   </p>
                 </details>
               </div>
-              <%= if @overview_ready? or @model_ready? or @manual_ready? or @cardmarket_coverage_loaded? do %>
+              <%= if @overview_ready? or @manual_ready? or @cardmarket_coverage_loaded? do %>
                 <nav id="admin-operations-nav" aria-label="Operations sections">
                   <%= if @overview_ready? do %>
                     <a href="#operations-global-ledger">Global <strong>UTC</strong></a>
@@ -77,9 +68,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                     <a href="#operations-acquisition-runs">Runs <strong>{@run_count}</strong></a>
                     <a href="#operations-retained-jobs">Jobs <strong>{@total_retained_jobs}</strong></a>
                   <% end %>
-                  <a href="#operations-buying-model">
-                    Model <strong>{if(@model_ready?, do: 1, else: 0)}</strong>
-                  </a>
                   <a href="#operations-manual-refresh">
                     Manual <strong>{@manual_available_count}</strong>
                   </a>
@@ -638,176 +626,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
             </section>
 
             <section
-              id="operations-buying-model"
-              class="admin-queue"
-              aria-labelledby="operations-buying-model-title"
-            >
-              <div class="admin-section-rule">
-                <h2 id="operations-buying-model-title">Buying model</h2><span>Read only · model diagnostics</span>
-              </div>
-              <%= if @model_ready? do %>
-                <details id="operations-buying-model-details" class="admin-record-disclosure">
-                  <summary>Model details</summary>
-                  <p class="admin-disclosure">
-                    This policy is provisional and validated with synthetic cases only. Real Polish-market validation remains required; changing policy values requires a new model version so retained snapshots keep their meaning.
-                  </p>
-                  <div
-                    id="operations-buying-model-dockets"
-                    class="admin-dockets operations-provider-dockets"
-                  >
-                    <article id="operations-model-identity" class="admin-docket">
-                      <div class="admin-docket-heading">
-                        <div>
-                          <h3>Buying model</h3>
-                          <p>Version identity, delegated aggregate, and deterministic arithmetic.</p>
-                        </div>
-                        <span>{@buying_model.model_status}</span>
-                      </div>
-                      <dl id="operations-model-identity-ledger" class="admin-ledger">
-                        <div class="wide-evidence">
-                          <dt>Buying model version</dt><dd>{@buying_model.model_version}</dd>
-                        </div>
-                        <div class="wide-evidence">
-                          <dt>Aggregate version</dt><dd>{@buying_model.aggregate_version}</dd>
-                        </div>
-                        <div class="wide-evidence">
-                          <dt>Validation basis</dt><dd>{@buying_model.validation_basis}</dd>
-                        </div>
-                      </dl>
-                      <.policy_ledger
-                        id="operations-model-calculation-ledger"
-                        rows={
-                          @buying_model.aggregate ++
-                            @buying_model.rounding ++
-                            @buying_model.decimal_arithmetic
-                        }
-                      />
-                    </article>
-
-                    <article id="operations-model-reference" class="admin-docket">
-                      <div class="admin-docket-heading">
-                        <div>
-                          <h3>Reference blend</h3>
-                          <p>
-                            Available inputs renormalize around the live regular-retailer benchmark.
-                          </p>
-                        </div>
-                        <span>WEIGHTS</span>
-                      </div>
-                      <.policy_ledger
-                        id="operations-model-component-weights"
-                        rows={@buying_model.component_weights}
-                      />
-                    </article>
-
-                    <article id="operations-model-confidence" class="admin-docket">
-                      <div class="admin-docket-heading">
-                        <div>
-                          <h3>Confidence score</h3>
-                          <p>Six weighted signals must reach the ready threshold.</p>
-                        </div>
-                        <span>{@buying_model.confidence.ready_threshold}</span>
-                      </div>
-                      <.policy_ledger
-                        id="operations-model-confidence-weights"
-                        rows={@buying_model.confidence.weights}
-                      />
-                      <.policy_ledger
-                        id="operations-model-confidence-targets"
-                        rows={@buying_model.confidence.targets}
-                      />
-                    </article>
-
-                    <article id="operations-model-diagnostics" class="admin-docket">
-                      <div class="admin-docket-heading">
-                        <div>
-                          <h3>Diagnostic gates</h3>
-                          <p>
-                            Hard evidence requirements apply before four-band guidance can render.
-                          </p>
-                        </div>
-                        <span>FAIL CLOSED</span>
-                      </div>
-                      <.policy_ledger
-                        id="operations-model-hard-requirements"
-                        rows={@buying_model.confidence.hard_requirements}
-                      />
-                      <.policy_ledger
-                        id="operations-model-history-rules"
-                        rows={@buying_model.freshness_and_history}
-                      />
-                    </article>
-
-                    <article id="operations-model-market-signals" class="admin-docket">
-                      <div class="admin-docket-heading">
-                        <div>
-                          <h3>Market signals</h3>
-                          <p>Availability and sold-out recency alter confidence and band position.</p>
-                        </div>
-                        <span>30 DAYS</span>
-                      </div>
-                      <.policy_ledger
-                        id="operations-model-availability-rules"
-                        rows={@buying_model.availability}
-                      />
-                      <.policy_ledger
-                        id="operations-model-sold-out-rules"
-                        rows={@buying_model.sold_out_recency}
-                      />
-                    </article>
-
-                    <article id="operations-model-bands" class="admin-docket">
-                      <div class="admin-docket-heading">
-                        <div>
-                          <h3>Band construction</h3>
-                          <p>Inclusive ceilings are adjusted by trend and availability evidence.</p>
-                        </div>
-                        <span>PLN</span>
-                      </div>
-                      <.policy_ledger
-                        id="operations-model-band-bases"
-                        rows={@buying_model.bands.base_multipliers ++ @buying_model.bands.guardrail}
-                      />
-                      <.policy_ledger
-                        id="operations-model-trend-adjustments"
-                        rows={@buying_model.bands.trend_adjustments}
-                      />
-                      <.policy_ledger
-                        id="operations-model-availability-adjustments"
-                        rows={
-                          @buying_model.bands.availability_adjustments ++
-                            @buying_model.bands.availability_trend_adjustments
-                        }
-                      />
-                    </article>
-
-                    <article id="operations-model-limited" class="admin-docket">
-                      <div class="admin-docket-heading">
-                        <div>
-                          <h3>Limited data precedence</h3>
-                          <p>The first matching reason suppresses confident buying bands.</p>
-                        </div>
-                        <span>{length(@buying_model.limited_reason_precedence)} REASONS</span>
-                      </div>
-                      <dl id="operations-model-limited-reasons" class="admin-ledger">
-                        <div :for={reason <- @buying_model.limited_reason_precedence}>
-                          <dt>Priority {reason.position}</dt><dd>{reason.label}</dd>
-                        </div>
-                      </dl>
-                    </article>
-                  </div>
-                </details>
-              <% else %>
-                <div id="operations-buying-model-unavailable" class="admin-state-error">
-                  <h2>Model policy unavailable</h2>
-                  <p>
-                    The buying model did not pass strict inspection. No configuration is being assumed.
-                  </p>
-                </div>
-              <% end %>
-            </section>
-
-            <section
               id="operations-manual-refresh"
               class="admin-queue"
               aria-labelledby="operations-manual-refresh-title"
@@ -915,39 +733,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
                     </div>
                   </article>
                 </div>
-
-                <div
-                  id="manual-refresh-retailer-stream"
-                  class="admin-dockets compact-dockets"
-                  phx-update="stream"
-                >
-                  <p id="manual-refresh-retailer-empty" class="admin-empty hidden only:block">
-                    No active configured sealed retailers.
-                  </p>
-                  <article
-                    :for={{dom_id, retailer} <- @streams.manual_retailers}
-                    id={dom_id}
-                    class="admin-docket"
-                  >
-                    <div class="admin-docket-heading">
-                      <div>
-                        <h3>{retailer.label}</h3>
-                        <p>{retailer.source_key}</p>
-                      </div>
-                      <span>{manual_status(retailer)}</span>
-                    </div>
-                    <div class="admin-decision-row">
-                      <button
-                        id={"manual-refresh-retailer-#{retailer_dom_id(retailer.retailer_id)}"}
-                        type="button"
-                        phx-click="manual_sealed_retailer"
-                        phx-value-retailer-id={retailer.retailer_id}
-                        phx-disable-with="Queueing…"
-                        disabled={retailer.status != :available}
-                      >Queue sealed retailer refresh</button>
-                    </div>
-                  </article>
-                </div>
               <% else %>
                 <p id="operations-manual-unavailable">
                   Manual refresh is unavailable. No acquisition target was assumed safe.
@@ -973,14 +758,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
 
   def handle_event("manual_exchange_rate", _params, socket),
     do: manual_enqueue(:exchange_rate, "EUR / PLN refresh", socket)
-
-  def handle_event("manual_sealed_retailer", %{"retailer-id" => id}, socket),
-    do: manual_enqueue({:sealed_retailer, id}, "Sealed retailer refresh", socket)
-
-  def handle_event("manual_sealed_retailer", _params, socket),
-    do:
-      {:noreply,
-       put_flash(socket, :error, "Sealed refresh was not queued. Reload and try again.")}
 
   def handle_event(event, params, socket) when event in @operation_events do
     with {:ok, provider_key} <- fetch_binary(params, "provider-key"),
@@ -1023,20 +800,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp manual_flash(%{status: :already_queued}, noun),
     do: "#{String.capitalize(noun)} already queued; reused the canonical job."
 
-  defp load_buying_model(socket) do
-    case BuyingModelInspection.load(socket.assigns.current_admin) do
-      {:ok, model} ->
-        socket
-        |> assign(:model_ready?, true)
-        |> assign(:buying_model, model)
-
-      {:error, _reason} ->
-        socket
-        |> assign(:model_ready?, false)
-        |> assign(:buying_model, nil)
-    end
-  end
-
   defp load_manual(socket) do
     case ManualRefresh.targets(socket.assigns.current_admin) do
       {:ok, targets} ->
@@ -1051,13 +814,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
 
         exchange = Enum.find(targets, &(&1.kind == :exchange_rate)) || %{status: :unconfigured}
 
-        retailers =
-          targets
-          |> Enum.filter(&(&1.kind == :sealed_retailer))
-          |> Enum.map(fn retailer ->
-            Map.put(retailer, :id, "manual-retailer-#{retailer_dom_id(retailer.retailer_id)}")
-          end)
-
         socket
         |> assign(:manual_ready?, true)
         |> assign(:manual_catalogue, catalogue)
@@ -1065,7 +821,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         |> assign(:manual_catalogue_repair, catalogue_repair)
         |> assign(:manual_exchange_rate, exchange)
         |> assign(:manual_available_count, Enum.count(targets, &(&1.status == :available)))
-        |> stream(:manual_retailers, retailers, reset: true)
 
       _ ->
         socket
@@ -1075,7 +830,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
         |> assign(:manual_catalogue_repair, nil)
         |> assign(:manual_exchange_rate, nil)
         |> assign(:manual_available_count, 0)
-        |> stream(:manual_retailers, [], reset: true)
     end
   end
 
@@ -1153,7 +907,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp manual_status(_), do: "UNCONFIGURED"
   defp manual_failure_count(%{failure_count: count}) when is_integer(count), do: count
   defp manual_failure_count(_target), do: "—"
-  defp retailer_dom_id(id), do: Base.url_encode64(id, padding: false)
 
   defp provider_dom_id(key), do: Base.url_encode64(to_string(key), padding: false)
 
@@ -1210,7 +963,6 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp health_failure(health), do: failure_name(health.last_failure_category)
   defp operation_name("single_valuation"), do: "Single valuation"
   defp operation_name("exchange_rate"), do: "EUR/PLN rate"
-  defp operation_name("sealed_retailer_refresh"), do: "Sealed retailer refresh"
   defp operation_name("cardmarket_bulk_sync"), do: "Cardmarket bulk sync"
   defp operation_name(_), do: "Acquisition"
   defp run_status(%{overdue?: true, status: "running"}), do: "OVERDUE"
@@ -1289,17 +1041,4 @@ defmodule TcgCheapWeb.Admin.OperationsLive do
   defp datetime(nil), do: "Unknown"
   defp datetime(%NaiveDateTime{} = value), do: NaiveDateTime.to_iso8601(value) <> "Z"
   defp datetime(value), do: DateTime.to_iso8601(value)
-
-  attr :id, :string, required: true
-  attr :rows, :list, required: true
-
-  defp policy_ledger(assigns) do
-    ~H"""
-    <dl id={@id} class="admin-ledger">
-      <div :for={row <- @rows}>
-        <dt>{row.label}</dt><dd>{row.value}</dd>
-      </div>
-    </dl>
-    """
-  end
 end

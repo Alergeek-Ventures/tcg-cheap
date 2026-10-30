@@ -1,8 +1,3 @@
-defmodule TcgCheap.Operations.ManualRefreshTestAdapter do
-  def source_key, do: "manual-refresh-stub"
-  def fetch_listings(_retailer, _options), do: {:ok, []}
-end
-
 defmodule TcgCheap.Operations.ManualRefreshTest do
   use TcgCheap.DataCase, async: false
 
@@ -10,29 +5,20 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
 
   alias TcgCheap.Accounts
 
-  alias TcgCheap.Catalogue.{
-    CatalogueSyncWorker,
-    SealedRetailerWorker,
-    SinglesScopeBootstrapWorker
-  }
-
-  alias TcgCheap.Core
+  alias TcgCheap.Catalogue.{CatalogueSyncWorker, SinglesScopeBootstrapWorker}
   alias TcgCheap.Operations
   alias TcgCheap.Operations.{AcquisitionBudget, ImportIssues, ManualRefresh, Overview}
   alias TcgCheap.Pricing.ExchangeRateWorker
 
   setup do
     previous_budget = Application.get_env(:tcg_cheap, :acquisition_budget)
-    previous_adapters = Application.get_env(:tcg_cheap, :sealed_retailer_adapters)
     previous_exchange = Application.get_env(:tcg_cheap, :exchange_rate_provider)
     previous_catalogue = Application.get_env(:tcg_cheap, :catalogue_sync)
 
     Application.put_env(:tcg_cheap, :acquisition_budget, budget())
-    Application.put_env(:tcg_cheap, :sealed_retailer_adapters, %{})
 
     on_exit(fn ->
       restore(:acquisition_budget, previous_budget)
-      restore(:sealed_retailer_adapters, previous_adapters)
       restore(:exchange_rate_provider, previous_exchange)
       restore(:catalogue_sync, previous_catalogue)
     end)
@@ -42,7 +28,7 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
   end
 
   test "returns bounded secret-free target projections", %{admin: admin} do
-    retailer = configure_retailer()
+    configure_providers()
 
     assert {:ok, targets} = ManualRefresh.targets(admin)
 
@@ -50,19 +36,12 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
              :singles_collection,
              :catalogue_sync,
              :catalogue_repair,
-             :exchange_rate,
-             :sealed_retailer
+             :exchange_rate
            ]
 
     assert Enum.find(targets, &(&1.kind == :catalogue_repair)).status == :empty
 
-    retailer_target = Enum.find(targets, &(&1.kind == :sealed_retailer))
-    assert retailer_target.retailer_id == retailer.id
-    assert retailer_target.source_key == "manual-refresh-stub"
-
     projection = inspect(targets)
-    refute projection =~ "source_payload"
-    refute projection =~ "ManualRefreshTestAdapter"
     refute projection =~ "options"
   end
 
@@ -196,35 +175,6 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     assert exchange.status == :available
   end
 
-  test "derives sealed source identity from the active local retailer", %{admin: admin} do
-    retailer = configure_retailer()
-
-    assert {:ok, %{status: :queued}} =
-             ManualRefresh.enqueue(admin, {:sealed_retailer, retailer.id})
-
-    assert_enqueued(
-      repo: TcgCheap.Repo,
-      worker: SealedRetailerWorker,
-      args: %{"retailer_id" => retailer.id, "source_key" => "manual-refresh-stub"}
-    )
-
-    assert {:error, :invalid_target} =
-             ManualRefresh.enqueue(admin, {:sealed_retailer, Ecto.UUID.generate()})
-  end
-
-  test "rejects disabled and malformed sealed targets", %{admin: admin} do
-    retailer = configure_retailer()
-    Core.disable_retailer!(retailer)
-
-    assert {:error, :invalid_target} =
-             ManualRefresh.enqueue(admin, {:sealed_retailer, retailer.id})
-
-    assert {:error, :invalid_target} =
-             ManualRefresh.enqueue(admin, {:sealed_retailer, "not-a-uuid"})
-
-    refute_enqueued(repo: TcgCheap.Repo, worker: SealedRetailerWorker)
-  end
-
   test "disabled or absent budget providers cannot queue work", %{admin: admin} do
     assert {:ok, _admission} = AcquisitionBudget.admit("nbp")
     provider = Operations.get_provider_by_key!("nbp")
@@ -244,61 +194,19 @@ defmodule TcgCheap.Operations.ManualRefreshTest do
     assert {:error, :unconfigured} = ManualRefresh.enqueue(admin, :exchange_rate)
   end
 
-  test "malformed fixed or retailer configuration fails safely", %{admin: admin} do
+  test "malformed fixed configuration fails safely", %{admin: admin} do
     Application.put_env(:tcg_cheap, :exchange_rate_provider, [])
     assert {:ok, targets} = ManualRefresh.targets(admin)
     assert Enum.find(targets, &(&1.kind == :exchange_rate)).status == :unconfigured
     assert {:error, :unconfigured} = ManualRefresh.enqueue(admin, :exchange_rate)
-
-    Application.put_env(:tcg_cheap, :sealed_retailer_adapters, %{"bad" => %{}})
-    assert {:error, :manual_refresh_unavailable} = ManualRefresh.targets(admin)
   end
 
-  test "adapter target loading is capped and validates source-key bounds", %{admin: admin} do
-    too_many =
-      Map.new(1..101, fn index ->
-        {"source-#{index}", %{adapter: TcgCheap.Operations.ManualRefreshTestAdapter, options: []}}
-      end)
-
-    Application.put_env(:tcg_cheap, :sealed_retailer_adapters, too_many)
-    assert {:error, :manual_refresh_unavailable} = ManualRefresh.targets(admin)
-
-    Application.put_env(:tcg_cheap, :sealed_retailer_adapters, %{
-      String.duplicate("x", 145) => %{
-        adapter: TcgCheap.Operations.ManualRefreshTestAdapter,
-        options: []
-      }
-    })
-
-    assert {:error, :manual_refresh_unavailable} = ManualRefresh.targets(admin)
-  end
-
-  defp configure_retailer do
-    Application.put_env(:tcg_cheap, :sealed_retailer_adapters, %{
-      "manual-refresh-stub" => %{
-        adapter: TcgCheap.Operations.ManualRefreshTestAdapter,
-        options: []
-      }
-    })
-
+  defp configure_providers do
     Application.put_env(
       :tcg_cheap,
       :acquisition_budget,
-      budget([
-        provider("nbp"),
-        provider("tcgdex_catalogue"),
-        provider("sealed_retailer:manual-refresh-stub")
-      ])
+      budget([provider("nbp"), provider("tcgdex_catalogue")])
     )
-
-    Core.register_retailer!(%{
-      slug: "manual-refresh-#{System.unique_integer([:positive])}",
-      source_key: "manual-refresh-stub",
-      name: "Manual Refresh Shop",
-      category: "regular_retailer",
-      homepage_url: "https://example.test/manual-refresh",
-      source_payload: %{"secret" => "retailer-source-secret"}
-    })
   end
 
   defp admin do

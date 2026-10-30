@@ -2,9 +2,11 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
   @moduledoc "A bounded, read-only adapter for Cardmarket's Pokémon bulk files."
 
   @products_url "https://downloads.s3.cardmarket.com/productCatalog/productList/products_singles_6.json"
+  @sealed_products_url "https://downloads.s3.cardmarket.com/productCatalog/productList/products_nonsingles_6.json"
   @prices_url "https://downloads.s3.cardmarket.com/productCatalog/priceGuide/price_guide_6.json"
   @max_response_bytes 32 * 1024 * 1024
   @max_source_rows 100_000
+  @singles_category 51
   @metrics ~w(avg low trend avg1 avg7 avg30 avg-holo low-holo trend-holo avg1-holo avg7-holo avg30-holo)
   @malformed_provider_response {:error, {:malformed, :invalid_content_type}}
 
@@ -22,6 +24,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
 
   defmodule Product do
     @moduledoc "A validated Cardmarket product row."
+    @type t :: %__MODULE__{}
 
     defstruct [
       :id_product,
@@ -36,6 +39,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
 
   defmodule Price do
     @moduledoc "A validated Cardmarket price row and its selected metric."
+    @type t :: %__MODULE__{}
 
     defstruct [
       :id_product,
@@ -63,8 +67,16 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
   @doc "Fetch and parse the allowlisted Cardmarket price guide."
   def fetch_prices(opts \\ []), do: fetch(@prices_url, :prices, opts)
 
+  @doc "Fetch and parse the allowlisted Cardmarket sealed (non-singles) product file."
+  def fetch_sealed_products(opts \\ []), do: fetch(@sealed_products_url, :sealed_products, opts)
+
+  @doc "Fetch the price guide and keep only the sealed (non-singles) rows."
+  def fetch_sealed_prices(opts \\ []), do: fetch(@prices_url, :sealed_prices, opts)
+
   def parse_products(body, opts \\ []), do: parse(body, :products, opts)
   def parse_prices(body, opts \\ []), do: parse(body, :prices, opts)
+  def parse_sealed_products(body, opts \\ []), do: parse(body, :sealed_products, opts)
+  def parse_sealed_prices(body, opts \\ []), do: parse(body, :sealed_prices, opts)
 
   defp fetch(url, kind, opts) when is_list(opts) and is_map(opts) == false do
     if Keyword.keyword?(opts) and valid_options?(opts) do
@@ -180,9 +192,9 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
     end
   end
 
-  defp priceable_count(_rows, :products), do: 0
+  defp priceable_count(_rows, kind) when kind in [:products, :sealed_products], do: 0
 
-  defp priceable_count(rows, :prices),
+  defp priceable_count(rows, kind) when kind in [:prices, :sealed_prices],
     do: Enum.count(rows, &(!is_nil(&1.selected_value)))
 
   defp created_at(%{"version" => 1, "createdAt" => value}) when is_binary(value) do
@@ -199,8 +211,14 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
 
   defp created_at(_), do: {:error, :invalid_shape}
 
-  defp source_rows(%{"products" => rows}, :products) when is_list(rows), do: bounded_rows(rows)
-  defp source_rows(%{"priceGuides" => rows}, :prices) when is_list(rows), do: bounded_rows(rows)
+  defp source_rows(%{"products" => rows}, kind)
+       when is_list(rows) and kind in [:products, :sealed_products],
+       do: bounded_rows(rows)
+
+  defp source_rows(%{"priceGuides" => rows}, kind)
+       when is_list(rows) and kind in [:prices, :sealed_prices],
+       do: bounded_rows(rows)
+
   defp source_rows(_, _), do: {:error, :expected_rows_array}
 
   defp bounded_rows(rows) do
@@ -248,6 +266,56 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
     else
       false -> {:error, :wrong_category}
       {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp validate_row(row, :sealed_products) do
+    with {:ok, category_id} <- category_id(row),
+         true <- category_id != @singles_category,
+         {:ok, name} <- nonblank(row, "name"),
+         {:ok, expansion} <- nonnegative_integer(row, "idExpansion"),
+         {:ok, metacard} <- nonnegative_integer(row, "idMetacard"),
+         {:ok, category} <- nonblank(row, "categoryName"),
+         {:ok, date_added} <- nonblank(row, "dateAdded") do
+      {:ok,
+       %Product{
+         id_product: row["idProduct"],
+         name: name,
+         category: category,
+         category_id: category_id,
+         id_expansion: expansion,
+         id_metacard: metacard,
+         date_added: date_added
+       }}
+    else
+      false -> {:error, :wrong_category}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp validate_row(row, :sealed_prices) do
+    case category_id(row) do
+      {:ok, @singles_category} -> {:ok, nil}
+      {:ok, _category_id} -> validate_row(row, {:prices, :any_category})
+      error -> error
+    end
+  end
+
+  defp validate_row(row, {:prices, :any_category}) do
+    with {:ok, category_id} <- category_id(row),
+         {:ok, values} <- metrics(row) do
+      {metric, value} = selected_metric(values)
+
+      {:ok,
+       struct(
+         Price,
+         Map.merge(values, %{
+           id_product: row["idProduct"],
+           category_id: category_id,
+           selected_metric: metric,
+           selected_value: value
+         })
+       )}
     end
   end
 

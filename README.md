@@ -112,9 +112,7 @@ stale or unpriced values honestly. NBP acquisition remains. See the
 [operations guide](docs/deployment-and-operations.md) for sync checks, anomaly
 handling, forward-only migrations, and incident response.
 
-The six sealed schedules are Monday 01:00 UTC LootQuest, 02:00 CardzHouse,
-03:00 BoosterPoint, 04:00 PokeBooster, 05:00 Boosterland, and 06:00 Colligere.
-Budgets, rate limits, safety, attribution, and data minimization remain in force.
+The sealed buying guide is described in [Buying guide (sealed products)](#buying-guide-sealed-products).
 Cleanup release `f73af22656de11e5e84c6c301da560bdde719119` deployed on 2026-09-08;
 CI `34225801330` passed the canonical 1,065-test gate and container/database-image
 jobs. `/health` and `/health/live` returned 200 at the exact revision with the
@@ -124,6 +122,45 @@ Home/search, `/cards/sv08-238`, and `/trade?left=sv08-238:1` matched at EUR
 rollout/proxy 502 was transient and did not recur after traffic settled. The
 generated `pricing_checked_at` removal migration passed the configured release
 gate.
+
+## Buying guide (sealed products)
+
+The public buying guide (`/`, `/produkty/:slug`, Polish UI) answers one
+question: is today's lowest price for a sealed Pokémon TCG product good?
+
+- **Catalogue.** `TcgCheap.Sealed.CatalogueImportWorker` runs daily at 03:30
+  UTC (after the 03:00 Singles bulk sync). It downloads Cardmarket's public
+  `products_nonsingles_6.json` and the sealed rows of `price_guide_6.json`
+  through the bounded `TcgCheap.Pricing.CardmarketBulk.Adapter`, and upserts
+  every product except Coins and Lots (about 4,400 products, incl. cases and
+  non-English editions) with its kind, a set name derived from names sharing a
+  Cardmarket expansion, and the latest Cardmarket trend/low/avg in EUR.
+  Products missing from a later file are kept. Nothing is curated in code.
+- **Shops.** `TcgCheap.Sealed.FetchWorker` fetches LootQuest 04:00, CardzHouse
+  04:30, BoosterPoint 05:00, PokeBooster 05:30, Boosterland 06:00 and Colligere
+  06:30 UTC through their public WooCommerce Store API (fixed host, at most
+  3–10 pages, 2 MB per page, no redirects, strict field validation). A
+  successful fetch upserts offers, re-matches every stored offer, records
+  today's lowest in-stock price per product and refreshes product
+  availability and images; a failed fetch writes nothing and Oban retries.
+- **Matching** (`TcgCheap.Sealed.Matcher`) is automatic: every word of a
+  Cardmarket name must appear in the shop title, every kind/edition word of
+  the title (box, case, half, mini, center, JP, …) must appear in the name,
+  at most two title words may stay unexplained, and the most specific product
+  wins; ties stay unmatched. Preorders, multi-item bundles, empty boxes and
+  accessories are excluded. An EAN seen on a manually assigned offer wins.
+- **Manual fixes.** `/admin/buying-guide` lists per-shop fetch results and the
+  current unmatched offers. An administrator can assign an offer to any
+  catalogue product (search by name) or clear that assignment; automatic
+  matching never overwrites a manual assignment. This is the only write action.
+- **Verdict** (`TcgCheap.Sealed.PriceGuide`): the typical price is the median
+  of the daily lowest Polish in-stock price over the last 30 days when there
+  are at least 7 stocked days, otherwise the Cardmarket trend converted with
+  the latest stored NBP EUR/PLN rate ("według Cardmarket"). Good ≤ 95%,
+  normal ≤ 110%, expensive above; limits in whole złoty. MSRP is never used.
+- **Stop.** Disable a shop by removing its cron entry (or its entry in
+  `TcgCheap.Sealed.Shops`) and deploying; already stored offers stop counting
+  after 3 days.
 
 ## Historical/superseded production notes
 
@@ -164,7 +201,5 @@ The curated implementation is deployed, but production completion remains
 unverified/incomplete. Retained completed bootstrap and child jobs remain deduplicated while
 the configured seven-day Oban Pruner retains them. Each child permits at most two
 TCGdex requests per card per attempt.
-The sealed registry and weekly Cron are deployed, but manual jobs 916/917/918,
-refresh 920, and aggregate 921 have unverified completion; public search for
-`151 Booster Bundle` returned no product, so approved sealed catalogue/mappings
-remain incomplete.
+The former sealed registry, weekly retailer Cron and mapping review were removed
+on 2026-10-30 and replaced by the buying guide above.

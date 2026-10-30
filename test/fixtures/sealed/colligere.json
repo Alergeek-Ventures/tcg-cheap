@@ -1,0 +1,139 @@
+[
+ {
+  "id": 16799,
+  "name": "Pokémon TCG: Mega Evolution &#8211; Pitch Black &#8211; Booster",
+  "permalink": "https://colligere.pl/sklep/pokemon-tcg-mega-evolution-pitch-black-booster/",
+  "sku": "",
+  "prices": {
+   "price": "2495",
+   "regular_price": "2495",
+   "sale_price": "2495",
+   "price_range": null,
+   "currency_code": "PLN",
+   "currency_symbol": "zł",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": "",
+   "currency_prefix": "",
+   "currency_suffix": " zł"
+  },
+  "images": [
+   {
+    "src": "https://colligere.pl/wp-content/uploads/2026/06/Mega_Evolution__Pitch_Black_Booster_Mega_Chandelure.webp"
+   }
+  ],
+  "categories": [
+   {
+    "slug": "pitch-black"
+   },
+   {
+    "slug": "pokemon-tcg"
+   }
+  ],
+  "is_purchasable": true,
+  "is_in_stock": true,
+  "is_on_backorder": false
+ },
+ {
+  "id": 16639,
+  "name": "Pokémon TCG: Mega Evolution &#8211; Pitch Black &#8211; Booster Box",
+  "permalink": "https://colligere.pl/sklep/pokemon-tcg-mega-evolution-pitch-black-booster-box/",
+  "sku": "",
+  "prices": {
+   "price": "79994",
+   "regular_price": "79994",
+   "sale_price": "79994",
+   "price_range": null,
+   "currency_code": "PLN",
+   "currency_symbol": "zł",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": "",
+   "currency_prefix": "",
+   "currency_suffix": " zł"
+  },
+  "images": [
+   {
+    "src": "https://colligere.pl/wp-content/uploads/2026/06/Mega_Evolution__Pitch_Black_Booster_Box_od_lewej.webp"
+   }
+  ],
+  "categories": [
+   {
+    "slug": "pitch-black"
+   },
+   {
+    "slug": "pokemon-tcg"
+   }
+  ],
+  "is_purchasable": true,
+  "is_in_stock": true,
+  "is_on_backorder": false
+ },
+ {
+  "id": 16681,
+  "name": "Pokémon TCG: Lumiose City Min Tin &#8211; Gallade",
+  "permalink": "https://colligere.pl/sklep/pokemon-tcg-lumiose-city-min-tin-gallade/",
+  "sku": "",
+  "prices": {
+   "price": "5495",
+   "regular_price": "5495",
+   "sale_price": "5495",
+   "price_range": null,
+   "currency_code": "PLN",
+   "currency_symbol": "zł",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": "",
+   "currency_prefix": "",
+   "currency_suffix": " zł"
+  },
+  "images": [
+   {
+    "src": "https://colligere.pl/wp-content/uploads/2026/06/pokemon-mini-tin-Gallade.webp"
+   }
+  ],
+  "categories": [
+   {
+    "slug": "pokemon-tcg"
+   }
+  ],
+  "is_purchasable": true,
+  "is_in_stock": true,
+  "is_on_backorder": false
+ },
+ {
+  "id": 17204,
+  "name": "Pokémon TCG: 30th Celebration &#8211; Mini Tin &#8211; Night &#8211; Greninja",
+  "permalink": "https://colligere.pl/sklep/pokemon-tcg-30th-celebration-mini-tin-night-greninja/",
+  "sku": "",
+  "prices": {
+   "price": "9495",
+   "regular_price": "9495",
+   "sale_price": "9495",
+   "price_range": null,
+   "currency_code": "PLN",
+   "currency_symbol": "zł",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": "",
+   "currency_prefix": "",
+   "currency_suffix": " zł"
+  },
+  "images": [
+   {
+    "src": "https://colligere.pl/wp-content/uploads/2026/09/Pokemon_30th_Mini_Tin_Night_Greninja_przod.webp"
+   }
+  ],
+  "categories": [
+   {
+    "slug": "30th-celebration"
+   },
+   {
+    "slug": "pokemon-tcg"
+   }
+  ],
+  "is_purchasable": true,
+  "is_in_stock": true,
+  "is_on_backorder": false
+ }
+]

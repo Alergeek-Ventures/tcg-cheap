@@ -1,36 +1,24 @@
 defmodule TcgCheap.Catalogue.ExternalImageTest do
-  use TcgCheap.DataCase, async: false
+  use ExUnit.Case, async: true
 
   alias TcgCheap.Catalogue.ExternalImage
-  alias TcgCheap.Repo
+  alias TcgCheap.Sealed.Shops
 
-  test "accepts every exact official image host" do
-    for host <- ["assets.tcgdex.net", "assets.pokemon.com", "www.pokemon.com", "mcdn.pokemon.com"] do
+  test "accepts every exact official and shop image host" do
+    for host <-
+          ["assets.tcgdex.net", "assets.pokemon.com", "www.pokemon.com", "mcdn.pokemon.com"] ++
+            Shops.hosts() do
       assert ExternalImage.valid?("https://#{host}/image.webp")
       assert ExternalImage.valid?("https://#{host}:443/image.webp")
     end
   end
 
-  test "accepts retailer roots and proper subdomains" do
-    for root <- [
-          "lootquest.pl",
-          "cardzhouse.pl",
-          "boosterpoint.pl",
-          "pokebooster.pl",
-          "boosterland.pl",
-          "colligere.pl"
-        ] do
-      assert ExternalImage.valid?("https://#{root}/wp-content/image.webp", [root])
-      assert ExternalImage.valid?("https://cdn.images.#{root}/image.webp", [root])
-    end
-  end
-
-  test "rejects unrelated and deceptive suffix hosts" do
+  test "rejects unrelated, deceptive and subdomain hosts" do
     for host <- [
           "example.com",
           "evilcardzhouse.pl",
           "cardzhouse.pl.evil.example",
-          "notlootquest.pl",
+          "cdn.lootquest.pl",
           "assets.tcgdex.net.evil.example",
           "mcdn.pokemon.com.evil.example"
         ] do
@@ -38,60 +26,25 @@ defmodule TcgCheap.Catalogue.ExternalImageTest do
     end
   end
 
-  test "rejects retailer pseudo-subdomains with non-PostgreSQL labels" do
-    refute ExternalImage.valid?("https://bad_host.lootquest.pl/image.webp", ["lootquest.pl"])
-  end
-
-  test "rejects credentials, non-HTTPS URLs, whitespace and control characters" do
+  test "rejects credentials, non-HTTPS URLs, other ports, whitespace and control characters" do
     for url <- [
           "https://user:pass@assets.pokemon.com/image.webp",
           "http://assets.pokemon.com/image.webp",
+          "https://assets.pokemon.com:444/image.webp",
+          "https://assets.pokemon.com:bad/path",
           "https://assets.pokemon.com/image with-space.webp",
           "https://assets.pokemon.com/image\u0000.webp",
-          "https://assets.pokemon.com/image\n.webp"
+          "https://assets.pokemon.com/image\n.webp",
+          nil
         ] do
       refute ExternalImage.valid?(url)
     end
   end
 
-  test "rejects non-default HTTPS ports" do
-    refute ExternalImage.valid?("https://assets.pokemon.com:444/image.webp")
-    refute ExternalImage.valid?("https://assets.pokemon.com:bad/path")
-    refute ExternalImage.valid?("https://cdn.lootquest.pl:8443/image.webp", ["lootquest.pl"])
-  end
-
-  test "the database pattern has the same default-port and rejection policy" do
-    matches? = fn url ->
-      [[matches]] =
-        Repo.query!("SELECT $1 ~* $2", [url, ExternalImage.postgres_allowlisted_url_pattern()]).rows
-
-      matches
-    end
-
-    for url <- [
-          "https://assets.pokemon.com/image.webp",
-          "https://assets.pokemon.com:443/image.webp",
-          "https://cdn.boosterland.pl/image.webp",
-          "https://images.colligere.pl/image.webp"
-        ] do
-      assert matches?.(url)
-    end
-
-    for url <- [
-          "https://assets.pokemon.com:444/image.webp",
-          "https://user:pass@assets.pokemon.com/image.webp",
-          "https://assets.pokemon.com.evil.example/image.webp",
-          "https://bad_host.lootquest.pl/image.webp",
-          "https://assets.pokemon.com:bad/path",
-          "https://assets.pokemon.com/image with-space.webp",
-          "https://assets.pokemon.com/image\u0001.webp"
-        ] do
-      refute matches?.(url)
-    end
-  end
-
-  test "preserves implicit HTTPS port" do
-    assert ExternalImage.valid?("https://assets.pokemon.com/image.webp")
-    assert ExternalImage.valid?("https://cdn.lootquest.pl/image.webp", ["lootquest.pl"])
+  test "CSP sources list exactly the allowed hosts" do
+    sources = ExternalImage.csp_sources()
+    assert "https://colligere.pl" in sources
+    assert "https://www.pokemon.com" in sources
+    refute Enum.any?(sources, &String.contains?(&1, "*"))
   end
 end

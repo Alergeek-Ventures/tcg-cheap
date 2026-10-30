@@ -135,6 +135,7 @@ defmodule TcgCheapWeb.CardDetailLive do
           <.link id="archive-wordmark" navigate={~p"/"} class="archive-wordmark"><.fluent_icon name={
             :gift_card_add
           } />TCG CHEAP</.link>
+          <TcgCheapWeb.GuideComponents.site_nav />
         </header>
         <main id="card-detail-main" class="archive-main">
           <div class="archive-container">
@@ -580,6 +581,7 @@ defmodule TcgCheapWeb.CardDetailLive do
           <.link id="archive-wordmark" navigate={~p"/"} class="archive-wordmark"><.fluent_icon name={
             :gift_card_add
           } />TCG CHEAP</.link>
+          <TcgCheapWeb.GuideComponents.site_nav />
         </header><main class="archive-main">
           <section id="card-detail-not-found" class="state-note state-error">
             <h1>Card printing not found</h1><p>

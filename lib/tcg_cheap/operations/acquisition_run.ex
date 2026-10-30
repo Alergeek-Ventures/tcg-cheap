@@ -43,7 +43,7 @@ defmodule TcgCheap.Operations.AcquisitionRun do
 
       check_constraint [:operation], "acquisition_runs_operation_invariant",
         check:
-          "operation IN ('single_valuation','exchange_rate','sealed_retailer_refresh','card_catalogue_sync','card_catalogue_enrichment','cardmarket_bulk_sync')"
+          "operation IN ('single_valuation','exchange_rate','card_catalogue_sync','card_catalogue_enrichment','cardmarket_bulk_sync')"
     end
   end
 
@@ -103,7 +103,6 @@ defmodule TcgCheap.Operations.AcquisitionRun do
       validate one_of(:operation, [
                  "single_valuation",
                  "exchange_rate",
-                 "sealed_retailer_refresh",
                  "card_catalogue_sync",
                  "card_catalogue_enrichment",
                  "cardmarket_bulk_sync"
