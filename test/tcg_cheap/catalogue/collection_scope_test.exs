@@ -48,8 +48,6 @@ defmodule TcgCheap.Catalogue.CollectionScopeTest do
     assert bulk_card.id == card.id
     assert {:ok, [search_card]} = Core.search_public_card_printings(id)
     assert search_card.id == card.id
-    assert {:ok, recent} = Core.list_public_recently_tracked_card_printings()
-    assert Enum.any?(recent, &(&1.id == card.id))
   end
 
   test "expired locally imported rows remain public while scope metadata remains separate" do

@@ -13,7 +13,7 @@ defmodule TcgCheap.Sealed.Product do
   alias TcgCheap.Sealed.Preparations.Browse
 
   postgres do
-    table "sealed_catalogue_products"
+    table "sealed_products"
     repo TcgCheap.Repo
 
     custom_indexes do

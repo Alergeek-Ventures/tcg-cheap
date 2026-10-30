@@ -140,9 +140,6 @@ defmodule TcgCheap.Core do
         action: :public_by_tcgdex_ids,
         args: [:tcgdex_ids]
 
-      define :list_recently_tracked_card_printings, action: :recently_tracked
-      define :list_public_recently_tracked_card_printings, action: :public_recently_tracked
-
       define :search_card_printings,
         action: :search,
         args: [:query, {:optional, :limit}]
@@ -198,10 +195,6 @@ defmodule TcgCheap.Core do
       define :list_single_valuation_history_since,
         action: :history_since_for_card_and_policy,
         args: [:card_printing_id, :policy_version, :cardmarket_product_id, :since]
-
-      define :list_homepage_price_changes,
-        action: :homepage_price_changes,
-        args: [:as_of, {:optional, :limit}]
 
       define :list_admin_single_valuation_snapshots, action: :admin_catalogue
     end

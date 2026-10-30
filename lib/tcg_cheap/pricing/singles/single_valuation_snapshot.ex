@@ -102,14 +102,6 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
       prepare build(sort: [fetched_at: :asc, id: :asc])
     end
 
-    action :homepage_price_changes, {:array, :struct} do
-      constraints items: [instance_of: TcgCheap.Pricing.Singles.HomepagePriceChange]
-      argument :as_of, :utc_datetime_usec, allow_nil?: false
-      argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 10]
-
-      run TcgCheap.Pricing.Singles.Actions.HomepagePriceChanges
-    end
-
     read :admin_catalogue do
       prepare build(
                 load: [:card_printing],
@@ -125,8 +117,7 @@ defmodule TcgCheap.Pricing.Singles.SingleValuationSnapshot do
              :current_for_card,
              :current_for_card_and_policy,
              :history_for_card_and_policy,
-             :history_since_for_card_and_policy,
-             :homepage_price_changes
+             :history_since_for_card_and_policy
            ]) do
       authorize_if always()
     end
