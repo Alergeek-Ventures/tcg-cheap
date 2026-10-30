@@ -31,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           image="$(awk '$1 == "image:" { print $2; exit }' local/compose.yml)"
-          expected='docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649495964b296ad7c0931658dbf99d3cf1b35bc994'
+          expected='docker.io/paradedb/paradedb:v0.26.4-pg18@sha256:4abbafffb4e59e679821c5882faf91c494022bb3242fc73b789e753f43df1361'
           test "$image" = "$expected"
           printf 'image=%s\n' "$image" >> "$GITHUB_OUTPUT"
 

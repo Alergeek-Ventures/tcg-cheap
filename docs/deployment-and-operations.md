@@ -13,7 +13,7 @@ in Coolify).
 The Coolify PostgreSQL service must use this exact validated ParadeDB image:
 
 ```text
-docker.io/paradedb/paradedb:v0.25.2-pg18@sha256:f34b716407b4d509d3e59e649495964b296ad7c0931658dbf99d3cf1b35bc994
+docker.io/paradedb/paradedb:v0.26.4-pg18@sha256:4abbafffb4e59e679821c5882faf91c494022bb3242fc73b789e753f43df1361
 ```
 
 Use a persistent volume compatible with this ParadeDB PostgreSQL 18 target,
@@ -78,9 +78,9 @@ into the image.
 
 ## Database and release migrations
 
-ParadeDB **v0.25.2-pg18 is the pinned, validated production target**. This
-image currently bundles PostgreSQL **18.4**, ships `pg_search` **0.25.2** and
-`pgvector` **0.8.4**, may bootstrap extension installation on fresh databases,
+ParadeDB **v0.26.4-pg18 is the pinned, validated production target**. This
+image currently bundles PostgreSQL **18.6**, ships `pg_search` **0.26.4** and
+`pgvector` **0.8.6**, may bootstrap extension installation on fresh databases,
 and is the database image used by local Compose and CI. TCG Cheap-owned
 migrations, resources, and queries currently use only its existing Ash
 functions, `citext`, `pg_trgm`, and trigram queries; they do not depend on or
@@ -91,10 +91,13 @@ restarted blindly. That setting takes effect on the next intentional
 `mix dev.down`/`mix dev.up` recreation, while production changes remain
 operator-controlled.
 
-The current stock PostgreSQL minor release is **18.6**, so this target carries
-an honest minor-version tradeoff: the chosen current ParadeDB build bundles
-18.4. Update the pinned ParadeDB image when a validated build includes newer
-PostgreSQL fixes. Any future use of `pg_search` or vector features requires
+The bundled PostgreSQL matches the current stock minor release, **18.6**.
+Update the pinned ParadeDB image when a validated build includes newer
+PostgreSQL fixes. A database bootstrapped by an older ParadeDB image keeps the
+older `pg_search` and `vector` extension versions in its catalog after the
+image is upgraded; after backing up, update them in each database with
+`ALTER EXTENSION pg_search UPDATE;` and `ALTER EXTENSION vector UPDATE;`.
+Any future use of `pg_search` or vector features requires
 generated migrations, application/query integration, tests, and upgrade and
 backup/restore validation first.
 
