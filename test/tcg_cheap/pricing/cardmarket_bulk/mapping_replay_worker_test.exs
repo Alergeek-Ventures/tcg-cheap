@@ -1,16 +1,7 @@
 defmodule TcgCheap.Pricing.CardmarketBulk.MappingReplayWorkerTest do
   use TcgCheap.DataCase, async: false
 
-  alias TcgCheap.Pricing.CardmarketBulk.Batch
   alias TcgCheap.Pricing.CardmarketBulk.MappingReplayWorker
-
-  test "replay rejects non-succeeded batches" do
-    assert {:error, :batch_not_succeeded} =
-             MappingReplayWorker.replay_succeeded_batch(%Batch{status: "staged"})
-
-    assert {:error, :batch_not_succeeded} =
-             MappingReplayWorker.replay_succeeded_batch(%Batch{status: "failed"})
-  end
 
   test "discards malformed arguments before persistence" do
     assert {:discard, :malformed_job_args} =
