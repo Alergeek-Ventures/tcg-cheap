@@ -27,6 +27,7 @@ defmodule TcgCheap.Sealed do
       define :upsert_offer, action: :upsert
       define :match_offer, action: :match, args: [:product_id]
       define :assign_offer_manually, action: :assign_manually, args: [:product_id]
+      define :exclude_offer_manually, action: :exclude_manually
       define :clear_manual_offer, action: :clear_manual
       define :get_offer, action: :read, get_by: [:id]
       define :list_offers, action: :read

@@ -82,10 +82,63 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLiveTest do
     refute Sealed.get_offer!(offer.id).manual?
   end
 
-  test "has no write controls other than assignment", %{conn: conn} do
+  test "fixes a wrong automatic match by reassigning it or keeping it unmatched", %{
+    conn: conn,
+    products: products
+  } do
+    box = products["Pitch Black Booster Box"]
+    binacle = products["Pitch Black: Binacle 3-Pack Blister"]
+    at = DateTime.utc_now()
+
+    wrong =
+      offer!(
+        title: "Pokémon TCG: Pitch Black – Booster Box",
+        product_id: box.id,
+        last_seen_at: at
+      )
+
+    other =
+      offer!(
+        title: "Pokémon TCG: Pitch Black – Booster Box (2)",
+        product_id: box.id,
+        last_seen_at: at
+      )
+
     {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/buying-guide")
-    refute has_element?(view, "#admin-buying-guide form")
+    assert has_element?(view, "#matched-#{wrong.id}", "Pitch Black Booster Box")
+
+    view
+    |> form("#buying-guide-matched-filter", %{matched_filter: %{title: "(2)"}})
+    |> render_change()
+
+    refute has_element?(view, "#matched-#{wrong.id}")
+    assert has_element?(view, "#matched-#{other.id}")
+
+    view |> element("#exclude-#{other.id}") |> render_click()
+    assert has_element?(view, "#manual-#{other.id}", "Never matched")
+    refute has_element?(view, "#unmatched-#{other.id}")
+    assert %{manual?: true, product_id: nil} = Sealed.get_offer!(other.id)
+
+    view
+    |> form("#buying-guide-matched-filter", %{matched_filter: %{title: ""}})
+    |> render_change()
+
+    view |> element("#reassign-#{wrong.id}") |> render_click()
+
+    view
+    |> form("#buying-guide-product-search", %{product_search: %{query: "binacle"}})
+    |> render_change()
+
+    view |> element("#assign-#{binacle.id}") |> render_click()
+    assert has_element?(view, "#manual-#{wrong.id}", "Pitch Black: Binacle 3-Pack Blister")
+    assert %{manual?: true} = stored = Sealed.get_offer!(wrong.id)
+    assert stored.product_id == binacle.id
+  end
+
+  test "starts with empty queues", %{conn: conn} do
+    {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/buying-guide")
     assert has_element?(view, "#buying-guide-unmatched-empty")
+    assert has_element?(view, "#buying-guide-matched-empty")
     assert has_element?(view, "#buying-guide-manual-empty")
   end
 

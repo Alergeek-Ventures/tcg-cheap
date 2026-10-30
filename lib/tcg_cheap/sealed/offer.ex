@@ -68,6 +68,12 @@ defmodule TcgCheap.Sealed.Offer do
       validate present(:product_id)
     end
 
+    update :exclude_manually do
+      description "Keeps the offer unmatched for good, e.g. after a wrong automatic match."
+      change set_attribute(:manual?, true)
+      change set_attribute(:product_id, nil)
+    end
+
     update :clear_manual do
       change set_attribute(:manual?, false)
       change set_attribute(:product_id, nil)
