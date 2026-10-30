@@ -4,7 +4,6 @@ defmodule TcgCheap.Accounts.AuthenticationTest do
   alias TcgCheap.Accounts
   alias TcgCheap.Accounts.Admin
   alias TcgCheap.Accounts.Token
-  alias TcgCheap.Core
 
   test "explicit provisioning and password sign-in return a stored token" do
     email = unique_email()
@@ -79,25 +78,6 @@ defmodule TcgCheap.Accounts.AuthenticationTest do
                },
                authorize?: false
              )
-  end
-
-  test "sealed review actions require an administrator actor" do
-    admin = provision_admin(unique_email())
-
-    draft =
-      Core.create_sealed_product_draft!(%{
-        slug: "authorized-review-#{System.unique_integer([:positive])}",
-        name: "Authorized Review Product",
-        product_type: "tin",
-        officially_distributed: true,
-        release_date: Date.utc_today()
-      })
-
-    input = %{expected_updated_at: draft.updated_at}
-
-    assert {:error, %Ash.Error.Forbidden{}} = Core.approve_sealed_product(draft, input)
-    assert {:ok, approved} = Core.approve_sealed_product(draft, input, actor: admin)
-    assert approved.publication_status == "approved"
   end
 
   test "ordinary admin reads are not anonymously open" do

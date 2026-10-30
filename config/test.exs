@@ -42,3 +42,7 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# The buying-guide fetch never reaches the network in tests.
+config :tcg_cheap, TcgCheap.Sealed.FetchWorker,
+  req_options: [plug: {Req.Test, TcgCheap.Sealed.WooCommerce}]

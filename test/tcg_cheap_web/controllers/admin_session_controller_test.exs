@@ -13,7 +13,7 @@ defmodule TcgCheapWeb.AdminSessionControllerTest do
     assert document |> LazyHTML.query("a[href*='register']") |> Enum.empty?()
   end
 
-  test "password sign-in renews the session and grants review access", %{conn: conn} do
+  test "password sign-in renews the session and grants buying-guide access", %{conn: conn} do
     email = unique_email()
     provision_admin(email, "correct horse battery staple")
 
@@ -22,15 +22,15 @@ defmodule TcgCheapWeb.AdminSessionControllerTest do
         "admin" => %{"email" => email, "password" => "correct horse battery staple"}
       })
 
-    assert redirected_to(conn) == ~p"/admin/review"
+    assert redirected_to(conn) == ~p"/admin/buying-guide"
 
-    assert {:ok, view, _html} = conn |> recycle() |> live(~p"/admin/review")
-    assert has_element?(view, "#admin-review")
+    assert {:ok, view, _html} = conn |> recycle() |> live(~p"/admin/buying-guide")
+    assert has_element?(view, "#admin-buying-guide")
     assert has_element?(view, "#admin-catalogue-sign-out")
   end
 
   test "an unauthenticated review request redirects to sign in", %{conn: conn} do
-    assert {:error, {:redirect, %{to: "/admin/sign-in"}}} = live(conn, ~p"/admin/review")
+    assert {:error, {:redirect, %{to: "/admin/sign-in"}}} = live(conn, ~p"/admin/buying-guide")
   end
 
   test "authentication failures remain generic", %{conn: conn} do

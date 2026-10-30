@@ -13,9 +13,9 @@ defmodule TcgCheapWeb.AdminSurfacesTest do
       assert redirected_to(get(conn, ~p"/admin/oban")) == "/admin/sign-in"
     end
 
-    test "an unauthenticated targeted review route redirects to sign in", %{conn: conn} do
+    test "an unauthenticated buying-guide admin route redirects to sign in", %{conn: conn} do
       assert {:error, {:redirect, %{to: "/admin/sign-in"}}} =
-               live(conn, ~p"/admin/review/mappings/00000000-0000-0000-0000-000000000000")
+               live(conn, ~p"/admin/buying-guide")
     end
 
     test "an authenticated administrator can render the runtime dashboard", %{conn: conn} do
@@ -70,7 +70,7 @@ defmodule TcgCheapWeb.AdminSurfacesTest do
     end
 
     test "the admin sidebar links to both runtime surfaces", %{conn: conn} do
-      assert {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/review")
+      assert {:ok, view, _html} = live(authenticated_conn(conn), ~p"/admin/buying-guide")
 
       assert has_element?(
                view,

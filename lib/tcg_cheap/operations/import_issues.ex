@@ -1,5 +1,5 @@
 defmodule TcgCheap.Operations.ImportIssues do
-  @moduledoc "The sole normalization boundary for retained catalogue and sealed-retailer import issues."
+  @moduledoc "The sole normalization boundary for retained catalogue import issues."
 
   alias TcgCheap.Catalogue.Tcgdex
   alias TcgCheap.Operations
@@ -332,18 +332,7 @@ defmodule TcgCheap.Operations.ImportIssues do
 
   defp clock(_), do: {:error, :invalid_clock}
 
-  defp valid_text?(value, max),
-    do: is_binary(value) and byte_size(value) in 1..max and value == String.trim(value)
-
   defp valid_target_key?("catalogue", "tcgdex"), do: true
-
-  defp valid_target_key?("retailer", value) do
-    valid_text?(value, 36) and
-      Regex.match?(
-        ~r/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/,
-        value
-      ) and value == String.downcase(value)
-  end
 
   defp valid_target_key?("set", value), do: Tcgdex.valid_set_id?(value)
   defp valid_target_key?("card", value), do: Tcgdex.valid_card_id?(value)
@@ -356,15 +345,9 @@ defmodule TcgCheap.Operations.ImportIssues do
       valid_target_key?(target_type, target_key)
   end
 
-  defp valid_provider?(provider), do: provider in @providers or sealed_provider?(provider)
-
-  defp sealed_provider?(provider) when is_binary(provider),
-    do: Regex.match?(~r/\Asealed_retailer:[A-Za-z0-9][A-Za-z0-9._-]{0,143}\z/, provider)
-
-  defp sealed_provider?(_), do: false
+  defp valid_provider?(provider), do: provider in @providers
 
   defp valid_operation?("tcgdex_catalogue", operation), do: operation in @operations
-  defp valid_operation?(provider, "sealed_retailer_refresh"), do: sealed_provider?(provider)
   defp valid_operation?(_, _), do: false
 
   defp valid_stage?("card_catalogue_sync", stage),
@@ -380,9 +363,6 @@ defmodule TcgCheap.Operations.ImportIssues do
   defp valid_stage?("card_catalogue_enrichment", stage),
     do: stage in ["set_fetch", "set_validation", "set_import", "card_fetch", "card_import"]
 
-  defp valid_stage?("sealed_retailer_refresh", stage),
-    do: stage in ["retailer_fetch", "listing_validation", "listing_import"]
-
   defp valid_stage?(_, _), do: false
 
   defp valid_target_type?(_, stage, "catalogue"),
@@ -392,9 +372,6 @@ defmodule TcgCheap.Operations.ImportIssues do
     do: stage in ["set_fetch", "set_validation", "set_import"]
 
   defp valid_target_type?(_, stage, "card"), do: stage in ["card_fetch", "card_import"]
-
-  defp valid_target_type?("sealed_retailer_refresh", stage, "retailer"),
-    do: stage in ["retailer_fetch", "listing_validation", "listing_import"]
 
   defp valid_target_type?(_, _, _), do: false
 end

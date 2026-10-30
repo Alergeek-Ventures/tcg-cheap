@@ -1,0 +1,206 @@
+[
+ {
+  "id": 50090,
+  "name": "Pokémon TCG: Mega Evolution &#8211; Pitch Black &#8211; Booster Box",
+  "permalink": "https://cardzhouse.pl/product/pokemon-tcg-mega-evolution-pitch-black-booster-box/",
+  "sku": "4690",
+  "prices": {
+   "price": "89999",
+   "regular_price": "89999",
+   "sale_price": "89999",
+   "price_range": null,
+   "currency_code": "PLN",
+   "currency_symbol": "zł",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "",
+   "currency_suffix": " zł"
+  },
+  "images": [
+   {
+    "src": "https://cardzhouse.pl/wp-content/uploads/2026/05/Pokemon-TCG-Mega-Evolution-Pitch-Black-Booster-Display.png"
+   }
+  ],
+  "categories": [
+   {
+    "slug": "booster-boxy"
+   },
+   {
+    "slug": "pokemon"
+   }
+  ],
+  "is_purchasable": true,
+  "is_in_stock": true,
+  "is_on_backorder": false
+ },
+ {
+  "id": 50091,
+  "name": "Pokémon TCG: Mega Evolution &#8211; Pitch Black. &#8211; Booster",
+  "permalink": "https://cardzhouse.pl/product/pokemon-tcg-mega-evolution-pitch-black-booster/",
+  "sku": "4691",
+  "prices": {
+   "price": "2799",
+   "regular_price": "2799",
+   "sale_price": "2799",
+   "price_range": null,
+   "currency_code": "PLN",
+   "currency_symbol": "zł",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "",
+   "currency_suffix": " zł"
+  },
+  "images": [
+   {
+    "src": "https://cardzhouse.pl/wp-content/uploads/2026/05/Pokemon-TCG-Mega-Evolution-Pitch-Black-Booster.png"
+   }
+  ],
+  "categories": [
+   {
+    "slug": "boostery"
+   },
+   {
+    "slug": "pokemon"
+   }
+  ],
+  "is_purchasable": true,
+  "is_in_stock": true,
+  "is_on_backorder": false
+ },
+ {
+  "id": 58884,
+  "name": "Pokémon TCG – Mega Evolution: Chaos Rising – Half Booster Box",
+  "permalink": "https://cardzhouse.pl/product/pokemon-tcg-mega-evolution-chaos-rising-half-booster-box/",
+  "sku": "4867",
+  "prices": {
+   "price": "49999",
+   "regular_price": "49999",
+   "sale_price": "49999",
+   "price_range": null,
+   "currency_code": "PLN",
+   "currency_symbol": "zł",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "",
+   "currency_suffix": " zł"
+  },
+  "images": [
+   {
+    "src": "https://cardzhouse.pl/wp-content/uploads/2026/10/Pokemon-TCG-Mega-Evolution-Chaos-Rising-Half-Booster-Box-1.png"
+   }
+  ],
+  "categories": [
+   {
+    "slug": "booster-boxy"
+   },
+   {
+    "slug": "pokemon"
+   }
+  ],
+  "is_purchasable": true,
+  "is_in_stock": true,
+  "is_on_backorder": false
+ },
+ {
+  "id": 48485,
+  "name": "Pokémon TCG: Mega Evolution &#8211; Ascended Heroes &#8211; Meganium ex/Emboar ex Box/Feraligatr ex Box",
+  "permalink": "https://cardzhouse.pl/product/pokemon-tcg-mega-evolution-ascended-heroes-meganium-ex-emboar-ex-box-feraligatr-ex-box/",
+  "sku": "4669-4671",
+  "prices": {
+   "price": "24999",
+   "regular_price": "24999",
+   "sale_price": "24999",
+   "price_range": null,
+   "currency_code": "PLN",
+   "currency_symbol": "zł",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "",
+   "currency_suffix": " zł"
+  },
+  "images": [
+   {
+    "src": "https://cardzhouse.pl/wp-content/uploads/2026/04/Pokemon-TCG-Mega-Evolution-Ascended-Heroes-Meganium-exEmboar-ex-BoxFeraligatr-ex.png"
+   }
+  ],
+  "categories": [
+   {
+    "slug": "pokemon"
+   },
+   {
+    "slug": "premium-boxy"
+   }
+  ],
+  "is_purchasable": true,
+  "is_in_stock": true,
+  "is_on_backorder": false
+ },
+ {
+  "id": 44723,
+  "name": "Pokémon TCG: Mega Charizard Tin &#8211; Mega Charizard",
+  "permalink": "https://cardzhouse.pl/product/pokemon-tcg-mega-charizard-tin-mega-charizard/",
+  "sku": "4605",
+  "prices": {
+   "price": "19999",
+   "regular_price": "19999",
+   "sale_price": "19999",
+   "price_range": null,
+   "currency_code": "PLN",
+   "currency_symbol": "zł",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "",
+   "currency_suffix": " zł"
+  },
+  "images": [
+   {
+    "src": "https://cardzhouse.pl/wp-content/uploads/2026/02/Pokemon-TCG-Mega-Charizard-Tin-Mega-Charizard.png"
+   }
+  ],
+  "categories": [
+   {
+    "slug": "puszki"
+   }
+  ],
+  "is_purchasable": true,
+  "is_in_stock": true,
+  "is_on_backorder": false
+ },
+ {
+  "id": 38697,
+  "name": "Pokémon TCG: Scarlet &amp; Violet &#8211; Destined Rivals Elite Trainer Box",
+  "permalink": "https://cardzhouse.pl/product/pokemon-tcg-scarlet-violet-destined-rivals-elite-trainer-box/",
+  "sku": "4403",
+  "prices": {
+   "price": "57999",
+   "regular_price": "57999",
+   "sale_price": "57999",
+   "price_range": null,
+   "currency_code": "PLN",
+   "currency_symbol": "zł",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": ".",
+   "currency_prefix": "",
+   "currency_suffix": " zł"
+  },
+  "images": [
+   {
+    "src": "https://cardzhouse.pl/wp-content/uploads/2025/11/pokemon-tcg-scarlet-and-violet-destined-rivals-elite-trainer-box.png"
+   }
+  ],
+  "categories": [
+   {
+    "slug": "elite-trainer-boxy"
+   }
+  ],
+  "is_purchasable": true,
+  "is_in_stock": true,
+  "is_on_backorder": false
+ }
+]

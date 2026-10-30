@@ -42,7 +42,7 @@ defmodule TcgCheapWeb.Router do
     live "/", HomeLive
     live "/trade", TradeLive
     live "/cards/:tcgdex_id", CardDetailLive
-    live "/sealed/:slug", SealedProductDetailLive
+    live "/produkty/:slug", ProductLive
   end
 
   scope "/admin", TcgCheapWeb do
@@ -83,20 +83,10 @@ defmodule TcgCheapWeb.Router do
 
     ash_authentication_live_session :admin_review,
       on_mount: [Backpex.InitAssigns, {TcgCheapWeb.AdminAuth, :require_admin}] do
-      live "/review", ReviewLive
-      live "/review/mappings/:mapping_id", ReviewLive
+      live "/buying-guide", BuyingGuideLive
       live "/operations", OperationsLive
       live_resources "/operations/import-issues", ImportIssueLive, only: [:index, :show]
-      live "/catalogue/mappings/:id/correct", ListingProductMappingCorrectionLive
       live "/catalogue/cards/:id/correct", CardPrintingMappingCorrectionLive
-      live_resources "/catalogue/products", SealedProductLive
-      live_resources "/catalogue/retailers", RetailerLive
-      live_resources "/catalogue/aliases", SealedProductAliasLive
-      live_resources "/catalogue/listings", RetailerListingLive, only: [:index, :show]
-      live_resources "/catalogue/mappings", ListingProductMappingLive, only: [:index, :show]
-
-      live_resources "/catalogue/mapping-history", ListingProductMappingDecisionLive,
-        only: [:index, :show]
 
       live_resources "/catalogue/card-mapping-history", CardPrintingMappingDecisionLive,
         only: [:index, :show]

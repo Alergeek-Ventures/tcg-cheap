@@ -199,40 +199,6 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
              Enum.sort([active.id, unscoped.id, expired.id])
   end
 
-  test "recent releases are public, released, and bounded" do
-    since = ~D[2026-07-01]
-    older = released_product("older", ~D[2026-08-01])
-    newest = released_product("newest", ~D[2026-08-10])
-    middle = released_product("middle", ~D[2026-08-05])
-    discontinued = released_product("discontinued", ~D[2026-08-04])
-    _fifth = released_product("fifth", ~D[2026-08-02])
-
-    _released_draft =
-      Core.create_sealed_product_draft!(product_attrs("released-draft", ~D[2026-08-09]))
-
-    _future = Core.create_sealed_product_draft!(product_attrs("future", ~D[2026-08-11]))
-    _outside_window = released_product("outside-window", ~D[2026-06-30])
-    archived = released_product("archived", ~D[2026-08-03])
-
-    Core.archive_sealed_product!(archived, %{expected_updated_at: archived.updated_at},
-      authorize?: false
-    )
-
-    assert {:ok, products} = Core.list_recent_public_sealed_products(since, ~D[2026-08-10])
-
-    assert Enum.map(products, & &1.name) == [
-             newest.name,
-             middle.name,
-             discontinued.name,
-             "fifth",
-             older.name
-           ]
-
-    assert Enum.all?(products, &(&1.publication_status == "approved"))
-    assert {:ok, bounded} = Core.list_recent_public_sealed_products(since, ~D[2026-08-10])
-    assert length(bounded) == 5
-  end
-
   defp card(label, fixture_opts \\ []) do
     TcgCheap.TestSupport.import_card_printing!(
       %{
@@ -282,33 +248,5 @@ defmodule TcgCheap.Pricing.HomepageDiscoveryTest do
       fetched_at: fetched_at,
       cardmarket_product_id: product_id || card.cardmarket_product_id
     })
-  end
-
-  defp product_attrs(slug, date),
-    do: %{
-      slug: "homepage-#{slug}-#{System.unique_integer([:positive])}",
-      name: slug,
-      product_type: "tin",
-      officially_distributed: true,
-      release_date: date,
-      description: "A complete #{slug} sealed product record.",
-      contents: ["Sealed product contents"],
-      pack_count: 4,
-      cards_per_pack: 10,
-      official_url: "https://www.pokemon.com/products/#{slug}",
-      details_source: "Homepage test catalogue",
-      details_source_url: "https://www.pokemon.com/details/#{slug}",
-      image_url:
-        "https://assets.pokemon.com/homepage-#{slug}-#{System.unique_integer([:positive])}.jpg",
-      image_source: "Official product images",
-      image_source_url: "https://www.pokemon.com/images/#{slug}"
-    }
-
-  defp released_product(slug, date) do
-    draft = Core.create_sealed_product_draft!(product_attrs(slug, date))
-
-    Core.approve_sealed_product!(draft, %{expected_updated_at: draft.updated_at},
-      authorize?: false
-    )
   end
 end
