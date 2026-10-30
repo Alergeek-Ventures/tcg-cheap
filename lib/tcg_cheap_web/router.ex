@@ -82,7 +82,7 @@ defmodule TcgCheapWeb.Router do
     backpex_routes()
 
     ash_authentication_live_session :admin_review,
-      on_mount: [Backpex.InitAssigns, {TcgCheapWeb.AdminAuth, :require_admin}] do
+      on_mount: [{TcgCheapWeb.AdminAuth, :require_admin}, Backpex.InitAssigns] do
       live "/review", ReviewLive
       live "/review/mappings/:mapping_id", ReviewLive
       live "/operations", OperationsLive

@@ -23,7 +23,7 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/tcg_cheap"
-import {Hooks as BackpexHooks} from "backpex"
+import {Hooks as BackpexHooks, backpexParams} from "backpex"
 import CardAutocomplete from "./hooks/card_autocomplete"
 import TradeShare from "./hooks/trade_share"
 import topbar from "../vendor/topbar"
@@ -52,7 +52,7 @@ import topbar from "../vendor/topbar"
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken},
+  params: backpexParams({_csrf_token: csrfToken}),
   hooks: {...colocatedHooks, CardAutocomplete, TradeShare, ...BackpexHooks},
 })
 

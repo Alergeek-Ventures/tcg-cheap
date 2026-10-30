@@ -57,7 +57,10 @@ defmodule TcgCheapWeb.Admin.ReviewLive do
   def render(assigns) do
     ~H"""
     <Layouts.admin
+      socket={@socket}
       flash={@flash}
+      sidebar_open={@sidebar_open}
+      preferences_manifest={@preferences_manifest}
       current_url={~p"/admin/review"}
       current_admin={@current_admin}
     >
