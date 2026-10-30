@@ -41,9 +41,12 @@ defmodule TcgCheapWeb.Polish do
   @spec date(Date.t()) :: String.t()
   def date(%Date{} = date), do: "#{date.day} #{Enum.at(@months, date.month - 1)} #{date.year}"
 
-  @doc ~S'A short date for chart axes: "17.07".'
+  @short_months ~w(sty lut mar kwi maj cze lip sie wrz paź lis gru)
+
+  @doc ~S'A short date for chart axes: "17 lip".'
   @spec short_date(Date.t()) :: String.t()
-  def short_date(%Date{} = date), do: Calendar.strftime(date, "%d.%m")
+  def short_date(%Date{} = date),
+    do: "#{date.day}#{@nbsp}#{Enum.at(@short_months, date.month - 1)}"
 
   @doc ~S'How long ago a day was: "dziś", "wczoraj", "3 dni temu".'
   @spec days_ago(Date.t(), Date.t()) :: String.t()

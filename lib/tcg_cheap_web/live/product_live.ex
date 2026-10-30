@@ -23,6 +23,7 @@ defmodule TcgCheapWeb.ProductLive do
          |> assign(:html_lang, "pl")
          |> assign(:page, page)
          |> assign(:offer_count, length(page.offers))
+         |> assign(:in_stock_count, Enum.count(page.offers, & &1.in_stock))
          |> stream(:offers, page.offers)}
 
       :error ->
@@ -41,7 +42,7 @@ defmodule TcgCheapWeb.ProductLive do
             <.fluent_icon name={:arrow_left} />Wszystkie produkty
           </.link>
 
-          <section id="product-identity" class="product-identity" aria-labelledby="product-name">
+          <div class="product-top">
             <.product_image
               url={@page.product.image_url}
               kind={@page.product.kind}
@@ -49,37 +50,32 @@ defmodule TcgCheapWeb.ProductLive do
               class="product-hero-image"
               loading="eager"
             />
-            <div class="product-identity-copy">
+            <section id="product-identity" class="product-identity" aria-labelledby="product-name">
               <h1 id="product-name">{@page.product.name}</h1>
               <dl class="product-facts">
                 <div>
-                  <dt>Rodzaj</dt>
+                  <dt class="sr-only">Rodzaj</dt>
                   <dd id="product-kind">{Kinds.label(@page.product.kind)}</dd>
                 </div>
                 <div :if={@page.product.set_name}>
-                  <dt>Dodatek</dt>
+                  <dt class="sr-only">Dodatek</dt>
                   <dd id="product-set">{@page.product.set_name}</dd>
                 </div>
-                <div :if={@page.product.cardmarket_added_on}>
+                <div :if={@page.product.cardmarket_added_on} class="product-fact-added">
                   <dt>Na Cardmarket od</dt>
                   <dd id="product-added">{Polish.date(@page.product.cardmarket_added_on)}</dd>
                 </div>
               </dl>
-            </div>
-          </section>
-
-          <.verdict_block verdict={@page.verdict} eur_pln={@page.eur_pln} />
-
-          <.cardmarket_reference
-            product={@page.product}
-            cardmarket_pln={@page.cardmarket_pln}
-            eur_pln={@page.eur_pln}
-          />
+            </section>
+            <.verdict_block verdict={@page.verdict} />
+          </div>
 
           <section id="product-offers" class="product-section" aria-labelledby="product-offers-title">
             <div class="product-section-heading">
               <h2 id="product-offers-title">Oferty w sklepach</h2>
-              <p>{Polish.plural(@offer_count, "oferta", "oferty", "ofert")}</p>
+              <p :if={@offer_count > 0}>
+                {Polish.plural(@offer_count, "oferta", "oferty", "ofert")}, na stanie: {@in_stock_count}
+              </p>
             </div>
             <ul id="offer-list" class="offer-list" phx-update="stream">
               <li id="offer-list-empty" class="guide-empty hidden only:block">
@@ -94,15 +90,15 @@ defmodule TcgCheapWeb.ProductLive do
                   <strong>{shop_name(offer)}</strong>
                   <span class="offer-title">{offer.title}</span>
                 </div>
-                <div class="offer-state">
-                  <strong class="offer-price">{Polish.price(offer.price)}</strong>
+                <strong class="offer-price">{Polish.price(offer.price)}</strong>
+                <p class="offer-state">
                   <span class="offer-stock">
-                    {if offer.in_stock, do: "Dostępny", else: "Niedostępny"}
+                    {if offer.in_stock, do: "Na stanie", else: "Brak na stanie"}
                   </span>
                   <span class="offer-checked">
                     sprawdzono {Polish.days_ago(DateTime.to_date(offer.last_seen_at), @page.today)}
                   </span>
-                </div>
+                </p>
                 <a
                   href={offer.url}
                   target="_blank"
@@ -120,7 +116,7 @@ defmodule TcgCheapWeb.ProductLive do
             aria-labelledby="product-history-title"
           >
             <div class="product-section-heading">
-              <h2 id="product-history-title">Ceny – ostatnie 90 dni</h2>
+              <h2 id="product-history-title">Ceny z ostatnich 90 dni</h2>
             </div>
             <.price_chart
               id="price-history"
@@ -130,6 +126,12 @@ defmodule TcgCheapWeb.ProductLive do
               typical={@page.verdict.typical}
             />
           </section>
+
+          <.cardmarket_reference
+            product={@page.product}
+            cardmarket_pln={@page.cardmarket_pln}
+            eur_pln={@page.eur_pln}
+          />
 
           <.guide_footnote />
         </main>
@@ -207,9 +209,10 @@ defmodule TcgCheapWeb.ProductLive do
   end
 
   attr :verdict, :map, required: true
-  attr :eur_pln, :map, default: nil
 
   defp verdict_block(assigns) do
+    assigns = assign(assigns, :difference, difference(assigns.verdict))
+
     ~H"""
     <section
       id="product-verdict"
@@ -217,40 +220,105 @@ defmodule TcgCheapWeb.ProductLive do
       aria-labelledby="product-verdict-title"
     >
       <h2 id="product-verdict-title" class="sr-only">Ocena ceny</h2>
-      <div class="verdict-now">
-        <%= if @verdict.cheapest do %>
-          <p class="verdict-label">Najtaniej teraz</p>
+      <.verdict_badge status={@verdict.status} id="verdict-badge" class="verdict-badge-large" />
+      <div class="verdict-body">
+        <div :if={@verdict.cheapest} class="verdict-now">
           <p id="verdict-price" class="verdict-price">{Polish.price(@verdict.cheapest.price)}</p>
           <p id="verdict-shop" class="verdict-shop">
-            w sklepie
+            najtaniej teraz w
             <a href={@verdict.cheapest.url} target="_blank" rel="noopener nofollow">{shop_name(
               @verdict.cheapest
             )}</a>
           </p>
-        <% else %>
-          <p class="verdict-label">Najtaniej teraz</p>
-          <p id="verdict-price" class="verdict-price verdict-price-none">—</p>
-        <% end %>
-      </div>
-      <div class="verdict-judgement">
-        <.verdict_badge status={@verdict.status} id="verdict-badge" class="verdict-badge-large" />
-        <p id="verdict-reason" class="verdict-reason">{reason(@verdict)}</p>
-        <p :if={@verdict.good_max} id="verdict-thresholds" class="verdict-thresholds">
-          <strong>Widzisz cenę w sklepie?</strong>
-          Do {Polish.zloty(@verdict.good_max)} – dobra, {Polish.number(@verdict.good_max + 1)}–{Polish.zloty(
-            @verdict.normal_max
-          )} – normalna, powyżej – drogo.
+        </div>
+        <p id="verdict-reason" class="verdict-reason">
+          {reason(@verdict)}
+          <span :if={@difference} id="verdict-difference">{@difference}</span>
         </p>
-        <p id="verdict-method" class="verdict-method">
-          Typowa cena to mediana najniższej ceny w polskich sklepach z dni, w których produkt był dostępny
-          w ostatnich {PriceGuide.window_days()} dniach (potrzeba co najmniej {PriceGuide.min_days_with_stock()} takich dni).
-          Gdy tylu dni jeszcze nie ma, korzystamy z trendu cen na Cardmarket przeliczonego na złote.
-          Dobra cena: do 95% typowej, normalna: do 110%.
-        </p>
+        <div :if={@verdict.good_max} id="verdict-thresholds" class="verdict-thresholds">
+          <h3>Widzisz cenę w sklepie?</h3>
+          <ol class="verdict-scale">
+            <.threshold
+              status={:good}
+              current={@verdict.status}
+              prefix="do"
+              amount={Polish.zloty(@verdict.good_max)}
+            />
+            <.threshold
+              status={:normal}
+              current={@verdict.status}
+              prefix="do"
+              amount={Polish.zloty(@verdict.normal_max)}
+            />
+            <.threshold
+              status={:expensive}
+              current={@verdict.status}
+              prefix="powyżej"
+              amount={Polish.zloty(@verdict.normal_max)}
+            />
+          </ol>
+        </div>
+        <details id="verdict-method" class="verdict-method">
+          <summary>
+            <.fluent_icon name={:info} />Jak liczymy typową cenę?<.fluent_icon
+              name={:chevron_down}
+              class="verdict-method-chevron"
+            />
+          </summary>
+          <p>
+            To mediana najniższych cen w polskich sklepach z ostatnich {PriceGuide.window_days()} dni.
+            Liczymy tylko dni, w których produkt był dostępny, i potrzebujemy co najmniej {PriceGuide.min_days_with_stock()} takich dni.
+            Wcześniej porównujemy z trendem Cardmarket przeliczonym na złote.
+            Dobra cena to do 95% typowej, normalna – do 110%, wyższa – drogo.
+            Progi zaokrąglamy w dół do pełnych złotych. Ceny nie obejmują wysyłki.
+          </p>
+        </details>
       </div>
     </section>
     """
   end
+
+  attr :status, :atom, required: true
+  attr :current, :atom, required: true
+  attr :prefix, :string, required: true
+  attr :amount, :string, required: true
+
+  defp threshold(assigns) do
+    ~H"""
+    <li
+      id={"threshold-#{@status}"}
+      class={["verdict-step", "verdict-step-#{@status}"]}
+      aria-current={if(@status == @current, do: "true")}
+    >
+      <span class="verdict-step-label">{threshold_label(@status)}</span>
+      <span class="verdict-step-range">{@prefix} <span>{@amount}</span></span>
+      <span :if={@status == @current} class="verdict-step-now">teraz</span>
+    </li>
+    """
+  end
+
+  defp threshold_label(:good), do: "Dobra"
+  defp threshold_label(:normal), do: "Normalna"
+  defp threshold_label(:expensive), do: "Drogo"
+
+  # How far today's cheapest price is from the typical one, in whole złoty.
+  defp difference(%{cheapest: %{price: price}, typical: %Decimal{} = typical}) do
+    zloty = price |> Decimal.sub(typical) |> Decimal.round(0) |> Decimal.to_integer()
+    percent = round(abs(zloty) / Decimal.to_float(typical) * 100)
+
+    amount =
+      if percent > 0,
+        do: "#{Polish.zloty(abs(zloty))} (#{percent}%)",
+        else: Polish.zloty(abs(zloty))
+
+    cond do
+      zloty < 0 -> "Teraz o #{amount} taniej."
+      zloty > 0 -> "Teraz o #{amount} drożej."
+      true -> "Teraz tyle, ile zwykle."
+    end
+  end
+
+  defp difference(_verdict), do: nil
 
   defp reason(%{status: status, typical: typical, typical_source: :shops})
        when status in [:good, :normal, :expensive],
@@ -262,12 +330,12 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp reason(%{status: :insufficient_data, days_with_stock: days}) do
     "Mamy ceny z #{Polish.plural(days, "dnia", "dni", "dni")} z ostatnich #{PriceGuide.window_days()}, " <>
-      "i nie mamy ceny referencyjnej z Cardmarket. Ocenimy cenę, gdy zbierzemy co najmniej #{PriceGuide.min_days_with_stock()} dni."
+      "a Cardmarket nie podaje ceny. Ocenimy cenę, gdy zbierzemy co najmniej #{PriceGuide.min_days_with_stock()} dni."
   end
 
   defp reason(%{status: :out_of_stock, last_known: %{price: price, date: date}}),
     do:
-      "Żaden sklep nie ma go teraz na stanie. Ostatnio najtaniej: #{Polish.price(price)} (#{Polish.date(date)})."
+      "Teraz żaden sklep nie ma tego produktu na stanie. Ostatnio najtaniej: #{Polish.price(price)} (#{Polish.date(date)})."
 
   defp reason(%{
          status: :out_of_stock,
@@ -275,8 +343,8 @@ defmodule TcgCheapWeb.ProductLive do
          typical_source: :cardmarket
        }),
        do:
-         "Żaden sklep nie ma go teraz na stanie. Typowa cena według Cardmarket: #{Polish.zloty(typical)}."
+         "Teraz żaden sklep nie ma tego produktu na stanie. Typowa cena według Cardmarket: #{Polish.zloty(typical)}."
 
   defp reason(%{status: :out_of_stock}),
-    do: "Żaden sklep nie ma go teraz na stanie i nie znamy jeszcze jego ceny."
+    do: "Teraz żaden sklep nie ma tego produktu na stanie i nie znamy jeszcze jego ceny."
 end

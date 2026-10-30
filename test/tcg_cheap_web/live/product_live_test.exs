@@ -82,11 +82,11 @@ defmodule TcgCheapWeb.ProductLiveTest do
 
     assert has_element?(view, "#verdict-reason", "Typowa cena z ostatnich 30 dni: 840 zł")
 
-    assert has_element?(
-             view,
-             "#verdict-thresholds",
-             "Do 798 zł – dobra, 799–924 zł – normalna, powyżej – drogo"
-           )
+    assert has_element?(view, "#verdict-difference", "Teraz o 42 zł (5%) taniej.")
+    assert has_element?(view, "#verdict-thresholds #threshold-good[aria-current]", "do 798 zł")
+    assert has_element?(view, "#verdict-thresholds #threshold-normal", "do 924 zł")
+    assert has_element?(view, "#verdict-thresholds #threshold-expensive", "powyżej 924 zł")
+    refute has_element?(view, "#threshold-normal[aria-current]")
 
     assert has_element?(view, ".product-image img[src^='https://colligere.pl/']")
   end
@@ -139,7 +139,10 @@ defmodule TcgCheapWeb.ProductLiveTest do
     {:ok, view, _html} = live(conn, ~p"/produkty/#{product.slug}")
     assert has_element?(view, "#verdict-badge.verdict-out_of_stock", "Brak w sklepach")
     assert has_element?(view, "#verdict-reason", "Ostatnio najtaniej: 820,00 zł")
-    assert has_element?(view, "#offer-list .offer-unavailable .offer-stock", "Niedostępny")
+    assert has_element?(view, "#threshold-good")
+    refute has_element?(view, "#verdict-thresholds [aria-current]")
+    refute has_element?(view, "#verdict-difference")
+    assert has_element?(view, "#offer-list .offer-unavailable .offer-stock", "Brak na stanie")
   end
 
   test "offers are in stock first then by price, with freshness and an outbound link", %{

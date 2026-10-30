@@ -88,8 +88,8 @@ defmodule TcgCheapWeb.HomeLive do
           <section class="guide-intro" aria-labelledby="guide-title">
             <h1 id="guide-title">Sprawdź, czy cena jest dobra</h1>
             <p id="guide-promise">
-              Porównujemy ceny zamkniętych produktów Pokémon TCG w polskich sklepach i mówimy,
-              czy dzisiejsza najniższa cena jest dobra na tle ostatnich 30 dni.
+              Boostery, ETB i boxy Pokémon TCG: najniższa cena w polskich sklepach
+              i od razu ocena – dobra, normalna czy drogo.
             </p>
           </section>
 
@@ -119,7 +119,12 @@ defmodule TcgCheapWeb.HomeLive do
               </div>
               <input :if={@kind} type="hidden" name="rodzaj" value={@kind} />
             </.form>
-            <nav id="guide-kinds" class="guide-kinds" aria-label="Rodzaj produktu">
+            <nav
+              id="guide-kinds"
+              class="guide-kinds"
+              aria-label="Rodzaj produktu"
+              phx-hook=".ActiveKind"
+            >
               <.link
                 id="kind-all"
                 patch={list_path(@query, nil)}
@@ -132,6 +137,22 @@ defmodule TcgCheapWeb.HomeLive do
                 aria-current={if(@kind == kind, do: "true")}
               >{label}</.link>
             </nav>
+            <script :type={Phoenix.LiveView.ColocatedHook} name=".ActiveKind">
+              // On a phone the kinds scroll sideways; keep the chosen one in view.
+              export default {
+                mounted() { this.reveal() },
+                updated() { this.reveal() },
+                reveal() {
+                  const active = this.el.querySelector("[aria-current]")
+                  if (!active) return
+                  const row = this.el.getBoundingClientRect()
+                  const chip = active.getBoundingClientRect()
+                  if (chip.left < row.left || chip.right > row.right) {
+                    this.el.scrollLeft += chip.left - row.left - row.width / 3
+                  }
+                }
+              }
+            </script>
           </section>
 
           <section class="guide-results" aria-labelledby="guide-results-title">
@@ -145,7 +166,7 @@ defmodule TcgCheapWeb.HomeLive do
             </div>
             <ul id="guide-products" class="guide-products" phx-update="stream">
               <li id="guide-products-empty" class="guide-empty hidden only:block">
-                Nie znaleźliśmy produktu pasującego do wyszukiwania. Spróbuj nazwy dodatku albo innego rodzaju.
+                Nic nie pasuje do wyszukiwania. Spróbuj samej nazwy dodatku albo innego rodzaju.
               </li>
               <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">
                 <.link navigate={~p"/produkty/#{summary.product.slug}"} class="guide-product-link">
@@ -158,15 +179,15 @@ defmodule TcgCheapWeb.HomeLive do
                   <div class="guide-product-copy">
                     <h3 class="guide-product-name">{summary.product.name}</h3>
                     <p class="guide-product-meta">{product_meta(summary.product)}</p>
-                    <p class="guide-product-price">
-                      <%= cond do %>
-                        <% summary.verdict.cheapest -> %>
-                          <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
-                          <span>· {shop_name(summary.verdict.cheapest)}</span>
-                        <% summary.cardmarket_pln -> %>
-                          <span>Cardmarket ≈ {Polish.zloty(summary.cardmarket_pln)}</span>
-                        <% true -> %>
-                          <span>Brak w sklepach</span>
+                    <p
+                      :if={summary.verdict.cheapest || summary.cardmarket_pln}
+                      class="guide-product-price"
+                    >
+                      <%= if summary.verdict.cheapest do %>
+                        <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
+                        <span>· {shop_name(summary.verdict.cheapest)}</span>
+                      <% else %>
+                        <span>Cardmarket ≈ {Polish.zloty(summary.cardmarket_pln)}</span>
                       <% end %>
                     </p>
                   </div>
