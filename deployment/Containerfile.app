@@ -1,4 +1,4 @@
-FROM docker.io/hexpm/elixir:1.20.4-erlang-29.0.5-debian-bookworm-20260824-slim@sha256:468bb08c48e673cce404087adfafcac1a881b77326eff6bce438141f668e27c9 AS build
+FROM docker.io/hexpm/elixir:1.20.5-erlang-29.1.2-debian-trixie-20261027-slim@sha256:bb266918bb26de22fb02ff19430f47e76331001601df0fc820806c21cd4164e0 AS build
 
 ENV MIX_ENV=prod
 WORKDIR /app
@@ -22,7 +22,7 @@ COPY config/runtime.exs ./config/
 COPY rel ./rel
 RUN mix release
 
-FROM docker.io/debian:trixie-slim@sha256:d7e12182ce18b85b93007c1dedf31f2d29e01ccf3182cc4017c709b6259bc132 AS app
+FROM docker.io/debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4 AS app
 
 ENV MIX_ENV=prod PHX_SERVER=true PORT=4004 \
     LANG=C.UTF-8 LANGUAGE=C.UTF-8 LC_ALL=C.UTF-8

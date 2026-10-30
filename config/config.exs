@@ -294,7 +294,7 @@ esbuild_options =
   end
 
 config :esbuild,
-       [version: "0.27.2"] ++
+       [version: "0.28.2"] ++
          esbuild_options ++
          [
            tcg_cheap: [
