@@ -37,10 +37,9 @@ the relevant wiki article and `knowledge-base/wiki/log.md`.
 
 ## Product north star
 
-The current product north star is [the MVP implementation plan](knowledge-base/wiki/product/mvp-implementation-plan.md).
-Work must advance and finish everything in that plan, including its requirements,
-phases, documentation, and acceptance criteria, unless the product owner
-explicitly supersedes it.
+The current product north star is [the Buying and Trading Guide](knowledge-base/wiki/product/buying-and-trading-guide.md).
+Work must advance that guide, including its phases, principles, and
+constraints, unless the product owner explicitly supersedes it.
 
 ## Repository boundaries and hygiene
 
