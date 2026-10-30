@@ -142,8 +142,10 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
 
     matched =
       current
-      |> Enum.filter(&(&1.product_id && not &1.manual?))
-      |> Enum.filter(&String.contains?(String.downcase(&1.title), title_filter))
+      |> Enum.filter(
+        &(&1.product_id && not &1.manual? &&
+            String.contains?(String.downcase(&1.title), title_filter))
+      )
       |> Enum.sort_by(&{&1.shop, &1.title})
 
     matched_page = matched |> Enum.take(@matched_limit) |> Ash.load!(:product, domain: Sealed)
