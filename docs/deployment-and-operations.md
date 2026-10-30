@@ -156,8 +156,8 @@ trend; this is expected.
 ### Check the buying guide
 
 `/admin/buying-guide` shows, per shop, the last successful fetch, offers seen,
-matched offers and matched offers in stock, then the current unmatched offers
-and the manual assignments. A shop whose last fetch is older than a day has a
+matched offers and matched offers in stock, then the current unmatched offers,
+the automatically matched offers and the manual decisions. A shop whose last fetch is older than a day has a
 failing job: look for its `FetchWorker` job in `/admin/oban` and the
 `sealed fetch <shop> failed` log line.
 
@@ -174,19 +174,11 @@ docker exec tcg-cheap /app/bin/tcg_cheap rpc 'TcgCheap.Sealed.CatalogueImportWor
   search for the product and choose it. Prices, availability and today's
   daily price are recomputed at once. Automatic matching never overrides it,
   and its EAN then matches the same product in other shops.
-- **Wrong manual assignment:** click *Clear* in the manual list; the offer
+- **Wrong automatic match:** find the offer in *Matched offers* (filter by
+  title), then either *Reassign…* it to the right product or choose
+  *Never match* to keep it out of every verdict.
+- **Wrong manual decision:** click *Clear* in the manual list; the offer
   returns to automatic matching.
-- **Wrong automatic match:** the admin page lists only unmatched offers, so
-  assign the offer manually from the running release, using the offer URL and
-  the correct product slug from `/produkty/:slug`:
-
-  ```sh
-  docker exec tcg-cheap /app/bin/tcg_cheap rpc '
-    offer = Enum.find(TcgCheap.Sealed.list_offers!(), &(&1.url == "https://shop.example/produkt/x/"))
-    product = TcgCheap.Sealed.get_product_by_slug!("correct-product-slug-123")
-    TcgCheap.Sealed.assign_offer_manually!(offer, product.id)
-    TcgCheap.Sealed.Refresh.recompute(DateTime.utc_now())'
-  ```
 
   If the same mistake repeats, fix the rule in `TcgCheap.Sealed.Matcher`
   (synonyms, qualifiers, exclusions) with a test; every shop fetch re-matches

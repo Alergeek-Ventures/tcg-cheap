@@ -55,28 +55,36 @@ Public pages ─ Guide (read model) ─ PriceGuide.verdict
   `max_pages` pages and 2 MB per page, follows no redirects, skips invalid
   products and fails the whole fetch on any transport, status, pagination or
   shape problem. `TcgCheap.Sealed.Refresh.run/2` upserts offers and
-  recomputes in one transaction; a failed fetch writes nothing and Oban
-  retries (3 attempts).
+  recomputes in one transaction; a failed fetch (including one listing no
+  products at all) writes nothing and Oban retries (3 attempts). EANs are
+  taken only from 12–13-digit SKUs with a valid GS1 check digit.
+  Recomputations take a transaction-level advisory lock, so a fetch, the
+  catalogue import and an admin decision never interleave.
 - **Current offers.** An offer counts when it was seen in its shop's latest
   successful fetch and that fetch is at most 3 days old
-  (`TcgCheap.Sealed.current_offers/1`). Removing a shop therefore drops its
+  (`TcgCheap.Sealed.current_offers/2`, optionally limited to given
+  products in SQL). Removing a shop therefore drops its
   offers from verdicts within 3 days.
 - **Matching.** `TcgCheap.Sealed.Matcher` normalises titles and names
   (diacritics, synonyms such as ETB, Polish language words, series prefixes).
   A product matches when all its name tokens are in the title, every
   qualifier in the title (box, case, half, mini, center, languages, …) is in
   the name, and at most two title words stay unexplained; the most specific
-  product wins and ties stay unmatched. Preorders, multi-packs, empty boxes,
-  singles and accessories are excluded. An EAN seen on a manually assigned
-  offer wins over the title. Every recompute re-matches all non-manual
+  product wins and ties stay unmatched. Preorders, multi-packs, empty,
+  damaged, opened or used boxes, singles and accessories are excluded, even
+  when the EAN is known. Otherwise an EAN seen on a manually assigned offer
+  (and on no conflicting one) wins over the title. Every recompute re-matches all non-manual
   offers, so catalogue or rule changes apply retroactively.
 - **Verdict.** `TcgCheap.Sealed.PriceGuide` (see the product article for the
-  rule); `TcgCheap.Sealed.Guide` assembles summaries, offers, 90-day history
-  and the EUR/PLN rate for the LiveViews.
+  rule; the exact offer price is compared with limits rounded down to whole
+  złoty, so no price above 95%/110% is rated better than it is);
+  `TcgCheap.Sealed.Guide` assembles summaries, offers, 90-day history (plus
+  the last stocked day when it is older, for the out-of-stock verdict) and
+  the EUR/PLN rate for the LiveViews.
 - **Web.** `TcgCheapWeb.HomeLive` (`/`), `TcgCheapWeb.ProductLive`
   (`/produkty/:slug`), shared `TcgCheapWeb.GuideComponents`, and
   `TcgCheapWeb.Admin.BuyingGuideLive` (`/admin/buying-guide`). Manual
-  assignment and clearing run in a transaction together with
+  decisions (assign, never match, clear) run in a transaction together with
   `Refresh.recompute/1`. Image hosts allowed by CSP are derived from the shop
   list (`TcgCheap.Catalogue.ExternalImage`).
 - Sealed jobs are not subject to the acquisition budget or run tracking;

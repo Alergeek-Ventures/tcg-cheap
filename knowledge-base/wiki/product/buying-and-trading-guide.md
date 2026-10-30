@@ -44,9 +44,10 @@ versioned pricing models.
   once a day each. Offers are matched to products automatically by strict
   title rules (and by EANs learned from manual assignments); an unmatched
   offer is better than a wrong one.
-- **Manual fixes.** An administrator can assign an unmatched or mismatched
-  offer to any catalogue product, or clear that assignment. Automatic matching
-  never overwrites a manual assignment.
+- **Manual fixes.** An administrator can assign an unmatched or wrongly
+  matched offer to any catalogue product, keep an offer unmatched for good, or
+  hand it back to automatic matching. Automatic matching never overwrites a
+  manual decision.
 - **History.** After every shop fetch and catalogue import, each product's
   lowest in-stock Polish price, the number of shops with stock, and the
   Cardmarket trend are stored for the day.
@@ -64,7 +65,8 @@ versioned pricing models.
   (in stock first, cheapest first, with links to the shop), the Cardmarket
   price, and a 90-day price chart.
 - **Admin.** `/admin/buying-guide` shows each shop's last fetch, matched and
-  in-stock counts, current unmatched offers, and manual assignments.
+  in-stock counts, current unmatched offers, automatically matched offers
+  (filterable by title) and manual decisions.
 
 ## Phase 2 — trading guide (singles), next
 
