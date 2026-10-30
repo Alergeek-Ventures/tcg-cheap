@@ -6,7 +6,8 @@
     "worlds": [
       { "name": "decision-world", "scope": "Trade and Sealed", "description": "Shared warm square decision bench styling; unchanged by the Home correction." },
       { "name": "home-world", "scope": "Home", "description": "Calm restrained warm square surface for search, evidence, market movement, and exact-printing rows." },
-      { "name": "archive-world", "scope": "Card detail", "description": "CSS scope name retained for calm warm-paper exact-printing detail." }
+      { "name": "archive-world", "scope": "Card detail", "description": "CSS scope name retained for calm warm-paper exact-printing detail." },
+      { "name": "guide-world", "scope": "Buying guide (/ and /produkty/:slug)", "description": "Polish sealed-product buying guide on the warm-paper bench: scrolling kind chips on phones, drawn verdict marks, a verdict panel with a full-width band and a three-step złoty threshold scale phrased as upper limits, and a labelled server-rendered price chart." }
     ],
     "colorMeta": {
       "bench": { "role": "primary", "displayName": "Bench", "canonical": "#f3ead7" },
@@ -34,7 +35,10 @@
     ],
     "breakpoints": [
       { "name": "decision-stack", "value": "42rem" },
-      { "name": "evidence-narrow", "value": "24rem" }
+      { "name": "evidence-narrow", "value": "24rem" },
+      { "name": "guide-thumb", "value": "30rem" },
+      { "name": "guide-chip-scroll", "value": "48rem" },
+      { "name": "guide-product-columns", "value": "56rem" }
     ]
   },
   "components": [
@@ -123,7 +127,8 @@
     "donts": [
       "Don't imply sealed, PLN conversion, share/copy controls, seller-count, language, condition, finish, or Poland-shipping capability.",
       "Don't hide stale or unpriced estimates behind decorative treatment.",
-      "Don't replace either scoped world with generic rounded marketplace cards, glass, or gradients."
+      "Don't replace either scoped world with generic rounded marketplace cards, glass, or gradients.",
+      "Don't mark verdicts with a coloured side stripe, Unicode arrows, or threshold ranges that leave a gap between whole złoty."
     ]
   }
 }
