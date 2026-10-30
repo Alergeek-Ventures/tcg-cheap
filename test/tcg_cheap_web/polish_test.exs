@@ -18,6 +18,7 @@ defmodule TcgCheapWeb.PolishTest do
 
   test "dates and relative days" do
     assert Polish.date(~D[2026-07-17]) == "17 lipca 2026"
+    assert Polish.short_date(~D[2026-10-01]) == "1 paź"
     assert Polish.days_ago(~D[2026-10-30], ~D[2026-10-30]) == "dziś"
     assert Polish.days_ago(~D[2026-10-29], ~D[2026-10-30]) == "wczoraj"
     assert Polish.days_ago(~D[2026-10-27], ~D[2026-10-30]) == "3 dni temu"

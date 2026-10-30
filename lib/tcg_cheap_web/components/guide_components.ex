@@ -50,12 +50,32 @@ defmodule TcgCheapWeb.GuideComponents do
   def verdict_badge(assigns) do
     ~H"""
     <span id={@id} class={["verdict-badge", "verdict-#{@status}", @class]}>
-      <span class="verdict-mark" aria-hidden="true">{verdict_mark(@status)}</span>{verdict_label(
-        @status
-      )}
+      <.verdict_icon status={@status} />{verdict_label(@status)}
     </span>
     """
   end
+
+  @doc "The drawn mark of a verdict: down for good, equals for normal, up for expensive."
+  attr :status, :atom, required: true
+
+  def verdict_icon(assigns) do
+    assigns = assign(assigns, :paths, verdict_paths(assigns.status))
+
+    ~H"""
+    <svg class="verdict-mark" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path :for={d <- @paths} d={d} />
+    </svg>
+    """
+  end
+
+  defp verdict_paths(:good), do: ["M8 2.5v11", "M3.5 9 8 13.5 12.5 9"]
+  defp verdict_paths(:normal), do: ["M3 5.75h10", "M3 10.25h10"]
+  defp verdict_paths(:expensive), do: ["M8 13.5v-11", "M3.5 7 8 2.5 12.5 7"]
+
+  defp verdict_paths(:insufficient_data),
+    do: ["M5.75 5.75a2.25 2.25 0 1 1 3.4 1.95c-.7.4-1.15.9-1.15 1.7v.6", "M8 12.75v.25"]
+
+  defp verdict_paths(:out_of_stock), do: ["M3 8h10"]
 
   @doc "Product packaging image (from a matched shop offer), or a placeholder drawn for its kind."
   attr :url, :string, default: nil
@@ -80,7 +100,10 @@ defmodule TcgCheapWeb.GuideComponents do
         decoding="async"
         referrerpolicy="no-referrer"
       />
-      <svg :if={!@url} viewBox="0 0 64 48" role="img" aria-label="Brak zdjęcia">
+      <svg :if={!@url && @alt == ""} viewBox="0 0 64 48" aria-hidden="true" focusable="false">
+        <path :for={d <- @shape} d={d} />
+      </svg>
+      <svg :if={!@url && @alt != ""} viewBox="0 0 64 48" role="img" aria-label="Brak zdjęcia">
         <path :for={d <- @shape} d={d} />
       </svg>
     </div>
@@ -126,7 +149,7 @@ defmodule TcgCheapWeb.GuideComponents do
           Nie mamy jeszcze historii cen tego produktu.
         </p>
       <% else %>
-        <ul class="price-chart-legend">
+        <ul class="price-chart-legend" aria-hidden="true">
           <li :for={line <- @chart.lines} :if={line.points != []} class={"legend-#{line.class}"}>
             {line.label}
           </li>
@@ -134,51 +157,69 @@ defmodule TcgCheapWeb.GuideComponents do
         </ul>
         <div class="price-chart-frame">
           <div class="price-chart-scale" aria-hidden="true">
-            <span>{Polish.zloty(@chart.max)}</span>
-            <span>{Polish.zloty(@chart.min)}</span>
+            <span :for={tick <- @chart.y_ticks} style={"--at: #{tick.at}%"}>{tick.label}</span>
           </div>
-          <svg
-            viewBox={"0 0 #{@chart.width} #{@chart.height}"}
-            preserveAspectRatio="none"
-            role="img"
-            aria-labelledby={"#{@id}-summary"}
-          >
-            <line class="price-chart-grid" x1="0" x2={@chart.width} y1="1" y2="1" />
-            <line
-              class="price-chart-grid"
-              x1="0"
-              x2={@chart.width}
-              y1={@chart.height - 1}
-              y2={@chart.height - 1}
-            />
-            <line
-              :if={@chart.typical_y}
-              class="price-chart-typical"
-              x1="0"
-              x2={@chart.width}
-              y1={@chart.typical_y}
-              y2={@chart.typical_y}
-            />
-            <%= for line <- @chart.lines do %>
-              <polyline
-                :for={segment <- line.segments}
-                class={["price-chart-line", "price-chart-#{line.class}"]}
-                points={segment}
+          <div class="price-chart-plot">
+            <svg
+              viewBox={"0 0 #{@chart.width} #{@chart.height}"}
+              preserveAspectRatio="none"
+              role="img"
+              aria-labelledby={"#{@id}-summary"}
+            >
+              <line
+                :for={tick <- @chart.y_ticks}
+                class="price-chart-grid"
+                x1="0"
+                x2={@chart.width}
+                y1={tick.y}
+                y2={tick.y}
               />
               <line
-                :for={{x, y} <- line.singles}
-                class={["price-chart-dot", "price-chart-#{line.class}"]}
-                x1={x}
-                x2={x}
-                y1={y}
-                y2={y}
+                :for={tick <- @chart.x_ticks}
+                class="price-chart-grid price-chart-grid-month"
+                x1={tick.x}
+                x2={tick.x}
+                y1="0"
+                y2={@chart.height}
               />
-            <% end %>
-          </svg>
-        </div>
-        <div class="price-chart-axis" aria-hidden="true">
-          <span>{Polish.short_date(@from)}</span>
-          <span>{Polish.short_date(@to)}</span>
+              <line
+                :if={@chart.typical_y}
+                class="price-chart-typical"
+                x1="0"
+                x2={@chart.width}
+                y1={@chart.typical_y}
+                y2={@chart.typical_y}
+              />
+              <%= for line <- @chart.lines do %>
+                <polyline
+                  :for={segment <- line.segments}
+                  class={["price-chart-line", "price-chart-#{line.class}"]}
+                  points={segment}
+                />
+                <line
+                  :for={{x, y} <- line.singles}
+                  class={["price-chart-dot", "price-chart-#{line.class}"]}
+                  x1={x}
+                  x2={x}
+                  y1={y}
+                  y2={y}
+                />
+              <% end %>
+            </svg>
+            <span
+              :if={@chart.typical_y}
+              class="price-chart-typical-label"
+              style={"--at: #{@chart.typical_at}%"}
+              aria-hidden="true"
+            >
+              typowa {Polish.zloty(@typical)}
+            </span>
+          </div>
+          <div class="price-chart-axis" aria-hidden="true">
+            <span :for={tick <- @chart.x_ticks} class={tick.edge} style={"--at: #{tick.at}%"}>
+              {tick.label}
+            </span>
+          </div>
         </div>
         <figcaption id={"#{@id}-summary"}>
           <span :for={line <- @chart.lines} :if={line.points != []} id={"#{@id}-summary-#{line.key}"}>
@@ -215,29 +256,81 @@ defmodule TcgCheapWeb.GuideComponents do
       %{empty?: true}
     else
       prices = all_prices ++ List.wrap(typical)
-      low = prices |> Enum.min(Decimal) |> Decimal.to_float()
-      high = prices |> Enum.max(Decimal) |> Decimal.to_float()
-      pad = max((high - low) * 0.15, max(high * 0.02, 1.0))
-      {low, high} = {max(low - pad, 0.0), high + pad}
+      {low, high, step} = price_scale(prices)
       days = max(Date.diff(to, from), 1)
 
       x = fn date -> Float.round(Date.diff(date, from) / days * @width, 2) end
-
-      y = fn price ->
-        Float.round((high - Decimal.to_float(price)) / (high - low) * @height, 2)
-      end
+      y = fn price -> Float.round((high - to_float(price)) / (high - low) * @height, 2) end
 
       %{
         empty?: false,
         width: @width,
         height: @height,
-        min: Decimal.from_float(low),
-        max: Decimal.from_float(high),
+        y_ticks: y_ticks(low, high, step, y),
+        x_ticks: x_ticks(from, to, x),
         typical_y: typical && y.(typical),
+        typical_at: typical && percent(y.(typical), @height),
         lines: Enum.map(series, &line(&1, x, y))
       }
     end
   end
+
+  # A round złoty scale with three to five gridlines that contains every price.
+  defp price_scale(prices) do
+    low = prices |> Enum.min(Decimal) |> Decimal.to_float()
+    high = prices |> Enum.max(Decimal) |> Decimal.to_float()
+    span = max(high - low, max(high * 0.1, 4.0))
+    step = nice_step(span / 3)
+    low = max(Float.floor(low / step) * step, 0.0)
+    high = Float.ceil(high / step) * step
+    high = if high - low < step * 2, do: low + step * 2, else: high
+
+    {low, high, step}
+  end
+
+  defp nice_step(raw) do
+    magnitude = :math.pow(10, Float.floor(:math.log10(raw)))
+    step = Enum.find([1, 2, 5, 10], &(&1 * magnitude >= raw)) * magnitude
+    max(step, 1.0)
+  end
+
+  defp y_ticks(low, high, step, y) do
+    count = round((high - low) / step)
+
+    for index <- 0..count do
+      price = Decimal.from_float(low + index * step)
+      y_value = y.(price)
+      %{y: y_value, at: percent(y_value, @height), label: Polish.zloty(price)}
+    end
+  end
+
+  # The first day of each month inside the window.
+  defp x_ticks(from, to, x) do
+    from
+    |> Date.add(1)
+    |> Date.range(to)
+    |> Enum.filter(&(&1.day == 1))
+    |> Enum.map(fn date ->
+      x_value = x.(date)
+      at = percent(x_value, @width)
+
+      %{
+        x: x_value,
+        at: at,
+        label: Polish.short_date(date),
+        edge: edge_class(at)
+      }
+    end)
+  end
+
+  # Labels near either end are aligned inwards so they never stick out of the chart.
+  defp edge_class(at) when at < 8, do: "edge-start"
+  defp edge_class(at) when at > 92, do: "edge-end"
+  defp edge_class(_at), do: nil
+
+  defp percent(value, total), do: Float.round(value / total * 100, 2)
+
+  defp to_float(%Decimal{} = price), do: Decimal.to_float(price)
 
   defp line(%{points: []} = line, _x, _y), do: Map.merge(line, %{segments: [], singles: []})
 
@@ -294,9 +387,9 @@ defmodule TcgCheapWeb.GuideComponents do
     ~H"""
     <footer id={@id} class="guide-footnote">
       <p>
-        Ceny bez kosztów wysyłki. Sprawdzamy sklepy raz dziennie: {Enum.join(@shops, ", ")}.
-        Katalog i ceny referencyjne pochodzą z Cardmarket (aktualizowane codziennie, przeliczane po kursie NBP).
-        Ocena opiera się wyłącznie na cenach, po których można kupić produkt – nigdy na cenie katalogowej.
+        Ceny bez kosztów wysyłki. Sklepy sprawdzamy raz dziennie: {Enum.join(@shops, ", ")}.
+        Katalog i ceny odniesienia pochodzą z Cardmarket (codziennie, w złotych po kursie NBP).
+        Oceniamy tylko ceny, za które naprawdę można kupić produkt – nigdy cenę katalogową.
       </p>
     </footer>
     """
@@ -320,10 +413,4 @@ defmodule TcgCheapWeb.GuideComponents do
   def verdict_label(:expensive), do: "Drogo"
   def verdict_label(:insufficient_data), do: "Za mało danych"
   def verdict_label(:out_of_stock), do: "Brak w sklepach"
-
-  defp verdict_mark(:good), do: "↓"
-  defp verdict_mark(:normal), do: "="
-  defp verdict_mark(:expensive), do: "↑"
-  defp verdict_mark(:insufficient_data), do: "?"
-  defp verdict_mark(:out_of_stock), do: "–"
 end
