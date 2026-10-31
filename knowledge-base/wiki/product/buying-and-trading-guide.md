@@ -27,7 +27,9 @@ versioned pricing models.
   in-stock offers in Polish shops, falling back to the Cardmarket trend.
 - **Honest gaps.** Missing data is shown as missing; prices are never invented.
 - **Polish first.** Buying-guide copy, number and date formats are Polish.
-  Prices exclude shipping.
+- **Shipping shown separately.** Prices and verdicts are item prices; each
+  offer shows its shop's delivery terms next to it instead of folding an
+  estimated shipping cost into the price.
 - **Local reads.** Public pages read only the local database; external sources
   are fetched by background jobs.
 
@@ -39,11 +41,23 @@ versioned pricing models.
   Cardmarket expansion, and the latest Cardmarket trend/low/avg in EUR.
   Nothing is curated in code; products that disappear from the file are kept.
   Product images come from matched shop offers.
-- **Shops.** Six Polish shops with public WooCommerce Store APIs — LootQuest,
-  CardzHouse, BoosterPoint, PokeBooster, Boosterland, Colligere — are fetched
-  once a day each. Offers are matched to products automatically by strict
-  title rules, or by a known EAN; an unmatched offer is better than a wrong
-  one.
+- **Shops.** 36 Polish shops with a public product feed, fixed in code
+  (`TcgCheap.Sealed.Shops`): 32 through the WooCommerce Store API (their
+  Pokémon category ids) and 4 through Shopify's `products.json` (a Pokémon
+  collection or the whole shop). Each shop's `source` is the feed client
+  module, so another feed type (Shoper/IdoSell XML, next) is one more module.
+  A shop without curated sealed categories keeps only titles that name a
+  sealed product (booster, box, tin, collection, deck, …); a whole Shopify
+  shop also needs "Pokémon" in the title. One daily job queues a fetch per
+  shop after the catalogue import. Offers are matched to products
+  automatically by strict title rules, or by a known EAN; an unmatched offer
+  is better than a wrong one. Excluded on 2026-10-31: pokekarty.pl (robots.txt
+  forbids the API), cardhorizon.pl (sells in EUR), maginarium.pl and
+  crazypulls.pl (the API answers with a JavaScript bot challenge).
+- **Delivery.** Each shop carries its cheapest published delivery price, its
+  free-delivery threshold and the city of its own store where orders can be
+  picked up, checked on the shops' pages on 2026-10-31; unknown values stay
+  empty.
 - **Barcodes.** Known EANs are a product's own list (filled in by an admin or
   an agent; Cardmarket publishes none) plus the EANs of offers assigned to it
   manually; a code claimed by two products identifies neither. Typing a known
@@ -74,8 +88,12 @@ versioned pricing models.
   then newest; a known barcode jumps to its product) with the cheapest current
   price and verdict.
   `/produkty/:slug` shows the verdict and thresholds, every current offer
-  (in stock first, cheapest first, with links to the shop), the Cardmarket
-  price, and a 90-day price chart once there are 7 days of prices.
+  (in stock first, cheapest first, with links to the shop) with its shop's
+  delivery line — "dostawa od 14,99 zł · darmowa od 400 zł", "darmowa
+  dostawa" when the item alone reaches the threshold, "koszt dostawy w
+  koszyku" when the shop publishes no price, and "odbiór osobisty: Gdynia" —
+  the Cardmarket price, and a 90-day price chart once there are 7 days of
+  prices.
 - **Admin.** `/admin/buying-guide` shows each shop's last fetch, matched and
   in-stock counts, current unmatched offers, automatically matched offers
   (filterable by title) and manual decisions.

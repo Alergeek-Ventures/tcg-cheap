@@ -390,7 +390,8 @@ defmodule TcgCheapWeb.GuideComponents do
     ~H"""
     <footer id={@id} class="guide-footnote">
       <p>
-        Ceny bez kosztów wysyłki. Sklepy sprawdzamy raz dziennie: {Enum.join(@shops, ", ")}.
+        Ceny bez kosztów dostawy; dostawę i odbiór osobisty podajemy przy ofertach według zasad sklepów.
+        Sklepy sprawdzamy raz dziennie: {Enum.join(@shops, ", ")}.
         Katalog i ceny odniesienia pochodzą z Cardmarket (codziennie, w złotych po kursie NBP).
         Oceniamy tylko ceny, za które naprawdę można kupić produkt – nigdy cenę katalogową.
       </p>

@@ -1,5 +1,13 @@
 # Wiki Log
 
+## [2026-10-31] More shops with delivery terms
+
+- Task: Owner wants as many Polish shops as possible and buyers to see delivery costs and pickup. Stage 1 integrates every verified public WooCommerce Store API and Shopify `products.json` shop from the 2026-10-31 research: 30 new shops (26 WooCommerce, 4 Shopify), 36 in total. `Shop.source` names the feed client (`WooCommerce`, new `Shopify`, both on the shared `ShopFeed` limits and behaviour); `sealed_categories` is optional and `Matcher.sealed_title?/1` keeps singles and accessories out otherwise. Shops carry `shipping_from`, `free_shipping_from` and `pickup_city`, shown under each offer on the product page; verdicts stay on item prices. One daily `FetchWorker` cron job without a shop queues a job per shop.
+- Excluded: pokekarty.pl (robots.txt), cardhorizon.pl (EUR), maginarium.pl and crazypulls.pl (JavaScript bot challenge on the API; crazypulls answered earlier the same day).
+- Files: `product/buying-and-trading-guide.md` (Principles, Shops, Delivery, Pages). Outside the wiki: `docs/deployment-and-operations.md`, `README.md`, `PRODUCT.md`, `DESIGN.md`. Raw: N/A — codebase update.
+- Validation: `mix check`; every shop fetched through `Refresh.run/1` in the running app and again through the daily `FetchWorker` job (36 jobs queued); `shop_status` over MCP showed offers, matches and in-stock matches for all 36; unmatched offers of the new shops are almost all real sealed products missing from the catalogue (Asian editions, checklane blisters), with a handful of accessories (acrylic cases, figure blind boxes); screenshots of a product page at 1280 and 390 px and of the home page.
+- Remaining: Shoper and IdoSell XML feeds (stage 2). Delivery terms are fixed in code and need a periodic re-check. `architecture/data-sources.md`, `architecture/application-foundation.md` and `index.md` still describe six WooCommerce shops and the per-shop cron.
+
 ## [2026-10-31] UX review fixes
 
 - Task: Independent Opus UX/UI review of the running guide. Applied the fixes that keep the product rules: the price chart waits for 7 days of prices (a near-empty 90-day frame before), list rows drop kind/set already in the name, a concrete home subtitle, one Cardmarket trend line instead of three prices, the "how we compute" text names the Cardmarket fallback only when it is used, "Brak w sklepach" as the out-of-stock verdict, a reset link on empty results, grouped digits in counts.

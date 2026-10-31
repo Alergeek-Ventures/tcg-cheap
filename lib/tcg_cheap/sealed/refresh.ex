@@ -1,6 +1,7 @@
 defmodule TcgCheap.Sealed.Refresh do
   @moduledoc """
-  Fetches one shop and stores the result in a single transaction.
+  Fetches one shop through its feed client (`source`) and stores the result in
+  a single transaction.
 
   A successful fetch upserts every offer seen and then `recompute/1`s: all
   stored offers are re-matched (the catalogue may have changed; manual
@@ -12,13 +13,13 @@ defmodule TcgCheap.Sealed.Refresh do
 
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{DailyPrice, Matcher, Offer, Shop, WooCommerce}
+  alias TcgCheap.Sealed.{DailyPrice, Matcher, Offer, Shop}
 
   @spec run(Shop.t(), keyword()) :: {:ok, %{offers: non_neg_integer()}} | {:error, term()}
   def run(%Shop{} = shop, opts \\ []) do
     now = Keyword.get_lazy(opts, :now, &DateTime.utc_now/0)
 
-    case WooCommerce.fetch(shop, Keyword.get(opts, :req_options, [])) do
+    case shop.source.fetch(shop, Keyword.get(opts, :req_options, [])) do
       {:ok, []} ->
         {:error, :empty_feed}
 
