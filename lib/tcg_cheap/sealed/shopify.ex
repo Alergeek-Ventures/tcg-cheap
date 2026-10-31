@@ -97,10 +97,8 @@ defmodule TcgCheap.Sealed.Shopify do
 
   defp normalize(_shop, _product), do: :invalid
 
-  defp sealed?(shop, title) do
-    Matcher.sealed_title?(title) and
-      (is_binary(shop.collection) or "pokemon" in String.split(Matcher.normalize(title)))
-  end
+  defp sealed?(%Shop{collection: nil}, title), do: ShopFeed.sealed_pokemon?(title, nil)
+  defp sealed?(_shop, title), do: Matcher.sealed_title?(title)
 
   defp handle(handle) when is_binary(handle) and byte_size(handle) <= 255 do
     if Regex.match?(~r/\A[a-z0-9]+(?:[-_][a-z0-9]+)*\z/, handle), do: {:ok, handle}, else: :error
@@ -110,7 +108,7 @@ defmodule TcgCheap.Sealed.Shopify do
 
   defp variant_offer(product, %{"id" => id, "available" => available} = variant)
        when is_integer(id) and id > 0 and is_boolean(available) do
-    with {:ok, price} <- price(variant["price"]),
+    with {:ok, price} <- ShopFeed.decimal_price(variant["price"]),
          {:ok, title} <- variant_title(product, variant["title"]) do
       {:ok,
        %{
@@ -146,12 +144,4 @@ defmodule TcgCheap.Sealed.Shopify do
     do: ShopFeed.image_url(src, product.image_hosts) || product.image_url
 
   defp variant_image_url(product, _image), do: product.image_url
-
-  defp price(value) when is_binary(value) do
-    if Regex.match?(~r/\A[0-9]{1,7}(?:\.[0-9]{1,2})?\z/, value),
-      do: ShopFeed.price(Decimal.new(value)),
-      else: :error
-  end
-
-  defp price(_value), do: :error
 end

@@ -41,19 +41,23 @@ versioned pricing models.
   Cardmarket expansion, and the latest Cardmarket trend/low/avg in EUR.
   Nothing is curated in code; products that disappear from the file are kept.
   Product images come from matched shop offers.
-- **Shops.** 36 Polish shops with a public product feed, fixed in code
+- **Shops.** 71 Polish shops with a public product feed, fixed in code
   (`TcgCheap.Sealed.Shops`): 32 through the WooCommerce Store API (their
-  Pokémon category ids) and 4 through Shopify's `products.json` (a Pokémon
-  collection or the whole shop). Each shop's `source` is the feed client
-  module, so another feed type (Shoper/IdoSell XML, next) is one more module.
-  A shop without curated sealed categories keeps only titles that name a
-  sealed product (booster, box, tin, collection, deck, …); a whole Shopify
-  shop also needs "Pokémon" in the title. One daily job queues a fetch per
-  shop after the catalogue import. Offers are matched to products
+  Pokémon category ids), 4 through Shopify's `products.json` (a Pokémon
+  collection or the whole shop), 28 Shoper shops through their whole-shop
+  Google Merchant (26) or Ceneo (2) XML export, and 7 IdoSell shops through
+  the XML view of a Pokémon category or search. Each shop's `source` is the
+  feed client module, so another feed type is one more module. A shop without
+  curated sealed categories keeps only titles that name a sealed product
+  (booster, box, tin, collection, deck, …); a whole-shop feed also needs
+  "Pokémon" in the title or the shop's category. One daily job queues a fetch
+  per shop after the catalogue import. Offers are matched to products
   automatically by strict title rules, or by a known EAN; an unmatched offer
   is better than a wrong one. Excluded on 2026-10-31: pokekarty.pl (robots.txt
   forbids the API), cardhorizon.pl (sells in EUR), maginarium.pl and
-  crazypulls.pl (the API answers with a JavaScript bot challenge).
+  crazypulls.pl (the API answers with a JavaScript bot challenge), and the
+  XML shops elfwood.pl, futurex.pl, planszostrefa.pl and przyczolek.pl (too
+  few sealed Pokémon items).
 - **Delivery.** Each shop carries its cheapest published delivery price, its
   free-delivery threshold and the city of its own store where orders can be
   picked up, checked on the shops' pages on 2026-10-31; unknown values stay

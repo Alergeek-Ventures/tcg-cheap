@@ -9,7 +9,7 @@ defmodule TcgCheap.Sealed.Shops do
   the shops' own pages on 2026-10-31; nil means the shop does not publish it.
   """
 
-  alias TcgCheap.Sealed.{Shop, Shopify, WooCommerce}
+  alias TcgCheap.Sealed.{CeneoFeed, GoogleFeed, IdoSell, Shop, Shopify, WooCommerce}
 
   @produkt ~r|\A/produkt/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
   @produkt_no_slash ~r|\A/produkt/[a-z0-9]+(?:-[a-z0-9]+)*\z|
@@ -18,7 +18,22 @@ defmodule TcgCheap.Sealed.Shops do
   @sklep_nested ~r|\A/sklep/(?:[a-z0-9]+(?:-[a-z0-9]+)*/){1,5}\z|
   @tcg_nested ~r|\A/tcg/(?:[a-z0-9]+(?:-[a-z0-9]+)*/){1,5}\z|
 
+  # Shoper's whole-shop exports; a shop enables one or the other integration.
+  @shoper_google "/console/integration/execute/name/GoogleProductSearch"
+  @shoper_ceneo "/console/integration/execute/name/CeneoV2"
+
   @shops [
+    %Shop{
+      key: "alpakagra",
+      name: "AlpakaGra",
+      host: "alpakagra.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("13"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: nil
+    },
     %Shop{
       key: "atneles",
       name: "Atneles",
@@ -45,6 +60,17 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: "Żukowo"
     },
     %Shop{
+      key: "boostermania",
+      name: "Boostermania",
+      host: "boostermania.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("16"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
       key: "boosterpoint",
       name: "BoosterPoint",
       host: "boosterpoint.pl",
@@ -66,6 +92,28 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 10,
       shipping_from: Decimal.new("13.95"),
       free_shipping_from: Decimal.new("499"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "carddojo",
+      name: "Card Dojo",
+      host: "carddojo.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("19.99"),
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "cardfan",
+      name: "CardFan",
+      host: "www.cardfan.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("16.99"),
+      free_shipping_from: nil,
       pickup_city: nil
     },
     %Shop{
@@ -129,6 +177,50 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: nil
     },
     %Shop{
+      key: "epiccard",
+      name: "EpicCard",
+      host: "epiccard.pl",
+      source: IdoSell,
+      feed_path: "/search.php?text=pokemon",
+      max_pages: 15,
+      shipping_from: Decimal.new("15.26"),
+      free_shipping_from: Decimal.new("450"),
+      pickup_city: "Żory"
+    },
+    %Shop{
+      key: "flamberg",
+      name: "Flamberg",
+      host: "flamberg.com.pl",
+      source: IdoSell,
+      feed_path: "/pl/menu/pokemon-687",
+      max_pages: 3,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("400"),
+      pickup_city: "Katowice"
+    },
+    %Shop{
+      key: "gnom",
+      name: "Gnom",
+      host: "gnom-sklep.pl",
+      source: IdoSell,
+      feed_path: "/pl/menu/pokemon-tcg-449",
+      max_pages: 5,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("450"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "graal",
+      name: "Graal",
+      host: "sklep-graal.pl",
+      source: CeneoFeed,
+      feed_path: @shoper_ceneo,
+      max_pages: 1,
+      shipping_from: Decimal.new("19"),
+      free_shipping_from: nil,
+      pickup_city: "Warszawa"
+    },
+    %Shop{
       key: "gralnia",
       name: "Gralnia",
       host: "gralnia.org",
@@ -151,6 +243,17 @@ defmodule TcgCheap.Sealed.Shops do
       shipping_from: Decimal.new("13.99"),
       free_shipping_from: Decimal.new("499"),
       pickup_city: "Tarnowskie Góry"
+    },
+    %Shop{
+      key: "grybezpradu",
+      name: "Gry Bez Prądu",
+      host: "grybezpradu.eu",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("14.99"),
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: "Poznań"
     },
     %Shop{
       key: "gryujanusza",
@@ -188,6 +291,17 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: nil
     },
     %Shop{
+      key: "kantodrop",
+      name: "KantoDrop",
+      host: "kantodrop.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("14.99"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
       key: "karciarz",
       name: "Karciarz",
       host: "karciarz.com",
@@ -197,6 +311,17 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: Decimal.new("16"),
       free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "kartomaniak",
+      name: "Kartomaniak",
+      host: "kartomaniak.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("13"),
+      free_shipping_from: Decimal.new("500"),
       pickup_city: nil
     },
     %Shop{
@@ -220,6 +345,28 @@ defmodule TcgCheap.Sealed.Shops do
       product_path: @produkt,
       max_pages: 3,
       shipping_from: Decimal.new("16.99"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "kartsy",
+      name: "Kartsy",
+      host: "kartsy.pl",
+      source: IdoSell,
+      feed_path: "/search.php?text=pokemon",
+      max_pages: 3,
+      shipping_from: Decimal.new("9.9"),
+      free_shipping_from: nil,
+      pickup_city: "Kraków"
+    },
+    %Shop{
+      key: "kegami",
+      name: "Kegami",
+      host: "kegami.pl",
+      source: CeneoFeed,
+      feed_path: @shoper_ceneo,
+      max_pages: 1,
+      shipping_from: Decimal.new("12.5"),
       free_shipping_from: Decimal.new("300"),
       pickup_city: nil
     },
@@ -248,6 +395,17 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: nil
     },
     %Shop{
+      key: "kupteraz",
+      name: "Kup Teraz",
+      host: "kupteraz.com.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("18"),
+      free_shipping_from: Decimal.new("499"),
+      pickup_city: nil
+    },
+    %Shop{
       key: "lootquest",
       name: "LootQuest",
       host: "lootquest.pl",
@@ -266,6 +424,17 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: nil
     },
     %Shop{
+      key: "luznepaczki",
+      name: "Luźne Paczki",
+      host: "luznepaczki.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: nil
+    },
+    %Shop{
       key: "magiccafe",
       name: "Magic Cafe",
       host: "magiccafe.eu",
@@ -276,6 +445,28 @@ defmodule TcgCheap.Sealed.Shops do
       shipping_from: Decimal.new("12.99"),
       free_shipping_from: nil,
       pickup_city: nil
+    },
+    %Shop{
+      key: "mepel",
+      name: "Mepel",
+      host: "mepel.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("7"),
+      free_shipping_from: Decimal.new("70"),
+      pickup_city: "Katowice"
+    },
+    %Shop{
+      key: "mrpuggy",
+      name: "Mr. Puggy",
+      host: "mrpuggy.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: "Kraków"
     },
     %Shop{
       key: "nearmint",
@@ -314,6 +505,17 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: nil
     },
     %Shop{
+      key: "panmysza",
+      name: "Pan Mysza",
+      host: "panmysza.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("15"),
+      free_shipping_from: Decimal.new("600"),
+      pickup_city: nil
+    },
+    %Shop{
       key: "pika",
       name: "pi-ka.space",
       host: "pi-ka.space",
@@ -324,6 +526,28 @@ defmodule TcgCheap.Sealed.Shops do
       shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil
+    },
+    %Shop{
+      key: "pikatube",
+      name: "PikaTube",
+      host: "pikatube.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("15.99"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "planszolek",
+      name: "Planszołek",
+      host: "www.planszolek.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("11.99"),
+      free_shipping_from: Decimal.new("450"),
+      pickup_city: "Brzesko"
     },
     %Shop{
       key: "pokebeast",
@@ -351,6 +575,28 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: nil
     },
     %Shop{
+      key: "pokecollect",
+      name: "PokeCollect",
+      host: "pokecollect.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("12.9"),
+      free_shipping_from: Decimal.new("400"),
+      pickup_city: "Lublin"
+    },
+    %Shop{
+      key: "pokegemcollector",
+      name: "PokeGemCollector",
+      host: "www.pokegemcollector.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("16.95"),
+      free_shipping_from: Decimal.new("600"),
+      pickup_city: nil
+    },
+    %Shop{
       key: "pokelab",
       name: "Poke-Lab",
       host: "poke-lab.pl",
@@ -358,6 +604,17 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 5,
       shipping_from: nil,
       free_shipping_from: Decimal.new("400"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "pokemaniak",
+      name: "Pokemaniak",
+      host: "pokemaniak.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("15"),
+      free_shipping_from: Decimal.new("500"),
       pickup_city: nil
     },
     %Shop{
@@ -371,6 +628,17 @@ defmodule TcgCheap.Sealed.Shops do
       shipping_from: nil,
       free_shipping_from: Decimal.new("299"),
       pickup_city: nil
+    },
+    %Shop{
+      key: "pokespot",
+      name: "PokeSpot",
+      host: "pokespot.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("13.49"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: "Luboń"
     },
     %Shop{
       key: "pokeverse",
@@ -395,6 +663,17 @@ defmodule TcgCheap.Sealed.Shops do
       shipping_from: nil,
       free_shipping_from: Decimal.new("250"),
       pickup_city: nil
+    },
+    %Shop{
+      key: "redraft",
+      name: "Redraft",
+      host: "redraft.pl",
+      source: IdoSell,
+      feed_path: "/pl/menu/pokemon-tcg-176.html",
+      max_pages: 5,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("400"),
+      pickup_city: "Katowice"
     },
     %Shop{
       key: "skarbieckart",
@@ -442,6 +721,39 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: nil
     },
     %Shop{
+      key: "strefamarzen",
+      name: "Strefa Marzeń",
+      host: "strefamarzen.pl",
+      source: IdoSell,
+      feed_path: "/search.php?text=pokemon+tcg",
+      max_pages: 12,
+      shipping_from: Decimal.new("15.99"),
+      free_shipping_from: Decimal.new("350"),
+      pickup_city: "Bielsko-Biała"
+    },
+    %Shop{
+      key: "strefatcg",
+      name: "Strefa TCG",
+      host: "strefa-tcg.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("12"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "swiatkart",
+      name: "Świat Kart",
+      host: "swiatkart.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("15.99"),
+      free_shipping_from: Decimal.new("599"),
+      pickup_city: nil
+    },
+    %Shop{
       key: "tcghobby",
       name: "TCGHobby",
       host: "tcghobby.pl",
@@ -450,6 +762,39 @@ defmodule TcgCheap.Sealed.Shops do
       product_path: @produkt,
       max_pages: 3,
       shipping_from: nil,
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcghub",
+      name: "TCG Hub",
+      host: "tcghub.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("12"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcglove",
+      name: "TCGLove",
+      host: "www.tcglove.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("15"),
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgtrener",
+      name: "TCG Trener",
+      host: "tcgtrener.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("18"),
       free_shipping_from: Decimal.new("500"),
       pickup_city: nil
     },
@@ -466,6 +811,17 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: nil
     },
     %Shop{
+      key: "time4magic",
+      name: "Time4Magic",
+      host: "time4magic.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("12.99"),
+      free_shipping_from: Decimal.new("349"),
+      pickup_city: "Wrocław"
+    },
+    %Shop{
       key: "tubacards",
       name: "TubaCards",
       host: "tubacards.pl",
@@ -475,6 +831,39 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: nil,
       free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "zagrajnik",
+      name: "Zagrajnik",
+      host: "zagrajnik.shop",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: Decimal.new("13"),
+      free_shipping_from: Decimal.new("349"),
+      pickup_city: "Izabelin C"
+    },
+    %Shop{
+      key: "zarc",
+      name: "Zarc",
+      host: "zarc.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("600"),
+      pickup_city: "Jaworzno"
+    },
+    %Shop{
+      key: "zgrani",
+      name: "Zgrani",
+      host: "zgrani.pl",
+      source: IdoSell,
+      feed_path: "/pl/menu/pokemon-208",
+      max_pages: 5,
+      shipping_from: Decimal.new("11.99"),
+      free_shipping_from: Decimal.new("199"),
       pickup_city: nil
     }
   ]

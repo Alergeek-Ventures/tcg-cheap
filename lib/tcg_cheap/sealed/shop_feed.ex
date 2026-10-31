@@ -3,19 +3,22 @@ defmodule TcgCheap.Sealed.ShopFeed do
   The contract of a shop feed client and the hardening every client shares.
 
   A shop's `source` is the client module that reads its feed
-  (`TcgCheap.Sealed.WooCommerce`, `TcgCheap.Sealed.Shopify`); a new kind of
-  feed is one more module implementing this behaviour.
+  (`TcgCheap.Sealed.WooCommerce`, `TcgCheap.Sealed.Shopify`,
+  `TcgCheap.Sealed.GoogleFeed`, `TcgCheap.Sealed.CeneoFeed`,
+  `TcgCheap.Sealed.IdoSell`); a new kind of feed is one more module
+  implementing this behaviour.
 
   Requests go only to the shop's fixed HTTPS host, follow no redirects and read
-  at most 5 MB per page. Every product field is untrusted: products with an
-  invalid id, title, URL or price are skipped and counted in a warning. Any
+  at most 5 MB per page, or more where a client asks for it (a whole-shop XML
+  export). Every product field is untrusted: products with an invalid id,
+  title, URL, price or availability are skipped and counted in a warning. Any
   transport, status, pagination or shape problem fails the whole fetch so that
   a partial catalogue is never mistaken for a complete one.
   """
 
   require Logger
 
-  alias TcgCheap.Sealed.Shop
+  alias TcgCheap.Sealed.{Matcher, Shop}
 
   @max_body_bytes 5_000_000
   @max_title_length 300
@@ -41,17 +44,22 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @doc "The hosts the shop's product images may be shown from."
   @callback image_hosts(Shop.t()) :: [String.t()]
 
-  @doc "GETs `path` on the shop's host and returns the 200 response with its raw body."
-  @spec get(Shop.t(), String.t(), keyword(), keyword()) ::
+  @doc """
+  GETs `path` on the shop's host and returns the 200 response with its raw
+  body, at most `max_body_bytes` long (default 5 MB).
+  """
+  @spec get(Shop.t(), String.t(), keyword(), keyword(), [{:max_body_bytes, pos_integer()}]) ::
           {:ok, Req.Response.t()} | {:error, term()}
-  def get(%Shop{host: host}, path, params, req_options) do
+  def get(%Shop{host: host}, path, params, req_options, opts \\ []) do
+    max_body_bytes = Keyword.get(opts, :max_body_bytes, @max_body_bytes)
+
     request =
       Req.new(
         url: "https://#{host}#{path}",
         params: params,
         headers: [{"user-agent", "TcgCheap/1.0 (buying guide)"}],
         decode_body: false,
-        into: &bounded_body/2,
+        into: &bounded_body(&1, &2, max_body_bytes),
         connect_options: [timeout: 5_000],
         receive_timeout: 15_000,
         redirect: false,
@@ -67,10 +75,10 @@ defmodule TcgCheap.Sealed.ShopFeed do
     end
   end
 
-  defp bounded_body({:data, data}, {request, response}) do
+  defp bounded_body({:data, data}, {request, response}, max_body_bytes) do
     body = if is_binary(response.body), do: response.body, else: ""
 
-    if byte_size(body) + byte_size(data) > @max_body_bytes,
+    if byte_size(body) + byte_size(data) > max_body_bytes,
       do: {:halt, {request, %{response | body: :too_large}}},
       else: {:cont, {request, %{response | body: body <> data}}}
   end
@@ -106,6 +114,40 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
     offers |> Enum.reverse() |> Enum.uniq_by(& &1.shop_product_id)
   end
+
+  @doc """
+  Whether a product of a mixed listing is sealed Pokémon: its title names a
+  sealed product (`TcgCheap.Sealed.Matcher.sealed_title?/1`) and its title or
+  the shop's category for it (nil when unknown) says Pokémon.
+  """
+  @spec sealed_pokemon?(String.t(), String.t() | nil) :: boolean()
+  def sealed_pokemon?(title, category) do
+    Matcher.sealed_title?(title) and (pokemon?(title) or pokemon?(category))
+  end
+
+  defp pokemon?(nil), do: false
+  defp pokemon?(text), do: "pokemon" in String.split(Matcher.normalize(text))
+
+  @doc "A shop's own product id: 1–40 letters, digits, `_` or `-`."
+  @spec product_id(term()) :: {:ok, String.t()} | :error
+  def product_id(id) when is_binary(id) do
+    if Regex.match?(~r/\A[A-Za-z0-9_-]{1,40}\z/, id), do: {:ok, id}, else: :error
+  end
+
+  def product_id(_id), do: :error
+
+  @doc """
+  A price written as a plain decimal (`"12"`, `"18.5"`, `"139.95"`), within
+  the limits of `price/1`.
+  """
+  @spec decimal_price(term()) :: {:ok, Decimal.t()} | :error
+  def decimal_price(value) when is_binary(value) do
+    if Regex.match?(~r/\A[0-9]{1,7}(?:\.[0-9]{1,2})?\z/, value),
+      do: price(Decimal.new(value)),
+      else: :error
+  end
+
+  def decimal_price(_value), do: :error
 
   @doc "A product title with HTML entities decoded and whitespace collapsed."
   @spec title(term()) :: {:ok, String.t()} | :error

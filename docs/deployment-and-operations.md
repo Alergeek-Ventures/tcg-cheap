@@ -120,7 +120,7 @@ runs one job at a time; completed jobs are pruned after 7 days.
 | --- | --- | --- | --- |
 | 03:00 daily | `TcgCheap.Pricing.CardmarketBulk.SyncWorker` | `cardmarket_bulk` | Cardmarket singles files → card valuations |
 | 03:30 daily | `TcgCheap.Sealed.CatalogueImportWorker` | `sealed` | Cardmarket sealed catalogue and prices |
-| 04:00 daily | `TcgCheap.Sealed.FetchWorker` (no shop) | `sealed` | Queues one `FetchWorker` job per shop in `TcgCheap.Sealed.Shops`; the queue fetches them one after another |
+| 04:00 daily | `TcgCheap.Sealed.FetchWorker` (no shop) | `sealed` | Queues one `FetchWorker` job per shop in `TcgCheap.Sealed.Shops`; the queue fetches them one after another (1–22 s each; all 71 took about 5 minutes on 2026-10-31) |
 | 15:00 daily | `TcgCheap.Pricing.ExchangeRateWorker` | `exchange_rates` | NBP EUR/PLN rate |
 | every 15 min (unique per week) | `TcgCheap.Catalogue.SinglesCatalogueBootstrapWorker` | `catalogue_sync` | Queues the TCGdex catalogue sync and card detail enrichment |
 | every 15 min (once per manifest) | `TcgCheap.Catalogue.CuratedPlayableBootstrapWorker` | `catalogue_sync` | Curated playable cards; no-op after 2026-11-17 |
@@ -211,14 +211,21 @@ listens only on localhost and needs no token; `.mcp.json` (Claude Code) and
 ### Add or remove a shop
 
 A shop must expose a public feed with a client in `TcgCheap.Sealed`: the
-WooCommerce Store API (`/wp-json/wc/store/v1/products`) or Shopify's
-`/products.json` with prices in PLN, and its `robots.txt` must allow it.
+WooCommerce Store API (`/wp-json/wc/store/v1/products`), Shopify's
+`/products.json`, a Shoper export (`GoogleFeed` for
+`/console/integration/execute/name/GoogleProductSearch`, `CeneoFeed` for
+`…/CeneoV2`; a Shoper shop without the integration answers with an empty
+body) or IdoSell's `getProductXML=t` listing view, with prices in PLN, and its
+`robots.txt` must allow it. Whole-shop exports may be up to 64 MB.
 
 1. Add a `%TcgCheap.Sealed.Shop{}` entry to `TcgCheap.Sealed.Shops`: key,
    name, host, `source` and `max_pages`; for WooCommerce the Pokémon category
    id(s) (`/wp-json/wc/store/v1/products/categories?per_page=100`), optional
    sealed category slugs and the permalink pattern; for Shopify an optional
-   Pokémon collection handle. Add the delivery facts from the shop's delivery
+   Pokémon collection handle; for Shoper the export path (`@shoper_google` or
+   `@shoper_ceneo`) as `feed_path` and `max_pages: 1`; for IdoSell the
+   Pokémon category or search path (query included, without `getProductXML`)
+   as `feed_path` and a page limit. Add the delivery facts from the shop's delivery
    page (cheapest delivery, free-delivery threshold, pickup city; nil when not
    published). Image hosts and the CSP follow automatically, and the daily job
    picks the shop up.
