@@ -130,7 +130,8 @@ defmodule TcgCheap.Sealed.Matcher do
   # Polish word stems for damaged, opened or used items ("uszkodzone", "otwarty", "używany"…).
   @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan)/
 
-  @multiples ~r/(?:\A| )(?:x ?\d{1,3}|\d{1,3} ?x|\d{1,3} (?:sztuk|szt|pcs))(?: |\z)/
+  # Two or more pieces ("x3", "10x", "36 szt"); "1 szt" is still one item.
+  @multiples ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuk|szt|pcs))(?: |\z)/
 
   defstruct entries: [], by_rare_token: %{}, sets: [], eans: %{}
 
