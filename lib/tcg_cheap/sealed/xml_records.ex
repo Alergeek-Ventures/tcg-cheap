@@ -1,4 +1,6 @@
 defmodule TcgCheap.Sealed.XmlRecords do
+  @max_records 20_000
+
   @moduledoc """
   Reads the repeated records of an untrusted XML feed, keeping only the
   fields a feed client asks for.
@@ -15,7 +17,9 @@ defmodule TcgCheap.Sealed.XmlRecords do
   Parsing uses Saxy, which creates no atoms, skips a DTD instead of reading
   its entity declarations and expands only character references and the five
   predefined entities; `expand_entity: :keep` leaves any other reference as
-  written. Entity expansion therefore cannot amplify the (size-bounded) input.
+  written. Entity expansion therefore cannot amplify the (size-bounded) input,
+  and work stays linear in it: more than #{@max_records} kept records fail the
+  parse instead of filling memory.
   """
 
   @behaviour Saxy.Handler
@@ -28,20 +32,25 @@ defmodule TcgCheap.Sealed.XmlRecords do
   relative `paths`.
   """
   @spec parse(binary(), [String.t()], [[String.t()]], (xml_record() -> boolean())) ::
-          {:ok, [xml_record()]} | {:error, :malformed_response}
+          {:ok, [xml_record()]} | {:error, :malformed_response | :too_many_records}
   def parse(xml, record_path, paths, keep?) when is_binary(xml) do
     state = %{
       record: Enum.reverse(record_path),
       depth: length(record_path),
+      level: 0,
+      max_relative: paths |> Enum.map(&length/1) |> Enum.max(fn -> 0 end),
       paths: MapSet.new(paths),
       keep?: keep?,
       stack: [],
       current: nil,
       field: nil,
-      records: []
+      records: [],
+      kept: 0
     }
 
     case Saxy.parse_string(xml, __MODULE__, state, expand_entity: :keep) do
+      # A handler's {:stop, value} comes back as {:ok, value}.
+      {:ok, :too_many_records} -> {:error, :too_many_records}
       {:ok, %{records: records}} -> {:ok, Enum.reverse(records)}
       {:error, _exception} -> {:error, :malformed_response}
     end
@@ -67,17 +76,18 @@ defmodule TcgCheap.Sealed.XmlRecords do
 
   @impl Saxy.Handler
   def handle_event(:start_element, {name, attrs}, state) do
-    state = %{state | stack: [name | state.stack]}
+    state = %{state | stack: [name | state.stack], level: state.level + 1}
+    below = state.level - state.depth
 
     cond do
       is_nil(state.current) and state.stack == state.record ->
         {:ok, %{state | current: %{[] => [field(attrs, "")]}}}
 
-      is_nil(state.current) or not is_nil(state.field) ->
+      is_nil(state.current) or not is_nil(state.field) or below > state.max_relative ->
         {:ok, state}
 
       true ->
-        relative = state.stack |> Enum.take(length(state.stack) - state.depth) |> Enum.reverse()
+        relative = state.stack |> Enum.take(below) |> Enum.reverse()
 
         if MapSet.member?(state.paths, relative),
           do: {:ok, %{state | field: {state.stack, relative, attrs, []}}},
@@ -89,23 +99,28 @@ defmodule TcgCheap.Sealed.XmlRecords do
     do: {:ok, %{state | field: {stack, relative, attrs, [text | chars]}}}
 
   def handle_event(:end_element, _name, state) do
-    state = state |> finish_field() |> finish_record()
-    {:ok, %{state | stack: tl(state.stack)}}
+    case state |> finish_field() |> finish_record() do
+      %{kept: kept} when kept > @max_records -> {:stop, :too_many_records}
+      state -> {:ok, %{state | stack: tl(state.stack), level: state.level - 1}}
+    end
   end
 
   def handle_event(_event, _data, state), do: {:ok, state}
 
   defp finish_field(%{field: {stack, relative, attrs, text}, stack: stack} = state) do
     field = field(attrs, IO.iodata_to_binary(text))
-    current = Map.update(state.current, relative, [field], &(&1 ++ [field]))
+    # Newest first while parsing; finish_record/1 restores document order.
+    current = Map.update(state.current, relative, [field], &[field | &1])
     %{state | current: current, field: nil}
   end
 
   defp finish_field(state), do: state
 
   defp finish_record(%{stack: record, record: record, current: %{} = current} = state) do
+    current = Map.new(current, fn {path, fields} -> {path, Enum.reverse(fields)} end)
+
     if state.keep?.(current),
-      do: %{state | records: [current | state.records], current: nil},
+      do: %{state | records: [current | state.records], current: nil, kept: state.kept + 1},
       else: %{state | current: nil}
   end
 

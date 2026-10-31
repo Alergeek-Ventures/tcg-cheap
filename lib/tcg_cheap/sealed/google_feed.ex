@@ -7,10 +7,10 @@ defmodule TcgCheap.Sealed.GoogleFeed do
 
   A product counts when it is sealed Pokémon
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on its title and
-  `g:product_type`). Its price is `g:price`, or `g:sale_price` while
-  `g:sale_price_effective_date` (if given) includes now, in PLN;
-  `g:availability` "in stock" is in stock, "out of stock", "preorder" and
-  "backorder" are not. Links and images must be on the shop's host; EANs come
+  `g:product_type`). Its price is `g:price`, or a lower `g:sale_price`
+  while `g:sale_price_effective_date` (if given) includes now, in PLN;
+  `g:availability` "in stock" (or `in_stock`) is in stock, "out of stock",
+  "preorder" and "backorder" are not. Links and images must be on the shop's host; EANs come
   from `g:gtin`. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
@@ -73,7 +73,7 @@ defmodule TcgCheap.Sealed.GoogleFeed do
            url: text.("link"),
            image_url: ShopFeed.image_url(text.("g:image_link"), image_hosts(shop)),
            ean: Ean.normalize(text.("g:gtin")),
-           price: sale_price || price,
+           price: lower(sale_price, price),
            in_stock: in_stock
          }
        ]}
@@ -91,6 +91,10 @@ defmodule TcgCheap.Sealed.GoogleFeed do
 
   defp price(_value), do: :error
 
+  # A "sale" price above the regular one is not a sale.
+  defp lower(nil, price), do: price
+  defp lower(sale_price, price), do: Decimal.min(sale_price, price)
+
   defp sale_price(nil, _dates, _now), do: {:ok, nil}
   defp sale_price(value, nil, _now), do: price(value)
 
@@ -107,7 +111,11 @@ defmodule TcgCheap.Sealed.GoogleFeed do
     end
   end
 
-  defp in_stock("in stock"), do: {:ok, true}
-  defp in_stock(value) when value in ["out of stock", "preorder", "backorder"], do: {:ok, false}
+  defp in_stock(value) when value in ["in stock", "in_stock"], do: {:ok, true}
+
+  defp in_stock(value)
+       when value in ["out of stock", "out_of_stock", "preorder", "backorder"],
+       do: {:ok, false}
+
   defp in_stock(_value), do: :error
 end

@@ -3,7 +3,9 @@ defmodule TcgCheap.Sealed.IdoSell do
   Reads the XML view that every IdoSell shop offers for its listings: the
   shop's `feed_path` (a Pokémon category, or a search with its query) with
   `getProductXML=t`, one page per `counter` (from 0) up to the first page
-  without products, at most `max_pages` pages.
+  without products, at most `max_pages` pages. Every page states the
+  listing's total; it must stay the same and match the distinct products
+  read, so a page that is missing, replaced or shifted fails the fetch.
 
   A product counts when it is sealed Pokémon
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on its name and category).
@@ -36,32 +38,55 @@ defmodule TcgCheap.Sealed.IdoSell do
 
   @impl true
   def fetch(%Shop{} = shop, req_options) do
-    with {:ok, products} <- fetch_pages(shop, req_options, 0, []) do
+    with {:ok, products} <- fetch_pages(shop, req_options, 0, nil, []) do
       {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
     end
   end
 
-  defp fetch_pages(shop, req_options, counter, acc) do
+  defp fetch_pages(shop, req_options, counter, total, acc) do
     case request(shop, req_options, counter) do
-      {:ok, products} when counter >= shop.max_pages and products != [] ->
+      {:ok, products, _page_total} when counter >= shop.max_pages and products != [] ->
         {:error, :too_many_pages}
 
-      {:ok, []} ->
-        {:ok, acc |> Enum.reverse() |> List.flatten()}
+      {:ok, products, page_total} when total in [nil, page_total] and products != [] ->
+        fetch_pages(shop, req_options, counter + 1, page_total, [products | acc])
 
-      {:ok, products} ->
-        fetch_pages(shop, req_options, counter + 1, [products | acc])
+      {:ok, [], page_total} when total in [nil, page_total] ->
+        acc |> Enum.reverse() |> List.flatten() |> complete(page_total)
+
+      {:ok, _products, _page_total} ->
+        {:error, :pagination_changed}
 
       {:error, reason} ->
         {:error, reason}
     end
   end
 
+  defp complete(products, total) do
+    distinct = products |> Enum.map(&XmlRecords.attr(&1, [], "id")) |> Enum.uniq() |> length()
+    if distinct == total, do: {:ok, products}, else: {:error, :incomplete_listing}
+  end
+
   defp request(shop, req_options, counter) do
     params = [getProductXML: "t", counter: counter]
 
-    with {:ok, response} <- ShopFeed.get(shop, shop.feed_path, params, req_options) do
-      XmlRecords.parse(response.body, ["page", "products", "product"], @fields, &listed?/1)
+    with {:ok, response} <- ShopFeed.get(shop, shop.feed_path, params, req_options),
+         {:ok, products} <-
+           XmlRecords.parse(response.body, ["page", "products", "product"], @fields, &listed?/1),
+         {:ok, total} <- total(response.body) do
+      {:ok, products, total}
+    end
+  end
+
+  # The listing's size, from the page's navigation element.
+  defp total(body) do
+    with {:ok, [navigation]} <-
+           XmlRecords.parse(body, ["page", "products", "navigation"], [[]], &listed?/1),
+         {total, ""} when total >= 0 <-
+           Integer.parse(XmlRecords.attr(navigation, [], "total") || "") do
+      {:ok, total}
+    else
+      _ -> {:error, :malformed_pagination}
     end
   end
 

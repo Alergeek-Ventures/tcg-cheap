@@ -126,7 +126,13 @@ defmodule TcgCheap.Sealed.ShopFeed do
   end
 
   defp pokemon?(nil), do: false
-  defp pokemon?(text), do: "pokemon" in String.split(Matcher.normalize(text))
+  # "Pokemony", "Pokemonów" in Polish category names count too.
+  defp pokemon?(text),
+    do:
+      text
+      |> Matcher.normalize()
+      |> String.split()
+      |> Enum.any?(&String.starts_with?(&1, "pokemon"))
 
   @doc "A shop's own product id: 1–40 letters, digits, `_` or `-`."
   @spec product_id(term()) :: {:ok, String.t()} | :error
