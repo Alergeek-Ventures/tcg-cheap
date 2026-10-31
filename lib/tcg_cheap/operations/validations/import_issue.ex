@@ -12,7 +12,6 @@ defmodule TcgCheap.Operations.Validations.ImportIssue do
     "set_import"
   ]
   @enrichment_stages ["set_fetch", "set_validation", "set_import", "card_fetch", "card_import"]
-  @retailer_stages ["retailer_fetch", "listing_validation", "listing_import"]
   @failed_codes [
     "budget",
     "rate_limit",
@@ -64,22 +63,13 @@ defmodule TcgCheap.Operations.Validations.ImportIssue do
   defp valid_operation_stage?("card_catalogue_enrichment", stage),
     do: stage in @enrichment_stages
 
-  defp valid_operation_stage?("sealed_retailer_refresh", stage), do: stage in @retailer_stages
-
   defp valid_operation_stage?(_, _), do: false
 
   defp valid_provider?("tcgdex_catalogue"), do: true
-
-  defp valid_provider?(provider_key) when is_binary(provider_key),
-    do: Regex.match?(~r/\Asealed_retailer:[A-Za-z0-9][A-Za-z0-9._-]{0,143}\z/, provider_key)
-
   defp valid_provider?(_), do: false
 
   defp valid_provider_operation?("tcgdex_catalogue", operation),
     do: operation in ["card_catalogue_sync", "card_catalogue_enrichment"]
-
-  defp valid_provider_operation?(provider_key, "sealed_retailer_refresh"),
-    do: valid_provider?(provider_key) and String.starts_with?(provider_key, "sealed_retailer:")
 
   defp valid_provider_operation?(_, _), do: false
 
@@ -94,14 +84,6 @@ defmodule TcgCheap.Operations.Validations.ImportIssue do
   defp valid_stage_target?(stage, "card", target_key)
        when stage in ["card_fetch", "card_import"],
        do: Tcgdex.valid_card_id?(target_key)
-
-  defp valid_stage_target?(stage, "retailer", target_key) when stage in @retailer_stages do
-    is_binary(target_key) and
-      Regex.match?(
-        ~r/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/,
-        target_key
-      ) and target_key == String.downcase(target_key)
-  end
 
   defp valid_stage_target?(_, _, _), do: false
 

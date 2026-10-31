@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "buying-guide": {
+      "type": "http",
+      "url": "http://localhost:${PORT:-4004}/mcp"
+    }
+  }
+}

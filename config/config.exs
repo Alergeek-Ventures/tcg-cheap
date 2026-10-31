@@ -25,6 +25,7 @@ config :ash,
   transaction_rollback_on_error?: true,
   redact_sensitive_values_in_errors?: true,
   many_to_many_destroy_destination_on_match?: true,
+  default_string_length_count: :codepoints,
   known_types: [AshPostgres.Timestamptz, AshPostgres.TimestamptzUsec]
 
 config :spark,
@@ -55,35 +56,8 @@ config :spark,
 config :tcg_cheap,
   ecto_repos: [TcgCheap.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [TcgCheap.Core, TcgCheap.Accounts, TcgCheap.Operations],
+  ash_domains: [TcgCheap.Core, TcgCheap.Accounts, TcgCheap.Operations, TcgCheap.Sealed],
   token_signing_secret: :endpoint_secret_key_base
-
-config :tcg_cheap, :sealed_retailer_adapters, %{
-  "lootquest" => %{
-    adapter: TcgCheap.Catalogue.SealedRetailers.LootQuest,
-    options: [per_page: 100, max_pages: 10]
-  },
-  "cardzhouse" => %{
-    adapter: TcgCheap.Catalogue.SealedRetailers.CardzHouse,
-    options: [per_page: 100, max_pages: 10]
-  },
-  "boosterpoint" => %{
-    adapter: TcgCheap.Catalogue.SealedRetailers.BoosterPoint,
-    options: [per_page: 100, max_pages: 10]
-  },
-  "pokebooster" => %{
-    adapter: TcgCheap.Catalogue.SealedRetailers.PokeBooster,
-    options: [per_page: 100, max_pages: 10]
-  },
-  "boosterland" => %{
-    adapter: TcgCheap.Catalogue.SealedRetailers.Boosterland,
-    options: [per_page: 100, max_pages: 3]
-  },
-  "colligere" => %{
-    adapter: TcgCheap.Catalogue.SealedRetailers.Colligere,
-    options: [per_page: 100, max_pages: 3]
-  }
-}
 
 config :tcg_cheap, :acquisition_health,
   stranded_after_seconds: 900,
@@ -103,9 +77,7 @@ config :tcg_cheap, Oban,
     catalogue_sync: 1,
     operations: 1,
     cardmarket_bulk: 1,
-    sealed_retailers: 1,
-    sealed_aggregates: 1,
-    sealed_buying_guides: 1
+    sealed: 1
   ],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
@@ -117,21 +89,16 @@ config :tcg_cheap, Oban,
         args: %{"evidence_version" => "2026-08-19-naic"}},
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
-       # Daily at 16:00 UTC, after the 15:00 UTC NBP job.
-       {"0 16 * * *", TcgCheap.Pricing.SealedDailyAggregateWorker, args: %{}},
        {"0 3 * * *", TcgCheap.Pricing.CardmarketBulk.SyncWorker, args: %{}},
-       {"0 1 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
-        args: %{"policy_version" => 1, "source_key" => "lootquest"}},
-       {"0 2 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
-        args: %{"policy_version" => 1, "source_key" => "cardzhouse"}},
-       {"0 3 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
-        args: %{"policy_version" => 1, "source_key" => "boosterpoint"}},
-       {"0 4 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
-        args: %{"policy_version" => 1, "source_key" => "pokebooster"}},
-       {"0 5 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
-        args: %{"policy_version" => 1, "source_key" => "boosterland"}},
-       {"0 6 * * 1", TcgCheap.Catalogue.InternalSealedRetailerBootstrapWorker,
-        args: %{"policy_version" => 1, "source_key" => "colligere"}},
+       # Buying guide: the Cardmarket sealed catalogue after the singles bulk sync,
+       # then one fetch per shop, staggered between 04:00 and 06:30 UTC.
+       {"30 3 * * *", TcgCheap.Sealed.CatalogueImportWorker, args: %{}},
+       {"0 4 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "lootquest"}},
+       {"30 4 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "cardzhouse"}},
+       {"0 5 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "boosterpoint"}},
+       {"30 5 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "pokebooster"}},
+       {"0 6 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "boosterland"}},
+       {"30 6 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "colligere"}},
        {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
      ]}
   ]
@@ -172,7 +139,6 @@ config :tcg_cheap, :cardmarket_bulk,
   row_count_anomaly_bound: 0.10
 
 config :tcg_cheap, :exchange_rate_clock, &DateTime.utc_now/0
-config :tcg_cheap, :sealed_daily_aggregate_clock, &DateTime.utc_now/0
 
 config :tcg_cheap, :exchange_rate_provider,
   adapter: TcgCheap.Pricing.NbpExchangeRate,
@@ -182,92 +148,35 @@ config :tcg_cheap, :acquisition_budget,
   global_hourly_request_limit: 100,
   global_daily_request_limit: 1_000,
   global_monthly_spend_limit: "50.00",
-  providers:
+  providers: [
     [
-      [
-        provider_key: "tcgdex_catalogue",
-        display_name: "TCGdex Catalogue",
-        estimated_cost_per_request: "0.00",
-        hourly_request_limit: 100,
-        daily_request_limit: 1_000,
-        monthly_request_limit: 20_000,
-        monthly_spend_limit: "0.00"
-      ],
-      [
-        provider_key: "cardmarket_bulk",
-        display_name: "Cardmarket Bulk Pricing",
-        estimated_cost_per_request: "0.00",
-        hourly_request_limit: 10,
-        daily_request_limit: 10,
-        monthly_request_limit: 310,
-        monthly_spend_limit: "0.00"
-      ],
-      [
-        provider_key: "nbp",
-        display_name: "Narodowy Bank Polski",
-        estimated_cost_per_request: "0.00",
-        hourly_request_limit: 24,
-        daily_request_limit: 100,
-        monthly_request_limit: 1_000,
-        monthly_spend_limit: "0.00"
-      ]
-    ] ++
-      [
-        [
-          provider_key: "sealed_retailer:lootquest",
-          display_name: "LootQuest sealed catalogue",
-          estimated_cost_per_request: "0.00",
-          hourly_request_limit: 50,
-          daily_request_limit: 100,
-          monthly_request_limit: 500,
-          monthly_spend_limit: "0.00"
-        ],
-        [
-          provider_key: "sealed_retailer:cardzhouse",
-          display_name: "CardzHouse sealed catalogue",
-          estimated_cost_per_request: "0.00",
-          hourly_request_limit: 50,
-          daily_request_limit: 100,
-          monthly_request_limit: 500,
-          monthly_spend_limit: "0.00"
-        ],
-        [
-          provider_key: "sealed_retailer:boosterpoint",
-          display_name: "BoosterPoint sealed catalogue",
-          estimated_cost_per_request: "0.00",
-          hourly_request_limit: 50,
-          daily_request_limit: 100,
-          monthly_request_limit: 500,
-          monthly_spend_limit: "0.00"
-        ],
-        [
-          provider_key: "sealed_retailer:pokebooster",
-          display_name: "PokeBooster sealed catalogue",
-          estimated_cost_per_request: "0.00",
-          hourly_request_limit: 50,
-          daily_request_limit: 100,
-          monthly_request_limit: 500,
-          monthly_spend_limit: "0.00"
-        ],
-        [
-          provider_key: "sealed_retailer:boosterland",
-          display_name: "Boosterland sealed catalogue",
-          estimated_cost_per_request: "0.00",
-          hourly_request_limit: 50,
-          daily_request_limit: 100,
-          monthly_request_limit: 500,
-          monthly_spend_limit: "0.00"
-        ],
-        [
-          provider_key: "sealed_retailer:colligere",
-          display_name: "Colligere sealed catalogue",
-          estimated_cost_per_request: "0.00",
-          hourly_request_limit: 50,
-          daily_request_limit: 100,
-          monthly_request_limit: 500,
-          monthly_spend_limit: "0.00"
-        ]
-      ]
+      provider_key: "tcgdex_catalogue",
+      display_name: "TCGdex Catalogue",
+      estimated_cost_per_request: "0.00",
+      hourly_request_limit: 100,
+      daily_request_limit: 1_000,
+      monthly_request_limit: 20_000,
+      monthly_spend_limit: "0.00"
+    ],
+    [
+      provider_key: "cardmarket_bulk",
+      display_name: "Cardmarket Bulk Pricing",
+      estimated_cost_per_request: "0.00",
+      hourly_request_limit: 10,
+      daily_request_limit: 10,
+      monthly_request_limit: 310,
+      monthly_spend_limit: "0.00"
+    ],
+    [
+      provider_key: "nbp",
+      display_name: "Narodowy Bank Polski",
+      estimated_cost_per_request: "0.00",
+      hourly_request_limit: 24,
+      daily_request_limit: 100,
+      monthly_request_limit: 1_000,
+      monthly_spend_limit: "0.00"
+    ]
+  ]
 
 # Configure the endpoint
 config :tcg_cheap, TcgCheapWeb.Endpoint,
@@ -294,7 +203,7 @@ esbuild_options =
   end
 
 config :esbuild,
-       [version: "0.27.2"] ++
+       [version: "0.28.2"] ++
          esbuild_options ++
          [
            tcg_cheap: [

@@ -29,11 +29,56 @@ defmodule TcgCheapWeb.Router do
     plug :accepts, ["json"]
   end
 
+  @mcp_instructions """
+  TCG Cheap buying guide: a Cardmarket sealed Pokémon catalogue, offers from Polish shops matched
+  to it automatically, and daily prices. Your job is keeping offer matching correct:
+  1. shop_status: are fetches recent, and how much of each shop matches?
+  2. list_unmatched_offers, then explain_match to see why a title does not match.
+  3. If the product is in the catalogue (search_products), assign_offer; if the offer is not a
+     catalogue product (accessory, bundle, other game), exclude_offer. When unsure, leave it:
+     a wrong match poisons the price history.
+  4. list_matched_offers: audit automatic matches; fix a wrong one with assign_offer or exclude_offer.
+  5. list_manual_decisions and clear_manual_decision: review or undo manual decisions.
+  set_product_eans maintains verified barcodes for matching and the public scanner.
+  Write tools recompute prices at once. enqueue_shop_fetch and enqueue_catalogue_import refresh
+  the data in the background.
+  """
+
+  # AI agents (see TcgCheap.Sealed tools): a bearer token, no session or cookies.
+  # The dev server, like Tidewave, listens only on localhost and needs none.
+  pipeline :mcp do
+    if Mix.env() != :dev, do: plug(TcgCheapWeb.McpAuth)
+  end
+
   scope "/", TcgCheapWeb do
     pipe_through :api
 
     get "/health", HealthController, :index, log: false
     get "/health/live", HealthController, :live, log: false
+  end
+
+  scope "/mcp" do
+    pipe_through :mcp
+
+    forward "/", AshAi.Mcp.Router,
+      otp_app: :tcg_cheap,
+      mcp_name: "TCG Cheap buying guide",
+      instructions: @mcp_instructions,
+      tools: [
+        :shop_status,
+        :list_unmatched_offers,
+        :list_matched_offers,
+        :list_manual_decisions,
+        :search_products,
+        :get_product,
+        :explain_match,
+        :assign_offer,
+        :exclude_offer,
+        :clear_manual_decision,
+        :set_product_eans,
+        :enqueue_shop_fetch,
+        :enqueue_catalogue_import
+      ]
   end
 
   scope "/", TcgCheapWeb do
@@ -42,7 +87,7 @@ defmodule TcgCheapWeb.Router do
     live "/", HomeLive
     live "/trade", TradeLive
     live "/cards/:tcgdex_id", CardDetailLive
-    live "/sealed/:slug", SealedProductDetailLive
+    live "/produkty/:slug", ProductLive
   end
 
   scope "/admin", TcgCheapWeb do
@@ -82,21 +127,11 @@ defmodule TcgCheapWeb.Router do
     backpex_routes()
 
     ash_authentication_live_session :admin_review,
-      on_mount: [Backpex.InitAssigns, {TcgCheapWeb.AdminAuth, :require_admin}] do
-      live "/review", ReviewLive
-      live "/review/mappings/:mapping_id", ReviewLive
+      on_mount: [{TcgCheapWeb.AdminAuth, :require_admin}, Backpex.InitAssigns] do
+      live "/buying-guide", BuyingGuideLive
       live "/operations", OperationsLive
       live_resources "/operations/import-issues", ImportIssueLive, only: [:index, :show]
-      live "/catalogue/mappings/:id/correct", ListingProductMappingCorrectionLive
       live "/catalogue/cards/:id/correct", CardPrintingMappingCorrectionLive
-      live_resources "/catalogue/products", SealedProductLive
-      live_resources "/catalogue/retailers", RetailerLive
-      live_resources "/catalogue/aliases", SealedProductAliasLive
-      live_resources "/catalogue/listings", RetailerListingLive, only: [:index, :show]
-      live_resources "/catalogue/mappings", ListingProductMappingLive, only: [:index, :show]
-
-      live_resources "/catalogue/mapping-history", ListingProductMappingDecisionLive,
-        only: [:index, :show]
 
       live_resources "/catalogue/card-mapping-history", CardPrintingMappingDecisionLive,
         only: [:index, :show]

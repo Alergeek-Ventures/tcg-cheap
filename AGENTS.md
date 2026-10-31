@@ -11,8 +11,9 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
   use `http://localhost:{PORT}`. Worktrunk assigns hashed localhost ports to
   parallel worktrees.
 - In development, Tidewave is available at
-  `http://localhost:{PORT}/tidewave/mcp`. Caddy integration is explicitly
-  deferred.
+  `http://localhost:{PORT}/tidewave/mcp` and the buying-guide MCP tools
+  (offer matching, barcodes, fetch jobs) at `http://localhost:{PORT}/mcp`.
+  Caddy integration is explicitly deferred.
 
 ## Project conventions
 
@@ -20,8 +21,10 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
 - Keep frontend work in the standard Phoenix LiveView/assets structure.
 - Use Ash-generated migrations and snapshots for Ash resource changes; do not
   hand-edit generated output unless generated SQL is demonstrably incorrect.
-- `mix check` is the canonical quality gate, including non-mutating formatting and Ash codegen checks. Use `mix check --no-test` while
-  iterating on static checks and `mix check --verbose` for command output.
+- `mix check` is the canonical quality gate (formatting, Ash codegen, Sobelow,
+  compile warnings, unused deps, Credo, Dialyzer); `mix check --verbose` shows
+  command output. The project has no automated test suite by owner decision:
+  verify changes in the running app (and through the MCP tools) instead.
 - Fix real Sobelow findings; use narrow, explained skips only for intentional
   findings.
 
@@ -37,10 +40,9 @@ the relevant wiki article and `knowledge-base/wiki/log.md`.
 
 ## Product north star
 
-The current product north star is [the MVP implementation plan](knowledge-base/wiki/product/mvp-implementation-plan.md).
-Work must advance and finish everything in that plan, including its requirements,
-phases, documentation, and acceptance criteria, unless the product owner
-explicitly supersedes it.
+The current product north star is [the Buying and Trading Guide](knowledge-base/wiki/product/buying-and-trading-guide.md).
+Work must advance that guide, including its phases, principles, and
+constraints, unless the product owner explicitly supersedes it.
 
 ## Repository boundaries and hygiene
 
@@ -415,6 +417,7 @@ Ash is an opinionated, composable framework for building applications in Elixir.
   inside the same transaction.
 - Use hooks like `Ash.Changeset.after_transaction/2`, `Ash.Changeset.before_transaction/2` to add additional logic
   outside the transaction.
+- When other resources should react to an action, and your action doesn't depend on the return value, emit a signal with `emit` in the action (with `dynamic?: true` when you emit it yourself with `Ash.Signals.emit/4`) and listen to it in those resources, instead of calling them from a hook. See the signals rules.
 - Use action arguments for inputs that need validation
 - Use preparations to modify queries before execution
 - Preparations support `where` clauses for conditional execution
@@ -1259,6 +1262,9 @@ Prefer to use the `strict?` option when loading to only load necessary fields on
 ```elixir
 MyApp.Post
 |> Ash.Query.load([comments: [:title]], strict?: true)
+
+# Create, update and destroy actions accept it alongside `load` as well
+Ash.create!(MyApp.Comment, %{body: "Nice"}, load: [post: [:title]], strict?: true)
 ```
 
 ## Managing Relationships
@@ -1363,6 +1369,7 @@ When testing resources:
 - Test authorization policies work as expected using `Ash.can?`
 - Use `authorize?: false` in tests where authorization is not the focus
 - Write generators using `Ash.Generator`
+- Assert on emitted signals with `Ash.Signals.Test`
 - Prefer to use raising versions of functions whenever possible, as opposed to pattern matching
 
 ## Preventing Deadlocks in Concurrent Tests

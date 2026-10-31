@@ -235,13 +235,6 @@
 .card-detail-world .valuation-price-row.tooltip-dismissed .valuation-tooltip, .card-detail-world .history-point-target.tooltip-dismissed span { display: none !important; }
 .card-detail-world #valuation-history-chart { background: color-mix(in srgb, var(--tissue) 70%, var(--box-board)); border: 0; display: block; height: auto; margin-top: 1.5rem; max-width: 52rem; overflow: visible; width: 100%; }
 .card-detail-world .history-line { fill: none; stroke: var(--ink); stroke-width: 2; vector-effect: non-scaling-stroke; }
-.sealed-detail-world #sealed-sold-out-section {
-  border-top: 1px solid var(--ink); margin-top: 1rem; padding-top: 0;
-}
-.sealed-detail-world #sealed-sold-out-section summary {
-  align-items: center; cursor: pointer; display: flex; font-weight: 700; min-height: 3rem; padding: .5rem 0;
-}
-.sealed-detail-world #sealed-sold-out-section[open] { padding-bottom: .5rem; }
 @media (min-width: 60rem) { .card-detail-world .card-detail-identity { border-bottom: 0; column-gap: 3rem; grid-template-areas: "placeholder heading" "placeholder valuation" "placeholder secondary"; grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr); } }
 @media (min-width: 68rem) { .card-detail-world .card-detail-identity { column-gap: 2rem; grid-template-areas: "placeholder heading heading" "placeholder valuation secondary"; grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr) minmax(0, 1fr); } .card-detail-world #card-valuation { padding-top: 0; } .card-detail-world .card-detail-secondary .card-detail-metadata { grid-template-columns: 1fr; } }
 @media (max-width: 40rem) { .card-detail-world .card-detail-placeholder { min-height: 11rem; max-width: 100%; } .card-detail-world .card-detail-placeholder svg { height: 8rem; } .card-detail-world .card-detail-figure > img { max-height: 75svh; } .card-detail-world .card-detail-metadata { grid-template-columns: 1fr; } }
@@ -323,11 +316,7 @@
 .decision-world .decision-container { margin: 0 auto; max-width: 72rem; }
 .decision-world .decision-intro { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 1.25rem; }
 .decision-world #decision-title { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0; }
-.decision-world .mode-switch { background: color-mix(in srgb, var(--paper) 62%, var(--bench)); border: 0; display: flex; flex: 0 0 auto; gap: .25rem; padding: .25rem; }
-.decision-world .mode-switch button { background: transparent; border: 0; color: var(--ink); cursor: pointer; font: 700 .875rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .75rem 1rem; }
-.decision-world .mode-switch button[aria-pressed="true"] { background: var(--ink); color: var(--bench-light); }
-.decision-world .mode-switch button:not([aria-pressed="true"]):hover { background: var(--bench-light); }
-.decision-world .mode-switch button:focus-visible, .decision-world a:focus-visible, .decision-world input:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+.decision-world a:focus-visible, .decision-world input:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
 .decision-world .decision-search { background: var(--bench-light); border: 0; margin-bottom: 1rem; padding: 1rem 1.25rem; }
 .decision-world .decision-search h2 { font: 700 clamp(1.75rem, 4vw, 2.25rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; }
 .decision-world .search-context { color: var(--muted); font-size: .875rem; line-height: 1.6; margin: -.25rem 0 1rem; max-width: 70ch; }
@@ -336,16 +325,13 @@
 .decision-world .search-field-wrap input { background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; box-shadow: none; color: var(--ink); font: 700 clamp(1.35rem, 3.5vw, 2.25rem) "Barlow Condensed", sans-serif; min-height: 3rem; padding: .5rem 2rem; width: 100%; }
 .decision-world .search-field-wrap input::placeholder { color: var(--muted); opacity: 1; }
 .decision-world .fluent-icon, .archive-world .fluent-icon { display: inline-block; flex: 0 0 auto; height: 1.1rem; width: 1.1rem; }
-.decision-world .movement-icon-down { transform: rotate(90deg); }
-.decision-world .market-row:focus-visible, .decision-world .evidence-slot:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.decision-world .evidence-slot:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
 .decision-world .evidence-slips { display: grid; gap: .5rem; grid-template-columns: minmax(0, 1fr); max-height: min(45svh, 32rem); overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: .5rem; }
 .decision-world .evidence-slot { cursor: pointer; min-width: 0; }
 .decision-world .evidence-slot.active-option .evidence-slip { background: color-mix(in srgb, var(--paper) 88%, var(--rule)); box-shadow: inset 0 0 0 3px var(--rule); }
 .decision-world .evidence-slip { animation: bench-reveal .45s ease-out both; background: var(--paper); border: 0; display: grid; grid-template-columns: 4.25rem minmax(0, 1fr); min-width: 0; }
 .decision-world .evidence-art { align-items: center; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); border-right: 0; display: flex; justify-content: center; min-width: 0; padding: .35rem; }
 .decision-world .evidence-art img { aspect-ratio: 245 / 337; border: 0; display: block; height: auto; max-width: 100%; object-fit: contain; width: 100%; }
-.decision-world .evidence-art .sealed-package-image { aspect-ratio: 578 / 325; object-fit: contain; }
-.decision-world .market-thumb .sealed-package-image { aspect-ratio: 578 / 325; height: auto; object-fit: contain; }
 .decision-world .evidence-art > svg { fill: none; height: 4.5rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
 .decision-world .card-image-missing { align-items: center; display: flex; justify-content: center; min-height: 5rem; }
 .decision-world .card-image-missing svg { fill: none; height: 4.25rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
@@ -366,212 +352,40 @@
 .decision-world .estimate-note { font-size: .875rem; line-height: 1.6; }
 .decision-world .estimate-note { margin: .75rem 0 0; }
 @keyframes bench-reveal { from { clip-path: inset(0 0 100% 0); opacity: 0; transform: translateY(-.5rem); } to { clip-path: inset(0); opacity: 1; transform: translateY(0); } }
-@media (max-width: 42rem) { .decision-world .decision-intro { align-items: stretch; flex-direction: column; } .decision-world .mode-switch { width: 100%; } .decision-world .mode-switch button { flex: 1; } }
+@media (max-width: 42rem) { .decision-world .decision-intro { align-items: stretch; flex-direction: column; } }
 @media (max-width: 24rem) { .decision-world .evidence-slip { grid-template-columns: 4.25rem minmax(0, 1fr); } .decision-world .evidence-copy { padding: .5rem; } .decision-world .evidence-name { font-size: 1.25rem; } .decision-world .estimate-cell strong { font-size: 1.5rem; } }
 @media (prefers-reduced-motion: reduce) { .decision-world .evidence-slip { animation: none; } }
 
-.decision-world .fallback-ledger { background: transparent; border-top: 1px solid var(--rule); margin-top: 2rem; padding: 1rem 0 .5rem; }
-.decision-world .fallback-ledger h2 { font: 700 1.5rem/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
-.decision-world .fallback-ledger > div { display: grid; gap: .25rem; }
-.decision-world .fallback-ledger a { align-items: center; color: inherit; display: inline-flex; font-size: .875rem; min-height: 3rem; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2rem; }
-.decision-world .fallback-mode-switch { align-items: center; background: var(--ink); border: 1px solid var(--ink); color: var(--bench-light); cursor: pointer; display: inline-flex; font: 700 .875rem "Barlow Condensed", sans-serif; justify-content: center; min-height: 3rem; padding: .75rem 1rem; text-transform: uppercase; }
-.decision-world .fallback-mode-switch:hover { background: var(--orange); }
-.decision-world .fallback-ledger > p { line-height: 1.6; margin: 0 0 1rem; max-width: 70ch; }
-.decision-world .fallback-ledger > .fallback-mode-switch { margin-bottom: 1rem; }
-.decision-world .fallback-ledger > div { border-top: 1px solid var(--rule); gap: .5rem; padding-top: .5rem; }
-
-.decision-world .market-movers { border-top: 0; margin-top: 1.5rem; padding-top: 0; }
-.decision-world .market-heading { align-items: baseline; display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; justify-content: space-between; }
-.decision-world .market-heading > h2 { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: 0; }
-.decision-world #price-details { border: 0; margin: 0; max-width: 70ch; }
-.decision-world #price-details summary { align-items: center; cursor: pointer; display: inline-flex; font-weight: 700; gap: .4rem; min-height: 3rem; padding: .25rem 0; }
-.decision-world #price-details summary::marker { content: ""; }
-.home-world details summary, .archive-world.card-detail-world details summary { list-style: none; }
-.home-world details summary::-webkit-details-marker, .archive-world.card-detail-world details summary::-webkit-details-marker { display: none; }
-.decision-world .disclosure-chevron { transition: transform .2s ease; }
-.decision-world #price-details[open] .disclosure-chevron { transform: rotate(180deg); }
-.decision-world #price-details p { color: var(--muted); font-size: .875rem; line-height: 1.65; margin: 0 0 1rem; max-width: 70ch; }
-.decision-world .market-mode-panel { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.decision-world .market-mode-panel:has(> .market-lane:only-child) { grid-template-columns: minmax(0, 1fr); }
-.decision-world .market-lane { min-width: 0; }
-.decision-world .market-lane-heading { align-items: baseline; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; }
-.decision-world .market-lane-heading h3 { font: 700 clamp(1.25rem, 2.5vw, 1.375rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; }
-.decision-world .market-lane-heading span { color: var(--muted); font-size: .875rem; }
-.decision-world .market-rows { display: grid; gap: .25rem; padding-top: .5rem; }
-.decision-world .market-row { align-items: center; background: color-mix(in srgb, var(--paper) 76%, var(--bench)); border-bottom: 0; color: inherit; display: grid; gap: .5rem; grid-template-columns: 3.5rem minmax(0, 1fr); min-height: 3rem; padding: .35rem .5rem; text-decoration: none; }
-.decision-world .market-row:hover { background: var(--paper); }
-.decision-world .market-thumb { align-items: center; align-self: stretch; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); display: flex; justify-content: center; min-width: 0; }
-.decision-world .market-thumb img { border: 0; height: 100%; object-fit: contain; width: 100%; }
-.decision-world .market-image-fallback svg, .decision-world .market-package svg { fill: none; height: 3.8rem; max-width: 100%; stroke: var(--muted); stroke-width: 1.5; }
-.decision-world .market-copy { min-width: 0; }
-.decision-world .market-copy h4 { font: 700 1.25rem/1 "Barlow Condensed", sans-serif; margin: 0 0 .25rem; overflow-wrap: anywhere; }
-.decision-world .market-copy p { font-size: .875rem; line-height: 1.5; margin: 0; overflow-wrap: anywhere; }
-.decision-world .market-copy p[class] { margin-top: .25rem; }
-.decision-world .movement-rise { color: var(--rise); }
-.decision-world .movement-fall { color: var(--fall); }
-.decision-world .market-copy p strong { font-size: 1rem; font-weight: 700; }
-.decision-world .market-copy .movement-rise strong, .decision-world .market-copy .movement-fall strong { display: inline-block; font-size: 1rem; margin-right: .25rem; }
-.decision-world .market-copy .recent-value strong { color: var(--ink); font-size: 1rem; }
-.decision-world .mover-movement, .decision-world .mover-price-range, .decision-world .mover-date-range, .decision-world .mover-freshness { display: inline-flex; align-items: center; gap: .2rem; min-width: 0; overflow-wrap: anywhere; }
-.decision-world .mover-movement { font-weight: 700; line-height: 1.3; }
-.decision-world .mover-price-range { color: var(--ink); font-size: 1rem; font-weight: 700; line-height: 1.4; margin-top: .15rem; }
-.decision-world .mover-date-range, .decision-world .mover-freshness { color: var(--muted); font-size: .875rem; line-height: 1.5; margin-top: .15rem; }
-.decision-world .market-empty { border-bottom: 1px solid var(--rule); color: var(--muted); font-size: .875rem; min-height: 3rem; margin: 0; padding: .75rem 0; }
-.decision-world .market-movers .state-error { margin-top: 1rem; }
-.decision-world .market-recent-ledger { border-top: 0; grid-column: 1 / -1; margin-top: .75rem; padding: .5rem 0 0; }
-.decision-world .market-recent-ledger h3 { font: 700 1.25rem/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; }
-.decision-world .market-recent-ledger .market-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-top: .25rem; }
-.decision-world .market-recent-ledger .market-empty { border-top: 1px solid var(--rule); border-bottom: 0; margin: .75rem 0 0; padding: .75rem 0 .25rem; }
-@media (max-width: 48rem) { .decision-world .market-mode-panel { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 48rem) { .decision-world .market-recent-ledger .market-rows { grid-template-columns: minmax(0, 1fr); } }
+.archive-world.card-detail-world details summary { list-style: none; }
+.archive-world.card-detail-world details summary::-webkit-details-marker { display: none; }
 @media (max-width: 42rem) {
   .decision-world .decision-main { padding-block: 1rem; }
   .decision-world .decision-intro { gap: .5rem; margin-bottom: .5rem; }
-  .decision-world .market-movers { margin-top: 1.5rem; }
-  .decision-world .market-heading { align-items: flex-start; flex-direction: column; }
-  .decision-world #price-details { max-width: 100%; width: 100%; }
   .decision-world .evidence-copy { align-items: start; grid-template-columns: minmax(0, 1fr) auto; }
   .decision-world .evidence-identity { grid-column: 1 / -1; }
   .decision-world .estimate-cell { grid-column: 1; }
   .decision-world .detail-action { grid-column: 2; grid-row: 2; }
 }
 @media (max-width: 59.99rem) { .card-detail-world .valuation-history { margin-left: 0; max-width: none; } }
-@media (prefers-reduced-motion: reduce) { .decision-world .disclosure-chevron { transition: none; } }
 
-/* Home search uses the shared body ramp; the icon sits on the input's optical center. */
-.decision-world.home-world .decision-search h2 { font-size: 1.75rem; }
-.decision-world.home-world .search-field-wrap input { font-size: 1.5rem; }
-.decision-world.home-world .search-field-icon { height: 1.5rem; left: 0; top: 50%; transform: translateY(-50%); width: 1.5rem; }
-.decision-world.home-world .evidence-name { font-size: 1.25rem; }
-.decision-world.home-world .estimate-cell strong { font-size: 1.5rem; }
-
-/* The home surface is the only decision world using the quieter treatment above. */
-.decision-world.home-world { --bench: #f1eadc; --rule: rgb(32 29 25 / 18%); background-image: none; }
-.decision-world:not(.home-world) .decision-header { border-bottom-width: 2px; padding: .5rem 3rem; }
-.decision-world:not(.home-world) .decision-main { padding: 2rem 1rem 4rem; }
-.decision-world:not(.home-world) .decision-intro { gap: 1.5rem; margin-bottom: 2rem; }
-.decision-world:not(.home-world) #decision-title { text-transform: uppercase; }
-.decision-world:not(.home-world) .mode-switch { background: transparent; border: 2px solid var(--rule); gap: 0; padding: 0; }
-.decision-world:not(.home-world) .mode-switch button { border-right: 1px solid var(--rule); text-transform: uppercase; }
-.decision-world:not(.home-world) .mode-switch button:last-child { border-right: 0; }
-.decision-world:not(.home-world) .decision-search { border: 2px solid var(--rule); padding: 1.5rem; }
-.decision-world:not(.home-world) .decision-search h2 { margin-bottom: .75rem; text-transform: uppercase; }
-.decision-world:not(.home-world) .search-field-wrap input { border-bottom: 3px solid var(--rule); padding-inline: 0; }
-.decision-world:not(.home-world) .search-field-icon { display: none; }
-.decision-world:not(.home-world) .evidence-slip { border: 1.5px solid var(--rule); }
-.decision-world:not(.home-world) .evidence-art { border-right: 1px solid var(--rule); }
-.decision-world:not(.home-world) .evidence-art img { border: 1px solid var(--rule); }
-.decision-world:not(.home-world) .evidence-tag { border: 1px solid var(--rule); text-transform: uppercase; }
-.decision-world:not(.home-world) .state-note { border-top-width: 1px; }
-.decision-world:not(.home-world) .fallback-ledger { background: color-mix(in srgb, var(--paper) 65%, var(--bench)); border-top: 2px solid var(--rule); }
-.decision-world:not(.home-world) .market-movers { border-top: 2px solid var(--rule); margin-top: 3rem; padding-top: 1.5rem; }
-.decision-world:not(.home-world) .market-movers > h2 { text-transform: uppercase; }
-.decision-world:not(.home-world) #market-movers-intro { font-size: 1rem; }
-.decision-world:not(.home-world) #price-details { border-bottom: 1px solid var(--rule); border-top: 1px solid var(--rule); margin: 1.5rem 0; }
-.decision-world:not(.home-world) #price-details summary { display: block; padding: .5rem 0; }
-.decision-world:not(.home-world) .market-lane-heading h3,
-.decision-world:not(.home-world) .market-copy h4,
-.decision-world:not(.home-world) .market-recent-ledger h3 { text-transform: uppercase; }
-.decision-world:not(.home-world) .market-row { border-bottom: 1px solid var(--rule); padding: .25rem .5rem; }
-.decision-world:not(.home-world) .market-thumb img { border: 1px solid var(--rule); }
-.decision-world:not(.home-world) .market-copy p[class] { border-top: 1px solid var(--rule); margin-top: .5rem; padding-top: .5rem; }
-.decision-world:not(.home-world) .movement-rise strong,
-.decision-world:not(.home-world) .movement-fall strong { font-size: 1.1rem; }
-.decision-world:not(.home-world) .market-copy .recent-value strong { font-size: 1.1rem; }
-.decision-world:not(.home-world) .mover-movement,
-.decision-world:not(.home-world) .mover-price-range,
-.decision-world:not(.home-world) .mover-date-range,
-.decision-world:not(.home-world) .mover-freshness { display: block; }
-.decision-world:not(.home-world) .mover-date-range,
-.decision-world:not(.home-world) .mover-freshness { font-size: .75rem; }
-.decision-world:not(.home-world) .market-recent-ledger { border-top: 2px solid var(--rule); margin-top: 1rem; padding: 1rem 0 0; }
-@media (max-width: 42rem) { .decision-world:not(.home-world) .market-movers { margin-top: 2.5rem; } }
-
-/* Public sealed detail: canonical identity and local shop evidence on the valuation bench. */
-.sealed-detail-world .decision-container { max-width: 72rem; }
-.sealed-detail-world #sealed-detail-back, .sealed-detail-world #sealed-detail-not-found-back, .sealed-detail-world #sealed-detail-data-error-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; min-height: 3rem; text-underline-offset: .22rem; }
-.sealed-detail-world .sealed-detail-overview { align-items: start; display: grid; gap: .75rem; grid-template-columns: minmax(0, 1.7fr) minmax(15rem, .8fr); margin: 0 0 1.25rem; }
-.sealed-detail-world #sealed-market-history-section, .sealed-detail-world #sealed-detail-buying-guide { border-top: 2px solid var(--rule); margin-top: 1.5rem; padding-top: .75rem; }
-.sealed-detail-world #sealed-detail-buying-guide-title, .sealed-detail-world #sealed-market-history-title { font: 700 1.75rem/1 "Barlow Condensed", sans-serif; letter-spacing: -.02em; margin: 0 0 .75rem; text-transform: uppercase; }
-.sealed-detail-world #sealed-market-history-chart-wrap { margin: 1rem 0; }
-.sealed-detail-world #sealed-market-history-chart { background: var(--paper); border: 2px solid var(--rule); display: block; height: auto; max-width: 42rem; overflow: visible; padding: .5rem; width: 100%; }
-.sealed-detail-world .sealed-history-range { fill: var(--sunfade); fill-opacity: .75; stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
-.sealed-detail-world .sealed-history-benchmark { fill: none; stroke: var(--ink); stroke-width: 2; }
-.sealed-detail-world .sealed-history-point { fill: var(--bench-light); stroke: var(--ink); stroke-width: 1.5; }
-.sealed-detail-world .sealed-buying-bands { border-bottom: 1px solid var(--rule); border-top: 1px solid var(--rule); display: grid; gap: 0 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.sealed-detail-world .sealed-buying-bands article { border-bottom: 1px solid rgb(32 29 25 / 35%); min-height: 7rem; overflow-wrap: anywhere; padding: .75rem 0; }
-.sealed-detail-world .sealed-buying-bands h3 { font: 700 clamp(1.25rem, 2.5vw, 1.375rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.01em; margin: 0 0 .75rem; text-transform: uppercase; }
-.sealed-detail-world .sealed-buying-bands p { line-height: 1.6; margin: 0; }
-@media (max-width: 44rem) { .sealed-detail-world .sealed-buying-bands { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 27rem) { .sealed-detail-world .sealed-buying-bands { grid-template-columns: 1fr; } }
-.sealed-detail-world #sealed-detail-identity { background: var(--paper); border: 2px solid var(--rule); min-width: 0; padding: 1.25rem; }
-.sealed-detail-world #sealed-detail-title { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0 0 .75rem; overflow-wrap: anywhere; text-transform: uppercase; }
-.sealed-detail-world #sealed-detail-type { font: 700 1.2rem/1 "Barlow Condensed", sans-serif; text-transform: uppercase; }
-.sealed-detail-world #sealed-detail-collection, .sealed-detail-world #sealed-detail-release, .sealed-detail-world #sealed-detail-status { font-size: .875rem; line-height: 1.6; margin-top: .5rem; overflow-wrap: anywhere; }
-.sealed-detail-world #sealed-detail-msrp { border-top: 2px solid var(--rule); font: 700 clamp(1.6rem, 4vw, 2.5rem)/1 "Barlow Condensed", sans-serif; margin-top: 1rem; padding-top: .75rem; text-transform: uppercase; }
-.sealed-detail-world #sealed-detail-msrp-provenance { display: block; font: 400 .875rem/1.5 "Azeret Mono", ui-monospace, monospace; margin-top: .5rem; overflow-wrap: anywhere; text-transform: none; }
-.sealed-detail-world #sealed-detail-market-snapshot { background: var(--paper); border: 2px solid var(--rule); padding: 1rem; }
-.sealed-detail-world #sealed-detail-market-snapshot h2, .sealed-detail-world #sealed-current-title, .sealed-detail-world #sealed-sold-out-title { font: 700 clamp(1.5rem, 3vw, 1.75rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
-.sealed-detail-world #sealed-detail-not-found h1, .sealed-detail-world #sealed-detail-data-error h1 { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; text-transform: uppercase; }
-.sealed-detail-world #sealed-detail-market-snapshot p { font-size: .875rem; line-height: 1.6; }
-.sealed-detail-world .sealed-aggregate-summary { display: grid; gap: .75rem; margin: 1rem 0 0; }
-.sealed-detail-world .sealed-aggregate-summary div { border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; padding-top: .5rem; }
-.sealed-detail-world .sealed-aggregate-summary dt, .sealed-detail-world .sealed-aggregate-summary dd { overflow-wrap: anywhere; }
-.sealed-detail-world .sealed-aggregate-summary dt { color: var(--muted); }
-.sealed-detail-world .sealed-aggregate-summary dd { font-weight: 700; margin: 0; text-align: right; }
-.sealed-detail-world #sealed-detail-read-error { margin-bottom: 1.5rem; }
-.sealed-detail-world #sealed-current-section, .sealed-detail-world #sealed-sold-out-section { margin-top: 1.5rem; }
-.sealed-detail-world #sealed-current-title, .sealed-detail-world #sealed-sold-out-title { border-bottom: 2px solid var(--rule); padding-bottom: .5rem; }
-.sealed-detail-world .sealed-offer-ledger { display: grid; gap: .75rem; }
-.sealed-detail-world .sealed-offer { align-items: center; background: var(--paper); border-bottom: 1px solid var(--rule); display: grid; gap: .25rem 1rem; grid-template-columns: minmax(0, 1.4fr) minmax(9rem, .7fr) auto; min-width: 0; padding: .75rem .25rem; }
-.sealed-detail-world .sealed-offer h3 { font: 700 1.375rem/1 "Barlow Condensed", sans-serif; grid-column: 1; margin: 0; overflow-wrap: anywhere; text-transform: uppercase; }
-.sealed-detail-world .sealed-offer p { font-size: .875rem; line-height: 1.6; margin: 0; overflow-wrap: anywhere; }
-.sealed-detail-world .sealed-offer-price { font: 700 1.35rem/1 "Barlow Condensed", sans-serif; grid-column: 2; grid-row: 1; text-transform: uppercase; }
-.sealed-detail-world .sealed-offer-stock { grid-column: 2; grid-row: 2; }
-.sealed-detail-world .sealed-offer-checked { grid-column: 1 / 3; }
-.sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { align-items: center; align-self: center; display: inline-flex; font: 700 .875rem "Barlow Condensed", sans-serif; grid-column: 3; grid-row: 1 / 4; justify-content: center; min-height: 3rem; padding: .75rem; text-transform: uppercase; }
-.sealed-detail-world .sealed-offer a { background: var(--ink); color: var(--bench-light); text-decoration: none; }
-.sealed-detail-world .sealed-offer a:hover { background: var(--orange); }
-.sealed-detail-world #sealed-detail-notes { border-top: 2px solid var(--rule); color: var(--muted); font-size: .875rem; line-height: 1.6; margin-top: 1.5rem; padding-top: .75rem; max-width: 70ch; }
-.sealed-detail-world #sealed-detail-notes p + p { margin-top: .25rem; }
-.sealed-detail-world #sealed-detail-not-found, .sealed-detail-world #sealed-detail-data-error { border: 2px solid var(--rule); margin-top: 1rem; padding: 1.25rem; }
-.sealed-detail-world #sealed-detail-not-found p, .sealed-detail-world #sealed-detail-data-error p { font-size: .875rem; line-height: 1.6; }
-@media (max-width: 46rem) { .sealed-detail-world .sealed-detail-overview { grid-template-columns: 1fr; } .sealed-detail-world .sealed-offer { align-items: start; grid-template-columns: minmax(0, 1fr) auto; } .sealed-detail-world .sealed-offer-price, .sealed-detail-world .sealed-offer-stock, .sealed-detail-world .sealed-offer-checked { grid-column: 1; grid-row: auto; } .sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { grid-column: 2; grid-row: 1 / 5; } }
-@media (max-width: 27rem) { .sealed-detail-world .sealed-offer { grid-template-columns: 1fr; } .sealed-detail-world .sealed-offer a, .sealed-detail-world .sealed-offer > span { grid-column: 1; grid-row: auto; justify-self: start; margin-top: .25rem; width: 100%; } }
-
-/* Sealed product sheet: packaging is the anchor; evidence remains immediately scannable. */
-.sealed-detail-world .sealed-detail-overview { align-items: stretch; gap: 1.25rem; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
-.sealed-detail-world .sealed-product-media { align-items: center; background: var(--paper); border: 2px solid var(--rule); display: flex; flex-direction: column; justify-content: center; margin: 0; min-height: 25rem; padding: 1rem; }
-.sealed-detail-world .sealed-product-media img { display: block; height: min(58svh, 34rem); max-width: 100%; object-fit: contain; width: 100%; }
-.sealed-detail-world .sealed-product-placeholder { align-items: center; color: var(--muted); display: flex; flex: 1; flex-direction: column; gap: .75rem; justify-content: center; text-align: center; }
-.sealed-detail-world .sealed-product-placeholder .fluent-icon { height: 7rem; width: 7rem; }
-.sealed-detail-world #sealed-detail-image-source { color: var(--muted); font-size: .875rem; line-height: 1.5; margin-top: .75rem; max-width: 55ch; overflow-wrap: anywhere; text-align: center; }
-.sealed-detail-world #sealed-detail-image-source a, .sealed-detail-world #sealed-detail-information a { color: inherit; text-decoration: underline; text-underline-offset: .2rem; }
-.sealed-detail-world .sealed-detail-metadata { display: grid; gap: 0; margin-top: 1rem; }
-.sealed-detail-world .sealed-detail-metadata div { border-top: 1px solid rgb(32 29 25 / 25%); display: grid; gap: .75rem; grid-template-columns: minmax(8rem, auto) minmax(0, 1fr); padding: .45rem 0; }
-.sealed-detail-world .sealed-detail-metadata dt { color: var(--muted); font-size: .875rem; text-transform: uppercase; }
-.sealed-detail-world .sealed-detail-metadata dd { font-size: .875rem; font-weight: 700; margin: 0; overflow-wrap: anywhere; }
-.sealed-detail-world .sealed-decision-strip { border-top: 2px solid var(--rule); display: grid; gap: .75rem; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 1rem; padding-top: .75rem; }
-.sealed-detail-world .sealed-decision-strip > div { min-width: 0; }
-.sealed-detail-world .sealed-decision-strip span, .sealed-detail-world .sealed-decision-strip small { display: block; font-size: .875rem; line-height: 1.4; }
-.sealed-detail-world .sealed-decision-strip strong { display: block; font: 700 clamp(1.25rem, 3vw, 2rem)/1 "Barlow Condensed", sans-serif; margin: .25rem 0; overflow-wrap: anywhere; }
-.sealed-detail-world .sealed-decision-strip small { color: var(--muted); overflow-wrap: anywhere; }
-.sealed-detail-world #sealed-detail-local-reference p { margin: .25rem 0; }
-.sealed-detail-world #sealed-detail-information { border-top: 2px solid var(--rule); margin-top: 1.5rem; max-width: 70ch; padding-top: .75rem; }
-.sealed-detail-world #sealed-detail-information h2 { font: 700 1.75rem/1 "Barlow Condensed", sans-serif; margin: 0 0 .75rem; text-transform: uppercase; }
-.sealed-detail-world #sealed-detail-information h3 { font: 700 1.25rem/1 "Barlow Condensed", sans-serif; margin: 1rem 0 .5rem; text-transform: uppercase; }
-.sealed-detail-world #sealed-detail-information p, .sealed-detail-world #sealed-detail-information li { font-size: .875rem; line-height: 1.65; }
-.sealed-detail-world #sealed-detail-information ul { list-style: square; margin: 0; padding-left: 1.25rem; }
-.sealed-detail-world #sealed-current-count { color: var(--muted); font: 400 .875rem "Azeret Mono", ui-monospace, monospace; text-transform: none; }
-@media (max-width: 46rem) { .sealed-detail-world .sealed-detail-overview { grid-template-columns: 1fr; } .sealed-detail-world .sealed-product-media { min-height: 16rem; } .sealed-detail-world .sealed-product-media img { height: min(52svh, 27rem); } }
-@media (max-width: 30rem) { .sealed-detail-world .sealed-decision-strip { grid-template-columns: 1fr; } .sealed-detail-world .sealed-decision-strip > div { border-top: 1px solid rgb(32 29 25 / 25%); padding-top: .5rem; } }
+.decision-world:not(.guide-world) .decision-header { border-bottom-width: 2px; padding: .5rem 3rem; }
+.decision-world:not(.guide-world) .decision-main { padding: 2rem 1rem 4rem; }
+.decision-world:not(.guide-world) .decision-intro { gap: 1.5rem; margin-bottom: 2rem; }
+.decision-world:not(.guide-world) #decision-title { text-transform: uppercase; }
+.decision-world:not(.guide-world) .decision-search { border: 2px solid var(--rule); padding: 1.5rem; }
+.decision-world:not(.guide-world) .decision-search h2 { margin-bottom: .75rem; text-transform: uppercase; }
+.decision-world:not(.guide-world) .search-field-wrap input { border-bottom: 3px solid var(--rule); padding-inline: 0; }
+.decision-world:not(.guide-world) .search-field-icon { display: none; }
+.decision-world:not(.guide-world) .evidence-slip { border: 1.5px solid var(--rule); }
+.decision-world:not(.guide-world) .evidence-art { border-right: 1px solid var(--rule); }
+.decision-world:not(.guide-world) .evidence-art img { border: 1px solid var(--rule); }
+.decision-world:not(.guide-world) .evidence-tag { border: 1px solid var(--rule); text-transform: uppercase; }
+.decision-world:not(.guide-world) .state-note { border-top-width: 1px; }
 
 /* Trade foundation: a symmetric valuation ledger on the same square bench. */
 .trade-world .decision-container { max-width: 72rem; }
 .trade-world #trade-title { font: 700 clamp(2rem, 5vw, 2.5rem)/1 "Barlow Condensed", sans-serif; letter-spacing: -.04em; margin: 0; text-transform: uppercase; }
 .trade-world #trade-task { font-size: 1rem; line-height: 1.6; margin-top: .5rem; max-width: 70ch; }
-.trade-world #trade-home-link { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; min-height: 3rem; }
-.trade-world #trade-home-link { justify-content: center; min-width: 3rem; text-align: center; }
 .trade-world .trade-staging { align-items: center; background: var(--paper); border: 2px solid var(--rule); display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; padding: 1rem; }
 .trade-world .trade-staging strong { flex: 1 1 100%; font: 700 1.35rem/.95 "Barlow Condensed", sans-serif; text-transform: uppercase; }
 .trade-world button { background: var(--ink); border: 1px solid var(--ink); color: var(--bench-light); cursor: pointer; font: 700 .875rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .75rem; text-transform: uppercase; }
@@ -613,7 +427,7 @@
 .archive-world .card-detail-add-to-trade:hover { background: var(--box-board-dark); }
 .archive-world .card-detail-add-to-trade:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; }
 
-/* Authenticated sealed review: paper dockets on the established valuation bench. */
+/* Authenticated admin desks: paper dockets on the established valuation bench. */
 .admin-world, .admin-login-world { --bench: #f3ead7; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --orange: #b54125; --muted: #6d6256; background: var(--bench); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; font-size: 1rem; line-height: 1.6; min-height: 100svh; }
 .admin-main { padding: 1.5rem 1rem; }
 .admin-container { margin: 0 auto; max-width: 72rem; }
@@ -765,7 +579,7 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 
 /* App rhythm tokens: spacing only; artwork, borders, tracking, and breakpoints
    intentionally retain their intrinsic values. */
-:is(.archive-world, .decision-world, .sealed-detail-world, .trade-world, .admin-world, .admin-login-world) {
+:is(.archive-world, .decision-world, .guide-world, .trade-world, .admin-world, .admin-login-world) {
   --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem;
   --space-6: 1.5rem; --space-8: 2rem; --space-12: 3rem; --space-16: 4rem;
 }
@@ -776,7 +590,7 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 }
 .trade-world .trade-row-value button:hover, .trade-world .trade-row-detail:hover { background: var(--bench-light); }
 .archive-world :is(a, button):focus-visible, .decision-world :is(a, button, input, summary):focus-visible,
-.sealed-detail-world :is(a, button, input, summary):focus-visible, .trade-world :is(a, button, input, summary):focus-visible,
+.guide-world :is(a, button, input, summary):focus-visible, .trade-world :is(a, button, input, summary):focus-visible,
 .admin-world :is(a, button, input, select, summary):focus-visible, .admin-login-world :is(a, button, input, select, summary):focus-visible {
   outline: 3px solid var(--orange, var(--ink)); outline-offset: 4px;
 }
@@ -789,16 +603,230 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 @media (max-width: 40rem) {
   .archive-world .archive-main, .decision-world .decision-main { padding-block: var(--space-4); }
   .archive-world .archive-header, .decision-world .decision-header { padding-inline: var(--space-4); }
-  .card-detail-world .card-detail-placeholder, .sealed-detail-world .sealed-buying-bands article,
+  .card-detail-world .card-detail-placeholder,
   .trade-world .trade-staging { padding: var(--space-4); }
   .archive-world .search-drawer, .decision-world .decision-search { padding: var(--space-4); }
   .archive-world .search-drawer, .decision-world .decision-search { margin-bottom: var(--space-4); }
   .card-detail-world .valuation-panel, .card-detail-world .valuation-history { padding-block: var(--space-4); }
-  .sealed-detail-world #sealed-current-section, .sealed-detail-world #sealed-sold-out-section,
-   .admin-queue { margin-top: var(--space-6); }
+  .admin-queue { margin-top: var(--space-6); }
 }
 
-@media (min-width: 40.01rem) {
-  .decision-world.home-world .decision-main { padding: 1.5rem 1rem 3rem; }
-  .decision-world.home-world .decision-search { padding: 1rem 1.25rem; }
+
+/* Shared public navigation: Zakupy (buying guide) and Wymiany (trade). */
+
+/* Buying guide: the calm warm-paper valuation bench, in Polish. */
+.guide-world { --bench: #f1eadc; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --rule: rgb(32 29 25 / 18%); --orange: #b54125; --muted: #6d6256; --rise: #27714b; --fall: #a6402f; background: var(--bench); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; font-size: 1rem; line-height: 1.6; min-height: 100svh; overflow-x: clip; }
+.guide-world h1, .guide-world h2, .guide-world h3 { font-family: "Barlow Condensed", sans-serif; font-weight: 700; margin: 0; text-wrap: balance; }
+.site-header { align-items: center; border-bottom: 1px solid var(--rule, rgb(32 29 25 / 18%)); display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; padding: .5rem max(1rem, 4vw); }
+.site-wordmark { align-items: center; color: var(--ink, #201d19); display: inline-flex; font: 700 1.125rem/1 "Barlow Condensed", sans-serif; gap: .5rem; letter-spacing: .12em; min-height: 3rem; text-decoration: none; }
+.site-wordmark .fluent-icon { height: 1.35rem; width: 1.35rem; }
+.guide-world .fluent-icon { display: inline-block; flex: 0 0 auto; height: 1.1rem; width: 1.1rem; }
+.guide-world .guide-main { margin: 0 auto; max-width: 72rem; padding: 2rem 1rem 3rem; }
+.guide-world .guide-intro { margin-bottom: 1.25rem; }
+.guide-world #guide-title { font-size: clamp(2rem, 5vw, 2.5rem); letter-spacing: -.04em; line-height: 1; }
+.guide-world #guide-promise { margin: .5rem 0 0; max-width: 52ch; }
+.guide-world .guide-search { background: var(--bench-light); margin-bottom: 1.5rem; padding: 1rem 1.25rem; }
+.guide-world .guide-search-label { color: var(--muted); display: block; font-size: .875rem; }
+.guide-world .guide-search-field { position: relative; }
+.guide-world .guide-search-field .fieldset { margin: 0; padding: 0; }
+.guide-world .guide-search-field label { display: block; }
+.guide-world .guide-search-icon { color: var(--muted); height: 1.5rem; left: 0; pointer-events: none; position: absolute; top: 50%; transform: translateY(-50%); width: 1.5rem; z-index: 1; }
+.guide-world .guide-search-input { background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; box-shadow: none; color: var(--ink); font: 700 1.5rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .5rem 0 .5rem 2.25rem; width: 100%; }
+.guide-world .guide-search-input::placeholder { color: var(--muted); opacity: 1; }
+.guide-world .guide-search-field:has(.guide-scan-open:not([hidden])) .guide-search-input { padding-right: 3.25rem; }
+.guide-world .guide-scan-open { align-items: center; background: transparent; border: 0; color: var(--ink); cursor: pointer; display: flex; height: 3rem; justify-content: center; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 3rem; }
+.guide-world .guide-scan-open[hidden] { display: none; }
+.guide-world .guide-scan-open .fluent-icon { height: 1.5rem; width: 1.5rem; }
+.guide-world .guide-scan-open:hover { color: var(--orange); }
+.guide-world .guide-scan-open:focus-visible, .guide-world .guide-scan-dialog button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.guide-world .guide-scan-dialog { background: var(--paper); border: 0; margin: auto; color: var(--ink); max-width: min(32rem, calc(100vw - 2rem)); padding: 1rem; width: 100%; }
+.guide-world .guide-scan-dialog::backdrop { background: rgb(32 29 25 / 60%); }
+.guide-world .guide-scan-dialog h2 { font-size: 1.5rem; margin-bottom: .75rem; }
+.guide-world .guide-scan-dialog video { aspect-ratio: 4 / 3; background: var(--ink); display: block; object-fit: cover; width: 100%; }
+.guide-world .guide-scan-dialog video[hidden] { display: none; }
+.guide-world .guide-scan-dialog p { margin: .75rem 0; }
+.guide-world .guide-scan-dialog p:empty { display: none; }
+.guide-world .guide-scan-dialog button { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; margin-top: .75rem; min-height: 3rem; padding: 0 1.5rem; text-transform: uppercase; }
+.guide-world .guide-results-heading, .guide-world .product-section-heading { align-items: baseline; border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .25rem 1rem; justify-content: space-between; margin-bottom: .5rem; padding-bottom: .5rem; }
+.guide-world .guide-results-heading h2, .guide-world .product-section-heading h2 { font-size: clamp(1.5rem, 3vw, 1.75rem); line-height: 1; }
+.guide-world .guide-results-heading p, .guide-world .product-section-heading p { color: var(--muted); font-size: .875rem; margin: 0; }
+.guide-world .guide-products, .guide-world .offer-list { display: grid; gap: .5rem; list-style: none; margin: 0; padding: 0; }
+.guide-world .guide-product { animation: bench-reveal .45s ease-out both; min-width: 0; }
+.guide-world .guide-product-link { align-items: center; background: var(--paper); color: inherit; display: grid; gap: .35rem 1rem; grid-template-columns: 5.5rem minmax(0, 1fr) auto; min-height: 3rem; padding: .5rem .75rem .5rem .5rem; text-decoration: none; }
+.guide-world .guide-product-deal { display: grid; gap: .35rem; justify-items: end; min-width: 0; text-align: right; }
+.guide-world .guide-product-judgement { align-items: center; display: flex; flex-wrap: wrap; gap: .25rem .5rem; justify-content: flex-end; margin: 0; }
+.guide-world .guide-product-link:hover { background: var(--bench-light); }
+.guide-world .guide-product-link:hover .guide-product-name { text-decoration: underline; text-underline-offset: .2rem; }
+.guide-world .product-image { align-items: center; aspect-ratio: 16 / 10; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); display: flex; justify-content: center; min-width: 0; overflow: hidden; }
+.guide-world .product-image img { display: block; height: 100%; object-fit: contain; width: 100%; }
+.guide-world .product-image svg { fill: none; height: 60%; width: 60%; }
+.guide-world .product-image-placeholder { background: color-mix(in srgb, var(--bench) 55%, var(--paper)); }
+.guide-world .product-image-placeholder svg path { fill: none; stroke: var(--muted); stroke-linejoin: round; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.guide-world .guide-product-image { aspect-ratio: 1; }
+.guide-world .guide-product-image img { padding: .25rem; }
+.guide-world .guide-product-image svg { height: 78%; width: 78%; }
+.guide-world .guide-product-copy { min-width: 0; }
+.guide-world .guide-product-name { font-size: 1.35rem; line-height: 1.05; overflow-wrap: anywhere; }
+.guide-world .guide-product-meta { color: var(--muted); font-size: .875rem; margin: .25rem 0 0; overflow-wrap: anywhere; }
+.guide-world .guide-product-price { align-items: baseline; display: flex; flex-wrap: wrap; font-size: .875rem; gap: .2rem .5rem; justify-content: flex-end; margin: 0; }
+.guide-world .guide-product-price strong { font: 700 1.5rem/1 "Barlow Condensed", sans-serif; }
+.guide-world .guide-empty { background: var(--paper); padding: 1rem; }
+.guide-world .guide-empty a { display: block; font-weight: 600; margin-top: .5rem; text-decoration: underline; }
+.guide-world .guide-footnote { border-top: 1px solid var(--rule); color: var(--muted); font-size: .875rem; margin-top: 2.5rem; padding-top: 1rem; }
+.guide-world .guide-footnote p { margin: 0; max-width: 70ch; }
+.guide-world .guide-note { color: var(--muted); font-size: .875rem; }
+
+/* Kind chips: one row that wraps on desktop and scrolls sideways on a phone. */
+.guide-world .guide-kinds { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.guide-world .guide-kinds a { align-items: center; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); display: inline-flex; flex: 0 0 auto; font: 700 1rem/1 "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 .9rem; text-decoration: none; white-space: nowrap; }
+.guide-world .guide-kinds a:hover { border-color: var(--ink); }
+.guide-world .guide-kinds a[aria-current] { background: var(--ink); border-color: var(--ink); color: var(--bench-light); }
+.guide-world .guide-more { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: 1rem; }
+.guide-world .guide-more button { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 1.5rem; text-transform: uppercase; }
+.guide-world .guide-more button:hover { background: var(--orange); }
+.guide-world .guide-more button:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+.guide-world .guide-more p { color: var(--muted); font-size: .875rem; margin: 0; }
+
+/* Verdict badges: text plus a drawn mark and a border treatment, never color alone. */
+.guide-world .verdict-badge { align-items: center; border: 2px solid currentColor; display: inline-flex; font: 700 .95rem/1 "Barlow Condensed", sans-serif; gap: .35rem; letter-spacing: .04em; padding: .35rem .55rem; text-transform: uppercase; white-space: nowrap; }
+.guide-world .verdict-mark { fill: none; flex: 0 0 auto; height: 1em; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; width: 1em; }
+.guide-world .verdict-good { background: var(--rise); border-color: var(--rise); color: var(--paper); }
+.guide-world .verdict-normal { color: var(--ink); }
+.guide-world .verdict-expensive { background: var(--fall); border-color: var(--fall); color: var(--paper); }
+.guide-world .verdict-insufficient_data { border-style: dashed; color: var(--muted); }
+.guide-world .verdict-out_of_stock { border-color: transparent; color: var(--muted); padding-inline: 0; }
+.guide-world .verdict-cardmarket { color: var(--ink); text-transform: none; }
+
+/* Product page: identity, then the verdict as the first answer. */
+.guide-world .guide-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; gap: .4rem; margin-bottom: .5rem; min-height: 3rem; }
+.guide-world .product-top { align-items: center; display: grid; gap: 1rem; grid-template-areas: "image identity" "verdict verdict"; grid-template-columns: 6.5rem minmax(0, 1fr); margin-bottom: 2rem; }
+.guide-world .product-hero-image { aspect-ratio: 1; grid-area: image; width: 100%; }
+.guide-world .product-identity { grid-area: identity; min-width: 0; }
+.guide-world #product-name { font-size: clamp(1.6rem, 6vw, 2.5rem); letter-spacing: -.03em; line-height: 1; overflow-wrap: anywhere; }
+.guide-world .product-facts { color: var(--muted); font-size: .875rem; line-height: 1.5; margin: .5rem 0 0; }
+.guide-world .product-facts span { overflow-wrap: anywhere; }
+.guide-world .product-facts #product-kind { color: var(--ink); }
+.guide-world .verdict-block { background: var(--paper); grid-area: verdict; min-width: 0; }
+.guide-world .verdict-badge-large { border-width: 0; font-size: 1.6rem; gap: .5rem; padding: .7rem 1.25rem; white-space: normal; width: 100%; }
+.guide-world .verdict-badge-large.verdict-normal { background: var(--ink); color: var(--bench-light); }
+.guide-world .verdict-badge-large:is(.verdict-insufficient_data, .verdict-out_of_stock) { background: color-mix(in srgb, var(--bench) 70%, var(--paper)); border-bottom: 2px dashed var(--muted); color: var(--ink); }
+.guide-world .verdict-badge-large.verdict-out_of_stock { border-bottom-style: dotted; }
+.guide-world .verdict-badge-large.verdict-cardmarket { background: color-mix(in srgb, var(--bench) 70%, var(--paper)); border-bottom: 2px solid var(--ink); color: var(--ink); }
+.guide-world .verdict-body { display: grid; gap: 1rem; padding: 1.25rem; }
+.guide-world .verdict-price { font: 700 clamp(2.75rem, 11vw, 3.75rem)/.9 "Barlow Condensed", sans-serif; letter-spacing: -.03em; margin: 0; }
+.guide-world .verdict-shop { margin: .4rem 0 0; }
+.guide-world .verdict-shop a { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
+.guide-world .verdict-reason { font-weight: 700; margin: 0; max-width: 60ch; }
+.guide-world #verdict-difference { display: block; }
+.guide-world .verdict-block-good #verdict-difference { color: var(--rise); }
+.guide-world .verdict-block-expensive #verdict-difference { color: var(--fall); }
+.guide-world .verdict-thresholds { border-top: 1px solid var(--rule); padding-top: 1rem; }
+.guide-world .verdict-thresholds h3 { font-size: 1.35rem; line-height: 1.1; margin-bottom: .6rem; }
+.guide-world .verdict-scale { display: grid; gap: 3px; grid-template-columns: repeat(3, minmax(0, 1fr)); list-style: none; margin: 0; padding: 0; }
+.guide-world .verdict-step { --step: var(--ink); align-content: start; background: color-mix(in srgb, var(--step) 8%, var(--paper)); border-top: 4px solid var(--step); display: grid; gap: .15rem; padding: .5rem .6rem .6rem; }
+.guide-world .verdict-step-good { --step: var(--rise); }
+.guide-world .verdict-step-expensive { --step: var(--fall); }
+.guide-world .verdict-step-label { font-size: .875rem; }
+.guide-world .verdict-step-range { font: 700 1.35rem/1.05 "Barlow Condensed", sans-serif; }
+.guide-world .verdict-step-range span, .guide-world .verdict-price, .guide-world .offer-price, .guide-world .guide-product-price strong { white-space: nowrap; }
+.guide-world .verdict-step[aria-current] { background: var(--step); color: var(--paper); }
+.guide-world .verdict-step-now { align-items: center; display: inline-flex; font-size: .875rem; font-weight: 700; gap: .35rem; margin-top: .2rem; }
+.guide-world .verdict-step-now::before { background: currentColor; content: ""; height: .5rem; width: .5rem; }
+.guide-world .verdict-method { font-size: .875rem; }
+.guide-world .verdict-method summary { align-items: center; cursor: pointer; display: inline-flex; gap: .5rem; list-style: none; min-height: 3rem; text-decoration: underline; text-underline-offset: .2rem; }
+.guide-world .verdict-method summary::-webkit-details-marker { display: none; }
+.guide-world .verdict-method-chevron { transition: transform .2s ease-out; }
+.guide-world .verdict-method[open] .verdict-method-chevron { transform: rotate(180deg); }
+.guide-world .verdict-method p { color: var(--muted); margin: 0; max-width: 70ch; }
+.guide-world .product-section { margin-bottom: 2rem; }
+.guide-world .cardmarket-trend { margin: 0 0 .5rem; }
+.guide-world .cardmarket-trend strong { font: 700 1.5rem/1.1 "Barlow Condensed", sans-serif; white-space: nowrap; }
+.guide-world .cardmarket-trend span { color: var(--muted); white-space: nowrap; }
+
+/* Offers: shop and listing title, price, stock and one outbound action. */
+.guide-world .offer { align-items: center; background: var(--paper); display: grid; gap: .25rem 1rem; grid-template-areas: "shop price link" "shop state link"; grid-template-columns: minmax(0, 1fr) auto auto; padding: .75rem .75rem .75rem 1rem; }
+.guide-world .offer-unavailable { background: color-mix(in srgb, var(--paper) 55%, var(--bench)); }
+.guide-world .offer-shop { display: grid; gap: .1rem; grid-area: shop; min-width: 0; }
+.guide-world .offer-shop strong { font: 700 1.25rem/1.1 "Barlow Condensed", sans-serif; }
+.guide-world .offer-title { -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: var(--muted); display: -webkit-box; font-size: .875rem; line-height: 1.45; overflow: hidden; overflow-wrap: anywhere; }
+.guide-world .offer-price { font: 700 1.6rem/1 "Barlow Condensed", sans-serif; grid-area: price; justify-self: end; }
+.guide-world .offer-unavailable .offer-price { color: var(--muted); }
+.guide-world .offer-state { display: flex; flex-wrap: wrap; font-size: .875rem; gap: 0 .75rem; grid-area: state; justify-content: flex-end; margin: 0; }
+.guide-world .offer-stock { align-items: center; color: var(--rise); display: inline-flex; font-weight: 700; gap: .4rem; }
+.guide-world .offer-stock::before { background: currentColor; border: 1.5px solid currentColor; content: ""; height: .6rem; width: .6rem; }
+.guide-world .offer-unavailable .offer-stock { color: var(--muted); font-weight: 400; }
+.guide-world .offer-unavailable .offer-stock::before { background: transparent; }
+.guide-world .offer-checked { color: var(--muted); }
+.guide-world .offer-link { align-items: center; background: var(--ink); border: 1px solid var(--ink); color: var(--bench-light); display: inline-flex; font: 700 1rem "Barlow Condensed", sans-serif; grid-area: link; justify-content: center; letter-spacing: .04em; min-height: 3rem; padding: 0 1.1rem; text-decoration: none; text-transform: uppercase; white-space: nowrap; }
+.guide-world .offer-link:hover { background: var(--orange); border-color: var(--orange); color: var(--paper); }
+.guide-world .offer-unavailable .offer-link { background: transparent; color: var(--ink); }
+.guide-world .offer-unavailable .offer-link:hover { background: var(--bench-light); border-color: var(--ink); color: var(--ink); }
+
+/* Price history: round złoty gridlines, month ticks and a labelled typical price. */
+.guide-world .price-chart { margin: 0; }
+.guide-world .price-chart-legend { display: flex; flex-wrap: wrap; font-size: .875rem; gap: .25rem 1.25rem; list-style: none; margin: 0 0 1rem; padding: 0; }
+.guide-world .price-chart-legend li::before { content: ""; display: inline-block; height: 0; margin-right: .4rem; vertical-align: middle; width: 1.5rem; }
+.guide-world .price-chart-legend .legend-shops::before { border-top: 3px solid var(--ink); }
+.guide-world .price-chart-legend .legend-cardmarket::before { border-top: 3px dotted #3d4a8a; }
+.guide-world .price-chart-legend .legend-typical::before { border-top: 2px dashed var(--orange); }
+.guide-world .price-chart-frame { column-gap: .5rem; display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); }
+.guide-world .price-chart-scale { color: var(--muted); font-size: .875rem; position: relative; }
+.guide-world .price-chart-scale span { position: absolute; right: 0; top: var(--at); transform: translateY(-50%); white-space: nowrap; }
+.guide-world .price-chart-plot { min-width: 0; position: relative; }
+.guide-world .price-chart svg { background: color-mix(in srgb, var(--paper) 70%, var(--bench)); display: block; height: clamp(12rem, 30vw, 18rem); overflow: visible; width: 100%; }
+.guide-world .price-chart-line { fill: none; stroke: var(--ink); stroke-linejoin: round; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.guide-world .price-chart-dot { stroke: var(--ink); stroke-linecap: round; stroke-width: 7; vector-effect: non-scaling-stroke; }
+.guide-world .price-chart-cardmarket { stroke: #3d4a8a; stroke-dasharray: 2 4; stroke-width: 2; }
+.guide-world .price-chart-dot.price-chart-cardmarket { stroke-dasharray: none; stroke-width: 6; }
+.guide-world .price-chart-grid { stroke: var(--ink); stroke-opacity: .12; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.guide-world .price-chart-grid-month { stroke-dasharray: 3 4; }
+.guide-world .price-chart-typical { stroke: var(--orange); stroke-dasharray: 6 5; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.guide-world .price-chart-typical-label { background: var(--paper); color: var(--orange); font-size: .875rem; font-weight: 700; line-height: 1.3; padding: 0 .3rem; left: .25rem; position: absolute; top: var(--at); transform: translateY(-115%); white-space: nowrap; }
+.guide-world .price-chart-axis { color: var(--muted); font-size: .875rem; grid-column: 2; height: 1.75rem; position: relative; }
+.guide-world .price-chart-axis span { left: var(--at); position: absolute; top: .3rem; transform: translateX(-50%); white-space: nowrap; }
+.guide-world .price-chart-axis .edge-start { transform: none; }
+.guide-world .price-chart-axis .edge-end { transform: translateX(-100%); }
+.guide-world .price-chart figcaption { color: var(--muted); font-size: .875rem; margin-top: .5rem; max-width: 70ch; }
+.guide-world .price-chart figcaption span { display: block; }
+.guide-world a:focus-visible, .guide-world input:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+@media (min-width: 30rem) {
+  .guide-world .product-top { grid-template-columns: 8.5rem minmax(0, 1fr); }
 }
+@media (min-width: 56rem) {
+  .guide-world .product-top { align-items: start; column-gap: 2.5rem; grid-template-areas: "image identity" "image verdict"; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto 1fr; row-gap: 1.25rem; }
+  .guide-world .verdict-body { padding: 1.5rem; }
+}
+@media (max-width: 47.99rem) {
+  .guide-world .guide-kinds { flex-wrap: nowrap; margin-inline: -1.25rem; mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); overflow-x: auto; overscroll-behavior-x: contain; padding: 0 2.5rem 0 1.25rem; scroll-padding-inline: 1.25rem; scrollbar-width: none; }
+  .guide-world .guide-kinds::-webkit-scrollbar { display: none; }
+  .guide-world .guide-kinds a:focus-visible { outline-offset: -5px; }
+}
+@media (max-width: 42rem) {
+  .guide-world .guide-main { padding: 1rem 1rem 2.5rem; }
+  .guide-world .guide-product-link { align-items: start; grid-template-columns: 4.75rem minmax(0, 1fr); }
+  .guide-world .guide-product-image { grid-row: span 2; }
+  .guide-world .guide-product-deal { grid-column: 2; justify-items: start; text-align: left; }
+  .guide-world :is(.guide-product-price, .guide-product-judgement) { justify-content: flex-start; }
+  .guide-world .guide-product-deal { align-items: center; display: flex; flex-wrap: wrap; gap: .35rem .75rem; }
+  .guide-world .offer { grid-template-areas: "shop price" "state state" "link link"; grid-template-columns: minmax(0, 1fr) auto; }
+  .guide-world .offer-price { align-self: start; }
+  .guide-world .offer-state { justify-content: flex-start; }
+  .guide-world .offer-link { margin-top: .5rem; }
+  .guide-world .verdict-body { padding: 1rem; }
+  .guide-world .verdict-badge-large { padding-inline: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guide-world .guide-product { animation: none; }
+  .guide-world .verdict-method-chevron { transition: none; }
+}
+
+/* Admin tables (buying-guide desk). */
+.admin-table-wrap { overflow-x: auto; padding-top: .75rem; }
+.admin-table { background: var(--paper); border-collapse: collapse; font-size: .875rem; width: 100%; }
+.admin-table th, .admin-table td { border-bottom: 1px solid rgb(32 29 25 / 25%); padding: .5rem .75rem; text-align: left; vertical-align: top; }
+.admin-table thead th { border-bottom: 2px solid var(--ink); font: 700 1rem "Barlow Condensed", sans-serif; text-transform: uppercase; }
+.admin-table a { color: var(--ink); overflow-wrap: anywhere; }
+.admin-table th[scope="row"], .admin-table .admin-nowrap { white-space: nowrap; }
+.admin-results { display: grid; gap: .5rem; list-style: none; margin: .75rem 0; padding: 0; }
+.admin-results li { align-items: center; background: var(--paper); border: 1px solid rgb(32 29 25 / 25%); display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; padding: .5rem .75rem; }
+.admin-results li span { display: grid; font-size: .875rem; }

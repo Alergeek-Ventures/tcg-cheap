@@ -199,8 +199,7 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
               :persistence_invalid,
               :persistence_failed,
               :budget_persistence_failed,
-              :database_error,
-              :retailer_lookup_failed
+              :database_error
             ],
        do: :persistence
 
@@ -220,8 +219,6 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
               :invalid_input,
               :invalid_local_card,
               :invalid_provider_request,
-              :retailer_not_found,
-              :retailer_not_active_or_mismatched,
               :malformed_job_args
             ],
        do: :local_input
@@ -311,7 +308,6 @@ defmodule TcgCheap.Operations.AcquisitionTracker do
       operation in [
         "single_valuation",
         "exchange_rate",
-        "sealed_retailer_refresh",
         "card_catalogue_sync",
         "card_catalogue_enrichment",
         "cardmarket_bulk_sync"

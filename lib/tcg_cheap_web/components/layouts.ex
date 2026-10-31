@@ -45,20 +45,31 @@ defmodule TcgCheapWeb.Layouts do
   attr :current_url, :string, required: true, doc: "the current admin URL"
   attr :live_resource, :atom, default: nil, doc: "the active Backpex resource"
   attr :current_admin, :any, required: true, doc: "the authenticated administrator"
+  attr :socket, :any, required: true, doc: "the LiveView socket"
+  attr :sidebar_open, :boolean, default: true, doc: "the persisted Backpex sidebar state"
+  attr :preferences_manifest, :map, default: nil, doc: "the Backpex preferences manifest"
   slot :inner_block, required: true
 
   def admin(assigns) do
     ~H"""
     <div id="admin-catalogue">
-      <Backpex.HTML.Layout.app_shell fluid={@fluid?} live_resource={@live_resource}>
-        <:topbar>
-          <Backpex.HTML.Layout.topbar_branding title="TCG Cheap admin">
+      <Backpex.HTML.Layout.app_shell
+        socket={@socket}
+        fluid={@fluid?}
+        live_resource={@live_resource}
+        sidebar_open={@sidebar_open}
+        preferences_manifest={@preferences_manifest}
+      >
+        <:sidebar_branding>
+          <Backpex.HTML.Layout.sidebar_branding title="TCG Cheap admin">
             <:logo>
               <span class="grid size-9 place-items-center border-2 border-base-content bg-primary font-black text-primary-content">
                 TC
               </span>
             </:logo>
-          </Backpex.HTML.Layout.topbar_branding>
+          </Backpex.HTML.Layout.sidebar_branding>
+        </:sidebar_branding>
+        <:topbar>
           <div class="ml-auto flex min-h-11 items-center gap-3 pr-2">
             <span id="admin-catalogue-identity" class="hidden text-sm sm:inline">
               {@current_admin.email}
@@ -74,14 +85,11 @@ defmodule TcgCheapWeb.Layouts do
           </div>
         </:topbar>
         <:sidebar>
-          <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate={~p"/admin/review"}>
-            <Backpex.HTML.CoreComponents.icon name="hero-check-badge" class="size-5" /> Review
-          </Backpex.HTML.Layout.sidebar_item>
           <Backpex.HTML.Layout.sidebar_item
             current_url={@current_url}
-            navigate={~p"/admin/catalogue/products"}
+            navigate={~p"/admin/buying-guide"}
           >
-            <Backpex.HTML.CoreComponents.icon name="hero-archive-box" class="size-5" /> Products
+            <Backpex.HTML.CoreComponents.icon name="hero-shopping-bag" class="size-5" /> Buying guide
           </Backpex.HTML.Layout.sidebar_item>
           <Backpex.HTML.Layout.sidebar_item
             current_url={@current_url}
@@ -106,39 +114,6 @@ defmodule TcgCheapWeb.Layouts do
             navigate={~p"/admin/catalogue/card-mapping-history"}
           >
             <Backpex.HTML.CoreComponents.icon name="hero-clock" class="size-5" /> Card mapping history
-          </Backpex.HTML.Layout.sidebar_item>
-          <Backpex.HTML.Layout.sidebar_item
-            current_url={@current_url}
-            navigate={~p"/admin/catalogue/retailers"}
-          >
-            <Backpex.HTML.CoreComponents.icon name="hero-building-storefront" class="size-5" />
-            Retailers
-          </Backpex.HTML.Layout.sidebar_item>
-          <Backpex.HTML.Layout.sidebar_item
-            current_url={@current_url}
-            navigate={~p"/admin/catalogue/aliases"}
-          >
-            <Backpex.HTML.CoreComponents.icon name="hero-tag" class="size-5" /> Aliases
-          </Backpex.HTML.Layout.sidebar_item>
-          <Backpex.HTML.Layout.sidebar_item
-            current_url={@current_url}
-            navigate={~p"/admin/catalogue/listings"}
-          >
-            <Backpex.HTML.CoreComponents.icon name="hero-list-bullet" class="size-5" /> Listings
-          </Backpex.HTML.Layout.sidebar_item>
-          <Backpex.HTML.Layout.sidebar_item
-            current_url={@current_url}
-            navigate={~p"/admin/catalogue/mappings"}
-          >
-            <Backpex.HTML.CoreComponents.icon name="hero-arrows-right-left" class="size-5" />
-            Listing mappings
-          </Backpex.HTML.Layout.sidebar_item>
-          <Backpex.HTML.Layout.sidebar_item
-            current_url={@current_url}
-            navigate={~p"/admin/catalogue/mapping-history"}
-          >
-            <Backpex.HTML.CoreComponents.icon name="hero-clock" class="size-5" />
-            Listing mapping history
           </Backpex.HTML.Layout.sidebar_item>
           <Backpex.HTML.Layout.sidebar_item
             current_url={@current_url}

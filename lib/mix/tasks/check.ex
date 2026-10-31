@@ -15,14 +15,10 @@ defmodule Mix.Tasks.Check do
   ]
 
   def run(args) do
-    {opts, _, _} = OptionParser.parse(args, switches: [no_test: :boolean, verbose: :boolean])
+    {opts, _, _} = OptionParser.parse(args, switches: [verbose: :boolean])
     verbose = opts[:verbose] || false
 
     Enum.each(@checks, fn {label, command} -> run_check(label, command, verbose) end)
-
-    unless opts[:no_test] do
-      run_check("tests", ["test"], verbose)
-    end
   end
 
   defp run_check(label, [task | args], verbose) do

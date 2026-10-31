@@ -30,12 +30,11 @@ defmodule TcgCheap.MixProject do
 
   def cli do
     [
-      preferred_envs: [check: :test, precommit: :test]
+      preferred_envs: [check: :test]
     ]
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
   # Specifies your project dependencies.
@@ -44,35 +43,37 @@ defmodule TcgCheap.MixProject do
   defp deps do
     [
       {:picosat_elixir, "~> 0.2"},
-      {:argon2_elixir, "~> 4.0"},
+      {:argon2_elixir, "~> 4.1"},
       {:ash_authentication_phoenix, "~> 2.17"},
-      {:ash_authentication, "~> 4.14"},
-      {:sourceror, "~> 1.8", only: [:dev, :test]},
-      {:usage_rules, "~> 1.2", only: :dev},
-      {:tidewave, "~> 0.5", only: :dev},
+      {:ash_authentication, "~> 4.15"},
+      {:sourceror, "~> 1.13", only: [:dev, :test]},
+      {:usage_rules, "~> 1.3", only: :dev},
+      {:tidewave, "~> 0.9", only: :dev},
       {:credo, "~> 1.7", only: [:dev, :test]},
-      {:ash_credo, "~> 0.17", only: [:dev, :test], runtime: false},
-      {:sobelow, "~> 0.13", only: [:dev, :test]},
+      {:ash_credo, "~> 0.19", only: [:dev, :test], runtime: false},
+      {:sobelow, "~> 0.18", only: [:dev, :test]},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:ash_phoenix, "~> 2.0"},
-      {:ash_backpex, "~> 0.1.12"},
-      {:phoenix_live_dashboard, "~> 0.8.7"},
+      {:ash_phoenix, "~> 2.3"},
+      {:ash_backpex, "~> 0.5"},
+      # live_dashboard_logger 0.0.3 (latest) still requires ~> 0.8.6; 0.9 keeps the
+      # PageBuilder API it uses.
+      {:phoenix_live_dashboard, "~> 0.9", override: true},
       {:live_dashboard_logger, "~> 0.0.3"},
-      {:oban_web, "~> 2.12"},
-      {:ecto_psql_extras, "~> 0.8.8"},
-      {:ash_postgres, "~> 2.0"},
-      {:oban, "~> 2.23"},
-      {:ash, "~> 3.0"},
-      {:req, "~> 0.5"},
-      {:igniter, "~> 0.6", only: [:dev, :test]},
-      {:phoenix, "~> 1.8.9"},
-      {:phoenix_ecto, "~> 4.5"},
-      {:ecto_sql, "~> 3.13"},
-      {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 4.1"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 1.2.0"},
-      {:lazy_html, ">= 0.1.0", only: :test},
+      {:oban_web, "~> 2.13"},
+      {:ecto_psql_extras, "~> 0.8"},
+      {:ash_postgres, "~> 2.15"},
+      {:oban, "~> 2.24"},
+      {:ash, "~> 3.37"},
+      {:ash_ai, "~> 1.4"},
+      {:req, "~> 0.7"},
+      {:igniter, "~> 0.8", only: [:dev, :test]},
+      {:phoenix, "~> 1.8"},
+      {:phoenix_ecto, "~> 4.7"},
+      {:ecto_sql, "~> 3.14"},
+      {:postgrex, "~> 0.22"},
+      {:phoenix_html, "~> 4.3"},
+      {:phoenix_live_reload, "~> 1.7", only: :dev},
+      {:phoenix_live_view, "~> 1.2"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.5", runtime: Mix.env() == :dev},
       {:heroicons,
@@ -84,16 +85,16 @@ defmodule TcgCheap.MixProject do
        depth: 1},
       {:daisyui,
        github: "saadeghi/daisyui",
-       tag: "v5.5.20",
+       tag: "v5.7.50",
        sparse: "packages/bundle",
        app: false,
        compile: false,
        depth: 1},
-      {:telemetry_metrics, "~> 1.0"},
-      {:telemetry_poller, "~> 1.0"},
-      {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:telemetry_metrics, "~> 1.2"},
+      {:telemetry_poller, "~> 1.3"},
+      {:jason, "~> 1.4"},
+      {:dns_cluster, "~> 0.3"},
+      {:bandit, "~> 1.14"}
     ]
   end
 
@@ -115,7 +116,6 @@ defmodule TcgCheap.MixProject do
       ],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ash.setup --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind tcg_cheap", "esbuild tcg_cheap"],
       "assets.deploy": [

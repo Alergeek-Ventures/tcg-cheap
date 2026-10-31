@@ -273,32 +273,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
     end
 
-    read :recently_tracked do
-      filter expr(not is_nil(last_synced_at))
-
-      prepare build(
-                load: [
-                  :cardmarket_bulk_v1_current_valuation
-                ],
-                sort: [last_synced_at: :desc, tcgdex_id: :asc, id: :asc],
-                limit: 10
-              )
-    end
-
-    read :public_recently_tracked do
-      filter expr(not is_nil(last_synced_at))
-
-      prepare build(
-                load: [
-                  :cardmarket_bulk_v1_current_valuation
-                ],
-                sort: [last_synced_at: :desc, tcgdex_id: :asc, id: :asc],
-                limit: 10
-              )
-
-      prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
-    end
-
     read :search do
       argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
       argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]
@@ -499,8 +473,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
              :by_tcgdex_ids,
              :public_by_tcgdex_id,
              :public_by_tcgdex_ids,
-             :recently_tracked,
-             :public_recently_tracked,
              :search,
              :public_search,
              :detail_enrichment_candidates,
