@@ -36,7 +36,7 @@ defmodule TcgCheapWeb.ProductLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div class="guide-world">
-        <.site_header current={:buying} />
+        <.site_header />
         <main id="product-main" class="guide-main product-page">
           <.link id="product-back" navigate={~p"/"} class="guide-back">
             <.fluent_icon name={:arrow_left} />Wszystkie produkty
@@ -199,7 +199,7 @@ defmodule TcgCheapWeb.ProductLive do
       aria-labelledby="product-verdict-title"
     >
       <h2 id="product-verdict-title" class="sr-only">Ocena ceny</h2>
-      <.verdict_badge status={@verdict.status} id="verdict-badge" class="verdict-badge-large" />
+      <.verdict_badge verdict={@verdict} id="verdict-badge" class="verdict-badge-large" />
       <div class="verdict-body">
         <div :if={@verdict.cheapest} class="verdict-now">
           <p id="verdict-price" class="verdict-price">{Polish.price(@verdict.cheapest.price)}</p>
@@ -213,6 +213,9 @@ defmodule TcgCheapWeb.ProductLive do
         <p id="verdict-reason" class="verdict-reason">
           {reason(@verdict)}
           <span :if={@difference} id="verdict-difference">{@difference}</span>
+        </p>
+        <p :if={@verdict.status == :cardmarket} id="verdict-pending" class="guide-note">
+          Ocenę „dobra / normalna / drogo” pokażemy, gdy będziemy mieć {PriceGuide.min_days_with_stock()} dni cen z polskich sklepów.
         </p>
         <div :if={@verdict.good_max} id="verdict-thresholds" class="verdict-thresholds">
           <h3>Widzisz cenę w sklepie?</h3>
@@ -305,9 +308,7 @@ defmodule TcgCheapWeb.ProductLive do
        when status in [:good, :normal, :expensive],
        do: "Typowa cena z ostatnich #{PriceGuide.window_days()} dni: #{Polish.zloty(typical)}."
 
-  defp reason(%{status: status, typical: typical, typical_source: :cardmarket})
-       when status in [:good, :normal, :expensive],
-       do: cardmarket_typical(typical)
+  defp reason(%{status: :cardmarket, typical: typical}), do: cardmarket_typical(typical)
 
   defp reason(%{status: :insufficient_data, days_with_stock: days}) do
     "Znamy ceny dopiero z #{Polish.plural(days, "dnia", "dni", "dni")}, a potrzebujemy #{PriceGuide.min_days_with_stock()}. " <>

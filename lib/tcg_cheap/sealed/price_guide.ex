@@ -4,15 +4,18 @@ defmodule TcgCheap.Sealed.PriceGuide do
 
   The typical price is the median of the daily lowest in-stock price in
   Polish shops over the last 30 days, counting only days when some shop had
-  stock, when there are at least 7 such days. Otherwise it falls back to the
-  Cardmarket trend converted to PLN with the latest NBP rate; without either
-  there is not enough data. A price is good up to 95% of the typical price, normal up
-  to 110%, and expensive above that. Both limits are rounded down to whole
-  złoty, so a price seen in a physical shop can be judged against the shown
-  limits directly and no price above 95%/110% of the typical one is rated
-  better than it is. The
-  verdict is never anchored on an official (MSRP) price: only prices you can
-  actually buy at count.
+  stock, when there are at least 7 such days. A price is good up to 95% of
+  it, normal up to 110%, and expensive above that. Both limits are rounded
+  down to whole złoty, so a price seen in a physical shop can be judged
+  against the shown limits directly and no price above 95%/110% of the
+  typical one is rated better than it is.
+
+  Before that the price is only compared with the Cardmarket trend converted
+  to PLN with the latest NBP rate (`:cardmarket`, no limits): a European
+  price without shipping would make almost every Polish price look
+  expensive. Without either there is not enough data. The verdict is never
+  anchored on an official (MSRP) price: only prices you can actually buy at
+  count.
   """
 
   @window_days 30
@@ -20,7 +23,8 @@ defmodule TcgCheap.Sealed.PriceGuide do
   @good_factor Decimal.new("0.95")
   @normal_factor Decimal.new("1.10")
 
-  @type status :: :good | :normal | :expensive | :insufficient_data | :out_of_stock
+  @type status ::
+          :good | :normal | :expensive | :cardmarket | :insufficient_data | :out_of_stock
   @type day :: %{required(:date) => Date.t(), required(:lowest_price) => Decimal.t() | nil}
   @type offer :: %{required(:price) => Decimal.t(), optional(atom()) => term()}
   @type t :: %{
@@ -65,8 +69,8 @@ defmodule TcgCheap.Sealed.PriceGuide do
       typical: typical,
       typical_source: source,
       days_with_stock: length(prices),
-      good_max: typical && whole_zloty(Decimal.mult(typical, @good_factor)),
-      normal_max: typical && whole_zloty(Decimal.mult(typical, @normal_factor)),
+      good_max: if(source == :shops, do: whole_zloty(Decimal.mult(typical, @good_factor))),
+      normal_max: if(source == :shops, do: whole_zloty(Decimal.mult(typical, @normal_factor))),
       last_known: last_known(history)
     }
 
@@ -75,6 +79,7 @@ defmodule TcgCheap.Sealed.PriceGuide do
 
   defp status(nil, _base), do: :out_of_stock
   defp status(_cheapest, %{typical: nil}), do: :insufficient_data
+  defp status(_cheapest, %{typical_source: :cardmarket}), do: :cardmarket
 
   defp status(%{price: price}, %{good_max: good_max, normal_max: normal_max}) do
     cond do

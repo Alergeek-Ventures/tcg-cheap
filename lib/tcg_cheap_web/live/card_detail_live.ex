@@ -131,7 +131,7 @@ defmodule TcgCheapWeb.CardDetailLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div class="archive-world card-detail-world">
-        <TcgCheapWeb.GuideComponents.site_header id="archive-header" current={:trading} />
+        <TcgCheapWeb.GuideComponents.site_header id="archive-header" />
         <main id="card-detail-main" class="archive-main">
           <div class="archive-container">
             <.link id="card-detail-back" navigate={@back_path} class="archive-back">
@@ -572,7 +572,7 @@ defmodule TcgCheapWeb.CardDetailLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div class="archive-world card-detail-world">
-        <TcgCheapWeb.GuideComponents.site_header id="archive-header" current={:trading} /><main class="archive-main">
+        <TcgCheapWeb.GuideComponents.site_header id="archive-header" /><main class="archive-main">
           <section id="card-detail-not-found" class="state-note state-error">
             <h1>Card printing not found</h1><p>
               We couldn’t find that card printing. Try another search.

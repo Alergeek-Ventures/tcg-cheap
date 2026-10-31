@@ -60,13 +60,16 @@ versioned pricing models.
   lowest in-stock Polish price, the number of shops with stock, and the
   Cardmarket trend are stored for the day.
 - **Verdict.** The typical price is the median of the daily lowest in-stock
-  price over the last 30 days when at least 7 such days exist; otherwise the
-  Cardmarket trend converted with the latest NBP EUR/PLN rate. The cheapest
-  current in-stock offer is rated **Dobra cena** (≤ 95% of typical),
+  price over the last 30 days when at least 7 such days exist. The cheapest
+  current in-stock offer is then rated **Dobra cena** (≤ 95% of typical),
   **Normalna cena** (≤ 110%) or **Drogo**. Thresholds are whole złoty and are
   shown on the page, so a price seen in a physical shop can be judged too.
-  Without current stock the verdict is **Brak w sklepach** (with the last
-  known price); with stock but no typical price it is **Za mało danych**.
+  Before 7 days the price is only compared with the Cardmarket trend
+  converted with the latest NBP EUR/PLN rate, as a neutral **+14% vs
+  Cardmarket** without thresholds: a European price without shipping made
+  almost every Polish price "Drogo" (owner decision, 2026-10-31). Without
+  current stock the verdict is **Brak w sklepach** (with the last known
+  price); with stock but no reference price it is **Za mało danych**.
 - **Pages.** `/` lists and searches products (filter by kind; in stock first,
   then newest; a known barcode jumps to its product) with the cheapest current
   price and verdict.
@@ -83,7 +86,7 @@ Singles currently use the TCGdex card catalogue, daily Cardmarket bulk prices
 mapped to exact printings, `/cards/:tcgdex_id` detail pages and the `/trade`
 calculator (English UI). Phase 2 will simplify this part under the same
 principles and bring it into the Polish guide. Until then it is maintained
-as-is; see [Application Foundation](../architecture/application-foundation.md).
+as-is and not linked from the guide (the header has no navigation); see [Application Foundation](../architecture/application-foundation.md).
 
 ## Constraints
 

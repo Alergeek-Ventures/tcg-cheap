@@ -93,7 +93,7 @@ defmodule TcgCheapWeb.HomeLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div class="guide-world">
-        <.site_header current={:buying} />
+        <.site_header />
         <main id="guide-main" class="guide-main">
           <section class="guide-intro" aria-labelledby="guide-title">
             <h1 id="guide-title">Sprawdź, czy cena jest dobra</h1>
@@ -288,17 +288,10 @@ defmodule TcgCheapWeb.HomeLive do
                     </p>
                     <p class="guide-product-judgement">
                       <.verdict_badge
-                        status={summary.verdict.status}
+                        verdict={summary.verdict}
                         id={"verdict-#{summary.product.slug}"}
                         class="guide-product-verdict"
                       />
-                      <span
-                        :if={
-                          summary.verdict.typical_source == :cardmarket and
-                            summary.verdict.status in [:good, :normal, :expensive]
-                        }
-                        class="guide-product-source"
-                      >wg Cardmarket</span>
                     </p>
                   </div>
                 </.link>

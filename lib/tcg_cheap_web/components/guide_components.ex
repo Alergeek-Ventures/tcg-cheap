@@ -7,8 +7,7 @@ defmodule TcgCheapWeb.GuideComponents do
   alias TcgCheap.Sealed.{Kinds, Shops}
   alias TcgCheapWeb.Polish
 
-  @doc "The public masthead: wordmark and the two product areas."
-  attr :current, :atom, default: nil, values: [nil, :buying, :trading]
+  @doc "The public masthead: the wordmark, linking to the buying guide."
   attr :id, :string, default: "site-header"
 
   def site_header(assigns) do
@@ -17,40 +16,21 @@ defmodule TcgCheapWeb.GuideComponents do
       <.link id="site-wordmark" class="site-wordmark" navigate={~p"/"}>
         <.fluent_icon name={:gift_card_add} />TCG CHEAP
       </.link>
-      <.site_nav current={@current} />
     </header>
     """
   end
 
-  @doc "Navigation between the buying guide and trades."
-  attr :current, :atom, default: nil, values: [nil, :buying, :trading]
-
-  def site_nav(assigns) do
-    ~H"""
-    <nav id="site-nav" class="site-nav" aria-label="Główna nawigacja">
-      <.link
-        id="site-nav-buying"
-        navigate={~p"/"}
-        aria-current={if(@current == :buying, do: "page")}
-      >Zakupy</.link>
-      <.link
-        id="site-nav-trading"
-        navigate={~p"/trade"}
-        aria-current={if(@current == :trading, do: "page")}
-      >Wymiany</.link>
-    </nav>
-    """
-  end
-
   @doc "The verdict as a labelled badge; shape and text carry the meaning, not color alone."
-  attr :status, :atom, required: true
+  attr :verdict, :map, required: true
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
   def verdict_badge(assigns) do
     ~H"""
-    <span id={@id} class={["verdict-badge", "verdict-#{@status}", @class]}>
-      <.verdict_icon status={@status} />{verdict_label(@status)}
+    <span id={@id} class={["verdict-badge", "verdict-#{@verdict.status}", @class]}>
+      <.verdict_icon :if={@verdict.status != :cardmarket} status={@verdict.status} />{verdict_label(
+        @verdict
+      )}
     </span>
     """
   end
@@ -431,11 +411,30 @@ defmodule TcgCheapWeb.GuideComponents do
   @spec shop_name(map()) :: String.t()
   def shop_name(%{shop: shop}), do: Shops.name(shop)
 
-  @doc "The Polish label of a verdict."
-  @spec verdict_label(atom()) :: String.t()
-  def verdict_label(:good), do: "Dobra cena"
-  def verdict_label(:normal), do: "Normalna cena"
-  def verdict_label(:expensive), do: "Drogo"
-  def verdict_label(:insufficient_data), do: "Za mało danych"
-  def verdict_label(:out_of_stock), do: "Brak w sklepach"
+  @doc ~S'The Polish label of a verdict: "Dobra cena", "+14% vs Cardmarket", …'
+  @spec verdict_label(map()) :: String.t()
+  def verdict_label(%{status: :cardmarket, cheapest: %{price: price}, typical: typical}) do
+    percent =
+      price
+      |> Decimal.sub(typical)
+      |> Decimal.div(typical)
+      |> Decimal.mult(100)
+      |> Decimal.round(0)
+      |> Decimal.to_integer()
+
+    sign =
+      cond do
+        percent > 0 -> "+"
+        percent < 0 -> "−"
+        true -> "±"
+      end
+
+    "#{sign}#{abs(percent)}% vs Cardmarket"
+  end
+
+  def verdict_label(%{status: :good}), do: "Dobra cena"
+  def verdict_label(%{status: :normal}), do: "Normalna cena"
+  def verdict_label(%{status: :expensive}), do: "Drogo"
+  def verdict_label(%{status: :insufficient_data}), do: "Za mało danych"
+  def verdict_label(%{status: :out_of_stock}), do: "Brak w sklepach"
 end

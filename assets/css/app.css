@@ -613,10 +613,6 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 
 
 /* Shared public navigation: Zakupy (buying guide) and Wymiany (trade). */
-.site-nav { display: flex; flex-wrap: wrap; gap: .25rem; }
-.site-nav a { align-items: center; color: var(--ink, #201d19); display: inline-flex; font: 700 1rem/1 "Barlow Condensed", sans-serif; justify-content: center; letter-spacing: .04em; min-height: 3rem; min-width: 3rem; padding: 0 .75rem; text-decoration: none; text-transform: uppercase; }
-.site-nav a:hover { text-decoration: underline; text-underline-offset: .25rem; }
-.site-nav a[aria-current="page"] { background: var(--ink, #201d19); color: var(--bench-light, #fffaf0); }
 
 /* Buying guide: the calm warm-paper valuation bench, in Polish. */
 .guide-world { --bench: #f1eadc; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --rule: rgb(32 29 25 / 18%); --orange: #b54125; --muted: #6d6256; --rise: #27714b; --fall: #a6402f; background: var(--bench); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; font-size: 1rem; line-height: 1.6; min-height: 100svh; overflow-x: clip; }
@@ -659,7 +655,6 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-product-link { align-items: center; background: var(--paper); color: inherit; display: grid; gap: .35rem 1rem; grid-template-columns: 5.5rem minmax(0, 1fr) auto; min-height: 3rem; padding: .5rem .75rem .5rem .5rem; text-decoration: none; }
 .guide-world .guide-product-deal { display: grid; gap: .35rem; justify-items: end; min-width: 0; text-align: right; }
 .guide-world .guide-product-judgement { align-items: center; display: flex; flex-wrap: wrap; gap: .25rem .5rem; justify-content: flex-end; margin: 0; }
-.guide-world .guide-product-source { color: var(--muted); font-size: .875rem; }
 .guide-world .guide-product-link:hover { background: var(--bench-light); }
 .guide-world .guide-product-link:hover .guide-product-name { text-decoration: underline; text-underline-offset: .2rem; }
 .guide-world .product-image { align-items: center; aspect-ratio: 16 / 10; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); display: flex; justify-content: center; min-width: 0; overflow: hidden; }
@@ -700,6 +695,7 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .verdict-expensive { background: var(--fall); border-color: var(--fall); color: var(--paper); }
 .guide-world .verdict-insufficient_data { border-style: dashed; color: var(--muted); }
 .guide-world .verdict-out_of_stock { border-color: transparent; color: var(--muted); padding-inline: 0; }
+.guide-world .verdict-cardmarket { color: var(--ink); text-transform: none; }
 
 /* Product page: identity, then the verdict as the first answer. */
 .guide-world .guide-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; gap: .4rem; margin-bottom: .5rem; min-height: 3rem; }
@@ -715,6 +711,7 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .verdict-badge-large.verdict-normal { background: var(--ink); color: var(--bench-light); }
 .guide-world .verdict-badge-large:is(.verdict-insufficient_data, .verdict-out_of_stock) { background: color-mix(in srgb, var(--bench) 70%, var(--paper)); border-bottom: 2px dashed var(--muted); color: var(--ink); }
 .guide-world .verdict-badge-large.verdict-out_of_stock { border-bottom-style: dotted; }
+.guide-world .verdict-badge-large.verdict-cardmarket { background: color-mix(in srgb, var(--bench) 70%, var(--paper)); border-bottom: 2px solid var(--ink); color: var(--ink); }
 .guide-world .verdict-body { display: grid; gap: 1rem; padding: 1.25rem; }
 .guide-world .verdict-price { font: 700 clamp(2.75rem, 11vw, 3.75rem)/.9 "Barlow Condensed", sans-serif; letter-spacing: -.03em; margin: 0; }
 .guide-world .verdict-shop { margin: .4rem 0 0; }

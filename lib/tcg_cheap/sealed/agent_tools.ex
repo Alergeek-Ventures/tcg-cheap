@@ -131,7 +131,7 @@ defmodule TcgCheap.Sealed.AgentTools do
     action :product, :map do
       description """
       One catalogue product by `slug` or `id`: its catalogue data, the public verdict (`status`
-      good/normal/expensive/insufficient_data/out_of_stock, cheapest in-stock offer, typical price
+      good/normal/expensive, cardmarket (only compared with the Cardmarket trend before 7 days of shop prices, no limits), insufficient_data or out_of_stock, cheapest in-stock offer, typical price
       and its source, price limits) and every current offer assigned to it, with offer ids.
       """
 

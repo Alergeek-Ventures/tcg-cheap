@@ -195,7 +195,7 @@ defmodule TcgCheapWeb.TradeLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div class="decision-world trade-world">
-        <TcgCheapWeb.GuideComponents.site_header id="trade-header" current={:trading} />
+        <TcgCheapWeb.GuideComponents.site_header id="trade-header" />
         <main id="trade-main" class="decision-main">
           <div class="decision-container">
             <section id="trade-intro" class="decision-intro">

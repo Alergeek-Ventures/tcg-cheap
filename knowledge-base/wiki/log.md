@@ -3,12 +3,12 @@
 ## [2026-10-31] UX review fixes
 
 - Task: Independent Opus UX/UI review of the running guide. Applied the fixes that keep the product rules: the price chart waits for 7 days of prices (a near-empty 90-day frame before), list rows drop kind/set already in the name, a concrete home subtitle, one Cardmarket trend line instead of three prices, the "how we compute" text names the Cardmarket fallback only when it is used, "Brak w sklepach" as the out-of-stock verdict, a reset link on empty results, grouped digits in counts.
-- Open (owner decisions): Cardmarket-based verdicts mark most in-stock products "Drogo" until 7 days of shop prices exist; the "Wymiany" tab leads to the unfinished English trading pages.
+- Owner decisions: before 7 days of shop prices the verdict is a neutral "+14% vs Cardmarket" without thresholds (it marked 80 of 101 in-stock products "Drogo"); the header drops its navigation, so the unfinished English trading pages are no longer linked.
 - Validation: `mix check`; screenshots of the changed states at 390 and 1280 px, no console errors or horizontal overflow.
 
 ## [2026-10-31] Production on Coolify
 
-- Task: Owner asked to deploy to Coolify with secrets in Infisical, as firmowid and onside do, at the new domain tcg.cheap (Cloudflare-proxied `A` record). Created the Coolify project *TCG Cheap* (app + ParadeDB `psql`, volume at `/var/lib/postgresql` for PostgreSQL 18, daily S3 backup) and the Infisical project `tcg-cheap` (`prod:/app`: `DATABASE_URL`, `SECRET_KEY_BASE`, `PHX_HOST`, `MCP_API_TOKEN`), copied to the Coolify app's variables. Owner chose Coolify's own GitHub App webhook for deploys over the firmowid-style Actions job, which for a public repository needs a deploy key to the private `av-secret-service`; this Infisical has no Coolify secret sync, so values are copied by hand when they change. Coolify runs `/app/bin/migrate` before switching.
+- Task: Owner asked to deploy to Coolify with secrets in Infisical, as firmowid and onside do, at the new domain tcg.cheap (Cloudflare-proxied `A` record). Created the Coolify project *TCG Cheap* (app + ParadeDB `psql`, volume at `/var/lib/postgresql` for PostgreSQL 18, daily S3 backup) and the Infisical project `tcg-cheap` (`prod:/app`: `DATABASE_URL`, `SECRET_KEY_BASE`, `PHX_HOST`, `MCP_API_TOKEN`), with a read-only GitHub OIDC machine identity, and the GitHub `production` environment (main only). As in firmowid, CI deploys after `mix check` and the container build through `av-secret-service/coolify-deploy`, which syncs Infisical to Coolify (this Infisical has no Coolify secret sync of its own); the public repository reaches that private action through a read-only deploy key. Coolify's own auto-deploy is off, and it runs `/app/bin/migrate` before switching.
 - Files: none in the wiki beyond this log; operations are in `docs/deployment-and-operations.md`.
 
 ## [2026-10-31] Agent MCP server
