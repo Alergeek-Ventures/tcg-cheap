@@ -90,7 +90,8 @@ defmodule TcgCheap.Sealed.Matcher do
   # Words naming a kind of sealed product, as in Cardmarket's sealed product
   # names. A title with none of them is a single card or an accessory.
   @sealed_words ~w(booster box bundle display case tin collection blister deck pack set starter
-                   kit toolkit chest wcd academy showcase calendar classic stadium)
+                   kit toolkit chest wcd academy showcase calendar classic stadium sticker
+                   checklane portfolio album)
 
   @exclusions [
     "preorder",

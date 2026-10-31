@@ -157,9 +157,10 @@ defmodule TcgCheapWeb.ProductLive do
     threshold = shop.free_shipping_from
     free? = threshold != nil and not Decimal.lt?(price, threshold)
 
+    # The threshold stays visible: shops often grant it for some carriers only.
     cost =
       cond do
-        free? -> "darmowa dostawa"
+        free? -> "darmowa dostawa od #{amount(threshold)}"
         shop.shipping_from -> "dostawa od #{amount(shop.shipping_from)}"
         true -> "koszt dostawy w koszyku"
       end

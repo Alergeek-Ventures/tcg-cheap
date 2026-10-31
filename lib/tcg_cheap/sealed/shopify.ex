@@ -2,14 +2,15 @@ defmodule TcgCheap.Sealed.Shopify do
   @moduledoc """
   Reads the public product list of a Shopify shop: `/products.json`, or
   `/collections/<collection>/products.json` when the shop has a Pokémon
-  `collection`, 250 products per page up to the first short page, at most
+  `collection`, 250 products per page up to the first empty page, at most
   `max_pages` pages. The shop's currency (`/meta.json`) must be PLN.
 
   Price and availability are per variant, so each variant is one offer. A
   product counts as sealed when its title names a sealed product
   (`TcgCheap.Sealed.Matcher.sealed_title?/1`) and, when the whole shop is
   read, also says Pokémon. Product URLs are built from the validated handle;
-  images may come from the shop's host or Shopify's CDN; EANs come from
+  images (the variant's own, else the product's) may come from the shop's
+  host or Shopify's CDN; EANs come from
   variant SKUs. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
@@ -45,11 +46,11 @@ defmodule TcgCheap.Sealed.Shopify do
       {:ok, products} when page > shop.max_pages and products != [] ->
         {:error, :too_many_pages}
 
-      {:ok, products} when length(products) == @per_page ->
-        fetch_pages(shop, req_options, page + 1, [products | acc])
+      {:ok, []} ->
+        {:ok, acc |> Enum.reverse() |> List.flatten()}
 
       {:ok, products} ->
-        {:ok, [products | acc] |> Enum.reverse() |> List.flatten()}
+        fetch_pages(shop, req_options, page + 1, [products | acc])
 
       {:error, reason} ->
         {:error, reason}
@@ -79,6 +80,7 @@ defmodule TcgCheap.Sealed.Shopify do
         title: title,
         url: "https://#{shop.host}/products/#{handle}",
         image_url: image_url(shop, product["images"]),
+        image_hosts: image_hosts(shop),
         single?: match?([_], variants)
       }
 
@@ -115,7 +117,7 @@ defmodule TcgCheap.Sealed.Shopify do
          shop_product_id: Integer.to_string(id),
          title: title,
          url: if(product.single?, do: product.url, else: "#{product.url}?variant=#{id}"),
-         image_url: product.image_url,
+         image_url: variant_image_url(product, variant["featured_image"]),
          ean: Ean.normalize(variant["sku"]),
          price: price,
          in_stock: available
@@ -139,6 +141,11 @@ defmodule TcgCheap.Sealed.Shopify do
 
   defp image_url(shop, [%{"src" => src} | _]), do: ShopFeed.image_url(src, image_hosts(shop))
   defp image_url(_shop, _images), do: nil
+
+  defp variant_image_url(product, %{"src" => src}),
+    do: ShopFeed.image_url(src, product.image_hosts) || product.image_url
+
+  defp variant_image_url(product, _image), do: product.image_url
 
   defp price(value) when is_binary(value) do
     if Regex.match?(~r/\A[0-9]{1,7}(?:\.[0-9]{1,2})?\z/, value),

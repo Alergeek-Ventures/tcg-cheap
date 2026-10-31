@@ -1,6 +1,6 @@
 # Application Foundation
 
-- Updated: 2026-10-30
+- Updated: 2026-10-31
 - Sources: Project code (`lib/`, `config/config.exs`, `config/runtime.exs`, `priv/repo/migrations/`), [deployment guide](../../../docs/deployment-and-operations.md)
 - Raw: N/A — codebase update
 
@@ -30,8 +30,8 @@ The schema is one squashed set of Ash-generated migrations
 ```text
 Cardmarket products_nonsingles_6.json + price_guide_6.json
   └─ CatalogueImportWorker (03:30 UTC) ─ CatalogueImport ─┐
-Six WooCommerce Store APIs                                 ├─ Refresh.recompute
-  └─ FetchWorker per shop (04:00–06:30 UTC) ─ Refresh.run ─┘     │
+36 shops: WooCommerce Store API / Shopify products.json   ├─ Refresh.recompute
+  └─ FetchWorker (04:00 UTC, one job per shop) ─ Refresh.run ┘   │
                                                                   ├─ re-match offers (Matcher)
                                                                   ├─ DailyPrice per product/day
                                                                   └─ Product availability, lowest price, image
@@ -142,14 +142,14 @@ Public pages ─ Guide (read model) ─ PriceGuide.verdict
 
 Oban queues (concurrency 1 each): `exchange_rates`, `catalogue_sync`,
 `operations`, `cardmarket_bulk`, `sealed`. Completed jobs are pruned after 7
-days. Schedules (UTC) are in `config/config.exs`:
+days; jobs orphaned by a restart are rescued after 30 minutes (lifeline). Schedules (UTC) are in `config/config.exs`:
 
 | Cron | Worker |
 | --- | --- |
 | `*/15 * * * *` | `SinglesCatalogueBootstrapWorker`, `CuratedPlayableBootstrapWorker`, `AcquisitionReconcilerWorker` |
 | `0 3 * * *` | `Pricing.CardmarketBulk.SyncWorker` |
 | `30 3 * * *` | `Sealed.CatalogueImportWorker` |
-| `0 4`, `30 4`, `0 5`, `30 5`, `0 6`, `30 6` | `Sealed.FetchWorker` for lootquest, cardzhouse, boosterpoint, pokebooster, boosterland, colligere |
+| `0 4 * * *` | `Sealed.FetchWorker` without a shop: queues one fetch per shop, run one at a time |
 | `0 15 * * *` | `Pricing.ExchangeRateWorker` (NBP) |
 
 ## Key decisions

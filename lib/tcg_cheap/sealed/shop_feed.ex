@@ -7,7 +7,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
   feed is one more module implementing this behaviour.
 
   Requests go only to the shop's fixed HTTPS host, follow no redirects and read
-  at most 2 MB per page. Every product field is untrusted: products with an
+  at most 5 MB per page. Every product field is untrusted: products with an
   invalid id, title, URL or price are skipped and counted in a warning. Any
   transport, status, pagination or shape problem fails the whole fetch so that
   a partial catalogue is never mistaken for a complete one.
@@ -17,7 +17,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
   alias TcgCheap.Sealed.Shop
 
-  @max_body_bytes 2_000_000
+  @max_body_bytes 5_000_000
   @max_title_length 300
   @max_url_length 2_000
   @max_price Decimal.new(1_000_000)
