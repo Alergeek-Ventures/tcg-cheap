@@ -30,8 +30,9 @@ worktree's database volume; use it only to discard local data.
 
 Defaults: Phoenix on <http://localhost:4004>, PostgreSQL on `localhost:5436`.
 Parallel worktrees get their own ports, so read `.server.port` for the actual
-Phoenix port. Tidewave MCP is at `http://localhost:{PORT}/tidewave/mcp` in
-development.
+Phoenix port. In development, Tidewave MCP is at
+`http://localhost:{PORT}/tidewave/mcp` and the buying-guide agent tools at
+`http://localhost:{PORT}/mcp`.
 
 A fresh database is empty until the background jobs run (see
 [deployment and operations](docs/deployment-and-operations.md#first-data) for

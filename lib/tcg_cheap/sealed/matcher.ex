@@ -193,6 +193,69 @@ defmodule TcgCheap.Sealed.Matcher do
   @spec excluded?(String.t()) :: boolean()
   def excluded?(title), do: exclusion(normalize(title)) != nil
 
+  @doc """
+  Why `match/2` decides what it does for an offer (`:title`, optional `:ean`),
+  without changing it. Returns
+
+    * `:result` – exactly what `match/2` returns;
+    * `:normalized` – the normalized title;
+    * `:exclusion` – the exclusion phrase or rule that rejects the title, or nil;
+    * `:ean_product_id` – the product identified by the known EAN, or nil
+      (it wins over the title when not excluded);
+    * `:tokens` – the title tokens compared with product names, after pack
+      counts and a leading series are removed;
+    * `:qualifiers` – the title tokens a matching product name must contain;
+    * `:max_unexplained` – how many title tokens may be absent from the name;
+    * `:candidates` – up to `limit` indexed products sharing the most tokens
+      with the title, qualifying ones first (most specific first), each with
+      `:id`, its name `:tokens`, `:missing` (name tokens absent from the
+      title), `:missing_qualifiers` (title qualifiers absent from the name),
+      `:unexplained` (title tokens absent from the name) and `:qualifies?`.
+
+  Products whose names reduce to fewer than two tokens are not indexed and
+  never match.
+  """
+  @spec explain(map(), t(), pos_integer()) :: map()
+  def explain(%{title: title} = offer, %__MODULE__{} = index, limit \\ 5) when is_binary(title) do
+    offer_tokens = offer_tokens(title, index.sets)
+    offer_set = MapSet.new(offer_tokens)
+    qualifiers = MapSet.intersection(offer_set, @qualifiers)
+
+    candidates =
+      for entry <- index.entries,
+          shared = MapSet.size(MapSet.intersection(entry.tokens, offer_set)),
+          shared > 0 do
+        {candidate?(entry, offer_set, qualifiers), shared, entry}
+      end
+      |> Enum.sort_by(fn {qualifies?, shared, entry} ->
+        {not qualifies?, -shared, entry.size - shared}
+      end)
+      |> Enum.take(limit)
+      |> Enum.map(fn {qualifies?, _shared, entry} ->
+        %{
+          id: entry.id,
+          tokens: Enum.sort(entry.tokens),
+          missing: entry.tokens |> MapSet.difference(offer_set) |> Enum.sort(),
+          missing_qualifiers: qualifiers |> MapSet.difference(entry.tokens) |> Enum.sort(),
+          unexplained: offer_set |> MapSet.difference(entry.tokens) |> Enum.sort(),
+          qualifies?: qualifies?
+        }
+      end)
+
+    normalized = normalize(title)
+
+    %{
+      result: match(offer, index),
+      normalized: normalized,
+      exclusion: exclusion(normalized),
+      ean_product_id: Map.get(index.eans, Map.get(offer, :ean) || ""),
+      tokens: Enum.uniq(offer_tokens),
+      qualifiers: Enum.sort(qualifiers),
+      max_unexplained: @max_unexplained,
+      candidates: candidates
+    }
+  end
+
   defp best(offer_tokens, index) do
     offer_set = MapSet.new(offer_tokens)
     qualifiers = MapSet.intersection(offer_set, @qualifiers)

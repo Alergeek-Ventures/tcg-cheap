@@ -9,8 +9,8 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
 
   use TcgCheapWeb, :live_view
 
-  alias TcgCheap.Repo
   alias TcgCheap.Sealed
+  alias TcgCheap.Sealed.AgentTools.ShopStatus
   alias TcgCheap.Sealed.{Kinds, Matcher, Refresh, Shops}
   alias TcgCheapWeb.Polish
 
@@ -107,19 +107,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
 
   # Applies an assignment and immediately re-derives prices from it.
   defp write(action) do
-    result =
-      Repo.transaction(
-        fn ->
-          # Nothing subscribes to offer notifications; they are dropped.
-          case action.() do
-            {:ok, _offer, _notifications} -> Refresh.recompute(DateTime.utc_now())
-            {:error, error} -> Repo.rollback(error)
-          end
-        end,
-        timeout: Refresh.transaction_timeout()
-      )
-
-    if match?({:ok, _}, result), do: :ok, else: :error
+    if match?({:ok, _}, Refresh.with_recompute(action)), do: :ok, else: :error
   end
 
   defp search(query) do
@@ -153,7 +141,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
 
     socket
     |> assign(:matched_limit, @matched_limit)
-    |> assign(:shops, shop_rows(offers, current))
+    |> assign(:shops, ShopStatus.rows(offers, current))
     |> assign(:product_count, Ash.count!(Sealed.Product, domain: Sealed))
     |> assign(:unmatched_count, length(unmatched))
     |> assign(:excluded_count, length(excluded))
@@ -441,35 +429,6 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
       </div>
     </Layouts.admin>
     """
-  end
-
-  # The offers seen in a shop's latest fetch, however long ago it was.
-  defp latest_fetch([]), do: []
-
-  defp latest_fetch(offers) do
-    latest = offers |> Enum.map(& &1.last_seen_at) |> Enum.max(DateTime)
-    Enum.filter(offers, &(DateTime.compare(&1.last_seen_at, latest) == :eq))
-  end
-
-  defp shop_rows(offers, current) do
-    by_shop = Enum.group_by(offers, & &1.shop)
-    current_by_shop = Enum.group_by(current, & &1.shop)
-
-    for shop <- Shops.all() do
-      seen = by_shop |> Map.get(shop.key, []) |> latest_fetch()
-
-      %{
-        key: shop.key,
-        name: shop.name,
-        last_fetch: seen |> List.first() |> then(&(&1 && &1.last_seen_at)),
-        seen: length(seen),
-        matched: Enum.count(seen, & &1.product_id),
-        matched_in_stock:
-          current_by_shop
-          |> Map.get(shop.key, [])
-          |> Enum.count(&(&1.product_id && &1.in_stock))
-      }
-    end
   end
 
   defp fetched_at(nil), do: "never"

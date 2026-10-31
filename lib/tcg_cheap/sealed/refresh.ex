@@ -25,6 +25,7 @@ defmodule TcgCheap.Sealed.Refresh do
       {:ok, fetched} ->
         Repo.transaction(
           fn ->
+            lock_recompute()
             upsert_offers(shop, fetched, now)
             recompute(now)
             %{offers: length(fetched)}
@@ -46,7 +47,7 @@ defmodule TcgCheap.Sealed.Refresh do
   """
   @spec recompute(DateTime.t()) :: :ok
   def recompute(%DateTime{} = now) do
-    Repo.query!("SELECT pg_advisory_xact_lock(hashtext('tcg_cheap:sealed_recompute'))")
+    lock_recompute()
     products = Sealed.list_products!()
     rematch_offers(products)
     current = now |> Sealed.current_offers() |> Enum.filter(& &1.product_id)
@@ -64,6 +65,34 @@ defmodule TcgCheap.Sealed.Refresh do
         return_errors?: true,
         stop_on_error?: true
       )
+  end
+
+  @doc "Runs a manual write and recomputes prices in the same transaction."
+  @spec with_recompute((-> {:ok, record, list()} | {:error, term()})) ::
+          {:ok, record} | {:error, term()}
+        when record: struct()
+  def with_recompute(fun) do
+    Repo.transaction(
+      fn ->
+        # Lock before the write so simultaneous manual writes cannot deadlock
+        # against the offer updates performed by recompute/1.
+        lock_recompute()
+
+        case fun.() do
+          {:ok, record, _notifications} ->
+            recompute(DateTime.utc_now())
+            record
+
+          {:error, error} ->
+            Repo.rollback(error)
+        end
+      end,
+      timeout: transaction_timeout()
+    )
+  end
+
+  defp lock_recompute do
+    Repo.query!("SELECT pg_advisory_xact_lock(hashtext('tcg_cheap:sealed_recompute'))")
   end
 
   defp rematch_offers(products) do

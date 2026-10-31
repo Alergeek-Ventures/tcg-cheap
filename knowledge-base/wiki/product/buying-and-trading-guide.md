@@ -1,6 +1,6 @@
 # TCG Cheap — Buying and Trading Guide
 
-- Updated: 2026-10-30
+- Updated: 2026-10-31
 - Sources: Product-owner direction, 2026-10-30; [PRODUCT.md](../../../PRODUCT.md); project code (`lib/tcg_cheap/sealed/`, `lib/tcg_cheap_web/live/`)
 - Raw: N/A — product specification
 
@@ -50,10 +50,12 @@ versioned pricing models.
   EAN/UPC into the search, or scanning it with the phone camera where the
   browser supports `BarcodeDetector` (e.g. Chrome on Android), opens the
   product directly; an unknown code says so.
-- **Manual fixes.** An administrator can assign an unmatched or wrongly
-  matched offer to any catalogue product, keep an offer unmatched for good, or
-  hand it back to automatic matching. Automatic matching never overwrites a
-  manual decision.
+- **Manual fixes.** An administrator, or an AI agent through the MCP server
+  at `/mcp`, can assign an unmatched or wrongly matched offer to any catalogue
+  product, keep an offer unmatched for good, or hand it back to automatic
+  matching; the agent can also ask why a title matches or not and set product
+  barcodes. Automatic matching never overwrites a manual decision. `/mcp`
+  needs `MCP_API_TOKEN` outside development.
 - **History.** After every shop fetch and catalogue import, each product's
   lowest in-stock Polish price, the number of shops with stock, and the
   Cardmarket trend are stored for the day.

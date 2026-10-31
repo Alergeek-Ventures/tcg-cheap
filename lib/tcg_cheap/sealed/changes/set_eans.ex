@@ -20,8 +20,7 @@ defmodule TcgCheap.Sealed.Changes.SetEans do
       invalid ->
         Ash.Changeset.add_error(changeset,
           field: :eans,
-          message: "not valid EAN-13/UPC-A barcodes: %{codes}",
-          vars: [codes: Enum.join(invalid, ", ")]
+          message: "not valid EAN-13/UPC-A barcodes: #{Enum.join(invalid, ", ")}"
         )
     end
   end

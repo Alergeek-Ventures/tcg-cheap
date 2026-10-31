@@ -26,6 +26,7 @@ Optional:
 | `DNS_CLUSTER_QUERY` | unset | DNS clustering (not needed for one instance) |
 | `SOURCE_COMMIT` | `unknown` | Git SHA reported by the health endpoints (Coolify sets it automatically) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | — | Only for the one-shot admin provisioning command |
+| `MCP_API_TOKEN` | unset | Bearer token for the agent MCP endpoint `/mcp`, at least 32 bytes; unset refuses every MCP request |
 
 The image sets `PHX_SERVER=true`, `PORT=4004` and a UTF-8 locale. Keep secrets
 in the platform's secret store, never in the image or the repository.
@@ -184,6 +185,19 @@ docker exec tcg-cheap /app/bin/tcg_cheap rpc 'TcgCheap.Sealed.CatalogueImportWor
   If the same mistake repeats, fix the rule in `TcgCheap.Sealed.Matcher`
   (synonyms, qualifiers, exclusions); every shop fetch re-matches
   all automatic offers.
+
+### Let an AI agent do it
+
+`/mcp` is an MCP server (streamable HTTP) with the same work as tools: shop
+status, unmatched/matched offers and manual decisions, product search and
+detail, `explain_match` (why a title matches or not), assign/exclude/clear,
+`set_product_eans` and queuing a shop fetch or catalogue import. Its
+instructions tell the agent to leave an offer alone when unsure.
+
+In production, set `MCP_API_TOKEN` and give the agent the header
+`Authorization: Bearer <token>`. The development server, like Tidewave,
+listens only on localhost and needs no token; `.mcp.json` (Claude Code) and
+`opencode.json` already point at it.
 
 ### Add or remove a shop
 

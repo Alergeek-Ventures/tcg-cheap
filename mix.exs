@@ -64,6 +64,7 @@ defmodule TcgCheap.MixProject do
       {:ash_postgres, "~> 2.15"},
       {:oban, "~> 2.24"},
       {:ash, "~> 3.37"},
+      {:ash_ai, "~> 1.4"},
       {:req, "~> 0.7"},
       {:igniter, "~> 0.8", only: [:dev, :test]},
       {:phoenix, "~> 1.8"},

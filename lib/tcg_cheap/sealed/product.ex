@@ -113,7 +113,13 @@ defmodule TcgCheap.Sealed.Product do
     attribute :set_name, :string, public?: true, constraints: [max_length: 200]
     attribute :cardmarket_added_on, :date, public?: true
     attribute :slug, :string, allow_nil?: false, public?: true, constraints: [max_length: 220]
-    attribute :search_text, :string, allow_nil?: false, public?: true, default: ""
+    # Untrimmed: the leading space lets every word be found as a prefix.
+    attribute :search_text, :string,
+      allow_nil?: false,
+      public?: true,
+      default: "",
+      constraints: [trim?: false]
+
     attribute :image_url, :string, public?: true, constraints: [max_length: 2_000]
     attribute :cardmarket_trend, :decimal, public?: true
     attribute :cardmarket_low, :decimal, public?: true

@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-10-31] Agent MCP server
+
+- Task: Owner wanted an agent to work on matching on its own. `/mcp` (ash_ai) exposes `TcgCheap.Sealed.AgentTools` actions as tools: shop status, offer lists, manual decisions, product search/detail, `explain_match`, assign/exclude/clear, `set_product_eans`, fetch/import jobs. Writes recompute prices in the same transaction (`Refresh.with_recompute/1`). Production requires `MCP_API_TOKEN`; the localhost-only dev server needs none, like Tidewave.
+- Fixed: product search never matched the first word of a name because Ash trimmed the leading space of `search_text` (now `trim?: false`).
+- Files: `product/buying-and-trading-guide.md` (Manual fixes).
+- Validation: `mix check`; every tool called over HTTP on the running app (assign → clear and exclude → clear round trips, EAN validation, duplicate job detection); the token plug refuses missing, wrong and unconfigured tokens.
+
 ## [2026-10-30] Barcode lookup and scanner
 
 - Task: Owner chose to grow EAN coverage through the agent (MCP) and to try a simple scanner. Products got an `eans` list (`set_eans` action, GS1 check digit verified); `TcgCheap.Sealed.known_eans/0` merges product EANs with manually assigned offers' EANs (conflicts dropped) and feeds both the matcher and the public lookup. The home search opens the product for a known EAN/UPC; a camera button appears only where `BarcodeDetector` exists.

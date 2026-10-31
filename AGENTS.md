@@ -11,8 +11,9 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
   use `http://localhost:{PORT}`. Worktrunk assigns hashed localhost ports to
   parallel worktrees.
 - In development, Tidewave is available at
-  `http://localhost:{PORT}/tidewave/mcp`. Caddy integration is explicitly
-  deferred.
+  `http://localhost:{PORT}/tidewave/mcp` and the buying-guide MCP tools
+  (offer matching, barcodes, fetch jobs) at `http://localhost:{PORT}/mcp`.
+  Caddy integration is explicitly deferred.
 
 ## Project conventions
 

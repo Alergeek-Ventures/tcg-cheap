@@ -23,6 +23,25 @@ end
 config :tcg_cheap, TcgCheapWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4004"))]
 
+# Bearer token for the AI agent MCP endpoint at /mcp (TcgCheapWeb.McpAuth).
+# Without it every MCP request is refused outside development.
+mcp_api_token =
+  case String.trim(System.get_env("MCP_API_TOKEN", "")) do
+    "" ->
+      nil
+
+    token when byte_size(token) < 32 ->
+      raise """
+      environment variable MCP_API_TOKEN must contain at least 32 bytes.
+      Generate one with `mix phx.gen.secret`, or remove it to disable the MCP endpoint.
+      """
+
+    token ->
+      token
+  end
+
+config :tcg_cheap, TcgCheapWeb.McpAuth, token: mcp_api_token
+
 if config_env() == :dev do
   # Reload browser tabs when matching files change.
   config :tcg_cheap, TcgCheapWeb.Endpoint,

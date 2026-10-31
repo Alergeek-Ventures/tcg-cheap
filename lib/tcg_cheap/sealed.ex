@@ -8,11 +8,77 @@ defmodule TcgCheap.Sealed do
   longer lists stop counting as soon as the shop is fetched again.
   """
 
-  use Ash.Domain, otp_app: :tcg_cheap
+  use Ash.Domain, otp_app: :tcg_cheap, extensions: [AshAi]
 
-  alias TcgCheap.Sealed.{Ean, Offer}
+  alias TcgCheap.Sealed.{AgentTools, Ean, Offer, Product}
 
   @current_for_seconds 3 * 86_400
+
+  tools do
+    tool(:shop_status, AgentTools, :shop_status, annotations: [read_only_hint: true])
+
+    tool(:list_unmatched_offers, AgentTools, :unmatched_offers,
+      annotations: [read_only_hint: true]
+    )
+
+    tool(:list_matched_offers, AgentTools, :matched_offers, annotations: [read_only_hint: true])
+
+    tool(:list_manual_decisions, AgentTools, :manual_decisions,
+      annotations: [read_only_hint: true]
+    )
+
+    tool :search_products, Product, :browse do
+      description """
+      Searches the sealed catalogue: every word of query must appear in the product name or set
+      (case and accents ignored), optionally of one kind. Products in stock come first, then the
+      newest. Use the returned id with assign_offer or set_product_eans. Pages use limit (at most
+      100) and offset.
+      """
+
+      action_parameters([:limit, :offset])
+
+      select [
+        :id,
+        :slug,
+        :name,
+        :kind,
+        :set_name,
+        :cardmarket_id,
+        :eans,
+        :available,
+        :lowest_price
+      ]
+
+      annotations(read_only_hint: true)
+    end
+
+    tool(:get_product, AgentTools, :product, annotations: [read_only_hint: true])
+    tool(:explain_match, AgentTools, :explain_match, annotations: [read_only_hint: true])
+
+    tool(:assign_offer, AgentTools, :assign_offer,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
+    tool(:exclude_offer, AgentTools, :exclude_offer,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
+    tool(:clear_manual_decision, AgentTools, :clear_manual_decision,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
+    tool(:set_product_eans, AgentTools, :set_product_eans,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
+    tool(:enqueue_shop_fetch, AgentTools, :enqueue_shop_fetch,
+      annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
+    )
+
+    tool(:enqueue_catalogue_import, AgentTools, :enqueue_catalogue_import,
+      annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
+    )
+  end
 
   resources do
     resource TcgCheap.Sealed.Product do
@@ -43,6 +109,8 @@ defmodule TcgCheap.Sealed do
       define :list_latest_shop_fetches, action: :latest_fetches, args: [:since]
       define :list_manual_offers, action: :manual
     end
+
+    resource AgentTools
 
     resource TcgCheap.Sealed.DailyPrice do
       define :record_shop_price, action: :record_shop_price
