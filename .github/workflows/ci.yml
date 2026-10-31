@@ -94,3 +94,36 @@ jobs:
 
       - name: Build application container
         run: docker build --file deployment/Containerfile.app --tag tcg-cheap:ci .
+
+  deploy:
+    name: Deploy production
+    needs: [check, container]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      # Fetches prod:/app from Infisical over OIDC, syncs it to the Coolify
+      # application, deploys (Coolify runs /app/bin/migrate first) and waits.
+      - name: Checkout AV secret service action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Alergeek-Ventures/av-secret-service
+          ssh-key: ${{ secrets.AV_SECRET_SERVICE_DEPLOY_KEY }}
+          path: .av-secret-service
+          ref: d1f0dd1864e3b1b5830459787057408b587434f6
+
+      - name: Deploy to Coolify
+        uses: ./.av-secret-service/coolify-deploy
+        with:
+          infisical-identity-id: ${{ vars.INFISICAL_MACHINE_IDENTITY_ID }}
+          infisical-project-slug: tcg-cheap
+          coolify-token: ${{ secrets.COOLIFY_TOKEN }}
+          coolify-app-uuid: ${{ vars.COOLIFY_APP_UUID }}
+          print-logs: false

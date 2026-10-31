@@ -1,5 +1,10 @@
 # Wiki Log
 
+## [2026-10-31] Production on Coolify
+
+- Task: Owner asked to deploy to Coolify with secrets in Infisical, as firmowid and onside do, at the new domain tcg.cheap (Cloudflare-proxied `A` record). Created the Coolify project *TCG Cheap* (app + ParadeDB `psql`, volume at `/var/lib/postgresql` for PostgreSQL 18, daily S3 backup), Infisical project `tcg-cheap` (`prod:/app`: `DATABASE_URL`, `SECRET_KEY_BASE`, `PHX_HOST`, `MCP_API_TOKEN`) with a read-only GitHub OIDC machine identity, and the GitHub `production` environment (main only). CI deploys after `mix check` and the container build through `av-secret-service/coolify-deploy`; Coolify runs `/app/bin/migrate` before switching.
+- Files: none in the wiki beyond this log; operations are in `docs/deployment-and-operations.md`.
+
 ## [2026-10-31] Agent MCP server
 
 - Task: Owner wanted an agent to work on matching on its own. `/mcp` (ash_ai) exposes `TcgCheap.Sealed.AgentTools` actions as tools: shop status, offer lists, manual decisions, product search/detail, `explain_match`, assign/exclude/clear, `set_product_eans`, fetch/import jobs. Writes recompute prices in the same transaction (`Refresh.with_recompute/1`). Production requires `MCP_API_TOKEN`; the localhost-only dev server needs none, like Tidewave.
