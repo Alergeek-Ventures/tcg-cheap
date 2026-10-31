@@ -8,7 +8,7 @@
 
 ## [2026-10-31] Production on Coolify
 
-- Task: Owner asked to deploy to Coolify with secrets in Infisical, as firmowid and onside do, at the new domain tcg.cheap (Cloudflare-proxied `A` record). Created the Coolify project *TCG Cheap* (app + ParadeDB `psql`, volume at `/var/lib/postgresql` for PostgreSQL 18, daily S3 backup), Infisical project `tcg-cheap` (`prod:/app`: `DATABASE_URL`, `SECRET_KEY_BASE`, `PHX_HOST`, `MCP_API_TOKEN`) with a read-only GitHub OIDC machine identity, and the GitHub `production` environment (main only). CI deploys after `mix check` and the container build through `av-secret-service/coolify-deploy`; Coolify runs `/app/bin/migrate` before switching.
+- Task: Owner asked to deploy to Coolify with secrets in Infisical, as firmowid and onside do, at the new domain tcg.cheap (Cloudflare-proxied `A` record). Created the Coolify project *TCG Cheap* (app + ParadeDB `psql`, volume at `/var/lib/postgresql` for PostgreSQL 18, daily S3 backup) and the Infisical project `tcg-cheap` (`prod:/app`: `DATABASE_URL`, `SECRET_KEY_BASE`, `PHX_HOST`, `MCP_API_TOKEN`), copied to the Coolify app's variables. Owner chose Coolify's own GitHub App webhook for deploys over the firmowid-style Actions job, which for a public repository needs a deploy key to the private `av-secret-service`; this Infisical has no Coolify secret sync, so values are copied by hand when they change. Coolify runs `/app/bin/migrate` before switching.
 - Files: none in the wiki beyond this log; operations are in `docs/deployment-and-operations.md`.
 
 ## [2026-10-31] Agent MCP server
