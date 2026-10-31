@@ -110,7 +110,7 @@ jobs:
       cancel-in-progress: false
     steps:
       # Fetches prod:/app from Infisical over OIDC, syncs it to the Coolify
-      # application, deploys (Coolify runs /app/bin/migrate first) and waits.
+      # application, deploys (the app migrates as it starts) and waits.
       - name: Checkout AV secret service action
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
