@@ -9,6 +9,9 @@ defmodule TcgCheap.Sealed.Shop do
       title decides) and `product_path` (the permalink path shape);
     * Shopify: `collection` (the Pokémon collection handle; nil reads the
       whole shop);
+    * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
+      cover the whole shop); IdoSell: `feed_path` (a Pokémon category or
+      search listing, query included);
     * `shipping_from` – the cheapest delivery price in PLN, `free_shipping_from`
       – the order value from which delivery is free, `pickup_city` – the city
       of the shop's own store where orders can be picked up in person; each nil
@@ -24,7 +27,8 @@ defmodule TcgCheap.Sealed.Shop do
     :free_shipping_from,
     :pickup_city
   ]
-  defstruct @enforce_keys ++ [:category, :sealed_categories, :product_path, :collection]
+  defstruct @enforce_keys ++
+              [:category, :sealed_categories, :product_path, :collection, :feed_path]
 
   @type t :: %__MODULE__{
           key: String.t(),
@@ -36,6 +40,7 @@ defmodule TcgCheap.Sealed.Shop do
           sealed_categories: [String.t()] | nil,
           product_path: Regex.t() | nil,
           collection: String.t() | nil,
+          feed_path: String.t() | nil,
           shipping_from: Decimal.t() | nil,
           free_shipping_from: Decimal.t() | nil,
           pickup_city: String.t() | nil

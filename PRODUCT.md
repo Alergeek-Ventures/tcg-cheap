@@ -42,9 +42,9 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
 
 - Catalogue: every sealed Pokémon product listed on Cardmarket (≈4,400),
   imported daily; images come from matched Polish shop offers.
-- Offers: 36 Polish shops with public WooCommerce or Shopify product feeds,
-  fetched once a day and matched to products automatically; an administrator
-  can assign the rest by hand. Each offer shows the shop's cheapest delivery,
+- Offers: 71 Polish shops with public product feeds (WooCommerce, Shopify,
+  Shoper and IdoSell XML), fetched once a day and matched to products
+  automatically; an administrator can assign the rest by hand. Each offer shows the shop's cheapest delivery,
   free-delivery threshold and pickup city where the shop publishes them.
 - Verdict: typical price = median of the daily lowest Polish in-stock price
   over 30 days (≥ 7 days with stock), otherwise the Cardmarket trend in PLN.
