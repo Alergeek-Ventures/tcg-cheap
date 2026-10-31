@@ -11,7 +11,7 @@ defmodule TcgCheapWeb.HomeLive do
   import TcgCheapWeb.GuideComponents
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Ean, Guide, Kinds}
+  alias TcgCheap.Sealed.{Ean, Guide, Kinds, Shops}
   alias TcgCheapWeb.Polish
 
   @max_query_length 100
@@ -98,7 +98,8 @@ defmodule TcgCheapWeb.HomeLive do
           <section class="guide-intro" aria-labelledby="guide-title">
             <h1 id="guide-title">Sprawdź, czy cena jest dobra</h1>
             <p id="guide-promise">
-              Najniższa cena w polskich sklepach i ocena, czy to dobra cena.
+              Najniższe ceny z {length(Shops.all())} polskich sklepów, sprawdzane codziennie
+              i porównane z typową ceną.
             </p>
           </section>
 
@@ -257,6 +258,7 @@ defmodule TcgCheapWeb.HomeLive do
                   <% true -> %>
                     Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black.
                 <% end %>
+                <.link id="guide-empty-reset" patch={~p"/"}>Pokaż wszystkie produkty</.link>
               </li>
               <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">
                 <.link navigate={~p"/produkty/#{summary.product.slug}"} class="guide-product-link">
@@ -268,7 +270,9 @@ defmodule TcgCheapWeb.HomeLive do
                   />
                   <div class="guide-product-copy">
                     <h3 class="guide-product-name">{summary.product.name}</h3>
-                    <p class="guide-product-meta">{product_meta(summary.product)}</p>
+                    <p :if={product_meta(summary.product) != ""} class="guide-product-meta">
+                      {product_meta(summary.product)}
+                    </p>
                   </div>
                   <div class="guide-product-deal">
                     <p

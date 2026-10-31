@@ -149,37 +149,15 @@ defmodule TcgCheapWeb.ProductLive do
           z {Polish.date(@product.cardmarket_price_updated_on)}
         </p>
       </div>
-      <%= if @product.cardmarket_trend || @product.cardmarket_low do %>
-        <dl class="cardmarket-prices">
-          <.cardmarket_price
-            :if={@product.cardmarket_trend}
-            id="cardmarket-trend"
-            label="Typowa cena (trend)"
-            eur={@product.cardmarket_trend}
-            eur_pln={@eur_pln}
-          />
-          <.cardmarket_price
-            :if={@product.cardmarket_low}
-            id="cardmarket-low"
-            label="Najtańsza oferta"
-            eur={@product.cardmarket_low}
-            eur_pln={@eur_pln}
-          />
-          <.cardmarket_price
-            :if={@product.cardmarket_avg}
-            id="cardmarket-avg"
-            label="Średnia sprzedaży"
-            eur={@product.cardmarket_avg}
-            eur_pln={@eur_pln}
-          />
-        </dl>
+      <%= if @product.cardmarket_trend do %>
+        <p id="cardmarket-trend" class="cardmarket-trend">
+          Trend: <strong>{Polish.eur(@product.cardmarket_trend)}</strong>
+          <span :if={@cardmarket_pln}>≈ {Polish.zloty(@cardmarket_pln)}</span>
+        </p>
         <p class="guide-note">
-          Cardmarket to europejska giełda – ceny w euro, bez wysyłki z innych krajów.
-          <span :if={@eur_pln}>
-            Przeliczenie po kursie NBP {Polish.rate(@eur_pln.rate)} zł z {Polish.date(@eur_pln.date)}.
-          </span>
+          Europejska giełda, bez wysyłki z innych krajów<span :if={@eur_pln}>; kurs NBP {Polish.rate(@eur_pln.rate)} zł z {Polish.date(@eur_pln.date)}</span>.
           <span :if={@product.cardmarket_added_on} id="product-added">
-            Produkt jest na Cardmarket od {Polish.date(@product.cardmarket_added_on)}.
+            Na Cardmarket od {Polish.date(@product.cardmarket_added_on)}.
           </span>
         </p>
       <% else %>
@@ -188,24 +166,6 @@ defmodule TcgCheapWeb.ProductLive do
         </p>
       <% end %>
     </section>
-    """
-  end
-
-  attr :id, :string, required: true
-  attr :label, :string, required: true
-  attr :eur, Decimal, required: true
-  attr :eur_pln, :map, default: nil
-
-  defp cardmarket_price(assigns) do
-    assigns = assign(assigns, :pln, Guide.to_pln(assigns.eur, assigns.eur_pln))
-
-    ~H"""
-    <div id={@id}>
-      <dt>{@label}</dt>
-      <dd>
-        {Polish.eur(@eur)} <span :if={@pln}>≈ {Polish.zloty(@pln)}</span>
-      </dd>
-    </div>
     """
   end
 
@@ -285,9 +245,11 @@ defmodule TcgCheapWeb.ProductLive do
             />
           </summary>
           <p>
-            To mediana najniższych cen w polskich sklepach z ostatnich {PriceGuide.window_days()} dni.
-            Liczymy tylko dni, w których produkt był dostępny, i potrzebujemy co najmniej {PriceGuide.min_days_with_stock()} takich dni.
-            Wcześniej porównujemy z trendem Cardmarket przeliczonym na złote.
+            To mediana najniższych cen w polskich sklepach z ostatnich {PriceGuide.window_days()} dni,
+            w których produkt był dostępny; potrzebujemy co najmniej {PriceGuide.min_days_with_stock()} takich dni.
+            <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
+              Tylu jeszcze nie mamy, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP.
+            </span>
             Dobra cena to do 95% typowej, normalna – do 110%, wyższa – drogo.
             Progi zaokrąglamy w dół do pełnych złotych. Ceny nie obejmują wysyłki.
           </p>

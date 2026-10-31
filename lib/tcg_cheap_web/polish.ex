@@ -68,7 +68,7 @@ defmodule TcgCheapWeb.Polish do
         true -> many
       end
 
-    "#{count} #{word}"
+    "#{number(count)} #{word}"
   end
 
   defp group(digits) do

@@ -1,5 +1,11 @@
 # Wiki Log
 
+## [2026-10-31] UX review fixes
+
+- Task: Independent Opus UX/UI review of the running guide. Applied the fixes that keep the product rules: the price chart waits for 7 days of prices (a near-empty 90-day frame before), list rows drop kind/set already in the name, a concrete home subtitle, one Cardmarket trend line instead of three prices, the "how we compute" text names the Cardmarket fallback only when it is used, "Brak w sklepach" as the out-of-stock verdict, a reset link on empty results, grouped digits in counts.
+- Open (owner decisions): Cardmarket-based verdicts mark most in-stock products "Drogo" until 7 days of shop prices exist; the "Wymiany" tab leads to the unfinished English trading pages.
+- Validation: `mix check`; screenshots of the changed states at 390 and 1280 px, no console errors or horizontal overflow.
+
 ## [2026-10-31] Production on Coolify
 
 - Task: Owner asked to deploy to Coolify with secrets in Infisical, as firmowid and onside do, at the new domain tcg.cheap (Cloudflare-proxied `A` record). Created the Coolify project *TCG Cheap* (app + ParadeDB `psql`, volume at `/var/lib/postgresql` for PostgreSQL 18, daily S3 backup), Infisical project `tcg-cheap` (`prod:/app`: `DATABASE_URL`, `SECRET_KEY_BASE`, `PHX_HOST`, `MCP_API_TOKEN`) with a read-only GitHub OIDC machine identity, and the GitHub `production` environment (main only). CI deploys after `mix check` and the container build through `av-secret-service/coolify-deploy`; Coolify runs `/app/bin/migrate` before switching.

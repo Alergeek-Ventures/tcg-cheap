@@ -129,6 +129,9 @@ defmodule TcgCheapWeb.GuideComponents do
   defp placeholder_shape(:booster_box), do: ["M10 16h44v24H10z", "M10 16l6-8h44l-6 8M54 40l6-8V8"]
   defp placeholder_shape(_kind), do: ["M8 10h48v30H8z", "M8 18h48M24 10v8M40 10v8"]
 
+  # Fewer days than this would draw a line or two at the edge of an empty frame.
+  @min_chart_days 7
+
   @doc """
   A server-rendered chart of daily prices in PLN; days without a value are
   gaps. Each series is `%{key, label, class, points: [{date, price}]}`.
@@ -140,7 +143,7 @@ defmodule TcgCheapWeb.GuideComponents do
   attr :typical, :any, default: nil
 
   def price_chart(assigns) do
-    assigns = assign(assigns, :chart, chart(assigns))
+    assigns = assigns |> assign(:chart, chart(assigns)) |> assign(:min_days, @min_chart_days)
 
     ~H"""
     <figure id={@id} class="price-chart">
@@ -149,10 +152,11 @@ defmodule TcgCheapWeb.GuideComponents do
           <p id={"#{@id}-empty"} class="guide-note">
             Nie mamy jeszcze historii cen tego produktu.
           </p>
-        <% @chart.single -> %>
-          <p id={"#{@id}-single"} class="guide-note">
-            Mamy dopiero jeden pomiar: {single_measurement(@chart.single)}. Wykres pojawi się po
-            kolejnym dniu.
+        <% @chart.few_days -> %>
+          <p id={"#{@id}-few-days"} class="guide-note">
+            Mamy ceny z {Polish.plural(elem(@chart.few_days, 0), "dnia", "dni", "dni")} (od {Polish.date(
+              elem(@chart.few_days, 1)
+            )}). Wykres pokażemy, gdy będzie ich co najmniej {@min_days}.
           </p>
         <% true -> %>
           <ul class="price-chart-legend" aria-hidden="true">
@@ -227,7 +231,7 @@ defmodule TcgCheapWeb.GuideComponents do
               </span>
             </div>
           </div>
-          <figcaption id={"#{@id}-summary"}>
+          <figcaption id={"#{@id}-summary"} class="sr-only">
             <span
               :for={line <- @chart.lines}
               :if={line.points != []}
@@ -264,10 +268,10 @@ defmodule TcgCheapWeb.GuideComponents do
 
     cond do
       all_prices == [] ->
-        %{empty?: true, single: nil}
+        %{empty?: true, few_days: nil}
 
-      length(dates) == 1 ->
-        %{empty?: false, single: Enum.filter(series, &(&1.points != []))}
+      length(dates) < @min_chart_days ->
+        %{empty?: false, few_days: {length(dates), Enum.min(dates, Date)}}
 
       true ->
         plot(series, all_prices, from, to, typical)
@@ -283,7 +287,7 @@ defmodule TcgCheapWeb.GuideComponents do
 
     %{
       empty?: false,
-      single: nil,
+      few_days: nil,
       width: @width,
       height: @height,
       y_ticks: y_ticks(low, high, step, y),
@@ -293,19 +297,6 @@ defmodule TcgCheapWeb.GuideComponents do
       lines: Enum.map(series, &line(&1, x, y))
     }
   end
-
-  # "820,00 zł w sklepach i 840,00 zł na Cardmarket (30 paź)"
-  defp single_measurement([%{points: [{date, _}]} | _] = lines) do
-    prices =
-      Enum.map_join(lines, " i ", fn %{points: [{_d, price}]} = line ->
-        "#{Polish.price(price)} #{single_label(line.key)}"
-      end)
-
-    "#{prices} (#{Polish.short_date(date)})"
-  end
-
-  defp single_label("shops"), do: "w sklepach"
-  defp single_label(_key), do: "na Cardmarket"
 
   # A round złoty scale with three to five gridlines that contains every price.
   defp price_scale(prices) do
@@ -427,11 +418,13 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
-  @doc ~S'"Booster Box · Pitch Black"'
+  @doc ~S'Kind and set where the name does not already say them: "Kolekcja · Pitch Black".'
   @spec product_meta(TcgCheap.Sealed.Product.t()) :: String.t()
   def product_meta(product) do
+    name = String.downcase(product.name)
+
     [Kinds.label(product.kind), product.set_name]
-    |> Enum.reject(&is_nil/1)
+    |> Enum.reject(&(is_nil(&1) or String.contains?(name, String.downcase(&1))))
     |> Enum.join(" · ")
   end
 
@@ -444,5 +437,5 @@ defmodule TcgCheapWeb.GuideComponents do
   def verdict_label(:normal), do: "Normalna cena"
   def verdict_label(:expensive), do: "Drogo"
   def verdict_label(:insufficient_data), do: "Za mało danych"
-  def verdict_label(:out_of_stock), do: "Brak na stanie"
+  def verdict_label(:out_of_stock), do: "Brak w sklepach"
 end

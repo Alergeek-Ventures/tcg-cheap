@@ -72,7 +72,7 @@ versioned pricing models.
   price and verdict.
   `/produkty/:slug` shows the verdict and thresholds, every current offer
   (in stock first, cheapest first, with links to the shop), the Cardmarket
-  price, and a 90-day price chart.
+  price, and a 90-day price chart once there are 7 days of prices.
 - **Admin.** `/admin/buying-guide` shows each shop's last fetch, matched and
   in-stock counts, current unmatched offers, automatically matched offers
   (filterable by title) and manual decisions.
