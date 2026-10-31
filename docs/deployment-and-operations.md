@@ -120,7 +120,7 @@ runs one job at a time; completed jobs are pruned after 7 days.
 | --- | --- | --- | --- |
 | 03:00 daily | `TcgCheap.Pricing.CardmarketBulk.SyncWorker` | `cardmarket_bulk` | Cardmarket singles files → card valuations |
 | 03:30 daily | `TcgCheap.Sealed.CatalogueImportWorker` | `sealed` | Cardmarket sealed catalogue and prices |
-| 04:00, 04:30, 05:00, 05:30, 06:00, 06:30 daily | `TcgCheap.Sealed.FetchWorker` | `sealed` | One shop each: lootquest, cardzhouse, boosterpoint, pokebooster, boosterland, colligere |
+| 04:00 daily | `TcgCheap.Sealed.FetchWorker` (no shop) | `sealed` | Queues one `FetchWorker` job per shop in `TcgCheap.Sealed.Shops`; the queue fetches them one after another |
 | 15:00 daily | `TcgCheap.Pricing.ExchangeRateWorker` | `exchange_rates` | NBP EUR/PLN rate |
 | every 15 min (unique per week) | `TcgCheap.Catalogue.SinglesCatalogueBootstrapWorker` | `catalogue_sync` | Queues the TCGdex catalogue sync and card detail enrichment |
 | every 15 min (once per manifest) | `TcgCheap.Catalogue.CuratedPlayableBootstrapWorker` | `catalogue_sync` | Curated playable cards; no-op after 2026-11-17 |
@@ -210,18 +210,23 @@ listens only on localhost and needs no token; `.mcp.json` (Claude Code) and
 
 ### Add or remove a shop
 
-A shop must expose the public WooCommerce Store API
-(`/wp-json/wc/store/v1/products`).
+A shop must expose a public feed with a client in `TcgCheap.Sealed`: the
+WooCommerce Store API (`/wp-json/wc/store/v1/products`) or Shopify's
+`/products.json` with prices in PLN, and its `robots.txt` must allow it.
 
 1. Add a `%TcgCheap.Sealed.Shop{}` entry to `TcgCheap.Sealed.Shops`: key,
-   name, host, category id(s) to request, accepted category slugs, permalink
-   pattern and `max_pages`. Image hosts and the CSP follow automatically.
-2. Add a daily `TcgCheap.Sealed.FetchWorker` cron entry with
-   `args: %{"shop" => "<key>"}` in `config/config.exs`, in a free half-hour
-   slot after 03:30.
-3. Run `mix check`, check the shop in the running app and deploy.
+   name, host, `source` and `max_pages`; for WooCommerce the Pokémon category
+   id(s) (`/wp-json/wc/store/v1/products/categories?per_page=100`), optional
+   sealed category slugs and the permalink pattern; for Shopify an optional
+   Pokémon collection handle. Add the delivery facts from the shop's delivery
+   page (cheapest delivery, free-delivery threshold, pickup city; nil when not
+   published). Image hosts and the CSP follow automatically, and the daily job
+   picks the shop up.
+2. Run `mix check`, fetch the shop in the running app (`enqueue_shop_fetch`
+   over MCP or `FetchWorker.enqueue/1`), check `shop_status` and its
+   unmatched offers, and deploy.
 
-To remove a shop, delete both entries and deploy; its offers stop counting
+To remove a shop, delete its entry and deploy; its offers stop counting
 within 3 days, and its stored history stays.
 
 ### Singles

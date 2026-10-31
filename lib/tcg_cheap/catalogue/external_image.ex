@@ -1,7 +1,7 @@
 defmodule TcgCheap.Catalogue.ExternalImage do
   @moduledoc """
   The allowlist for externally rendered card and product images: the official
-  Pokémon and TCGdex image hosts plus the exact hosts of the buying-guide
+  Pokémon and TCGdex image hosts plus the image hosts of the buying-guide
   shops. The CSP image sources are derived from the same list.
   """
 
@@ -17,7 +17,7 @@ defmodule TcgCheap.Catalogue.ExternalImage do
 
   @doc "Every host an image may be rendered from."
   @spec hosts() :: [String.t()]
-  def hosts, do: @official_hosts ++ Shops.hosts()
+  def hosts, do: @official_hosts ++ Shops.image_hosts()
 
   @doc "Returns the CSP image sources represented by this policy."
   @spec csp_sources() :: [String.t()]

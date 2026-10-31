@@ -87,6 +87,12 @@ defmodule TcgCheap.Sealed.Matcher do
                    indonesian german french italian spanish)
               )
 
+  # Words naming a kind of sealed product, as in Cardmarket's sealed product
+  # names. A title with none of them is a single card or an accessory.
+  @sealed_words ~w(booster box bundle display case tin collection blister deck pack set starter
+                   kit toolkit chest wcd academy showcase calendar classic stadium sticker
+                   checklane portfolio album)
+
   @exclusions [
     "preorder",
     "pre order",
@@ -192,6 +198,14 @@ defmodule TcgCheap.Sealed.Matcher do
   @doc "Whether a title is excluded outright (preorder, bundle of many, accessory…)."
   @spec excluded?(String.t()) :: boolean()
   def excluded?(title), do: exclusion(normalize(title)) != nil
+
+  @doc """
+  Whether a title names a kind of sealed product (booster, box, tin, ETB,
+  collection, …). Feeds without curated sealed categories use it to keep
+  singles and accessories out; matching still decides what the offer is.
+  """
+  @spec sealed_title?(String.t()) :: boolean()
+  def sealed_title?(title), do: title |> tokens() |> Enum.any?(&(&1 in @sealed_words))
 
   @doc """
   Why `match/2` decides what it does for an offer (`:title`, optional `:ean`),

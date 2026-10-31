@@ -42,9 +42,10 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
 
 - Catalogue: every sealed Pokémon product listed on Cardmarket (≈4,400),
   imported daily; images come from matched Polish shop offers.
-- Offers: six Polish shops (LootQuest, CardzHouse, BoosterPoint, PokeBooster,
-  Boosterland, Colligere) fetched once a day and matched to products
-  automatically; an administrator can assign the rest by hand.
+- Offers: 36 Polish shops with public WooCommerce or Shopify product feeds,
+  fetched once a day and matched to products automatically; an administrator
+  can assign the rest by hand. Each offer shows the shop's cheapest delivery,
+  free-delivery threshold and pickup city where the shop publishes them.
 - Verdict: typical price = median of the daily lowest Polish in-stock price
   over 30 days (≥ 7 days with stock), otherwise the Cardmarket trend in PLN.
   Good ≤ 95%, normal ≤ 110%, expensive above; thresholds are shown in złoty so
@@ -56,7 +57,7 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
 ## Evidence on Hand
 
 - Application code and tests in `lib/` and `test/`.
-- Real daily feeds from the six shops and Cardmarket's public product and
+- Real daily feeds from the shops and Cardmarket's public product and
   price files.
 - No testimonials or customer proof yet. The site is unofficial and not
   affiliated with The Pokémon Company or the shops.

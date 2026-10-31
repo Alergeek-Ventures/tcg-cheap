@@ -1,5 +1,9 @@
 defmodule TcgCheap.Sealed.FetchWorker do
-  @moduledoc "Daily Oban job that refreshes one shop's offers (scheduled per shop in config)."
+  @moduledoc """
+  Oban job that refreshes one shop's offers. The daily cron runs it without a
+  shop, which queues one job per configured shop; the `sealed` queue then
+  fetches them one after another.
+  """
 
   use Oban.Worker,
     queue: :sealed,
@@ -23,6 +27,10 @@ defmodule TcgCheap.Sealed.FetchWorker do
       {:ok, shop} -> refresh(shop)
       :error -> {:cancel, :unknown_shop}
     end
+  end
+
+  def perform(%Oban.Job{args: args}) when map_size(args) == 0 do
+    Enum.each(Shops.keys(), fn key -> {:ok, _job} = enqueue(key) end)
   end
 
   def perform(_job), do: {:cancel, :malformed_args}

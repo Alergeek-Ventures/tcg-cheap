@@ -4,10 +4,10 @@ A simple, independent price guide for Pokémon TCG fans in Poland, built with
 Phoenix LiveView, Ash, Oban and PostgreSQL.
 
 - **Buying guide (Polish, live):** `/` lists every sealed Pokémon product from
-  Cardmarket with the cheapest current price in six Polish shops and a
+  Cardmarket with the cheapest current price in 36 Polish shops and a
   verdict (good / normal / expensive) based on what the product has really
-  cost over the last 30 days. `/produkty/:slug` shows all offers and a 90-day
-  price chart.
+  cost over the last 30 days. `/produkty/:slug` shows all offers with each
+  shop's delivery cost and pickup city, and a 90-day price chart.
 - **Trading guide (singles, next phase):** `/cards/:tcgdex_id` and `/trade`
   value single cards with daily Cardmarket prices.
 - **Admin:** `/admin` (provisioned accounts only) — buying-guide desk for

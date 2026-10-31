@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   import TcgCheapWeb.GuideComponents
 
-  alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide}
+  alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Shops}
   alias TcgCheapWeb.Polish
 
   defmodule NotFound do
@@ -81,6 +81,7 @@ defmodule TcgCheapWeb.ProductLive do
                 <div class="offer-shop">
                   <strong>{shop_name(offer)}</strong>
                   <span class="offer-title">{offer.title}</span>
+                  <.offer_delivery offer={offer} />
                 </div>
                 <strong class="offer-price">{Polish.price(offer.price)}</strong>
                 <p class="offer-state">
@@ -131,6 +132,49 @@ defmodule TcgCheapWeb.ProductLive do
     </Layouts.app>
     """
   end
+
+  attr :offer, :map, required: true
+
+  # What delivery adds to an offer, from the shop's published terms:
+  # "dostawa od 14,99 zł · darmowa od 400 zł · odbiór osobisty: Gdynia".
+  defp offer_delivery(assigns) do
+    # A no-break space keeps each "·" at the end of a line, never at the start.
+    assigns = assign(assigns, :terms, delivery(assigns.offer))
+
+    ~H"""
+    <span :if={@terms != []} class="offer-delivery">{Enum.join(@terms, "\u00A0· ")}</span>
+    """
+  end
+
+  defp delivery(%{shop: key, price: price}) do
+    case Shops.fetch(key) do
+      {:ok, shop} -> delivery_terms(shop, price)
+      :error -> []
+    end
+  end
+
+  defp delivery_terms(shop, price) do
+    threshold = shop.free_shipping_from
+    free? = threshold != nil and not Decimal.lt?(price, threshold)
+
+    # The threshold stays visible: shops often grant it for some carriers only.
+    cost =
+      cond do
+        free? -> "darmowa dostawa od #{amount(threshold)}"
+        shop.shipping_from -> "dostawa od #{amount(shop.shipping_from)}"
+        true -> "koszt dostawy w koszyku"
+      end
+
+    [
+      cost,
+      threshold && !free? && "darmowa od #{amount(threshold)}",
+      shop.pickup_city && "odbiór osobisty: #{shop.pickup_city}"
+    ]
+    |> Enum.filter(&is_binary/1)
+  end
+
+  defp amount(value),
+    do: if(Decimal.integer?(value), do: Polish.zloty(value), else: Polish.price(value))
 
   attr :product, :map, required: true
   attr :cardmarket_pln, :any, required: true

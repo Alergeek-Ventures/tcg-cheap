@@ -79,6 +79,9 @@ config :tcg_cheap, Oban,
     cardmarket_bulk: 1,
     sealed: 1
   ],
+  # Jobs orphaned by a restart return to the queue; shop fetches are unique
+  # while executing, so a stuck one would otherwise block its shop for good.
+  lifeline: [rescue_after: {30, :minutes}],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,
@@ -91,14 +94,9 @@ config :tcg_cheap, Oban,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
        {"0 3 * * *", TcgCheap.Pricing.CardmarketBulk.SyncWorker, args: %{}},
        # Buying guide: the Cardmarket sealed catalogue after the singles bulk sync,
-       # then one fetch per shop, staggered between 04:00 and 06:30 UTC.
+       # then one fetch job per shop; the sealed queue runs them one at a time.
        {"30 3 * * *", TcgCheap.Sealed.CatalogueImportWorker, args: %{}},
-       {"0 4 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "lootquest"}},
-       {"30 4 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "cardzhouse"}},
-       {"0 5 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "boosterpoint"}},
-       {"30 5 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "pokebooster"}},
-       {"0 6 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "boosterland"}},
-       {"30 6 * * *", TcgCheap.Sealed.FetchWorker, args: %{"shop" => "colligere"}},
+       {"0 4 * * *", TcgCheap.Sealed.FetchWorker, args: %{}},
        {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
      ]}
   ]

@@ -1,6 +1,6 @@
 # Data Sources
 
-- Updated: 2026-10-30
+- Updated: 2026-10-31
 - Sources: Project code (`lib/tcg_cheap/sealed/`, `lib/tcg_cheap/pricing/`, `lib/tcg_cheap/catalogue/`, `config/config.exs`); raw captures listed below
 - Raw: [LootQuest](../../raw/2026-08-09-lootquest-store-api.md), [CardzHouse/BoosterPoint](../../raw/2026-08-10-cardzhouse-boosterpoint-store-apis.md), [Boosterland/Colligere](../../raw/2026-09-02-boosterland-colligere-store-apis.md), [NBP](../../raw/2026-08-08-nbp-api-eur-rate.md), [TCGdex IDs](../../raw/2026-08-14-tcgdex-punctuation-card-ids.md), [TCGdex sets](../../raw/2026-08-19-tcgdex-set-ordering-and-series.md), [Singles scope](../../raw/2026-08-19-production-singles-scope-sources.md), [Curated playables](../../raw/2026-08-19-curated-playable-manifest.md), [Provider experiments](../../raw/2026-08-07-provider-source-experiments.md), [Singles API spike](../../raw/2026-08-07-scrappy-singles-acquisition-spike.md)
 
@@ -14,22 +14,29 @@ time-specific evidence from when each source was evaluated.
 | --- | --- | --- | --- |
 | Cardmarket sealed files | `downloads.s3.cardmarket.com/productCatalog/productList/products_nonsingles_6.json`, `…/priceGuide/price_guide_6.json` | daily 03:30 UTC | Sealed catalogue and Cardmarket trend/low/avg (EUR) |
 | Cardmarket singles files | `…/productList/products_singles_6.json`, `…/priceGuide/price_guide_6.json` | daily 03:00 UTC | Singles valuations (`cardmarket_bulk_v1`) |
-| Six WooCommerce shops | `https://<host>/wp-json/wc/store/v1/products` with fixed categories | daily, one shop per half hour 04:00–06:30 UTC | Sealed offers: price, stock, URL, image, EAN (SKU) |
+| 32 WooCommerce shops | `https://<host>/wp-json/wc/store/v1/products` with fixed categories | daily from 04:00 UTC, one shop at a time | Sealed offers: price, stock, URL, image, EAN (SKU) |
+| 4 Shopify shops | `https://<host>/products.json` or a Pokémon collection's, after `/meta.json` confirms PLN | daily from 04:00 UTC, one shop at a time | Sealed offers per variant: price, availability, URL, image, EAN (SKU) |
 | TCGdex | `https://api.tcgdex.net/v2/en` | weekly bootstrap; on-demand card detail | Singles identity, set/card metadata, images, Cardmarket product ids |
 | NBP | `https://api.nbp.pl/api/exchangerates/rates/a/eur/` | daily 15:00 UTC; on demand from `/trade` | EUR/PLN mid rate (table A) |
 
-Shops (`TcgCheap.Sealed.Shops`): LootQuest (`lootquest.pl`), CardzHouse
-(`cardzhouse.pl`), BoosterPoint (`boosterpoint.pl`), PokeBooster
-(`pokebooster.pl`), Boosterland (`boosterland.pl`), Colligere
-(`colligere.pl`). The owner agreed recurring daily fetching from these shops.
-Each has a fixed category filter, a list of accepted category slugs, a
-permalink pattern, and a page limit (10, or 3 for Boosterland and Colligere).
+Shops (`TcgCheap.Sealed.Shops`, 36 as of 2026-10-31) were found by a
+2026-10-31 survey of 152 Polish shops; the owner asked for as many as can be
+read automatically. Each WooCommerce shop has a fixed category filter, a
+permalink pattern and a page limit, plus accepted category slugs where the
+category also holds non-sealed items; otherwise a title must name a sealed
+product (`Matcher.sealed_title?/1`). Shopify shops read a Pokémon collection
+or the whole shop (titles must then say Pokémon). Each shop also records its
+published delivery terms (cheapest delivery, free-delivery threshold, pickup
+city), shown with its offers. Left out: pokekarty.pl (`robots.txt` forbids
+the API), cardhorizon.pl (prices in EUR), maginarium.pl and crazypulls.pl (a
+JavaScript bot challenge answers the API). Shoper and IdoSell shops publish
+XML product feeds and are the next candidates.
 
 ## Shared fetch rules
 
 - Req only; fixed HTTPS hosts; no redirects; Req retries disabled (Oban
   retries the job instead); 5 s connect and 15 s receive timeouts.
-- Bounded responses: 2 MB per shop page; 32 MB and 100,000 rows per
+- Bounded responses: 5 MB per shop page; 32 MB and 100,000 rows per
   Cardmarket file.
 - Untrusted fields are validated (ids, titles, URLs, prices, image hosts);
   invalid items are skipped, but a transport, status, pagination or shape
