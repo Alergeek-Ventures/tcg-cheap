@@ -10,6 +10,9 @@ defmodule TcgCheap.Application do
     children = [
       TcgCheapWeb.Telemetry,
       TcgCheap.Repo,
+      # Migrates before anything uses the database; a failing migration stops
+      # the start, so a new container never becomes healthy on a bad schema.
+      {Ecto.Migrator, repos: Application.fetch_env!(:tcg_cheap, :ecto_repos)},
       {AshAuthentication.Supervisor, otp_app: :tcg_cheap},
       {TcgCheapWeb.AdminLoginLimiter, Application.get_env(:tcg_cheap, :admin_login_limiter, [])},
       {TcgCheapWeb.PublicAcquisitionLimiter,

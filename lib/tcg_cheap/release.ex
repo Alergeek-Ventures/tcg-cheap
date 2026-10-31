@@ -3,16 +3,6 @@ defmodule TcgCheap.Release do
 
   @app :tcg_cheap
 
-  def migrate do
-    load_app()
-
-    for repo <- Application.fetch_env!(@app, :ecto_repos) do
-      {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
-    end
-
-    :ok
-  end
-
   def provision_admin do
     email = TcgCheap.AdminProvisioning.required_env!("ADMIN_EMAIL")
     password = TcgCheap.AdminProvisioning.required_env!("ADMIN_PASSWORD")
