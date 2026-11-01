@@ -79,6 +79,10 @@ defmodule TcgCheapWeb.ProductLive do
                   · wersja {String.downcase(Regions.label(@page.product.region))}
                 </span>
               </p>
+              <p :if={@page.suggested_price} id="product-suggested" class="product-facts">
+                Cena sugerowana (REBEL): {Polish.price(@page.suggested_price.price)} ·
+                <a href="#product-suggested-price">skąd ta cena?</a>
+              </p>
             </section>
             <.verdict_block
               verdict={@page.verdict}
@@ -149,6 +153,8 @@ defmodule TcgCheapWeb.ProductLive do
             cardmarket_pln={@page.cardmarket_pln}
             eur_pln={@page.eur_pln}
           />
+
+          <.suggested_price :if={@page.suggested_price} suggested={@page.suggested_price} />
         </main>
       </div>
     </Layouts.app>
@@ -286,6 +292,29 @@ defmodule TcgCheapWeb.ProductLive do
           Cardmarket nie podaje jeszcze ceny tego produktu.
         </p>
       <% end %>
+    </section>
+    """
+  end
+
+  attr :suggested, :map, required: true
+
+  defp suggested_price(assigns) do
+    ~H"""
+    <section
+      id="product-suggested-price"
+      class="product-section cardmarket-reference"
+      aria-labelledby="product-suggested-price-title"
+    >
+      <div class="product-section-heading">
+        <h2 id="product-suggested-price-title">Cena sugerowana</h2>
+        <p>stan na {Polish.date(DateTime.to_date(@suggested.last_seen_at))}</p>
+      </div>
+      <p id="suggested-price" class="cardmarket-trend">
+        Hurtownia REBEL: <strong>{Polish.price(@suggested.price)}</strong>
+      </p>
+      <p class="guide-note">
+        Cena detaliczna sugerowana w katalogu hurtowni REBEL. Sklepy ustalają ceny same, więc nie bierzemy jej pod uwagę w ocenie. Pokazujemy ją tylko dla porównania.
+      </p>
     </section>
     """
   end

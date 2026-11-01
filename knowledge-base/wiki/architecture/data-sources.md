@@ -25,6 +25,7 @@ time-specific evidence from when each source was evaluated.
 | 9 shops on their own storefronts | the HTML listing (or the Next.js page data) of a Pokémon category or search, one client each | daily from 04:00 UTC, one shop at a time | Sealed offers: price, availability, URL, image |
 | TCGdex | `https://api.tcgdex.net/v2/en` | weekly bootstrap; on-demand card detail | Singles identity, set/card metadata, images, Cardmarket product ids |
 | TCGdex sets (sealed) | `https://api.tcgdex.net/v2/{en,ja}/sets`, a set and up to three of its cards; with Cardmarket's singles file | daily, before the sealed catalogue import, at most five minutes, newest sets first (the first ≈1,000 documents spread over a few days); only new sets and unresolved sets from the last half year; a failure only logs | `sealed_tcgdex_sets`: the Cardmarket expansion of each English/Japanese set (a card's Cardmarket product id → its expansion), English set names and logos; language editions of sealed products |
+| REBEL wholesaler | `https://hurt.rebel.pl/search/pokemon-tcg.html` (every page) and, once per item, its product page; 5 s between requests (robots.txt `Crawl-delay`) | daily 06:00 UTC | `sealed_suggested_prices`: SCD (gross PLN) and EAN of Pokémon TCG items, matched to products |
 | NBP | `https://api.nbp.pl/api/exchangerates/rates/a/eur/` | daily 15:00 UTC; on demand from `/trade` | EUR/PLN mid rate (table A) |
 
 Shops (`TcgCheap.Sealed.Shops`, 122 as of 2026-11-01) were found by a

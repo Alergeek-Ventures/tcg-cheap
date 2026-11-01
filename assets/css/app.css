@@ -740,6 +740,7 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .product-facts { color: var(--muted); font-size: .875rem; line-height: 1.5; margin: .5rem 0 0; }
 .guide-world .product-facts span { overflow-wrap: anywhere; }
 .guide-world .product-facts #product-kind { color: var(--ink); }
+.guide-world .product-facts a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 .guide-world .verdict-block { background: var(--paper); grid-area: verdict; min-width: 0; }
 .guide-world .verdict-badge-large { border-width: 0; font-size: 1.6rem; gap: .5rem; padding: .7rem 1.25rem; white-space: normal; width: 100%; }
 .guide-world .verdict-badge-large.verdict-normal { background: var(--ink); color: var(--bench-light); }

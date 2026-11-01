@@ -10,7 +10,7 @@ defmodule TcgCheap.Sealed do
 
   use Ash.Domain, otp_app: :tcg_cheap, extensions: [AshAi]
 
-  alias TcgCheap.Sealed.{AgentTools, Ean, Offer, Product}
+  alias TcgCheap.Sealed.{AgentTools, Ean, Offer, Product, SuggestedPrice}
 
   @current_for_seconds 3 * 86_400
 
@@ -78,6 +78,18 @@ defmodule TcgCheap.Sealed do
     tool(:enqueue_catalogue_import, AgentTools, :enqueue_catalogue_import,
       annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
     )
+
+    tool(:list_suggested_prices, AgentTools, :suggested_prices,
+      annotations: [read_only_hint: true]
+    )
+
+    tool(:decide_suggested_price, AgentTools, :decide_suggested_price,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
+    tool(:enqueue_suggested_price_fetch, AgentTools, :enqueue_suggested_price_fetch,
+      annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
+    )
   end
 
   resources do
@@ -133,6 +145,18 @@ defmodule TcgCheap.Sealed do
       define :record_tcgdex_set, action: :record
     end
 
+    resource TcgCheap.Sealed.SuggestedPrice do
+      define :list_suggested_prices, action: :read
+      define :get_suggested_price, action: :read, get_by: [:id], not_found_error?: false
+      define :match_suggested_price, action: :match, args: [:product_id]
+      define :decide_suggested_price, action: :decide_manually, args: [:product_id]
+
+      define :get_suggested_price_for_product,
+        action: :for_product,
+        args: [:product_id],
+        not_found_error?: false
+    end
+
     resource AgentTools
 
     resource TcgCheap.Sealed.DailyPrice do
@@ -167,11 +191,13 @@ defmodule TcgCheap.Sealed do
 
   @doc """
   Every known barcode and its product: a product's own EANs and the EANs of
-  offers assigned to it manually. A code claimed by two products identifies
-  neither and is left out.
+  offers and REBEL items assigned to it manually. A code claimed by two
+  products identifies neither and is left out.
   """
   @spec known_eans() :: %{String.t() => Ecto.UUID.t()}
-  def known_eans do
+  def known_eans, do: unique_eans(confirmed_eans())
+
+  defp confirmed_eans do
     from_products =
       for product <- list_products_with_eans!(), ean <- product.eans, do: {ean, product.id}
 
@@ -180,7 +206,17 @@ defmodule TcgCheap.Sealed do
           is_binary(ean) and not is_nil(id),
           do: {ean, id}
 
-    (from_products ++ from_offers)
+    from_products ++ from_offers ++ suggested_price_eans(& &1.manual?)
+  end
+
+  defp suggested_price_eans(wanted?) do
+    for %SuggestedPrice{ean: ean, product_id: id} = item <- list_suggested_prices!(),
+        is_binary(ean) and not is_nil(id) and wanted?.(item),
+        do: {ean, id}
+  end
+
+  defp unique_eans(pairs) do
+    pairs
     |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
     |> Enum.flat_map(fn {ean, ids} ->
       case Enum.uniq(ids) do
@@ -191,11 +227,17 @@ defmodule TcgCheap.Sealed do
     |> Map.new()
   end
 
-  @doc "The product identified by a scanned or typed barcode, if it is known."
+  @doc """
+  The product identified by a scanned or typed barcode, if it is known: the
+  known EANs plus those of REBEL items matched automatically, which only
+  open a product page here and never match offers.
+  """
   @spec product_for_barcode(String.t()) :: TcgCheap.Sealed.Product.t() | nil
   def product_for_barcode(code) do
+    eans = unique_eans(confirmed_eans() ++ suggested_price_eans(&(not &1.manual?)))
+
     with ean when is_binary(ean) <- Ean.normalize(code),
-         {:ok, id} <- Map.fetch(known_eans(), ean) do
+         {:ok, id} <- Map.fetch(eans, ean) do
       get_product!(id)
     else
       _unknown -> nil

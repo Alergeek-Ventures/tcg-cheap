@@ -2,7 +2,8 @@ defmodule TcgCheap.Sealed.AgentTools do
   @moduledoc """
   Actions behind the MCP tools for AI agents (see the `tools` of
   `TcgCheap.Sealed`): shop status, offer lists, product detail, match
-  explanations, manual decisions, product barcodes and fetch/import jobs.
+  explanations, manual decisions, product barcodes, REBEL suggested prices
+  and fetch/import jobs.
   They do what the admin buying-guide desk
   (`TcgCheapWeb.Admin.BuyingGuideLive`) does and store nothing themselves.
   """
@@ -16,7 +17,8 @@ defmodule TcgCheap.Sealed.AgentTools do
     OfferList,
     ProductDetail,
     SetEans,
-    ShopStatus
+    ShopStatus,
+    SuggestedPrices
   }
 
   alias TcgCheap.Sealed.Shops
@@ -132,7 +134,8 @@ defmodule TcgCheap.Sealed.AgentTools do
       description """
       One catalogue product by `slug` or `id`: its catalogue data, the public verdict (`status`
       good/normal/expensive, cardmarket (only compared with the Cardmarket trend before 7 days of shop prices, no limits), insufficient_data or out_of_stock, cheapest in-stock offer, typical price
-      and its source, price limits) and every current offer assigned to it, with offer ids.
+      and its source, price limits), every current offer assigned to it, with offer ids, and the
+      REBEL `suggested_price` matched to it (null when none).
       """
 
       argument :slug, :string, description: "The product slug, as in /produkty/{slug}."
@@ -236,6 +239,62 @@ defmodule TcgCheap.Sealed.AgentTools do
       """
 
       run {Enqueue, job: :catalogue_import}
+    end
+
+    action :suggested_prices, :map do
+      description """
+      Suggested retail prices (SCD, gross PLN) collected from the REBEL wholesaler's public
+      catalogue, every item ever seen, sorted by title, each with its matched `product` (null when
+      none), `manual` (a manual decision; with no product it never matches) and `last_seen_at`
+      (REBEL lists only its current range). The SCD is shown on the matched product's page.
+      Automatic matching only matches English products, and items of several units only when
+      named a display. Returns `total`, `limit`, `offset` and `items`.
+      """
+
+      argument :title, :string,
+        description: "Only items whose title contains this text (case and accents ignored)."
+
+      argument :unmatched, :boolean,
+        default: false,
+        description: "Only items with no product and no manual decision (false by default)."
+
+      argument :limit, :integer,
+        default: 50,
+        constraints: [min: 1, max: 200],
+        description: "Page size, 50 by default."
+
+      argument :offset, :integer,
+        default: 0,
+        constraints: [min: 0],
+        description: "Items to skip, for the next page."
+
+      run {SuggestedPrices, action: :list}
+    end
+
+    action :decide_suggested_price, :map do
+      description """
+      Manually assigns a REBEL suggested price item to the catalogue product it is (find it with
+      search_products), also correcting a wrong automatic match; without `product_id` the item
+      never matches. Only assign the exact product: a display of several units belongs to a
+      Cardmarket product of that many units. An assigned item's EAN then identifies the product
+      for shops' offers and the public scanner (automatic matches only serve the scanner).
+      #{@recomputes} Returns the updated item.
+      """
+
+      argument :suggested_price_id, :uuid, allow_nil?: false
+      argument :product_id, :uuid, description: "The product; null keeps the item unmatched."
+
+      run {SuggestedPrices, action: :decide}
+    end
+
+    action :enqueue_suggested_price_fetch, :map do
+      description """
+      Queues a background collection of REBEL's suggested retail prices (also run daily); it stores
+      the listed items and matches them again. Returns the job; `already_queued` is true when one
+      was already waiting or running.
+      """
+
+      run {Enqueue, job: :suggested_prices}
     end
   end
 end

@@ -1,10 +1,13 @@
 defmodule TcgCheap.Sealed.AgentTools.Enqueue do
-  @moduledoc "Queues a shop fetch or a catalogue import (`job:` option) as an Oban job."
+  @moduledoc """
+  Queues a shop fetch, a catalogue import or a collection of suggested
+  prices (`job:` option) as an Oban job.
+  """
 
   use Ash.Resource.Actions.Implementation
 
   alias Ash.Error.Action.InvalidArgument
-  alias TcgCheap.Sealed.{CatalogueImportWorker, FetchWorker, Shops}
+  alias TcgCheap.Sealed.{CatalogueImportWorker, FetchWorker, Shops, SuggestedPriceWorker}
 
   @impl true
   def run(input, opts, _context) do
@@ -21,6 +24,7 @@ defmodule TcgCheap.Sealed.AgentTools.Enqueue do
   end
 
   defp enqueue(:catalogue_import, _args), do: CatalogueImportWorker.enqueue()
+  defp enqueue(:suggested_prices, _args), do: SuggestedPriceWorker.enqueue()
 
   defp enqueue(:shop_fetch, %{shop: shop}) do
     if shop in Shops.keys() do
