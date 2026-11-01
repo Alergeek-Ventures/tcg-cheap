@@ -552,6 +552,7 @@ defmodule TcgCheapWeb.HomeLive do
             </section>
           </div>
         </main>
+        <.site_footer />
       </div>
     </Layouts.app>
     """
