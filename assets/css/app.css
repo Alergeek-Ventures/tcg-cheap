@@ -638,6 +638,12 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 /* Phones: only the language to switch to, so logo, switch and location share one row. */
 @media (max-width: 47.99rem) { .guide-language { border-inline-end: 0; padding-inline-end: 0; } .guide-language a[aria-current] { display: none; } .guide-language a { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; } }
 
+.guide-world .site-footer { border-block-start: 1px solid var(--rule); color: var(--muted); font-size: .875rem; padding: 1.5rem 1rem; text-align: center; }
+.guide-world .site-footer p { align-items: center; display: inline-flex; gap: .4rem; margin: 0; }
+.guide-world .site-footer-ball { block-size: 1.1em; color: var(--ink); flex: none; inline-size: 1.1em; }
+.guide-world .site-footer a { align-items: center; color: var(--ink); display: inline-flex; font-weight: 700; min-block-size: 3rem; padding-inline: .25rem; text-decoration: underline; text-underline-offset: .15em; }
+.guide-world .site-footer a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.guide-world .site-footer a:active { color: var(--orange); }
 .site-wordmark { align-items: center; display: inline-flex; min-height: 3rem; }
 .site-wordmark img { block-size: clamp(1.75rem, 7vw, 2rem); display: block; inline-size: auto; }
 .guide-world .fluent-icon { display: inline-block; flex: 0 0 auto; height: 1.1rem; width: 1.1rem; }

@@ -43,6 +43,25 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
+  @doc "The public footer: who built the guide."
+  def site_footer(assigns) do
+    ~H"""
+    <footer id="site-footer" class="site-footer">
+      <p>
+        built with
+        <svg class="site-footer-ball" viewBox="0 0 16 16" role="img" aria-label="Poké Ball">
+          <circle cx="8" cy="8" r="7" fill="#fff" />
+          <path d="M1 8a7 7 0 0 1 14 0z" fill="#d23c2a" />
+          <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.2" />
+          <path d="M1 8h14" stroke="currentColor" stroke-width="1.2" />
+          <circle cx="8" cy="8" r="2.2" fill="#fff" stroke="currentColor" stroke-width="1.2" />
+        </svg>
+        by <a href="https://alergeek.ventures" title="Alergeek Ventures">AV</a>
+      </p>
+    </footer>
+    """
+  end
+
   defp languages do
     [
       {"pl", "Polski", ~p"/images/flags/pl.svg"},
