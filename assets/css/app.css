@@ -770,7 +770,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .verdict-insufficient_data { border-style: dashed; color: var(--muted); }
 .guide-world .verdict-out_of_stock { border-color: transparent; color: var(--muted); padding-inline: 0; }
 .guide-world .verdict-cardmarket { color: var(--ink); text-transform: none; }
-.guide-world .verdict-cm-logo { block-size: 1.1em; display: none; inline-size: 1.1em; }
+.guide-world .verdict-cm-logo { block-size: 1.3em; display: none; inline-size: 1.3em; margin-block: -.1em; }
+.guide-world .guide-product-deal .verdict-badge { justify-content: center; min-inline-size: 9.5rem; }
 
 /* Product page: identity, then the verdict as the first answer. */
 .guide-world .guide-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; gap: .4rem; margin-bottom: .5rem; min-height: 3rem; }
@@ -946,6 +947,9 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   /* Phones: equal rows (no pickup line) and the Cardmarket logo instead of its name. */
   .guide-world .guide-product-nearby, .guide-world .verdict-cm-text { display: none; }
   .guide-world .verdict-cm-logo { display: block; }
+  .guide-world .guide-product-deal .verdict-badge { min-inline-size: 0; }
+  .guide-world .guide-product-deal .verdict-insufficient_data { letter-spacing: 0; padding-inline: .4rem; }
+  .guide-world .guide-product-deal .verdict-insufficient_data .verdict-mark { display: none; }
   .guide-world .offer { grid-template-areas: "shop price" "state state" "link link"; grid-template-columns: minmax(0, 1fr) auto; }
   .guide-world .shop-logo { display: none; }
   .guide-world .offer-price { align-self: start; }
