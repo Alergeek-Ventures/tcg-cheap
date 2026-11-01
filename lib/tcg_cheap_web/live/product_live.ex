@@ -344,9 +344,7 @@ defmodule TcgCheapWeb.ProductLive do
     assigns =
       assign(assigns,
         items: items,
-        rows: ceil(length(items) / 2),
-        deck_size: assigns.contents.deck |> Enum.map(& &1.quantity) |> Enum.sum(),
-        categories: Enum.group_by(assigns.contents.deck, & &1.category)
+        rows: ceil(length(items) / 2)
       )
 
     ~H"""
@@ -358,7 +356,18 @@ defmodule TcgCheapWeb.ProductLive do
       <ul id="contents-items" class="contents-items" style={"--rows: #{@rows}"}>
         <li :for={item <- @items}>
           <span class="contents-quantity">{item.quantity}×</span>
-          <span class="contents-label">{item_label(item)}</span>
+          <span class="contents-label">
+            <%= if item.cardmarket_id do %>
+              <a
+                href={"https://www.cardmarket.com/en/Pokemon/Products?idProduct=#{item.cardmarket_id}"}
+                target="_blank"
+                rel="noopener nofollow"
+              >{item_label(item)}</a>
+            <% else %>
+              {item_label(item)}
+            <% end %>
+            <span :if={item.set} class="contents-card-set">{item.set} {item.number}</span>
+          </span>
           <img
             :if={item.image}
             src={item.image <> "/low.webp"}
@@ -369,23 +378,6 @@ defmodule TcgCheapWeb.ProductLive do
           />
         </li>
       </ul>
-      <div :if={@contents.deck != []} id="contents-deck" class="contents-deck">
-        <h3>{gettext("Karty w talii (%{count})", count: @deck_size)}</h3>
-        <div :for={category <- [:pokemon, :trainer, :energy]} :if={@categories[category]}>
-          <h4>
-            {category_label(category)} ({@categories[category]
-            |> Enum.map(& &1.quantity)
-            |> Enum.sum()})
-          </h4>
-          <ul>
-            <li :for={card <- @categories[category]}>
-              <span class="contents-quantity">{card.quantity}</span>
-              {card.name}
-              <span :if={card.set} class="contents-card-set">{card.set} {card.number}</span>
-            </li>
-          </ul>
-        </div>
-      </div>
       <p class="guide-note">
         {gettext("Źródła:")}
         <%= for {url, index} <- Enum.with_index(@contents.sources) do %>
@@ -435,10 +427,6 @@ defmodule TcgCheapWeb.ProductLive do
   # What a buyer opens comes first, the accessories after it.
   @item_order ~w(deck booster promo_card oversize_card card energy_cards)a
   defp item_rank(type), do: Enum.find_index(@item_order, &(&1 == type)) || length(@item_order)
-
-  defp category_label(:pokemon), do: "Pokémon"
-  defp category_label(:trainer), do: gettext("Trenerzy")
-  defp category_label(:energy), do: gettext("Energia")
 
   attr :suggested, :map, required: true
 

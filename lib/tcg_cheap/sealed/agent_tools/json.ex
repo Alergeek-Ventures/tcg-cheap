@@ -34,11 +34,18 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
   def contents(%ProductContents{} = contents) do
     %{
       items:
-        Enum.map(contents.items, &Map.take(&1, [:quantity, :type, :name, :tcgdex_id, :image])),
-      deck:
         Enum.map(
-          contents.deck,
-          &Map.take(&1, [:quantity, :name, :category, :set, :number, :tcgdex_id, :image])
+          contents.items,
+          &Map.take(&1, [
+            :quantity,
+            :type,
+            :name,
+            :tcgdex_id,
+            :set,
+            :number,
+            :cardmarket_id,
+            :image
+          ])
         ),
       sources: contents.sources,
       checked_on: contents.checked_on
