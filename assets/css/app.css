@@ -659,7 +659,9 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-search-field .fieldset { border-bottom: 1px solid var(--ink); }
 .guide-world .guide-search-field label { display: block; }
 .guide-world .guide-search-icon { color: var(--muted); height: 1.5rem; left: 0; pointer-events: none; position: absolute; top: 50%; transform: translateY(-50%); width: 1.5rem; z-index: 1; }
-.guide-world .guide-search-input { background: transparent; border: 0; border-radius: 0; text-overflow: ellipsis; box-shadow: none; color: var(--ink); font: 700 1.5rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .5rem 0 .5rem 2.25rem; width: 100%; }
+/* One fixed line box (no browser search styling), so no engine clips the text. */
+.guide-world .guide-search-input { appearance: none; background: transparent; block-size: 3rem; border: 0; border-radius: 0; box-shadow: none; color: var(--ink); font: 700 1.5rem/1.25 "Barlow Condensed", sans-serif; padding: 0 0 0 2.25rem; text-overflow: ellipsis; width: 100%; }
+.guide-world .guide-search-input::-webkit-search-decoration { appearance: none; }
 .guide-world .guide-search-input::placeholder { color: var(--muted); opacity: 1; }
 .guide-world .guide-scan-open { align-items: center; background: transparent; border: 0; border-bottom: 1px solid var(--ink); color: var(--ink); cursor: pointer; display: flex; height: 3rem; justify-content: center; width: 3rem; }
 .guide-world .guide-scan-open[hidden] { display: none; }
@@ -705,7 +707,7 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 
 /* Filters: a side panel on wide screens, folded behind "Filtry" on narrow ones. */
 .guide-world .guide-browse { align-items: start; display: grid; gap: 1.5rem; }
-.guide-world .guide-filters-toggle { align-items: center; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); cursor: pointer; display: inline-flex; flex: none; font: 700 1.1rem/1 "Barlow Condensed", sans-serif; gap: .4rem; margin-inline-start: .5rem; min-block-size: 2.75rem; padding-inline: .75rem; }
+.guide-world .guide-filters-toggle { align-items: center; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); cursor: pointer; display: inline-flex; flex: none; font: 700 1.1rem/1 "Barlow Condensed", sans-serif; gap: .4rem; margin-inline-start: .5rem; min-block-size: 3rem; padding-inline: .75rem; }
 .guide-world .guide-filters-toggle:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 .guide-world .guide-filters-toggle:active { border-color: var(--ink); }
 /* In-page links and the results jump land below the sticky masthead (and search bar). */
@@ -868,6 +870,17 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .visitor-location-summary { align-items: center; cursor: pointer; display: inline-flex; font-size: .875rem; gap: .4rem; list-style: none; max-inline-size: min(16rem, 55vw); min-block-size: 3rem; }
 .guide-world .visitor-location-summary::-webkit-details-marker { display: none; }
 .guide-world .visitor-location-label { overflow: clip; text-decoration: underline; text-overflow: ellipsis; text-underline-offset: .2rem; white-space: nowrap; }
+/* The reason we ask for the location, before the browser's own prompt. */
+.guide-world .visitor-location-invite { background: var(--paper); border: 1px solid var(--ink); box-shadow: 0 .5rem 1.5rem rgb(32 29 25 / 18%); display: grid; gap: .5rem; inline-size: min(24rem, calc(100vw - 2rem)); inset-block-end: max(1rem, env(safe-area-inset-bottom)); inset-inline-end: 1rem; padding: 1rem; position: fixed; z-index: 20; }
+.guide-world .visitor-location-invite[hidden] { display: none; }
+.guide-world .visitor-location-invite h2 { font-size: 1.25rem; }
+.guide-world .visitor-location-invite p { font-size: .875rem; margin: 0; }
+.guide-world .visitor-location-invite div { display: flex; flex-wrap: wrap; gap: .5rem; }
+.guide-world .visitor-location-invite button { border: 1px solid var(--ink); cursor: pointer; font: 700 1.05rem "Barlow Condensed", sans-serif; min-block-size: 2.75rem; padding-inline: 1rem; }
+.guide-world #visitor-location-allow { background: var(--ink); color: var(--bench-light); }
+.guide-world #visitor-location-later { background: transparent; color: var(--ink); }
+.guide-world .visitor-location-invite button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.guide-world .visitor-location-invite button:active { opacity: .85; }
 .guide-world .visitor-location-panel { background: var(--paper); border: 1px solid var(--ink); display: grid; gap: .75rem; inline-size: min(22rem, calc(100vw - 2rem)); inset-block-start: 100%; inset-inline-end: 0; padding: 1rem; position: absolute; z-index: 10; }
 .guide-world .visitor-location-panel p { margin: 0; }
 .guide-world .visitor-location-lead { font-size: .875rem; line-height: 1.5; }
@@ -941,9 +954,10 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 }
 @media (max-width: 42rem) {
   .guide-world .guide-main { padding: 1rem 1rem 2.5rem; }
-  .guide-world .guide-product-link { align-items: start; grid-template-columns: 4.75rem minmax(0, 1fr); }
-  .guide-world .guide-product-image { grid-row: span 2; }
-  .guide-world .guide-product-deal { gap: .2rem .75rem; grid-column: 2; justify-content: flex-start; max-inline-size: none; text-align: left; }
+  /* Phones: the picture on top, centred across the whole card. */
+  .guide-world .guide-product-link { align-items: start; grid-template-columns: minmax(0, 1fr); }
+  .guide-world .guide-product-image { inline-size: min(11rem, 60%); justify-self: center; }
+  .guide-world .guide-product-deal { gap: .2rem .75rem; justify-content: flex-start; max-inline-size: none; text-align: left; }
   /* Verdict and price on one line, the shop under them, so every row has the same shape. */
   .guide-world .guide-product-price { display: contents; }
   .guide-world .guide-product-price span { flex-basis: 100%; font-size: .875rem; order: 1; }

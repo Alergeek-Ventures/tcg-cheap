@@ -64,17 +64,30 @@ const VisitorLocation = {
     this.pushEvent("location-restore", {location: storedLocation()})
   },
 
-  // Without a remembered location, ask the device once per browser session
-  // (not again on every page), unless the browser already refuses.
+  // Without a remembered location, explain once per browser session (not on
+  // every page) why we ask; the browser's own prompt follows only "Zgadzam się".
+  // An earlier grant needs no prompt, a refusal is respected.
   async askOnEntry() {
     if (storedLocation() || !("geolocation" in navigator)) return
+    let state
     try {
       if (sessionStorage.getItem(ASKED_KEY)) return
       sessionStorage.setItem(ASKED_KEY, "1")
-      const {state} = await navigator.permissions.query({name: "geolocation"})
-      if (state === "denied") return
+      ;({state} = await navigator.permissions.query({name: "geolocation"}))
     } catch {}
-    this.locate({quiet: true})
+    if (state === "denied") return
+    if (state === "granted") return this.locate({quiet: true})
+    const invite = document.getElementById("visitor-location-invite")
+    if (!invite) return
+    // Through this.js() so LiveView patches keep it shown or hidden.
+    const hide = () => this.js().setAttribute(invite, "hidden", "")
+    this.js().removeAttribute(invite, "hidden")
+    invite.querySelector("#visitor-location-later").addEventListener("click", hide)
+    invite.querySelector("#visitor-location-allow").addEventListener("click", () => {
+      hide()
+      this.el.open = true
+      this.locate()
+    })
   },
 
   destroyed() {
