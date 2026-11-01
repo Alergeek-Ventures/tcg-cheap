@@ -76,10 +76,21 @@ defmodule TcgCheapWeb.GuideComponents do
 
   def verdict_badge(assigns) do
     ~H"""
-    <span id={@id} class={["verdict-badge", "verdict-#{@verdict.status}", @class]}>
-      <.verdict_icon :if={@verdict.status != :cardmarket} status={@verdict.status} />{verdict_label(
-        @verdict
-      )}
+    <span
+      id={@id}
+      class={["verdict-badge", "verdict-#{@verdict.status}", cardmarket_class(@verdict), @class]}
+    >
+      <%= if @verdict.status == :cardmarket do %>
+        {cardmarket_difference(@verdict)}<span class="verdict-cm-text">vs Cardmarket</span><img
+          class="verdict-cm-logo"
+          src={~p"/images/cardmarket.png"}
+          alt="Cardmarket"
+          width="16"
+          height="16"
+        />
+      <% else %>
+        <.verdict_icon status={@verdict.status} />{verdict_label(@verdict)}
+      <% end %>
     </span>
     """
   end
@@ -478,14 +489,18 @@ defmodule TcgCheapWeb.GuideComponents do
 
   @doc ~S'The localized label of a verdict: "Dobra cena", "+14% vs Cardmarket", …'
   @spec verdict_label(map()) :: String.t()
-  def verdict_label(%{status: :cardmarket, cheapest: %{price: price}, typical: typical}) do
-    percent =
-      price
-      |> Decimal.sub(typical)
-      |> Decimal.div(typical)
-      |> Decimal.mult(100)
-      |> Decimal.round(0)
-      |> Decimal.to_integer()
+  def verdict_label(%{status: :cardmarket} = verdict),
+    do: "#{cardmarket_difference(verdict)} vs Cardmarket"
+
+  def verdict_label(%{status: :good}), do: gettext("Dobra cena")
+  def verdict_label(%{status: :normal}), do: gettext("Normalna cena")
+  def verdict_label(%{status: :expensive}), do: gettext("Drogo")
+  def verdict_label(%{status: :insufficient_data}), do: gettext("Za mało danych")
+  def verdict_label(%{status: :out_of_stock}), do: gettext("Brak w sklepach")
+
+  # "−16%": the cheapest offer against the Cardmarket trend.
+  defp cardmarket_difference(verdict) do
+    percent = cardmarket_percent(verdict)
 
     sign =
       cond do
@@ -494,12 +509,26 @@ defmodule TcgCheapWeb.GuideComponents do
         true -> "±"
       end
 
-    "#{sign}#{abs(percent)}% vs Cardmarket"
+    "#{sign}#{abs(percent)}%"
   end
 
-  def verdict_label(%{status: :good}), do: gettext("Dobra cena")
-  def verdict_label(%{status: :normal}), do: gettext("Normalna cena")
-  def verdict_label(%{status: :expensive}), do: gettext("Drogo")
-  def verdict_label(%{status: :insufficient_data}), do: gettext("Za mało danych")
-  def verdict_label(%{status: :out_of_stock}), do: gettext("Brak w sklepach")
+  # More than 10% below Cardmarket stands out green, more than 10% above red.
+  defp cardmarket_class(%{status: :cardmarket} = verdict) do
+    case cardmarket_percent(verdict) do
+      percent when percent < -10 -> "verdict-cm-below"
+      percent when percent > 10 -> "verdict-cm-above"
+      _within -> nil
+    end
+  end
+
+  defp cardmarket_class(_verdict), do: nil
+
+  defp cardmarket_percent(%{cheapest: %{price: price}, typical: typical}) do
+    price
+    |> Decimal.sub(typical)
+    |> Decimal.div(typical)
+    |> Decimal.mult(100)
+    |> Decimal.round(0)
+    |> Decimal.to_integer()
+  end
 end

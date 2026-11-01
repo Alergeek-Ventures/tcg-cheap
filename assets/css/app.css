@@ -681,8 +681,9 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 /* No entry animation: LiveView re-inserts every card on connect and on each search or filter, so it replayed constantly. */
 .guide-world .guide-product { min-width: 0; }
 .guide-world .guide-product-link { align-items: center; background: var(--paper); color: inherit; display: grid; gap: .35rem 1rem; grid-template-columns: 5.5rem minmax(0, 1fr) auto; min-height: 3rem; padding: .5rem .75rem .5rem .5rem; text-decoration: none; }
-.guide-world .guide-product-deal { display: grid; gap: .35rem; justify-items: end; min-width: 0; text-align: right; }
-.guide-world .guide-product-judgement { align-items: center; display: flex; flex-wrap: wrap; gap: .25rem .5rem; justify-content: flex-end; margin: 0; }
+/* The verdict, then the price to its right; a nearby pickup takes its own line below. */
+.guide-world .guide-product-deal { align-items: center; display: flex; flex-wrap: wrap; gap: .35rem .75rem; justify-content: flex-end; max-inline-size: 26rem; min-width: 0; text-align: right; }
+.guide-world .guide-product-nearby { flex-basis: 100%; justify-content: flex-end; }
 .guide-world .guide-product-link:hover { background: var(--bench-light); }
 .guide-world .guide-product-link:hover .guide-product-name { text-decoration: underline; text-underline-offset: .2rem; }
 .guide-world .product-image { align-items: center; aspect-ratio: 16 / 10; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); display: flex; justify-content: center; min-width: 0; overflow: hidden; }
@@ -769,6 +770,11 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .verdict-insufficient_data { border-style: dashed; color: var(--muted); }
 .guide-world .verdict-out_of_stock { border-color: transparent; color: var(--muted); padding-inline: 0; }
 .guide-world .verdict-cardmarket { color: var(--ink); text-transform: none; }
+.guide-world .verdict-cm-below { background: var(--rise); border-color: var(--rise); color: var(--bench-light); }
+.guide-world .verdict-cm-above { background: var(--fall); border-color: var(--fall); color: var(--bench-light); }
+.guide-world :is(.verdict-cm-below, .verdict-cm-above) .verdict-cm-logo { background: var(--bench-light); border-radius: 2px; }
+.guide-world .verdict-cm-logo { block-size: 1.3em; display: none; inline-size: 1.3em; margin-block: -.1em; }
+.guide-world .guide-product-deal .verdict-badge { justify-content: center; min-inline-size: 9.5rem; }
 
 /* Product page: identity, then the verdict as the first answer. */
 .guide-world .guide-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; gap: .4rem; margin-bottom: .5rem; min-height: 3rem; }
@@ -937,9 +943,16 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   .guide-world .guide-main { padding: 1rem 1rem 2.5rem; }
   .guide-world .guide-product-link { align-items: start; grid-template-columns: 4.75rem minmax(0, 1fr); }
   .guide-world .guide-product-image { grid-row: span 2; }
-  .guide-world .guide-product-deal { grid-column: 2; justify-items: start; text-align: left; }
-  .guide-world :is(.guide-product-price, .guide-product-judgement) { justify-content: flex-start; }
-  .guide-world .guide-product-deal { align-items: center; display: flex; flex-wrap: wrap; gap: .35rem .75rem; }
+  .guide-world .guide-product-deal { gap: .2rem .75rem; grid-column: 2; justify-content: flex-start; max-inline-size: none; text-align: left; }
+  /* Verdict and price on one line, the shop under them, so every row has the same shape. */
+  .guide-world .guide-product-price { display: contents; }
+  .guide-world .guide-product-price span { flex-basis: 100%; font-size: .875rem; order: 1; }
+  /* Phones: equal rows (no pickup line) and the Cardmarket logo instead of its name. */
+  .guide-world .guide-product-nearby, .guide-world .verdict-cm-text { display: none; }
+  .guide-world .verdict-cm-logo { display: block; }
+  .guide-world .guide-product-deal .verdict-badge { min-inline-size: 0; }
+  .guide-world .guide-product-deal .verdict-insufficient_data { letter-spacing: 0; padding-inline: .4rem; }
+  .guide-world .guide-product-deal .verdict-insufficient_data .verdict-mark { display: none; }
   .guide-world .offer { grid-template-areas: "shop price" "state state" "link link"; grid-template-columns: minmax(0, 1fr) auto; }
   .guide-world .shop-logo { display: none; }
   .guide-world .offer-price { align-self: start; }
