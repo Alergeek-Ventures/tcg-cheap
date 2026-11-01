@@ -62,6 +62,12 @@ defmodule TcgCheapWeb.Router do
     get "/robots.txt", CrawlController, :robots
   end
 
+  # Link-preview cards for crawlers: no session, cookies or HTML.
+  scope "/og", TcgCheapWeb do
+    get "/", SocialImageController, :home
+    get "/produkty/:slug", SocialImageController, :product
+  end
+
   scope "/", TcgCheapWeb do
     pipe_through :api
 

@@ -43,3 +43,12 @@ geocoded with Nominatim from OpenStreetMap data.
 
 © OpenStreetMap contributors, available under the Open Database License:
 https://www.openstreetmap.org/copyright
+
+## Barlow Condensed and Azeret Mono
+
+`priv/social_fonts` holds the full TrueType fonts used to draw link-preview
+images: Barlow Condensed Bold and a static Regular (400) instance of the Azeret
+Mono variable font, from the Google Fonts repository
+(https://github.com/google/fonts, `ofl/barlowcondensed`, `ofl/azeretmono`).
+Both are licensed under the SIL Open Font License 1.1; the license texts are in
+the same directory.

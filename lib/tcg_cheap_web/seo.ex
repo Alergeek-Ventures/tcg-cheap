@@ -5,6 +5,7 @@ defmodule TcgCheapWeb.SEO do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.Kinds
+  alias TcgCheapWeb.{GuideComponents, Polish, SocialImage}
 
   def home(params) do
     metadata(
@@ -13,6 +14,11 @@ defmodule TcgCheapWeb.SEO do
         "Porównaj ceny Pokémon TCG w polskich sklepach. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
       ),
       url(~p"/"),
+      social_image: url(~p"/og?#{[v: SocialImage.home_version()]}"),
+      social_image_alt:
+        "TCG Cheap. " <>
+          gettext("Sprawdź, czy cena jest dobra") <>
+          ". " <> SocialImage.home_promise(),
       robots:
         if(Enum.any?(~w(q rodzaj wersja rozszerzenie), &Map.has_key?(params, &1)),
           do: "noindex, follow",
@@ -73,7 +79,9 @@ defmodule TcgCheapWeb.SEO do
       gettext("%{name} – ceny i oferty Pokémon TCG", name: product.name),
       description,
       canonical,
-      image: product.image_url,
+      social_image:
+        url(~p"/og/produkty/#{product.slug}?#{[v: SocialImage.product_version(page)]}"),
+      social_image_alt: product.name <> ". " <> answer(page.verdict),
       structured_data: %{
         "@context" => "https://schema.org",
         "@graph" => [
@@ -100,13 +108,27 @@ defmodule TcgCheapWeb.SEO do
     )
   end
 
+  # The answer the product's card shows, for its alt text.
+  defp answer(%{cheapest: %{price: price} = cheapest} = verdict),
+    do:
+      gettext("%{verdict}: najtaniej teraz %{price} w %{shop}.",
+        verdict: GuideComponents.verdict_label(verdict),
+        price: Polish.price(price),
+        shop: GuideComponents.shop_name(cheapest)
+      )
+
+  defp answer(_verdict), do: gettext("Teraz żaden sklep nie ma tego produktu na stanie.")
+
+  # `social_image` is the designed link-preview card (TcgCheapWeb.SocialImage),
+  # not the product photo, which stays in the structured data.
   defp metadata(title, description, canonical, opts) do
     %{
       title: title,
       description: description,
       canonical: canonical,
       robots: Keyword.get(opts, :robots, "index, follow"),
-      image: Keyword.get(opts, :image),
+      social_image: Keyword.fetch!(opts, :social_image),
+      social_image_alt: Keyword.fetch!(opts, :social_image_alt),
       structured_data: Keyword.fetch!(opts, :structured_data)
     }
   end
@@ -123,7 +145,13 @@ defmodule TcgCheapWeb.SEO do
     <meta id="seo-og-url" property="og:url" content={@seo.canonical} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="TCG Cheap" />
-    <meta id="seo-og-image" property="og:image" content={@seo.image} />
+    <meta id="seo-og-image" property="og:image" content={@seo.social_image} />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content={SocialImage.width()} />
+    <meta property="og:image:height" content={SocialImage.height()} />
+    <meta id="seo-og-image-alt" property="og:image:alt" content={@seo.social_image_alt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta id="seo-twitter-image-alt" name="twitter:image:alt" content={@seo.social_image_alt} />
     <script id="seo-structured-data" type="application/ld+json">
       <%= raw(Jason.encode!(@seo.structured_data, escape: :html_safe)) %>
     </script>
@@ -154,7 +182,9 @@ defmodule TcgCheapWeb.SEO do
             "seo-og-title": `${seo.title} · TCG Cheap`,
             "seo-og-description": seo.description,
             "seo-og-url": seo.canonical,
-            "seo-og-image": seo.image,
+            "seo-og-image": seo.social_image,
+            "seo-og-image-alt": seo.social_image_alt,
+            "seo-twitter-image-alt": seo.social_image_alt,
           }
           for (const [id, value] of Object.entries(values)) {
             const element = document.getElementById(id)

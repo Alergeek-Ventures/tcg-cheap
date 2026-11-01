@@ -108,14 +108,16 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
-  defp verdict_paths(:good), do: ["M8 2.5v11", "M3.5 9 8 13.5 12.5 9"]
-  defp verdict_paths(:normal), do: ["M3 5.75h10", "M3 10.25h10"]
-  defp verdict_paths(:expensive), do: ["M8 13.5v-11", "M3.5 7 8 2.5 12.5 7"]
+  @doc "The SVG paths (16×16, stroked) of a verdict's drawn mark."
+  @spec verdict_paths(atom()) :: [String.t()]
+  def verdict_paths(:good), do: ["M8 2.5v11", "M3.5 9 8 13.5 12.5 9"]
+  def verdict_paths(:normal), do: ["M3 5.75h10", "M3 10.25h10"]
+  def verdict_paths(:expensive), do: ["M8 13.5v-11", "M3.5 7 8 2.5 12.5 7"]
 
-  defp verdict_paths(:insufficient_data),
+  def verdict_paths(:insufficient_data),
     do: ["M5.75 5.75a2.25 2.25 0 1 1 3.4 1.95c-.7.4-1.15.9-1.15 1.7v.6", "M8 12.75v.25"]
 
-  defp verdict_paths(:out_of_stock), do: ["M3 8h10"]
+  def verdict_paths(:out_of_stock), do: ["M3 8h10"]
 
   @doc "Product packaging image (from a matched shop offer), or a placeholder drawn for its kind."
   attr :url, :string, default: nil
@@ -155,24 +157,25 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
-  # Line drawings of the packaging, so a list without photos still reads by shape.
-  defp placeholder_shape(:booster),
+  @doc "Line drawings (64×48, stroked) of the packaging, so a product without a photo still reads by shape."
+  @spec placeholder_shape(atom()) :: [String.t()]
+  def placeholder_shape(:booster),
     do: ["M24 6h16l2 4-2 4v20l2 4-2 4H24l-2-4 2-4V14l-2-4z", "M24 14h16M24 34h16"]
 
-  defp placeholder_shape(:blister),
+  def placeholder_shape(:blister),
     do: ["M14 6h36v36H14z", "M20 14h10v22H20zM34 14h10v22H34z", "M28 9h8"]
 
-  defp placeholder_shape(:tin),
+  def placeholder_shape(:tin),
     do: ["M16 12c0-4 32-4 32 0v24c0 4-32 4-32 0z", "M16 12c0 4 32 4 32 0"]
 
-  defp placeholder_shape(:deck), do: ["M18 8h24v32H18z", "M22 12h16v24H22z"]
+  def placeholder_shape(:deck), do: ["M18 8h24v32H18z", "M22 12h16v24H22z"]
 
-  defp placeholder_shape(:card_set),
+  def placeholder_shape(:card_set),
     do: ["M14 10h20v28H14z", "M22 8h20v28H22z", "M30 6h20v28H30z"]
 
-  defp placeholder_shape(:case), do: ["M8 12h48v28H8z", "M8 20h48M24 12v28M40 12v28"]
-  defp placeholder_shape(:booster_box), do: ["M10 16h44v24H10z", "M10 16l6-8h44l-6 8M54 40l6-8V8"]
-  defp placeholder_shape(_kind), do: ["M8 10h48v30H8z", "M8 18h48M24 10v8M40 10v8"]
+  def placeholder_shape(:case), do: ["M8 12h48v28H8z", "M8 20h48M24 12v28M40 12v28"]
+  def placeholder_shape(:booster_box), do: ["M10 16h44v24H10z", "M10 16l6-8h44l-6 8M54 40l6-8V8"]
+  def placeholder_shape(_kind), do: ["M8 10h48v30H8z", "M8 18h48M24 10v8M40 10v8"]
 
   # Fewer days than this would draw a line or two at the edge of an empty frame.
   @min_chart_days 7
@@ -512,16 +515,25 @@ defmodule TcgCheapWeb.GuideComponents do
     "#{sign}#{abs(percent)}%"
   end
 
-  # More than 10% below Cardmarket stands out green, more than 10% above red.
-  defp cardmarket_class(%{status: :cardmarket} = verdict) do
+  defp cardmarket_class(verdict) do
+    case cardmarket_tone(verdict) do
+      :below -> "verdict-cm-below"
+      :above -> "verdict-cm-above"
+      nil -> nil
+    end
+  end
+
+  @doc "More than 10% below Cardmarket stands out green (`:below`), more than 10% above red."
+  @spec cardmarket_tone(map()) :: :below | :above | nil
+  def cardmarket_tone(%{status: :cardmarket} = verdict) do
     case cardmarket_percent(verdict) do
-      percent when percent < -10 -> "verdict-cm-below"
-      percent when percent > 10 -> "verdict-cm-above"
+      percent when percent < -10 -> :below
+      percent when percent > 10 -> :above
       _within -> nil
     end
   end
 
-  defp cardmarket_class(_verdict), do: nil
+  def cardmarket_tone(_verdict), do: nil
 
   defp cardmarket_percent(%{cheapest: %{price: price}, typical: typical}) do
     price
