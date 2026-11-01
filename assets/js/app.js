@@ -62,6 +62,11 @@ const liveSocket = new LiveSocket("/live", Socket, {
 // Bring an element to the top once the layout above it has changed, e.g. the
 // results after the filter panel folds away on a phone.
 window.addEventListener("guide:reveal", e => e.target.scrollIntoView({block: "start"}))
+// Phone filters open as a panel right under the search bar, wherever the page is scrolled.
+window.addEventListener("guide:pin-filters", e => {
+  const bottom = e.target.closest("section").getBoundingClientRect().bottom
+  document.documentElement.style.setProperty("--guide-filters-top", `${Math.round(bottom)}px`)
+})
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
