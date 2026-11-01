@@ -618,8 +618,8 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world { --bench: #f1eadc; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --rule: rgb(32 29 25 / 18%); --orange: #b54125; --muted: #6d6256; --rise: #27714b; --fall: #a6402f; background: var(--bench); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; font-size: 1rem; line-height: 1.6; min-height: 100svh; overflow-x: clip; }
 .guide-world h1, .guide-world h2, .guide-world h3 { font-family: "Barlow Condensed", sans-serif; font-weight: 700; margin: 0; text-wrap: balance; }
 .site-header { align-items: center; border-bottom: 1px solid var(--rule, rgb(32 29 25 / 18%)); display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; padding: .5rem max(1rem, 4vw); }
-.site-wordmark { align-items: center; color: var(--ink, #201d19); display: inline-flex; font: 700 1.125rem/1 "Barlow Condensed", sans-serif; gap: .5rem; letter-spacing: .12em; min-height: 3rem; text-decoration: none; }
-.site-wordmark .fluent-icon { height: 1.35rem; width: 1.35rem; }
+.site-wordmark { align-items: center; display: inline-flex; min-height: 3rem; }
+.site-wordmark img { display: block; height: clamp(2rem, 8vw, 2.5rem); width: auto; }
 .guide-world .fluent-icon { display: inline-block; flex: 0 0 auto; height: 1.1rem; width: 1.1rem; }
 .guide-world .guide-main { margin: 0 auto; max-width: 72rem; padding: 2rem 1rem 3rem; }
 .guide-world .guide-intro { margin-bottom: 1.25rem; }

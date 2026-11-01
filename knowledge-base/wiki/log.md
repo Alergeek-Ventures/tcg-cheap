@@ -1,5 +1,10 @@
 # Wiki Log
 
+## [2026-11-01] Brand logo
+
+- Task: Owner supplied a new TCG Cheap logo (a fanned card stack with a price chart, "TCG" in ink and "Cheap" in orange). Its beige background, the guide's own `--bench`, was made transparent around the logo; the header shows it as `priv/static/images/tcg-cheap.webp` (2.5rem high, 2rem on phones) instead of the icon and "TCG CHEAP" text. The card stack alone became `favicon.ico` (16/32/48 px) and a 180 px `apple-touch-icon.png` on the beige.
+- Validation: `mix check`; desktop, 390 px and 360 px headers in the running app (at 360 px "Ustaw lokalizację" wraps under the logo, as it did before); both icons served.
+
 ## [2026-11-01] Kind always shown, location asked on entry
 
 - Task: Owner asked to always show the product kind on the home page (it was hidden when the name already said it, so some cards had it and some did not) and to ask for the location automatically on entry. The set is still left out when the name contains it. The `VisitorLocation` hook asks the device once per browser session when no location is remembered and the browser does not already refuse; a refusal or a point outside Poland shows nothing and moves no focus.
