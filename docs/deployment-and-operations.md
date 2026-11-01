@@ -27,9 +27,40 @@ Optional:
 | `SOURCE_COMMIT` | `unknown` | Git SHA reported by the health endpoints (Coolify sets it automatically) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | — | Only for the one-shot admin provisioning command |
 | `MCP_API_TOKEN` | unset | Bearer token for the agent MCP endpoint `/mcp`, at least 32 bytes; unset refuses every MCP request |
+| `POSTHOG_API_KEY` | unset | Public PostHog project key; unset disables analytics and SDK loading |
+| `POSTHOG_API_HOST` | `https://eu.i.posthog.com` | PostHog ingestion origin (EU by default; US: `https://us.i.posthog.com`) |
 
 The image sets `PHX_SERVER=true`, `PORT=4004` and a UTF-8 locale. Keep secrets
 in the platform's secret store, never in the image or the repository.
+
+### PostHog analytics
+
+The [**TCG Cheap** project](https://eu.posthog.com/project/330234) is in the
+**Alergeek Ventures (AV)** organization, separate from Firmowid. Its public
+project key and EU API host are configured in Infisical `prod:/app`. To change
+projects, set `POSTHOG_API_KEY` and, if needed, `POSTHOG_API_HOST` in
+Infisical `prod:/app`, then deploy. These are runtime settings; no asset rebuild
+is needed to change the project. Use an HTTPS origin without a trailing path
+for the API host. The SDK is loaded from PostHog's corresponding assets origin
+(or the same origin for a self-hosted instance); CSP permits only those origins
+and only on public pages.
+
+**Cookieless tracking** is enabled under PostHog project settings → Web analytics;
+keep it enabled (including when switching projects). The browser
+sends only `$pageview`: the initial view and LiveView pathname changes. Filters,
+form submissions and reconnects on the same pathname do not add views. Analytics
+does not run on `/admin` or its subpaths, or when Do Not Track / Global Privacy
+Control is enabled. No analytics cookies or persistent browser identifiers,
+person profiles, autocapture, session replay, surveys or feature flags are used.
+Event properties are allowlisted: URL query strings, fragments, referrers,
+form values, shared trade data and visitor location are not sent. IP-derived
+geolocation remains subject to PostHog's project settings and privacy policy.
+Update the site's privacy notice as appropriate before enabling collection.
+
+To verify, visit a public page and navigate to a product; PostHog's live events
+should show one `$pageview` per pathname. Changing filters or opening the admin
+must not create events. Without the key, there should be no PostHog requests.
+An ad blocker or unavailable SDK must not prevent the guide from working.
 
 **TLS and proxy.** The app speaks plain HTTP on `PORT` and expects a reverse
 proxy to terminate TLS. Production forces HTTPS (`config/prod.exs`): the proxy
