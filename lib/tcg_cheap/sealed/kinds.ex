@@ -7,6 +7,8 @@ defmodule TcgCheap.Sealed.Kinds do
   products a buyer compares between shops and are left out.
   """
 
+  use Gettext, backend: TcgCheapWeb.Gettext
+
   @kinds [
     booster: "Booster",
     booster_bundle: "Booster Bundle",
@@ -38,10 +40,21 @@ defmodule TcgCheap.Sealed.Kinds do
   def all, do: Keyword.keys(@kinds)
 
   @spec label(atom()) :: String.t()
-  def label(kind), do: Keyword.fetch!(@kinds, kind)
+  def label(kind), do: translate_label(Keyword.fetch!(@kinds, kind))
 
   @spec labels() :: keyword(String.t())
-  def labels, do: @kinds
+  def labels, do: Enum.map(@kinds, fn {key, label} -> {key, translate_label(label)} end)
+
+  defp translate_label("Booster"), do: gettext("Booster")
+  defp translate_label("Booster Bundle"), do: gettext("Booster Bundle")
+  defp translate_label("Booster Box"), do: gettext("Booster Box")
+  defp translate_label("Elite Trainer Box"), do: gettext("Elite Trainer Box")
+  defp translate_label("Blister"), do: gettext("Blister")
+  defp translate_label("Kolekcja"), do: gettext("Kolekcja")
+  defp translate_label("Puszka"), do: gettext("Puszka")
+  defp translate_label("Talia"), do: gettext("Talia")
+  defp translate_label("Zestaw kart"), do: gettext("Zestaw kart")
+  defp translate_label("Karton zbiorczy"), do: gettext("Karton zbiorczy")
 
   @doc "Whether a Cardmarket category belongs in the buying guide."
   @spec included_category?(integer()) :: boolean()

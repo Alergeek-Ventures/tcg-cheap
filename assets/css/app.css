@@ -618,6 +618,19 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world { --bench: #f1eadc; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --rule: rgb(32 29 25 / 18%); --orange: #b54125; --muted: #6d6256; --rise: #27714b; --fall: #a6402f; background: var(--bench); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; font-size: 1rem; line-height: 1.6; min-height: 100svh; overflow-x: clip; }
 .guide-world h1, .guide-world h2, .guide-world h3 { font-family: "Barlow Condensed", sans-serif; font-weight: 700; margin: 0; text-wrap: balance; }
 .site-header { align-items: center; border-bottom: 1px solid var(--rule, rgb(32 29 25 / 18%)); display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; padding: .5rem max(1rem, 4vw); }
+
+/* Guide language links share the masthead without moving its outer edges. */
+.guide-world .site-header { padding-block: .5rem; padding-inline: max(1rem, calc((100% - 72rem) / 2 + 1rem)); gap: .5rem; }
+.guide-world .site-wordmark { flex: none; }
+.guide-language { border-inline-end: 1px solid var(--rule); display: flex; margin-inline-start: auto; padding-inline-end: .5rem; }
+.guide-language a { color: var(--muted); display: inline-grid; font-size: .75rem; min-block-size: 3rem; min-inline-size: 2rem; padding-inline: .25rem; place-items: center; text-decoration: none; }
+.guide-language a[aria-current] { color: var(--ink); font-weight: 700; }
+.guide-language a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.guide-language a:active { color: var(--orange); }
+@media (hover: hover) and (pointer: fine) { .guide-language a:not([aria-current]):hover { color: var(--ink); text-decoration: underline; } }
+/* Phones: the switch stays narrow enough for logo, PL/EN and location on one row at 390 px. */
+@media (max-width: 47.99rem) { .guide-language { border-inline-end: 0; padding-inline-end: 0; } .guide-language a { min-inline-size: 1.5rem; } }
+
 .site-wordmark { align-items: center; display: inline-flex; min-height: 3rem; }
 .site-wordmark img { block-size: clamp(1.75rem, 7vw, 2rem); display: block; inline-size: auto; }
 .guide-world .fluent-icon { display: inline-block; flex: 0 0 auto; height: 1.1rem; width: 1.1rem; }
@@ -889,6 +902,10 @@ details.admin-disclosure summary::marker { color: var(--orange); }
   .guide-world .offer-link { margin-top: .5rem; }
   .guide-world .verdict-body { padding: 1rem; }
   .guide-world .verdict-badge-large { padding-inline: 1rem; }
+}
+@media (max-width: 26rem) {
+  .guide-world .visitor-location-summary { font-size: .75rem; gap: .25rem; }
+  .guide-world .site-wordmark img { block-size: 1.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .guide-world .guide-product { animation: none; }

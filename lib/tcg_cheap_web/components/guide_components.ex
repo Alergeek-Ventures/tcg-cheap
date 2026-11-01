@@ -1,7 +1,8 @@
 defmodule TcgCheapWeb.GuideComponents do
-  @moduledoc "Shared pieces of the Polish buying-guide pages."
+  @moduledoc "Shared pieces of the public buying-guide pages."
 
   use TcgCheapWeb, :html
+  use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Catalogue.ExternalImage
   alias TcgCheap.Sealed.{Kinds, Regions, Shops}
@@ -9,6 +10,8 @@ defmodule TcgCheapWeb.GuideComponents do
 
   @doc "The public masthead: the wordmark, linking to the buying guide, and optional controls."
   attr :id, :string, default: "site-header"
+  attr :locale, :string, default: nil
+  attr :return_to, :string, default: "/"
   slot :inner_block
 
   def site_header(assigns) do
@@ -17,6 +20,22 @@ defmodule TcgCheapWeb.GuideComponents do
       <.link id="site-wordmark" class="site-wordmark" navigate={~p"/"}>
         <img src={~p"/images/tcg-cheap.webp"} alt="TCG Cheap" width="135" height="32" />
       </.link>
+      <nav
+        :if={@locale}
+        id="guide-language"
+        class="guide-language"
+        aria-label={gettext("Język strony")}
+      >
+        <a
+          :for={locale <- ["pl", "en"]}
+          id={"language-#{locale}"}
+          href={~p"/lang/#{locale}?#{[return_to: @return_to]}"}
+          lang={locale}
+          hreflang={locale}
+          aria-label={if(locale == "pl", do: "Polski", else: "English")}
+          aria-current={if(locale == @locale, do: "true")}
+        >{String.upcase(locale)}</a>
+      </nav>
       {render_slot(@inner_block)}
     </header>
     """
@@ -85,7 +104,12 @@ defmodule TcgCheapWeb.GuideComponents do
       <svg :if={!@url && @alt == ""} viewBox="0 0 64 48" aria-hidden="true" focusable="false">
         <path :for={d <- @shape} d={d} />
       </svg>
-      <svg :if={!@url && @alt != ""} viewBox="0 0 64 48" role="img" aria-label="Brak zdjęcia">
+      <svg
+        :if={!@url && @alt != ""}
+        viewBox="0 0 64 48"
+        role="img"
+        aria-label={gettext("Brak zdjęcia")}
+      >
         <path :for={d <- @shape} d={d} />
       </svg>
     </div>
@@ -132,20 +156,23 @@ defmodule TcgCheapWeb.GuideComponents do
       <%= cond do %>
         <% @chart.empty? -> %>
           <p id={"#{@id}-empty"} class="guide-note">
-            Nie mamy jeszcze historii cen tego produktu.
+            {gettext("Nie mamy jeszcze historii cen tego produktu.")}
           </p>
         <% @chart.few_days -> %>
           <p id={"#{@id}-few-days"} class="guide-note">
-            Mamy ceny z {Polish.plural(elem(@chart.few_days, 0), "dnia", "dni", "dni")} (od {Polish.date(
-              elem(@chart.few_days, 1)
-            )}). Wykres pokażemy, gdy będzie ich co najmniej {@min_days}.
+            {gettext(
+              "Mamy ceny z %{days} (od %{date}). Wykres pokażemy, gdy będzie ich co najmniej %{minimum}.",
+              days: Polish.plural(elem(@chart.few_days, 0), "dnia", "dni", "dni"),
+              date: Polish.date(elem(@chart.few_days, 1)),
+              minimum: @min_days
+            )}
           </p>
         <% true -> %>
           <ul class="price-chart-legend" aria-hidden="true">
             <li :for={line <- @chart.lines} :if={line.points != []} class={"legend-#{line.class}"}>
               {line.label}
             </li>
-            <li :if={@chart.typical_y} class="legend-typical">Typowa cena</li>
+            <li :if={@chart.typical_y} class="legend-typical">{gettext("Typowa cena")}</li>
           </ul>
           <div class="price-chart-frame">
             <div class="price-chart-scale" aria-hidden="true">
@@ -204,7 +231,7 @@ defmodule TcgCheapWeb.GuideComponents do
                 style={"--at: #{@chart.typical_at}%"}
                 aria-hidden="true"
               >
-                typowa {Polish.zloty(@typical)}
+                {gettext("typowa %{price}", price: Polish.zloty(@typical))}
               </span>
             </div>
             <div class="price-chart-axis" aria-hidden="true">
@@ -223,7 +250,9 @@ defmodule TcgCheapWeb.GuideComponents do
                 line.first_date
               )} – {Polish.short_date(line.last_date)}).
             </span>
-            <span :if={@typical}>Linia przerywana: typowa cena {Polish.zloty(@typical)}.</span>
+            <span :if={@typical}>{gettext("Linia przerywana: typowa cena %{price}.",
+              price: Polish.zloty(@typical)
+            )}</span>
           </figcaption>
       <% end %>
     </figure>
@@ -419,7 +448,7 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
-  @doc ~S'The Polish label of a verdict: "Dobra cena", "+14% vs Cardmarket", …'
+  @doc ~S'The localized label of a verdict: "Dobra cena", "+14% vs Cardmarket", …'
   @spec verdict_label(map()) :: String.t()
   def verdict_label(%{status: :cardmarket, cheapest: %{price: price}, typical: typical}) do
     percent =
@@ -440,9 +469,9 @@ defmodule TcgCheapWeb.GuideComponents do
     "#{sign}#{abs(percent)}% vs Cardmarket"
   end
 
-  def verdict_label(%{status: :good}), do: "Dobra cena"
-  def verdict_label(%{status: :normal}), do: "Normalna cena"
-  def verdict_label(%{status: :expensive}), do: "Drogo"
-  def verdict_label(%{status: :insufficient_data}), do: "Za mało danych"
-  def verdict_label(%{status: :out_of_stock}), do: "Brak w sklepach"
+  def verdict_label(%{status: :good}), do: gettext("Dobra cena")
+  def verdict_label(%{status: :normal}), do: gettext("Normalna cena")
+  def verdict_label(%{status: :expensive}), do: gettext("Drogo")
+  def verdict_label(%{status: :insufficient_data}), do: gettext("Za mało danych")
+  def verdict_label(%{status: :out_of_stock}), do: gettext("Brak w sklepach")
 end

@@ -31,8 +31,8 @@ const VisitorLocation = {
       // Set on entry the panel is closed; leave the focus where it is.
       if (this.el.open) this.close()
       this.announce(location
-        ? `Lokalizacja: ${location.label}. Pokazujemy odległości do odbioru osobistego.`
-        : "Lokalizacja usunięta.")
+        ? this.el.dataset.located.replace("%{town}", location.label)
+        : this.el.dataset.cleared)
     })
     this.el.addEventListener("click", event => {
       if (event.target.closest("#visitor-location-device")) this.locate()
@@ -102,7 +102,7 @@ const VisitorLocation = {
       }
     }
     busy(true)
-    if (!quiet) this.say("Ustalam lokalizację…")
+    if (!quiet) this.say(this.el.dataset.locating)
     navigator.geolocation.getCurrentPosition(
       ({coords}) => {
         const location = {lat: round(coords.latitude), lon: round(coords.longitude)}
@@ -120,7 +120,7 @@ const VisitorLocation = {
   },
 
   fail() {
-    this.say("Przeglądarka nie udostępniła lokalizacji. Wpisz miejscowość poniżej.", true)
+    this.say(this.el.dataset.failed, true)
     this.el.querySelector("#visitor-location-town")?.focus()
   },
 
