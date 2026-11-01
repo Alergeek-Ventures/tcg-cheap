@@ -7,6 +7,8 @@ defmodule TcgCheap.Sealed.Shops do
 
   Delivery prices, free-delivery thresholds and pickup cities were checked on
   the shops' own pages on 2026-10-31; nil means the shop does not publish it.
+  Pickup store coordinates were geocoded from the store addresses with
+  OpenStreetMap Nominatim on 2026-11-01.
   """
 
   alias TcgCheap.Sealed.{CeneoFeed, GoogleFeed, IdoSell, Shop, Shopify, WooCommerce}
@@ -57,7 +59,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: Decimal.new("12.99"),
       free_shipping_from: nil,
-      pickup_city: "Żukowo"
+      pickup_city: "Żukowo",
+      pickup_location: {54.3424, 18.3645}
     },
     %Shop{
       key: "boostermania",
@@ -149,7 +152,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 10,
       shipping_from: Decimal.new("15.99"),
       free_shipping_from: Decimal.new("500"),
-      pickup_city: "Gdynia"
+      pickup_city: "Gdynia",
+      pickup_location: {54.5200, 18.5332}
     },
     %Shop{
       key: "colligere",
@@ -185,7 +189,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 15,
       shipping_from: Decimal.new("15.26"),
       free_shipping_from: Decimal.new("450"),
-      pickup_city: "Żory"
+      pickup_city: "Żory",
+      pickup_location: {50.0434, 18.6860}
     },
     %Shop{
       key: "flamberg",
@@ -196,7 +201,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: nil,
       free_shipping_from: Decimal.new("400"),
-      pickup_city: "Katowice"
+      pickup_city: "Katowice",
+      pickup_location: {50.2605, 19.0208}
     },
     %Shop{
       key: "gnom",
@@ -218,7 +224,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: Decimal.new("19"),
       free_shipping_from: nil,
-      pickup_city: "Warszawa"
+      pickup_city: "Warszawa",
+      pickup_location: {52.2129, 20.9558}
     },
     %Shop{
       key: "gralnia",
@@ -242,7 +249,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: Decimal.new("13.99"),
       free_shipping_from: Decimal.new("499"),
-      pickup_city: "Tarnowskie Góry"
+      pickup_city: "Tarnowskie Góry",
+      pickup_location: {50.4489, 18.8627}
     },
     %Shop{
       key: "grybezpradu",
@@ -253,7 +261,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: Decimal.new("14.99"),
       free_shipping_from: Decimal.new("500"),
-      pickup_city: "Poznań"
+      pickup_city: "Poznań",
+      pickup_location: {52.4137, 16.8951}
     },
     %Shop{
       key: "gryujanusza",
@@ -276,7 +285,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: "Rumia"
+      pickup_city: "Rumia",
+      pickup_location: {54.5565, 18.4092}
     },
     %Shop{
       key: "jigglypack",
@@ -334,7 +344,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: Decimal.new("14.99"),
       free_shipping_from: Decimal.new("399"),
-      pickup_city: "Suwałki"
+      pickup_city: "Suwałki",
+      pickup_location: {54.0991, 22.9304}
     },
     %Shop{
       key: "kartoteka",
@@ -357,7 +368,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: Decimal.new("9.9"),
       free_shipping_from: nil,
-      pickup_city: "Kraków"
+      pickup_city: "Kraków",
+      pickup_location: {50.0177, 19.9060}
     },
     %Shop{
       key: "kegami",
@@ -455,7 +467,9 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: Decimal.new("7"),
       free_shipping_from: Decimal.new("70"),
-      pickup_city: "Katowice"
+      pickup_city: "Katowice",
+      # The store address is unpublished: the company's registered address.
+      pickup_location: {50.2320, 18.9633}
     },
     %Shop{
       key: "mrpuggy",
@@ -466,7 +480,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: nil,
       free_shipping_from: Decimal.new("300"),
-      pickup_city: "Kraków"
+      pickup_city: "Kraków",
+      pickup_location: {50.0208, 20.0498}
     },
     %Shop{
       key: "nearmint",
@@ -547,7 +562,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: Decimal.new("11.99"),
       free_shipping_from: Decimal.new("450"),
-      pickup_city: "Brzesko"
+      pickup_city: "Brzesko",
+      pickup_location: {49.9670, 20.6073}
     },
     %Shop{
       key: "pokebeast",
@@ -583,7 +599,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: Decimal.new("12.9"),
       free_shipping_from: Decimal.new("400"),
-      pickup_city: "Lublin"
+      pickup_city: "Lublin",
+      pickup_location: {51.2516, 22.5437}
     },
     %Shop{
       key: "pokegemcollector",
@@ -638,7 +655,9 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: Decimal.new("13.49"),
       free_shipping_from: Decimal.new("300"),
-      pickup_city: "Luboń"
+      pickup_city: "Luboń",
+      # The street is unpublished: the centre of Luboń.
+      pickup_location: {52.3367, 16.8718}
     },
     %Shop{
       key: "pokeverse",
@@ -673,7 +692,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 5,
       shipping_from: nil,
       free_shipping_from: Decimal.new("400"),
-      pickup_city: "Katowice"
+      pickup_city: "Katowice",
+      pickup_location: {50.2572, 19.0122}
     },
     %Shop{
       key: "skarbieckart",
@@ -706,7 +726,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 5,
       shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: "Chrzanów"
+      pickup_city: "Chrzanów",
+      pickup_location: {50.1423, 19.4082}
     },
     %Shop{
       key: "strefakart",
@@ -729,7 +750,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 12,
       shipping_from: Decimal.new("15.99"),
       free_shipping_from: Decimal.new("350"),
-      pickup_city: "Bielsko-Biała"
+      pickup_city: "Bielsko-Biała",
+      pickup_location: {49.8283, 19.0479}
     },
     %Shop{
       key: "strefatcg",
@@ -819,7 +841,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: Decimal.new("12.99"),
       free_shipping_from: Decimal.new("349"),
-      pickup_city: "Wrocław"
+      pickup_city: "Wrocław",
+      pickup_location: {51.1223, 16.9932}
     },
     %Shop{
       key: "tubacards",
@@ -842,7 +865,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: Decimal.new("13"),
       free_shipping_from: Decimal.new("349"),
-      pickup_city: "Izabelin C"
+      pickup_city: "Izabelin C",
+      pickup_location: {52.2944, 20.8131}
     },
     %Shop{
       key: "zarc",
@@ -853,7 +877,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: nil,
       free_shipping_from: Decimal.new("600"),
-      pickup_city: "Jaworzno"
+      pickup_city: "Jaworzno",
+      pickup_location: {50.2022, 19.2741}
     },
     %Shop{
       key: "zgrani",

@@ -6,7 +6,7 @@ defmodule TcgCheapWeb.ProductLive do
   import TcgCheapWeb.GuideComponents
 
   alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Shops}
-  alias TcgCheapWeb.Polish
+  alias TcgCheapWeb.{Polish, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -24,6 +24,7 @@ defmodule TcgCheapWeb.ProductLive do
          |> assign(:page, page)
          |> assign(:offer_count, length(page.offers))
          |> assign(:in_stock_count, Enum.count(page.offers, & &1.in_stock))
+         |> VisitorLocation.assign_location()
          |> stream(:offers, page.offers)}
 
       :error ->
@@ -32,11 +33,28 @@ defmodule TcgCheapWeb.ProductLive do
   end
 
   @impl true
+  def handle_event("location-" <> _ = event, params, socket) do
+    located = VisitorLocation.handle_event(event, params, socket)
+
+    # Offer rows show the distance to pickup, so they re-render with it.
+    if located.assigns.location == socket.assigns.location,
+      do: {:noreply, located},
+      else: {:noreply, stream(located, :offers, located.assigns.page.offers, reset: true)}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash}>
       <div class="guide-world">
-        <.site_header />
+        <.site_header>
+          <VisitorLocation.location_control
+            location={@location}
+            form={@town_form}
+            matches={@town_matches}
+            error={@location_error}
+          />
+        </.site_header>
         <main id="product-main" class="guide-main product-page">
           <.link id="product-back" navigate={~p"/"} class="guide-back">
             <.fluent_icon name={:arrow_left} />Wszystkie produkty
@@ -59,7 +77,7 @@ defmodule TcgCheapWeb.ProductLive do
                 > · {@page.product.set_name}</span>
               </p>
             </section>
-            <.verdict_block verdict={@page.verdict} />
+            <.verdict_block verdict={@page.verdict} nearby={nearby(@page, @location)} />
           </div>
 
           <section id="product-offers" class="product-section" aria-labelledby="product-offers-title">
@@ -81,7 +99,7 @@ defmodule TcgCheapWeb.ProductLive do
                 <div class="offer-shop">
                   <strong>{shop_name(offer)}</strong>
                   <span class="offer-title">{offer.title}</span>
-                  <.offer_delivery offer={offer} />
+                  <.offer_delivery offer={offer} location={@location} />
                 </div>
                 <strong class="offer-price">{Polish.price(offer.price)}</strong>
                 <p class="offer-state">
@@ -134,43 +152,93 @@ defmodule TcgCheapWeb.ProductLive do
   end
 
   attr :offer, :map, required: true
+  attr :location, :map, default: nil
 
   # What delivery adds to an offer, from the shop's published terms:
-  # "dostawa od 14,99 zł · darmowa od 400 zł · odbiór osobisty: Gdynia".
+  # "dostawa od 14,99 zł · darmowa od 400 zł · odbiór osobisty: Gdynia (14 km)".
   defp offer_delivery(assigns) do
     # A no-break space keeps each "·" at the end of a line, never at the start.
-    assigns = assign(assigns, :terms, delivery(assigns.offer))
+    assigns = assign(assigns, :terms, delivery(assigns.offer, assigns.location))
 
     ~H"""
     <span :if={@terms != []} class="offer-delivery">{Enum.join(@terms, "\u00A0· ")}</span>
     """
   end
 
-  defp delivery(%{shop: key, price: price}) do
+  defp delivery(%{shop: key, price: price}, location) do
     case Shops.fetch(key) do
-      {:ok, shop} -> delivery_terms(shop, price)
+      {:ok, shop} -> delivery_terms(shop, price, location)
       :error -> []
     end
   end
 
-  defp delivery_terms(shop, price) do
+  defp delivery_terms(shop, price, location) do
     threshold = shop.free_shipping_from
-    free? = threshold != nil and not Decimal.lt?(price, threshold)
+    shipping = shipping(shop, price)
 
     # The threshold stays visible: shops often grant it for some carriers only.
     cost =
-      cond do
-        free? -> "darmowa dostawa od #{amount(threshold)}"
-        shop.shipping_from -> "dostawa od #{amount(shop.shipping_from)}"
-        true -> "koszt dostawy w koszyku"
+      case shipping do
+        :free -> "darmowa dostawa od #{amount(threshold)}"
+        {:from, from} -> "dostawa od #{amount(from)}"
+        :unknown -> "koszt dostawy w koszyku"
       end
 
     [
       cost,
-      threshold && !free? && "darmowa od #{amount(threshold)}",
-      shop.pickup_city && "odbiór osobisty: #{shop.pickup_city}"
+      threshold && shipping != :free && "darmowa od #{amount(threshold)}",
+      shop.pickup_city && pickup(shop, location)
     ]
     |> Enum.filter(&is_binary/1)
+  end
+
+  defp shipping(shop, price) do
+    threshold = shop.free_shipping_from
+
+    cond do
+      threshold != nil and not Decimal.lt?(price, threshold) -> :free
+      shop.shipping_from -> {:from, shop.shipping_from}
+      true -> :unknown
+    end
+  end
+
+  defp pickup(shop, location) do
+    case VisitorLocation.pickup_km(shop.key, location) do
+      nil -> "odbiór osobisty: #{shop.pickup_city}"
+      km -> "odbiór osobisty: #{shop.pickup_city} (#{VisitorLocation.km(km)})"
+    end
+  end
+
+  # For a visitor with a location: the nearest in-stock offer to pick up in
+  # person within the radius, or else the delivery the cheapest one needs.
+  defp nearby(_page, nil), do: nil
+  defp nearby(%{verdict: %{cheapest: nil}}, _location), do: nil
+
+  defp nearby(%{offers: offers, verdict: %{cheapest: cheapest}}, location) do
+    radius = VisitorLocation.radius_km()
+
+    nearest =
+      offers
+      |> Enum.filter(& &1.in_stock)
+      |> Enum.map(&{&1, VisitorLocation.pickup_km(&1.shop, location)})
+      |> Enum.filter(fn {_offer, km} -> km != nil and km <= radius end)
+      |> Enum.min_by(fn {offer, km} -> {km, Decimal.to_float(offer.price)} end, fn -> nil end)
+
+    case nearest do
+      {offer, km} ->
+        # A distance means the shop is configured with a pickup store.
+        {:ok, shop} = Shops.fetch(offer.shop)
+        %{pickup: offer, shop: shop, km: km}
+
+      nil ->
+        delivery =
+          case Shops.fetch(cheapest.shop) do
+            {:ok, shop} -> shipping(shop, cheapest.price)
+            :error -> :unknown
+          end
+
+        %{delivery: delivery, shop_name: Shops.name(cheapest.shop), radius: radius}
+    end
   end
 
   defp amount(value),
@@ -231,7 +299,33 @@ defmodule TcgCheapWeb.ProductLive do
     ]
   end
 
+  attr :nearby, :map, required: true
+
+  defp nearby_line(%{nearby: %{pickup: _offer}} = assigns) do
+    ~H"""
+    <p id="verdict-nearby" class="verdict-nearby">
+      Najbliżej Ciebie: <a href={@nearby.pickup.url} target="_blank" rel="noopener nofollow">{@nearby.shop.name}</a>, {@nearby.shop.pickup_city}
+      <span title="w linii prostej">({VisitorLocation.km(@nearby.km)})</span>
+      – <strong>{Polish.price(@nearby.pickup.price)}</strong>, odbiór osobisty
+    </p>
+    """
+  end
+
+  defp nearby_line(assigns) do
+    ~H"""
+    <p id="verdict-nearby" class="verdict-nearby">
+      W promieniu {@nearby.radius} km nikt nie ma go na stanie z odbiorem osobistym –
+      potrzebna dostawa{delivery_note(@nearby.delivery, @nearby.shop_name)}.
+    </p>
+    """
+  end
+
+  defp delivery_note({:from, from}, shop), do: " (w #{shop} od #{amount(from)})"
+  defp delivery_note(:free, shop), do: " (w #{shop} darmowa)"
+  defp delivery_note(:unknown, _shop), do: ""
+
   attr :verdict, :map, required: true
+  attr :nearby, :map, default: nil
 
   defp verdict_block(assigns) do
     assigns = assign(assigns, :difference, difference(assigns.verdict))
@@ -253,6 +347,7 @@ defmodule TcgCheapWeb.ProductLive do
               @verdict.cheapest
             )}</a>
           </p>
+          <.nearby_line :if={@nearby} nearby={@nearby} />
         </div>
         <p id="verdict-reason" class="verdict-reason">
           {reason(@verdict)}

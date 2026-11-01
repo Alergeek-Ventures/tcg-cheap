@@ -15,7 +15,9 @@ defmodule TcgCheap.Sealed.Shop do
     * `shipping_from` – the cheapest delivery price in PLN, `free_shipping_from`
       – the order value from which delivery is free, `pickup_city` – the city
       of the shop's own store where orders can be picked up in person; each nil
-      when the shop does not publish it.
+      when the shop does not publish it;
+    * `pickup_location` – `{latitude, longitude}` of that store, for distances
+      to visitors; nil when the shop has no pickup.
   """
   @enforce_keys [
     :key,
@@ -28,7 +30,14 @@ defmodule TcgCheap.Sealed.Shop do
     :pickup_city
   ]
   defstruct @enforce_keys ++
-              [:category, :sealed_categories, :product_path, :collection, :feed_path]
+              [
+                :category,
+                :sealed_categories,
+                :product_path,
+                :collection,
+                :feed_path,
+                :pickup_location
+              ]
 
   @type t :: %__MODULE__{
           key: String.t(),
@@ -43,6 +52,7 @@ defmodule TcgCheap.Sealed.Shop do
           feed_path: String.t() | nil,
           shipping_from: Decimal.t() | nil,
           free_shipping_from: Decimal.t() | nil,
-          pickup_city: String.t() | nil
+          pickup_city: String.t() | nil,
+          pickup_location: TcgCheap.Geo.coords() | nil
         }
 end

@@ -12,7 +12,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{Ean, Guide, Kinds, Shops}
-  alias TcgCheapWeb.Polish
+  alias TcgCheapWeb.{Polish, VisitorLocation}
 
   @max_query_length 100
   @kind_params Map.new(Kinds.all(), &{Atom.to_string(&1), &1})
@@ -23,6 +23,7 @@ defmodule TcgCheapWeb.HomeLive do
      socket
      |> assign(:page_title, "Sprawdź, czy cena jest dobra")
      |> assign(:html_lang, "pl")
+     |> VisitorLocation.assign_location()
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")}
   end
 
@@ -78,6 +79,15 @@ defmodule TcgCheapWeb.HomeLive do
 
   def handle_event("more", _params, socket), do: {:noreply, socket}
 
+  def handle_event("location-" <> _ = event, params, socket) do
+    located = VisitorLocation.handle_event(event, params, socket)
+
+    # The "odbiór w pobliżu" marks depend on it; the list starts over.
+    if located.assigns.location == socket.assigns.location,
+      do: {:noreply, located},
+      else: {:noreply, list(located, located.assigns.query, located.assigns.kind)}
+  end
+
   defp list_path(query, kind) do
     params =
       [q: query, rodzaj: kind && Atom.to_string(kind)]
@@ -93,7 +103,14 @@ defmodule TcgCheapWeb.HomeLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div class="guide-world">
-        <.site_header />
+        <.site_header>
+          <VisitorLocation.location_control
+            location={@location}
+            form={@town_form}
+            matches={@town_matches}
+            error={@location_error}
+          />
+        </.site_header>
         <main id="guide-main" class="guide-main">
           <section class="guide-intro" aria-labelledby="guide-title">
             <h1 id="guide-title">Sprawdź, czy cena jest dobra</h1>
@@ -287,6 +304,14 @@ defmodule TcgCheapWeb.HomeLive do
                       <% end %>
                     </p>
                     <p class="guide-product-judgement">
+                      <span
+                        :if={VisitorLocation.pickup_nearby?(summary.in_stock_shops, @location)}
+                        id={"nearby-#{summary.product.slug}"}
+                        class="guide-product-nearby"
+                        title={"Na stanie w sklepie z odbiorem osobistym do #{VisitorLocation.radius_km()} km od Ciebie"}
+                      >
+                        <.fluent_icon name={:location} />odbiór w pobliżu
+                      </span>
                       <.verdict_badge
                         verdict={summary.verdict}
                         id={"verdict-#{summary.product.slug}"}

@@ -2,7 +2,7 @@
 
 ## Product
 
-- [Buying and Trading Guide](product/buying-and-trading-guide.md) — **Current product north star.** Polish buying guide for sealed products (live: Cardmarket catalogue, 71 shops with delivery terms, realistic verdict without MSRP) and the trading guide for singles (phase 2). Updated 2026-10-31.
+- [Buying and Trading Guide](product/buying-and-trading-guide.md) — **Current product north star.** Polish buying guide for sealed products (live: Cardmarket catalogue, 71 shops with delivery terms and pickup distances, realistic verdict without MSRP) and the trading guide for singles (phase 2). Updated 2026-11-01.
 
 ## Architecture
 
