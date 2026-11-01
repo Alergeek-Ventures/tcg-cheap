@@ -15,9 +15,12 @@ defmodule TcgCheap.Sealed.Rebel do
   sells English editions), reading REBEL's "Booster Display (36)" as
   Cardmarket's "Booster Box". Other items sold as several units ("Tin Bundle
   (6)") are matched only when named a display, as Cardmarket names them, so
-  the price of several units never lands on a single one. Only products
-  Cardmarket added at most two years before REBEL first listed the item are
-  candidates: REBEL names a reprint without its year ("Battle Academy").
+  the price of several units never lands on a single one. By title, only
+  English products Cardmarket added at most two years before REBEL first
+  listed the item are candidates: REBEL names a reprint without its year
+  ("Battle Academy"). A known barcode (`TcgCheap.Sealed.known_eans/0`, set
+  or confirmed by hand) identifies its product whatever its age or language,
+  as it does for shop offers.
   """
 
   require Logger
