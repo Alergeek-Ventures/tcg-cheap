@@ -15,7 +15,7 @@ defmodule TcgCheapWeb.GuideComponents do
     ~H"""
     <header id={@id} class="site-header">
       <.link id="site-wordmark" class="site-wordmark" navigate={~p"/"}>
-        <img src={~p"/images/tcg-cheap.webp"} alt="TCG Cheap" width="405" height="96" />
+        <img src={~p"/images/tcg-cheap.webp"} alt="TCG Cheap" width="135" height="32" />
       </.link>
       {render_slot(@inner_block)}
     </header>
