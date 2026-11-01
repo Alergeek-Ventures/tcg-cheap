@@ -58,8 +58,9 @@ with Floki; eight shops on their own storefronts have one small client each
 is complete: its stated product count (or page count where a theme states
 none) must match what was read, so a missing or shifted page fails the
 fetch. In stock means buyable now (an add-to-cart button or the shop's
-availability label); a pre-order is not in stock, and the matcher also
-excludes titles that say pre-order. Left out on 2026-11-01: morigal.pl (a
+availability label); a pre-order is not in stock (Shoper tiles do not mark
+them, so a shop's own pre-order listing is read as `preorder_path`, e.g.
+pokesmart.pl), and the matcher also excludes titles that say pre-order. Left out on 2026-11-01: morigal.pl (a
 Cloudflare challenge answers non-browser clients), cardverse.pl (its listing
 shows no stock), pokeelite.pl (its listing labels sold-out items available),
 tcgumisia.pl (`robots.txt` forbids paging) and bastacentershop.pl (an empty

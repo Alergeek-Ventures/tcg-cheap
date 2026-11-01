@@ -29,9 +29,10 @@ defmodule TcgCheap.Sealed.ShoperListing do
   The listing price is the current gross price in złoty. A product is in
   stock when its tile offers an add-to-cart button (current themes) or a
   quantity field (classic themes); "Powiadom mnie o dostępności", "Niedostępny"
-  and "na zamówienie" products are not. A pre-order that can be put in the
-  basket counts as in stock here (Shoper marks no pre-orders; the matcher
-  excludes titles that say so). Links and images are made absolute on the
+  and "na zamówienie" products are not. Shoper marks no pre-orders on the
+  tile: a shop that collects them in a listing of their own names it as
+  `preorder_path` (its first page only), and its products are never in
+  stock; the matcher also excludes titles that say pre-order. Links and images are made absolute on the
   shop's host, which is the `www.` one where the apex redirects there (no
   redirects are followed). Listings carry no EAN. See `TcgCheap.Sealed.ShopFeed` for
   the shared limits.
@@ -46,16 +47,34 @@ defmodule TcgCheap.Sealed.ShoperListing do
 
   @impl true
   def fetch(%Shop{} = shop, req_options) do
-    with {:ok, products} <- HtmlListing.read(&request(shop, req_options, &1), shop.max_pages) do
+    with {:ok, products} <- HtmlListing.read(&request(shop, req_options, &1), shop.max_pages),
+         {:ok, preorders} <- preorder_ids(shop, req_options) do
+      products =
+        Enum.map(products, &if(&1.id in preorders, do: %{&1 | in_stock: false}, else: &1))
+
       {:ok, HtmlListing.offers(shop, products, &sealed?(shop, &1))}
     end
   end
 
   defp request(shop, req_options, number) do
     path = if number == 1, do: shop.feed_path, else: "#{shop.feed_path}/#{number}"
+    request_path(shop, path, req_options)
+  end
 
+  defp request_path(shop, path, req_options) do
     with {:ok, document} <- HtmlListing.page(shop, path, req_options),
          do: parse_page(document)
+  end
+
+  defp preorder_ids(%Shop{preorder_path: nil}, _req_options), do: {:ok, MapSet.new()}
+
+  defp preorder_ids(shop, req_options) do
+    with {:ok, products} <-
+           HtmlListing.read(
+             fn _number -> request_path(shop, shop.preorder_path, req_options) end,
+             1
+           ),
+         do: {:ok, MapSet.new(products, & &1.id)}
   end
 
   defp sealed?(%Shop{mixed_listing: true}, title), do: ShopFeed.sealed_pokemon?(title, nil)
@@ -201,7 +220,7 @@ defmodule TcgCheap.Sealed.ShoperListing do
     text =
       block
       |> Floki.find("div.price em")
-      |> List.first()
+      |> Enum.take(1)
       |> Floki.text()
       |> String.replace(~r/\s/u, " ")
 

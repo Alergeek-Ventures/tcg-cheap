@@ -32,7 +32,7 @@ defmodule TcgCheap.Sealed.PrestaShop do
 
   @behaviour TcgCheap.Sealed.ShopFeed
 
-  alias TcgCheap.Sealed.{Matcher, Shop, ShopFeed}
+  alias TcgCheap.Sealed.{HtmlListing, Matcher, Shop, ShopFeed}
 
   @headers [{"accept", "application/json"}, {"x-requested-with", "XMLHttpRequest"}]
   @preorder ~r/\b(?:przedsprzedaz|przedpremier|zapowiedz|preorder|pre order)/
@@ -46,20 +46,9 @@ defmodule TcgCheap.Sealed.PrestaShop do
   def fetch(%Shop{} = shop, req_options) do
     req_options = Keyword.update(req_options, :headers, @headers, &(@headers ++ &1))
 
-    shop.listing_paths
-    |> Enum.reduce_while({:ok, []}, fn path, {:ok, acc} ->
-      case fetch_listing(shop, path, req_options) do
-        {:ok, products} -> {:cont, {:ok, [products | acc]}}
-        {:error, reason} -> {:halt, {:error, reason}}
-      end
-    end)
-    |> case do
-      {:ok, listings} ->
-        products = listings |> Enum.reverse() |> List.flatten()
-        {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
-
-      {:error, reason} ->
-        {:error, reason}
+    with {:ok, products} <-
+           HtmlListing.read_listings(shop, &fetch_listing(shop, &1, req_options)) do
+      {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
     end
   end
 
@@ -73,7 +62,9 @@ defmodule TcgCheap.Sealed.PrestaShop do
     end
   end
 
-  defp page_count(_shop, %{total: 0}), do: {:error, :empty_listing}
+  # One empty category of several is fine; a shop with no offers at all fails
+  # in `TcgCheap.Sealed.Refresh`.
+  defp page_count(_shop, %{total: 0, products: []}), do: {:ok, 1}
   defp page_count(_shop, %{products: []}), do: {:error, :malformed_response}
   defp page_count(_shop, %{from: from}) when from != 1, do: {:error, :malformed_pagination}
 

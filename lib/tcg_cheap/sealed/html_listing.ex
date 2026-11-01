@@ -8,8 +8,8 @@ defmodule TcgCheap.Sealed.HtmlListing do
 
   `read/2` accepts the pages only when they form the complete listing: each
   page names itself `n`, none announces more than `max_pages` pages, the
-  stated total (when the listing has one) does not change between pages and
-  equals the distinct products read, a page has products unless the listing
+  page count and the stated total (when the listing has one) do not change
+  between pages, the total equals the distinct products read, a page has products unless the listing
   states that it is empty, and a page where no product is readable (no id,
   name, link, price or availability) is not a product list the client
   recognises.
@@ -63,22 +63,23 @@ defmodule TcgCheap.Sealed.HtmlListing do
           {:ok, [product()]} | {:error, term()}
   def read(request, max_pages), do: read(request, max_pages, 1, nil, [])
 
-  defp read(request, max_pages, number, total, acc) do
+  defp read(request, max_pages, number, first, acc) do
     with {:ok, page} <- request.(number),
-         :ok <- check(page, max_pages, number, total) do
+         :ok <- check(page, max_pages, number, first || page) do
       acc = [page.products | acc]
 
       if number < page.last,
-        do: read(request, max_pages, number + 1, page.total, acc),
+        do: read(request, max_pages, number + 1, first || page, acc),
         else: acc |> Enum.reverse() |> List.flatten() |> complete(page.total)
     end
   end
 
-  defp check(page, max_pages, number, total) do
+  # Every page must agree with the first on the page count and the total.
+  defp check(page, max_pages, number, first) do
     cond do
       page.number != number -> {:error, :pagination_changed}
       page.last > max_pages -> {:error, :too_many_pages}
-      number > 1 and page.total != total -> {:error, :pagination_changed}
+      {page.last, page.total} != {first.last, first.total} -> {:error, :pagination_changed}
       true -> check_products(page)
     end
   end

@@ -43,16 +43,16 @@ defmodule TcgCheap.Sealed.Sote do
 
   defp read_pages(shop, req_options, path, page, last, size, acc) do
     with {:ok, document} <- HtmlListing.page(shop, page_path(path, page), req_options),
-         {:ok, products} <- products(document),
+         {:ok, products, boxes} <- products(document),
          {:ok, page_last} <- paging(document, page),
          :ok <- same_last(last, page_last) do
       acc = acc ++ products
-      size = size || length(products)
+      size = size || boxes
 
       cond do
-        products == [] or length(products) > size -> {:error, :incomplete_listing}
+        boxes == 0 or boxes > size -> {:error, :incomplete_listing}
         page == page_last -> complete(acc)
-        length(products) < size -> {:error, :incomplete_listing}
+        boxes < size -> {:error, :incomplete_listing}
         true -> read_pages(shop, req_options, path, page + 1, page_last, size, acc)
       end
     end
@@ -90,15 +90,13 @@ defmodule TcgCheap.Sealed.Sote do
   defp products(document) do
     category = HtmlListing.text(HtmlListing.first(document, "h1"))
 
-    products =
-      document
-      |> Floki.find("div.product.thumbnail")
-      |> Enum.map(&product(&1, category))
-      |> Enum.reject(&(&1 == :options))
+    boxes = Floki.find(document, "div.product.thumbnail")
+    # Products with options still take a place on the page.
+    products = boxes |> Enum.map(&product(&1, category)) |> Enum.reject(&(&1 == :options))
 
     if :error in products or (products != [] and Enum.all?(products, &is_nil(&1.in_stock))),
       do: {:error, :unrecognised_listing},
-      else: {:ok, products}
+      else: {:ok, products, length(boxes)}
   end
 
   # A product with options ("Wybierz opcje") has no price or stock of its own.

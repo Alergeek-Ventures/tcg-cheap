@@ -50,8 +50,9 @@ defmodule TcgCheap.Sealed.Smajk do
     products = Enum.flat_map(pages, fn page -> Enum.map(page.products, &{&1, page.category}) end)
     ids = Enum.map(products, fn {product, _category} -> id(product) end)
 
-    if Enum.all?(full, &(length(&1.products) == &1.size)) and length(last.products) <= first.size and
-         ids == Enum.uniq(ids),
+    if Enum.all?(pages, &(&1.pages == first.pages)) and
+         Enum.all?(full, &(length(&1.products) == &1.size)) and
+         length(last.products) <= first.size and ids == Enum.uniq(ids),
        do: {:ok, products},
        else: {:error, :incomplete_listing}
   end
@@ -78,7 +79,7 @@ defmodule TcgCheap.Sealed.Smajk do
   end
 
   defp integer(node, attribute) do
-    case node |> Floki.attribute(attribute) |> List.first() |> Integer.parse() do
+    case Integer.parse(node |> Floki.attribute(attribute) |> List.first() || "") do
       {value, ""} when value > 0 -> {:ok, value}
       _ -> {:error, :malformed_pagination}
     end

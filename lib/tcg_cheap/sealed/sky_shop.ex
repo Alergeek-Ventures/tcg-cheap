@@ -120,14 +120,19 @@ defmodule TcgCheap.Sealed.SkyShop do
 
     cond do
       String.contains?(text, @unavailable) -> false
-      Floki.find(tile, "[data-cy=addToCartButton]") == [] -> nil
       preorder?(tile) -> false
+      Floki.find(tile, "[data-cy=addToCartButton]") == [] -> nil
       true -> true
     end
   end
 
+  # A status badge (current themes) or a label over the image (older ones).
   defp preorder?(tile) do
-    badges = tile |> Floki.find(".product-status span") |> Enum.map(&String.trim(Floki.text(&1)))
+    badges =
+      tile
+      |> Floki.find(".product-status span, .product-labels span")
+      |> Enum.map(&String.trim(Floki.text(&1)))
+
     Enum.any?(badges, &(&1 in @preorder))
   end
 

@@ -1395,6 +1395,7 @@ defmodule TcgCheap.Sealed.Shops do
       host: "pokesmart.pl",
       source: ShoperListing,
       feed_path: "/pl/c/Produkty-Pokemon/232",
+      preorder_path: "/pl/c/Produkty-Pokemon/232/1/default/1/f_collection_21/1",
       max_pages: 3,
       shipping_from: Decimal.new("11.95"),
       free_shipping_from: Decimal.new("300"),

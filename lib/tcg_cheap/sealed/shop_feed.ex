@@ -127,12 +127,18 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
     cond do
       size > @max_body_bytes -> :error
-      status == :finished -> {:ok, IO.iodata_to_binary(Enum.reverse([chunk | acc]))}
+      status == :finished -> finish(zlib, [chunk | acc])
       true -> inflate(zlib, :zlib.safeInflate(zlib, []), [chunk | acc], size)
     end
   end
 
   defp inflate(_zlib, _need_dictionary, _acc, _size), do: :error
+
+  # A truncated body also ends as `:finished`; only `inflateEnd` notices.
+  defp finish(zlib, chunks) do
+    :ok = :zlib.inflateEnd(zlib)
+    {:ok, chunks |> Enum.reverse() |> IO.iodata_to_binary()}
+  end
 
   @doc "Decodes a JSON response body."
   @spec decode(Req.Response.t()) :: {:ok, term()} | {:error, :malformed_response}

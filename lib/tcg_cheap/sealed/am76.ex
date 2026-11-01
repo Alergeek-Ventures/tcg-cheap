@@ -56,6 +56,8 @@ defmodule TcgCheap.Sealed.Am76 do
     end
   end
 
+  defp complete([]), do: {:error, :empty_listing}
+
   defp complete([first | _] = pages) do
     sizes = Enum.map(pages, &length(&1.products))
     {full, [last]} = Enum.split(sizes, -1)
@@ -129,11 +131,12 @@ defmodule TcgCheap.Sealed.Am76 do
   end
 
   defp name(product) do
-    product
-    |> Floki.find("div.panel-footer a.btn-default")
-    |> Floki.attribute("data-original-title")
-    |> List.first()
-    |> String.replace_prefix("Więcej informacji o ", "")
+    case product
+         |> Floki.find("div.panel-footer a.btn-default")
+         |> Floki.attribute("data-original-title") do
+      [title | _] -> String.replace_prefix(title, "Więcej informacji o ", "")
+      [] -> nil
+    end
   end
 
   defp price(product) do

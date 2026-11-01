@@ -229,8 +229,9 @@ Whole-shop exports may be up to 64 MB.
    `@shoper_ceneo`) as `feed_path` and `max_pages: 1`; for IdoSell the
    Pokémon category or search path (query included, without `getProductXML`)
    as `feed_path` and a page limit; for a listing client the Pokémon
-   category path as `feed_path` (Shoper, Sky-Shop; `mixed_listing: true`
-   when the category holds other games) or the category paths as
+   category path as `feed_path` (Shoper, Sky-Shop; for Shoper
+   `mixed_listing: true` when the category holds other games and
+   `preorder_path` when the shop lists its pre-orders separately) or the category paths as
    `listing_paths` (PrestaShop, shopGold, Sellingo, Selly, SOTE), and a page
    limit. Add the delivery facts from the shop's delivery
    page (cheapest delivery, free-delivery threshold, pickup city; nil when not
