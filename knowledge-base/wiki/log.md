@@ -1,5 +1,10 @@
 # Wiki Log
 
+## [2026-11-01] CardzHouse logo
+
+- Task: Owner asked about the missing CardzHouse logo. Its header logo, refused earlier with a 403, now downloads normally (plain request, allowed by robots.txt); being white, it sits on a dark chip. 116 of 122 shops have a logo. `Shops` now recompiles when the set of logo files changes, so a new file shows up in dev without touching code.
+- Validation: `mix check`; desktop offer list with CardzHouse in the running app; adding and removing a test logo file flipped `Shops.logo?/1` after a page reload.
+
 ## [2026-11-01] Logos on wide screens only
 
 - Task: Owner asked to hide shop logos on phones and to frame the logos with a background more nicely: offer rows below 42rem show the shop name only, and logo chips have rounded corners (visible on the dark chips; white ones melt into the card).

@@ -11,7 +11,7 @@ defmodule TcgCheap.Sealed.Shops do
   OpenStreetMap Nominatim on 2026-11-01.
 
   Logos are the shops' own, taken from their sites on 2026-11-01 and
-  normalised to a 192×64 WebP on a white chip (dark for light logos) in
+  normalised to a 240×80 WebP on a white chip (dark for light logos) in
   `priv/static/images/shops/<key>.webp`; a shop without a file shows none.
   """
 
@@ -1551,6 +1551,15 @@ defmodule TcgCheap.Sealed.Shops do
   @logo_dir Path.expand("../../../priv/static/images/shops", __DIR__)
   @logos for file <- File.ls!(@logo_dir), Path.extname(file) == ".webp", do: Path.rootname(file)
   for logo <- @logos, do: @external_resource(Path.join(@logo_dir, logo <> ".webp"))
+
+  # A newly added logo file is not an external resource yet; recompile when the set changes.
+  @doc false
+  def __mix_recompile__? do
+    logos =
+      for file <- File.ls!(@logo_dir), Path.extname(file) == ".webp", do: Path.rootname(file)
+
+    MapSet.new(logos) != MapSet.new(@logos)
+  end
 
   @doc "Whether the shop has a logo in `priv/static/images/shops`."
   @spec logo?(String.t()) :: boolean()
