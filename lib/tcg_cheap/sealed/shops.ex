@@ -26,8 +26,8 @@ defmodule TcgCheap.Sealed.Shops do
     Sellingo,
     Selly,
     Shop,
-    ShopGold,
     ShoperListing,
+    ShopGold,
     Shopify,
     SkyShop,
     Smajk,
@@ -1307,17 +1307,6 @@ defmodule TcgCheap.Sealed.Shops do
       shipping_from: Decimal.new("17"),
       free_shipping_from: nil,
       pickup_city: "Poznań"
-    },
-    %Shop{
-      key: "bastacentershop",
-      name: "Basta Center Shop",
-      host: "www.bastacentershop.pl",
-      source: ShoperListing,
-      feed_path: "/pl/c/Pokemon-TCG/41",
-      max_pages: 3,
-      shipping_from: Decimal.new("15"),
-      free_shipping_from: Decimal.new("400"),
-      pickup_city: "Gdańsk"
     },
     %Shop{
       key: "bastiontcg",

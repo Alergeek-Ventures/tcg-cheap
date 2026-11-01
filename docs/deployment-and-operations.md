@@ -215,8 +215,11 @@ WooCommerce Store API (`/wp-json/wc/store/v1/products`), Shopify's
 `/products.json`, a Shoper export (`GoogleFeed` for
 `/console/integration/execute/name/GoogleProductSearch`, `CeneoFeed` for
 `…/CeneoV2`; a Shoper shop without the integration answers with an empty
-body) or IdoSell's `getProductXML=t` listing view, with prices in PLN, and its
-`robots.txt` must allow it. Whole-shop exports may be up to 64 MB.
+body) or IdoSell's `getProductXML=t` listing view, or else a category
+listing one of the listing clients reads (`PrestaShop`, `ShoperListing`,
+`SkyShop`, `ShopGold`, `Sellingo`, `Selly`, `Sote`), with prices in PLN, and
+its `robots.txt` must allow it; a shop behind a bot challenge is left out.
+Whole-shop exports may be up to 64 MB.
 
 1. Add a `%TcgCheap.Sealed.Shop{}` entry to `TcgCheap.Sealed.Shops`: key,
    name, host, `source` and `max_pages`; for WooCommerce the Pokémon category
@@ -225,9 +228,14 @@ body) or IdoSell's `getProductXML=t` listing view, with prices in PLN, and its
    Pokémon collection handle; for Shoper the export path (`@shoper_google` or
    `@shoper_ceneo`) as `feed_path` and `max_pages: 1`; for IdoSell the
    Pokémon category or search path (query included, without `getProductXML`)
-   as `feed_path` and a page limit. Add the delivery facts from the shop's delivery
+   as `feed_path` and a page limit; for a listing client the Pokémon
+   category path as `feed_path` (Shoper, Sky-Shop; `mixed_listing: true`
+   when the category holds other games) or the category paths as
+   `listing_paths` (PrestaShop, shopGold, Sellingo, Selly, SOTE), and a page
+   limit. Add the delivery facts from the shop's delivery
    page (cheapest delivery, free-delivery threshold, pickup city; nil when not
-   published). Image hosts and the CSP follow automatically, and the daily job
+   published) and, for a pickup store, its `pickup_location` coordinates.
+   Image hosts and the CSP follow automatically, and the daily job
    picks the shop up.
 2. Run `mix check`, fetch the shop in the running app (`enqueue_shop_fetch`
    over MCP or `FetchWorker.enqueue/1`), check `shop_status` and its
