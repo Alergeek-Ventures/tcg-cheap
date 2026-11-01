@@ -847,6 +847,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .offer-link:hover { background: var(--orange); border-color: var(--orange); color: var(--paper); }
 .guide-world .offer-unavailable .offer-link { background: transparent; color: var(--ink); }
 .guide-world .offer-unavailable .offer-link:hover { background: var(--bench-light); border-color: var(--ink); color: var(--ink); }
+.guide-world .offer-disclaimer { align-items: start; display: flex; gap: .5rem; margin: .75rem 0 0; }
+.guide-world .offer-disclaimer .fluent-icon { margin-block-start: .1rem; }
 
 /* Visitor location: a quiet header disclosure whose panel drops below it. */
 .guide-world .visitor-location { position: relative; }

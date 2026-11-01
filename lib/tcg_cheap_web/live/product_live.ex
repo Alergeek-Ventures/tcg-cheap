@@ -148,6 +148,12 @@ defmodule TcgCheapWeb.ProductLive do
                 >{gettext("Do sklepu")}</a>
               </li>
             </ul>
+            <p id="offer-disclaimer" class="guide-note offer-disclaimer">
+              <.fluent_icon name={:shield_error} />
+              {gettext(
+                "Jesteśmy niezależnym agregatorem: nie sprzedajemy produktów i nie weryfikujemy sklepów. Zanim zapłacisz, sprawdź sklep – opinie, dane firmy i regulamin."
+              )}
+            </p>
           </section>
 
           <.contents :if={@page.product.contents} contents={@page.product.contents} />
