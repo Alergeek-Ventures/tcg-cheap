@@ -38,7 +38,7 @@ defmodule TcgCheap.Sealed.Selly do
        do: {:error, :too_many_pages}
 
   defp read_pages(shop, req_options, path, page, size, acc) do
-    with {:ok, document} <- HtmlListing.page(shop, page_path(path, page), req_options, page - 1),
+    with {:ok, document} <- HtmlListing.page(shop, page_path(path, page), req_options),
          {:ok, products} <- products(document),
          {:ok, last?} <- paging(document, page) do
       acc = acc ++ products

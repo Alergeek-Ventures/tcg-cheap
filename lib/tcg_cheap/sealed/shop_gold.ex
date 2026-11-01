@@ -71,7 +71,7 @@ defmodule TcgCheap.Sealed.ShopGold do
   defp request(shop, req_options, path, page) do
     page_path = if page == 1, do: path, else: "#{path}/s=#{page}"
 
-    with {:ok, document} <- HtmlListing.page(shop, page_path, req_options, page - 1),
+    with {:ok, document} <- HtmlListing.page(shop, page_path, req_options),
          {:ok, total} <- total(document),
          {:ok, products} <- products(document) do
       {:ok, products, total}

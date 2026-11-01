@@ -1,47 +1,28 @@
 defmodule TcgCheap.Sealed.HtmlListing do
   @moduledoc """
   What the clients that read category pages (`TcgCheap.Sealed.ShopGold`,
-  `Sellingo`, `Selly`, `Sote`) share: fetching and parsing one page politely,
-  reading a node's text, and walking a shop's `listing_paths`.
-
-  Pages of one shop are requested one after another with a short pause, so a
-  shop with many pages is never hit in bursts.
+  `Sellingo`, `Selly`, `Sote`) share: fetching and parsing one page, reading
+  a node's text and price, and walking a shop's `listing_paths`.
   """
 
   alias TcgCheap.Sealed.{Shop, ShopFeed}
 
-  @page_pause_ms 1_000
-
-  @doc """
-  Fetches and parses the page at `path`. `index` counts the shop's requests
-  so far: every request after the first waits `#{@page_pause_ms}` ms.
-  """
-  @spec page(Shop.t(), String.t(), keyword(), non_neg_integer()) ::
-          {:ok, Floki.html_tree()} | {:error, term()}
-  def page(shop, path, req_options, index) do
-    if index > 0, do: Process.sleep(@page_pause_ms)
-
-    with {:ok, response} <- ShopFeed.get(shop, path, [], req_options) do
-      case Floki.parse_document(response.body) do
-        {:ok, document} -> {:ok, document}
-        {:error, _reason} -> {:error, :malformed_response}
-      end
-    end
+  @doc "Fetches and parses the page at `path`."
+  @spec page(Shop.t(), String.t(), keyword()) :: {:ok, Floki.html_tree()} | {:error, term()}
+  def page(shop, path, req_options) do
+    with {:ok, response} <- ShopFeed.get(shop, path, [], req_options),
+         do: ShopFeed.html(response)
   end
 
   @doc """
   Runs `read` (path -> `{:ok, products}` | `{:error, reason}`) on each of the
-  shop's listing paths, pausing between listings, and joins the products. Any
+  shop's listing paths and joins the products. Any
   failing listing fails the fetch.
   """
   @spec read_listings(Shop.t(), (String.t() -> {:ok, [map()]} | {:error, term()})) ::
           {:ok, [map()]} | {:error, term()}
   def read_listings(%Shop{listing_paths: [_ | _] = paths}, read) do
-    paths
-    |> Enum.with_index()
-    |> Enum.reduce_while({:ok, []}, fn {path, index}, {:ok, acc} ->
-      if index > 0, do: Process.sleep(@page_pause_ms)
-
+    Enum.reduce_while(paths, {:ok, []}, fn path, {:ok, acc} ->
       case read.(path) do
         {:ok, products} -> {:cont, {:ok, acc ++ products}}
         {:error, reason} -> {:halt, {:error, reason}}

@@ -42,7 +42,7 @@ defmodule TcgCheap.Sealed.Sote do
        do: {:error, :too_many_pages}
 
   defp read_pages(shop, req_options, path, page, last, size, acc) do
-    with {:ok, document} <- HtmlListing.page(shop, page_path(path, page), req_options, page - 1),
+    with {:ok, document} <- HtmlListing.page(shop, page_path(path, page), req_options),
          {:ok, products} <- products(document),
          {:ok, page_last} <- paging(document, page),
          :ok <- same_last(last, page_last) do

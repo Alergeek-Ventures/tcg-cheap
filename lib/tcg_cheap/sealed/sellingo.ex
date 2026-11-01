@@ -32,7 +32,7 @@ defmodule TcgCheap.Sealed.Sellingo do
   end
 
   defp read_listing(shop, req_options, path) do
-    with {:ok, document} <- HtmlListing.page(shop, path, req_options, 0),
+    with {:ok, document} <- HtmlListing.page(shop, path, req_options),
          {:ok, total} <- total(document),
          {:ok, products} <- products(document),
          :ok <- complete(products, total) do

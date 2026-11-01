@@ -38,8 +38,6 @@ defmodule TcgCheap.Sealed.PrestaShop do
   @preorder ~r/\b(?:przedsprzedaz|przedpremier|zapowiedz|preorder|pre order)/
   @premiere ~r/\bpremier\w*(?: (\d{1,2}) (\d{1,2}|[a-z]{3}) (\d{4}))?/
   @months ~w(sty lut mar kwi maj cze lip sie wrz paz lis gru)
-  # Milliseconds between two requests to a shop.
-  @request_pause 1_000
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -122,18 +120,13 @@ defmodule TcgCheap.Sealed.PrestaShop do
   defp request(shop, path, req_options, page) do
     params = if page == 1, do: ["from-xhr": ""], else: ["from-xhr": "", page: page]
 
-    result =
-      with {:ok, response} <- ShopFeed.get(shop, path, params, req_options),
-           {:ok, %{} = body} <- ShopFeed.decode(response) do
-        parse(body)
-      else
-        {:ok, _not_an_object} -> {:error, :malformed_response}
-        {:error, reason} -> {:error, reason}
-      end
-
-    # Several of these shops answer quick successive requests with 403.
-    Process.sleep(@request_pause)
-    result
+    with {:ok, response} <- ShopFeed.get(shop, path, params, req_options),
+         {:ok, %{} = body} <- ShopFeed.decode(response) do
+      parse(body)
+    else
+      {:ok, _not_an_object} -> {:error, :malformed_response}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   defp parse(%{
