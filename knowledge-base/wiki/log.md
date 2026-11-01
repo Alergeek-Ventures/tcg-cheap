@@ -1,5 +1,10 @@
 # Wiki Log
 
+## [2026-11-01] Kind always shown, location asked on entry
+
+- Task: Owner asked to always show the product kind on the home page (it was hidden when the name already said it, so some cards had it and some did not) and to ask for the location automatically on entry. The set is still left out when the name contains it. The `VisitorLocation` hook asks the device once per browser session when no location is remembered and the browser does not already refuse; a refusal or a point outside Poland shows nothing and moves no focus.
+- Validation: `mix check`; headless Chromium: with geolocation granted (Gdańsk) the header showed "Gdańsk" without a click and focus stayed put; with a refusal it kept "Ustaw lokalizację" and showed no error; a stored location (Warszawa) was kept and nothing was asked; picking a typed town still closed the panel and focused its summary. Desktop and 390 px home pages show the kind on every card.
+
 ## [2026-11-01] CardzHouse logo
 
 - Task: Owner asked about the missing CardzHouse logo. Its header logo, refused earlier with a 403, now downloads normally (plain request, allowed by robots.txt); being white, it sits on a dark chip. 116 of 122 shops have a logo. `Shops` now recompiles when the set of logo files changes, so a new file shows up in dev without touching code.

@@ -383,14 +383,12 @@ defmodule TcgCheapWeb.GuideComponents do
     )
   end
 
-  @doc ~S'Kind and set where the name does not already say them: "Kolekcja · Pitch Black".'
+  @doc ~S'Kind, and the set where the name does not already say it: "Kolekcja · Pitch Black".'
   @spec product_meta(TcgCheap.Sealed.Product.t()) :: String.t()
-  def product_meta(product) do
-    name = String.downcase(product.name)
-
-    [Kinds.label(product.kind), product.set_name]
-    |> Enum.reject(&(is_nil(&1) or String.contains?(name, String.downcase(&1))))
-    |> Enum.join(" · ")
+  def product_meta(%{set_name: set} = product) do
+    if is_nil(set) or String.contains?(String.downcase(product.name), String.downcase(set)),
+      do: Kinds.label(product.kind),
+      else: Kinds.label(product.kind) <> " · " <> set
   end
 
   @spec shop_name(map()) :: String.t()

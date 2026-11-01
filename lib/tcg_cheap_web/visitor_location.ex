@@ -7,7 +7,8 @@ defmodule TcgCheapWeb.VisitorLocation do
   coordinates rounded to 0.01° (about 1 km) and a town name in
   localStorage and sends them in a `"location-restore"` event once the
   LiveView connects (not in connect params, which phoenix.js puts into the
-  socket URL). Here it stays in the socket assigns; nothing stores it,
+  socket URL); without one it asks the device once per browser session.
+  Here it stays in the socket assigns; nothing stores it,
   Phoenix filters `location` parameters out of logs (`:filter_parameters`)
   and `TcgCheapWeb.LocationLogFilter` out of crash reports. Without
   JavaScript there is no location and no distances.
