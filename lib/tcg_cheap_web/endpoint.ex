@@ -25,6 +25,8 @@ defmodule TcgCheapWeb.Endpoint do
     from: :tcg_cheap,
     gzip: not code_reloading?,
     only: TcgCheapWeb.static_paths(),
+    # The icons are linked by their digested names (favicon-<digest>.ico) in production.
+    only_matching: ~w(favicon apple-touch-icon),
     raise_on_missing_only: code_reloading?
 
   # Code reloading can be explicitly enabled under the
