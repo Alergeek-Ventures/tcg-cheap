@@ -27,7 +27,8 @@ versioned pricing models.
   in-stock offers in Polish shops, falling back to the Cardmarket trend. A
   suggested retail price is shown beside them for reference only.
 - **Honest gaps.** Missing data is shown as missing; prices are never invented.
-- **Polish first.** Buying-guide copy, number and date formats are Polish.
+- **Polish first.** Polish is the default buying-guide language; English is
+  available in the header. Prices keep Polish PLN formatting in both languages.
 - **Shipping shown separately.** Prices and verdicts are item prices; each
   offer shows its shop's delivery terms next to it instead of folding an
   estimated shipping cost into the price.
@@ -147,6 +148,18 @@ versioned pricing models.
   Japanese official prices may not be republished, no other Polish, European
   or US source lists them); REBEL's status as official distributor and any
   reuse terms are unconfirmed (owner decision to collect it, 2026-11-01).
+- **Languages.** The public buying guide (`/` and `/produkty/:slug`) has PL / EN
+  links in the header on desktop and phones (including 360 px). Polish copy is
+  unchanged; English covers filters, verdicts, delivery/pickup, location and
+  scanner feedback, dates, plurals and page titles. Product/set/shop names and
+  PLN formatting stay as supplied. `TcgCheapWeb.Gettext` uses Polish msgids,
+  with complete `pl` (three plural forms) and `en` catalogues under
+  `priv/gettext/`. `GET /lang/:locale` stores only `pl` or `en` in the session,
+  defaults to Polish, and returns to a validated local path including its query
+  string. A guide-only plug and LiveView `on_mount` set the process locale and
+  root HTML `lang`; links work without JavaScript. Admin, trade and card pages
+  are outside this language switch. The desktop logo and location align with
+  the 72rem content column while the header border remains full width.
 - **Pages.** `/` lists and searches products (in stock first, then newest; a
   known barcode jumps to its product) with the cheapest current price and
   verdict. A side panel (behind "Filtry" on phones) filters by kind, language

@@ -70,6 +70,7 @@ defmodule TcgCheap.MixProject do
       {:floki, "~> 0.38"},
       {:igniter, "~> 0.8", only: [:dev, :test]},
       {:phoenix, "~> 1.8"},
+      {:gettext, "~> 1.0"},
       {:phoenix_ecto, "~> 4.7"},
       {:ecto_sql, "~> 3.14"},
       {:postgrex, "~> 0.22"},

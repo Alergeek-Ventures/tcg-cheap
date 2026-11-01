@@ -9,6 +9,7 @@ defmodule TcgCheapWeb.HomeLive do
   """
 
   use TcgCheapWeb, :live_view
+  use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.GuideComponents
 
@@ -26,8 +27,7 @@ defmodule TcgCheapWeb.HomeLive do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:page_title, "Sprawdź, czy cena jest dobra")
-     |> assign(:html_lang, "pl")
+     |> assign(:page_title, gettext("Sprawdź, czy cena jest dobra"))
      |> VisitorLocation.assign_location()
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")}
   end
@@ -142,8 +142,10 @@ defmodule TcgCheapWeb.HomeLive do
     <p :if={@pickup} id={@id} class="guide-product-nearby">
       <.fluent_icon name={:location} />
       <span>
-        odbiór: {@pickup.shop.pickup_city}, {VisitorLocation.km(@pickup.km)} · {Polish.price(
-          @pickup.offer.price
+        {gettext("odbiór: %{city}, %{distance} · %{price}",
+          city: @pickup.shop.pickup_city,
+          distance: VisitorLocation.km(@pickup.km),
+          price: Polish.price(@pickup.offer.price)
         )}
       </span>
     </p>
@@ -166,7 +168,7 @@ defmodule TcgCheapWeb.HomeLive do
     assigns = assign(assigns, first: first, rest: rest, active: active_filters(assigns.filters))
 
     ~H"""
-    <aside id="guide-filters" class="guide-filters" aria-label="Filtry">
+    <aside id="guide-filters" class="guide-filters" aria-label={gettext("Filtry")}>
       <button
         type="button"
         id="guide-filters-toggle"
@@ -178,18 +180,18 @@ defmodule TcgCheapWeb.HomeLive do
           |> JS.toggle_attribute({"aria-expanded", "true", "false"})
         }
       >
-        <.fluent_icon name={:filter} />Filtry<span :if={@active > 0}> ({@active})</span>
+        <.fluent_icon name={:filter} />{gettext("Filtry")}<span :if={@active > 0}> ({@active})</span>
       </button>
       <div id="guide-filters-body" class="guide-filters-body">
         <nav id="guide-regions" class="guide-filter" aria-labelledby="guide-regions-title">
-          <h2 id="guide-regions-title">Wersja językowa</h2>
+          <h2 id="guide-regions-title">{gettext("Wersja językowa")}</h2>
           <ul>
             <li>
               <.link
                 id="region-all"
                 patch={list_path(@filters, region: nil)}
                 aria-current={if(is_nil(@filters.region), do: "true")}
-              >Wszystkie</.link>
+              >{gettext("Wszystkie")}</.link>
             </li>
             <li :for={{region, count} <- @facets.regions}>
               <.link
@@ -204,14 +206,14 @@ defmodule TcgCheapWeb.HomeLive do
           </ul>
         </nav>
         <nav id="guide-kinds" class="guide-filter" aria-labelledby="guide-kinds-title">
-          <h2 id="guide-kinds-title">Rodzaj</h2>
+          <h2 id="guide-kinds-title">{gettext("Rodzaj")}</h2>
           <ul>
             <li>
               <.link
                 id="kind-all"
                 patch={list_path(@filters, kind: nil)}
                 aria-current={if(is_nil(@filters.kind), do: "true")}
-              >Wszystkie</.link>
+              >{gettext("Wszystkie")}</.link>
             </li>
             <li :for={{kind, label} <- @kinds}>
               <.link
@@ -228,13 +230,13 @@ defmodule TcgCheapWeb.HomeLive do
           class="guide-filter guide-expansions"
           aria-labelledby="guide-expansions-title"
         >
-          <h2 id="guide-expansions-title">Rozszerzenie</h2>
+          <h2 id="guide-expansions-title">{gettext("Rozszerzenie")}</h2>
           <.link
             id="expansion-all"
             class="guide-expansions-all"
             patch={list_path(@filters, expansion: nil)}
             aria-current={if(is_nil(@filters.expansion), do: "true")}
-          >Wszystkie</.link>
+          >{gettext("Wszystkie")}</.link>
           <ul class="guide-expansion-tiles">
             <.expansion_option
               :for={expansion <- @first}
@@ -248,7 +250,7 @@ defmodule TcgCheapWeb.HomeLive do
             id="guide-expansions-more"
             phx-mounted={JS.ignore_attributes(["open"])}
           >
-            <summary>Pokaż pozostałe ({length(@rest)})</summary>
+            <summary>{gettext("Pokaż pozostałe (%{count})", count: length(@rest))}</summary>
             <ul class="guide-expansion-names">
               <.expansion_option :for={expansion <- @rest} expansion={expansion} filters={@filters} />
             </ul>
@@ -265,7 +267,9 @@ defmodule TcgCheapWeb.HomeLive do
             |> JS.dispatch("guide:reveal", to: "#guide-results-title")
           }
         >
-          Pokaż {Polish.plural(@result_count, "produkt", "produkty", "produktów")}
+          {gettext("Pokaż %{products}",
+            products: Polish.plural(@result_count, "produkt", "produkty", "produktów")
+          )}
         </button>
       </div>
     </aside>
@@ -310,7 +314,7 @@ defmodule TcgCheapWeb.HomeLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div class="guide-world">
-        <.site_header>
+        <.site_header locale={@locale} return_to={@locale_return_to}>
           <VisitorLocation.location_control
             location={@location}
             ready={@location_ready?}
@@ -321,15 +325,17 @@ defmodule TcgCheapWeb.HomeLive do
         </.site_header>
         <main id="guide-main" class="guide-main">
           <section class="guide-intro" aria-labelledby="guide-title">
-            <h1 id="guide-title">Sprawdź, czy cena jest dobra</h1>
+            <h1 id="guide-title">{gettext("Sprawdź, czy cena jest dobra")}</h1>
             <p id="guide-promise">
-              Najniższe ceny z {length(Shops.all())} polskich sklepów, sprawdzane codziennie
-              i porównane z typową ceną.
+              {gettext(
+                "Najniższe ceny z %{count} polskich sklepów, sprawdzane codziennie i porównane z typową ceną.",
+                count: length(Shops.all())
+              )}
             </p>
           </section>
 
           <section class="guide-search" aria-labelledby="guide-search-title">
-            <h2 id="guide-search-title" class="sr-only">Szukaj produktu</h2>
+            <h2 id="guide-search-title" class="sr-only">{gettext("Szukaj produktu")}</h2>
             <.form
               for={@form}
               id="guide-search-form"
@@ -338,7 +344,7 @@ defmodule TcgCheapWeb.HomeLive do
               phx-change="search"
               phx-submit="search"
             >
-              <label for="guide-search-query" class="guide-search-label">Szukaj produktu</label>
+              <label for="guide-search-query" class="guide-search-label">{gettext("Szukaj produktu")}</label>
               <div class="guide-search-field">
                 <.fluent_icon name={:search} class="guide-search-icon" />
                 <.input
@@ -349,14 +355,22 @@ defmodule TcgCheapWeb.HomeLive do
                   maxlength="100"
                   autocomplete="off"
                   phx-debounce="300"
-                  placeholder="np. Pitch Black ETB"
+                  placeholder={gettext("np. Pitch Black ETB")}
                 />
-                <div id="guide-scan" class="guide-scan" phx-hook=".BarcodeScan" phx-update="ignore">
+                <div
+                  id="guide-scan"
+                  class="guide-scan"
+                  phx-hook=".BarcodeScan"
+                  data-camera-error={
+                    gettext("Brak dostępu do aparatu. Wpisz cyfry spod kodu kreskowego.")
+                  }
+                  phx-update="ignore"
+                >
                   <button
                     id="guide-scan-open"
                     type="button"
                     class="guide-scan-open"
-                    aria-label="Skanuj kod kreskowy"
+                    aria-label={gettext("Skanuj kod kreskowy")}
                     hidden
                   >
                     <.fluent_icon name={:barcode} class="size-6" />
@@ -366,10 +380,10 @@ defmodule TcgCheapWeb.HomeLive do
                     class="guide-scan-dialog"
                     aria-labelledby="guide-scan-title"
                   >
-                    <h2 id="guide-scan-title">Skieruj aparat na kod kreskowy</h2>
+                    <h2 id="guide-scan-title">{gettext("Skieruj aparat na kod kreskowy")}</h2>
                     <video id="guide-scan-video" muted playsinline></video>
                     <p id="guide-scan-status" aria-live="polite"></p>
-                    <button id="guide-scan-close" type="button">Zamknij</button>
+                    <button id="guide-scan-close" type="button">{gettext("Zamknij")}</button>
                   </dialog>
                 </div>
               </div>
@@ -410,7 +424,7 @@ defmodule TcgCheapWeb.HomeLive do
                     this.stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}})
                   } catch {
                     this.video.hidden = true
-                    this.status.textContent = "Brak dostępu do aparatu. Wpisz cyfry spod kodu kreskowego."
+                    this.status.textContent = this.el.dataset.cameraError
                     return
                   }
                   this.video.srcObject = this.stream
@@ -448,8 +462,8 @@ defmodule TcgCheapWeb.HomeLive do
               <div class="guide-results-heading">
                 <h2 id="guide-results-title" tabindex="-1">
                   {if @filters.query == "" and !filtered?(@filters),
-                    do: "Wszystkie produkty",
-                    else: "Wyniki"}
+                    do: gettext("Wszystkie produkty"),
+                    else: gettext("Wyniki")}
                 </h2>
                 <p id="guide-result-count" aria-live="polite">
                   {Polish.plural(@result_count, "produkt", "produkty", "produktów")}
@@ -459,7 +473,7 @@ defmodule TcgCheapWeb.HomeLive do
                       id="guide-filters-clear"
                       class="guide-filters-clear"
                       patch={list_path(@filters, kind: nil, region: nil, expansion: nil)}
-                    >Wyczyść filtry</.link>
+                    >{gettext("Wyczyść filtry")}</.link>
                   </span>
                 </p>
               </div>
@@ -467,13 +481,17 @@ defmodule TcgCheapWeb.HomeLive do
                 <li id="guide-products-empty" class="guide-empty hidden only:block">
                   <%= cond do %>
                     <% @barcode? -> %>
-                      Nie znamy jeszcze tego kodu kreskowego. Wpisz nazwę produktu, np. Pitch Black ETB.
+                      {gettext(
+                        "Nie znamy jeszcze tego kodu kreskowego. Wpisz nazwę produktu, np. Pitch Black ETB."
+                      )}
                     <% filtered?(@filters) -> %>
-                      Nic nie znaleźliśmy przy tych filtrach. Spróbuj samej nazwy dodatku albo usuń filtry.
+                      {gettext(
+                        "Nic nie znaleźliśmy przy tych filtrach. Spróbuj samej nazwy dodatku albo usuń filtry."
+                      )}
                     <% true -> %>
-                      Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black.
+                      {gettext("Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black.")}
                   <% end %>
-                  <.link id="guide-empty-reset" patch={~p"/"}>Pokaż wszystkie produkty</.link>
+                  <.link id="guide-empty-reset" patch={~p"/"}>{gettext("Pokaż wszystkie produkty")}</.link>
                 </li>
                 <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">
                   <.link navigate={~p"/produkty/#{summary.product.slug}"} class="guide-product-link">
@@ -518,10 +536,17 @@ defmodule TcgCheapWeb.HomeLive do
                 </li>
               </ul>
               <div :if={@more?} class="guide-more">
-                <button id="guide-more" type="button" phx-click="more" phx-disable-with="Wczytuję…">
-                  Pokaż więcej
+                <button
+                  id="guide-more"
+                  type="button"
+                  phx-click="more"
+                  phx-disable-with={gettext("Wczytuję…")}
+                >
+                  {gettext("Pokaż więcej")}
                 </button>
-                <p>Pokazano {@loaded} z {@result_count}.</p>
+                <p>
+                  {gettext("Pokazano %{loaded} z %{count}.", loaded: @loaded, count: @result_count)}
+                </p>
               </div>
             </section>
           </div>

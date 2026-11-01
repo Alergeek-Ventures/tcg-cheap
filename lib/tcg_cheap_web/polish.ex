@@ -1,5 +1,6 @@
 defmodule TcgCheapWeb.Polish do
-  @moduledoc "Polish formatting for prices, dates and counts in the public UI."
+  @moduledoc "Guide formatting: Polish PLN prices and locale-aware dates and counts."
+  use Gettext, backend: TcgCheapWeb.Gettext
 
   # A no-break space keeps "1 299,99 zł" on one line.
   @nbsp "\u00A0"
@@ -39,27 +40,46 @@ defmodule TcgCheapWeb.Polish do
 
   @doc ~S'Formats a date: "17 lipca 2026".'
   @spec date(Date.t()) :: String.t()
-  def date(%Date{} = date), do: "#{date.day} #{Enum.at(@months, date.month - 1)} #{date.year}"
+  def date(%Date{} = date) do
+    if Gettext.get_locale(TcgCheapWeb.Gettext) == "en",
+      do: Calendar.strftime(date, "%d %B %Y") |> String.trim_leading("0"),
+      else: "#{date.day} #{Enum.at(@months, date.month - 1)} #{date.year}"
+  end
 
   @short_months ~w(sty lut mar kwi maj cze lip sie wrz paź lis gru)
 
   @doc ~S'A short date for chart axes: "17 lip".'
   @spec short_date(Date.t()) :: String.t()
-  def short_date(%Date{} = date),
-    do: "#{date.day}#{@nbsp}#{Enum.at(@short_months, date.month - 1)}"
+  def short_date(%Date{} = date) do
+    month =
+      if Gettext.get_locale(TcgCheapWeb.Gettext) == "en",
+        do: Calendar.strftime(date, "%b"),
+        else: Enum.at(@short_months, date.month - 1)
+
+    "#{date.day}#{@nbsp}#{month}"
+  end
 
   @doc ~S'How long ago a day was: "dziś", "wczoraj", "3 dni temu".'
   @spec days_ago(Date.t(), Date.t()) :: String.t()
   def days_ago(%Date{} = date, %Date{} = today) do
     case Date.diff(today, date) do
-      days when days <= 0 -> "dziś"
-      1 -> "wczoraj"
-      days -> "#{days} dni temu"
+      days when days <= 0 -> gettext("dziś")
+      1 -> gettext("wczoraj")
+      days -> ngettext("%{count} dzień temu", "%{count} dni temu", days)
     end
   end
 
   @doc ~S'Polish plural form: plural(5, "produkt", "produkty", "produktów") == "5 produktów".'
   @spec plural(integer(), String.t(), String.t(), String.t()) :: String.t()
+  def plural(count, "produkt", "produkty", "produktów"),
+    do: ngettext("%{count} produkt", "%{count} produkty", count, count: number(count))
+
+  def plural(count, "oferta", "oferty", "ofert"),
+    do: ngettext("%{count} oferta", "%{count} oferty", count, count: number(count))
+
+  def plural(count, "dnia", "dni", "dni"),
+    do: ngettext("%{count} dnia", "%{count} dni", count, count: number(count))
+
   def plural(count, one, few, many) do
     word =
       cond do

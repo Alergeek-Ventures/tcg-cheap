@@ -21,6 +21,10 @@ defmodule TcgCheapWeb.Router do
     plug :load_from_session
   end
 
+  pipeline :guide_locale do
+    plug TcgCheapWeb.Locale
+  end
+
   pipeline :admin do
     plug TcgCheapWeb.AdminAuth
   end
@@ -89,10 +93,19 @@ defmodule TcgCheapWeb.Router do
   scope "/", TcgCheapWeb do
     pipe_through :browser
 
-    live "/", HomeLive
     live "/trade", TradeLive
     live "/cards/:tcgdex_id", CardDetailLive
-    live "/produkty/:slug", ProductLive
+  end
+
+  scope "/", TcgCheapWeb do
+    pipe_through [:browser, :guide_locale]
+
+    get "/lang/:locale", LocaleController, :update
+
+    live_session :guide, on_mount: [TcgCheapWeb.Locale] do
+      live "/", HomeLive
+      live "/produkty/:slug", ProductLive
+    end
   end
 
   scope "/admin", TcgCheapWeb do

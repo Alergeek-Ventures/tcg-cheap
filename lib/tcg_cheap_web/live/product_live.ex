@@ -2,6 +2,7 @@ defmodule TcgCheapWeb.ProductLive do
   @moduledoc "One catalogue product: today's verdict, the offers behind it and 90 days of prices."
 
   use TcgCheapWeb, :live_view
+  use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.GuideComponents
 
@@ -20,7 +21,6 @@ defmodule TcgCheapWeb.ProductLive do
         {:ok,
          socket
          |> assign(:page_title, page.product.name)
-         |> assign(:html_lang, "pl")
          |> assign(:page, page)
          |> assign(:offer_count, length(page.offers))
          |> assign(:in_stock_count, Enum.count(page.offers, & &1.in_stock))
@@ -47,7 +47,7 @@ defmodule TcgCheapWeb.ProductLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div class="guide-world">
-        <.site_header>
+        <.site_header locale={@locale} return_to={@locale_return_to}>
           <VisitorLocation.location_control
             location={@location}
             ready={@location_ready?}
@@ -58,7 +58,7 @@ defmodule TcgCheapWeb.ProductLive do
         </.site_header>
         <main id="product-main" class="guide-main product-page">
           <.link id="product-back" navigate={~p"/"} class="guide-back">
-            <.fluent_icon name={:arrow_left} />Wszystkie produkty
+            <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
           </.link>
 
           <div class="product-top">
@@ -76,7 +76,13 @@ defmodule TcgCheapWeb.ProductLive do
                   :if={@page.product.set_name}
                   id="product-set"
                 > · {@page.product.set_name}</span><span id="product-region">
-                  · wersja {String.downcase(Regions.label(@page.product.region))}
+                  {gettext("· wersja %{edition}",
+                    edition:
+                      if(@locale == "pl",
+                        do: String.downcase(Regions.label(@page.product.region)),
+                        else: Regions.label(@page.product.region)
+                      )
+                  )}
                 </span>
               </p>
               <p :if={@page.suggested_price} id="product-suggested" class="product-facts">
@@ -92,14 +98,17 @@ defmodule TcgCheapWeb.ProductLive do
 
           <section id="product-offers" class="product-section" aria-labelledby="product-offers-title">
             <div class="product-section-heading">
-              <h2 id="product-offers-title">Oferty w sklepach</h2>
+              <h2 id="product-offers-title">{gettext("Oferty w sklepach")}</h2>
               <p :if={@offer_count > 0}>
-                {Polish.plural(@offer_count, "oferta", "oferty", "ofert")}, na stanie: {@in_stock_count}
+                {gettext("%{offers}, na stanie: %{count}",
+                  offers: Polish.plural(@offer_count, "oferta", "oferty", "ofert"),
+                  count: @in_stock_count
+                )}
               </p>
             </div>
             <ul id="offer-list" class="offer-list" phx-update="stream">
               <li id="offer-list-empty" class="guide-empty hidden only:block">
-                Żaden sklep nie ma teraz tego produktu w ofercie.
+                {gettext("Żaden sklep nie ma teraz tego produktu w ofercie.")}
               </li>
               <li
                 :for={{dom_id, offer} <- @streams.offers}
@@ -114,10 +123,12 @@ defmodule TcgCheapWeb.ProductLive do
                 <strong class="offer-price">{Polish.price(offer.price)}</strong>
                 <p class="offer-state">
                   <span class="offer-stock">
-                    {if offer.in_stock, do: "Na stanie", else: "Brak na stanie"}
+                    {if offer.in_stock, do: gettext("Na stanie"), else: gettext("Brak na stanie")}
                   </span>
                   <span class="offer-checked">
-                    sprawdzono {Polish.days_ago(DateTime.to_date(offer.last_seen_at), @page.today)}
+                    {gettext("sprawdzono %{when}",
+                      when: Polish.days_ago(DateTime.to_date(offer.last_seen_at), @page.today)
+                    )}
                   </span>
                 </p>
                 <a
@@ -125,8 +136,12 @@ defmodule TcgCheapWeb.ProductLive do
                   target="_blank"
                   rel="noopener nofollow"
                   class="offer-link"
-                  aria-label={"#{shop_name(offer)}: przejdź do sklepu (otwiera się w nowej karcie)"}
-                >Do sklepu</a>
+                  aria-label={
+                    gettext("%{shop}: przejdź do sklepu (otwiera się w nowej karcie)",
+                      shop: shop_name(offer)
+                    )
+                  }
+                >{gettext("Do sklepu")}</a>
               </li>
             </ul>
           </section>
@@ -137,7 +152,7 @@ defmodule TcgCheapWeb.ProductLive do
             aria-labelledby="product-history-title"
           >
             <div class="product-section-heading">
-              <h2 id="product-history-title">Ceny z ostatnich 90 dni</h2>
+              <h2 id="product-history-title">{gettext("Ceny z ostatnich 90 dni")}</h2>
             </div>
             <.price_chart
               id="price-history"
@@ -188,7 +203,10 @@ defmodule TcgCheapWeb.ProductLive do
     ~H"""
     <span :if={@terms != []} class="offer-delivery">{Enum.join(@terms, "\u00A0· ")}</span>
     <span :if={@near?} class="offer-pickup-near">
-      <.fluent_icon name={:location} />odbiór: {@shop.pickup_city}, {VisitorLocation.km(@km)}
+      <.fluent_icon name={:location} />{gettext("odbiór: %{city}, %{distance}",
+        city: @shop.pickup_city,
+        distance: VisitorLocation.km(@km)
+      )}
     </span>
     """
   end
@@ -200,14 +218,14 @@ defmodule TcgCheapWeb.ProductLive do
     # The threshold stays visible: shops often grant it for some carriers only.
     cost =
       case shipping do
-        :free -> "darmowa dostawa od #{amount(threshold)}"
-        {:from, from} -> "dostawa od #{amount(from)}"
-        :unknown -> "koszt dostawy w koszyku"
+        :free -> gettext("darmowa dostawa od %{amount}", amount: amount(threshold))
+        {:from, from} -> gettext("dostawa od %{amount}", amount: amount(from))
+        :unknown -> gettext("koszt dostawy w koszyku")
       end
 
     [
       cost,
-      threshold && shipping != :free && "darmowa od #{amount(threshold)}",
+      threshold && shipping != :free && gettext("darmowa od %{amount}", amount: amount(threshold)),
       pickup_term(shop.pickup_city, km, near?)
     ]
     |> Enum.filter(&is_binary/1)
@@ -216,8 +234,14 @@ defmodule TcgCheapWeb.ProductLive do
   # Pickup within the radius is shown on its own line instead.
   defp pickup_term(nil, _km, _near?), do: nil
   defp pickup_term(_city, _km, true), do: nil
-  defp pickup_term(city, nil, false), do: "odbiór osobisty: #{city}"
-  defp pickup_term(city, km, false), do: "odbiór osobisty: #{city} (#{VisitorLocation.km(km)})"
+  defp pickup_term(city, nil, false), do: gettext("odbiór osobisty: %{city}", city: city)
+
+  defp pickup_term(city, km, false),
+    do:
+      gettext("odbiór osobisty: %{city} (%{distance})",
+        city: city,
+        distance: VisitorLocation.km(km)
+      )
 
   defp shipping(shop, price) do
     threshold = shop.free_shipping_from
@@ -271,25 +295,25 @@ defmodule TcgCheapWeb.ProductLive do
       aria-labelledby="product-cardmarket-title"
     >
       <div class="product-section-heading">
-        <h2 id="product-cardmarket-title">Cena na Cardmarket</h2>
+        <h2 id="product-cardmarket-title">{gettext("Cena na Cardmarket")}</h2>
         <p :if={@product.cardmarket_price_updated_on}>
-          z {Polish.date(@product.cardmarket_price_updated_on)}
+          {gettext("z %{date}", date: Polish.date(@product.cardmarket_price_updated_on))}
         </p>
       </div>
       <%= if @product.cardmarket_trend do %>
         <p id="cardmarket-trend" class="cardmarket-trend">
-          Trend: <strong>{Polish.eur(@product.cardmarket_trend)}</strong>
+          {gettext("Trend:")} <strong>{Polish.eur(@product.cardmarket_trend)}</strong>
           <span :if={@cardmarket_pln}>≈ {Polish.zloty(@cardmarket_pln)}</span>
         </p>
         <p class="guide-note">
-          Europejska giełda, bez wysyłki z innych krajów<span :if={@eur_pln}>; kurs NBP {Polish.rate(@eur_pln.rate)} zł z {Polish.date(@eur_pln.date)}</span>.
+          {gettext("Europejska giełda, bez wysyłki z innych krajów")}<span :if={@eur_pln}>{gettext("; kurs NBP %{rate} zł z %{date}" , rate: Polish.rate(@eur_pln.rate), date: Polish.date(@eur_pln.date))}</span>.
           <span :if={@product.cardmarket_added_on} id="product-added">
-            Na Cardmarket od {Polish.date(@product.cardmarket_added_on)}.
+            {gettext("Na Cardmarket od %{date}.", date: Polish.date(@product.cardmarket_added_on))}
           </span>
         </p>
       <% else %>
         <p id="cardmarket-none" class="guide-note">
-          Cardmarket nie podaje jeszcze ceny tego produktu.
+          {gettext("Cardmarket nie podaje jeszcze ceny tego produktu.")}
         </p>
       <% end %>
     </section>
@@ -323,13 +347,13 @@ defmodule TcgCheapWeb.ProductLive do
     [
       %{
         key: "shops",
-        label: "Najniższa cena w polskich sklepach",
+        label: gettext("Najniższa cena w polskich sklepach"),
         class: "shops",
         points: Enum.map(page.history, &{&1.date, &1.lowest_price})
       },
       %{
         key: "cardmarket",
-        label: "Cardmarket (w zł)",
+        label: gettext("Cardmarket (w zł)"),
         class: "cardmarket",
         points:
           Enum.map(page.history, &{&1.date, Guide.to_pln(&1.cardmarket_trend, page.eur_pln)})
@@ -343,14 +367,14 @@ defmodule TcgCheapWeb.ProductLive do
     ~H"""
     <div id="verdict-nearby-invite" class="verdict-nearby">
       <p>
-        Odbierzesz gdzieś blisko?
+        {gettext("Odbierzesz gdzieś blisko?")}
         <button
           type="button"
           id="verdict-nearby-open"
           class="verdict-nearby-open"
           phx-click={JS.dispatch("location:open", to: "#visitor-location")}
         >
-          Podaj miejscowość
+          {gettext("Podaj miejscowość")}
         </button>
       </p>
     </div>
@@ -361,7 +385,9 @@ defmodule TcgCheapWeb.ProductLive do
     ~H"""
     <div id="verdict-nearby" class="verdict-nearby">
       <p class="verdict-nearby-label">
-        Najtaniej z odbiorem osobistym do {VisitorLocation.radius_km()} km
+        {gettext("Najtaniej z odbiorem osobistym do %{radius} km",
+          radius: VisitorLocation.radius_km()
+        )}
       </p>
       <p class="verdict-nearby-value">
         <a href={@nearby.offer.url} target="_blank" rel="noopener nofollow">{@nearby.shop.name}</a>, {@nearby.shop.pickup_city} ·
@@ -370,7 +396,7 @@ defmodule TcgCheapWeb.ProductLive do
         <%= if Decimal.gt?(@nearby.extra, 0) do %>
           (+{extra_zloty(@nearby.extra)})
         <% else %>
-          – najtaniej
+          {gettext("– najtaniej")}
         <% end %>
       </p>
     </div>
@@ -380,19 +406,22 @@ defmodule TcgCheapWeb.ProductLive do
   defp nearby_line(assigns) do
     ~H"""
     <div id="verdict-nearby" class="verdict-nearby">
-      <p class="verdict-nearby-label">Odbiór osobisty</p>
+      <p class="verdict-nearby-label">{gettext("Odbiór osobisty")}</p>
       <p class="verdict-nearby-value verdict-nearby-none">
-        brak do {VisitorLocation.radius_km()} km – potrzebna dostawa
+        {gettext("brak do %{radius} km – potrzebna dostawa", radius: VisitorLocation.radius_km())}
       </p>
       <p :if={@nearby.delivery != :unknown} class="guide-note">
-        W {@nearby.shop_name} {delivery_note(@nearby.delivery)}
+        {gettext("W %{shop} %{delivery}",
+          shop: @nearby.shop_name,
+          delivery: delivery_note(@nearby.delivery)
+        )}
       </p>
     </div>
     """
   end
 
-  defp delivery_note({:from, from}), do: "dostawa od #{amount(from)}"
-  defp delivery_note(:free), do: "dostawa gratis"
+  defp delivery_note({:from, from}), do: gettext("dostawa od %{amount}", amount: amount(from))
+  defp delivery_note(:free), do: gettext("dostawa gratis")
 
   # Whole złoty, at least 1: "+110 zł".
   defp extra_zloty(extra),
@@ -410,13 +439,13 @@ defmodule TcgCheapWeb.ProductLive do
       class={["verdict-block", "verdict-block-#{@verdict.status}"]}
       aria-labelledby="product-verdict-title"
     >
-      <h2 id="product-verdict-title" class="sr-only">Ocena ceny</h2>
+      <h2 id="product-verdict-title" class="sr-only">{gettext("Ocena ceny")}</h2>
       <.verdict_badge verdict={@verdict} id="verdict-badge" class="verdict-badge-large" />
       <div class="verdict-body">
         <div :if={@verdict.cheapest} class="verdict-now">
           <p id="verdict-price" class="verdict-price">{Polish.price(@verdict.cheapest.price)}</p>
           <p id="verdict-shop" class="verdict-shop">
-            najtaniej teraz w
+            {gettext("najtaniej teraz w")}
             <a href={@verdict.cheapest.url} target="_blank" rel="noopener nofollow">{shop_name(
               @verdict.cheapest
             )}</a>
@@ -427,47 +456,56 @@ defmodule TcgCheapWeb.ProductLive do
           <span :if={@difference} id="verdict-difference">{@difference}</span>
         </p>
         <p :if={@verdict.status == :cardmarket} id="verdict-pending" class="guide-note">
-          Ocenę „dobra / normalna / drogo” pokażemy, gdy będziemy mieć {PriceGuide.min_days_with_stock()} dni cen z polskich sklepów.
+          {gettext(
+            "Ocenę „dobra / normalna / drogo” pokażemy, gdy będziemy mieć %{days} dni cen z polskich sklepów.",
+            days: PriceGuide.min_days_with_stock()
+          )}
         </p>
         <.nearby_line :if={@nearby} nearby={@nearby} />
         <div :if={@verdict.good_max} id="verdict-thresholds" class="verdict-thresholds">
-          <h3>Widzisz cenę w sklepie?</h3>
+          <h3>{gettext("Widzisz cenę w sklepie?")}</h3>
           <ol class="verdict-scale">
             <.threshold
               status={:good}
               current={@verdict.status}
-              prefix="do"
+              prefix={gettext("do")}
               amount={Polish.zloty(@verdict.good_max)}
             />
             <.threshold
               status={:normal}
               current={@verdict.status}
-              prefix="do"
+              prefix={gettext("do")}
               amount={Polish.zloty(@verdict.normal_max)}
             />
             <.threshold
               status={:expensive}
               current={@verdict.status}
-              prefix="powyżej"
+              prefix={gettext("powyżej")}
               amount={Polish.zloty(@verdict.normal_max)}
             />
           </ol>
         </div>
         <details id="verdict-method" class="verdict-method">
           <summary>
-            <.fluent_icon name={:info} />Jak liczymy typową cenę?<.fluent_icon
+            <.fluent_icon name={:info} />{gettext("Jak liczymy typową cenę?")}<.fluent_icon
               name={:chevron_down}
               class="verdict-method-chevron"
             />
           </summary>
           <p>
-            To mediana najniższych cen w polskich sklepach z ostatnich {PriceGuide.window_days()} dni,
-            w których produkt był dostępny; potrzebujemy co najmniej {PriceGuide.min_days_with_stock()} takich dni.
+            {gettext(
+              "To mediana najniższych cen w polskich sklepach z ostatnich %{window} dni, w których produkt był dostępny; potrzebujemy co najmniej %{minimum} takich dni.",
+              window: PriceGuide.window_days(),
+              minimum: PriceGuide.min_days_with_stock()
+            )}
             <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
-              Tylu jeszcze nie mamy, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP.
+              {gettext(
+                "Tylu jeszcze nie mamy, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
+              )}
             </span>
-            Dobra cena to do 95% typowej, normalna – do 110%, wyższa – drogo.
-            Progi zaokrąglamy w dół do pełnych złotych. Ceny nie obejmują wysyłki.
+            {gettext(
+              "Dobra cena to do 95% typowej, normalna – do 110%, wyższa – drogo. Progi zaokrąglamy w dół do pełnych złotych. Ceny nie obejmują wysyłki."
+            )}
           </p>
         </details>
       </div>
@@ -489,14 +527,14 @@ defmodule TcgCheapWeb.ProductLive do
     >
       <span class="verdict-step-label">{threshold_label(@status)}</span>
       <span class="verdict-step-range">{@prefix} <span>{@amount}</span></span>
-      <span :if={@status == @current} class="verdict-step-now">teraz</span>
+      <span :if={@status == @current} class="verdict-step-now">{gettext("teraz")}</span>
     </li>
     """
   end
 
-  defp threshold_label(:good), do: "Dobra"
-  defp threshold_label(:normal), do: "Normalna"
-  defp threshold_label(:expensive), do: "Drogo"
+  defp threshold_label(:good), do: gettext("Dobra")
+  defp threshold_label(:normal), do: gettext("Normalna")
+  defp threshold_label(:expensive), do: gettext("Drogo")
 
   # How far today's cheapest price is from the typical one, in whole złoty.
   defp difference(%{cheapest: %{price: price}, typical: %Decimal{} = typical}) do
@@ -509,9 +547,9 @@ defmodule TcgCheapWeb.ProductLive do
         else: Polish.zloty(abs(zloty))
 
     cond do
-      zloty < 0 -> "Teraz o #{amount} taniej."
-      zloty > 0 -> "Teraz o #{amount} drożej."
-      true -> "Teraz tyle, ile zwykle."
+      zloty < 0 -> gettext("Teraz o %{amount} taniej.", amount: amount)
+      zloty > 0 -> gettext("Teraz o %{amount} drożej.", amount: amount)
+      true -> gettext("Teraz tyle, ile zwykle.")
     end
   end
 
@@ -519,35 +557,57 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp reason(%{status: status, typical: typical, typical_source: :shops})
        when status in [:good, :normal, :expensive],
-       do: "Typowa cena z ostatnich #{PriceGuide.window_days()} dni: #{Polish.zloty(typical)}."
+       do:
+         gettext("Typowa cena z ostatnich %{days} dni: %{price}.",
+           days: PriceGuide.window_days(),
+           price: Polish.zloty(typical)
+         )
 
   defp reason(%{status: :cardmarket, typical: typical}), do: cardmarket_typical(typical)
 
   defp reason(%{status: :insufficient_data, days_with_stock: days}) do
-    "Znamy ceny dopiero z #{Polish.plural(days, "dnia", "dni", "dni")}, a potrzebujemy #{PriceGuide.min_days_with_stock()}. " <>
-      "Cardmarket nie podaje ceny tego produktu, więc na razie go nie oceniamy."
+    gettext("Znamy ceny dopiero z %{days}, a potrzebujemy %{minimum}. ",
+      days: Polish.plural(days, "dnia", "dni", "dni"),
+      minimum: PriceGuide.min_days_with_stock()
+    ) <>
+      gettext("Cardmarket nie podaje ceny tego produktu, więc na razie go nie oceniamy.")
   end
 
   defp reason(%{status: :out_of_stock} = verdict) do
-    ["Teraz żaden sklep nie ma tego produktu na stanie.", last_known(verdict), typical(verdict)]
+    [
+      gettext("Teraz żaden sklep nie ma tego produktu na stanie."),
+      last_known(verdict),
+      typical(verdict)
+    ]
     |> Enum.reject(&is_nil/1)
     |> Enum.join(" ")
   end
 
   defp last_known(%{last_known: %{price: price, date: date}}),
-    do: "Ostatnio najtaniej: #{Polish.price(price)} (#{Polish.date(date)})."
+    do:
+      gettext("Ostatnio najtaniej: %{price} (%{date}).",
+        price: Polish.price(price),
+        date: Polish.date(date)
+      )
 
   defp last_known(_verdict), do: nil
 
   defp typical(%{typical: %Decimal{} = typical, typical_source: :shops}),
-    do: "Typowa cena z ostatnich #{PriceGuide.window_days()} dni: #{Polish.zloty(typical)}."
+    do:
+      gettext("Typowa cena z ostatnich %{days} dni: %{price}.",
+        days: PriceGuide.window_days(),
+        price: Polish.zloty(typical)
+      )
 
   defp typical(%{typical: %Decimal{} = typical, typical_source: :cardmarket}),
     do: cardmarket_typical(typical)
 
-  defp typical(%{last_known: nil}), do: "Nie znamy jeszcze jego ceny."
+  defp typical(%{last_known: nil}), do: gettext("Nie znamy jeszcze jego ceny.")
   defp typical(_verdict), do: nil
 
   defp cardmarket_typical(typical),
-    do: "Typowa cena na Cardmarket (europejska giełda, bez wysyłki): #{Polish.zloty(typical)}."
+    do:
+      gettext("Typowa cena na Cardmarket (europejska giełda, bez wysyłki): %{price}.",
+        price: Polish.zloty(typical)
+      )
 end

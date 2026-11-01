@@ -20,6 +20,7 @@ defmodule TcgCheapWeb.VisitorLocation do
   """
 
   use TcgCheapWeb, :html
+  use Gettext, backend: TcgCheapWeb.Gettext
 
   import Phoenix.LiveView, only: [push_event: 3]
 
@@ -90,7 +91,7 @@ defmodule TcgCheapWeb.VisitorLocation do
       when is_binary(query) do
     case query |> String.slice(0, @max_query_length) |> Towns.search(1) do
       [town] -> put_town(socket, town)
-      [] -> assign(socket, :location_error, "Nie znamy takiej miejscowości.")
+      [] -> assign(socket, :location_error, gettext("Nie znamy takiej miejscowości."))
     end
   end
 
@@ -113,7 +114,11 @@ defmodule TcgCheapWeb.VisitorLocation do
         put_location(socket, %{coords: coords, label: town.city || town.name})
 
       nil ->
-        assign(socket, :location_error, "Ta lokalizacja jest poza Polską. Wpisz miejscowość.")
+        assign(
+          socket,
+          :location_error,
+          gettext("Ta lokalizacja jest poza Polską. Wpisz miejscowość.")
+        )
     end
   end
 
@@ -203,34 +208,42 @@ defmodule TcgCheapWeb.VisitorLocation do
       id="visitor-location"
       class="visitor-location"
       phx-hook="VisitorLocation"
+      data-located={
+        gettext("Lokalizacja: %{town}. Pokazujemy odległości do odbioru osobistego.", town: "%{town}")
+      }
+      data-cleared={gettext("Lokalizacja usunięta.")}
+      data-locating={gettext("Ustalam lokalizację…")}
+      data-failed={gettext("Przeglądarka nie udostępniła lokalizacji. Wpisz miejscowość poniżej.")}
       phx-mounted={JS.ignore_attributes(["open"])}
       hidden={!@ready}
     >
       <summary id="visitor-location-summary" class="visitor-location-summary">
         <.fluent_icon name={:location} />
         <span :if={@location} class="visitor-location-label">
-          <span class="sr-only">Twoja lokalizacja: </span>{@location.label}
+          <span class="sr-only">{gettext("Twoja lokalizacja: ")}</span>{@location.label}
         </span>
-        <span :if={!@location} class="visitor-location-label">Ustaw lokalizację</span>
+        <span :if={!@location} class="visitor-location-label">{gettext("Ustaw lokalizację")}</span>
       </summary>
       <div class="visitor-location-panel">
         <%= if @location do %>
-          <p class="visitor-location-lead">Teraz: {@location.label}. Zmień albo usuń.</p>
+          <p class="visitor-location-lead">
+            {gettext("Teraz: %{town}. Zmień albo usuń.", town: @location.label)}
+          </p>
           <button
             type="button"
             id="visitor-location-clear"
             class="visitor-location-clear"
             phx-click="location-clear"
           >
-            Usuń lokalizację
+            {gettext("Usuń lokalizację")}
           </button>
         <% else %>
           <p class="visitor-location-lead">
-            Pokażemy, jak daleko masz do sklepów z odbiorem osobistym.
+            {gettext("Pokażemy, jak daleko masz do sklepów z odbiorem osobistym.")}
           </p>
         <% end %>
         <button type="button" id="visitor-location-device" class="visitor-location-device">
-          <.fluent_icon name={:location} />Użyj mojej lokalizacji
+          <.fluent_icon name={:location} />{gettext("Użyj mojej lokalizacji")}
         </button>
         <p
           id="visitor-location-status"
@@ -249,12 +262,12 @@ defmodule TcgCheapWeb.VisitorLocation do
             field={@form[:town]}
             type="search"
             id="visitor-location-town"
-            label="albo wpisz miejscowość"
+            label={gettext("albo wpisz miejscowość")}
             class="visitor-location-input"
             autocomplete="off"
             maxlength="60"
             phx-debounce="200"
-            placeholder="np. Gdańsk"
+            placeholder={gettext("np. Gdańsk")}
           />
         </.form>
         <ul :if={@matches != []} id="visitor-location-matches" class="visitor-location-matches">
@@ -273,12 +286,19 @@ defmodule TcgCheapWeb.VisitorLocation do
           {@error}
         </p>
         <p class="guide-note">
-          Lokalizację pamięta tylko Twoja przeglądarka; nie zapisujemy jej. Odległości liczymy w linii prostej.
+          {gettext(
+            "Lokalizację pamięta tylko Twoja przeglądarka; nie zapisujemy jej. Odległości liczymy w linii prostej."
+          )}
         </p>
         <p id="visitor-location-sources" class="guide-note">
-          Miejscowości: <a href="https://www.geonames.org" rel="noopener">GeoNames</a>
-          (wybór; <a href="https://creativecommons.org/licenses/by/4.0/deed.pl" rel="noopener">CC BY 4.0</a>);
-          położenie sklepów: © <a href="https://www.openstreetmap.org/copyright" rel="noopener">autorzy OpenStreetMap</a>.
+          {gettext("Miejscowości:")} <a href="https://www.geonames.org" rel="noopener">GeoNames</a>
+          {gettext("(wybór;")} <a
+            href="https://creativecommons.org/licenses/by/4.0/deed.pl"
+            rel="noopener"
+          >CC BY 4.0</a>); {gettext("położenie sklepów: ©")} <a
+            href="https://www.openstreetmap.org/copyright"
+            rel="noopener"
+          >{gettext("autorzy OpenStreetMap")}</a>.
         </p>
       </div>
     </details>

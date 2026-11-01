@@ -18,6 +18,8 @@ defmodule TcgCheap.Sealed.Regions do
     4. Otherwise English, the international edition sold in Poland.
   """
 
+  use Gettext, backend: TcgCheapWeb.Gettext
+
   @regions [
     en: "Angielska",
     ja: "Japońska",
@@ -58,10 +60,17 @@ defmodule TcgCheap.Sealed.Regions do
   def all, do: Keyword.keys(@regions)
 
   @spec label(atom()) :: String.t()
-  def label(region), do: Keyword.fetch!(@regions, region)
+  def label(region), do: translate_label(Keyword.fetch!(@regions, region))
 
   @spec labels() :: keyword(String.t())
-  def labels, do: @regions
+  def labels, do: Enum.map(@regions, fn {key, label} -> {key, translate_label(label)} end)
+
+  defp translate_label("Angielska"), do: gettext("Angielska")
+  defp translate_label("Japońska"), do: gettext("Japońska")
+  defp translate_label("Chińska"), do: gettext("Chińska")
+  defp translate_label("Koreańska"), do: gettext("Koreańska")
+  defp translate_label("Indonezyjska"), do: gettext("Indonezyjska")
+  defp translate_label("Tajska"), do: gettext("Tajska")
 
   @doc ~S'A short tag for the edition: "JP", "CN", …'
   @spec tag(atom()) :: String.t()

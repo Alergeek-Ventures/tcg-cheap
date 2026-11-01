@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-11-01] Buying-guide PL / EN and header alignment
+
+- Task: Owner asked to align the desktop logo and location with the content and add Polish/English selection at the top. The guide header uses logical inline padding matching its 72rem content column, with a full-width border. PL / EN links persist the choice in the session and retain the page and query string; local redirect validation rejects external URLs, backslashes and control characters. Guide-only request and LiveView locale setup drives Gettext, page titles and HTML `lang`. Polish msgids preserve existing copy; complete Polish (three plural forms) and English catalogues cover the home/product pages, filters, verdicts, delivery/pickup, location and browser feedback, scanner, dates and counts. PLN formatting stays unchanged; admin, trade and card pages remain outside scope.
+- Files: `product/buying-and-trading-guide.md` (Languages, Polish first).
+- Validation: `direnv exec . mix check --verbose` passed, including Dialyzer (zero errors/skips). Running isolated worktree app with fabricated local sample products/offers/history; home and product desktop PL/EN, home at 390 and 360 px PL/EN, session and query retention, no-JS language links, external-redirect rejection, Polish/English plural forms and dates. Screenshots under `/tmp/opencode/lang/`.
+- Remaining: The separate “Cena sugerowana” change must be translated when integrated.
+
 ## [2026-11-01] REBEL suggested prices
 
 - Task: Owner asked for a deeper MSRP search (six more Luna agents: Japanese, European, Polish, US distributor, community and Internet Archive sources) and then chose to collect the only usable result, the SCD of the REBEL wholesaler's public Pokémon TCG catalogue. `TcgCheap.Sealed.Rebel` reads the listing daily (06:00 UTC, `SuggestedPriceWorker`, 5 s between requests per robots.txt) and each new item's EAN from its product page into `sealed_suggested_prices`, kept after REBEL drops an item. Items match English products through the matcher ("Booster Display (36)" as Booster Box; several units only when named a display; only products Cardmarket added within two years of REBEL first listing the item, since REBEL omits reprint years). MCP tools `list_suggested_prices`, `decide_suggested_price` and `enqueue_suggested_price_fetch`. The product page shows the price at the bottom ("Cena sugerowana", not part of the verdict) and a line under the product facts; automatically matched EANs let the scanner and search open products, manually assigned ones also match offers.

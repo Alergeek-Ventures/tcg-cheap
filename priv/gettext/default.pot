@@ -1,0 +1,710 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/tcg_cheap_web/polish.ex:81
+#, elixir-autogen, elixir-format
+msgid "%{count} dnia"
+msgid_plural "%{count} dni"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/tcg_cheap_web/polish.ex:68
+#, elixir-autogen, elixir-format
+msgid "%{count} dzień temu"
+msgid_plural "%{count} dni temu"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/tcg_cheap_web/polish.ex:78
+#, elixir-autogen, elixir-format
+msgid "%{count} oferta"
+msgid_plural "%{count} oferty"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/tcg_cheap_web/polish.ex:75
+#, elixir-autogen, elixir-format
+msgid "%{count} produkt"
+msgid_plural "%{count} produkty"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:99
+#, elixir-autogen, elixir-format
+msgid "%{offers}, na stanie: %{count}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:136
+#, elixir-autogen, elixir-format
+msgid "%{shop}: przejdź do sklepu (otwiera się w nowej karcie)"
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:295
+#, elixir-autogen, elixir-format
+msgid "(wybór;"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:303
+#, elixir-autogen, elixir-format
+msgid "; kurs NBP %{rate} zł z %{date}"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/regions.ex:68
+#, elixir-autogen, elixir-format
+msgid "Angielska"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/kinds.ex:52
+#, elixir-autogen, elixir-format
+msgid "Blister"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/kinds.ex:48
+#, elixir-autogen, elixir-format
+msgid "Booster"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/kinds.ex:50
+#, elixir-autogen, elixir-format
+msgid "Booster Box"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/kinds.ex:49
+#, elixir-autogen, elixir-format
+msgid "Booster Bundle"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:365
+#, elixir-autogen, elixir-format
+msgid "Brak dostępu do aparatu. Wpisz cyfry spod kodu kreskowego."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:122
+#, elixir-autogen, elixir-format
+msgid "Brak na stanie"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:475
+#, elixir-autogen, elixir-format
+msgid "Brak w sklepach"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:110
+#, elixir-autogen, elixir-format
+msgid "Brak zdjęcia"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:327
+#, elixir-autogen, elixir-format
+msgid "Cardmarket (w zł)"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:544
+#, elixir-autogen, elixir-format
+msgid "Cardmarket nie podaje ceny tego produktu, więc na razie go nie oceniamy."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:310
+#, elixir-autogen, elixir-format
+msgid "Cardmarket nie podaje jeszcze ceny tego produktu."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:292
+#, elixir-autogen, elixir-format
+msgid "Cena na Cardmarket"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:151
+#, elixir-autogen, elixir-format
+msgid "Ceny z ostatnich 90 dni"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/regions.ex:70
+#, elixir-autogen, elixir-format
+msgid "Chińska"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:140
+#, elixir-autogen, elixir-format
+msgid "Do sklepu"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:506
+#, elixir-autogen, elixir-format
+msgid "Dobra"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:471
+#, elixir-autogen, elixir-format
+msgid "Dobra cena"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:477
+#, elixir-autogen, elixir-format
+msgid "Dobra cena to do 95% typowej, normalna – do 110%, wyższa – drogo. Progi zaokrąglamy w dół do pełnych złotych. Ceny nie obejmują wysyłki."
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:473
+#: lib/tcg_cheap_web/live/product_live.ex:508
+#, elixir-autogen, elixir-format
+msgid "Drogo"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/kinds.ex:51
+#, elixir-autogen, elixir-format
+msgid "Elite Trainer Box"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:303
+#, elixir-autogen, elixir-format
+msgid "Europejska giełda, bez wysyłki z innych krajów"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:171
+#: lib/tcg_cheap_web/live/home_live.ex:183
+#, elixir-autogen, elixir-format
+msgid "Filtry"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/regions.ex:72
+#, elixir-autogen, elixir-format
+msgid "Indonezyjska"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:461
+#, elixir-autogen, elixir-format
+msgid "Jak liczymy typową cenę?"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/regions.ex:69
+#, elixir-autogen, elixir-format
+msgid "Japońska"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:27
+#, elixir-autogen, elixir-format
+msgid "Język strony"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/kinds.ex:57
+#, elixir-autogen, elixir-format
+msgid "Karton zbiorczy"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/kinds.ex:53
+#, elixir-autogen, elixir-format
+msgid "Kolekcja"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/regions.ex:71
+#, elixir-autogen, elixir-format
+msgid "Koreańska"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:252
+#, elixir-autogen, elixir-format
+msgid "Linia przerywana: typowa cena %{price}."
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:214
+#, elixir-autogen, elixir-format
+msgid "Lokalizacja usunięta."
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:212
+#, elixir-autogen, elixir-format
+msgid "Lokalizacja: %{town}. Pokazujemy odległości do odbioru osobistego."
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:289
+#, elixir-autogen, elixir-format
+msgid "Lokalizację pamięta tylko Twoja przeglądarka; nie zapisujemy jej. Odległości liczymy w linii prostej."
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:162
+#, elixir-autogen, elixir-format
+msgid "Mamy ceny z %{days} (od %{date}). Wykres pokażemy, gdy będzie ich co najmniej %{minimum}."
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:294
+#, elixir-autogen, elixir-format
+msgid "Miejscowości:"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:305
+#, elixir-autogen, elixir-format
+msgid "Na Cardmarket od %{date}."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:122
+#, elixir-autogen, elixir-format
+msgid "Na stanie"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:321
+#, elixir-autogen, elixir-format
+msgid "Najniższa cena w polskich sklepach"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:330
+#, elixir-autogen, elixir-format
+msgid "Najniższe ceny z %{count} polskich sklepów, sprawdzane codziennie i porównane z typową ceną."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:359
+#, elixir-autogen, elixir-format
+msgid "Najtaniej z odbiorem osobistym do %{radius} km"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:488
+#, elixir-autogen, elixir-format
+msgid "Nic nie znaleźliśmy przy tych filtrach. Spróbuj samej nazwy dodatku albo usuń filtry."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:492
+#, elixir-autogen, elixir-format
+msgid "Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black."
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:158
+#, elixir-autogen, elixir-format
+msgid "Nie mamy jeszcze historii cen tego produktu."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:576
+#, elixir-autogen, elixir-format
+msgid "Nie znamy jeszcze jego ceny."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:484
+#, elixir-autogen, elixir-format
+msgid "Nie znamy jeszcze tego kodu kreskowego. Wpisz nazwę produktu, np. Pitch Black ETB."
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:94
+#, elixir-autogen, elixir-format
+msgid "Nie znamy takiej miejscowości."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:507
+#, elixir-autogen, elixir-format
+msgid "Normalna"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:472
+#, elixir-autogen, elixir-format
+msgid "Normalna cena"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:413
+#, elixir-autogen, elixir-format
+msgid "Ocena ceny"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:430
+#, elixir-autogen, elixir-format
+msgid "Ocenę „dobra / normalna / drogo” pokażemy, gdy będziemy mieć %{days} dni cen z polskich sklepów."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:341
+#, elixir-autogen, elixir-format
+msgid "Odbierzesz gdzieś blisko?"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:380
+#, elixir-autogen, elixir-format
+msgid "Odbiór osobisty"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:97
+#, elixir-autogen, elixir-format
+msgid "Oferty w sklepach"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:559
+#, elixir-autogen, elixir-format
+msgid "Ostatnio najtaniej: %{price} (%{date})."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:348
+#, elixir-autogen, elixir-format
+msgid "Podaj miejscowość"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:548
+#, elixir-autogen, elixir-format
+msgid "Pokazano %{loaded} z %{count}."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:270
+#, elixir-autogen, elixir-format
+msgid "Pokaż %{products}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:253
+#, elixir-autogen, elixir-format
+msgid "Pokaż pozostałe (%{count})"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:545
+#, elixir-autogen, elixir-format
+msgid "Pokaż więcej"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:494
+#, elixir-autogen, elixir-format
+msgid "Pokaż wszystkie produkty"
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:242
+#, elixir-autogen, elixir-format
+msgid "Pokażemy, jak daleko masz do sklepów z odbiorem osobistym."
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:216
+#, elixir-autogen, elixir-format
+msgid "Przeglądarka nie udostępniła lokalizacji. Wpisz miejscowość poniżej."
+msgstr ""
+
+#: lib/tcg_cheap/sealed/kinds.ex:54
+#, elixir-autogen, elixir-format
+msgid "Puszka"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:209
+#, elixir-autogen, elixir-format
+msgid "Rodzaj"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:233
+#, elixir-autogen, elixir-format
+msgid "Rozszerzenie"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:373
+#, elixir-autogen, elixir-format
+msgid "Skanuj kod kreskowy"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:383
+#, elixir-autogen, elixir-format
+msgid "Skieruj aparat na kod kreskowy"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:30
+#: lib/tcg_cheap_web/live/home_live.ex:328
+#, elixir-autogen, elixir-format
+msgid "Sprawdź, czy cena jest dobra"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:338
+#: lib/tcg_cheap_web/live/home_live.ex:347
+#, elixir-autogen, elixir-format
+msgid "Szukaj produktu"
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:120
+#, elixir-autogen, elixir-format
+msgid "Ta lokalizacja jest poza Polską. Wpisz miejscowość."
+msgstr ""
+
+#: lib/tcg_cheap/sealed/regions.ex:73
+#, elixir-autogen, elixir-format
+msgid "Tajska"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/kinds.ex:55
+#, elixir-autogen, elixir-format
+msgid "Talia"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:522
+#, elixir-autogen, elixir-format
+msgid "Teraz o %{amount} drożej."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:521
+#, elixir-autogen, elixir-format
+msgid "Teraz o %{amount} taniej."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:523
+#, elixir-autogen, elixir-format
+msgid "Teraz tyle, ile zwykle."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:549
+#, elixir-autogen, elixir-format
+msgid "Teraz żaden sklep nie ma tego produktu na stanie."
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:230
+#, elixir-autogen, elixir-format
+msgid "Teraz: %{town}. Zmień albo usuń."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:467
+#, elixir-autogen, elixir-format
+msgid "To mediana najniższych cen w polskich sklepach z ostatnich %{window} dni, w których produkt był dostępny; potrzebujemy co najmniej %{minimum} takich dni."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:299
+#, elixir-autogen, elixir-format
+msgid "Trend:"
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:223
+#, elixir-autogen, elixir-format
+msgid "Twoja lokalizacja: "
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:473
+#, elixir-autogen, elixir-format
+msgid "Tylu jeszcze nie mamy, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:174
+#, elixir-autogen, elixir-format
+msgid "Typowa cena"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:581
+#, elixir-autogen, elixir-format
+msgid "Typowa cena na Cardmarket (europejska giełda, bez wysyłki): %{price}."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:532
+#: lib/tcg_cheap_web/live/product_live.ex:568
+#, elixir-autogen, elixir-format
+msgid "Typowa cena z ostatnich %{days} dni: %{price}."
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:215
+#, elixir-autogen, elixir-format
+msgid "Ustalam lokalizację…"
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:225
+#, elixir-autogen, elixir-format
+msgid "Ustaw lokalizację"
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:238
+#, elixir-autogen, elixir-format
+msgid "Usuń lokalizację"
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:246
+#, elixir-autogen, elixir-format
+msgid "Użyj mojej lokalizacji"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:385
+#, elixir-autogen, elixir-format
+msgid "W %{shop} %{delivery}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:543
+#, elixir-autogen, elixir-format
+msgid "Wczytuję…"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:187
+#, elixir-autogen, elixir-format
+msgid "Wersja językowa"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:437
+#, elixir-autogen, elixir-format
+msgid "Widzisz cenę w sklepie?"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:194
+#: lib/tcg_cheap_web/live/home_live.ex:216
+#: lib/tcg_cheap_web/live/home_live.ex:239
+#, elixir-autogen, elixir-format
+msgid "Wszystkie"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:465
+#: lib/tcg_cheap_web/live/product_live.ex:61
+#, elixir-autogen, elixir-format
+msgid "Wszystkie produkty"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:476
+#, elixir-autogen, elixir-format
+msgid "Wyczyść filtry"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:466
+#, elixir-autogen, elixir-format
+msgid "Wyniki"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:474
+#, elixir-autogen, elixir-format
+msgid "Za mało danych"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:386
+#, elixir-autogen, elixir-format
+msgid "Zamknij"
+msgstr ""
+
+#: lib/tcg_cheap/sealed/kinds.ex:56
+#, elixir-autogen, elixir-format
+msgid "Zestaw kart"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:540
+#, elixir-autogen, elixir-format
+msgid "Znamy ceny dopiero z %{days}, a potrzebujemy %{minimum}. "
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:265
+#, elixir-autogen, elixir-format
+msgid "albo wpisz miejscowość"
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:301
+#, elixir-autogen, elixir-format
+msgid "autorzy OpenStreetMap"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:382
+#, elixir-autogen, elixir-format
+msgid "brak do %{radius} km – potrzebna dostawa"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:215
+#, elixir-autogen, elixir-format
+msgid "darmowa dostawa od %{amount}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:222
+#, elixir-autogen, elixir-format
+msgid "darmowa od %{amount}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:442
+#: lib/tcg_cheap_web/live/product_live.ex:448
+#, elixir-autogen, elixir-format
+msgid "do"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:395
+#, elixir-autogen, elixir-format
+msgid "dostawa gratis"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:216
+#: lib/tcg_cheap_web/live/product_live.ex:394
+#, elixir-autogen, elixir-format
+msgid "dostawa od %{amount}"
+msgstr ""
+
+#: lib/tcg_cheap_web/polish.ex:66
+#, elixir-autogen, elixir-format
+msgid "dziś"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:217
+#, elixir-autogen, elixir-format
+msgid "koszt dostawy w koszyku"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:419
+#, elixir-autogen, elixir-format
+msgid "najtaniej teraz w"
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:270
+#, elixir-autogen, elixir-format
+msgid "np. Gdańsk"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:358
+#, elixir-autogen, elixir-format
+msgid "np. Pitch Black ETB"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:231
+#, elixir-autogen, elixir-format
+msgid "odbiór osobisty: %{city}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:235
+#, elixir-autogen, elixir-format
+msgid "odbiór osobisty: %{city} (%{distance})"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:200
+#, elixir-autogen, elixir-format
+msgid "odbiór: %{city}, %{distance}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:145
+#, elixir-autogen, elixir-format
+msgid "odbiór: %{city}, %{distance} · %{price}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:454
+#, elixir-autogen, elixir-format
+msgid "powyżej"
+msgstr ""
+
+#: lib/tcg_cheap_web/visitor_location.ex:298
+#, elixir-autogen, elixir-format
+msgid "położenie sklepów: ©"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:125
+#, elixir-autogen, elixir-format
+msgid "sprawdzono %{when}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:501
+#, elixir-autogen, elixir-format
+msgid "teraz"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/guide_components.ex:233
+#, elixir-autogen, elixir-format
+msgid "typowa %{price}"
+msgstr ""
+
+#: lib/tcg_cheap_web/polish.ex:67
+#, elixir-autogen, elixir-format
+msgid "wczoraj"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:294
+#, elixir-autogen, elixir-format
+msgid "z %{date}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:79
+#, elixir-autogen, elixir-format
+msgid "· wersja %{edition}"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:107
+#, elixir-autogen, elixir-format
+msgid "Żaden sklep nie ma teraz tego produktu w ofercie."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:370
+#, elixir-autogen, elixir-format
+msgid "– najtaniej"
+msgstr ""
