@@ -11,7 +11,8 @@ defmodule TcgCheap.Sealed.Shop do
       whole shop);
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
       cover the whole shop); IdoSell: `feed_path` (a Pokémon category or
-      search listing, query included);
+      search listing, query included); PrestaShop: `listing_paths` (the
+      Pokémon category listings, each read to its last page);
     * `shipping_from` – the cheapest delivery price in PLN, `free_shipping_from`
       – the order value from which delivery is free, `pickup_city` – the city
       of the shop's own store where orders can be picked up in person; each nil
@@ -36,6 +37,7 @@ defmodule TcgCheap.Sealed.Shop do
                 :product_path,
                 :collection,
                 :feed_path,
+                :listing_paths,
                 :pickup_location
               ]
 
@@ -50,6 +52,7 @@ defmodule TcgCheap.Sealed.Shop do
           product_path: Regex.t() | nil,
           collection: String.t() | nil,
           feed_path: String.t() | nil,
+          listing_paths: [String.t()] | nil,
           shipping_from: Decimal.t() | nil,
           free_shipping_from: Decimal.t() | nil,
           pickup_city: String.t() | nil,

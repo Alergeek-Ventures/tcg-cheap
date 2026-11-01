@@ -11,7 +11,7 @@ defmodule TcgCheap.Sealed.Shops do
   OpenStreetMap Nominatim on 2026-11-01.
   """
 
-  alias TcgCheap.Sealed.{CeneoFeed, GoogleFeed, IdoSell, Shop, Shopify, WooCommerce}
+  alias TcgCheap.Sealed.{CeneoFeed, GoogleFeed, IdoSell, PrestaShop, Shop, Shopify, WooCommerce}
 
   @produkt ~r|\A/produkt/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
   @produkt_no_slash ~r|\A/produkt/[a-z0-9]+(?:-[a-z0-9]+)*\z|
@@ -889,6 +889,160 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 5,
       shipping_from: Decimal.new("11.99"),
       free_shipping_from: Decimal.new("199"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "3trolle",
+      name: "Trzy Trolle",
+      host: "3trolle.pl",
+      source: PrestaShop,
+      listing_paths: ["/833-pokemon"],
+      max_pages: 12,
+      shipping_from: Decimal.new("9.99"),
+      free_shipping_from: Decimal.new("400"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "arenasklep",
+      name: "Arena Centrum Gier",
+      host: "arena-sklep.pl",
+      source: PrestaShop,
+      listing_paths: ["/15-pokemon-tcg"],
+      max_pages: 3,
+      shipping_from: Decimal.new("15.99"),
+      free_shipping_from: Decimal.new("199"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "grymel",
+      name: "Grymel",
+      host: "grymel.pl",
+      source: PrestaShop,
+      listing_paths: ["/204-karty-pokemon-trading-card-game"],
+      max_pages: 2,
+      shipping_from: Decimal.new("13.9"),
+      free_shipping_from: Decimal.new("149.9"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "heartspub",
+      name: "Hearts Pub",
+      host: "hearts.pub",
+      source: PrestaShop,
+      listing_paths: ["/sklep/pokemon-tcg"],
+      max_pages: 16,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: "Gliwice"
+    },
+    %Shop{
+      key: "hobbity",
+      name: "Hobbity",
+      host: "hobbity.pl",
+      source: PrestaShop,
+      listing_paths: ["/gry-karciane-kolekcjonerskie/pokemon-tcg"],
+      max_pages: 12,
+      shipping_from: Decimal.new("15"),
+      free_shipping_from: Decimal.new("289"),
+      pickup_city: "Nowy Sącz"
+    },
+    %Shop{
+      key: "monsteriada",
+      name: "Monsteriada",
+      host: "monsteriada.pl",
+      source: PrestaShop,
+      listing_paths: ["/93-pokemon-tcg-karty-kolekjonerskie"],
+      max_pages: 8,
+      shipping_from: Decimal.new("12"),
+      free_shipping_from: Decimal.new("250"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "pegazgry",
+      name: "Centrum Gier Pegaz",
+      host: "pegaz-gry.pl",
+      source: PrestaShop,
+      listing_paths: ["/22-pokemon-tcg-gra-karciana-sklep-bydgoszcz"],
+      max_pages: 10,
+      shipping_from: Decimal.new("10"),
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: "Bydgoszcz"
+    },
+    %Shop{
+      key: "basanti",
+      name: "Basanti Pokemon",
+      host: "poke.basanti.pl",
+      source: PrestaShop,
+      listing_paths: ["/71-rodzaje"],
+      max_pages: 8,
+      shipping_from: Decimal.new("17.9"),
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "poketeka",
+      name: "Poketeka",
+      host: "www.poketeka.pl",
+      source: PrestaShop,
+      listing_paths: ["/56-pokemon-tcg"],
+      max_pages: 10,
+      shipping_from: Decimal.new("10"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "rgfk",
+      name: "RGFK",
+      host: "rgfk.pl",
+      source: PrestaShop,
+      listing_paths: ["/k/51874/pokemon-tcg"],
+      max_pages: 12,
+      shipping_from: Decimal.new("10"),
+      free_shipping_from: Decimal.new("200"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "stajniagier",
+      name: "Stajnia Gier",
+      host: "stajnia-gier.pl",
+      source: PrestaShop,
+      listing_paths: ["/178-pokemon-tcg"],
+      max_pages: 4,
+      shipping_from: Decimal.new("13"),
+      free_shipping_from: Decimal.new("350"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "strefamtg",
+      name: "Strefa MTG",
+      host: "strefamtg.pl",
+      source: PrestaShop,
+      listing_paths: ["/2837-boostery-i-boxy-pokemon", "/2838-talie-i-zestawy-kart-pokemon"],
+      max_pages: 6,
+      shipping_from: Decimal.new("16"),
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "vanaheim",
+      name: "Vanaheim",
+      host: "vanaheim.pl",
+      source: PrestaShop,
+      listing_paths: ["/pl/2095-pokemon-tcg"],
+      max_pages: 3,
+      shipping_from: Decimal.new("13"),
+      free_shipping_from: Decimal.new("400"),
+      pickup_city: "Kraków"
+    },
+    %Shop{
+      key: "wgre",
+      name: "wGRE",
+      host: "wgre.pl",
+      source: PrestaShop,
+      listing_paths: ["/257-tcg"],
+      max_pages: 3,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("250"),
       pickup_city: nil
     }
   ]
