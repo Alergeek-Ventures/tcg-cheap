@@ -3,20 +3,24 @@ defmodule TcgCheapWeb.VisitorLocation do
   The visitor's location, for straight-line distances to shops' pickup
   stores.
 
-  It lives only in the visitor's browser: the `VisitorLocation` hook keeps
+  Only the visitor's browser remembers it: the `VisitorLocation` hook keeps
   coordinates rounded to 0.01° (about 1 km) and a town name in
-  localStorage and sends them in the LiveView connect params. Here it stays
-  in the socket assigns; nothing stores it, and Phoenix filters the
-  `location` parameters out of logs (`:filter_parameters`). Without
+  localStorage and sends them in a `"location-restore"` event once the
+  LiveView connects (not in connect params, which phoenix.js puts into the
+  socket URL). Here it stays in the socket assigns; nothing stores it,
+  Phoenix filters `location` parameters out of logs (`:filter_parameters`)
+  and `TcgCheapWeb.LocationLogFilter` out of crash reports. Without
   JavaScript there is no location and no distances.
 
-  The LiveViews that show distances call `assign_location/1` in mount and
-  pass `"location-*"` events to `handle_event/3`.
+  The LiveViews that show distances call `assign_location/1` in mount, pass
+  `"location-*"` events to `handle_event/3` and show location-dependent
+  parts only once `@location_ready?`, so the page never flashes the
+  no-location state before the restore.
   """
 
   use TcgCheapWeb, :html
 
-  import Phoenix.LiveView, only: [connected?: 1, get_connect_params: 1, push_event: 3]
+  import Phoenix.LiveView, only: [push_event: 3]
 
   alias TcgCheap.Geo
   alias TcgCheap.Geo.Towns
@@ -26,18 +30,18 @@ defmodule TcgCheapWeb.VisitorLocation do
 
   @radius_km 50
   @max_query_length 60
+  # A point counts as in Poland when a Polish town is this close.
+  @max_town_km 30
 
   @doc "How far a pickup store still counts as near, in kilometres."
   def radius_km, do: @radius_km
 
-  @doc "Assigns the location the browser sent when connecting; nil before that."
+  @doc "No location until the browser restores it (or says it has none)."
   @spec assign_location(Phoenix.LiveView.Socket.t()) :: Phoenix.LiveView.Socket.t()
   def assign_location(socket) do
-    location =
-      if connected?(socket), do: from_browser(get_connect_params(socket)["location"])
-
     socket
-    |> assign(:location, location)
+    |> assign(:location, nil)
+    |> assign(:location_ready?, false)
     |> assign(:town_form, to_form(%{"town" => ""}, as: :location))
     |> assign(:town_matches, [])
     |> assign(:location_error, nil)
@@ -46,20 +50,34 @@ defmodule TcgCheapWeb.VisitorLocation do
   defp from_browser(%{"lat" => lat, "lon" => lon, "label" => label})
        when is_number(lat) and is_number(lon) and is_binary(label) and
               byte_size(label) in 1..120 do
-    if in_poland?({lat, lon}), do: %{coords: rounded({lat, lon}), label: label}
+    coords = rounded({lat, lon})
+    if polish_town_near(coords), do: %{coords: coords, label: label}
   end
 
   defp from_browser(_location), do: nil
 
-  # Poland's bounding box with a small margin: distances only make sense
-  # to visitors who can reach a Polish shop.
-  defp in_poland?({lat, lon}), do: lat >= 48.9 and lat <= 55.0 and lon >= 14.0 and lon <= 24.3
+  # Distances only make sense to visitors who can reach a Polish shop:
+  # inside Poland's bounding box (with a margin) and near a Polish town,
+  # which keeps out Prague, Lviv or Kaliningrad.
+  defp polish_town_near({lat, lon} = coords)
+       when lat >= 48.9 and lat <= 55.0 and lon >= 14.0 and lon <= 24.3 do
+    town = Towns.nearest(coords)
+    if Geo.distance_km(coords, town.coords) <= @max_town_km, do: town
+  end
+
+  defp polish_town_near(_coords), do: nil
 
   defp rounded({lat, lon}), do: {Float.round(lat * 1.0, 2), Float.round(lon * 1.0, 2)}
 
   @doc "Handles the location control's events; the LiveView re-renders what depends on `@location`."
   @spec handle_event(String.t(), map(), Phoenix.LiveView.Socket.t()) ::
           Phoenix.LiveView.Socket.t()
+  def handle_event("location-restore", %{"location" => location}, socket) do
+    socket
+    |> assign(:location, from_browser(location))
+    |> assign(:location_ready?, true)
+  end
+
   def handle_event("location-search", %{"location" => %{"town" => query}}, socket)
       when is_binary(query) do
     socket
@@ -86,13 +104,15 @@ defmodule TcgCheapWeb.VisitorLocation do
 
   def handle_event("location-coords", %{"location" => %{"lat" => lat, "lon" => lon}}, socket)
       when is_number(lat) and is_number(lon) do
-    if in_poland?({lat, lon}) do
-      coords = rounded({lat, lon})
+    coords = rounded({lat, lon})
+
+    case polish_town_near(coords) do
       # A city district is named by its city: "Gdańsk", not "Aniołki".
-      town = Towns.nearest(coords)
-      put_location(socket, %{coords: coords, label: town.city || town.name})
-    else
-      assign(socket, :location_error, "Ta lokalizacja jest poza Polską. Wpisz miejscowość.")
+      %{} = town ->
+        put_location(socket, %{coords: coords, label: town.city || town.name})
+
+      nil ->
+        assign(socket, :location_error, "Ta lokalizacja jest poza Polską. Wpisz miejscowość.")
     end
   end
 
@@ -164,13 +184,15 @@ defmodule TcgCheapWeb.VisitorLocation do
   def km(distance), do: "#{round(distance)} km"
 
   attr :location, :map, default: nil
+  attr :ready, :boolean, required: true
   attr :form, Phoenix.HTML.Form, required: true
   attr :matches, :list, required: true
   attr :error, :string, default: nil
 
   @doc """
   "Ustaw lokalizację": use the device location or type a town. Hidden until
-  LiveView connects, since it needs JavaScript. Other elements open it with
+  the browser has restored its location, which needs JavaScript. Other
+  elements open it with
   `JS.dispatch("location:open", to: "#visitor-location")`.
   """
   def location_control(assigns) do
@@ -180,8 +202,8 @@ defmodule TcgCheapWeb.VisitorLocation do
       id="visitor-location"
       class="visitor-location"
       phx-hook="VisitorLocation"
-      phx-mounted={JS.ignore_attributes(["open"]) |> JS.remove_attribute("hidden")}
-      hidden
+      phx-mounted={JS.ignore_attributes(["open"])}
+      hidden={!@ready}
     >
       <summary id="visitor-location-summary" class="visitor-location-summary">
         <.fluent_icon name={:location} />
@@ -250,7 +272,7 @@ defmodule TcgCheapWeb.VisitorLocation do
           {@error}
         </p>
         <p class="guide-note">
-          Lokalizacja zostaje w Twojej przeglądarce. Odległości liczymy w linii prostej.
+          Lokalizację pamięta tylko Twoja przeglądarka; nie zapisujemy jej. Odległości liczymy w linii prostej.
         </p>
       </div>
     </details>

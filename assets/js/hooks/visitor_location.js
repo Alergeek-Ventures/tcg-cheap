@@ -1,13 +1,14 @@
 // The visitor's location is kept only in this browser: coordinates rounded to
-// 0.01° (about 1 km) and a town name, sent to the LiveView when it connects.
-// The server pushes "location" when the visitor sets or clears it.
+// 0.01° (about 1 km) and a town name, sent to the LiveView as an event once it
+// connects (never in the socket URL). The server pushes "location" when the
+// visitor sets or clears it.
 const STORAGE_KEY = "tcg:location"
 
-export function storedLocation() {
+function storedLocation() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? undefined
+    return JSON.parse(localStorage.getItem(STORAGE_KEY))
   } catch {
-    return undefined
+    return null
   }
 }
 
@@ -15,6 +16,7 @@ const round = degrees => Math.round(degrees * 100) / 100
 
 const VisitorLocation = {
   mounted() {
+    this.restore()
     this.summary = this.el.querySelector("summary")
     this.handleEvent("location", ({location}) => {
       try {
@@ -45,6 +47,17 @@ const VisitorLocation = {
     }
     document.addEventListener("pointerdown", this.onPointerDown)
     document.addEventListener("keydown", this.onKeyDown)
+  },
+
+  // A reconnect starts a new LiveView process without the location.
+  reconnected() {
+    this.restore()
+  },
+
+  // Always sent, also without a stored location: the page shows its location
+  // parts only after this answer, so they never flash the wrong state.
+  restore() {
+    this.pushEvent("location-restore", {location: storedLocation()})
   },
 
   destroyed() {

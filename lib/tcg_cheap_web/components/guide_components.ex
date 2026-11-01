@@ -399,7 +399,7 @@ defmodule TcgCheapWeb.GuideComponents do
       </p>
       <p id="guide-geo-sources">
         Miejscowości: <a href="https://www.geonames.org" rel="noopener">GeoNames</a>
-        (<a href="https://creativecommons.org/licenses/by/4.0/deed.pl" rel="noopener">CC BY 4.0</a>);
+        (wybór; <a href="https://creativecommons.org/licenses/by/4.0/deed.pl" rel="noopener">CC BY 4.0</a>);
         położenie sklepów: © <a href="https://www.openstreetmap.org/copyright" rel="noopener">autorzy OpenStreetMap</a>.
       </p>
     </footer>

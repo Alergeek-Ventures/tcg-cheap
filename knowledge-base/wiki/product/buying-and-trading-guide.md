@@ -32,8 +32,10 @@ versioned pricing models.
   estimated shipping cost into the price.
 - **Local reads.** Public pages read only the local database; external sources
   are fetched by background jobs.
-- **Location stays with the visitor.** A visitor's location is kept only in
-  their browser and in the live page's memory; it is never stored or logged.
+- **Location stays with the visitor.** Only the visitor's browser remembers
+  their location. The server receives it while a page is open and keeps it
+  only in that page's memory: it is not written to the database, kept out
+  of socket URLs, and filtered from request and crash logs.
 
 ## Phase 1 — buying guide (sealed), live
 
@@ -72,11 +74,19 @@ versioned pricing models.
   header of `/` and `/produkty/:slug` opens a panel: "Użyj mojej lokalizacji" (browser geolocation, coarse)
   or a typed Polish town (case- and accent-insensitive suggestions from the
   2,537 GeoNames towns of at least 1,000 inhabitants in `priv/geo/towns.tsv`;
-  GeoNames, CC BY 4.0, credited in the footer). The browser keeps coordinates
-  rounded to 0.01° (≈1 km) and a town name in `localStorage` and sends them
-  when the page connects; the server keeps them only in the LiveView's
-  assigns, accepts only points in Poland, and `location` parameters are
-  filtered from Phoenix logs. Visitors can remove it. The panel closes on
+  GeoNames, CC BY 4.0, credited in the footer as a selection). The browser
+  keeps coordinates rounded to 0.01° (≈1 km) and a town name in
+  `localStorage` and sends them in a `location-restore` event once the page
+  connects — not in the LiveView connect params, which phoenix.js appends to
+  the socket URL that proxies log. Until that event the page shows no
+  location-dependent parts, so nothing flashes. The server keeps the
+  location only in the LiveView's assigns and accepts a point only inside
+  Poland's bounding box and within 30 km of a Polish town (Prague, Lviv or
+  Kaliningrad are refused). `location` parameters are filtered from Phoenix
+  logs (`:filter_parameters`), and `TcgCheapWeb.LocationLogFilter`, the first
+  primary `:logger` filter, replaces any `"location"`/`:location` value in
+  crash reports with `[FILTERED]` before Elixir turns them into text.
+  Visitors can remove it. The panel closes on
   Escape or a tap outside, and a screen-reader announcement confirms a new
   location. Without JavaScript the control is hidden and no distances appear. Distances are straight lines
   (haversine, `TcgCheap.Geo`), rounded to whole km; "near" means within 50 km.

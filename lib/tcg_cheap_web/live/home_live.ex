@@ -128,6 +128,7 @@ defmodule TcgCheapWeb.HomeLive do
         <.site_header>
           <VisitorLocation.location_control
             location={@location}
+            ready={@location_ready?}
             form={@town_form}
             matches={@town_matches}
             error={@location_error}

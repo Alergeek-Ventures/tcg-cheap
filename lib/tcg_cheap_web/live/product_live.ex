@@ -50,6 +50,7 @@ defmodule TcgCheapWeb.ProductLive do
         <.site_header>
           <VisitorLocation.location_control
             location={@location}
+            ready={@location_ready?}
             form={@town_form}
             matches={@town_matches}
             error={@location_error}
@@ -77,7 +78,10 @@ defmodule TcgCheapWeb.ProductLive do
                 > · {@page.product.set_name}</span>
               </p>
             </section>
-            <.verdict_block verdict={@page.verdict} nearby={nearby(@page, @location)} />
+            <.verdict_block
+              verdict={@page.verdict}
+              nearby={if(@location_ready?, do: nearby(@page, @location))}
+            />
           </div>
 
           <section id="product-offers" class="product-section" aria-labelledby="product-offers-title">
@@ -308,12 +312,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp nearby_line(%{nearby: :invite} = assigns) do
     ~H"""
-    <div
-      id="verdict-nearby-invite"
-      class="verdict-nearby"
-      phx-mounted={JS.remove_attribute("hidden")}
-      hidden
-    >
+    <div id="verdict-nearby-invite" class="verdict-nearby">
       <p>
         Odbierzesz gdzieś blisko?
         <button
