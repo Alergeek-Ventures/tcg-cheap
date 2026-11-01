@@ -672,8 +672,6 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-product-price strong { font: 700 1.5rem/1 "Barlow Condensed", sans-serif; }
 .guide-world .guide-empty { background: var(--paper); padding: 1rem; }
 .guide-world .guide-empty a { display: block; font-weight: 600; margin-top: .5rem; text-decoration: underline; }
-.guide-world .guide-footnote { border-top: 1px solid var(--rule); color: var(--muted); font-size: .875rem; margin-top: 2.5rem; padding-top: 1rem; }
-.guide-world .guide-footnote p { margin: 0; max-width: 70ch; }
 .guide-world .guide-note { color: var(--muted); font-size: .875rem; }
 
 /* Kind chips: one row that wraps on desktop and scrolls sideways on a phone. */
@@ -748,7 +746,6 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .offer-unavailable { background: color-mix(in srgb, var(--paper) 55%, var(--bench)); }
 .guide-world .offer-shop { display: grid; gap: .1rem; grid-area: shop; min-width: 0; }
 .guide-world .offer-shop strong { font: 700 1.25rem/1.1 "Barlow Condensed", sans-serif; }
-.guide-world .offer-title { -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: var(--muted); display: -webkit-box; font-size: .875rem; line-height: 1.45; overflow: hidden; overflow-wrap: anywhere; }
 .guide-world .offer-delivery { color: var(--muted); font-size: .8125rem; line-height: 1.45; }
 .guide-world .offer-price { font: 700 1.6rem/1 "Barlow Condensed", sans-serif; grid-area: price; justify-self: end; }
 .guide-world .offer-unavailable .offer-price { color: var(--muted); }

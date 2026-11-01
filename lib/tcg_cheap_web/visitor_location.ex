@@ -274,6 +274,11 @@ defmodule TcgCheapWeb.VisitorLocation do
         <p class="guide-note">
           Lokalizację pamięta tylko Twoja przeglądarka; nie zapisujemy jej. Odległości liczymy w linii prostej.
         </p>
+        <p id="visitor-location-sources" class="guide-note">
+          Miejscowości: <a href="https://www.geonames.org" rel="noopener">GeoNames</a>
+          (wybór; <a href="https://creativecommons.org/licenses/by/4.0/deed.pl" rel="noopener">CC BY 4.0</a>);
+          położenie sklepów: © <a href="https://www.openstreetmap.org/copyright" rel="noopener">autorzy OpenStreetMap</a>.
+        </p>
       </div>
     </details>
     """

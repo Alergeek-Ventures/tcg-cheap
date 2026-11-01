@@ -40,6 +40,7 @@ defmodule TcgCheap.Sealed.PrestaShop do
   @months ~w(sty lut mar kwi maj cze lip sie wrz paz lis gru)
 
   @impl true
+  def image_hosts(%Shop{images: false}), do: []
   def image_hosts(%Shop{host: host}), do: [host]
 
   @impl true
