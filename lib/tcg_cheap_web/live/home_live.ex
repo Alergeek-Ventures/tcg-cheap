@@ -523,13 +523,11 @@ defmodule TcgCheapWeb.HomeLive do
                           <span>Cardmarket ≈ {Polish.zloty(summary.cardmarket_pln)}</span>
                         <% end %>
                       </p>
-                      <p class="guide-product-judgement">
-                        <.verdict_badge
-                          verdict={summary.verdict}
-                          id={"verdict-#{summary.product.slug}"}
-                          class="guide-product-verdict"
-                        />
-                      </p>
+                      <.verdict_badge
+                        verdict={summary.verdict}
+                        id={"verdict-#{summary.product.slug}"}
+                        class="guide-product-verdict"
+                      />
                       <.nearby_pickup
                         id={"nearby-#{summary.product.slug}"}
                         offers={summary.in_stock_offers}

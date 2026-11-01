@@ -77,9 +77,17 @@ defmodule TcgCheapWeb.GuideComponents do
   def verdict_badge(assigns) do
     ~H"""
     <span id={@id} class={["verdict-badge", "verdict-#{@verdict.status}", @class]}>
-      <.verdict_icon :if={@verdict.status != :cardmarket} status={@verdict.status} />{verdict_label(
-        @verdict
-      )}
+      <%= if @verdict.status == :cardmarket do %>
+        {cardmarket_difference(@verdict)}<span class="verdict-cm-text">vs Cardmarket</span><img
+          class="verdict-cm-logo"
+          src={~p"/images/cardmarket.png"}
+          alt="Cardmarket"
+          width="16"
+          height="16"
+        />
+      <% else %>
+        <.verdict_icon status={@verdict.status} />{verdict_label(@verdict)}
+      <% end %>
     </span>
     """
   end
@@ -478,7 +486,17 @@ defmodule TcgCheapWeb.GuideComponents do
 
   @doc ~S'The localized label of a verdict: "Dobra cena", "+14% vs Cardmarket", …'
   @spec verdict_label(map()) :: String.t()
-  def verdict_label(%{status: :cardmarket, cheapest: %{price: price}, typical: typical}) do
+  def verdict_label(%{status: :cardmarket} = verdict),
+    do: "#{cardmarket_difference(verdict)} vs Cardmarket"
+
+  def verdict_label(%{status: :good}), do: gettext("Dobra cena")
+  def verdict_label(%{status: :normal}), do: gettext("Normalna cena")
+  def verdict_label(%{status: :expensive}), do: gettext("Drogo")
+  def verdict_label(%{status: :insufficient_data}), do: gettext("Za mało danych")
+  def verdict_label(%{status: :out_of_stock}), do: gettext("Brak w sklepach")
+
+  # "−16%": the cheapest offer against the Cardmarket trend.
+  defp cardmarket_difference(%{cheapest: %{price: price}, typical: typical}) do
     percent =
       price
       |> Decimal.sub(typical)
@@ -494,12 +512,6 @@ defmodule TcgCheapWeb.GuideComponents do
         true -> "±"
       end
 
-    "#{sign}#{abs(percent)}% vs Cardmarket"
+    "#{sign}#{abs(percent)}%"
   end
-
-  def verdict_label(%{status: :good}), do: gettext("Dobra cena")
-  def verdict_label(%{status: :normal}), do: gettext("Normalna cena")
-  def verdict_label(%{status: :expensive}), do: gettext("Drogo")
-  def verdict_label(%{status: :insufficient_data}), do: gettext("Za mało danych")
-  def verdict_label(%{status: :out_of_stock}), do: gettext("Brak w sklepach")
 end
