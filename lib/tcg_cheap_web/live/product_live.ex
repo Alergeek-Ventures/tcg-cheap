@@ -102,7 +102,6 @@ defmodule TcgCheapWeb.ProductLive do
               >
                 <div class="offer-shop">
                   <strong>{shop_name(offer)}</strong>
-                  <span class="offer-title">{offer.title}</span>
                   <.offer_delivery offer={offer} location={@location} />
                 </div>
                 <strong class="offer-price">{Polish.price(offer.price)}</strong>
@@ -147,8 +146,6 @@ defmodule TcgCheapWeb.ProductLive do
             cardmarket_pln={@page.cardmarket_pln}
             eur_pln={@page.eur_pln}
           />
-
-          <.guide_footnote />
         </main>
       </div>
     </Layouts.app>

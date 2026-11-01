@@ -383,29 +383,6 @@ defmodule TcgCheapWeb.GuideComponents do
     )
   end
 
-  @doc "The shops list and the shipping caveat shown under every buying-guide page."
-  attr :id, :string, default: "guide-footnote"
-
-  def guide_footnote(assigns) do
-    assigns = assign(assigns, :shops, Enum.map(Shops.all(), & &1.name))
-
-    ~H"""
-    <footer id={@id} class="guide-footnote">
-      <p>
-        Ceny bez kosztów dostawy; dostawę i odbiór osobisty podajemy przy ofertach według zasad sklepów.
-        Sklepy sprawdzamy raz dziennie: {Enum.join(@shops, ", ")}.
-        Katalog i ceny odniesienia pochodzą z Cardmarket (codziennie, w złotych po kursie NBP).
-        Oceniamy tylko ceny, za które naprawdę można kupić produkt – nigdy cenę katalogową.
-      </p>
-      <p id="guide-geo-sources">
-        Miejscowości: <a href="https://www.geonames.org" rel="noopener">GeoNames</a>
-        (wybór; <a href="https://creativecommons.org/licenses/by/4.0/deed.pl" rel="noopener">CC BY 4.0</a>);
-        położenie sklepów: © <a href="https://www.openstreetmap.org/copyright" rel="noopener">autorzy OpenStreetMap</a>.
-      </p>
-    </footer>
-    """
-  end
-
   @doc ~S'Kind and set where the name does not already say them: "Kolekcja · Pitch Black".'
   @spec product_meta(TcgCheap.Sealed.Product.t()) :: String.t()
   def product_meta(product) do

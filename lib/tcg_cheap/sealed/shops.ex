@@ -951,6 +951,7 @@ defmodule TcgCheap.Sealed.Shops do
       name: "Hearts Pub",
       host: "hearts.pub",
       source: PrestaShop,
+      images: false,
       listing_paths: ["/sklep/pokemon-tcg"],
       max_pages: 16,
       shipping_from: nil,

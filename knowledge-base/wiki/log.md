@@ -1,5 +1,11 @@
 # Wiki Log
 
+## [2026-11-01] Leaner pages and broken shop images
+
+- Task: Owner asked to drop the footnote (shipping caveat, the list of all shops, data sources) and the offer listing titles, which only repeat the product, and reported missing images in production. The GeoNames and OpenStreetMap credits the licences require moved into the location panel. Images: hearts.pub answers hotlinked images with its bot-check page (`images: false` on the shop), twojekarty.pl thumbnails were percent-encoded twice, pokapoke.pl keeps images in `src` rather than `data-src-original`, and planszomania.pl now asks for a 400 px thumbnail instead of 120 px.
+- Files: `product/buying-and-trading-guide.md` (Visitor location, Pages).
+- Validation: `mix check`; in the running app the product page shows offers without titles, no footnote anywhere, the credits in the location panel; the four shops' first image URLs answer with images (hearts.pub offers carry none).
+
 ## [2026-11-01] Shops read from their category listings
 
 - Task: Owner asked for as many Polish shops as possible; parsers for shops without a feed were written in parallel by Sonnet agents and integrated. 51 shops added (122 in total): 14 PrestaShop (JSON listing view), 9 Shoper without the export and 8 Sky-Shop (`ShoperListing`, `SkyShop` on `HtmlListing.read/2`), 8 shopGold and one each on Sellingo, Selly and SOTE (`listing_paths`), and 9 shops on their own storefronts (8 small clients). `ShopFeed.get` now pauses 1 s before every request (several shops 403 bursts; Shoper and Sky-Shop ask for a 1 s crawl delay) and `ShopFeed.html/1` inflates gzip only up to the page limit and rejects truncated bodies. Owner decisions: pre-orders never count as in stock; morigal.pl is not added (Cloudflare challenge). The 19 new shops with pickup got Nominatim coordinates (40 in total). Left out: cardverse.pl, pokeelite.pl, tcgumisia.pl, bastacentershop.pl.

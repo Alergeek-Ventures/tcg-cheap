@@ -22,6 +22,8 @@ defmodule TcgCheap.Sealed.Shop do
       – the order value from which delivery is free, `pickup_city` – the city
       of the shop's own store where orders can be picked up in person; each nil
       when the shop does not publish it;
+    * `images` – false when the shop's images cannot be shown elsewhere
+      (its bot check answers them with a page; PrestaShop);
     * `pickup_location` – `{latitude, longitude}` of that store, for distances
       to visitors; nil when the shop has no pickup.
   """
@@ -45,7 +47,8 @@ defmodule TcgCheap.Sealed.Shop do
                 :listing_paths,
                 :mixed_listing,
                 :preorder_path,
-                :pickup_location
+                :pickup_location,
+                images: true
               ]
 
   @type t :: %__MODULE__{
@@ -62,6 +65,7 @@ defmodule TcgCheap.Sealed.Shop do
           listing_paths: [String.t()] | nil,
           mixed_listing: boolean() | nil,
           preorder_path: String.t() | nil,
+          images: boolean(),
           shipping_from: Decimal.t() | nil,
           free_shipping_from: Decimal.t() | nil,
           pickup_city: String.t() | nil,

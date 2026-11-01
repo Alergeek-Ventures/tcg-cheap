@@ -349,8 +349,6 @@ defmodule TcgCheapWeb.HomeLive do
               <p>Pokazano {@loaded} z {@result_count}.</p>
             </div>
           </section>
-
-          <.guide_footnote />
         </main>
       </div>
     </Layouts.app>

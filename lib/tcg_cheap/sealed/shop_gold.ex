@@ -118,7 +118,10 @@ defmodule TcgCheap.Sealed.ShopGold do
         title: title,
         price: price,
         in_stock: in_stock(box),
-        image: HtmlListing.attr(box, ".Foto img", "data-src-original"),
+        # Lazy-loading themes keep the image in data-src-original.
+        image:
+          HtmlListing.attr(box, ".Foto img", "data-src-original") ||
+            HtmlListing.attr(box, ".Foto img", "src"),
         category: category
       }
     else
@@ -199,15 +202,12 @@ defmodule TcgCheap.Sealed.ShopGold do
          do: {:ok, "https://#{shop.host}#{uri.path}"}
   end
 
-  # Thumbnails are relative to the shop's root and may contain spaces.
+  # Thumbnails are relative to the shop's root and may contain spaces; some
+  # are already percent-encoded.
   defp image_url(_shop, nil), do: nil
 
   defp image_url(shop, path) do
-    ShopFeed.image_url(
-      "https://#{shop.host}/#{path |> String.trim_leading("/") |> URI.encode()}",
-      [
-        shop.host
-      ]
-    )
+    path = path |> String.trim_leading("/") |> URI.encode(&(&1 == ?% or URI.char_unescaped?(&1)))
+    ShopFeed.image_url("https://#{shop.host}/#{path}", [shop.host])
   end
 end

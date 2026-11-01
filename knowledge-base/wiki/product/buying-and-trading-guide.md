@@ -84,7 +84,7 @@ versioned pricing models.
   header of `/` and `/produkty/:slug` opens a panel: "Użyj mojej lokalizacji" (browser geolocation, coarse)
   or a typed Polish town (case- and accent-insensitive suggestions from the
   2,537 GeoNames towns of at least 1,000 inhabitants in `priv/geo/towns.tsv`;
-  GeoNames, CC BY 4.0, credited in the footer as a selection). The browser
+  GeoNames, CC BY 4.0, credited as a selection in the location panel next to the OpenStreetMap credit for store positions). The browser
   keeps coordinates rounded to 0.01° (≈1 km) and a town name in
   `localStorage` and sends them in a `location-restore` event once the page
   connects — not in the LiveView connect params, which phoenix.js appends to
@@ -130,7 +130,8 @@ versioned pricing models.
   then newest; a known barcode jumps to its product) with the cheapest current
   price and verdict.
   `/produkty/:slug` shows the verdict and thresholds, every current offer
-  (in stock first, cheapest first, with links to the shop) with its shop's
+  (in stock first, cheapest first, with links to the shop; the shop's name,
+  not its listing title, which only repeats the product) with its shop's
   delivery line — "dostawa od 14,99 zł · darmowa od 400 zł", "darmowa
   dostawa" when the item alone reaches the threshold, "koszt dostawy w
   koszyku" when the shop publishes no price, and "odbiór osobisty: Gdynia"

@@ -108,8 +108,13 @@ defmodule TcgCheap.Sealed.Planszomania do
          |> Floki.find("td.td_itemlist_gamebox img")
          |> Floki.attribute("src")
          |> List.first() do
-      "thumbs/" <> _ = src -> ShopFeed.image_url("https://#{shop.host}/#{src}", image_hosts(shop))
-      _ -> nil
+      # The listing's 120 px thumbnail; the shop renders any size on request.
+      "thumbs/" <> _ = src ->
+        src = String.replace(src, ~r/\.120x120\./, ".400x400.")
+        ShopFeed.image_url("https://#{shop.host}/#{src}", image_hosts(shop))
+
+      _ ->
+        nil
     end
   end
 end
