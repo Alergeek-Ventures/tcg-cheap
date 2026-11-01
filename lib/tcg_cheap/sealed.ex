@@ -123,6 +123,8 @@ defmodule TcgCheap.Sealed do
       define :set_product_availability, action: :set_availability
       define :set_product_eans, action: :set_eans, args: [:eans]
       define :set_product_contents, action: :set_contents, args: [:contents]
+      define :list_photos_to_mirror, action: :photos_to_mirror, args: [:limit]
+      define :record_photo_source, action: :record_photo_source, args: [:photo_source_url]
       define :get_product, action: :read, get_by: [:id], not_found_error?: false
       define :list_products_with_eans, action: :with_eans
     end
