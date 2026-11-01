@@ -120,10 +120,9 @@
 - Owner decisions: before 7 days of shop prices the verdict is a neutral "+14% vs Cardmarket" without thresholds (it marked 80 of 101 in-stock products "Drogo"); the header drops its navigation, so the unfinished English trading pages are no longer linked.
 - Validation: `mix check`; screenshots of the changed states at 390 and 1280 px, no console errors or horizontal overflow.
 
-## [2026-10-31] Production on Coolify
+## [2026-10-31] Production deployment
 
-- Task: Owner asked to deploy to Coolify with secrets in Infisical, as firmowid and onside do, at the new domain tcg.cheap (Cloudflare-proxied `A` record). Created the Coolify project *TCG Cheap* (app + ParadeDB `psql`, volume at `/var/lib/postgresql` for PostgreSQL 18, daily S3 backup) and the Infisical project `tcg-cheap` (`prod:/app`: `DATABASE_URL`, `SECRET_KEY_BASE`, `PHX_HOST`, `MCP_API_TOKEN`), with a read-only GitHub OIDC machine identity, and the GitHub `production` environment (main only). As in firmowid, CI deploys after `mix check` and the container build through `av-secret-service/coolify-deploy`, which syncs Infisical to Coolify (this Infisical has no Coolify secret sync of its own); the public repository reaches that private action through a read-only deploy key. Coolify's own auto-deploy is off. The app migrates as it starts (`Ecto.Migrator` in the supervision tree, as in firmowid): Coolify skips its pre-deployment command when no container runs yet, so the first deploy came up without tables and failed its health check.
-- Files: none in the wiki beyond this log; operations are in `docs/deployment-and-operations.md`.
+- Task: Owner asked to deploy the app to production at tcg.cheap. CI deploys `main` after `mix check` and the container build; the app runs its migrations as it starts (`Ecto.Migrator` in the supervision tree), because a first deploy without a running container skipped the platform's pre-deployment command and came up without tables. Hosting, secret-store and backup details are kept outside this public repository.
 
 ## [2026-10-31] Agent MCP server
 
