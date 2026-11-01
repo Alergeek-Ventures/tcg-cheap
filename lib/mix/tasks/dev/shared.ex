@@ -94,10 +94,15 @@ defmodule Mix.Tasks.Dev.Shared do
     branch = System.get_env("BRANCH", "main")
     db_port = System.get_env("DB_PORT", "5436")
     port = System.get_env("PORT", "4004")
+    s3_port = System.get_env("S3_PORT", "8333")
 
     %{
       "PORT" => port,
       "DB_PORT" => db_port,
+      "S3_PORT" => s3_port,
+      # The local SeaweedFS keys (local/compose.yml), not secrets.
+      "AWS_ACCESS_KEY_ID" => "test",
+      "AWS_SECRET_ACCESS_KEY" => "test",
       "BRANCH" => branch,
       "DATABASE_URL" => "ecto://postgres:postgres@localhost:#{db_port}/tcg_cheap_dev"
     }
@@ -138,6 +143,18 @@ defmodule Mix.Tasks.Dev.Shared do
   end
 
   def project(branch), do: "tcg-cheap-#{worktree_id(branch)}"
+
+  @doc "Runs the container runtime itself (`podman ps`, `podman exec`, …)."
+  def container(args) do
+    case compose_runtime() do
+      {runtime, prefix} when is_binary(runtime) ->
+        System.cmd(runtime, prefix ++ args, stderr_to_stdout: true)
+
+      {:error, message} ->
+        Mix.raise(message)
+    end
+  end
+
   def compose_file, do: @compose_file
 
   def ensure_req_started do

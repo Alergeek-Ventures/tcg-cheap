@@ -14,6 +14,7 @@ defmodule Mix.Tasks.Dev.Up do
     branch = env["BRANCH"]
     {:ok, port} = Shared.parse_port(env["PORT"], "PORT")
     {:ok, db_port} = Shared.parse_port(env["DB_PORT"], "DB_PORT")
+    {:ok, s3_port} = Shared.parse_port(env["S3_PORT"], "S3_PORT")
 
     env =
       Map.put(env, "DATABASE_URL", "ecto://postgres:postgres@localhost:#{db_port}/tcg_cheap_dev")
@@ -25,10 +26,56 @@ defmodule Mix.Tasks.Dev.Up do
     Shared.compose(["-p", project, "up", "-d"], compose_env(env))
     verify_compose_service(project, env, "postgres")
     wait_for_database(db_port)
+    wait_for_s3(s3_port)
+    create_public_bucket(project)
     run_setup(env)
     start_server(branch, env)
     wait_for_http(port)
-    print_endpoints(port, db_port)
+    print_endpoints(port, db_port, s3_port)
+  end
+
+  defp wait_for_s3(port),
+    do:
+      wait_until(
+        fn ->
+          match?(
+            {:ok, %{status: 200}},
+            Req.get("http://localhost:#{port}/healthz", retry: false, receive_timeout: 1_000)
+          )
+        end,
+        "SeaweedFS"
+      )
+
+  # Production photos are in a public bucket read through unsigned URLs;
+  # SeaweedFS rejects anonymous reads by default, so allow them here too.
+  defp create_public_bucket(project) do
+    {ids, 0} =
+      Shared.container([
+        "ps",
+        "-q",
+        "--filter",
+        "label=com.docker.compose.project=#{project}",
+        "--filter",
+        "label=com.docker.compose.service=s3"
+      ])
+
+    container =
+      List.first(compose_container_ids(ids)) ||
+        Mix.raise("Compose project #{project} did not start service s3")
+
+    bucket = Application.fetch_env!(:tcg_cheap, :storage)[:services][:s3_public][:opts][:bucket]
+
+    commands =
+      "printf '%s\\n' 's3.bucket.create -name #{bucket}' " <>
+        "'s3.anonymous.set -bucket #{bucket} -access Read' | weed shell"
+
+    case Shared.container(["exec", container, "sh", "-c", commands]) do
+      {_output, 0} ->
+        Mix.shell().info("Public bucket #{bucket} ready")
+
+      {output, status} ->
+        Mix.raise("unable to create bucket #{bucket} (exit #{status}):\n#{output}")
+    end
   end
 
   defp wait_for_database(port) do
@@ -151,10 +198,11 @@ defmodule Mix.Tasks.Dev.Up do
     })
   end
 
-  defp print_endpoints(port, db_port) do
+  defp print_endpoints(port, db_port, s3_port) do
     Mix.shell().info("Localhost: http://localhost:#{port}")
     Mix.shell().info("Tidewave: http://localhost:#{port}/tidewave/mcp")
     Mix.shell().info("Database: postgres://localhost:#{db_port}/tcg_cheap_dev")
+    Mix.shell().info("S3: http://localhost:#{s3_port}")
   end
 
   defp wait_until(fun, label, attempts \\ 30)

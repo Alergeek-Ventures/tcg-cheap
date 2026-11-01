@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-11-01] Object storage
+
+- Task: Owner asked to stop hotlinking shop images and serve files from our own storage, configured like onside. `TcgCheap.Storage` (AshStorage blobs) uploads to a public S3-compatible bucket in production: the bucket is private, every object is uploaded public-read, so pages link to objects without presigned URLs. `ResizedImage` variants are WebP, never upscaled, with an 8 px inline placeholder for a blurred preview. Development runs SeaweedFS per worktree from `mix dev.up` (`S3_PORT`). No resource stores files yet: mirroring product photos and expansion logos follows separately.
+- Files: none in the wiki beyond this log; `AGENTS.md` (development services).
+- Validation: `mix check`; the variant and upload path against local SeaweedFS and the production bucket (a 10 MB shop PNG became a 74 KB 800 px WebP with a 267 B placeholder, read back anonymously, then deleted); `mix dev.up` created the local public bucket.
+- Remaining: product photos and expansion logos are still hotlinked until the mirroring work lands.
+
 ## [2026-11-01] Operations guide removed from the public repository
 
 - Task: The repository is public, so the owner had `docs/` (deployment and operations: hosting, secret store, deploy pipeline, backups) removed. README and `architecture/application-foundation.md` no longer link it. Earlier log entries that name `docs/deployment-and-operations.md` describe history; the file remains in git history (it held no secret values).

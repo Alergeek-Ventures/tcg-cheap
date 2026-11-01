@@ -1,5 +1,6 @@
 services:
-  # Keep this file to exactly one service: Podman Compose 1.6 cannot filter `ps -q` by service.
+  # Podman Compose 1.6 cannot filter `ps -q` by service; `mix dev.up` finds a
+  # service's container by its compose labels instead.
   postgres:
     image: docker.io/paradedb/paradedb:v0.26.4-pg18@sha256:4abbafffb4e59e679821c5882faf91c494022bb3242fc73b789e753f43df1361
     command:
@@ -20,5 +21,19 @@ services:
       timeout: 5s
       retries: 30
 
+  # S3-compatible stand-in for the public OVH bucket (product photos);
+  # `mix dev.up` creates the bucket and allows anonymous reads.
+  s3:
+    image: docker.io/chrislusf/seaweedfs:4.47@sha256:ce9e796f1fe6f06968f4c04bdaf8f678dad9c8acdfef3d244133d71bfa6bf882
+    command: ["server", "-s3"]
+    ports:
+      - "127.0.0.1:${S3_PORT:-8333}:8333"
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    volumes:
+      - tcg_cheap_s3:/data
+
 volumes:
   tcg_cheap_postgres:
+  tcg_cheap_s3:

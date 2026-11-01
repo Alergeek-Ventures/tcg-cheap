@@ -56,7 +56,13 @@ config :spark,
 config :tcg_cheap,
   ecto_repos: [TcgCheap.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [TcgCheap.Core, TcgCheap.Accounts, TcgCheap.Operations, TcgCheap.Sealed],
+  ash_domains: [
+    TcgCheap.Core,
+    TcgCheap.Accounts,
+    TcgCheap.Operations,
+    TcgCheap.Sealed,
+    TcgCheap.Storage
+  ],
   token_signing_secret: :endpoint_secret_key_base
 
 config :tcg_cheap, :acquisition_health,
@@ -69,6 +75,20 @@ config :backpex,
   pubsub_server: TcgCheap.PubSub,
   translator_function: {TcgCheapWeb.CoreComponents, :translate_error},
   error_translator_function: {TcgCheapWeb.CoreComponents, :translate_error}
+
+# Files we serve ourselves live in a public bucket (TcgCheap.Storage):
+# objects are uploaded public-read and linked without presigned URLs.
+# dev.exs points it at the worktree's SeaweedFS, prod.exs at OVH Object
+# Storage; keys come from AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
+config :tcg_cheap, :storage,
+  active_service: :s3_public,
+  resources: [],
+  services: [
+    s3_public: [
+      module: TcgCheap.Storage.Service.PublicS3,
+      opts: [bucket: "tcg-cheap-public", region: "us-east-1"]
+    ]
+  ]
 
 config :tcg_cheap, Oban,
   repo: TcgCheap.Repo,

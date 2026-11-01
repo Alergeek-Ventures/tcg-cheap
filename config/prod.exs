@@ -19,6 +19,22 @@ config :tcg_cheap, TcgCheapWeb.Endpoint,
     ]
   ]
 
+# OVH Object Storage in Warsaw. The bucket is private (no anonymous listing
+# or writes); every object is uploaded public-read, so pages link to it
+# without presigned URLs. Keys come from AWS_ACCESS_KEY_ID and
+# AWS_SECRET_ACCESS_KEY (Infisical prod /app).
+config :tcg_cheap, :storage,
+  services: [
+    s3_public: [
+      opts: [
+        bucket: "tcg-cheap-public",
+        region: "waw",
+        endpoint_url: "https://s3.waw.io.cloud.ovh.net",
+        public_base_url: "https://tcg-cheap-public.s3.waw.io.cloud.ovh.net"
+      ]
+    ]
+  ]
+
 # Do not print debug messages in production
 config :logger, level: :info
 
