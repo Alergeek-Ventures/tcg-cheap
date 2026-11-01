@@ -98,11 +98,7 @@ defmodule TcgCheapWeb.ProductLive do
               <li
                 :for={{dom_id, offer} <- @streams.offers}
                 id={dom_id}
-                class={[
-                  "offer",
-                  !offer.in_stock && "offer-unavailable",
-                  !Shops.logo?(offer.shop) && "offer-no-logo"
-                ]}
+                class={["offer", !offer.in_stock && "offer-unavailable"]}
               >
                 <.shop_logo shop={offer.shop} />
                 <div class="offer-shop">

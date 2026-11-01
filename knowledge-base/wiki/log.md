@@ -1,5 +1,10 @@
 # Wiki Log
 
+## [2026-11-01] Logos on wide screens only
+
+- Task: Owner asked to hide shop logos on phones and to frame the logos with a background more nicely: offer rows below 42rem show the shop name only, and logo chips have rounded corners (visible on the dark chips; white ones melt into the card).
+- Validation: `mix check`; desktop and 390 px mobile offer lists in the running app.
+
 ## [2026-11-01] Shop logos
 
 - Task: Owner chose real shop logos over favicons. Sonnet agents took each shop's own header logo from its site (no bot checks bypassed); they were trimmed and fitted into 240×80 WebP chips (white, dark for light logos) in `priv/static/images/shops/` and are served by the app, never hotlinked. An Opus design review set the size (7.5rem), dropped the border (`mix-blend-mode: multiply` melts white chips into the card) and the empty chip. 115 of 122 shops have one; none for cardzhouse.pl (403 to scripts), hearts.pub (bot check), pokebooster.pl ("coming soon" page), moriongames.pl (an illustration, no logo), and hejmistrzu.pl, krainagoblinow.pl, lochyikoty.pl (dark on dark, illegible).
