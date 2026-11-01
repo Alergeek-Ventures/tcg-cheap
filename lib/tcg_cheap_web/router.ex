@@ -44,6 +44,7 @@ defmodule TcgCheapWeb.Router do
   4. list_matched_offers: audit automatic matches; fix a wrong one with assign_offer or exclude_offer.
   5. list_manual_decisions and clear_manual_decision: review or undo manual decisions.
   set_product_eans maintains verified barcodes for matching and the public scanner.
+  set_product_contents records what a box holds (items, a fixed deck's cards, sources) for its page.
   list_suggested_prices shows REBEL's suggested retail prices; decide_suggested_price assigns an
   unmatched one to its exact product (same number of units) or keeps it unmatched.
   Write tools recompute prices at once. enqueue_shop_fetch and enqueue_catalogue_import refresh
@@ -82,6 +83,7 @@ defmodule TcgCheapWeb.Router do
         :exclude_offer,
         :clear_manual_decision,
         :set_product_eans,
+        :set_product_contents,
         :enqueue_shop_fetch,
         :enqueue_catalogue_import,
         :list_suggested_prices,

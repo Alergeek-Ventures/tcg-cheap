@@ -71,6 +71,10 @@ defmodule TcgCheap.Sealed do
       annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
     )
 
+    tool(:set_product_contents, AgentTools, :set_product_contents,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
     tool(:enqueue_shop_fetch, AgentTools, :enqueue_shop_fetch,
       annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
     )
@@ -118,6 +122,7 @@ defmodule TcgCheap.Sealed do
 
       define :set_product_availability, action: :set_availability
       define :set_product_eans, action: :set_eans, args: [:eans]
+      define :set_product_contents, action: :set_contents, args: [:contents]
       define :get_product, action: :read, get_by: [:id], not_found_error?: false
       define :list_products_with_eans, action: :with_eans
     end

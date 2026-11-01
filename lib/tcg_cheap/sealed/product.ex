@@ -76,6 +76,11 @@ defmodule TcgCheap.Sealed.Product do
       change TcgCheap.Sealed.Changes.SetEans
     end
 
+    update :set_contents do
+      description "Replaces what the product holds; nil removes it."
+      accept [:contents]
+    end
+
     read :with_eans do
       description "Products with at least one known barcode."
       filter expr(fragment("cardinality(?) > 0", eans))
@@ -166,6 +171,11 @@ defmodule TcgCheap.Sealed.Product do
       description "EAN-13 barcodes printed on the product, maintained by an admin or agent."
       allow_nil? false
       default []
+      public? true
+    end
+
+    attribute :contents, TcgCheap.Sealed.ProductContents do
+      description "What the box holds, maintained by an admin or agent."
       public? true
     end
 

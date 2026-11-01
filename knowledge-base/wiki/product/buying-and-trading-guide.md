@@ -148,6 +148,17 @@ versioned pricing models.
   Japanese official prices may not be republished, no other Polish, European
   or US source lists them); REBEL's status as official distributor and any
   reuse terms are unconfirmed (owner decision to collect it, 2026-11-01).
+- **Contents.** A product can record what the box holds
+  (`TcgCheap.Sealed.ProductContents`, embedded on the product): items
+  (boosters with their set, promo/oversize cards by name with an optional
+  TCGdex picture, typed accessories shown in Polish or English), a fixed
+  deck's full card list, the https sources and the day they were checked.
+  Agents fill it through the MCP tool `set_product_contents` from facts that
+  a publisher page or two shops agree on; nothing is guessed. The product page
+  shows it under "Co jest w środku" with the sources. 2026-11-01 pilot: official
+  Pokémon pages and Bulbapedia block automated reading, so Polish shop
+  descriptions are the source; 9 of 20 products had consistent facts, and no
+  public source gave a deck's 60-card list [CONTEXT MISSING: decklists].
 - **Languages.** The public buying guide (`/` and `/produkty/:slug`) has PL / EN
   links in the header on desktop and phones (including 360 px). Polish copy is
   unchanged; English covers filters, verdicts, delivery/pickup, location and

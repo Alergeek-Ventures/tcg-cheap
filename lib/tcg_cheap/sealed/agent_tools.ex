@@ -2,8 +2,8 @@ defmodule TcgCheap.Sealed.AgentTools do
   @moduledoc """
   Actions behind the MCP tools for AI agents (see the `tools` of
   `TcgCheap.Sealed`): shop status, offer lists, product detail, match
-  explanations, manual decisions, product barcodes, REBEL suggested prices
-  and fetch/import jobs.
+  explanations, manual decisions, product barcodes and contents, REBEL
+  suggested prices and fetch/import jobs.
   They do what the admin buying-guide desk
   (`TcgCheapWeb.Admin.BuyingGuideLive`) does and store nothing themselves.
   """
@@ -16,6 +16,7 @@ defmodule TcgCheap.Sealed.AgentTools do
     ExplainMatch,
     OfferList,
     ProductDetail,
+    SetContents,
     SetEans,
     ShopStatus,
     SuggestedPrices
@@ -134,8 +135,8 @@ defmodule TcgCheap.Sealed.AgentTools do
       description """
       One catalogue product by `slug` or `id`: its catalogue data, the public verdict (`status`
       good/normal/expensive, cardmarket (only compared with the Cardmarket trend before 7 days of shop prices, no limits), insufficient_data or out_of_stock, cheapest in-stock offer, typical price
-      and its source, price limits), every current offer assigned to it, with offer ids, and the
-      REBEL `suggested_price` matched to it (null when none).
+      and its source, price limits), every current offer assigned to it, with offer ids, the
+      REBEL `suggested_price` matched to it (null when none) and its `contents` (null when unknown).
       """
 
       argument :slug, :string, description: "The product slug, as in /produkty/{slug}."
@@ -217,6 +218,23 @@ defmodule TcgCheap.Sealed.AgentTools do
       argument :eans, {:array, :string}, allow_nil?: false
 
       run SetEans
+    end
+
+    action :set_product_contents, :map do
+      description """
+      Replaces what a product holds, shown on its public page: items (boosters with their set,
+      promo and oversize cards by name, accessories), for a fixed deck its full card list, the
+      https sources read and the day they were checked. Record only facts that a publisher page
+      or at least two shops agree on, never guesses; omit a field you could not confirm and leave
+      deck [] unless every card is known. Look up cards in TCGdex for tcgdex_id and image. Read
+      the current contents with get_product first. contents null removes them. Returns the
+      product with its contents.
+      """
+
+      argument :product_id, :uuid, allow_nil?: false
+      argument :contents, TcgCheap.Sealed.ProductContents
+
+      run SetContents
     end
 
     action :enqueue_shop_fetch, :map do

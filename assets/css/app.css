@@ -806,6 +806,20 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .verdict-method[open] .verdict-method-chevron { transform: rotate(180deg); }
 .guide-world .verdict-method p { color: var(--muted); margin: 0; max-width: 70ch; }
 .guide-world .product-section { margin-bottom: 2rem; }
+/* What the box holds: one line per item, a card picture where TCGdex has one. */
+.guide-world .contents-items, .guide-world .contents-deck ul { display: grid; list-style: none; margin: 0; padding: 0; }
+.guide-world .contents-items { background: var(--paper); column-gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); overflow: clip; padding-inline: .75rem; }
+/* Each line is ruled below; the last row's rule falls just outside the box and is clipped. */
+.guide-world .contents-items li { align-items: center; border-block-end: 1px solid var(--rule); display: flex; gap: .75rem; margin-block-end: -1px; min-block-size: 2.75rem; padding-block: .4rem; }
+.guide-world .contents-items img { block-size: 4.2rem; border-radius: 3px; flex: none; inline-size: auto; }
+.guide-world .contents-quantity { flex: none; font-variant-numeric: tabular-nums; font-weight: 700; min-inline-size: 2.5rem; }
+.guide-world .contents-deck { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); margin-block: 1rem; }
+.guide-world .contents-deck h3 { font-size: 1.25rem; grid-column: 1 / -1; }
+.guide-world .contents-deck h4 { font: 700 1.05rem "Barlow Condensed", sans-serif; margin: 0 0 .25rem; }
+.guide-world .contents-deck li { display: flex; gap: .5rem; }
+.guide-world .contents-card-set { color: var(--muted); font-size: .8rem; margin-inline-start: auto; }
+.guide-world #product-contents .guide-note { margin-block-start: .5rem; }
+.guide-world #product-contents .guide-note a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 .guide-world .cardmarket-trend { margin: 0 0 .5rem; }
 .guide-world .cardmarket-trend strong { font: 700 1.5rem/1.1 "Barlow Condensed", sans-serif; white-space: nowrap; }
 .guide-world .cardmarket-trend span { color: var(--muted); white-space: nowrap; }
