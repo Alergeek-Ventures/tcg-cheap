@@ -22,6 +22,7 @@ defmodule TcgCheap.Application do
        Application.get_env(:tcg_cheap, :public_acquisition_limiter, [])},
       {DNSCluster, query: Application.get_env(:tcg_cheap, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: TcgCheap.PubSub},
+      {Task.Supervisor, name: TcgCheap.Storage.DownloadSupervisor},
       {Oban, Application.fetch_env!(:tcg_cheap, Oban)},
       # Start a worker by calling: TcgCheap.Worker.start_link(arg)
       # {TcgCheap.Worker, arg},

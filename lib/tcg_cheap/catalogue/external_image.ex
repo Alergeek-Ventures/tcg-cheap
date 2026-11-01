@@ -1,8 +1,8 @@
 defmodule TcgCheap.Catalogue.ExternalImage do
   @moduledoc """
-  The allowlist for externally rendered card and product images: the official
+  The allowlist for background downloads of card and product images: the official
   Pokémon and TCGdex image hosts plus the image hosts of the buying-guide
-  shops. The CSP image sources are derived from the same list.
+  shops. Browsers only render local assets and our own storage.
   """
 
   alias TcgCheap.Catalogue.ExternalUrl
@@ -19,12 +19,10 @@ defmodule TcgCheap.Catalogue.ExternalImage do
   @spec hosts() :: [String.t()]
   def hosts, do: @official_hosts ++ Shops.image_hosts()
 
-  @doc "Returns the CSP image sources: this policy plus our own object storage."
+  @doc "Returns the CSP image sources: local assets and our own object storage only."
   @spec csp_sources() :: [String.t()]
   def csp_sources,
-    do:
-      ["'self'", "data:", TcgCheap.Storage.public_origin()] ++
-        Enum.map(hosts(), &"https://#{&1}")
+    do: ["'self'", "data:", TcgCheap.Storage.public_origin()]
 
   @spec valid?(term()) :: boolean()
   def valid?(url) do

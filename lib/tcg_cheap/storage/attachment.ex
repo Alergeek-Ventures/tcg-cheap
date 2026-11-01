@@ -28,4 +28,8 @@ defmodule TcgCheap.Storage.Attachment do
 
     create_timestamp :created_at
   end
+
+  identities do
+    identity :record_attachment, [:record_type, :record_id, :name]
+  end
 end

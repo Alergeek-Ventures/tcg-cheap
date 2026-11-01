@@ -99,11 +99,22 @@ defmodule TcgCheap.Sealed.Product do
                  (is_nil(photo_source_url) or photo_source_url != image_url)
              )
 
-      prepare build(sort: [available: :desc, updated_at: :desc], limit: arg(:limit))
+      filter expr(is_nil(photo_attempted_at) or photo_attempted_at < ago(1, :hour))
+
+      prepare build(
+                sort: [photo_attempted_at: :asc_nils_first, available: :desc],
+                limit: arg(:limit)
+              )
     end
 
     update :record_photo_source do
       accept [:photo_source_url]
+      change set_attribute(:photo_attempted_at, &DateTime.utc_now/0)
+    end
+
+    update :record_photo_attempt do
+      accept []
+      change set_attribute(:photo_attempted_at, &DateTime.utc_now/0)
     end
 
     update :set_contents do
@@ -203,6 +214,8 @@ defmodule TcgCheap.Sealed.Product do
       default []
       public? true
     end
+
+    attribute :photo_attempted_at, :utc_datetime_usec
 
     attribute :photo_source_url, :string do
       description "The shop photo the stored photo was made from."

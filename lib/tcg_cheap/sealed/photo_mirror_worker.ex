@@ -3,7 +3,7 @@ defmodule TcgCheap.Sealed.PhotoMirrorWorker do
 
   use Oban.Worker,
     queue: :media,
-    max_attempts: 1,
+    max_attempts: 3,
     unique: [period: :infinity, states: [:available, :scheduled, :executing]]
 
   require Logger
@@ -20,7 +20,7 @@ defmodule TcgCheap.Sealed.PhotoMirrorWorker do
   def perform(%Oban.Job{}) do
     %{stored: stored, failed: failed} = PhotoMirror.run(@batch)
     if stored + failed > 0, do: Logger.info("Product photos: #{stored} stored, #{failed} failed")
-    :ok
+    if stored + failed == @batch, do: {:snooze, 1}, else: :ok
   end
 
   @doc "Queues a run."
