@@ -54,7 +54,7 @@ defmodule TcgCheapWeb.GuideComponents do
           <path d="M1 8a7 7 0 0 1 14 0z" fill="#d23c2a" />
           <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.2" />
           <path d="M1 8h14" stroke="currentColor" stroke-width="1.2" />
-          <circle cx="8" cy="8" r="2.2" fill="#fff" stroke="currentColor" stroke-width="1.2" />
+          <circle cx="8" cy="8" r="2.4" fill="#fff" stroke="currentColor" stroke-width="1" />
         </svg>
         by <a href="https://alergeek.ventures" title="Alergeek Ventures">AV</a>
       </p>
