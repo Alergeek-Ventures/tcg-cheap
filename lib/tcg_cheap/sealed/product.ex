@@ -9,7 +9,7 @@ defmodule TcgCheap.Sealed.Product do
     domain: TcgCheap.Sealed,
     data_layer: AshPostgres.DataLayer
 
-  alias TcgCheap.Sealed.Kinds
+  alias TcgCheap.Sealed.{Kinds, Regions}
   alias TcgCheap.Sealed.Preparations.Browse
 
   postgres do
@@ -19,6 +19,8 @@ defmodule TcgCheap.Sealed.Product do
     custom_indexes do
       index [:available, :cardmarket_added_on]
       index [:kind]
+      index [:region]
+      index [:cardmarket_expansion_id]
     end
   end
 
@@ -30,6 +32,7 @@ defmodule TcgCheap.Sealed.Product do
         :cardmarket_id,
         :name,
         :kind,
+        :region,
         :cardmarket_category_id,
         :cardmarket_expansion_id,
         :set_name,
@@ -49,6 +52,7 @@ defmodule TcgCheap.Sealed.Product do
       upsert_fields [
         :name,
         :kind,
+        :region,
         :cardmarket_category_id,
         :cardmarket_expansion_id,
         :set_name,
@@ -87,14 +91,36 @@ defmodule TcgCheap.Sealed.Product do
       description "Products for the public list: in stock in Poland first, then newest."
       argument :query, :string, default: ""
       argument :kind, :atom, constraints: [one_of: Kinds.all()]
+      argument :region, :atom, constraints: [one_of: Regions.all()]
+      argument :expansion, :integer, description: "A Cardmarket expansion id."
 
       pagination offset?: true, default_limit: 30, max_page_size: 100, countable: true
       prepare Browse
+    end
+
+    read :facets do
+      description "Every product the public list would show, unpaged, for its filter counts."
+      argument :query, :string, default: ""
+      argument :kind, :atom, constraints: [one_of: Kinds.all()]
+      argument :region, :atom, constraints: [one_of: Regions.all()]
+      argument :expansion, :integer
+      prepare Browse
+
+      prepare build(
+                select: [
+                  :region,
+                  :cardmarket_expansion_id,
+                  :set_name,
+                  :cardmarket_added_on,
+                  :available
+                ]
+              )
     end
   end
 
   validations do
     validate one_of(:kind, Kinds.all())
+    validate one_of(:region, Regions.all())
   end
 
   attributes do
@@ -108,6 +134,14 @@ defmodule TcgCheap.Sealed.Product do
     end
 
     attribute :kind, :atom, allow_nil?: false, public?: true
+
+    attribute :region, :atom do
+      description "Language edition, see `TcgCheap.Sealed.Regions`."
+      allow_nil? false
+      default :en
+      public? true
+    end
+
     attribute :cardmarket_category_id, :integer, public?: true
     attribute :cardmarket_expansion_id, :integer, public?: true
     attribute :set_name, :string, public?: true, constraints: [max_length: 200]

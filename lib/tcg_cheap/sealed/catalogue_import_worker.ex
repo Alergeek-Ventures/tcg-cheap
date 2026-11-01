@@ -11,7 +11,8 @@ defmodule TcgCheap.Sealed.CatalogueImportWorker do
   alias TcgCheap.Sealed.CatalogueImport
 
   @impl Oban.Worker
-  def timeout(_job), do: :timer.minutes(10)
+  # The first run also reads about a thousand TCGdex documents.
+  def timeout(_job), do: :timer.minutes(20)
 
   @impl Oban.Worker
   def perform(%Oban.Job{}) do

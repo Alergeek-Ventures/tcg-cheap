@@ -2,7 +2,7 @@ defmodule TcgCheap.Sealed.Guide do
   @moduledoc "Read models for the public buying-guide pages."
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{PriceGuide, Product}
+  alias TcgCheap.Sealed.{PriceGuide, Product, Regions, TcgdexSet}
 
   @history_days 90
   @page_size 30
@@ -16,19 +16,112 @@ defmodule TcgCheap.Sealed.Guide do
 
   def history_days, do: @history_days
 
+  @type filters :: %{
+          query: String.t(),
+          kind: atom() | nil,
+          region: atom() | nil,
+          expansion: integer() | nil
+        }
+
   @doc """
-  One page of the public list: products matching the query and kind, in
-  stock in Poland first, then newest. Returns the summaries, whether more
-  pages follow and the total count.
+  One page of the public list: products matching the filters, in stock in
+  Poland first, then newest. Returns the summaries, whether more pages follow
+  and the total count.
   """
-  @spec browse(String.t(), atom() | nil, non_neg_integer(), DateTime.t()) ::
+  @spec browse(filters(), non_neg_integer(), DateTime.t()) ::
           {[summary()], boolean(), non_neg_integer()}
-  def browse(query, kind, offset, %DateTime{} = now) do
+  def browse(filters, offset, %DateTime{} = now) do
     page =
-      Sealed.browse_products!(query, kind, page: [limit: @page_size, offset: offset, count: true])
+      Sealed.browse_products!(filters.query, filters.kind, filters.region, filters.expansion,
+        page: [limit: @page_size, offset: offset, count: true]
+      )
 
     {summaries(page.results, now), page.more?, page.count || 0}
   end
+
+  @doc """
+  What the language and expansion filters offer under the other filters:
+  product counts per language edition, and the named expansions (those with
+  a product in stock first, then newest first) with their English TCGdex
+  logo when there is one.
+  """
+  @spec facets(filters()) :: %{
+          regions: [{atom(), pos_integer()}],
+          expansions: [
+            %{
+              id: integer(),
+              name: String.t(),
+              region: atom(),
+              logo_url: String.t() | nil,
+              count: non_neg_integer()
+            }
+          ]
+        }
+  def facets(filters) do
+    regions =
+      Sealed.list_product_facets!(filters.query, filters.kind, nil, filters.expansion)
+      |> Enum.frequencies_by(& &1.region)
+
+    %{
+      regions: for(region <- Regions.all(), count = regions[region], do: {region, count}),
+      expansions: expansions(filters)
+    }
+  end
+
+  defp expansions(filters) do
+    logos =
+      for {id, %{language: "en", logo_url: "" <> url}} <-
+            TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!()),
+          into: %{},
+          do: {id, url <> ".webp"}
+
+    expansions =
+      Sealed.list_product_facets!(filters.query, filters.kind, filters.region, nil)
+      |> named_expansions(logos)
+      |> Enum.sort_by(&(&1.newest || ~D[1990-01-01]), {:desc, Date})
+      |> Enum.sort_by(&(!&1.available?))
+      |> Enum.map(&Map.drop(&1, [:available?, :newest]))
+
+    expansions ++ chosen_elsewhere(filters.expansion, expansions, logos)
+  end
+
+  # The chosen expansion stays listed, with no products, when the other
+  # filters leave none of it.
+  defp chosen_elsewhere(nil, _expansions, _logos), do: []
+
+  defp chosen_elsewhere(id, expansions, logos) do
+    if Enum.any?(expansions, &(&1.id == id)) do
+      []
+    else
+      Sealed.list_product_facets!("", nil, nil, id)
+      |> named_expansions(logos)
+      |> Enum.map(&(&1 |> Map.drop([:available?, :newest]) |> Map.put(:count, 0)))
+    end
+  end
+
+  defp named_expansions(products, logos) do
+    products
+    |> Enum.filter(&(&1.cardmarket_expansion_id && &1.set_name))
+    |> Enum.group_by(& &1.cardmarket_expansion_id)
+    |> Enum.map(fn {id, products} ->
+      %{
+        id: id,
+        name: most_common(products, & &1.set_name),
+        region: most_common(products, & &1.region),
+        logo_url: Map.get(logos, id),
+        count: length(products),
+        available?: Enum.any?(products, & &1.available),
+        newest:
+          products
+          |> Enum.map(& &1.cardmarket_added_on)
+          |> Enum.reject(&is_nil/1)
+          |> Enum.max(Date, fn -> nil end)
+      }
+    end)
+  end
+
+  defp most_common(products, field),
+    do: products |> Enum.frequencies_by(field) |> Enum.max_by(&elem(&1, 1)) |> elem(0)
 
   @doc "Summaries for the given products, in order."
   @spec summaries([Product.t()], DateTime.t()) :: [summary()]

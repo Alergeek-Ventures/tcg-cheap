@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   import TcgCheapWeb.GuideComponents
 
-  alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Shops}
+  alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Regions, Shops}
   alias TcgCheapWeb.{Polish, VisitorLocation}
 
   defmodule NotFound do
@@ -75,7 +75,9 @@ defmodule TcgCheapWeb.ProductLive do
                 <span id="product-kind">{Kinds.label(@page.product.kind)}</span><span
                   :if={@page.product.set_name}
                   id="product-set"
-                > · {@page.product.set_name}</span>
+                > · {@page.product.set_name}</span><span id="product-region">
+                  · wersja {String.downcase(Regions.label(@page.product.region))}
+                </span>
               </p>
             </section>
             <.verdict_block
