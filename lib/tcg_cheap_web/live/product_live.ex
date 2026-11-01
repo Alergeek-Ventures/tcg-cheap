@@ -90,6 +90,9 @@ defmodule TcgCheapWeb.ProductLive do
                   price: Polish.price(@page.suggested_price.price)
                 )} · <a href="#product-suggested-price">{gettext("skąd ta cena?")}</a>
               </p>
+              <p :if={@page.product.contents} id="product-inside" class="product-facts">
+                <a href="#product-contents">{gettext("Co jest w środku")} ↓</a>
+              </p>
             </section>
             <.verdict_block
               verdict={@page.verdict}
@@ -146,6 +149,8 @@ defmodule TcgCheapWeb.ProductLive do
               </li>
             </ul>
           </section>
+
+          <.contents :if={@page.product.contents} contents={@page.product.contents} />
 
           <section
             id="product-history"
@@ -320,6 +325,110 @@ defmodule TcgCheapWeb.ProductLive do
     </section>
     """
   end
+
+  attr :contents, :map, required: true
+
+  defp contents(assigns) do
+    items = Enum.sort_by(assigns.contents.items, &item_rank(&1.type))
+
+    assigns =
+      assign(assigns,
+        items: items,
+        rows: ceil(length(items) / 2),
+        deck_size: assigns.contents.deck |> Enum.map(& &1.quantity) |> Enum.sum(),
+        categories: Enum.group_by(assigns.contents.deck, & &1.category)
+      )
+
+    ~H"""
+    <section id="product-contents" class="product-section" aria-labelledby="product-contents-title">
+      <div class="product-section-heading">
+        <h2 id="product-contents-title">{gettext("Co jest w środku")}</h2>
+        <p>{gettext("sprawdzono %{date}", date: Polish.date(@contents.checked_on))}</p>
+      </div>
+      <ul id="contents-items" class="contents-items" style={"--rows: #{@rows}"}>
+        <li :for={item <- @items}>
+          <span class="contents-quantity">{item.quantity}×</span>
+          <span class="contents-label">{item_label(item)}</span>
+          <img
+            :if={item.image}
+            src={item.image <> "/low.webp"}
+            alt=""
+            width="34"
+            height="48"
+            loading="lazy"
+          />
+        </li>
+      </ul>
+      <div :if={@contents.deck != []} id="contents-deck" class="contents-deck">
+        <h3>{gettext("Karty w talii (%{count})", count: @deck_size)}</h3>
+        <div :for={category <- [:pokemon, :trainer, :energy]} :if={@categories[category]}>
+          <h4>
+            {category_label(category)} ({@categories[category]
+            |> Enum.map(& &1.quantity)
+            |> Enum.sum()})
+          </h4>
+          <ul>
+            <li :for={card <- @categories[category]}>
+              <span class="contents-quantity">{card.quantity}</span>
+              {card.name}
+              <span :if={card.set} class="contents-card-set">{card.set} {card.number}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <p class="guide-note">
+        {gettext("Źródła:")}
+        <%= for {url, index} <- Enum.with_index(@contents.sources) do %>
+          <span :if={index > 0}>·</span>
+          <a href={url} target="_blank" rel="noopener nofollow">{URI.parse(url).host}</a>
+        <% end %>
+      </p>
+    </section>
+    """
+  end
+
+  defp item_label(%{type: :booster, name: nil}), do: gettext("booster")
+  defp item_label(%{type: :booster, name: set}), do: gettext("booster %{set}", set: set)
+  defp item_label(%{type: :promo_card, name: nil}), do: gettext("karta promo")
+
+  defp item_label(%{type: :promo_card, name: card}),
+    do: gettext("karta promo %{card}", card: card)
+
+  defp item_label(%{type: :oversize_card, name: nil}), do: gettext("duża karta")
+
+  defp item_label(%{type: :oversize_card, name: card}),
+    do: gettext("duża karta %{card}", card: card)
+
+  defp item_label(%{type: :card, name: nil}), do: gettext("karta")
+  defp item_label(%{type: :card, name: card}), do: gettext("karta %{card}", card: card)
+  defp item_label(%{type: :deck, name: nil}), do: gettext("talia gotowa do gry")
+  defp item_label(%{type: :deck, name: deck}), do: gettext("talia %{deck}", deck: deck)
+  defp item_label(%{type: :sleeves}), do: gettext("koszulki na karty")
+  defp item_label(%{type: :energy_cards}), do: gettext("karty energii")
+  defp item_label(%{type: :dice}), do: gettext("kość do gry")
+  defp item_label(%{type: :damage_counters}), do: gettext("kości do liczenia obrażeń")
+  defp item_label(%{type: :coin}), do: gettext("moneta")
+  defp item_label(%{type: :condition_markers}), do: gettext("znaczniki stanów")
+  defp item_label(%{type: :deck_box}), do: gettext("pudełko na talię")
+  defp item_label(%{type: :storage_box}), do: gettext("pudełko na karty")
+  defp item_label(%{type: :card_dividers}), do: gettext("przekładki")
+  defp item_label(%{type: :player_guide}), do: gettext("przewodnik gracza")
+  defp item_label(%{type: :rule_sheet}), do: gettext("zasady gry")
+  defp item_label(%{type: :code_card}), do: gettext("karta z kodem do Pokémon TCG Live")
+  defp item_label(%{type: :sticker}), do: gettext("naklejki")
+  defp item_label(%{type: :pin}), do: gettext("przypinka")
+  defp item_label(%{type: :figure}), do: gettext("figurka")
+  defp item_label(%{type: :binder}), do: gettext("album")
+  defp item_label(%{type: :playmat}), do: gettext("mata do gry")
+  defp item_label(%{type: :other, name: name}), do: name
+
+  # What a buyer opens comes first, the accessories after it.
+  @item_order ~w(deck booster promo_card oversize_card card energy_cards)a
+  defp item_rank(type), do: Enum.find_index(@item_order, &(&1 == type)) || length(@item_order)
+
+  defp category_label(:pokemon), do: "Pokémon"
+  defp category_label(:trainer), do: gettext("Trenerzy")
+  defp category_label(:energy), do: gettext("Energia")
 
   attr :suggested, :map, required: true
 

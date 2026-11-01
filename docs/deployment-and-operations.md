@@ -200,7 +200,8 @@ To re-run one shop or the catalogue import immediately:
 `/mcp` is an MCP server (streamable HTTP) with the same work as tools: shop
 status, unmatched/matched offers and manual decisions, product search and
 detail, `explain_match` (why a title matches or not), assign/exclude/clear,
-`set_product_eans`, REBEL's suggested prices (`list_suggested_prices`,
+`set_product_eans`, `set_product_contents` (what a box holds, shown on its
+page), REBEL's suggested prices (`list_suggested_prices`,
 `decide_suggested_price`) and queuing a shop fetch, catalogue import or
 suggested-price collection. Its
 instructions tell the agent to leave an offer alone when unsure.

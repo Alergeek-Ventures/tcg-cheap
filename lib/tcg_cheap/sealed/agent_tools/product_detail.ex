@@ -1,7 +1,7 @@
 defmodule TcgCheap.Sealed.AgentTools.ProductDetail do
   @moduledoc """
-  One product with its public verdict, current offers and suggested price, as
-  on its product page.
+  One product with its public verdict, current offers, suggested price and
+  contents, as on its product page.
   """
 
   use Ash.Resource.Actions.Implementation
@@ -50,6 +50,7 @@ defmodule TcgCheap.Sealed.AgentTools.ProductDetail do
       cardmarket_trend_pln: detail.cardmarket_pln,
       eur_pln: detail.eur_pln,
       suggested_price: Json.suggested_price(detail.suggested_price),
+      contents: Json.contents(product.contents),
       offers: Enum.map(detail.offers, &Json.offer/1)
     }
   end

@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-11-01] Product contents
+
+- Task: Owner asked for product descriptions as precise as possible, with the cards inside. Products get embedded `contents` (items, fixed-deck card list, sources, checked day), set by agents through the MCP tool `set_product_contents` and shown on the product page under "Co jest w środku" (PL/EN labels per item type, TCGdex card pictures when known, source links).
+- Files: `product/buying-and-trading-guide.md` (Contents).
+- Validation: `mix check` passed; pilot contents for 9 products loaded through the MCP tool in development and rendered at 1280 and 390 px in Polish and English; a sample deck list rendered and was removed.
+- Remaining: Decklists have no reachable public source (official pages and Bulbapedia block bots); 11 pilot products lacked consistent facts.
+
 ## [2026-11-01] Buying-guide PL / EN and header alignment
 
 - Task: Owner asked to align the desktop logo and location with the content and add Polish/English selection at the top. The guide header uses logical inline padding matching its 72rem content column, with a full-width border. PL / EN links persist the choice in the session and retain the page and query string; local redirect validation rejects external URLs, backslashes and control characters. Guide-only request and LiveView locale setup drives Gettext, page titles and HTML `lang`. Polish msgids preserve existing copy; complete Polish (three plural forms) and English catalogues cover the home/product pages, filters, verdicts, delivery/pickup, location and browser feedback, scanner, dates and counts. PLN formatting stays unchanged; admin, trade and card pages remain outside scope.
