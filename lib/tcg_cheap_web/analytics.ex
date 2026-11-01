@@ -1,6 +1,18 @@
 defmodule TcgCheapWeb.Analytics do
   @moduledoc false
 
+  # Shared with the browser so SDK requests and the proxy use the same routes.
+  @proxy_paths %{
+    "/i/v0/e/" => "/_x/19a4/",
+    "/e/" => "/_x/27bf/",
+    "/s/" => "/_x/3d81/",
+    "/flags/" => "/_x/4c6e/",
+    "/array/" => "/_x/5ab2/",
+    "/static/" => "/_x/6f93/"
+  }
+
+  def proxy_paths, do: @proxy_paths
+
   def config(%Plug.Conn{path_info: ["admin" | _]}), do: nil
 
   def config(_conn) do
@@ -8,13 +20,7 @@ defmodule TcgCheapWeb.Analytics do
 
     case Keyword.get(settings, :api_key) do
       key when is_binary(key) and key != "" ->
-        host = Keyword.fetch!(settings, :api_host)
-
-        %{
-          api_key: key,
-          api_host: host,
-          asset_host: String.replace(host, ".i.posthog.com", "-assets.i.posthog.com")
-        }
+        %{api_key: key, proxy_paths: @proxy_paths}
 
       _key ->
         nil

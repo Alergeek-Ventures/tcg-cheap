@@ -48,6 +48,9 @@ defmodule TcgCheapWeb.Endpoint do
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 
+  # Relay compressed telemetry before parsers consume or decode its body.
+  plug TcgCheapWeb.AnalyticsProxy
+
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],

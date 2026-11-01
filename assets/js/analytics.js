@@ -4,8 +4,9 @@ export default function initAnalytics() {
   const config = document.querySelector("meta[name='posthog']")
   if (!config || navigator.doNotTrack === "1" || navigator.globalPrivacyControl) return
 
+  const paths = JSON.parse(config.dataset.proxyPaths)
   const script = document.createElement("script")
-  script.src = `${config.dataset.assetHost}/static/array.js`
+  script.src = `${paths["/static/"]}array.js`
   script.async = true
   script.crossOrigin = "anonymous"
   script.referrerPolicy = "no-referrer"
@@ -25,7 +26,12 @@ export default function initAnalytics() {
     }
 
     posthog.init(config.content, {
-      api_host: config.dataset.apiHost,
+      api_host: window.location.origin,
+      rewriteRequestPath: url => {
+        const entry = Object.entries(paths).find(([path]) => url.pathname.startsWith(path))
+        if (entry) url.pathname = entry[1] + url.pathname.slice(entry[0].length)
+        return url
+      },
       defaults: "2026-01-30",
       cookieless_mode: "always",
       persistence: "memory",
