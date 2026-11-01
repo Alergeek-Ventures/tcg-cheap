@@ -27,18 +27,27 @@ defmodule TcgCheapWeb.GuideComponents do
         aria-label={gettext("Język strony")}
       >
         <a
-          :for={locale <- ["pl", "en"]}
+          :for={{locale, name, flag} <- languages()}
           id={"language-#{locale}"}
           href={~p"/lang/#{locale}?#{[return_to: @return_to]}"}
           lang={locale}
           hreflang={locale}
-          aria-label={if(locale == "pl", do: "Polski", else: "English")}
+          aria-label={name}
           aria-current={if(locale == @locale, do: "true")}
-        >{String.upcase(locale)}</a>
+        >
+          <img src={flag} alt="" width="21" height="14" />{String.upcase(locale)}
+        </a>
       </nav>
       {render_slot(@inner_block)}
     </header>
     """
+  end
+
+  defp languages do
+    [
+      {"pl", "Polski", ~p"/images/flags/pl.svg"},
+      {"en", "English", ~p"/images/flags/en.svg"}
+    ]
   end
 
   @doc "The verdict as a labelled badge; shape and text carry the meaning, not color alone."
