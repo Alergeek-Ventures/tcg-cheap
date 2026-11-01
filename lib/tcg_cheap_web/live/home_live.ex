@@ -15,7 +15,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{Ean, Guide, Kinds, Regions, Shops}
-  alias TcgCheapWeb.{Polish, VisitorLocation}
+  alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
 
   @max_query_length 100
   @kind_params Map.new(Kinds.all(), &{Atom.to_string(&1), &1})
@@ -27,13 +27,15 @@ defmodule TcgCheapWeb.HomeLive do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:page_title, gettext("Sprawdź, czy cena jest dobra"))
      |> VisitorLocation.assign_location()
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")}
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
+    seo = SEO.home(params)
+    socket = assign(socket, seo: seo, page_title: seo.title)
+
     filters = %{
       query: params |> query_param() |> String.trim() |> String.slice(0, @max_query_length),
       kind: Map.get(@kind_params, params["rodzaj"]),
@@ -300,6 +302,7 @@ defmodule TcgCheapWeb.HomeLive do
 
     ~H"""
     <Layouts.app flash={@flash}>
+      <SEO.sync seo={@seo} />
       <div class="guide-world">
         <.site_header locale={@locale} return_to={@locale_return_to}>
           <VisitorLocation.location_control
