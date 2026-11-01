@@ -55,10 +55,14 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   # never shows another card.
   defp with_card(%{tcgdex_id: id} = item) do
     case Tcgdex.fetch_card(id) do
-      {:ok, card} ->
-        if item.name == nil or same_name?(item.name, card["name"]),
+      {:ok, %{"name" => name, "localId" => number} = card}
+      when is_binary(name) and is_binary(number) ->
+        if item.name == nil or same_name?(item.name, name),
           do: {:ok, card_details(item, card)},
-          else: invalid(:contents, "#{id} is #{card["name"]} in TCGdex, not #{item.name}")
+          else: invalid(:contents, "#{id} is #{name} in TCGdex, not #{item.name}")
+
+      {:ok, _incomplete} ->
+        invalid(:contents, "TCGdex gave no name or number for #{id}")
 
       {:error, reason} ->
         invalid(:contents, "TCGdex has no card #{id} (#{inspect(reason)})")
@@ -76,8 +80,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
     }
   end
 
-  defp same_name?(given, name) when is_binary(name), do: normalize(given) == normalize(name)
-  defp same_name?(_given, _name), do: false
+  defp same_name?(given, name), do: normalize(given) == normalize(name)
 
   defp normalize(name),
     do: name |> String.normalize(:nfd) |> String.replace(~r/\p{Mn}/u, "") |> String.downcase()
