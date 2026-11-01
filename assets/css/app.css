@@ -665,7 +665,8 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-results-heading h2, .guide-world .product-section-heading h2 { font-size: clamp(1.5rem, 3vw, 1.75rem); line-height: 1; }
 .guide-world .guide-results-heading p, .guide-world .product-section-heading p { color: var(--muted); font-size: .875rem; margin: 0; }
 .guide-world .guide-products, .guide-world .offer-list { display: grid; gap: .5rem; list-style: none; margin: 0; padding: 0; }
-.guide-world .guide-product { animation: bench-reveal .45s ease-out both; min-width: 0; }
+/* No entry animation: LiveView re-inserts every card on connect and on each search or filter, so it replayed constantly. */
+.guide-world .guide-product { min-width: 0; }
 .guide-world .guide-product-link { align-items: center; background: var(--paper); color: inherit; display: grid; gap: .35rem 1rem; grid-template-columns: 5.5rem minmax(0, 1fr) auto; min-height: 3rem; padding: .5rem .75rem .5rem .5rem; text-decoration: none; }
 .guide-world .guide-product-deal { display: grid; gap: .35rem; justify-items: end; min-width: 0; text-align: right; }
 .guide-world .guide-product-judgement { align-items: center; display: flex; flex-wrap: wrap; gap: .25rem .5rem; justify-content: flex-end; margin: 0; }
@@ -909,7 +910,6 @@ details.admin-disclosure summary::marker { color: var(--orange); }
   .guide-world .site-wordmark img { block-size: 1.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .guide-world .guide-product { animation: none; }
   .guide-world .verdict-method-chevron { transition: none; }
 }
 
