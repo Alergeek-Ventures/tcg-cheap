@@ -27,7 +27,9 @@ defmodule TcgCheap.Sealed.Shops do
     Selly,
     Shop,
     ShopGold,
+    ShoperListing,
     Shopify,
+    SkyShop,
     Smajk,
     Sote,
     WooCommerce
@@ -1305,6 +1307,205 @@ defmodule TcgCheap.Sealed.Shops do
       shipping_from: Decimal.new("17"),
       free_shipping_from: nil,
       pickup_city: "Poznań"
+    },
+    %Shop{
+      key: "bastacentershop",
+      name: "Basta Center Shop",
+      host: "www.bastacentershop.pl",
+      source: ShoperListing,
+      feed_path: "/pl/c/Pokemon-TCG/41",
+      max_pages: 3,
+      shipping_from: Decimal.new("15"),
+      free_shipping_from: Decimal.new("400"),
+      pickup_city: "Gdańsk"
+    },
+    %Shop{
+      key: "bastiontcg",
+      name: "Bastion TCG",
+      host: "bastiontcg.pl",
+      source: ShoperListing,
+      feed_path: "/pl/c/Pokemon/38",
+      max_pages: 4,
+      shipping_from: Decimal.new("17"),
+      free_shipping_from: Decimal.new("999"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "dragonus",
+      name: "Dragonus",
+      host: "dragonus.pl",
+      source: ShoperListing,
+      feed_path: "/pl/c/Pokemon/315",
+      mixed_listing: true,
+      max_pages: 8,
+      shipping_from: Decimal.new("15"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: "Kraków"
+    },
+    %Shop{
+      key: "kartexpol",
+      name: "Kartexpol",
+      host: "www.kartexpol.pl",
+      source: ShoperListing,
+      feed_path: "/pl/c/Pokemon-TCG/38",
+      max_pages: 8,
+      shipping_from: Decimal.new("16"),
+      free_shipping_from: Decimal.new("400"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "lukillo",
+      name: "Lukillo",
+      host: "lukillo.pl",
+      source: ShoperListing,
+      feed_path: "/pl/c/Pokemon-TCG/46",
+      max_pages: 4,
+      shipping_from: Decimal.new("12.99"),
+      free_shipping_from: Decimal.new("400"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "magplanszowy",
+      name: "Mag Planszowy",
+      host: "magplanszowy.pl",
+      source: ShoperListing,
+      feed_path: "/pl/c/Pokemon-TCG/52",
+      max_pages: 6,
+      shipping_from: Decimal.new("15.99"),
+      free_shipping_from: nil,
+      pickup_city: "Wrocław"
+    },
+    %Shop{
+      key: "mycards",
+      name: "MyCards.pl",
+      host: "mycards.pl",
+      source: ShoperListing,
+      feed_path: "/pl/c/Pokemon-TCG/1",
+      max_pages: 6,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "pokesmart",
+      name: "PokeSmart",
+      host: "pokesmart.pl",
+      source: ShoperListing,
+      feed_path: "/pl/c/Produkty-Pokemon/232",
+      max_pages: 3,
+      shipping_from: Decimal.new("11.95"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "raventcg",
+      name: "RavenTCG",
+      host: "raventcg.pl",
+      source: ShoperListing,
+      feed_path: "/pokemon-tcg",
+      max_pages: 3,
+      shipping_from: Decimal.new("14.99"),
+      free_shipping_from: Decimal.new("299"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgheaven",
+      name: "TCG Heaven",
+      host: "tcgheaven.eu",
+      source: ShoperListing,
+      feed_path: "/pokemon-tcg",
+      max_pages: 6,
+      shipping_from: Decimal.new("16"),
+      free_shipping_from: Decimal.new("350"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "canislupus",
+      name: "Canis Lupus",
+      host: "www.canislupus.com.pl",
+      source: SkyShop,
+      feed_path: "/Pokemon-c713",
+      max_pages: 14,
+      shipping_from: Decimal.new("9.99"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: "Poznań"
+    },
+    %Shop{
+      key: "chaosgames",
+      name: "Chaos Games",
+      host: "chaos-games.pl",
+      source: SkyShop,
+      feed_path: "/Pokemon-c212",
+      max_pages: 4,
+      shipping_from: Decimal.new("9.99"),
+      free_shipping_from: Decimal.new("450"),
+      pickup_city: "Piła"
+    },
+    %Shop{
+      key: "japancollectibles",
+      name: "Japan Collectibles",
+      host: "japancollectibles.shop",
+      source: SkyShop,
+      feed_path: "/Karty-Pokemon",
+      max_pages: 25,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: "Elbląg"
+    },
+    %Shop{
+      key: "jaskiniatrolla",
+      name: "Jaskinia Trolla",
+      host: "jaskiniatrolla.pl",
+      source: SkyShop,
+      feed_path: "/Pokemon-c564",
+      max_pages: 4,
+      shipping_from: Decimal.new("16"),
+      free_shipping_from: Decimal.new("600"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "krakenshop",
+      name: "KrakenShop",
+      host: "krakenshop.pl",
+      source: SkyShop,
+      feed_path: "/karty-pokemon",
+      max_pages: 2,
+      shipping_from: Decimal.new("9.99"),
+      free_shipping_from: Decimal.new("299"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "loficards",
+      name: "LofiCards",
+      host: "loficards.pl",
+      source: SkyShop,
+      feed_path: "/pokemon",
+      max_pages: 16,
+      shipping_from: Decimal.new("15"),
+      free_shipping_from: Decimal.new("399"),
+      pickup_city: "Poznań"
+    },
+    %Shop{
+      key: "planszon",
+      name: "Planszon",
+      host: "planszon.pl",
+      source: SkyShop,
+      feed_path: "/Pokemon-TCG-c32",
+      max_pages: 5,
+      shipping_from: Decimal.new("10.99"),
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: "Warszawa"
+    },
+    %Shop{
+      key: "pokecentrum",
+      name: "PokeCentrum",
+      host: "pokecentrum.pl",
+      source: SkyShop,
+      feed_path: "/Angielskie-c30",
+      max_pages: 4,
+      shipping_from: Decimal.new("15"),
+      free_shipping_from: Decimal.new("499"),
+      pickup_city: nil
     }
   ]
 

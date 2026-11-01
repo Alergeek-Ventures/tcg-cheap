@@ -11,10 +11,12 @@ defmodule TcgCheap.Sealed.Shop do
       whole shop);
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
       cover the whole shop); IdoSell: `feed_path` (a Pokémon category or
-      search listing, query included); shops read from their HTML listings:
-      `feed_path` (the one listing) or, for PrestaShop, shopGold, Sellingo,
-      Selly and SOTE, `listing_paths` (the Pokémon category listings, each
-      read to its last page);
+      search listing, query included);
+    * shops read from their HTML listings: `feed_path` (the one listing) or,
+      for PrestaShop, shopGold, Sellingo, Selly and SOTE, `listing_paths` (the
+      Pokémon category listings, each read to its last page); Shoper
+      listings: `mixed_listing` (true when the category also lists other
+      games, so a title must say Pokémon);
     * `shipping_from` – the cheapest delivery price in PLN, `free_shipping_from`
       – the order value from which delivery is free, `pickup_city` – the city
       of the shop's own store where orders can be picked up in person; each nil
@@ -40,6 +42,7 @@ defmodule TcgCheap.Sealed.Shop do
                 :collection,
                 :feed_path,
                 :listing_paths,
+                :mixed_listing,
                 :pickup_location
               ]
 
@@ -55,6 +58,7 @@ defmodule TcgCheap.Sealed.Shop do
           collection: String.t() | nil,
           feed_path: String.t() | nil,
           listing_paths: [String.t()] | nil,
+          mixed_listing: boolean() | nil,
           shipping_from: Decimal.t() | nil,
           free_shipping_from: Decimal.t() | nil,
           pickup_city: String.t() | nil,
