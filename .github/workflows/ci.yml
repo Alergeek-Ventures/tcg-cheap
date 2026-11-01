@@ -48,22 +48,36 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Elixir and OTP
+        id: beam
         uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
           elixir-version: 1.20.5
           otp-version: 29.1.2
 
-      - name: Restore dependency and build caches
+      - name: Restore dependency and tool caches
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             deps
-            _build
             .mix
             ~/.cache/rebar3
-          key: ${{ runner.os }}-elixir-1.20.5-otp-29.1.2-${{ hashFiles('mix.lock') }}
+          key: deps-v2-${{ runner.os }}-${{ runner.arch }}-${{ env.MIX_ENV }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-${{ hashFiles('mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-elixir-1.20.5-otp-29.1.2-
+            deps-v2-${{ runner.os }}-${{ runner.arch }}-${{ env.MIX_ENV }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-
+
+      # Cache each revision so later runs do not repeatedly restore an old build.
+      # PLTs have their own lifecycle and must stay out of this cache.
+      - name: Restore build cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            _build/test/lib
+            _build/test/.mix
+            _build/test/consolidated
+          key: build-v2-${{ runner.os }}-${{ runner.arch }}-${{ env.MIX_ENV }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-${{ hashFiles('mix.exs', 'config/**/*.exs') }}-${{ hashFiles('mix.lock') }}-${{ github.sha }}
+          restore-keys: |
+            build-v2-${{ runner.os }}-${{ runner.arch }}-${{ env.MIX_ENV }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-${{ hashFiles('mix.exs', 'config/**/*.exs') }}-${{ hashFiles('mix.lock') }}-
+            build-v2-${{ runner.os }}-${{ runner.arch }}-${{ env.MIX_ENV }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-
 
       - name: Install Hex and Rebar
         run: |
@@ -73,13 +87,50 @@ jobs:
       - name: Fetch dependencies
         run: mix deps.get
 
-      - name: Restore PLT cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - name: Restore core PLT cache
+        id: core-plt-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: priv/plts
-          key: ${{ runner.os }}-plt-elixir-1.20.5-otp-29.1.2-${{ hashFiles('mix.lock') }}
+          path: |
+            _build/plts/core/*.plt
+            _build/plts/core/*.plt.hash
+          key: plt-core-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.MIX_ENV }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}
+
+      - name: Restore project PLT cache
+        id: plt-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            _build/test/*.plt
+            _build/test/*.plt.hash
+          key: plt-v2-${{ runner.os }}-${{ runner.arch }}-${{ env.MIX_ENV }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-${{ hashFiles('mix.lock') }}-${{ hashFiles('mix.exs', 'config/**/*.exs') }}
+          # Reuse only the same lock; changed dependencies start from the core PLTs.
           restore-keys: |
-            ${{ runner.os }}-plt-elixir-1.20.5-otp-29.1.2-
+            plt-v2-${{ runner.os }}-${{ runner.arch }}-${{ env.MIX_ENV }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-${{ hashFiles('mix.lock') }}-
+
+      - name: Create or update PLTs
+        id: plt-create
+        if: steps.core-plt-cache.outputs.cache-hit != 'true' || steps.plt-cache.outputs.cache-hit != 'true'
+        run: mix dialyzer --plt
+
+      # Preserve successful PLT creation even if the quality gate later fails.
+      - name: Save core PLT cache
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: steps.core-plt-cache.outputs.cache-hit != 'true' && steps.plt-create.outcome == 'success'
+        with:
+          path: |
+            _build/plts/core/*.plt
+            _build/plts/core/*.plt.hash
+          key: ${{ steps.core-plt-cache.outputs.cache-primary-key }}
+
+      - name: Save project PLT cache
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: steps.plt-cache.outputs.cache-hit != 'true' && steps.plt-create.outcome == 'success'
+        with:
+          path: |
+            _build/test/*.plt
+            _build/test/*.plt.hash
+          key: ${{ steps.plt-cache.outputs.cache-primary-key }}
 
       - name: Run canonical quality gate
         run: mix check --verbose
@@ -92,8 +143,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver: docker-container
+          # The hosted runner is discarded after the job; no builder cleanup is needed.
+          cleanup: false
+
       - name: Build application container
-        run: docker build --file deployment/Containerfile.app --tag tcg-cheap:ci .
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: deployment/Containerfile.app
+          push: false
+          # Validate the complete build without exporting an unused image.
+          outputs: type=cacheonly
+          cache-from: type=gha,scope=tcg-cheap-app
+          # Cache export is optional; image build failures remain fatal.
+          cache-to: type=gha,scope=tcg-cheap-app,mode=max,ignore-error=true
 
   deploy:
     name: Deploy production
