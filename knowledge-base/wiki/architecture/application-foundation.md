@@ -1,7 +1,7 @@
 # Application Foundation
 
 - Updated: 2026-10-31
-- Sources: Project code (`lib/`, `config/config.exs`, `config/runtime.exs`, `priv/repo/migrations/`), [deployment guide](../../../docs/deployment-and-operations.md)
+- Sources: Project code (`lib/`, `config/config.exs`, `config/runtime.exs`, `priv/repo/migrations/`)
 - Raw: N/A — codebase update
 
 One Phoenix LiveView + Ash + Oban application on PostgreSQL. The product is

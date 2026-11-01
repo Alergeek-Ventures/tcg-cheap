@@ -34,9 +34,7 @@ Phoenix port. In development, Tidewave MCP is at
 `http://localhost:{PORT}/tidewave/mcp` and the buying-guide agent tools at
 `http://localhost:{PORT}/mcp`.
 
-A fresh database is empty until the background jobs run (see
-[deployment and operations](docs/deployment-and-operations.md#first-data) for
-how to queue them immediately).
+A fresh database is empty until the background jobs run.
 
 To create a local administrator:
 
@@ -56,8 +54,6 @@ After changing Ash resources, generate migrations and snapshots with
 ## Documentation
 
 - [PRODUCT.md](PRODUCT.md) — product brief; [DESIGN.md](DESIGN.md) — visual design.
-- [Deployment and operations](docs/deployment-and-operations.md) — first
-  deployment, configuration, jobs, day-2 tasks, backups.
 - [Knowledge base](knowledge-base/wiki/index.md) — the product north star
   ([Buying and Trading Guide](knowledge-base/wiki/product/buying-and-trading-guide.md)),
   architecture and data sources.
