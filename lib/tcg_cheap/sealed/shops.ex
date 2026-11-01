@@ -11,7 +11,23 @@ defmodule TcgCheap.Sealed.Shops do
   OpenStreetMap Nominatim on 2026-11-01.
   """
 
-  alias TcgCheap.Sealed.{CeneoFeed, GoogleFeed, IdoSell, PrestaShop, Shop, Shopify, WooCommerce}
+  alias TcgCheap.Sealed.{
+    Am76,
+    CeneoFeed,
+    Collectify,
+    GildiaGrodzisk,
+    GoogleFeed,
+    Guildmage,
+    IdoSell,
+    MagicznyRynek,
+    Pasaz24,
+    Planszomania,
+    PrestaShop,
+    Shop,
+    Shopify,
+    Smajk,
+    WooCommerce
+  }
 
   @produkt ~r|\A/produkt/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
   @produkt_no_slash ~r|\A/produkt/[a-z0-9]+(?:-[a-z0-9]+)*\z|
@@ -1043,6 +1059,105 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: nil,
       free_shipping_from: Decimal.new("250"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "planszomania",
+      name: "Planszomania",
+      host: "www.planszomania.pl",
+      source: Planszomania,
+      feed_path: "/szukaj/pokemon",
+      max_pages: 1,
+      shipping_from: Decimal.new("16"),
+      free_shipping_from: Decimal.new("350"),
+      pickup_city: "Warszawa"
+    },
+    %Shop{
+      key: "merfolk",
+      name: "Merfolk",
+      host: "sklep.merfolk.pl",
+      source: Pasaz24,
+      feed_path: "/category/POKEMON-TCG-345476",
+      max_pages: 12,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: "Pruszków"
+    },
+    %Shop{
+      key: "sidequest",
+      name: "Side Quest",
+      host: "www.sklep.sidequest.pl",
+      source: Pasaz24,
+      feed_path: "/category/Pokemon-TCG-445952",
+      max_pages: 3,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: "Gdańsk"
+    },
+    %Shop{
+      key: "am76",
+      name: "AM76",
+      host: "am76.pl",
+      source: Am76,
+      feed_path: "/pokemon",
+      max_pages: 6,
+      shipping_from: Decimal.new("12.99"),
+      free_shipping_from: Decimal.new("390"),
+      pickup_city: "Warszawa"
+    },
+    %Shop{
+      key: "gildiagrodzisk",
+      name: "Gildia Grodzisk",
+      host: "gildiagrodzisk.pl",
+      source: GildiaGrodzisk,
+      feed_path: "/category/pokemon-tcg",
+      max_pages: 6,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: "Grodzisk Mazowiecki"
+    },
+    %Shop{
+      key: "magicznyrynek",
+      name: "Magiczny Rynek",
+      host: "magicznyrynek.pl",
+      source: MagicznyRynek,
+      feed_path: "/collections/pokemon/",
+      max_pages: 10,
+      shipping_from: Decimal.new("16"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "guildmage",
+      name: "Guildmage",
+      host: "guildmage.pl",
+      source: Guildmage,
+      feed_path: "/pokemon",
+      max_pages: 4,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "collectify",
+      name: "Collectify",
+      host: "collectify.pl",
+      source: Collectify,
+      feed_path: "/sealed-products",
+      max_pages: 5,
+      shipping_from: Decimal.new("18.99"),
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "smajk",
+      name: "Smajk",
+      host: "smajk.pl",
+      source: Smajk,
+      feed_path: "/c/pokemon-tcg",
+      max_pages: 5,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("300"),
       pickup_city: nil
     }
   ]

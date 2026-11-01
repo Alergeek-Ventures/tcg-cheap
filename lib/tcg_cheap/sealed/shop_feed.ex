@@ -83,6 +83,31 @@ defmodule TcgCheap.Sealed.ShopFeed do
       else: {:cont, {request, %{response | body: body <> data}}}
   end
 
+  @doc """
+  Parses an HTML response body (UTF-8) into a Floki document. A body some
+  shops gzip even though `get/5` returns it raw is unzipped first, and must
+  not exceed the page size limit either.
+  """
+  @spec html(Req.Response.t()) :: {:ok, Floki.html_tree()} | {:error, :malformed_response}
+  def html(%Req.Response{body: body} = response) when is_binary(body) do
+    with {:ok, body} <- gunzip(body, Req.Response.get_header(response, "content-encoding")),
+         true <- String.valid?(body),
+         {:ok, document} <- Floki.parse_document(body) do
+      {:ok, document}
+    else
+      _ -> {:error, :malformed_response}
+    end
+  end
+
+  defp gunzip(body, ["gzip"]) do
+    unzipped = :zlib.gunzip(body)
+    if byte_size(unzipped) <= @max_body_bytes, do: {:ok, unzipped}, else: :error
+  rescue
+    ErlangError -> :error
+  end
+
+  defp gunzip(body, _encoding), do: {:ok, body}
+
   @doc "Decodes a JSON response body."
   @spec decode(Req.Response.t()) :: {:ok, term()} | {:error, :malformed_response}
   def decode(%Req.Response{body: body}) do
