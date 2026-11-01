@@ -42,6 +42,15 @@ mcp_api_token =
 
 config :tcg_cheap, TcgCheapWeb.McpAuth, token: mcp_api_token
 
+# The project key is public browser configuration, not a personal API key.
+# Leave it unset to avoid loading PostHog (including in development).
+config :tcg_cheap, :posthog,
+  api_key: String.trim(System.get_env("POSTHOG_API_KEY", "")),
+  api_host:
+    System.get_env("POSTHOG_API_HOST", "https://eu.i.posthog.com")
+    |> String.trim()
+    |> String.trim_trailing("/")
+
 if config_env() == :dev do
   # Reload browser tabs when matching files change.
   config :tcg_cheap, TcgCheapWeb.Endpoint,
