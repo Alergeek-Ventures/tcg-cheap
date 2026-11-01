@@ -67,6 +67,7 @@ defmodule TcgCheap.MixProject do
       {:ash_ai, "~> 1.4"},
       {:req, "~> 0.7"},
       {:saxy, "~> 1.6"},
+      {:floki, "~> 0.38"},
       {:igniter, "~> 0.8", only: [:dev, :test]},
       {:phoenix, "~> 1.8"},
       {:phoenix_ecto, "~> 4.7"},
