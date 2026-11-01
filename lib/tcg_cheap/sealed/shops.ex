@@ -23,9 +23,13 @@ defmodule TcgCheap.Sealed.Shops do
     Pasaz24,
     Planszomania,
     PrestaShop,
+    Sellingo,
+    Selly,
     Shop,
+    ShopGold,
     Shopify,
     Smajk,
+    Sote,
     WooCommerce
   }
 
@@ -1159,6 +1163,148 @@ defmodule TcgCheap.Sealed.Shops do
       shipping_from: nil,
       free_shipping_from: Decimal.new("300"),
       pickup_city: nil
+    },
+    %Shop{
+      key: "elfiagrota",
+      name: "Elfia Grota",
+      host: "elfiagrota.pl",
+      source: ShopGold,
+      listing_paths: ["/pokmon-c-43.html"],
+      max_pages: 12,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "karcianybunkier",
+      name: "Karciany Bunkier",
+      host: "karcianybunkier.pl",
+      source: ShopGold,
+      listing_paths: ["/httpspokevcrpl-c-16.html"],
+      max_pages: 12,
+      shipping_from: Decimal.new("13"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "lochyikoty",
+      name: "Lochy i Koty",
+      host: "www.lochyikoty.pl",
+      source: ShopGold,
+      listing_paths: ["/pokemon-produkty-c-10.html"],
+      max_pages: 12,
+      shipping_from: Decimal.new("10"),
+      free_shipping_from: Decimal.new("1000"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "moriongames",
+      name: "Morion Games",
+      host: "www.moriongames.pl",
+      source: ShopGold,
+      listing_paths: ["/httpswwwmoriongamesplpokemon-c-6-13-131html-c-6_13_131.html"],
+      max_pages: 30,
+      shipping_from: Decimal.new("15"),
+      free_shipping_from: Decimal.new("600"),
+      pickup_city: "Warszawa"
+    },
+    %Shop{
+      key: "pokapoke",
+      name: "PokaPoke",
+      host: "pokapoke.pl",
+      source: ShopGold,
+      listing_paths: ["/pokemon-tcg-c-1.html"],
+      max_pages: 6,
+      shipping_from: Decimal.new("14.99"),
+      free_shipping_from: Decimal.new("150"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "poketrader",
+      name: "PokeTrader",
+      host: "poketrader.eu",
+      source: ShopGold,
+      listing_paths: [
+        "/booster-c-1.html",
+        "/booster-box-c-3.html",
+        "/elite-trainer-box-etb-c-4.html",
+        "/blistry-checklane-c-5.html",
+        "/boxy-c-6.html",
+        "/puszki-c-7.html",
+        "/decki-produkty-dla-graczy-c-9.html",
+        "/3-packi-c-192.html",
+        "/japonskie-karty-pokemon-c-130.html",
+        "/chinskie-karty-pokemon-c-196.html"
+      ],
+      max_pages: 5,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "truecollector",
+      name: "True Collector",
+      host: "www.truecollector.pl",
+      source: ShopGold,
+      listing_paths: ["/pokmon-tcg-c-1.html"],
+      max_pages: 12,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "twojekarty",
+      name: "TwojeKarty.pl",
+      host: "twojekarty.pl",
+      source: ShopGold,
+      listing_paths: [
+        "/boostery-c-59.html",
+        "/booster-boxy-c-60.html",
+        "/elite-trainer-boxy-c-61.html",
+        "/blistry-3-packi-mini-albumy-c-62.html",
+        "/puszki-boxy-c-63.html",
+        "/decki-i-produkty-dla-graczy-c-65.html",
+        "/japonskie-karty-pokemon-c-112.html",
+        "/chinskie-karty-pokemon-c-146.html",
+        "/koreanskie-karty-pokemon-c-140.html"
+      ],
+      max_pages: 20,
+      shipping_from: Decimal.new("13"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "nora",
+      name: "Nora",
+      host: "nora.sklep.pl",
+      source: Sellingo,
+      listing_paths: ["/pokemon-tcg"],
+      max_pages: 1,
+      shipping_from: Decimal.new("11.90"),
+      free_shipping_from: Decimal.new("399"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "plastiq",
+      name: "Plastiq",
+      host: "plastiq.pl",
+      source: Selly,
+      listing_paths: ["/karty-pokemon,c127.html"],
+      max_pages: 8,
+      shipping_from: Decimal.new("18"),
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: "Warszawa"
+    },
+    %Shop{
+      key: "wilczek",
+      name: "Wilczek Poznań",
+      host: "wilczek.poznan.pl",
+      source: Sote,
+      listing_paths: ["/category/pokemon"],
+      max_pages: 12,
+      shipping_from: Decimal.new("17"),
+      free_shipping_from: nil,
+      pickup_city: "Poznań"
     }
   ]
 

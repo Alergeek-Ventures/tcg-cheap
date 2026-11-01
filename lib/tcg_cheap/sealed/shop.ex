@@ -11,8 +11,10 @@ defmodule TcgCheap.Sealed.Shop do
       whole shop);
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
       cover the whole shop); IdoSell: `feed_path` (a Pokémon category or
-      search listing, query included); PrestaShop: `listing_paths` (the
-      Pokémon category listings, each read to its last page);
+      search listing, query included); shops read from their HTML listings:
+      `feed_path` (the one listing) or, for PrestaShop, shopGold, Sellingo,
+      Selly and SOTE, `listing_paths` (the Pokémon category listings, each
+      read to its last page);
     * `shipping_from` – the cheapest delivery price in PLN, `free_shipping_from`
       – the order value from which delivery is free, `pickup_city` – the city
       of the shop's own store where orders can be picked up in person; each nil
