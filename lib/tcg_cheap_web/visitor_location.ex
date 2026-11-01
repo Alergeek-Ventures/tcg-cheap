@@ -150,14 +150,14 @@ defmodule TcgCheapWeb.VisitorLocation do
   end
 
   @doc """
-  The nearest of the given in-stock offers whose shop has a pickup store
-  within the radius, cheapest first at the same distance; nil if none.
+  The cheapest of the given in-stock offers whose shop has a pickup store
+  within the radius, the nearer first at the same price; nil if none.
   """
-  @spec nearest_pickup([%{shop: String.t(), price: Decimal.t()}], t()) ::
+  @spec cheapest_pickup([%{shop: String.t(), price: Decimal.t()}], t()) ::
           %{offer: map(), shop: TcgCheap.Sealed.Shop.t(), km: float()} | nil
-  def nearest_pickup(_offers, nil), do: nil
+  def cheapest_pickup(_offers, nil), do: nil
 
-  def nearest_pickup(offers, %{coords: coords}) do
+  def cheapest_pickup(offers, %{coords: coords}) do
     offers
     |> Enum.flat_map(fn offer ->
       with {:ok, %{pickup_location: {_lat, _lon} = store} = shop} <- Shops.fetch(offer.shop),
@@ -167,7 +167,7 @@ defmodule TcgCheapWeb.VisitorLocation do
         _not_near -> []
       end
     end)
-    |> Enum.min_by(&{&1.km, Decimal.to_float(&1.offer.price)}, fn -> nil end)
+    |> Enum.min_by(&{Decimal.to_float(&1.offer.price), &1.km}, fn -> nil end)
   end
 
   @doc "Whether any of the offers comes from a shop with a pickup store."
