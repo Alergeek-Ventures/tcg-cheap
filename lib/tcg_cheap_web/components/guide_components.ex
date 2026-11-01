@@ -76,7 +76,10 @@ defmodule TcgCheapWeb.GuideComponents do
 
   def verdict_badge(assigns) do
     ~H"""
-    <span id={@id} class={["verdict-badge", "verdict-#{@verdict.status}", @class]}>
+    <span
+      id={@id}
+      class={["verdict-badge", "verdict-#{@verdict.status}", cardmarket_class(@verdict), @class]}
+    >
       <%= if @verdict.status == :cardmarket do %>
         {cardmarket_difference(@verdict)}<span class="verdict-cm-text">vs Cardmarket</span><img
           class="verdict-cm-logo"
@@ -496,14 +499,8 @@ defmodule TcgCheapWeb.GuideComponents do
   def verdict_label(%{status: :out_of_stock}), do: gettext("Brak w sklepach")
 
   # "−16%": the cheapest offer against the Cardmarket trend.
-  defp cardmarket_difference(%{cheapest: %{price: price}, typical: typical}) do
-    percent =
-      price
-      |> Decimal.sub(typical)
-      |> Decimal.div(typical)
-      |> Decimal.mult(100)
-      |> Decimal.round(0)
-      |> Decimal.to_integer()
+  defp cardmarket_difference(verdict) do
+    percent = cardmarket_percent(verdict)
 
     sign =
       cond do
@@ -513,5 +510,25 @@ defmodule TcgCheapWeb.GuideComponents do
       end
 
     "#{sign}#{abs(percent)}%"
+  end
+
+  # More than 10% below Cardmarket stands out green, more than 10% above red.
+  defp cardmarket_class(%{status: :cardmarket} = verdict) do
+    case cardmarket_percent(verdict) do
+      percent when percent < -10 -> "verdict-cm-below"
+      percent when percent > 10 -> "verdict-cm-above"
+      _within -> nil
+    end
+  end
+
+  defp cardmarket_class(_verdict), do: nil
+
+  defp cardmarket_percent(%{cheapest: %{price: price}, typical: typical}) do
+    price
+    |> Decimal.sub(typical)
+    |> Decimal.div(typical)
+    |> Decimal.mult(100)
+    |> Decimal.round(0)
+    |> Decimal.to_integer()
   end
 end
