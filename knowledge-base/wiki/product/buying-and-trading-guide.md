@@ -24,7 +24,8 @@ versioned pricing models.
 ## Principles
 
 - **Realistic, never MSRP.** Verdicts use only prices you can actually buy at:
-  in-stock offers in Polish shops, falling back to the Cardmarket trend.
+  in-stock offers in Polish shops, falling back to the Cardmarket trend. A
+  suggested retail price is shown beside them for reference only.
 - **Honest gaps.** Missing data is shown as missing; prices are never invented.
 - **Polish first.** Buying-guide copy, number and date formats are Polish.
 - **Shipping shown separately.** Prices and verdicts are item prices; each
@@ -107,8 +108,10 @@ versioned pricing models.
   location. Without JavaScript the control is hidden and no distances appear. Distances are straight lines
   (haversine, `TcgCheap.Geo`), rounded to whole km; "near" means within 50 km.
 - **Barcodes.** Known EANs are a product's own list (filled in by an admin or
-  an agent; Cardmarket publishes none) plus the EANs of offers assigned to it
-  manually; a code claimed by two products identifies neither. Typing a known
+  an agent; Cardmarket publishes none) plus the EANs of offers and REBEL
+  items assigned to it manually; a code claimed by two products identifies
+  neither. The scanner and search also know the EANs of automatically
+  matched REBEL items, which never match offers. Typing a known
   EAN/UPC into the search, or scanning it with the phone camera where the
   browser supports `BarcodeDetector` (e.g. Chrome on Android), opens the
   product directly; an unknown code says so.
@@ -132,6 +135,18 @@ versioned pricing models.
   almost every Polish price "Drogo" (owner decision, 2026-10-31). Without
   current stock the verdict is **Brak w sklepach** (with the last known
   price); with stock but no reference price it is **Za mało danych**.
+- **Suggested price.** The SCD (suggested retail price, gross PLN) of the
+  REBEL wholesaler's public catalogue (`hurt.rebel.pl/search/pokemon-tcg.html`),
+  collected daily with each item's EAN and kept after REBEL drops the item
+  (it lists only its current range, from about 30th Celebration and Ascended
+  Heroes on). Items match English products automatically (EAN or title;
+  "Booster Display (36)" is a Booster Box; other items of several units only
+  when named a display), and an agent can assign or exclude one through the
+  MCP server. It is the only explicit, fetchable SCD/MSRP source found
+  (2026-11-01 research: official Pokémon pages give no amounts or block bots,
+  Japanese official prices may not be republished, no other Polish, European
+  or US source lists them); REBEL's status as official distributor and any
+  reuse terms are unconfirmed (owner decision to collect it, 2026-11-01).
 - **Pages.** `/` lists and searches products (in stock first, then newest; a
   known barcode jumps to its product) with the cheapest current price and
   verdict. A side panel (behind "Filtry" on phones) filters by kind, language
@@ -148,8 +163,9 @@ versioned pricing models.
   dostawa" when the item alone reaches the threshold, "koszt dostawy w
   koszyku" when the shop publishes no price, and "odbiór osobisty: Gdynia"
   (with "(491 km)" once a location is set; within 50 km a bold "odbiór:
-  Gdynia, 20 km" line of its own) — the Cardmarket price, and a 90-day
-  price chart once there are 7 days of prices. Below the verdict's reasoning
+  Gdynia, 20 km" line of its own) — the Cardmarket price, REBEL's suggested
+  price when one matches, and a 90-day price chart once there are 7 days of
+  prices. Below the verdict's reasoning
   and above the thresholds comes pickup: without a location, when a shop
   with stock has pickup, "Odbierzesz gdzieś blisko? Podaj miejscowość"
   (opens the header panel); with one, the cheapest in-stock offer with

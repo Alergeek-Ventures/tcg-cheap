@@ -97,6 +97,8 @@ config :tcg_cheap, Oban,
        # then one fetch job per shop; the sealed queue runs them one at a time.
        {"30 3 * * *", TcgCheap.Sealed.CatalogueImportWorker, args: %{}},
        {"0 4 * * *", TcgCheap.Sealed.FetchWorker, args: %{}},
+       # Suggested retail prices from the REBEL wholesaler, for the product pages.
+       {"0 6 * * *", TcgCheap.Sealed.SuggestedPriceWorker, args: %{}},
        {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
      ]}
   ]

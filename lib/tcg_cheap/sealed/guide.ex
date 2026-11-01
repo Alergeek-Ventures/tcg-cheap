@@ -151,7 +151,10 @@ defmodule TcgCheap.Sealed.Guide do
     end)
   end
 
-  @doc "Everything the product page shows: verdict, offers and 90 days of history."
+  @doc """
+  Everything the product page shows: verdict, offers, 90 days of history and
+  REBEL's suggested retail price when one matches.
+  """
   @spec product(String.t(), DateTime.t()) :: {:ok, map()} | :error
   def product(slug, %DateTime{} = now) do
     case Sealed.get_product_by_slug!(slug) do
@@ -175,7 +178,13 @@ defmodule TcgCheap.Sealed.Guide do
         {:ok,
          product
          |> summary(offers, verdict_history, today, rate)
-         |> Map.merge(%{offers: offers, history: history, today: today, eur_pln: rate})}
+         |> Map.merge(%{
+           offers: offers,
+           history: history,
+           today: today,
+           eur_pln: rate,
+           suggested_price: Sealed.get_suggested_price_for_product!(product.id)
+         })}
     end
   end
 

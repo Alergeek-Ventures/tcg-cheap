@@ -1,7 +1,7 @@
 defmodule TcgCheap.Sealed.AgentTools.Json do
-  @moduledoc "Plain JSON-ready maps of offers and products for the agent tools."
+  @moduledoc "Plain JSON-ready maps of offers, products and suggested prices for the agent tools."
 
-  alias TcgCheap.Sealed.{Offer, Product, Shops}
+  alias TcgCheap.Sealed.{Offer, Product, Shops, SuggestedPrice}
 
   @spec offer(Offer.t()) :: map()
   def offer(%Offer{} = offer) do
@@ -26,6 +26,16 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
 
   def product(%Product{} = product) do
     Map.take(product, [:id, :slug, :name, :kind, :set_name, :cardmarket_id, :eans])
+  end
+
+  @spec suggested_price(SuggestedPrice.t() | nil) :: map() | nil
+  def suggested_price(nil), do: nil
+
+  def suggested_price(%SuggestedPrice{} = item) do
+    item
+    |> Map.take([:id, :rebel_id, :title, :url, :ean, :price, :product_id, :last_seen_at])
+    |> Map.put(:manual, item.manual?)
+    |> put_product(item.product)
   end
 
   defp put_product(map, %Product{} = product), do: Map.put(map, :product, product(product))
