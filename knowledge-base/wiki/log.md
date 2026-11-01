@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-11-01] Shops read from their category listings
+
+- Task: Owner asked for as many Polish shops as possible; parsers for shops without a feed were written in parallel by Sonnet agents and integrated. 51 shops added (122 in total): 14 PrestaShop (JSON listing view), 9 Shoper without the export and 8 Sky-Shop (`ShoperListing`, `SkyShop` on `HtmlListing.read/2`), 8 shopGold and one each on Sellingo, Selly and SOTE (`listing_paths`), and 9 shops on their own storefronts (8 small clients). `ShopFeed.get` now pauses 1 s before every request (several shops 403 bursts; Shoper and Sky-Shop ask for a 1 s crawl delay) and `ShopFeed.html/1` inflates gzip only up to the page limit and rejects truncated bodies. Owner decisions: pre-orders never count as in stock; morigal.pl is not added (Cloudflare challenge). The 19 new shops with pickup got Nominatim coordinates (40 in total). Left out: cardverse.pl, pokeelite.pl, tcgumisia.pl, bastacentershop.pl.
+- Review: read-only Opus review applied — pokesmart.pl's pre-order collection (`preorder_path`), Sky-Shop pre-order labels, a page count changing mid-read, truncated gzip, an empty PrestaShop category, SOTE products with options in the page size, and crashes on missing attributes. Not changed: listings without pagination or a stated count (classic Shoper, older Sky-Shop) are taken as one page, so a theme change there could hide later pages; the clients keep their own normalisation and price parsing.
+- Files: `architecture/data-sources.md`, `product/buying-and-trading-guide.md` (Shops, Delivery).
+- Validation: `mix check`; every new shop fetched live without writing (all 51 returned offers; basanti.pl answered one 500 that a retry cleared); pokesmart.pl in stock dropped from 32 to 22 with its pre-orders excluded.
+
 ## [2026-11-01] Cheapest pickup, not nearest
 
 - Task: In production (Kraków) the pickup line named the nearest store (Stragan Ogra, Chrzanów, 39 km, +41 zł) although the cheapest offer itself had pickup within 50 km (Planszołek, Brzesko, 49 km). The line and the home marker now show the cheapest in-stock offer with pickup within the radius (the nearer at the same price): "Najtaniej z odbiorem osobistym do 50 km".

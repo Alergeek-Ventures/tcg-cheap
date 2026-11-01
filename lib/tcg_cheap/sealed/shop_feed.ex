@@ -5,11 +5,13 @@ defmodule TcgCheap.Sealed.ShopFeed do
   A shop's `source` is the client module that reads its feed
   (`TcgCheap.Sealed.WooCommerce`, `TcgCheap.Sealed.Shopify`,
   `TcgCheap.Sealed.GoogleFeed`, `TcgCheap.Sealed.CeneoFeed`,
-  `TcgCheap.Sealed.IdoSell`); a new kind of feed is one more module
-  implementing this behaviour.
+  `TcgCheap.Sealed.IdoSell`, `TcgCheap.Sealed.PrestaShop`, and the readers of
+  HTML listings, mostly built on `TcgCheap.Sealed.HtmlListing`); a new kind
+  of feed is one more module implementing this behaviour.
 
-  Requests go only to the shop's fixed HTTPS host, follow no redirects and read
-  at most 5 MB per page, or more where a client asks for it (a whole-shop XML
+  Requests go only to the shop's fixed HTTPS host, one at a time with a short
+  pause before each (several shops refuse quick successive requests), follow
+  no redirects and read at most 5 MB per page, or more where a client asks for it (a whole-shop XML
   export). Every product field is untrusted: products with an invalid id,
   title, URL, price or availability are skipped and counted in a warning. Any
   transport, status, pagination or shape problem fails the whole fetch so that
@@ -20,6 +22,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
   alias TcgCheap.Sealed.{Matcher, Shop}
 
+  @request_pause_ms 1_000
   @max_body_bytes 5_000_000
   @max_title_length 300
   @max_url_length 2_000
@@ -45,8 +48,9 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @callback image_hosts(Shop.t()) :: [String.t()]
 
   @doc """
-  GETs `path` on the shop's host and returns the 200 response with its raw
-  body, at most `max_body_bytes` long (default 5 MB).
+  GETs `path` on the shop's host, after a #{@request_pause_ms} ms pause, and
+  returns the 200 response with its raw body, at most `max_body_bytes` long
+  (default 5 MB).
   """
   @spec get(Shop.t(), String.t(), keyword(), keyword(), [{:max_body_bytes, pos_integer()}]) ::
           {:ok, Req.Response.t()} | {:error, term()}
@@ -67,6 +71,8 @@ defmodule TcgCheap.Sealed.ShopFeed do
       )
       |> Req.merge(req_options)
 
+    Process.sleep(@request_pause_ms)
+
     case Req.request(request) do
       {:ok, %Req.Response{status: 200, body: :too_large}} -> {:error, :response_too_large}
       {:ok, %Req.Response{status: 200} = response} -> {:ok, response}
@@ -81,6 +87,57 @@ defmodule TcgCheap.Sealed.ShopFeed do
     if byte_size(body) + byte_size(data) > max_body_bytes,
       do: {:halt, {request, %{response | body: :too_large}}},
       else: {:cont, {request, %{response | body: body <> data}}}
+  end
+
+  @doc """
+  Parses an HTML response body (UTF-8) into a Floki document. A body some
+  shops gzip even though `get/5` returns it raw is unzipped first, to at most
+  the page size limit.
+  """
+  @spec html(Req.Response.t()) :: {:ok, Floki.html_tree()} | {:error, :malformed_response}
+  def html(%Req.Response{body: body} = response) when is_binary(body) do
+    with {:ok, body} <- gunzip(body, Req.Response.get_header(response, "content-encoding")),
+         true <- String.valid?(body),
+         {:ok, document} <- Floki.parse_document(body) do
+      {:ok, document}
+    else
+      _ -> {:error, :malformed_response}
+    end
+  end
+
+  defp gunzip(body, ["gzip"]) do
+    zlib = :zlib.open()
+
+    try do
+      # 16 + 15: a gzip wrapper around the largest deflate window.
+      :ok = :zlib.inflateInit(zlib, 31)
+      inflate(zlib, :zlib.safeInflate(zlib, body), [], 0)
+    rescue
+      ErlangError -> :error
+    after
+      :zlib.close(zlib)
+    end
+  end
+
+  defp gunzip(body, _encoding), do: {:ok, body}
+
+  # Inflates chunk by chunk so a small body cannot expand past the limit.
+  defp inflate(zlib, {status, chunk}, acc, size) do
+    size = size + IO.iodata_length(chunk)
+
+    cond do
+      size > @max_body_bytes -> :error
+      status == :finished -> finish(zlib, [chunk | acc])
+      true -> inflate(zlib, :zlib.safeInflate(zlib, []), [chunk | acc], size)
+    end
+  end
+
+  defp inflate(_zlib, _need_dictionary, _acc, _size), do: :error
+
+  # A truncated body also ends as `:finished`; only `inflateEnd` notices.
+  defp finish(zlib, chunks) do
+    :ok = :zlib.inflateEnd(zlib)
+    {:ok, chunks |> Enum.reverse() |> IO.iodata_to_binary()}
   end
 
   @doc "Decodes a JSON response body."

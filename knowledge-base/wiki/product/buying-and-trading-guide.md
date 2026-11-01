@@ -45,12 +45,15 @@ versioned pricing models.
   Cardmarket expansion, and the latest Cardmarket trend/low/avg in EUR.
   Nothing is curated in code; products that disappear from the file are kept.
   Product images come from matched shop offers.
-- **Shops.** 71 Polish shops with a public product feed, fixed in code
-  (`TcgCheap.Sealed.Shops`): 32 through the WooCommerce Store API (their
-  Pokémon category ids), 4 through Shopify's `products.json` (a Pokémon
-  collection or the whole shop), 28 Shoper shops through their whole-shop
-  Google Merchant (26) or Ceneo (2) XML export, and 7 IdoSell shops through
-  the XML view of a Pokémon category or search. Each shop's `source` is the
+- **Shops.** 122 Polish shops, fixed in code (`TcgCheap.Sealed.Shops`):
+  32 through the WooCommerce Store API (their Pokémon category ids), 4
+  through Shopify's `products.json` (a Pokémon collection or the whole shop),
+  28 Shoper shops through their whole-shop Google Merchant (26) or Ceneo (2)
+  XML export, 7 IdoSell shops through the XML view of a Pokémon category or
+  search, and 51 shops without a feed through their own Pokémon category
+  listings (14 PrestaShop, 9 Shoper, 8 Sky-Shop, 8 shopGold, 4 on Sellingo,
+  Selly or SOTE, 8 own storefronts); see
+  [Data Sources](../architecture/data-sources.md). Each shop's `source` is the
   feed client module, so another feed type is one more module. A shop without
   curated sealed categories keeps only titles that name a sealed product
   (booster, box, tin, collection, deck, …); a whole-shop feed also needs
@@ -61,14 +64,21 @@ versioned pricing models.
   forbids the API), cardhorizon.pl (sells in EUR), maginarium.pl and
   crazypulls.pl (the API answers with a JavaScript bot challenge), and the
   XML shops elfwood.pl, futurex.pl, planszostrefa.pl and przyczolek.pl (too
-  few sealed Pokémon items).
+  few sealed Pokémon items); on 2026-11-01 morigal.pl (Cloudflare challenge;
+  the owner chose not to add it), cardverse.pl, pokeelite.pl, tcgumisia.pl
+  and bastacentershop.pl (no reliable stock, `robots.txt`, empty category).
+  Pre-orders never count as in stock (owner decision, 2026-11-01).
 - **Delivery.** Each shop carries its cheapest published delivery price, its
   free-delivery threshold and the city of its own store where orders can be
   picked up, checked on the shops' pages on 2026-10-31; unknown values stay
-  empty. The 21 shops with pickup also carry their store's coordinates
+  empty. The 40 shops with pickup also carry their store's coordinates
   (`pickup_location`), geocoded from the store address with OpenStreetMap
   Nominatim on 2026-11-01 (pokespot.pl: the centre of Luboń, street
-  unpublished; mepel.pl: its registered address in Katowice). Shops whose
+  unpublished; mepel.pl: its registered address in Katowice; hearts.pub: the
+  address search results quote from its contact page, which is behind a bot
+  check). Some shops hand orders over only by appointment or after
+  prepayment (merfolk.pl, wilczek.poznan.pl, plastiq.pl,
+  japancollectibles.shop). Shops whose
   research found a store but no confirmed pickup have neither.
 - **Visitor location.** "Ustaw lokalizację" (then the town's name) in the
   header of `/` and `/produkty/:slug` opens a panel: "Użyj mojej lokalizacji" (browser geolocation, coarse)
