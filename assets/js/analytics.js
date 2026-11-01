@@ -75,7 +75,7 @@ export default function initAnalytics() {
       },
     })
   }
-  // After the page has loaded and the browser is idle, so it never competes with it.
+  // Defer the SDK until after load and an idle slot (or the bounded timeout).
   const load = () => document.head.appendChild(script)
   const whenIdle = () =>
     "requestIdleCallback" in window ? requestIdleCallback(load, {timeout: 5000}) : setTimeout(load, 2000)

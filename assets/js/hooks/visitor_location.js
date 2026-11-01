@@ -18,14 +18,15 @@ const round = degrees => Math.round(degrees * 100) / 100
 
 const VisitorLocation = {
   mounted() {
+    this.summary = this.el.querySelector("summary")
     this.restore()
     this.askOnEntry()
-    this.summary = this.el.querySelector("summary")
     this.handleEvent("location", ({location}) => {
       try {
         if (location) localStorage.setItem(STORAGE_KEY, JSON.stringify(location))
         else localStorage.removeItem(STORAGE_KEY)
       } catch {}
+      if (location) this.hideInvite()
       this.el.querySelector("form")?.reset()
       this.say("")
       // Set on entry the panel is closed; leave the focus where it is.
@@ -75,24 +76,34 @@ const VisitorLocation = {
       sessionStorage.setItem(ASKED_KEY, "1")
       ;({state} = await navigator.permissions.query({name: "geolocation"}))
     } catch {}
+    if (!this.el.isConnected || storedLocation()) return
     if (state === "denied") return
     if (state === "granted") return this.locate({quiet: true})
-    const invite = document.getElementById("visitor-location-invite")
-    if (!invite) return
+    this.invite = document.getElementById("visitor-location-invite")
+    if (!this.invite) return
     // Through this.js() so LiveView patches keep it shown or hidden.
-    const hide = () => this.js().setAttribute(invite, "hidden", "")
-    this.js().removeAttribute(invite, "hidden")
-    invite.querySelector("#visitor-location-later").addEventListener("click", hide)
-    invite.querySelector("#visitor-location-allow").addEventListener("click", () => {
-      hide()
+    this.js().removeAttribute(this.invite, "hidden")
+    this.onLater = () => this.hideInvite()
+    this.onAllow = () => {
+      this.hideInvite()
       this.el.open = true
       this.locate()
-    })
+    }
+    this.invite.querySelector("#visitor-location-later").addEventListener("click", this.onLater)
+    this.invite.querySelector("#visitor-location-allow").addEventListener("click", this.onAllow)
+  },
+
+  hideInvite() {
+    if (!this.invite) return
+    if (this.invite.contains(document.activeElement)) this.summary.focus()
+    this.js().setAttribute(this.invite, "hidden", "")
   },
 
   destroyed() {
     document.removeEventListener("pointerdown", this.onPointerDown)
     document.removeEventListener("keydown", this.onKeyDown)
+    this.invite?.querySelector("#visitor-location-later").removeEventListener("click", this.onLater)
+    this.invite?.querySelector("#visitor-location-allow").removeEventListener("click", this.onAllow)
   },
 
   close() {
