@@ -739,7 +739,7 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 }
 /* Phones: the toggle in the search bar opens the filters as a panel under the sticky bar. */
 @media (max-width: 47.99rem) {
-  .guide-world .guide-search { padding-inline: 1rem; }
+  .guide-world .guide-search { margin-inline: -1rem; padding-inline: 1rem; }
   .guide-world .guide-search-input { font-size: clamp(1.125rem, 5vw, 1.25rem); }
   .guide-world .guide-filters:not(.guide-filters-open) { display: none; }
   .guide-world .guide-filters-open { background: var(--bench-light); border-block-start: 1px solid var(--rule); inset: var(--guide-filters-top, var(--guide-sticky-size)) 0 0; overflow-y: auto; overscroll-behavior: contain; position: fixed; z-index: 2; }
