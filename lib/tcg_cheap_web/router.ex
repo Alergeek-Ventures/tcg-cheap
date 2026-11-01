@@ -58,6 +58,11 @@ defmodule TcgCheapWeb.Router do
   end
 
   scope "/", TcgCheapWeb do
+    get "/sitemap.xml", CrawlController, :sitemap
+    get "/robots.txt", CrawlController, :robots
+  end
+
+  scope "/", TcgCheapWeb do
     pipe_through :api
 
     get "/health", HealthController, :index, log: false

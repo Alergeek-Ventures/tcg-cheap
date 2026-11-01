@@ -7,7 +7,7 @@ defmodule TcgCheapWeb.ProductLive do
   import TcgCheapWeb.GuideComponents
 
   alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Regions, Shops}
-  alias TcgCheapWeb.{Polish, VisitorLocation}
+  alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -18,9 +18,11 @@ defmodule TcgCheapWeb.ProductLive do
   def mount(%{"slug" => slug}, _session, socket) do
     case Guide.product(slug, DateTime.utc_now()) do
       {:ok, page} ->
+        seo = SEO.product(page)
+
         {:ok,
          socket
-         |> assign(:page_title, page.product.name)
+         |> assign(seo: seo, page_title: seo.title)
          |> assign(:page, page)
          |> assign(:offer_count, length(page.offers))
          |> assign(:in_stock_count, Enum.count(page.offers, & &1.in_stock))
@@ -46,6 +48,7 @@ defmodule TcgCheapWeb.ProductLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash}>
+      <SEO.sync seo={@seo} />
       <div class="guide-world">
         <.site_header locale={@locale} return_to={@locale_return_to}>
           <VisitorLocation.location_control

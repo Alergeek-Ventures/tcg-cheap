@@ -13,6 +13,11 @@
       />
     <% end %>
     <.live_title default="TCG Cheap" suffix=" · TCG Cheap" phx-no-format>{assigns[:page_title]}</.live_title>
+    <%= if assigns[:seo] do %>
+      <TcgCheapWeb.SEO.head seo={@seo} />
+    <% else %>
+      <meta name="robots" content="noindex, nofollow" />
+    <% end %>
     <link rel="icon" href={~p"/favicon.ico"} sizes="48x48" />
     <link rel="apple-touch-icon" href={~p"/apple-touch-icon.png"} />
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
