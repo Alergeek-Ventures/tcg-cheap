@@ -1,8 +1,13 @@
 [[pre-start]]
-copy = "wt step copy-ignored"
+copy = """
+primary=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
+if cmp -s "$primary/mix.lock" mix.lock && cmp -s "$primary/devenv.lock" devenv.lock; then
+  wt step copy-ignored
+fi
+"""
 
 [[pre-start]]
-deps = "devenv shell -- mix deps.get"
+deps = "devenv shell -- env MIX_OS_DEPS_COMPILE_PARTITION_COUNT=1 mix deps.get"
 
 [[pre-start]]
 env = """
@@ -17,7 +22,8 @@ echo "{% if branch == default_branch %}4004{% else %}{{ branch | hash_port }}{% 
 """
 
 [[pre-start]]
-dev = "devenv shell -- mix dev.up"
+# T3 probes new listening ports with HTTP; Mix partition sockets are not HTTP.
+dev = "devenv shell -- env MIX_OS_DEPS_COMPILE_PARTITION_COUNT=1 mix dev.up"
 
 [[pre-remove]]
 dev = "devenv shell -- mix dev.down"
