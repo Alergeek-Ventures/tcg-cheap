@@ -620,10 +620,14 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .site-header { align-items: center; border-bottom: 1px solid var(--rule, rgb(32 29 25 / 18%)); display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; padding: .5rem max(1rem, 4vw); }
 
 /* Guide language links share the masthead without moving its outer edges. */
-.guide-world .site-header { padding-block: .5rem; padding-inline: max(1rem, calc((100% - 72rem) / 2 + 1rem)); gap: .5rem; flex-wrap: nowrap; }
-.guide-language { display: flex; gap: .25rem; margin-inline-start: auto; }
-.guide-language a { padding: .5rem .25rem; font-size: .75rem; color: var(--muted); }
-.guide-language a[aria-current] { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: .25em; }
+.guide-world .site-header { padding-block: .5rem; padding-inline: max(1rem, calc((100% - 72rem) / 2 + 1rem)); gap: .5rem; }
+.guide-world .site-wordmark { flex: none; }
+.guide-language { border-inline-end: 1px solid var(--rule); display: flex; margin-inline-start: auto; padding-inline-end: .5rem; }
+.guide-language a { color: var(--muted); display: inline-grid; font-size: .75rem; min-block-size: 3rem; min-inline-size: 2rem; padding-inline: .25rem; place-items: center; text-decoration: none; }
+.guide-language a[aria-current] { color: var(--ink); font-weight: 700; }
+.guide-language a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.guide-language a:active { color: var(--orange); }
+@media (hover: hover) and (pointer: fine) { .guide-language a:not([aria-current]):hover { color: var(--ink); text-decoration: underline; } }
 
 .site-wordmark { align-items: center; display: inline-flex; min-height: 3rem; }
 .site-wordmark img { block-size: clamp(1.75rem, 7vw, 2rem); display: block; inline-size: auto; }

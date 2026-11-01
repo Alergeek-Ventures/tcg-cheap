@@ -35,7 +35,7 @@ msgstr[1] "%{count} products"
 #: lib/tcg_cheap_web/live/product_live.ex:99
 #, elixir-autogen, elixir-format
 msgid "%{offers}, na stanie: %{count}"
-msgstr "%{offers}, in stock: %{count}"
+msgstr "%{offers}, %{count} in stock"
 
 #: lib/tcg_cheap_web/live/product_live.ex:136
 #, elixir-autogen, elixir-format
@@ -292,12 +292,12 @@ msgstr "We couldn't find that town."
 #: lib/tcg_cheap_web/live/product_live.ex:507
 #, elixir-autogen, elixir-format
 msgid "Normalna"
-msgstr "Normal"
+msgstr "Fair"
 
 #: lib/tcg_cheap_web/components/guide_components.ex:472
 #, elixir-autogen, elixir-format
 msgid "Normalna cena"
-msgstr "Normal price"
+msgstr "Fair price"
 
 #: lib/tcg_cheap_web/live/product_live.ex:413
 #, elixir-autogen, elixir-format
@@ -520,7 +520,7 @@ msgstr "Language edition"
 #: lib/tcg_cheap_web/live/product_live.ex:437
 #, elixir-autogen, elixir-format
 msgid "Widzisz cenę w sklepie?"
-msgstr "Found a price in a shop?"
+msgstr "Seen a price in a shop?"
 
 #: lib/tcg_cheap_web/live/home_live.ex:194
 #: lib/tcg_cheap_web/live/home_live.ex:216
@@ -583,12 +583,12 @@ msgstr "none within %{radius} km – shipping needed"
 #: lib/tcg_cheap_web/live/product_live.ex:215
 #, elixir-autogen, elixir-format
 msgid "darmowa dostawa od %{amount}"
-msgstr "free shipping from %{amount}"
+msgstr "free shipping over %{amount}"
 
 #: lib/tcg_cheap_web/live/product_live.ex:222
 #, elixir-autogen, elixir-format
 msgid "darmowa od %{amount}"
-msgstr "free from %{amount}"
+msgstr "free over %{amount}"
 
 #: lib/tcg_cheap_web/live/product_live.ex:442
 #: lib/tcg_cheap_web/live/product_live.ex:448

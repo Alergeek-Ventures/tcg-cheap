@@ -32,6 +32,7 @@ defmodule TcgCheapWeb.GuideComponents do
           href={~p"/lang/#{locale}?#{[return_to: @return_to]}"}
           lang={locale}
           hreflang={locale}
+          aria-label={if(locale == "pl", do: "Polski", else: "English")}
           aria-current={if(locale == @locale, do: "true")}
         >{String.upcase(locale)}</a>
       </nav>
