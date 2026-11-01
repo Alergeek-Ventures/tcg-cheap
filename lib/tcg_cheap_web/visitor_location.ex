@@ -204,6 +204,24 @@ defmodule TcgCheapWeb.VisitorLocation do
   def location_control(assigns) do
     ~H"""
     <p id="visitor-location-announce" class="sr-only" aria-live="polite" phx-update="ignore"></p>
+    <section
+      id="visitor-location-invite"
+      class="visitor-location-invite"
+      aria-labelledby="visitor-location-invite-title"
+      phx-update="ignore"
+      hidden
+    >
+      <h2 id="visitor-location-invite-title">{gettext("Gdzie jesteś?")}</h2>
+      <p>
+        {gettext(
+          "Pokażemy sklepy z odbiorem osobistym w pobliżu i jak daleko do nich masz. Lokalizację pamięta tylko Twoja przeglądarka."
+        )}
+      </p>
+      <div>
+        <button type="button" id="visitor-location-allow">{gettext("Zgadzam się")}</button>
+        <button type="button" id="visitor-location-later">{gettext("Nie teraz")}</button>
+      </div>
+    </section>
     <details
       id="visitor-location"
       class="visitor-location"
