@@ -89,7 +89,10 @@ versioned pricing models.
   `localStorage` and sends them in a `location-restore` event once the page
   connects — not in the LiveView connect params, which phoenix.js appends to
   the socket URL that proxies log. Until that event the page shows no
-  location-dependent parts, so nothing flashes. The server keeps the
+  location-dependent parts, so nothing flashes. Without a remembered
+  location the page asks for the device location by itself, once per browser
+  session and not when the browser already refuses; a refusal shows nothing.
+  The server keeps the
   location only in the LiveView's assigns and accepts a point only inside
   Poland's bounding box and within 30 km of a Polish town (Prague, Lviv or
   Kaliningrad are refused). `location` parameters are filtered from Phoenix
@@ -128,7 +131,8 @@ versioned pricing models.
   price); with stock but no reference price it is **Za mało danych**.
 - **Pages.** `/` lists and searches products (filter by kind; in stock first,
   then newest; a known barcode jumps to its product) with the cheapest current
-  price and verdict.
+  price and verdict. Each card names the product's kind, and its set unless
+  the product name already contains it.
   `/produkty/:slug` shows the verdict and thresholds, every current offer
   (in stock first, cheapest first, with links to the shop; the shop's logo
   (wide screens only) and name, not its listing title, which only repeats the product) with its shop's

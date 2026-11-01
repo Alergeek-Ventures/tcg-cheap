@@ -310,7 +310,7 @@ defmodule TcgCheapWeb.HomeLive do
                   />
                   <div class="guide-product-copy">
                     <h3 class="guide-product-name">{summary.product.name}</h3>
-                    <p :if={product_meta(summary.product) != ""} class="guide-product-meta">
+                    <p class="guide-product-meta">
                       {product_meta(summary.product)}
                     </p>
                   </div>

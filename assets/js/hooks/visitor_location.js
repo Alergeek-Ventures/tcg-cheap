@@ -3,6 +3,8 @@
 // connects (never in the socket URL). The server pushes "location" when the
 // visitor sets or clears it.
 const STORAGE_KEY = "tcg:location"
+// Set once the device location was asked for on entry in this browser session.
+const ASKED_KEY = "tcg:location-asked"
 
 function storedLocation() {
   try {
@@ -17,6 +19,7 @@ const round = degrees => Math.round(degrees * 100) / 100
 const VisitorLocation = {
   mounted() {
     this.restore()
+    this.askOnEntry()
     this.summary = this.el.querySelector("summary")
     this.handleEvent("location", ({location}) => {
       try {
@@ -25,7 +28,8 @@ const VisitorLocation = {
       } catch {}
       this.el.querySelector("form")?.reset()
       this.say("")
-      this.close()
+      // Set on entry the panel is closed; leave the focus where it is.
+      if (this.el.open) this.close()
       this.announce(location
         ? `Lokalizacja: ${location.label}. Pokazujemy odległości do odbioru osobistego.`
         : "Lokalizacja usunięta.")
@@ -60,6 +64,19 @@ const VisitorLocation = {
     this.pushEvent("location-restore", {location: storedLocation()})
   },
 
+  // Without a remembered location, ask the device once per browser session
+  // (not again on every page), unless the browser already refuses.
+  async askOnEntry() {
+    if (storedLocation() || !("geolocation" in navigator)) return
+    try {
+      if (sessionStorage.getItem(ASKED_KEY)) return
+      sessionStorage.setItem(ASKED_KEY, "1")
+      const {state} = await navigator.permissions.query({name: "geolocation"})
+      if (state === "denied") return
+    } catch {}
+    this.locate({quiet: true})
+  },
+
   destroyed() {
     document.removeEventListener("pointerdown", this.onPointerDown)
     document.removeEventListener("keydown", this.onKeyDown)
@@ -70,7 +87,8 @@ const VisitorLocation = {
     this.summary.focus()
   },
 
-  locate() {
+  // Quiet when asked on entry: a refusal shows no error and moves no focus.
+  locate({quiet = false} = {}) {
     if (!("geolocation" in navigator)) {
       this.fail()
       return
@@ -84,7 +102,7 @@ const VisitorLocation = {
       }
     }
     busy(true)
-    this.say("Ustalam lokalizację…")
+    if (!quiet) this.say("Ustalam lokalizację…")
     navigator.geolocation.getCurrentPosition(
       ({coords}) => {
         const location = {lat: round(coords.latitude), lon: round(coords.longitude)}
@@ -95,7 +113,7 @@ const VisitorLocation = {
       },
       () => {
         busy(false)
-        this.fail()
+        if (!quiet) this.fail()
       },
       {enableHighAccuracy: false, maximumAge: 600000, timeout: 10000},
     )
