@@ -33,7 +33,8 @@ defmodule TcgCheap.Sealed.Guide do
   def browse(filters, offset, %DateTime{} = now) do
     page =
       Sealed.browse_products!(filters.query, filters.kind, filters.region, filters.expansion,
-        page: [limit: @page_size, offset: offset, count: true]
+        page: [limit: @page_size, offset: offset, count: true],
+        load: [:photo_card_url]
       )
 
     {summaries(page.results, now), page.more?, page.count || 0}
@@ -157,7 +158,7 @@ defmodule TcgCheap.Sealed.Guide do
   """
   @spec product(String.t(), DateTime.t()) :: {:ok, map()} | :error
   def product(slug, %DateTime{} = now) do
-    case Sealed.get_product_by_slug!(slug) do
+    case Sealed.get_product_by_slug!(slug, load: [:photo_page_url]) do
       nil ->
         :error
 

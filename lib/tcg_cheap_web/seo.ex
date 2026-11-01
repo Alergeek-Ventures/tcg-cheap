@@ -52,8 +52,8 @@ defmodule TcgCheapWeb.SEO do
     }
 
     product_data =
-      if product.image_url,
-        do: Map.put(product_data, "image", product.image_url),
+      if image = image(product),
+        do: Map.put(product_data, "image", image),
         else: product_data
 
     # Only current, in-stock shop offers count, never MSRP, Cardmarket or a last-known price.
@@ -198,4 +198,8 @@ defmodule TcgCheapWeb.SEO do
     </script>
     """
   end
+
+  # Our stored copy of the packaging photo when there is one, else the shop's.
+  defp image(%{photo_page_url: url}) when is_binary(url), do: url
+  defp image(product), do: product.image_url
 end
