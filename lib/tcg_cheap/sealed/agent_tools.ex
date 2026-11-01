@@ -223,12 +223,13 @@ defmodule TcgCheap.Sealed.AgentTools do
     action :set_product_contents, :map do
       description """
       Replaces what a product holds, shown on its public page: items (boosters with their set,
-      promo and oversize cards by name, accessories), for a fixed deck its full card list, the
-      https sources read and the day they were checked. Record only facts that a publisher page
-      or at least two shops agree on, never guesses; omit a field you could not confirm and leave
-      deck [] unless every card is known. Look up cards in TCGdex for tcgdex_id and image. Read
-      the current contents with get_product first. contents null removes them. Returns the
-      product with its contents.
+      every named card such as promo and oversize cards, accessories by type), the https sources
+      read and the day they were checked. Record only facts that a publisher page or at least two
+      shops agree on, never guesses; omit what you could not confirm. Give each card its TCGdex
+      id (tcgdex_id, e.g. svp-085) when you are sure of the exact card: its set, number, picture
+      and Cardmarket link are filled in from TCGdex, and an unknown id is rejected. Read the
+      current contents with get_product first. contents null removes them. Returns the product
+      with its contents.
       """
 
       argument :product_id, :uuid, allow_nil?: false

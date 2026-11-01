@@ -150,15 +150,19 @@ versioned pricing models.
   reuse terms are unconfirmed (owner decision to collect it, 2026-11-01).
 - **Contents.** A product can record what the box holds
   (`TcgCheap.Sealed.ProductContents`, embedded on the product): items
-  (boosters with their set, promo/oversize cards by name with an optional
-  TCGdex picture, typed accessories shown in Polish or English), a fixed
-  deck's full card list, the https sources and the day they were checked.
-  Agents fill it through the MCP tool `set_product_contents` from facts that
-  a publisher page or two shops agree on; nothing is guessed. The product page
-  shows it under "Co jest w środku" with the sources. 2026-11-01 pilot: official
-  Pokémon pages and Bulbapedia block automated reading, so Polish shop
-  descriptions are the source; 9 of 20 products had consistent facts, and no
-  public source gave a deck's 60-card list [CONTEXT MISSING: decklists].
+  (boosters with their set, every named card such as promos, typed
+  accessories shown in Polish or English), the https sources and the day
+  they were checked. Agents fill it through the MCP tool
+  `set_product_contents` from facts that a publisher page or two shops
+  agree on; nothing is guessed. A card given by its TCGdex id gets its set,
+  number, picture and Cardmarket product from TCGdex (an unknown id, or one
+  whose TCGdex name differs from the given name, is rejected), and links to
+  Cardmarket (`/en/Pokemon/Products?idProduct=…`). Deck lists are not kept
+  (owner, 2026-11-01). The product page shows it under "Co jest w środku".
+  2026-11-01 research over 328 in-stock products: official Pokémon pages,
+  Cardmarket and Bulbapedia block automated reading, several shops too, and
+  many shop descriptions list no contents; about 80 products got
+  consistent facts.
 - **Languages.** The public buying guide (`/` and `/produkty/:slug`) has PL / EN
   links in the header on desktop and phones (including 360 px). Polish copy is
   unchanged; English covers filters, verdicts, delivery/pickup, location and
