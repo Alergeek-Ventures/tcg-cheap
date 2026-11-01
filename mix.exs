@@ -11,7 +11,7 @@ defmodule TcgCheap.MixProject do
       aliases: aliases(),
       deps: deps(),
       usage_rules: usage_rules(),
-      dialyzer: [plt_add_apps: [:mix]],
+      dialyzer: [plt_core_path: "_build/plts/core", plt_add_apps: [:mix]],
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader],
       consolidate_protocols: Mix.env() != :dev
