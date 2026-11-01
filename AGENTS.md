@@ -7,6 +7,10 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
   `mix dev.down` to stop them and `mix dev.reset` only when intentionally
   removing the worktree database volume. Do not restart shared services
   blindly.
+- `mix dev.up` also runs a local SeaweedFS S3 server on `S3_PORT` with the
+  public bucket (anonymous reads, test keys), standing in for production
+  object storage (`TcgCheap.Storage`, configured in `config :tcg_cheap,
+  :storage`).
 - Read `.server.port` for the current localhost port (default `4004`), and
   use `http://localhost:{PORT}`. Worktrunk assigns hashed localhost ports to
   parallel worktrees.

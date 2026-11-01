@@ -1,5 +1,7 @@
 import Config
 
+alias TcgCheap.Storage.Config, as: StorageConfig
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
@@ -22,6 +24,12 @@ end
 
 config :tcg_cheap, TcgCheapWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4004"))]
+
+# Object storage per resource, with this worktree's local S3 port in dev.
+:tcg_cheap
+|> Application.fetch_env!(:storage)
+|> StorageConfig.resource_configs(%{"S3_PORT" => System.get_env("S3_PORT")})
+|> Enum.each(fn {resource, resource_config} -> config :tcg_cheap, resource, resource_config end)
 
 # Bearer token for the AI agent MCP endpoint at /mcp (TcgCheapWeb.McpAuth).
 # Without it every MCP request is refused outside development.

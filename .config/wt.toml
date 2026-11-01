@@ -9,6 +9,7 @@ env = """
 cat > .env.local <<'EOF'
 PORT={% if branch == default_branch %}4004{% else %}{{ branch | hash_port }}{% endif %}
 DB_PORT={% if branch == default_branch %}5436{% else %}{{ ('db-' ~ branch) | hash_port }}{% endif %}
+S3_PORT={% if branch == default_branch %}8333{% else %}{{ ('s3-' ~ branch) | hash_port }}{% endif %}
 BRANCH={{ branch }}
 DATABASE_URL=ecto://postgres:postgres@localhost:{% if branch == default_branch %}5436{% else %}{{ ('db-' ~ branch) | hash_port }}{% endif %}/tcg_cheap_dev
 EOF

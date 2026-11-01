@@ -58,6 +58,14 @@ config :tcg_cheap, TcgCheapWeb.Endpoint,
 # Enable dev routes for dashboard and mailbox
 config :tcg_cheap, dev_routes: true
 
+# This worktree's SeaweedFS from `mix dev.up` (local/compose.yml).
+config :tcg_cheap, :storage,
+  services: [
+    s3_public: [
+      runtime_opts: [endpoint_url: {:localhost_url_from_port, env: "S3_PORT", default: 8333}]
+    ]
+  ]
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 
