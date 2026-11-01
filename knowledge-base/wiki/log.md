@@ -1,5 +1,11 @@
 # Wiki Log
 
+## [2026-11-01] Shop logos
+
+- Task: Owner chose real shop logos over favicons. Sonnet agents took each shop's own header logo from its site (no bot checks bypassed); they were trimmed and fitted into 240×80 WebP chips (white, dark for light logos) in `priv/static/images/shops/` and are served by the app, never hotlinked. An Opus design review set the size (7.5rem), dropped the border (`mix-blend-mode: multiply` melts white chips into the card) and the empty chip. 115 of 122 shops have one; none for cardzhouse.pl (403 to scripts), hearts.pub (bot check), pokebooster.pl ("coming soon" page), moriongames.pl (an illustration, no logo), and hejmistrzu.pl, krainagoblinow.pl, lochyikoty.pl (dark on dark, illegible).
+- Files: `product/buying-and-trading-guide.md` (Pages).
+- Validation: `mix check`; desktop and mobile offer lists in the running app, including a shop without a logo.
+
 ## [2026-11-01] Leaner pages and broken shop images
 
 - Task: Owner asked to drop the footnote (shipping caveat, the list of all shops, data sources) and the offer listing titles, which only repeat the product, and reported missing images in production. The GeoNames and OpenStreetMap credits the licences require moved into the location panel. Images: hearts.pub answers hotlinked images with its bot-check page (`images: false` on the shop), twojekarty.pl thumbnails were percent-encoded twice, pokapoke.pl keeps images in `src` rather than `data-src-original`, and planszomania.pl now asks for a 400 px thumbnail instead of 120 px.

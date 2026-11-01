@@ -9,6 +9,10 @@ defmodule TcgCheap.Sealed.Shops do
   the shops' own pages on 2026-10-31; nil means the shop does not publish it.
   Pickup store coordinates were geocoded from the store addresses with
   OpenStreetMap Nominatim on 2026-11-01.
+
+  Logos are the shops' own, taken from their sites on 2026-11-01 and
+  normalised to a 192×64 WebP on a white chip (dark for light logos) in
+  `priv/static/images/shops/<key>.webp`; a shop without a file shows none.
   """
 
   alias TcgCheap.Sealed.{
@@ -1543,4 +1547,12 @@ defmodule TcgCheap.Sealed.Shops do
       :error -> key
     end
   end
+
+  @logo_dir Path.expand("../../../priv/static/images/shops", __DIR__)
+  @logos for file <- File.ls!(@logo_dir), Path.extname(file) == ".webp", do: Path.rootname(file)
+  for logo <- @logos, do: @external_resource(Path.join(@logo_dir, logo <> ".webp"))
+
+  @doc "Whether the shop has a logo in `priv/static/images/shops`."
+  @spec logo?(String.t()) :: boolean()
+  def logo?(key), do: key in @logos
 end

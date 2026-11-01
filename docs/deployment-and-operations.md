@@ -236,6 +236,9 @@ Whole-shop exports may be up to 64 MB.
    limit. Add the delivery facts from the shop's delivery
    page (cheapest delivery, free-delivery threshold, pickup city; nil when not
    published) and, for a pickup store, its `pickup_location` coordinates.
+   Optionally add its logo as `priv/static/images/shops/<key>.webp`: the
+   shop's own logo, trimmed and fitted into 228×68 on a 240×80 white chip
+   (dark `#2b2925` for a light logo).
    Image hosts and the CSP follow automatically, and the daily job
    picks the shop up.
 2. Run `mix check`, fetch the shop in the running app (`enqueue_shop_fetch`
