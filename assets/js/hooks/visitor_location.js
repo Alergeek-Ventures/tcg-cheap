@@ -18,14 +18,15 @@ const round = degrees => Math.round(degrees * 100) / 100
 
 const VisitorLocation = {
   mounted() {
+    this.summary = this.el.querySelector("summary")
     this.restore()
     this.askOnEntry()
-    this.summary = this.el.querySelector("summary")
     this.handleEvent("location", ({location}) => {
       try {
         if (location) localStorage.setItem(STORAGE_KEY, JSON.stringify(location))
         else localStorage.removeItem(STORAGE_KEY)
       } catch {}
+      if (location) this.hideInvite()
       this.el.querySelector("form")?.reset()
       this.say("")
       // Set on entry the panel is closed; leave the focus where it is.
@@ -64,22 +65,45 @@ const VisitorLocation = {
     this.pushEvent("location-restore", {location: storedLocation()})
   },
 
-  // Without a remembered location, ask the device once per browser session
-  // (not again on every page), unless the browser already refuses.
+  // Without a remembered location, explain once per browser session (not on
+  // every page) why we ask; the browser's own prompt follows only "Zgadzam się".
+  // An earlier grant needs no prompt, a refusal is respected.
   async askOnEntry() {
     if (storedLocation() || !("geolocation" in navigator)) return
+    let state
     try {
       if (sessionStorage.getItem(ASKED_KEY)) return
       sessionStorage.setItem(ASKED_KEY, "1")
-      const {state} = await navigator.permissions.query({name: "geolocation"})
-      if (state === "denied") return
+      ;({state} = await navigator.permissions.query({name: "geolocation"}))
     } catch {}
-    this.locate({quiet: true})
+    if (!this.el.isConnected || storedLocation()) return
+    if (state === "denied") return
+    if (state === "granted") return this.locate({quiet: true})
+    this.invite = document.getElementById("visitor-location-invite")
+    if (!this.invite) return
+    // Through this.js() so LiveView patches keep it shown or hidden.
+    this.js().removeAttribute(this.invite, "hidden")
+    this.onLater = () => this.hideInvite()
+    this.onAllow = () => {
+      this.hideInvite()
+      this.el.open = true
+      this.locate()
+    }
+    this.invite.querySelector("#visitor-location-later").addEventListener("click", this.onLater)
+    this.invite.querySelector("#visitor-location-allow").addEventListener("click", this.onAllow)
+  },
+
+  hideInvite() {
+    if (!this.invite) return
+    if (this.invite.contains(document.activeElement)) this.summary.focus()
+    this.js().setAttribute(this.invite, "hidden", "")
   },
 
   destroyed() {
     document.removeEventListener("pointerdown", this.onPointerDown)
     document.removeEventListener("keydown", this.onKeyDown)
+    this.invite?.querySelector("#visitor-location-later").removeEventListener("click", this.onLater)
+    this.invite?.querySelector("#visitor-location-allow").removeEventListener("click", this.onAllow)
   },
 
   close() {
