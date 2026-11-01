@@ -2,7 +2,7 @@
 
 ## [2026-11-01] Brand logo
 
-- Task: Owner supplied a new TCG Cheap logo (a fanned card stack with a price chart, "TCG" in ink and "Cheap" in orange). Its beige background, the guide's own `--bench`, was made transparent around the logo; the header shows it as `priv/static/images/tcg-cheap.webp` (2.5rem high, 2rem on phones) instead of the icon and "TCG CHEAP" text. The card stack alone became `favicon.ico` (16/32/48 px) and a 180 px `apple-touch-icon.png` on the beige.
+- Task: Owner supplied a new TCG Cheap logo (a fanned card stack with a price chart, "TCG" in ink and "Cheap" in orange). Its beige background, the guide's own `--bench`, was made transparent around the logo; the header shows it as `priv/static/images/tcg-cheap.webp` (2rem high, 1.75rem on phones, with matching `width`/`height` so a page on stale CSS stays small) instead of the icon and "TCG CHEAP" text. The card stack alone became `favicon.ico` (16/32/48 px) and a 180 px `apple-touch-icon.png` on the beige.
 - Validation: `mix check`; desktop, 390 px and 360 px headers in the running app (at 360 px "Ustaw lokalizację" wraps under the logo, as it did before); both icons served.
 
 ## [2026-11-01] Kind always shown, location asked on entry
