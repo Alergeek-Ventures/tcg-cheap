@@ -90,6 +90,9 @@ defmodule TcgCheapWeb.ProductLive do
                   price: Polish.price(@page.suggested_price.price)
                 )} · <a href="#product-suggested-price">{gettext("skąd ta cena?")}</a>
               </p>
+              <p :if={@page.product.contents} id="product-inside" class="product-facts">
+                <a href="#product-contents">{gettext("Co jest w środku")} ↓</a>
+              </p>
             </section>
             <.verdict_block
               verdict={@page.verdict}
@@ -326,8 +329,12 @@ defmodule TcgCheapWeb.ProductLive do
   attr :contents, :map, required: true
 
   defp contents(assigns) do
+    items = Enum.sort_by(assigns.contents.items, &item_rank(&1.type))
+
     assigns =
       assign(assigns,
+        items: items,
+        rows: ceil(length(items) / 2),
         deck_size: assigns.contents.deck |> Enum.map(& &1.quantity) |> Enum.sum(),
         categories: Enum.group_by(assigns.contents.deck, & &1.category)
       )
@@ -338,18 +345,18 @@ defmodule TcgCheapWeb.ProductLive do
         <h2 id="product-contents-title">{gettext("Co jest w środku")}</h2>
         <p>{gettext("sprawdzono %{date}", date: Polish.date(@contents.checked_on))}</p>
       </div>
-      <ul id="contents-items" class="contents-items">
-        <li :for={item <- @contents.items}>
+      <ul id="contents-items" class="contents-items" style={"--rows: #{@rows}"}>
+        <li :for={item <- @items}>
+          <span class="contents-quantity">{item.quantity}×</span>
+          <span class="contents-label">{item_label(item)}</span>
           <img
             :if={item.image}
             src={item.image <> "/low.webp"}
             alt=""
-            width="48"
-            height="67"
+            width="34"
+            height="48"
             loading="lazy"
           />
-          <span class="contents-quantity">{item.quantity}×</span>
-          <span>{item_label(item)}</span>
         </li>
       </ul>
       <div :if={@contents.deck != []} id="contents-deck" class="contents-deck">
@@ -394,7 +401,8 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp item_label(%{type: :card, name: nil}), do: gettext("karta")
   defp item_label(%{type: :card, name: card}), do: gettext("karta %{card}", card: card)
-  defp item_label(%{type: :deck}), do: gettext("talia gotowa do gry")
+  defp item_label(%{type: :deck, name: nil}), do: gettext("talia gotowa do gry")
+  defp item_label(%{type: :deck, name: deck}), do: gettext("talia %{deck}", deck: deck)
   defp item_label(%{type: :sleeves}), do: gettext("koszulki na karty")
   defp item_label(%{type: :energy_cards}), do: gettext("karty energii")
   defp item_label(%{type: :dice}), do: gettext("kość do gry")
@@ -413,6 +421,10 @@ defmodule TcgCheapWeb.ProductLive do
   defp item_label(%{type: :binder}), do: gettext("album")
   defp item_label(%{type: :playmat}), do: gettext("mata do gry")
   defp item_label(%{type: :other, name: name}), do: name
+
+  # What a buyer opens comes first, the accessories after it.
+  @item_order ~w(deck booster promo_card oversize_card card energy_cards)a
+  defp item_rank(type), do: Enum.find_index(@item_order, &(&1 == type)) || length(@item_order)
 
   defp category_label(:pokemon), do: "Pokémon"
   defp category_label(:trainer), do: gettext("Trenerzy")

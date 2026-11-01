@@ -10,6 +10,10 @@ defmodule TcgCheap.Sealed.ProductContents do
 
   alias TcgCheap.Sealed.ProductContents.{DeckCard, Item}
 
+  validations do
+    validate {TcgCheap.Sealed.Validations.HttpsUrls, attribute: :sources}
+  end
+
   attributes do
     attribute :items, {:array, Item} do
       description "Everything in the box, in the order a buyer would list it."
@@ -29,7 +33,7 @@ defmodule TcgCheap.Sealed.ProductContents do
       description "The https pages the facts were read from."
       allow_nil? false
       public? true
-      constraints min_length: 1, items: [match: ~r{\Ahttps://[^\s]+\z}, max_length: 2_000]
+      constraints min_length: 1, items: [max_length: 2_000]
     end
 
     attribute :checked_on, :date do
