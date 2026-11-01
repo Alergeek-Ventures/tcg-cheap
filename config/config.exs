@@ -82,7 +82,7 @@ config :backpex,
 # Storage; keys come from AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
 config :tcg_cheap, :storage,
   active_service: :s3_public,
-  resources: [],
+  resources: [TcgCheap.Sealed.Product],
   services: [
     s3_public: [
       module: TcgCheap.Storage.Service.PublicS3,
@@ -97,7 +97,8 @@ config :tcg_cheap, Oban,
     catalogue_sync: 1,
     operations: 1,
     cardmarket_bulk: 1,
-    sealed: 1
+    sealed: 1,
+    media: 1
   ],
   # Jobs orphaned by a restart return to the queue; shop fetches are unique
   # while executing, so a stuck one would otherwise block its shop for good.
@@ -119,6 +120,8 @@ config :tcg_cheap, Oban,
        {"0 4 * * *", TcgCheap.Sealed.FetchWorker, args: %{}},
        # Suggested retail prices from the REBEL wholesaler, for the product pages.
        {"0 6 * * *", TcgCheap.Sealed.SuggestedPriceWorker, args: %{}},
+       # Product photos copied into our storage, a batch at a time.
+       {"*/10 * * * *", TcgCheap.Sealed.PhotoMirrorWorker, args: %{}},
        {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
      ]}
   ]

@@ -500,6 +500,7 @@ defmodule TcgCheapWeb.HomeLive do
                 <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">
                   <.link navigate={~p"/produkty/#{summary.product.slug}"} class="guide-product-link">
                     <.product_image
+                      photo={summary.product.photo_card_url}
                       url={summary.product.image_url}
                       kind={summary.product.kind}
                       alt=""

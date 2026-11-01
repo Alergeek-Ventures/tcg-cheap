@@ -19,9 +19,12 @@ defmodule TcgCheap.Catalogue.ExternalImage do
   @spec hosts() :: [String.t()]
   def hosts, do: @official_hosts ++ Shops.image_hosts()
 
-  @doc "Returns the CSP image sources represented by this policy."
+  @doc "Returns the CSP image sources: this policy plus our own object storage."
   @spec csp_sources() :: [String.t()]
-  def csp_sources, do: ["'self'", "data:"] ++ Enum.map(hosts(), &"https://#{&1}")
+  def csp_sources,
+    do:
+      ["'self'", "data:", TcgCheap.Storage.public_origin()] ++
+        Enum.map(hosts(), &"https://#{&1}")
 
   @spec valid?(term()) :: boolean()
   def valid?(url) do

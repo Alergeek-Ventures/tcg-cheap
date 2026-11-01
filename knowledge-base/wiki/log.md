@@ -1,5 +1,11 @@
 # Wiki Log
 
+## [2026-11-01] Product photos served from our storage
+
+- Task: Owner asked to move images to our own storage once the object storage landed. Products get a `photo` attachment (`TcgCheap.Storage.Attachment`, polymorphic) with eager WebP variants `card` (352 px) and `page` (960 px). `TcgCheap.Sealed.PhotoMirror` (Oban `PhotoMirrorWorker`, queue `media`, every 10 minutes, 40 per run) downloads the shop photo a product shows (`image_url`, allowlisted hosts only, at most 15 MB, JPEG/PNG/WebP/GIF), attaches it and records `photo_source_url`; a failed photo is retried only when the shop photo changes. Pages and SEO use the stored copy and fall back to the shop's photo until it exists; CSP allows the storage origin.
+- Validation: `mix check`; in development 196+ photos mirrored into SeaweedFS (a 428 KB shop JPEG became 12 KB / 54 KB WebP), the list and product page render the stored copies.
+- Remaining: expansion logos and contents card pictures are still hotlinked from TCGdex.
+
 ## [2026-11-01] Object storage
 
 - Task: Owner asked to stop hotlinking shop images and serve files from our own storage, configured like onside. `TcgCheap.Storage` (AshStorage blobs) uploads to a public S3-compatible bucket in production: the bucket is private, every object is uploaded public-read, so pages link to objects without presigned URLs. `ResizedImage` variants are WebP, never upscaled, with an 8 px inline placeholder for a blurred preview. Development runs SeaweedFS per worktree from `mix dev.up` (`S3_PORT`). No resource stores files yet: mirroring product photos and expansion logos follows separately.

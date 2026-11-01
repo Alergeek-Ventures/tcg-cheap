@@ -117,7 +117,11 @@ defmodule TcgCheapWeb.GuideComponents do
 
   defp verdict_paths(:out_of_stock), do: ["M3 8h10"]
 
-  @doc "Product packaging image (from a matched shop offer), or a placeholder drawn for its kind."
+  @doc """
+  Product packaging image: our stored copy (`photo`), else the shop's photo
+  (`url`, from a matched offer), else a placeholder drawn for its kind.
+  """
+  attr :photo, :string, default: nil
   attr :url, :string, default: nil
   attr :kind, :atom, default: nil
   attr :alt, :string, required: true
@@ -127,7 +131,7 @@ defmodule TcgCheapWeb.GuideComponents do
   def product_image(assigns) do
     assigns =
       assigns
-      |> assign(:url, if(ExternalImage.valid?(assigns.url), do: assigns.url))
+      |> assign(:url, assigns.photo || if(ExternalImage.valid?(assigns.url), do: assigns.url))
       |> assign(:shape, placeholder_shape(assigns.kind))
 
     ~H"""

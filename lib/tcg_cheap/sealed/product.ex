@@ -7,10 +7,12 @@ defmodule TcgCheap.Sealed.Product do
   use Ash.Resource,
     otp_app: :tcg_cheap,
     domain: TcgCheap.Sealed,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [AshStorage]
 
   alias TcgCheap.Sealed.{Kinds, Regions}
   alias TcgCheap.Sealed.Preparations.Browse
+  alias TcgCheap.Storage.Variants.ResizedImage
 
   postgres do
     table "sealed_products"
@@ -21,6 +23,18 @@ defmodule TcgCheap.Sealed.Product do
       index [:kind]
       index [:region]
       index [:cardmarket_expansion_id]
+    end
+  end
+
+  # The packaging photo, mirrored from the shop that offers the product
+  # (`TcgCheap.Sealed.PhotoMirror`), in the two sizes the pages show.
+  storage do
+    blob_resource(TcgCheap.Storage.Blob)
+    attachment_resource(TcgCheap.Storage.Attachment)
+
+    has_one_attached :photo do
+      variant(:card, {ResizedImage, width: 352}, generate: :eager)
+      variant(:page, {ResizedImage, width: 960}, generate: :eager)
     end
   end
 
@@ -74,6 +88,22 @@ defmodule TcgCheap.Sealed.Product do
       description "Replaces the product's barcodes (EAN-13 or UPC-A, check digit verified)."
       argument :eans, {:array, :string}, allow_nil?: false
       change TcgCheap.Sealed.Changes.SetEans
+    end
+
+    read :photos_to_mirror do
+      description "Products whose shop photo is not mirrored yet, or changed since."
+      argument :limit, :integer, allow_nil?: false
+
+      filter expr(
+               not is_nil(image_url) and
+                 (is_nil(photo_source_url) or photo_source_url != image_url)
+             )
+
+      prepare build(sort: [available: :desc, updated_at: :desc], limit: arg(:limit))
+    end
+
+    update :record_photo_source do
+      accept [:photo_source_url]
     end
 
     update :set_contents do
@@ -172,6 +202,12 @@ defmodule TcgCheap.Sealed.Product do
       allow_nil? false
       default []
       public? true
+    end
+
+    attribute :photo_source_url, :string do
+      description "The shop photo the stored photo was made from."
+      public? true
+      constraints max_length: 2_000
     end
 
     attribute :contents, TcgCheap.Sealed.ProductContents do

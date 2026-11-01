@@ -66,6 +66,7 @@ defmodule TcgCheapWeb.ProductLive do
 
           <div class="product-top">
             <.product_image
+              photo={@page.product.photo_page_url}
               url={@page.product.image_url}
               kind={@page.product.kind}
               alt={@page.product.name}

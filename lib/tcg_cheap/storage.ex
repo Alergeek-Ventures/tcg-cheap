@@ -10,6 +10,7 @@ defmodule TcgCheap.Storage do
   alias TcgCheap.Storage.Config
 
   resources do
+    resource TcgCheap.Storage.Attachment
     resource TcgCheap.Storage.Blob
   end
 
