@@ -1,5 +1,9 @@
 # Wiki Log
 
+## [2026-11-01] Operations guide removed from the public repository
+
+- Task: The repository is public, so the owner had `docs/` (deployment and operations: hosting, secret store, deploy pipeline, backups) removed. README and `architecture/application-foundation.md` no longer link it. Earlier log entries that name `docs/deployment-and-operations.md` describe history; the file remains in git history (it held no secret values).
+
 ## [2026-11-01] Product contents
 
 - Task: Owner asked for product descriptions as precise as possible, with the cards inside. Products get embedded `contents` (items, fixed-deck card list, sources, checked day), set by agents through the MCP tool `set_product_contents` and shown on the product page under "Co jest w środku" (PL/EN labels per item type, TCGdex card pictures when known, source links).
