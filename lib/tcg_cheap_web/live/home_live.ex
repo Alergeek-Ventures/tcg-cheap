@@ -165,23 +165,10 @@ defmodule TcgCheapWeb.HomeLive do
       |> Enum.sort_by(&(&1.id != assigns.filters.expansion))
       |> Enum.split(@first_expansions)
 
-    assigns = assign(assigns, first: first, rest: rest, active: active_filters(assigns.filters))
+    assigns = assign(assigns, first: first, rest: rest)
 
     ~H"""
     <aside id="guide-filters" class="guide-filters" aria-label={gettext("Filtry")}>
-      <button
-        type="button"
-        id="guide-filters-toggle"
-        class="guide-filters-toggle"
-        aria-controls="guide-filters-body"
-        aria-expanded="false"
-        phx-click={
-          JS.toggle_class("guide-filters-open", to: "#guide-filters")
-          |> JS.toggle_attribute({"aria-expanded", "true", "false"})
-        }
-      >
-        <.fluent_icon name={:filter} />{gettext("Filtry")}<span :if={@active > 0}> ({@active})</span>
-      </button>
       <div id="guide-filters-body" class="guide-filters-body">
         <nav id="guide-regions" class="guide-filter" aria-labelledby="guide-regions-title">
           <h2 id="guide-regions-title">{gettext("Wersja językowa")}</h2>
@@ -309,7 +296,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   @impl true
   def render(assigns) do
-    assigns = assign(assigns, :kinds, Kinds.labels())
+    assigns = assign(assigns, kinds: Kinds.labels(), active: active_filters(assigns.filters))
 
     ~H"""
     <Layouts.app flash={@flash}>
@@ -386,6 +373,19 @@ defmodule TcgCheapWeb.HomeLive do
                     <button id="guide-scan-close" type="button">{gettext("Zamknij")}</button>
                   </dialog>
                 </div>
+                <button
+                  type="button"
+                  id="guide-filters-toggle"
+                  class="guide-filters-toggle"
+                  aria-controls="guide-filters-body"
+                  aria-expanded="false"
+                  phx-click={
+                    JS.toggle_class("guide-filters-open", to: "#guide-filters")
+                    |> JS.toggle_attribute({"aria-expanded", "true", "false"})
+                  }
+                >
+                  <.fluent_icon name={:filter} />{gettext("Filtry")}<span :if={@active > 0}> ({@active})</span>
+                </button>
               </div>
               <input :if={@filters.kind} type="hidden" name="rodzaj" value={@filters.kind} />
               <input :if={@filters.region} type="hidden" name="wersja" value={@filters.region} />

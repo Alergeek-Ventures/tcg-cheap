@@ -622,6 +622,11 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 /* Guide language links share the masthead without moving its outer edges. */
 .guide-world .site-header { padding-block: .5rem; padding-inline: max(1rem, calc((100% - 72rem) / 2 + 1rem)); gap: .5rem; }
 .guide-world .site-wordmark { flex: none; }
+/* Masthead and search stay at the top while the list scrolls; both keep one fixed height so the
+   search and the filters can sit right under them. A long town name is cut, never wrapped. */
+.guide-world { --guide-header-size: calc(4rem + 1px); --guide-search-size: 4rem; --guide-sticky-size: calc(var(--guide-header-size) + var(--guide-search-size)); }
+.guide-world .site-header { background: var(--bench); block-size: var(--guide-header-size); flex-wrap: nowrap; inset-block-start: 0; position: sticky; z-index: 3; }
+.guide-world .site-header > :last-child { min-inline-size: 0; }
 .guide-language { border-inline-end: 1px solid var(--rule); display: flex; margin-inline-start: auto; padding-inline-end: .5rem; }
 .guide-language a { align-items: center; color: var(--muted); display: inline-flex; font-size: .75rem; gap: .375rem; justify-content: center; min-block-size: 3rem; min-inline-size: 2rem; padding-inline: .375rem; text-decoration: none; }
 .guide-language img { border-radius: 2px; box-shadow: 0 0 0 1px var(--rule); display: block; flex: none; }
@@ -639,16 +644,15 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-intro { margin-bottom: 1.25rem; }
 .guide-world #guide-title { font-size: clamp(2rem, 5vw, 2.5rem); letter-spacing: -.04em; line-height: 1; }
 .guide-world #guide-promise { margin: .5rem 0 0; max-width: 52ch; }
-.guide-world .guide-search { background: var(--bench-light); margin-bottom: 1.5rem; padding: 1rem 1.25rem; }
-.guide-world .guide-search-label { color: var(--muted); display: block; font-size: .875rem; }
-.guide-world .guide-search-field { position: relative; }
-.guide-world .guide-search-field .fieldset { margin: 0; padding: 0; }
+.guide-world .guide-search { align-content: center; background: var(--bench-light); block-size: var(--guide-search-size); box-shadow: 0 .75rem 0 var(--bench); display: grid; inset-block-start: var(--guide-header-size); margin-bottom: 1.5rem; padding-inline: 1.25rem; position: sticky; z-index: 2; }
+.guide-world .guide-search-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: clip; position: absolute; white-space: nowrap; }
+.guide-world .guide-search-field { align-items: center; border-bottom: 1px solid var(--ink); display: flex; gap: .25rem; position: relative; }
+.guide-world .guide-search-field .fieldset { flex: 1; margin: 0; min-inline-size: 0; padding: 0; }
 .guide-world .guide-search-field label { display: block; }
 .guide-world .guide-search-icon { color: var(--muted); height: 1.5rem; left: 0; pointer-events: none; position: absolute; top: 50%; transform: translateY(-50%); width: 1.5rem; z-index: 1; }
-.guide-world .guide-search-input { background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; box-shadow: none; color: var(--ink); font: 700 1.5rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .5rem 0 .5rem 2.25rem; width: 100%; }
+.guide-world .guide-search-input { background: transparent; border: 0; border-radius: 0; box-shadow: none; color: var(--ink); font: 700 1.5rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: .5rem 0 .5rem 2.25rem; width: 100%; }
 .guide-world .guide-search-input::placeholder { color: var(--muted); opacity: 1; }
-.guide-world .guide-search-field:has(.guide-scan-open:not([hidden])) .guide-search-input { padding-right: 3.25rem; }
-.guide-world .guide-scan-open { align-items: center; background: transparent; border: 0; color: var(--ink); cursor: pointer; display: flex; height: 3rem; justify-content: center; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 3rem; }
+.guide-world .guide-scan-open { align-items: center; background: transparent; border: 0; color: var(--ink); cursor: pointer; display: flex; height: 3rem; justify-content: center; width: 3rem; }
 .guide-world .guide-scan-open[hidden] { display: none; }
 .guide-world .guide-scan-open .fluent-icon { height: 1.5rem; width: 1.5rem; }
 .guide-world .guide-scan-open:hover { color: var(--orange); }
@@ -691,7 +695,12 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 
 /* Filters: a side panel on wide screens, folded behind "Filtry" on narrow ones. */
 .guide-world .guide-browse { align-items: start; display: grid; gap: 1.5rem; }
-.guide-world .guide-filters-toggle { align-items: center; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); cursor: pointer; display: inline-flex; font: 700 1.1rem/1 "Barlow Condensed", sans-serif; gap: .4rem; min-block-size: 3rem; padding-inline: 1rem; }
+.guide-world .guide-filters-toggle { align-items: center; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); cursor: pointer; display: inline-flex; flex: none; font: 700 1.1rem/1 "Barlow Condensed", sans-serif; gap: .4rem; min-block-size: 2.75rem; padding-inline: .75rem; }
+.guide-world .guide-filters-toggle:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.guide-world .guide-filters-toggle:active { border-color: var(--ink); }
+/* In-page links and the results jump land below the sticky masthead (and search bar). */
+html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1px); }
+.guide-world #guide-results-title { scroll-margin-block-start: var(--guide-search-size); }
 .guide-world .guide-filters-toggle[aria-expanded="true"] { background: var(--ink); color: var(--bench-light); }
 .guide-world .guide-filters-body { display: grid; gap: 1.5rem; }
 .guide-world .guide-filters-clear { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
@@ -723,12 +732,16 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 }
 @media (min-width: 48rem) {
   .guide-world .guide-browse { gap: 2rem; grid-template-columns: 15rem minmax(0, 1fr); }
-  .guide-world .guide-filters { inset-block-start: 1rem; max-block-size: calc(100svh - 2rem); overflow-y: auto; overscroll-behavior: contain; position: sticky; scrollbar-width: thin; }
+  .guide-world .guide-filters { inset-block-start: calc(var(--guide-sticky-size) + 1rem); max-block-size: calc(100svh - var(--guide-sticky-size) - 2rem); overflow-y: auto; overscroll-behavior: contain; position: sticky; scrollbar-width: thin; }
   .guide-world :is(.guide-filters-toggle, .guide-filters-apply) { display: none; }
 }
+/* Phones: the toggle in the search bar opens the filters as a panel under the sticky bar. */
 @media (max-width: 47.99rem) {
-  .guide-world .guide-filters:not(.guide-filters-open) .guide-filters-body { display: none; }
-  .guide-world .guide-filters-body { background: var(--bench-light); margin-block-start: .5rem; padding: 1rem; }
+  .guide-world .guide-search { padding-inline: 1rem; }
+  .guide-world .guide-search-input { font-size: 1.25rem; }
+  .guide-world .guide-filters:not(.guide-filters-open) { display: none; }
+  .guide-world .guide-filters-open { background: var(--bench-light); border-block-start: 1px solid var(--rule); inset: var(--guide-sticky-size) 0 0; overflow-y: auto; overscroll-behavior: contain; position: fixed; z-index: 2; }
+  .guide-world .guide-filters-body { padding: 1rem; }
 }
 .guide-world .guide-more { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: 1rem; }
 .guide-world .guide-more button { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 1.5rem; text-transform: uppercase; }
