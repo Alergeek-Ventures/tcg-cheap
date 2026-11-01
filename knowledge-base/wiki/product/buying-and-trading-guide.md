@@ -129,11 +129,13 @@ versioned pricing models.
   price chart once there are 7 days of prices. Below the verdict's reasoning
   and above the thresholds comes pickup: without a location, when a shop
   with stock has pickup, "Odbierzesz gdzieś blisko? Podaj miejscowość"
-  (opens the header panel); with one, "Odbiór osobisty najbliżej Ciebie:
+  (opens the header panel); with one, the cheapest in-stock offer with
+  pickup within 50 km, "Najtaniej z odbiorem osobistym do 50 km:
   CardzHouse, Gdynia · 20 km · 659,99 zł (+110 zł)" ("– najtaniej" when it
-  is the cheapest offer), or else "brak do 50 km – potrzebna dostawa" with
+  is the cheapest offer overall), or else "brak do 50 km – potrzebna dostawa" with
   the cheapest shop's delivery ("W Colligere dostawa gratis"). On `/` a
-  product with an in-stock pickup within 50 km shows where and for how much
+  product with an in-stock pickup within 50 km shows the cheapest one, where
+  and for how much
   ("odbiór: Gdynia, 20 km · 79,99 zł"), since that is often not the row's
   cheapest price. Verdicts and prices do not change with location.
 - **Admin.** `/admin/buying-guide` shows each shop's last fetch, matched and

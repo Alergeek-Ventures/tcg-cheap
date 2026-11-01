@@ -224,7 +224,7 @@ defmodule TcgCheapWeb.ProductLive do
   end
 
   # Pickup next to the verdict: without a location, an invitation to set one
-  # (only when some shop with stock has pickup); with one, the nearest
+  # (only when some shop with stock has pickup); with one, the cheapest
   # in-stock pickup within the radius, or else that delivery is needed and
   # what the cheapest offer's shop charges for it.
   defp nearby(%{offers: offers}, nil) do
@@ -235,9 +235,9 @@ defmodule TcgCheapWeb.ProductLive do
   defp nearby(%{verdict: %{cheapest: nil}}, _location), do: nil
 
   defp nearby(%{offers: offers, verdict: %{cheapest: cheapest}}, location) do
-    case offers |> Enum.filter(& &1.in_stock) |> VisitorLocation.nearest_pickup(location) do
-      %{} = nearest ->
-        Map.put(nearest, :extra, Decimal.sub(nearest.offer.price, cheapest.price))
+    case offers |> Enum.filter(& &1.in_stock) |> VisitorLocation.cheapest_pickup(location) do
+      %{} = pickup ->
+        Map.put(pickup, :extra, Decimal.sub(pickup.offer.price, cheapest.price))
 
       nil ->
         delivery =
@@ -331,7 +331,9 @@ defmodule TcgCheapWeb.ProductLive do
   defp nearby_line(%{nearby: %{offer: _offer}} = assigns) do
     ~H"""
     <div id="verdict-nearby" class="verdict-nearby">
-      <p class="verdict-nearby-label">Odbiór osobisty najbliżej Ciebie</p>
+      <p class="verdict-nearby-label">
+        Najtaniej z odbiorem osobistym do {VisitorLocation.radius_km()} km
+      </p>
       <p class="verdict-nearby-value">
         <a href={@nearby.offer.url} target="_blank" rel="noopener nofollow">{@nearby.shop.name}</a>, {@nearby.shop.pickup_city} ·
         <strong>{VisitorLocation.km(@nearby.km)}</strong>

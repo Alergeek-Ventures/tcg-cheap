@@ -100,18 +100,18 @@ defmodule TcgCheapWeb.HomeLive do
   attr :offers, :list, required: true
   attr :location, :map, default: nil
 
-  # Where the nearest in-stock pickup is and what it costs there, which is
-  # often not the cheapest price shown in the row.
+  # The cheapest in-stock pickup nearby and where it is, which is often not
+  # the cheapest price shown in the row.
   defp nearby_pickup(assigns) do
     assigns =
-      assign(assigns, :nearest, VisitorLocation.nearest_pickup(assigns.offers, assigns.location))
+      assign(assigns, :pickup, VisitorLocation.cheapest_pickup(assigns.offers, assigns.location))
 
     ~H"""
-    <p :if={@nearest} id={@id} class="guide-product-nearby">
+    <p :if={@pickup} id={@id} class="guide-product-nearby">
       <.fluent_icon name={:location} />
       <span>
-        odbiór: {@nearest.shop.pickup_city}, {VisitorLocation.km(@nearest.km)} · {Polish.price(
-          @nearest.offer.price
+        odbiór: {@pickup.shop.pickup_city}, {VisitorLocation.km(@pickup.km)} · {Polish.price(
+          @pickup.offer.price
         )}
       </span>
     </p>

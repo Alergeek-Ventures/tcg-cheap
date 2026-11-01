@@ -1,5 +1,11 @@
 # Wiki Log
 
+## [2026-11-01] Cheapest pickup, not nearest
+
+- Task: In production (Kraków) the pickup line named the nearest store (Stragan Ogra, Chrzanów, 39 km, +41 zł) although the cheapest offer itself had pickup within 50 km (Planszołek, Brzesko, 49 km). The line and the home marker now show the cheapest in-stock offer with pickup within the radius (the nearer at the same price): "Najtaniej z odbiorem osobistym do 50 km".
+- Files: `product/buying-and-trading-guide.md` (Pages).
+- Validation: `mix check`; production-like check in the running app with a Kraków location.
+
 ## [2026-11-01] Location privacy review
 
 - Task: Applied a read-only Opus code review of the visitor location. The location no longer travels in the LiveSocket params (phoenix.js appends them to the WebSocket and long-poll URL, which proxies such as Cloudflare log); the hook sends it in a `location-restore` event after connecting and the pages hide location-dependent parts until then. A primary `:logger` filter (`TcgCheapWeb.LocationLogFilter`, installed first so it runs before Elixir's translator) redacts `"location"`/`:location` values in crash reports, where OTP logs a crashed LiveView's last message and state. Points more than 30 km from a Polish town are refused. The panel note now reads "Lokalizację pamięta tylko Twoja przeglądarka; nie zapisujemy jej." and the footer marks GeoNames as a selection. Not changed: "Pokaż więcej" pages reset when the location changes.
