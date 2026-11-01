@@ -69,6 +69,7 @@ defmodule TcgCheap.MixProject do
       {:ash_storage,
        github: "ash-project/ash_storage", ref: "28b895410cb9a4b90b49242ce8617682a7b8fc77"},
       {:req_s3, "~> 0.2.3"},
+      {:resvg, "~> 0.6"},
       {:image, "~> 0.72.0"},
       {:saxy, "~> 1.6"},
       {:floki, "~> 0.38"},

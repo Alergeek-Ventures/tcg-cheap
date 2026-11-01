@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-11-01] Link-preview cards
+
+- Task: Owner found shared links looking bad (Messenger cropped a blurry logo). `og:image` now points to designed 1200×630 cards: the home card shows the promise and the verdict scale, a product card the verdict (Cardmarket difference coloured as on the list), the cheapest price and shop, the typical and suggested prices or the muted last known price, with the photo on a paper tile or a text-only layout. `TcgCheapWeb.SocialImage` draws SVG with bundled OFL fonts (full Latin Extended) through resvg and encodes JPEG with libvips; photos come from allowlisted hosts only (15 MB, 8 s, 40 MP, shrunk first), two renders at once. `/og` and `/og/produkty/:slug` render once per content version, store the card in the public bucket and redirect later requests. `TcgCheapWeb.SEO` still owns all metadata: it adds the card URL (versioned), size, type, alt and `summary_large_image`, synced on live navigation; structured data keeps the product photo. Cards are Polish (crawlers have no session).
+- Files: none in the wiki beyond this log.
+- Validation: `mix check`; cards rendered from the running app for the home page and products with and without a photo, every verdict state (good/normal/expensive/insufficient data/out of stock with last price/Cardmarket within, below and above 10%), a 4-line name and a 10 MB shop photo; second requests redirect to the stored card; SSR head has one set of OG tags.
+- Remaining: photos are still fetched from shops until product photos are mirrored to storage; then the card and structured data should use the mirrored medium variant.
+
 ## [2026-11-01] Object storage
 
 - Task: Owner asked to stop hotlinking shop images and serve files from our own storage, configured like onside. `TcgCheap.Storage` (AshStorage blobs) uploads to a public S3-compatible bucket in production: the bucket is private, every object is uploaded public-read, so pages link to objects without presigned URLs. `ResizedImage` variants are WebP, never upscaled, with an 8 px inline placeholder for a blurred preview. Development runs SeaweedFS per worktree from `mix dev.up` (`S3_PORT`). No resource stores files yet: mirroring product photos and expansion logos follows separately.
