@@ -8,8 +8,7 @@
       <meta
         name="posthog"
         content={posthog.api_key}
-        data-api-host={posthog.api_host}
-        data-asset-host={posthog.asset_host}
+        data-proxy-paths={Jason.encode!(posthog.proxy_paths)}
       />
     <% end %>
     <.live_title default="TCG Cheap" suffix=" · TCG Cheap" phx-no-format>{assigns[:page_title]}</.live_title>
