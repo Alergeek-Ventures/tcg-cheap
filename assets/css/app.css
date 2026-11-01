@@ -628,6 +628,8 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-language a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 .guide-language a:active { color: var(--orange); }
 @media (hover: hover) and (pointer: fine) { .guide-language a:not([aria-current]):hover { color: var(--ink); text-decoration: underline; } }
+/* Phones: the switch stays narrow enough for logo, PL/EN and location on one row at 390 px. */
+@media (max-width: 47.99rem) { .guide-language { border-inline-end: 0; padding-inline-end: 0; } .guide-language a { min-inline-size: 1.5rem; } }
 
 .site-wordmark { align-items: center; display: inline-flex; min-height: 3rem; }
 .site-wordmark img { block-size: clamp(1.75rem, 7vw, 2rem); display: block; inline-size: auto; }

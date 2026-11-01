@@ -5,7 +5,7 @@
 - Task: Owner asked to align the desktop logo and location with the content and add Polish/English selection at the top. The guide header uses logical inline padding matching its 72rem content column, with a full-width border. PL / EN links persist the choice in the session and retain the page and query string; local redirect validation rejects external URLs, backslashes and control characters. Guide-only request and LiveView locale setup drives Gettext, page titles and HTML `lang`. Polish msgids preserve existing copy; complete Polish (three plural forms) and English catalogues cover the home/product pages, filters, verdicts, delivery/pickup, location and browser feedback, scanner, dates and counts. PLN formatting stays unchanged; admin, trade and card pages remain outside scope.
 - Files: `product/buying-and-trading-guide.md` (Languages, Polish first).
 - Validation: `direnv exec . mix check --verbose` passed, including Dialyzer (zero errors/skips). Running isolated worktree app with fabricated local sample products/offers/history; home and product desktop PL/EN, home at 390 and 360 px PL/EN, session and query retention, no-JS language links, external-redirect rejection, Polish/English plural forms and dates. Screenshots under `/tmp/opencode/lang/`.
-- Remaining: The separate “Cena sugerowana” change must be translated when integrated.
+- Remaining: none known; the suggested-price section (REBEL) is translated too. At 360 px the location wraps under the logo, as before.
 
 ## [2026-11-01] REBEL suggested prices
 

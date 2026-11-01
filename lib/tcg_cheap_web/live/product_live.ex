@@ -86,8 +86,9 @@ defmodule TcgCheapWeb.ProductLive do
                 </span>
               </p>
               <p :if={@page.suggested_price} id="product-suggested" class="product-facts">
-                Cena sugerowana (REBEL): {Polish.price(@page.suggested_price.price)} ·
-                <a href="#product-suggested-price">skąd ta cena?</a>
+                {gettext("Cena sugerowana (REBEL): %{price}",
+                  price: Polish.price(@page.suggested_price.price)
+                )} · <a href="#product-suggested-price">{gettext("skąd ta cena?")}</a>
               </p>
             </section>
             <.verdict_block
@@ -330,14 +331,18 @@ defmodule TcgCheapWeb.ProductLive do
       aria-labelledby="product-suggested-price-title"
     >
       <div class="product-section-heading">
-        <h2 id="product-suggested-price-title">Cena sugerowana</h2>
-        <p>stan na {Polish.date(DateTime.to_date(@suggested.last_seen_at))}</p>
+        <h2 id="product-suggested-price-title">{gettext("Cena sugerowana")}</h2>
+        <p>
+          {gettext("stan na %{date}", date: Polish.date(DateTime.to_date(@suggested.last_seen_at)))}
+        </p>
       </div>
       <p id="suggested-price" class="cardmarket-trend">
-        Hurtownia REBEL: <strong>{Polish.price(@suggested.price)}</strong>
+        {gettext("Hurtownia REBEL:")} <strong>{Polish.price(@suggested.price)}</strong>
       </p>
       <p class="guide-note">
-        Cena detaliczna sugerowana w katalogu hurtowni REBEL. Sklepy ustalają ceny same, więc nie bierzemy jej pod uwagę w ocenie. Pokazujemy ją tylko dla porównania.
+        {gettext(
+          "Cena detaliczna sugerowana w katalogu hurtowni REBEL. Sklepy ustalają ceny same, więc nie bierzemy jej pod uwagę w ocenie. Pokazujemy ją tylko dla porównania."
+        )}
       </p>
     </section>
     """
