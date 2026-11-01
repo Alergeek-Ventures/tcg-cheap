@@ -41,9 +41,12 @@ versioned pricing models.
 
 - **Catalogue from Cardmarket.** Every sealed Pokémon product in Cardmarket's
   public non-singles product file (≈4,400; Coins and Lots excluded) is
-  imported daily with its kind, a set name derived from products sharing a
-  Cardmarket expansion, and the latest Cardmarket trend/low/avg in EUR.
-  Nothing is curated in code; products that disappear from the file are kept.
+  imported daily with its kind, a set name (the English TCGdex set's, else
+  derived from products sharing a Cardmarket expansion), its language edition
+  (English, Japanese, Chinese, Korean, Indonesian or Thai, per expansion; see
+  data sources) and the latest Cardmarket trend/low/avg in EUR. Only a few
+  sealed-only Asian expansions are listed in code; products that disappear
+  from the file are kept.
   Product images come from matched shop offers.
 - **Shops.** 122 Polish shops, fixed in code (`TcgCheap.Sealed.Shops`):
   32 through the WooCommerce Store API (their Pokémon category ids), 4
@@ -129,10 +132,15 @@ versioned pricing models.
   almost every Polish price "Drogo" (owner decision, 2026-10-31). Without
   current stock the verdict is **Brak w sklepach** (with the last known
   price); with stock but no reference price it is **Za mało danych**.
-- **Pages.** `/` lists and searches products (filter by kind; in stock first,
-  then newest; a known barcode jumps to its product) with the cheapest current
-  price and verdict. Each card names the product's kind, and its set unless
-  the product name already contains it.
+- **Pages.** `/` lists and searches products (in stock first, then newest; a
+  known barcode jumps to its product) with the cheapest current price and
+  verdict. A side panel (behind "Filtry" on phones) filters by kind, language
+  edition (with counts) and expansion: the named expansions under the other
+  filters, newest first, twelve before "Pokaż wszystkie", English ones as
+  their TCGdex logo (hotlinked from `assets.tcgdex.net`). Each card names
+  the product's kind, its set unless the product name already contains it,
+  and its language edition unless English; the product page names the
+  edition too.
   `/produkty/:slug` shows the verdict and thresholds, every current offer
   (in stock first, cheapest first, with links to the shop; the shop's logo
   (wide screens only) and name, not its listing title, which only repeats the product) with its shop's

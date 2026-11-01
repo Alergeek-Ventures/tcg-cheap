@@ -4,7 +4,7 @@ defmodule TcgCheapWeb.GuideComponents do
   use TcgCheapWeb, :html
 
   alias TcgCheap.Catalogue.ExternalImage
-  alias TcgCheap.Sealed.{Kinds, Shops}
+  alias TcgCheap.Sealed.{Kinds, Regions, Shops}
   alias TcgCheapWeb.Polish
 
   @doc "The public masthead: the wordmark, linking to the buying guide, and optional controls."
@@ -383,12 +383,20 @@ defmodule TcgCheapWeb.GuideComponents do
     )
   end
 
-  @doc ~S'Kind, and the set where the name does not already say it: "Kolekcja · Pitch Black".'
+  @doc """
+  Kind, the set where the name does not already say it, and the language
+  edition unless English: "Kolekcja · Pitch Black", "Booster · Japońska".
+  """
   @spec product_meta(TcgCheap.Sealed.Product.t()) :: String.t()
   def product_meta(%{set_name: set} = product) do
-    if is_nil(set) or String.contains?(String.downcase(product.name), String.downcase(set)),
-      do: Kinds.label(product.kind),
-      else: Kinds.label(product.kind) <> " · " <> set
+    set =
+      if set && !String.contains?(String.downcase(product.name), String.downcase(set)), do: set
+
+    region = if product.region != :en, do: Regions.label(product.region)
+
+    [Kinds.label(product.kind), set, region]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" · ")
   end
 
   @spec shop_name(map()) :: String.t()

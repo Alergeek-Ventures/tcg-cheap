@@ -112,7 +112,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
 
   defp search(query) do
     query
-    |> Sealed.browse_products!(nil, page: [limit: @result_limit])
+    |> Sealed.browse_products!(nil, nil, nil, page: [limit: @result_limit])
     |> Map.fetch!(:results)
   end
 

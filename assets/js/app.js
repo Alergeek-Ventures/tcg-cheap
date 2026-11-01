@@ -59,6 +59,10 @@ const liveSocket = new LiveSocket("/live", Socket, {
   hooks: {...colocatedHooks, CardAutocomplete, TradeShare, VisitorLocation, ...BackpexHooks},
 })
 
+// Bring an element to the top once the layout above it has changed, e.g. the
+// results after the filter panel folds away on a phone.
+window.addEventListener("guide:reveal", e => e.target.scrollIntoView({block: "start"}))
+
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))

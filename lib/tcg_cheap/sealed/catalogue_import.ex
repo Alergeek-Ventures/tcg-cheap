@@ -8,12 +8,18 @@ defmodule TcgCheap.Sealed.CatalogueImport do
   file are kept), today's Cardmarket trend is recorded per product, and
   offers are re-matched against the updated catalogue. Everything is written
   in one transaction; a failed download writes nothing.
+
+  First `TcgCheap.Sealed.ExpansionSync` brings the TCGdex sets up to date
+  for set names and language editions; when TCGdex fails, the sets already
+  known are used.
   """
 
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Catalogue, Product, Refresh}
+  alias TcgCheap.Sealed.{Catalogue, ExpansionSync, Product, Refresh, TcgdexSet}
+
+  require Logger
 
   @chunk 500
 
@@ -22,9 +28,17 @@ defmodule TcgCheap.Sealed.CatalogueImport do
     now = Keyword.get_lazy(opts, :now, &DateTime.utc_now/0)
     adapter_opts = [request_options: Keyword.get(opts, :request_options, [])]
 
+    sync_expansions(adapter_opts)
+
     with {:ok, products} <- Adapter.fetch_sealed_products(adapter_opts),
          {:ok, prices} <- Adapter.fetch_sealed_prices(adapter_opts) do
-      rows = Catalogue.rows(products.rows, prices.rows, DateTime.to_date(prices.created_at))
+      rows =
+        Catalogue.rows(
+          products.rows,
+          prices.rows,
+          DateTime.to_date(prices.created_at),
+          TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!())
+        )
 
       Repo.transaction(
         fn ->
@@ -36,6 +50,16 @@ defmodule TcgCheap.Sealed.CatalogueImport do
         timeout: Refresh.transaction_timeout()
       )
     end
+  end
+
+  # Never in the way of the import: a failed or crashed sync is only logged.
+  defp sync_expansions(adapter_opts) do
+    case ExpansionSync.run(adapter_opts) do
+      {:ok, %{checked: count}} -> Logger.info("TCGdex sets checked: #{count}")
+      {:error, reason} -> Logger.warning("TCGdex set sync failed: #{inspect(reason)}")
+    end
+  rescue
+    exception -> Logger.warning("TCGdex set sync crashed: #{Exception.message(exception)}")
   end
 
   defp upsert_products(rows) do

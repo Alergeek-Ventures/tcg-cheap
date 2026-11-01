@@ -85,7 +85,25 @@ defmodule TcgCheap.Sealed do
       define :import_product, action: :import
       define :list_products, action: :read
       define :get_product_by_slug, action: :by_slug, args: [:slug], not_found_error?: false
-      define :browse_products, action: :browse, args: [{:optional, :query}, {:optional, :kind}]
+
+      define :browse_products,
+        action: :browse,
+        args: [
+          {:optional, :query},
+          {:optional, :kind},
+          {:optional, :region},
+          {:optional, :expansion}
+        ]
+
+      define :list_product_facets,
+        action: :facets,
+        args: [
+          {:optional, :query},
+          {:optional, :kind},
+          {:optional, :region},
+          {:optional, :expansion}
+        ]
+
       define :set_product_availability, action: :set_availability
       define :set_product_eans, action: :set_eans, args: [:eans]
       define :get_product, action: :read, get_by: [:id], not_found_error?: false
@@ -108,6 +126,11 @@ defmodule TcgCheap.Sealed do
 
       define :list_latest_shop_fetches, action: :latest_fetches, args: [:since]
       define :list_manual_offers, action: :manual
+    end
+
+    resource TcgCheap.Sealed.TcgdexSet do
+      define :list_tcgdex_sets, action: :read
+      define :record_tcgdex_set, action: :record
     end
 
     resource AgentTools

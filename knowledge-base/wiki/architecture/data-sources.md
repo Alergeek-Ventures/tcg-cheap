@@ -24,6 +24,7 @@ time-specific evidence from when each source was evaluated.
 | 11 shopGold, Sellingo, Selly and SOTE shops | the HTML Pokémon category listings (`listing_paths`), page by page | daily from 04:00 UTC, one shop at a time | Sealed offers: price, availability, URL, image |
 | 9 shops on their own storefronts | the HTML listing (or the Next.js page data) of a Pokémon category or search, one client each | daily from 04:00 UTC, one shop at a time | Sealed offers: price, availability, URL, image |
 | TCGdex | `https://api.tcgdex.net/v2/en` | weekly bootstrap; on-demand card detail | Singles identity, set/card metadata, images, Cardmarket product ids |
+| TCGdex sets (sealed) | `https://api.tcgdex.net/v2/{en,ja}/sets`, a set and up to three of its cards; with Cardmarket's singles file | daily, before the sealed catalogue import, at most five minutes, newest sets first (the first ≈1,000 documents spread over a few days); only new sets and unresolved sets from the last half year; a failure only logs | `sealed_tcgdex_sets`: the Cardmarket expansion of each English/Japanese set (a card's Cardmarket product id → its expansion), English set names and logos; language editions of sealed products |
 | NBP | `https://api.nbp.pl/api/exchangerates/rates/a/eur/` | daily 15:00 UTC; on demand from `/trade` | EUR/PLN mid rate (table A) |
 
 Shops (`TcgCheap.Sealed.Shops`, 122 as of 2026-11-01) were found by a
@@ -92,8 +93,16 @@ Pokémon category).
 
 ## Known quirks
 
-- Cardmarket publishes no expansion names; sealed set names are derived from
-  product names sharing an expansion id and may be empty.
+- Cardmarket publishes no expansion names or languages. An expansion holding
+  an English TCGdex set takes its name; otherwise sealed set names are derived
+  from product names sharing an expansion id and may be empty. Language
+  editions (`TcgCheap.Sealed.Regions`) come from TCGdex (Japanese or English
+  set), a short hand-checked list of sealed-only Asian expansions, then the
+  product names ("JP", "Chinese", Chinese codes such as "CBB3C:") when at
+  least a third say it, else English. TCGdex's Korean, Chinese, Indonesian
+  and Thai sets point at the Japanese Cardmarket expansions, so only English
+  and Japanese sets are read; it has no Cardmarket ids for older Japanese
+  sets and logos only for English ones.
 - Shop titles are free text in Polish and English; matching is conservative
   and some offers need a manual assignment in `/admin/buying-guide`.
 - Whole-shop exports also let through accessories whose titles contain sealed

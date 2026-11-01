@@ -674,11 +674,47 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-empty a { display: block; font-weight: 600; margin-top: .5rem; text-decoration: underline; }
 .guide-world .guide-note { color: var(--muted); font-size: .875rem; }
 
-/* Kind chips: one row that wraps on desktop and scrolls sideways on a phone. */
-.guide-world .guide-kinds { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
-.guide-world .guide-kinds a { align-items: center; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); display: inline-flex; flex: 0 0 auto; font: 700 1rem/1 "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 .9rem; text-decoration: none; white-space: nowrap; }
-.guide-world .guide-kinds a:hover { border-color: var(--ink); }
-.guide-world .guide-kinds a[aria-current] { background: var(--ink); border-color: var(--ink); color: var(--bench-light); }
+/* Filters: a side panel on wide screens, folded behind "Filtry" on narrow ones. */
+.guide-world .guide-browse { align-items: start; display: grid; gap: 1.5rem; }
+.guide-world .guide-filters-toggle { align-items: center; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); cursor: pointer; display: inline-flex; font: 700 1.1rem/1 "Barlow Condensed", sans-serif; gap: .4rem; min-block-size: 3rem; padding-inline: 1rem; }
+.guide-world .guide-filters-toggle[aria-expanded="true"] { background: var(--ink); color: var(--bench-light); }
+.guide-world .guide-filters-body { display: grid; gap: 1.5rem; }
+.guide-world .guide-filters-clear { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
+.guide-world .guide-filter h2 { font-size: 1.15rem; margin-block-end: .5rem; }
+.guide-world .guide-filter ul { display: flex; flex-wrap: wrap; gap: .35rem; list-style: none; margin: 0; padding: 0; }
+.guide-world .guide-filter a { align-items: center; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); display: inline-flex; font: 700 .95rem/1 "Barlow Condensed", sans-serif; gap: .35rem; min-block-size: 2.25rem; padding-inline: .6rem; text-decoration: none; }
+.guide-world .guide-filter a[aria-current] { background: var(--ink); border-color: var(--ink); color: var(--bench-light); }
+.guide-world .guide-filter a:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.guide-world .guide-filter a:active { border-color: var(--ink); }
+.guide-world .guide-filter-count { align-items: center; color: var(--muted); display: inline-flex; font: 400 .75rem/1 "Azeret Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; gap: .3rem; }
+.guide-world .guide-filter a[aria-current] .guide-filter-count { color: inherit; }
+/* Expansions: logo tiles two to a row, then the rest as a list of names. */
+.guide-world .guide-expansions-all { margin-block-end: .35rem; }
+.guide-world .guide-filter .guide-expansion-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.guide-world .guide-expansion-tiles a { block-size: 100%; display: grid; gap: .3rem; grid-template-rows: 2.5rem auto; justify-items: center; padding: .4rem; text-align: center; }
+.guide-world .guide-expansion-tiles img { block-size: 2.5rem; inline-size: 100%; object-fit: contain; }
+.guide-world .guide-expansion-tiles .guide-expansion-name:not(.sr-only) { -webkit-box-orient: vertical; -webkit-line-clamp: 2; align-self: center; display: -webkit-box; line-height: 1.05; overflow: clip; overflow-wrap: anywhere; }
+.guide-world .guide-expansion-tiles a[aria-current] { background: var(--paper); border-color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); color: var(--ink); }
+.guide-world .guide-expansion-tiles a[aria-current] .guide-filter-count { background: var(--ink); color: var(--bench-light); padding: .15rem .35rem; }
+.guide-world .guide-filter .guide-expansion-names { display: grid; gap: 0; max-block-size: 22rem; overflow-y: auto; overscroll-behavior: contain; }
+.guide-world .guide-expansion-names a { border-color: transparent; display: flex; justify-content: space-between; min-block-size: 2.25rem; text-align: start; }
+.guide-world .guide-expansion-region { border: 1px solid currentColor; font-size: .625rem; padding: .1rem .2rem; }
+.guide-world .guide-expansions summary { color: var(--ink); cursor: pointer; font-size: .875rem; margin-block-start: .35rem; min-block-size: 2.25rem; padding-block: .4rem; }
+.guide-world .guide-filters-apply { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; inset-block-end: 0; margin: 0 -1rem -1rem; min-block-size: 3rem; position: sticky; text-transform: uppercase; }
+.guide-world .guide-filters-apply:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
+@media (hover: hover) and (pointer: fine) {
+  .guide-world .guide-filter a:hover { border-color: var(--ink); }
+  .guide-world .guide-filters-toggle:hover { border-color: var(--ink); }
+}
+@media (min-width: 48rem) {
+  .guide-world .guide-browse { gap: 2rem; grid-template-columns: 15rem minmax(0, 1fr); }
+  .guide-world .guide-filters { inset-block-start: 1rem; max-block-size: calc(100svh - 2rem); overflow-y: auto; overscroll-behavior: contain; position: sticky; scrollbar-width: thin; }
+  .guide-world :is(.guide-filters-toggle, .guide-filters-apply) { display: none; }
+}
+@media (max-width: 47.99rem) {
+  .guide-world .guide-filters:not(.guide-filters-open) .guide-filters-body { display: none; }
+  .guide-world .guide-filters-body { background: var(--bench-light); margin-block-start: .5rem; padding: 1rem; }
+}
 .guide-world .guide-more { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: 1rem; }
 .guide-world .guide-more button { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 1.5rem; text-transform: uppercase; }
 .guide-world .guide-more button:hover { background: var(--orange); }
@@ -837,11 +873,6 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 @media (min-width: 56rem) {
   .guide-world .product-top { align-items: start; column-gap: 2.5rem; grid-template-areas: "image identity" "image verdict"; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto 1fr; row-gap: 1.25rem; }
   .guide-world .verdict-body { padding: 1.5rem; }
-}
-@media (max-width: 47.99rem) {
-  .guide-world .guide-kinds { flex-wrap: nowrap; margin-inline: -1.25rem; mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); overflow-x: auto; overscroll-behavior-x: contain; padding: 0 2.5rem 0 1.25rem; scroll-padding-inline: 1.25rem; scrollbar-width: none; }
-  .guide-world .guide-kinds::-webkit-scrollbar { display: none; }
-  .guide-world .guide-kinds a:focus-visible { outline-offset: -5px; }
 }
 @media (max-width: 42rem) {
   .guide-world .guide-main { padding: 1rem 1rem 2.5rem; }

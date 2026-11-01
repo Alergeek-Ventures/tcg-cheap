@@ -1,9 +1,11 @@
 defmodule TcgCheapWeb.HomeLive do
   @moduledoc """
   The buying guide: the Cardmarket sealed catalogue with the cheapest Polish
-  price and a verdict, searchable (`?q=`), filterable by kind (`?rodzaj=`) and
-  paged with "Pokaż więcej". A known barcode, typed or scanned with the phone
-  camera, opens its product directly.
+  price and a verdict, searchable (`?q=`), filterable in a side panel by kind
+  (`?rodzaj=`), language edition (`?wersja=`) and expansion
+  (`?rozszerzenie=`, a Cardmarket expansion id), and paged with "Pokaż
+  więcej". A known barcode, typed or scanned with the phone camera, opens its
+  product directly.
   """
 
   use TcgCheapWeb, :live_view
@@ -11,11 +13,14 @@ defmodule TcgCheapWeb.HomeLive do
   import TcgCheapWeb.GuideComponents
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Ean, Guide, Kinds, Shops}
+  alias TcgCheap.Sealed.{Ean, Guide, Kinds, Regions, Shops}
   alias TcgCheapWeb.{Polish, VisitorLocation}
 
   @max_query_length 100
   @kind_params Map.new(Kinds.all(), &{Atom.to_string(&1), &1})
+  @region_params Map.new(Regions.all(), &{Atom.to_string(&1), &1})
+  # Expansions listed before "Pokaż wszystkie".
+  @first_expansions 12
 
   @impl true
   def mount(_params, _session, socket) do
@@ -29,29 +34,39 @@ defmodule TcgCheapWeb.HomeLive do
 
   @impl true
   def handle_params(params, _uri, socket) do
-    query =
-      params
-      |> Map.get("q", "")
-      |> to_string()
-      |> String.trim()
-      |> String.slice(0, @max_query_length)
+    filters = %{
+      query: params |> query_param() |> String.trim() |> String.slice(0, @max_query_length),
+      kind: Map.get(@kind_params, params["rodzaj"]),
+      region: Map.get(@region_params, params["wersja"]),
+      expansion: expansion_param(params["rozszerzenie"])
+    }
 
-    kind = Map.get(@kind_params, params["rodzaj"])
-
-    case Sealed.product_for_barcode(query) do
+    case Sealed.product_for_barcode(filters.query) do
       %{slug: slug} -> {:noreply, push_navigate(socket, to: ~p"/produkty/#{slug}")}
-      nil -> {:noreply, list(socket, query, kind)}
+      nil -> {:noreply, list(socket, filters)}
     end
   end
 
-  defp list(socket, query, kind) do
-    {summaries, more?, count} = Guide.browse(query, kind, 0, DateTime.utc_now())
+  defp query_param(%{"q" => query}) when is_binary(query), do: query
+  defp query_param(_params), do: ""
+
+  defp expansion_param(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {id, ""} when id in 1..9_999_999 -> id
+      _ -> nil
+    end
+  end
+
+  defp expansion_param(_value), do: nil
+
+  defp list(socket, filters) do
+    {summaries, more?, count} = Guide.browse(filters, 0, DateTime.utc_now())
 
     socket
-    |> assign(:query, query)
-    |> assign(:barcode?, Ean.normalize(query) != nil)
-    |> assign(:kind, kind)
-    |> assign(:form, to_form(%{"q" => query}))
+    |> assign(:filters, filters)
+    |> assign(:facets, Guide.facets(filters))
+    |> assign(:barcode?, Ean.normalize(filters.query) != nil)
+    |> assign(:form, to_form(%{"q" => filters.query}))
     |> assign(:result_count, count)
     |> assign(:loaded, length(summaries))
     |> assign(:more?, more?)
@@ -61,14 +76,16 @@ defmodule TcgCheapWeb.HomeLive do
   @impl true
   def handle_event("search", %{"q" => query}, socket) when is_binary(query) do
     query = query |> String.trim() |> String.slice(0, @max_query_length)
-    {:noreply, push_patch(socket, to: list_path(query, socket.assigns.kind), replace: true)}
+
+    {:noreply,
+     push_patch(socket, to: list_path(socket.assigns.filters, query: query), replace: true)}
   end
 
   def handle_event("search", _params, socket), do: {:noreply, socket}
 
   def handle_event("more", _params, %{assigns: %{more?: true}} = socket) do
-    %{query: query, kind: kind, loaded: loaded} = socket.assigns
-    {summaries, more?, _count} = Guide.browse(query, kind, loaded, DateTime.utc_now())
+    %{filters: filters, loaded: loaded} = socket.assigns
+    {summaries, more?, _count} = Guide.browse(filters, loaded, DateTime.utc_now())
 
     {:noreply,
      socket
@@ -85,16 +102,31 @@ defmodule TcgCheapWeb.HomeLive do
     # The "odbiór w pobliżu" marks depend on it; the list starts over.
     if located.assigns.location == socket.assigns.location,
       do: {:noreply, located},
-      else: {:noreply, list(located, located.assigns.query, located.assigns.kind)}
+      else: {:noreply, list(located, located.assigns.filters)}
   end
 
-  defp list_path(query, kind) do
+  # The list with some filters changed. The language links offered under a
+  # chosen expansion are only its own, so the expansion can stay.
+  defp list_path(filters, changes) do
+    filters = Map.merge(filters, Map.new(changes))
+
     params =
-      [q: query, rodzaj: kind && Atom.to_string(kind)]
+      [
+        q: filters.query,
+        rodzaj: filters.kind,
+        wersja: filters.region,
+        rozszerzenie: filters.expansion
+      ]
       |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
+      |> Enum.map(fn {key, value} -> {key, to_string(value)} end)
 
     ~p"/?#{params}"
   end
+
+  defp filtered?(filters), do: filters.kind || filters.region || filters.expansion
+
+  defp active_filters(filters),
+    do: Enum.count([filters.kind, filters.region, filters.expansion], & &1)
 
   attr :id, :string, required: true
   attr :offers, :list, required: true
@@ -115,6 +147,159 @@ defmodule TcgCheapWeb.HomeLive do
         )}
       </span>
     </p>
+    """
+  end
+
+  attr :filters, :map, required: true
+  attr :facets, :map, required: true
+  attr :kinds, :list, required: true
+  attr :result_count, :integer, required: true
+
+  # Language edition, kind and expansion; folded behind "Filtry" on phones.
+  defp filters(assigns) do
+    # The chosen expansion leads, so it stays in view among the tiles.
+    {first, rest} =
+      assigns.facets.expansions
+      |> Enum.sort_by(&(&1.id != assigns.filters.expansion))
+      |> Enum.split(@first_expansions)
+
+    assigns = assign(assigns, first: first, rest: rest, active: active_filters(assigns.filters))
+
+    ~H"""
+    <aside id="guide-filters" class="guide-filters" aria-label="Filtry">
+      <button
+        type="button"
+        id="guide-filters-toggle"
+        class="guide-filters-toggle"
+        aria-controls="guide-filters-body"
+        aria-expanded="false"
+        phx-click={
+          JS.toggle_class("guide-filters-open", to: "#guide-filters")
+          |> JS.toggle_attribute({"aria-expanded", "true", "false"})
+        }
+      >
+        <.fluent_icon name={:filter} />Filtry<span :if={@active > 0}> ({@active})</span>
+      </button>
+      <div id="guide-filters-body" class="guide-filters-body">
+        <nav id="guide-regions" class="guide-filter" aria-labelledby="guide-regions-title">
+          <h2 id="guide-regions-title">Wersja językowa</h2>
+          <ul>
+            <li>
+              <.link
+                id="region-all"
+                patch={list_path(@filters, region: nil)}
+                aria-current={if(is_nil(@filters.region), do: "true")}
+              >Wszystkie</.link>
+            </li>
+            <li :for={{region, count} <- @facets.regions}>
+              <.link
+                id={"region-#{region}"}
+                patch={list_path(@filters, region: region)}
+                aria-current={if(@filters.region == region, do: "true")}
+              >
+                {Regions.label(region)}
+                <span class="guide-filter-count">{Polish.number(count)}</span>
+              </.link>
+            </li>
+          </ul>
+        </nav>
+        <nav id="guide-kinds" class="guide-filter" aria-labelledby="guide-kinds-title">
+          <h2 id="guide-kinds-title">Rodzaj</h2>
+          <ul>
+            <li>
+              <.link
+                id="kind-all"
+                patch={list_path(@filters, kind: nil)}
+                aria-current={if(is_nil(@filters.kind), do: "true")}
+              >Wszystkie</.link>
+            </li>
+            <li :for={{kind, label} <- @kinds}>
+              <.link
+                id={"kind-#{kind}"}
+                patch={list_path(@filters, kind: kind)}
+                aria-current={if(@filters.kind == kind, do: "true")}
+              >{label}</.link>
+            </li>
+          </ul>
+        </nav>
+        <nav
+          :if={@facets.expansions != []}
+          id="guide-expansions"
+          class="guide-filter guide-expansions"
+          aria-labelledby="guide-expansions-title"
+        >
+          <h2 id="guide-expansions-title">Rozszerzenie</h2>
+          <.link
+            id="expansion-all"
+            class="guide-expansions-all"
+            patch={list_path(@filters, expansion: nil)}
+            aria-current={if(is_nil(@filters.expansion), do: "true")}
+          >Wszystkie</.link>
+          <ul class="guide-expansion-tiles">
+            <.expansion_option
+              :for={expansion <- @first}
+              expansion={expansion}
+              filters={@filters}
+              logo
+            />
+          </ul>
+          <details
+            :if={@rest != []}
+            id="guide-expansions-more"
+            phx-mounted={JS.ignore_attributes(["open"])}
+          >
+            <summary>Pokaż pozostałe ({length(@rest)})</summary>
+            <ul class="guide-expansion-names">
+              <.expansion_option :for={expansion <- @rest} expansion={expansion} filters={@filters} />
+            </ul>
+          </details>
+        </nav>
+        <button
+          type="button"
+          id="guide-filters-apply"
+          class="guide-filters-apply"
+          phx-click={
+            JS.remove_class("guide-filters-open", to: "#guide-filters")
+            |> JS.set_attribute({"aria-expanded", "false"}, to: "#guide-filters-toggle")
+            |> JS.focus(to: "#guide-results-title")
+            |> JS.dispatch("guide:reveal", to: "#guide-results-title")
+          }
+        >
+          Pokaż {Polish.plural(@result_count, "produkt", "produkty", "produktów")}
+        </button>
+      </div>
+    </aside>
+    """
+  end
+
+  attr :expansion, :map, required: true
+  attr :filters, :map, required: true
+  attr :logo, :boolean, default: false, doc: "a tile with the logo, when there is one"
+
+  # The language tag shows only while every language is listed.
+  defp expansion_option(assigns) do
+    assigns = assign(assigns, :logo_url, assigns.logo && assigns.expansion.logo_url)
+
+    ~H"""
+    <li>
+      <.link
+        id={"expansion-#{@expansion.id}"}
+        patch={list_path(@filters, expansion: @expansion.id)}
+        aria-current={if(@filters.expansion == @expansion.id, do: "true")}
+      >
+        <img :if={@logo_url} src={@logo_url} alt="" loading="lazy" />
+        <span class={["guide-expansion-name", @logo_url && "sr-only"]}>{@expansion.name}</span>
+        <span class="guide-filter-count">
+          <span
+            :if={is_nil(@filters.region) and @expansion.region != :en}
+            class="guide-expansion-region"
+          >
+            {Regions.tag(@expansion.region)}
+          </span>
+          {Polish.number(@expansion.count)}
+        </span>
+      </.link>
+    </li>
     """
   end
 
@@ -188,26 +373,15 @@ defmodule TcgCheapWeb.HomeLive do
                   </dialog>
                 </div>
               </div>
-              <input :if={@kind} type="hidden" name="rodzaj" value={@kind} />
+              <input :if={@filters.kind} type="hidden" name="rodzaj" value={@filters.kind} />
+              <input :if={@filters.region} type="hidden" name="wersja" value={@filters.region} />
+              <input
+                :if={@filters.expansion}
+                type="hidden"
+                name="rozszerzenie"
+                value={@filters.expansion}
+              />
             </.form>
-            <nav
-              id="guide-kinds"
-              class="guide-kinds"
-              aria-label="Rodzaj produktu"
-              phx-hook=".ActiveKind"
-            >
-              <.link
-                id="kind-all"
-                patch={list_path(@query, nil)}
-                aria-current={if(is_nil(@kind), do: "true")}
-              >Wszystkie</.link>
-              <.link
-                :for={{kind, label} <- @kinds}
-                id={"kind-#{kind}"}
-                patch={list_path(@query, kind)}
-                aria-current={if(@kind == kind, do: "true")}
-              >{label}</.link>
-            </nav>
             <script :type={Phoenix.LiveView.ColocatedHook} name=".BarcodeScan">
               // Only where the browser can read barcodes natively (e.g. Chrome on
               // Android); elsewhere the code can still be typed in.
@@ -261,94 +435,96 @@ defmodule TcgCheapWeb.HomeLive do
                 }
               }
             </script>
-            <script :type={Phoenix.LiveView.ColocatedHook} name=".ActiveKind">
-              // On a phone the kinds scroll sideways; keep the chosen one in view.
-              export default {
-                mounted() { this.reveal() },
-                updated() { this.reveal() },
-                reveal() {
-                  const active = this.el.querySelector("[aria-current]")
-                  if (!active) return
-                  const row = this.el.getBoundingClientRect()
-                  const chip = active.getBoundingClientRect()
-                  if (chip.left < row.left || chip.right > row.right) {
-                    this.el.scrollLeft += chip.left - row.left - row.width / 3
-                  }
-                }
-              }
-            </script>
           </section>
 
-          <section class="guide-results" aria-labelledby="guide-results-title">
-            <div class="guide-results-heading">
-              <h2 id="guide-results-title">
-                {if @query == "" and is_nil(@kind), do: "Wszystkie produkty", else: "Wyniki"}
-              </h2>
-              <p id="guide-result-count" aria-live="polite">
-                {Polish.plural(@result_count, "produkt", "produkty", "produktów")}
-              </p>
-            </div>
-            <ul id="guide-products" class="guide-products" phx-update="stream">
-              <li id="guide-products-empty" class="guide-empty hidden only:block">
-                <%= cond do %>
-                  <% @barcode? -> %>
-                    Nie znamy jeszcze tego kodu kreskowego. Wpisz nazwę produktu, np. Pitch Black ETB.
-                  <% @kind -> %>
-                    Nic nie znaleźliśmy w tym rodzaju. Spróbuj samej nazwy dodatku albo wybierz „Wszystkie”.
-                  <% true -> %>
-                    Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black.
-                <% end %>
-                <.link id="guide-empty-reset" patch={~p"/"}>Pokaż wszystkie produkty</.link>
-              </li>
-              <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">
-                <.link navigate={~p"/produkty/#{summary.product.slug}"} class="guide-product-link">
-                  <.product_image
-                    url={summary.product.image_url}
-                    kind={summary.product.kind}
-                    alt=""
-                    class="guide-product-image"
-                  />
-                  <div class="guide-product-copy">
-                    <h3 class="guide-product-name">{summary.product.name}</h3>
-                    <p class="guide-product-meta">
-                      {product_meta(summary.product)}
-                    </p>
-                  </div>
-                  <div class="guide-product-deal">
-                    <p
-                      :if={summary.verdict.cheapest || summary.cardmarket_pln}
-                      class="guide-product-price"
-                    >
-                      <%= if summary.verdict.cheapest do %>
-                        <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
-                        <span>{shop_name(summary.verdict.cheapest)}</span>
-                      <% else %>
-                        <span>Cardmarket ≈ {Polish.zloty(summary.cardmarket_pln)}</span>
-                      <% end %>
-                    </p>
-                    <p class="guide-product-judgement">
-                      <.verdict_badge
-                        verdict={summary.verdict}
-                        id={"verdict-#{summary.product.slug}"}
-                        class="guide-product-verdict"
-                      />
-                    </p>
-                    <.nearby_pickup
-                      id={"nearby-#{summary.product.slug}"}
-                      offers={summary.in_stock_offers}
-                      location={@location}
+          <div class="guide-browse">
+            <.filters
+              filters={@filters}
+              facets={@facets}
+              kinds={@kinds}
+              result_count={@result_count}
+            />
+            <section class="guide-results" aria-labelledby="guide-results-title">
+              <div class="guide-results-heading">
+                <h2 id="guide-results-title" tabindex="-1">
+                  {if @filters.query == "" and !filtered?(@filters),
+                    do: "Wszystkie produkty",
+                    else: "Wyniki"}
+                </h2>
+                <p id="guide-result-count" aria-live="polite">
+                  {Polish.plural(@result_count, "produkt", "produkty", "produktów")}
+                  <span :if={filtered?(@filters)}>
+                    ·
+                    <.link
+                      id="guide-filters-clear"
+                      class="guide-filters-clear"
+                      patch={list_path(@filters, kind: nil, region: nil, expansion: nil)}
+                    >Wyczyść filtry</.link>
+                  </span>
+                </p>
+              </div>
+              <ul id="guide-products" class="guide-products" phx-update="stream">
+                <li id="guide-products-empty" class="guide-empty hidden only:block">
+                  <%= cond do %>
+                    <% @barcode? -> %>
+                      Nie znamy jeszcze tego kodu kreskowego. Wpisz nazwę produktu, np. Pitch Black ETB.
+                    <% filtered?(@filters) -> %>
+                      Nic nie znaleźliśmy przy tych filtrach. Spróbuj samej nazwy dodatku albo usuń filtry.
+                    <% true -> %>
+                      Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black.
+                  <% end %>
+                  <.link id="guide-empty-reset" patch={~p"/"}>Pokaż wszystkie produkty</.link>
+                </li>
+                <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">
+                  <.link navigate={~p"/produkty/#{summary.product.slug}"} class="guide-product-link">
+                    <.product_image
+                      url={summary.product.image_url}
+                      kind={summary.product.kind}
+                      alt=""
+                      class="guide-product-image"
                     />
-                  </div>
-                </.link>
-              </li>
-            </ul>
-            <div :if={@more?} class="guide-more">
-              <button id="guide-more" type="button" phx-click="more" phx-disable-with="Wczytuję…">
-                Pokaż więcej
-              </button>
-              <p>Pokazano {@loaded} z {@result_count}.</p>
-            </div>
-          </section>
+                    <div class="guide-product-copy">
+                      <h3 class="guide-product-name">{summary.product.name}</h3>
+                      <p class="guide-product-meta">
+                        {product_meta(summary.product)}
+                      </p>
+                    </div>
+                    <div class="guide-product-deal">
+                      <p
+                        :if={summary.verdict.cheapest || summary.cardmarket_pln}
+                        class="guide-product-price"
+                      >
+                        <%= if summary.verdict.cheapest do %>
+                          <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
+                          <span>{shop_name(summary.verdict.cheapest)}</span>
+                        <% else %>
+                          <span>Cardmarket ≈ {Polish.zloty(summary.cardmarket_pln)}</span>
+                        <% end %>
+                      </p>
+                      <p class="guide-product-judgement">
+                        <.verdict_badge
+                          verdict={summary.verdict}
+                          id={"verdict-#{summary.product.slug}"}
+                          class="guide-product-verdict"
+                        />
+                      </p>
+                      <.nearby_pickup
+                        id={"nearby-#{summary.product.slug}"}
+                        offers={summary.in_stock_offers}
+                        location={@location}
+                      />
+                    </div>
+                  </.link>
+                </li>
+              </ul>
+              <div :if={@more?} class="guide-more">
+                <button id="guide-more" type="button" phx-click="more" phx-disable-with="Wczytuję…">
+                  Pokaż więcej
+                </button>
+                <p>Pokazano {@loaded} z {@result_count}.</p>
+              </div>
+            </section>
+          </div>
         </main>
       </div>
     </Layouts.app>

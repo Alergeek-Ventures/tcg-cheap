@@ -2,15 +2,17 @@ defmodule TcgCheap.Sealed.Catalogue do
   @moduledoc """
   Turns Cardmarket's sealed product list and price guide into catalogue rows.
 
-  Cardmarket publishes no expansion names, so a set name is derived per
+  Cardmarket publishes no expansion names. An expansion holding an English
+  TCGdex set takes that set's name; otherwise the name is derived per
   `idExpansion` from the product names that share it: the longest leading
   word sequence (without kind words such as "Booster" or "Elite") that at
   least 40% of them start with. A lone product uses the text before a colon
-  in its name. When nothing is convincing the set name stays empty.
+  in its name. When nothing is convincing the set name stays empty. The
+  language edition comes from `TcgCheap.Sealed.Regions`.
   """
 
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
-  alias TcgCheap.Sealed.{Kinds, Matcher}
+  alias TcgCheap.Sealed.{Kinds, Matcher, Regions}
 
   @kind_words ~w(booster boosters box boxes bundle elite trainer mini tin tins premium collection
                  display case sleeved jumbo blister pack checklane deck decks battle theme
@@ -32,12 +34,27 @@ defmodule TcgCheap.Sealed.Catalogue do
     case: "case display karton"
   }
 
-  @doc "Catalogue rows ready for `Product.import`, one per included product."
-  @spec rows([Adapter.Product.t()], [Adapter.Price.t()], Date.t()) :: [map()]
-  def rows(products, prices, %Date{} = priced_on) do
+  @doc """
+  Catalogue rows ready for `Product.import`, one per included product, given
+  the TCGdex set found for expansions (`%{expansion_id => %{language: "en",
+  name: "Surging Sparks"}}`).
+  """
+  @spec rows([Adapter.Product.t()], [Adapter.Price.t()], Date.t(), %{integer() => map()}) ::
+          [map()]
+  def rows(products, prices, %Date{} = priced_on, tcgdex) do
     products = Enum.filter(products, &Kinds.included_category?(&1.category_id))
     prices = Map.new(prices, &{&1.id_product, &1})
-    set_names = set_names(products)
+    names = Enum.group_by(products, & &1.id_expansion, & &1.name)
+
+    set_names =
+      Map.new(names, fn {expansion, names} ->
+        case tcgdex do
+          %{^expansion => %{language: "en", name: name}} when is_binary(name) -> {expansion, name}
+          _ -> {expansion, set_name(names)}
+        end
+      end)
+
+    regions = Regions.by_expansion(names, Map.new(tcgdex, fn {id, set} -> {id, set.language} end))
 
     Enum.map(products, fn product ->
       kind = Kinds.from_cardmarket(product.category_id, product.name)
@@ -48,6 +65,7 @@ defmodule TcgCheap.Sealed.Catalogue do
         cardmarket_id: product.id_product,
         name: product.name,
         kind: kind,
+        region: Map.fetch!(regions, product.id_expansion),
         cardmarket_category_id: product.category_id,
         cardmarket_expansion_id: product.id_expansion,
         set_name: set_name,
@@ -60,14 +78,6 @@ defmodule TcgCheap.Sealed.Catalogue do
         cardmarket_price_updated_on: price && priced_on
       }
     end)
-  end
-
-  @doc "Set names per Cardmarket expansion id, derived from product names."
-  @spec set_names([Adapter.Product.t()]) :: %{integer() => String.t() | nil}
-  def set_names(products) do
-    products
-    |> Enum.group_by(& &1.id_expansion, & &1.name)
-    |> Map.new(fn {expansion, names} -> {expansion, set_name(names)} end)
   end
 
   defp set_name([name]), do: colon_prefix(name)
