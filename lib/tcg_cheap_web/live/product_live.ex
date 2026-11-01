@@ -370,8 +370,8 @@ defmodule TcgCheapWeb.ProductLive do
             <span :if={item.set} class="contents-card-set">{item.set} {item.number}</span>
           </span>
           <img
-            :if={item.image}
-            src={item.image <> "/low.webp"}
+            :if={image_url = TcgCheap.Catalogue.CardImage.thumbnail_url(item.image)}
+            src={image_url}
             alt=""
             width="34"
             height="48"

@@ -11,6 +11,15 @@ defmodule TcgCheap.Storage do
 
   resources do
     resource TcgCheap.Storage.Attachment
+
+    resource TcgCheap.Storage.RemoteImage do
+      define :register_remote_image, action: :register
+      define :get_remote_image, action: :by_hash, args: [:hash]
+      define :list_registered_remote_images, action: :registered, args: [:hashes]
+      define :list_pending_remote_images, action: :pending, args: [:limit]
+      define :record_remote_image_attempt, action: :record_attempt
+    end
+
     resource TcgCheap.Storage.Blob
   end
 

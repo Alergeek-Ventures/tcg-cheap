@@ -82,7 +82,7 @@ config :backpex,
 # Storage; keys come from AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
 config :tcg_cheap, :storage,
   active_service: :s3_public,
-  resources: [TcgCheap.Sealed.Product],
+  resources: [TcgCheap.Sealed.Product, TcgCheap.Storage.RemoteImage],
   services: [
     s3_public: [
       module: TcgCheap.Storage.Service.PublicS3,
@@ -122,6 +122,7 @@ config :tcg_cheap, Oban,
        {"0 6 * * *", TcgCheap.Sealed.SuggestedPriceWorker, args: %{}},
        # Product photos copied into our storage, a batch at a time.
        {"*/10 * * * *", TcgCheap.Sealed.PhotoMirrorWorker, args: %{}},
+       {"*/10 * * * *", TcgCheap.Storage.RemoteImageWorker, args: %{}},
        {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
      ]}
   ]
