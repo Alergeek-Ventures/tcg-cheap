@@ -396,6 +396,23 @@ defmodule TcgCheapWeb.GuideComponents do
   @spec shop_name(map()) :: String.t()
   def shop_name(%{shop: shop}), do: Shops.name(shop)
 
+  @doc "The shop's logo chip, when it has a logo."
+  attr :shop, :string, required: true
+
+  def shop_logo(assigns) do
+    ~H"""
+    <img
+      :if={Shops.logo?(@shop)}
+      src={~p"/images/shops/#{@shop <> ".webp"}"}
+      alt=""
+      width="96"
+      height="32"
+      loading="lazy"
+      class="shop-logo"
+    />
+    """
+  end
+
   @doc ~S'The Polish label of a verdict: "Dobra cena", "+14% vs Cardmarket", …'
   @spec verdict_label(map()) :: String.t()
   def verdict_label(%{status: :cardmarket, cheapest: %{price: price}, typical: typical}) do

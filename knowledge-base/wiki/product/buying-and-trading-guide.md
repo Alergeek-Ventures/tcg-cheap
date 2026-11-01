@@ -130,8 +130,8 @@ versioned pricing models.
   then newest; a known barcode jumps to its product) with the cheapest current
   price and verdict.
   `/produkty/:slug` shows the verdict and thresholds, every current offer
-  (in stock first, cheapest first, with links to the shop; the shop's name,
-  not its listing title, which only repeats the product) with its shop's
+  (in stock first, cheapest first, with links to the shop; the shop's logo
+  and name, not its listing title, which only repeats the product) with its shop's
   delivery line — "dostawa od 14,99 zł · darmowa od 400 zł", "darmowa
   dostawa" when the item alone reaches the threshold, "koszt dostawy w
   koszyku" when the shop publishes no price, and "odbiór osobisty: Gdynia"

@@ -742,7 +742,9 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .cardmarket-trend span { color: var(--muted); white-space: nowrap; }
 
 /* Offers: shop and listing title, price, stock and one outbound action. */
-.guide-world .offer { align-items: center; background: var(--paper); display: grid; gap: .25rem 1rem; grid-template-areas: "shop price link" "shop state link"; grid-template-columns: minmax(0, 1fr) auto auto; padding: .75rem .75rem .75rem 1rem; }
+.guide-world .offer { align-items: center; background: var(--paper); display: grid; gap: .25rem 1rem; grid-template-areas: "logo shop price link" "logo shop state link"; grid-template-columns: 7.5rem minmax(0, 1fr) auto auto; padding: .75rem .75rem .75rem 1rem; }
+/* White logo chips melt into the card; dark ones (light logos) stay. */
+.guide-world .shop-logo { align-self: center; aspect-ratio: 3; display: block; grid-area: logo; mix-blend-mode: multiply; width: 7.5rem; }
 .guide-world .offer-unavailable { background: color-mix(in srgb, var(--paper) 55%, var(--bench)); }
 .guide-world .offer-shop { display: grid; gap: .1rem; grid-area: shop; min-width: 0; }
 .guide-world .offer-shop strong { font: 700 1.25rem/1.1 "Barlow Condensed", sans-serif; }
@@ -848,7 +850,9 @@ details.admin-disclosure summary::marker { color: var(--orange); }
   .guide-world .guide-product-deal { grid-column: 2; justify-items: start; text-align: left; }
   .guide-world :is(.guide-product-price, .guide-product-judgement) { justify-content: flex-start; }
   .guide-world .guide-product-deal { align-items: center; display: flex; flex-wrap: wrap; gap: .35rem .75rem; }
-  .guide-world .offer { grid-template-areas: "shop price" "state state" "link link"; grid-template-columns: minmax(0, 1fr) auto; }
+  .guide-world .offer { grid-template-areas: "logo price" "shop shop" "state state" "link link"; grid-template-columns: minmax(0, 1fr) auto; }
+  .guide-world .offer-no-logo { grid-template-areas: "shop price" "state state" "link link"; }
+  .guide-world .offer-price { align-self: center; }
   .guide-world .offer-price { align-self: start; }
   .guide-world .offer-state { justify-content: flex-start; }
   .guide-world .offer-link { margin-top: .5rem; }
