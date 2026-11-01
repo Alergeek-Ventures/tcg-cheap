@@ -1,6 +1,7 @@
 defmodule TcgCheap.Sealed.Guide do
   @moduledoc "Read models for the public buying-guide pages."
 
+  alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{PriceGuide, Product, Regions, TcgdexSet}
 
@@ -74,7 +75,7 @@ defmodule TcgCheap.Sealed.Guide do
       for {id, %{language: "en", logo_url: "" <> url}} <-
             TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!()),
           into: %{},
-          do: {id, url <> ".webp"}
+          do: {id, CardImage.logo_url(url)}
 
     expansions =
       Sealed.list_product_facets!(filters.query, filters.kind, filters.region, nil)
