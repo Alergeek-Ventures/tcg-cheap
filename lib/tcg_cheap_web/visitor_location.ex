@@ -129,14 +129,32 @@ defmodule TcgCheapWeb.VisitorLocation do
     end
   end
 
-  @doc "Whether any of the shops has a pickup store within the radius."
-  @spec pickup_nearby?([String.t()], t()) :: boolean()
-  def pickup_nearby?(_shops, nil), do: false
+  @doc """
+  The nearest of the given in-stock offers whose shop has a pickup store
+  within the radius, cheapest first at the same distance; nil if none.
+  """
+  @spec nearest_pickup([%{shop: String.t(), price: Decimal.t()}], t()) ::
+          %{offer: map(), shop: TcgCheap.Sealed.Shop.t(), km: float()} | nil
+  def nearest_pickup(_offers, nil), do: nil
 
-  def pickup_nearby?(shops, location) do
-    Enum.any?(shops, fn shop ->
-      km = pickup_km(shop, location)
-      km != nil and km <= @radius_km
+  def nearest_pickup(offers, %{coords: coords}) do
+    offers
+    |> Enum.flat_map(fn offer ->
+      with {:ok, %{pickup_location: {_lat, _lon} = store} = shop} <- Shops.fetch(offer.shop),
+           km when km <= @radius_km <- Geo.distance_km(coords, store) do
+        [%{offer: offer, shop: shop, km: km}]
+      else
+        _not_near -> []
+      end
+    end)
+    |> Enum.min_by(&{&1.km, Decimal.to_float(&1.offer.price)}, fn -> nil end)
+  end
+
+  @doc "Whether any of the offers comes from a shop with a pickup store."
+  @spec pickup_offered?([%{shop: String.t()}]) :: boolean()
+  def pickup_offered?(offers) do
+    Enum.any?(offers, fn offer ->
+      match?({:ok, %{pickup_location: {_lat, _lon}}}, Shops.fetch(offer.shop))
     end)
   end
 
@@ -151,11 +169,13 @@ defmodule TcgCheapWeb.VisitorLocation do
   attr :error, :string, default: nil
 
   @doc """
-  "Twoja lokalizacja": use the device location or type a town. Hidden until
-  LiveView connects, since it needs JavaScript.
+  "Ustaw lokalizację": use the device location or type a town. Hidden until
+  LiveView connects, since it needs JavaScript. Other elements open it with
+  `JS.dispatch("location:open", to: "#visitor-location")`.
   """
   def location_control(assigns) do
     ~H"""
+    <p id="visitor-location-announce" class="sr-only" aria-live="polite" phx-update="ignore"></p>
     <details
       id="visitor-location"
       class="visitor-location"
@@ -165,14 +185,27 @@ defmodule TcgCheapWeb.VisitorLocation do
     >
       <summary id="visitor-location-summary" class="visitor-location-summary">
         <.fluent_icon name={:location} />
-        <span class="visitor-location-label">
-          {if @location, do: @location.label, else: "Twoja lokalizacja"}
+        <span :if={@location} class="visitor-location-label">
+          <span class="sr-only">Twoja lokalizacja: </span>{@location.label}
         </span>
+        <span :if={!@location} class="visitor-location-label">Ustaw lokalizację</span>
       </summary>
       <div class="visitor-location-panel">
-        <p class="visitor-location-lead">
-          Pokażemy, jak daleko masz do sklepów z odbiorem osobistym.
-        </p>
+        <%= if @location do %>
+          <p class="visitor-location-lead">Teraz: {@location.label}. Zmień albo usuń.</p>
+          <button
+            type="button"
+            id="visitor-location-clear"
+            class="visitor-location-clear"
+            phx-click="location-clear"
+          >
+            Usuń lokalizację
+          </button>
+        <% else %>
+          <p class="visitor-location-lead">
+            Pokażemy, jak daleko masz do sklepów z odbiorem osobistym.
+          </p>
+        <% end %>
         <button type="button" id="visitor-location-device" class="visitor-location-device">
           <.fluent_icon name={:location} />Użyj mojej lokalizacji
         </button>
@@ -216,15 +249,6 @@ defmodule TcgCheapWeb.VisitorLocation do
         <p :if={@error} id="visitor-location-error" class="visitor-location-error" role="alert">
           {@error}
         </p>
-        <button
-          :if={@location}
-          type="button"
-          id="visitor-location-clear"
-          class="visitor-location-clear"
-          phx-click="location-clear"
-        >
-          Usuń lokalizację
-        </button>
         <p class="guide-note">
           Lokalizacja zostaje w Twojej przeglądarce. Odległości liczymy w linii prostej.
         </p>

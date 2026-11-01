@@ -96,6 +96,28 @@ defmodule TcgCheapWeb.HomeLive do
     ~p"/?#{params}"
   end
 
+  attr :id, :string, required: true
+  attr :offers, :list, required: true
+  attr :location, :map, default: nil
+
+  # Where the nearest in-stock pickup is and what it costs there, which is
+  # often not the cheapest price shown in the row.
+  defp nearby_pickup(assigns) do
+    assigns =
+      assign(assigns, :nearest, VisitorLocation.nearest_pickup(assigns.offers, assigns.location))
+
+    ~H"""
+    <p :if={@nearest} id={@id} class="guide-product-nearby">
+      <.fluent_icon name={:location} />
+      <span>
+        odbiór: {@nearest.shop.pickup_city}, {VisitorLocation.km(@nearest.km)} · {Polish.price(
+          @nearest.offer.price
+        )}
+      </span>
+    </p>
+    """
+  end
+
   @impl true
   def render(assigns) do
     assigns = assign(assigns, :kinds, Kinds.labels())
@@ -304,20 +326,17 @@ defmodule TcgCheapWeb.HomeLive do
                       <% end %>
                     </p>
                     <p class="guide-product-judgement">
-                      <span
-                        :if={VisitorLocation.pickup_nearby?(summary.in_stock_shops, @location)}
-                        id={"nearby-#{summary.product.slug}"}
-                        class="guide-product-nearby"
-                        title={"Na stanie w sklepie z odbiorem osobistym do #{VisitorLocation.radius_km()} km od Ciebie"}
-                      >
-                        <.fluent_icon name={:location} />odbiór w pobliżu
-                      </span>
                       <.verdict_badge
                         verdict={summary.verdict}
                         id={"verdict-#{summary.product.slug}"}
                         class="guide-product-verdict"
                       />
                     </p>
+                    <.nearby_pickup
+                      id={"nearby-#{summary.product.slug}"}
+                      offers={summary.in_stock_offers}
+                      location={@location}
+                    />
                   </div>
                 </.link>
               </li>
