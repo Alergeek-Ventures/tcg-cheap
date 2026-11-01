@@ -71,10 +71,14 @@ versioned pricing models.
 - **Delivery.** Each shop carries its cheapest published delivery price, its
   free-delivery threshold and the city of its own store where orders can be
   picked up, checked on the shops' pages on 2026-10-31; unknown values stay
-  empty. The 21 shops with pickup also carry their store's coordinates
+  empty. The 40 shops with pickup also carry their store's coordinates
   (`pickup_location`), geocoded from the store address with OpenStreetMap
   Nominatim on 2026-11-01 (pokespot.pl: the centre of Luboń, street
-  unpublished; mepel.pl: its registered address in Katowice). Shops whose
+  unpublished; mepel.pl: its registered address in Katowice; hearts.pub: the
+  address search results quote from its contact page, which is behind a bot
+  check). Some shops hand orders over only by appointment or after
+  prepayment (merfolk.pl, wilczek.poznan.pl, plastiq.pl,
+  japancollectibles.shop). Shops whose
   research found a store but no confirmed pickup have neither.
 - **Visitor location.** "Ustaw lokalizację" (then the town's name) in the
   header of `/` and `/produkty/:slug` opens a panel: "Użyj mojej lokalizacji" (browser geolocation, coarse)

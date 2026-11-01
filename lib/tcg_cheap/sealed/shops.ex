@@ -955,7 +955,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 16,
       shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: "Gliwice"
+      pickup_city: "Gliwice",
+      pickup_location: {50.2882, 18.6713}
     },
     %Shop{
       key: "hobbity",
@@ -966,7 +967,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 12,
       shipping_from: Decimal.new("15"),
       free_shipping_from: Decimal.new("289"),
-      pickup_city: "Nowy Sącz"
+      pickup_city: "Nowy Sącz",
+      pickup_location: {49.6188, 20.6944}
     },
     %Shop{
       key: "monsteriada",
@@ -988,7 +990,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 10,
       shipping_from: Decimal.new("10"),
       free_shipping_from: Decimal.new("500"),
-      pickup_city: "Bydgoszcz"
+      pickup_city: "Bydgoszcz",
+      pickup_location: {53.1209, 17.9978}
     },
     %Shop{
       key: "basanti",
@@ -1054,7 +1057,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: Decimal.new("13"),
       free_shipping_from: Decimal.new("400"),
-      pickup_city: "Kraków"
+      pickup_city: "Kraków",
+      pickup_location: {50.0655, 19.9527}
     },
     %Shop{
       key: "wgre",
@@ -1076,7 +1080,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 1,
       shipping_from: Decimal.new("16"),
       free_shipping_from: Decimal.new("350"),
-      pickup_city: "Warszawa"
+      pickup_city: "Warszawa",
+      pickup_location: {52.2603, 20.9208}
     },
     %Shop{
       key: "merfolk",
@@ -1087,7 +1092,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 12,
       shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: "Pruszków"
+      pickup_city: "Pruszków",
+      pickup_location: {52.1669, 20.8029}
     },
     %Shop{
       key: "sidequest",
@@ -1098,7 +1104,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 3,
       shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: "Gdańsk"
+      pickup_city: "Gdańsk",
+      pickup_location: {54.3782, 18.6041}
     },
     %Shop{
       key: "am76",
@@ -1109,7 +1116,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 6,
       shipping_from: Decimal.new("12.99"),
       free_shipping_from: Decimal.new("390"),
-      pickup_city: "Warszawa"
+      pickup_city: "Warszawa",
+      pickup_location: {52.1407, 21.0596}
     },
     %Shop{
       key: "gildiagrodzisk",
@@ -1120,7 +1128,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 6,
       shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: "Grodzisk Mazowiecki"
+      pickup_city: "Grodzisk Mazowiecki",
+      pickup_location: {52.1084, 20.6226}
     },
     %Shop{
       key: "magicznyrynek",
@@ -1208,7 +1217,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 30,
       shipping_from: Decimal.new("15"),
       free_shipping_from: Decimal.new("600"),
-      pickup_city: "Warszawa"
+      pickup_city: "Warszawa",
+      pickup_location: {52.2744, 20.9378}
     },
     %Shop{
       key: "pokapoke",
@@ -1295,7 +1305,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 8,
       shipping_from: Decimal.new("18"),
       free_shipping_from: Decimal.new("500"),
-      pickup_city: "Warszawa"
+      pickup_city: "Warszawa",
+      pickup_location: {52.1677, 21.0048}
     },
     %Shop{
       key: "wilczek",
@@ -1306,7 +1317,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 12,
       shipping_from: Decimal.new("17"),
       free_shipping_from: nil,
-      pickup_city: "Poznań"
+      pickup_city: "Poznań",
+      pickup_location: {52.4082, 16.9385}
     },
     %Shop{
       key: "bastiontcg",
@@ -1329,7 +1341,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 8,
       shipping_from: Decimal.new("15"),
       free_shipping_from: Decimal.new("300"),
-      pickup_city: "Kraków"
+      pickup_city: "Kraków",
+      pickup_location: {50.0669, 19.9566}
     },
     %Shop{
       key: "kartexpol",
@@ -1362,7 +1375,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 6,
       shipping_from: Decimal.new("15.99"),
       free_shipping_from: nil,
-      pickup_city: "Wrocław"
+      pickup_city: "Wrocław",
+      pickup_location: {51.1120, 17.0356}
     },
     %Shop{
       key: "mycards",
@@ -1417,7 +1431,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 14,
       shipping_from: Decimal.new("9.99"),
       free_shipping_from: Decimal.new("300"),
-      pickup_city: "Poznań"
+      pickup_city: "Poznań",
+      pickup_location: {52.3735, 16.9807}
     },
     %Shop{
       key: "chaosgames",
@@ -1428,7 +1443,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 4,
       shipping_from: Decimal.new("9.99"),
       free_shipping_from: Decimal.new("450"),
-      pickup_city: "Piła"
+      pickup_city: "Piła",
+      pickup_location: {53.1498, 16.7350}
     },
     %Shop{
       key: "japancollectibles",
@@ -1439,7 +1455,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 25,
       shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: "Elbląg"
+      pickup_city: "Elbląg",
+      pickup_location: {54.1590, 19.3949}
     },
     %Shop{
       key: "jaskiniatrolla",
@@ -1472,7 +1489,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 16,
       shipping_from: Decimal.new("15"),
       free_shipping_from: Decimal.new("399"),
-      pickup_city: "Poznań"
+      pickup_city: "Poznań",
+      pickup_location: {52.3918, 16.8958}
     },
     %Shop{
       key: "planszon",
@@ -1483,7 +1501,8 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 5,
       shipping_from: Decimal.new("10.99"),
       free_shipping_from: Decimal.new("500"),
-      pickup_city: "Warszawa"
+      pickup_city: "Warszawa",
+      pickup_location: {52.2606, 21.0426}
     },
     %Shop{
       key: "pokecentrum",
