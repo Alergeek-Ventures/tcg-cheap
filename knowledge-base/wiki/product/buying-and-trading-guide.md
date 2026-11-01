@@ -1,6 +1,6 @@
 # TCG Cheap — Buying and Trading Guide
 
-- Updated: 2026-10-31
+- Updated: 2026-11-01
 - Sources: Product-owner direction, 2026-10-30; [PRODUCT.md](../../../PRODUCT.md); project code (`lib/tcg_cheap/sealed/`, `lib/tcg_cheap_web/live/`)
 - Raw: N/A — product specification
 
@@ -32,6 +32,10 @@ versioned pricing models.
   estimated shipping cost into the price.
 - **Local reads.** Public pages read only the local database; external sources
   are fetched by background jobs.
+- **Location stays with the visitor.** Only the visitor's browser remembers
+  their location. The server receives it while a page is open and keeps it
+  only in that page's memory: it is not written to the database, kept out
+  of socket URLs, and filtered from request and crash logs.
 
 ## Phase 1 — buying guide (sealed), live
 
@@ -61,7 +65,31 @@ versioned pricing models.
 - **Delivery.** Each shop carries its cheapest published delivery price, its
   free-delivery threshold and the city of its own store where orders can be
   picked up, checked on the shops' pages on 2026-10-31; unknown values stay
-  empty.
+  empty. The 21 shops with pickup also carry their store's coordinates
+  (`pickup_location`), geocoded from the store address with OpenStreetMap
+  Nominatim on 2026-11-01 (pokespot.pl: the centre of Luboń, street
+  unpublished; mepel.pl: its registered address in Katowice). Shops whose
+  research found a store but no confirmed pickup have neither.
+- **Visitor location.** "Ustaw lokalizację" (then the town's name) in the
+  header of `/` and `/produkty/:slug` opens a panel: "Użyj mojej lokalizacji" (browser geolocation, coarse)
+  or a typed Polish town (case- and accent-insensitive suggestions from the
+  2,537 GeoNames towns of at least 1,000 inhabitants in `priv/geo/towns.tsv`;
+  GeoNames, CC BY 4.0, credited in the footer as a selection). The browser
+  keeps coordinates rounded to 0.01° (≈1 km) and a town name in
+  `localStorage` and sends them in a `location-restore` event once the page
+  connects — not in the LiveView connect params, which phoenix.js appends to
+  the socket URL that proxies log. Until that event the page shows no
+  location-dependent parts, so nothing flashes. The server keeps the
+  location only in the LiveView's assigns and accepts a point only inside
+  Poland's bounding box and within 30 km of a Polish town (Prague, Lviv or
+  Kaliningrad are refused). `location` parameters are filtered from Phoenix
+  logs (`:filter_parameters`), and `TcgCheapWeb.LocationLogFilter`, the first
+  primary `:logger` filter, replaces any `"location"`/`:location` value in
+  crash reports with `[FILTERED]` before Elixir turns them into text.
+  Visitors can remove it. The panel closes on
+  Escape or a tap outside, and a screen-reader announcement confirms a new
+  location. Without JavaScript the control is hidden and no distances appear. Distances are straight lines
+  (haversine, `TcgCheap.Geo`), rounded to whole km; "near" means within 50 km.
 - **Barcodes.** Known EANs are a product's own list (filled in by an admin or
   an agent; Cardmarket publishes none) plus the EANs of offers assigned to it
   manually; a code claimed by two products identifies neither. Typing a known
@@ -95,9 +123,19 @@ versioned pricing models.
   (in stock first, cheapest first, with links to the shop) with its shop's
   delivery line — "dostawa od 14,99 zł · darmowa od 400 zł", "darmowa
   dostawa" when the item alone reaches the threshold, "koszt dostawy w
-  koszyku" when the shop publishes no price, and "odbiór osobisty: Gdynia" —
-  the Cardmarket price, and a 90-day price chart once there are 7 days of
-  prices.
+  koszyku" when the shop publishes no price, and "odbiór osobisty: Gdynia"
+  (with "(491 km)" once a location is set; within 50 km a bold "odbiór:
+  Gdynia, 20 km" line of its own) — the Cardmarket price, and a 90-day
+  price chart once there are 7 days of prices. Below the verdict's reasoning
+  and above the thresholds comes pickup: without a location, when a shop
+  with stock has pickup, "Odbierzesz gdzieś blisko? Podaj miejscowość"
+  (opens the header panel); with one, "Odbiór osobisty najbliżej Ciebie:
+  CardzHouse, Gdynia · 20 km · 659,99 zł (+110 zł)" ("– najtaniej" when it
+  is the cheapest offer), or else "brak do 50 km – potrzebna dostawa" with
+  the cheapest shop's delivery ("W Colligere dostawa gratis"). On `/` a
+  product with an in-stock pickup within 50 km shows where and for how much
+  ("odbiór: Gdynia, 20 km · 79,99 zł"), since that is often not the row's
+  cheapest price. Verdicts and prices do not change with location.
 - **Admin.** `/admin/buying-guide` shows each shop's last fetch, matched and
   in-stock counts, current unmatched offers, automatically matched offers
   (filterable by title) and manual decisions.

@@ -10,7 +10,8 @@ defmodule TcgCheap.Sealed.Guide do
   @type summary :: %{
           product: Product.t(),
           verdict: PriceGuide.t(),
-          cardmarket_pln: Decimal.t() | nil
+          cardmarket_pln: Decimal.t() | nil,
+          in_stock_offers: [%{shop: String.t(), price: Decimal.t()}]
         }
 
   def history_days, do: @history_days
@@ -114,7 +115,8 @@ defmodule TcgCheap.Sealed.Guide do
     %{
       product: product,
       verdict: PriceGuide.verdict(history, in_stock, today, cardmarket_pln),
-      cardmarket_pln: cardmarket_pln
+      cardmarket_pln: cardmarket_pln,
+      in_stock_offers: Enum.map(in_stock, &%{shop: &1.shop, price: &1.price})
     }
   end
 end

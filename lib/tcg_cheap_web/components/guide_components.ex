@@ -7,8 +7,9 @@ defmodule TcgCheapWeb.GuideComponents do
   alias TcgCheap.Sealed.{Kinds, Shops}
   alias TcgCheapWeb.Polish
 
-  @doc "The public masthead: the wordmark, linking to the buying guide."
+  @doc "The public masthead: the wordmark, linking to the buying guide, and optional controls."
   attr :id, :string, default: "site-header"
+  slot :inner_block
 
   def site_header(assigns) do
     ~H"""
@@ -16,6 +17,7 @@ defmodule TcgCheapWeb.GuideComponents do
       <.link id="site-wordmark" class="site-wordmark" navigate={~p"/"}>
         <.fluent_icon name={:gift_card_add} />TCG CHEAP
       </.link>
+      {render_slot(@inner_block)}
     </header>
     """
   end
@@ -394,6 +396,11 @@ defmodule TcgCheapWeb.GuideComponents do
         Sklepy sprawdzamy raz dziennie: {Enum.join(@shops, ", ")}.
         Katalog i ceny odniesienia pochodzą z Cardmarket (codziennie, w złotych po kursie NBP).
         Oceniamy tylko ceny, za które naprawdę można kupić produkt – nigdy cenę katalogową.
+      </p>
+      <p id="guide-geo-sources">
+        Miejscowości: <a href="https://www.geonames.org" rel="noopener">GeoNames</a>
+        (wybór; <a href="https://creativecommons.org/licenses/by/4.0/deed.pl" rel="noopener">CC BY 4.0</a>);
+        położenie sklepów: © <a href="https://www.openstreetmap.org/copyright" rel="noopener">autorzy OpenStreetMap</a>.
       </p>
     </footer>
     """

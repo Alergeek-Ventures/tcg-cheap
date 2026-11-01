@@ -12,7 +12,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{Ean, Guide, Kinds, Shops}
-  alias TcgCheapWeb.Polish
+  alias TcgCheapWeb.{Polish, VisitorLocation}
 
   @max_query_length 100
   @kind_params Map.new(Kinds.all(), &{Atom.to_string(&1), &1})
@@ -23,6 +23,7 @@ defmodule TcgCheapWeb.HomeLive do
      socket
      |> assign(:page_title, "Sprawdź, czy cena jest dobra")
      |> assign(:html_lang, "pl")
+     |> VisitorLocation.assign_location()
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")}
   end
 
@@ -78,12 +79,43 @@ defmodule TcgCheapWeb.HomeLive do
 
   def handle_event("more", _params, socket), do: {:noreply, socket}
 
+  def handle_event("location-" <> _ = event, params, socket) do
+    located = VisitorLocation.handle_event(event, params, socket)
+
+    # The "odbiór w pobliżu" marks depend on it; the list starts over.
+    if located.assigns.location == socket.assigns.location,
+      do: {:noreply, located},
+      else: {:noreply, list(located, located.assigns.query, located.assigns.kind)}
+  end
+
   defp list_path(query, kind) do
     params =
       [q: query, rodzaj: kind && Atom.to_string(kind)]
       |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
 
     ~p"/?#{params}"
+  end
+
+  attr :id, :string, required: true
+  attr :offers, :list, required: true
+  attr :location, :map, default: nil
+
+  # Where the nearest in-stock pickup is and what it costs there, which is
+  # often not the cheapest price shown in the row.
+  defp nearby_pickup(assigns) do
+    assigns =
+      assign(assigns, :nearest, VisitorLocation.nearest_pickup(assigns.offers, assigns.location))
+
+    ~H"""
+    <p :if={@nearest} id={@id} class="guide-product-nearby">
+      <.fluent_icon name={:location} />
+      <span>
+        odbiór: {@nearest.shop.pickup_city}, {VisitorLocation.km(@nearest.km)} · {Polish.price(
+          @nearest.offer.price
+        )}
+      </span>
+    </p>
+    """
   end
 
   @impl true
@@ -93,7 +125,15 @@ defmodule TcgCheapWeb.HomeLive do
     ~H"""
     <Layouts.app flash={@flash}>
       <div class="guide-world">
-        <.site_header />
+        <.site_header>
+          <VisitorLocation.location_control
+            location={@location}
+            ready={@location_ready?}
+            form={@town_form}
+            matches={@town_matches}
+            error={@location_error}
+          />
+        </.site_header>
         <main id="guide-main" class="guide-main">
           <section class="guide-intro" aria-labelledby="guide-title">
             <h1 id="guide-title">Sprawdź, czy cena jest dobra</h1>
@@ -293,6 +333,11 @@ defmodule TcgCheapWeb.HomeLive do
                         class="guide-product-verdict"
                       />
                     </p>
+                    <.nearby_pickup
+                      id={"nearby-#{summary.product.slug}"}
+                      offers={summary.in_stock_offers}
+                      location={@location}
+                    />
                   </div>
                 </.link>
               </li>

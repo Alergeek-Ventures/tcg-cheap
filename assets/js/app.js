@@ -26,6 +26,7 @@ import {hooks as colocatedHooks} from "phoenix-colocated/tcg_cheap"
 import {Hooks as BackpexHooks, backpexParams} from "backpex"
 import CardAutocomplete from "./hooks/card_autocomplete"
 import TradeShare from "./hooks/trade_share"
+import VisitorLocation from "./hooks/visitor_location"
 import topbar from "../vendor/topbar"
 
 (() => {
@@ -52,8 +53,10 @@ import topbar from "../vendor/topbar"
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
+  // No visitor location here: these params also go into the socket URL, which
+  // proxies log. The VisitorLocation hook sends it as an event instead.
   params: backpexParams({_csrf_token: csrfToken}),
-  hooks: {...colocatedHooks, CardAutocomplete, TradeShare, ...BackpexHooks},
+  hooks: {...colocatedHooks, CardAutocomplete, TradeShare, VisitorLocation, ...BackpexHooks},
 })
 
 // Show progress bar on live navigation and form submits

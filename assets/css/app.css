@@ -763,6 +763,48 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .offer-unavailable .offer-link { background: transparent; color: var(--ink); }
 .guide-world .offer-unavailable .offer-link:hover { background: var(--bench-light); border-color: var(--ink); color: var(--ink); }
 
+/* Visitor location: a quiet header disclosure whose panel drops below it. */
+.guide-world .visitor-location { position: relative; }
+.guide-world .visitor-location-summary { align-items: center; cursor: pointer; display: inline-flex; font-size: .875rem; gap: .4rem; list-style: none; max-inline-size: min(16rem, 55vw); min-block-size: 3rem; }
+.guide-world .visitor-location-summary::-webkit-details-marker { display: none; }
+.guide-world .visitor-location-label { overflow: clip; text-decoration: underline; text-overflow: ellipsis; text-underline-offset: .2rem; white-space: nowrap; }
+.guide-world .visitor-location-panel { background: var(--paper); border: 1px solid var(--ink); display: grid; gap: .75rem; inline-size: min(22rem, calc(100vw - 2rem)); inset-block-start: 100%; inset-inline-end: 0; padding: 1rem; position: absolute; z-index: 10; }
+.guide-world .visitor-location-panel p { margin: 0; }
+.guide-world .visitor-location-lead { font-size: .875rem; line-height: 1.5; }
+.guide-world .visitor-location-device { align-items: center; background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; display: inline-flex; font: 700 1.1rem "Barlow Condensed", sans-serif; gap: .5rem; justify-content: center; min-block-size: 3rem; padding-inline: 1rem; text-transform: uppercase; }
+.guide-world .visitor-location-status:empty { display: none; }
+.guide-world .visitor-location-lead + .visitor-location-clear { margin-block-start: -.75rem; }
+.guide-world .visitor-location-status { font-size: .875rem; }
+.guide-world .visitor-location .fieldset { margin: 0; padding: 0; }
+.guide-world .visitor-location .label { color: var(--muted); display: block; font-size: .875rem; }
+.guide-world .visitor-location-input { background: transparent; border: 0; border-block-end: 1px solid var(--ink); border-radius: 0; color: var(--ink); font: 700 1.25rem "Barlow Condensed", sans-serif; inline-size: 100%; min-block-size: 3rem; padding: .25rem 0; }
+.guide-world .visitor-location-input::placeholder { color: var(--muted); opacity: 1; }
+.guide-world .visitor-location-matches { display: grid; list-style: none; margin: -.5rem 0 0; padding: 0; }
+.guide-world .visitor-location-matches button { align-items: baseline; background: transparent; border: 0; border-block-end: 1px solid var(--rule); color: var(--ink); cursor: pointer; display: flex; flex-wrap: wrap; font: 700 1.1rem "Barlow Condensed", sans-serif; gap: 0 .5rem; inline-size: 100%; min-block-size: 3rem; padding: .25rem .25rem; text-align: start; }
+.guide-world .visitor-location-matches span { color: var(--muted); font: 400 .8125rem "Azeret Mono", ui-monospace, monospace; }
+.guide-world .visitor-location-error { color: var(--fall); font-size: .875rem; font-weight: 700; }
+.guide-world :is(.visitor-location-clear, .verdict-nearby-open) { background: transparent; border: 0; color: var(--ink); cursor: pointer; font: inherit; font-size: .875rem; justify-self: start; min-block-size: 3rem; padding: 0; text-decoration: underline; text-underline-offset: .2rem; }
+.guide-world :is(.visitor-location-summary, .visitor-location-panel button, .verdict-nearby-open):focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.guide-world .visitor-location-device:disabled { cursor: progress; opacity: .7; }
+.guide-world .visitor-location-device:active { background: color-mix(in oklch, var(--ink) 80%, var(--orange)); }
+.guide-world :is(.visitor-location-matches button, .visitor-location-clear, .verdict-nearby-open):active { background: var(--bench); }
+@media (hover: hover) and (pointer: fine) {
+  .guide-world .visitor-location-summary:hover .visitor-location-label { color: var(--orange); }
+  .guide-world .visitor-location-device:hover { background: var(--orange); }
+  .guide-world .visitor-location-matches button:hover { background: var(--bench-light); }
+}
+/* Pickup next to the verdict: a muted label above the logistics. */
+.guide-world .verdict-nearby { border-block-start: 1px solid var(--rule); padding-block-start: 1rem; }
+.guide-world .verdict-nearby p { margin: 0; }
+.guide-world .verdict-nearby-label { color: var(--muted); font-size: .875rem; }
+.guide-world .verdict-nearby a { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
+.guide-world .verdict-nearby strong { white-space: nowrap; }
+.guide-world .verdict-nearby-none { font-weight: 700; }
+.guide-world .verdict-nearby .guide-note { margin-block-start: .25rem; }
+.guide-world .guide-product-nearby { align-items: start; color: var(--ink); display: flex; font-size: .875rem; gap: .25rem; margin: 0; }
+.guide-world .guide-product-nearby .fluent-icon { margin-block-start: .2rem; }
+.guide-world .offer-pickup-near { align-items: center; color: var(--ink); display: flex; font-size: .875rem; font-weight: 700; gap: .25rem; }
+
 /* Price history: round złoty gridlines, month ticks and a labelled typical price. */
 .guide-world .price-chart { margin: 0; }
 .guide-world .price-chart-legend { display: flex; flex-wrap: wrap; font-size: .875rem; gap: .25rem 1.25rem; list-style: none; margin: 0 0 1rem; padding: 0; }

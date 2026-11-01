@@ -25,3 +25,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 Source: https://github.com/microsoft/fluentui-system-icons
+
+## GeoNames
+
+`priv/geo/towns.tsv` is reduced from the GeoNames gazetteer extract for Poland
+(`PL.zip`, `admin2Codes.txt`, downloaded 2026-11-01): Polish populated places of
+at least 1,000 inhabitants, with name, voivodeship or county, city of a district
+and coordinates rounded to three decimals.
+
+GeoNames (https://www.geonames.org), licensed under the Creative Commons
+Attribution 4.0 License: https://creativecommons.org/licenses/by/4.0/
+
+## OpenStreetMap
+
+The `pickup_location` coordinates in `lib/tcg_cheap/sealed/shops.ex` were
+geocoded with Nominatim from OpenStreetMap data.
+
+© OpenStreetMap contributors, available under the Open Database License:
+https://www.openstreetmap.org/copyright
