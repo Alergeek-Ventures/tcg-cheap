@@ -4,7 +4,6 @@ defmodule TcgCheapWeb.GuideComponents do
   use TcgCheapWeb, :html
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Catalogue.ExternalImage
   alias TcgCheap.Sealed.{Kinds, Regions, Shops}
   alias TcgCheapWeb.Polish
 
@@ -120,11 +119,9 @@ defmodule TcgCheapWeb.GuideComponents do
   def verdict_paths(:out_of_stock), do: ["M3 8h10"]
 
   @doc """
-  Product packaging image: our stored copy (`photo`), else the shop's photo
-  (`url`, from a matched offer), else a placeholder drawn for its kind.
+  Product packaging image from our storage, else a placeholder drawn for its kind.
   """
   attr :photo, :string, default: nil
-  attr :url, :string, default: nil
   attr :kind, :atom, default: nil
   attr :alt, :string, required: true
   attr :class, :any, default: nil
@@ -133,7 +130,7 @@ defmodule TcgCheapWeb.GuideComponents do
   def product_image(assigns) do
     assigns =
       assigns
-      |> assign(:url, assigns.photo || if(ExternalImage.valid?(assigns.url), do: assigns.url))
+      |> assign(:url, assigns.photo)
       |> assign(:shape, placeholder_shape(assigns.kind))
 
     ~H"""

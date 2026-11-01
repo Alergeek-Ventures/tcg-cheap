@@ -29,7 +29,6 @@ defmodule TcgCheap.Storage.RemoteImage do
     create :register do
       accept [:id, :source_url]
       upsert? true
-      upsert_identity :primary_key
       upsert_fields [:source_url]
     end
 
@@ -50,6 +49,12 @@ defmodule TcgCheap.Storage.RemoteImage do
       filter expr(is_nil(thumbnail_key) or is_nil(detail_key))
       filter expr(is_nil(attempted_at) or attempted_at < ago(1, :day))
       prepare build(sort: [attempted_at: :asc_nils_first, id: :asc], limit: arg(:limit))
+    end
+
+    read :mirrored do
+      argument :hashes, {:array, :string}, allow_nil?: false
+      filter expr(id in ^arg(:hashes) and not is_nil(detail_key))
+      prepare build(select: [:id])
     end
 
     update :record_attempt do

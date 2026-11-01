@@ -16,6 +16,7 @@ defmodule TcgCheap.Storage do
       define :register_remote_image, action: :register
       define :get_remote_image, action: :by_hash, args: [:hash]
       define :list_registered_remote_images, action: :registered, args: [:hashes]
+      define :list_mirrored_remote_images, action: :mirrored, args: [:hashes]
       define :list_pending_remote_images, action: :pending, args: [:limit]
       define :record_remote_image_attempt, action: :record_attempt
     end

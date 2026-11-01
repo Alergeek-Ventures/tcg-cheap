@@ -10,10 +10,9 @@ defmodule TcgCheap.Sealed.PhotoMirror do
 
   require Logger
 
-  alias TcgCheap.Catalogue.ExternalImage
   alias TcgCheap.Sealed
+  alias TcgCheap.Storage.ImageDownload
 
-  @max_bytes 15 * 1024 * 1024
   @types %{
     "image/jpeg" => "jpg",
     "image/png" => "png",
@@ -34,58 +33,24 @@ defmodule TcgCheap.Sealed.PhotoMirror do
   defp mirror(product, req_options) do
     url = product.image_url
 
-    with true <- ExternalImage.valid?(url) || {:error, :host_not_allowed},
-         {:ok, body, type} <- download(url, req_options),
-         {:ok, _attached} <-
+    with {:ok, body, type} <- ImageDownload.fetch(url, req_options),
+         {:ok, %{blob: blob}} <-
            AshStorage.Operations.attach(product, :photo, body,
              filename: "#{product.slug}.#{@types[type]}",
              content_type: type
-           ) do
+           ),
+         blob <- Ash.load!(blob, :variants),
+         true <-
+           Enum.all?(["card", "page"], fn name ->
+             Enum.any?(blob.variants, &(&1.variant_name == name))
+           end) do
       Sealed.record_photo_source!(product, url)
       :ok
     else
-      # Not tried again until the shop photo changes; the page keeps the shop's link.
       error ->
         Logger.warning("Photo of #{product.slug} not mirrored from #{url}: #{inspect(error)}")
-        Sealed.record_photo_source!(product, url)
+        Sealed.record_photo_attempt!(product)
         :error
     end
   end
-
-  defp download(url, req_options) do
-    [
-      url: url,
-      decode_body: false,
-      connect_options: [timeout: 5_000],
-      receive_timeout: 20_000,
-      max_redirects: 3,
-      retry: false,
-      headers: [{"user-agent", "TcgCheap/1.0 (buying guide)"}]
-    ]
-    |> Req.new()
-    |> Req.merge(req_options)
-    |> Req.request()
-    |> case do
-      {:ok, %Req.Response{status: 200, body: body} = response}
-      when byte_size(body) <= @max_bytes ->
-        type =
-          response |> Req.Response.get_header("content-type") |> List.first("") |> media_type()
-
-        if Map.has_key?(@types, type),
-          do: {:ok, body, type},
-          else: {:error, {:not_an_image, type}}
-
-      {:ok, %Req.Response{status: 200}} ->
-        {:error, :too_large}
-
-      {:ok, %Req.Response{status: status}} ->
-        {:error, {:http_status, status}}
-
-      {:error, exception} ->
-        {:error, {:transport, exception.__struct__}}
-    end
-  end
-
-  defp media_type(header),
-    do: header |> String.split(";") |> hd() |> String.trim() |> String.downcase()
 end

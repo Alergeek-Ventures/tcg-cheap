@@ -7,15 +7,15 @@ defmodule TcgCheapWeb.SocialImage do
 
   A product card shows the same answer as its page: the verdict, the
   cheapest in-stock price and shop, the typical and suggested prices. Its
-  photo comes only from the allowlisted image hosts, at most 15 MB and 40
-  megapixels, shrunk before it is drawn. At most two cards render at once;
+  photo comes only from our mirrored storage variant, shrunk before it is drawn.
+  At most two cards render at once;
   `TcgCheapWeb.SocialImageController` keeps rendered cards in storage.
   """
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Catalogue.ExternalImage
   alias TcgCheap.Sealed.{PriceGuide, Shops}
+  alias TcgCheap.Storage.ImageDownload
   alias TcgCheapWeb.{GuideComponents, Polish}
   alias Vix.Vips.Operation
 
@@ -38,9 +38,6 @@ defmodule TcgCheapWeb.SocialImage do
 
   # The logo is 405×96.
   @logo_ratio 405 / 96
-  @max_photo_bytes 15_000_000
-  @max_photo_pixels 40_000_000
-  @photo_download_ms 8_000
   @max_renders 2
   # A render waits this long for a free slot before giving up.
   @slot_wait_ms 3_000
@@ -57,7 +54,7 @@ defmodule TcgCheapWeb.SocialImage do
   @spec product_version(map()) :: String.t()
   def product_version(%{product: product, verdict: verdict} = page) do
     version(
-      {product.name, product.image_url, product.kind, product.set_name, product.region,
+      {product.name, product.photo_page_url, product.kind, product.set_name, product.region,
        verdict.status, verdict.cheapest && {verdict.cheapest.price, verdict.cheapest.shop},
        verdict.typical, verdict.last_known, page.suggested_price && page.suggested_price.price}
     )
@@ -116,7 +113,7 @@ defmodule TcgCheapWeb.SocialImage do
   @spec product(map()) :: {:ok, binary()} | {:partial, binary()} | {:error, term()}
   def product(%{product: product} = page) do
     with_slot(fn ->
-      photo = photo(product.image_url)
+      photo = photo(product.photo_page_url)
 
       {column, tile} =
         case photo do
@@ -282,60 +279,15 @@ defmodule TcgCheapWeb.SocialImage do
     ]
   end
 
-  # The shop photo shrunk to the tile (libvips reads the header first, so an
-  # oversized image is refused before it is decoded).
-  defp photo(url) do
-    if ExternalImage.valid?(url), do: fetch_photo(url), else: :none
-  end
+  defp photo(nil), do: :none
 
-  defp fetch_photo(url) do
-    with {:ok, body} <- download(url),
-         {:ok, header} <- Image.from_binary(body),
-         true <- Image.width(header) * Image.height(header) <= @max_photo_pixels,
+  defp photo(url) do
+    with {:ok, body, _type} <- ImageDownload.fetch_stored(url),
          {:ok, image} <- Operation.thumbnail_buffer(body, 600, size: :VIPS_SIZE_DOWN),
          {:ok, png} <- Image.write(image, :memory, suffix: ".png") do
       {:ok, png}
     else
       _unusable -> :error
-    end
-  end
-
-  # The whole download, connecting included, within the deadline.
-  defp download(url) do
-    deadline = System.monotonic_time(:millisecond) + @photo_download_ms
-
-    task =
-      Task.async(fn ->
-        Req.get(url,
-          headers: [{"user-agent", "TcgCheap/1.0 (buying guide)"}],
-          decode_body: false,
-          into: &bounded_body(&1, &2, deadline),
-          connect_options: [timeout: 3_000],
-          receive_timeout: 5_000,
-          redirect: false,
-          retry: false
-        )
-      end)
-
-    case Task.yield(task, @photo_download_ms) || Task.shutdown(task, :brutal_kill) do
-      {:ok, {:ok, %Req.Response{status: 200, body: body}}} when is_binary(body) -> {:ok, body}
-      _failed -> :error
-    end
-  end
-
-  # Stops a body that is too large or still trickling in after the deadline.
-  defp bounded_body({:data, data}, {request, response}, deadline) do
-    body = if is_binary(response.body), do: response.body, else: ""
-
-    cond do
-      byte_size(body) + byte_size(data) > @max_photo_bytes ->
-        {:halt, {request, %{response | body: :too_large}}}
-
-      System.monotonic_time(:millisecond) > deadline ->
-        {:halt, {request, %{response | body: :too_slow}}}
-
-      true ->
-        {:cont, {request, %{response | body: body <> data}}}
     end
   end
 

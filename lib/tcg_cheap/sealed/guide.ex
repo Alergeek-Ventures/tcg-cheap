@@ -71,9 +71,22 @@ defmodule TcgCheap.Sealed.Guide do
   end
 
   defp expansions(filters) do
+    sets = TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!())
+
+    mirrored =
+      sets
+      |> Map.values()
+      |> Enum.map(&CardImage.logo_source_url(&1.logo_url))
+      |> Enum.reject(&is_nil/1)
+      |> Enum.map(&CardImage.source_hash/1)
+      |> TcgCheap.Storage.list_mirrored_remote_images!()
+      |> MapSet.new(& &1.id)
+
     logos =
       for {id, %{language: "en", logo_url: "" <> url}} <-
-            TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!()),
+            sets,
+          source = CardImage.logo_source_url(url),
+          source && MapSet.member?(mirrored, CardImage.source_hash(source)),
           into: %{},
           do: {id, CardImage.logo_url(url)}
 
