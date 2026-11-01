@@ -32,7 +32,7 @@ defmodule TcgCheapWeb.GuideComponents do
           href={~p"/lang/#{locale}?#{[return_to: @return_to]}"}
           lang={locale}
           hreflang={locale}
-          aria-label={name}
+          aria-label={"#{String.upcase(locale)} – #{name}"}
           aria-current={if(locale == @locale, do: "true")}
         >
           <img src={flag} alt="" width="21" height="14" />{String.upcase(locale)}

@@ -75,5 +75,10 @@ export default function initAnalytics() {
       },
     })
   }
-  document.head.appendChild(script)
+  // After the page has loaded and the browser is idle, so it never competes with it.
+  const load = () => document.head.appendChild(script)
+  const whenIdle = () =>
+    "requestIdleCallback" in window ? requestIdleCallback(load, {timeout: 5000}) : setTimeout(load, 2000)
+  if (document.readyState === "complete") whenIdle()
+  else window.addEventListener("load", whenIdle, {once: true})
 }
