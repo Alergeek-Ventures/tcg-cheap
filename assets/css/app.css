@@ -681,8 +681,9 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 /* No entry animation: LiveView re-inserts every card on connect and on each search or filter, so it replayed constantly. */
 .guide-world .guide-product { min-width: 0; }
 .guide-world .guide-product-link { align-items: center; background: var(--paper); color: inherit; display: grid; gap: .35rem 1rem; grid-template-columns: 5.5rem minmax(0, 1fr) auto; min-height: 3rem; padding: .5rem .75rem .5rem .5rem; text-decoration: none; }
-/* The verdict, then the price to its right; a nearby pickup takes its own line below. */
+/* Shop first, then verdict and price; a nearby pickup takes its own line below. */
 .guide-world .guide-product-deal { align-items: center; display: flex; flex-wrap: wrap; gap: .35rem .75rem; justify-content: flex-end; max-inline-size: 26rem; min-width: 0; text-align: right; }
+.guide-world .guide-product-shop { font-size: .875rem; margin-inline-end: auto; overflow-wrap: anywhere; text-align: start; }
 .guide-world .guide-product-nearby { flex-basis: 100%; justify-content: flex-end; }
 .guide-world .guide-product-link:hover { background: var(--bench-light); }
 .guide-world .guide-product-link:hover .guide-product-name { text-decoration: underline; text-underline-offset: .2rem; }
@@ -944,7 +945,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   .guide-world .guide-product-link { align-items: start; grid-template-columns: 4.75rem minmax(0, 1fr); }
   .guide-world .guide-product-image { grid-row: span 2; }
   .guide-world .guide-product-deal { gap: .2rem .75rem; grid-column: 2; justify-content: flex-start; max-inline-size: none; text-align: left; }
-  /* Verdict and price on one line, the shop under them, so every row has the same shape. */
+  /* Shop first, then verdict and price together on the next line. */
+  .guide-world .guide-product-shop { flex-basis: 100%; }
   .guide-world .guide-product-price { display: contents; }
   .guide-world .guide-product-price span { flex-basis: 100%; font-size: .875rem; order: 1; }
   /* Phones: equal rows (no pickup line) and the Cardmarket logo instead of its name. */

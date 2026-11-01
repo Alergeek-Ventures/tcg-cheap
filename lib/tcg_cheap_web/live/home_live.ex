@@ -512,6 +512,9 @@ defmodule TcgCheapWeb.HomeLive do
                       </p>
                     </div>
                     <div class="guide-product-deal">
+                      <span :if={summary.verdict.cheapest} class="guide-product-shop">
+                        {shop_name(summary.verdict.cheapest)}
+                      </span>
                       <.verdict_badge
                         verdict={summary.verdict}
                         id={"verdict-#{summary.product.slug}"}
@@ -523,7 +526,6 @@ defmodule TcgCheapWeb.HomeLive do
                       >
                         <%= if summary.verdict.cheapest do %>
                           <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
-                          <span>{shop_name(summary.verdict.cheapest)}</span>
                         <% else %>
                           <span>Cardmarket ≈ {Polish.zloty(summary.cardmarket_pln)}</span>
                         <% end %>
