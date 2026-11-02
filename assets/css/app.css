@@ -763,14 +763,17 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 /* Expansions: logo tiles two to a row, then the rest as a list of names. */
 .guide-world .guide-expansions-all { margin-block-end: .35rem; }
 .guide-world .guide-filter .guide-expansion-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.guide-world .guide-expansion-tiles a { block-size: 100%; display: grid; gap: .3rem; grid-template-rows: 2.5rem auto; justify-items: center; padding: .4rem; text-align: center; }
+.guide-world .guide-expansion-tiles a { block-size: 100%; display: grid; gap: .3rem; grid-template-columns: minmax(0, 1fr); grid-template-rows: 2.5rem 1fr auto; justify-items: center; padding: .4rem; text-align: center; }
+@media (min-width: 48rem) { .guide-world .guide-expansion-tiles a { padding-inline: .25rem; } }
 .guide-world .guide-expansion-tiles img { block-size: 2.5rem; inline-size: 100%; object-fit: contain; }
-.guide-world .guide-expansion-tiles .guide-expansion-name:not(.sr-only) { -webkit-box-orient: vertical; -webkit-line-clamp: 2; align-self: center; display: -webkit-box; line-height: 1.05; overflow: clip; overflow-wrap: anywhere; }
+.guide-world .guide-expansion-tiles .guide-expansion-name:not(.sr-only, .guide-expansion-caption) { -webkit-box-orient: vertical; -webkit-line-clamp: 2; align-self: center; display: -webkit-box; grid-row: 1; line-height: 1.05; overflow: clip; overflow-wrap: anywhere; }
+.guide-world .guide-expansion-tiles .guide-expansion-caption { color: var(--muted); font-size: .6875rem; inline-size: 100%; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.guide-world .guide-expansion-tiles .guide-filter-count { grid-row: 3; }
 .guide-world .guide-expansion-tiles a[aria-current] { background: var(--paper); border-color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); color: var(--ink); }
 .guide-world .guide-expansion-tiles a[aria-current] .guide-filter-count { background: var(--ink); color: var(--bench-light); padding: .15rem .35rem; }
 .guide-world .guide-filter .guide-expansion-names { display: grid; gap: 0; max-block-size: 22rem; overflow-y: auto; overscroll-behavior: contain; }
 .guide-world .guide-expansion-names a { border-color: transparent; display: flex; justify-content: space-between; min-block-size: 2.25rem; text-align: start; }
-.guide-world .guide-expansion-region { border: 1px solid currentColor; font-size: .625rem; padding: .1rem .2rem; }
+.guide-world .guide-expansion-region { border: 1px solid currentColor; font-size: .625rem; line-height: 1; padding: .05rem .2rem; }
 .guide-world .guide-expansions summary { color: var(--ink); cursor: pointer; font-size: .875rem; margin-block-start: .35rem; min-block-size: 2.25rem; padding-block: .4rem; }
 .guide-world .guide-filters-apply { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; inset-block-end: 0; margin: 0 -1rem -1rem; min-block-size: 3rem; position: sticky; text-transform: uppercase; }
 .guide-world .guide-filters-apply:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
