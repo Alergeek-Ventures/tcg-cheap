@@ -9,6 +9,7 @@
 @source "../js";
 @source "../../lib/tcg_cheap_web";
 @source not "../../lib/tcg_cheap_web/live/admin";
+@source "../../deps/live_toast/lib";
 /* Required for Tailwind to automatically pick up changes in colocated CSS files in dev */
 @source "../../_build/dev/phoenix-colocated/tcg_cheap/*/";
 
@@ -17,12 +18,9 @@
 @plugin "../vendor/heroicons";
 
 /* The few daisyUI components these pages render through core_components:
-   the lost-connection flash notices and `input/1` (`.input` in a `.fieldset`).
-   Layered like daisyUI, so the site styles still override them. */
+   `input/1` (`.input` in a `.fieldset`). Layered like daisyUI, so the site
+   styles still override them. */
 @layer components {
   .input { align-items: center; appearance: none; cursor: text; display: inline-flex; flex-shrink: 1; gap: .5rem; height: 2.1875rem; position: relative; touch-action: manipulation; vertical-align: middle; white-space: nowrap; }
   .fieldset { display: grid; font-size: .75rem; gap: .375rem; grid-auto-rows: max-content; grid-template-columns: 1fr; padding-block: .25rem; }
-  .toast { display: grid; gap: .5rem; inset-block-start: 1rem; inset-inline-end: 1rem; max-inline-size: calc(100vw - 2rem); position: fixed; }
-  .alert { align-items: center; background: oklch(58% 0.158 241.966); border-radius: .5rem; box-shadow: 0 .5rem 1.5rem rgb(32 29 25 / .2); color: oklch(97% 0.013 236.62); cursor: pointer; display: flex; font-size: .875rem; gap: .75rem; line-height: 1.4; padding: 1rem; }
-  .alert-error { background: oklch(58% 0.253 17.585); color: oklch(96% 0.015 12.422); }
 }

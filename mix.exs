@@ -83,6 +83,10 @@ defmodule TcgCheap.MixProject do
       {:phoenix_html, "~> 4.3"},
       {:phoenix_live_reload, "~> 1.7", only: :dev},
       {:phoenix_live_view, "~> 1.2"},
+      # LiveToast main with open fixes srcrip/live_toast#82, #84 (a reconnect within the
+      # delay no longer shows the connection notice) and #85, until they are released.
+      {:live_toast,
+       github: "kosciak9/live_toast", ref: "5e68b1c9ddc6c751c7c9334880beb595d22e5fa4"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.5", runtime: Mix.env() == :dev},
       {:heroicons,

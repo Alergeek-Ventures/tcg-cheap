@@ -36,7 +36,12 @@ defmodule TcgCheapWeb.Layouts do
   def app(assigns) do
     ~H"""
     {render_slot(@inner_block)}
-    <.flash_group flash={@flash} />
+    <LiveToast.toast_group
+      flash={@flash}
+      connected={assigns[:socket] != nil}
+      toasts_sync={assigns[:toasts_sync]}
+      corner={:top_right}
+    />
     """
   end
 
