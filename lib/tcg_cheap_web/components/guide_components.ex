@@ -122,6 +122,8 @@ defmodule TcgCheapWeb.GuideComponents do
   Product packaging image from our storage, else a placeholder drawn for its kind.
   """
   attr :photo, :string, default: nil
+  attr :page_photo, :string, default: nil
+  attr :sizes, :string, default: nil
   attr :kind, :atom, default: nil
   attr :alt, :string, required: true
   attr :class, :any, default: nil
@@ -131,6 +133,12 @@ defmodule TcgCheapWeb.GuideComponents do
     assigns =
       assigns
       |> assign(:url, assigns.photo)
+      |> assign(
+        :srcset,
+        if(assigns.photo && assigns.page_photo,
+          do: "#{assigns.photo} 352w, #{assigns.page_photo} 960w"
+        )
+      )
       |> assign(:shape, placeholder_shape(assigns.kind))
 
     ~H"""
@@ -138,6 +146,8 @@ defmodule TcgCheapWeb.GuideComponents do
       <img
         :if={@url}
         src={@url}
+        srcset={@srcset}
+        sizes={@srcset && @sizes}
         alt={@alt}
         loading={@loading}
         decoding="async"

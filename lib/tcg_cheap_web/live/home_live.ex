@@ -99,12 +99,7 @@ defmodule TcgCheapWeb.HomeLive do
   def handle_event("more", _params, socket), do: {:noreply, socket}
 
   def handle_event("location-" <> _ = event, params, socket) do
-    located = VisitorLocation.handle_event(event, params, socket)
-
-    # The "odbiór w pobliżu" marks depend on it; the list starts over.
-    if located.assigns.location == socket.assigns.location,
-      do: {:noreply, located},
-      else: {:noreply, list(located, located.assigns.filters)}
+    {:noreply, VisitorLocation.handle_event(event, params, socket)}
   end
 
   # The list with some filters changed. The language links offered under a
@@ -129,30 +124,6 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp active_filters(filters),
     do: Enum.count([filters.kind, filters.region, filters.expansion], & &1)
-
-  attr :id, :string, required: true
-  attr :offers, :list, required: true
-  attr :location, :map, default: nil
-
-  # The cheapest in-stock pickup nearby and where it is, which is often not
-  # the cheapest price shown in the row.
-  defp nearby_pickup(assigns) do
-    assigns =
-      assign(assigns, :pickup, VisitorLocation.cheapest_pickup(assigns.offers, assigns.location))
-
-    ~H"""
-    <p :if={@pickup} id={@id} class="guide-product-nearby">
-      <.fluent_icon name={:location} />
-      <span>
-        {gettext("odbiór: %{city}, %{distance} · %{price}",
-          city: @pickup.shop.pickup_city,
-          distance: VisitorLocation.km(@pickup.km),
-          price: Polish.price(@pickup.offer.price)
-        )}
-      </span>
-    </p>
-    """
-  end
 
   attr :filters, :map, required: true
   attr :facets, :map, required: true
@@ -502,6 +473,8 @@ defmodule TcgCheapWeb.HomeLive do
                   <.link navigate={~p"/produkty/#{summary.product.slug}"} class="guide-product-link">
                     <.product_image
                       photo={summary.product.photo_card_url}
+                      page_photo={summary.product.photo_page_url}
+                      sizes="(max-width: 42rem) 11rem, 5.5rem"
                       kind={summary.product.kind}
                       alt=""
                       class="guide-product-image"
@@ -531,11 +504,6 @@ defmodule TcgCheapWeb.HomeLive do
                           <span>Cardmarket ≈ {Polish.zloty(summary.cardmarket_pln)}</span>
                         <% end %>
                       </p>
-                      <.nearby_pickup
-                        id={"nearby-#{summary.product.slug}"}
-                        offers={summary.in_stock_offers}
-                        location={@location}
-                      />
                     </div>
                   </.link>
                 </li>

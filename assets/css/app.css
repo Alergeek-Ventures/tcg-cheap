@@ -682,11 +682,10 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-products, .guide-world .offer-list { display: grid; gap: .5rem; list-style: none; margin: 0; padding: 0; }
 /* No entry animation: LiveView re-inserts every card on connect and on each search or filter, so it replayed constantly. */
 .guide-world .guide-product { min-width: 0; }
-.guide-world .guide-product-link { align-items: center; background: var(--paper); color: inherit; display: grid; gap: .35rem 1rem; grid-template-columns: 5.5rem minmax(0, 1fr) auto; min-height: 3rem; padding: .5rem .75rem .5rem .5rem; text-decoration: none; }
-/* Shop first, then verdict and price; a nearby pickup takes its own line below. */
-.guide-world .guide-product-deal { align-items: center; display: flex; flex-wrap: wrap; gap: .35rem .75rem; justify-content: flex-end; max-inline-size: 26rem; min-width: 0; text-align: right; }
-.guide-world .guide-product-shop { font-size: .875rem; margin-inline-end: auto; overflow-wrap: anywhere; text-align: start; }
-.guide-world .guide-product-nearby { flex-basis: 100%; justify-content: flex-end; }
+.guide-world .guide-product-link { align-items: center; background: var(--paper); color: inherit; display: flex; flex-wrap: wrap; gap: .35rem 1rem; min-height: 3rem; padding: .5rem .75rem .5rem .5rem; text-decoration: none; }
+/* Keep the shop, verdict and price together without stretching their gaps. */
+.guide-world .guide-product-deal { align-items: center; display: flex; flex: 0 1 auto; flex-wrap: wrap; gap: .35rem .75rem; justify-content: flex-end; margin-inline-start: auto; max-inline-size: 26rem; min-width: 0; text-align: right; }
+.guide-world .guide-product-shop { font-size: .875rem; overflow-wrap: anywhere; text-align: start; }
 .guide-world .guide-product-link:hover { background: var(--bench-light); }
 .guide-world .guide-product-link:hover .guide-product-name { text-decoration: underline; text-underline-offset: .2rem; }
 .guide-world .product-image { align-items: center; aspect-ratio: 16 / 10; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); display: flex; justify-content: center; min-width: 0; overflow: hidden; }
@@ -694,10 +693,10 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .product-image svg { fill: none; height: 60%; width: 60%; }
 .guide-world .product-image-placeholder { background: color-mix(in srgb, var(--bench) 55%, var(--paper)); }
 .guide-world .product-image-placeholder svg path { fill: none; stroke: var(--muted); stroke-linejoin: round; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.guide-world .guide-product-image { aspect-ratio: 1; }
+.guide-world .guide-product-image { aspect-ratio: 1; flex: 0 0 5.5rem; inline-size: 5.5rem; }
 .guide-world .guide-product-image img { padding: .25rem; }
 .guide-world .guide-product-image svg { height: 78%; width: 78%; }
-.guide-world .guide-product-copy { min-width: 0; }
+.guide-world .guide-product-copy { flex: 1 1 14rem; min-width: 0; }
 .guide-world .guide-product-name { font-size: 1.35rem; line-height: 1.05; overflow-wrap: anywhere; }
 .guide-world .guide-product-meta { color: var(--muted); font-size: .875rem; margin: .25rem 0 0; overflow-wrap: anywhere; }
 .guide-world .guide-product-price { align-items: baseline; display: flex; flex-wrap: wrap; font-size: .875rem; gap: .2rem .5rem; justify-content: flex-end; margin: 0; }
@@ -911,8 +910,6 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .verdict-nearby strong { white-space: nowrap; }
 .guide-world .verdict-nearby-none { font-weight: 700; }
 .guide-world .verdict-nearby .guide-note { margin-block-start: .25rem; }
-.guide-world .guide-product-nearby { align-items: start; color: var(--ink); display: flex; font-size: .875rem; gap: .25rem; margin: 0; }
-.guide-world .guide-product-nearby .fluent-icon { margin-block-start: .2rem; }
 .guide-world .offer-pickup-near { align-items: center; color: var(--ink); display: flex; font-size: .875rem; font-weight: 700; gap: .25rem; }
 
 /* Price history: round złoty gridlines, month ticks and a labelled typical price. */
@@ -952,15 +949,15 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 @media (max-width: 42rem) {
   .guide-world .guide-main { padding: 1rem 1rem 2.5rem; }
   /* Phones: the picture on top, centred across the whole card. */
-  .guide-world .guide-product-link { align-items: start; grid-template-columns: minmax(0, 1fr); padding-inline: .5rem; }
+  .guide-world .guide-product-link { align-items: start; display: grid; grid-template-columns: minmax(0, 1fr); padding-inline: .5rem; }
   .guide-world .guide-product-image { inline-size: min(11rem, 60%); justify-self: center; }
-  .guide-world .guide-product-deal { gap: .2rem .75rem; justify-content: flex-start; max-inline-size: none; text-align: left; }
+  .guide-world .guide-product-deal { gap: .2rem .75rem; justify-content: flex-start; margin-inline-start: 0; max-inline-size: none; text-align: left; }
   /* Shop first, then verdict and price together on the next line. */
   .guide-world .guide-product-shop { flex-basis: 100%; }
   .guide-world .guide-product-price { display: contents; }
   .guide-world .guide-product-price span { flex-basis: 100%; font-size: .875rem; order: 1; }
   /* Phones: equal rows (no pickup line) and the Cardmarket logo instead of its name. */
-  .guide-world .guide-product-nearby, .guide-world .verdict-cm-text { display: none; }
+  .guide-world .verdict-cm-text { display: none; }
   .guide-world .verdict-cm-logo { display: block; }
   .guide-world .guide-product-deal .verdict-badge { min-inline-size: 0; }
   .guide-world .guide-product-deal .verdict-insufficient_data { letter-spacing: 0; padding-inline: .4rem; }
