@@ -675,7 +675,6 @@ defmodule TcgCheapWeb.ProductLive do
             >
               <img src={image_url} alt="" width="34" height="48" loading="lazy" />
             </a>
-            <span :if={!card.image} class="contents-photo-missing">{gettext("brak zdjęcia")}</span>
           </li>
         </ul>
       </div>
