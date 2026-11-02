@@ -166,8 +166,9 @@ defmodule TcgCheap.Sealed.Guide do
   end
 
   @doc """
-  Everything the product page shows: verdict, offers, 90 days of history and
-  REBEL's suggested retail price when one matches.
+  Everything the product page shows: verdict, offers, 90 days of history,
+  REBEL's suggested retail price when one matches, and our English single
+  booster of each set the contents name (`boosters`, by set name).
   """
   @spec product(String.t(), DateTime.t()) :: {:ok, map()} | :error
   def product(slug, %DateTime{} = now) do
@@ -197,8 +198,23 @@ defmodule TcgCheap.Sealed.Guide do
            history: history,
            today: today,
            eur_pln: rate,
-           suggested_price: Sealed.get_suggested_price_for_product!(product.id)
+           suggested_price: Sealed.get_suggested_price_for_product!(product.id),
+           boosters: boosters(product.contents)
          })}
+    end
+  end
+
+  defp boosters(nil), do: %{}
+
+  defp boosters(contents) do
+    case for(%{type: :booster, name: set} <- contents.items, set, do: set <> " Booster") do
+      [] ->
+        %{}
+
+      names ->
+        names
+        |> Sealed.list_english_boosters!(load: [:photo_card_url])
+        |> Map.new(&{String.replace_suffix(&1.name, " Booster", ""), &1})
     end
   end
 

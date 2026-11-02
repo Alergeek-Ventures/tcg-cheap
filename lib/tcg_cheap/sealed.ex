@@ -101,6 +101,7 @@ defmodule TcgCheap.Sealed do
       define :import_product, action: :import
       define :list_products, action: :read
       define :get_product_by_slug, action: :by_slug, args: [:slug], not_found_error?: false
+      define :list_english_boosters, action: :english_boosters, args: [:names]
 
       define :browse_products,
         action: :browse,
