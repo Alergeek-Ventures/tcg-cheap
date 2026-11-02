@@ -73,12 +73,15 @@ defmodule TcgCheap.Sealed.TcgdexSet do
       description """
       Records an English set TCGdex does not list yet, with an unofficial card list (a fan
       wiki's before release) whose page is `cards_source_url`. TCGdex's cards replace it once
-      TCGdex lists as many (`TcgCheap.Sealed.CardSync`).
+      TCGdex lists as many, or two weeks after release whatever their number
+      (`TcgCheap.Sealed.CardSync`).
       """
 
       accept [:tcgdex_id, :name, :cardmarket_expansion_id, :released_on, :cards_source_url]
       upsert? true
       upsert_identity :tcgdex_id
+      # TCGdex's cards, once copied, are never overwritten by an unofficial list.
+      upsert_condition expr(not is_nil(cards_source_url) or is_nil(cards_checked_at))
 
       upsert_fields [
         :name,
@@ -104,7 +107,7 @@ defmodule TcgCheap.Sealed.TcgdexSet do
                     ]
       end
 
-      validate present([:name, :cardmarket_expansion_id, :cards_source_url])
+      validate present([:name, :cardmarket_expansion_id, :released_on, :cards_source_url])
       validate {TcgCheap.Sealed.Validations.HttpsUrls, attribute: :cards_source_url}
       change set_attribute(:language, "en")
       change set_attribute(:checked_at, &DateTime.utc_now/0)

@@ -34,12 +34,13 @@ defmodule TcgCheap.Sealed.TcgdexCard do
       description """
       Cards without a Cardmarket product id never looked up, or looked up
       before `checked_before`, never looked up first, then of the newest sets.
+      Cards of an unofficial list wait for TCGdex's, which TCGdex has documents for.
       """
 
       argument :checked_before, :utc_datetime_usec, allow_nil?: false
 
       filter expr(
-               is_nil(cardmarket_id) and
+               is_nil(cardmarket_id) and is_nil(tcgdex_set.cards_source_url) and
                  (is_nil(cardmarket_checked_at) or cardmarket_checked_at < ^arg(:checked_before))
              )
 
