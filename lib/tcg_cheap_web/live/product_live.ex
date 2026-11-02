@@ -125,7 +125,10 @@ defmodule TcgCheapWeb.ProductLive do
                 <span id="product-kind">{Kinds.label(@page.product.kind)}</span><span
                   :if={@page.product.set_name}
                   id="product-set"
-                > · {@page.product.set_name}</span><span id="product-region">
+                > · <.link
+                  :if={@page.product.cardmarket_expansion_id}
+                  navigate={~p"/?#{[rozszerzenie: @page.product.cardmarket_expansion_id]}"}
+                >{@page.product.set_name}</.link><span :if={!@page.product.cardmarket_expansion_id}>{@page.product.set_name}</span></span><span id="product-region">
                   {gettext("· wersja %{edition}",
                     edition:
                       if(@locale == "pl",
