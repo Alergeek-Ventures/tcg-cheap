@@ -169,7 +169,7 @@ defmodule TcgCheap.Sealed do
         action: :seen_since_for_products,
         args: [:since, :product_ids]
 
-      define :list_latest_shop_fetches, action: :latest_fetches, args: [:since]
+      define :latest_shop_fetches, action: :latest_fetches, args: [:since]
       define :list_manual_offers, action: :manual
     end
 
@@ -242,7 +242,7 @@ defmodule TcgCheap.Sealed do
   @spec current_offers(DateTime.t(), [Ecto.UUID.t()] | :all) :: [Offer.t()]
   def current_offers(%DateTime{} = now, product_ids \\ :all) do
     since = DateTime.add(now, -@current_for_seconds, :second)
-    latest = since |> list_latest_shop_fetches!() |> Map.new(&{&1.shop, &1.last_seen_at})
+    latest = latest_shop_fetches!(since)
 
     offers =
       case product_ids do
