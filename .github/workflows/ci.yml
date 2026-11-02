@@ -135,6 +135,8 @@ jobs:
       - name: Run canonical quality gate
         run: mix check --verbose
 
+  # Coolify builds the deployed image itself, so deploys do not wait for this
+  # job; on main it also warms the layer cache that pull requests restore.
   container:
     name: Build application container
     runs-on: ubuntu-latest
@@ -164,7 +166,7 @@ jobs:
 
   sentry-release:
     name: Create Sentry release
-    needs: [check, container]
+    needs: [check]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -195,7 +197,7 @@ jobs:
 
   deploy:
     name: Deploy production
-    needs: [check, container, sentry-release]
+    needs: [check, sentry-release]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
