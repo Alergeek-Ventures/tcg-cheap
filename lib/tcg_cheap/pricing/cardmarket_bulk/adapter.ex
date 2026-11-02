@@ -70,13 +70,13 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
   @doc "Fetch and parse the allowlisted Cardmarket sealed (non-singles) product file."
   def fetch_sealed_products(opts \\ []), do: fetch(@sealed_products_url, :sealed_products, opts)
 
-  @doc "Fetch the price guide and keep only the sealed (non-singles) rows."
-  def fetch_sealed_prices(opts \\ []), do: fetch(@prices_url, :sealed_prices, opts)
+  @doc "Fetch the price guide with every row, singles and sealed products alike."
+  def fetch_all_prices(opts \\ []), do: fetch(@prices_url, :all_prices, opts)
 
   def parse_products(body, opts \\ []), do: parse(body, :products, opts)
   def parse_prices(body, opts \\ []), do: parse(body, :prices, opts)
   def parse_sealed_products(body, opts \\ []), do: parse(body, :sealed_products, opts)
-  def parse_sealed_prices(body, opts \\ []), do: parse(body, :sealed_prices, opts)
+  def parse_all_prices(body, opts \\ []), do: parse(body, :all_prices, opts)
 
   defp fetch(url, kind, opts) when is_list(opts) and is_map(opts) == false do
     if Keyword.keyword?(opts) and valid_options?(opts) do
@@ -194,7 +194,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
 
   defp priceable_count(_rows, kind) when kind in [:products, :sealed_products], do: 0
 
-  defp priceable_count(rows, kind) when kind in [:prices, :sealed_prices],
+  defp priceable_count(rows, kind) when kind in [:prices, :all_prices],
     do: Enum.count(rows, &(!is_nil(&1.selected_value)))
 
   defp created_at(%{"version" => 1, "createdAt" => value}) when is_binary(value) do
@@ -216,7 +216,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
        do: bounded_rows(rows)
 
   defp source_rows(%{"priceGuides" => rows}, kind)
-       when is_list(rows) and kind in [:prices, :sealed_prices],
+       when is_list(rows) and kind in [:prices, :all_prices],
        do: bounded_rows(rows)
 
   defp source_rows(_, _), do: {:error, :expected_rows_array}
@@ -293,15 +293,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
     end
   end
 
-  defp validate_row(row, :sealed_prices) do
-    case category_id(row) do
-      {:ok, @singles_category} -> {:ok, nil}
-      {:ok, _category_id} -> validate_row(row, {:prices, :any_category})
-      error -> error
-    end
-  end
-
-  defp validate_row(row, {:prices, :any_category}) do
+  defp validate_row(row, :all_prices) do
     with {:ok, category_id} <- category_id(row),
          {:ok, values} <- metrics(row) do
       {metric, value} = selected_metric(values)

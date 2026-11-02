@@ -319,9 +319,11 @@ defmodule TcgCheap.Sealed.AgentTools do
     action :enqueue_card_sync, :map do
       description """
       Queues a background copy of the TCGdex set cards (also run daily), which set_pull_rates
-      needs before it accepts a set's rates. One run stops after five minutes; queue another while
-      sets remain unsynced. Returns the job; `already_queued` is true when a copy was already
-      waiting or running.
+      needs before it accepts a set's rates, then looks up the Cardmarket product ids of cards
+      without one (about a thousand per run), which link booster pages' cards to Cardmarket and
+      their prices. One run stops after five minutes; queue another while sets remain unsynced or
+      cards lack ids. Returns the job; `already_queued` is true when a copy was already waiting or
+      running.
       """
 
       run {Enqueue, job: :card_sync}

@@ -938,10 +938,16 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .set-cards-count { color: var(--muted); font-variant-numeric: tabular-nums; margin-inline-start: auto; }
 .guide-world .set-cards-chevron { flex: none; transition: transform .2s ease-out; }
 .guide-world .set-cards-group[open] .set-cards-chevron { transform: rotate(180deg); }
-.guide-world .set-cards-group ol { column-gap: 1.5rem; columns: 3 18rem; list-style: none; margin: 0; padding: 0 0 .75rem; scroll-margin-block-start: 3.5rem; }
+.guide-world .set-cards-group ol { column-gap: 2.5rem; columns: 3 18rem; list-style: none; margin: 0; padding: 0 0 .75rem; scroll-margin-block-start: 3.5rem; }
 .guide-world .set-cards-group ol.set-cards-short { columns: 1; }
-.guide-world .set-cards-group li { break-inside: avoid; display: flex; gap: .75rem; padding-block: .2rem; }
+.guide-world .set-cards-group li { align-items: baseline; break-inside: avoid; display: flex; gap: .75rem; padding-block: .2rem; }
 .guide-world .set-cards-number { color: var(--muted); flex: none; font-variant-numeric: tabular-nums; min-inline-size: 2.5rem; }
+.guide-world .set-cards-price { flex: none; font-variant-numeric: tabular-nums; margin-inline-start: auto; white-space: nowrap; }
+.guide-world a.set-cards-price { color: inherit; margin-block: -.35rem; padding-block: .35rem; padding-inline-start: .5rem; text-decoration: underline; text-underline-offset: .15em; }
+.guide-world .product-section-heading p span { white-space: nowrap; }
+.guide-world .set-cards-logo { block-size: 2rem; display: block; inline-size: auto; margin-block-end: .35rem; max-inline-size: 12rem; object-fit: contain; }
+@media (hover: hover) and (pointer: fine) { .guide-world a.set-cards-price:hover { color: var(--orange); } }
+.guide-world .set-cards-price.set-cards-no-price { color: var(--muted); font-size: .875rem; }
 .guide-world #product-cards > .guide-note { margin-block-start: .5rem; }
 .guide-world .cardmarket-trend { margin: 0 0 .5rem; }
 .guide-world .cardmarket-trend strong { font: 700 1.5rem/1.1 "Barlow Condensed", sans-serif; white-space: nowrap; }

@@ -1,5 +1,8 @@
 defmodule TcgCheap.Sealed.CardSyncWorker do
-  @moduledoc "Daily Oban job that copies the cards of TCGdex sets (`TcgCheap.Sealed.CardSync`)."
+  @moduledoc """
+  Daily Oban job that copies the cards of TCGdex sets and their Cardmarket
+  product ids (`TcgCheap.Sealed.CardSync`).
+  """
 
   use Oban.Worker,
     queue: :sealed,
@@ -16,7 +19,12 @@ defmodule TcgCheap.Sealed.CardSyncWorker do
   @impl Oban.Worker
   def perform(%Oban.Job{}) do
     {:ok, counts} = CardSync.run()
-    Logger.info("TCGdex set cards: #{counts.synced} sets copied, #{counts.failed} failed")
+
+    Logger.info(
+      "TCGdex set cards: #{counts.synced} sets copied, #{counts.failed} failed; " <>
+        "Cardmarket ids: #{counts.looked_up} cards looked up, #{counts.lookups_failed} failed"
+    )
+
     :ok
   end
 
