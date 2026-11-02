@@ -21,8 +21,9 @@ defmodule TcgCheap.Sealed.PrestaShop do
   pass are left to `TcgCheap.Sealed.Matcher`. Its price is the current price
   in złoty. It is in stock when PrestaShop offers it for adding to the cart
   (`add_to_cart_url`, which PrestaShop leaves out of unavailable products)
-  and its listing tile names no pre-order ("Przedsprzedaż", "Zapowiedź",
-  "Premiera", …): the shops' faceted stock counts ("W magazynie") equal this
+  and neither its listing tile nor its default category (`category_name`;
+  RGFK files pre-orders under "Przedsprzedaż") names a pre-order
+  ("Przedsprzedaż", "Zapowiedź", "Premiera", …): the shops' faceted stock counts ("W magazynie") equal this
   rule on the shops that show them. A shop that lets customers buy an item
   that is out of stock cannot be told apart from stock by the listing, so it
   does not belong here. The JSON carries no EAN, so offers have none. Links
@@ -198,7 +199,7 @@ defmodule TcgCheap.Sealed.PrestaShop do
            image_url: image_url(shop, product["cover"]),
            ean: nil,
            price: price,
-           in_stock: in_stock?(product, title, tile)
+           in_stock: in_stock?(product, title, "#{tile} #{product["category_name"]}")
          }
        ]}
     else
@@ -238,7 +239,8 @@ defmodule TcgCheap.Sealed.PrestaShop do
     product["add_to_cart_url"] not in [nil, ""] and not preorder?(title, tile)
   end
 
-  # The tile's own labels, without the title that may name a pre-order itself.
+  # The tile's own labels and the default category, without the title that may
+  # name a pre-order itself.
   # A premiere ("Premiera: 06.11.2026", "Premiera 06 lis 2026") makes it a
   # pre-order until its date; a premiere without a readable date counts too.
   defp preorder?(title, tile) do

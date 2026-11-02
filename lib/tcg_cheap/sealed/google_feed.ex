@@ -10,8 +10,11 @@ defmodule TcgCheap.Sealed.GoogleFeed do
   `g:product_type`). Its price is `g:price`, or a lower `g:sale_price`
   while `g:sale_price_effective_date` (if given) includes now, in PLN;
   `g:availability` "in stock" (or `in_stock`) is in stock, "out of stock",
-  "preorder" and "backorder" are not. Links and images must be on the shop's host; EANs come
-  from `g:gtin`. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
+  "preorder" and "backorder" are not. Shoper exports pre-orders as "in stock"
+  too, with a `g:max_handling_time` of 0: their shipping time ("PREORDER",
+  "Planowana premiera: …") names no days, while stock ships in one or more,
+  so such a product is not in stock. Links and images must be on the shop's
+  host; EANs come from `g:gtin`. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
@@ -26,6 +29,7 @@ defmodule TcgCheap.Sealed.GoogleFeed do
     ["link"],
     ["g:image_link"],
     ["g:availability"],
+    ["g:shipping", "g:max_handling_time"],
     ["g:price"],
     ["g:sale_price"],
     ["g:sale_price_effective_date"],
@@ -64,7 +68,11 @@ defmodule TcgCheap.Sealed.GoogleFeed do
          {:ok, price} <- price(text.("g:price")),
          {:ok, sale_price} <-
            sale_price(text.("g:sale_price"), text.("g:sale_price_effective_date"), now),
-         {:ok, in_stock} <- in_stock(text.("g:availability")) do
+         {:ok, in_stock} <-
+           in_stock(
+             text.("g:availability"),
+             XmlRecords.text(entry, ["g:shipping", "g:max_handling_time"])
+           ) do
       {:ok,
        [
          %{
@@ -111,11 +119,13 @@ defmodule TcgCheap.Sealed.GoogleFeed do
     end
   end
 
-  defp in_stock(value) when value in ["in stock", "in_stock"], do: {:ok, true}
+  # A Shoper pre-order: "in stock" with no days to ship.
+  defp in_stock(value, "0") when value in ["in stock", "in_stock"], do: {:ok, false}
+  defp in_stock(value, _handling_time) when value in ["in stock", "in_stock"], do: {:ok, true}
 
-  defp in_stock(value)
+  defp in_stock(value, _handling_time)
        when value in ["out of stock", "out_of_stock", "preorder", "backorder"],
        do: {:ok, false}
 
-  defp in_stock(_value), do: :error
+  defp in_stock(_value, _handling_time), do: :error
 end
