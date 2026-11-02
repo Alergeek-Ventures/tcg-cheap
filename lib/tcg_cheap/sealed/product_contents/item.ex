@@ -1,5 +1,9 @@
 defmodule TcgCheap.Sealed.ProductContents.Item do
-  @moduledoc "One kind of thing in a sealed product, with how many there are."
+  @moduledoc """
+  One kind of thing in a sealed product, with how many there are.
+  A deck has either fixed `cards` or `variants`: quantity copies of one random
+  deck from the named variants, never every variant in the same box.
+  """
 
   use Ash.Resource, data_layer: :embedded
 
@@ -10,6 +14,14 @@ defmodule TcgCheap.Sealed.ProductContents.Item do
   @doc "Every item type."
   @spec types() :: [atom()]
   def types, do: @types
+
+  validations do
+    validate present([:cards, :variants], at_most: 1)
+
+    validate attribute_equals(:type, :deck) do
+      where present(:variants)
+    end
+  end
 
   attributes do
     attribute :quantity, :integer do
@@ -65,6 +77,12 @@ defmodule TcgCheap.Sealed.ProductContents.Item do
       description "A picture of this item (sleeves, dice, coin...): an https image URL on an allowed image host, e.g. a REBEL component picture. Shown from our own storage once mirrored."
       public? true
       constraints max_length: 2_000
+    end
+
+    attribute :variants, {:array, TcgCheap.Sealed.ProductContents.DeckVariant} do
+      description "One random deck from these variants per quantity; only for type deck. Mutually exclusive with cards."
+      public? true
+      constraints min_length: 1
     end
 
     attribute :cards, {:array, TcgCheap.Sealed.ProductContents.DeckCard} do

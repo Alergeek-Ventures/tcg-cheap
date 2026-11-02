@@ -3,7 +3,10 @@ defmodule TcgCheap.Sealed.ProductContents do
   What a sealed product holds, as facts gathered by an agent or admin from
   shop and publisher pages: the items (boosters, named cards such as promos,
   accessories). Stored on the product and shown on its page with the
-  sources and the day they were checked.
+  sources and the day they were checked. A deck item uses `cards` for a fixed
+  list, or `variants` for one random named deck per quantity (e.g. 10 random
+  decks in a Build & Battle Display). Lists may contain only the published
+  known cards when the publisher's list is incomplete.
   """
 
   use Ash.Resource, data_layer: :embedded

@@ -64,6 +64,11 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
       :photo
     ])
     |> Map.put(:cards, item.cards && Enum.map(item.cards, &deck_card/1))
+    |> Map.put(:variants, item.variants && Enum.map(item.variants, &deck_variant/1))
+  end
+
+  defp deck_variant(variant) do
+    %{name: variant.name, cards: Enum.map(variant.cards, &deck_card/1)}
   end
 
   defp deck_card(card) do

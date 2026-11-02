@@ -3,7 +3,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   Sets or clears what a product holds. Keys the contents do not know are
   rejected rather than dropped, so a misspelt field never passes as missing.
   A card given by its TCGdex id gets its set, number, picture and Cardmarket
-  product from TCGdex, and so does each card of a deck's list, with its
+  product from TCGdex, and so does each card of a fixed deck or random deck variant, with its
   category; an id TCGdex does not know is rejected. An item's photo
   must be on an image host we mirror from (`TcgCheap.Catalogue.ExternalImage`).
   """
@@ -17,7 +17,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   alias TcgCheap.Sealed.ProductContents.DeckCard
 
   @contents ~w(items sources checked_on)
-  @item ~w(quantity type name tcgdex_id set number cardmarket_id image photo cards)
+  @item ~w(quantity type name tcgdex_id set number cardmarket_id image photo cards variants)
   @deck_card ~w(quantity name tcgdex_id category set number cardmarket_id image)
 
   @impl true
@@ -27,7 +27,14 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
              input.params["contents"] || input.params[:contents],
              :contents,
              @contents,
-             %{"items" => {@item, %{"cards" => @deck_card}}}
+             %{
+               "items" =>
+                 {@item,
+                  %{
+                    "cards" => @deck_card,
+                    "variants" => {~w(name cards), %{"cards" => @deck_card}}
+                  }}
+             }
            ),
          {:ok, product} <- product(input.arguments.product_id),
          {:ok, contents} <- with_cards(input.arguments[:contents]),
@@ -53,7 +60,8 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   defp with_item(item) do
     with :ok <- allowed_photo(item),
          {:ok, item} <- with_card(item),
-         do: with_deck_cards(item)
+         {:ok, item} <- with_deck_cards(item),
+         do: with_variants(item)
   end
 
   defp with_deck_cards(%{cards: cards} = item) when is_list(cards) do
@@ -61,6 +69,13 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   end
 
   defp with_deck_cards(item), do: {:ok, item}
+
+  defp with_variants(%{variants: variants} = item) when is_list(variants) do
+    with {:ok, variants} <- map_ok(variants, &with_deck_cards/1),
+         do: {:ok, %{item | variants: variants}}
+  end
+
+  defp with_variants(item), do: {:ok, item}
 
   # Maps every entry with `fun`, stopping at the first error.
   defp map_ok(entries, fun) do
