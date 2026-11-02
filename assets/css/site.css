@@ -477,19 +477,6 @@
 /* The focus ring goes round the whole search bar, not the field inside its padding. */
 .guide-world .guide-search-input:focus-visible { outline: none; }
 .guide-world .guide-search:has(.guide-search-input:focus-visible) { outline: 3px solid var(--orange); outline-offset: -3px; }
-.guide-world .guide-scan-open { align-items: center; background: transparent; border: 0; border-bottom: 1px solid var(--ink); color: var(--ink); cursor: pointer; display: flex; height: 3rem; justify-content: center; width: 3rem; }
-.guide-world .guide-scan-open[hidden] { display: none; }
-.guide-world .guide-scan-open .fluent-icon { height: 1.5rem; width: 1.5rem; }
-.guide-world .guide-scan-open:hover { color: var(--orange); }
-.guide-world .guide-scan-open:focus-visible, .guide-world .guide-scan-dialog button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
-.guide-world .guide-scan-dialog { background: var(--paper); border: 0; margin: auto; color: var(--ink); max-width: min(32rem, calc(100vw - 2rem)); padding: 1rem; width: 100%; }
-.guide-world .guide-scan-dialog::backdrop { background: rgb(32 29 25 / 60%); }
-.guide-world .guide-scan-dialog h2 { font-size: 1.5rem; margin-bottom: .75rem; }
-.guide-world .guide-scan-dialog video { aspect-ratio: 4 / 3; background: var(--ink); display: block; object-fit: cover; width: 100%; }
-.guide-world .guide-scan-dialog video[hidden] { display: none; }
-.guide-world .guide-scan-dialog p { margin: .75rem 0; }
-.guide-world .guide-scan-dialog p:empty { display: none; }
-.guide-world .guide-scan-dialog button { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; margin-top: .75rem; min-height: 3rem; padding: 0 1.5rem; }
 .guide-world .guide-results-heading, .guide-world .product-section-heading { align-items: baseline; border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .25rem 1rem; justify-content: space-between; margin-bottom: .5rem; padding-bottom: .5rem; }
 .guide-world .guide-results-heading h2, .guide-world .product-section-heading h2 { font-size: clamp(1.5rem, 3vw, 1.75rem); line-height: 1; }
 .guide-world .guide-results-heading p, .guide-world .product-section-heading p { color: var(--muted); font-size: .875rem; margin: 0; }

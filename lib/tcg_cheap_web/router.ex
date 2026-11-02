@@ -43,7 +43,7 @@ defmodule TcgCheapWeb.Router do
      a wrong match poisons the price history.
   4. list_matched_offers: audit automatic matches; fix a wrong one with assign_offer or exclude_offer.
   5. list_manual_decisions and clear_manual_decision: review or undo manual decisions.
-  set_product_eans maintains verified barcodes for matching and the public scanner.
+  set_product_eans maintains verified barcodes for matching.
   set_product_contents records what a box holds (items, a fixed deck's cards, sources) for its page.
   set_product_photo replaces missing, tiny or wrong shop photos with a checked one.
   set_pull_rates records a set's estimated pull rates for its single booster's page, once
