@@ -64,6 +64,9 @@ const nameRowPhoto = path => {
 }
 let shownPath = location.pathname
 let navigatingFrom = null
+// Where LiveView scrolls the page it navigates to, a frame after the patch:
+// the top, or on back and forward where that page was left.
+let landingScroll = null
 // Whether the page shown was opened from the list in this tab.
 let cameFromList = false
 // Patches arriving while a transition waits to apply its own, applied in order after it.
@@ -79,6 +82,7 @@ window.addEventListener("phx:navigate", ({detail}) => {
     navigatingFrom = shownPath
     nameRowPhoto(location.pathname)
   }
+  if (!detail.patch) landingScroll = detail.pop ? history.state?.scroll : !location.hash && 0
   cameFromList = shownPath === "/" && location.pathname !== "/"
   shownPath = location.pathname
 })
@@ -106,6 +110,10 @@ const onDocumentPatch = start => {
   document.startViewTransition(() => {
     try {
       start()
+      // The new page is captured right after this, so it scrolls now for the
+      // photo to land where it shows.
+      if (typeof landingScroll === "number") window.scrollTo(0, landingScroll)
+      landingScroll = null
       // Back on the list, the photo returns to its product's row.
       nameRowPhoto(from)
       while (heldPatches.length) heldPatches.shift()()
