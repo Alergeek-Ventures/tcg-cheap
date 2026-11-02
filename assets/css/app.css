@@ -838,6 +838,13 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .contents-photo-generic { block-size: 3rem; inline-size: 3.5rem; justify-content: center; overflow: hidden; position: relative; }
 .guide-world .contents-items .contents-photo-generic img { block-size: 100%; inline-size: 100%; max-inline-size: none; object-fit: contain; opacity: .8; }
 .guide-world .contents-photo-note { background: color-mix(in srgb, var(--paper) 92%, transparent); box-shadow: 0 -1px 0 var(--rule), 0 1px 0 var(--rule); color: var(--ink); font-size: .5625rem; font-weight: 600; inset-inline: 0; letter-spacing: -.02em; line-height: 1; padding-block: .0625rem; position: absolute; text-align: center; top: 50%; translate: 0 -50%; }
+/* The larger copy opens over the page; a click anywhere closes it. */
+.guide-world .photo-preview { background: var(--paper); border: 0; cursor: zoom-out; margin: auto; max-block-size: calc(100dvh - 2rem); max-inline-size: calc(100vw - 2rem); padding: 1rem; }
+.guide-world .photo-preview[open] { display: flex; flex-direction: column; gap: .75rem; }
+.guide-world .photo-preview::backdrop { background: rgb(32 29 25 / 75%); }
+.guide-world .photo-preview img { block-size: auto; inline-size: auto; max-block-size: calc(100dvh - 7.75rem); max-inline-size: min(60rem, 100%); min-block-size: 0; object-fit: contain; }
+.guide-world .photo-preview button { align-self: center; background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 1.5rem; text-transform: uppercase; }
+.guide-world .photo-preview button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 /* An item we have no picture of says so in the picture's place. */
 .guide-world .contents-photo-missing { align-items: center; align-self: start; block-size: 3rem; border: 1px dashed var(--rule); color: var(--muted); display: flex; flex: none; font-size: .6875rem; inline-size: 3.25rem; justify-content: center; line-height: 1.1; text-align: center; }
 .guide-world .contents-quantity { flex: none; font-variant-numeric: tabular-nums; font-weight: 700; min-inline-size: 2.5rem; }
