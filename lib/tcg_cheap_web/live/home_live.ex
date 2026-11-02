@@ -384,6 +384,7 @@ defmodule TcgCheapWeb.HomeLive do
                   aria-expanded="false"
                   phx-click={
                     JS.dispatch("guide:pin-filters", to: "#guide-search-form")
+                    |> JS.set_attribute({"hidden", ""}, to: "#visitor-location-invite")
                     |> JS.toggle_class("guide-filters-open", to: "#guide-filters")
                     |> JS.toggle_attribute({"aria-expanded", "true", "false"})
                   }

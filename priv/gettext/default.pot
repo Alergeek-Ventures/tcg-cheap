@@ -171,7 +171,7 @@ msgid "Europejska giełda, bez wysyłki z innych krajów"
 msgstr ""
 
 #: lib/tcg_cheap_web/live/home_live.ex:173
-#: lib/tcg_cheap_web/live/home_live.ex:391
+#: lib/tcg_cheap_web/live/home_live.ex:392
 #, elixir-autogen, elixir-format
 msgid "Filtry"
 msgstr ""
@@ -266,12 +266,12 @@ msgstr ""
 msgid "Najtaniej z odbiorem osobistym do %{radius} km"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:492
+#: lib/tcg_cheap_web/live/home_live.ex:493
 #, elixir-autogen, elixir-format
 msgid "Nic nie znaleźliśmy przy tych filtrach. Spróbuj samej nazwy dodatku albo usuń filtry."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:496
+#: lib/tcg_cheap_web/live/home_live.ex:497
 #, elixir-autogen, elixir-format
 msgid "Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black."
 msgstr ""
@@ -286,7 +286,7 @@ msgstr ""
 msgid "Nie znamy jeszcze jego ceny."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:488
+#: lib/tcg_cheap_web/live/home_live.ex:489
 #, elixir-autogen, elixir-format
 msgid "Nie znamy jeszcze tego kodu kreskowego. Wpisz nazwę produktu, np. Pitch Black ETB."
 msgstr ""
@@ -341,7 +341,7 @@ msgstr ""
 msgid "Podaj miejscowość"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:550
+#: lib/tcg_cheap_web/live/home_live.ex:553
 #, elixir-autogen, elixir-format
 msgid "Pokazano %{loaded} z %{count}."
 msgstr ""
@@ -356,12 +356,12 @@ msgstr ""
 msgid "Pokaż pozostałe (%{count})"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:547
+#: lib/tcg_cheap_web/live/home_live.ex:550
 #, elixir-autogen, elixir-format
 msgid "Pokaż więcej"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:498
+#: lib/tcg_cheap_web/live/home_live.ex:499
 #, elixir-autogen, elixir-format
 msgid "Pokaż wszystkie produkty"
 msgstr ""
@@ -517,7 +517,7 @@ msgstr ""
 msgid "W %{shop} %{delivery}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:545
+#: lib/tcg_cheap_web/live/home_live.ex:548
 #, elixir-autogen, elixir-format
 msgid "Wczytuję…"
 msgstr ""
@@ -540,19 +540,19 @@ msgstr ""
 msgid "Wszystkie"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:469
+#: lib/tcg_cheap_web/live/home_live.ex:470
 #: lib/tcg_cheap_web/live/product_live.ex:64
 #: lib/tcg_cheap_web/seo.ex:95
 #, elixir-autogen, elixir-format
 msgid "Wszystkie produkty"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:480
+#: lib/tcg_cheap_web/live/home_live.ex:481
 #, elixir-autogen, elixir-format
 msgid "Wyczyść filtry"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:470
+#: lib/tcg_cheap_web/live/home_live.ex:471
 #, elixir-autogen, elixir-format
 msgid "Wyniki"
 msgstr ""
