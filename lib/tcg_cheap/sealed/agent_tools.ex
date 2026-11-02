@@ -239,8 +239,9 @@ defmodule TcgCheap.Sealed.AgentTools do
       shops agree on, never guesses; omit what you could not confirm. Give each card its TCGdex
       id (tcgdex_id, e.g. svp-085) when you are sure of the exact card: its set, number, picture
       and Cardmarket link are filled in from TCGdex, and an unknown id is rejected. A fixed deck
-      (type deck) may carry its full list in cards: every card with its copies and TCGdex id,
-      checked the same way. Read the current contents with get_product first. contents null removes them. Returns the product
+      (type deck), or a row of fixed cards that is not a ready deck (type card, e.g. a
+      deck-building box's cards), may carry its full list in cards: every card with its copies
+      and TCGdex id, checked the same way. Read the current contents with get_product first. contents null removes them. Returns the product
       with its contents.
       """
 
