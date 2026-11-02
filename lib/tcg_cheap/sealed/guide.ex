@@ -164,8 +164,8 @@ defmodule TcgCheap.Sealed.Guide do
   @doc """
   Everything the product page shows: today's verdict, the comparison with
   the product's history (`past`), offers, 90 days of history, REBEL's
-  suggested retail price when one matches, our English single booster of
-  each set the contents name (`boosters`, by set name), their combined odds
+  suggested retail price when one matches, our single booster of the same
+  edition for each set the contents name (`boosters`, by set name), their combined odds
   (`booster_odds`) and, for any English single booster, its set's pull rates
   and cards (`booster_set`, nil for other products).
   """
@@ -189,7 +189,7 @@ defmodule TcgCheap.Sealed.Guide do
 
         summary = summary(product, offers, rate)
         past_history = with_last_stocked_day(history, product.id, since)
-        boosters = boosters(product.contents)
+        boosters = boosters(product)
 
         {:ok,
          Map.merge(summary, %{
@@ -206,16 +206,16 @@ defmodule TcgCheap.Sealed.Guide do
     end
   end
 
-  defp boosters(nil), do: %{}
+  defp boosters(%Product{contents: nil}), do: %{}
 
-  defp boosters(contents) do
+  defp boosters(%Product{contents: contents, region: region}) do
     case for(%{type: :booster, name: set} <- contents.items, set, do: set <> " Booster") do
       [] ->
         %{}
 
       names ->
         names
-        |> Sealed.list_english_boosters!(load: [:photo_card_url])
+        |> Sealed.list_boosters_by_name!(region, load: [:photo_card_url])
         |> Map.new(&{String.replace_suffix(&1.name, " Booster", ""), &1})
     end
   end

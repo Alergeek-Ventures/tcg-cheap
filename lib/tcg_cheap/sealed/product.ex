@@ -134,10 +134,11 @@ defmodule TcgCheap.Sealed.Product do
       filter expr(slug == ^arg(:slug))
     end
 
-    read :english_boosters do
-      description "English single boosters with these exact names, e.g. \"Delta Reign Booster\"."
+    read :boosters_by_name do
+      description "Single boosters of one edition with these exact names, e.g. \"Delta Reign Booster\"."
       argument :names, {:array, :string}, allow_nil?: false
-      filter expr(kind == :booster and region == :en and name in ^arg(:names))
+      argument :region, :atom, allow_nil?: false, constraints: [one_of: Regions.all()]
+      filter expr(kind == :booster and region == ^arg(:region) and name in ^arg(:names))
     end
 
     read :browse do
