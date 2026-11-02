@@ -189,7 +189,7 @@ const pinFilters = ({type}) => {
   document.documentElement.style.setProperty("--guide-filters-top", `${Math.round(search.getBoundingClientRect().bottom)}px`)
 }
 window.addEventListener("guide:pin-filters", pinFilters)
-window.addEventListener("resize", () => { if (document.querySelector(".guide-filters-open")) pinFilters() })
+window.addEventListener("resize", e => { if (document.querySelector(".guide-filters-open")) pinFilters(e) })
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
