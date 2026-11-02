@@ -16,8 +16,10 @@ defmodule TcgCheap.Sealed.Am76 do
   heading). Its price is the shop's own current price (a struck-through
   comparison price is ignored); it is in stock when the listing offers the
   add-to-cart button, and not when it shows "Brak". The listing's names are
-  shortened, so the full name is read from the product's info button. There is
-  no EAN. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
+  shortened, so the full name is read from the product's info button. The
+  image is the large one the product page links (`/plik/b_<name>` for the
+  listing's 160 px `/plik/<name>`). There is no EAN. See
+  `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
@@ -164,8 +166,11 @@ defmodule TcgCheap.Sealed.Am76 do
 
   defp image_url(shop, product) do
     case product |> Floki.find("div.panel-body img") |> Floki.attribute("src") |> List.first() do
-      "/plik/" <> _ = src -> ShopFeed.image_url("https://#{shop.host}#{src}", image_hosts(shop))
-      _ -> nil
+      "/plik/" <> name ->
+        ShopFeed.image_url("https://#{shop.host}/plik/b_#{name}", image_hosts(shop))
+
+      _ ->
+        nil
     end
   end
 end

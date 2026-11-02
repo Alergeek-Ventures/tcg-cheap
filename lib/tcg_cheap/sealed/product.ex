@@ -224,7 +224,7 @@ defmodule TcgCheap.Sealed.Product do
     attribute :photo_attempted_at, :utc_datetime_usec
 
     attribute :photo_source_url, :string do
-      description "The shop photo the stored photo was made from."
+      description "The offer photo (`image_url`) the stored photo was chosen for; the stored photo may be a larger one from another offer."
       public? true
       constraints max_length: 2_000
     end

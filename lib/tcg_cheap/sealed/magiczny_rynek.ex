@@ -132,6 +132,14 @@ defmodule TcgCheap.Sealed.MagicznyRynek do
 
   defp price_in_groszy(_groszy), do: :error
 
+  # The shop's Vendure preview is its upload scaled to at most 1600 px, as large
+  # as the source in practice (checked 2026-11-02). The photo mirror cannot read
+  # AVIF, so those are asked for as WebP (the asset server's `format` option).
+  defp image_url(%{"preview" => "https://magicznyrynek.pl/assets/" <> _ = url}) do
+    url = if String.ends_with?(url, ".avif"), do: url <> "?format=webp", else: url
+    ShopFeed.image_url(url, @images)
+  end
+
   defp image_url(%{"preview" => url}), do: ShopFeed.image_url(url, @images)
   defp image_url(_asset), do: nil
 end

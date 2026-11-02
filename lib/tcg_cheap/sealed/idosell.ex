@@ -12,7 +12,10 @@ defmodule TcgCheap.Sealed.IdoSell do
   Its price is the gross product price, which must be shown in złoty; it is in
   stock when the product's availability status is `enable` (`disable`,
   `order` and `preorder` are not). Links, often relative, are made absolute
-  on the shop's host without their query; so are product icons. The EAN is
+  on the shop's host without their query; so are product photos. The photo
+  is the product's main image (`enclosure` at position 1) at the size the
+  shop uploaded it; shops on older templates list only the product's icon,
+  scaled down to a few hundred pixels, which is used instead. The EAN is
   the product's `barcode`, else its first size's producer code. See
   `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
@@ -27,6 +30,7 @@ defmodule TcgCheap.Sealed.IdoSell do
     ["category"],
     ["subcategory"],
     ["icon"],
+    ["enclosures", "images", "enclosure"],
     ["price"],
     ["sizes", "size"],
     ["sizes", "availability"]
@@ -109,7 +113,7 @@ defmodule TcgCheap.Sealed.IdoSell do
            shop_product_id: id,
            title: title,
            url: url,
-           image_url: image_url(shop, XmlRecords.text(product, ["icon"])),
+           image_url: image_url(shop, photo(product)),
            ean:
              Ean.normalize(attr.("barcode")) ||
                Ean.normalize(XmlRecords.attr(product, ["sizes", "size"], "code_producer")),
@@ -150,6 +154,18 @@ defmodule TcgCheap.Sealed.IdoSell do
     if is_binary(formatted) and String.ends_with?(formatted, [" zł", " PLN"]),
       do: ShopFeed.decimal_price(XmlRecords.attr(product, ["price"], "value")),
       else: :error
+  end
+
+  defp photo(product) do
+    main =
+      product
+      |> Map.get(["enclosures", "images", "enclosure"], [])
+      |> Enum.find_value(fn
+        %{attrs: %{"position" => "1", "url" => "/" <> _path = url}} -> url
+        _enclosure -> nil
+      end)
+
+    main || XmlRecords.text(product, ["icon"])
   end
 
   defp image_url(_shop, nil), do: nil

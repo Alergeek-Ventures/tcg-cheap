@@ -145,13 +145,22 @@ defmodule TcgCheap.Sealed.Refresh do
 
   defp availability(product, offers) do
     in_stock = offers |> Enum.filter(& &1.in_stock) |> Enum.sort_by(& &1.price, Decimal)
-    best_image = Enum.find_value(in_stock ++ offers, & &1.image_url)
 
     %{
       available: in_stock != [],
       lowest_price: List.first(in_stock) && hd(in_stock).price,
-      image_url: best_image || product.image_url
+      image_url: image_url(product, in_stock ++ offers)
     }
+  end
+
+  # The photo stays while an offer still shows it, so a change of the cheapest
+  # shop does not make `TcgCheap.Sealed.PhotoMirror` copy the product again.
+  defp image_url(product, offers) do
+    images = offers |> Enum.map(& &1.image_url) |> Enum.reject(&is_nil/1)
+
+    if product.image_url in images,
+      do: product.image_url,
+      else: List.first(images, product.image_url)
   end
 
   @doc false

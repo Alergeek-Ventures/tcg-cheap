@@ -34,7 +34,8 @@ defmodule TcgCheap.Sealed.ShoperListing do
   `preorder_path` (its first page only), and its products are never in
   stock; the matcher also excludes titles that say pre-order. Links and images are made absolute on the
   shop's host, which is the `www.` one where the apex redirects there (no
-  redirects are followed). Listings carry no EAN. See `TcgCheap.Sealed.ShopFeed` for
+  redirects are followed); tile images are swapped for the full-size photo
+  (`full_size_image/1`). Listings carry no EAN. See `TcgCheap.Sealed.ShopFeed` for
   the shared limits.
   """
 
@@ -42,8 +43,31 @@ defmodule TcgCheap.Sealed.ShoperListing do
 
   alias TcgCheap.Sealed.{HtmlListing, Matcher, Shop, ShopFeed}
 
+  @current_cache_image ~r|\A((?:https://[^/]+)?/environment/cache/images/)productGfx_(\d{1,12})_\d{1,4}_\d{1,4}/|
+  @classic_cache_image ~r|\A((?:https://[^/]+)?)/environment/cache/images/\d{1,4}_\d{1,4}_productGfx_([0-9a-f]{32}\.[A-Za-z]{3,4})\z|
+
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
+
+  @doc """
+  The full-size copy of a Shoper product photo, given any of the thumbnails
+  the shop's image cache serves (an absolute URL or a path on the shop).
+
+  Current shops name a cached copy
+  `/environment/cache/images/productGfx_<id>_<width>_<height>/<name>` and
+  make it in larger boxes too, scaling the upload down to fit but never up;
+  some themes already list the 1500 × 1500 copy, which is used. Classic shops name
+  it `/environment/cache/images/<width>_<height>_productGfx_<hash>.<ext>` and
+  make only a few small sizes; their product pages zoom into the upload
+  itself, `/userdata/gfx/<hash>.<ext>`. Any other URL is returned unchanged.
+  """
+  @spec full_size_image(String.t() | nil) :: String.t() | nil
+  def full_size_image(nil), do: nil
+
+  def full_size_image(url) do
+    url = Regex.replace(@current_cache_image, url, "\\1productGfx_\\2_1500_1500/")
+    Regex.replace(@classic_cache_image, url, "\\1/userdata/gfx/\\2")
+  end
 
   @impl true
   def fetch(%Shop{} = shop, req_options) do
@@ -163,7 +187,7 @@ defmodule TcgCheap.Sealed.ShoperListing do
       id: first(Floki.attribute(tile, "product-id")),
       title: first(Floki.attribute(tile, "name")),
       path: first(Floki.attribute(tile, "product-link a", "href")),
-      image: first(Floki.attribute(tile, ".product-tile__image img", "src")),
+      image: full_size_image(first(Floki.attribute(tile, ".product-tile__image img", "src"))),
       price: tile_price(tile),
       in_stock: tile_in_stock(tile)
     }
@@ -206,13 +230,17 @@ defmodule TcgCheap.Sealed.ShoperListing do
 
   defp block_id(_path), do: nil
 
-  # Lazy-loaded images keep the real address in data-src.
+  # Lazy-loaded images keep the real address in data-src; the 1 px images
+  # (`px1`) belong to buttons. A product without a photo shows Shoper's
+  # placeholder (`productGfx___overlay`), which is no photo of it.
   defp block_image(block) do
     src =
-      first(Floki.attribute(block, "img", "data-src")) ||
-        first(Floki.attribute(block, "img", "src"))
+      first(Floki.attribute(block, "img:not(.px1)", "data-src")) ||
+        first(Floki.attribute(block, "img:not(.px1)", "src"))
 
-    if src && not String.starts_with?(src, "data:"), do: src
+    if is_binary(src) and not String.starts_with?(src, "data:") and
+         not String.contains?(src, "productGfx___"),
+       do: full_size_image(src)
   end
 
   # "59,00 zł" (a non-breaking space in some themes) -> "59.00".

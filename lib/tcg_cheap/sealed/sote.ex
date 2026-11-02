@@ -15,8 +15,10 @@ defmodule TcgCheap.Sealed.Sote do
   heading). The price is the current one shown in złoty. It is in stock when
   its availability says there is some ("Duża ilość", "Średnia ilość",
   "Ostatnie sztuki") and its "add to cart" button is enabled; "Brak", a
-  disabled button and "Przedsprzedaż" (pre-sale) are not. The listing carries
-  no EAN. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
+  disabled button and "Przedsprzedaż" (pre-sale) are not. The listing shows
+  the photo's `small_` thumbnail; the offer takes its `big_` one, the photo
+  the product page's gallery opens (about 1000 px). The listing carries no
+  EAN. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
@@ -189,8 +191,10 @@ defmodule TcgCheap.Sealed.Sote do
 
   defp image_url(_shop, nil), do: nil
 
-  defp image_url(shop, "/" <> _path = path),
-    do: ShopFeed.image_url("https://#{shop.host}#{path}", image_hosts(shop))
+  defp image_url(shop, "/" <> _path = path) do
+    path = String.replace(path, "/images/thumbnail/small_", "/images/thumbnail/big_")
+    ShopFeed.image_url("https://#{shop.host}#{path}", image_hosts(shop))
+  end
 
   defp image_url(_shop, _path), do: nil
 end

@@ -14,8 +14,9 @@ defmodule TcgCheap.Sealed.Selly do
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on its title and the listing's
   heading). The price is the one shown, which must be in złoty. It is in stock
   when its box has an "add to cart" button and out of stock when it has "Zapytaj
-  o produkt" instead. The EAN is the barcode shown under the name. See
-  `TcgCheap.Sealed.ShopFeed` for the shared limits.
+  o produkt" instead. The EAN is the barcode shown under the name. The image
+  is the full-size one the product page links (`1_max.jpg` for the listing's
+  `1_med.jpg`). See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
@@ -158,6 +159,7 @@ defmodule TcgCheap.Sealed.Selly do
   defp image_url(_shop, nil), do: nil
 
   defp image_url(shop, path) do
+    path = Regex.replace(~r{(/[0-9]+)_med(\.[a-z]+)(?=\?|\z)}, path, "\\1_max\\2")
     ShopFeed.image_url("https://#{shop.host}#{path}", image_hosts(shop))
   end
 end
