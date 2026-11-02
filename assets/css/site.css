@@ -592,7 +592,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   html:has(.guide-filters-open) { overflow: hidden; }
   /* The panel takes the screen, so the report button would cover its last filters. */
   html:has(.guide-filters-open) #report-toggle { display: none; }
-  .guide-world .guide-filters-apply { padding-block-end: env(safe-area-inset-bottom); }
+  /* The home indicator gap comes on top of the bar, not out of it. */
+  .guide-world .guide-filters-apply { min-block-size: calc(3.5rem + env(safe-area-inset-bottom)); padding-block-end: env(safe-area-inset-bottom); }
   .guide-world .guide-filters-body { gap: 1rem; padding: 1rem; }
   /* The expansion tiles become rows like the rest, tall enough to tap. */
   .guide-world .guide-filter .guide-expansion-tiles { gap: 0; grid-template-columns: minmax(0, 1fr); }
