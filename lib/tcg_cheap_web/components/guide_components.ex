@@ -275,7 +275,7 @@ defmodule TcgCheapWeb.GuideComponents do
             <li :for={line <- @chart.lines} :if={line.points != []} class={"legend-#{line.class}"}>
               {line.label}
             </li>
-            <li :if={@chart.typical_y} class="legend-typical">{gettext("Typowa cena")}</li>
+            <li :if={@chart.typical_y} class="legend-typical">{gettext("Zwykle najtaniej")}</li>
           </ul>
           <div class="price-chart-frame">
             <div class="price-chart-scale" aria-hidden="true">
@@ -334,7 +334,7 @@ defmodule TcgCheapWeb.GuideComponents do
                 style={"--at: #{@chart.typical_at}%"}
                 aria-hidden="true"
               >
-                {gettext("typowa %{price}", price: Polish.zloty(@typical))}
+                {gettext("zwykle %{price}", price: Polish.zloty(@typical))}
               </span>
             </div>
             <div class="price-chart-axis" aria-hidden="true">
@@ -353,7 +353,7 @@ defmodule TcgCheapWeb.GuideComponents do
                 line.first_date
               )} – {Polish.short_date(line.last_date)}).
             </span>
-            <span :if={@typical}>{gettext("Linia przerywana: typowa cena %{price}.",
+            <span :if={@typical}>{gettext("Linia przerywana: zwykle najtaniej %{price}.",
               price: Polish.zloty(@typical)
             )}</span>
           </figcaption>

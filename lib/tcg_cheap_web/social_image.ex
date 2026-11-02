@@ -14,13 +14,13 @@ defmodule TcgCheapWeb.SocialImage do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{PriceGuide, Shops}
+  alias TcgCheap.Sealed.Shops
   alias TcgCheap.Storage.ImageDownload
   alias TcgCheapWeb.{GuideComponents, Polish}
   alias Vix.Vips.Operation
 
   # Bump when the layout changes, so stored and cached cards are replaced.
-  @design 2
+  @design 3
 
   @width 1200
   @height 630
@@ -56,7 +56,8 @@ defmodule TcgCheapWeb.SocialImage do
     version(
       {product.name, product.photo_page_url, product.kind, product.set_name, product.region,
        verdict.status, verdict.cheapest && {verdict.cheapest.price, verdict.cheapest.shop},
-       verdict.typical, verdict.last_known, page.suggested_price && page.suggested_price.price}
+       verdict.typical, length(verdict.shop_prices), page.past.last_known,
+       page.suggested_price && page.suggested_price.price}
     )
   end
 
@@ -161,19 +162,19 @@ defmodule TcgCheapWeb.SocialImage do
   # Badge, price and shop, then the typical and suggested prices, stacked
   # up from the bottom edge; returns the SVG and its height.
   defp answer_block(page, x, width) do
-    %{verdict: verdict} = page
+    %{verdict: verdict, past: past} = page
 
     {price, shop_line} =
-      case verdict do
-        %{cheapest: %{price: price} = cheapest} ->
+      case {verdict, past} do
+        {%{cheapest: %{price: price} = cheapest}, _past} ->
           {{Polish.price(price), 104, @ink},
            gettext("najtaniej teraz w %{shop}", shop: GuideComponents.shop_name(cheapest))}
 
-        %{last_known: %{price: price, date: date}} ->
+        {_verdict, %{last_known: %{price: price, date: date}}} ->
           {{Polish.price(price), 68, @muted},
            gettext("ostatnio najtaniej · %{date}", date: Calendar.strftime(date, "%d.%m.%Y"))}
 
-        _verdict ->
+        _none ->
           {nil, gettext("Teraz żaden sklep nie ma tego produktu na stanie.")}
       end
 
@@ -218,10 +219,10 @@ defmodule TcgCheapWeb.SocialImage do
     do: text_line(text, x, top + round(size * 0.76), size, :display, color)
 
   # The Cardmarket comparison is already in the badge.
-  defp typical_note(%{typical: %Decimal{} = typical, typical_source: :shops}),
+  defp typical_note(%{typical: %Decimal{} = typical, typical_source: :shops} = verdict),
     do:
-      gettext("Typowa cena z %{days} dni: %{price}",
-        days: PriceGuide.window_days(),
+      gettext("Typowa cena dziś w %{shops}: %{price}",
+        shops: Polish.plural(length(verdict.shop_prices), "sklepie", "sklepach", "sklepach"),
         price: Polish.zloty(typical)
       )
 

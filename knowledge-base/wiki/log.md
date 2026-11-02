@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-11-02] Verdict against today's shops, history as context
+
+- Task: Owner found the 7-day wait for a verdict pointless: "is it a good price today" is relative to today's market, and an old price changes nothing today. The verdict now compares the cheapest offer with the median of each in-stock shop's lowest price (at least 3 shops, else Cardmarket as before); the former 30-day comparison stays as a separate history label. The product page keeps both in the verdict block, flight-search style (Google Flights price insights, Kayak, Amazon's "lowest in 30 days"): today's price marked on a thin good/normal/expensive bar with the usual range in one line, one history line, and the history chart and method collapsed. A first version with two panels, a dot per shop and legends was rejected by the owner as too busy. List, link previews and titles use today's verdict.
+- Files: `product/buying-and-trading-guide.md` (Verdict, History, Pages).
+- Validation: `mix check`; the running app at 1280 and 390 px (PL and EN) with a copy of another worktree's development data: 23–36 shop products (good today and lower or higher than usual), the history chart opened, a 4-day history, a 2-shop product (Cardmarket and the 3-shop note), and the list. In that data 218 of 527 in-stock products have 3+ shops; 176 of them rate good today.
+- Remaining: products in 1–2 shops (309 of 527) still get only the Cardmarket comparison.
+
 ## [2026-11-01] Link-preview cards
 
 - Task: Owner found shared links looking bad (Messenger cropped a blurry logo). `og:image` now points to designed 1200×630 cards: the home card shows the promise and the verdict scale, a product card the verdict (Cardmarket difference coloured as on the list), the cheapest price and shop, the typical and suggested prices or the muted last known price, with the photo on a paper tile or a text-only layout. `TcgCheapWeb.SocialImage` draws SVG with bundled OFL fonts (full Latin Extended) through resvg and encodes JPEG with libvips; photos come from allowlisted hosts only (15 MB, 8 s, 40 MP, shrunk first), two renders at once. `/og` and `/og/produkty/:slug` render once per content version, store the card in the public bucket and redirect later requests. `TcgCheapWeb.SEO` still owns all metadata: it adds the card URL (versioned), size, type, alt and `summary_large_image`, synced on live navigation; structured data keeps the product photo. Cards are Polish (crawlers have no session).

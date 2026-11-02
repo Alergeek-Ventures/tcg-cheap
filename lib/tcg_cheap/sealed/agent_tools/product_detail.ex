@@ -1,7 +1,8 @@
 defmodule TcgCheap.Sealed.AgentTools.ProductDetail do
   @moduledoc """
-  One product with its public verdict, current offers, suggested price and
-  contents, as on its product page.
+  One product with its public verdict, how its price compares with its
+  history, current offers, suggested price and contents, as on its product
+  page.
   """
 
   use Ash.Resource.Actions.Implementation
@@ -47,6 +48,7 @@ defmodule TcgCheap.Sealed.AgentTools.ProductDetail do
         |> Map.merge(Json.product(product))
         |> Map.put(:path, "/produkty/#{product.slug}"),
       verdict: %{verdict | cheapest: verdict.cheapest && Json.offer(verdict.cheapest)},
+      past: detail.past,
       cardmarket_trend_pln: detail.cardmarket_pln,
       eur_pln: detail.eur_pln,
       suggested_price: Json.suggested_price(detail.suggested_price),

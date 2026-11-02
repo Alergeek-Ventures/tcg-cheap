@@ -154,35 +154,20 @@ defmodule TcgCheap.Sealed.Guide do
   def summaries([], _now), do: []
 
   def summaries(products, %DateTime{} = now) do
-    today = DateTime.to_date(now)
-    rate = eur_pln(today)
+    rate = now |> DateTime.to_date() |> eur_pln()
     ids = Enum.map(products, & &1.id)
-
     offers = now |> Sealed.current_offers(ids) |> Enum.group_by(& &1.product_id)
 
-    history =
-      today
-      |> Date.add(-(PriceGuide.window_days() - 1))
-      |> Sealed.list_daily_prices_since!(ids)
-      |> Enum.group_by(& &1.product_id)
-
-    Enum.map(products, fn product ->
-      summary(
-        product,
-        Map.get(offers, product.id, []),
-        Map.get(history, product.id, []),
-        today,
-        rate
-      )
-    end)
+    Enum.map(products, &summary(&1, Map.get(offers, &1.id, []), rate))
   end
 
   @doc """
-  Everything the product page shows: verdict, offers, 90 days of history,
-  REBEL's suggested retail price when one matches, our English single
-  booster of each set the contents name (`boosters`, by set name) and, for
-  a full English single booster, its set's pull rates and cards
-  (`booster_set`, nil for other products).
+  Everything the product page shows: today's verdict, the comparison with
+  the product's history (`past`), offers, 90 days of history, REBEL's
+  suggested retail price when one matches, our English single booster of
+  each set the contents name (`boosters`, by set name) and, for a full
+  English single booster, its set's pull rates and cards (`booster_set`,
+  nil for other products).
   """
   @spec product(String.t(), DateTime.t()) :: {:ok, map()} | :error
   def product(slug, %DateTime{} = now) do
@@ -202,12 +187,12 @@ defmodule TcgCheap.Sealed.Guide do
         since = Date.add(today, -(@history_days - 1))
         history = Sealed.list_price_history!(product.id, since)
 
-        verdict_history = with_last_stocked_day(history, product.id, since)
+        summary = summary(product, offers, rate)
+        past_history = with_last_stocked_day(history, product.id, since)
 
         {:ok,
-         product
-         |> summary(offers, verdict_history, today, rate)
-         |> Map.merge(%{
+         Map.merge(summary, %{
+           past: PriceGuide.past(past_history, summary.verdict.cheapest, today),
            offers: offers,
            history: history,
            today: today,
@@ -315,13 +300,13 @@ defmodule TcgCheap.Sealed.Guide do
   def to_pln(%Decimal{} = eur, %{rate: rate}), do: eur |> Decimal.mult(rate) |> Decimal.round(2)
   def to_pln(_eur, _rate), do: nil
 
-  defp summary(product, offers, history, today, rate) do
+  defp summary(product, offers, rate) do
     in_stock = Enum.filter(offers, & &1.in_stock)
     cardmarket_pln = to_pln(product.cardmarket_trend, rate)
 
     %{
       product: product,
-      verdict: PriceGuide.verdict(history, in_stock, today, cardmarket_pln),
+      verdict: PriceGuide.verdict(in_stock, cardmarket_pln),
       cardmarket_pln: cardmarket_pln
     }
   end
