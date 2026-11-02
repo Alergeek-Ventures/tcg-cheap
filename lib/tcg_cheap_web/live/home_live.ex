@@ -623,13 +623,6 @@ defmodule TcgCheapWeb.HomeLive do
                       <p class="guide-product-meta">
                         {product_meta(summary.product)}
                       </p>
-                      <p
-                        :if={summary.preorder?}
-                        id={"preorder-#{summary.product.slug}"}
-                        class="guide-product-preorder"
-                      >
-                        <.verdict_icon status={:preorder} />{preorder_tag(summary.premiere_in)}
-                      </p>
                     </div>
                     <div class="guide-product-deal">
                       <span :if={summary.verdict.cheapest} class="guide-product-shop">
@@ -641,6 +634,13 @@ defmodule TcgCheapWeb.HomeLive do
                         class="guide-product-verdict"
                       />
                       <p :if={summary.verdict.cheapest} class="guide-product-price">
+                        <span
+                          :if={summary.preorder?}
+                          id={"preorder-#{summary.product.slug}"}
+                          class="guide-product-preorder"
+                        >
+                          <.verdict_icon status={:preorder} />{preorder_tag(summary.premiere_in)}
+                        </span>
                         <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
                       </p>
                     </div>

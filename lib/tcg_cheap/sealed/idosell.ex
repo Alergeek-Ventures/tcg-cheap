@@ -11,7 +11,7 @@ defmodule TcgCheap.Sealed.IdoSell do
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on its name and category).
   Its price is the gross product price, which must be shown in złoty; it is in
   stock when the product's availability status is `enable` (`disable`,
-  `order` and `preorder` are not). Links, often relative, are made absolute
+  `order` and `preorder` are not); `preorder` is a pre-order (`preorder`). Links, often relative, are made absolute
   on the shop's host without their query; so are product photos. The photo
   is the product's main image (`enclosure` at position 1) at the size the
   shop uploaded it; shops on older templates list only the product's icon,
@@ -35,7 +35,12 @@ defmodule TcgCheap.Sealed.IdoSell do
     ["sizes", "size"],
     ["sizes", "availability"]
   ]
-  @statuses %{"enable" => true, "disable" => false, "order" => false, "preorder" => false}
+  @statuses %{
+    "enable" => %{in_stock: true, preorder: false},
+    "disable" => %{in_stock: false, preorder: false},
+    "order" => %{in_stock: false, preorder: false},
+    "preorder" => %{in_stock: false, preorder: true}
+  }
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -105,7 +110,7 @@ defmodule TcgCheap.Sealed.IdoSell do
          {:ok, id} <- product_id(attr.("id")),
          {:ok, url} <- product_url(shop, attr.("link")),
          {:ok, price} <- price(product),
-         {:ok, in_stock} <-
+         {:ok, availability} <-
            Map.fetch(@statuses, XmlRecords.attr(product, ["sizes", "availability"], "status")) do
       {:ok,
        [
@@ -117,9 +122,9 @@ defmodule TcgCheap.Sealed.IdoSell do
            ean:
              Ean.normalize(attr.("barcode")) ||
                Ean.normalize(XmlRecords.attr(product, ["sizes", "size"], "code_producer")),
-           price: price,
-           in_stock: in_stock
+           price: price
          }
+         |> Map.merge(availability)
        ]}
     else
       :ignore -> :ignore

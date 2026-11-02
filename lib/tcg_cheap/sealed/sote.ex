@@ -15,7 +15,8 @@ defmodule TcgCheap.Sealed.Sote do
   heading). The price is the current one shown in złoty. It is in stock when
   its availability says there is some ("Duża ilość", "Średnia ilość",
   "Ostatnie sztuki") and its "add to cart" button is enabled; "Brak", a
-  disabled button and "Przedsprzedaż" (pre-sale) are not. The listing shows
+  disabled button and "Przedsprzedaż" (pre-sale; with the button enabled, a
+  pre-order: `preorder`) are not. The listing shows
   the photo's `small_` thumbnail; the offer takes its `big_` one, the photo
   the product page's gallery opens (about 1000 px). The listing carries no
   EAN. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
@@ -130,6 +131,7 @@ defmodule TcgCheap.Sealed.Sote do
         title: title,
         price: price,
         in_stock: in_stock(box, cart),
+        preorder: preorder?(box, cart),
         image: HtmlListing.attr(box, "div.image img", "src"),
         category: category
       }
@@ -147,6 +149,11 @@ defmodule TcgCheap.Sealed.Sote do
       label in @in_stock -> true
       true -> nil
     end
+  end
+
+  defp preorder?(box, cart) do
+    HtmlListing.text(HtmlListing.first(box, ".product-availability-label")) == "Przedsprzedaż" and
+      "disabled" not in (cart |> Floki.attribute("class") |> classes())
   end
 
   defp classes(values), do: values |> Enum.flat_map(&String.split/1)
@@ -167,7 +174,8 @@ defmodule TcgCheap.Sealed.Sote do
            image_url: image_url(shop, product.image),
            ean: nil,
            price: price,
-           in_stock: in_stock
+           in_stock: in_stock,
+           preorder: product.preorder
          }
        ]}
     else

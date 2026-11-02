@@ -23,7 +23,8 @@ defmodule TcgCheap.Sealed.HtmlListing do
           required(:path) => String.t() | nil,
           required(:image) => String.t() | nil,
           required(:price) => String.t() | nil,
-          required(:in_stock) => boolean() | nil
+          required(:in_stock) => boolean() | nil,
+          optional(:preorder) => boolean()
         }
   @type page :: %{
           number: pos_integer(),
@@ -129,7 +130,8 @@ defmodule TcgCheap.Sealed.HtmlListing do
            image_url: image_url(shop, product.image),
            ean: nil,
            price: price,
-           in_stock: in_stock
+           in_stock: in_stock,
+           preorder: Map.get(product, :preorder, false)
          }
        ]}
     else

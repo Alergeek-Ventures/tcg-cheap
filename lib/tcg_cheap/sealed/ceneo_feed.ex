@@ -10,7 +10,7 @@ defmodule TcgCheap.Sealed.CeneoFeed do
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on its name and `cat`). It is
   in stock when its `stock` is positive and its `avail` is one of Ceneo's
   shipping times (1, 3, 7 or 14 days) or 99 ("ask the shop"); 90 (on order)
-  and 110 (preorder) are not. URLs and images must be on the shop's host;
+  and 110 (preorder) are not; 110 is a pre-order (`preorder`). URLs and images must be on the shop's host;
   Shoper lists a 500 px copy of the main photo, swapped for its full-size one
   (`TcgCheap.Sealed.ShoperListing.full_size_image/1`). The EAN is the `EAN`
   attribute. See `TcgCheap.Sealed.ShopFeed` for the
@@ -69,7 +69,8 @@ defmodule TcgCheap.Sealed.CeneoFeed do
              |> ShopFeed.image_url(image_hosts(shop)),
            ean: Ean.normalize(ean(offer)),
            price: price,
-           in_stock: in_stock
+           in_stock: in_stock,
+           preorder: attr.("avail") == "110"
          }
        ]}
     else

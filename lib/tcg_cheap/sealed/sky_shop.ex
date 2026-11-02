@@ -19,8 +19,8 @@ defmodule TcgCheap.Sealed.SkyShop do
   Pokémon one. The listing price is the current gross price in złoty (the
   promotional one, not the lowest price of the last 30 days). A product is in
   stock when its tile has an add-to-cart button and is not marked "Preorder"
-  or "Przedsprzedaż"; "Produkt niedostępny" and "Oczekuje na dostawę"
-  products are not. Links and images are made absolute on the shop's host;
+  or "Przedsprzedaż" (with the button, a pre-order: `preorder`); "Produkt
+  niedostępny" and "Oczekuje na dostawę" products are not. Links and images are made absolute on the shop's host;
   the tile's thumbnail (`<name>_[<id>]_320.jpg`) is swapped for the largest
   size Sky-Shop renders, `_1200` (the original when it is smaller).
   Listings carry no EAN. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
@@ -115,7 +115,10 @@ defmodule TcgCheap.Sealed.SkyShop do
             "data-price"
           )
         ),
-      in_stock: in_stock(tile)
+      in_stock: in_stock(tile),
+      preorder:
+        not String.contains?(Floki.text(tile), @unavailable) and preorder?(tile) and
+          Floki.find(tile, "[data-cy=addToCartButton]") != []
     }
   end
 
