@@ -20,7 +20,7 @@ defmodule TcgCheapWeb.SocialImage do
   alias Vix.Vips.Operation
 
   # Bump when the layout changes, so stored and cached cards are replaced.
-  @design 3
+  @design 4
 
   @width 1200
   @height 630
@@ -228,24 +228,22 @@ defmodule TcgCheapWeb.SocialImage do
 
   defp typical_note(_verdict), do: nil
 
-  # The guide's large verdict badge: filled for good, normal and expensive
-  # (and a clear Cardmarket difference), a paper slip with a drawn bottom
-  # edge otherwise; text and mark carry the meaning, never colour alone.
+  # The guide's large verdict badge: filled for good, normal and expensive,
+  # a paper slip with a drawn bottom edge otherwise; text and mark carry the
+  # meaning, never colour alone.
   defp badge(verdict, x, y, height, size, width \\ nil) do
     {fill, color, edge} = badge_colors(verdict)
     label = verdict |> GuideComponents.verdict_label() |> String.upcase()
-    mark? = verdict.status != :cardmarket
     mark = round(size * 0.7)
-    text_x = x + 24 + if(mark?, do: mark + 14, else: 0)
+    text_x = x + 24 + mark + 14
     width = width || text_x - x + text_width(label, size, :display, 1.6) + 24
 
     [
       ~s(<rect x="#{x}" y="#{y}" width="#{round(width)}" height="#{height}" fill="#{fill}"/>),
       edge && edge_line(edge, x, y + height - 2, width),
-      mark? &&
-        ~s|<g transform="translate(#{x + 24} #{y + (height - mark) / 2}) scale(#{mark / 16})" fill="none" stroke="#{color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">| <>
-          Enum.map_join(GuideComponents.verdict_paths(verdict.status), &~s(<path d="#{&1}"/>)) <>
-          "</g>",
+      ~s|<g transform="translate(#{x + 24} #{y + (height - mark) / 2}) scale(#{mark / 16})" fill="none" stroke="#{color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">| <>
+        Enum.map_join(GuideComponents.verdict_paths(verdict.status), &~s(<path d="#{&1}"/>)) <>
+        "</g>",
       ~s(<text x="#{text_x}" y="#{y + height / 2 + size * 0.36}" font-family="#{@display}" font-weight="700" font-size="#{size}" letter-spacing="1.6" fill="#{color}">#{escape(label)}</text>)
     ]
   end
@@ -253,16 +251,11 @@ defmodule TcgCheapWeb.SocialImage do
   defp badge_colors(%{status: :good}), do: {@rise, @paper, nil}
   defp badge_colors(%{status: :expensive}), do: {@fall, @paper, nil}
   defp badge_colors(%{status: :normal}), do: {@ink, @paper, nil}
-  defp badge_colors(%{status: :insufficient_data}), do: {@paper, @ink, {@muted, "12 8"}}
-  defp badge_colors(%{status: :out_of_stock}), do: {@paper, @ink, {@muted, "4 8"}}
 
-  defp badge_colors(%{status: :cardmarket} = verdict) do
-    case GuideComponents.cardmarket_tone(verdict) do
-      :below -> {@rise, @paper, nil}
-      :above -> {@fall, @paper, nil}
-      nil -> {@paper, @ink, {@ink, nil}}
-    end
-  end
+  defp badge_colors(%{status: status}) when status in [:cardmarket, :insufficient_data],
+    do: {@paper, @ink, {@muted, "12 8"}}
+
+  defp badge_colors(%{status: :out_of_stock}), do: {@paper, @ink, {@muted, "4 8"}}
 
   defp edge_line({color, dash}, x, y, width) do
     dash = if dash, do: ~s( stroke-dasharray="#{dash}"), else: ""

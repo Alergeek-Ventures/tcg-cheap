@@ -1,5 +1,12 @@
 # Wiki Log
 
+## [2026-11-02] Prototype: buying guide unslopped (branch t3/price-guide-unslop)
+
+- Task: owner asked to run [unslop](https://github.com/heydamir/unslop) over the guide and check that the product and design docs still match the app; a prototype to review next to the current version.
+- Changed: sentence case for every guide label and button; the list keeps its filled badges (owner) but never mixes verdicts with Cardmarket differences: fewer than 3 shops is always "Za mało sklepów" (list, product band, social card), Cardmarket is context on the product page; fixed shop / verdict / price columns from 42rem; one solid "Do sklepu" in the verdict, quiet links in offer rows; out-of-stock offers behind "Bez towaru"; "sprawdzono …" only when not today; no third location prompt in the verdict.
+- Docs: PRODUCT.md (verdict logic, 122 shops) and DESIGN.md / `.impeccable/design.json` guide sections now describe the shipped UI. Still stale: DESIGN.md's Home sections describe the old singles search, not the guide.
+- Validation: running app at 1280 and 390 px next to the current version; `mix check`.
+
 ## [2026-11-02] Verdict against today's shops, history as context
 
 - Task: Owner found the 7-day wait for a verdict pointless: "is it a good price today" is relative to today's market, and an old price changes nothing today. The verdict now compares the cheapest offer with the median of each in-stock shop's lowest price (at least 3 shops, else Cardmarket as before); the former 30-day comparison stays as a separate history label. The product page keeps both in the verdict block, flight-search style (Google Flights price insights, Kayak, Amazon's "lowest in 30 days"): today's price marked on a thin good/normal/expensive bar with the usual range in one line, one history line, and the history chart and method collapsed. A first version with two panels, a dot per shop and legends was rejected by the owner as too busy. List, link previews and titles use today's verdict.

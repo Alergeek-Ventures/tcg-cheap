@@ -25,14 +25,16 @@ defmodule TcgCheapWeb.ProductLive do
       {:ok, page} ->
         seo = SEO.product(page)
 
+        {in_stock, out_of_stock} = Enum.split_with(page.offers, & &1.in_stock)
+
         {:ok,
          socket
          |> assign(seo: seo, page_title: seo.title)
          |> assign(:page, page)
-         |> assign(:offer_count, length(page.offers))
-         |> assign(:in_stock_count, Enum.count(page.offers, & &1.in_stock))
+         |> assign(:in_stock_count, length(in_stock))
+         |> assign(:out_of_stock_count, length(out_of_stock))
          |> VisitorLocation.assign_location()
-         |> stream(:offers, page.offers)
+         |> stream_offers()
          |> track_view(page)}
 
       :error ->
@@ -71,7 +73,16 @@ defmodule TcgCheapWeb.ProductLive do
     # Offer rows show the distance to pickup, so they re-render with it.
     if located.assigns.location == socket.assigns.location,
       do: {:noreply, located},
-      else: {:noreply, stream(located, :offers, located.assigns.page.offers, reset: true)}
+      else: {:noreply, stream_offers(located, reset: true)}
+  end
+
+  # Offers with stock are the list; those without wait behind a disclosure.
+  defp stream_offers(socket, opts \\ []) do
+    {in_stock, out_of_stock} = Enum.split_with(socket.assigns.page.offers, & &1.in_stock)
+
+    socket
+    |> stream(:offers, in_stock, opts)
+    |> stream(:offers_out_of_stock, out_of_stock, opts)
   end
 
   @impl true
@@ -159,10 +170,9 @@ defmodule TcgCheapWeb.ProductLive do
           <section id="product-offers" class="product-section" aria-labelledby="product-offers-title">
             <div class="product-section-heading">
               <h2 id="product-offers-title">{gettext("Oferty w sklepach")}</h2>
-              <p :if={@offer_count > 0}>
-                {gettext("%{offers}, na stanie: %{count}",
-                  offers: Polish.plural(@offer_count, "oferta", "oferty", "ofert"),
-                  count: @in_stock_count
+              <p :if={@in_stock_count > 0}>
+                {gettext("%{offers} na stanie",
+                  offers: Polish.plural(@in_stock_count, "oferta", "oferty", "ofert")
                 )}
               </p>
             </div>
@@ -174,47 +184,41 @@ defmodule TcgCheapWeb.ProductLive do
               data-track-positions
             >
               <li id="offer-list-empty" class="guide-empty hidden only:block">
-                {gettext("Żaden sklep nie ma teraz tego produktu w ofercie.")}
+                {gettext("Teraz żaden sklep nie ma tego produktu na stanie.")}
               </li>
-              <li
+              <.offer
                 :for={{dom_id, offer} <- @streams.offers}
                 id={dom_id}
-                class={["offer", !offer.in_stock && "offer-unavailable"]}
-              >
-                <.shop_logo shop={offer.shop} />
-                <div class="offer-shop">
-                  <strong>{shop_name(offer)}</strong>
-                  <.offer_delivery offer={offer} location={@location} />
-                </div>
-                <strong class="offer-price">{Polish.price(offer.price)}</strong>
-                <p class="offer-state">
-                  <span class="offer-stock">
-                    {if offer.in_stock, do: gettext("Na stanie"), else: gettext("Brak na stanie")}
-                  </span>
-                  <span class="offer-checked">
-                    {gettext("sprawdzono %{when}",
-                      when: Polish.days_ago(DateTime.to_date(offer.last_seen_at), @page.today)
-                    )}
-                  </span>
-                </p>
-                <a
-                  href={offer.url}
-                  target="_blank"
-                  rel="noopener nofollow"
-                  class="offer-link"
-                  data-track="shop_link_clicked"
-                  data-track-placement="offers"
-                  data-track-shop={offer.shop}
-                  data-track-price={offer.price}
-                  data-track-in-stock={to_string(offer.in_stock)}
-                  aria-label={
-                    gettext("%{shop}: przejdź do sklepu (otwiera się w nowej karcie)",
-                      shop: shop_name(offer)
-                    )
-                  }
-                >{gettext("Do sklepu")}</a>
-              </li>
+                offer={offer}
+                location={@location}
+                today={@page.today}
+              />
             </ul>
+            <details
+              :if={@out_of_stock_count > 0}
+              id="offers-out-of-stock"
+              class="verdict-method offers-out"
+            >
+              <summary data-track="product_section_opened" data-track-section="out_of_stock_offers">
+                {gettext("Bez towaru: %{offers}",
+                  offers: Polish.plural(@out_of_stock_count, "oferta", "oferty", "ofert")
+                )}<.fluent_icon name={:chevron_down} class="verdict-method-chevron" />
+              </summary>
+              <ul
+                id="offer-list-out"
+                class="offer-list ph-no-capture"
+                phx-update="stream"
+                data-track-positions
+              >
+                <.offer
+                  :for={{dom_id, offer} <- @streams.offers_out_of_stock}
+                  id={dom_id}
+                  offer={offer}
+                  location={@location}
+                  today={@page.today}
+                />
+              </ul>
+            </details>
             <p id="offer-disclaimer" class="guide-note offer-disclaimer">
               <.fluent_icon name={:shield_error} />
               {gettext(
@@ -251,6 +255,55 @@ defmodule TcgCheapWeb.ProductLive do
     </Layouts.app>
     """
   end
+
+  attr :id, :string, required: true
+  attr :offer, :map, required: true
+  attr :location, :map, default: nil
+  attr :today, Date, required: true
+
+  # One shop's offer. In stock is the default, so a row only says when it is
+  # not, and when it was checked if that was not today.
+  defp offer(assigns) do
+    assigns = assign(assigns, :checked_on, DateTime.to_date(assigns.offer.last_seen_at))
+
+    ~H"""
+    <li id={@id} class={["offer", !@offer.in_stock && "offer-unavailable"]}>
+      <.shop_logo shop={@offer.shop} />
+      <div class="offer-shop">
+        <strong>{shop_name(@offer)}</strong>
+        <.offer_delivery offer={@offer} location={@location} />
+      </div>
+      <p class="offer-price">
+        <strong>{Polish.price(@offer.price)}</strong>
+        <span :if={!@offer.in_stock or @checked_on != @today} class="offer-checked">
+          {offer_note(@offer.in_stock, @checked_on, @today)}
+        </span>
+      </p>
+      <a
+        href={@offer.url}
+        target="_blank"
+        rel="noopener nofollow"
+        class="offer-link"
+        data-track="shop_link_clicked"
+        data-track-placement="offers"
+        data-track-shop={@offer.shop}
+        data-track-price={@offer.price}
+        data-track-in-stock={to_string(@offer.in_stock)}
+        aria-label={
+          gettext("%{shop}: przejdź do sklepu (otwiera się w nowej karcie)", shop: shop_name(@offer))
+        }
+      >{gettext("Do sklepu")}</a>
+    </li>
+    """
+  end
+
+  defp offer_note(true, checked_on, today),
+    do: gettext("sprawdzono %{when}", when: Polish.days_ago(checked_on, today))
+
+  defp offer_note(false, today, today), do: gettext("brak na stanie")
+
+  defp offer_note(false, checked_on, today),
+    do: gettext("brak na stanie, sprawdzono %{when}", when: Polish.days_ago(checked_on, today))
 
   attr :offer, :map, required: true
   attr :location, :map, default: nil
@@ -329,15 +382,10 @@ defmodule TcgCheapWeb.ProductLive do
     end
   end
 
-  # Pickup next to the verdict: without a location, an invitation to set one
-  # (only when some shop with stock has pickup); with one, the cheapest
-  # in-stock pickup within the radius, or else that delivery is needed and
-  # what the cheapest offer's shop charges for it.
-  defp nearby(%{offers: offers}, nil) do
-    if offers |> Enum.filter(& &1.in_stock) |> VisitorLocation.pickup_offered?(),
-      do: :invite
-  end
-
+  # Pickup next to the verdict once the visitor has set a location in the
+  # header: the cheapest in-stock pickup within the radius, or else that
+  # delivery is needed and what the cheapest offer's shop charges for it.
+  defp nearby(_page, nil), do: nil
   defp nearby(%{verdict: %{cheapest: nil}}, _location), do: nil
 
   defp nearby(%{offers: offers, verdict: %{cheapest: cheapest}}, location) do
@@ -371,7 +419,11 @@ defmodule TcgCheapWeb.ProductLive do
       aria-labelledby="product-cardmarket-title"
     >
       <div class="product-section-heading">
-        <h2 id="product-cardmarket-title">{gettext("Cena na Cardmarket")}</h2>
+        <h2 id="product-cardmarket-title" class="cardmarket-title">
+          <img src={~p"/images/cardmarket.png"} alt="" width="24" height="24" />{gettext(
+            "Cena na Cardmarket"
+          )}
+        </h2>
         <p :if={@product.cardmarket_price_updated_on}>
           {gettext("z %{date}", date: Polish.date(@product.cardmarket_price_updated_on))}
         </p>
@@ -379,7 +431,11 @@ defmodule TcgCheapWeb.ProductLive do
       <%= if @product.cardmarket_trend do %>
         <p id="cardmarket-trend" class="cardmarket-trend">
           {gettext("Trend:")} <strong>{Polish.eur(@product.cardmarket_trend)}</strong>
-          <span :if={@cardmarket_pln}>≈ {Polish.zloty(@cardmarket_pln)}</span>
+          <span :if={@cardmarket_pln}>· {Polish.zloty(@cardmarket_pln)}</span>
+          ·
+          <a href={cardmarket_url(@product.cardmarket_id)} target="_blank" rel="noopener nofollow">{gettext(
+            "Zobacz na Cardmarket"
+          )}</a>
         </p>
         <p class="guide-note">
           {gettext("Europejska giełda, bez wysyłki z innych krajów")}<span :if={@eur_pln}>{gettext("; kurs NBP %{rate} zł z %{date}" , rate: Polish.rate(@eur_pln.rate), date: Polish.date(@eur_pln.date))}</span>.
@@ -436,7 +492,7 @@ defmodule TcgCheapWeb.ProductLive do
                 <.link navigate={~p"/produkty/#{booster.slug}"}>{item_label(item)}</.link>
               <% item.cardmarket_id -> %>
                 <a
-                  href={"https://www.cardmarket.com/en/Pokemon/Products?idProduct=#{item.cardmarket_id}"}
+                  href={cardmarket_url(item.cardmarket_id)}
                   target="_blank"
                   rel="noopener nofollow"
                 >{item_label(item)}</a>
@@ -879,24 +935,6 @@ defmodule TcgCheapWeb.ProductLive do
 
   attr :nearby, :any, required: true
 
-  defp nearby_line(%{nearby: :invite} = assigns) do
-    ~H"""
-    <div id="verdict-nearby-invite" class="verdict-nearby">
-      <p>
-        {gettext("Odbierzesz gdzieś blisko?")}
-        <button
-          type="button"
-          id="verdict-nearby-open"
-          class="verdict-nearby-open"
-          phx-click={JS.dispatch("location:open", to: "#visitor-location")}
-        >
-          {gettext("Podaj miejscowość")}
-        </button>
-      </p>
-    </div>
-    """
-  end
-
   defp nearby_line(%{nearby: %{offer: _offer}} = assigns) do
     ~H"""
     <div id="verdict-nearby" class="verdict-nearby ph-no-capture">
@@ -966,7 +1004,8 @@ defmodule TcgCheapWeb.ProductLive do
       assign(assigns,
         verdict: verdict,
         past: past,
-        range: price_range(verdict)
+        range: price_range(verdict),
+        reason: reason(verdict, past)
       )
 
     ~H"""
@@ -979,20 +1018,26 @@ defmodule TcgCheapWeb.ProductLive do
       <.verdict_badge verdict={@verdict} id="verdict-badge" class="verdict-badge-large" />
       <div class="verdict-body">
         <div :if={@verdict.cheapest} class="verdict-now">
-          <p id="verdict-price" class="verdict-price">{Polish.price(@verdict.cheapest.price)}</p>
-          <p id="verdict-shop" class="verdict-shop">
-            {gettext("najtaniej teraz w")}
-            <a
-              href={@verdict.cheapest.url}
-              target="_blank"
-              rel="noopener nofollow"
-              data-track="shop_link_clicked"
-              data-track-placement="verdict"
-              data-track-shop={@verdict.cheapest.shop}
-              data-track-price={@verdict.cheapest.price}
-              data-track-in-stock="true"
-            >{shop_name(@verdict.cheapest)}</a>
-          </p>
+          <div>
+            <p id="verdict-price" class="verdict-price">{Polish.price(@verdict.cheapest.price)}</p>
+            <p id="verdict-shop" class="verdict-shop">
+              {gettext("najtaniej teraz w")} <strong>{shop_name(@verdict.cheapest)}</strong>
+            </p>
+          </div>
+          <a
+            id="verdict-go"
+            href={@verdict.cheapest.url}
+            target="_blank"
+            rel="noopener nofollow"
+            class="verdict-go"
+            data-track="shop_link_clicked"
+            data-track-placement="verdict"
+            data-track-shop={@verdict.cheapest.shop}
+            data-track-price={@verdict.cheapest.price}
+            data-track-in-stock="true"
+          >
+            {gettext("Do sklepu")}<span class="sr-only">{gettext("(otwiera się w nowej karcie)")}</span>
+          </a>
         </div>
         <div :if={@range} id="verdict-range" class="verdict-range" aria-hidden="true">
           <div class="verdict-range-bar">
@@ -1009,8 +1054,13 @@ defmodule TcgCheapWeb.ProductLive do
             <span style={"--at: #{@range.normal_at}%"}>{Polish.zloty(@verdict.normal_max)}</span>
           </div>
         </div>
-        <p id="verdict-reason" class="verdict-reason">
-          {reason(@verdict, @past)}
+        <p :if={@reason} id="verdict-reason" class="verdict-reason">{@reason}</p>
+        <p :if={@verdict.status == :cardmarket} id="verdict-cardmarket" class="verdict-cardmarket">
+          <.cardmarket_price
+            price={@verdict.typical}
+            href={cardmarket_url(@page.product.cardmarket_id)}
+          />
+          <span>{gettext("na Cardmarket, bez wysyłki")}</span>
         </p>
         <p
           :if={@past.status in [:low, :usual, :high]}
@@ -1128,13 +1178,14 @@ defmodule TcgCheapWeb.ProductLive do
   defp reason(%{status: status, typical_source: :shops} = verdict, _past)
        when status in [:good, :normal, :expensive],
        do:
-         gettext("Zwykle %{low}–%{high} w %{shops}.",
+         gettext("Zwykle %{low}–%{high} w %{shops}",
            low: Polish.number(verdict.good_max),
            high: Polish.zloty(verdict.normal_max),
            shops: Polish.plural(length(verdict.shop_prices), "sklepie", "sklepach", "sklepach")
          )
 
-  defp reason(%{status: :cardmarket, typical: typical}, _past), do: cardmarket_typical(typical)
+  # Shown as the Cardmarket price with its logo instead.
+  defp reason(%{status: :cardmarket}, _past), do: nil
 
   defp reason(%{status: :insufficient_data} = verdict, _past) do
     today_missing(verdict) <>

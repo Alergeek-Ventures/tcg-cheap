@@ -116,31 +116,28 @@ defmodule TcgCheapWeb.GuideComponents do
     ]
   end
 
-  @doc "The verdict as a labelled badge; shape and text carry the meaning, not color alone."
+  @doc """
+  The verdict as a labelled badge; shape and text carry the meaning, not color
+  alone. Fewer than 3 shops is one state, "Za mało sklepów", whether or not
+  Cardmarket has a price: Cardmarket is context on the product page, never a
+  verdict next to real ones.
+  """
   attr :verdict, :map, required: true
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
   def verdict_badge(assigns) do
+    assigns = assign(assigns, :status, badge_status(assigns.verdict.status))
+
     ~H"""
-    <span
-      id={@id}
-      class={["verdict-badge", "verdict-#{@verdict.status}", cardmarket_class(@verdict), @class]}
-    >
-      <%= if @verdict.status == :cardmarket do %>
-        {cardmarket_difference(@verdict)}<span class="verdict-cm-text">vs Cardmarket</span><img
-          class="verdict-cm-logo"
-          src={~p"/images/cardmarket.png"}
-          alt="Cardmarket"
-          width="16"
-          height="16"
-        />
-      <% else %>
-        <.verdict_icon status={@verdict.status} />{verdict_label(@verdict)}
-      <% end %>
+    <span id={@id} class={["verdict-badge", "verdict-#{@status}", @class]}>
+      <.verdict_icon status={@status} />{verdict_label(@verdict)}
     </span>
     """
   end
+
+  defp badge_status(:cardmarket), do: :insufficient_data
+  defp badge_status(status), do: status
 
   @doc "The drawn mark of a verdict: down for good, equals for normal, up for expensive."
   attr :status, :atom, required: true
@@ -161,7 +158,7 @@ defmodule TcgCheapWeb.GuideComponents do
   def verdict_paths(:normal), do: ["M3 5.75h10", "M3 10.25h10"]
   def verdict_paths(:expensive), do: ["M8 13.5v-11", "M3.5 7 8 2.5 12.5 7"]
 
-  def verdict_paths(:insufficient_data),
+  def verdict_paths(status) when status in [:cardmarket, :insufficient_data],
     do: ["M5.75 5.75a2.25 2.25 0 1 1 3.4 1.95c-.7.4-1.15.9-1.15 1.7v.6", "M8 12.75v.25"]
 
   def verdict_paths(:out_of_stock), do: ["M3 8h10"]
@@ -534,6 +531,36 @@ defmodule TcgCheapWeb.GuideComponents do
   @spec shop_name(map()) :: String.t()
   def shop_name(%{shop: shop}), do: Shops.name(shop)
 
+  @doc """
+  A Cardmarket price in złoty behind the Cardmarket logo, the one mark for a
+  Cardmarket reference price, linking to the product there.
+  """
+  attr :price, :any, required: true
+  attr :href, :string, required: true
+  attr :id, :string, default: nil
+  attr :class, :any, default: nil
+
+  def cardmarket_price(assigns) do
+    ~H"""
+    <a
+      id={@id}
+      href={@href}
+      target="_blank"
+      rel="noopener nofollow"
+      class={["cardmarket-price", @class]}
+      title={gettext("Cena na Cardmarket (bez wysyłki)")}
+    >
+      <img src={~p"/images/cardmarket.png"} alt="Cardmarket" width="16" height="16" />{Polish.zloty(
+        @price
+      )}
+    </a>
+    """
+  end
+
+  @doc "A product's page on Cardmarket, by its Cardmarket product id."
+  @spec cardmarket_url(integer()) :: String.t()
+  def cardmarket_url(id), do: "https://www.cardmarket.com/en/Pokemon/Products?idProduct=#{id}"
+
   @doc "The shop's logo chip, when it has a logo."
   attr :shop, :string, required: true
 
@@ -551,57 +578,14 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
-  @doc ~S'The localized label of a verdict: "Dobra cena", "+14% vs Cardmarket", …'
+  @doc ~S'The localized label of a verdict: "Dobra cena", "Za mało sklepów", …'
   @spec verdict_label(map()) :: String.t()
-  def verdict_label(%{status: :cardmarket} = verdict),
-    do: "#{cardmarket_difference(verdict)} vs Cardmarket"
-
   def verdict_label(%{status: :good}), do: gettext("Dobra cena")
   def verdict_label(%{status: :normal}), do: gettext("Normalna cena")
   def verdict_label(%{status: :expensive}), do: gettext("Drogo")
-  def verdict_label(%{status: :insufficient_data}), do: gettext("Za mało danych")
+
+  def verdict_label(%{status: status}) when status in [:cardmarket, :insufficient_data],
+    do: gettext("Za mało sklepów")
+
   def verdict_label(%{status: :out_of_stock}), do: gettext("Brak w sklepach")
-
-  # "−16%": the cheapest offer against the Cardmarket trend.
-  defp cardmarket_difference(verdict) do
-    percent = cardmarket_percent(verdict)
-
-    sign =
-      cond do
-        percent > 0 -> "+"
-        percent < 0 -> "−"
-        true -> "±"
-      end
-
-    "#{sign}#{abs(percent)}%"
-  end
-
-  defp cardmarket_class(verdict) do
-    case cardmarket_tone(verdict) do
-      :below -> "verdict-cm-below"
-      :above -> "verdict-cm-above"
-      nil -> nil
-    end
-  end
-
-  @doc "More than 10% below Cardmarket stands out green (`:below`), more than 10% above red."
-  @spec cardmarket_tone(map()) :: :below | :above | nil
-  def cardmarket_tone(%{status: :cardmarket} = verdict) do
-    case cardmarket_percent(verdict) do
-      percent when percent < -10 -> :below
-      percent when percent > 10 -> :above
-      _within -> nil
-    end
-  end
-
-  def cardmarket_tone(_verdict), do: nil
-
-  defp cardmarket_percent(%{cheapest: %{price: price}, typical: typical}) do
-    price
-    |> Decimal.sub(typical)
-    |> Decimal.div(typical)
-    |> Decimal.mult(100)
-    |> Decimal.round(0)
-    |> Decimal.to_integer()
-  end
 end

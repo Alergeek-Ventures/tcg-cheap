@@ -22,7 +22,8 @@ A deliberately simple guide with two parts:
 
 1. **Zakupy (buying guide, live):** for any sealed Pokémon product, show where
    it is cheapest in Polish shops right now and whether that price is good,
-   normal or expensive compared with what the product has really cost lately.
+   normal or expensive compared with what other Polish shops ask today, with
+   the product's recent prices as context.
 2. **Wymiany (trading guide, next phase):** check whether a trade of single
    cards is fair.
 
@@ -42,14 +43,20 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
 
 - Catalogue: every sealed Pokémon product listed on Cardmarket (≈4,400),
   imported daily; images come from matched Polish shop offers.
-- Offers: 71 Polish shops with public product feeds (WooCommerce, Shopify,
+- Offers: 122 Polish shops with public product feeds (WooCommerce, Shopify,
   Shoper and IdoSell XML), fetched once a day and matched to products
   automatically; an administrator can assign the rest by hand. Each offer shows the shop's cheapest delivery,
   free-delivery threshold and pickup city where the shop publishes them.
-- Verdict: typical price = median of the daily lowest Polish in-stock price
-  over 30 days (≥ 7 days with stock), otherwise the Cardmarket trend in PLN.
-  Good ≤ 95%, normal ≤ 110%, expensive above; thresholds are shown in złoty so
-  a price seen in a physical shop can be judged too.
+- Verdict: the cheapest in-stock price against today's market. Typical
+  price = median of the Polish shops' lowest in-stock prices (one per shop,
+  at least 3 shops). Good ≤ 95%, normal ≤ 110%, expensive above; the limits
+  are shown in whole złoty so a price seen in a physical shop can be judged
+  too. With fewer shops there is no verdict ("Za mało sklepów"); the
+  Cardmarket trend in PLN is shown as context on the product page.
+- History is context, never the verdict: the same price against the median
+  daily lowest price of the last 30 days (≥ 7 days with stock), shown as one
+  line ("Taniej / Tyle co / Drożej niż w ostatnich 30 dniach") and a chart
+  behind a click.
 - Public pages read only the local database; shops and Cardmarket are fetched
   by background jobs.
 - The singles/trade pages are still English and will be simplified next.

@@ -589,15 +589,8 @@ defmodule TcgCheapWeb.HomeLive do
                         id={"verdict-#{summary.product.slug}"}
                         class="guide-product-verdict"
                       />
-                      <p
-                        :if={summary.verdict.cheapest || summary.cardmarket_pln}
-                        class="guide-product-price"
-                      >
-                        <%= if summary.verdict.cheapest do %>
-                          <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
-                        <% else %>
-                          <span>Cardmarket ≈ {Polish.zloty(summary.cardmarket_pln)}</span>
-                        <% end %>
+                      <p :if={summary.verdict.cheapest} class="guide-product-price">
+                        <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
                       </p>
                     </div>
                   </.link>
