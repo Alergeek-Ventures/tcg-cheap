@@ -85,5 +85,18 @@ defmodule TcgCheap.Sealed.PullRates.Rate do
     end
   end
 
+  @doc "Chance of at least one hit across independent standard packs, or a guaranteed rarity."
+  @spec across_packs(t(), pos_integer()) :: :guaranteed | float() | nil
+  def across_packs(rate, count) when is_integer(count) and count > 0 do
+    case odds(rate) do
+      {:per_pack, cards} when cards >= 1 -> :guaranteed
+      {:one_in, packs, _about?} -> combined(1 / Decimal.to_float(packs), count)
+      {:hits, percent, _hits, _packs} -> combined(Decimal.to_float(percent) / 100, count)
+      _ -> nil
+    end
+  end
+
+  defp combined(probability, count), do: 100 * (1 - :math.pow(1 - probability, count))
+
   defp decimal(number), do: number |> String.replace(",", "") |> Decimal.new()
 end

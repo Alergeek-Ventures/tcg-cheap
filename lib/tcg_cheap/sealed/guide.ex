@@ -165,9 +165,9 @@ defmodule TcgCheap.Sealed.Guide do
   Everything the product page shows: today's verdict, the comparison with
   the product's history (`past`), offers, 90 days of history, REBEL's
   suggested retail price when one matches, our English single booster of
-  each set the contents name (`boosters`, by set name) and, for a full
-  English single booster, its set's pull rates and cards (`booster_set`,
-  nil for other products).
+  each set the contents name (`boosters`, by set name), their combined odds
+  (`booster_odds`) and, for any English single booster, its set's pull rates
+  and cards (`booster_set`, nil for other products).
   """
   @spec product(String.t(), DateTime.t()) :: {:ok, map()} | :error
   def product(slug, %DateTime{} = now) do
@@ -189,6 +189,7 @@ defmodule TcgCheap.Sealed.Guide do
 
         summary = summary(product, offers, rate)
         past_history = with_last_stocked_day(history, product.id, since)
+        boosters = boosters(product.contents)
 
         {:ok,
          Map.merge(summary, %{
@@ -198,7 +199,8 @@ defmodule TcgCheap.Sealed.Guide do
            today: today,
            eur_pln: rate,
            suggested_price: Sealed.get_suggested_price_for_product!(product.id),
-           boosters: boosters(product.contents),
+           boosters: boosters,
+           booster_odds: booster_odds(product, boosters),
            booster_set: booster_set(product)
          })}
     end
@@ -218,40 +220,75 @@ defmodule TcgCheap.Sealed.Guide do
     end
   end
 
-  # What an English single booster may hold: the pull rates, rarest first,
-  # and the cards grouped by rarity, rarest first, of the English sets of its
-  # expansion (a set and its gallery subsets), each with its Cardmarket price,
-  # the day of those prices (`priced_on`) and the expansion's logo as on its
-  # tile in the expansion filter (`logo_url`). Only full boosters ("Journey
-  # Together Booster", "... Sleeved Booster"): smaller packs ("Booster (6
-  # Cards)", "Fun Pack (3 Cards)") have other odds.
+  # Smaller English packs share the set's card pool, but not its standard-pack odds.
   defp booster_set(%Product{kind: :booster, region: :en, cardmarket_expansion_id: id} = product) do
-    if String.ends_with?(product.name, " Booster") do
-      sets =
-        if id,
-          do: Sealed.list_english_sets_of_expansion!(id, load: [cards: :cardmarket_price]),
-          else: []
+    sets =
+      if id,
+        do: Sealed.list_english_sets_of_expansion!(id, load: [cards: :cardmarket_price]),
+        else: []
 
-      main = TcgdexSet.by_expansion(sets) |> Map.values() |> List.first()
-      pull_rates = Enum.find_value([main | sets], &(&1 && &1.pull_rates))
-      cards = Enum.flat_map(sets, & &1.cards)
-      rarities = by_rarity(cards)
+    main = TcgdexSet.by_expansion(sets) |> Map.values() |> List.first()
+    pull_rates = Enum.find_value([main | sets], &(&1 && &1.pull_rates))
+    cards = Enum.flat_map(sets, & &1.cards)
+    rarities = by_rarity(cards)
 
-      %{
-        pull_rates: pull_rates(pull_rates, rarities),
-        cards_per_pack: pull_rates && pull_rates.cards_per_pack,
-        rarities: rarities,
-        logo_url: id && Map.get(logos(), id),
-        priced_on:
-          cards
-          |> Enum.map(&(&1.cardmarket_price && &1.cardmarket_price.priced_on))
-          |> Enum.reject(&is_nil/1)
-          |> Enum.max(Date, fn -> nil end)
-      }
-    end
+    %{
+      pull_rates: pull_rates(pull_rates, rarities),
+      cards_per_pack: pack_size(product) || (pull_rates && pull_rates.cards_per_pack),
+      standard_pack_size: pull_rates && pull_rates.cards_per_pack,
+      smaller_pack?: smaller_pack?(product, pull_rates),
+      rarities: rarities,
+      logo_url: id && Map.get(logos(), id),
+      priced_on:
+        cards
+        |> Enum.map(&(&1.cardmarket_price && &1.cardmarket_price.priced_on))
+        |> Enum.reject(&is_nil/1)
+        |> Enum.max(Date, fn -> nil end)
+    }
   end
 
   defp booster_set(_product), do: nil
+
+  defp pack_size(product) do
+    case Regex.run(~r/\((\d+) Cards?\)/i, product.name) do
+      [_, count] -> String.to_integer(count)
+      nil -> nil
+    end
+  end
+
+  defp smaller_pack?(product, pull_rates) do
+    size = pack_size(product)
+    standard = pull_rates && pull_rates.cards_per_pack
+    not is_nil(size) and (is_nil(standard) or size < standard)
+  end
+
+  defp booster_odds(%Product{contents: nil}, _boosters), do: []
+
+  defp booster_odds(product, boosters) do
+    product.contents.items
+    |> Enum.filter(&(&1.type == :booster and Map.has_key?(boosters, &1.name)))
+    |> Enum.group_by(& &1.name)
+    |> Enum.sort_by(&elem(&1, 0))
+    |> Enum.map(fn {name, items} ->
+      booster = Map.fetch!(boosters, name)
+
+      sets =
+        if booster.cardmarket_expansion_id,
+          do: Sealed.list_english_sets_of_expansion!(booster.cardmarket_expansion_id),
+          else: []
+
+      main = TcgdexSet.by_expansion(sets) |> Map.values() |> List.first()
+      rates = Enum.find_value([main | sets], &(&1 && &1.pull_rates))
+      count = Enum.sum(Enum.map(items, & &1.quantity))
+
+      %{
+        name: name,
+        slug: booster.slug,
+        count: count,
+        pull_rates: pull_rates(rates, [])
+      }
+    end)
+  end
 
   defp pull_rates(nil, _rarities), do: nil
 
