@@ -420,19 +420,23 @@
 .report button { cursor: pointer; min-block-size: 2.75rem; }
 #report-toggle, #report-submit { background: var(--ink); border: 1px solid var(--ink); color: var(--paper); font: 700 1rem/1 "Barlow Condensed", sans-serif; letter-spacing: .06em; padding-inline: 1.25rem; text-transform: uppercase; }
 #report-toggle { box-shadow: .1875rem .1875rem 0 var(--orange); inset-block-end: max(1rem, env(safe-area-inset-bottom)); inset-inline-end: 1rem; position: fixed; z-index: 10; }
-#report-panel { background: var(--paper); border: 1px solid var(--ink); box-shadow: .25rem .25rem 0 var(--ink); color: inherit; font: inherit; gap: .5rem; inline-size: min(24rem, 100vw - 2rem); inset: auto 1rem calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem) auto; margin: 0; opacity: 0; padding: 1rem; transition: opacity .2s ease-out, translate .2s ease-out, display .2s allow-discrete, overlay .2s allow-discrete; }
+/* analytics.js sets --report-keyboard to the height an on-screen keyboard covers and --report-room to the
+   height left above it, so the open form stays above the keyboard and scrolls inside when it is too tall. */
+#report-panel { background: var(--paper); border: 1px solid var(--ink); box-shadow: .25rem .25rem 0 var(--ink); color: inherit; font: inherit; gap: .5rem; inline-size: min(24rem, 100vw - 2rem); inset: auto 1rem max(calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem), var(--report-keyboard, 0px) + .5rem) auto; margin: 0; max-block-size: calc(var(--report-room, 100dvh) - 1rem); opacity: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1rem; transition: opacity .2s ease-out, translate .2s ease-out, display .2s allow-discrete, overlay .2s allow-discrete; }
 #report-panel:popover-open { display: grid; opacity: 1; }
 #report-panel h2 { font: 700 1.5rem/1 "Barlow Condensed", sans-serif; margin: 0; }
 #report-panel p { margin: 0; text-wrap: pretty; }
 #report-panel label { font-size: .8125rem; margin-block-start: .25rem; }
 #report-panel :is(textarea, input) { background: #fff; border: 1px solid var(--ink); border-radius: 0; color: inherit; font: inherit; inline-size: 100%; padding: .5rem .75rem; }
 #report-panel textarea { field-sizing: content; max-block-size: 12lh; min-block-size: 5lh; resize: none; }
-.report-actions { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-block-start: .5rem; }
+.report-actions { align-items: center; display: flex; gap: .5rem; margin-block-start: .5rem; }
 #report-status { color: var(--muted); flex: 1; font-size: .75rem; }
+#report-cancel { background: none; border: 1px solid var(--ink); color: var(--ink); font: 700 1rem/1 "Barlow Condensed", sans-serif; letter-spacing: .06em; padding-inline: 1rem; text-transform: uppercase; }
 #report-submit:disabled { cursor: progress; opacity: .6; }
 .report :is(button, textarea, input):focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 #report-toggle:active, #report-submit:active { background: var(--orange); border-color: var(--orange); }
-@media (hover: hover) and (pointer: fine) { #report-toggle:hover, #report-submit:enabled:hover { background: var(--orange); border-color: var(--orange); } }
+#report-cancel:active { border-color: var(--orange); color: var(--orange); }
+@media (hover: hover) and (pointer: fine) { #report-toggle:hover, #report-submit:enabled:hover { background: var(--orange); border-color: var(--orange); } #report-cancel:hover { border-color: var(--orange); color: var(--orange); } }
 @starting-style { #report-panel:popover-open { opacity: 0; } }
 @media (prefers-reduced-motion: no-preference) { #report-panel { translate: 0 .5rem; } #report-panel:popover-open { translate: 0 0; } @starting-style { #report-panel:popover-open { translate: 0 .5rem; } } }
 /* The form above replaces PostHog's chat widget, which its remote config may still render. */
