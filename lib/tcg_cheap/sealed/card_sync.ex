@@ -164,6 +164,7 @@ defmodule TcgCheap.Sealed.CardSync do
 
   defp sync(set, {request_options, now}) do
     with {:ok, cards} <- fetch_cards(set.tcgdex_id, request_options),
+         cards = Enum.map(cards, &subset_rarity(&1, set)),
          :ok <- replaces_unofficial(set, cards, now),
          {:ok, _set} <- Sealed.record_tcgdex_set_cards(set, cards) do
       :ok
@@ -173,6 +174,16 @@ defmodule TcgCheap.Sealed.CardSync do
         :error
     end
   end
+
+  # TCGdex gives the cards of a Classic Collection subset (the 30th
+  # Celebration's) no rarity; the subset is their rarity.
+  defp subset_rarity(%{rarity: nil} = card, %{name: "" <> name}) do
+    if String.ends_with?(name, "Classic Collection"),
+      do: %{card | rarity: "Classic Collection"},
+      else: card
+  end
+
+  defp subset_rarity(card, _set), do: card
 
   defp replaces_unofficial(%{cards_source_url: nil}, _cards, _now), do: :ok
 
