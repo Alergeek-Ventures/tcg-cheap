@@ -25,6 +25,7 @@ defmodule TcgCheap.Catalogue.ExternalImage do
     "cdn11.bigcommerce.com",
     "d1avvq5q4v8v8k.cloudfront.net",
     "media3.nin-nin-game.com",
+    "pokemonlore.com",
     "pokemonplug.com",
     "primary.jwwb.nl",
     "quazacollect.com",
