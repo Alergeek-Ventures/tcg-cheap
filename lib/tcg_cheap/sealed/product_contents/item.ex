@@ -68,7 +68,7 @@ defmodule TcgCheap.Sealed.ProductContents.Item do
     end
 
     attribute :cards, {:array, TcgCheap.Sealed.ProductContents.DeckCard} do
-      description "A deck's full card list, as the publisher prints it: every card with its copies."
+      description "The full card list of a deck, or of a row of fixed cards (type card, e.g. a deck-building box's), as the publisher prints it: every card with its copies."
       public? true
     end
   end

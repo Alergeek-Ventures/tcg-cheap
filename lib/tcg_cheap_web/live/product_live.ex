@@ -528,7 +528,10 @@ defmodule TcgCheapWeb.ProductLive do
                 href={"#deck-list-#{index}"}
                 class="contents-card-set"
               >
-                {gettext("lista kart talii")}
+                {if(item.type == :deck,
+                  do: gettext("lista kart talii"),
+                  else: gettext("lista kart")
+                )}
               </a>
             </span>
           </span>
@@ -616,11 +619,12 @@ defmodule TcgCheapWeb.ProductLive do
     """
   end
 
-  # Fixed decks whose card list we know, by their place in the contents.
+  # Fixed decks, and fixed cards of a deck-building box, whose card list we
+  # know, by their place in the contents.
   defp deck_lists(nil), do: []
 
   defp deck_lists(contents) do
-    for {%{type: :deck, cards: [_card | _more]} = deck, index} <- Enum.with_index(contents.items),
+    for {%{cards: [_card | _more]} = deck, index} <- Enum.with_index(contents.items),
         do: {deck, index}
   end
 
@@ -692,6 +696,7 @@ defmodule TcgCheapWeb.ProductLive do
     """
   end
 
+  defp deck_title(%{type: type}) when type != :deck, do: gettext("Karty w zestawie")
   defp deck_title(%{name: nil}), do: gettext("Karty w talii")
   defp deck_title(%{name: deck}), do: gettext("Karty w talii %{deck}", deck: deck)
 
