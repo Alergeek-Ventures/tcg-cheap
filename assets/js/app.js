@@ -145,6 +145,16 @@ window.addEventListener("guide:reveal", e => e.target.scrollIntoView({block: "st
 // Links to a section of the same page glide to it instead of jumping, opening
 // the folded group they point into (a jump where motion is reduced). Focus
 // moves along, so the keyboard carries on from the section as after a jump.
+// The section stays framed (site.css) until the page scrolls again after the glide.
+const unframeOnScroll = target => {
+  // Settle the unframed style first, so the frame fades in.
+  getComputedStyle(target).outlineColor
+  target.dataset.jumped = ""
+  const unframe = () => delete target.dataset.jumped
+  const afterGlide = () => window.addEventListener("scroll", unframe, {once: true, passive: true})
+  if ("onscrollend" in window) window.addEventListener("scrollend", afterGlide, {once: true})
+  else setTimeout(afterGlide, 1000)
+}
 document.addEventListener("click", e => {
   const link = e.target.closest?.('a[href^="#"]')
   if (!link || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
@@ -155,6 +165,7 @@ document.addEventListener("click", e => {
   if (group) group.open = true
   if (!target.matches("a[href], button, input, select, textarea, summary, [tabindex]")) target.setAttribute("tabindex", "-1")
   target.focus({preventScroll: true})
+  unframeOnScroll(target)
   target.scrollIntoView({behavior: "smooth", block: "start"})
   history.pushState(history.state, "", link.hash)
 })

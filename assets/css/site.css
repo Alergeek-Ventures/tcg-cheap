@@ -350,6 +350,14 @@
 .admin-world :is(a, button, input, select, summary):focus-visible, .admin-login-world :is(a, button, input, select, summary):focus-visible {
   outline: 3px solid var(--orange, var(--ink)); outline-offset: 4px;
 }
+/* What the page moves focus to after a jump. A section an in-page link leads to is framed every time
+   (Safari drew its own ring tight round it after some taps only), 4px short of the screen edges on a
+   phone and clear of the sticky header; the frame fades in, and out once the page scrolls on (app.js).
+   The list heading "Pokaż produkty" leads to takes no frame. */
+:where([tabindex="-1"]:not(a, button, input, select, textarea, summary, [role])):focus { outline: none; }
+.guide-world :is(section, ol) { outline-color: transparent; }
+.guide-world :is(section, ol)[tabindex="-1"] { border-radius: .25rem; outline-style: dashed; outline-width: 2px; outline-offset: calc(1rem - 6px); scroll-margin-block-start: 1rem; transition: outline-color .4s; }
+.guide-world :is(section, ol)[data-jumped]:focus { outline-color: var(--orange); }
 
 /* Public rhythm: dense desktop surfaces, with touch-safe controls retained. */
 .archive-world .archive-main, .decision-world .decision-main { padding-block: var(--space-8); }
