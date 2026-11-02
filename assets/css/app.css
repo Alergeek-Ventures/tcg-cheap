@@ -692,7 +692,6 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-search-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: clip; position: absolute; white-space: nowrap; }
 .guide-world .guide-search-field { align-items: center; display: flex; position: relative; }
 .guide-world .guide-search-field .fieldset { flex: 1; margin: 0; min-inline-size: 0; padding: 0; }
-.guide-world .guide-search-field .fieldset { border-bottom: 1px solid var(--ink); }
 .guide-world .guide-search-field label { display: block; }
 .guide-world .guide-search-icon { color: var(--muted); height: 1.5rem; left: 0; pointer-events: none; position: absolute; top: 50%; transform: translateY(-50%); width: 1.5rem; z-index: 1; }
 /* A fixed line box without the browser's search decoration. */
