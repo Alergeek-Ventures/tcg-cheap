@@ -2,8 +2,7 @@
 
 <!-- impeccable:product-schema 1 -->
 
-> Product owner direction, 2026-10-30. The full product north star is
-> [Buying and Trading Guide](knowledge-base/wiki/product/buying-and-trading-guide.md).
+> Product owner direction, 2026-10-30.
 
 ## Platform
 

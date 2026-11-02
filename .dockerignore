@@ -25,7 +25,6 @@ priv/plts
 test
 tests
 docs
-knowledge-base
 *.md
 
 # Logs, uploads, and local runtime data
