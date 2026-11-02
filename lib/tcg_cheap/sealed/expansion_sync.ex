@@ -7,15 +7,22 @@ defmodule TcgCheap.Sealed.ExpansionSync do
   Cardmarket singles catalogue gives that product's expansion. Sets TCGdex
   has no Cardmarket ids for (older Japanese sets, promos) stay unresolved.
 
+  English sets are also reconciled against exact, unambiguous sealed booster
+  names on every run. This repairs historical wrong Cardmarket product ids
+  in TCGdex and finds sealed expansions even when singles use another id.
+  Without a unique name match the card-derived mapping is kept. The set's
+  identity, copied cards and pull rates are preserved.
+
   A run stops resolving after five minutes and leaves the rest for the next
   day, newest sets first, so it never holds up the catalogue import: the
   first, about a thousand TCGdex documents, spreads over a few days; later
-  runs read only the set lists and new sets. A set whose cards TCGdex fails
+  runs read the set lists, sealed catalogue and new sets. A set whose cards TCGdex fails
   to return is not recorded, so it is tried again.
   """
 
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
   alias TcgCheap.Sealed
+  alias TcgCheap.Sealed.{Matcher, Regions}
 
   @base "https://api.tcgdex.net/v2"
   @languages ~w(en ja)
@@ -26,7 +33,8 @@ defmodule TcgCheap.Sealed.ExpansionSync do
   @budget_ms :timer.minutes(5)
   @logo_host "https://assets.tcgdex.net/"
 
-  @spec run(keyword()) :: {:ok, %{checked: non_neg_integer()}} | {:error, term()}
+  @spec run(keyword()) ::
+          {:ok, %{checked: non_neg_integer(), remapped: non_neg_integer()}} | {:error, term()}
   def run(opts \\ []) do
     now = Keyword.get_lazy(opts, :now, &DateTime.utc_now/0)
     request_options = Keyword.get(opts, :request_options, [])
@@ -38,9 +46,66 @@ defmodule TcgCheap.Sealed.ExpansionSync do
          # TCGdex lists sets oldest first.
          due = listed |> Enum.filter(&due?(Map.get(known, &1), now)) |> Enum.reverse(),
          {:ok, expansions} <- expansions(due, request_options) do
-      {:ok, %{checked: resolve_until(due, deadline, expansions, request_options)}}
+      checked = resolve_until(due, deadline, expansions, request_options)
+
+      with {:ok, remapped} <- reconcile_sealed(request_options) do
+        {:ok, %{checked: checked, remapped: remapped}}
+      end
     end
   end
+
+  defp reconcile_sealed(request_options) do
+    with {:ok, catalogue} <- Adapter.fetch_sealed_products(request_options: request_options) do
+      catalogue.rows |> booster_expansions() |> remap_sets()
+    end
+  end
+
+  defp remap_sets(expansions) do
+    changes =
+      for set <- Sealed.list_english_tcgdex_sets!(),
+          [id] <- [Map.get(expansions, booster_name(set))],
+          id != set.cardmarket_expansion_id,
+          do: {set, id}
+
+    Enum.reduce_while(changes, {:ok, 0}, fn {set, id}, {:ok, count} ->
+      attrs =
+        set
+        |> Map.take([:language, :tcgdex_id, :name, :logo_url, :released_on])
+        |> Map.put(:cardmarket_expansion_id, id)
+
+      case Sealed.record_tcgdex_set(attrs) do
+        {:ok, _set} -> {:cont, {:ok, count + 1}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  # Require the complete name of a full English booster, not a substring of
+  # a deck, tin or regional variant. Ambiguous names never replace a mapping.
+  defp booster_expansions(products) do
+    names = Enum.group_by(products, & &1.id_expansion, & &1.name)
+    regions = Regions.by_expansion(names, %{})
+
+    products
+    |> Enum.filter(fn product ->
+      product.category_id == 52 and regions[product.id_expansion] == :en and
+        String.ends_with?(product.name, " Booster")
+    end)
+    |> Enum.group_by(
+      &(&1.name |> String.replace_suffix(" Booster", "") |> Matcher.normalize()),
+      & &1.id_expansion
+    )
+    |> Map.new(fn {name, ids} -> {name, Enum.uniq(ids)} end)
+  end
+
+  # Cardmarket includes the EX series label in these booster titles; TCGdex
+  # leaves it out of the set name. Apply this only to EX-era TCGdex ids.
+  defp booster_name(%{name: name, tcgdex_id: id}) when is_binary(name) do
+    name = if Regex.match?(~r/\Aex\d+\z/, id), do: "EX " <> name, else: name
+    Matcher.normalize(name)
+  end
+
+  defp booster_name(_set), do: nil
 
   # How many due sets were checked before the deadline.
   defp resolve_until([], _deadline, _expansions, _request_options), do: 0
