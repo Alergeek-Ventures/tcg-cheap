@@ -47,6 +47,7 @@ defmodule TcgCheapWeb.Router do
   set_product_contents records what a box holds (items, a fixed deck's cards, sources) for its page.
   set_pull_rates records a set's estimated pull rates for its single booster's page, once
   enqueue_card_sync (also run daily) has copied the set's cards.
+  set_expansion_logo records a checked logo for an expansion's tile in the public expansion filter.
   list_suggested_prices shows REBEL's suggested retail prices; decide_suggested_price assigns an
   unmatched one to its exact product (same number of units) or keeps it unmatched.
   Write tools recompute prices at once. enqueue_shop_fetch and enqueue_catalogue_import refresh
@@ -99,6 +100,7 @@ defmodule TcgCheapWeb.Router do
         :set_product_eans,
         :set_product_contents,
         :set_pull_rates,
+        :set_expansion_logo,
         :enqueue_shop_fetch,
         :enqueue_catalogue_import,
         :enqueue_card_sync,

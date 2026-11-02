@@ -3,7 +3,7 @@ defmodule TcgCheap.Sealed.AgentTools do
   Actions behind the MCP tools for AI agents (see the `tools` of
   `TcgCheap.Sealed`): shop status, offer lists, product detail, match
   explanations, manual decisions, product barcodes and contents, set pull
-  rates, REBEL suggested prices and fetch/import jobs.
+  rates, expansion logos, REBEL suggested prices and fetch/import jobs.
   They do what the admin buying-guide desk
   (`TcgCheapWeb.Admin.BuyingGuideLive`) does and store nothing themselves.
   """
@@ -18,6 +18,7 @@ defmodule TcgCheap.Sealed.AgentTools do
     ProductDetail,
     SetContents,
     SetEans,
+    SetExpansionLogo,
     SetPullRates,
     ShopStatus,
     SuggestedPrices
@@ -263,6 +264,29 @@ defmodule TcgCheap.Sealed.AgentTools do
       argument :pull_rates, TcgCheap.Sealed.PullRates
 
       run SetPullRates
+    end
+
+    action :set_expansion_logo, :map do
+      description """
+      Sets or clears the logo of a Cardmarket expansion (the cardmarket_expansion_id of its
+      products, from search_products or get_product), shown on its tile in the public expansion
+      filter. Give only a logo you checked by eye is this expansion's, in its edition (a Japanese
+      set's own logo, not its English counterpart's): `url` the image, on an allowed image host,
+      `page` the https page it was found on and `checked_on` the day. An English TCGdex logo,
+      when there is one, is shown instead. The image is copied to our storage in the background
+      and shown once copied. url null clears the logo. Returns the expansion's logo.
+      """
+
+      argument :expansion_id, :integer,
+        allow_nil?: false,
+        constraints: [min: 1],
+        description: "The Cardmarket expansion id."
+
+      argument :url, :string, description: "The https logo image; null clears the logo."
+      argument :page, :string, description: "The https page the logo was found on."
+      argument :checked_on, :date, description: "The day the logo was checked."
+
+      run SetExpansionLogo
     end
 
     action :enqueue_shop_fetch, :map do
