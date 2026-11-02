@@ -74,7 +74,7 @@ defmodule TcgCheap.Sealed.ProductContents.Item do
     end
 
     attribute :photo, :string do
-      description "A picture of this item (sleeves, dice, coin...): an https image URL on an allowed image host, e.g. a REBEL component picture. Shown from our own storage once mirrored."
+      description "A picture of this item (sleeves, dice, coin...): an https image URL on an allowed image host, e.g. a REBEL component picture. When the picture shows several things, end the URL with #crop=left,top,width,height (percent of the picture) to cut this item out. Shown from our own storage once mirrored."
       public? true
       constraints max_length: 2_000
     end

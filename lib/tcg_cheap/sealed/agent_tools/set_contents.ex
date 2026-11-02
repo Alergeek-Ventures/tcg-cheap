@@ -5,7 +5,8 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   A card given by its TCGdex id gets its set, number, picture and Cardmarket
   product from TCGdex, and so does each card of a fixed deck or random deck variant, with its
   category; an id TCGdex does not know is rejected. An item's photo
-  must be on an image host we mirror from (`TcgCheap.Catalogue.ExternalImage`).
+  must be on an image host we mirror from (`TcgCheap.Catalogue.ExternalImage`),
+  with a well-formed crop when it shows one of several things.
   """
 
   use Ash.Resource.Actions.Implementation
@@ -15,6 +16,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.{Json, KnownKeys}
   alias TcgCheap.Sealed.ProductContents.DeckCard
+  alias TcgCheap.Storage.ImageDownload
 
   @contents ~w(items sources checked_on)
   @item ~w(quantity type name tcgdex_id set number cardmarket_id image photo cards variants)
@@ -95,9 +97,19 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   defp allowed_photo(%{photo: nil}), do: :ok
 
   defp allowed_photo(%{photo: photo}) do
-    if ExternalImage.valid?(photo),
-      do: :ok,
-      else: invalid(:contents, "photo #{photo} is not on an allowed image host")
+    cond do
+      not ExternalImage.valid?(photo) ->
+        invalid(:contents, "photo #{photo} is not on an allowed image host")
+
+      elem(ImageDownload.split_crop(photo), 1) == :invalid ->
+        invalid(
+          :contents,
+          "photo #{photo} has a crop that is not #crop=left,top,width,height in percent"
+        )
+
+      true ->
+        :ok
+    end
   end
 
   defp with_card(%{tcgdex_id: nil} = item), do: {:ok, item}

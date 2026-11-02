@@ -30,6 +30,62 @@ defmodule TcgCheap.Storage.ImageDownload do
     end
   end
 
+  @doc """
+  Splits the crop off a photo URL ending in `#crop=left,top,width,height`
+  (percentages of the image), for an item shown in a picture of several
+  things: the URL to download and the crop, `nil` without one, or `:invalid`.
+  """
+  @spec split_crop(String.t()) ::
+          {String.t(), {number(), number(), number(), number()} | :invalid | nil}
+  def split_crop(url) do
+    case String.split(url, "#crop=", parts: 2) do
+      [source, crop] -> {source, parse_crop(crop)}
+      [source] -> {source, nil}
+    end
+  end
+
+  defp parse_crop(crop) do
+    with [_ | _] = parts <- String.split(crop, ","),
+         [left, top, width, height] <- Enum.map(parts, &percent/1),
+         true <- Enum.all?([left, top, width, height], &is_number/1),
+         true <- width > 0 and height > 0 and left + width <= 100 and top + height <= 100 do
+      {left, top, width, height}
+    else
+      _invalid -> :invalid
+    end
+  end
+
+  defp percent(value) do
+    case Float.parse(value) do
+      {number, ""} when number >= 0 and number <= 100 -> number
+      _invalid -> nil
+    end
+  end
+
+  @doc "Cuts a crop from `split_crop/1` out of a downloaded image, as PNG."
+  @spec crop(binary(), String.t(), {number(), number(), number(), number()} | :invalid | nil) ::
+          {:ok, binary(), String.t()} | {:error, term()}
+  def crop(body, type, nil), do: {:ok, body, type}
+  def crop(_body, _type, :invalid), do: {:error, :invalid_crop}
+
+  def crop(body, _type, crop) do
+    with {:ok, image} <- Image.from_binary(body),
+         {left, top, width, height} = pixels(crop, Image.width(image), Image.height(image)),
+         {:ok, cropped} <- Image.crop(image, left, top, width, height),
+         {:ok, png} <- Image.write(cropped, :memory, suffix: ".png") do
+      {:ok, png, "image/png"}
+    end
+  end
+
+  # Percentages to whole pixels inside the image, at least one wide.
+  defp pixels({left, top, width, height}, image_width, image_height) do
+    left = min(round(left * image_width / 100), image_width - 1)
+    top = min(round(top * image_height / 100), image_height - 1)
+
+    {left, top, max(1, min(round(width * image_width / 100), image_width - left)),
+     max(1, min(round(height * image_height / 100), image_height - top))}
+  end
+
   @doc "Downloads a stored variant, never following redirects away from our storage."
   @spec fetch_stored(term()) :: {:ok, binary(), String.t()} | {:error, term()}
   def fetch_stored(url) when is_binary(url) do

@@ -96,9 +96,14 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
     length(images)
   end
 
+  # A cropped photo is cut out of its picture, then cut to the item if the
+  # picture is transparent around it.
   defp mirror(image, req_options) do
-    with {:ok, body, type} <- Storage.ImageDownload.fetch(image.source_url, req_options),
-         {:ok, body, type} <- trim_margins(body, type, image.trim_margins),
+    {source, crop} = Storage.ImageDownload.split_crop(image.source_url)
+
+    with {:ok, body, type} <- Storage.ImageDownload.fetch(source, req_options),
+         {:ok, body, type} <- Storage.ImageDownload.crop(body, type, crop),
+         {:ok, body, type} <- trim_margins(body, type, image.trim_margins or crop != nil),
          {:ok, %{blob: blob}} <-
            Storage.replace_image(
              image,
