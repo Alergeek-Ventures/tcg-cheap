@@ -851,23 +851,18 @@ defmodule TcgCheapWeb.ProductLive do
 
     ~H"""
     <section id="product-cards" class="product-section" aria-labelledby="product-cards-title">
-      <div class="product-section-heading">
-        <h2 id="product-cards-title">
-          <img :if={@logo_url} src={@logo_url} alt="" class="set-cards-logo" />
-          {gettext("Karty do zdobycia")}
-        </h2>
-        <p>
-          <%= if @cards_per_pack do %>
-            {cards_per_pack(@cards_per_pack)} · {gettext("%{count} w secie",
-              count: Polish.number(@count)
-            )}
-          <% else %>
+      <div class="product-section-heading set-cards-heading">
+        <h2 id="product-cards-title">{gettext("Karty do zdobycia")}</h2>
+        <ul class="set-cards-facts">
+          <li :if={@cards_per_pack}>{cards_per_pack(@cards_per_pack)}</li>
+          <li>
             {ngettext("%{count} karta w secie", "%{count} karty w secie", @count,
               count: Polish.number(@count)
             )}
-          <% end %>
-          <span :if={@priced_on}>· {gettext("ceny kart: Cardmarket, €")}</span>
-        </p>
+          </li>
+          <li :if={@priced_on}>{gettext("Ceny: Cardmarket, w €")}</li>
+        </ul>
+        <img :if={@logo_url} src={@logo_url} alt="" class="set-cards-logo" />
       </div>
       <div id="set-cards" class="set-cards">
         <details
