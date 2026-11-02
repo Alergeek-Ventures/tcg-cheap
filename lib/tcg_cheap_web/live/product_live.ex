@@ -143,6 +143,8 @@ defmodule TcgCheapWeb.ProductLive do
                   target="_blank"
                   rel="noopener nofollow"
                   class="offer-link"
+                  data-shop={offer.shop}
+                  data-in-stock={to_string(offer.in_stock)}
                   aria-label={
                     gettext("%{shop}: przejdź do sklepu (otwiera się w nowej karcie)",
                       shop: shop_name(offer)
