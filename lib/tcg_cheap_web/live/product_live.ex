@@ -418,6 +418,16 @@ defmodule TcgCheapWeb.ProductLive do
               >
                 <img src={booster_photo} alt="" height="48" loading="lazy" />
               </.link>
+            <% generic_url = generic_photo(item) -> %>
+              <a
+                href={generic_url}
+                class="contents-photo contents-photo-generic"
+                title={gettext("Zdjęcie poglądowe z innego produktu")}
+                aria-label={gettext("Zdjęcie poglądowe: %{item}", item: item_label(item))}
+              >
+                <img src={generic_url} alt="" height="48" loading="lazy" />
+                <span class="contents-photo-note">{gettext("zdjęcie poglądowe")}</span>
+              </a>
             <% true -> %>
               <span class="contents-photo-missing">{gettext("brak zdjęcia")}</span>
           <% end %>
@@ -448,6 +458,19 @@ defmodule TcgCheapWeb.ProductLive do
   # Items that look the same in every product show one example picture.
   defp stock_photo(:code_card), do: ~p"/images/contents/code_card.webp"
   defp stock_photo(_type), do: nil
+
+  # Without a photo of this product's item, a common one of that kind stands
+  # in, marked as not this product's.
+  @generic_photos ~w(binder booster card_dividers coin condition_markers damage_counters deck_box
+                     dice energy_cards player_guide playmat sleeves sticker storage_box)a
+
+  # A named booster's example would show another set's logo.
+  defp generic_photo(%{type: :booster, name: set}) when is_binary(set), do: nil
+
+  defp generic_photo(%{type: type}) when type in @generic_photos,
+    do: ~p"/images/contents/#{"#{type}.webp"}"
+
+  defp generic_photo(_item), do: nil
 
   defp item_label(%{type: :booster, name: nil}), do: gettext("booster")
   defp item_label(%{type: :booster, name: set}), do: gettext("booster %{set}", set: set)
