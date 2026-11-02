@@ -5,8 +5,7 @@ defmodule TcgCheapWeb.HomeLive do
   (`?rodzaj=`), language edition (`?wersja=`, English unless `wszystkie`
   or an expansion is chosen) and expansion (`?rozszerzenie=`, a Cardmarket
   expansion id), and paged with "Pokaż
-  więcej". A known barcode, typed or scanned with the phone camera, opens its
-  product directly.
+  więcej".
   """
 
   use TcgCheapWeb, :live_view
@@ -14,8 +13,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   import TcgCheapWeb.GuideComponents
 
-  alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Ean, Guide, Kinds, Regions, Shops}
+  alias TcgCheap.Sealed.{Guide, Kinds, Regions, Shops}
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
   @max_query_length 100
@@ -47,22 +45,8 @@ defmodule TcgCheapWeb.HomeLive do
 
     filters = Map.put(filters, :region, region_param(params["wersja"], filters.expansion))
 
-    case Sealed.product_for_barcode(filters.query) do
-      %{slug: slug} ->
-        {:noreply,
-         socket
-         |> Analytics.track("search_performed", %{
-           query: filters.query,
-           barcode: true,
-           result_count: 1,
-           product_slug: slug
-         })
-         |> push_navigate(to: ~p"/produkty/#{slug}")}
-
-      nil ->
-        previous = socket.assigns[:filters]
-        {:noreply, socket |> list(filters) |> track_changes(previous)}
-    end
+    previous = socket.assigns[:filters]
+    {:noreply, socket |> list(filters) |> track_changes(previous)}
   end
 
   defp query_param(%{"q" => query}) when is_binary(query), do: query
@@ -84,7 +68,6 @@ defmodule TcgCheapWeb.HomeLive do
     socket
     |> assign(:filters, filters)
     |> assign(:facets, Guide.facets(filters))
-    |> assign(:barcode?, Ean.normalize(filters.query) != nil)
     |> assign(:form, to_form(%{"q" => filters.query}))
     |> assign(:result_count, count)
     |> assign(:loaded, length(summaries))
@@ -133,7 +116,6 @@ defmodule TcgCheapWeb.HomeLive do
 
     %{
       query: filters.query,
-      barcode: assigns.barcode?,
       kind: filters.kind,
       region: filters.region,
       expansion: filters.expansion,
@@ -425,36 +407,6 @@ defmodule TcgCheapWeb.HomeLive do
                   phx-debounce="300"
                   placeholder={gettext("np. Pitch Black ETB")}
                 />
-                <div
-                  id="guide-scan"
-                  class="guide-scan"
-                  phx-hook=".BarcodeScan"
-                  data-camera-error={
-                    gettext("Brak dostępu do aparatu. Wpisz cyfry spod kodu kreskowego.")
-                  }
-                  phx-update="ignore"
-                >
-                  <button
-                    id="guide-scan-open"
-                    type="button"
-                    data-track="barcode_scan_opened"
-                    class="guide-scan-open"
-                    aria-label={gettext("Skanuj kod kreskowy")}
-                    hidden
-                  >
-                    <.fluent_icon name={:barcode} class="size-6" />
-                  </button>
-                  <dialog
-                    id="guide-scan-dialog"
-                    class="guide-scan-dialog"
-                    aria-labelledby="guide-scan-title"
-                  >
-                    <h2 id="guide-scan-title">{gettext("Skieruj aparat na kod kreskowy")}</h2>
-                    <video id="guide-scan-video" muted playsinline></video>
-                    <p id="guide-scan-status" aria-live="polite"></p>
-                    <button id="guide-scan-close" type="button">{gettext("Zamknij")}</button>
-                  </dialog>
-                </div>
                 <button
                   type="button"
                   id="guide-filters-toggle"
@@ -485,65 +437,6 @@ defmodule TcgCheapWeb.HomeLive do
                 value={@filters.expansion}
               />
             </.form>
-            <script :type={Phoenix.LiveView.ColocatedHook} name=".BarcodeScan">
-              // Only where the browser can read barcodes natively (e.g. Chrome on
-              // Android); elsewhere the code can still be typed in.
-              export default {
-                async mounted() {
-                  if (!("BarcodeDetector" in window)) return
-                  const supported = await BarcodeDetector.getSupportedFormats()
-                  const formats = ["ean_13", "upc_a"].filter(format => supported.includes(format))
-                  if (formats.length === 0) return
-                  this.detector = new BarcodeDetector({formats})
-                  this.dialog = this.el.querySelector("dialog")
-                  this.video = this.el.querySelector("video")
-                  this.status = this.el.querySelector("[aria-live]")
-                  const open = this.el.querySelector("#guide-scan-open")
-                  open.hidden = false
-                  open.addEventListener("click", () => this.start())
-                  this.el.querySelector("#guide-scan-close").addEventListener("click", () => this.dialog.close())
-                  this.dialog.addEventListener("close", () => this.stop())
-                },
-                destroyed() { this.stop() },
-                async start() {
-                  this.status.textContent = ""
-                  this.video.hidden = false
-                  this.dialog.showModal()
-                  try {
-                    this.stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "environment"}})
-                  } catch {
-                    this.video.hidden = true
-                    this.status.textContent = this.el.dataset.cameraError
-                    this.track("barcode_camera_failed")
-                    return
-                  }
-                  this.video.srcObject = this.stream
-                  await this.video.play()
-                  this.scan()
-                },
-                async scan() {
-                  if (!this.stream) return
-                  const [code] = await this.detector.detect(this.video).catch(() => [])
-                  if (code) {
-                    this.dialog.close()
-                    this.track("barcode_scanned", {format: code.format})
-                    this.pushEvent("search", {q: code.rawValue})
-                  } else {
-                    this.timer = setTimeout(() => this.scan(), 200)
-                  }
-                },
-                // Captured by assets/js/analytics.js, like the server's "track" events.
-                track(event, properties = {}) {
-                  window.dispatchEvent(new CustomEvent("phx:track", {detail: {event, properties}}))
-                },
-                stop() {
-                  clearTimeout(this.timer)
-                  this.stream?.getTracks().forEach(track => track.stop())
-                  this.stream = null
-                  if (this.video) this.video.srcObject = null
-                }
-              }
-            </script>
           </section>
 
           <div class="guide-browse">
@@ -582,10 +475,6 @@ defmodule TcgCheapWeb.HomeLive do
               >
                 <li id="guide-products-empty" class="guide-empty hidden only:block">
                   <%= cond do %>
-                    <% @barcode? -> %>
-                      {gettext(
-                        "Nie znamy jeszcze tego kodu kreskowego. Wpisz nazwę produktu, np. Pitch Black ETB."
-                      )}
                     <% filtered?(@filters) -> %>
                       {gettext(
                         "Nic nie znaleźliśmy przy tych filtrach. Spróbuj samej nazwy dodatku albo usuń filtry."

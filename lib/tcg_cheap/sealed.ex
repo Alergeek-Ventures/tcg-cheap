@@ -10,7 +10,7 @@ defmodule TcgCheap.Sealed do
 
   use Ash.Domain, otp_app: :tcg_cheap, extensions: [AshAi]
 
-  alias TcgCheap.Sealed.{AgentTools, Ean, Offer, Product, SuggestedPrice}
+  alias TcgCheap.Sealed.{AgentTools, Offer, Product, SuggestedPrice}
 
   @current_for_seconds 3 * 86_400
 
@@ -272,13 +272,12 @@ defmodule TcgCheap.Sealed do
           is_binary(ean) and not is_nil(id),
           do: {ean, id}
 
-    from_products ++ from_offers ++ suggested_price_eans(& &1.manual?)
-  end
+    from_rebel =
+      for %SuggestedPrice{ean: ean, product_id: id, manual?: true} <- list_suggested_prices!(),
+          is_binary(ean) and not is_nil(id),
+          do: {ean, id}
 
-  defp suggested_price_eans(wanted?) do
-    for %SuggestedPrice{ean: ean, product_id: id} = item <- list_suggested_prices!(),
-        is_binary(ean) and not is_nil(id) and wanted?.(item),
-        do: {ean, id}
+    from_products ++ from_offers ++ from_rebel
   end
 
   defp unique_eans(pairs) do
@@ -291,22 +290,5 @@ defmodule TcgCheap.Sealed do
       end
     end)
     |> Map.new()
-  end
-
-  @doc """
-  The product identified by a scanned or typed barcode, if it is known: the
-  known EANs plus those of REBEL items matched automatically, which only
-  open a product page here and never match offers.
-  """
-  @spec product_for_barcode(String.t()) :: TcgCheap.Sealed.Product.t() | nil
-  def product_for_barcode(code) do
-    eans = unique_eans(confirmed_eans() ++ suggested_price_eans(&(not &1.manual?)))
-
-    with ean when is_binary(ean) <- Ean.normalize(code),
-         {:ok, id} <- Map.fetch(eans, ean) do
-      get_product!(id)
-    else
-      _unknown -> nil
-    end
   end
 end
