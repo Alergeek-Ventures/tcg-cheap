@@ -15,7 +15,7 @@ defmodule TcgCheapWeb.RemoteImageController do
       url = service.url(key, Context.new(opts))
 
       conn
-      |> put_resp_header("cache-control", "public, max-age=86400")
+      |> put_resp_header("cache-control", cache_control(image))
       |> redirect(external: url)
     else
       _ -> placeholder(conn)
@@ -23,6 +23,10 @@ defmodule TcgCheapWeb.RemoteImageController do
   end
 
   def show(conn, _params), do: placeholder(conn)
+
+  # An image waiting to be mirrored again loses its current files soon.
+  defp cache_control(%{attempted_at: nil}), do: "public, max-age=60"
+  defp cache_control(_image), do: "public, max-age=86400"
 
   defp stored_key(image, "thumbnail"), do: image.thumbnail_key
   defp stored_key(image, "detail"), do: image.detail_key

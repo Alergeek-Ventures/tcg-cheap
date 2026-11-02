@@ -52,7 +52,7 @@ defmodule TcgCheap.Catalogue.CardImage do
 
   @doc "Local logo URL; rendering never queries storage or downloads an image."
   @spec logo_url(term()) :: String.t() | nil
-  def logo_url(url), do: local_url(logo_source_url(url), "detail")
+  def logo_url(url), do: logo_version(local_url(logo_source_url(url), "detail"))
 
   @doc "Source of a product contents photo: any allowlisted image URL, kept as given."
   @spec photo_source_url(term()) :: String.t() | nil
@@ -70,11 +70,17 @@ defmodule TcgCheap.Catalogue.CardImage do
 
   @doc "Local URL of a mirrored expansion logo set by an agent or admin."
   @spec expansion_logo_url(term()) :: String.t() | nil
-  def expansion_logo_url(url), do: local_url(expansion_logo_source_url(url), "detail")
+  def expansion_logo_url(url),
+    do: logo_version(local_url(expansion_logo_source_url(url), "detail"))
 
   @doc "Stable identity shared by all references to a canonical source."
   @spec source_hash(String.t()) :: String.t()
   def source_hash(url), do: :crypto.hash(:sha256, url) |> Base.encode16(case: :lower)
+
+  # Logos are mirrored again with their margins trimmed and the old files are
+  # deleted; a new URL keeps browsers off redirects cached for the old ones.
+  defp logo_version(nil), do: nil
+  defp logo_version(url), do: url <> "?v=trimmed"
 
   defp local_url(nil, _size), do: nil
   defp local_url(source, size), do: "/media/tcgdex/#{source_hash(source)}/#{size}"
