@@ -2,7 +2,7 @@
 // PostHog's CDN bundle exposes window.posthog, also without the snippet's queue.
 export default function initAnalytics() {
   const config = document.querySelector("meta[name='posthog']")
-  if (!config || navigator.doNotTrack === "1" || navigator.globalPrivacyControl) return
+  if (!config) return
 
   const paths = JSON.parse(config.dataset.proxyPaths)
   const script = document.createElement("script")
@@ -37,7 +37,8 @@ export default function initAnalytics() {
 
     // The site has no accounts or personal data, so events keep the SDK's full
     // properties (URL, referrer, UTM, clicks). Cookieless in-memory tracking
-    // without person profiles needs no consent banner.
+    // without person profiles needs no consent banner. The audience is in the
+    // EU, so browsers sending DNT or GPC are counted too.
     posthog.init(config.content, {
       api_host: window.location.origin,
       rewriteRequestPath: url => {
@@ -56,7 +57,7 @@ export default function initAnalytics() {
       disable_surveys: true,
       advanced_disable_flags: true,
       disable_external_dependency_loading: true,
-      respect_dnt: true,
+      respect_dnt: false,
       loaded: () => {
         capturePageview()
         // LiveView emits this for initial joins, patches and navigations.
