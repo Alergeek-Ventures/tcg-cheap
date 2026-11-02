@@ -75,11 +75,19 @@ defmodule TcgCheap.Sealed do
       annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
     )
 
+    tool(:set_pull_rates, AgentTools, :set_pull_rates,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
     tool(:enqueue_shop_fetch, AgentTools, :enqueue_shop_fetch,
       annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
     )
 
     tool(:enqueue_catalogue_import, AgentTools, :enqueue_catalogue_import,
+      annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
+    )
+
+    tool(:enqueue_card_sync, AgentTools, :enqueue_card_sync,
       annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
     )
 
@@ -152,7 +160,21 @@ defmodule TcgCheap.Sealed do
     resource TcgCheap.Sealed.TcgdexSet do
       define :list_tcgdex_sets, action: :read
       define :record_tcgdex_set, action: :record
+      define :list_english_tcgdex_sets, action: :english
+
+      define :list_english_sets_of_expansion,
+        action: :english_of_expansion,
+        args: [:expansion_id]
+
+      define :list_sets_due_for_cards,
+        action: :cards_due,
+        args: [:released_since, :checked_before]
+
+      define :set_tcgdex_set_pull_rates, action: :set_pull_rates, args: [:pull_rates]
+      define :record_tcgdex_set_cards, action: :record_cards, args: [:cards]
     end
+
+    resource TcgCheap.Sealed.TcgdexCard
 
     resource TcgCheap.Sealed.SuggestedPrice do
       define :list_suggested_prices, action: :read

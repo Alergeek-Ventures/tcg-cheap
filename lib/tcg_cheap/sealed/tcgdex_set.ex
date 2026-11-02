@@ -3,7 +3,9 @@ defmodule TcgCheap.Sealed.TcgdexSet do
   An English or Japanese TCGdex set and the Cardmarket expansion holding its
   cards, found through the Cardmarket product id TCGdex gives its cards
   (`TcgCheap.Sealed.ExpansionSync`). It names the language of the expansion's
-  sealed products and, for English sets, gives the logo.
+  sealed products and, for English sets, gives the logo, the cards
+  (`TcgCheap.Sealed.CardSync`) and the pull rates its single booster's page
+  shows.
   """
 
   use Ash.Resource,
@@ -35,6 +37,62 @@ defmodule TcgCheap.Sealed.TcgdexSet do
 
       change set_attribute(:checked_at, &DateTime.utc_now/0)
     end
+
+    read :english do
+      description "English sets, for finding one by TCGdex id or name."
+      filter expr(language == "en")
+    end
+
+    read :english_of_expansion do
+      description "The English sets of a Cardmarket expansion: a set and its gallery subsets."
+      argument :expansion_id, :integer, allow_nil?: false
+      filter expr(language == "en" and cardmarket_expansion_id == ^arg(:expansion_id))
+    end
+
+    read :cards_due do
+      description """
+      English sets of a Cardmarket expansion whose cards were never copied,
+      or were copied before `checked_before` from a set released since
+      `released_since`, newest first.
+      """
+
+      argument :released_since, :date, allow_nil?: false
+      argument :checked_before, :utc_datetime_usec, allow_nil?: false
+
+      filter expr(
+               language == "en" and not is_nil(cardmarket_expansion_id) and
+                 (is_nil(cards_checked_at) or
+                    (released_on >= ^arg(:released_since) and
+                       cards_checked_at < ^arg(:checked_before)))
+             )
+
+      prepare build(sort: [released_on: :desc_nils_last])
+    end
+
+    update :set_pull_rates do
+      description "Replaces the set's pull rates; nil removes them."
+      accept [:pull_rates]
+    end
+
+    update :record_cards do
+      description "Replaces the set's cards with those TCGdex lists now."
+
+      argument :cards, {:array, :map} do
+        allow_nil? false
+
+        constraints items: [
+                      fields: [
+                        tcgdex_id: [type: :string, allow_nil?: false],
+                        number: [type: :string, allow_nil?: false],
+                        name: [type: :string, allow_nil?: false],
+                        rarity: [type: :string]
+                      ]
+                    ]
+      end
+
+      change set_attribute(:cards_checked_at, &DateTime.utc_now/0)
+      change TcgCheap.Sealed.Changes.RecordCards
+    end
   end
 
   attributes do
@@ -51,8 +109,23 @@ defmodule TcgCheap.Sealed.TcgdexSet do
     attribute :logo_url, :string, public?: true, constraints: [max_length: 500]
     attribute :released_on, :date, public?: true
     attribute :checked_at, :utc_datetime_usec, allow_nil?: false, public?: true
+
+    attribute :cards_checked_at, :utc_datetime_usec do
+      description "When the cards were last copied from TCGdex."
+      public? true
+    end
+
+    attribute :pull_rates, TcgCheap.Sealed.PullRates do
+      description "How often a booster holds each rarity, maintained by an admin or agent."
+      public? true
+    end
+
     create_timestamp :inserted_at
     update_timestamp :updated_at
+  end
+
+  relationships do
+    has_many :cards, TcgCheap.Sealed.TcgdexCard, public?: true
   end
 
   identities do

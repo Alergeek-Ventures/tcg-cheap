@@ -5,8 +5,9 @@ defmodule TcgCheap.Sealed.Catalogue do
   Cardmarket publishes no expansion names. An expansion holding an English
   TCGdex set takes that set's name; otherwise the name is derived per
   `idExpansion` from the product names that share it: the longest leading
-  word sequence (without kind words such as "Booster" or "Elite") that at
-  least 40% of them start with. A lone product uses the text before a colon
+  word sequence (up to eight words, without kind words such as "Booster" or
+  "Elite") that at least 40% of them start with, and two thirds as many as
+  start with the most shared one. A lone product uses the text before a colon
   in its name. When nothing is convincing the set name stays empty. The
   language edition comes from `TcgCheap.Sealed.Regions`.
   """
@@ -82,13 +83,22 @@ defmodule TcgCheap.Sealed.Catalogue do
 
   defp set_name([name]), do: colon_prefix(name)
 
+  # A longer prefix must keep two thirds of the names the most shared one
+  # covers: "EX Team Magma vs Team Aqua: Team Magma Theme Deck" and "...: Team
+  # Aqua Theme Deck" do not make the set "EX Team Magma vs Team Aqua Team".
   defp set_name(names) do
     needed = max(2, div(length(names) * 2 + 4, 5))
 
-    names
-    |> Enum.flat_map(&(&1 |> words() |> prefixes()))
-    |> Enum.frequencies()
-    |> Enum.filter(fn {_prefix, count} -> count >= needed end)
+    candidates =
+      names
+      |> Enum.flat_map(&(&1 |> words() |> prefixes()))
+      |> Enum.frequencies()
+      |> Enum.filter(fn {_prefix, count} -> count >= needed end)
+
+    most = candidates |> Enum.map(&elem(&1, 1)) |> Enum.max(fn -> 0 end)
+
+    candidates
+    |> Enum.filter(fn {_prefix, count} -> count * 3 >= most * 2 end)
     |> Enum.max_by(fn {prefix, count} -> {length(prefix), count} end, fn -> nil end)
     |> case do
       nil -> nil
@@ -96,9 +106,9 @@ defmodule TcgCheap.Sealed.Catalogue do
     end
   end
 
-  # Leading word sequences (up to five words) that end on a non-kind word.
+  # Leading word sequences (up to eight words) that end on a non-kind word.
   defp prefixes(words) do
-    for length <- 1..min(5, length(words)),
+    for length <- 1..min(8, length(words)),
         prefix = Enum.take(words, length),
         not kind_word?(List.last(prefix)),
         not Enum.any?(prefix, &kind_word?/1),

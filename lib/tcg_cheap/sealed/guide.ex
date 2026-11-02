@@ -3,7 +3,8 @@ defmodule TcgCheap.Sealed.Guide do
 
   alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{PriceGuide, Product, Regions, TcgdexSet}
+  alias TcgCheap.Sealed.{PriceGuide, Product, Rarities, Regions, TcgdexSet}
+  alias TcgCheap.Sealed.PullRates.Rate
 
   @history_days 90
   @page_size 30
@@ -167,8 +168,10 @@ defmodule TcgCheap.Sealed.Guide do
 
   @doc """
   Everything the product page shows: verdict, offers, 90 days of history,
-  REBEL's suggested retail price when one matches, and our English single
-  booster of each set the contents name (`boosters`, by set name).
+  REBEL's suggested retail price when one matches, our English single
+  booster of each set the contents name (`boosters`, by set name) and, for
+  a full English single booster, its set's pull rates and cards
+  (`booster_set`, nil for other products).
   """
   @spec product(String.t(), DateTime.t()) :: {:ok, map()} | :error
   def product(slug, %DateTime{} = now) do
@@ -199,7 +202,8 @@ defmodule TcgCheap.Sealed.Guide do
            today: today,
            eur_pln: rate,
            suggested_price: Sealed.get_suggested_price_for_product!(product.id),
-           boosters: boosters(product.contents)
+           boosters: boosters(product.contents),
+           booster_set: booster_set(product)
          })}
     end
   end
@@ -215,6 +219,66 @@ defmodule TcgCheap.Sealed.Guide do
         names
         |> Sealed.list_english_boosters!(load: [:photo_card_url])
         |> Map.new(&{String.replace_suffix(&1.name, " Booster", ""), &1})
+    end
+  end
+
+  # What an English single booster may hold: the pull rates, rarest first,
+  # and the cards grouped by rarity, rarest first, of the English sets of its
+  # expansion (a set and its gallery subsets). Only full boosters ("Journey
+  # Together Booster", "... Sleeved Booster"): smaller packs ("Booster (6
+  # Cards)", "Fun Pack (3 Cards)") have other odds.
+  defp booster_set(%Product{kind: :booster, region: :en, cardmarket_expansion_id: id} = product) do
+    if String.ends_with?(product.name, " Booster") do
+      sets = if id, do: Sealed.list_english_sets_of_expansion!(id, load: [:cards]), else: []
+      main = TcgdexSet.by_expansion(sets) |> Map.values() |> List.first()
+      pull_rates = Enum.find_value([main | sets], &(&1 && &1.pull_rates))
+      rarities = sets |> Enum.flat_map(& &1.cards) |> by_rarity()
+
+      %{
+        pull_rates: pull_rates(pull_rates, rarities),
+        cards_per_pack: pull_rates && pull_rates.cards_per_pack,
+        rarities: rarities
+      }
+    end
+  end
+
+  defp booster_set(_product), do: nil
+
+  defp pull_rates(nil, _rarities), do: nil
+
+  # Each rate with its rarity as the card list spells it and the index of
+  # that list's group, if any (`set_pull_rates` checks the two agree).
+  defp pull_rates(pull_rates, rarities) do
+    groups =
+      rarities
+      |> Enum.with_index()
+      |> Map.new(fn {group, index} -> {group.rarity && String.downcase(group.rarity), index} end)
+
+    rates =
+      pull_rates.rates
+      |> Enum.sort_by(&Rate.percent/1, Decimal)
+      |> Enum.map(fn rate ->
+        rarity = Rarities.label(rate.rarity)
+        %{rate: rate, rarity: rarity, group: groups[String.downcase(rarity)]}
+      end)
+
+    %{rates: rates, sources: pull_rates.sources, checked_on: pull_rates.checked_on}
+  end
+
+  defp by_rarity(cards) do
+    cards
+    |> Enum.group_by(&(&1.rarity && Rarities.label(&1.rarity)))
+    |> Enum.sort_by(fn {rarity, _cards} -> {Rarities.rank(rarity), rarity || ""} end)
+    |> Enum.map(fn {rarity, cards} ->
+      %{rarity: rarity, cards: Enum.sort_by(cards, &number_order(&1.number))}
+    end)
+  end
+
+  # "TG05" after "TG04", "010" after "9": a letter prefix, then the number.
+  defp number_order(number) do
+    case Regex.run(~r/\A(\D*)(\d+)(.*)\z/, number) do
+      [_, prefix, digits, rest] -> {prefix, String.to_integer(digits), rest}
+      nil -> {number, 0, ""}
     end
   end
 

@@ -1,7 +1,8 @@
 defmodule TcgCheap.Sealed.AgentTools.Json do
-  @moduledoc "Plain JSON-ready maps of offers, products, contents and suggested prices for the agent tools."
+  @moduledoc "Plain JSON-ready maps of offers, products, contents, suggested prices and sets for the agent tools."
 
-  alias TcgCheap.Sealed.{Offer, Product, ProductContents, Shops, SuggestedPrice}
+  alias TcgCheap.Sealed.{Offer, Product, ProductContents, PullRates, Shops, SuggestedPrice}
+  alias TcgCheap.Sealed.TcgdexSet
 
   @spec offer(Offer.t()) :: map()
   def offer(%Offer{} = offer) do
@@ -61,6 +62,24 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
     |> Map.take([:id, :rebel_id, :title, :url, :ean, :price, :product_id, :last_seen_at])
     |> Map.put(:manual, item.manual?)
     |> put_product(item.product)
+  end
+
+  @spec tcgdex_set(TcgdexSet.t()) :: map()
+  def tcgdex_set(%TcgdexSet{} = set) do
+    set
+    |> Map.take([:tcgdex_id, :name, :released_on, :cardmarket_expansion_id])
+    |> Map.put(:pull_rates, pull_rates(set.pull_rates))
+  end
+
+  defp pull_rates(nil), do: nil
+
+  defp pull_rates(%PullRates{} = pull_rates) do
+    %{
+      cards_per_pack: pull_rates.cards_per_pack,
+      rates: Enum.map(pull_rates.rates, &Map.take(&1, [:rarity, :per_pack, :percent, :card])),
+      sources: Enum.map(pull_rates.sources, &Map.take(&1, [:url, :sample_packs, :data_from])),
+      checked_on: pull_rates.checked_on
+    }
   end
 
   defp put_product(map, %Product{} = product), do: Map.put(map, :product, product(product))
