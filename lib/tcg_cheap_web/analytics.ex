@@ -13,6 +13,19 @@ defmodule TcgCheapWeb.Analytics do
 
   def proxy_paths, do: @proxy_paths
 
+  @doc """
+  Sends a product event to the visitor's browser, which captures it in PostHog
+  within the visitor's own session (cookieless sessions exist only there).
+  Without PostHog configured the browser drops it. Properties must not carry
+  the visitor's location.
+  """
+  @spec track(Phoenix.LiveView.Socket.t(), String.t(), map()) :: Phoenix.LiveView.Socket.t()
+  def track(socket, event, properties \\ %{}) do
+    if Phoenix.LiveView.connected?(socket),
+      do: Phoenix.LiveView.push_event(socket, "track", %{event: event, properties: properties}),
+      else: socket
+  end
+
   def config(%Plug.Conn{path_info: ["admin" | _]}), do: nil
 
   def config(_conn) do

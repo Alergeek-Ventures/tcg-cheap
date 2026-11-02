@@ -2,6 +2,8 @@
 // 0.01° (about 1 km) and a town name, sent to the LiveView as an event once it
 // connects (never in the socket URL). The server pushes "location" when the
 // visitor sets or clears it.
+import {track} from "../analytics"
+
 const STORAGE_KEY = "tcg:location"
 
 function storedLocation() {
@@ -34,8 +36,13 @@ const VisitorLocation = {
     this.el.addEventListener("click", event => {
       if (event.target.closest("#visitor-location-device")) this.locate()
     })
+    this.el.addEventListener("toggle", () => {
+      if (this.el.open) track("location_panel_opened", {source: this.openedFrom || "header"})
+      this.openedFrom = null
+    })
     // Opened from elsewhere on the page, e.g. "Podaj miejscowość" by the verdict.
     this.el.addEventListener("location:open", () => {
+      if (!this.el.open) this.openedFrom = "verdict"
       this.el.open = true
       this.el.scrollIntoView({block: "nearest"})
       this.el.querySelector("#visitor-location-town")?.focus()
@@ -95,8 +102,9 @@ const VisitorLocation = {
           this.say("")
         })
       },
-      () => {
+      error => {
         busy(false)
+        track("location_failed", {reason: error.code === error.PERMISSION_DENIED ? "device_denied" : "device_unavailable"})
         this.fail()
       },
       {enableHighAccuracy: false, maximumAge: 600000, timeout: 10000},

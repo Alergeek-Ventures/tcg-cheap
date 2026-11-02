@@ -33,6 +33,8 @@ defmodule TcgCheapWeb.GuideComponents do
           hreflang={locale}
           aria-label={"#{String.upcase(locale)} – #{name}"}
           aria-current={if(locale == @locale, do: "true")}
+          data-track="language_changed"
+          data-track-to={locale}
         >
           <img src={flag} alt="" width="21" height="14" />{String.upcase(locale)}
         </a>
