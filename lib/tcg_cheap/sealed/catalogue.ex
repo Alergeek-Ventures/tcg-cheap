@@ -7,7 +7,8 @@ defmodule TcgCheap.Sealed.Catalogue do
   `idExpansion` from the product names that share it: the longest leading
   word sequence (up to eight words, without kind words such as "Booster" or
   "Elite") that at least 40% of them start with, and two thirds as many as
-  start with the most shared one. A lone product uses the text before a colon
+  start with the most shared one. A colon bounds a variant when an unqualified
+  product confirms that boundary. A lone product uses the text before a colon
   in its name. When nothing is convincing the set name stays empty. The
   language edition comes from `TcgCheap.Sealed.Regions`.
   """
@@ -89,11 +90,19 @@ defmodule TcgCheap.Sealed.Catalogue do
   defp set_name(names) do
     needed = max(2, div(length(names) * 2 + 4, 5))
 
+    boundaries = variant_boundaries(names)
+
     candidates =
       names
       |> Enum.flat_map(&(&1 |> words() |> prefixes()))
       |> Enum.frequencies()
-      |> Enum.filter(fn {_prefix, count} -> count >= needed end)
+      |> Enum.filter(fn {prefix, count} ->
+        count >= needed and
+          not Enum.any?(
+            boundaries,
+            &(length(prefix) > length(&1) and List.starts_with?(prefix, &1))
+          )
+      end)
 
     most = candidates |> Enum.map(&elem(&1, 1)) |> Enum.max(fn -> 0 end)
 
@@ -103,6 +112,28 @@ defmodule TcgCheap.Sealed.Catalogue do
     |> case do
       nil -> nil
       {prefix, _count} -> Enum.join(prefix, " ")
+    end
+  end
+
+  # "Double Crisis: Team Magma ..." describes a variant of "Double Crisis
+  # Booster". Do not cross that colon. A colon alone is not enough: names
+  # such as "151C: Collect 151" use it within the expansion's own title.
+  defp variant_boundaries(names) do
+    unqualified = names |> Enum.reject(&String.contains?(&1, ":")) |> Enum.map(&words/1)
+
+    for name <- names,
+        prefix = colon_prefix(name),
+        prefix,
+        prefix = words(prefix),
+        Enum.any?(unqualified, &kind_follows?(&1, prefix)),
+        uniq: true,
+        do: prefix
+  end
+
+  defp kind_follows?(words, prefix) do
+    case Enum.split(words, length(prefix)) do
+      {^prefix, [next | _]} -> kind_word?(next)
+      _ -> false
     end
   end
 
