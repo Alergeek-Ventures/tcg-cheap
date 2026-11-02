@@ -534,7 +534,14 @@ defmodule TcgCheapWeb.ProductLive do
           </span>
           <%= cond do %>
             <% image_url = CardImage.thumbnail_url(item.image) -> %>
-              <img src={image_url} alt="" width="34" height="48" loading="lazy" />
+              <a
+                href={CardImage.detail_url(item.image)}
+                class="contents-photo"
+                data-photo-preview
+                aria-label={gettext("Zdjęcie: %{item}", item: item_label(item))}
+              >
+                <img src={image_url} alt="" width="34" height="48" loading="lazy" />
+              </a>
             <% photo_url = CardImage.photo_url(item.photo, "thumbnail") -> %>
               <a
                 href={CardImage.photo_url(item.photo, "detail")}
