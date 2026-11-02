@@ -26,6 +26,9 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @max_body_bytes 5_000_000
   @max_title_length 300
   @max_url_length 2_000
+  # Shops list products they cannot price yet (pre-orders) at a token 0.01 zł;
+  # no sealed product costs under 1 zł, so a lower price is no price.
+  @min_price Decimal.new(1)
   @max_price Decimal.new(1_000_000)
 
   @type offer :: %{
@@ -283,10 +286,10 @@ defmodule TcgCheap.Sealed.ShopFeed do
     end
   end
 
-  @doc "A positive price of at most 1 000 000 zł."
+  @doc "A price from 1 zł to 1 000 000 zł."
   @spec price(Decimal.t()) :: {:ok, Decimal.t()} | :error
   def price(%Decimal{} = price) do
-    if Decimal.gt?(price, 0) and not Decimal.gt?(price, @max_price),
+    if not Decimal.lt?(price, @min_price) and not Decimal.gt?(price, @max_price),
       do: {:ok, price},
       else: :error
   end
