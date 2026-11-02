@@ -76,7 +76,15 @@ defmodule TcgCheap.Sealed do
       annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
     )
 
+    tool(:set_product_photo, AgentTools, :set_product_photo,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
     tool(:set_pull_rates, AgentTools, :set_pull_rates,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
+    tool(:record_unofficial_set_cards, AgentTools, :record_unofficial_set_cards,
       annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
     )
 
@@ -137,6 +145,7 @@ defmodule TcgCheap.Sealed do
       define :set_product_availability, action: :set_availability
       define :set_product_eans, action: :set_eans, args: [:eans]
       define :set_product_contents, action: :set_contents, args: [:contents]
+      define :set_product_photo, action: :set_photo, args: [:checked_photo_url]
       define :list_photos_to_mirror, action: :photos_to_mirror, args: [:limit]
       define :list_photos_without_small, action: :photos_without_small, args: [:limit]
       define :record_photo_source, action: :record_photo_source, args: [:photo_source_url]
@@ -178,6 +187,7 @@ defmodule TcgCheap.Sealed do
 
       define :set_tcgdex_set_pull_rates, action: :set_pull_rates, args: [:pull_rates]
       define :record_tcgdex_set_cards, action: :record_cards, args: [:cards]
+      define :record_unofficial_set_cards, action: :record_unofficial_cards
     end
 
     resource TcgCheap.Sealed.TcgdexCard do

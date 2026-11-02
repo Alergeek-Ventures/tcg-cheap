@@ -45,8 +45,10 @@ defmodule TcgCheapWeb.Router do
   5. list_manual_decisions and clear_manual_decision: review or undo manual decisions.
   set_product_eans maintains verified barcodes for matching and the public scanner.
   set_product_contents records what a box holds (items, a fixed deck's cards, sources) for its page.
+  set_product_photo replaces missing, tiny or wrong shop photos with a checked one.
   set_pull_rates records a set's estimated pull rates for its single booster's page, once
-  enqueue_card_sync (also run daily) has copied the set's cards.
+  enqueue_card_sync (also run daily) has copied the set's cards. record_unofficial_set_cards
+  records a new set's published card list until TCGdex lists the set.
   set_expansion_logo records a checked logo for an expansion's tile in the public expansion filter.
   list_suggested_prices shows REBEL's suggested retail prices; decide_suggested_price assigns an
   unmatched one to its exact product (same number of units) or keeps it unmatched.
@@ -99,7 +101,9 @@ defmodule TcgCheapWeb.Router do
         :clear_manual_decision,
         :set_product_eans,
         :set_product_contents,
+        :set_product_photo,
         :set_pull_rates,
+        :record_unofficial_set_cards,
         :set_expansion_logo,
         :enqueue_shop_fetch,
         :enqueue_catalogue_import,

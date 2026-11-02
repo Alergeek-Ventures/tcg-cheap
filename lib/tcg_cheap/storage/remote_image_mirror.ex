@@ -111,20 +111,11 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
     end
   end
 
-  # Logo files often pad the wordmark with transparent margins, which would
-  # show it smaller than a tight logo on the expansion tiles. An image with no
-  # alpha band or nothing to cut stays as downloaded.
+  # Logos are trimmed so they show as large as a tight logo on the expansion tiles.
   defp trim_margins(body, type, false), do: {:ok, body, type}
 
-  defp trim_margins(body, type, true) do
-    with {:ok, image} <- Image.from_binary(body),
-         {:ok, trimmed} <- Image.trim(image, background: :alpha),
-         {:ok, png} <- Image.write(trimmed, :memory, suffix: ".png") do
-      {:ok, png, "image/png"}
-    else
-      _error -> {:ok, body, type}
-    end
-  end
+  defp trim_margins(body, type, true),
+    do: Storage.ImageDownload.trim_transparent_margins(body, type)
 
   defp canonical_source(url, "card"), do: CardImage.source_url(url)
   defp canonical_source(url, "logo"), do: CardImage.logo_source_url(url)

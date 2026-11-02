@@ -1,5 +1,5 @@
 defmodule TcgCheap.Storage.ImageDownload do
-  @moduledoc "Bounded downloads of allowlisted raster images for background mirroring."
+  @moduledoc "Bounded downloads of allowlisted raster images for background mirroring, and their trimming."
 
   alias TcgCheap.Catalogue.ExternalImage
 
@@ -12,6 +12,22 @@ defmodule TcgCheap.Storage.ImageDownload do
     if ExternalImage.valid?(url),
       do: download(url, req_options, true),
       else: {:error, :host_not_allowed}
+  end
+
+  @doc """
+  Cuts the transparent margins logos and packshots often pad their subject
+  with, which would show it smaller than a tight image. An image with no alpha
+  band or nothing to cut stays as downloaded.
+  """
+  @spec trim_transparent_margins(binary(), String.t()) :: {:ok, binary(), String.t()}
+  def trim_transparent_margins(body, type) do
+    with {:ok, image} <- Image.from_binary(body),
+         {:ok, trimmed} <- Image.trim(image, background: :alpha),
+         {:ok, png} <- Image.write(trimmed, :memory, suffix: ".png") do
+      {:ok, png, "image/png"}
+    else
+      _error -> {:ok, body, type}
+    end
   end
 
   @doc "Downloads a stored variant, never following redirects away from our storage."

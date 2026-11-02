@@ -27,9 +27,10 @@ defmodule TcgCheap.Sealed.Product do
     end
   end
 
-  # The packaging photo, mirrored from the shop that offers the product
-  # (`TcgCheap.Sealed.PhotoMirror`), in the sizes the pages show: `small` for
-  # list rows, `card` and `page` for larger screens and the product page.
+  # The packaging photo, mirrored from the shop that offers the product or
+  # from a `checked_photo_url` (`TcgCheap.Sealed.PhotoMirror`), in the sizes
+  # the pages show: `small` for list rows, `card` and `page` for larger
+  # screens and the product page.
   storage do
     blob_resource(TcgCheap.Storage.Blob)
     attachment_resource(TcgCheap.Storage.Attachment)
@@ -98,8 +99,10 @@ defmodule TcgCheap.Sealed.Product do
       argument :limit, :integer, allow_nil?: false
 
       filter expr(
-               not is_nil(image_url) and
-                 (is_nil(photo_source_url) or photo_source_url != image_url)
+               (not is_nil(checked_photo_url) and
+                  (is_nil(photo_source_url) or photo_source_url != checked_photo_url)) or
+                 (is_nil(checked_photo_url) and not is_nil(image_url) and
+                    (is_nil(photo_source_url) or photo_source_url != image_url))
              )
 
       filter expr(is_nil(photo_attempted_at) or photo_attempted_at < ago(1, :hour))
@@ -120,6 +123,15 @@ defmodule TcgCheap.Sealed.Product do
     update :record_photo_source do
       accept [:photo_source_url]
       change set_attribute(:photo_attempted_at, &DateTime.utc_now/0)
+    end
+
+    update :set_photo do
+      description "Sets the checked photo that replaces the shops' photos; nil goes back to them."
+      accept [:checked_photo_url]
+      # Copied on the mirror's next run, even from the url already stored.
+      change set_attribute(:photo_source_url, nil)
+      change set_attribute(:photo_attempted_at, nil)
+      change TcgCheap.Sealed.Changes.DropUnsourcedPhoto
     end
 
     update :record_photo_attempt do
@@ -236,6 +248,12 @@ defmodule TcgCheap.Sealed.Product do
 
     attribute :photo_source_url, :string do
       description "The offer photo (`image_url`) the stored photo was chosen for; the stored photo may be a larger one from another offer."
+      public? true
+      constraints max_length: 2_000
+    end
+
+    attribute :checked_photo_url, :string do
+      description "A photo of the product an admin or agent checked by eye, on an allowed image host; stored instead of the shops' photos while set."
       public? true
       constraints max_length: 2_000
     end

@@ -9,7 +9,8 @@ defmodule TcgCheap.Sealed.CardSync do
   Every set is copied once; sets released in the last half year again once
   a day, as TCGdex fills in new sets. A set TCGdex fails to return, or
   returns with errors or incomplete cards, keeps its cards and is tried
-  again.
+  again. An unofficial list recorded before TCGdex had the set stays until
+  TCGdex lists as many cards, as it adds a new set's cards over days.
 
   The GraphQL schema has no prices or Cardmarket ids, so the rest of the run
   asks TCGdex's card document for each card's Cardmarket product id, which
@@ -161,6 +162,7 @@ defmodule TcgCheap.Sealed.CardSync do
 
   defp sync(set, request_options) do
     with {:ok, cards} <- fetch_cards(set.tcgdex_id, request_options),
+         :ok <- replaces_unofficial(set, cards),
          {:ok, _set} <- Sealed.record_tcgdex_set_cards(set, cards) do
       :ok
     else
@@ -168,6 +170,16 @@ defmodule TcgCheap.Sealed.CardSync do
         Logger.warning("TCGdex cards of #{set.tcgdex_id} not copied: #{inspect(reason)}")
         :error
     end
+  end
+
+  defp replaces_unofficial(%{cards_source_url: nil}, _cards), do: :ok
+
+  defp replaces_unofficial(set, cards) do
+    unofficial = set |> Ash.load!(:cards) |> Map.fetch!(:cards) |> length()
+
+    if length(cards) >= unofficial,
+      do: :ok,
+      else: {:error, {:fewer_than_unofficial, length(cards), unofficial}}
   end
 
   # TCGdex filters ids by substring, so cards of other sets are dropped. A
