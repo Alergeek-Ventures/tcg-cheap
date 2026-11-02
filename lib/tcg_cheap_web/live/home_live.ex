@@ -2,8 +2,9 @@ defmodule TcgCheapWeb.HomeLive do
   @moduledoc """
   The buying guide: the Cardmarket sealed catalogue with the cheapest Polish
   price and a verdict, searchable (`?q=`), filterable in a side panel by kind
-  (`?rodzaj=`), language edition (`?wersja=`) and expansion
-  (`?rozszerzenie=`, a Cardmarket expansion id), and paged with "Pokaż
+  (`?rodzaj=`), language edition (`?wersja=`, English unless `wszystkie`
+  or an expansion is chosen) and expansion (`?rozszerzenie=`, a Cardmarket
+  expansion id), and paged with "Pokaż
   więcej". A known barcode, typed or scanned with the phone camera, opens its
   product directly.
   """
@@ -20,6 +21,7 @@ defmodule TcgCheapWeb.HomeLive do
   @max_query_length 100
   @kind_params Map.new(Kinds.all(), &{Atom.to_string(&1), &1})
   @region_params Map.new(Regions.all(), &{Atom.to_string(&1), &1})
+  @all_regions "wszystkie"
   # Expansions listed before "Pokaż wszystkie".
   @first_expansions 12
 
@@ -40,9 +42,10 @@ defmodule TcgCheapWeb.HomeLive do
     filters = %{
       query: params |> query_param() |> String.trim() |> String.slice(0, @max_query_length),
       kind: Map.get(@kind_params, params["rodzaj"]),
-      region: Map.get(@region_params, params["wersja"]),
       expansion: expansion_param(params["rozszerzenie"])
     }
+
+    filters = Map.put(filters, :region, region_param(params["wersja"], filters.expansion))
 
     case Sealed.product_for_barcode(filters.query) do
       %{slug: slug} ->
@@ -173,6 +176,25 @@ defmodule TcgCheapWeb.HomeLive do
     {:noreply, VisitorLocation.handle_event(event, params, socket)}
   end
 
+  defp region_param(@all_regions, _expansion), do: nil
+
+  defp region_param(param, expansion),
+    do: Map.get(@region_params, param, default_region(expansion))
+
+  # Most buyers want English products; an expansion has its own language, so
+  # a link to one (e.g. a Japanese set) shows it whatever the edition.
+  defp default_region(nil), do: :en
+  defp default_region(_expansion), do: nil
+
+  # The `wersja` of a list: none for the default edition.
+  defp region_value(%{region: region, expansion: expansion}) do
+    cond do
+      region == default_region(expansion) -> nil
+      is_nil(region) -> @all_regions
+      true -> region
+    end
+  end
+
   # The list with some filters changed. The language links offered under a
   # chosen expansion are only its own, so the expansion can stay.
   defp list_path(filters, changes) do
@@ -182,7 +204,7 @@ defmodule TcgCheapWeb.HomeLive do
       [
         q: filters.query,
         rodzaj: filters.kind,
-        wersja: filters.region,
+        wersja: region_value(filters),
         rozszerzenie: filters.expansion
       ]
       |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
@@ -191,10 +213,10 @@ defmodule TcgCheapWeb.HomeLive do
     ~p"/?#{params}"
   end
 
-  defp filtered?(filters), do: filters.kind || filters.region || filters.expansion
+  defp filtered?(filters), do: filters.kind || region_value(filters) || filters.expansion
 
   defp active_filters(filters),
-    do: Enum.count([filters.kind, filters.region, filters.expansion], & &1)
+    do: Enum.count([filters.kind, region_value(filters), filters.expansion], & &1)
 
   attr :filters, :map, required: true
   attr :facets, :map, required: true
@@ -447,7 +469,12 @@ defmodule TcgCheapWeb.HomeLive do
                 </button>
               </div>
               <input :if={@filters.kind} type="hidden" name="rodzaj" value={@filters.kind} />
-              <input :if={@filters.region} type="hidden" name="wersja" value={@filters.region} />
+              <input
+                :if={region_value(@filters)}
+                type="hidden"
+                name="wersja"
+                value={region_value(@filters)}
+              />
               <input
                 :if={@filters.expansion}
                 type="hidden"
@@ -528,7 +555,7 @@ defmodule TcgCheapWeb.HomeLive do
               <div class="guide-results-heading">
                 <h2 id="guide-results-title" tabindex="-1">
                   {if @filters.query == "" and !filtered?(@filters),
-                    do: gettext("Wszystkie produkty"),
+                    do: gettext("Produkty w wersji angielskiej"),
                     else: gettext("Wyniki")}
                 </h2>
                 <p id="guide-result-count" aria-live="polite">
@@ -538,7 +565,9 @@ defmodule TcgCheapWeb.HomeLive do
                     <.link
                       id="guide-filters-clear"
                       class="guide-filters-clear"
-                      patch={list_path(@filters, kind: nil, region: nil, expansion: nil)}
+                      patch={
+                        list_path(@filters, kind: nil, region: default_region(nil), expansion: nil)
+                      }
                     >{gettext("Wyczyść filtry")}</.link>
                   </span>
                 </p>
