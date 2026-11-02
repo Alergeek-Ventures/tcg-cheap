@@ -7,6 +7,7 @@ defmodule TcgCheap.Sealed.Guide do
   alias TcgCheap.Sealed.PullRates.Rate
 
   @history_days 90
+  @logos_for_ms :timer.minutes(10)
   @page_size 30
   # The cheapest tracked parcel to Poland from Germany, Cardmarket's largest
   # seller country (DHL Paket up to 2 kg, Cardmarket's shipping calculator,
@@ -130,10 +131,26 @@ defmodule TcgCheap.Sealed.Guide do
     expansions ++ chosen_elsewhere(filters.expansion, expansions, logos)
   end
 
+  # Logos change only with a TCGdex sync, a logo set for an expansion or a
+  # newly mirrored image, so every list render shares one map for a while.
+  defp logos do
+    now = System.monotonic_time(:millisecond)
+
+    case :persistent_term.get({__MODULE__, :logos}, nil) do
+      {expires_at, logos} when expires_at > now ->
+        logos
+
+      _missing_or_stale ->
+        logos = read_logos()
+        :persistent_term.put({__MODULE__, :logos}, {now + @logos_for_ms, logos})
+        logos
+    end
+  end
+
   # Per expansion, the mirrored English TCGdex logo, else the mirrored logo
   # set for it (`TcgCheap.Sealed.ExpansionLogo`, for any edition). Only
   # mirrored images are shown, so a tile never shows a broken image.
-  defp logos do
+  defp read_logos do
     tcgdex =
       for {id, %{language: "en", logo_url: "" <> url}} <-
             TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!()),
