@@ -23,7 +23,7 @@ defmodule TcgCheap.Sealed.AgentTools.RecordUnofficialCards do
              tcgdex_id: args.set,
              name: args.name,
              cardmarket_expansion_id: args.expansion_id,
-             released_on: args[:released_on],
+             released_on: args.released_on,
              cards_source_url: args.source_url,
              cards: Enum.map(args.cards, &Map.put(&1, :tcgdex_id, "#{args.set}-#{&1.number}"))
            }) do

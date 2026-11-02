@@ -303,8 +303,8 @@ defmodule TcgCheap.Sealed.AgentTools do
       boosters carry, the Cardmarket expansion id of its sealed products, the release day and
       every card with its collector number as TCGdex writes it ("001"), English name and
       rarity as TCGdex spells it. Record only a list a source publishes, never guesses. TCGdex's
-      cards replace this list once TCGdex lists as many; a set whose TCGdex cards are copied
-      is refused. Returns the set.
+      cards replace this list once TCGdex lists as many, or two weeks after release; a set
+      whose TCGdex cards are copied is refused. Returns the set.
       """
 
       argument :set, :string, allow_nil?: false, description: "The TCGdex set id, e.g. me06."
@@ -315,7 +315,7 @@ defmodule TcgCheap.Sealed.AgentTools do
         constraints: [min: 1],
         description: "The Cardmarket expansion id of the set's sealed products."
 
-      argument :released_on, :date, description: "The release day."
+      argument :released_on, :date, allow_nil?: false, description: "The release day."
       argument :source_url, :string, allow_nil?: false, description: "The https page read."
 
       argument :cards, {:array, :map} do

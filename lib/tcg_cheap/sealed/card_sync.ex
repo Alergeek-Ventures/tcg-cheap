@@ -10,7 +10,8 @@ defmodule TcgCheap.Sealed.CardSync do
   a day, as TCGdex fills in new sets. A set TCGdex fails to return, or
   returns with errors or incomplete cards, keeps its cards and is tried
   again. An unofficial list recorded before TCGdex had the set stays until
-  TCGdex lists as many cards, as it adds a new set's cards over days.
+  TCGdex lists as many cards, as it adds a new set's cards over days, or
+  until two weeks after release, when TCGdex's list wins whatever its size.
 
   The GraphQL schema has no prices or Cardmarket ids, so the rest of the run
   asks TCGdex's card document for each card's Cardmarket product id, which
@@ -38,6 +39,7 @@ defmodule TcgCheap.Sealed.CardSync do
   @max_cards 1_000
   @pause_ms 100
   @budget_ms :timer.minutes(5)
+  @unofficial_days 14
 
   @spec run(keyword()) ::
           {:ok,
@@ -58,7 +60,7 @@ defmodule TcgCheap.Sealed.CardSync do
         DateTime.add(now, -@retry_after_hours, :hour)
       )
 
-    counts = sync_until(due, deadline, request_options, %{synced: 0, failed: 0})
+    counts = sync_until(due, deadline, {request_options, now}, %{synced: 0, failed: 0})
 
     cards =
       Sealed.list_cards_due_for_cardmarket!(DateTime.add(now, -@cardmarket_retry_days, :day),
@@ -71,12 +73,12 @@ defmodule TcgCheap.Sealed.CardSync do
     {:ok, Map.merge(counts, lookups)}
   end
 
-  defp sync_until([], _deadline, _request_options, counts), do: counts
+  defp sync_until([], _deadline, _context, counts), do: counts
 
-  defp sync_until([set | rest], deadline, request_options, counts) do
+  defp sync_until([set | rest], deadline, context, counts) do
     if System.monotonic_time(:millisecond) < deadline do
-      key = if sync(set, request_options) == :ok, do: :synced, else: :failed
-      sync_until(rest, deadline, request_options, Map.update!(counts, key, &(&1 + 1)))
+      key = if sync(set, context) == :ok, do: :synced, else: :failed
+      sync_until(rest, deadline, context, Map.update!(counts, key, &(&1 + 1)))
     else
       counts
     end
@@ -160,9 +162,9 @@ defmodule TcgCheap.Sealed.CardSync do
 
   defp cardmarket_id(_none), do: nil
 
-  defp sync(set, request_options) do
+  defp sync(set, {request_options, now}) do
     with {:ok, cards} <- fetch_cards(set.tcgdex_id, request_options),
-         :ok <- replaces_unofficial(set, cards),
+         :ok <- replaces_unofficial(set, cards, now),
          {:ok, _set} <- Sealed.record_tcgdex_set_cards(set, cards) do
       :ok
     else
@@ -172,12 +174,13 @@ defmodule TcgCheap.Sealed.CardSync do
     end
   end
 
-  defp replaces_unofficial(%{cards_source_url: nil}, _cards), do: :ok
+  defp replaces_unofficial(%{cards_source_url: nil}, _cards, _now), do: :ok
 
-  defp replaces_unofficial(set, cards) do
+  defp replaces_unofficial(set, cards, now) do
     unofficial = set |> Ash.load!(:cards) |> Map.fetch!(:cards) |> length()
+    settled? = Date.diff(DateTime.to_date(now), set.released_on) >= @unofficial_days
 
-    if length(cards) >= unofficial,
+    if cards != [] and (settled? or length(cards) >= unofficial),
       do: :ok,
       else: {:error, {:fewer_than_unofficial, length(cards), unofficial}}
   end
