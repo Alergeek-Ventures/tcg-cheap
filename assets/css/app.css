@@ -918,7 +918,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .pull-rates-estimate svg { flex: none; margin-block-start: .1rem; }
 .guide-world .pull-rates { background: var(--paper); border-collapse: collapse; inline-size: 100%; max-inline-size: 44rem; }
 .guide-world .pull-rates :is(th, td) { border-block-end: 1px solid var(--rule); padding: .5rem .75rem; text-align: start; vertical-align: baseline; }
-.guide-world .pull-rates thead th { color: var(--muted); font-size: .8125rem; font-weight: 400; white-space: nowrap; }
+.guide-world .pull-rates thead th { color: var(--muted); font-size: .8125rem; font-weight: 400; text-wrap: balance; }
+.guide-world .pull-rates thead th:last-child { min-inline-size: 9rem; }
 .guide-world .pull-rates tbody th { font-weight: 700; }
 .guide-world .pull-rates tbody th a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 @media (hover: hover) and (pointer: fine) { .guide-world .pull-rates tbody tr:hover { background: var(--bench-light); } .guide-world .pull-rates tbody th a:hover { color: var(--orange); } }

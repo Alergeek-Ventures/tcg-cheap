@@ -96,7 +96,7 @@ defmodule TcgCheap.Sealed.PullRates.Rate do
     end
   end
 
-  defp combined(probability, count), do: 100 * (1 - :math.pow(1 - probability, count))
+  defp combined(probability, count), do: 100 * (1 - :math.pow(1 - min(probability, 1.0), count))
 
   defp decimal(number), do: number |> String.replace(",", "") |> Decimal.new()
 end

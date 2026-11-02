@@ -152,11 +152,11 @@ defmodule TcgCheapWeb.ProductLive do
                 >{gettext("Co jest w środku")} ↓</a>
               </p>
               <p
-                :if={booster_links(@page.booster_set) != []}
+                :if={booster_links(@page) != []}
                 id="product-booster-links"
                 class="product-facts"
               >
-                <%= for {{href, label}, index} <- Enum.with_index(booster_links(@page.booster_set)) do %>
+                <%= for {{href, label}, index} <- Enum.with_index(booster_links(@page)) do %>
                   <span :if={index > 0}>·</span> <a href={href}>{label} ↓</a>
                 <% end %>
               </p>
@@ -664,9 +664,12 @@ defmodule TcgCheapWeb.ProductLive do
   defp item_rank(type), do: Enum.find_index(@item_order, &(&1 == type)) || length(@item_order)
 
   # Jumps to the booster sections that have something to show.
-  defp booster_links(nil), do: []
+  defp booster_links(%{booster_set: nil, booster_odds: []}), do: []
 
-  defp booster_links(booster_set) do
+  defp booster_links(%{booster_set: nil}),
+    do: [{"#product-booster-odds", gettext("Szanse w całym produkcie")}]
+
+  defp booster_links(%{booster_set: booster_set}) do
     [
       booster_set.pull_rates && {"#product-pull-rates", gettext("Szansa na drop")},
       booster_set.rarities != [] && {"#product-cards", gettext("Karty do zdobycia")}
@@ -711,9 +714,10 @@ defmodule TcgCheapWeb.ProductLive do
       <p id="pull-rates-estimate" class="guide-note pull-rates-estimate">
         <.fluent_icon name={:info} />
         <span>
-          {gettext(
-            "To szacunki społeczności z otwierania paczek, nie oficjalne dane wydawcy. Szansa dotyczy jednej paczki."
-          )}
+          {gettext("To szacunki społeczności z otwierania paczek, nie oficjalne dane wydawcy.")}
+          <%= if !@smaller_pack? do %>
+            {gettext("Szansa dotyczy jednej paczki.")}
+          <% end %>
           <%= if Enum.any?(@pull_rates.rates, &shiny_version?/1) do %>
             {gettext("Poké Ball, Master Ball i Reverse to błyszczące wersje kart z listy poniżej.")}
           <% end %>
@@ -723,7 +727,13 @@ defmodule TcgCheapWeb.ProductLive do
         <thead>
           <tr>
             <th scope="col">{gettext("Rzadkość")}</th>
-            <th scope="col">{gettext("Szansa w paczce")}</th>
+            <th scope="col">
+              <%= if @smaller_pack? and @standard_pack_size do %>
+                {gettext("Szansa w paczce %{count} kart", count: @standard_pack_size)}
+              <% else %>
+                {gettext("Szansa w paczce")}
+              <% end %>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -760,17 +770,17 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp standard_pack_note(assigns) do
     ~H"""
-    <p id="pull-rates-pack-size" class="guide-note">
+    <p :if={@smaller?} id="pull-rates-pack-size" class="guide-note">
       <%= if @count do %>
-        {gettext("Szanse dotyczą standardowej paczki tego setu: %{count} kart.", count: @count)}
-      <% else %>
-        {gettext("Szanse dotyczą standardowej paczki tego setu.")}
-      <% end %>
-      <span :if={@smaller?}>
         {gettext(
-          "Ta paczka zawiera mniej kart, więc szanse są niższe. Nie znamy osobnych szans dla mniejszych paczek."
+          "Te szanse dotyczą zwykłej paczki %{count} kart. W tej paczce jest mniej kart, więc szanse są niższe – o ile, nie wiadomo.",
+          count: @count
         )}
-      </span>
+      <% else %>
+        {gettext(
+          "Te szanse dotyczą zwykłej paczki. W tej paczce jest mniej kart, więc szanse są niższe – o ile, nie wiadomo."
+        )}
+      <% end %>
     </p>
     """
   end
@@ -788,25 +798,29 @@ defmodule TcgCheapWeb.ProductLive do
         <h2 id="product-booster-odds-title">{gettext("Szanse w całym produkcie")}</h2>
       </div>
       <p class="guide-note pull-rates-estimate">
-        {gettext(
-          "Szansa na co najmniej jedną kartę danej rzadkości ze wszystkich paczek tego setu. To szacunki społeczności z tych samych źródeł co na stronie boostera, nie oficjalne dane wydawcy. Zakładamy niezależne wyniki standardowych paczek: 1 − (1 − p)^N."
-        )}
+        <.fluent_icon name={:info} />
+        <span>
+          {gettext(
+            "Szansa, że trafisz co najmniej jedną kartę danej rzadkości, otwierając wszystkie paczki z tego produktu. To szacunki społeczności, nie dane wydawcy."
+          )}
+        </span>
       </p>
       <div :for={set <- @sets} id={"booster-odds-#{set.slug}"} class="booster-odds-set">
         <div class="product-section-heading">
           <h3><.link navigate={~p"/produkty/#{set.slug}"}>{set.name}</.link></h3>
-          <p>{gettext("Liczba paczek: %{count}", count: set.count)}</p>
         </div>
         <%= if set.pull_rates do %>
           <table class="pull-rates">
             <thead>
               <tr>
                 <th scope="col">{gettext("Rzadkość")}</th>
-                <th scope="col">{gettext("Szansa")}</th>
+                <th scope="col">
+                  {ngettext("Szansa w %{count} paczce", "Szansa w %{count} paczkach", set.count)}
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr :for={row <- set.pull_rates.rates}>
+              <tr :for={row <- Enum.reject(set.pull_rates.rates, &near_certain?(&1.rate, set.count))}>
                 <th scope="row">
                   {row.rarity}
                   <span :if={row.rate.card} class="pull-rate-detail">
@@ -817,6 +831,9 @@ defmodule TcgCheapWeb.ProductLive do
               </tr>
             </tbody>
           </table>
+          <p :if={near_certain(set) != []} class="guide-note">
+            {gettext("Prawie na pewno: %{rarities}.", rarities: Enum.join(near_certain(set), ", "))}
+          </p>
           <p class="guide-note">
             {sources_label(length(set.pull_rates.sources))}
             <%= for {source, index} <- Enum.with_index(set.pull_rates.sources) do %>
@@ -835,6 +852,18 @@ defmodule TcgCheapWeb.ProductLive do
       </div>
     </section>
     """
+  end
+
+  # Rarities every buyer gets (in each pack, or over 99% across them all).
+  defp near_certain(set),
+    do: for(row <- set.pull_rates.rates, near_certain?(row.rate, set.count), do: row.rarity)
+
+  defp near_certain?(rate, count) do
+    case Rate.across_packs(rate, count) do
+      :guaranteed -> true
+      value when is_number(value) -> value > 99
+      nil -> false
+    end
   end
 
   defp combined_chance(rate, count) do
