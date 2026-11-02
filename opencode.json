@@ -9,6 +9,10 @@
       "buying-guide": {
         "type": "remote",
         "url": "http://localhost:{file:.server.port}/mcp"
+      },
+      "posthog": {
+        "type": "remote",
+        "url": "https://mcp.posthog.com/mcp"
       }
     }
   }
