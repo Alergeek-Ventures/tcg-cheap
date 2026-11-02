@@ -259,6 +259,14 @@ config :tailwind,
         ),
              cd: Path.expand("..", __DIR__),
              env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
+           ],
+           tcg_cheap_admin: [
+             args: ~w(
+          --input=assets/css/admin.css
+          --output=priv/static/assets/css/admin.css
+        ),
+             cd: Path.expand("..", __DIR__),
+             env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
            ]
          ]
 
