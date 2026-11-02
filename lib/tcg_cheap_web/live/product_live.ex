@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Regions, Shops}
-  alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -28,11 +28,36 @@ defmodule TcgCheapWeb.ProductLive do
          |> assign(:offer_count, length(page.offers))
          |> assign(:in_stock_count, Enum.count(page.offers, & &1.in_stock))
          |> VisitorLocation.assign_location()
-         |> stream(:offers, page.offers)}
+         |> stream(:offers, page.offers)
+         |> track_view(page)}
 
       :error ->
         raise NotFound
     end
+  end
+
+  # Once per visit to the page: a reconnect mounts it again.
+  defp track_view(socket, page) do
+    if connected?(socket) and get_connect_params(socket)["_mounts"] == 0,
+      do: Analytics.track(socket, "product_viewed", viewed_properties(page)),
+      else: socket
+  end
+
+  defp viewed_properties(%{product: product, verdict: verdict} = page) do
+    %{
+      product_slug: product.slug,
+      product_name: product.name,
+      kind: product.kind,
+      region: product.region,
+      set_name: product.set_name,
+      verdict: verdict.status,
+      cheapest_price: verdict.cheapest && Decimal.to_float(verdict.cheapest.price),
+      cheapest_shop: verdict.cheapest && verdict.cheapest.shop,
+      offer_count: length(page.offers),
+      in_stock_count: Enum.count(page.offers, & &1.in_stock),
+      suggested_price: page.suggested_price && Decimal.to_float(page.suggested_price.price),
+      has_contents: product.contents != nil
+    }
   end
 
   @impl true
@@ -60,7 +85,12 @@ defmodule TcgCheapWeb.ProductLive do
             error={@location_error}
           />
         </.site_header>
-        <main id="product-main" class="guide-main product-page">
+        <main
+          id="product-main"
+          class="guide-main product-page"
+          data-track-context
+          data-track-product-slug={@page.product.slug}
+        >
           <.link id="product-back" navigate={~p"/"} class="guide-back">
             <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
           </.link>
@@ -92,10 +122,19 @@ defmodule TcgCheapWeb.ProductLive do
               <p :if={@page.suggested_price} id="product-suggested" class="product-facts">
                 {gettext("Cena sugerowana (REBEL): %{price}",
                   price: Polish.price(@page.suggested_price.price)
-                )} · <a href="#product-suggested-price">{gettext("skąd ta cena?")}</a>
+                )} ·
+                <a
+                  href="#product-suggested-price"
+                  data-track="product_section_opened"
+                  data-track-section="suggested_price"
+                >{gettext("skąd ta cena?")}</a>
               </p>
               <p :if={@page.product.contents} id="product-inside" class="product-facts">
-                <a href="#product-contents">{gettext("Co jest w środku")} ↓</a>
+                <a
+                  href="#product-contents"
+                  data-track="product_section_opened"
+                  data-track-section="contents"
+                >{gettext("Co jest w środku")} ↓</a>
               </p>
             </section>
             <.verdict_block
@@ -114,7 +153,13 @@ defmodule TcgCheapWeb.ProductLive do
                 )}
               </p>
             </div>
-            <ul id="offer-list" class="offer-list" phx-update="stream">
+            <%!-- Distances to pickup stay out of PostHog's autocapture; shop links track themselves. --%>
+            <ul
+              id="offer-list"
+              class="offer-list ph-no-capture"
+              phx-update="stream"
+              data-track-positions
+            >
               <li id="offer-list-empty" class="guide-empty hidden only:block">
                 {gettext("Żaden sklep nie ma teraz tego produktu w ofercie.")}
               </li>
@@ -144,8 +189,11 @@ defmodule TcgCheapWeb.ProductLive do
                   target="_blank"
                   rel="noopener nofollow"
                   class="offer-link"
-                  data-shop={offer.shop}
-                  data-in-stock={to_string(offer.in_stock)}
+                  data-track="shop_link_clicked"
+                  data-track-placement="offers"
+                  data-track-shop={offer.shop}
+                  data-track-price={offer.price}
+                  data-track-in-stock={to_string(offer.in_stock)}
                   aria-label={
                     gettext("%{shop}: przejdź do sklepu (otwiera się w nowej karcie)",
                       shop: shop_name(offer)
@@ -578,14 +626,23 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp nearby_line(%{nearby: %{offer: _offer}} = assigns) do
     ~H"""
-    <div id="verdict-nearby" class="verdict-nearby">
+    <div id="verdict-nearby" class="verdict-nearby ph-no-capture">
       <p class="verdict-nearby-label">
         {gettext("Najtaniej z odbiorem osobistym do %{radius} km",
           radius: VisitorLocation.radius_km()
         )}
       </p>
       <p class="verdict-nearby-value">
-        <a href={@nearby.offer.url} target="_blank" rel="noopener nofollow">{@nearby.shop.name}</a>, {@nearby.shop.pickup_city} ·
+        <a
+          href={@nearby.offer.url}
+          target="_blank"
+          rel="noopener nofollow"
+          data-track="shop_link_clicked"
+          data-track-placement="nearby"
+          data-track-shop={@nearby.offer.shop}
+          data-track-price={@nearby.offer.price}
+          data-track-in-stock={to_string(@nearby.offer.in_stock)}
+        >{@nearby.shop.name}</a>, {@nearby.shop.pickup_city} ·
         <strong>{VisitorLocation.km(@nearby.km)}</strong>
         · <strong>{Polish.price(@nearby.offer.price)}</strong>
         <%= if Decimal.gt?(@nearby.extra, 0) do %>
@@ -600,7 +657,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp nearby_line(assigns) do
     ~H"""
-    <div id="verdict-nearby" class="verdict-nearby">
+    <div id="verdict-nearby" class="verdict-nearby ph-no-capture">
       <p class="verdict-nearby-label">{gettext("Odbiór osobisty")}</p>
       <p class="verdict-nearby-value verdict-nearby-none">
         {gettext("brak do %{radius} km – potrzebna dostawa", radius: VisitorLocation.radius_km())}
@@ -641,9 +698,16 @@ defmodule TcgCheapWeb.ProductLive do
           <p id="verdict-price" class="verdict-price">{Polish.price(@verdict.cheapest.price)}</p>
           <p id="verdict-shop" class="verdict-shop">
             {gettext("najtaniej teraz w")}
-            <a href={@verdict.cheapest.url} target="_blank" rel="noopener nofollow">{shop_name(
-              @verdict.cheapest
-            )}</a>
+            <a
+              href={@verdict.cheapest.url}
+              target="_blank"
+              rel="noopener nofollow"
+              data-track="shop_link_clicked"
+              data-track-placement="verdict"
+              data-track-shop={@verdict.cheapest.shop}
+              data-track-price={@verdict.cheapest.price}
+              data-track-in-stock="true"
+            >{shop_name(@verdict.cheapest)}</a>
           </p>
         </div>
         <p id="verdict-reason" class="verdict-reason">
@@ -681,7 +745,7 @@ defmodule TcgCheapWeb.ProductLive do
           </ol>
         </div>
         <details id="verdict-method" class="verdict-method">
-          <summary>
+          <summary data-track="product_section_opened" data-track-section="verdict_method">
             <.fluent_icon name={:info} />{gettext("Jak liczymy typową cenę?")}<.fluent_icon
               name={:chevron_down}
               class="verdict-method-chevron"

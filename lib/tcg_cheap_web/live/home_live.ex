@@ -15,7 +15,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{Ean, Guide, Kinds, Regions, Shops}
-  alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
   @max_query_length 100
   @kind_params Map.new(Kinds.all(), &{Atom.to_string(&1), &1})
@@ -44,8 +44,20 @@ defmodule TcgCheapWeb.HomeLive do
     }
 
     case Sealed.product_for_barcode(filters.query) do
-      %{slug: slug} -> {:noreply, push_navigate(socket, to: ~p"/produkty/#{slug}")}
-      nil -> {:noreply, list(socket, filters)}
+      %{slug: slug} ->
+        {:noreply,
+         socket
+         |> Analytics.track("search_performed", %{
+           query: filters.query,
+           barcode: true,
+           result_count: 1,
+           product_slug: slug
+         })
+         |> push_navigate(to: ~p"/produkty/#{slug}")}
+
+      nil ->
+        previous = socket.assigns[:filters]
+        {:noreply, socket |> list(filters) |> track_changes(previous)}
     end
   end
 
@@ -77,6 +89,56 @@ defmodule TcgCheapWeb.HomeLive do
     |> stream(:products, summaries, reset: true)
   end
 
+  # Only changes made on the page: the first render arrives with its pageview,
+  # whose URL already holds the query and filters.
+  defp track_changes(socket, nil), do: socket
+
+  defp track_changes(%{assigns: %{filters: filters}} = socket, previous) do
+    changed =
+      Enum.filter([:kind, :region, :expansion], &(Map.get(previous, &1) != Map.get(filters, &1)))
+
+    socket
+    |> track_search(previous.query, filters.query)
+    |> track_filters(changed)
+  end
+
+  defp track_search(socket, query, query), do: socket
+
+  defp track_search(socket, _previous, ""),
+    do: Analytics.track(socket, "search_cleared", list_properties(socket))
+
+  defp track_search(socket, _previous, _query),
+    do: Analytics.track(socket, "search_performed", list_properties(socket))
+
+  defp track_filters(socket, []), do: socket
+
+  # Cleared means no filter is left, however many were removed.
+  defp track_filters(%{assigns: %{filters: filters}} = socket, changed) do
+    if filtered?(filters) do
+      Enum.reduce(changed, socket, fn filter, socket ->
+        properties = Map.merge(list_properties(socket), %{filter: filter, value: filters[filter]})
+        Analytics.track(socket, "filter_changed", properties)
+      end)
+    else
+      Analytics.track(socket, "filters_cleared", list_properties(socket))
+    end
+  end
+
+  defp list_properties(%{assigns: assigns}) do
+    %{filters: filters, facets: facets} = assigns
+
+    %{
+      query: filters.query,
+      barcode: assigns.barcode?,
+      kind: filters.kind,
+      region: filters.region,
+      expansion: filters.expansion,
+      expansion_name:
+        Enum.find_value(facets.expansions, &(&1.id == filters.expansion && &1.name)),
+      result_count: assigns.result_count
+    }
+  end
+
   @impl true
   def handle_event("search", %{"q" => query}, socket) when is_binary(query) do
     query = query |> String.trim() |> String.slice(0, @max_query_length)
@@ -91,11 +153,14 @@ defmodule TcgCheapWeb.HomeLive do
     %{filters: filters, loaded: loaded} = socket.assigns
     {summaries, more?, _count} = Guide.browse(filters, loaded, DateTime.utc_now())
 
-    {:noreply,
-     socket
-     |> assign(:loaded, loaded + length(summaries))
-     |> assign(:more?, more?)
-     |> stream(:products, summaries)}
+    socket =
+      socket
+      |> assign(:loaded, loaded + length(summaries))
+      |> assign(:more?, more?)
+      |> stream(:products, summaries)
+
+    properties = Map.put(list_properties(socket), :loaded, socket.assigns.loaded)
+    {:noreply, Analytics.track(socket, "more_products_loaded", properties)}
   end
 
   def handle_event("more", _params, socket), do: {:noreply, socket}
@@ -332,6 +397,7 @@ defmodule TcgCheapWeb.HomeLive do
                   <button
                     id="guide-scan-open"
                     type="button"
+                    data-track="barcode_scan_opened"
                     class="guide-scan-open"
                     aria-label={gettext("Skanuj kod kreskowy")}
                     hidden
@@ -355,6 +421,7 @@ defmodule TcgCheapWeb.HomeLive do
                   class="guide-filters-toggle"
                   aria-controls="guide-filters-body"
                   aria-expanded="false"
+                  data-track="filters_panel_opened"
                   phx-click={
                     JS.dispatch("guide:pin-filters", to: "#guide-search-form")
                     |> JS.toggle_class("guide-filters-open", to: "#guide-filters")
@@ -402,6 +469,7 @@ defmodule TcgCheapWeb.HomeLive do
                   } catch {
                     this.video.hidden = true
                     this.status.textContent = this.el.dataset.cameraError
+                    this.track("barcode_camera_failed")
                     return
                   }
                   this.video.srcObject = this.stream
@@ -413,10 +481,15 @@ defmodule TcgCheapWeb.HomeLive do
                   const [code] = await this.detector.detect(this.video).catch(() => [])
                   if (code) {
                     this.dialog.close()
+                    this.track("barcode_scanned", {format: code.format})
                     this.pushEvent("search", {q: code.rawValue})
                   } else {
                     this.timer = setTimeout(() => this.scan(), 200)
                   }
+                },
+                // Captured by assets/js/analytics.js, like the server's "track" events.
+                track(event, properties = {}) {
+                  window.dispatchEvent(new CustomEvent("phx:track", {detail: {event, properties}}))
                 },
                 stop() {
                   clearTimeout(this.timer)
@@ -454,7 +527,12 @@ defmodule TcgCheapWeb.HomeLive do
                   </span>
                 </p>
               </div>
-              <ul id="guide-products" class="guide-products" phx-update="stream">
+              <ul
+                id="guide-products"
+                class="guide-products"
+                phx-update="stream"
+                data-track-positions
+              >
                 <li id="guide-products-empty" class="guide-empty hidden only:block">
                   <%= cond do %>
                     <% @barcode? -> %>
@@ -471,7 +549,13 @@ defmodule TcgCheapWeb.HomeLive do
                   <.link id="guide-empty-reset" patch={~p"/"}>{gettext("Pokaż wszystkie produkty")}</.link>
                 </li>
                 <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">
-                  <.link navigate={~p"/produkty/#{summary.product.slug}"} class="guide-product-link">
+                  <.link
+                    navigate={~p"/produkty/#{summary.product.slug}"}
+                    class="guide-product-link"
+                    data-track="product_clicked"
+                    data-track-product-slug={summary.product.slug}
+                    data-track-verdict={summary.verdict.status}
+                  >
                     <.product_image
                       photo={summary.product.photo_card_url}
                       page_photo={summary.product.photo_page_url}

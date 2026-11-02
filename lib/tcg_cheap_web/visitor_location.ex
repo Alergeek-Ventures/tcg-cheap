@@ -27,6 +27,7 @@ defmodule TcgCheapWeb.VisitorLocation do
   alias TcgCheap.Geo
   alias TcgCheap.Geo.Towns
   alias TcgCheap.Sealed.Shops
+  alias TcgCheapWeb.Analytics
 
   @type t :: %{coords: Geo.coords(), label: String.t()} | nil
 
@@ -90,15 +91,20 @@ defmodule TcgCheapWeb.VisitorLocation do
   def handle_event("location-town", %{"location" => %{"town" => query}}, socket)
       when is_binary(query) do
     case query |> String.slice(0, @max_query_length) |> Towns.search(1) do
-      [town] -> put_town(socket, town)
-      [] -> assign(socket, :location_error, gettext("Nie znamy takiej miejscowości."))
+      [town] ->
+        put_town(socket, town, "town_typed")
+
+      [] ->
+        socket
+        |> assign(:location_error, gettext("Nie znamy takiej miejscowości."))
+        |> Analytics.track("location_failed", %{reason: "unknown_town"})
     end
   end
 
   def handle_event("location-pick", %{"location" => id}, socket) when is_binary(id) do
     with {id, ""} <- Integer.parse(id),
          {:ok, town} <- Towns.fetch(id) do
-      put_town(socket, town)
+      put_town(socket, town, "town_picked")
     else
       _invalid -> socket
     end
@@ -111,23 +117,28 @@ defmodule TcgCheapWeb.VisitorLocation do
     case polish_town_near(coords) do
       # A city district is named by its city: "Gdańsk", not "Aniołki".
       %{} = town ->
-        put_location(socket, %{coords: coords, label: town.city || town.name})
+        socket
+        |> put_location(%{coords: coords, label: town.city || town.name})
+        |> Analytics.track("location_set", %{method: "device"})
 
       nil ->
-        assign(
-          socket,
-          :location_error,
-          gettext("Ta lokalizacja jest poza Polską. Wpisz miejscowość.")
-        )
+        socket
+        |> assign(:location_error, gettext("Ta lokalizacja jest poza Polską. Wpisz miejscowość."))
+        |> Analytics.track("location_failed", %{reason: "outside_poland"})
     end
   end
 
-  def handle_event("location-clear", _params, socket), do: put_location(socket, nil)
+  def handle_event("location-clear", _params, socket),
+    do: socket |> put_location(nil) |> Analytics.track("location_cleared")
 
   def handle_event(_event, _params, socket), do: socket
 
-  defp put_town(socket, town),
-    do: put_location(socket, %{coords: rounded(town.coords), label: town.name})
+  # Analytics learn how the location was set, never which one.
+  defp put_town(socket, town, method) do
+    socket
+    |> put_location(%{coords: rounded(town.coords), label: town.name})
+    |> Analytics.track("location_set", %{method: method})
+  end
 
   # The browser keeps the location: the hook stores what this pushes.
   defp put_location(socket, location) do
@@ -204,9 +215,10 @@ defmodule TcgCheapWeb.VisitorLocation do
   def location_control(assigns) do
     ~H"""
     <p id="visitor-location-announce" class="sr-only" aria-live="polite" phx-update="ignore"></p>
+    <%!-- ph-no-capture: PostHog's autocapture would record the town names. --%>
     <details
       id="visitor-location"
-      class="visitor-location"
+      class="visitor-location ph-no-capture"
       phx-hook="VisitorLocation"
       data-located={
         gettext("Lokalizacja: %{town}. Pokazujemy odległości do odbioru osobistego.", town: "%{town}")
