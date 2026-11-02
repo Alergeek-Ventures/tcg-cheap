@@ -32,28 +32,16 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
 - Fix real Sobelow findings; use narrow, explained skips only for intentional
   findings.
 
-## Knowledge base
-
-Persistent project memory is under `knowledge-base/`. Use the `llm-wiki` skill
-for maintenance. `raw/` contains immutable external captures and `wiki/` contains
-compiled articles, the index, and the operation log. Do not create root-level
-`raw/` or `wiki/` directories. When
-implementation changes durable architecture, product direction, engine
-behavior, UI/playtest flow, limitations, validation, or handoff state, update
-the relevant wiki article and `knowledge-base/wiki/log.md`.
-
 ## Product north star
 
-The current product north star is [the Buying and Trading Guide](knowledge-base/wiki/product/buying-and-trading-guide.md).
-Work must advance that guide, including its phases, principles, and
+The current product north star is the Buying and Trading Guide described in
+[PRODUCT.md](PRODUCT.md). Work must advance it, including its principles and
 constraints, unless the product owner explicitly supersedes it.
 
 ## Repository boundaries and hygiene
 
 - Keep credentials, uploads, generated runtime data, and dependency caches out
   of git. Use `/tmp/opencode` for scratch files outside the repository.
-- Do not modify `knowledge-base/` or `.opencode/skills/llm-wiki` unless explicitly
-  assigned that work.
 - Before committing, inspect status, diff, and recent history; stage only
   intended files. Use Conventional Commit messages. Never auto-commit unless
   explicitly requested.

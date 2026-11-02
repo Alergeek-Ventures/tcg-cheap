@@ -54,7 +54,4 @@ After changing Ash resources, generate migrations and snapshots with
 ## Documentation
 
 - [PRODUCT.md](PRODUCT.md) — product brief; [DESIGN.md](DESIGN.md) — visual design.
-- [Knowledge base](knowledge-base/wiki/index.md) — the product north star
-  ([Buying and Trading Guide](knowledge-base/wiki/product/buying-and-trading-guide.md)),
-  architecture and data sources.
 - [AGENTS.md](AGENTS.md) — instructions for coding agents.
