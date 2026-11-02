@@ -10,7 +10,19 @@ defmodule TcgCheap.Storage do
   alias TcgCheap.Storage.Config
 
   resources do
-    resource TcgCheap.Storage.Attachment
+    resource TcgCheap.Storage.Attachment do
+      define :replace_image,
+        action: :replace_image,
+        args: [:record, :name, :body, :filename, :content_type]
+
+      define :get_image_attachment,
+        action: :for_owner,
+        args: [:record_type, :record_id, :name],
+        not_found_error?: false
+
+      define :create_image_attachment, action: :create
+      define :replace_attachment_blob, action: :replace_blob, args: [:blob_id]
+    end
 
     resource TcgCheap.Storage.RemoteImage do
       define :register_remote_image, action: :register
@@ -21,7 +33,10 @@ defmodule TcgCheap.Storage do
       define :record_remote_image_attempt, action: :record_attempt
     end
 
-    resource TcgCheap.Storage.Blob
+    resource TcgCheap.Storage.Blob do
+      define :create_blob, action: :create
+      define :purge_blob, action: :purge_blob
+    end
   end
 
   @doc "The active storage service as `{module, opts}`, with this worktree's local S3 port."

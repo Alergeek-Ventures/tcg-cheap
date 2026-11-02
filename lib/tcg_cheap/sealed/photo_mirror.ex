@@ -10,7 +10,7 @@ defmodule TcgCheap.Sealed.PhotoMirror do
 
   require Logger
 
-  alias TcgCheap.Sealed
+  alias TcgCheap.{Sealed, Storage}
   alias TcgCheap.Storage.ImageDownload
 
   @types %{
@@ -35,9 +35,12 @@ defmodule TcgCheap.Sealed.PhotoMirror do
 
     with {:ok, body, type} <- ImageDownload.fetch(url, req_options),
          {:ok, %{blob: blob}} <-
-           AshStorage.Operations.attach(product, :photo, body,
-             filename: "#{product.slug}.#{@types[type]}",
-             content_type: type
+           Storage.replace_image(
+             product,
+             :photo,
+             body,
+             "#{product.slug}.#{@types[type]}",
+             type
            ),
          blob <- Ash.load!(blob, :variants),
          true <-

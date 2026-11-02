@@ -59,9 +59,12 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   defp mirror(image, req_options) do
     with {:ok, body, type} <- Storage.ImageDownload.fetch(image.source_url, req_options),
          {:ok, %{blob: blob}} <-
-           AshStorage.Operations.attach(image, :image, body,
-             filename: "#{image.id}.#{extension(type)}",
-             content_type: type
+           Storage.replace_image(
+             image,
+             :image,
+             body,
+             "#{image.id}.#{extension(type)}",
+             type
            ),
          blob <- Ash.load!(blob, :variants),
          %{} = thumbnail <- Enum.find(blob.variants, &(&1.variant_name == "thumbnail")),
