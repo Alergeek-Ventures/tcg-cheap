@@ -886,6 +886,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .site-header { view-transition-name: site-header; }
 .guide-world .product-hero-image { view-transition-name: product-photo; }
 ::view-transition-group(*) { animation-duration: .25s; }
+/* A photo already at hand shows in the new page's capture, not only once marked loaded a frame later. */
+:active-view-transition .guide-world .product-image img[data-progressive] { opacity: 1; transition: none; }
 @media (prefers-reduced-motion: reduce) {
   .guide-world .verdict-method-chevron { transition: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
