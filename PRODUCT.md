@@ -48,11 +48,14 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   free-delivery threshold and pickup city where the shop publishes them.
 - Verdict: the cheapest in-stock price against today's market. Typical
   price = median of the Polish shops' lowest in-stock prices (one per shop,
-  at least 3 shops). Good ≤ 95%, normal ≤ 110%, expensive above; the limits
-  are shown in whole złoty so a price seen in a physical shop can be judged
-  too. With fewer shops there is no verdict ("Za mało sklepów"); the
-  Cardmarket trend in PLN is shown as context on the product page.
-- History is context, never the verdict: the same price against the median
+  at least 3 shops). Good ≤ 95%, normal ≤ 110%, expensive above; a good
+  price must also be ≤ 95% of the 30-day usual price and of the Cardmarket
+  trend in PLN plus a tracked parcel from Germany, when they are known (the
+  page says which one lowered the limit). The limits are shown in whole
+  złoty so a price seen in a physical shop can be judged too. With fewer
+  shops there is no verdict ("Za mało sklepów"); the Cardmarket trend in
+  PLN is shown as context on the product page.
+- History bounds a good price only: the same price against the median
   daily lowest price of the last 30 days (≥ 7 days with stock), shown as one
   line ("Taniej / Tyle co / Drożej niż w ostatnich 30 dniach") and a chart
   behind a click.

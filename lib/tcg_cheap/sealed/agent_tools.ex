@@ -138,12 +138,14 @@ defmodule TcgCheap.Sealed.AgentTools do
       One catalogue product by `slug` or `id`: its catalogue data, the public verdict on today's
       market (`status` good/normal/expensive against the median of each in-stock shop's lowest
       price, cardmarket (only compared with the Cardmarket trend when fewer than 3 shops have
-      stock, no limits), insufficient_data or out_of_stock; cheapest in-stock offer, `shop_prices`,
-      typical price and its source, price limits), `past`: the same cheapest price against the
-      30-day history (`status` low/usual/high, insufficient_data before 7 days with stock, or
-      out_of_stock; usual price, limits, last known price), every current offer assigned to it,
-      with offer ids, the REBEL `suggested_price` matched to it (null when none) and its
-      `contents` (null when unknown).
+      stock, no limits), insufficient_data or out_of_stock; cheapest in-stock offer,
+      `shop_prices`, typical price and its source, price limits; good also needs the price at most
+      95% of the 30-day usual price and of the Cardmarket trend with shipping when known,
+      `good_limits` has each limit), `past`: the same cheapest price against the 30-day history
+      (`status` low/usual/high, insufficient_data before 7 days with stock, or out_of_stock; usual
+      price, limits, last known price), the Cardmarket trend in PLN without and with shipping to
+      Poland, every current offer assigned to it, with offer ids, the REBEL `suggested_price`
+      matched to it (null when none) and its `contents` (null when unknown).
       """
 
       argument :slug, :string, description: "The product slug, as in /produkty/{slug}."

@@ -59,6 +59,13 @@ defmodule TcgCheap.Sealed.DailyPrice do
       filter expr(product_id == ^arg(:product_id) and date >= ^arg(:since))
       prepare build(sort: [date: :asc])
     end
+
+    read :histories do
+      description "The daily prices of several products since a date, for list verdicts."
+      argument :product_ids, {:array, :uuid}, allow_nil?: false
+      argument :since, :date, allow_nil?: false
+      filter expr(product_id in ^arg(:product_ids) and date >= ^arg(:since))
+    end
   end
 
   validations do

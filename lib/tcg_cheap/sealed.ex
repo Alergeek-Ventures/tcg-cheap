@@ -217,6 +217,7 @@ defmodule TcgCheap.Sealed do
       define :record_cardmarket_trend, action: :record_cardmarket_trend
       define :list_daily_prices_on, action: :on, args: [:date]
       define :list_price_history, action: :history, args: [:product_id, :since]
+      define :list_price_histories, action: :histories, args: [:product_ids, :since]
 
       define :get_last_stocked_day,
         action: :last_stocked,
