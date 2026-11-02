@@ -422,6 +422,12 @@
 .cookie-notice button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 .cookie-notice button:active { color: var(--orange); }
 @media (hover: hover) and (pointer: fine) { #cookie-notice-reject:hover { color: var(--ink); } #cookie-notice-accept:hover { background: var(--orange); border-color: var(--orange); } }
+/* LiveToast's toasts (flashes and the lost-connection notice), drawn like the cookie notice; Layouts.toast_class/1 keeps the library's layout. */
+.site-toast { --ink: #201d19; --orange: #b54125; background: #fffdf8; border: 1px solid var(--ink); box-shadow: .25rem .25rem 0 var(--ink); color: var(--ink); font: .875rem/1.5 "Azeret Mono", ui-monospace, monospace; gap: .75rem; padding: .875rem 1rem; }
+.site-toast-error { box-shadow: .25rem .25rem 0 var(--orange); }
+.site-toast [data-part="title"] { font: 700 1.25rem/1.1 "Barlow Condensed", sans-serif; margin-block-end: .25rem; }
+.site-toast p:not([data-part]) { font-size: inherit; line-height: inherit; }
+.site-toast svg { color: var(--orange); }
 /* Report form: a button in the bottom right corner opens it as a popover. analytics.js sends it to PostHog. */
 .report { --ink: #201d19; --orange: #b54125; --muted: #6d6256; --paper: #fffdf8; color: var(--ink); font: .875rem/1.5 "Azeret Mono", ui-monospace, monospace; }
 .report[hidden] { display: none; }
