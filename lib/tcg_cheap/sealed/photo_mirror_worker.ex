@@ -10,7 +10,7 @@ defmodule TcgCheap.Sealed.PhotoMirrorWorker do
 
   alias TcgCheap.Sealed.PhotoMirror
 
-  # Small batches: every photo is downloaded, resized twice and uploaded.
+  # Small batches: every photo is downloaded, resized and uploaded.
   @batch 40
 
   @impl Oban.Worker
@@ -20,7 +20,19 @@ defmodule TcgCheap.Sealed.PhotoMirrorWorker do
   def perform(%Oban.Job{}) do
     %{stored: stored, failed: failed} = PhotoMirror.run(@batch)
     if stored + failed > 0, do: Logger.info("Product photos: #{stored} stored, #{failed} failed")
-    if stored + failed == @batch, do: {:snooze, 1}, else: :ok
+
+    # Photos stored before the small variant existed, while no new ones wait.
+    %{added: added, failed: small_failed} =
+      if stored + failed < @batch,
+        do: PhotoMirror.add_small_variants(@batch),
+        else: %{added: 0, failed: 0}
+
+    if added + small_failed > 0,
+      do: Logger.info("Small product photos: #{added} added, #{small_failed} failed")
+
+    if stored + failed == @batch or (added > 0 and added + small_failed == @batch),
+      do: {:snooze, 1},
+      else: :ok
   end
 
   @doc "Queues a run."

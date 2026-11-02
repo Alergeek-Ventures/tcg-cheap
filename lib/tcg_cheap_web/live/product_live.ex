@@ -699,6 +699,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp booster_photo(item, boosters) do
     case booster(item, boosters) do
+      %{stored_photo_small_url: url} when is_binary(url) -> url
       %{photo_card_url: url} when is_binary(url) -> url
       _none -> nil
     end

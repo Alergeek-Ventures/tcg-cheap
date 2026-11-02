@@ -5,6 +5,10 @@ defmodule TcgCheap.Storage.Service.PublicS3 do
   This is the public-logo variant of `AshStorage.Service.S3`. Backend uploads
   add the signed `x-amz-acl: public-read` header, while reads use non-expiring
   public URLs and object management is delegated to the bundled S3 service.
+
+  Every upload gets a new random key (`AshStorage.generate_key/0`) and a
+  replaced file is deleted, never overwritten, so browsers may cache objects
+  for good.
   """
 
   @behaviour AshStorage.Service
@@ -116,6 +120,7 @@ defmodule TcgCheap.Storage.Service.PublicS3 do
     Enum.reject(
       [
         {"x-amz-acl", "public-read"},
+        {"cache-control", "public, max-age=31536000, immutable"},
         {"content-type", ctx.content_type},
         {"content-md5", checksum}
       ],
