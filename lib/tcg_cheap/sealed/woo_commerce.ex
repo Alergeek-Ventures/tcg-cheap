@@ -8,10 +8,14 @@ defmodule TcgCheap.Sealed.WooCommerce do
   `sealed_categories`, or, for a shop without curated sealed categories, when
   its title names a sealed product (`TcgCheap.Sealed.Matcher.sealed_title?/1`).
   Its permalink must be on the shop's host and match `product_path`, and its
-  price must be in PLN. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
+  price must be in PLN. Its image is the Store API's `src`, the full upload,
+  except where a plugin has swapped in a smaller copy (see `with_originals/3`).
+  See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
+
+  require Logger
 
   alias TcgCheap.Sealed.{Ean, Matcher, Shop, ShopFeed}
 
@@ -53,12 +57,72 @@ defmodule TcgCheap.Sealed.WooCommerce do
            ShopFeed.get(shop, "/wp-json/wc/store/v1/products", params, req_options),
          {:ok, products} when is_list(products) <- ShopFeed.decode(response),
          {:ok, total} <- total_pages(response) do
-      {:ok, products, total}
+      {:ok, with_originals(shop, products, req_options), total}
     else
       {:ok, _not_a_list} -> {:error, :malformed_response}
       {:error, reason} -> {:error, reason}
     end
   end
+
+  # A WebP plugin on some shops (gralnia.org) replaces every image with a
+  # 450 px `webp-450/<attachment id>.webp` copy, and the Store API reports only
+  # that. The uploads the copies were made from are looked up in the WordPress
+  # media API, one request for the page's images; when it fails, the copies stay.
+  @webp_copy ~r|\A/wp-content/uploads/webp-[0-9]{1,4}/([0-9]{1,12})\.webp\z|
+
+  defp with_originals(shop, products, req_options) do
+    ids =
+      for %{"images" => [%{"id" => id, "src" => src} | _]} <- products,
+          webp_copy?(src, id),
+          uniq: true,
+          do: id
+
+    with [_ | _] <- ids,
+         {:ok, originals} <- originals(shop, ids, req_options) do
+      Enum.map(products, &put_original(&1, originals))
+    else
+      [] ->
+        products
+
+      {:error, reason} ->
+        Logger.warning("sealed fetch #{shop.key}: original images not found: #{inspect(reason)}")
+        products
+    end
+  end
+
+  defp webp_copy?(src, id) when is_binary(src) and is_integer(id) do
+    case Regex.run(@webp_copy, URI.parse(src).path || "") do
+      [_, copy_id] -> copy_id == Integer.to_string(id)
+      nil -> false
+    end
+  end
+
+  defp webp_copy?(_src, _id), do: false
+
+  defp originals(shop, ids, req_options) do
+    params = [include: Enum.join(ids, ","), per_page: @per_page, _fields: "id,source_url"]
+
+    with {:ok, response} <- ShopFeed.get(shop, "/wp-json/wp/v2/media", params, req_options),
+         {:ok, media} when is_list(media) <- ShopFeed.decode(response) do
+      {:ok,
+       for(
+         %{"id" => id, "source_url" => url} when is_integer(id) <- media,
+         url = ShopFeed.image_url(url, image_hosts(shop)),
+         url != nil,
+         into: %{},
+         do: {id, url}
+       )}
+    else
+      {:ok, _not_a_list} -> {:error, :malformed_response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp put_original(%{"images" => [%{"id" => id} = image | rest]} = product, originals)
+       when is_map_key(originals, id),
+       do: %{product | "images" => [Map.put(image, "src", originals[id]) | rest]}
+
+  defp put_original(product, _originals), do: product
 
   defp total_pages(response) do
     with [value | _] <- Req.Response.get_header(response, "x-wp-totalpages"),

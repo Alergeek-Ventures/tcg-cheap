@@ -20,7 +20,9 @@ defmodule TcgCheap.Sealed.SkyShop do
   promotional one, not the lowest price of the last 30 days). A product is in
   stock when its tile has an add-to-cart button and is not marked "Preorder"
   or "Przedsprzedaż"; "Produkt niedostępny" and "Oczekuje na dostawę"
-  products are not. Links and images are made absolute on the shop's host.
+  products are not. Links and images are made absolute on the shop's host;
+  the tile's thumbnail (`<name>_[<id>]_320.jpg`) is swapped for the largest
+  size Sky-Shop renders, `_1200` (the original when it is smaller).
   Listings carry no EAN. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
@@ -32,6 +34,7 @@ defmodule TcgCheap.Sealed.SkyShop do
            ".product-tiles-wrapper figure.product-tile"
   @preorder ["Preorder", "Przedsprzedaż"]
   @unavailable ["Produkt niedostępny", "Oczekuje na dostawę"]
+  @thumbnail ~r/(_%5B[0-9]+%5D)_[0-9]{2,4}(\.[a-z]+)\z/
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -102,7 +105,8 @@ defmodule TcgCheap.Sealed.SkyShop do
       id: first(Floki.attribute(tile, ".core_addToStore", "data-product-id")),
       title: link && link |> Floki.text() |> String.trim(),
       path: link && first(Floki.attribute(link, "href")),
-      image: first(Floki.attribute(tile, "img.product-img, img.product-main-img", "src")),
+      image:
+        full_size(first(Floki.attribute(tile, "img.product-img, img.product-main-img", "src"))),
       price:
         first(
           Floki.attribute(
@@ -135,6 +139,9 @@ defmodule TcgCheap.Sealed.SkyShop do
 
     Enum.any?(badges, &(&1 in @preorder))
   end
+
+  defp full_size(nil), do: nil
+  defp full_size(image), do: Regex.replace(@thumbnail, image, "\\1_1200\\2")
 
   defp first([value | _]), do: value
   defp first([]), do: nil

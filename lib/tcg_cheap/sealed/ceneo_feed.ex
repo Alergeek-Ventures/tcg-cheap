@@ -11,13 +11,15 @@ defmodule TcgCheap.Sealed.CeneoFeed do
   in stock when its `stock` is positive and its `avail` is one of Ceneo's
   shipping times (1, 3, 7 or 14 days) or 99 ("ask the shop"); 90 (on order)
   and 110 (preorder) are not. URLs and images must be on the shop's host;
-  the EAN is the `EAN` attribute. See `TcgCheap.Sealed.ShopFeed` for the
+  Shoper lists a 500 px copy of the main photo, swapped for its full-size one
+  (`TcgCheap.Sealed.ShoperListing.full_size_image/1`). The EAN is the `EAN`
+  attribute. See `TcgCheap.Sealed.ShopFeed` for the
   shared limits.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
 
-  alias TcgCheap.Sealed.{Ean, Shop, ShopFeed, XmlRecords}
+  alias TcgCheap.Sealed.{Ean, Shop, ShoperListing, ShopFeed, XmlRecords}
 
   @max_body_bytes 64_000_000
   @fields [[], ["name"], ["cat"], ["imgs", "main"], ["attrs", "a"]]
@@ -61,10 +63,10 @@ defmodule TcgCheap.Sealed.CeneoFeed do
            title: title,
            url: attr.("url"),
            image_url:
-             ShopFeed.image_url(
-               XmlRecords.attr(offer, ["imgs", "main"], "url"),
-               image_hosts(shop)
-             ),
+             offer
+             |> XmlRecords.attr(["imgs", "main"], "url")
+             |> ShoperListing.full_size_image()
+             |> ShopFeed.image_url(image_hosts(shop)),
            ean: Ean.normalize(ean(offer)),
            price: price,
            in_stock: in_stock

@@ -13,7 +13,9 @@ defmodule TcgCheap.Sealed.Smajk do
   title, which is how Japanese boxes titled without "Pokémon" qualify). It is in
   stock when the grid's stock count is above zero and it is not marked
   "Wyprzedane". Its price is the current one (the struck-through original, when
-  given, is ignored). The product id is the shop's own. There is no EAN. See
+  given, is ignored). The product id is the shop's own. The image is the
+  uploaded original (`/upload/<name>` for the grid's `/upload/min-<name>`,
+  which is scaled to 450 px wide). There is no EAN. See
   `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
@@ -145,7 +147,8 @@ defmodule TcgCheap.Sealed.Smajk do
 
   defp image_url(shop, product) do
     case product |> Floki.find("img") |> Floki.attribute("src") |> List.first() do
-      "/upload/" <> _ = src ->
+      "/upload/" <> name ->
+        src = "/upload/" <> String.replace_prefix(name, "min-", "")
         ShopFeed.image_url("https://#{shop.host}#{URI.encode(src)}", image_hosts(shop))
 
       _ ->

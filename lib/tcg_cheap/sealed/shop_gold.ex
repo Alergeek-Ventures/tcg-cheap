@@ -23,6 +23,8 @@ defmodule TcgCheap.Sealed.ShopGold do
   `ProduktBezZakupu`) or marked "Produkt będzie dostępny od dnia" (a release
   date) is not. Shops whose listing template has no purchase buttons are not
   supported: their "Dostępność" label does not follow what a buyer can order.
+  The image is the uploaded original, which shopGold keeps beside the
+  listing's thumbnail (`images/…/<name>` for `images/…/mini/250px_<name>`).
   The listing carries no EAN. See `TcgCheap.Sealed.ShopFeed` for the shared
   limits.
   """
@@ -30,6 +32,17 @@ defmodule TcgCheap.Sealed.ShopGold do
   @behaviour TcgCheap.Sealed.ShopFeed
 
   alias TcgCheap.Sealed.{HtmlListing, Shop, ShopFeed}
+
+  @thumbnail ~r"/mini/[0-9]{2,4}px_"
+
+  # Shops that convert their thumbnails to WebP: the thumbnail's name no
+  # longer carries the original's extension, so the photo is the largest
+  # thumbnail their product page shows (present for every product listed).
+  @webp_thumbnails %{
+    "pokapoke.pl" => "450px_",
+    "elfiagrota.pl" => "700px_",
+    "twojekarty.pl" => "700px_"
+  }
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -207,7 +220,19 @@ defmodule TcgCheap.Sealed.ShopGold do
   defp image_url(_shop, nil), do: nil
 
   defp image_url(shop, path) do
-    path = path |> String.trim_leading("/") |> URI.encode(&(&1 == ?% or URI.char_unescaped?(&1)))
+    path =
+      shop
+      |> full_size(path)
+      |> String.trim_leading("/")
+      |> URI.encode(&(&1 == ?% or URI.char_unescaped?(&1)))
+
     ShopFeed.image_url("https://#{shop.host}/#{path}", [shop.host])
+  end
+
+  defp full_size(shop, path) do
+    case Map.fetch(@webp_thumbnails, shop.host) do
+      {:ok, size} -> Regex.replace(@thumbnail, path, "/mini/#{size}", global: false)
+      :error -> Regex.replace(@thumbnail, path, "/", global: false)
+    end
   end
 end

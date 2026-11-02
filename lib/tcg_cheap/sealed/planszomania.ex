@@ -27,6 +27,7 @@ defmodule TcgCheap.Sealed.Planszomania do
 
   @link ~r|\A[a-z0-9-]+/([0-9]{1,9})/[^\s]+\.html\z|
   @price ~r/\A([0-9]{1,7}\.[0-9]{2}) PLN/
+  @thumbnail ~r|\Athumbs/image/([A-Za-z0-9_-][A-Za-z0-9_.-]*)\.120x120\.([a-z]+)\z|
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -103,17 +104,25 @@ defmodule TcgCheap.Sealed.Planszomania do
     end
   end
 
+  # The listing shows a 120 px thumbnail of `image/NAME`. The shop's own
+  # `thumbs/` sizes only redirect to its `phpThumb.php`, which scales the
+  # original down to the box asked for (never up); the originals themselves can
+  # be multi-megabyte PNGs.
   defp image_url(shop, row) do
-    case row
-         |> Floki.find("td.td_itemlist_gamebox img")
-         |> Floki.attribute("src")
-         |> List.first() do
-      # The listing's 120 px thumbnail; the shop renders any size on request.
-      "thumbs/" <> _ = src ->
-        src = String.replace(src, ~r/\.120x120\./, ".400x400.")
-        ShopFeed.image_url("https://#{shop.host}/#{src}", image_hosts(shop))
+    src =
+      row
+      |> Floki.find("td.td_itemlist_gamebox img")
+      |> Floki.attribute("src")
+      |> List.first()
 
-      _ ->
+    case Regex.run(@thumbnail, src || "") do
+      [_, name, extension] ->
+        ShopFeed.image_url(
+          "https://#{shop.host}/phpThumb.php?src=/image/#{name}.#{extension}&w=1200&h=1200",
+          image_hosts(shop)
+        )
+
+      nil ->
         nil
     end
   end
