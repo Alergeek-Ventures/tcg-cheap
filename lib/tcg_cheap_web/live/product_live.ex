@@ -443,6 +443,7 @@ defmodule TcgCheapWeb.ProductLive do
               <a
                 href={CardImage.photo_url(item.photo, "detail")}
                 class="contents-photo"
+                data-photo-preview
                 aria-label={gettext("Zdjęcie: %{item}", item: item_label(item))}
               >
                 <img src={photo_url} alt="" height="48" loading="lazy" />
@@ -451,6 +452,7 @@ defmodule TcgCheapWeb.ProductLive do
               <a
                 href={stock_url}
                 class="contents-photo"
+                data-photo-preview
                 title={gettext("Przykładowe zdjęcie")}
                 aria-label={gettext("Przykładowe zdjęcie: %{item}", item: item_label(item))}
               >
@@ -470,6 +472,7 @@ defmodule TcgCheapWeb.ProductLive do
               <a
                 href={generic_url}
                 class="contents-photo contents-photo-generic"
+                data-photo-preview
                 title={gettext("Zdjęcie poglądowe z innego produktu")}
                 aria-label={gettext("Zdjęcie poglądowe: %{item}", item: item_label(item))}
               >
@@ -488,6 +491,34 @@ defmodule TcgCheapWeb.ProductLive do
           <a href={url} target="_blank" rel="noopener nofollow">{URI.parse(url).host}</a>
         <% end %>
       </p>
+      <%!-- The links stay plain links; with JavaScript their photo opens over the page. --%>
+      <div id="photo-preview" phx-hook=".PhotoPreview" phx-update="ignore">
+        <dialog id="photo-preview-dialog" class="photo-preview">
+          <img id="photo-preview-image" alt="" />
+          <button id="photo-preview-close" type="button">{gettext("Zamknij")}</button>
+        </dialog>
+      </div>
+      <script :type={Phoenix.LiveView.ColocatedHook} name=".PhotoPreview">
+        export default {
+          mounted() {
+            this.dialog = this.el.querySelector("dialog")
+            this.image = this.dialog.querySelector("img")
+            this.open = event => {
+              const link = event.target.closest("a[data-photo-preview]")
+              if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+              event.preventDefault()
+              this.image.src = link.href
+              this.image.alt = link.getAttribute("aria-label") ?? ""
+              this.dialog.showModal()
+            }
+            document.addEventListener("click", this.open)
+            // Any click closes it: on the photo, around it or on the button.
+            this.dialog.addEventListener("click", () => this.dialog.close())
+            this.dialog.addEventListener("close", () => this.image.removeAttribute("src"))
+          },
+          destroyed() { document.removeEventListener("click", this.open) }
+        }
+      </script>
     </section>
     """
   end
