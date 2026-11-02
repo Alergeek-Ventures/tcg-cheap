@@ -557,6 +557,8 @@ defmodule TcgCheapWeb.ProductLive do
             <span class="contents-quantity">{item.quantity}×</span>
             <span class="contents-label">
               <%= cond do %>
+                <% item.variants not in [nil, []] -> %>
+                  <a href={"#deck-list-#{index}"}>{item_label(item)}</a>
                 <% booster = booster(item, @boosters) -> %>
                   <.link navigate={~p"/produkty/#{booster.slug}"}>{item_label(item)}</.link>
                 <% item.cardmarket_id -> %>
@@ -570,7 +572,7 @@ defmodule TcgCheapWeb.ProductLive do
               <% end %>
               <span :if={item.set} class="contents-card-set">{item.set} {item.number}</span>
               <a
-                :if={item.cards not in [nil, []]}
+                :if={has_deck_list?(item)}
                 href={"#deck-list-#{index}"}
                 class="contents-card-set"
               >
@@ -665,21 +667,85 @@ defmodule TcgCheapWeb.ProductLive do
     """
   end
 
-  # Fixed decks, and fixed cards of a deck-building box, whose card list we
-  # know, by their place in the contents.
+  # Fixed and random decks, and fixed cards of a deck-building box, whose
+  # lists we know, by their place in the contents.
   defp deck_lists(nil), do: []
 
   defp deck_lists(contents) do
-    for {%{cards: [_card | _more]} = deck, index} <- Enum.with_index(contents.items),
+    for {deck, index} <- Enum.with_index(contents.items),
+        has_deck_list?(deck),
         do: {deck, index}
   end
+
+  defp has_deck_list?(item),
+    do: item.cards not in [nil, []] or item.variants not in [nil, []]
 
   attr :deck, :map, required: true
   attr :index, :integer, required: true
 
+  defp deck_list(%{deck: %{variants: [_ | _]}} = assigns) do
+    ~H"""
+    <section
+      id={"deck-list-#{@index}"}
+      class="product-section"
+      aria-labelledby={"deck-list-#{@index}-title"}
+    >
+      <div class="product-section-heading">
+        <h2 id={"deck-list-#{@index}-title"}>{gettext("Karty w talii – warianty losowe")}</h2>
+      </div>
+      <fieldset id={"deck-variants-#{@index}"} class="deck-variants">
+        <legend class="sr-only">{gettext("Wybierz wariant, aby zobaczyć listę kart")}</legend>
+        <%= for {variant, variant_index} <- Enum.with_index(@deck.variants) do %>
+          <input
+            type="radio"
+            id={"deck-variant-#{@index}-#{variant_index}"}
+            name={"deck-variant-#{@index}"}
+            value={variant_index}
+            checked={variant_index == 0}
+            class="deck-variant-radio"
+            aria-controls={"deck-variant-#{@index}-#{variant_index}-cards"}
+          />
+          <label for={"deck-variant-#{@index}-#{variant_index}"} class="deck-variant-label">
+            {variant.name}
+          </label>
+          <div
+            id={"deck-variant-#{@index}-#{variant_index}-cards"}
+            class="deck-variant-cards"
+            role="region"
+            aria-labelledby={"deck-variant-#{@index}-#{variant_index}"}
+          >
+            <.deck_card_list cards={variant.cards} />
+          </div>
+        <% end %>
+      </fieldset>
+    </section>
+    """
+  end
+
   defp deck_list(assigns) do
+    ~H"""
+    <section
+      id={"deck-list-#{@index}"}
+      class="product-section"
+      aria-labelledby={"deck-list-#{@index}-title"}
+    >
+      <div class="product-section-heading">
+        <h2 id={"deck-list-#{@index}-title"}>{deck_title(@deck)}</h2>
+        <p>
+          {Polish.plural(Enum.sum(Enum.map(@deck.cards, & &1.quantity)), "karta", "karty", "kart")}
+        </p>
+      </div>
+      <.deck_card_list cards={@deck.cards} show_count={false} />
+    </section>
+    """
+  end
+
+  attr :cards, :list, required: true
+  attr :show_count, :boolean, default: true
+
+  defp deck_card_list(assigns) do
     groups =
-      assigns.deck.cards
+      assigns.cards
       |> Enum.group_by(& &1.category)
       |> Enum.sort_by(fn {category, _cards} -> category_rank(category) end)
       |> Enum.map(fn {category, cards} ->
@@ -693,15 +759,10 @@ defmodule TcgCheapWeb.ProductLive do
       )
 
     ~H"""
-    <section
-      id={"deck-list-#{@index}"}
-      class="product-section"
-      aria-labelledby={"deck-list-#{@index}-title"}
-    >
-      <div class="product-section-heading">
-        <h2 id={"deck-list-#{@index}-title"}>{deck_title(@deck)}</h2>
-        <p>{Polish.plural(@count, "karta", "karty", "kart")}</p>
-      </div>
+    <div class="deck-card-list">
+      <p :if={@show_count} class="guide-note deck-variant-count">
+        {Polish.plural(@count, "karta", "karty", "kart")}
+      </p>
       <div :for={group <- @groups} class="deck-list-group">
         <h3>
           {category_label(group.category)} <span class="deck-list-count">{group.count}</span>
@@ -738,7 +799,7 @@ defmodule TcgCheapWeb.ProductLive do
           "Karty według listy wydawcy; set, numer i zdjęcie z TCGdex, nazwa otwiera kartę na Cardmarket."
         )}
       </p>
-    </section>
+    </div>
     """
   end
 
@@ -794,6 +855,14 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp item_label(%{type: :card, name: nil}), do: gettext("karta")
   defp item_label(%{type: :card, name: card}), do: gettext("karta %{card}", card: card)
+
+  defp item_label(%{type: :deck, variants: [_ | _] = variants}) do
+    gettext("talia losowa – jedna z %{count}: %{names}",
+      count: length(variants),
+      names: Enum.map_join(variants, ", ", & &1.name)
+    )
+  end
+
   defp item_label(%{type: :deck, name: nil}), do: gettext("talia gotowa do gry")
   defp item_label(%{type: :deck, name: deck}), do: gettext("talia %{deck}", deck: deck)
   defp item_label(%{type: :sleeves}), do: gettext("koszulki na karty")

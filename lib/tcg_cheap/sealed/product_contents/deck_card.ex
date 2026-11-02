@@ -1,5 +1,5 @@
 defmodule TcgCheap.Sealed.ProductContents.DeckCard do
-  @moduledoc "One card of a fixed deck's list, with how many copies the deck has."
+  @moduledoc "One card of a fixed deck or random variant's list, with how many copies the deck has."
 
   use Ash.Resource, data_layer: :embedded
 

@@ -243,7 +243,13 @@ defmodule TcgCheap.Sealed.AgentTools do
       and Cardmarket link are filled in from TCGdex, and an unknown id is rejected. A fixed deck
       (type deck), or a row of fixed cards that is not a ready deck (type card, e.g. a
       deck-building box's cards), may carry its full list in cards: every card with its copies
-      and TCGdex id, checked the same way. Read the current contents with get_product first. contents null removes them. Returns the product
+      and TCGdex id, checked the same way. A random deck (type deck) instead has variants:
+      [{name: "Enamorus", cards: [...]}, ...], one per possible deck, with English featured
+      Pokémon names. Its quantity is the number of random decks (1 in a Build & Battle Box,
+      10 in a Display of 10 boxes), not the number of variants. cards and variants are mutually
+      exclusive. Variant cards get the same TCGdex validation and enrichment as fixed cards.
+      Record only known cards even if the publisher's list is incomplete (e.g. 39 cards).
+      Read the current contents with get_product first. contents null removes them. Returns the product
       with its contents.
       """
 
