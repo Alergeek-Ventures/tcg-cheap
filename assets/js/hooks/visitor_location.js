@@ -3,8 +3,6 @@
 // connects (never in the socket URL). The server pushes "location" when the
 // visitor sets or clears it.
 const STORAGE_KEY = "tcg:location"
-// Set once the device location was asked for on entry in this browser session.
-const ASKED_KEY = "tcg:location-asked"
 
 function storedLocation() {
   try {
@@ -20,13 +18,11 @@ const VisitorLocation = {
   mounted() {
     this.summary = this.el.querySelector("summary")
     this.restore()
-    this.askOnEntry()
     this.handleEvent("location", ({location}) => {
       try {
         if (location) localStorage.setItem(STORAGE_KEY, JSON.stringify(location))
         else localStorage.removeItem(STORAGE_KEY)
       } catch {}
-      if (location) this.hideInvite()
       this.el.querySelector("form")?.reset()
       this.say("")
       // Set on entry the panel is closed; leave the focus where it is.
@@ -65,45 +61,9 @@ const VisitorLocation = {
     this.pushEvent("location-restore", {location: storedLocation()})
   },
 
-  // Without a remembered location, explain once per browser session (not on
-  // every page) why we ask; the browser's own prompt follows only "Zgadzam się".
-  // An earlier grant needs no prompt, a refusal is respected.
-  async askOnEntry() {
-    if (storedLocation() || !("geolocation" in navigator)) return
-    let state
-    try {
-      if (sessionStorage.getItem(ASKED_KEY)) return
-      sessionStorage.setItem(ASKED_KEY, "1")
-      ;({state} = await navigator.permissions.query({name: "geolocation"}))
-    } catch {}
-    if (!this.el.isConnected || storedLocation()) return
-    if (state === "denied") return
-    if (state === "granted") return this.locate({quiet: true})
-    this.invite = document.getElementById("visitor-location-invite")
-    if (!this.invite) return
-    // Through this.js() so LiveView patches keep it shown or hidden.
-    this.js().removeAttribute(this.invite, "hidden")
-    this.onLater = () => this.hideInvite()
-    this.onAllow = () => {
-      this.hideInvite()
-      this.el.open = true
-      this.locate()
-    }
-    this.invite.querySelector("#visitor-location-later").addEventListener("click", this.onLater)
-    this.invite.querySelector("#visitor-location-allow").addEventListener("click", this.onAllow)
-  },
-
-  hideInvite() {
-    if (!this.invite) return
-    if (this.invite.contains(document.activeElement)) this.summary.focus()
-    this.js().setAttribute(this.invite, "hidden", "")
-  },
-
   destroyed() {
     document.removeEventListener("pointerdown", this.onPointerDown)
     document.removeEventListener("keydown", this.onKeyDown)
-    this.invite?.querySelector("#visitor-location-later").removeEventListener("click", this.onLater)
-    this.invite?.querySelector("#visitor-location-allow").removeEventListener("click", this.onAllow)
   },
 
   close() {
@@ -111,8 +71,8 @@ const VisitorLocation = {
     this.summary.focus({preventScroll: true})
   },
 
-  // Quiet when asked on entry: a refusal shows no error and moves no focus.
-  locate({quiet = false} = {}) {
+  // Request the device location only after the visitor chooses this action.
+  locate() {
     if (!("geolocation" in navigator)) {
       this.fail()
       return
@@ -126,7 +86,7 @@ const VisitorLocation = {
       }
     }
     busy(true)
-    if (!quiet) this.say(this.el.dataset.locating)
+    this.say(this.el.dataset.locating)
     navigator.geolocation.getCurrentPosition(
       ({coords}) => {
         const location = {lat: round(coords.latitude), lon: round(coords.longitude)}
@@ -137,7 +97,7 @@ const VisitorLocation = {
       },
       () => {
         busy(false)
-        if (!quiet) this.fail()
+        this.fail()
       },
       {enableHighAccuracy: false, maximumAge: 600000, timeout: 10000},
     )

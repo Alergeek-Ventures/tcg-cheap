@@ -42,7 +42,7 @@ msgstr "%{offers}, %{count} in stock"
 msgid "%{shop}: przejdź do sklepu (otwiera się w nowej karcie)"
 msgstr "%{shop}: visit shop (opens in a new tab)"
 
-#: lib/tcg_cheap_web/visitor_location.ex:313
+#: lib/tcg_cheap_web/visitor_location.ex:295
 #, elixir-autogen, elixir-format
 msgid "(wybór;"
 msgstr "(selection;"
@@ -164,7 +164,7 @@ msgid "Europejska giełda, bez wysyłki z innych krajów"
 msgstr "European marketplace, excluding shipping from other countries"
 
 #: lib/tcg_cheap_web/live/home_live.ex:144
-#: lib/tcg_cheap_web/live/home_live.ex:363
+#: lib/tcg_cheap_web/live/home_live.ex:362
 #, elixir-autogen, elixir-format
 msgid "Filtry"
 msgstr "Filters"
@@ -209,17 +209,17 @@ msgstr "Korean"
 msgid "Linia przerywana: typowa cena %{price}."
 msgstr "Dashed line: typical price %{price}."
 
-#: lib/tcg_cheap_web/visitor_location.ex:232
+#: lib/tcg_cheap_web/visitor_location.ex:214
 #, elixir-autogen, elixir-format
 msgid "Lokalizacja usunięta."
 msgstr "Location cleared."
 
-#: lib/tcg_cheap_web/visitor_location.ex:230
+#: lib/tcg_cheap_web/visitor_location.ex:212
 #, elixir-autogen, elixir-format
 msgid "Lokalizacja: %{town}. Pokazujemy odległości do odbioru osobistego."
 msgstr "Location: %{town}. Showing distances to in-store pickup."
 
-#: lib/tcg_cheap_web/visitor_location.ex:307
+#: lib/tcg_cheap_web/visitor_location.ex:289
 #, elixir-autogen, elixir-format
 msgid "Lokalizację pamięta tylko Twoja przeglądarka; nie zapisujemy jej. Odległości liczymy w linii prostej."
 msgstr "Only your browser remembers your location; we don't store it. Distances are measured in a straight line."
@@ -229,7 +229,7 @@ msgstr "Only your browser remembers your location; we don't store it. Distances 
 msgid "Mamy ceny z %{days} (od %{date}). Wykres pokażemy, gdy będzie ich co najmniej %{minimum}."
 msgstr "We have prices for %{days} (since %{date}). We will show a chart once we have at least %{minimum}."
 
-#: lib/tcg_cheap_web/visitor_location.ex:312
+#: lib/tcg_cheap_web/visitor_location.ex:294
 #, elixir-autogen, elixir-format
 msgid "Miejscowości:"
 msgstr "Towns:"
@@ -259,12 +259,12 @@ msgstr "Lowest prices from %{count} Polish shops, checked daily and compared wit
 msgid "Najtaniej z odbiorem osobistym do %{radius} km"
 msgstr "Cheapest with in-store pickup within %{radius} km"
 
-#: lib/tcg_cheap_web/live/home_live.ex:464
+#: lib/tcg_cheap_web/live/home_live.ex:463
 #, elixir-autogen, elixir-format
 msgid "Nic nie znaleźliśmy przy tych filtrach. Spróbuj samej nazwy dodatku albo usuń filtry."
 msgstr "No products match these filters. Try just the expansion name or clear the filters."
 
-#: lib/tcg_cheap_web/live/home_live.ex:468
+#: lib/tcg_cheap_web/live/home_live.ex:467
 #, elixir-autogen, elixir-format
 msgid "Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black."
 msgstr "No products found. Try just the expansion name, e.g. Pitch Black."
@@ -279,7 +279,7 @@ msgstr "We don't have a price history for this product yet."
 msgid "Nie znamy jeszcze jego ceny."
 msgstr "We don't know its price yet."
 
-#: lib/tcg_cheap_web/live/home_live.ex:460
+#: lib/tcg_cheap_web/live/home_live.ex:459
 #, elixir-autogen, elixir-format
 msgid "Nie znamy jeszcze tego kodu kreskowego. Wpisz nazwę produktu, np. Pitch Black ETB."
 msgstr "We don't know this barcode yet. Enter a product name, e.g. Pitch Black ETB."
@@ -334,7 +334,7 @@ msgstr "Last lowest price: %{price} (%{date})."
 msgid "Podaj miejscowość"
 msgstr "Enter your town"
 
-#: lib/tcg_cheap_web/live/home_live.ex:521
+#: lib/tcg_cheap_web/live/home_live.ex:520
 #, elixir-autogen, elixir-format
 msgid "Pokazano %{loaded} z %{count}."
 msgstr "Showing %{loaded} of %{count}."
@@ -349,22 +349,22 @@ msgstr "Show %{products}"
 msgid "Pokaż pozostałe (%{count})"
 msgstr "Show the rest (%{count})"
 
-#: lib/tcg_cheap_web/live/home_live.ex:518
+#: lib/tcg_cheap_web/live/home_live.ex:517
 #, elixir-autogen, elixir-format
 msgid "Pokaż więcej"
 msgstr "Show more"
 
-#: lib/tcg_cheap_web/live/home_live.ex:470
+#: lib/tcg_cheap_web/live/home_live.ex:469
 #, elixir-autogen, elixir-format
 msgid "Pokaż wszystkie produkty"
 msgstr "Show all products"
 
-#: lib/tcg_cheap_web/visitor_location.ex:260
+#: lib/tcg_cheap_web/visitor_location.ex:242
 #, elixir-autogen, elixir-format
 msgid "Pokażemy, jak daleko masz do sklepów z odbiorem osobistym."
 msgstr "We'll show how far you are from shops offering in-store pickup."
 
-#: lib/tcg_cheap_web/visitor_location.ex:234
+#: lib/tcg_cheap_web/visitor_location.ex:216
 #, elixir-autogen, elixir-format
 msgid "Przeglądarka nie udostępniła lokalizacji. Wpisz miejscowość poniżej."
 msgstr "Your browser did not share your location. Enter a town below."
@@ -444,7 +444,7 @@ msgstr "The usual price right now."
 msgid "Teraz żaden sklep nie ma tego produktu na stanie."
 msgstr "No shop currently has this product in stock."
 
-#: lib/tcg_cheap_web/visitor_location.ex:248
+#: lib/tcg_cheap_web/visitor_location.ex:230
 #, elixir-autogen, elixir-format
 msgid "Teraz: %{town}. Zmień albo usuń."
 msgstr "Current: %{town}. Change or clear it."
@@ -459,7 +459,7 @@ msgstr "It is the median of the lowest prices in Polish shops over the last %{wi
 msgid "Trend:"
 msgstr "Trend:"
 
-#: lib/tcg_cheap_web/visitor_location.ex:241
+#: lib/tcg_cheap_web/visitor_location.ex:223
 #, elixir-autogen, elixir-format
 msgid "Twoja lokalizacja: "
 msgstr "Your location: "
@@ -485,22 +485,22 @@ msgstr "Typical Cardmarket price (European marketplace, excluding shipping): %{p
 msgid "Typowa cena z ostatnich %{days} dni: %{price}."
 msgstr "Typical price over the last %{days} days: %{price}."
 
-#: lib/tcg_cheap_web/visitor_location.ex:233
+#: lib/tcg_cheap_web/visitor_location.ex:215
 #, elixir-autogen, elixir-format
 msgid "Ustalam lokalizację…"
 msgstr "Finding your location…"
 
-#: lib/tcg_cheap_web/visitor_location.ex:243
+#: lib/tcg_cheap_web/visitor_location.ex:225
 #, elixir-autogen, elixir-format
 msgid "Ustaw lokalizację"
 msgstr "Set location"
 
-#: lib/tcg_cheap_web/visitor_location.ex:256
+#: lib/tcg_cheap_web/visitor_location.ex:238
 #, elixir-autogen, elixir-format
 msgid "Usuń lokalizację"
 msgstr "Clear location"
 
-#: lib/tcg_cheap_web/visitor_location.ex:264
+#: lib/tcg_cheap_web/visitor_location.ex:246
 #, elixir-autogen, elixir-format
 msgid "Użyj mojej lokalizacji"
 msgstr "Use my location"
@@ -510,7 +510,7 @@ msgstr "Use my location"
 msgid "W %{shop} %{delivery}"
 msgstr "At %{shop}: %{delivery}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:516
+#: lib/tcg_cheap_web/live/home_live.ex:515
 #, elixir-autogen, elixir-format
 msgid "Wczytuję…"
 msgstr "Loading…"
@@ -533,19 +533,19 @@ msgstr "Seen a price in a shop?"
 msgid "Wszystkie"
 msgstr "All"
 
-#: lib/tcg_cheap_web/live/home_live.ex:441
+#: lib/tcg_cheap_web/live/home_live.ex:440
 #: lib/tcg_cheap_web/live/product_live.ex:65
 #: lib/tcg_cheap_web/seo.ex:97
 #, elixir-autogen, elixir-format
 msgid "Wszystkie produkty"
 msgstr "All products"
 
-#: lib/tcg_cheap_web/live/home_live.ex:452
+#: lib/tcg_cheap_web/live/home_live.ex:451
 #, elixir-autogen, elixir-format
 msgid "Wyczyść filtry"
 msgstr "Clear filters"
 
-#: lib/tcg_cheap_web/live/home_live.ex:442
+#: lib/tcg_cheap_web/live/home_live.ex:441
 #, elixir-autogen, elixir-format
 msgid "Wyniki"
 msgstr "Results"
@@ -570,12 +570,12 @@ msgstr "Card set"
 msgid "Znamy ceny dopiero z %{days}, a potrzebujemy %{minimum}. "
 msgstr "We only have prices for %{days}, and need %{minimum}. "
 
-#: lib/tcg_cheap_web/visitor_location.ex:283
+#: lib/tcg_cheap_web/visitor_location.ex:265
 #, elixir-autogen, elixir-format
 msgid "albo wpisz miejscowość"
 msgstr "or enter a town"
 
-#: lib/tcg_cheap_web/visitor_location.ex:319
+#: lib/tcg_cheap_web/visitor_location.ex:301
 #, elixir-autogen, elixir-format
 msgid "autorzy OpenStreetMap"
 msgstr "OpenStreetMap contributors"
@@ -627,7 +627,7 @@ msgstr "shipping cost shown at checkout"
 msgid "najtaniej teraz w"
 msgstr "currently cheapest at"
 
-#: lib/tcg_cheap_web/visitor_location.ex:288
+#: lib/tcg_cheap_web/visitor_location.ex:270
 #, elixir-autogen, elixir-format
 msgid "np. Gdańsk"
 msgstr "e.g. Gdańsk"
@@ -657,7 +657,7 @@ msgstr "pickup: %{city}, %{distance}"
 msgid "powyżej"
 msgstr "over"
 
-#: lib/tcg_cheap_web/visitor_location.ex:316
+#: lib/tcg_cheap_web/visitor_location.ex:298
 #, elixir-autogen, elixir-format
 msgid "położenie sklepów: ©"
 msgstr "shop locations: ©"
@@ -909,26 +909,6 @@ msgstr "Pokémon TCG – compare booster, ETB and booster box prices"
 #, elixir-autogen, elixir-format
 msgid "Porównaj ceny Pokémon TCG w polskich sklepach. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
 msgstr "Compare Pokémon TCG prices at Polish shops. Find booster, ETB and booster box offers, check price history and whether now is a good time to buy."
-
-#: lib/tcg_cheap_web/visitor_location.ex:214
-#, elixir-autogen, elixir-format
-msgid "Gdzie jesteś?"
-msgstr "Where are you?"
-
-#: lib/tcg_cheap_web/visitor_location.ex:222
-#, elixir-autogen, elixir-format
-msgid "Nie teraz"
-msgstr "Not now"
-
-#: lib/tcg_cheap_web/visitor_location.ex:216
-#, elixir-autogen, elixir-format
-msgid "Pokażemy sklepy z odbiorem osobistym w pobliżu i jak daleko do nich masz. Lokalizację pamięta tylko Twoja przeglądarka."
-msgstr "We will show shops with in-person pickup near you and how far they are. Only your browser remembers the location."
-
-#: lib/tcg_cheap_web/visitor_location.ex:221
-#, elixir-autogen, elixir-format
-msgid "Zgadzam się"
-msgstr "Allow"
 
 #: lib/tcg_cheap_web/seo.ex:116
 #, elixir-autogen, elixir-format
