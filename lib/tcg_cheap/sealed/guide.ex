@@ -69,12 +69,17 @@ defmodule TcgCheap.Sealed.Guide do
           ]
         }
   def facets(filters) do
+    # One read for all three: each count leaves out its own filter.
+    products = Sealed.list_product_facets!(filters.query)
+
     regions =
-      Sealed.list_product_facets!(filters.query, filters.kind, nil, filters.expansion)
+      products
+      |> matching(kind: filters.kind, cardmarket_expansion_id: filters.expansion)
       |> Enum.frequencies_by(& &1.region)
 
     kinds =
-      Sealed.list_product_facets!(filters.query, nil, filters.region, filters.expansion)
+      products
+      |> matching(region: filters.region, cardmarket_expansion_id: filters.expansion)
       |> Enum.frequencies_by(& &1.kind)
 
     %{
@@ -85,15 +90,26 @@ defmodule TcgCheap.Sealed.Guide do
           count = kinds[kind] || (kind == filters.kind && 0),
           do: {kind, count}
         ),
-      expansions: expansions(filters)
+      expansions:
+        products
+        |> matching(kind: filters.kind, region: filters.region)
+        |> expansions(filters)
     }
   end
 
-  defp expansions(filters) do
+  defp matching(products, filters) do
+    Enum.filter(products, fn product ->
+      Enum.all?(filters, fn {field, value} ->
+        is_nil(value) or Map.get(product, field) == value
+      end)
+    end)
+  end
+
+  defp expansions(products, filters) do
     logos = logos()
 
     expansions =
-      Sealed.list_product_facets!(filters.query, filters.kind, filters.region, nil)
+      products
       |> named_expansions(logos)
       |> Enum.sort_by(&(&1.newest || ~D[1990-01-01]), {:desc, Date})
       |> Enum.sort_by(&(!&1.available?))
