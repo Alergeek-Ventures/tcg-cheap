@@ -645,6 +645,42 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .site-footer a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 .guide-world .site-footer a:active { color: var(--orange); }
 @media (hover: hover) and (pointer: fine) { .guide-world .site-footer a:hover { color: var(--orange); } }
+
+/* Cookie notice: bottom left, beside the report button; above it where the screen is too narrow for both. */
+.cookie-notice { --ink: #201d19; --orange: #b54125; --muted: #6d6256; background: #fffdf8; border: 1px solid var(--ink); box-shadow: .25rem .25rem 0 var(--ink); color: var(--ink); font: .875rem/1.5 "Azeret Mono", ui-monospace, monospace; inset-block-end: max(1rem, env(safe-area-inset-bottom)); inset-inline: 1rem auto; max-inline-size: 24rem; padding: .75rem 1rem; position: fixed; z-index: 10; }
+@media (max-width: 40rem) { .cookie-notice { inset-block-end: calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem); inset-inline: 1rem; max-inline-size: none; } }
+.cookie-notice[hidden] { display: none; }
+.cookie-notice p { margin: 0; text-wrap: pretty; }
+.cookie-notice-actions { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-block-start: .5rem; }
+.cookie-notice button { cursor: pointer; font: inherit; min-block-size: 2.75rem; }
+#cookie-notice-reject { background: none; border: 0; color: var(--muted); font-size: .75rem; padding: 0; text-decoration: underline; text-underline-offset: .2em; }
+#cookie-notice-accept { background: var(--ink); border: 1px solid var(--ink); color: #fffdf8; font: 700 1rem/1 "Barlow Condensed", sans-serif; letter-spacing: .06em; padding-inline: 1.25rem; text-transform: uppercase; }
+.cookie-notice button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.cookie-notice button:active { color: var(--orange); }
+@media (hover: hover) and (pointer: fine) { #cookie-notice-reject:hover { color: var(--ink); } #cookie-notice-accept:hover { background: var(--orange); border-color: var(--orange); } }
+/* Report form: a button in the bottom right corner opens it as a popover. analytics.js sends it to PostHog. */
+.report { --ink: #201d19; --orange: #b54125; --muted: #6d6256; --paper: #fffdf8; color: var(--ink); font: .875rem/1.5 "Azeret Mono", ui-monospace, monospace; }
+.report[hidden] { display: none; }
+.report button { cursor: pointer; min-block-size: 2.75rem; }
+#report-toggle, #report-submit { background: var(--ink); border: 1px solid var(--ink); color: var(--paper); font: 700 1rem/1 "Barlow Condensed", sans-serif; letter-spacing: .06em; padding-inline: 1.25rem; text-transform: uppercase; }
+#report-toggle { box-shadow: .1875rem .1875rem 0 var(--orange); inset-block-end: max(1rem, env(safe-area-inset-bottom)); inset-inline-end: 1rem; position: fixed; z-index: 10; }
+#report-panel { background: var(--paper); border: 1px solid var(--ink); box-shadow: .25rem .25rem 0 var(--ink); color: inherit; font: inherit; gap: .5rem; inline-size: min(24rem, 100vw - 2rem); inset: auto 1rem calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem) auto; margin: 0; opacity: 0; padding: 1rem; transition: opacity .2s ease-out, translate .2s ease-out, display .2s allow-discrete, overlay .2s allow-discrete; }
+#report-panel:popover-open { display: grid; opacity: 1; }
+#report-panel h2 { font: 700 1.5rem/1 "Barlow Condensed", sans-serif; margin: 0; }
+#report-panel p { margin: 0; text-wrap: pretty; }
+#report-panel label { font-size: .8125rem; margin-block-start: .25rem; }
+#report-panel :is(textarea, input) { background: #fff; border: 1px solid var(--ink); border-radius: 0; color: inherit; font: inherit; inline-size: 100%; padding: .5rem .75rem; }
+#report-panel textarea { field-sizing: content; max-block-size: 12lh; min-block-size: 5lh; resize: none; }
+.report-actions { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-block-start: .5rem; }
+#report-status { color: var(--muted); flex: 1; font-size: .75rem; }
+#report-submit:disabled { cursor: progress; opacity: .6; }
+.report :is(button, textarea, input):focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+#report-toggle:active, #report-submit:active { background: var(--orange); border-color: var(--orange); }
+@media (hover: hover) and (pointer: fine) { #report-toggle:hover, #report-submit:enabled:hover { background: var(--orange); border-color: var(--orange); } }
+@starting-style { #report-panel:popover-open { opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) { #report-panel { translate: 0 .5rem; } #report-panel:popover-open { translate: 0 0; } @starting-style { #report-panel:popover-open { translate: 0 .5rem; } } }
+/* The form above replaces PostHog's chat widget, which its remote config may still render. */
+#ph-conversations-widget-container { display: none !important; }
 .site-wordmark { align-items: center; display: inline-flex; min-height: 3rem; }
 .site-wordmark img { block-size: clamp(1.75rem, 7vw, 2rem); display: block; inline-size: auto; }
 .guide-world .fluent-icon { display: inline-block; flex: 0 0 auto; height: 1.1rem; width: 1.1rem; }

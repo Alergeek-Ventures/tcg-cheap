@@ -87,12 +87,12 @@ msgstr "Camera access unavailable. Enter the digits below the barcode."
 msgid "Brak na stanie"
 msgstr "Out of stock"
 
-#: lib/tcg_cheap_web/components/guide_components.ex:517
+#: lib/tcg_cheap_web/components/guide_components.ex:563
 #, elixir-autogen, elixir-format
 msgid "Brak w sklepach"
 msgstr "Unavailable in shops"
 
-#: lib/tcg_cheap_web/components/guide_components.ex:167
+#: lib/tcg_cheap_web/components/guide_components.ex:213
 #, elixir-autogen, elixir-format
 msgid "Brak zdjęcia"
 msgstr "No image available"
@@ -137,7 +137,7 @@ msgstr "Visit shop"
 msgid "Dobra"
 msgstr "Good"
 
-#: lib/tcg_cheap_web/components/guide_components.ex:513
+#: lib/tcg_cheap_web/components/guide_components.ex:559
 #, elixir-autogen, elixir-format
 msgid "Dobra cena"
 msgstr "Good price"
@@ -147,7 +147,7 @@ msgstr "Good price"
 msgid "Dobra cena to do 95% typowej, normalna – do 110%, wyższa – drogo. Progi zaokrąglamy w dół do pełnych złotych. Ceny nie obejmują wysyłki."
 msgstr "A good price is up to 95% of the typical price, normal is up to 110%, and anything higher is expensive. We round thresholds down to whole złoty. Prices exclude shipping."
 
-#: lib/tcg_cheap_web/components/guide_components.ex:515
+#: lib/tcg_cheap_web/components/guide_components.ex:561
 #: lib/tcg_cheap_web/live/product_live.ex:1083
 #, elixir-autogen, elixir-format
 msgid "Drogo"
@@ -204,7 +204,7 @@ msgstr "Collection"
 msgid "Koreańska"
 msgstr "Korean"
 
-#: lib/tcg_cheap_web/components/guide_components.ex:310
+#: lib/tcg_cheap_web/components/guide_components.ex:356
 #, elixir-autogen, elixir-format
 msgid "Linia przerywana: typowa cena %{price}."
 msgstr "Dashed line: typical price %{price}."
@@ -224,7 +224,7 @@ msgstr "Location: %{town}. Showing distances to in-store pickup."
 msgid "Lokalizację pamięta tylko Twoja przeglądarka; nie zapisujemy jej. Odległości liczymy w linii prostej."
 msgstr "Only your browser remembers your location; we don't store it. Distances are measured in a straight line."
 
-#: lib/tcg_cheap_web/components/guide_components.ex:220
+#: lib/tcg_cheap_web/components/guide_components.ex:266
 #, elixir-autogen, elixir-format
 msgid "Mamy ceny z %{days} (od %{date}). Wykres pokażemy, gdy będzie ich co najmniej %{minimum}."
 msgstr "We have prices for %{days} (since %{date}). We will show a chart once we have at least %{minimum}."
@@ -269,7 +269,7 @@ msgstr "No products match these filters. Try just the expansion name or clear th
 msgid "Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black."
 msgstr "No products found. Try just the expansion name, e.g. Pitch Black."
 
-#: lib/tcg_cheap_web/components/guide_components.ex:216
+#: lib/tcg_cheap_web/components/guide_components.ex:262
 #, elixir-autogen, elixir-format
 msgid "Nie mamy jeszcze historii cen tego produktu."
 msgstr "We don't have a price history for this product yet."
@@ -294,7 +294,7 @@ msgstr "We couldn't find that town."
 msgid "Normalna"
 msgstr "Fair"
 
-#: lib/tcg_cheap_web/components/guide_components.ex:514
+#: lib/tcg_cheap_web/components/guide_components.ex:560
 #, elixir-autogen, elixir-format
 msgid "Normalna cena"
 msgstr "Fair price"
@@ -469,7 +469,7 @@ msgstr "Your location: "
 msgid "Tylu jeszcze nie mamy, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
 msgstr "We don't have enough days yet, so we compare against the Cardmarket trend converted at the NBP exchange rate."
 
-#: lib/tcg_cheap_web/components/guide_components.ex:232
+#: lib/tcg_cheap_web/components/guide_components.ex:278
 #, elixir-autogen, elixir-format
 msgid "Typowa cena"
 msgstr "Typical price"
@@ -550,11 +550,12 @@ msgstr "Clear filters"
 msgid "Wyniki"
 msgstr "Results"
 
-#: lib/tcg_cheap_web/components/guide_components.ex:516
+#: lib/tcg_cheap_web/components/guide_components.ex:562
 #, elixir-autogen, elixir-format
 msgid "Za mało danych"
 msgstr "Not enough data"
 
+#: lib/tcg_cheap_web/components/guide_components.ex:73
 #: lib/tcg_cheap_web/live/home_live.ex:415
 #: lib/tcg_cheap_web/live/product_live.ex:521
 #, elixir-autogen, elixir-format
@@ -673,7 +674,7 @@ msgstr "checked %{when}"
 msgid "teraz"
 msgstr "now"
 
-#: lib/tcg_cheap_web/components/guide_components.ex:291
+#: lib/tcg_cheap_web/components/guide_components.ex:337
 #, elixir-autogen, elixir-format
 msgid "typowa %{price}"
 msgstr "typical %{price}"
@@ -1105,3 +1106,59 @@ msgid "Źródło:"
 msgid_plural "Źródła:"
 msgstr[0] "Source:"
 msgstr[1] "Sources:"
+
+#: lib/tcg_cheap_web/components/guide_components.ex:99
+#, elixir-autogen, elixir-format
+msgid "Co się stało?"
+msgstr "What happened?"
+
+#: lib/tcg_cheap_web/components/guide_components.ex:69
+#, elixir-autogen, elixir-format
+msgid "Cookies"
+msgstr "Cookies"
+
+#: lib/tcg_cheap_web/components/guide_components.ex:89
+#, elixir-autogen, elixir-format
+msgid "Dzięki! Zgłoszenie dotarło."
+msgstr "Thanks! We got your report."
+
+#: lib/tcg_cheap_web/components/guide_components.ex:101
+#, elixir-autogen, elixir-format
+msgid "E-mail, jeśli chcesz odpowiedź"
+msgstr "Email, if you want a reply"
+
+#: lib/tcg_cheap_web/components/guide_components.ex:90
+#, elixir-autogen, elixir-format
+msgid "Nie udało się wysłać. Spróbuj jeszcze raz."
+msgstr "Couldn't send it. Please try again."
+
+#: lib/tcg_cheap_web/components/guide_components.ex:72
+#, elixir-autogen, elixir-format
+msgid "Odrzuć"
+msgstr "Reject"
+
+#: lib/tcg_cheap_web/components/guide_components.ex:70
+#, elixir-autogen, elixir-format
+msgid "Używamy cookies do statystyk odwiedzin i formularza zgłoszeń."
+msgstr "We use cookies for visit statistics and the report form."
+
+#: lib/tcg_cheap_web/components/guide_components.ex:88
+#, elixir-autogen, elixir-format
+msgid "Wysyłam…"
+msgstr "Sending…"
+
+#: lib/tcg_cheap_web/components/guide_components.ex:105
+#, elixir-autogen, elixir-format
+msgid "Wyślij"
+msgstr "Send"
+
+#: lib/tcg_cheap_web/components/guide_components.ex:94
+#: lib/tcg_cheap_web/components/guide_components.ex:97
+#, elixir-autogen, elixir-format
+msgid "Zgłoś problem"
+msgstr "Report a problem"
+
+#: lib/tcg_cheap_web/components/guide_components.ex:98
+#, elixir-autogen, elixir-format
+msgid "Zła cena, brakujący produkt albo coś nie działa? Napisz, sprawdzimy."
+msgstr "Wrong price, missing product or something broken? Tell us and we'll check."

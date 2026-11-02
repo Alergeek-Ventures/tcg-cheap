@@ -12,7 +12,7 @@ defmodule TcgCheapWeb.AnalyticsProxy do
   alias TcgCheapWeb.Analytics
 
   @methods ~w(GET HEAD POST)
-  @request_headers ~w(accept content-type content-encoding user-agent x-forwarded-for)
+  @request_headers ~w(accept content-type content-encoding user-agent x-forwarded-for x-conversations-token)
   @response_headers ~w(content-type content-encoding cache-control)
   @body_limit 1_000_000
 

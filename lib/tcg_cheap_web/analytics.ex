@@ -8,7 +8,8 @@ defmodule TcgCheapWeb.Analytics do
     "/s/" => "/_x/3d81/",
     "/flags/" => "/_x/4c6e/",
     "/array/" => "/_x/5ab2/",
-    "/static/" => "/_x/6f93/"
+    "/static/" => "/_x/6f93/",
+    "/api/conversations/" => "/_x/7e1d/"
   }
 
   def proxy_paths, do: @proxy_paths

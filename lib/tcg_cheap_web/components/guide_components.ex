@@ -63,6 +63,52 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
+  @doc "The cookie notice; analytics.js shows it until the visitor closes it or rejects cookies."
+  def cookie_notice(assigns) do
+    ~H"""
+    <aside id="cookie-notice" class="cookie-notice" aria-label={gettext("Cookies")} hidden>
+      <p>{gettext("Używamy cookies do statystyk odwiedzin i formularza zgłoszeń.")}</p>
+      <div class="cookie-notice-actions">
+        <button id="cookie-notice-reject" type="button">{gettext("Odrzuć")}</button>
+        <button id="cookie-notice-accept" type="button">{gettext("Zamknij")}</button>
+      </div>
+    </aside>
+    """
+  end
+
+  @doc """
+  The report form. analytics.js shows it and sends each report as a new
+  PostHog support ticket; rejecting cookies hides it.
+  """
+  def report_form(assigns) do
+    ~H"""
+    <div
+      id="report"
+      class="report"
+      data-sending={gettext("Wysyłam…")}
+      data-sent={gettext("Dzięki! Zgłoszenie dotarło.")}
+      data-failed={gettext("Nie udało się wysłać. Spróbuj jeszcze raz.")}
+      hidden
+    >
+      <button id="report-toggle" type="button" popovertarget="report-panel">
+        {gettext("Zgłoś problem")}
+      </button>
+      <form id="report-panel" popover aria-labelledby="report-title">
+        <h2 id="report-title">{gettext("Zgłoś problem")}</h2>
+        <p>{gettext("Zła cena, brakujący produkt albo coś nie działa? Napisz, sprawdzimy.")}</p>
+        <label for="report-message">{gettext("Co się stało?")}</label>
+        <textarea id="report-message" name="message" required autofocus></textarea>
+        <label for="report-email">{gettext("E-mail, jeśli chcesz odpowiedź")}</label>
+        <input id="report-email" name="email" type="email" autocomplete="email" />
+        <div class="report-actions">
+          <p id="report-status" role="status"></p>
+          <button id="report-submit" type="submit">{gettext("Wyślij")}</button>
+        </div>
+      </form>
+    </div>
+    """
+  end
+
   defp languages do
     [
       {"pl", "Polski", ~p"/images/flags/pl.svg"},
