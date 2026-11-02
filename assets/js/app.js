@@ -64,6 +64,8 @@ const nameRowPhoto = path => {
 }
 let shownPath = location.pathname
 let navigatingFrom = null
+// Whether the page shown was opened from the list in this tab.
+let cameFromList = false
 // Patches arriving while a transition waits to apply its own, applied in order after it.
 let heldPatches = null
 
@@ -77,7 +79,17 @@ window.addEventListener("phx:navigate", ({detail}) => {
     navigatingFrom = shownPath
     nameRowPhoto(location.pathname)
   }
+  cameFromList = shownPath === "/" && location.pathname !== "/"
   shownPath = location.pathname
+})
+// Back to the list from a product opened there goes back in history, so the
+// list returns with its search, filters and scroll. LiveView's own link
+// handler listens on window, after this one.
+document.addEventListener("click", e => {
+  if (!cameFromList || !e.target.closest?.("#product-back") || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+  e.preventDefault()
+  e.stopPropagation()
+  history.back()
 })
 window.addEventListener("phx:page-loading-stop", ({detail}) => {
   if (detail.kind === "redirect") navigatingFrom = null
