@@ -124,6 +124,26 @@ const captureClick = event => {
   track(el.dataset.track, properties)
 }
 
+// A phone keyboard covers the bottom of the screen without resizing the page
+// (iOS Safari, Chrome on Android), so while the form is open site.css keeps it
+// within the part the keyboard leaves visible.
+const keepAboveKeyboard = form => {
+  const viewport = window.visualViewport
+  if (!viewport) return
+
+  const fit = () => {
+    const covered = window.innerHeight - viewport.offsetTop - viewport.height
+    form.style.setProperty("--report-keyboard", `${Math.max(0, Math.round(covered))}px`)
+    form.style.setProperty("--report-room", `${Math.round(viewport.height)}px`)
+  }
+  form.addEventListener("toggle", event => {
+    const listen = event.newState === "open" ? "addEventListener" : "removeEventListener"
+    viewport[listen]("resize", fit)
+    viewport[listen]("scroll", fit)
+    if (event.newState === "open") fit()
+  })
+}
+
 // Each report opens a new ticket in PostHog's support inbox, through the
 // conversations API; app.css hides PostHog's own chat widget.
 const initReportForm = () => {
@@ -134,6 +154,7 @@ const initReportForm = () => {
   const status = document.getElementById("report-status")
   const submit = document.getElementById("report-submit")
   report.hidden = false
+  keepAboveKeyboard(form)
   form.addEventListener("submit", async event => {
     event.preventDefault()
     const message = form.elements.message.value.trim()

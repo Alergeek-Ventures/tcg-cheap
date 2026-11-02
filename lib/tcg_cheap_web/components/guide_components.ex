@@ -103,6 +103,14 @@ defmodule TcgCheapWeb.GuideComponents do
         <input id="report-email" name="email" type="email" autocomplete="email" />
         <div class="report-actions">
           <p id="report-status" role="status"></p>
+          <button
+            id="report-cancel"
+            type="button"
+            popovertarget="report-panel"
+            popovertargetaction="hide"
+          >
+            {gettext("Anuluj")}
+          </button>
           <button id="report-submit" type="submit">{gettext("Wyślij")}</button>
         </div>
       </form>
