@@ -13,7 +13,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   import TcgCheapWeb.GuideComponents
 
-  alias TcgCheap.Sealed.{Guide, Kinds, Regions, Shops}
+  alias TcgCheap.Sealed.{Guide, Kinds, Regions}
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
   @max_query_length 100
@@ -375,11 +375,10 @@ defmodule TcgCheapWeb.HomeLive do
         </.site_header>
         <main id="guide-main" class="guide-main">
           <section class="guide-intro" aria-labelledby="guide-title">
-            <h1 id="guide-title">{gettext("Sprawdź, czy cena jest dobra")}</h1>
+            <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
             <p id="guide-promise">
               {gettext(
-                "Najniższe ceny z %{count} polskich sklepów, sprawdzane codziennie i porównane z typową ceną.",
-                count: length(Shops.all())
+                "Wpisz produkt Pokémon TCG, a pokażemy najtańszą ofertę w polskich sklepach i powiemy, czy cena jest dobra."
               )}
             </p>
           </section>

@@ -14,7 +14,6 @@ defmodule TcgCheapWeb.SocialImage do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.Shops
   alias TcgCheap.Storage.ImageDownload
   alias TcgCheapWeb.{GuideComponents, Polish}
   alias Vix.Vips.Operation
@@ -48,7 +47,7 @@ defmodule TcgCheapWeb.SocialImage do
 
   @doc "A version of what the home card shows, for its storage key and URL."
   @spec home_version() :: String.t()
-  def home_version, do: version(length(Shops.all()))
+  def home_version, do: version(home_promise())
 
   @doc "A version of what a product's card shows, for its storage key and URL."
   @spec product_version(map()) :: String.t()
@@ -67,10 +66,7 @@ defmodule TcgCheapWeb.SocialImage do
   @doc "The promise under the home card's headline."
   @spec home_promise() :: String.t()
   def home_promise,
-    do:
-      gettext("Ceny Pokémon TCG z %{count} polskich sklepów, sprawdzane codziennie.",
-        count: length(Shops.all())
-      )
+    do: gettext("Ceny Pokémon TCG z polskich sklepów, sprawdzane codziennie.")
 
   @doc "The home card: the promise and the verdict scale."
   @spec home() :: {:ok, binary()} | {:error, term()}
