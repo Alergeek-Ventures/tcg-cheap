@@ -431,8 +431,7 @@ defmodule TcgCheap.Sealed.AgentTools do
       search_products), also correcting a wrong automatic match; without `product_id` the item
       never matches. Only assign the exact product: a display of several units belongs to a
       Cardmarket product of that many units. An assigned item's EAN then identifies the product
-      for shops' offers and the public scanner (automatic matches only serve the scanner).
-      #{@recomputes} Returns the updated item.
+      for shops' offers. #{@recomputes} Returns the updated item.
       """
 
       argument :suggested_price_id, :uuid, allow_nil?: false
