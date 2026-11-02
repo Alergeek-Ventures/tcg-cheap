@@ -2,7 +2,7 @@
 // PostHog's CDN bundle exposes window.posthog, also without the snippet's queue.
 //
 // Events come from three places, all captured here in the visitor's own
-// (cookieless, in-browser) session:
+// session:
 //   * the LiveViews' `TcgCheapWeb.Analytics.track/3`, pushed as "track";
 //   * clicks on elements with `data-track="event"`, whose `data-track-*`
 //     attributes (and those of the closest `[data-track-context]`) become
@@ -124,6 +124,62 @@ const captureClick = event => {
   track(el.dataset.track, properties)
 }
 
+// Each report opens a new ticket in PostHog's support inbox, through the
+// conversations API; app.css hides PostHog's own chat widget.
+const initReportForm = () => {
+  const report = document.getElementById("report")
+  if (!report) return
+
+  const form = document.getElementById("report-panel")
+  const status = document.getElementById("report-status")
+  const submit = document.getElementById("report-submit")
+  report.hidden = false
+  form.addEventListener("submit", async event => {
+    event.preventDefault()
+    const message = form.elements.message.value.trim()
+    const email = form.elements.email.value.trim()
+    if (!message) return
+
+    status.textContent = report.dataset.sending
+    submit.disabled = true
+    try {
+      if (!posthog.conversations.isAvailable()) throw new Error("conversations unavailable")
+      await posthog.conversations.sendMessage(message, email ? {email} : undefined, true)
+      form.reset()
+      status.textContent = report.dataset.sent
+    } catch {
+      status.textContent = report.dataset.failed
+    } finally {
+      submit.disabled = false
+    }
+  })
+}
+
+// Cookies stay on until the visitor rejects them. Rejecting stops capture,
+// drops PostHog's cookie and removes the report form with its session.
+const initCookieNotice = () => {
+  const notice = document.getElementById("cookie-notice")
+  if (!notice || posthog.get_explicit_consent_status() !== "pending") return
+
+  notice.hidden = false
+  notice.addEventListener("click", event => {
+    const button = event.target.closest("button")
+    if (!button) return
+
+    if (button.id === "cookie-notice-reject") {
+      posthog.opt_out_capturing()
+      posthog.set_config({disable_conversations: true})
+      posthog.conversations.reset()
+      document.getElementById("report-panel")?.hidePopover()
+      const report = document.getElementById("report")
+      if (report) report.hidden = true
+    } else {
+      posthog.opt_in_capturing({captureEventName: false})
+    }
+    notice.hidden = true
+  })
+}
+
 export default function initAnalytics() {
   const config = document.querySelector("meta[name='posthog']")
   if (!config) return
@@ -156,9 +212,10 @@ export default function initAnalytics() {
   script.referrerPolicy = "no-referrer"
   script.onload = () => {
     // The site has no accounts or personal data, so events keep the SDK's full
-    // properties (URL, referrer, UTM, clicks). Cookieless in-memory tracking
-    // without person profiles needs no consent banner. The audience is in the
-    // EU, so browsers sending DNT or GPC are counted too.
+    // properties (URL, referrer, UTM, clicks). The audience is in the EU, so
+    // browsers sending DNT or GPC are counted too. The project's remote config
+    // turns on conversations (support tickets) and loads their script; PostHog
+    // refuses them in cookieless mode, so the SDK keeps its default persistence.
     window.posthog.init(config.content, {
       api_host: window.location.origin,
       rewriteRequestPath: url => {
@@ -167,19 +224,22 @@ export default function initAnalytics() {
         return url
       },
       defaults: "2026-01-30",
-      cookieless_mode: "always",
-      persistence: "memory",
       person_profiles: "never",
       autocapture: true,
       capture_pageview: false,
       capture_pageleave: true,
       disable_session_recording: true,
       disable_surveys: true,
-      advanced_disable_flags: true,
-      disable_external_dependency_loading: true,
+      advanced_disable_feature_flags: true,
+      opt_out_persistence_by_default: true,
       respect_dnt: false,
       loaded: instance => {
         posthog = instance
+        // Remote config enables conversations after init, so this still applies.
+        // Capture is a no-op once the visitor has opted out.
+        if (posthog.has_opted_out_capturing()) posthog.set_config({disable_conversations: true})
+        else initReportForm()
+        initCookieNotice()
         for (const [event, properties, options] of queue) posthog.capture(event, properties, options)
         queue = null
       },

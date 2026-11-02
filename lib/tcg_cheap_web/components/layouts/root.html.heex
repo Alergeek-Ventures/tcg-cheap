@@ -39,5 +39,9 @@
   </head>
   <body>
     {@inner_content}
+    <%= if TcgCheapWeb.Analytics.config(@conn) do %>
+      <TcgCheapWeb.GuideComponents.report_form />
+      <TcgCheapWeb.GuideComponents.cookie_notice />
+    <% end %>
   </body>
 </html>
