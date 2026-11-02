@@ -108,7 +108,7 @@ const VisitorLocation = {
 
   close() {
     this.el.open = false
-    this.summary.focus()
+    this.summary.focus({preventScroll: true})
   },
 
   // Quiet when asked on entry: a refusal shows no error and moves no focus.

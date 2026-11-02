@@ -11,8 +11,7 @@ defmodule TcgCheap.Sealed.Guide do
   @type summary :: %{
           product: Product.t(),
           verdict: PriceGuide.t(),
-          cardmarket_pln: Decimal.t() | nil,
-          in_stock_offers: [%{shop: String.t(), price: Decimal.t()}]
+          cardmarket_pln: Decimal.t() | nil
         }
 
   def history_days, do: @history_days
@@ -35,7 +34,7 @@ defmodule TcgCheap.Sealed.Guide do
     page =
       Sealed.browse_products!(filters.query, filters.kind, filters.region, filters.expansion,
         page: [limit: @page_size, offset: offset, count: true],
-        load: [:photo_card_url]
+        load: [:photo_card_url, :photo_page_url]
       )
 
     {summaries(page.results, now), page.more?, page.count || 0}
@@ -232,8 +231,7 @@ defmodule TcgCheap.Sealed.Guide do
     %{
       product: product,
       verdict: PriceGuide.verdict(history, in_stock, today, cardmarket_pln),
-      cardmarket_pln: cardmarket_pln,
-      in_stock_offers: Enum.map(in_stock, &%{shop: &1.shop, price: &1.price})
+      cardmarket_pln: cardmarket_pln
     }
   end
 end
