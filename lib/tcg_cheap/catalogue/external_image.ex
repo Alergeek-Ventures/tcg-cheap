@@ -50,6 +50,7 @@ defmodule TcgCheap.Catalogue.ExternalImage do
     "den-media.pokellector.com",
     "images.pokemontcg.io",
     "pokesymbols.com",
+    "static.tcgcollector.com",
     "www.pokemon-card.com",
     "www.serebii.net"
   ]
