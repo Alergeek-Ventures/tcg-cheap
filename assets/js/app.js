@@ -144,8 +144,15 @@ const unframeOnScroll = target => {
   target.dataset.jumped = ""
   const unframe = () => delete target.dataset.jumped
   const afterGlide = () => window.addEventListener("scroll", unframe, {once: true, passive: true})
-  if ("onscrollend" in window) window.addEventListener("scrollend", afterGlide, {once: true})
-  else setTimeout(afterGlide, 1000)
+  if (!("onscrollend" in window)) return setTimeout(afterGlide, 1000)
+  window.addEventListener("scrollend", afterGlide, {once: true})
+  // A section already in place does not glide, so no scrollend comes.
+  const start = window.scrollY
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (window.scrollY !== start) return
+    window.removeEventListener("scrollend", afterGlide)
+    afterGlide()
+  }))
 }
 document.addEventListener("click", e => {
   const link = e.target.closest?.('a[href^="#"]')
