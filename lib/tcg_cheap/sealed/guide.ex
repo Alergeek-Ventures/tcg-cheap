@@ -262,20 +262,25 @@ defmodule TcgCheap.Sealed.Guide do
     not is_nil(size) and (is_nil(standard) or size < standard)
   end
 
-  defp booster_odds(%Product{contents: nil}, _boosters), do: []
-
-  defp booster_odds(product, boosters) do
-    product.contents.items
+  # English odds fit English packs only.
+  defp booster_odds(%Product{region: :en, contents: %{items: items}}, boosters) do
+    items
     |> Enum.filter(&(&1.type == :booster and Map.has_key?(boosters, &1.name)))
     |> Enum.group_by(& &1.name)
     |> Enum.sort_by(&elem(&1, 0))
-    |> Enum.map(fn {name, items} ->
-      booster = Map.fetch!(boosters, name)
+    |> set_odds(boosters)
+  end
 
-      sets =
-        if booster.cardmarket_expansion_id,
-          do: Sealed.list_english_sets_of_expansion!(booster.cardmarket_expansion_id),
-          else: []
+  defp booster_odds(_product, _boosters), do: []
+
+  defp set_odds([], _boosters), do: []
+
+  defp set_odds(groups, boosters) do
+    sets = Enum.group_by(Sealed.list_english_tcgdex_sets!(), & &1.cardmarket_expansion_id)
+
+    Enum.map(groups, fn {name, items} ->
+      booster = Map.fetch!(boosters, name)
+      sets = Map.get(sets, booster.cardmarket_expansion_id || :none, [])
 
       main = TcgdexSet.by_expansion(sets) |> Map.values() |> List.first()
       rates = Enum.find_value([main | sets], &(&1 && &1.pull_rates))
