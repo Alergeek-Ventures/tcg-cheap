@@ -382,6 +382,15 @@ defmodule TcgCheapWeb.ProductLive do
               >
                 <img src={photo_url} alt="" height="48" loading="lazy" />
               </a>
+            <% stock_url = stock_photo(item.type) -> %>
+              <a
+                href={stock_url}
+                class="contents-photo"
+                title={gettext("Przykładowe zdjęcie")}
+                aria-label={gettext("Przykładowe zdjęcie: %{item}", item: item_label(item))}
+              >
+                <img src={stock_url} alt="" height="48" loading="lazy" />
+              </a>
             <% true -> %>
           <% end %>
         </li>
@@ -396,6 +405,10 @@ defmodule TcgCheapWeb.ProductLive do
     </section>
     """
   end
+
+  # Items that look the same in every product show one example picture.
+  defp stock_photo(:code_card), do: ~p"/images/contents/code_card.webp"
+  defp stock_photo(_type), do: nil
 
   defp item_label(%{type: :booster, name: nil}), do: gettext("booster")
   defp item_label(%{type: :booster, name: set}), do: gettext("booster %{set}", set: set)
