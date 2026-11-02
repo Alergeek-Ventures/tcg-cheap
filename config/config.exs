@@ -274,6 +274,23 @@ config :phoenix, :json_library, Jason
 # must never reach the logs; see TcgCheapWeb.VisitorLocation.
 config :phoenix, :filter_parameters, ["password", "location"]
 
+# Error reporting; runtime.exs sets the DSN, environment and release. Sentry's
+# scrubber covers request params, LiveView event breadcrumbs and stacktrace
+# variables, so it also gets the visitor's location key.
+config :sentry,
+  enable_source_code_context: true,
+  root_source_code_paths: [File.cwd!()],
+  in_app_otp_apps: [:tcg_cheap],
+  scrubber: [param_keys: ["location"]]
+
+# Crashes reach this handler after TcgCheapWeb.LocationLogFilter. Bandit logs
+# a crashed request under the :bandit domain, which Sentry skips by default
+# (it expects Sentry.PlugCapture, not recommended with Bandit).
+config :tcg_cheap, :logger, [
+  {:handler, :sentry_handler, Sentry.LoggerHandler,
+   %{config: %{capture_excluded_domains: [:cowboy]}}}
+]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

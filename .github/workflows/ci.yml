@@ -162,9 +162,40 @@ jobs:
           # Cache export is optional; image build failures remain fatal.
           cache-to: type=gha,scope=tcg-cheap-app,mode=max,ignore-error=true
 
+  sentry-release:
+    name: Create Sentry release
+    needs: [check, container]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Verify Sentry token
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          : "${SENTRY_AUTH_TOKEN:?SENTRY_AUTH_TOKEN must be configured in the production environment}"
+
+      # Full history lets Sentry associate the release with its commits.
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      # The release is the commit Coolify deploys next (SOURCE_COMMIT at runtime).
+      - name: Create and finalize Sentry release
+        uses: getsentry/action-release@6fb9aeade7061441cf3864e34fbe11a1457ad7dc # v3
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG || 'alergeek' }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT || 'tcg-cheap' }}
+        with:
+          environment: production
+          release: ${{ github.sha }}
+
   deploy:
     name: Deploy production
-    needs: [check, container]
+    needs: [check, container, sentry-release]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20

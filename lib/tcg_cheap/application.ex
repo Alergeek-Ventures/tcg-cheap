@@ -9,6 +9,7 @@ defmodule TcgCheap.Application do
   def start(_type, _args) do
     # Before anything can crash with a visitor's location in its state.
     :ok = TcgCheapWeb.LocationLogFilter.install()
+    :ok = Logger.add_handlers(:tcg_cheap)
 
     children = [
       TcgCheapWeb.Telemetry,
