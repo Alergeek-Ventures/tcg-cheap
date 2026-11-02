@@ -171,6 +171,9 @@ defmodule TcgCheapWeb.GuideComponents do
     do: ["M5.75 5.75a2.25 2.25 0 1 1 3.4 1.95c-.7.4-1.15.9-1.15 1.7v.6", "M8 12.75v.25"]
 
   def verdict_paths(:out_of_stock), do: ["M3 8h10"]
+  # A clock: a pre-order, shipped on the premiere.
+  def verdict_paths(:preorder),
+    do: ["M8 2.5a5.5 5.5 0 1 1 0 11a5.5 5.5 0 1 1 0-11", "M8 5v3.25l2 1.5"]
 
   @doc """
   Product packaging image from our storage, else a placeholder drawn for its kind.
@@ -598,6 +601,13 @@ defmodule TcgCheapWeb.GuideComponents do
     />
     """
   end
+
+  @doc ~S'The list tag of a pre-order: "przedsprzedaż · za 4 dni", or plain without a coming premiere.'
+  @spec preorder_tag(non_neg_integer() | nil) :: String.t()
+  def preorder_tag(nil), do: gettext("przedsprzedaż")
+
+  def preorder_tag(days),
+    do: gettext("przedsprzedaż · %{when}", when: Polish.days_until(days))
 
   @doc ~S'The localized label of a verdict: "Dobra cena", "Za mało sklepów", …'
   @spec verdict_label(map()) :: String.t()

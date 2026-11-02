@@ -13,6 +13,7 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
       title: offer.title,
       price: offer.price,
       in_stock: offer.in_stock,
+      preorder: offer.preorder,
       ean: offer.ean,
       url: offer.url,
       manual: offer.manual?,

@@ -602,6 +602,7 @@ defmodule TcgCheapWeb.HomeLive do
                     data-track="product_clicked"
                     data-track-product-slug={summary.product.slug}
                     data-track-verdict={summary.verdict.status}
+                    data-track-preorder={to_string(summary.preorder?)}
                   >
                     <.product_image
                       small_photo={summary.product.stored_photo_small_url}
@@ -621,6 +622,13 @@ defmodule TcgCheapWeb.HomeLive do
                       <h3 class="guide-product-name">{summary.product.name}</h3>
                       <p class="guide-product-meta">
                         {product_meta(summary.product)}
+                      </p>
+                      <p
+                        :if={summary.preorder?}
+                        id={"preorder-#{summary.product.slug}"}
+                        class="guide-product-preorder"
+                      >
+                        <.verdict_icon status={:preorder} />{preorder_tag(summary.premiere_in)}
                       </p>
                     </div>
                     <div class="guide-product-deal">

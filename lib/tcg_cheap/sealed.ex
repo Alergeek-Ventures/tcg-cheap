@@ -47,7 +47,8 @@ defmodule TcgCheap.Sealed do
         :cardmarket_expansion_id,
         :eans,
         :available,
-        :lowest_price
+        :lowest_price,
+        :lowest_preorder_price
       ]
 
       annotations(read_only_hint: true)

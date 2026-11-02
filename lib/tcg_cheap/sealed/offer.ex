@@ -38,6 +38,7 @@ defmodule TcgCheap.Sealed.Offer do
         :ean,
         :price,
         :in_stock,
+        :preorder,
         :last_seen_at
       ]
 
@@ -51,6 +52,7 @@ defmodule TcgCheap.Sealed.Offer do
         :ean,
         :price,
         :in_stock,
+        :preorder,
         :last_seen_at,
         :updated_at
       ]
@@ -148,6 +150,14 @@ defmodule TcgCheap.Sealed.Offer do
 
     attribute :price, :decimal, allow_nil?: false, public?: true
     attribute :in_stock, :boolean, allow_nil?: false, public?: true
+
+    attribute :preorder, :boolean do
+      description "Sold as a pre-order: never in stock, shown apart from offers without stock."
+      allow_nil? false
+      default false
+      public? true
+    end
+
     attribute :manual?, :boolean, allow_nil?: false, default: false, public?: true
     attribute :last_seen_at, :utc_datetime_usec, allow_nil?: false, public?: true
     create_timestamp :inserted_at

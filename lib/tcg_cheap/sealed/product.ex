@@ -85,7 +85,7 @@ defmodule TcgCheap.Sealed.Product do
     end
 
     update :set_availability do
-      accept [:available, :lowest_price, :image_url]
+      accept [:available, :lowest_price, :lowest_preorder_price, :image_url]
     end
 
     update :set_eans do
@@ -237,6 +237,11 @@ defmodule TcgCheap.Sealed.Product do
     attribute :cardmarket_price_updated_on, :date, public?: true
     attribute :available, :boolean, allow_nil?: false, default: false, public?: true
     attribute :lowest_price, :decimal, public?: true
+
+    attribute :lowest_preorder_price, :decimal do
+      description "The cheapest current pre-order, while no offer is in stock."
+      public? true
+    end
 
     attribute :eans, {:array, :string} do
       description "EAN-13 barcodes printed on the product, maintained by an admin or agent."

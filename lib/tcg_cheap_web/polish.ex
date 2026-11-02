@@ -46,6 +46,14 @@ defmodule TcgCheapWeb.Polish do
       else: "#{date.day} #{Enum.at(@months, date.month - 1)} #{date.year}"
   end
 
+  @doc ~S'A day and month: "6 listopada".'
+  @spec day_month(Date.t()) :: String.t()
+  def day_month(%Date{} = date) do
+    if Gettext.get_locale(TcgCheapWeb.Gettext) == "en",
+      do: Calendar.strftime(date, "%d %B") |> String.trim_leading("0"),
+      else: "#{date.day} #{Enum.at(@months, date.month - 1)}"
+  end
+
   @short_months ~w(sty lut mar kwi maj cze lip sie wrz paź lis gru)
 
   @doc ~S'A short date for chart axes: "17 lip".'
@@ -68,6 +76,12 @@ defmodule TcgCheapWeb.Polish do
       days -> ngettext("%{count} dzień temu", "%{count} dni temu", days)
     end
   end
+
+  @doc ~S'Days until a coming day: "dziś", "jutro", "za 4 dni".'
+  @spec days_until(non_neg_integer()) :: String.t()
+  def days_until(0), do: gettext("dziś")
+  def days_until(1), do: gettext("jutro")
+  def days_until(days), do: ngettext("za %{count} dzień", "za %{count} dni", days)
 
   @doc ~S'Polish plural form: plural(5, "produkt", "produkty", "produktów") == "5 produktów".'
   @spec plural(integer(), String.t(), String.t(), String.t()) :: String.t()

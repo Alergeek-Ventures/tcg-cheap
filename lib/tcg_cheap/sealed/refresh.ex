@@ -6,7 +6,8 @@ defmodule TcgCheap.Sealed.Refresh do
   A successful fetch upserts every offer seen and then `recompute/1`s: all
   stored offers are re-matched (the catalogue may have changed; manual
   assignments are kept), today's lowest shop price is recorded per product,
-  and each product's availability, lowest price and image are refreshed. A
+  and each product's availability, lowest price (or, with nothing in stock,
+  lowest pre-order price) and image are refreshed. A
   failed fetch writes nothing; a shop listing no products at all counts as
   failed, so its last offers simply age out instead of staying current.
   """
@@ -138,17 +139,21 @@ defmodule TcgCheap.Sealed.Refresh do
     for product <- products,
         offers = Map.get(by_product, product.id, []),
         wanted = availability(product, offers),
-        wanted != Map.take(product, [:available, :lowest_price, :image_url]) do
+        wanted !=
+          Map.take(product, [:available, :lowest_price, :lowest_preorder_price, :image_url]) do
       Sealed.set_product_availability!(product, wanted, return_notifications?: true)
     end
   end
 
   defp availability(product, offers) do
     in_stock = offers |> Enum.filter(& &1.in_stock) |> Enum.sort_by(& &1.price, Decimal)
+    preorders = if in_stock == [], do: Enum.filter(offers, & &1.preorder), else: []
 
     %{
       available: in_stock != [],
       lowest_price: List.first(in_stock) && hd(in_stock).price,
+      lowest_preorder_price:
+        preorders |> Enum.map(& &1.price) |> Enum.min(Decimal, fn -> nil end),
       image_url: image_url(product, in_stock ++ offers)
     }
   end
