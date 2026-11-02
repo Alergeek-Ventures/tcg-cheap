@@ -491,6 +491,7 @@
 .guide-world .product-image img[data-progressive] { position: relative; transition: opacity .35s ease-out; }
 .guide-world .product-image img[data-progressive]:not([data-loaded]) { opacity: 0; }
 .guide-world .product-image:has(img[data-loaded]) .product-image-blur { opacity: 0; transition: opacity .2s .35s; }
+.guide-world .product-image:has(img[data-loaded="instant"]) :is(img, .product-image-blur) { transition: none; }
 .guide-world .product-image svg { fill: none; height: 60%; width: 60%; }
 .guide-world .product-image-placeholder { background: color-mix(in srgb, var(--bench) 55%, var(--paper)); }
 .guide-world .product-image-placeholder svg path { fill: none; stroke: var(--muted); stroke-linejoin: round; stroke-width: 1.5; vector-effect: non-scaling-stroke; }

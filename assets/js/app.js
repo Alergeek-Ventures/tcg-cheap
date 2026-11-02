@@ -114,7 +114,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     onDocumentPatch,
     // A loaded photo stays shown when LiveView patches it (the mark is set in the root layout).
     onBeforeElUpdated(from, to) {
-      if (from.hasAttribute("data-loaded") && from.getAttribute("src") === to.getAttribute("src")) to.setAttribute("data-loaded", "")
+      if (from.hasAttribute("data-loaded") && from.getAttribute("src") === to.getAttribute("src")) to.setAttribute("data-loaded", from.getAttribute("data-loaded"))
     },
   },
 })
