@@ -21,7 +21,9 @@ defmodule TcgCheap.Catalogue.ExternalImage do
   # Retailers and news sites whose public pictures of what a sealed product
   # holds were checked by eye and set as contents item photos.
   @contents_photo_hosts [
+    "bills-archive.nyc3.cdn.digitaloceanspaces.com",
     "card-binder.com",
+    "cdn.shopify.com",
     "cdn11.bigcommerce.com",
     "d1avvq5q4v8v8k.cloudfront.net",
     "media3.nin-nin-game.com",
