@@ -31,6 +31,7 @@ defmodule TcgCheap.Storage do
       define :list_mirrored_remote_images, action: :mirrored, args: [:hashes]
       define :list_pending_remote_images, action: :pending, args: [:limit]
       define :record_remote_image_attempt, action: :record_attempt
+      define :trim_remote_image_margins, action: :trim_margins
     end
 
     resource TcgCheap.Storage.Blob do

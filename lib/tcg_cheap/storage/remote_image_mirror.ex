@@ -30,25 +30,42 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   ORDER BY url, kind LIMIT $3
   """
 
+  @logo_kinds ["logo", "expansion_logo"]
+
   @doc "Registers a page of known URLs; returns its keyset cursor and row count."
   @spec register_batch([String.t()], pos_integer()) :: {[String.t()], non_neg_integer()}
   def register_batch([url, kind] = cursor, limit) do
     %{rows: rows} = TcgCheap.Repo.query!(@sources, [url, kind, limit])
 
+    # A source used as a logo anywhere is trimmed.
     sources =
-      rows
-      |> Enum.map(fn [url, kind] -> canonical_source(url, kind) end)
-      |> Enum.reject(&is_nil/1)
-      |> Map.new(&{CardImage.source_hash(&1), &1})
+      for [url, kind] <- rows, source = canonical_source(url, kind), reduce: %{} do
+        sources ->
+          trim? = kind in @logo_kinds
+
+          Map.update(sources, CardImage.source_hash(source), {source, trim?}, fn {source, other} ->
+            {source, trim? or other}
+          end)
+      end
 
     registered =
       sources
       |> Map.keys()
       |> Storage.list_registered_remote_images!()
-      |> MapSet.new(& &1.id)
+      |> Map.new(&{&1.id, &1})
 
-    for {hash, source} <- sources, not MapSet.member?(registered, hash) do
-      Storage.register_remote_image!(%{id: hash, source_url: source})
+    # Logos mirrored before they were trimmed are mirrored again.
+    for {hash, {source, trim?}} <- sources do
+      case registered[hash] do
+        nil ->
+          Storage.register_remote_image!(%{id: hash, source_url: source, trim_margins: trim?})
+
+        %{trim_margins: false} = image when trim? ->
+          Storage.trim_remote_image_margins!(image)
+
+        _image ->
+          :ok
+      end
     end
 
     {List.last(rows) || cursor, length(rows)}
@@ -64,6 +81,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
 
   defp mirror(image, req_options) do
     with {:ok, body, type} <- Storage.ImageDownload.fetch(image.source_url, req_options),
+         {:ok, body, type} <- trim_margins(body, type, image.trim_margins),
          {:ok, %{blob: blob}} <-
            Storage.replace_image(
              image,
@@ -83,6 +101,21 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       error ->
         Logger.warning("Remote image #{image.id} mirror failed: #{inspect(error)}")
         Storage.record_remote_image_attempt!(image, %{})
+    end
+  end
+
+  # Logo files often pad the wordmark with transparent margins, which would
+  # show it smaller than a tight logo on the expansion tiles. An image with no
+  # alpha band or nothing to cut stays as downloaded.
+  defp trim_margins(body, type, false), do: {:ok, body, type}
+
+  defp trim_margins(body, type, true) do
+    with {:ok, image} <- Image.from_binary(body),
+         {:ok, trimmed} <- Image.trim(image, background: :alpha),
+         {:ok, png} <- Image.write(trimmed, :memory, suffix: ".png") do
+      {:ok, png, "image/png"}
+    else
+      _error -> {:ok, body, type}
     end
   end
 

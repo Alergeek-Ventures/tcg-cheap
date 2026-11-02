@@ -27,7 +27,7 @@ defmodule TcgCheap.Storage.RemoteImage do
     defaults [:read]
 
     create :register do
-      accept [:id, :source_url]
+      accept [:id, :source_url, :trim_margins]
       upsert? true
       upsert_fields [:source_url]
     end
@@ -41,12 +41,13 @@ defmodule TcgCheap.Storage.RemoteImage do
     read :registered do
       argument :hashes, {:array, :string}, allow_nil?: false
       filter expr(id in ^arg(:hashes))
-      prepare build(select: [:id])
+      prepare build(select: [:id, :trim_margins])
     end
 
+    # An image with variants but no attempt is due again (see :trim_margins).
     read :pending do
       argument :limit, :integer, allow_nil?: false
-      filter expr(is_nil(thumbnail_key) or is_nil(detail_key))
+      filter expr(is_nil(thumbnail_key) or is_nil(detail_key) or is_nil(attempted_at))
       filter expr(is_nil(attempted_at) or attempted_at < ago(1, :day))
       prepare build(sort: [attempted_at: :asc_nils_first, id: :asc], limit: arg(:limit))
     end
@@ -61,6 +62,12 @@ defmodule TcgCheap.Storage.RemoteImage do
       accept [:thumbnail_key, :detail_key]
       change set_attribute(:attempted_at, &DateTime.utc_now/0)
     end
+
+    # The current variants stay served until the mirror replaces them.
+    update :trim_margins do
+      change set_attribute(:trim_margins, true)
+      change set_attribute(:attempted_at, nil)
+    end
   end
 
   attributes do
@@ -73,6 +80,14 @@ defmodule TcgCheap.Storage.RemoteImage do
     attribute :source_url, :string, allow_nil?: false
     attribute :thumbnail_key, :string
     attribute :detail_key, :string
+
+    attribute :trim_margins, :boolean do
+      allow_nil? false
+      default false
+
+      description "A logo: the mirror cuts its transparent margins off before making the variants."
+    end
+
     attribute :attempted_at, :utc_datetime_usec
   end
 end
