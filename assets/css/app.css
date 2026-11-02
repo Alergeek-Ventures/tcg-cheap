@@ -921,6 +921,9 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .contents-card-set { color: var(--muted); display: block; font-size: .8rem; }
 .guide-world .contents-label a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 @media (hover: hover) and (pointer: fine) { .guide-world .contents-label a:hover { color: var(--orange); } }
+.guide-world .deck-list-group h3 { align-items: baseline; display: flex; font-size: 1rem; gap: .5rem; margin: 1.25rem 0 .25rem; }
+.guide-world .deck-list-group:first-of-type h3 { margin-block-start: 0; }
+.guide-world .deck-list-count { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 400; }
 .guide-world #product-contents .guide-note { margin-block-start: .5rem; }
 .guide-world #product-contents .guide-note a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 /* Pull rates: one row per rarity, the rarest first; the chance on the right, "1 na 5 paczek" under the rarity. */

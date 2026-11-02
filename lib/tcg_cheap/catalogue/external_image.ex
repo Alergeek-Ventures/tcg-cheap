@@ -26,6 +26,7 @@ defmodule TcgCheap.Catalogue.ExternalImage do
     "cdn.shopify.com",
     "cdn11.bigcommerce.com",
     "d1avvq5q4v8v8k.cloudfront.net",
+    "media.pocketmonsters.net",
     "media3.nin-nin-game.com",
     "pokemonlore.com",
     "pokemonplug.com",
@@ -35,6 +36,7 @@ defmodule TcgCheap.Catalogue.ExternalImage do
     "tbcgames.com",
     "tools.toywiz.com",
     "www.asmodee.co.uk",
+    "www.codedyellow.com",
     "www.pokebox.com.au",
     "www.stompinggroundstcg.com",
     "zenpan-japan.com"

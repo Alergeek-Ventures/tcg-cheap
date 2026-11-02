@@ -66,5 +66,10 @@ defmodule TcgCheap.Sealed.ProductContents.Item do
       public? true
       constraints max_length: 2_000
     end
+
+    attribute :cards, {:array, TcgCheap.Sealed.ProductContents.DeckCard} do
+      description "A deck's full card list, as the publisher prints it: every card with its copies."
+      public? true
+    end
   end
 end

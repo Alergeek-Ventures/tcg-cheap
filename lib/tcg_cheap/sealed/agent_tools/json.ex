@@ -43,24 +43,39 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
 
   def contents(%ProductContents{} = contents) do
     %{
-      items:
-        Enum.map(
-          contents.items,
-          &Map.take(&1, [
-            :quantity,
-            :type,
-            :name,
-            :tcgdex_id,
-            :set,
-            :number,
-            :cardmarket_id,
-            :image,
-            :photo
-          ])
-        ),
+      items: Enum.map(contents.items, &item/1),
       sources: contents.sources,
       checked_on: contents.checked_on
     }
+  end
+
+  defp item(item) do
+    item
+    |> Map.take([
+      :quantity,
+      :type,
+      :name,
+      :tcgdex_id,
+      :set,
+      :number,
+      :cardmarket_id,
+      :image,
+      :photo
+    ])
+    |> Map.put(:cards, item.cards && Enum.map(item.cards, &deck_card/1))
+  end
+
+  defp deck_card(card) do
+    Map.take(card, [
+      :quantity,
+      :name,
+      :tcgdex_id,
+      :category,
+      :set,
+      :number,
+      :cardmarket_id,
+      :image
+    ])
   end
 
   @spec suggested_price(SuggestedPrice.t() | nil) :: map() | nil

@@ -3,7 +3,8 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   Sets or clears what a product holds. Keys the contents do not know are
   rejected rather than dropped, so a misspelt field never passes as missing.
   A card given by its TCGdex id gets its set, number, picture and Cardmarket
-  product from TCGdex; an id TCGdex does not know is rejected. An item's photo
+  product from TCGdex, and so does each card of a deck's list, with its
+  category; an id TCGdex does not know is rejected. An item's photo
   must be on an image host we mirror from (`TcgCheap.Catalogue.ExternalImage`).
   """
 
@@ -13,9 +14,11 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   alias TcgCheap.Catalogue.{ExternalImage, Tcgdex}
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.{Json, KnownKeys}
+  alias TcgCheap.Sealed.ProductContents.DeckCard
 
   @contents ~w(items sources checked_on)
-  @item ~w(quantity type name tcgdex_id set number cardmarket_id image photo)
+  @item ~w(quantity type name tcgdex_id set number cardmarket_id image photo cards)
+  @deck_card ~w(quantity name tcgdex_id category set number cardmarket_id image)
 
   @impl true
   def run(input, _opts, _context) do
@@ -24,7 +27,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
              input.params["contents"] || input.params[:contents],
              :contents,
              @contents,
-             %{"items" => @item}
+             %{"items" => {@item, %{"cards" => @deck_card}}}
            ),
          {:ok, product} <- product(input.arguments.product_id),
          {:ok, contents} <- with_cards(input.arguments[:contents]),
@@ -43,20 +46,36 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   defp with_cards(nil), do: {:ok, nil}
 
   defp with_cards(contents) do
-    contents.items
-    |> Enum.reduce_while({:ok, []}, fn item, {:ok, items} ->
-      case with_item(item) do
-        {:ok, item} -> {:cont, {:ok, [item | items]}}
+    with {:ok, items} <- map_ok(contents.items, &with_item/1),
+         do: {:ok, %{contents | items: items}}
+  end
+
+  defp with_item(item) do
+    with :ok <- allowed_photo(item),
+         {:ok, item} <- with_card(item),
+         do: with_deck_cards(item)
+  end
+
+  defp with_deck_cards(%{cards: cards} = item) when is_list(cards) do
+    with {:ok, cards} <- map_ok(cards, &with_card/1), do: {:ok, %{item | cards: cards}}
+  end
+
+  defp with_deck_cards(item), do: {:ok, item}
+
+  # Maps every entry with `fun`, stopping at the first error.
+  defp map_ok(entries, fun) do
+    entries
+    |> Enum.reduce_while({:ok, []}, fn entry, {:ok, done} ->
+      case fun.(entry) do
+        {:ok, entry} -> {:cont, {:ok, [entry | done]}}
         error -> {:halt, error}
       end
     end)
     |> case do
-      {:ok, items} -> {:ok, %{contents | items: Enum.reverse(items)}}
+      {:ok, done} -> {:ok, Enum.reverse(done)}
       error -> error
     end
   end
-
-  defp with_item(item), do: with(:ok <- allowed_photo(item), do: with_card(item))
 
   defp allowed_photo(%{photo: nil}), do: :ok
 
@@ -86,7 +105,13 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
     end
   end
 
-  defp card_details(item, card) do
+  defp card_details(%DeckCard{} = deck_card, card) do
+    %{base_card_details(deck_card, card) | category: card["category"]}
+  end
+
+  defp card_details(item, card), do: base_card_details(item, card)
+
+  defp base_card_details(item, card) do
     %{
       item
       | name: card["name"],

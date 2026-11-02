@@ -20,6 +20,13 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       FROM sealed_products,
            jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item
     UNION
+    SELECT card->>'image' AS url, 'card' AS kind
+      FROM sealed_products,
+           jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item,
+           jsonb_array_elements(
+             CASE jsonb_typeof(item->'cards') WHEN 'array' THEN item->'cards' ELSE '[]'::jsonb END
+           ) AS card
+    UNION
     SELECT item->>'photo' AS url, 'photo' AS kind
       FROM sealed_products,
            jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item
