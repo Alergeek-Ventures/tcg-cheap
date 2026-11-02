@@ -249,6 +249,7 @@ defmodule TcgCheapWeb.ProductLive do
             />
             <.set_cards
               rarities={@page.booster_set.rarities}
+              cards_source_url={@page.booster_set.cards_source_url}
               cards_per_pack={@page.booster_set.cards_per_pack}
               priced_on={@page.booster_set.priced_on}
               logo_url={@page.booster_set.logo_url}
@@ -809,6 +810,7 @@ defmodule TcgCheapWeb.ProductLive do
         <.fluent_icon name={:info} />
         <span>
           {gettext("To szacunki społeczności z otwierania paczek, nie oficjalne dane wydawcy.")}
+          <.borrowed_note from={@pull_rates.borrowed_from} />
           <%= if !@smaller_pack? do %>
             {gettext("Szansa dotyczy jednej paczki.")}
           <% end %>
@@ -859,6 +861,20 @@ defmodule TcgCheapWeb.ProductLive do
     """
   end
 
+  attr :from, :string, default: nil
+
+  # Estimates of another set standing in until this set's own are out.
+  defp borrowed_note(assigns) do
+    ~H"""
+    <strong :if={@from} class="pull-rates-borrowed">
+      {gettext(
+        "Tego setu nikt jeszcze nie policzył: to szanse z wcześniejszego setu (%{set}), niezweryfikowane dla tego.",
+        set: @from
+      )}
+    </strong>
+    """
+  end
+
   attr :count, :integer, default: nil
   attr :smaller?, :boolean, default: false
 
@@ -904,6 +920,9 @@ defmodule TcgCheapWeb.ProductLive do
           <h3><.link navigate={~p"/produkty/#{set.slug}"}>{set.name}</.link></h3>
         </div>
         <%= if set.pull_rates do %>
+          <p :if={set.pull_rates.borrowed_from} class="guide-note">
+            <.borrowed_note from={set.pull_rates.borrowed_from} />
+          </p>
           <table class="pull-rates">
             <thead>
               <tr>
@@ -1052,6 +1071,7 @@ defmodule TcgCheapWeb.ProductLive do
     do: if(Gettext.get_locale(TcgCheapWeb.Gettext) == "en", do: ".", else: ",")
 
   attr :rarities, :list, required: true
+  attr :cards_source_url, :string, default: nil
   attr :cards_per_pack, :integer, default: nil
   attr :priced_on, Date, default: nil
   attr :logo_url, :string, default: nil
@@ -1089,6 +1109,15 @@ defmodule TcgCheapWeb.ProductLive do
         </ul>
         <img :if={@logo_url} src={@logo_url} alt="" class="set-cards-logo" />
       </div>
+      <p :if={@cards_source_url} id="cards-unofficial" class="guide-note pull-rates-estimate">
+        <.fluent_icon name={:info} />
+        <span>
+          {gettext("Nieoficjalna lista kart sprzed premiery, może się jeszcze zmienić. Źródło:")}
+          <a href={@cards_source_url} target="_blank" rel="noopener nofollow">
+            {host(@cards_source_url)}
+          </a>
+        </span>
+      </p>
       <div id="set-cards" class="set-cards">
         <details
           :for={{group, index} <- Enum.with_index(@rarities)}
@@ -1111,7 +1140,11 @@ defmodule TcgCheapWeb.ProductLive do
         </details>
       </div>
       <p class="guide-note">
-        {gettext("Lista kart według TCGdex, od najrzadszych.")}
+        <%= if @cards_source_url do %>
+          {gettext("Od najrzadszych.")}
+        <% else %>
+          {gettext("Lista kart według TCGdex, od najrzadszych.")}
+        <% end %>
         <span :if={@priced_on} id="cards-prices-note">
           {gettext(
             "Ceny to trend na Cardmarket z %{date}, w euro, bez wysyłki z innych krajów; cena otwiera kartę na Cardmarket.",

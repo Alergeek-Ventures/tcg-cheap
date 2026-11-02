@@ -2,8 +2,8 @@ defmodule TcgCheap.Sealed.AgentTools do
   @moduledoc """
   Actions behind the MCP tools for AI agents (see the `tools` of
   `TcgCheap.Sealed`): shop status, offer lists, product detail, match
-  explanations, manual decisions, product barcodes and contents, set pull
-  rates, expansion logos, REBEL suggested prices and fetch/import jobs.
+  explanations, manual decisions, product barcodes, contents and photos, set
+  pull rates and unofficial card lists, expansion logos, REBEL suggested prices and fetch/import jobs.
   They do what the admin buying-guide desk
   (`TcgCheapWeb.Admin.BuyingGuideLive`) does and store nothing themselves.
   """
@@ -16,9 +16,11 @@ defmodule TcgCheap.Sealed.AgentTools do
     ExplainMatch,
     OfferList,
     ProductDetail,
+    RecordUnofficialCards,
     SetContents,
     SetEans,
     SetExpansionLogo,
+    SetPhoto,
     SetPullRates,
     ShopStatus,
     SuggestedPrices
@@ -248,6 +250,22 @@ defmodule TcgCheap.Sealed.AgentTools do
       run SetContents
     end
 
+    action :set_product_photo, :map do
+      description """
+      Sets or clears a product's photo, shown on its page, in search results and in link previews,
+      for a product whose shop photos are missing, tiny or wrong. Give only a photo you checked by
+      eye shows this exact product in its edition (language, version), large and sharp, ideally
+      the publisher's or a retailer's packshot, as an https url on an allowed image host. The
+      photo is copied to our storage in the background (within 10 minutes) and then replaces the
+      shops' photos. url null goes back to the shops' photos. Returns the product.
+      """
+
+      argument :product_id, :uuid, allow_nil?: false
+      argument :url, :string, description: "The https photo; null goes back to the shops' photos."
+
+      run SetPhoto
+    end
+
     action :set_pull_rates, :map do
       description """
       Replaces a set's pull rates, shown on the page of its English single booster: how often a
@@ -259,7 +277,9 @@ defmodule TcgCheap.Sealed.AgentTools do
       packs)", optionally the percent per pack, and card (its TCGdex name) when the rate is for
       that one card rather than the whole rarity; every https source read, with sample_packs
       (packs opened) when it says and data_from when it cites someone else's data (e.g.
-      TCGplayer); and the day they were checked. Record only estimates a source states, never
+      TCGplayer); and the day they were checked. Until a new set's own estimates are out, the
+      estimates of the previous comparable set may stand in, with borrowed_from naming that set;
+      the page then says they are unverified for this set. Record only estimates a source states, never
       guesses. Unknown keys are rejected. pull_rates null removes them. Rates are refused for a
       set without cardmarket_expansion_id (it has no booster page) and until the cards of every
       English set of its expansion are synced. Returns the set with its pull rates.
@@ -272,6 +292,46 @@ defmodule TcgCheap.Sealed.AgentTools do
       argument :pull_rates, TcgCheap.Sealed.PullRates
 
       run SetPullRates
+    end
+
+    action :record_unofficial_set_cards, :map do
+      description """
+      Records the card list of a new English set TCGdex does not list yet (before or right after
+      its release), shown on its booster pages as unofficial and possibly changing, from a
+      published full set list such as a fan wiki's (source_url, the page read). Give the set id
+      TCGdex will use (e.g. me06 after me05; check TCGdex's open pull requests), the name its
+      boosters carry, the Cardmarket expansion id of its sealed products, the release day and
+      every card with its collector number as TCGdex writes it ("001"), English name and
+      rarity as TCGdex spells it. Record only a list a source publishes, never guesses. TCGdex's
+      cards replace this list once TCGdex lists as many; a set whose TCGdex cards are copied
+      is refused. Returns the set.
+      """
+
+      argument :set, :string, allow_nil?: false, description: "The TCGdex set id, e.g. me06."
+      argument :name, :string, allow_nil?: false, description: "The set's English name."
+
+      argument :expansion_id, :integer,
+        allow_nil?: false,
+        constraints: [min: 1],
+        description: "The Cardmarket expansion id of the set's sealed products."
+
+      argument :released_on, :date, description: "The release day."
+      argument :source_url, :string, allow_nil?: false, description: "The https page read."
+
+      argument :cards, {:array, :map} do
+        allow_nil? false
+
+        constraints min_length: 1,
+                    items: [
+                      fields: [
+                        number: [type: :string, allow_nil?: false],
+                        name: [type: :string, allow_nil?: false],
+                        rarity: [type: :string]
+                      ]
+                    ]
+      end
+
+      run RecordUnofficialCards
     end
 
     action :set_expansion_logo, :map do

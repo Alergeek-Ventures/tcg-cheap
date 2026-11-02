@@ -251,6 +251,7 @@ defmodule TcgCheap.Sealed.Guide do
       standard_pack_size: pull_rates && pull_rates.cards_per_pack,
       smaller_pack?: smaller_pack?(product, pull_rates),
       rarities: rarities,
+      cards_source_url: Enum.find_value(sets, & &1.cards_source_url),
       logo_url: id && Map.get(logos(), id),
       priced_on:
         cards
@@ -326,7 +327,12 @@ defmodule TcgCheap.Sealed.Guide do
         %{rate: rate, rarity: rarity, group: groups[String.downcase(rarity)]}
       end)
 
-    %{rates: rates, sources: pull_rates.sources, checked_on: pull_rates.checked_on}
+    %{
+      rates: rates,
+      sources: pull_rates.sources,
+      borrowed_from: pull_rates.borrowed_from,
+      checked_on: pull_rates.checked_on
+    }
   end
 
   defp by_rarity(cards) do

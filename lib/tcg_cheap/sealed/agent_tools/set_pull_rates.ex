@@ -14,7 +14,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetPullRates do
   alias TcgCheap.Sealed.AgentTools.{Json, KnownKeys}
   alias TcgCheap.Sealed.Rarities
 
-  @pull_rates ~w(cards_per_pack rates sources checked_on)
+  @pull_rates ~w(cards_per_pack rates sources borrowed_from checked_on)
   @rate ~w(rarity per_pack percent card)
   @source ~w(url sample_packs data_from)
 

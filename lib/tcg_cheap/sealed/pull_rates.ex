@@ -35,6 +35,12 @@ defmodule TcgCheap.Sealed.PullRates do
       constraints min_length: 1, max_length: 10
     end
 
+    attribute :borrowed_from, :string do
+      description "The set whose estimates stand in until this set's own are out, so unverified for this set."
+      public? true
+      constraints max_length: 100
+    end
+
     attribute :checked_on, :date do
       description "The day the sources were read."
       allow_nil? false

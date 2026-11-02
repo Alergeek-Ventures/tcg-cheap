@@ -69,6 +69,49 @@ defmodule TcgCheap.Sealed.TcgdexSet do
       prepare build(sort: [released_on: :desc_nils_last])
     end
 
+    create :record_unofficial_cards do
+      description """
+      Records an English set TCGdex does not list yet, with an unofficial card list (a fan
+      wiki's before release) whose page is `cards_source_url`. TCGdex's cards replace it once
+      TCGdex lists as many (`TcgCheap.Sealed.CardSync`).
+      """
+
+      accept [:tcgdex_id, :name, :cardmarket_expansion_id, :released_on, :cards_source_url]
+      upsert? true
+      upsert_identity :tcgdex_id
+
+      upsert_fields [
+        :name,
+        :cardmarket_expansion_id,
+        :released_on,
+        :cards_source_url,
+        :cards_checked_at,
+        :checked_at,
+        :updated_at
+      ]
+
+      argument :cards, {:array, :map} do
+        allow_nil? false
+
+        constraints min_length: 1,
+                    items: [
+                      fields: [
+                        tcgdex_id: [type: :string, allow_nil?: false],
+                        number: [type: :string, allow_nil?: false],
+                        name: [type: :string, allow_nil?: false],
+                        rarity: [type: :string]
+                      ]
+                    ]
+      end
+
+      validate present([:name, :cardmarket_expansion_id, :cards_source_url])
+      validate {TcgCheap.Sealed.Validations.HttpsUrls, attribute: :cards_source_url}
+      change set_attribute(:language, "en")
+      change set_attribute(:checked_at, &DateTime.utc_now/0)
+      change set_attribute(:cards_checked_at, &DateTime.utc_now/0)
+      change TcgCheap.Sealed.Changes.RecordCards
+    end
+
     update :set_pull_rates do
       description "Replaces the set's pull rates; nil removes them."
       accept [:pull_rates]
@@ -91,6 +134,7 @@ defmodule TcgCheap.Sealed.TcgdexSet do
       end
 
       change set_attribute(:cards_checked_at, &DateTime.utc_now/0)
+      change set_attribute(:cards_source_url, nil)
       change TcgCheap.Sealed.Changes.RecordCards
     end
   end
@@ -113,6 +157,12 @@ defmodule TcgCheap.Sealed.TcgdexSet do
     attribute :cards_checked_at, :utc_datetime_usec do
       description "When the cards were last copied from TCGdex."
       public? true
+    end
+
+    attribute :cards_source_url, :string do
+      description "The page an unofficial card list was copied from while TCGdex lists no cards of the set; nil for TCGdex's cards."
+      public? true
+      constraints max_length: 2_000
     end
 
     attribute :pull_rates, TcgCheap.Sealed.PullRates do

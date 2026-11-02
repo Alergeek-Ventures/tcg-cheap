@@ -6,8 +6,10 @@ defmodule TcgCheap.Sealed.PhotoMirror do
   `TcgCheap.Sealed.Refresh` picked from its offers (`image_url`) is new or
   changed. Shops publish the same box at very different sizes, so the
   largest of the product's offer photos is stored, not necessarily the
-  picked one. Only image hosts on the `TcgCheap.Catalogue.ExternalImage`
-  allowlist are fetched.
+  picked one, cut to the box when it floats in transparent margins. A
+  product whose shop photos are all too poor gets a `checked_photo_url` from
+  an admin or agent, which is stored instead. Only image hosts on the
+  `TcgCheap.Catalogue.ExternalImage` allowlist are fetched.
   """
 
   require Logger
@@ -62,6 +64,7 @@ defmodule TcgCheap.Sealed.PhotoMirror do
 
   defp mirror(product, offers, req_options) do
     with {:ok, body, type} <- largest_photo(candidates(product, offers), req_options),
+         {:ok, body, type} <- ImageDownload.trim_transparent_margins(body, type),
          {:ok, %{blob: blob}} <-
            Storage.replace_image(
              product,
@@ -75,12 +78,12 @@ defmodule TcgCheap.Sealed.PhotoMirror do
            Enum.all?(["small", "card", "page"], fn name ->
              Enum.any?(blob.variants, &(&1.variant_name == name))
            end) do
-      Sealed.record_photo_source!(product, product.image_url)
+      Sealed.record_photo_source!(product, source(product))
       :ok
     else
       error ->
         Logger.warning(
-          "Photo of #{product.slug} not mirrored from #{product.image_url}: #{inspect(error)}"
+          "Photo of #{product.slug} not mirrored from #{source(product)}: #{inspect(error)}"
         )
 
         Sealed.record_photo_attempt!(product)
@@ -88,8 +91,12 @@ defmodule TcgCheap.Sealed.PhotoMirror do
     end
   end
 
-  # The picked photo first, then the other offers' photos, in-stock and
-  # cheapest first.
+  defp source(product), do: product.checked_photo_url || product.image_url
+
+  # A checked photo alone; otherwise the picked photo first, then the other
+  # offers' photos, in-stock and cheapest first.
+  defp candidates(%{checked_photo_url: url}, _offers) when is_binary(url), do: [url]
+
   defp candidates(product, offers) do
     others =
       offers

@@ -91,7 +91,7 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
   @spec tcgdex_set(TcgdexSet.t()) :: map()
   def tcgdex_set(%TcgdexSet{} = set) do
     set
-    |> Map.take([:tcgdex_id, :name, :released_on, :cardmarket_expansion_id])
+    |> Map.take([:tcgdex_id, :name, :released_on, :cardmarket_expansion_id, :cards_source_url])
     |> Map.put(:pull_rates, pull_rates(set.pull_rates))
   end
 
@@ -102,6 +102,7 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
       cards_per_pack: pull_rates.cards_per_pack,
       rates: Enum.map(pull_rates.rates, &Map.take(&1, [:rarity, :per_pack, :percent, :card])),
       sources: Enum.map(pull_rates.sources, &Map.take(&1, [:url, :sample_packs, :data_from])),
+      borrowed_from: pull_rates.borrowed_from,
       checked_on: pull_rates.checked_on
     }
   end
