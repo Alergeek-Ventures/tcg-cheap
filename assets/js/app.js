@@ -122,6 +122,22 @@ const liveSocket = new LiveSocket("/live", Socket, {
 // Bring an element to the top once the layout above it has changed, e.g. the
 // results after the filter panel folds away on a phone.
 window.addEventListener("guide:reveal", e => e.target.scrollIntoView({block: "start"}))
+// Links to a section of the same page glide to it instead of jumping, opening
+// the folded group they point into (a jump where motion is reduced). Focus
+// moves along, so the keyboard carries on from the section as after a jump.
+document.addEventListener("click", e => {
+  const link = e.target.closest?.('a[href^="#"]')
+  if (!link || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+  const target = link.hash && document.getElementById(decodeURIComponent(link.hash.slice(1)))
+  if (!target || matchMedia("(prefers-reduced-motion: reduce)").matches) return
+  e.preventDefault()
+  const group = target.closest("details")
+  if (group) group.open = true
+  if (!target.matches("a[href], button, input, select, textarea, summary, [tabindex]")) target.setAttribute("tabindex", "-1")
+  target.focus({preventScroll: true})
+  target.scrollIntoView({behavior: "smooth", block: "start"})
+  history.pushState(history.state, "", link.hash)
+})
 // Phone filters open as a panel right under the search bar, wherever the page is scrolled
 // (measured again when the screen turns or resizes while the panel is open).
 const pinFilters = () => {
