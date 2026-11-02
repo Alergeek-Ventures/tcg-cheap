@@ -57,7 +57,8 @@ defmodule TcgCheapWeb.GuideComponents do
           <path d="M1 8h14" stroke="currentColor" stroke-width="1.2" />
           <circle cx="8" cy="8" r="2.4" fill="#fff" stroke="currentColor" stroke-width="1" />
         </svg>
-        by <a href="https://alergeek.ventures" title="Alergeek Ventures">AV</a>
+        by <a href="https://alergeek.ventures" title="Alergeek
+          Ventures">Alergeek Ventures</a>
       </p>
     </footer>
     """
