@@ -18,6 +18,8 @@ COPY priv ./priv
 COPY assets ./assets
 RUN mix compile
 RUN mix assets.deploy
+# Lets Sentry show the source lines around a production stack frame.
+RUN mix sentry.package_source_code
 COPY config/runtime.exs ./config/
 RUN mix release
 

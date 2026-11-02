@@ -50,6 +50,36 @@ mcp_api_token =
 
 config :tcg_cheap, TcgCheapWeb.McpAuth, token: mcp_api_token
 
+# Error reporting, configured as in Firmowid. Production requires SENTRY_DSN
+# or the exact token "disabled"; elsewhere an unset DSN disables Sentry. The
+# release is the deployed commit (SOURCE_COMMIT from Coolify), which CI
+# creates in Sentry before each deployment.
+sentry_dsn =
+  case {String.trim(System.get_env("SENTRY_DSN", "")), config_env()} do
+    {"disabled", _env} ->
+      nil
+
+    {"", :prod} ->
+      raise """
+      environment variable SENTRY_DSN is missing.
+      Provide the Sentry project's DSN or the exact token "disabled".
+      """
+
+    {"", _env} ->
+      nil
+
+    {dsn, _env} ->
+      dsn
+  end
+
+default_sentry_environment =
+  if config_env() == :prod, do: "production", else: to_string(config_env())
+
+config :sentry,
+  dsn: sentry_dsn,
+  environment_name: System.get_env("SENTRY_ENVIRONMENT", default_sentry_environment),
+  release: System.get_env("SENTRY_RELEASE") || System.get_env("SOURCE_COMMIT")
+
 # The project key is public browser configuration, not a personal API key.
 # Leave it unset to avoid loading PostHog (including in development).
 # The host is the server-side upstream; browsers use our same-origin proxy.
