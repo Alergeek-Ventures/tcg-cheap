@@ -43,11 +43,14 @@ defmodule TcgCheap.Sealed.AgentTools.ProductDetail do
           :cardmarket_price_updated_on,
           :available,
           :lowest_price,
+          :lowest_preorder_price,
           :image_url
         ])
         |> Map.merge(Json.product(product))
         |> Map.put(:path, "/produkty/#{product.slug}"),
       verdict: %{verdict | cheapest: verdict.cheapest && Json.offer(verdict.cheapest)},
+      preorder: detail.preorder?,
+      premiere: detail.premiere,
       past: detail.past,
       cardmarket_trend_pln: detail.cardmarket_pln,
       cardmarket_trend_with_shipping_pln: detail.cardmarket_delivered_pln,

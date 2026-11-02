@@ -624,6 +624,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .verdict-expensive { background: var(--fall); border-color: var(--fall); color: var(--paper); }
 .guide-world .verdict-insufficient_data { border-style: dashed; color: var(--muted); }
 .guide-world .verdict-out_of_stock { border-color: transparent; color: var(--muted); padding-inline: 0; }
+/* A pre-order: rated like stock, but the shop ships on the premiere. */
+.guide-world .guide-product-preorder { align-items: center; border: 1px dotted currentColor; display: inline-flex; font: 700 .85rem/1 "Barlow Condensed", sans-serif; gap: .3rem; margin: .35rem 0 0; padding: .2rem .4rem; white-space: nowrap; }
 .guide-world .guide-product-deal .verdict-badge { justify-content: center; min-inline-size: 9.5rem; }
 /* Wide rows: picture, name, then shop, verdict and price in fixed columns, so every row lines up.
    When the row is too narrow for all of them, the deal moves under the name, from the left. */
@@ -661,6 +663,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .verdict-badge-large.verdict-normal { background: var(--ink); color: var(--bench-light); }
 .guide-world .verdict-badge-large:is(.verdict-insufficient_data, .verdict-out_of_stock) { background: color-mix(in srgb, var(--bench) 70%, var(--paper)); border-bottom: 2px dashed var(--muted); color: var(--ink); }
 .guide-world .verdict-badge-large.verdict-out_of_stock { border-bottom-style: dotted; }
+.guide-world .verdict-preorder-note { align-items: baseline; border-inline-start: 3px dotted var(--ink); display: flex; gap: .5rem; margin: 0; padding-inline-start: .75rem; }
+.guide-world .verdict-preorder-note .verdict-mark { align-self: center; }
 .guide-world .verdict-body { display: grid; gap: 1rem; padding: 1.25rem; }
 .guide-world .verdict-price { font: 700 clamp(2.75rem, 11vw, 3.75rem)/.9 "Barlow Condensed", sans-serif; letter-spacing: -.03em; margin: 0; }
 .guide-world .verdict-shop { margin: .4rem 0 0; }
@@ -784,6 +788,10 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .offers-out { margin-top: .75rem; }
 .guide-world .offers-out summary { font-size: 1rem; }
 .guide-world .offers-out .offer-list { margin-top: .5rem; }
+.guide-world .offers-preorder { margin-top: .75rem; }
+.guide-world .offers-preorder h3 { align-items: center; display: flex; font: inherit; font-size: 1rem; min-height: 3rem; }
+.guide-world .offers-preorder .offer-list { margin-top: .25rem; }
+.guide-world .offer-preorder-label { border: 1px dotted currentColor; font: 700 .85rem/1 "Barlow Condensed", sans-serif; padding: .15rem .35rem; white-space: nowrap; }
 /* A callout, not a footnote: read before paying. */
 .guide-world .offer-disclaimer { align-items: center; background: var(--bench-light); border: 1px solid var(--rule); color: var(--ink); display: flex; gap: .75rem; margin: 1rem 0 0; padding: .75rem 1rem; }
 .guide-world .offer-disclaimer .fluent-icon { block-size: 1.5rem; color: var(--orange); flex: 0 0 auto; inline-size: 1.5rem; stroke: currentColor; stroke-width: .6; }

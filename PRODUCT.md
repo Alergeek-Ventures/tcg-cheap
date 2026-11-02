@@ -59,6 +59,11 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   daily lowest price of the last 30 days (≥ 7 days with stock), shown as one
   line ("Taniej / Tyle co / Drożej niż w ostatnich 30 dniach") and a chart
   behind a click.
+- Pre-orders (owner decision, 2026-11-02) never count as in stock. A
+  product with nothing in stock but pre-orders is rated the same way on its
+  pre-order offers and clearly marked as a pre-order, with the days until
+  the expansion's premiere (the same street date for every shop) when it is
+  known; otherwise pre-orders are listed in their own group.
 - Public pages read only the local database; shops and Cardmarket are fetched
   by background jobs.
 - The singles/trade pages are still English and will be simplified next.

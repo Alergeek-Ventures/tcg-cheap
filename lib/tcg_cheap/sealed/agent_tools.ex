@@ -145,7 +145,9 @@ defmodule TcgCheap.Sealed.AgentTools do
       95% of the 30-day usual price and of the Cardmarket trend with shipping when known,
       `good_limits` has each limit), `past`: the same cheapest price against the 30-day history
       (`status` low/usual/high, insufficient_data before 7 days with stock, or out_of_stock; usual
-      price, limits, last known price), the Cardmarket trend in PLN without and with shipping to
+      price, limits, last known price), `preorder` (true when nothing is in stock and the verdict
+      rates the pre-order offers instead; `premiere`, the expansion's release day when still to
+      come, is when shops ship them), the Cardmarket trend in PLN without and with shipping to
       Poland, every current offer assigned to it, with offer ids, the REBEL `suggested_price`
       matched to it (null when none) and its `contents` (null when unknown).
       """

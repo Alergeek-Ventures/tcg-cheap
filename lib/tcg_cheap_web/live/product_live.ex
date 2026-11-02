@@ -25,13 +25,15 @@ defmodule TcgCheapWeb.ProductLive do
       {:ok, page} ->
         seo = SEO.product(page)
 
-        {in_stock, out_of_stock} = Enum.split_with(page.offers, & &1.in_stock)
+        %{in_stock: in_stock, preorder: preorder, out_of_stock: out_of_stock} =
+          offer_groups(page.offers)
 
         {:ok,
          socket
          |> assign(seo: seo, page_title: seo.title)
          |> assign(:page, page)
          |> assign(:in_stock_count, length(in_stock))
+         |> assign(:preorder_count, length(preorder))
          |> assign(:out_of_stock_count, length(out_of_stock))
          |> VisitorLocation.assign_location()
          |> stream_offers()
@@ -57,6 +59,7 @@ defmodule TcgCheapWeb.ProductLive do
       region: product.region,
       set_name: product.set_name,
       verdict: verdict.status,
+      preorder: page.preorder?,
       cheapest_price: verdict.cheapest && Decimal.to_float(verdict.cheapest.price),
       cheapest_shop: verdict.cheapest && verdict.cheapest.shop,
       offer_count: length(page.offers),
@@ -76,14 +79,25 @@ defmodule TcgCheapWeb.ProductLive do
       else: {:noreply, stream_offers(located, reset: true)}
   end
 
-  # Offers with stock are the list; those without wait behind a disclosure.
+  # Offers with stock are the list, pre-orders follow in their own; those
+  # without stock wait behind a disclosure.
   defp stream_offers(socket, opts \\ []) do
-    {in_stock, out_of_stock} = Enum.split_with(socket.assigns.page.offers, & &1.in_stock)
+    groups = offer_groups(socket.assigns.page.offers)
 
     socket
-    |> stream(:offers, in_stock, opts)
-    |> stream(:offers_out_of_stock, out_of_stock, opts)
+    |> stream(:offers, groups.in_stock, opts)
+    |> stream(:offers_preorder, groups.preorder, opts)
+    |> stream(:offers_out_of_stock, groups.out_of_stock, opts)
   end
+
+  defp offer_groups(offers) do
+    groups = Enum.group_by(offers, &offer_group/1)
+    Map.new([:in_stock, :preorder, :out_of_stock], &{&1, Map.get(groups, &1, [])})
+  end
+
+  defp offer_group(%{in_stock: true}), do: :in_stock
+  defp offer_group(%{preorder: true}), do: :preorder
+  defp offer_group(_offer), do: :out_of_stock
 
   @impl true
   def render(assigns) do
@@ -198,6 +212,32 @@ defmodule TcgCheapWeb.ProductLive do
                 today={@page.today}
               />
             </ul>
+            <section
+              :if={@preorder_count > 0}
+              id="offers-preorder"
+              class="offers-preorder"
+              aria-labelledby="offers-preorder-title"
+            >
+              <h3 id="offers-preorder-title">
+                {gettext("Przedsprzedaż: %{offers}",
+                  offers: Polish.plural(@preorder_count, "oferta", "oferty", "ofert")
+                )}
+              </h3>
+              <ul
+                id="offer-list-preorder"
+                class="offer-list ph-no-capture"
+                phx-update="stream"
+                data-track-positions
+              >
+                <.offer
+                  :for={{dom_id, offer} <- @streams.offers_preorder}
+                  id={dom_id}
+                  offer={offer}
+                  location={@location}
+                  today={@page.today}
+                />
+              </ul>
+            </section>
             <details
               :if={@out_of_stock_count > 0}
               id="offers-out-of-stock"
@@ -281,12 +321,13 @@ defmodule TcgCheapWeb.ProductLive do
   attr :today, Date, required: true
 
   # One shop's offer. In stock is the default, so a row only says when it is
-  # not, and when it was checked if that was not today.
+  # not (or that it is a pre-order), and when it was checked if that was not
+  # today.
   defp offer(assigns) do
     assigns = assign(assigns, :checked_on, DateTime.to_date(assigns.offer.last_seen_at))
 
     ~H"""
-    <li id={@id} class={["offer", !@offer.in_stock && "offer-unavailable"]}>
+    <li id={@id} class={["offer", !@offer.in_stock && !@offer.preorder && "offer-unavailable"]}>
       <.shop_logo shop={@offer.shop} />
       <div class="offer-shop">
         <strong>{shop_name(@offer)}</strong>
@@ -294,8 +335,12 @@ defmodule TcgCheapWeb.ProductLive do
       </div>
       <p class="offer-price">
         <strong>{Polish.price(@offer.price)}</strong>
-        <span :if={!@offer.in_stock or @checked_on != @today} class="offer-checked">
-          {offer_note(@offer.in_stock, @checked_on, @today)}
+        <span :if={@offer.preorder} class="offer-preorder-label">{gettext("przedsprzedaż")}</span>
+        <span
+          :if={(!@offer.in_stock and !@offer.preorder) or @checked_on != @today}
+          class="offer-checked"
+        >
+          {offer_note(@offer.in_stock or @offer.preorder, @checked_on, @today)}
         </span>
       </p>
       <a
@@ -308,6 +353,7 @@ defmodule TcgCheapWeb.ProductLive do
         data-track-shop={@offer.shop}
         data-track-price={@offer.price}
         data-track-in-stock={to_string(@offer.in_stock)}
+        data-track-preorder={to_string(@offer.preorder)}
         aria-label={
           gettext("%{shop}: przejdź do sklepu (otwiera się w nowej karcie)", shop: shop_name(@offer))
         }
@@ -1344,7 +1390,10 @@ defmodule TcgCheapWeb.ProductLive do
           <div>
             <p id="verdict-price" class="verdict-price">{Polish.price(@verdict.cheapest.price)}</p>
             <p id="verdict-shop" class="verdict-shop">
-              {gettext("najtaniej teraz w")} <strong>{shop_name(@verdict.cheapest)}</strong>
+              {if(@page.preorder?,
+                do: gettext("najtaniej w przedsprzedaży w"),
+                else: gettext("najtaniej teraz w")
+              )} <strong>{shop_name(@verdict.cheapest)}</strong>
             </p>
           </div>
           <a
@@ -1357,11 +1406,16 @@ defmodule TcgCheapWeb.ProductLive do
             data-track-placement="verdict"
             data-track-shop={@verdict.cheapest.shop}
             data-track-price={@verdict.cheapest.price}
-            data-track-in-stock="true"
+            data-track-in-stock={to_string(@verdict.cheapest.in_stock)}
+            data-track-preorder={to_string(@verdict.cheapest.preorder)}
           >
             {gettext("Do sklepu")}<span class="sr-only">{gettext("(otwiera się w nowej karcie)")}</span>
           </a>
         </div>
+        <p :if={@page.preorder?} id="verdict-preorder" class="verdict-preorder-note">
+          <.verdict_icon status={:preorder} />
+          <span>{preorder_note(@page.premiere, @page.premiere_in)}</span>
+        </p>
         <div :if={@range} id="verdict-range" class="verdict-range" aria-hidden="true">
           <div class="verdict-range-bar">
             <span class="verdict-range-good" style={"--to: #{@range.good_at}%"}></span>
@@ -1398,9 +1452,17 @@ defmodule TcgCheapWeb.ProductLive do
           </span>
         </p>
         <p :if={@verdict.status == :cardmarket} id="verdict-pending" class="guide-note">
-          {gettext(
-            "Ocenę pokażemy, gdy produkt będzie na stanie w co najmniej %{count} sklepach.",
-            count: PriceGuide.min_shops()
+          {if(@page.preorder?,
+            do:
+              gettext(
+                "Ocenę pokażemy, gdy produkt będzie w przedsprzedaży w co najmniej %{count} sklepach.",
+                count: PriceGuide.min_shops()
+              ),
+            else:
+              gettext(
+                "Ocenę pokażemy, gdy produkt będzie na stanie w co najmniej %{count} sklepach.",
+                count: PriceGuide.min_shops()
+              )
           )}
         </p>
         <.nearby_line :if={@nearby} nearby={@nearby} />
@@ -1435,6 +1497,11 @@ defmodule TcgCheapWeb.ProductLive do
               <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
                 {gettext(
                   "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
+                )}
+              </span>
+              <span :if={@page.preorder?} id="verdict-method-preorder">
+                {gettext(
+                  "Gdy żaden sklep nie ma produktu na stanie, liczymy tak samo z ofert przedsprzedaży."
                 )}
               </span>
             </p>
@@ -1478,6 +1545,14 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp today_missing(%{shop_prices: []}),
     do: gettext("Teraz żaden sklep nie ma tego produktu na stanie.")
+
+  defp today_missing(%{shop_prices: shops, cheapest: %{preorder: true}}),
+    do:
+      gettext(
+        "Produkt jest teraz w przedsprzedaży w %{shops}. Porównamy ceny, gdy będzie w co najmniej %{minimum} sklepach.",
+        shops: Polish.plural(length(shops), "sklepie", "sklepach", "sklepach"),
+        minimum: PriceGuide.min_shops()
+      )
 
   defp today_missing(%{shop_prices: shops}),
     do:
@@ -1527,6 +1602,16 @@ defmodule TcgCheapWeb.ProductLive do
     |> Enum.reject(&is_nil/1)
     |> Enum.join(" ")
   end
+
+  # Buying is a pre-order: the shops ship on the premiere, the same day for all.
+  defp preorder_note(nil, nil), do: gettext("To przedsprzedaż: sklep wyśle produkt po premierze.")
+
+  defp preorder_note(premiere, days),
+    do:
+      gettext("Przedsprzedaż: premiera %{when} (%{date}), wtedy sklepy wyślą zamówienia.",
+        when: Polish.days_until(days),
+        date: Polish.day_month(premiere)
+      )
 
   # Why the good limit is below the shops' one, when the history or
   # Cardmarket lowers it.

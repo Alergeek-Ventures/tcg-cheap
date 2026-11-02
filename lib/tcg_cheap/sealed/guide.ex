@@ -17,6 +17,9 @@ defmodule TcgCheap.Sealed.Guide do
   @type summary :: %{
           product: Product.t(),
           verdict: PriceGuide.t(),
+          preorder?: boolean(),
+          premiere_in: non_neg_integer() | nil,
+          premiere: Date.t() | nil,
           cardmarket_pln: Decimal.t() | nil,
           cardmarket_delivered_pln: Decimal.t() | nil
         }
@@ -184,7 +187,11 @@ defmodule TcgCheap.Sealed.Guide do
   defp most_common(products, field),
     do: products |> Enum.frequencies_by(field) |> Enum.max_by(&elem(&1, 1)) |> elem(0)
 
-  @doc "Summaries for the given products, in order."
+  @doc """
+  Summaries for the given products, in order. A product with nothing in
+  stock but pre-orders is rated on its pre-orders (`preorder?`), with the
+  days until its expansion's premiere when that is still to come.
+  """
   @spec summaries([Product.t()], DateTime.t()) :: [summary()]
   def summaries([], _now), do: []
 
@@ -196,9 +203,11 @@ defmodule TcgCheap.Sealed.Guide do
     since = Date.add(today, -(PriceGuide.window_days() - 1))
     histories = ids |> Sealed.list_price_histories!(since) |> Enum.group_by(& &1.product_id)
 
+    premieres = premieres(products)
+
     Enum.map(products, fn product ->
       usual = PriceGuide.usual(Map.get(histories, product.id, []), today)
-      summary(product, Map.get(offers, product.id, []), rate, usual)
+      summary(product, Map.get(offers, product.id, []), rate, usual, {premieres, now})
     end)
   end
 
@@ -228,7 +237,15 @@ defmodule TcgCheap.Sealed.Guide do
         since = Date.add(today, -(@history_days - 1))
         history = Sealed.list_price_history!(product.id, since)
 
-        summary = summary(product, offers, rate, PriceGuide.usual(history, today))
+        summary =
+          summary(
+            product,
+            offers,
+            rate,
+            PriceGuide.usual(history, today),
+            {premieres([product]), now}
+          )
+
         past_history = with_last_stocked_day(history, product.id, since)
         boosters = boosters(product)
 
@@ -402,21 +419,79 @@ defmodule TcgCheap.Sealed.Guide do
   def to_pln(%Decimal{} = eur, %{rate: rate}), do: eur |> Decimal.mult(rate) |> Decimal.round(2)
   def to_pln(_eur, _rate), do: nil
 
-  defp summary(product, offers, rate, usual) do
+  defp summary(product, offers, rate, usual, {premieres, now}) do
     in_stock = Enum.filter(offers, & &1.in_stock)
+    preorders = Enum.filter(offers, & &1.preorder)
+    # With nothing in stock, pre-orders are rated the same way.
+    preorder? = in_stock == [] and preorders != []
     cardmarket_pln = to_pln(product.cardmarket_trend, rate)
     cardmarket_delivered_pln = product.cardmarket_trend |> with_shipping() |> to_pln(rate)
+
+    {premiere, premiere_in} =
+      if preorder?,
+        do: upcoming(Map.get(premieres, product.cardmarket_expansion_id), now),
+        else: {nil, nil}
 
     %{
       product: product,
       verdict:
-        PriceGuide.verdict(in_stock, cardmarket_pln,
+        PriceGuide.verdict(if(preorder?, do: preorders, else: in_stock), cardmarket_pln,
           past: usual,
           cardmarket: cardmarket_delivered_pln
         ),
+      preorder?: preorder?,
+      premiere: premiere,
+      premiere_in: premiere_in,
       cardmarket_pln: cardmarket_pln,
       cardmarket_delivered_pln: cardmarket_delivered_pln
     }
+  end
+
+  # The release day of each product's expansion (its set's `released_on`):
+  # the street date every shop ships pre-orders on.
+  defp premieres(products) do
+    case products |> Enum.map(& &1.cardmarket_expansion_id) |> Enum.reject(&is_nil/1) do
+      [] ->
+        %{}
+
+      ids ->
+        Sealed.list_tcgdex_sets!(
+          query: [
+            filter: [cardmarket_expansion_id: [in: Enum.uniq(ids)]],
+            select: [:cardmarket_expansion_id, :language, :name, :released_on]
+          ]
+        )
+        |> TcgdexSet.by_expansion()
+        |> Map.new(fn {id, set} -> {id, set.released_on} end)
+    end
+  end
+
+  # A premiere still to come (or today), with the days left in Poland.
+  defp upcoming(nil, _now), do: {nil, nil}
+
+  defp upcoming(%Date{} = premiere, now) do
+    case Date.diff(premiere, warsaw_date(now)) do
+      days when days >= 0 -> {premiere, days}
+      _past -> {nil, nil}
+    end
+  end
+
+  # The calendar day in Poland: CET, CEST from the last Sunday of March to the
+  # last Sunday of October (01:00 UTC both, as everywhere in the EU).
+  defp warsaw_date(%DateTime{} = now) do
+    year = now.year
+    summer_from = DateTime.new!(last_sunday(year, 3), ~T[01:00:00])
+    summer_to = DateTime.new!(last_sunday(year, 10), ~T[01:00:00])
+
+    summer? =
+      DateTime.compare(now, summer_from) != :lt and DateTime.compare(now, summer_to) == :lt
+
+    now |> DateTime.add(if(summer?, do: 2, else: 1), :hour) |> DateTime.to_date()
+  end
+
+  defp last_sunday(year, month) do
+    last = Date.end_of_month(Date.new!(year, month, 1))
+    Date.add(last, -rem(Date.day_of_week(last), 7))
   end
 
   defp with_shipping(%Decimal{} = eur), do: Decimal.add(eur, @cardmarket_shipping_eur)

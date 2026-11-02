@@ -24,7 +24,8 @@ defmodule TcgCheap.Sealed.PrestaShop do
   and neither its listing tile nor its default category (`category_name`;
   RGFK files pre-orders under "Przedsprzedaż") names a pre-order
   ("Przedsprzedaż", "Zapowiedź", "Premiera", …): the shops' faceted stock counts ("W magazynie") equal this
-  rule on the shops that show them. A shop that lets customers buy an item
+  rule on the shops that show them. A pre-order offered for adding to the
+  cart is a pre-order offer (`preorder`). A shop that lets customers buy an item
   that is out of stock cannot be told apart from stock by the listing, so it
   does not belong here. The JSON carries no EAN, so offers have none. Links
   and images must be on the shop's host. See `TcgCheap.Sealed.ShopFeed` for
@@ -198,9 +199,9 @@ defmodule TcgCheap.Sealed.PrestaShop do
            url: url,
            image_url: image_url(shop, product["cover"]),
            ean: nil,
-           price: price,
-           in_stock: in_stock?(product, title, "#{tile} #{product["category_name"]}")
+           price: price
          }
+         |> Map.merge(availability(product, title, "#{tile} #{product["category_name"]}"))
        ]}
     else
       :ignore -> :ignore
@@ -235,8 +236,11 @@ defmodule TcgCheap.Sealed.PrestaShop do
 
   defp image_url(_shop, _cover), do: nil
 
-  defp in_stock?(product, title, tile) do
-    product["add_to_cart_url"] not in [nil, ""] and not preorder?(title, tile)
+  # A pre-order still offered for adding to the cart is a pre-order offer.
+  defp availability(product, title, tile) do
+    buyable? = product["add_to_cart_url"] not in [nil, ""]
+    preorder? = preorder?(title, tile)
+    %{in_stock: buyable? and not preorder?, preorder: buyable? and preorder?}
   end
 
   # The tile's own labels and the default category, without the title that may

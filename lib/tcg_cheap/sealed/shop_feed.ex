@@ -31,7 +31,9 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @min_price Decimal.new(1)
   @max_price Decimal.new(1_000_000)
 
+  # A pre-order is never in stock; feeds that cannot tell leave `preorder` out.
   @type offer :: %{
+          optional(:preorder) => boolean(),
           shop_product_id: String.t(),
           title: String.t(),
           url: String.t(),

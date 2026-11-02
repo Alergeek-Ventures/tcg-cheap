@@ -10,10 +10,10 @@ defmodule TcgCheap.Sealed.GoogleFeed do
   `g:product_type`). Its price is `g:price`, or a lower `g:sale_price`
   while `g:sale_price_effective_date` (if given) includes now, in PLN;
   `g:availability` "in stock" (or `in_stock`) is in stock, "out of stock",
-  "preorder" and "backorder" are not. Shoper exports pre-orders as "in stock"
-  too, with a `g:max_handling_time` of 0: their shipping time ("PREORDER",
-  "Planowana premiera: …") names no days, while stock ships in one or more,
-  so such a product is not in stock. Links and images must be on the shop's
+  "preorder" and "backorder" are not; "preorder" is a pre-order (`preorder`).
+  Shoper exports pre-orders as "in stock" too, with a `g:max_handling_time`
+  of 0: their shipping time ("PREORDER", "Planowana premiera: …") names no
+  days, while stock ships in one or more, so such a product is a pre-order. Links and images must be on the shop's
   host; EANs come from `g:gtin`. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
@@ -68,8 +68,8 @@ defmodule TcgCheap.Sealed.GoogleFeed do
          {:ok, price} <- price(text.("g:price")),
          {:ok, sale_price} <-
            sale_price(text.("g:sale_price"), text.("g:sale_price_effective_date"), now),
-         {:ok, in_stock} <-
-           in_stock(
+         {:ok, availability} <-
+           availability(
              text.("g:availability"),
              XmlRecords.text(entry, ["g:shipping", "g:max_handling_time"])
            ) do
@@ -81,9 +81,9 @@ defmodule TcgCheap.Sealed.GoogleFeed do
            url: text.("link"),
            image_url: ShopFeed.image_url(text.("g:image_link"), image_hosts(shop)),
            ean: Ean.normalize(text.("g:gtin")),
-           price: lower(sale_price, price),
-           in_stock: in_stock
+           price: lower(sale_price, price)
          }
+         |> Map.merge(availability)
        ]}
     else
       _ -> :invalid
@@ -120,12 +120,17 @@ defmodule TcgCheap.Sealed.GoogleFeed do
   end
 
   # A Shoper pre-order: "in stock" with no days to ship.
-  defp in_stock(value, "0") when value in ["in stock", "in_stock"], do: {:ok, false}
-  defp in_stock(value, _handling_time) when value in ["in stock", "in_stock"], do: {:ok, true}
+  defp availability(value, "0") when value in ["in stock", "in_stock"],
+    do: {:ok, %{in_stock: false, preorder: true}}
 
-  defp in_stock(value, _handling_time)
-       when value in ["out of stock", "out_of_stock", "preorder", "backorder"],
-       do: {:ok, false}
+  defp availability(value, _handling_time) when value in ["in stock", "in_stock"],
+    do: {:ok, %{in_stock: true, preorder: false}}
 
-  defp in_stock(_value, _handling_time), do: :error
+  defp availability("preorder", _handling_time), do: {:ok, %{in_stock: false, preorder: true}}
+
+  defp availability(value, _handling_time)
+       when value in ["out of stock", "out_of_stock", "backorder"],
+       do: {:ok, %{in_stock: false, preorder: false}}
+
+  defp availability(_value, _handling_time), do: :error
 end
