@@ -2,8 +2,8 @@ defmodule TcgCheap.Catalogue.ExternalImage do
   @moduledoc """
   The allowlist for background downloads of card and product images: the official
   Pokémon and TCGdex image hosts, the REBEL wholesaler's and other retailers'
-  pictures of what sealed products hold, plus the image hosts of the
-  buying-guide shops. Browsers only
+  pictures of what sealed products hold, the sites expansion logos were found
+  on, plus the image hosts of the buying-guide shops. Browsers only
   render local assets and our own storage.
   """
 
@@ -37,9 +37,22 @@ defmodule TcgCheap.Catalogue.ExternalImage do
     "zenpan-japan.com"
   ]
 
+  # Collector databases and fan sites whose expansion logos (mostly of
+  # Japanese sets TCGdex has none for) were checked by eye and set as
+  # expansion logos.
+  @expansion_logo_hosts [
+    "cdn.pokicollect.com",
+    "den-media.pokellector.com",
+    "images.pokemontcg.io",
+    "pokesymbols.com",
+    "www.pokemon-card.com",
+    "www.serebii.net"
+  ]
+
   @doc "Every host an image may be rendered from."
   @spec hosts() :: [String.t()]
-  def hosts, do: @official_hosts ++ @contents_photo_hosts ++ Shops.image_hosts()
+  def hosts,
+    do: @official_hosts ++ @contents_photo_hosts ++ @expansion_logo_hosts ++ Shops.image_hosts()
 
   @doc "Returns the CSP image sources: local assets and our own object storage only."
   @spec csp_sources() :: [String.t()]

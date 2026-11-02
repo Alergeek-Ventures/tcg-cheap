@@ -1,7 +1,7 @@
 defmodule TcgCheap.Sealed.Validations.HttpsUrls do
   @moduledoc """
-  Every URL in a list attribute, or under `key` in each of its maps, is a
-  well-formed https URL with a host.
+  A URL attribute, every URL in a list attribute, or the URL under `key` in
+  each of its maps, is a well-formed https URL with a host.
   """
 
   use Ash.Resource.Validation
@@ -14,7 +14,7 @@ defmodule TcgCheap.Sealed.Validations.HttpsUrls do
   @impl true
   def validate(changeset, opts, _context) do
     urls =
-      case {Ash.Changeset.get_attribute(changeset, opts[:attribute]) || [], opts[:key]} do
+      case {changeset |> Ash.Changeset.get_attribute(opts[:attribute]) |> List.wrap(), opts[:key]} do
         {list, nil} -> list
         {list, key} -> Enum.map(list, &Map.get(&1, key))
       end

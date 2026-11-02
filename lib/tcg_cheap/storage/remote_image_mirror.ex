@@ -23,6 +23,8 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
     SELECT item->>'photo' AS url, 'photo' AS kind
       FROM sealed_products,
            jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item
+    UNION
+    SELECT url, 'expansion_logo' AS kind FROM sealed_expansion_logos
   ) AS sources
   WHERE url IS NOT NULL AND url <> '' AND (url, kind) > ($1, $2)
   ORDER BY url, kind LIMIT $3
@@ -87,6 +89,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   defp canonical_source(url, "card"), do: CardImage.source_url(url)
   defp canonical_source(url, "logo"), do: CardImage.logo_source_url(url)
   defp canonical_source(url, "photo"), do: CardImage.photo_source_url(url)
+  defp canonical_source(url, "expansion_logo"), do: CardImage.expansion_logo_source_url(url)
 
   defp extension("image/jpeg"), do: "jpg"
   defp extension("image/png"), do: "png"

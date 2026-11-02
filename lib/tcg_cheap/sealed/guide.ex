@@ -44,8 +44,8 @@ defmodule TcgCheap.Sealed.Guide do
   @doc """
   What the language and expansion filters offer under the other filters:
   product counts per language edition, and the named expansions (those with
-  a product in stock first, then newest first) with their English TCGdex
-  logo when there is one.
+  a product in stock first, then newest first) with their logo when one is
+  mirrored: the English TCGdex logo, else the one set for the expansion.
   """
   @spec facets(filters()) :: %{
           regions: [{atom(), pos_integer()}],
@@ -71,24 +71,7 @@ defmodule TcgCheap.Sealed.Guide do
   end
 
   defp expansions(filters) do
-    sets = TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!())
-
-    mirrored =
-      sets
-      |> Map.values()
-      |> Enum.map(&CardImage.logo_source_url(&1.logo_url))
-      |> Enum.reject(&is_nil/1)
-      |> Enum.map(&CardImage.source_hash/1)
-      |> TcgCheap.Storage.list_mirrored_remote_images!()
-      |> MapSet.new(& &1.id)
-
-    logos =
-      for {id, %{language: "en", logo_url: "" <> url}} <-
-            sets,
-          source = CardImage.logo_source_url(url),
-          source && MapSet.member?(mirrored, CardImage.source_hash(source)),
-          into: %{},
-          do: {id, CardImage.logo_url(url)}
+    logos = logos()
 
     expansions =
       Sealed.list_product_facets!(filters.query, filters.kind, filters.region, nil)
@@ -98,6 +81,34 @@ defmodule TcgCheap.Sealed.Guide do
       |> Enum.map(&Map.drop(&1, [:available?, :newest]))
 
     expansions ++ chosen_elsewhere(filters.expansion, expansions, logos)
+  end
+
+  # Per expansion, the mirrored English TCGdex logo, else the mirrored logo
+  # set for it (`TcgCheap.Sealed.ExpansionLogo`, for any edition). Only
+  # mirrored images are shown, so a tile never shows a broken image.
+  defp logos do
+    tcgdex =
+      for {id, %{language: "en", logo_url: "" <> url}} <-
+            TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!()),
+          source = CardImage.logo_source_url(url),
+          do: {id, source, CardImage.logo_url(url)}
+
+    set =
+      for logo <- Sealed.list_expansion_logos!(),
+          source = CardImage.expansion_logo_source_url(logo.url),
+          do: {logo.cardmarket_expansion_id, source, CardImage.expansion_logo_url(logo.url)}
+
+    mirrored =
+      (tcgdex ++ set)
+      |> Enum.map(&CardImage.source_hash(elem(&1, 1)))
+      |> TcgCheap.Storage.list_mirrored_remote_images!()
+      |> MapSet.new(& &1.id)
+
+    # TCGdex last, so its logo replaces a set one.
+    for {id, source, url} <- set ++ tcgdex,
+        MapSet.member?(mirrored, CardImage.source_hash(source)),
+        into: %{},
+        do: {id, url}
   end
 
   # The chosen expansion stays listed, with no products, when the other

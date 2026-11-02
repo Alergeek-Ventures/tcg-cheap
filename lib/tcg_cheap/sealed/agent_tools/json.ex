@@ -26,7 +26,16 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
   def product(nil), do: nil
 
   def product(%Product{} = product) do
-    Map.take(product, [:id, :slug, :name, :kind, :set_name, :cardmarket_id, :eans])
+    Map.take(product, [
+      :id,
+      :slug,
+      :name,
+      :kind,
+      :set_name,
+      :cardmarket_id,
+      :cardmarket_expansion_id,
+      :eans
+    ])
   end
 
   @spec contents(ProductContents.t() | nil) :: map() | nil

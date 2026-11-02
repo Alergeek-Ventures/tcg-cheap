@@ -1,5 +1,5 @@
 defmodule TcgCheap.Storage.RemoteImage do
-  @moduledoc "A canonical image source (TCGdex cards and logos, product contents photos) mirrored into our storage."
+  @moduledoc "A canonical image source (TCGdex cards and logos, product contents photos, expansion logos) mirrored into our storage."
   use Ash.Resource,
     otp_app: :tcg_cheap,
     domain: TcgCheap.Storage,

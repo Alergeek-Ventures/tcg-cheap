@@ -44,6 +44,7 @@ defmodule TcgCheap.Sealed do
         :kind,
         :set_name,
         :cardmarket_id,
+        :cardmarket_expansion_id,
         :eans,
         :available,
         :lowest_price
@@ -76,6 +77,10 @@ defmodule TcgCheap.Sealed do
     )
 
     tool(:set_pull_rates, AgentTools, :set_pull_rates,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
+    tool(:set_expansion_logo, AgentTools, :set_expansion_logo,
       annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
     )
 
@@ -175,6 +180,17 @@ defmodule TcgCheap.Sealed do
     end
 
     resource TcgCheap.Sealed.TcgdexCard
+
+    resource TcgCheap.Sealed.ExpansionLogo do
+      define :list_expansion_logos, action: :read
+      define :set_expansion_logo, action: :set
+      define :destroy_expansion_logo, action: :destroy
+
+      define :get_expansion_logo,
+        action: :read,
+        get_by: [:cardmarket_expansion_id],
+        not_found_error?: false
+    end
 
     resource TcgCheap.Sealed.SuggestedPrice do
       define :list_suggested_prices, action: :read

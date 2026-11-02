@@ -1,11 +1,11 @@
 defmodule TcgCheap.Catalogue.CardImage do
   @moduledoc """
-  Builds local image URLs for mirrored TCGdex cards and logos, and for photos
-  of what sealed products hold.
+  Builds local image URLs for mirrored TCGdex cards and logos, for photos of
+  what sealed products hold, and for expansion logos set by an agent or admin.
 
-  Cards and logos are TCGdex asset URLs only; contents photos may come from any
-  allowlisted image host. It does not fetch or otherwise inspect the
-  referenced resource.
+  Cards and TCGdex set logos are TCGdex asset URLs only; contents photos and
+  the expansion logos set by an agent or admin may come from any allowlisted
+  image host. It does not fetch or otherwise inspect the referenced resource.
   """
 
   alias TcgCheap.Catalogue.ExternalImage
@@ -63,6 +63,14 @@ defmodule TcgCheap.Catalogue.CardImage do
   @doc "Local URL of a mirrored contents photo in `size` (thumbnail or detail)."
   @spec photo_url(term(), String.t()) :: String.t() | nil
   def photo_url(url, size), do: local_url(photo_source_url(url), size)
+
+  @doc "Source of an expansion logo set by an agent or admin: any allowlisted image URL, kept as given."
+  @spec expansion_logo_source_url(term()) :: String.t() | nil
+  def expansion_logo_source_url(url), do: photo_source_url(url)
+
+  @doc "Local URL of a mirrored expansion logo set by an agent or admin."
+  @spec expansion_logo_url(term()) :: String.t() | nil
+  def expansion_logo_url(url), do: local_url(expansion_logo_source_url(url), "detail")
 
   @doc "Stable identity shared by all references to a canonical source."
   @spec source_hash(String.t()) :: String.t()
