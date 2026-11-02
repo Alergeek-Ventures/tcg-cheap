@@ -503,28 +503,30 @@ defmodule TcgCheapWeb.ProductLive do
       </div>
       <ul id="contents-items" class="contents-items" style={"--rows: #{@rows}"}>
         <li :for={{item, index} <- @items}>
-          <span class="contents-quantity">{item.quantity}×</span>
-          <span class="contents-label">
-            <%= cond do %>
-              <% booster = booster(item, @boosters) -> %>
-                <.link navigate={~p"/produkty/#{booster.slug}"}>{item_label(item)}</.link>
-              <% item.cardmarket_id -> %>
-                <a
-                  href={cardmarket_url(item.cardmarket_id)}
-                  target="_blank"
-                  rel="noopener nofollow"
-                >{item_label(item)}</a>
-              <% true -> %>
-                {item_label(item)}
-            <% end %>
-            <span :if={item.set} class="contents-card-set">{item.set} {item.number}</span>
-            <a
-              :if={item.cards not in [nil, []]}
-              href={"#deck-list-#{index}"}
-              class="contents-card-set"
-            >
-              {gettext("lista kart talii")}
-            </a>
+          <span class="contents-text">
+            <span class="contents-quantity">{item.quantity}×</span>
+            <span class="contents-label">
+              <%= cond do %>
+                <% booster = booster(item, @boosters) -> %>
+                  <.link navigate={~p"/produkty/#{booster.slug}"}>{item_label(item)}</.link>
+                <% item.cardmarket_id -> %>
+                  <a
+                    href={cardmarket_url(item.cardmarket_id)}
+                    target="_blank"
+                    rel="noopener nofollow"
+                  >{item_label(item)}</a>
+                <% true -> %>
+                  {item_label(item)}
+              <% end %>
+              <span :if={item.set} class="contents-card-set">{item.set} {item.number}</span>
+              <a
+                :if={item.cards not in [nil, []]}
+                href={"#deck-list-#{index}"}
+                class="contents-card-set"
+              >
+                {gettext("lista kart talii")}
+              </a>
+            </span>
           </span>
           <%= cond do %>
             <% image_url = CardImage.thumbnail_url(item.image) -> %>
@@ -537,16 +539,6 @@ defmodule TcgCheapWeb.ProductLive do
                 aria-label={gettext("Zdjęcie: %{item}", item: item_label(item))}
               >
                 <img src={photo_url} alt="" height="48" loading="lazy" />
-              </a>
-            <% stock_url = stock_photo(item.type) -> %>
-              <a
-                href={stock_url}
-                class="contents-photo"
-                data-photo-preview
-                title={gettext("Przykładowe zdjęcie")}
-                aria-label={gettext("Przykładowe zdjęcie: %{item}", item: item_label(item))}
-              >
-                <img src={stock_url} alt="" height="48" loading="lazy" />
               </a>
             <% booster_photo = booster_photo(item, @boosters) -> %>
               <%!-- The name beside it is the link people and screen readers use. --%>
@@ -655,16 +647,18 @@ defmodule TcgCheapWeb.ProductLive do
         </h3>
         <ul class="contents-items" style={"--rows: #{ceil(length(group.cards) / 2)}"}>
           <li :for={card <- group.cards}>
-            <span class="contents-quantity">{card.quantity}×</span>
-            <span class="contents-label">
-              <a
-                :if={card.cardmarket_id}
-                href={cardmarket_url(card.cardmarket_id)}
-                target="_blank"
-                rel="noopener nofollow"
-              >{card.name}</a>
-              <span :if={!card.cardmarket_id}>{card.name}</span>
-              <span :if={card.set} class="contents-card-set">{card.set} {card.number}</span>
+            <span class="contents-text">
+              <span class="contents-quantity">{card.quantity}×</span>
+              <span class="contents-label">
+                <a
+                  :if={card.cardmarket_id}
+                  href={cardmarket_url(card.cardmarket_id)}
+                  target="_blank"
+                  rel="noopener nofollow"
+                >{card.name}</a>
+                <span :if={!card.cardmarket_id}>{card.name}</span>
+                <span :if={card.set} class="contents-card-set">{card.set} {card.number}</span>
+              </span>
             </span>
             <a
               :if={image_url = CardImage.thumbnail_url(card.image)}
@@ -710,14 +704,10 @@ defmodule TcgCheapWeb.ProductLive do
     end
   end
 
-  # Items that look the same in every product show one example picture.
-  defp stock_photo(:code_card), do: ~p"/images/contents/code_card.webp"
-  defp stock_photo(_type), do: nil
-
   # Without a photo of this product's item, a common one of that kind stands
   # in, marked as not this product's.
-  @generic_photos ~w(binder booster card_dividers coin condition_markers damage_counters deck_box
-                     dice energy_cards player_guide playmat sleeves sticker storage_box)a
+  @generic_photos ~w(binder booster card_dividers code_card coin condition_markers damage_counters
+                     deck_box dice energy_cards player_guide playmat sleeves sticker storage_box)a
 
   # A named booster's example would show another set's logo.
   defp generic_photo(%{type: :booster, name: set}) when is_binary(set), do: nil

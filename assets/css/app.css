@@ -895,7 +895,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .contents-items { background: var(--paper); column-gap: 1.5rem; display: grid; list-style: none; margin: 0; overflow: clip; padding: 0 .75rem; }
 @media (min-width: 46rem) { .guide-world .contents-items { grid-auto-flow: column; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(var(--rows), auto); } }
 /* Each line is ruled below; the last row's rule falls just outside the box and is clipped. */
-.guide-world .contents-items li { align-items: first baseline; border-block-end: 1px solid var(--rule); display: flex; gap: .75rem; margin-block-end: -1px; padding-block: .5rem; }
+.guide-world .contents-items li { align-items: center; border-block-end: 1px solid var(--rule); display: flex; gap: .75rem; margin-block-end: -1px; padding-block: .5rem; }
+.guide-world .contents-text { align-items: first baseline; display: flex; flex: 1 1 auto; gap: .75rem; min-inline-size: 0; }
 .guide-world .contents-label { flex: 1 1 auto; min-inline-size: 0; }
 .guide-world .contents-items img { align-self: start; block-size: 3rem; border-radius: 2px; flex: none; inline-size: auto; }
 /* A contents photo opens its larger copy; wide pictures stay in the row. */
