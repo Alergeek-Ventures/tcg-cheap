@@ -235,6 +235,12 @@ defmodule TcgCheapWeb.ProductLive do
             boosters={@page.boosters}
           />
 
+          <.deck_list
+            :for={{deck, index} <- deck_lists(@page.product.contents)}
+            deck={deck}
+            index={index}
+          />
+
           <%= if @page.booster_set do %>
             <.pull_rates
               pull_rates={@page.booster_set.pull_rates}
@@ -478,7 +484,10 @@ defmodule TcgCheapWeb.ProductLive do
   end
 
   defp contents(assigns) do
-    items = Enum.sort_by(assigns.contents.items, &item_rank(&1.type))
+    items =
+      assigns.contents.items
+      |> Enum.with_index()
+      |> Enum.sort_by(fn {item, _index} -> item_rank(item.type) end)
 
     assigns =
       assign(assigns,
@@ -493,7 +502,7 @@ defmodule TcgCheapWeb.ProductLive do
         <p>{gettext("sprawdzono %{date}", date: Polish.date(@contents.checked_on))}</p>
       </div>
       <ul id="contents-items" class="contents-items" style={"--rows: #{@rows}"}>
-        <li :for={item <- @items}>
+        <li :for={{item, index} <- @items}>
           <span class="contents-quantity">{item.quantity}×</span>
           <span class="contents-label">
             <%= cond do %>
@@ -509,6 +518,13 @@ defmodule TcgCheapWeb.ProductLive do
                 {item_label(item)}
             <% end %>
             <span :if={item.set} class="contents-card-set">{item.set} {item.number}</span>
+            <a
+              :if={item.cards not in [nil, []]}
+              href={"#deck-list-#{index}"}
+              class="contents-card-set"
+            >
+              {gettext("lista kart talii")}
+            </a>
           </span>
           <%= cond do %>
             <% image_url = CardImage.thumbnail_url(item.image) -> %>
@@ -596,6 +612,93 @@ defmodule TcgCheapWeb.ProductLive do
     </section>
     """
   end
+
+  # Fixed decks whose card list we know, by their place in the contents.
+  defp deck_lists(nil), do: []
+
+  defp deck_lists(contents) do
+    for {%{type: :deck, cards: [_card | _more]} = deck, index} <- Enum.with_index(contents.items),
+        do: {deck, index}
+  end
+
+  attr :deck, :map, required: true
+  attr :index, :integer, required: true
+
+  defp deck_list(assigns) do
+    groups =
+      assigns.deck.cards
+      |> Enum.group_by(& &1.category)
+      |> Enum.sort_by(fn {category, _cards} -> category_rank(category) end)
+      |> Enum.map(fn {category, cards} ->
+        %{category: category, cards: cards, count: cards |> Enum.map(& &1.quantity) |> Enum.sum()}
+      end)
+
+    assigns =
+      assign(assigns,
+        groups: groups,
+        count: groups |> Enum.map(& &1.count) |> Enum.sum()
+      )
+
+    ~H"""
+    <section
+      id={"deck-list-#{@index}"}
+      class="product-section"
+      aria-labelledby={"deck-list-#{@index}-title"}
+    >
+      <div class="product-section-heading">
+        <h2 id={"deck-list-#{@index}-title"}>{deck_title(@deck)}</h2>
+        <p>{Polish.plural(@count, "karta", "karty", "kart")}</p>
+      </div>
+      <div :for={group <- @groups} class="deck-list-group">
+        <h3>
+          {category_label(group.category)} <span class="deck-list-count">{group.count}</span>
+        </h3>
+        <ul class="contents-items" style={"--rows: #{ceil(length(group.cards) / 2)}"}>
+          <li :for={card <- group.cards}>
+            <span class="contents-quantity">{card.quantity}×</span>
+            <span class="contents-label">
+              <a
+                :if={card.cardmarket_id}
+                href={cardmarket_url(card.cardmarket_id)}
+                target="_blank"
+                rel="noopener nofollow"
+              >{card.name}</a>
+              <span :if={!card.cardmarket_id}>{card.name}</span>
+              <span :if={card.set} class="contents-card-set">{card.set} {card.number}</span>
+            </span>
+            <a
+              :if={image_url = CardImage.thumbnail_url(card.image)}
+              href={CardImage.detail_url(card.image)}
+              class="contents-photo"
+              data-photo-preview
+              aria-label={gettext("Zdjęcie: %{item}", item: card.name)}
+            >
+              <img src={image_url} alt="" width="34" height="48" loading="lazy" />
+            </a>
+            <span :if={!card.image} class="contents-photo-missing">{gettext("brak zdjęcia")}</span>
+          </li>
+        </ul>
+      </div>
+      <p class="guide-note">
+        {gettext(
+          "Karty według listy wydawcy; set, numer i zdjęcie z TCGdex, nazwa otwiera kartę na Cardmarket."
+        )}
+      </p>
+    </section>
+    """
+  end
+
+  defp deck_title(%{name: nil}), do: gettext("Karty w talii")
+  defp deck_title(%{name: deck}), do: gettext("Karty w talii %{deck}", deck: deck)
+
+  @category_order ["Pokemon", "Trainer", "Energy"]
+  defp category_rank(category),
+    do: Enum.find_index(@category_order, &(&1 == category)) || length(@category_order)
+
+  defp category_label("Pokemon"), do: gettext("Pokémon")
+  defp category_label("Trainer"), do: gettext("Karty Trenera")
+  defp category_label("Energy"), do: gettext("Energia")
+  defp category_label(_other), do: gettext("Inne karty")
 
   # A booster of a named set links to our page for that set's single booster.
   defp booster(%{type: :booster, name: set}, boosters) when is_binary(set), do: boosters[set]
