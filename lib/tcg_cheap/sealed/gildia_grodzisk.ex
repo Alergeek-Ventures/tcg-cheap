@@ -9,7 +9,8 @@ defmodule TcgCheap.Sealed.GildiaGrodzisk do
   A product counts when it is sealed Pokémon
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on its title and the category
   heading). It is in stock when its card has a working add-to-cart button and
-  is marked "Dostępny" without "Przedsprzedaż" (pre-order); a disabled button
+  is marked "Dostępny" without "Przedsprzedaż" (with it, a pre-order:
+  `preorder`); a disabled button
   ("Niedostępny", "Sprawdź dostępność") is not. The product id is the shop's
   own, from the cart form or the availability dialog of the card. Prices are in
   złoty. The listing has no EAN. See `TcgCheap.Sealed.ShopFeed` for the shared
@@ -97,7 +98,7 @@ defmodule TcgCheap.Sealed.GildiaGrodzisk do
          {:ok, id} <- ShopFeed.product_id(product_id(product)),
          {:ok, url} <- product_url(shop, product),
          {:ok, price} <- price(product),
-         {:ok, in_stock} <- in_stock(product) do
+         {:ok, availability} <- availability(product) do
       {:ok,
        [
          %{
@@ -106,9 +107,9 @@ defmodule TcgCheap.Sealed.GildiaGrodzisk do
            url: url,
            image_url: image_url(shop, product),
            ean: nil,
-           price: price,
-           in_stock: in_stock
+           price: price
          }
+         |> Map.merge(availability)
        ]}
     else
       :ignore -> :ignore
@@ -141,15 +142,15 @@ defmodule TcgCheap.Sealed.GildiaGrodzisk do
     end
   end
 
-  defp in_stock(product) do
+  defp availability(product) do
     button = Floki.find(product, "button.front-product-card__cart-button")
     badges = product |> Floki.find(".front-product-card__badge") |> Floki.text()
 
     cond do
-      Floki.attribute(button, "disabled") != [] -> {:ok, false}
+      Floki.attribute(button, "disabled") != [] -> {:ok, %{in_stock: false, preorder: false}}
       button == [] -> :error
-      String.contains?(badges, "Przedsprzedaż") -> {:ok, false}
-      String.contains?(badges, "Dostępny") -> {:ok, true}
+      String.contains?(badges, "Przedsprzedaż") -> {:ok, %{in_stock: false, preorder: true}}
+      String.contains?(badges, "Dostępny") -> {:ok, %{in_stock: true, preorder: false}}
       true -> :error
     end
   end

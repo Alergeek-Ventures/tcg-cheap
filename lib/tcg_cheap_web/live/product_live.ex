@@ -334,8 +334,8 @@ defmodule TcgCheapWeb.ProductLive do
         <.offer_delivery offer={@offer} location={@location} />
       </div>
       <p class="offer-price">
-        <strong>{Polish.price(@offer.price)}</strong>
         <span :if={@offer.preorder} class="offer-preorder-label">{gettext("przedsprzedaż")}</span>
+        <strong>{Polish.price(@offer.price)}</strong>
         <span
           :if={(!@offer.in_stock and !@offer.preorder) or @checked_on != @today}
           class="offer-checked"

@@ -16,8 +16,9 @@ defmodule TcgCheap.Sealed.Matcher do
 
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
-  history. Titles for preorders, multi-item bundles, empty, damaged, opened or
-  used boxes, singles and accessories are excluded outright. Otherwise a known
+  history. Titles for multi-item bundles, empty, damaged, opened or used
+  boxes, singles and accessories are excluded outright; a title naming a
+  pre-order matches like any other (`preorder_title?/1` marks the offer). Otherwise a known
   EAN (`TcgCheap.Sealed.known_eans/0`) wins over the title.
   """
 
@@ -93,13 +94,10 @@ defmodule TcgCheap.Sealed.Matcher do
                    kit toolkit chest wcd academy showcase calendar classic stadium sticker
                    checklane portfolio album)
 
+  # Words of a title that sells a pre-order ("Przedsprzedaż", "przedpremierowy"…).
+  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order)/
+
   @exclusions [
-    "preorder",
-    "pre order",
-    "przedsprzedaz",
-    "przedpremiera",
-    "przedpremierowy",
-    "przedpremierowa",
     "zestaw",
     "wzorow",
     "komplet",
@@ -196,7 +194,11 @@ defmodule TcgCheap.Sealed.Matcher do
     end
   end
 
-  @doc "Whether a title is excluded outright (preorder, bundle of many, accessory…)."
+  @doc ~s{Whether a title sells a pre-order ("Przedsprzedaż", "Preorder"…).}
+  @spec preorder_title?(String.t()) :: boolean()
+  def preorder_title?(title), do: Regex.match?(@preorder, normalize(title))
+
+  @doc "Whether a title is excluded outright (bundle of many, accessory…)."
   @spec excluded?(String.t()) :: boolean()
   def excluded?(title), do: exclusion(normalize(title)) != nil
 

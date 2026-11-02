@@ -625,7 +625,10 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .verdict-insufficient_data { border-style: dashed; color: var(--muted); }
 .guide-world .verdict-out_of_stock { border-color: transparent; color: var(--muted); padding-inline: 0; }
 /* A pre-order: rated like stock, but the shop ships on the premiere. */
-.guide-world .guide-product-preorder { align-items: center; border: 1px dotted currentColor; display: inline-flex; font: 700 .85rem/1 "Barlow Condensed", sans-serif; gap: .3rem; margin: .35rem 0 0; padding: .2rem .4rem; white-space: nowrap; }
+.guide-world .guide-product-preorder { align-items: center; border: 1px dotted currentColor; display: inline-flex; font: 700 .85rem/1 "Barlow Condensed", sans-serif; gap: .3rem; padding: .2rem .4rem; white-space: nowrap; }
+/* A pre-order's mark stands left of its price. */
+.guide-world .guide-product-price:has(.guide-product-preorder) { align-items: center; flex-direction: row; flex-wrap: nowrap; }
+.guide-world .guide-product-deal .guide-product-preorder .verdict-mark { order: 0; }
 .guide-world .guide-product-deal .verdict-badge { justify-content: center; min-inline-size: 9.5rem; }
 /* Wide rows: picture, name, then shop, verdict and price in fixed columns, so every row lines up.
    When the row is too narrow for all of them, the deal moves under the name, from the left. */
@@ -635,13 +638,13 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 @media (min-width: 42.01rem) {
   .guide-world .guide-product-link { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr) auto; }
   .guide-world .guide-product-image { grid-row: span var(--deal-rows, 1); }
-  .guide-world .guide-product-deal { display: grid; grid-template-columns: 11rem 10rem 6.5rem; margin-inline-start: 0; max-inline-size: none; }
+  .guide-world .guide-product-deal { display: grid; grid-template-columns: 11rem 10rem minmax(6.5rem, max-content); margin-inline-start: 0; max-inline-size: none; }
   .guide-world .guide-product-shop { grid-column: 1; }
   .guide-world .guide-product-deal .verdict-badge { grid-column: 2; inline-size: 100%; justify-content: space-between; min-inline-size: 0; }
   .guide-world .guide-product-price { flex-direction: column; align-items: flex-end; grid-column: 3; }
   @container (max-width: 52rem) {
     .guide-world .guide-product-link { --deal-rows: 2; }
-    .guide-world .guide-product-deal { grid-column: 2 / -1; grid-template-columns: minmax(0, 1fr) 10rem 6.5rem; }
+    .guide-world .guide-product-deal { grid-column: 2 / -1; grid-template-columns: minmax(0, 1fr) 10rem minmax(6.5rem, max-content); }
   }
 }
 
@@ -779,7 +782,7 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .offer-shop { display: grid; gap: .1rem; grid-area: shop; min-width: 0; }
 .guide-world .offer-shop strong { font: 700 1.25rem/1.1 "Barlow Condensed", sans-serif; }
 .guide-world .offer-delivery { color: var(--muted); font-size: .875rem; line-height: 1.45; }
-.guide-world .offer-price { display: grid; gap: .2rem; grid-area: price; justify-items: end; margin: 0; }
+.guide-world .offer-price { display: grid; gap: .2rem .5rem; grid-area: price; justify-items: end; margin: 0; }
 .guide-world .offer-price strong { font: 700 1.6rem/1 "Barlow Condensed", sans-serif; }
 .guide-world .offer-unavailable .offer-price { color: var(--muted); }
 .guide-world .offer-checked { color: var(--muted); font-size: .875rem; text-align: end; }
@@ -791,7 +794,10 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .offers-preorder { margin-top: .75rem; }
 .guide-world .offers-preorder h3 { align-items: center; display: flex; font: inherit; font-size: 1rem; min-height: 3rem; }
 .guide-world .offers-preorder .offer-list { margin-top: .25rem; }
-.guide-world .offer-preorder-label { border: 1px dotted currentColor; font: 700 .85rem/1 "Barlow Condensed", sans-serif; padding: .15rem .35rem; white-space: nowrap; }
+/* The pre-order mark sits left of the price, any note below both. */
+.guide-world .offer-price strong { grid-area: 1 / 2; }
+.guide-world .offer-price .offer-checked { grid-column: 1 / -1; }
+.guide-world .offer-preorder-label { align-self: center; border: 1px dotted currentColor; font: 700 .85rem/1 "Barlow Condensed", sans-serif; padding: .15rem .35rem; white-space: nowrap; }
 /* A callout, not a footnote: read before paying. */
 .guide-world .offer-disclaimer { align-items: center; background: var(--bench-light); border: 1px solid var(--rule); color: var(--ink); display: flex; gap: .75rem; margin: 1rem 0 0; padding: .75rem 1rem; }
 .guide-world .offer-disclaimer .fluent-icon { block-size: 1.5rem; color: var(--orange); flex: 0 0 auto; inline-size: 1.5rem; stroke: currentColor; stroke-width: .6; }
@@ -899,6 +905,10 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   .guide-world .guide-product-shop { display: none; }
   .guide-world .guide-product-deal .verdict-badge { grid-column: 1; justify-self: start; min-inline-size: 0; }
   .guide-world .guide-product-price { align-items: flex-end; flex-direction: column; grid-column: 2; }
+  /* No room beside the verdict: the pre-order mark goes over the price. */
+  .guide-world .guide-product-price:has(.guide-product-preorder) { display: contents; }
+  .guide-world .guide-product-price .guide-product-preorder { grid-area: 1 / 1 / auto / -1; justify-self: end; }
+  .guide-world .guide-product-price:has(.guide-product-preorder) strong { grid-column: 2; }
   .guide-world .guide-product-deal .verdict-insufficient_data { letter-spacing: 0; padding-inline: .4rem; }
   .guide-world .guide-product-deal .verdict-insufficient_data .verdict-mark { display: none; }
   .guide-world .offer { grid-template-areas: "shop price" "shop link"; grid-template-columns: minmax(0, 1fr) auto; }

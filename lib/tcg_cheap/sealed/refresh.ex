@@ -59,7 +59,14 @@ defmodule TcgCheap.Sealed.Refresh do
   end
 
   defp upsert_offers(shop, fetched, now) do
-    inputs = Enum.map(fetched, &Map.merge(&1, %{shop: shop.key, last_seen_at: now}))
+    inputs =
+      Enum.map(
+        fetched,
+        &(&1
+          |> Map.put_new(:preorder, false)
+          |> preorder_by_title()
+          |> Map.merge(%{shop: shop.key, last_seen_at: now}))
+      )
 
     %Ash.BulkResult{status: :success} =
       Ash.bulk_create!(inputs, Offer, :upsert,
@@ -68,6 +75,13 @@ defmodule TcgCheap.Sealed.Refresh do
         stop_on_error?: true
       )
   end
+
+  # An offer for sale whose title says pre-order is one, whatever the feed says.
+  defp preorder_by_title(%{in_stock: true, title: title} = offer) do
+    if Matcher.preorder_title?(title), do: %{offer | in_stock: false, preorder: true}, else: offer
+  end
+
+  defp preorder_by_title(offer), do: offer
 
   @doc "Runs a manual write and recomputes prices in the same transaction."
   @spec with_recompute((-> {:ok, record, list()} | {:error, term()})) ::

@@ -1338,7 +1338,7 @@ msgid "najtaniej w przedsprzedaży w"
 msgstr "cheapest pre-order at"
 
 #: lib/tcg_cheap_web/components/guide_components.ex:599
-#: lib/tcg_cheap_web/live/product_live.ex:338
+#: lib/tcg_cheap_web/live/product_live.ex:337
 #, elixir-autogen, elixir-format
 msgid "przedsprzedaż"
 msgstr "pre-order"
