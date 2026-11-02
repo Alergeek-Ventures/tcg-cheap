@@ -827,7 +827,12 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 /* Each line is ruled below; the last row's rule falls just outside the box and is clipped. */
 .guide-world .contents-items li { align-items: first baseline; border-block-end: 1px solid var(--rule); display: flex; gap: .75rem; margin-block-end: -1px; padding-block: .5rem; }
 .guide-world .contents-label { flex: 1 1 auto; min-inline-size: 0; }
-.guide-world .contents-items img { align-self: center; block-size: 3rem; border-radius: 2px; flex: none; inline-size: auto; }
+.guide-world .contents-items img { align-self: start; block-size: 3rem; border-radius: 2px; flex: none; inline-size: auto; }
+/* A contents photo opens its larger copy; wide pictures stay in the row. */
+.guide-world .contents-photo { align-self: start; cursor: zoom-in; display: flex; flex: none; }
+.guide-world .contents-photo img { max-inline-size: 5.5rem; mix-blend-mode: multiply; object-fit: contain; }
+@media (hover: hover) and (pointer: fine) { .guide-world .contents-photo:hover img { outline: 1px solid var(--orange); outline-offset: 2px; } }
+.guide-world .contents-photo:focus-visible img { outline: 2px solid var(--orange); outline-offset: 2px; }
 .guide-world .contents-quantity { flex: none; font-variant-numeric: tabular-nums; font-weight: 700; min-inline-size: 2.5rem; }
 .guide-world .contents-card-set { color: var(--muted); display: block; font-size: .8rem; }
 .guide-world .contents-label a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }

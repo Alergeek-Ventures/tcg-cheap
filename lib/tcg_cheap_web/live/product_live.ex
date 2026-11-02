@@ -6,6 +6,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   import TcgCheapWeb.GuideComponents
 
+  alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Regions, Shops}
   alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
 
@@ -370,14 +371,19 @@ defmodule TcgCheapWeb.ProductLive do
             <% end %>
             <span :if={item.set} class="contents-card-set">{item.set} {item.number}</span>
           </span>
-          <img
-            :if={image_url = TcgCheap.Catalogue.CardImage.thumbnail_url(item.image)}
-            src={image_url}
-            alt=""
-            width="34"
-            height="48"
-            loading="lazy"
-          />
+          <%= cond do %>
+            <% image_url = CardImage.thumbnail_url(item.image) -> %>
+              <img src={image_url} alt="" width="34" height="48" loading="lazy" />
+            <% photo_url = CardImage.photo_url(item.photo, "thumbnail") -> %>
+              <a
+                href={CardImage.photo_url(item.photo, "detail")}
+                class="contents-photo"
+                aria-label={gettext("Zdjęcie: %{item}", item: item_label(item))}
+              >
+                <img src={photo_url} alt="" height="48" loading="lazy" />
+              </a>
+            <% true -> %>
+          <% end %>
         </li>
       </ul>
       <p class="guide-note">
