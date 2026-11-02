@@ -314,7 +314,7 @@ msgid "Rozszerzenie"
 msgstr "Rozszerzenie"
 
 #: lib/tcg_cheap_web/seo.ex:20
-#: lib/tcg_cheap_web/social_image.ex:78
+#: lib/tcg_cheap_web/social_image.ex:77
 #, elixir-autogen, elixir-format
 msgid "Sprawdź, czy cena jest dobra"
 msgstr "Sprawdź, czy cena jest dobra"
@@ -344,7 +344,7 @@ msgstr "Talia"
 #: lib/tcg_cheap_web/live/product_live.ex:1547
 #: lib/tcg_cheap_web/live/product_live.ex:1598
 #: lib/tcg_cheap_web/seo.ex:122
-#: lib/tcg_cheap_web/social_image.ex:175
+#: lib/tcg_cheap_web/social_image.ex:174
 #, elixir-autogen, elixir-format
 msgid "Teraz żaden sklep nie ma tego produktu na stanie."
 msgstr "Teraz żaden sklep nie ma tego produktu na stanie."
@@ -399,7 +399,7 @@ msgstr "Wczytuję…"
 msgid "Wersja językowa"
 msgstr "Wersja językowa"
 
-#: lib/tcg_cheap_web/social_image.ex:296
+#: lib/tcg_cheap_web/social_image.ex:295
 #, elixir-autogen, elixir-format
 msgid "Widzisz cenę w sklepie?"
 msgstr "Widzisz cenę w sklepie?"
@@ -556,7 +556,7 @@ msgid "Cena sugerowana"
 msgstr "Cena sugerowana"
 
 #: lib/tcg_cheap_web/live/product_live.ex:156
-#: lib/tcg_cheap_web/social_image.ex:183
+#: lib/tcg_cheap_web/social_image.ex:182
 #, elixir-autogen, elixir-format
 msgid "Cena sugerowana (REBEL): %{price}"
 msgstr "Cena sugerowana (REBEL): %{price}"
@@ -754,27 +754,27 @@ msgstr "Porównaj ceny Pokémon TCG w polskich sklepach. Sprawdź oferty booster
 msgid "%{verdict}: najtaniej teraz %{price} w %{shop}."
 msgstr "%{verdict}: najtaniej teraz %{price} w %{shop}."
 
-#: lib/tcg_cheap_web/social_image.ex:292
+#: lib/tcg_cheap_web/social_image.ex:291
 #, elixir-autogen, elixir-format
 msgid "do 110% typowej ceny"
 msgstr "do 110% typowej ceny"
 
-#: lib/tcg_cheap_web/social_image.ex:291
+#: lib/tcg_cheap_web/social_image.ex:290
 #, elixir-autogen, elixir-format
 msgid "do 95% typowej ceny"
 msgstr "do 95% typowej ceny"
 
-#: lib/tcg_cheap_web/social_image.ex:168
+#: lib/tcg_cheap_web/social_image.ex:167
 #, elixir-autogen, elixir-format
 msgid "najtaniej teraz w %{shop}"
 msgstr "najtaniej teraz w %{shop}"
 
-#: lib/tcg_cheap_web/social_image.ex:172
+#: lib/tcg_cheap_web/social_image.ex:171
 #, elixir-autogen, elixir-format
 msgid "ostatnio najtaniej · %{date}"
 msgstr "ostatnio najtaniej · %{date}"
 
-#: lib/tcg_cheap_web/social_image.ex:293
+#: lib/tcg_cheap_web/social_image.ex:292
 #, elixir-autogen, elixir-format
 msgid "powyżej 110% typowej ceny"
 msgstr "powyżej 110% typowej ceny"
@@ -810,7 +810,7 @@ msgid "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket przeliczonym
 msgstr "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
 
 #: lib/tcg_cheap_web/live/product_live.ex:1582
-#: lib/tcg_cheap_web/social_image.ex:221
+#: lib/tcg_cheap_web/social_image.ex:220
 #, elixir-autogen, elixir-format
 msgid "Typowa cena dziś w %{shops}: %{price}"
 msgstr "Typowa cena dziś w %{shops}: %{price}"
@@ -1366,7 +1366,7 @@ msgstr "Ocenę pokażemy, gdy produkt będzie w przedsprzedaży w co najmniej %{
 msgid "Produkt jest teraz w przedsprzedaży w %{shops}. Porównamy ceny, gdy będzie w co najmniej %{minimum} sklepach."
 msgstr "Produkt jest teraz w przedsprzedaży w %{shops}. Porównamy ceny, gdy będzie w co najmniej %{minimum} sklepach."
 
-#: lib/tcg_cheap_web/social_image.ex:70
+#: lib/tcg_cheap_web/social_image.ex:69
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG z polskich sklepów, sprawdzane codziennie."
 msgstr ""
@@ -1379,4 +1379,20 @@ msgstr ""
 #: lib/tcg_cheap_web/live/home_live.ex:380
 #, elixir-autogen, elixir-format
 msgid "Wpisz produkt Pokémon TCG, a pokażemy najtańszą ofertę w polskich sklepach i powiemy, czy cena jest dobra."
+msgstr ""
+
+#: lib/tcg_cheap_web/components/layouts.ex:48
+#, elixir-autogen, elixir-format
+msgid "Brak połączenia"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/layouts.ex:49
+#, elixir-autogen, elixir-format
+msgid "Coś poszło nie tak"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/layouts.ex:48
+#: lib/tcg_cheap_web/components/layouts.ex:49
+#, elixir-autogen, elixir-format
+msgid "Łączymy ponownie"
 msgstr ""

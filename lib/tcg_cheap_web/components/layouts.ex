@@ -4,6 +4,7 @@ defmodule TcgCheapWeb.Layouts do
   used by your application.
   """
   use TcgCheapWeb, :html
+  use Gettext, backend: TcgCheapWeb.Gettext
 
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
@@ -41,8 +42,29 @@ defmodule TcgCheapWeb.Layouts do
       connected={assigns[:socket] != nil}
       toasts_sync={assigns[:toasts_sync]}
       corner={:top_right}
+      toast_class_fn={&toast_class/1}
+      connection_notifications={
+        %{
+          client_error: %{title: gettext("Brak połączenia"), body: gettext("Łączymy ponownie")},
+          server_error: %{title: gettext("Coś poszło nie tak"), body: gettext("Łączymy ponownie")}
+        }
+      }
     />
     """
+  end
+
+  @doc """
+  LiveToast's toast classes: the library's layout and its show and hide
+  classes, with site.css drawing the toast (`.site-toast`).
+  """
+  @spec toast_class(map()) :: list()
+  def toast_class(assigns) do
+    [
+      "site-toast site-toast-#{assigns[:kind]}",
+      "group/toast pointer-events-auto relative z-[100] col-start-1 col-end-1 row-start-1 row-end-2 w-full origin-center overflow-hidden items-center justify-between",
+      "[@media(scripting:enabled)]:opacity-0 [@media(scripting:enabled)]:[[data-phx-main]_&]:opacity-100",
+      if(assigns[:rest][:hidden] == true, do: "hidden", else: "flex")
+    ]
   end
 
   attr :flash, :map, required: true, doc: "the map of flash messages"
