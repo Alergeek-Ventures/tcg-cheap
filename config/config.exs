@@ -281,15 +281,12 @@ config :sentry,
   enable_source_code_context: true,
   root_source_code_paths: [File.cwd!()],
   in_app_otp_apps: [:tcg_cheap],
-  scrubber: [param_keys: ["location"]]
-
-# Crashes reach this handler after TcgCheapWeb.LocationLogFilter. Bandit logs
-# a crashed request under the :bandit domain, which Sentry skips by default
-# (it expects Sentry.PlugCapture, not recommended with Bandit).
-config :tcg_cheap, :logger, [
-  {:handler, :sentry_handler, Sentry.LoggerHandler,
-   %{config: %{capture_excluded_domains: [:cowboy]}}}
-]
+  scrubber: [param_keys: ["location"]],
+  # Attaches Sentry's logger handler, which reports crashes after
+  # TcgCheapWeb.LocationLogFilter; prod.exs also sends logs. Bandit logs a
+  # crashed request under the :bandit domain, which Sentry skips by default (it
+  # expects Sentry.PlugCapture, not recommended with Bandit).
+  logs: [capture_excluded_domains: [:cowboy]]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

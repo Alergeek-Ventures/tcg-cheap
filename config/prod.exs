@@ -38,5 +38,8 @@ config :tcg_cheap, :storage,
 # Do not print debug messages in production
 config :logger, level: :info
 
+# Log lines from :info up also go to Sentry Logs.
+config :sentry, logs: [level: :info]
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
