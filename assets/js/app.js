@@ -51,6 +51,58 @@ import topbar from "../vendor/topbar"
   })
 })()
 
+// Page transitions: LiveView navigations (links, back and forward) cross-fade
+// as a view transition, and the product photo moves between its row in the
+// list and the product page. Other patches (search, filters, live updates)
+// apply at once.
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)")
+// Names the photo of the list row linking to `path`, the one that moves.
+const nameRowPhoto = path => {
+  document.querySelectorAll(".guide-product-image").forEach(el => el.style.viewTransitionName = "")
+  const photo = path && document.querySelector(`.guide-product-link[href="${CSS.escape(path)}"] .product-image`)
+  if (photo) photo.style.viewTransitionName = "product-photo"
+}
+let shownPath = location.pathname
+let navigatingFrom = null
+// Patches arriving while a transition waits to apply its own, applied in order after it.
+let heldPatches = null
+
+// A link navigation announces itself before the new page arrives; back and
+// forward only after the address has already changed.
+window.addEventListener("phx:page-loading-start", ({detail}) => {
+  if (detail.kind === "redirect") navigatingFrom = location.pathname
+})
+window.addEventListener("phx:navigate", ({detail}) => {
+  if (detail.pop && !detail.patch) {
+    navigatingFrom = shownPath
+    nameRowPhoto(location.pathname)
+  }
+  shownPath = location.pathname
+})
+window.addEventListener("phx:page-loading-stop", ({detail}) => {
+  if (detail.kind === "redirect") navigatingFrom = null
+})
+document.addEventListener("click", e => nameRowPhoto(e.target.closest?.(".guide-product-link")?.getAttribute("href")), true)
+
+const onDocumentPatch = start => {
+  if (heldPatches) return heldPatches.push(start)
+  const from = navigatingFrom
+  if (!from || !document.startViewTransition || reduceMotion.matches) return start()
+
+  navigatingFrom = null
+  heldPatches = []
+  document.startViewTransition(() => {
+    try {
+      start()
+      // Back on the list, the photo returns to its product's row.
+      nameRowPhoto(from)
+      while (heldPatches.length) heldPatches.shift()()
+    } finally {
+      heldPatches = null
+    }
+  }).finished.finally(() => nameRowPhoto(null))
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
@@ -58,6 +110,13 @@ const liveSocket = new LiveSocket("/live", Socket, {
   // proxies log. The VisitorLocation hook sends it as an event instead.
   params: backpexParams({_csrf_token: csrfToken}),
   hooks: {...colocatedHooks, CardAutocomplete, TradeShare, VisitorLocation, ...BackpexHooks},
+  dom: {
+    onDocumentPatch,
+    // A loaded photo stays shown when LiveView patches it (the mark is set in the root layout).
+    onBeforeElUpdated(from, to) {
+      if (from.hasAttribute("data-loaded") && from.getAttribute("src") === to.getAttribute("src")) to.setAttribute("data-loaded", "")
+    },
+  },
 })
 
 // Bring an element to the top once the layout above it has changed, e.g. the

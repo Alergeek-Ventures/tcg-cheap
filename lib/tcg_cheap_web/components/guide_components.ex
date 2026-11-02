@@ -165,9 +165,14 @@ defmodule TcgCheapWeb.GuideComponents do
 
   @doc """
   Product packaging image from our storage, else a placeholder drawn for its kind.
+
+  With a `blur` (the photo's tiny inline preview), the preview shows blurred
+  right away and the photo fades in over it once it has loaded (see the
+  `data-progressive` script in the root layout).
   """
   attr :photo, :string, default: nil
   attr :page_photo, :string, default: nil
+  attr :blur, :string, default: nil
   attr :sizes, :string, default: nil
   attr :kind, :atom, default: nil
   attr :alt, :string, required: true
@@ -189,8 +194,10 @@ defmodule TcgCheapWeb.GuideComponents do
 
     ~H"""
     <div class={["product-image", !@url && "product-image-placeholder", @class]}>
+      <img :if={@url && @blur} src={@blur} alt="" aria-hidden="true" class="product-image-blur" />
       <img
         :if={@url}
+        data-progressive={@blur && true}
         src={@url}
         srcset={@srcset}
         sizes={@srcset && @sizes}

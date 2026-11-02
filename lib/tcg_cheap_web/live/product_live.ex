@@ -113,6 +113,7 @@ defmodule TcgCheapWeb.ProductLive do
           <div class="product-top">
             <.product_image
               photo={@page.product.photo_page_url}
+              blur={@page.product.photo_placeholder}
               kind={@page.product.kind}
               alt={@page.product.name}
               class="product-hero-image"
