@@ -192,6 +192,12 @@ defmodule TcgCheap.Sealed.Product do
                 ]
               )
     end
+
+    action :facet_counts, {:array, :map} do
+      description "The `:facets` products of a search, counted per edition, kind, expansion and set name."
+      argument :query, :string, default: ""
+      run TcgCheap.Sealed.Product.FacetCounts
+    end
   end
 
   validations do

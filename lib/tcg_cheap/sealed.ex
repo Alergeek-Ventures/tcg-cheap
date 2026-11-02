@@ -143,6 +143,8 @@ defmodule TcgCheap.Sealed do
           {:optional, :expansion}
         ]
 
+      define :count_product_facets, action: :facet_counts, args: [{:optional, :query}]
+
       define :set_product_availability, action: :set_availability
       define :set_product_eans, action: :set_eans, args: [:eans]
       define :set_product_contents, action: :set_contents, args: [:contents]
