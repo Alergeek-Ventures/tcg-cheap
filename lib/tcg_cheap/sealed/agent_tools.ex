@@ -2,8 +2,8 @@ defmodule TcgCheap.Sealed.AgentTools do
   @moduledoc """
   Actions behind the MCP tools for AI agents (see the `tools` of
   `TcgCheap.Sealed`): shop status, offer lists, product detail, match
-  explanations, manual decisions, product barcodes and contents, REBEL
-  suggested prices and fetch/import jobs.
+  explanations, manual decisions, product barcodes and contents, set pull
+  rates, REBEL suggested prices and fetch/import jobs.
   They do what the admin buying-guide desk
   (`TcgCheapWeb.Admin.BuyingGuideLive`) does and store nothing themselves.
   """
@@ -18,6 +18,7 @@ defmodule TcgCheap.Sealed.AgentTools do
     ProductDetail,
     SetContents,
     SetEans,
+    SetPullRates,
     ShopStatus,
     SuggestedPrices
   }
@@ -238,6 +239,32 @@ defmodule TcgCheap.Sealed.AgentTools do
       run SetContents
     end
 
+    action :set_pull_rates, :map do
+      description """
+      Replaces a set's pull rates, shown on the page of its English single booster: how often a
+      pack holds each rarity, as estimated by people who opened many packs (never official
+      numbers). Find the set by its English TCGdex id or name. Give cards_per_pack when a source
+      says it; one rate per rarity, named as TCGdex names the set's cards (a TCGdex rarity the
+      set's cards lack is rejected; other rows such as "Reverse Rare" pass), its per_pack in one
+      of the forms "1 in 5", "about 1 in 12", "1 in 1,081", "3 per pack" or "5.39% (20 of 371
+      packs)", optionally the percent per pack, and card (its TCGdex name) when the rate is for
+      that one card rather than the whole rarity; every https source read, with sample_packs
+      (packs opened) when it says and data_from when it cites someone else's data (e.g.
+      TCGplayer); and the day they were checked. Record only estimates a source states, never
+      guesses. Unknown keys are rejected. pull_rates null removes them. Rates are refused for a
+      set without cardmarket_expansion_id (it has no booster page) and until the cards of every
+      English set of its expansion are synced. Returns the set with its pull rates.
+      """
+
+      argument :set, :string,
+        allow_nil?: false,
+        description: "The English TCGdex set id (e.g. sv09) or name (e.g. Journey Together)."
+
+      argument :pull_rates, TcgCheap.Sealed.PullRates
+
+      run SetPullRates
+    end
+
     action :enqueue_shop_fetch, :map do
       description """
       Queues a background fetch of one shop's product feed; it upserts the offers, re-matches every
@@ -258,6 +285,17 @@ defmodule TcgCheap.Sealed.AgentTools do
       """
 
       run {Enqueue, job: :catalogue_import}
+    end
+
+    action :enqueue_card_sync, :map do
+      description """
+      Queues a background copy of the TCGdex set cards (also run daily), which set_pull_rates
+      needs before it accepts a set's rates. One run stops after five minutes; queue another while
+      sets remain unsynced. Returns the job; `already_queued` is true when a copy was already
+      waiting or running.
+      """
+
+      run {Enqueue, job: :card_sync}
     end
 
     action :suggested_prices, :map do

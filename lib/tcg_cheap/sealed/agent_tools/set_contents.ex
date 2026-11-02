@@ -12,14 +12,20 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   alias Ash.Error.Action.InvalidArgument
   alias TcgCheap.Catalogue.{ExternalImage, Tcgdex}
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.AgentTools.Json
+  alias TcgCheap.Sealed.AgentTools.{Json, KnownKeys}
 
   @contents ~w(items sources checked_on)
   @item ~w(quantity type name tcgdex_id set number cardmarket_id image photo)
 
   @impl true
   def run(input, _opts, _context) do
-    with :ok <- known_keys(input.params["contents"] || input.params[:contents]),
+    with :ok <-
+           KnownKeys.check(
+             input.params["contents"] || input.params[:contents],
+             :contents,
+             @contents,
+             %{"items" => @item}
+           ),
          {:ok, product} <- product(input.arguments.product_id),
          {:ok, contents} <- with_cards(input.arguments[:contents]),
          {:ok, product} <- Sealed.set_product_contents(product, contents) do
@@ -95,38 +101,6 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
 
   defp normalize(name),
     do: name |> String.normalize(:nfd) |> String.replace(~r/\p{Mn}/u, "") |> String.downcase()
-
-  defp known_keys(contents) do
-    case unknown_keys(contents) do
-      [] -> :ok
-      paths -> invalid(:contents, "unknown keys: #{Enum.join(paths, ", ")}")
-    end
-  end
-
-  defp unknown_keys(%{} = contents),
-    do: extra(contents, @contents, "") ++ list_extra(contents, "items", @item)
-
-  defp unknown_keys(_contents), do: []
-
-  defp list_extra(contents, key, known) do
-    case value(contents, key) do
-      list when is_list(list) ->
-        list
-        |> Enum.with_index()
-        |> Enum.flat_map(fn
-          {%{} = entry, index} -> extra(entry, known, "#{key}[#{index}].")
-          _other -> []
-        end)
-
-      _other ->
-        []
-    end
-  end
-
-  defp extra(map, known, prefix),
-    do: for(key <- Map.keys(map), to_string(key) not in known, do: prefix <> to_string(key))
-
-  defp value(map, key), do: Map.get(map, key) || Map.get(map, String.to_existing_atom(key))
 
   defp invalid(field, message),
     do: {:error, InvalidArgument.exception(field: field, message: message)}

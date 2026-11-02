@@ -788,6 +788,7 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .product-facts span { overflow-wrap: anywhere; }
 .guide-world .product-facts #product-kind { color: var(--ink); }
 .guide-world .product-facts a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
+.guide-world :is(#product-inside, #product-booster-links) a { white-space: nowrap; }
 .guide-world .verdict-block { background: var(--paper); grid-area: verdict; min-width: 0; }
 .guide-world .verdict-badge-large { border-width: 0; font-size: 1.6rem; gap: .5rem; padding: .7rem 1.25rem; white-space: normal; width: 100%; }
 .guide-world .verdict-badge-large.verdict-normal { background: var(--ink); color: var(--bench-light); }
@@ -853,6 +854,36 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 @media (hover: hover) and (pointer: fine) { .guide-world .contents-label a:hover { color: var(--orange); } }
 .guide-world #product-contents .guide-note { margin-block-start: .5rem; }
 .guide-world #product-contents .guide-note a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
+/* Pull rates: one row per rarity, the rarest first; the chance on the right, "1 na 5 paczek" under the rarity. */
+.guide-world .pull-rates-estimate { align-items: start; display: flex; gap: .5rem; margin: 0 0 .5rem; max-inline-size: 70ch; }
+.guide-world .pull-rates-estimate svg { flex: none; margin-block-start: .1rem; }
+.guide-world .pull-rates { background: var(--paper); border-collapse: collapse; inline-size: 100%; max-inline-size: 44rem; }
+.guide-world .pull-rates :is(th, td) { border-block-end: 1px solid var(--rule); padding: .5rem .75rem; text-align: start; vertical-align: baseline; }
+.guide-world .pull-rates thead th { color: var(--muted); font-size: .8125rem; font-weight: 400; white-space: nowrap; }
+.guide-world .pull-rates tbody th { font-weight: 700; }
+.guide-world .pull-rates tbody th a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
+@media (hover: hover) and (pointer: fine) { .guide-world .pull-rates tbody tr:hover { background: var(--bench-light); } .guide-world .pull-rates tbody th a:hover { color: var(--orange); } }
+.guide-world .pull-rates :is(th, td):first-child { inline-size: 100%; }
+.guide-world .pull-rates :is(th, td):last-child { text-align: end; }
+.guide-world .pull-rate-detail { color: var(--muted); display: block; font-size: .8125rem; font-weight: 400; }
+.guide-world .pull-rate-percent { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.guide-world #product-pull-rates > .guide-note:last-child { margin-block-start: .5rem; }
+.guide-world #product-pull-rates .guide-note a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
+/* The set's cards: one fold per rarity, the rarest open; numbers in a column. */
+.guide-world .set-cards { background: var(--paper); padding: 0 .75rem; }
+.guide-world .set-cards-group + .set-cards-group { border-block-start: 1px solid var(--rule); }
+.guide-world .set-cards-group summary { align-items: center; cursor: pointer; display: flex; gap: .5rem; list-style: none; min-block-size: 3rem; }
+.guide-world .set-cards-group summary::-webkit-details-marker { display: none; }
+.guide-world .set-cards-group summary:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.guide-world .set-cards-rarity { font-weight: 700; }
+.guide-world .set-cards-count { color: var(--muted); font-variant-numeric: tabular-nums; margin-inline-start: auto; }
+.guide-world .set-cards-chevron { flex: none; transition: transform .2s ease-out; }
+.guide-world .set-cards-group[open] .set-cards-chevron { transform: rotate(180deg); }
+.guide-world .set-cards-group ol { column-gap: 1.5rem; columns: 3 18rem; list-style: none; margin: 0; padding: 0 0 .75rem; scroll-margin-block-start: 3.5rem; }
+.guide-world .set-cards-group ol.set-cards-short { columns: 1; }
+.guide-world .set-cards-group li { break-inside: avoid; display: flex; gap: .75rem; padding-block: .2rem; }
+.guide-world .set-cards-number { color: var(--muted); flex: none; font-variant-numeric: tabular-nums; min-inline-size: 2.5rem; }
+.guide-world #product-cards > .guide-note { margin-block-start: .5rem; }
 .guide-world .cardmarket-trend { margin: 0 0 .5rem; }
 .guide-world .cardmarket-trend strong { font: 700 1.5rem/1.1 "Barlow Condensed", sans-serif; white-space: nowrap; }
 .guide-world .cardmarket-trend span { color: var(--muted); white-space: nowrap; }
