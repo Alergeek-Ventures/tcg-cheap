@@ -133,6 +133,12 @@ defmodule TcgCheap.Sealed.Product do
       filter expr(slug == ^arg(:slug))
     end
 
+    read :english_boosters do
+      description "English single boosters with these exact names, e.g. \"Delta Reign Booster\"."
+      argument :names, {:array, :string}, allow_nil?: false
+      filter expr(kind == :booster and region == :en and name in ^arg(:names))
+    end
+
     read :browse do
       description "Products for the public list: in stock in Poland first, then newest."
       argument :query, :string, default: ""

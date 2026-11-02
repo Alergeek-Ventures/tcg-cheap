@@ -162,7 +162,7 @@ defmodule TcgCheapWeb.ProductLive do
             </p>
           </section>
 
-          <.contents :if={@page.product.contents} contents={@page.product.contents} />
+          <.contents contents={@page.product.contents} boosters={@page.boosters} />
 
           <section
             id="product-history"
@@ -340,6 +340,20 @@ defmodule TcgCheapWeb.ProductLive do
   end
 
   attr :contents, :map, required: true
+  attr :boosters, :map, required: true
+
+  defp contents(%{contents: nil} = assigns) do
+    ~H"""
+    <section id="product-contents" class="product-section" aria-labelledby="product-contents-title">
+      <div class="product-section-heading">
+        <h2 id="product-contents-title">{gettext("Co jest w środku")}</h2>
+      </div>
+      <p id="contents-unknown" class="guide-empty">
+        {gettext("Nie znamy jeszcze zawartości tego produktu.")}
+      </p>
+    </section>
+    """
+  end
 
   defp contents(assigns) do
     items = Enum.sort_by(assigns.contents.items, &item_rank(&1.type))
@@ -360,14 +374,17 @@ defmodule TcgCheapWeb.ProductLive do
         <li :for={item <- @items}>
           <span class="contents-quantity">{item.quantity}×</span>
           <span class="contents-label">
-            <%= if item.cardmarket_id do %>
-              <a
-                href={"https://www.cardmarket.com/en/Pokemon/Products?idProduct=#{item.cardmarket_id}"}
-                target="_blank"
-                rel="noopener nofollow"
-              >{item_label(item)}</a>
-            <% else %>
-              {item_label(item)}
+            <%= cond do %>
+              <% booster = booster(item, @boosters) -> %>
+                <.link navigate={~p"/produkty/#{booster.slug}"}>{item_label(item)}</.link>
+              <% item.cardmarket_id -> %>
+                <a
+                  href={"https://www.cardmarket.com/en/Pokemon/Products?idProduct=#{item.cardmarket_id}"}
+                  target="_blank"
+                  rel="noopener nofollow"
+                >{item_label(item)}</a>
+              <% true -> %>
+                {item_label(item)}
             <% end %>
             <span :if={item.set} class="contents-card-set">{item.set} {item.number}</span>
           </span>
@@ -391,7 +408,18 @@ defmodule TcgCheapWeb.ProductLive do
               >
                 <img src={stock_url} alt="" height="48" loading="lazy" />
               </a>
+            <% booster_photo = booster_photo(item, @boosters) -> %>
+              <%!-- The name beside it is the link people and screen readers use. --%>
+              <.link
+                navigate={~p"/produkty/#{booster(item, @boosters).slug}"}
+                class="contents-photo contents-photo-page"
+                tabindex="-1"
+                aria-hidden="true"
+              >
+                <img src={booster_photo} alt="" height="48" loading="lazy" />
+              </.link>
             <% true -> %>
+              <span class="contents-photo-missing">{gettext("brak zdjęcia")}</span>
           <% end %>
         </li>
       </ul>
@@ -404,6 +432,17 @@ defmodule TcgCheapWeb.ProductLive do
       </p>
     </section>
     """
+  end
+
+  # A booster of a named set links to our page for that set's single booster.
+  defp booster(%{type: :booster, name: set}, boosters) when is_binary(set), do: boosters[set]
+  defp booster(_item, _boosters), do: nil
+
+  defp booster_photo(item, boosters) do
+    case booster(item, boosters) do
+      %{photo_card_url: url} when is_binary(url) -> url
+      _none -> nil
+    end
   end
 
   # Items that look the same in every product show one example picture.
