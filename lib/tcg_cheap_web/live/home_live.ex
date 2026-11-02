@@ -565,6 +565,7 @@ defmodule TcgCheapWeb.HomeLive do
                     <.product_image
                       photo={summary.product.photo_card_url}
                       page_photo={summary.product.photo_page_url}
+                      blur={summary.product.photo_placeholder}
                       sizes="(max-width: 42rem) 11rem, 5.5rem"
                       loading={
                         if(summary.product.id == @priority_product_id, do: "eager", else: "lazy")

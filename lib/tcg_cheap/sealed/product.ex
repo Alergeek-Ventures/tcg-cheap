@@ -12,6 +12,7 @@ defmodule TcgCheap.Sealed.Product do
 
   alias TcgCheap.Sealed.{Kinds, Regions}
   alias TcgCheap.Sealed.Preparations.Browse
+  alias TcgCheap.Storage.Calculations.VariantPlaceholder
   alias TcgCheap.Storage.Variants.ResizedImage
 
   postgres do
@@ -236,6 +237,15 @@ defmodule TcgCheap.Sealed.Product do
 
     create_timestamp :inserted_at
     update_timestamp :updated_at
+  end
+
+  calculations do
+    calculate :photo_placeholder,
+              :string,
+              {VariantPlaceholder, attachment: :photo, variant: :card} do
+      description "Inline blurred preview shown while the photo loads."
+      public? true
+    end
   end
 
   identities do

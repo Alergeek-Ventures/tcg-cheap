@@ -36,6 +36,16 @@
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
+    <%!-- Product photos fade in over their blurred preview once loaded (product_image/1).
+         Inline, so photos that load before app.js are caught too. --%>
+    <script nonce={@conn.assigns[:csp_nonce]}>
+      const markLoaded = e => e.target.matches?.("img[data-progressive]") && e.target.setAttribute("data-loaded", "")
+      document.addEventListener("load", markLoaded, true)
+      document.addEventListener("error", markLoaded, true)
+    </script>
+    <noscript phx-no-curly-interpolation><style>
+      img[data-progressive] { opacity: 1 !important; }
+    </style></noscript>
   </head>
   <body>
     {@inner_content}

@@ -624,7 +624,7 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .site-wordmark { flex: none; }
 /* Masthead and search stay at the top while the list scrolls; both keep one fixed height so the
    search and the filters can sit right under them. A long town name is cut, never wrapped. */
-.guide-world { --guide-header-size: calc(4rem + 1px); --guide-search-size: 4rem; --guide-sticky-size: calc(var(--guide-header-size) + var(--guide-search-size)); }
+.guide-world { --guide-header-size: calc(4rem + 1px); --guide-search-gap: .75rem; --guide-search-size: 4rem; --guide-sticky-size: calc(var(--guide-header-size) + var(--guide-search-gap) + var(--guide-search-size)); }
 .guide-world .site-header { background: var(--bench); block-size: var(--guide-header-size); flex-wrap: nowrap; inset-block-start: 0; position: sticky; z-index: 3; }
 .guide-world .site-header > :last-child, .guide-world .site-header :is(.visitor-location-summary, .visitor-location-label) { max-inline-size: 100%; min-inline-size: 0; }
 .guide-world .site-header .visitor-location-panel { max-block-size: calc(100svh - var(--guide-header-size) - 1rem); overflow-y: auto; overscroll-behavior: contain; }
@@ -688,7 +688,7 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-intro { margin-bottom: 1.25rem; }
 .guide-world #guide-title { font-size: clamp(2rem, 5vw, 2.5rem); letter-spacing: -.04em; line-height: 1; }
 .guide-world #guide-promise { margin: .5rem 0 0; max-width: 52ch; }
-.guide-world .guide-search { align-content: center; background: var(--bench-light); block-size: var(--guide-search-size); box-shadow: 0 .75rem 0 var(--bench); display: grid; inset-block-start: var(--guide-header-size); margin-bottom: 1.5rem; padding-inline: 1.25rem; position: sticky; z-index: 2; }
+.guide-world .guide-search { align-content: center; background: var(--bench-light); block-size: var(--guide-search-size); box-shadow: 0 var(--guide-search-gap) 0 var(--bench), 0 calc(-1 * var(--guide-search-gap)) 0 var(--bench); display: grid; inset-block-start: calc(var(--guide-header-size) + var(--guide-search-gap)); margin-bottom: 1.5rem; padding-inline: 1.25rem; position: sticky; z-index: 2; }
 .guide-world .guide-search-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: clip; position: absolute; white-space: nowrap; }
 .guide-world .guide-search-field { align-items: center; display: flex; position: relative; }
 .guide-world .guide-search-field .fieldset { flex: 1; margin: 0; min-inline-size: 0; padding: 0; }
@@ -698,6 +698,9 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-search-input { appearance: none; background: transparent; block-size: 3rem; border: 0; border-radius: 0; box-shadow: none; color: var(--ink); font: 700 1.5rem/1.25 "Barlow Condensed", sans-serif; padding-block: 0; padding-inline: 2.25rem 0; text-overflow: ellipsis; inline-size: 100%; }
 .guide-world .guide-search-input::-webkit-search-decoration { appearance: none; }
 .guide-world .guide-search-input::placeholder { color: var(--muted); opacity: 1; }
+/* The focus ring goes round the whole search bar, not the field inside its padding. */
+.guide-world .guide-search-input:focus-visible { outline: none; }
+.guide-world .guide-search:has(.guide-search-input:focus-visible) { outline: 3px solid var(--orange); outline-offset: -3px; }
 .guide-world .guide-scan-open { align-items: center; background: transparent; border: 0; border-bottom: 1px solid var(--ink); color: var(--ink); cursor: pointer; display: flex; height: 3rem; justify-content: center; width: 3rem; }
 .guide-world .guide-scan-open[hidden] { display: none; }
 .guide-world .guide-scan-open .fluent-icon { height: 1.5rem; width: 1.5rem; }
@@ -723,8 +726,15 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-product-shop { font-size: .875rem; overflow-wrap: anywhere; text-align: start; }
 .guide-world .guide-product-link:hover { background: var(--bench-light); }
 .guide-world .guide-product-link:hover .guide-product-name { text-decoration: underline; text-underline-offset: .2rem; }
-.guide-world .product-image { align-items: center; aspect-ratio: 16 / 10; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); display: flex; justify-content: center; min-width: 0; overflow: hidden; }
+.guide-world .product-image { align-items: center; aspect-ratio: 16 / 10; background: color-mix(in srgb, var(--paper) 72%, var(--bench)); display: flex; justify-content: center; min-width: 0; overflow: hidden; position: relative; }
 .guide-world .product-image img { display: block; height: 100%; object-fit: contain; width: 100%; }
+/* A photo with an inline preview: the preview shows blurred at once, the photo
+   fades in over it once loaded, then the preview goes (it would show through
+   a transparent photo). */
+.guide-world .product-image .product-image-blur { filter: blur(.75rem); inset: 0; position: absolute; }
+.guide-world .product-image img[data-progressive] { position: relative; transition: opacity .35s ease-out; }
+.guide-world .product-image img[data-progressive]:not([data-loaded]) { opacity: 0; }
+.guide-world .product-image:has(img[data-loaded]) .product-image-blur { opacity: 0; transition: opacity .2s .35s; }
 .guide-world .product-image svg { fill: none; height: 60%; width: 60%; }
 .guide-world .product-image-placeholder { background: color-mix(in srgb, var(--bench) 55%, var(--paper)); }
 .guide-world .product-image-placeholder svg path { fill: none; stroke: var(--muted); stroke-linejoin: round; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
@@ -756,7 +766,7 @@ details.admin-disclosure summary::marker { color: var(--orange); }
 .guide-world .guide-filters-toggle:active { border-color: var(--ink); }
 /* In-page links and the results jump land below the sticky masthead (and search bar). */
 html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1px); }
-.guide-world #guide-results-title { scroll-margin-block-start: var(--guide-search-size); }
+.guide-world #guide-results-title { scroll-margin-block-start: calc(var(--guide-search-gap) + var(--guide-search-size)); }
 .guide-world .guide-filters-toggle[aria-expanded="true"] { background: var(--ink); color: var(--bench-light); }
 .guide-world .guide-filters-body { display: grid; gap: 1.5rem; }
 .guide-world .guide-filters-clear { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
@@ -1100,8 +1110,16 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   .guide-world .visitor-location-summary { font-size: .75rem; gap: .25rem; }
   .guide-world .site-wordmark img { block-size: 1.75rem; }
 }
+/* Page transitions (see app.js): a short cross-fade, the header stays put and
+   the product photo moves between the list and its page. */
+@view-transition { navigation: auto; }
+.guide-world .site-header { view-transition-name: site-header; }
+.guide-world .product-hero-image { view-transition-name: product-photo; }
+::view-transition-group(*) { animation-duration: .25s; }
 @media (prefers-reduced-motion: reduce) {
   .guide-world .verdict-method-chevron { transition: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  .guide-world .product-image img { transition: none !important; }
 }
 
 /* Admin tables (buying-guide desk). */
