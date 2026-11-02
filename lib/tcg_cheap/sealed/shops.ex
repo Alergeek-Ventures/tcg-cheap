@@ -13,6 +13,8 @@ defmodule TcgCheap.Sealed.Shops do
   Logos are the shops' own, taken from their sites on 2026-11-01 and
   normalised to a 240×80 WebP on a white chip (dark for light logos) in
   `priv/static/images/shops/<key>.webp`; a shop without a file shows none.
+  Morion Games and Hearts Pub have only their favicons (taken 2026-11-02):
+  Morion's header image is a banner and Hearts Pub sits behind a bot check.
   """
 
   alias TcgCheap.Sealed.{
