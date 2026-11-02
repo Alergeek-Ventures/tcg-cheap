@@ -34,6 +34,7 @@ defmodule TcgCheap.Catalogue.ExternalImage do
     "quazacollect.com",
     "remicardtrader.ca",
     "tbcgames.com",
+    "tcgplayer-cdn.tcgplayer.com",
     "tools.toywiz.com",
     "www.asmodee.co.uk",
     "www.codedyellow.com",
