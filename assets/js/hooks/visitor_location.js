@@ -37,15 +37,7 @@ const VisitorLocation = {
       if (event.target.closest("#visitor-location-device")) this.locate()
     })
     this.el.addEventListener("toggle", () => {
-      if (this.el.open) track("location_panel_opened", {source: this.openedFrom || "header"})
-      this.openedFrom = null
-    })
-    // Opened from elsewhere on the page, e.g. "Podaj miejscowość" by the verdict.
-    this.el.addEventListener("location:open", () => {
-      if (!this.el.open) this.openedFrom = "verdict"
-      this.el.open = true
-      this.el.scrollIntoView({block: "nearest"})
-      this.el.querySelector("#visitor-location-town")?.focus()
+      if (this.el.open) track("location_panel_opened", {source: "header"})
     })
     this.onPointerDown = event => {
       if (this.el.open && !this.el.contains(event.target)) this.el.open = false

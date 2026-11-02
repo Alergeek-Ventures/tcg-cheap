@@ -7,7 +7,7 @@
       { "name": "decision-world", "scope": "Trade and Sealed", "description": "Shared warm square decision bench styling; unchanged by the Home correction." },
       { "name": "home-world", "scope": "Home", "description": "Calm restrained warm square surface for search, evidence, market movement, and exact-printing rows." },
       { "name": "archive-world", "scope": "Card detail", "description": "CSS scope name retained for calm warm-paper exact-printing detail." },
-      { "name": "guide-world", "scope": "Buying guide (/ and /produkty/:slug)", "description": "Polish sealed-product buying guide on the warm-paper bench: scrolling kind chips on phones, drawn verdict marks, a verdict panel with a full-width band and a three-step złoty threshold scale phrased as upper limits, and a labelled server-rendered price chart." }
+      { "name": "guide-world", "scope": "Buying guide (/ and /produkty/:slug)", "description": "Polish sealed-product buying guide on the warm-paper bench: scrolling kind chips on phones, drawn verdict marks, a verdict panel with a full-width band, today's price as a tick on a good / normal / expensive bar with whole-złoty limits, one history line, and the labelled server-rendered price chart behind a disclosure." }
     ],
     "colorMeta": {
       "bench": { "role": "primary", "displayName": "Bench", "canonical": "#f3ead7" },

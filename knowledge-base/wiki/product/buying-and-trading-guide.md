@@ -133,7 +133,9 @@ versioned pricing models.
   Thresholds are whole złoty and are shown on the page, so a price seen in a
   physical shop can be judged too. With fewer shops the price is only
   compared with the Cardmarket trend converted with the latest NBP EUR/PLN
-  rate, as a neutral **+14% vs Cardmarket** without thresholds: a European
+  rate, shown only as context on the product page while the verdict reads
+  **Za mało sklepów** (the list never mixes verdicts with Cardmarket
+  differences, owner 2026-11-02); thresholds against Cardmarket were dropped because a European
   price without shipping made almost every Polish price "Drogo" (owner
   decision, 2026-10-31). Without current stock the verdict is **Brak w
   sklepach** (with the last known price); with stock but no reference price
@@ -196,13 +198,15 @@ versioned pricing models.
   and its language edition unless English; the product page names the
   edition too.
   `/produkty/:slug` keeps the whole answer in the verdict block, the way
-  flight search does: the badge, price and shop, then (with 3+ shops) a
+  flight search does: the badge, price and shop beside the page's only solid
+  "Do sklepu" action, then (with 3+ shops) a
   thin green/grey/red bar with today's price marked and the two limits
-  under it, "Zwykle 616–713 zł w 36 sklepach.", one history line ("↑ Drożej
+  under it, "Zwykle 616–713 zł w 36 sklepach", one history line ("↑ Drożej
   niż w ostatnich 30 dniach (zwykle 459 zł)"), and "Historia cen" (the
   90-day chart with the 30-day usual price) and "Jak liczymy?" collapsed;
-  then every current offer
-  (in stock first, cheapest first, with links to the shop; the shop's logo
+  then the offers in stock, cheapest first, with the rest behind a
+  collapsed "Bez towaru: 30 ofert" (each row a quiet "Do sklepu" link,
+  "brak na stanie" / "sprawdzono …" under the price only when it applies; the shop's logo
   (wide screens only) and name, not its listing title, which only repeats the product) with its shop's
   delivery line — "dostawa od 14,99 zł · darmowa od 400 zł", "darmowa
   dostawa" when the item alone reaches the threshold, "koszt dostawy w
@@ -210,9 +214,8 @@ versioned pricing models.
   (with "(491 km)" once a location is set; within 50 km a bold "odbiór:
   Gdynia, 20 km" line of its own) — the Cardmarket price, REBEL's suggested
   price when one matches; the chart needs 7 days of prices. Below the
-  verdict's reasoning comes pickup: without a location, when a shop
-  with stock has pickup, "Odbierzesz gdzieś blisko? Podaj miejscowość"
-  (opens the header panel); with one, the cheapest in-stock offer with
+  verdict's reasoning comes pickup once a location is set (the header
+  control and its first-visit prompt are the only places that ask): the cheapest in-stock offer with
   pickup within 50 km, "Najtaniej z odbiorem osobistym do 50 km:
   CardzHouse, Gdynia · 20 km · 659,99 zł (+110 zł)" ("– najtaniej" when it
   is the cheapest offer overall), or else "brak do 50 km – potrzebna dostawa" with

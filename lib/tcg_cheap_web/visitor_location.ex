@@ -187,14 +187,6 @@ defmodule TcgCheapWeb.VisitorLocation do
     |> Enum.min_by(&{Decimal.to_float(&1.offer.price), &1.km}, fn -> nil end)
   end
 
-  @doc "Whether any of the offers comes from a shop with a pickup store."
-  @spec pickup_offered?([%{shop: String.t()}]) :: boolean()
-  def pickup_offered?(offers) do
-    Enum.any?(offers, fn offer ->
-      match?({:ok, %{pickup_location: {_lat, _lon}}}, Shops.fetch(offer.shop))
-    end)
-  end
-
   @doc "A rounded distance: \"14 km\"."
   @spec km(float()) :: String.t()
   def km(distance) when distance < 1, do: "< 1 km"
@@ -208,9 +200,7 @@ defmodule TcgCheapWeb.VisitorLocation do
 
   @doc """
   "Ustaw lokalizację": use the device location or type a town. Hidden until
-  the browser has restored its location, which needs JavaScript. Other
-  elements open it with
-  `JS.dispatch("location:open", to: "#visitor-location")`.
+  the browser has restored its location, which needs JavaScript.
   """
   def location_control(assigns) do
     ~H"""
