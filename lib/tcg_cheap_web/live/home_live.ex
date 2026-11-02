@@ -28,6 +28,7 @@ defmodule TcgCheapWeb.HomeLive do
     {:ok,
      socket
      |> VisitorLocation.assign_location()
+     |> assign(:all_expansions?, false)
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")}
   end
 
@@ -165,6 +166,9 @@ defmodule TcgCheapWeb.HomeLive do
 
   def handle_event("more", _params, socket), do: {:noreply, socket}
 
+  def handle_event("all-expansions", _params, socket),
+    do: {:noreply, assign(socket, :all_expansions?, true)}
+
   def handle_event("location-" <> _ = event, params, socket) do
     {:noreply, VisitorLocation.handle_event(event, params, socket)}
   end
@@ -196,6 +200,7 @@ defmodule TcgCheapWeb.HomeLive do
   attr :facets, :map, required: true
   attr :kinds, :list, required: true
   attr :result_count, :integer, required: true
+  attr :all_expansions?, :boolean, required: true
 
   # Language edition, kind and expansion; folded behind "Filtry" on phones.
   defp filters(assigns) do
@@ -277,8 +282,12 @@ defmodule TcgCheapWeb.HomeLive do
             id="guide-expansions-more"
             phx-mounted={JS.ignore_attributes(["open"])}
           >
-            <summary>{gettext("Pokaż pozostałe (%{count})", count: length(@rest))}</summary>
-            <ul class="guide-expansion-names">
+            <%!-- Rendered on first opening: hundreds of rows (noindex filter links)
+                 would otherwise weigh down every page load and patch. --%>
+            <summary phx-click={!@all_expansions? && "all-expansions"}>
+              {gettext("Pokaż pozostałe (%{count})", count: length(@rest))}
+            </summary>
+            <ul :if={@all_expansions?} class="guide-expansion-names">
               <.expansion_option :for={expansion <- @rest} expansion={expansion} filters={@filters} />
             </ul>
           </details>
@@ -513,6 +522,7 @@ defmodule TcgCheapWeb.HomeLive do
               facets={@facets}
               kinds={@kinds}
               result_count={@result_count}
+              all_expansions?={@all_expansions?}
             />
             <section class="guide-results" aria-labelledby="guide-results-title">
               <div class="guide-results-heading">
@@ -563,10 +573,11 @@ defmodule TcgCheapWeb.HomeLive do
                     data-track-verdict={summary.verdict.status}
                   >
                     <.product_image
+                      small_photo={summary.product.stored_photo_small_url}
                       photo={summary.product.photo_card_url}
                       page_photo={summary.product.photo_page_url}
                       blur={summary.product.photo_placeholder}
-                      sizes="(max-width: 42rem) 11rem, 5.5rem"
+                      sizes="(max-width: 42rem) 4.5rem, 5.5rem"
                       loading={
                         if(summary.product.id == @priority_product_id, do: "eager", else: "lazy")
                       }

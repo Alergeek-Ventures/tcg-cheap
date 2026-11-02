@@ -43,6 +43,23 @@ defmodule TcgCheap.Sealed.PhotoMirror do
     |> then(&%{stored: Map.get(&1, :ok, 0), failed: Map.get(&1, :error, 0)})
   end
 
+  @doc """
+  Makes the `small` variant for up to `limit` photos stored before it existed;
+  returns how many were added and how many failed. Pages show it once stored.
+  """
+  @spec add_small_variants(pos_integer()) :: %{
+          added: non_neg_integer(),
+          failed: non_neg_integer()
+        }
+  def add_small_variants(limit) do
+    # AshStorage's own URL calculation generates a missing variant.
+    limit
+    |> Sealed.list_photos_without_small!()
+    |> Ash.load!(:photo_small_url)
+    |> Enum.frequencies_by(&if(&1.photo_small_url, do: :added, else: :failed))
+    |> then(&%{added: Map.get(&1, :added, 0), failed: Map.get(&1, :failed, 0)})
+  end
+
   defp mirror(product, offers, req_options) do
     with {:ok, body, type} <- largest_photo(candidates(product, offers), req_options),
          {:ok, %{blob: blob}} <-
@@ -55,7 +72,7 @@ defmodule TcgCheap.Sealed.PhotoMirror do
            ),
          blob <- Ash.load!(blob, :variants),
          true <-
-           Enum.all?(["card", "page"], fn name ->
+           Enum.all?(["small", "card", "page"], fn name ->
              Enum.any?(blob.variants, &(&1.variant_name == name))
            end) do
       Sealed.record_photo_source!(product, product.image_url)

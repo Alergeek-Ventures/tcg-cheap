@@ -170,6 +170,7 @@ defmodule TcgCheapWeb.GuideComponents do
   right away and the photo fades in over it once it has loaded (see the
   `data-progressive` script in the root layout).
   """
+  attr :small_photo, :string, default: nil, doc: "the `small` variant (192 px), once stored"
   attr :photo, :string, default: nil
   attr :page_photo, :string, default: nil
   attr :blur, :string, default: nil
@@ -184,12 +185,7 @@ defmodule TcgCheapWeb.GuideComponents do
     assigns =
       assigns
       |> assign(:url, assigns.photo)
-      |> assign(
-        :srcset,
-        if(assigns.photo && assigns.page_photo,
-          do: "#{assigns.photo} 352w, #{assigns.page_photo} 960w"
-        )
-      )
+      |> assign(:srcset, srcset(assigns))
       |> assign(:shape, placeholder_shape(assigns.kind))
 
     ~H"""
@@ -221,6 +217,15 @@ defmodule TcgCheapWeb.GuideComponents do
     </div>
     """
   end
+
+  defp srcset(%{photo: photo, page_photo: page_photo} = assigns)
+       when is_binary(photo) and is_binary(page_photo) do
+    [{assigns.small_photo, 192}, {photo, 352}, {page_photo, 960}]
+    |> Enum.filter(&elem(&1, 0))
+    |> Enum.map_join(", ", fn {url, width} -> "#{url} #{width}w" end)
+  end
+
+  defp srcset(_assigns), do: nil
 
   @doc "Line drawings (64×48, stroked) of the packaging, so a product without a photo still reads by shape."
   @spec placeholder_shape(atom()) :: [String.t()]

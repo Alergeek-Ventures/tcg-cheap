@@ -11,8 +11,8 @@ defmodule TcgCheap.Sealed.Product do
     extensions: [AshStorage]
 
   alias TcgCheap.Sealed.{Kinds, Regions}
-  alias TcgCheap.Sealed.Preparations.Browse
-  alias TcgCheap.Storage.Calculations.VariantPlaceholder
+  alias TcgCheap.Sealed.Preparations.{Browse, PhotosMissingVariant}
+  alias TcgCheap.Storage.Calculations.{StoredVariantUrl, VariantPlaceholder}
   alias TcgCheap.Storage.Variants.ResizedImage
 
   postgres do
@@ -28,12 +28,14 @@ defmodule TcgCheap.Sealed.Product do
   end
 
   # The packaging photo, mirrored from the shop that offers the product
-  # (`TcgCheap.Sealed.PhotoMirror`), in the two sizes the pages show.
+  # (`TcgCheap.Sealed.PhotoMirror`), in the sizes the pages show: `small` for
+  # list rows, `card` and `page` for larger screens and the product page.
   storage do
     blob_resource(TcgCheap.Storage.Blob)
     attachment_resource(TcgCheap.Storage.Attachment)
 
     has_one_attached :photo do
+      variant(:small, {ResizedImage, width: 192}, generate: :eager)
       variant(:card, {ResizedImage, width: 352}, generate: :eager)
       variant(:page, {ResizedImage, width: 960}, generate: :eager)
     end
@@ -106,6 +108,13 @@ defmodule TcgCheap.Sealed.Product do
                 sort: [photo_attempted_at: :asc_nils_first, available: :desc],
                 limit: arg(:limit)
               )
+    end
+
+    read :photos_without_small do
+      description "Mirrored photos stored before the current `small` variant existed."
+      argument :limit, :integer, allow_nil?: false
+      prepare {PhotosMissingVariant, variant: :small}
+      prepare build(limit: arg(:limit))
     end
 
     update :record_photo_source do
@@ -245,6 +254,13 @@ defmodule TcgCheap.Sealed.Product do
               :string,
               {VariantPlaceholder, attachment: :photo, variant: :card} do
       description "Inline blurred preview shown while the photo loads."
+      public? true
+    end
+
+    calculate :stored_photo_small_url,
+              :string,
+              {StoredVariantUrl, attachment: :photo, variant: :small} do
+      description "The `small` photo once stored; rendering never generates it."
       public? true
     end
   end

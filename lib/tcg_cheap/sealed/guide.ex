@@ -35,7 +35,7 @@ defmodule TcgCheap.Sealed.Guide do
     page =
       Sealed.browse_products!(filters.query, filters.kind, filters.region, filters.expansion,
         page: [limit: @page_size, offset: offset, count: true],
-        load: [:photo_card_url, :photo_page_url, :photo_placeholder]
+        load: [:stored_photo_small_url, :photo_card_url, :photo_page_url, :photo_placeholder]
       )
 
     {summaries(page.results, now), page.more?, page.count || 0}
@@ -215,7 +215,7 @@ defmodule TcgCheap.Sealed.Guide do
 
       names ->
         names
-        |> Sealed.list_boosters_by_name!(region, load: [:photo_card_url])
+        |> Sealed.list_boosters_by_name!(region, load: [:stored_photo_small_url, :photo_card_url])
         |> Map.new(&{String.replace_suffix(&1.name, " Booster", ""), &1})
     end
   end
