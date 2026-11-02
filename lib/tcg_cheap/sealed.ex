@@ -179,7 +179,12 @@ defmodule TcgCheap.Sealed do
       define :record_tcgdex_set_cards, action: :record_cards, args: [:cards]
     end
 
-    resource TcgCheap.Sealed.TcgdexCard
+    resource TcgCheap.Sealed.TcgdexCard do
+      define :list_cards_due_for_cardmarket, action: :cardmarket_due, args: [:checked_before]
+      define :record_card_cardmarket_id, action: :record_cardmarket_id, args: [:cardmarket_id]
+    end
+
+    resource TcgCheap.Sealed.CardPrice
 
     resource TcgCheap.Sealed.ExpansionLogo do
       define :list_expansion_logos, action: :read

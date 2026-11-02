@@ -239,6 +239,8 @@ defmodule TcgCheapWeb.ProductLive do
             <.set_cards
               rarities={@page.booster_set.rarities}
               cards_per_pack={@page.booster_set.cards_per_pack}
+              priced_on={@page.booster_set.priced_on}
+              logo_url={@page.booster_set.logo_url}
             />
           <% end %>
 
@@ -826,6 +828,8 @@ defmodule TcgCheapWeb.ProductLive do
 
   attr :rarities, :list, required: true
   attr :cards_per_pack, :integer, default: nil
+  attr :priced_on, Date, default: nil
+  attr :logo_url, :string, default: nil
 
   defp set_cards(%{rarities: []} = assigns) do
     ~H"""
@@ -848,16 +852,21 @@ defmodule TcgCheapWeb.ProductLive do
     ~H"""
     <section id="product-cards" class="product-section" aria-labelledby="product-cards-title">
       <div class="product-section-heading">
-        <h2 id="product-cards-title">{gettext("Karty do zdobycia")}</h2>
-        <p :if={@cards_per_pack}>
-          {cards_per_pack(@cards_per_pack)} · {gettext("%{count} w secie",
-            count: Polish.number(@count)
-          )}
-        </p>
-        <p :if={!@cards_per_pack}>
-          {ngettext("%{count} karta w secie", "%{count} karty w secie", @count,
-            count: Polish.number(@count)
-          )}
+        <h2 id="product-cards-title">
+          <img :if={@logo_url} src={@logo_url} alt="" class="set-cards-logo" />
+          {gettext("Karty do zdobycia")}
+        </h2>
+        <p>
+          <%= if @cards_per_pack do %>
+            {cards_per_pack(@cards_per_pack)} · {gettext("%{count} w secie",
+              count: Polish.number(@count)
+            )}
+          <% else %>
+            {ngettext("%{count} karta w secie", "%{count} karty w secie", @count,
+              count: Polish.number(@count)
+            )}
+          <% end %>
+          <span :if={@priced_on}>· {gettext("ceny kart: Cardmarket, €")}</span>
         </p>
       </div>
       <div id="set-cards" class="set-cards">
@@ -876,12 +885,57 @@ defmodule TcgCheapWeb.ProductLive do
             <li :for={card <- group.cards}>
               <span class="set-cards-number">{card.number}</span>
               <span>{card.name}</span>
+              <.card_price card={card} />
             </li>
           </ol>
         </details>
       </div>
-      <p class="guide-note">{gettext("Lista kart według TCGdex, od najrzadszych.")}</p>
+      <p class="guide-note">
+        {gettext("Lista kart według TCGdex, od najrzadszych.")}
+        <span :if={@priced_on} id="cards-prices-note">
+          {gettext(
+            "Ceny to trend na Cardmarket z %{date}, w euro, bez wysyłki z innych krajów; cena otwiera kartę na Cardmarket.",
+            date: Polish.date(@priced_on)
+          )}
+        </span>
+      </p>
     </section>
+    """
+  end
+
+  attr :card, :map, required: true
+
+  # The card's Cardmarket trend, linked to its Cardmarket page when TCGdex
+  # gives the product id.
+  defp card_price(%{card: %{cardmarket_id: nil}} = assigns) do
+    ~H"""
+    <span class="set-cards-price set-cards-no-price">{gettext("brak ceny")}</span>
+    """
+  end
+
+  defp card_price(assigns) do
+    price = assigns.card.cardmarket_price
+    assigns = assign(assigns, :trend, price && price.trend)
+
+    ~H"""
+    <a
+      href={"https://www.cardmarket.com/en/Pokemon/Products?idProduct=#{@card.cardmarket_id}"}
+      class={["set-cards-price", !@trend && "set-cards-no-price"]}
+      target="_blank"
+      rel="noopener nofollow"
+      aria-label={
+        if(@trend,
+          do:
+            gettext("Trend %{price}: %{card} na Cardmarket (nowa karta)",
+              price: Polish.eur(@trend),
+              card: @card.name
+            ),
+          else: gettext("Brak ceny: %{card} na Cardmarket (nowa karta)", card: @card.name)
+        )
+      }
+    >
+      {if(@trend, do: Polish.eur(@trend), else: gettext("brak ceny"))}
+    </a>
     """
   end
 

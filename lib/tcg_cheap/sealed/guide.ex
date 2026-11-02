@@ -220,20 +220,33 @@ defmodule TcgCheap.Sealed.Guide do
 
   # What an English single booster may hold: the pull rates, rarest first,
   # and the cards grouped by rarity, rarest first, of the English sets of its
-  # expansion (a set and its gallery subsets). Only full boosters ("Journey
+  # expansion (a set and its gallery subsets), each with its Cardmarket price,
+  # the day of those prices (`priced_on`) and the expansion's logo as on its
+  # tile in the expansion filter (`logo_url`). Only full boosters ("Journey
   # Together Booster", "... Sleeved Booster"): smaller packs ("Booster (6
   # Cards)", "Fun Pack (3 Cards)") have other odds.
   defp booster_set(%Product{kind: :booster, region: :en, cardmarket_expansion_id: id} = product) do
     if String.ends_with?(product.name, " Booster") do
-      sets = if id, do: Sealed.list_english_sets_of_expansion!(id, load: [:cards]), else: []
+      sets =
+        if id,
+          do: Sealed.list_english_sets_of_expansion!(id, load: [cards: :cardmarket_price]),
+          else: []
+
       main = TcgdexSet.by_expansion(sets) |> Map.values() |> List.first()
       pull_rates = Enum.find_value([main | sets], &(&1 && &1.pull_rates))
-      rarities = sets |> Enum.flat_map(& &1.cards) |> by_rarity()
+      cards = Enum.flat_map(sets, & &1.cards)
+      rarities = by_rarity(cards)
 
       %{
         pull_rates: pull_rates(pull_rates, rarities),
         cards_per_pack: pull_rates && pull_rates.cards_per_pack,
-        rarities: rarities
+        rarities: rarities,
+        logo_url: id && Map.get(logos(), id),
+        priced_on:
+          cards
+          |> Enum.map(&(&1.cardmarket_price && &1.cardmarket_price.priced_on))
+          |> Enum.reject(&is_nil/1)
+          |> Enum.max(Date, fn -> nil end)
       }
     end
   end

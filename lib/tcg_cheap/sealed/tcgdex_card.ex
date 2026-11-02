@@ -1,8 +1,9 @@
 defmodule TcgCheap.Sealed.TcgdexCard do
   @moduledoc """
   One card of an English TCGdex set, with its number and rarity, for the
-  list of cards a booster can hold. Copied from TCGdex by
-  `TcgCheap.Sealed.CardSync`.
+  list of cards a booster can hold, and its Cardmarket product id, which
+  links it to Cardmarket and to its price (`TcgCheap.Sealed.CardPrice`).
+  Copied from TCGdex by `TcgCheap.Sealed.CardSync`.
   """
 
   use Ash.Resource,
@@ -27,6 +28,34 @@ defmodule TcgCheap.Sealed.TcgdexCard do
       upsert? true
       upsert_identity :tcgdex_id
       upsert_fields [:number, :name, :rarity, :updated_at]
+    end
+
+    read :cardmarket_due do
+      description """
+      Cards without a Cardmarket product id never looked up, or looked up
+      before `checked_before`, never looked up first, then of the newest sets.
+      """
+
+      argument :checked_before, :utc_datetime_usec, allow_nil?: false
+
+      filter expr(
+               is_nil(cardmarket_id) and
+                 (is_nil(cardmarket_checked_at) or cardmarket_checked_at < ^arg(:checked_before))
+             )
+
+      prepare build(
+                sort: [
+                  cardmarket_checked_at: :asc_nils_first,
+                  set_released_on: :desc_nils_last,
+                  tcgdex_id: :asc
+                ]
+              )
+    end
+
+    update :record_cardmarket_id do
+      description "Records the Cardmarket product id TCGdex gives the card, nil when none."
+      accept [:cardmarket_id]
+      change set_attribute(:cardmarket_checked_at, &DateTime.utc_now/0)
     end
 
     destroy :prune do
@@ -59,12 +88,33 @@ defmodule TcgCheap.Sealed.TcgdexCard do
       constraints max_length: 60
     end
 
+    attribute :cardmarket_id, :integer do
+      description "The Cardmarket product id TCGdex gives the card, nil when unknown."
+      public? true
+      constraints min: 1
+    end
+
+    attribute :cardmarket_checked_at, :utc_datetime_usec do
+      description "When TCGdex was last asked for the Cardmarket product id."
+      public? true
+    end
+
     create_timestamp :inserted_at
     update_timestamp :updated_at
   end
 
   relationships do
     belongs_to :tcgdex_set, TcgCheap.Sealed.TcgdexSet, allow_nil?: false, public?: true
+
+    has_one :cardmarket_price, TcgCheap.Sealed.CardPrice do
+      source_attribute :cardmarket_id
+      destination_attribute :cardmarket_id
+      public? true
+    end
+  end
+
+  aggregates do
+    first :set_released_on, :tcgdex_set, :released_on
   end
 
   identities do

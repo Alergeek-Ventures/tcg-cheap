@@ -6,8 +6,10 @@ defmodule TcgCheap.Sealed.CatalogueImport do
 
   Products are upserted by Cardmarket id (products that disappear from the
   file are kept), today's Cardmarket trend is recorded per product, and
-  offers are re-matched against the updated catalogue. Everything is written
-  in one transaction; a failed download writes nothing.
+  offers are re-matched against the updated catalogue. The price guide's
+  singles rows replace the card prices (`TcgCheap.Sealed.CardPrice`) shown
+  on single booster pages. Everything is written in one transaction; a
+  failed download writes nothing.
 
   First `TcgCheap.Sealed.ExpansionSync` brings the TCGdex sets up to date
   for set names and language editions; when TCGdex fails, the sets already
@@ -17,11 +19,14 @@ defmodule TcgCheap.Sealed.CatalogueImport do
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Catalogue, ExpansionSync, Product, Refresh, TcgdexSet}
+  alias TcgCheap.Sealed.{CardPrice, Catalogue, ExpansionSync, Product, Refresh, TcgdexSet}
+
+  require Ash.Query
 
   require Logger
 
   @chunk 500
+  @singles_category 51
 
   @spec run(keyword()) :: {:ok, %{products: non_neg_integer()}} | {:error, term()}
   def run(opts \\ []) do
@@ -31,12 +36,15 @@ defmodule TcgCheap.Sealed.CatalogueImport do
     sync_expansions(adapter_opts)
 
     with {:ok, products} <- Adapter.fetch_sealed_products(adapter_opts),
-         {:ok, prices} <- Adapter.fetch_sealed_prices(adapter_opts) do
+         {:ok, prices} <- Adapter.fetch_all_prices(adapter_opts) do
+      priced_on = DateTime.to_date(prices.created_at)
+      {singles, sealed} = Enum.split_with(prices.rows, &(&1.category_id == @singles_category))
+
       rows =
         Catalogue.rows(
           products.rows,
-          prices.rows,
-          DateTime.to_date(prices.created_at),
+          sealed,
+          priced_on,
           TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!())
         )
 
@@ -44,6 +52,7 @@ defmodule TcgCheap.Sealed.CatalogueImport do
         fn ->
           ids = upsert_products(rows)
           record_trends(rows, ids, DateTime.to_date(now))
+          record_card_prices(singles, priced_on)
           Refresh.recompute(now)
           %{products: length(rows)}
         end,
@@ -91,5 +100,27 @@ defmodule TcgCheap.Sealed.CatalogueImport do
     )
     |> Enum.chunk_every(@chunk)
     |> Enum.each(&Refresh.bulk_record(&1, :record_cardmarket_trend))
+  end
+
+  # A guide without singles is broken: the prices we have stay.
+  defp record_card_prices([], _priced_on), do: :ok
+
+  defp record_card_prices(singles, priced_on) do
+    singles
+    |> Enum.map(&%{cardmarket_id: &1.id_product, trend: &1.trend, priced_on: priced_on})
+    |> Enum.chunk_every(@chunk)
+    |> Enum.each(fn chunk ->
+      %Ash.BulkResult{status: :success} =
+        Ash.bulk_create!(chunk, CardPrice, :record,
+          domain: Sealed,
+          return_errors?: true,
+          stop_on_error?: true
+        )
+    end)
+
+    %Ash.BulkResult{status: :success} =
+      CardPrice
+      |> Ash.Query.filter(priced_on < ^priced_on)
+      |> Ash.bulk_destroy!(:prune, %{}, domain: Sealed, return_errors?: true)
   end
 end
