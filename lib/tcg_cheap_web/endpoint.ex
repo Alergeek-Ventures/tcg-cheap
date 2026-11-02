@@ -46,7 +46,9 @@ defmodule TcgCheapWeb.Endpoint do
     cookie_key: "request_logger"
 
   plug Plug.RequestId
-  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
+  # The health check comes every few seconds; its request lines would only
+  # fill the logs (and Sentry Logs).
+  plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint], log: {__MODULE__, :log_level, []}
 
   # Relay compressed telemetry before parsers consume or decode its body.
   plug TcgCheapWeb.AnalyticsProxy
@@ -61,4 +63,8 @@ defmodule TcgCheapWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
   plug TcgCheapWeb.Router
+
+  @doc false
+  def log_level(%Plug.Conn{path_info: ["health" | _]}), do: false
+  def log_level(_conn), do: :info
 end
