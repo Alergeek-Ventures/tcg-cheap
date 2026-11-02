@@ -128,6 +128,7 @@ defmodule TcgCheapWeb.GuideComponents do
   attr :alt, :string, required: true
   attr :class, :any, default: nil
   attr :loading, :string, default: "lazy"
+  attr :fetchpriority, :string, default: nil
 
   def product_image(assigns) do
     assigns =
@@ -150,6 +151,7 @@ defmodule TcgCheapWeb.GuideComponents do
         sizes={@srcset && @sizes}
         alt={@alt}
         loading={@loading}
+        fetchpriority={@fetchpriority}
         decoding="async"
         referrerpolicy="no-referrer"
       />

@@ -63,6 +63,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp list(socket, filters) do
     {summaries, more?, count} = Guide.browse(filters, 0, DateTime.utc_now())
+    first_summary = List.first(summaries)
 
     socket
     |> assign(:filters, filters)
@@ -72,6 +73,7 @@ defmodule TcgCheapWeb.HomeLive do
     |> assign(:result_count, count)
     |> assign(:loaded, length(summaries))
     |> assign(:more?, more?)
+    |> assign(:priority_product_id, first_summary && first_summary.product.id)
     |> stream(:products, summaries, reset: true)
   end
 
@@ -474,6 +476,10 @@ defmodule TcgCheapWeb.HomeLive do
                       photo={summary.product.photo_card_url}
                       page_photo={summary.product.photo_page_url}
                       sizes="(max-width: 42rem) 11rem, 5.5rem"
+                      loading={
+                        if(summary.product.id == @priority_product_id, do: "eager", else: "lazy")
+                      }
+                      fetchpriority={if(summary.product.id == @priority_product_id, do: "high")}
                       kind={summary.product.kind}
                       alt=""
                       class="guide-product-image"
