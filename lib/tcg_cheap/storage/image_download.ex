@@ -10,7 +10,7 @@ defmodule TcgCheap.Storage.ImageDownload do
   @spec fetch(term(), keyword()) :: {:ok, binary(), String.t()} | {:error, term()}
   def fetch(url, req_options \\ []) do
     if ExternalImage.valid?(url),
-      do: download(url, req_options),
+      do: download(url, req_options, true),
       else: {:error, :host_not_allowed}
   end
 
@@ -18,19 +18,20 @@ defmodule TcgCheap.Storage.ImageDownload do
   @spec fetch_stored(term()) :: {:ok, binary(), String.t()} | {:error, term()}
   def fetch_stored(url) when is_binary(url) do
     if String.starts_with?(url, TcgCheap.Storage.public_origin() <> "/"),
-      do: download(url, []),
+      do: download(url, [], false),
       else: {:error, :host_not_allowed}
   end
 
   def fetch_stored(_url), do: {:error, :host_not_allowed}
 
-  defp download(url, req_options) do
+  defp download(url, req_options, follow_redirects?) do
     deadline = System.monotonic_time(:millisecond) + @deadline_ms
 
     task =
       Task.Supervisor.async_nolink(TcgCheap.Storage.DownloadSupervisor, fn ->
         req_options
         |> Req.new()
+        |> Req.Request.prepend_response_steps(image_redirect: &check_redirect/1)
         |> Req.get(
           url: url,
           headers: [{"user-agent", "TcgCheap/1.0 (buying guide)"}],
@@ -38,7 +39,8 @@ defmodule TcgCheap.Storage.ImageDownload do
           into: &bounded_body(&1, &2, deadline),
           connect_options: [timeout: 3_000],
           receive_timeout: 5_000,
-          redirect: false,
+          redirect: follow_redirects?,
+          max_redirects: 3,
           retry: false
         )
       end)
@@ -60,6 +62,30 @@ defmodule TcgCheap.Storage.ImageDownload do
         {:error, :download_timeout}
     end
   end
+
+  # Some shops generate a missing thumbnail behind a same-origin redirect.
+  # Keep Req's redirect handling, but validate every hop before it can run.
+  defp check_redirect({request, %{body: reason} = response})
+       when reason in [:too_large, :download_timeout],
+       do: Req.Request.halt(request, response)
+
+  defp check_redirect({request, %{status: status} = response})
+       when status in [301, 302, 303, 307, 308] do
+    with [location | _] <- Req.Response.get_header(response, "location"),
+         {:ok, location} <- URI.new(location),
+         target <- URI.merge(request.url, location),
+         true <- ExternalImage.valid?(URI.to_string(target)),
+         true <- origin(request.url) == origin(target) do
+      {request, response}
+    else
+      _blocked -> Req.Request.halt(request, response)
+    end
+  end
+
+  defp check_redirect(request_response), do: request_response
+
+  defp origin(uri),
+    do: {uri.scheme, String.downcase(uri.host), uri.port || URI.default_port(uri.scheme)}
 
   defp bounded_body({:data, data}, {request, response}, deadline) do
     body = if is_binary(response.body), do: response.body, else: ""
