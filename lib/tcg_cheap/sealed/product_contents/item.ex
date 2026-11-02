@@ -60,5 +60,11 @@ defmodule TcgCheap.Sealed.ProductContents.Item do
       public? true
       constraints max_length: 300, match: ~r{\Ahttps://assets\.tcgdex\.net/[A-Za-z0-9./\-]+\z}
     end
+
+    attribute :photo, :string do
+      description "A picture of this item (sleeves, dice, coin...): an https image URL on an allowed image host, e.g. a REBEL component picture. Shown from our own storage once mirrored."
+      public? true
+      constraints max_length: 2_000
+    end
   end
 end

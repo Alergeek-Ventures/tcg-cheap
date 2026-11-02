@@ -3,18 +3,19 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   Sets or clears what a product holds. Keys the contents do not know are
   rejected rather than dropped, so a misspelt field never passes as missing.
   A card given by its TCGdex id gets its set, number, picture and Cardmarket
-  product from TCGdex; an id TCGdex does not know is rejected.
+  product from TCGdex; an id TCGdex does not know is rejected. An item's photo
+  must be on an image host we mirror from (`TcgCheap.Catalogue.ExternalImage`).
   """
 
   use Ash.Resource.Actions.Implementation
 
   alias Ash.Error.Action.InvalidArgument
-  alias TcgCheap.Catalogue.Tcgdex
+  alias TcgCheap.Catalogue.{ExternalImage, Tcgdex}
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.Json
 
   @contents ~w(items sources checked_on)
-  @item ~w(quantity type name tcgdex_id set number cardmarket_id image)
+  @item ~w(quantity type name tcgdex_id set number cardmarket_id image photo)
 
   @impl true
   def run(input, _opts, _context) do
@@ -38,7 +39,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   defp with_cards(contents) do
     contents.items
     |> Enum.reduce_while({:ok, []}, fn item, {:ok, items} ->
-      case with_card(item) do
+      case with_item(item) do
         {:ok, item} -> {:cont, {:ok, [item | items]}}
         error -> {:halt, error}
       end
@@ -47,6 +48,16 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
       {:ok, items} -> {:ok, %{contents | items: Enum.reverse(items)}}
       error -> error
     end
+  end
+
+  defp with_item(item), do: with(:ok <- allowed_photo(item), do: with_card(item))
+
+  defp allowed_photo(%{photo: nil}), do: :ok
+
+  defp allowed_photo(%{photo: photo}) do
+    if ExternalImage.valid?(photo),
+      do: :ok,
+      else: invalid(:contents, "photo #{photo} is not on an allowed image host")
   end
 
   defp with_card(%{tcgdex_id: nil} = item), do: {:ok, item}

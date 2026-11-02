@@ -1,5 +1,5 @@
 defmodule TcgCheapWeb.RemoteImageController do
-  @moduledoc "Serves only previously mirrored TCGdex images; never fetches remote sources."
+  @moduledoc "Serves only previously mirrored remote images; never fetches remote sources."
   use TcgCheapWeb, :controller
 
   alias AshStorage.Service.Context

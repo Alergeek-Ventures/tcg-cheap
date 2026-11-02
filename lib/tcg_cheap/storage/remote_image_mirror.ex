@@ -19,6 +19,10 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
     SELECT item->>'image' AS url, 'card' AS kind
       FROM sealed_products,
            jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item
+    UNION
+    SELECT item->>'photo' AS url, 'photo' AS kind
+      FROM sealed_products,
+           jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item
   ) AS sources
   WHERE url IS NOT NULL AND url <> '' AND (url, kind) > ($1, $2)
   ORDER BY url, kind LIMIT $3
@@ -75,13 +79,14 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       })
     else
       error ->
-        Logger.warning("TCGdex image #{image.id} mirror failed: #{inspect(error)}")
+        Logger.warning("Remote image #{image.id} mirror failed: #{inspect(error)}")
         Storage.record_remote_image_attempt!(image, %{})
     end
   end
 
   defp canonical_source(url, "card"), do: CardImage.source_url(url)
   defp canonical_source(url, "logo"), do: CardImage.logo_source_url(url)
+  defp canonical_source(url, "photo"), do: CardImage.photo_source_url(url)
 
   defp extension("image/jpeg"), do: "jpg"
   defp extension("image/png"), do: "png"

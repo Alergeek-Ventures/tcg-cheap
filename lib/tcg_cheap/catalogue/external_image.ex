@@ -1,8 +1,9 @@
 defmodule TcgCheap.Catalogue.ExternalImage do
   @moduledoc """
   The allowlist for background downloads of card and product images: the official
-  Pokémon and TCGdex image hosts plus the image hosts of the buying-guide
-  shops. Browsers only render local assets and our own storage.
+  Pokémon and TCGdex image hosts, the REBEL wholesaler's pictures of what sealed
+  products hold, plus the image hosts of the buying-guide shops. Browsers only
+  render local assets and our own storage.
   """
 
   alias TcgCheap.Catalogue.ExternalUrl
@@ -12,7 +13,8 @@ defmodule TcgCheap.Catalogue.ExternalImage do
     "assets.tcgdex.net",
     "assets.pokemon.com",
     "www.pokemon.com",
-    "mcdn.pokemon.com"
+    "mcdn.pokemon.com",
+    "files.rebel.pl"
   ]
 
   @doc "Every host an image may be rendered from."

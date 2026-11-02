@@ -1,10 +1,14 @@
 defmodule TcgCheap.Catalogue.CardImage do
   @moduledoc """
-  Builds local image URLs for mirrored TCGdex cards and logos.
+  Builds local image URLs for mirrored TCGdex cards and logos, and for photos
+  of what sealed products hold.
 
-  This module deliberately only handles TCGdex asset URLs. It does not fetch or
-  otherwise inspect the referenced resource.
+  Cards and logos are TCGdex asset URLs only; contents photos may come from any
+  allowlisted image host. It does not fetch or otherwise inspect the
+  referenced resource.
   """
+
+  alias TcgCheap.Catalogue.ExternalImage
 
   @host "assets.tcgdex.net"
   @qualified_path ~r{/((?:high|low)\.(?:png|jpg|webp))$}
@@ -49,6 +53,16 @@ defmodule TcgCheap.Catalogue.CardImage do
   @doc "Local logo URL; rendering never queries storage or downloads an image."
   @spec logo_url(term()) :: String.t() | nil
   def logo_url(url), do: local_url(logo_source_url(url), "detail")
+
+  @doc "Source of a product contents photo: any allowlisted image URL, kept as given."
+  @spec photo_source_url(term()) :: String.t() | nil
+  def photo_source_url(url) do
+    if ExternalImage.valid?(url), do: url
+  end
+
+  @doc "Local URL of a mirrored contents photo in `size` (thumbnail or detail)."
+  @spec photo_url(term(), String.t()) :: String.t() | nil
+  def photo_url(url, size), do: local_url(photo_source_url(url), size)
 
   @doc "Stable identity shared by all references to a canonical source."
   @spec source_hash(String.t()) :: String.t()
