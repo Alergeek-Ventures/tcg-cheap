@@ -269,7 +269,7 @@ defmodule TcgCheapWeb.HomeLive do
               :for={expansion <- @first}
               expansion={expansion}
               filters={@filters}
-              logo
+              tile
             />
           </ul>
           <details
@@ -305,12 +305,13 @@ defmodule TcgCheapWeb.HomeLive do
 
   attr :expansion, :map, required: true
   attr :filters, :map, required: true
-  attr :logo, :boolean, default: false, doc: "a tile with the logo, when there is one"
+  attr :tile, :boolean, default: false, doc: "a tile, else a row of the list"
 
-  # The language tag shows only while every language is listed. A logo of
-  # another edition is captioned with the English name.
+  # The language tag shows only while every language is listed. On a tile, a
+  # logo of another edition is captioned with the English name; a row always
+  # names the expansion beside its logo.
   defp expansion_option(assigns) do
-    assigns = assign(assigns, :logo_url, assigns.logo && assigns.expansion.logo_url)
+    assigns = assign(assigns, :logo_url, assigns.expansion.logo_url)
 
     ~H"""
     <li>
@@ -323,7 +324,7 @@ defmodule TcgCheapWeb.HomeLive do
         <img :if={@logo_url} src={@logo_url} alt="" loading="lazy" />
         <span class={[
           "guide-expansion-name",
-          @logo_url &&
+          @tile && @logo_url &&
             if(@expansion.region == :en, do: "sr-only", else: "guide-expansion-caption")
         ]}>{@expansion.name}</span>
         <span class="guide-filter-count">
