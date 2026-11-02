@@ -932,13 +932,18 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   .guide-world .product-image img { transition: none !important; }
 }
 
-/* Native radio groups keep deck selection keyboard accessible without JavaScript. */
-.guide-world .deck-variants { border: 0; display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; min-inline-size: 0; padding: 0; }
+/* Native radio groups keep deck selection keyboard accessible without JavaScript.
+   Tabs, not buttons: they show a deck's list, nothing is chosen to buy. */
+.guide-world .deck-variants { border: 0; display: flex; flex-wrap: wrap; margin: 1rem 0 0; min-inline-size: 0; padding: 0; }
 .guide-world .deck-variant-radio { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: hidden; position: absolute; }
-.guide-world .deck-variant-label { align-items: center; border: 1px solid var(--rule); cursor: pointer; display: inline-flex; font-weight: 600; min-block-size: 3rem; padding: .5rem 1rem; }
-.guide-world .deck-variant-radio:checked + .deck-variant-label { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-.guide-world .deck-variant-radio:focus-visible + .deck-variant-label { outline: 2px solid var(--orange); outline-offset: 2px; }
+.guide-world .deck-variant-label { align-items: center; border-block-end: 1px solid var(--rule); color: var(--muted); cursor: pointer; display: inline-flex; flex: 1 1 auto; font-weight: 600; justify-content: center; min-block-size: 3rem; padding: .5rem 1rem; }
+.guide-world .deck-variant-label:hover { color: var(--ink); }
+.guide-world .deck-variant-radio:checked + .deck-variant-label { border-block-end: 3px solid var(--ink); color: var(--ink); }
+.guide-world .deck-variant-radio:focus-visible + .deck-variant-label { outline: 2px solid var(--orange); outline-offset: -2px; }
 .guide-world .deck-variant-cards { display: none; flex-basis: 100%; min-inline-size: 0; order: 1; }
 .guide-world .deck-variant-radio:checked + .deck-variant-label + .deck-variant-cards { display: block; }
-.guide-world .deck-variant-count { margin-block: .5rem 0; }
+.guide-world .deck-variant-count { font-weight: 600; margin-block: 1rem 0; }
 .guide-world .deck-card-list > .deck-list-group:first-of-type h3 { margin-block-start: 1rem; }
+@media (max-width: 42rem) {
+  .guide-world .deck-variant-label { flex-basis: 50%; }
+}

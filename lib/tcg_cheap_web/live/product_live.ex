@@ -557,8 +557,6 @@ defmodule TcgCheapWeb.ProductLive do
             <span class="contents-quantity">{item.quantity}×</span>
             <span class="contents-label">
               <%= cond do %>
-                <% item.variants not in [nil, []] -> %>
-                  <a href={"#deck-list-#{index}"}>{item_label(item)}</a>
                 <% booster = booster(item, @boosters) -> %>
                   <.link navigate={~p"/produkty/#{booster.slug}"}>{item_label(item)}</.link>
                 <% item.cardmarket_id -> %>
@@ -571,15 +569,19 @@ defmodule TcgCheapWeb.ProductLive do
                   {item_label(item)}
               <% end %>
               <span :if={item.set} class="contents-card-set">{item.set} {item.number}</span>
+              <span :if={item.variants not in [nil, []]} class="contents-card-set">
+                {Enum.map_join(item.variants, " · ", & &1.name)}
+              </span>
               <a
                 :if={has_deck_list?(item)}
                 href={"#deck-list-#{index}"}
                 class="contents-card-set"
               >
-                {if(item.type == :deck,
-                  do: gettext("lista kart talii"),
-                  else: gettext("lista kart")
-                )}
+                {cond do
+                  item.variants not in [nil, []] -> gettext("listy kart wszystkich talii")
+                  item.type == :deck -> gettext("lista kart talii")
+                  true -> gettext("lista kart")
+                end}
               </a>
             </span>
           </span>
@@ -691,10 +693,14 @@ defmodule TcgCheapWeb.ProductLive do
       aria-labelledby={"deck-list-#{@index}-title"}
     >
       <div class="product-section-heading">
-        <h2 id={"deck-list-#{@index}-title"}>{gettext("Karty w talii – warianty losowe")}</h2>
+        <h2 id={"deck-list-#{@index}-title"}>{gettext("Możliwe talie")}</h2>
       </div>
-      <fieldset id={"deck-variants-#{@index}"} class="deck-variants">
-        <legend class="sr-only">{gettext("Wybierz wariant, aby zobaczyć listę kart")}</legend>
+      <p class="guide-note">
+        {random_deck_note(@deck)}
+      </p>
+      <%!-- Ignored by patches, so a rejoin keeps the variant shown. --%>
+      <fieldset id={"deck-variants-#{@index}"} class="deck-variants" phx-update="ignore">
+        <legend class="sr-only">{gettext("Pokaż skład talii")}</legend>
         <%= for {variant, variant_index} <- Enum.with_index(@deck.variants) do %>
           <input
             type="radio"
@@ -714,7 +720,7 @@ defmodule TcgCheapWeb.ProductLive do
             role="region"
             aria-labelledby={"deck-variant-#{@index}-#{variant_index}"}
           >
-            <.deck_card_list cards={variant.cards} />
+            <.deck_card_list cards={variant.cards} name={variant.name} />
           </div>
         <% end %>
       </fieldset>
@@ -741,6 +747,7 @@ defmodule TcgCheapWeb.ProductLive do
   end
 
   attr :cards, :list, required: true
+  attr :name, :string, default: nil
   attr :show_count, :boolean, default: true
 
   defp deck_card_list(assigns) do
@@ -760,8 +767,8 @@ defmodule TcgCheapWeb.ProductLive do
 
     ~H"""
     <div class="deck-card-list">
-      <p :if={@show_count} class="guide-note deck-variant-count">
-        {Polish.plural(@count, "karta", "karty", "kart")}
+      <p :if={@show_count} class="deck-variant-count">
+        {gettext("Talia %{deck}", deck: @name)} · {Polish.plural(@count, "karta", "karty", "kart")}
       </p>
       <div :for={group <- @groups} class="deck-list-group">
         <h3>
@@ -856,12 +863,8 @@ defmodule TcgCheapWeb.ProductLive do
   defp item_label(%{type: :card, name: nil}), do: gettext("karta")
   defp item_label(%{type: :card, name: card}), do: gettext("karta %{card}", card: card)
 
-  defp item_label(%{type: :deck, variants: [_ | _] = variants}) do
-    gettext("talia losowa – jedna z %{count}: %{names}",
-      count: length(variants),
-      names: Enum.map_join(variants, ", ", & &1.name)
-    )
-  end
+  defp item_label(%{type: :deck, variants: [_ | _] = variants}),
+    do: gettext("talia losowa (1 z %{count})", count: length(variants))
 
   defp item_label(%{type: :deck, name: nil}), do: gettext("talia gotowa do gry")
   defp item_label(%{type: :deck, name: deck}), do: gettext("talia %{deck}", deck: deck)
@@ -883,6 +886,22 @@ defmodule TcgCheapWeb.ProductLive do
   defp item_label(%{type: :binder}), do: gettext("album")
   defp item_label(%{type: :playmat}), do: gettext("mata do gry")
   defp item_label(%{type: :other, name: name}), do: name
+
+  # A box holds one deck the publisher drew; a display holds several, each drawn.
+  defp random_deck_note(%{quantity: 1, variants: variants}),
+    do:
+      gettext(
+        "W pudełku jest jedna z tych %{count} talii, wylosowana przez producenta – nie da się jej wybrać. Sprawdź skład każdej:",
+        count: length(variants)
+      )
+
+  defp random_deck_note(%{quantity: quantity, variants: variants}),
+    do:
+      gettext(
+        "Każda z %{quantity} talii to jedna z tych %{count}, wylosowana przez producenta – nie da się ich wybrać. Sprawdź skład każdej:",
+        quantity: quantity,
+        count: length(variants)
+      )
 
   # What a buyer opens comes first, the accessories after it.
   @item_order ~w(deck booster promo_card oversize_card card energy_cards)a
