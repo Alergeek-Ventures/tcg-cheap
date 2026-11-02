@@ -926,6 +926,10 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .pull-rates :is(th, td):last-child { text-align: end; }
 .guide-world .pull-rate-detail { color: var(--muted); display: block; font-size: .8125rem; font-weight: 400; }
 .guide-world .pull-rate-percent { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.guide-world .booster-odds-set { margin-block-start: 1.5rem; }
+.guide-world .booster-odds-set h3 { font-size: 1.25rem; }
+.guide-world .booster-odds-set a { text-decoration: underline; text-underline-offset: .15em; }
+.guide-world .booster-odds-set > .guide-note { margin-block-start: .5rem; }
 .guide-world #product-pull-rates > .guide-note:last-child { margin-block-start: .5rem; }
 .guide-world #product-pull-rates .guide-note a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 /* The set's cards: one fold per rarity, the rarest open; numbers in a column. */

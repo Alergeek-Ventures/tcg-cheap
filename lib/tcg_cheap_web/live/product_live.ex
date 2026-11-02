@@ -235,7 +235,11 @@ defmodule TcgCheapWeb.ProductLive do
           />
 
           <%= if @page.booster_set do %>
-            <.pull_rates pull_rates={@page.booster_set.pull_rates} />
+            <.pull_rates
+              pull_rates={@page.booster_set.pull_rates}
+              standard_pack_size={@page.booster_set.standard_pack_size}
+              smaller_pack?={@page.booster_set.smaller_pack?}
+            />
             <.set_cards
               rarities={@page.booster_set.rarities}
               cards_per_pack={@page.booster_set.cards_per_pack}
@@ -243,6 +247,8 @@ defmodule TcgCheapWeb.ProductLive do
               logo_url={@page.booster_set.logo_url}
             />
           <% end %>
+
+          <.booster_odds :if={@page.booster_odds != []} sets={@page.booster_odds} />
 
           <.cardmarket_reference
             product={@page.product}
@@ -669,6 +675,8 @@ defmodule TcgCheapWeb.ProductLive do
   end
 
   attr :pull_rates, :map, required: true
+  attr :standard_pack_size, :integer, default: nil
+  attr :smaller_pack?, :boolean, default: false
 
   defp pull_rates(%{pull_rates: nil} = assigns) do
     ~H"""
@@ -680,6 +688,7 @@ defmodule TcgCheapWeb.ProductLive do
       <div class="product-section-heading">
         <h2 id="product-pull-rates-title">{gettext("Szansa na drop")}</h2>
       </div>
+      <.standard_pack_note count={@standard_pack_size} smaller?={@smaller_pack?} />
       <p id="pull-rates-unknown" class="guide-note">
         {gettext("Nie znamy jeszcze szans na drop w tym secie.")}
       </p>
@@ -698,6 +707,7 @@ defmodule TcgCheapWeb.ProductLive do
         <h2 id="product-pull-rates-title">{gettext("Szansa na drop")}</h2>
         <p>{gettext("sprawdzono %{date}", date: Polish.date(@pull_rates.checked_on))}</p>
       </div>
+      <.standard_pack_note count={@standard_pack_size} smaller?={@smaller_pack?} />
       <p id="pull-rates-estimate" class="guide-note pull-rates-estimate">
         <.fluent_icon name={:info} />
         <span>
@@ -743,6 +753,98 @@ defmodule TcgCheapWeb.ProductLive do
       </p>
     </section>
     """
+  end
+
+  attr :count, :integer, default: nil
+  attr :smaller?, :boolean, default: false
+
+  defp standard_pack_note(assigns) do
+    ~H"""
+    <p id="pull-rates-pack-size" class="guide-note">
+      <%= if @count do %>
+        {gettext("Szanse dotyczą standardowej paczki tego setu: %{count} kart.", count: @count)}
+      <% else %>
+        {gettext("Szanse dotyczą standardowej paczki tego setu.")}
+      <% end %>
+      <span :if={@smaller?}>
+        {gettext(
+          "Ta paczka zawiera mniej kart, więc szanse są niższe. Nie znamy osobnych szans dla mniejszych paczek."
+        )}
+      </span>
+    </p>
+    """
+  end
+
+  attr :sets, :list, required: true
+
+  defp booster_odds(assigns) do
+    ~H"""
+    <section
+      id="product-booster-odds"
+      class="product-section"
+      aria-labelledby="product-booster-odds-title"
+    >
+      <div class="product-section-heading">
+        <h2 id="product-booster-odds-title">{gettext("Szanse w całym produkcie")}</h2>
+      </div>
+      <p class="guide-note pull-rates-estimate">
+        {gettext(
+          "Szansa na co najmniej jedną kartę danej rzadkości ze wszystkich paczek tego setu. To szacunki społeczności z tych samych źródeł co na stronie boostera, nie oficjalne dane wydawcy. Zakładamy niezależne wyniki standardowych paczek: 1 − (1 − p)^N."
+        )}
+      </p>
+      <div :for={set <- @sets} id={"booster-odds-#{set.slug}"} class="booster-odds-set">
+        <div class="product-section-heading">
+          <h3><.link navigate={~p"/produkty/#{set.slug}"}>{set.name}</.link></h3>
+          <p>{gettext("Liczba paczek: %{count}", count: set.count)}</p>
+        </div>
+        <%= if set.pull_rates do %>
+          <table class="pull-rates">
+            <thead>
+              <tr>
+                <th scope="col">{gettext("Rzadkość")}</th>
+                <th scope="col">{gettext("Szansa")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={row <- set.pull_rates.rates}>
+                <th scope="row">
+                  {row.rarity}
+                  <span :if={row.rate.card} class="pull-rate-detail">
+                    {gettext("konkretna karta: %{name}", name: row.rate.card)}
+                  </span>
+                </th>
+                <td class="pull-rate-percent">{combined_chance(row.rate, set.count)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="guide-note">
+            {sources_label(length(set.pull_rates.sources))}
+            <%= for {source, index} <- Enum.with_index(set.pull_rates.sources) do %>
+              <span :if={index > 0}>·</span>
+              <a href={source.url} target="_blank" rel="noopener nofollow">{host(source.url)}</a>
+            <% end %>
+          </p>
+        <% else %>
+          <p class="guide-note">{gettext("Nie znamy jeszcze szans na drop w tym secie.")}</p>
+        <% end %>
+        <p class="guide-note">
+          <.link navigate={~p"/produkty/#{set.slug}" <> "#product-cards"}>
+            {gettext("Karty do zdobycia")} →
+          </.link>
+        </p>
+      </div>
+    </section>
+    """
+  end
+
+  defp combined_chance(rate, count) do
+    case Rate.across_packs(rate, count) do
+      :guaranteed -> gettext("w każdej paczce")
+      nil -> gettext("Brak danych")
+      value when value > 99 -> "> 99%"
+      value when value < 0.01 -> "< 0,01%" |> String.replace(",", decimal_separator())
+      value -> "≈ " <> percent(Decimal.from_float(value))
+    end
   end
 
   # Rows such as "Poké Ball Rare" or "Reverse Rare" have no group of their
