@@ -1279,7 +1279,8 @@ defmodule TcgCheapWeb.ProductLive do
         verdict: verdict,
         past: past,
         range: price_range(verdict),
-        reason: reason(verdict, past)
+        reason: reason(verdict, past),
+        good_bound: good_bound(verdict, assigns.page.cardmarket_delivered_pln)
       )
 
     ~H"""
@@ -1329,6 +1330,7 @@ defmodule TcgCheapWeb.ProductLive do
           </div>
         </div>
         <p :if={@reason} id="verdict-reason" class="verdict-reason">{@reason}</p>
+        <p :if={@good_bound} id="verdict-good-bound" class="verdict-reason">{@good_bound}</p>
         <p :if={@verdict.status == :cardmarket} id="verdict-cardmarket" class="verdict-cardmarket">
           <.cardmarket_price
             price={@verdict.typical}
@@ -1379,7 +1381,7 @@ defmodule TcgCheapWeb.ProductLive do
             </summary>
             <p>
               {gettext(
-                "Typowa cena to mediana cen w polskich sklepach, które mają produkt na stanie (z każdego sklepu jego najtańsza oferta); potrzebujemy co najmniej %{minimum} sklepów.",
+                "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów).",
                 minimum: PriceGuide.min_shops()
               )}
               <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
@@ -1387,15 +1389,17 @@ defmodule TcgCheapWeb.ProductLive do
                   "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
                 )}
               </span>
+            </p>
+            <p>
               {gettext(
-                "Dobra cena to do 95% typowej, normalna – do 110%, wyższa – drogo. Progi zaokrąglamy w dół do pełnych złotych. Ceny nie obejmują wysyłki."
+                "Dobra cena jest co najmniej 5% niższa od typowej, od zwykłej z ostatnich %{window} dni i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo.",
+                window: PriceGuide.window_days()
               )}
             </p>
             <p>
               {gettext(
-                "Historia: tę samą cenę porównujemy z medianą najniższych cen z ostatnich %{window} dni, w których produkt był dostępny (co najmniej %{minimum} takich dni), z tymi samymi progami. To tylko tło: nie zmienia dzisiejszej oceny.",
-                window: PriceGuide.window_days(),
-                minimum: PriceGuide.min_days_with_stock()
+                "Ceny w sklepach są bez wysyłki. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec.",
+                shipping: Polish.eur(Guide.cardmarket_shipping_eur())
               )}
             </p>
           </details>
@@ -1452,10 +1456,9 @@ defmodule TcgCheapWeb.ProductLive do
   defp reason(%{status: status, typical_source: :shops} = verdict, _past)
        when status in [:good, :normal, :expensive],
        do:
-         gettext("Zwykle %{low}–%{high} w %{shops}",
-           low: Polish.number(verdict.good_max),
-           high: Polish.zloty(verdict.normal_max),
-           shops: Polish.plural(length(verdict.shop_prices), "sklepie", "sklepach", "sklepach")
+         gettext("Typowa cena dziś w %{shops}: %{price}",
+           shops: Polish.plural(length(verdict.shop_prices), "sklepie", "sklepach", "sklepach"),
+           price: Polish.zloty(verdict.typical)
          )
 
   # Shown as the Cardmarket price with its logo instead.
@@ -1477,6 +1480,27 @@ defmodule TcgCheapWeb.ProductLive do
     |> Enum.join(" ")
   end
 
+  # Why the good limit is below the shops' one, when the history or
+  # Cardmarket lowers it.
+  defp good_bound(%{good_limits: %{shops: shops} = limits, good_max: good_max}, cardmarket)
+       when good_max < shops do
+    case Enum.find([:past, :cardmarket], &(limits[&1] == good_max)) do
+      :past ->
+        gettext("Dobra cena: do %{price}, bo w ostatnich %{days} dniach bywało taniej.",
+          price: Polish.zloty(good_max),
+          days: PriceGuide.window_days()
+        )
+
+      :cardmarket ->
+        gettext("Dobra cena: do %{price}, bo na Cardmarket z wysyłką wychodzi ok. %{cardmarket}.",
+          price: Polish.zloty(good_max),
+          cardmarket: Polish.zloty(cardmarket)
+        )
+    end
+  end
+
+  defp good_bound(_verdict, _cardmarket), do: nil
+
   defp last_known(%{last_known: %{price: price, date: date}}),
     do:
       gettext("Ostatnio najtaniej: %{price} (%{date}).",
@@ -1488,7 +1512,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp usual(_verdict, %{typical: %Decimal{} = typical}),
     do:
-      gettext("Zwykle najtaniej %{price} (mediana z ostatnich %{days} dni).",
+      gettext("Zwykle najtaniej %{price} w ostatnich %{days} dniach.",
         price: Polish.zloty(typical),
         days: PriceGuide.window_days()
       )

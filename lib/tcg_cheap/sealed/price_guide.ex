@@ -2,14 +2,18 @@ defmodule TcgCheap.Sealed.PriceGuide do
   @moduledoc """
   Judges the cheapest price you can buy a product at right now, twice.
 
-  `verdict/2` is the guide's answer: is it a good price today? The typical
+  `verdict/3` is the guide's answer: is it a good price today? The typical
   price is the median of today's prices in Polish shops, one per shop (its
   lowest in-stock offer), when at least 3 shops have the product. A price
   is good up to 95% of it, normal up to 110%, and expensive above that, so
   the cheapest offer is good when it clearly undercuts the typical shop.
-  Both limits are rounded down to whole złoty, so a price seen in a
-  physical shop can be judged against the shown limits directly and no
-  price above 95%/110% of the typical one is rated better than it is.
+  A good price must also be at most 95% of each known reference: the usual
+  price of the last 30 days (see `past/3`) and the Cardmarket trend with
+  shipping to Poland, in PLN. The good limit is the lowest of these
+  (`good_limits` has each). Both limits are rounded down to whole złoty, so
+  a price seen in a physical shop can be judged against the shown limits
+  directly and no price above 95%/110% of the typical one is rated better
+  than it is.
 
   With fewer shops the price is only compared with the Cardmarket trend
   converted to PLN with the latest NBP rate (`:cardmarket`, no limits): a
@@ -18,12 +22,12 @@ defmodule TcgCheap.Sealed.PriceGuide do
   anchored on an official (MSRP) price: only prices you can actually buy at
   count.
 
-  `past/3` is context, as on flight price graphs: is it a good price for
-  this product historically? The usual price is the median of the daily
-  lowest in-stock price over the last 30 days, counting only days when some
-  shop had stock, when there are at least 7 such days; the same 95%/110%
-  limits make it `:low`, `:usual` or `:high`. It never changes the verdict:
-  what the product cost once does not make today's offers better or worse.
+  `past/3` shows the history, as on flight price graphs: is it a good price
+  for this product historically? The usual price (`usual/2`) is the median
+  of the daily lowest in-stock price over the last 30 days, counting only
+  days when some shop had stock, when there are at least 7 such days; the
+  same 95%/110% limits make it `:low`, `:usual` or `:high`. Beyond the good
+  limit above it does not change the verdict.
   """
 
   @min_shops 3
@@ -48,6 +52,7 @@ defmodule TcgCheap.Sealed.PriceGuide do
           typical: Decimal.t() | nil,
           typical_source: :shops | :cardmarket | nil,
           good_max: integer() | nil,
+          good_limits: %{optional(:shops | :past | :cardmarket) => integer()},
           normal_max: integer() | nil
         }
   @type past :: %{
@@ -64,11 +69,14 @@ defmodule TcgCheap.Sealed.PriceGuide do
   def min_days_with_stock, do: @min_days_with_stock
 
   @doc """
-  Today's verdict for a product given its current in-stock offers and the
-  Cardmarket trend in PLN used as a fallback.
+  Today's verdict for a product given its current in-stock offers, the
+  Cardmarket trend in PLN (the comparison with fewer shops) and the
+  references a good price must also undercut: `past:` the usual price
+  (`usual/2`) and `cardmarket:` the Cardmarket trend with shipping in PLN,
+  each nil when unknown.
   """
-  @spec verdict([offer()], Decimal.t() | nil) :: t()
-  def verdict(in_stock_offers, cardmarket_pln \\ nil) do
+  @spec verdict([offer()], Decimal.t() | nil, [{:past | :cardmarket, Decimal.t() | nil}]) :: t()
+  def verdict(in_stock_offers, cardmarket_pln, references) do
     shop_prices =
       in_stock_offers
       |> Enum.group_by(& &1.shop, & &1.price)
@@ -83,7 +91,11 @@ defmodule TcgCheap.Sealed.PriceGuide do
       end
 
     cheapest = Enum.min_by(in_stock_offers, & &1.price, Decimal, fn -> nil end)
-    limits = limits(if source == :shops, do: typical)
+
+    limits =
+      if source == :shops,
+        do: typical |> limits() |> with_good_limits(references),
+        else: Map.put(limits(nil), :good_limits, %{})
 
     status =
       cond do
@@ -108,14 +120,8 @@ defmodule TcgCheap.Sealed.PriceGuide do
   """
   @spec past([day()], offer() | nil, Date.t()) :: past()
   def past(history, cheapest, %Date{} = today) do
-    window_start = Date.add(today, -(@window_days - 1))
-
-    prices =
-      for %{date: date, lowest_price: %Decimal{} = price} <- history,
-          Date.compare(date, window_start) != :lt and Date.compare(date, today) != :gt,
-          do: price
-
-    typical = if length(prices) >= @min_days_with_stock, do: median(prices)
+    prices = window_prices(history, today)
+    typical = usual_of(prices)
     limits = limits(typical)
 
     status =
@@ -133,13 +139,45 @@ defmodule TcgCheap.Sealed.PriceGuide do
     })
   end
 
+  @doc """
+  The usual price up to `today`: the median daily lowest in-stock price of
+  the last 30 days, or nil with fewer than 7 days with stock.
+  """
+  @spec usual([day()], Date.t()) :: Decimal.t() | nil
+  def usual(history, %Date{} = today), do: history |> window_prices(today) |> usual_of()
+
+  defp window_prices(history, today) do
+    window_start = Date.add(today, -(@window_days - 1))
+
+    for %{date: date, lowest_price: %Decimal{} = price} <- history,
+        Date.compare(date, window_start) != :lt and Date.compare(date, today) != :gt,
+        do: price
+  end
+
+  defp usual_of(prices), do: if(length(prices) >= @min_days_with_stock, do: median(prices))
+
+  # A good price is good against every known reference.
+  defp with_good_limits(limits, references) do
+    good_limits =
+      for {source, %Decimal{} = price} <- references,
+          into: %{shops: limits.good_max},
+          do: {source, good_max(price)}
+
+    Map.merge(limits, %{
+      good_max: good_limits |> Map.values() |> Enum.min(),
+      good_limits: good_limits
+    })
+  end
+
   defp limits(nil), do: %{good_max: nil, normal_max: nil}
 
   defp limits(typical),
     do: %{
-      good_max: whole_zloty(Decimal.mult(typical, @good_factor)),
+      good_max: good_max(typical),
       normal_max: whole_zloty(Decimal.mult(typical, @normal_factor))
     }
+
+  defp good_max(typical), do: whole_zloty(Decimal.mult(typical, @good_factor))
 
   defp rate(price, %{good_max: good_max, normal_max: normal_max}, {good, normal, expensive}) do
     cond do

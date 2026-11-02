@@ -50,6 +50,7 @@ defmodule TcgCheap.Sealed.AgentTools.ProductDetail do
       verdict: %{verdict | cheapest: verdict.cheapest && Json.offer(verdict.cheapest)},
       past: detail.past,
       cardmarket_trend_pln: detail.cardmarket_pln,
+      cardmarket_trend_with_shipping_pln: detail.cardmarket_delivered_pln,
       eur_pln: detail.eur_pln,
       suggested_price: Json.suggested_price(detail.suggested_price),
       contents: Json.contents(product.contents),

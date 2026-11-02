@@ -8,14 +8,21 @@ defmodule TcgCheap.Sealed.Guide do
 
   @history_days 90
   @page_size 30
+  # The cheapest tracked parcel to Poland from Germany, Cardmarket's largest
+  # seller country (DHL Paket up to 2 kg, Cardmarket's shipping calculator,
+  # 2026-11-02); orders above 25 € must be tracked, which covers most sealed
+  # products.
+  @cardmarket_shipping_eur Decimal.new("15.49")
 
   @type summary :: %{
           product: Product.t(),
           verdict: PriceGuide.t(),
-          cardmarket_pln: Decimal.t() | nil
+          cardmarket_pln: Decimal.t() | nil,
+          cardmarket_delivered_pln: Decimal.t() | nil
         }
 
   def history_days, do: @history_days
+  def cardmarket_shipping_eur, do: @cardmarket_shipping_eur
 
   @type filters :: %{
           query: String.t(),
@@ -154,11 +161,17 @@ defmodule TcgCheap.Sealed.Guide do
   def summaries([], _now), do: []
 
   def summaries(products, %DateTime{} = now) do
-    rate = now |> DateTime.to_date() |> eur_pln()
+    today = DateTime.to_date(now)
+    rate = eur_pln(today)
     ids = Enum.map(products, & &1.id)
     offers = now |> Sealed.current_offers(ids) |> Enum.group_by(& &1.product_id)
+    since = Date.add(today, -(PriceGuide.window_days() - 1))
+    histories = ids |> Sealed.list_price_histories!(since) |> Enum.group_by(& &1.product_id)
 
-    Enum.map(products, &summary(&1, Map.get(offers, &1.id, []), rate))
+    Enum.map(products, fn product ->
+      usual = PriceGuide.usual(Map.get(histories, product.id, []), today)
+      summary(product, Map.get(offers, product.id, []), rate, usual)
+    end)
   end
 
   @doc """
@@ -187,7 +200,7 @@ defmodule TcgCheap.Sealed.Guide do
         since = Date.add(today, -(@history_days - 1))
         history = Sealed.list_price_history!(product.id, since)
 
-        summary = summary(product, offers, rate)
+        summary = summary(product, offers, rate, PriceGuide.usual(history, today))
         past_history = with_last_stocked_day(history, product.id, since)
         boosters = boosters(product)
 
@@ -355,14 +368,23 @@ defmodule TcgCheap.Sealed.Guide do
   def to_pln(%Decimal{} = eur, %{rate: rate}), do: eur |> Decimal.mult(rate) |> Decimal.round(2)
   def to_pln(_eur, _rate), do: nil
 
-  defp summary(product, offers, rate) do
+  defp summary(product, offers, rate, usual) do
     in_stock = Enum.filter(offers, & &1.in_stock)
     cardmarket_pln = to_pln(product.cardmarket_trend, rate)
+    cardmarket_delivered_pln = product.cardmarket_trend |> with_shipping() |> to_pln(rate)
 
     %{
       product: product,
-      verdict: PriceGuide.verdict(in_stock, cardmarket_pln),
-      cardmarket_pln: cardmarket_pln
+      verdict:
+        PriceGuide.verdict(in_stock, cardmarket_pln,
+          past: usual,
+          cardmarket: cardmarket_delivered_pln
+        ),
+      cardmarket_pln: cardmarket_pln,
+      cardmarket_delivered_pln: cardmarket_delivered_pln
     }
   end
+
+  defp with_shipping(%Decimal{} = eur), do: Decimal.add(eur, @cardmarket_shipping_eur)
+  defp with_shipping(nil), do: nil
 end

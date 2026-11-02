@@ -99,7 +99,7 @@ msgstr ""
 msgid "Cardmarket (w zł)"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1466
+#: lib/tcg_cheap_web/live/product_live.ex:1469
 #, elixir-autogen, elixir-format
 msgid "Cardmarket nie podaje ceny tego produktu, więc na razie go nie oceniamy."
 msgstr ""
@@ -120,7 +120,7 @@ msgid "Chińska"
 msgstr ""
 
 #: lib/tcg_cheap_web/live/product_live.ex:310
-#: lib/tcg_cheap_web/live/product_live.ex:1312
+#: lib/tcg_cheap_web/live/product_live.ex:1313
 #, elixir-autogen, elixir-format
 msgid "Do sklepu"
 msgstr ""
@@ -128,11 +128,6 @@ msgstr ""
 #: lib/tcg_cheap_web/components/guide_components.ex:590
 #, elixir-autogen, elixir-format
 msgid "Dobra cena"
-msgstr ""
-
-#: lib/tcg_cheap_web/live/product_live.ex:1389
-#, elixir-autogen, elixir-format
-msgid "Dobra cena to do 95% typowej, normalna – do 110%, wyższa – drogo. Progi zaokrąglamy w dół do pełnych złotych. Ceny nie obejmują wysyłki."
 msgstr ""
 
 #: lib/tcg_cheap_web/components/guide_components.ex:592
@@ -246,7 +241,7 @@ msgstr ""
 msgid "Nie mamy jeszcze historii cen tego produktu."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1498
+#: lib/tcg_cheap_web/live/product_live.ex:1522
 #, elixir-autogen, elixir-format
 msgid "Nie znamy jeszcze jego ceny."
 msgstr ""
@@ -266,7 +261,7 @@ msgstr ""
 msgid "Normalna cena"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1290
+#: lib/tcg_cheap_web/live/product_live.ex:1291
 #, elixir-autogen, elixir-format
 msgid "Ocena ceny"
 msgstr ""
@@ -281,7 +276,7 @@ msgstr ""
 msgid "Oferty w sklepach"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1481
+#: lib/tcg_cheap_web/live/product_live.ex:1505
 #, elixir-autogen, elixir-format
 msgid "Ostatnio najtaniej: %{price} (%{date})."
 msgstr ""
@@ -375,8 +370,8 @@ msgid "Talia"
 msgstr ""
 
 #: lib/tcg_cheap_web/live/product_live.ex:188
-#: lib/tcg_cheap_web/live/product_live.ex:1427
-#: lib/tcg_cheap_web/live/product_live.ex:1471
+#: lib/tcg_cheap_web/live/product_live.ex:1431
+#: lib/tcg_cheap_web/live/product_live.ex:1474
 #: lib/tcg_cheap_web/seo.ex:122
 #: lib/tcg_cheap_web/social_image.ex:178
 #, elixir-autogen, elixir-format
@@ -520,7 +515,7 @@ msgstr ""
 msgid "koszt dostawy w koszyku"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1297
+#: lib/tcg_cheap_web/live/product_live.ex:1298
 #, elixir-autogen, elixir-format
 msgid "najtaniej teraz w"
 msgstr ""
@@ -842,24 +837,15 @@ msgid_plural "%{count} sklepach"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1394
-#, elixir-autogen, elixir-format
-msgid "Historia: tę samą cenę porównujemy z medianą najniższych cen z ostatnich %{window} dni, w których produkt był dostępny (co najmniej %{minimum} takich dni), z tymi samymi progami. To tylko tło: nie zmienia dzisiejszej oceny."
-msgstr ""
-
-#: lib/tcg_cheap_web/live/product_live.ex:1385
+#: lib/tcg_cheap_web/live/product_live.ex:1387
 #, elixir-autogen, elixir-format
 msgid "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
 msgstr ""
 
+#: lib/tcg_cheap_web/live/product_live.ex:1458
 #: lib/tcg_cheap_web/social_image.ex:224
 #, elixir-autogen, elixir-format
 msgid "Typowa cena dziś w %{shops}: %{price}"
-msgstr ""
-
-#: lib/tcg_cheap_web/live/product_live.ex:1490
-#, elixir-autogen, elixir-format
-msgid "Zwykle najtaniej %{price} (mediana z ostatnich %{days} dni)."
 msgstr ""
 
 #: lib/tcg_cheap_web/components/guide_components.ex:360
@@ -867,7 +853,7 @@ msgstr ""
 msgid "Linia przerywana: zwykle najtaniej %{price}."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1431
+#: lib/tcg_cheap_web/live/product_live.ex:1435
 #, elixir-autogen, elixir-format
 msgid "Produkt jest teraz na stanie w %{shops}. Porównamy ceny, gdy będzie w co najmniej %{minimum} sklepach."
 msgstr ""
@@ -882,47 +868,42 @@ msgstr ""
 msgid "zwykle %{price}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1346
+#: lib/tcg_cheap_web/live/product_live.ex:1348
 #, elixir-autogen, elixir-format
 msgid "(zwykle %{price})"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1447
+#: lib/tcg_cheap_web/live/product_live.ex:1451
 #, elixir-autogen, elixir-format
 msgid "Drożej niż w ostatnich %{days} dniach"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1359
+#: lib/tcg_cheap_web/live/product_live.ex:1361
 #, elixir-autogen, elixir-format
 msgid "Historia cen"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1374
+#: lib/tcg_cheap_web/live/product_live.ex:1376
 #, elixir-autogen, elixir-format
 msgid "Jak liczymy?"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1445
+#: lib/tcg_cheap_web/live/product_live.ex:1449
 #, elixir-autogen, elixir-format
 msgid "Taniej niż w ostatnich %{days} dniach"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1446
+#: lib/tcg_cheap_web/live/product_live.ex:1450
 #, elixir-autogen, elixir-format
 msgid "Tyle co w ostatnich %{days} dniach"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1380
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana cen w polskich sklepach, które mają produkt na stanie (z każdego sklepu jego najtańsza oferta); potrzebujemy co najmniej %{minimum} sklepów."
-msgstr ""
-
-#: lib/tcg_cheap_web/live/product_live.ex:1503
+#: lib/tcg_cheap_web/live/product_live.ex:1527
 #, elixir-autogen, elixir-format
 msgid "Na Cardmarket %{price} (bez wysyłki)."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1350
+#: lib/tcg_cheap_web/live/product_live.ex:1352
 #, elixir-autogen, elixir-format
 msgid "Ocenę pokażemy, gdy produkt będzie na stanie w co najmniej %{count} sklepach."
 msgstr ""
@@ -932,7 +913,7 @@ msgstr ""
 msgid "%{offers} na stanie"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1312
+#: lib/tcg_cheap_web/live/product_live.ex:1313
 #, elixir-autogen, elixir-format
 msgid "(otwiera się w nowej karcie)"
 msgstr ""
@@ -940,11 +921,6 @@ msgstr ""
 #: lib/tcg_cheap_web/live/product_live.ex:204
 #, elixir-autogen, elixir-format
 msgid "Bez towaru: %{offers}"
-msgstr ""
-
-#: lib/tcg_cheap_web/live/product_live.ex:1454
-#, elixir-autogen, elixir-format
-msgid "Zwykle %{low}–%{high} w %{shops}"
 msgstr ""
 
 #: lib/tcg_cheap_web/live/product_live.ex:318
@@ -967,7 +943,7 @@ msgstr ""
 msgid "Cena na Cardmarket (bez wysyłki)"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/product_live.ex:1336
+#: lib/tcg_cheap_web/live/product_live.ex:1338
 #, elixir-autogen, elixir-format
 msgid "na Cardmarket, bez wysyłki"
 msgstr ""
@@ -1290,4 +1266,34 @@ msgstr ""
 #: lib/tcg_cheap_web/live/product_live.ex:527
 #, elixir-autogen, elixir-format
 msgid "lista kart talii"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:1494
+#, elixir-autogen, elixir-format
+msgid "Dobra cena: do %{price}, bo na Cardmarket z wysyłką wychodzi ok. %{cardmarket}."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:1488
+#, elixir-autogen, elixir-format
+msgid "Dobra cena: do %{price}, bo w ostatnich %{days} dniach bywało taniej."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:1399
+#, elixir-autogen, elixir-format
+msgid "Ceny w sklepach są bez wysyłki. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:1393
+#, elixir-autogen, elixir-format
+msgid "Dobra cena jest co najmniej 5% niższa od typowej, od zwykłej z ostatnich %{window} dni i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:1382
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów)."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/product_live.ex:1514
+#, elixir-autogen, elixir-format
+msgid "Zwykle najtaniej %{price} w ostatnich %{days} dniach."
 msgstr ""
