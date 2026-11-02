@@ -1,5 +1,8 @@
 defmodule TcgCheapWeb.ProductLive do
-  @moduledoc "One catalogue product: today's verdict, the offers behind it and 90 days of prices."
+  @moduledoc """
+  One catalogue product: today's verdict, how its price compares with other
+  shops today and with its own 90 days of prices, and the offers behind it.
+  """
 
   use TcgCheapWeb, :live_view
   use Gettext, backend: TcgCheapWeb.Gettext
@@ -148,7 +151,7 @@ defmodule TcgCheapWeb.ProductLive do
               </p>
             </section>
             <.verdict_block
-              verdict={@page.verdict}
+              page={@page}
               nearby={if(@location_ready?, do: nearby(@page, @location))}
             />
           </div>
@@ -234,23 +237,6 @@ defmodule TcgCheapWeb.ProductLive do
               cards_per_pack={@page.booster_set.cards_per_pack}
             />
           <% end %>
-
-          <section
-            id="product-history"
-            class="product-section"
-            aria-labelledby="product-history-title"
-          >
-            <div class="product-section-heading">
-              <h2 id="product-history-title">{gettext("Ceny z ostatnich 90 dni")}</h2>
-            </div>
-            <.price_chart
-              id="price-history"
-              series={chart_series(@page)}
-              from={Date.add(@page.today, -(Guide.history_days() - 1))}
-              to={@page.today}
-              typical={@page.verdict.typical}
-            />
-          </section>
 
           <.cardmarket_reference
             product={@page.product}
@@ -966,11 +952,22 @@ defmodule TcgCheapWeb.ProductLive do
   defp extra_zloty(extra),
     do: extra |> Decimal.round(0) |> Decimal.to_integer() |> max(1) |> Polish.zloty()
 
-  attr :verdict, :map, required: true
+  attr :page, :map, required: true
   attr :nearby, :any, default: nil
 
+  # The whole answer in one place, the way flight search does it: the
+  # verdict, today's price marked on a bar of the good, normal and expensive
+  # ranges, one line on how it compares with the product's history, and the
+  # history chart and the method behind a click.
   defp verdict_block(assigns) do
-    assigns = assign(assigns, :difference, difference(assigns.verdict))
+    %{verdict: verdict, past: past} = assigns.page
+
+    assigns =
+      assign(assigns,
+        verdict: verdict,
+        past: past,
+        range: price_range(verdict)
+      )
 
     ~H"""
     <section
@@ -997,133 +994,159 @@ defmodule TcgCheapWeb.ProductLive do
             >{shop_name(@verdict.cheapest)}</a>
           </p>
         </div>
+        <div :if={@range} id="verdict-range" class="verdict-range" aria-hidden="true">
+          <div class="verdict-range-bar">
+            <span class="verdict-range-good" style={"--to: #{@range.good_at}%"}></span>
+            <span
+              class="verdict-range-normal"
+              style={"--from: #{@range.good_at}%; --to: #{@range.normal_at}%"}
+            ></span>
+            <span class="verdict-range-expensive" style={"--from: #{@range.normal_at}%"}></span>
+            <span class="verdict-range-now" style={"--at: #{@range.cheapest_at}%"}></span>
+          </div>
+          <div class="verdict-range-limits">
+            <span style={"--at: #{@range.good_at}%"}>{Polish.zloty(@verdict.good_max)}</span>
+            <span style={"--at: #{@range.normal_at}%"}>{Polish.zloty(@verdict.normal_max)}</span>
+          </div>
+        </div>
         <p id="verdict-reason" class="verdict-reason">
-          {reason(@verdict)}
-          <span :if={@difference} id="verdict-difference">{@difference}</span>
+          {reason(@verdict, @past)}
+        </p>
+        <p
+          :if={@past.status in [:low, :usual, :high]}
+          id="verdict-past"
+          class={["verdict-past", "verdict-past-#{@past.status}"]}
+        >
+          <.verdict_icon status={past_tone(@past.status)} />
+          <span>
+            <strong>{past_label(@past.status)}</strong>
+            {gettext("(zwykle %{price})", price: Polish.zloty(@past.typical))}
+          </span>
         </p>
         <p :if={@verdict.status == :cardmarket} id="verdict-pending" class="guide-note">
           {gettext(
-            "Ocenę „dobra / normalna / drogo” pokażemy, gdy będziemy mieć %{days} dni cen z polskich sklepów.",
-            days: PriceGuide.min_days_with_stock()
+            "Ocenę pokażemy, gdy produkt będzie na stanie w co najmniej %{count} sklepach.",
+            count: PriceGuide.min_shops()
           )}
         </p>
         <.nearby_line :if={@nearby} nearby={@nearby} />
-        <div :if={@verdict.good_max} id="verdict-thresholds" class="verdict-thresholds">
-          <h3>{gettext("Widzisz cenę w sklepie?")}</h3>
-          <ol class="verdict-scale">
-            <.threshold
-              status={:good}
-              current={@verdict.status}
-              prefix={gettext("do")}
-              amount={Polish.zloty(@verdict.good_max)}
+        <div class="verdict-more">
+          <details id="verdict-history" class="verdict-method">
+            <summary data-track="product_section_opened" data-track-section="price_history">
+              {gettext("Historia cen")}<.fluent_icon
+                name={:chevron_down}
+                class="verdict-method-chevron"
+              />
+            </summary>
+            <.price_chart
+              id="price-history"
+              series={chart_series(@page)}
+              from={Date.add(@page.today, -(Guide.history_days() - 1))}
+              to={@page.today}
+              typical={@past.typical}
             />
-            <.threshold
-              status={:normal}
-              current={@verdict.status}
-              prefix={gettext("do")}
-              amount={Polish.zloty(@verdict.normal_max)}
-            />
-            <.threshold
-              status={:expensive}
-              current={@verdict.status}
-              prefix={gettext("powyżej")}
-              amount={Polish.zloty(@verdict.normal_max)}
-            />
-          </ol>
-        </div>
-        <details id="verdict-method" class="verdict-method">
-          <summary data-track="product_section_opened" data-track-section="verdict_method">
-            <.fluent_icon name={:info} />{gettext("Jak liczymy typową cenę?")}<.fluent_icon
-              name={:chevron_down}
-              class="verdict-method-chevron"
-            />
-          </summary>
-          <p>
-            {gettext(
-              "To mediana najniższych cen w polskich sklepach z ostatnich %{window} dni, w których produkt był dostępny; potrzebujemy co najmniej %{minimum} takich dni.",
-              window: PriceGuide.window_days(),
-              minimum: PriceGuide.min_days_with_stock()
-            )}
-            <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
+          </details>
+          <details id="verdict-method" class="verdict-method">
+            <summary data-track="product_section_opened" data-track-section="verdict_method">
+              {gettext("Jak liczymy?")}<.fluent_icon
+                name={:chevron_down}
+                class="verdict-method-chevron"
+              />
+            </summary>
+            <p>
               {gettext(
-                "Tylu jeszcze nie mamy, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
+                "Typowa cena to mediana cen w polskich sklepach, które mają produkt na stanie (z każdego sklepu jego najtańsza oferta); potrzebujemy co najmniej %{minimum} sklepów.",
+                minimum: PriceGuide.min_shops()
               )}
-            </span>
-            {gettext(
-              "Dobra cena to do 95% typowej, normalna – do 110%, wyższa – drogo. Progi zaokrąglamy w dół do pełnych złotych. Ceny nie obejmują wysyłki."
-            )}
-          </p>
-        </details>
+              <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
+                {gettext(
+                  "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
+                )}
+              </span>
+              {gettext(
+                "Dobra cena to do 95% typowej, normalna – do 110%, wyższa – drogo. Progi zaokrąglamy w dół do pełnych złotych. Ceny nie obejmują wysyłki."
+              )}
+            </p>
+            <p>
+              {gettext(
+                "Historia: tę samą cenę porównujemy z medianą najniższych cen z ostatnich %{window} dni, w których produkt był dostępny (co najmniej %{minimum} takich dni), z tymi samymi progami. To tylko tło: nie zmienia dzisiejszej oceny.",
+                window: PriceGuide.window_days(),
+                minimum: PriceGuide.min_days_with_stock()
+              )}
+            </p>
+          </details>
+        </div>
       </div>
     </section>
     """
   end
 
-  attr :status, :atom, required: true
-  attr :current, :atom, required: true
-  attr :prefix, :string, required: true
-  attr :amount, :string, required: true
+  # Where the bar's limits and today's price sit, in % of the bar: every
+  # range stays wide enough to read.
+  defp price_range(%{typical_source: :shops, cheapest: %{price: cheapest}} = verdict) do
+    margin = (verdict.normal_max - verdict.good_max) / 2
+    low = min(Decimal.to_float(cheapest), verdict.good_max - margin)
+    high = max(verdict.normal_max + margin, low + 1)
+    pad = (high - low) * 0.06
+    {low, high} = {low - pad, high + pad}
+    at = &Float.round((&1 - low) / (high - low) * 100, 2)
 
-  defp threshold(assigns) do
-    ~H"""
-    <li
-      id={"threshold-#{@status}"}
-      class={["verdict-step", "verdict-step-#{@status}"]}
-      aria-current={if(@status == @current, do: "true")}
-    >
-      <span class="verdict-step-label">{threshold_label(@status)}</span>
-      <span class="verdict-step-range">{@prefix} <span>{@amount}</span></span>
-      <span :if={@status == @current} class="verdict-step-now">{gettext("teraz")}</span>
-    </li>
-    """
+    %{
+      good_at: at.(verdict.good_max),
+      normal_at: at.(verdict.normal_max),
+      cheapest_at: at.(Decimal.to_float(cheapest))
+    }
   end
 
-  defp threshold_label(:good), do: gettext("Dobra")
-  defp threshold_label(:normal), do: gettext("Normalna")
-  defp threshold_label(:expensive), do: gettext("Drogo")
+  defp price_range(_verdict), do: nil
 
-  # How far today's cheapest price is from the typical one, in whole złoty.
-  defp difference(%{cheapest: %{price: price}, typical: %Decimal{} = typical}) do
-    zloty = price |> Decimal.sub(typical) |> Decimal.round(0) |> Decimal.to_integer()
-    percent = round(abs(zloty) / Decimal.to_float(typical) * 100)
+  defp today_missing(%{shop_prices: []}),
+    do: gettext("Teraz żaden sklep nie ma tego produktu na stanie.")
 
-    amount =
-      if percent > 0,
-        do: "#{Polish.zloty(abs(zloty))} (#{percent}%)",
-        else: Polish.zloty(abs(zloty))
+  defp today_missing(%{shop_prices: shops}),
+    do:
+      gettext(
+        "Produkt jest teraz na stanie w %{shops}. Porównamy ceny, gdy będzie w co najmniej %{minimum} sklepach.",
+        shops: Polish.plural(length(shops), "sklepie", "sklepach", "sklepach"),
+        minimum: PriceGuide.min_shops()
+      )
 
-    cond do
-      zloty < 0 -> gettext("Teraz o %{amount} taniej.", amount: amount)
-      zloty > 0 -> gettext("Teraz o %{amount} drożej.", amount: amount)
-      true -> gettext("Teraz tyle, ile zwykle.")
+  defp past_tone(:low), do: :good
+  defp past_tone(:usual), do: :normal
+  defp past_tone(:high), do: :expensive
+
+  defp past_label(status) do
+    days = PriceGuide.window_days()
+
+    case status do
+      :low -> gettext("Taniej niż w ostatnich %{days} dniach", days: days)
+      :usual -> gettext("Tyle co w ostatnich %{days} dniach", days: days)
+      :high -> gettext("Drożej niż w ostatnich %{days} dniach", days: days)
     end
   end
 
-  defp difference(_verdict), do: nil
-
-  defp reason(%{status: status, typical: typical, typical_source: :shops})
+  defp reason(%{status: status, typical_source: :shops} = verdict, _past)
        when status in [:good, :normal, :expensive],
        do:
-         gettext("Typowa cena z ostatnich %{days} dni: %{price}.",
-           days: PriceGuide.window_days(),
-           price: Polish.zloty(typical)
+         gettext("Zwykle %{low}–%{high} w %{shops}.",
+           low: Polish.number(verdict.good_max),
+           high: Polish.zloty(verdict.normal_max),
+           shops: Polish.plural(length(verdict.shop_prices), "sklepie", "sklepach", "sklepach")
          )
 
-  defp reason(%{status: :cardmarket, typical: typical}), do: cardmarket_typical(typical)
+  defp reason(%{status: :cardmarket, typical: typical}, _past), do: cardmarket_typical(typical)
 
-  defp reason(%{status: :insufficient_data, days_with_stock: days}) do
-    gettext("Znamy ceny dopiero z %{days}, a potrzebujemy %{minimum}. ",
-      days: Polish.plural(days, "dnia", "dni", "dni"),
-      minimum: PriceGuide.min_days_with_stock()
-    ) <>
+  defp reason(%{status: :insufficient_data} = verdict, _past) do
+    today_missing(verdict) <>
+      " " <>
       gettext("Cardmarket nie podaje ceny tego produktu, więc na razie go nie oceniamy.")
   end
 
-  defp reason(%{status: :out_of_stock} = verdict) do
+  defp reason(%{status: :out_of_stock} = verdict, past) do
     [
       gettext("Teraz żaden sklep nie ma tego produktu na stanie."),
-      last_known(verdict),
-      typical(verdict)
+      last_known(past),
+      usual(verdict, past)
     ]
     |> Enum.reject(&is_nil/1)
     |> Enum.join(" ")
@@ -1136,24 +1159,24 @@ defmodule TcgCheapWeb.ProductLive do
         date: Polish.date(date)
       )
 
-  defp last_known(_verdict), do: nil
+  defp last_known(_past), do: nil
 
-  defp typical(%{typical: %Decimal{} = typical, typical_source: :shops}),
+  defp usual(_verdict, %{typical: %Decimal{} = typical}),
     do:
-      gettext("Typowa cena z ostatnich %{days} dni: %{price}.",
-        days: PriceGuide.window_days(),
-        price: Polish.zloty(typical)
+      gettext("Zwykle najtaniej %{price} (mediana z ostatnich %{days} dni).",
+        price: Polish.zloty(typical),
+        days: PriceGuide.window_days()
       )
 
-  defp typical(%{typical: %Decimal{} = typical, typical_source: :cardmarket}),
+  defp usual(%{typical: %Decimal{} = typical, typical_source: :cardmarket}, _past),
     do: cardmarket_typical(typical)
 
-  defp typical(%{last_known: nil}), do: gettext("Nie znamy jeszcze jego ceny.")
-  defp typical(_verdict), do: nil
+  defp usual(_verdict, %{last_known: nil}), do: gettext("Nie znamy jeszcze jego ceny.")
+  defp usual(_verdict, _past), do: nil
 
   defp cardmarket_typical(typical),
     do:
-      gettext("Typowa cena na Cardmarket (europejska giełda, bez wysyłki): %{price}.",
+      gettext("Na Cardmarket %{price} (bez wysyłki).",
         price: Polish.zloty(typical)
       )
 end

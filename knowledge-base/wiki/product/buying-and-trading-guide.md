@@ -125,17 +125,28 @@ versioned pricing models.
 - **History.** After every shop fetch and catalogue import, each product's
   lowest in-stock Polish price, the number of shops with stock, and the
   Cardmarket trend are stored for the day.
-- **Verdict.** The typical price is the median of the daily lowest in-stock
-  price over the last 30 days when at least 7 such days exist. The cheapest
-  current in-stock offer is then rated **Dobra cena** (≤ 95% of typical),
-  **Normalna cena** (≤ 110%) or **Drogo**. Thresholds are whole złoty and are
-  shown on the page, so a price seen in a physical shop can be judged too.
-  Before 7 days the price is only compared with the Cardmarket trend
-  converted with the latest NBP EUR/PLN rate, as a neutral **+14% vs
-  Cardmarket** without thresholds: a European price without shipping made
-  almost every Polish price "Drogo" (owner decision, 2026-10-31). Without
-  current stock the verdict is **Brak w sklepach** (with the last known
-  price); with stock but no reference price it is **Za mało danych**.
+- **Verdict (today).** The guide's answer is whether the cheapest current
+  in-stock offer is a good price today, against the other Polish shops: the
+  typical price is the median of each in-stock shop's lowest price when at
+  least 3 shops have the product. The cheapest offer is then rated **Dobra
+  cena** (≤ 95% of typical), **Normalna cena** (≤ 110%) or **Drogo**.
+  Thresholds are whole złoty and are shown on the page, so a price seen in a
+  physical shop can be judged too. With fewer shops the price is only
+  compared with the Cardmarket trend converted with the latest NBP EUR/PLN
+  rate, as a neutral **+14% vs Cardmarket** without thresholds: a European
+  price without shipping made almost every Polish price "Drogo" (owner
+  decision, 2026-10-31). Without current stock the verdict is **Brak w
+  sklepach** (with the last known price); with stock but no reference price
+  it is **Za mało danych**. Until 2026-11-02 the verdict was the 30-day
+  history below and needed 7 days of prices; the owner replaced it because
+  what a product once cost does not change today's offers.
+- **History (context).** The same cheapest price against the product's own
+  history, as on flight price graphs: the usual price is the median of the
+  daily lowest in-stock price over the last 30 days when at least 7 such
+  days exist, rated **Taniej / Tyle co / Drożej niż w ostatnich 30 dniach** with
+  the same 95%/110% limits; before that nothing is
+  said. It never changes today's verdict, the list,
+  link previews or page titles.
 - **Suggested price.** The SCD (suggested retail price, gross PLN) of the
   REBEL wholesaler's public catalogue (`hurt.rebel.pl/search/pokemon-tcg.html`),
   collected daily with each item's EAN and kept after REBEL drops the item
@@ -184,7 +195,13 @@ versioned pricing models.
   the product's kind, its set unless the product name already contains it,
   and its language edition unless English; the product page names the
   edition too.
-  `/produkty/:slug` shows the verdict and thresholds, every current offer
+  `/produkty/:slug` keeps the whole answer in the verdict block, the way
+  flight search does: the badge, price and shop, then (with 3+ shops) a
+  thin green/grey/red bar with today's price marked and the two limits
+  under it, "Zwykle 616–713 zł w 36 sklepach.", one history line ("↑ Drożej
+  niż w ostatnich 30 dniach (zwykle 459 zł)"), and "Historia cen" (the
+  90-day chart with the 30-day usual price) and "Jak liczymy?" collapsed;
+  then every current offer
   (in stock first, cheapest first, with links to the shop; the shop's logo
   (wide screens only) and name, not its listing title, which only repeats the product) with its shop's
   delivery line — "dostawa od 14,99 zł · darmowa od 400 zł", "darmowa
@@ -192,9 +209,8 @@ versioned pricing models.
   koszyku" when the shop publishes no price, and "odbiór osobisty: Gdynia"
   (with "(491 km)" once a location is set; within 50 km a bold "odbiór:
   Gdynia, 20 km" line of its own) — the Cardmarket price, REBEL's suggested
-  price when one matches, and a 90-day price chart once there are 7 days of
-  prices. Below the verdict's reasoning
-  and above the thresholds comes pickup: without a location, when a shop
+  price when one matches; the chart needs 7 days of prices. Below the
+  verdict's reasoning comes pickup: without a location, when a shop
   with stock has pickup, "Odbierzesz gdzieś blisko? Podaj miejscowość"
   (opens the header panel); with one, the cheapest in-stock offer with
   pickup within 50 km, "Najtaniej z odbiorem osobistym do 50 km:

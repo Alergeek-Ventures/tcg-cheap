@@ -41,13 +41,6 @@ defmodule TcgCheap.Sealed.DailyPrice do
       upsert_fields [:cardmarket_trend, :updated_at]
     end
 
-    read :since do
-      argument :since, :date, allow_nil?: false
-      argument :product_ids, {:array, :uuid}, allow_nil?: false
-      filter expr(date >= ^arg(:since) and product_id in ^arg(:product_ids))
-      prepare build(sort: [product_id: :asc, date: :asc])
-    end
-
     read :on do
       argument :date, :date, allow_nil?: false
       filter expr(date == ^arg(:date))

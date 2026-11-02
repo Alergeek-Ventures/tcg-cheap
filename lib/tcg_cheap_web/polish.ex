@@ -80,6 +80,9 @@ defmodule TcgCheapWeb.Polish do
   def plural(count, "dnia", "dni", "dni"),
     do: ngettext("%{count} dnia", "%{count} dni", count, count: number(count))
 
+  def plural(count, "sklepie", "sklepach", "sklepach"),
+    do: ngettext("%{count} sklepie", "%{count} sklepach", count, count: number(count))
+
   def plural(count, one, few, many) do
     word =
       cond do
