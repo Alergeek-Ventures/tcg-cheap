@@ -3,8 +3,18 @@ defmodule TcgCheapWeb.CrawlController do
 
   alias TcgCheap.Sealed
 
+  # Only products a Polish shop has in stock now: the rest of the catalogue
+  # has no offer to compare, so it stays reachable but isn't submitted.
   def sitemap(conn, _params) do
-    products = Sealed.list_products!(query: [select: [:slug], sort: [:slug]])
+    ids =
+      DateTime.utc_now()
+      |> Sealed.current_offers()
+      |> Enum.filter(&(&1.in_stock and &1.product_id != nil))
+      |> Enum.map(& &1.product_id)
+      |> Enum.uniq()
+
+    products =
+      Sealed.list_products!(query: [filter: [id: [in: ids]], select: [:slug], sort: [:slug]])
 
     entries =
       for location <- [url(~p"/") | Enum.map(products, &url(~p"/produkty/#{&1.slug}"))] do

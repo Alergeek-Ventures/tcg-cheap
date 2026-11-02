@@ -57,10 +57,11 @@ defmodule TcgCheapWeb.SEO do
         else: product_data
 
     # Only current, in-stock shop offers count, never MSRP, Cardmarket or a last-known price.
+    # Google requires offers on a Product, so without one there's no Product block.
     product_data =
       case Enum.filter(page.offers, & &1.in_stock) do
         [] ->
-          product_data
+          nil
 
         offers ->
           {low, high} = Enum.min_max_by(offers, & &1.price, Decimal)
@@ -84,26 +85,27 @@ defmodule TcgCheapWeb.SEO do
       social_image_alt: product.name <> ". " <> answer(page.verdict),
       structured_data: %{
         "@context" => "https://schema.org",
-        "@graph" => [
-          product_data,
-          %{
-            "@type" => "BreadcrumbList",
-            "itemListElement" => [
+        "@graph" =>
+          List.wrap(product_data) ++
+            [
               %{
-                "@type" => "ListItem",
-                "position" => 1,
-                "name" => gettext("Wszystkie produkty"),
-                "item" => url(~p"/")
-              },
-              %{
-                "@type" => "ListItem",
-                "position" => 2,
-                "name" => product.name,
-                "item" => canonical
+                "@type" => "BreadcrumbList",
+                "itemListElement" => [
+                  %{
+                    "@type" => "ListItem",
+                    "position" => 1,
+                    "name" => gettext("Wszystkie produkty"),
+                    "item" => url(~p"/")
+                  },
+                  %{
+                    "@type" => "ListItem",
+                    "position" => 2,
+                    "name" => product.name,
+                    "item" => canonical
+                  }
+                ]
               }
             ]
-          }
-        ]
       }
     )
   end
