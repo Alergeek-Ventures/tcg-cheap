@@ -421,8 +421,9 @@
 #report-toggle, #report-submit { background: var(--ink); border: 1px solid var(--ink); color: var(--paper); font: 700 1rem/1 "Barlow Condensed", sans-serif; letter-spacing: .06em; padding-inline: 1.25rem; text-transform: uppercase; }
 #report-toggle { box-shadow: .1875rem .1875rem 0 var(--orange); inset-block-end: max(1rem, env(safe-area-inset-bottom)); inset-inline-end: 1rem; position: fixed; z-index: 10; }
 /* analytics.js sets --report-keyboard to the height an on-screen keyboard covers and --report-room to the
-   height left above it, so the open form stays above the keyboard and scrolls inside when it is too tall. */
-#report-panel { background: var(--paper); border: 1px solid var(--ink); box-shadow: .25rem .25rem 0 var(--ink); color: inherit; font: inherit; gap: .5rem; inline-size: min(24rem, 100vw - 2rem); inset: auto 1rem max(calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem), var(--report-keyboard, 0px) + .5rem) auto; margin: 0; max-block-size: calc(var(--report-room, 100dvh) - 1rem); opacity: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1rem; transition: opacity .2s ease-out, translate .2s ease-out, display .2s allow-discrete, overlay .2s allow-discrete; }
+   height left above it, so the open form stays above the keyboard, its top on screen, and scrolls inside
+   when it is too tall. */
+#report-panel { background: var(--paper); border: 1px solid var(--ink); box-shadow: .25rem .25rem 0 var(--ink); color: inherit; font: inherit; gap: .5rem; inline-size: min(24rem, 100vw - 2rem); --report-bottom: max(calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem), var(--report-keyboard, 0px) + .5rem); inset: auto 1rem var(--report-bottom) auto; margin: 0; max-block-size: calc(var(--report-room, 100dvh) + var(--report-keyboard, 0px) - var(--report-bottom) - .5rem); opacity: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1rem; transition: opacity .2s ease-out, translate .2s ease-out, display .2s allow-discrete, overlay .2s allow-discrete; }
 #report-panel:popover-open { display: grid; opacity: 1; }
 #report-panel h2 { font: 700 1.5rem/1 "Barlow Condensed", sans-serif; margin: 0; }
 #report-panel p { margin: 0; text-wrap: pretty; }
