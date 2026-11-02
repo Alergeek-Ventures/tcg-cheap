@@ -176,11 +176,17 @@ document.addEventListener("click", e => {
   target.scrollIntoView({behavior: "smooth", block: "start"})
   history.pushState(history.state, "", link.hash)
 })
-// Phone filters open as a panel right under the search bar, wherever the page is scrolled
+// Phone filters open as a panel right under the search bar, the page first scrolled
+// to bring the bar up to its sticky place so the panel gets the screen below it
 // (measured again when the screen turns or resizes while the panel is open).
-const pinFilters = () => {
+const pinFilters = ({type}) => {
   const search = document.querySelector(".guide-search")
-  if (search) document.documentElement.style.setProperty("--guide-filters-top", `${Math.round(search.getBoundingClientRect().bottom)}px`)
+  if (!search) return
+  if (type === "guide:pin-filters" && !document.querySelector(".guide-filters-open")) {
+    const lift = search.getBoundingClientRect().top - parseFloat(getComputedStyle(search).insetBlockStart)
+    if (lift > 0) window.scrollBy({top: lift, behavior: "instant"})
+  }
+  document.documentElement.style.setProperty("--guide-filters-top", `${Math.round(search.getBoundingClientRect().bottom)}px`)
 }
 window.addEventListener("guide:pin-filters", pinFilters)
 window.addEventListener("resize", () => { if (document.querySelector(".guide-filters-open")) pinFilters() })

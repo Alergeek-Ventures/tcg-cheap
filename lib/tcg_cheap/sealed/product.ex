@@ -184,6 +184,7 @@ defmodule TcgCheap.Sealed.Product do
       prepare build(
                 select: [
                   :region,
+                  :kind,
                   :cardmarket_expansion_id,
                   :set_name,
                   :cardmarket_added_on,

@@ -3,7 +3,7 @@ defmodule TcgCheap.Sealed.Guide do
 
   alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{PriceGuide, Product, Rarities, Regions, TcgdexSet}
+  alias TcgCheap.Sealed.{Kinds, PriceGuide, Product, Rarities, Regions, TcgdexSet}
   alias TcgCheap.Sealed.PullRates.Rate
 
   @history_days 90
@@ -49,13 +49,15 @@ defmodule TcgCheap.Sealed.Guide do
   end
 
   @doc """
-  What the language and expansion filters offer under the other filters:
-  product counts per language edition, and the named expansions (those with
+  What the language, kind and expansion filters offer under the other filters:
+  product counts per language edition and per kind (the chosen kind stays,
+  with none), and the named expansions (those with
   a product in stock first, then newest first) with their logo when one is
   mirrored: the English TCGdex logo, else the one set for the expansion.
   """
   @spec facets(filters()) :: %{
           regions: [{atom(), pos_integer()}],
+          kinds: [{atom(), non_neg_integer()}],
           expansions: [
             %{
               id: integer(),
@@ -71,8 +73,18 @@ defmodule TcgCheap.Sealed.Guide do
       Sealed.list_product_facets!(filters.query, filters.kind, nil, filters.expansion)
       |> Enum.frequencies_by(& &1.region)
 
+    kinds =
+      Sealed.list_product_facets!(filters.query, nil, filters.region, filters.expansion)
+      |> Enum.frequencies_by(& &1.kind)
+
     %{
       regions: for(region <- Regions.all(), count = regions[region], do: {region, count}),
+      kinds:
+        for(
+          kind <- Kinds.all(),
+          count = kinds[kind] || (kind == filters.kind && 0),
+          do: {kind, count}
+        ),
       expansions: expansions(filters)
     }
   end
