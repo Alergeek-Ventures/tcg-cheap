@@ -135,6 +135,7 @@ const keepAboveKeyboard = form => {
     const covered = window.innerHeight - viewport.offsetTop - viewport.height
     form.style.setProperty("--report-keyboard", `${Math.max(0, Math.round(covered))}px`)
     form.style.setProperty("--report-room", `${Math.round(viewport.height)}px`)
+    form.style.setProperty("--report-top", `${Math.round(viewport.offsetTop)}px`)
   }
   form.addEventListener("toggle", event => {
     const listen = event.newState === "open" ? "addEventListener" : "removeEventListener"

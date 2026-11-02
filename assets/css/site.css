@@ -448,6 +448,13 @@
 @media (hover: hover) and (pointer: fine) { #report-toggle:hover, #report-submit:enabled:hover { background: var(--orange); border-color: var(--orange); } #report-cancel:hover { border-color: var(--orange); color: var(--orange); } }
 @starting-style { #report-panel:popover-open { opacity: 0; } }
 @media (prefers-reduced-motion: no-preference) { #report-panel { translate: 0 .5rem; } #report-panel:popover-open { translate: 0 0; } @starting-style { #report-panel:popover-open { translate: 0 .5rem; } } }
+/* On a phone the form takes the screen down to the keyboard (--report-top: how far the screen has panned down). */
+@media (max-width: 47.99rem) {
+  #report-panel { align-content: start; block-size: auto; border: 0; box-shadow: none; inline-size: auto; inset: var(--report-top, 0px) 0 var(--report-keyboard, 0px); max-block-size: none; padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom)); }
+  /* iOS Safari zooms into a field set smaller than 16px when it takes focus. */
+  #report-panel :is(textarea, input) { font-size: max(16px, 1rem); }
+  html:has(#report-panel:popover-open) { overflow: hidden; }
+}
 /* The form above replaces PostHog's chat widget, which its remote config may still render. */
 #ph-conversations-widget-container { display: none !important; }
 .site-wordmark { align-items: center; display: inline-flex; min-height: 3rem; }
