@@ -72,18 +72,18 @@ defmodule TcgCheap.Sealed.Guide do
           ]
         }
   def facets(filters) do
-    # One read for all three: each count leaves out its own filter.
-    products = Sealed.list_product_facets!(filters.query)
+    # One grouped read for all three: each count leaves out its own filter.
+    groups = Sealed.count_product_facets!(filters.query)
 
     regions =
-      products
+      groups
       |> matching(kind: filters.kind, cardmarket_expansion_id: filters.expansion)
-      |> Enum.frequencies_by(& &1.region)
+      |> sum_by(& &1.region)
 
     kinds =
-      products
+      groups
       |> matching(region: filters.region, cardmarket_expansion_id: filters.expansion)
-      |> Enum.frequencies_by(& &1.kind)
+      |> sum_by(& &1.kind)
 
     %{
       regions: for(region <- Regions.all(), count = regions[region], do: {region, count}),
@@ -94,25 +94,34 @@ defmodule TcgCheap.Sealed.Guide do
           do: {kind, count}
         ),
       expansions:
-        products
+        groups
         |> matching(kind: filters.kind, region: filters.region)
         |> expansions(filters)
     }
   end
 
-  defp matching(products, filters) do
-    Enum.filter(products, fn product ->
+  defp matching(groups, filters) do
+    Enum.filter(groups, fn group ->
       Enum.all?(filters, fn {field, value} ->
-        is_nil(value) or Map.get(product, field) == value
+        is_nil(value) or Map.fetch!(group, field) == value
       end)
     end)
   end
 
-  defp expansions(products, filters) do
+  # Products per key, summed over the groups.
+  defp sum_by(groups, key) do
+    Enum.reduce(
+      groups,
+      %{},
+      &Map.update(&2, key.(&1), &1.count, fn count -> count + &1.count end)
+    )
+  end
+
+  defp expansions(groups, filters) do
     logos = logos()
 
     expansions =
-      products
+      groups
       |> named_expansions(logos)
       |> Enum.sort_by(&(&1.newest || ~D[1990-01-01]), {:desc, Date})
       |> Enum.sort_by(&(!&1.available?))
@@ -157,35 +166,36 @@ defmodule TcgCheap.Sealed.Guide do
     if Enum.any?(expansions, &(&1.id == id)) do
       []
     else
-      Sealed.list_product_facets!("", nil, nil, id)
+      Sealed.count_product_facets!()
+      |> Enum.filter(&(&1.cardmarket_expansion_id == id))
       |> named_expansions(logos)
       |> Enum.map(&(&1 |> Map.drop([:available?, :newest]) |> Map.put(:count, 0)))
     end
   end
 
-  defp named_expansions(products, logos) do
-    products
+  defp named_expansions(groups, logos) do
+    groups
     |> Enum.filter(&(&1.cardmarket_expansion_id && &1.set_name))
     |> Enum.group_by(& &1.cardmarket_expansion_id)
-    |> Enum.map(fn {id, products} ->
+    |> Enum.map(fn {id, groups} ->
       %{
         id: id,
-        name: most_common(products, & &1.set_name),
-        region: most_common(products, & &1.region),
+        name: most_common(groups, & &1.set_name),
+        region: most_common(groups, & &1.region),
         logo_url: Map.get(logos, id),
-        count: length(products),
-        available?: Enum.any?(products, & &1.available),
+        count: Enum.sum_by(groups, & &1.count),
+        available?: Enum.any?(groups, & &1.available?),
         newest:
-          products
-          |> Enum.map(& &1.cardmarket_added_on)
+          groups
+          |> Enum.map(& &1.newest)
           |> Enum.reject(&is_nil/1)
           |> Enum.max(Date, fn -> nil end)
       }
     end)
   end
 
-  defp most_common(products, field),
-    do: products |> Enum.frequencies_by(field) |> Enum.max_by(&elem(&1, 1)) |> elem(0)
+  defp most_common(groups, field),
+    do: groups |> sum_by(field) |> Enum.max_by(&elem(&1, 1)) |> elem(0)
 
   @doc """
   Summaries for the given products, in order. A product with nothing in
