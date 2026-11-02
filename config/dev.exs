@@ -29,7 +29,8 @@ config :tcg_cheap, TcgCheapWeb.Endpoint,
   secret_key_base: "RA6gZTR7RRXE6HG8w+/6rS388ID7Fi5Sm9c0FZNCz4kY5tQczQuMi3BpLIPqCICE",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:tcg_cheap, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:tcg_cheap, ~w(--watch)]}
+    tailwind: {Tailwind, :install_and_run, [:tcg_cheap, ~w(--watch)]},
+    tailwind_admin: {Tailwind, :install_and_run, [:tcg_cheap_admin, ~w(--watch)]}
   ]
 
 # ## SSL Support

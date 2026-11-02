@@ -126,9 +126,15 @@ defmodule TcgCheap.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind tcg_cheap", "esbuild tcg_cheap"],
+      "assets.build": [
+        "compile",
+        "tailwind tcg_cheap",
+        "tailwind tcg_cheap_admin",
+        "esbuild tcg_cheap"
+      ],
       "assets.deploy": [
         "tailwind tcg_cheap --minify",
+        "tailwind tcg_cheap_admin --minify",
         "esbuild tcg_cheap --minify",
         "phx.digest"
       ],

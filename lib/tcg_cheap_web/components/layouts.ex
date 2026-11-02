@@ -195,8 +195,13 @@ defmodule TcgCheapWeb.Layouts do
     """
   end
 
+  @doc "The admin's stylesheet carries daisyUI and Backpex; public pages load the lighter one."
+  @spec stylesheet(Plug.Conn.t()) :: String.t()
+  def stylesheet(%Plug.Conn{path_info: ["admin" | _]}), do: ~p"/assets/css/admin.css"
+  def stylesheet(_conn), do: ~p"/assets/css/app.css"
+
   @doc """
-  Provides dark vs light theme toggle based on themes defined in app.css.
+  Provides dark vs light theme toggle based on themes defined in admin.css.
 
   See <head> in root.html.heex which applies the theme before page load.
   """
