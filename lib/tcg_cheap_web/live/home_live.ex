@@ -220,7 +220,6 @@ defmodule TcgCheapWeb.HomeLive do
 
   attr :filters, :map, required: true
   attr :facets, :map, required: true
-  attr :kinds, :list, required: true
   attr :result_count, :integer, required: true
   attr :all_expansions?, :boolean, required: true
 
@@ -269,12 +268,15 @@ defmodule TcgCheapWeb.HomeLive do
                 aria-current={if(is_nil(@filters.kind), do: "true")}
               >{gettext("Wszystkie")}</.link>
             </li>
-            <li :for={{kind, label} <- @kinds}>
+            <li :for={{kind, count} <- @facets.kinds}>
               <.link
                 id={"kind-#{kind}"}
                 patch={list_path(@filters, kind: kind)}
                 aria-current={if(@filters.kind == kind, do: "true")}
-              >{label}</.link>
+              >
+                {Kinds.label(kind)}
+                <span class="guide-filter-count">{Polish.number(count)}</span>
+              </.link>
             </li>
           </ul>
         </nav>
@@ -340,7 +342,8 @@ defmodule TcgCheapWeb.HomeLive do
 
   # The language tag shows only while every language is listed. A logo is
   # captioned with the English name on a tile and named beside it in a row; a
-  # row without a logo keeps a blank slot so the names line up.
+  # row without a logo (a tile too, as phones show tiles as rows) keeps a blank
+  # slot so the names line up.
   defp expansion_option(assigns) do
     assigns = assign(assigns, :logo_url, assigns.expansion.logo_url)
 
@@ -353,7 +356,7 @@ defmodule TcgCheapWeb.HomeLive do
         title={@expansion.name}
       >
         <img :if={@logo_url} src={@logo_url} alt="" loading="lazy" />
-        <span :if={!@tile and is_nil(@logo_url)} class="guide-expansion-nologo" aria-hidden="true"></span>
+        <span :if={is_nil(@logo_url)} class="guide-expansion-nologo" aria-hidden="true"></span>
         <span class={["guide-expansion-name", @tile && @logo_url && "guide-expansion-caption"]}>
           {@expansion.name}
         </span>
@@ -373,7 +376,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   @impl true
   def render(assigns) do
-    assigns = assign(assigns, kinds: Kinds.labels(), active: active_filters(assigns.filters))
+    assigns = assign(assigns, :active, active_filters(assigns.filters))
 
     ~H"""
     <Layouts.app flash={@flash}>
@@ -547,7 +550,6 @@ defmodule TcgCheapWeb.HomeLive do
             <.filters
               filters={@filters}
               facets={@facets}
-              kinds={@kinds}
               result_count={@result_count}
               all_expansions?={@all_expansions?}
             />
