@@ -51,5 +51,11 @@ defmodule TcgCheap.Sealed.ProductContents.DeckCard do
       public? true
       constraints max_length: 300, match: ~r{\Ahttps://assets\.tcgdex\.net/[A-Za-z0-9./\-]+\z}
     end
+
+    attribute :photo, :string do
+      description "A picture of the card when TCGdex has none (image null, e.g. basic Energy): an https image URL on an allowed image host, checked by eye to show this printing. Shown from our own storage once mirrored."
+      public? true
+      constraints max_length: 2_000
+    end
   end
 end

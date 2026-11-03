@@ -4,8 +4,9 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   rejected rather than dropped, so a misspelt field never passes as missing.
   A card given by its TCGdex id gets its set, number, picture and Cardmarket
   product from TCGdex, and so does each card of a fixed deck or random deck variant, with its
-  category; an id TCGdex does not know is rejected. An item's photo
-  must be on an image host we mirror from (`TcgCheap.Catalogue.ExternalImage`),
+  category; an id TCGdex does not know is rejected. An item's photo, and a
+  deck card's photo for a card TCGdex has no picture of, must be on an image
+  host we mirror from (`TcgCheap.Catalogue.ExternalImage`),
   with a well-formed crop when it shows one of several things.
   """
 
@@ -20,7 +21,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
 
   @contents ~w(items sources checked_on)
   @item ~w(quantity type name tcgdex_id set number cardmarket_id image photo cards variants)
-  @deck_card ~w(quantity name tcgdex_id category set number cardmarket_id image)
+  @deck_card ~w(quantity name tcgdex_id category set number cardmarket_id image photo)
   @diacritic ~r/\p{Mn}/u
 
   @impl true
@@ -68,10 +69,14 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   end
 
   defp with_deck_cards(%{cards: cards} = item) when is_list(cards) do
-    with {:ok, cards} <- map_ok(cards, &with_card/1), do: {:ok, %{item | cards: cards}}
+    with {:ok, cards} <- map_ok(cards, &with_deck_card/1), do: {:ok, %{item | cards: cards}}
   end
 
   defp with_deck_cards(item), do: {:ok, item}
+
+  defp with_deck_card(card) do
+    with :ok <- allowed_photo(card), do: with_card(card)
+  end
 
   defp with_variants(%{variants: variants} = item) when is_list(variants) do
     with {:ok, variants} <- map_ok(variants, &with_deck_cards/1),

@@ -83,7 +83,8 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
       :set,
       :number,
       :cardmarket_id,
-      :image
+      :image,
+      :photo
     ])
   end
 

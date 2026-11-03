@@ -248,6 +248,8 @@ defmodule TcgCheap.Sealed.AgentTools do
       Pokémon names. Its quantity is the number of random decks (1 in a Build & Battle Box,
       10 in a Display of 10 boxes), not the number of variants. cards and variants are mutually
       exclusive. Variant cards get the same TCGdex validation and enrichment as fixed cards.
+      When TCGdex has no picture of a card (image null, e.g. basic Energy), give it a photo
+      checked by eye to show that printing, on an allowed image host.
       Record only known cards even if the publisher's list is incomplete (e.g. 39 cards).
       Read the current contents with get_product first. contents null removes them. Returns the product
       with its contents.

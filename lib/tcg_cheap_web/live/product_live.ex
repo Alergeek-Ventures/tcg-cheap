@@ -796,15 +796,27 @@ defmodule TcgCheapWeb.ProductLive do
                 <span :if={card.set} class="contents-card-set">{card.set} {card.number}</span>
               </span>
             </span>
-            <a
-              :if={image_url = CardImage.thumbnail_url(card.image)}
-              href={CardImage.detail_url(card.image)}
-              class="contents-photo"
-              data-photo-preview
-              aria-label={gettext("Zdjęcie: %{item}", item: card.name)}
-            >
-              <img src={image_url} alt="" width="34" height="48" loading="lazy" />
-            </a>
+            <%= cond do %>
+              <% image_url = CardImage.thumbnail_url(card.image) -> %>
+                <a
+                  href={CardImage.detail_url(card.image)}
+                  class="contents-photo"
+                  data-photo-preview
+                  aria-label={gettext("Zdjęcie: %{item}", item: card.name)}
+                >
+                  <img src={image_url} alt="" width="34" height="48" loading="lazy" />
+                </a>
+              <% photo_url = CardImage.photo_url(card.photo, "thumbnail") -> %>
+                <a
+                  href={CardImage.photo_url(card.photo, "detail")}
+                  class="contents-photo"
+                  data-photo-preview
+                  aria-label={gettext("Zdjęcie: %{item}", item: card.name)}
+                >
+                  <img src={photo_url} alt="" width="34" height="48" loading="lazy" />
+                </a>
+              <% true -> %>
+            <% end %>
           </li>
         </ul>
       </div>
@@ -1356,6 +1368,11 @@ defmodule TcgCheapWeb.ProductLive do
         {gettext(
           "Cena detaliczna sugerowana w katalogu hurtowni REBEL. Sklepy ustalają ceny same, więc nie bierzemy jej pod uwagę w ocenie."
         )}
+      </p>
+      <p class="reference-link">
+        <a href={@suggested.url} target="_blank" rel="noopener nofollow">
+          {gettext("Zobacz w REBEL")} →
+        </a>
       </p>
     </section>
     """

@@ -20,14 +20,15 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       FROM sealed_products,
            jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item
     UNION
-    SELECT card->>'image' AS url, 'card' AS kind
+    SELECT source.url, source.kind
       FROM sealed_products,
            jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item,
            jsonb_array_elements(
              CASE jsonb_typeof(item->'cards') WHEN 'array' THEN item->'cards' ELSE '[]'::jsonb END
-           ) AS card
+           ) AS card,
+           LATERAL (VALUES (card->>'image', 'card'), (card->>'photo', 'photo')) AS source(url, kind)
     UNION
-    SELECT card->>'image' AS url, 'card' AS kind
+    SELECT source.url, source.kind
       FROM sealed_products,
            jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item,
            jsonb_array_elements(
@@ -35,7 +36,8 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
            ) AS variant,
            jsonb_array_elements(
              CASE jsonb_typeof(variant->'cards') WHEN 'array' THEN variant->'cards' ELSE '[]'::jsonb END
-           ) AS card
+           ) AS card,
+           LATERAL (VALUES (card->>'image', 'card'), (card->>'photo', 'photo')) AS source(url, kind)
     UNION
     SELECT item->>'photo' AS url, 'photo' AS kind
       FROM sealed_products,
