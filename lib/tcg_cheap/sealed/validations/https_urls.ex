@@ -6,7 +6,7 @@ defmodule TcgCheap.Sealed.Validations.HttpsUrls do
 
   use Ash.Resource.Validation
 
-  alias TcgCheap.Catalogue.ExternalUrl
+  alias TcgCheap.Sealed.ExternalUrl
 
   @impl true
   def init(opts), do: {:ok, opts}

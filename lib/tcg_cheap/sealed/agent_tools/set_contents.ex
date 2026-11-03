@@ -6,16 +6,16 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   product from TCGdex, and so does each card of a fixed deck or random deck variant, with its
   category; an id TCGdex does not know is rejected. An item's photo, and a
   deck card's photo for a card TCGdex has no picture of, must be on an image
-  host we mirror from (`TcgCheap.Catalogue.ExternalImage`),
+  host we mirror from (`TcgCheap.Sealed.ExternalImage`),
   with a well-formed crop when it shows one of several things.
   """
 
   use Ash.Resource.Actions.Implementation
 
   alias Ash.Error.Action.InvalidArgument
-  alias TcgCheap.Catalogue.{ExternalImage, Tcgdex}
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.{Json, KnownKeys}
+  alias TcgCheap.Sealed.{ExternalImage, Tcgdex}
   alias TcgCheap.Sealed.ProductContents.DeckCard
   alias TcgCheap.Storage.ImageDownload
 

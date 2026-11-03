@@ -24,10 +24,10 @@ defmodule TcgCheap.Sealed.TcgdexCard do
     defaults [:read]
 
     create :record do
-      accept [:tcgdex_set_id, :tcgdex_id, :number, :name, :rarity]
+      accept [:tcgdex_set_id, :tcgdex_id, :number, :name, :rarity, :variants]
       upsert? true
       upsert_identity :tcgdex_id
-      upsert_fields [:number, :name, :rarity, :updated_at]
+      upsert_fields [:number, :name, :rarity, :variants, :updated_at]
     end
 
     read :cardmarket_due do
@@ -88,6 +88,8 @@ defmodule TcgCheap.Sealed.TcgdexCard do
       public? true
       constraints max_length: 60
     end
+
+    attribute :variants, {:array, :string}, public?: true, default: []
 
     attribute :cardmarket_id, :integer do
       description "The Cardmarket product id TCGdex gives the card, nil when unknown."

@@ -7,6 +7,8 @@ defmodule TcgCheap.Sealed.Shops do
 
   Delivery prices, free-delivery thresholds and pickup cities were checked on
   the shops' own pages on 2026-10-31; nil means the shop does not publish it.
+  Card Gallery and PokeCoffee delivery pages were checked on 2026-11-03.
+  Card Gallery publishes pickup in Kraków; PokeCoffee publishes no pickup or free threshold.
   Pickup store coordinates were geocoded from the store addresses with
   OpenStreetMap Nominatim on 2026-11-01.
 
@@ -54,7 +56,34 @@ defmodule TcgCheap.Sealed.Shops do
 
   @shops [
     %Shop{
+      key: "cardgallery",
+      name: "Card Gallery",
+      host: "cardgallery.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      singles_categories: ["Single Angielskie", "Karty ocenione (PSA/CGC)"],
+      shipping_from: Decimal.new("13.99"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: "Kraków"
+    },
+    %Shop{
+      key: "pokecoffee",
+      name: "PokeCoffee",
+      host: "pokecoffee.pl",
+      source: GoogleFeed,
+      feed_path: @shoper_google,
+      max_pages: 1,
+      singles_categories: ["Pojedyncze Karty > Pojedyncze Karty Pokemon"],
+      shipping_from: Decimal.new("11.99"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
       key: "alpakagra",
+      singles_categories: [
+        "Artykuły kolekcjonerskie > Pojedyncze karty kolekcjonerskie > Karty Single Pokemon"
+      ],
       name: "AlpakaGra",
       host: "alpakagra.pl",
       source: GoogleFeed,
@@ -138,6 +167,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "cardfan",
+      singles_categories: ["Gry Karciane > Pokemon > Single"],
       name: "CardFan",
       host: "www.cardfan.pl",
       source: GoogleFeed,
@@ -330,6 +360,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "kantodrop",
+      singles_categories: ["KARTY SV", "KARTY ME", "KARTY SWSH"],
       name: "KantoDrop",
       host: "kantodrop.pl",
       source: GoogleFeed,
@@ -353,6 +384,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "kartomaniak",
+      singles_categories: ["Karty - Single > Pokémon"],
       name: "Kartomaniak",
       host: "kartomaniak.pl",
       source: GoogleFeed,
@@ -465,6 +497,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "luznepaczki",
+      singles_categories: ["Single > Pokemon"],
       name: "Luźne Paczki",
       host: "luznepaczki.pl",
       source: GoogleFeed,
@@ -501,6 +534,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "mrpuggy",
+      singles_categories: ["Karty Kolekcjonerskie > Karty Pokemon > Single Pokemon"],
       name: "Mr. Puggy",
       host: "mrpuggy.pl",
       source: GoogleFeed,
@@ -632,6 +666,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "pokegemcollector",
+      singles_categories: ["Single TCG > Pokemon TCG > Angielskie"],
       name: "PokeGemCollector",
       host: "www.pokegemcollector.pl",
       source: GoogleFeed,
@@ -783,6 +818,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "strefatcg",
+      singles_categories: ["Pokemon TCG > single"],
       name: "Strefa TCG",
       host: "strefa-tcg.pl",
       source: GoogleFeed,
@@ -794,6 +830,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "swiatkart",
+      singles_categories: ["Single > Pokemon Single"],
       name: "Świat Kart",
       host: "swiatkart.pl",
       source: GoogleFeed,

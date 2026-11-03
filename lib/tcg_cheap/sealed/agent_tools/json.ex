@@ -1,8 +1,16 @@
 defmodule TcgCheap.Sealed.AgentTools.Json do
   @moduledoc "Plain JSON-ready maps of offers, products, contents, suggested prices and sets for the agent tools."
 
-  alias TcgCheap.Sealed.{Offer, Product, ProductContents, PullRates, Shops, SuggestedPrice}
-  alias TcgCheap.Sealed.TcgdexSet
+  alias TcgCheap.Sealed.{
+    CardReference,
+    Offer,
+    Product,
+    ProductContents,
+    PullRates,
+    Shops,
+    SuggestedPrice,
+    TcgdexSet
+  }
 
   @product_fields [
     :id,
@@ -115,6 +123,44 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
       borrowed_from: pull_rates.borrowed_from,
       checked_on: pull_rates.checked_on
     }
+  end
+
+  @doc "A single-card offer, including the shop's parsed copy attributes."
+  def card_offer(offer) do
+    offer
+    |> Map.take([
+      :id,
+      :shop,
+      :shop_product_id,
+      :title,
+      :category,
+      :url,
+      :price,
+      :in_stock,
+      :card_id,
+      :variant,
+      :language,
+      :condition,
+      :grading,
+      :match_note,
+      :last_seen_at
+    ])
+    |> Map.put(:manual, offer.manual?)
+  end
+
+  @doc "A synced card and its normal/reverse delivered reference at the NBP rate."
+  def card(card, rate) do
+    price = card.cardmarket_price
+
+    card
+    |> Map.take([:id, :tcgdex_id, :name, :number, :rarity, :variants, :cardmarket_id])
+    |> Map.merge(%{
+      set: Map.take(card.tcgdex_set, [:tcgdex_id, :name, :abbreviation]),
+      trend_eur: price && price.trend,
+      trend_holo_eur: price && price.trend_holo,
+      reference_pln: CardReference.pln(price, :normal, rate),
+      reverse_reference_pln: CardReference.pln(price, :reverse, rate)
+    })
   end
 
   defp put_product(map, %Product{} = product), do: Map.put(map, :product, product(product))

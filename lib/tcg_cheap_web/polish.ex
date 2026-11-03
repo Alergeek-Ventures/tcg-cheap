@@ -36,6 +36,11 @@ defmodule TcgCheapWeb.Polish do
   def zloty(%Decimal{} = value), do: value |> Decimal.round(0) |> Decimal.to_integer() |> zloty()
   def zloty(value) when is_integer(value), do: number(value) <> @nbsp <> "zł"
 
+  @doc ~S'A rough amount: whole złoty, with grosze below 10 zł, where whole złoty would read "0 zł".'
+  @spec rough_zloty(Decimal.t()) :: String.t()
+  def rough_zloty(%Decimal{} = value),
+    do: if(Decimal.lt?(value, 10), do: price(value), else: zloty(value))
+
   @doc ~S'Formats a whole number with Polish digit grouping: "1 299".'
   @spec number(integer()) :: String.t()
   def number(value) when is_integer(value), do: group(Integer.to_string(value))

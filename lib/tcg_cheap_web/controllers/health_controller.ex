@@ -1,7 +1,7 @@
 defmodule TcgCheapWeb.HealthController do
   use TcgCheapWeb, :controller
 
-  alias TcgCheap.Operations.Health
+  alias TcgCheap.Health
 
   def live(conn, _params) do
     respond(conn, 200, %{

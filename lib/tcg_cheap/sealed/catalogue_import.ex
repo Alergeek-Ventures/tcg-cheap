@@ -107,7 +107,15 @@ defmodule TcgCheap.Sealed.CatalogueImport do
 
   defp record_card_prices(singles, priced_on) do
     singles
-    |> Enum.map(&%{cardmarket_id: &1.id_product, trend: &1.trend, priced_on: priced_on})
+    |> Enum.map(
+      &%{
+        cardmarket_id: &1.id_product,
+        trend: &1.trend,
+        trend_holo: &1.trend_holo,
+        low: &1.low,
+        priced_on: priced_on
+      }
+    )
     |> Enum.chunk_every(@chunk)
     |> Enum.each(fn chunk ->
       %Ash.BulkResult{status: :success} =

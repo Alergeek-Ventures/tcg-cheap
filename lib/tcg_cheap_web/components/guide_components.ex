@@ -5,7 +5,51 @@ defmodule TcgCheapWeb.GuideComponents do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.{Kinds, Regions, Shops}
-  alias TcgCheapWeb.Polish
+  alias TcgCheapWeb.{Polish, VisitorLocation}
+
+  def card_variant_label(:normal), do: gettext("Zwykła / holo")
+  def card_variant_label(:reverse), do: gettext("Reverse holo")
+  def card_variant_label(:special), do: gettext("Wzór specjalny")
+
+  def single_verdict_status(:cheaper), do: :good
+  def single_verdict_status(:expensive), do: :expensive
+  def single_verdict_status(v) when v in [:similar, :pennies], do: :normal
+  def single_verdict_status(:unavailable), do: :out_of_stock
+  def single_verdict_status(_), do: :insufficient_data
+
+  def single_verdict_label(:pennies), do: gettext("Grosze w obu miejscach")
+  def single_verdict_label(:cheaper), do: gettext("Taniej niż zakup na Cardmarket")
+  def single_verdict_label(:similar), do: gettext("Podobnie jak na Cardmarket (±15%)")
+  def single_verdict_label(:expensive), do: gettext("Drożej niż zakup na Cardmarket")
+  def single_verdict_label(:unknown), do: gettext("Brak porównywalnej ceny referencyjnej")
+
+  def single_verdict_label(:unavailable),
+    do: gettext("Brak ofert bez gradingu na stanie w Polsce")
+
+  defp single_verdict_short(:cheaper), do: gettext("Taniej")
+  defp single_verdict_short(:expensive), do: gettext("Drożej")
+  defp single_verdict_short(:similar), do: gettext("Podobnie")
+  defp single_verdict_short(:pennies), do: gettext("Grosze")
+  defp single_verdict_short(_), do: gettext("Bez porównania")
+
+  attr :verdict, :atom, required: true
+
+  def single_verdict_badge(assigns) do
+    ~H"""
+    <span
+      class={[
+        "verdict-badge",
+        "single-verdict-badge",
+        "verdict-#{single_verdict_status(@verdict)}",
+        @verdict == :pennies && "single-pennies"
+      ]}
+      title={single_verdict_label(@verdict)}
+    >
+      {single_verdict_short(@verdict)}
+      <.verdict_icon :if={@verdict != :pennies} status={single_verdict_status(@verdict)} />
+    </span>
+    """
+  end
 
   @doc "The public masthead: the wordmark, linking to the buying guide, and optional controls."
   attr :id, :string, default: "site-header"
@@ -564,6 +608,8 @@ defmodule TcgCheapWeb.GuideComponents do
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
+  attr :shipping, :boolean, default: false
+
   def cardmarket_price(assigns) do
     ~H"""
     <a
@@ -572,7 +618,12 @@ defmodule TcgCheapWeb.GuideComponents do
       target="_blank"
       rel="noopener nofollow"
       class={["cardmarket-price", @class]}
-      title={gettext("Cena na Cardmarket (bez wysyłki)")}
+      title={
+        if(@shipping,
+          do: gettext("Cena na Cardmarket z wysyłką"),
+          else: gettext("Cena na Cardmarket (bez wysyłki)")
+        )
+      }
     >
       <img src={~p"/images/cardmarket.png"} alt="Cardmarket" width="16" height="16" />{Polish.zloty(
         @price
@@ -619,4 +670,318 @@ defmodule TcgCheapWeb.GuideComponents do
     do: gettext("Za mało sklepów")
 
   def verdict_label(%{status: :out_of_stock}), do: gettext("Brak w sklepach")
+  attr :id, :string, required: true
+  attr :offer, :map, required: true
+  attr :location, :map, default: nil
+  attr :today, Date, required: true
+  attr :tags, :list, default: []
+
+  # One shop's offer. In stock is the default, so a row only says when it is
+  # not (or that it is a pre-order), and when it was checked if that was not
+  # today.
+  def offer(assigns) do
+    assigns = assign(assigns, :checked_on, DateTime.to_date(assigns.offer.last_seen_at))
+
+    ~H"""
+    <li
+      id={@id}
+      class={["offer", !@offer.in_stock && !Map.get(@offer, :preorder, false) && "offer-unavailable"]}
+    >
+      <.shop_logo shop={@offer.shop} />
+      <div class="offer-shop">
+        <strong>{shop_name(@offer)}</strong>
+        <span :if={@tags != []} class="offer-delivery single-offer-tags">{Enum.join(@tags, " · ")}</span>
+        <.offer_delivery offer={@offer} location={@location} />
+      </div>
+      <p class="offer-price">
+        <span :if={Map.get(@offer, :preorder, false)} class="offer-preorder-label">{gettext(
+          "przedsprzedaż"
+        )}</span>
+        <strong>{Polish.price(@offer.price)}</strong>
+        <span
+          :if={(!@offer.in_stock and !Map.get(@offer, :preorder, false)) or @checked_on != @today}
+          class="offer-checked"
+        >
+          {offer_note(@offer.in_stock or Map.get(@offer, :preorder, false), @checked_on, @today)}
+        </span>
+      </p>
+      <a
+        href={@offer.url}
+        target="_blank"
+        rel="noopener nofollow"
+        class="offer-link"
+        data-track="shop_link_clicked"
+        data-track-placement="offers"
+        data-track-shop={@offer.shop}
+        data-track-price={@offer.price}
+        data-track-in-stock={to_string(@offer.in_stock)}
+        data-track-preorder={to_string(Map.get(@offer, :preorder, false))}
+        data-track-card={Map.get(@offer, :card_id)}
+        aria-label={
+          gettext("%{shop}: przejdź do sklepu (otwiera się w nowej karcie)", shop: shop_name(@offer))
+        }
+      >{gettext("Do sklepu")}</a>
+    </li>
+    """
+  end
+
+  defp offer_note(true, checked_on, today),
+    do: gettext("sprawdzono %{when}", when: Polish.days_ago(checked_on, today))
+
+  defp offer_note(false, today, today), do: gettext("brak na stanie")
+
+  defp offer_note(false, checked_on, today),
+    do: gettext("brak na stanie, sprawdzono %{when}", when: Polish.days_ago(checked_on, today))
+
+  attr :offer, :map, required: true
+  attr :location, :map, default: nil
+
+  # What delivery adds to an offer, from the shop's published terms:
+  # "dostawa od 14,99 zł · darmowa od 400 zł · odbiór osobisty: Kraków (491 km)".
+  # Pickup within the radius stands out on a line of its own.
+  def offer_delivery(assigns) do
+    {shop, km} =
+      case Shops.fetch(assigns.offer.shop) do
+        {:ok, shop} -> {shop, VisitorLocation.pickup_km(shop.key, assigns.location)}
+        :error -> {nil, nil}
+      end
+
+    near? = km != nil and km <= VisitorLocation.radius_km()
+
+    assigns =
+      assign(assigns,
+        shop: shop,
+        km: km,
+        near?: near?,
+        terms: if(shop, do: delivery_terms(shop, assigns.offer.price, km, near?), else: [])
+      )
+
+    # A no-break space keeps each "·" at the end of a line, never at the start.
+    ~H"""
+    <span :if={@terms != []} class="offer-delivery">{Enum.join(@terms, "\u00A0· ")}</span>
+    <span :if={@near?} class="offer-pickup-near">
+      <.fluent_icon name={:location} />{gettext("odbiór: %{city}, %{distance}",
+        city: @shop.pickup_city,
+        distance: VisitorLocation.km(@km)
+      )}
+    </span>
+    """
+  end
+
+  defp delivery_terms(shop, price, km, near?) do
+    threshold = shop.free_shipping_from
+    shipping = shipping(shop, price)
+
+    # The threshold stays visible: shops often grant it for some carriers only.
+    cost =
+      case shipping do
+        :free -> gettext("darmowa dostawa od %{amount}", amount: amount(threshold))
+        {:from, from} -> gettext("dostawa od %{amount}", amount: amount(from))
+        :unknown -> gettext("koszt dostawy w koszyku")
+      end
+
+    [
+      cost,
+      threshold && shipping != :free && gettext("darmowa od %{amount}", amount: amount(threshold)),
+      pickup_term(shop.pickup_city, km, near?)
+    ]
+    |> Enum.filter(&is_binary/1)
+  end
+
+  # Pickup within the radius is shown on its own line instead.
+  defp pickup_term(nil, _km, _near?), do: nil
+  defp pickup_term(_city, _km, true), do: nil
+  defp pickup_term(city, nil, false), do: gettext("odbiór osobisty: %{city}", city: city)
+
+  defp pickup_term(city, km, false),
+    do:
+      gettext("odbiór osobisty: %{city} (%{distance})",
+        city: city,
+        distance: VisitorLocation.km(km)
+      )
+
+  defp shipping(shop, price) do
+    threshold = shop.free_shipping_from
+
+    cond do
+      threshold != nil and not Decimal.lt?(price, threshold) -> :free
+      shop.shipping_from -> {:from, shop.shipping_from}
+      true -> :unknown
+    end
+  end
+
+  defp amount(value),
+    do: if(Decimal.integer?(value), do: Polish.zloty(value), else: Polish.price(value))
+
+  attr :id, :string, default: "offer-disclaimer"
+
+  def offer_disclaimer(assigns) do
+    ~H"""
+    <p id={@id} class="guide-note offer-disclaimer">
+      <.fluent_icon name={:shield_error} />
+      {gettext(
+        "Jesteśmy niezależnym agregatorem: nie sprzedajemy produktów i nie weryfikujemy sklepów. Zanim zapłacisz, sprawdź sklep – opinie, dane firmy i regulamin."
+      )}
+    </p>
+    """
+  end
+
+  attr :offer, :map, required: true
+  attr :preorder?, :boolean, default: false
+  attr :prefix, :string, default: "verdict"
+
+  def verdict_now(assigns) do
+    ~H"""
+    <div :if={@offer} class="verdict-now">
+      <div>
+        <p id={"#{@prefix}-price"} class="verdict-price">{Polish.price(@offer.price)}</p>
+        <p id={"#{@prefix}-shop"} class="verdict-shop">
+          {if(@preorder?,
+            do: gettext("najtaniej w przedsprzedaży w"),
+            else: gettext("najtaniej teraz w")
+          )} <strong>{shop_name(@offer)}</strong>
+        </p>
+      </div>
+      <a
+        id={"#{@prefix}-go"}
+        href={@offer.url}
+        target="_blank"
+        rel="noopener nofollow"
+        class="verdict-go"
+        data-track="shop_link_clicked"
+        data-track-placement="verdict"
+        data-track-shop={@offer.shop}
+        data-track-price={@offer.price}
+        data-track-in-stock={to_string(@offer.in_stock)}
+        data-track-preorder={to_string(Map.get(@offer, :preorder, false))}
+      >
+        {gettext("Do sklepu")}<span class="sr-only">{gettext("(otwiera się w nowej karcie)")}</span>
+      </a>
+    </div>
+    """
+  end
+
+  attr :product, :map, required: true
+  attr :cardmarket_pln, :any, required: true
+  attr :eur_pln, :map, default: nil
+
+  attr :id, :string, default: "product-cardmarket"
+  attr :reverse, :any, default: nil
+  attr :reverse_pln, :any, default: nil
+
+  def cardmarket_reference(assigns) do
+    ~H"""
+    <section
+      id={@id}
+      class="product-section cardmarket-reference"
+      aria-labelledby={"#{@id}-title"}
+    >
+      <div class="product-section-heading">
+        <h2 id={"#{@id}-title"} class="cardmarket-title">
+          <img src={~p"/images/cardmarket.png"} alt="" width="24" height="24" />{gettext(
+            "Cena na Cardmarket"
+          )}
+        </h2>
+        <p :if={@product.cardmarket_price_updated_on}>
+          {gettext("stan na %{date}", date: Polish.date(@product.cardmarket_price_updated_on))}
+        </p>
+      </div>
+      <%= if @product.cardmarket_trend || @reverse do %>
+        <p :if={@product.cardmarket_trend} id="cardmarket-trend" class="cardmarket-trend">
+          {gettext("Trend:")} <strong>{Polish.eur(@product.cardmarket_trend)}</strong>
+          <span :if={@cardmarket_pln}>≈ {Polish.rough_zloty(@cardmarket_pln)}</span>
+        </p>
+        <p :if={@reverse} class="cardmarket-trend">
+          {gettext("Reverse holo:")}
+          <strong>{Polish.eur(@reverse)}</strong><span :if={@reverse_pln}>≈ {Polish.rough_zloty(
+            @reverse_pln
+          )}</span>
+        </p>
+        <p class="guide-note">
+          {gettext("Europejska giełda.")}
+          <span :if={@eur_pln}>
+            {gettext("Kurs NBP %{rate} zł z %{date}.",
+              rate: Polish.rate(@eur_pln.rate),
+              date: Polish.date(@eur_pln.date)
+            )}
+          </span>
+          <span :if={@product.cardmarket_added_on} id="product-added">
+            {gettext("Na Cardmarket od %{date}.", date: Polish.date(@product.cardmarket_added_on))}
+          </span>
+        </p>
+        <p class="reference-link">
+          <a href={cardmarket_url(@product.cardmarket_id)} target="_blank" rel="noopener nofollow">
+            {gettext("Zobacz na Cardmarket")} →
+          </a>
+        </p>
+      <% else %>
+        <p id="cardmarket-none" class="guide-note">
+          {gettext("Cardmarket nie podaje jeszcze ceny tego produktu.")}
+        </p>
+      <% end %>
+    </section>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :count, :integer, required: true
+
+  def offers_heading(assigns) do
+    ~H"""
+    <div class="product-section-heading">
+      <h2 id={@id}>{gettext("Oferty w sklepach")}</h2>
+      <p :if={@count > 0}>
+        {gettext("%{offers} na stanie", offers: Polish.plural(@count, "oferta", "oferty", "ofert"))}
+      </p>
+    </div>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :label, :string, required: true
+  slot :inner_block, required: true
+
+  def offers_disclosure(assigns) do
+    ~H"""
+    <details id={@id} class="verdict-method offers-out">
+      <summary data-track="product_section_opened" data-track-section="out_of_stock_offers">
+        {@label}<.fluent_icon name={:chevron_down} class="verdict-method-chevron" />
+      </summary>
+      {render_slot(@inner_block)}
+    </details>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :status, :atom, required: true
+  slot :header, required: true
+  slot :inner_block, required: true
+
+  def verdict_panel(assigns) do
+    ~H"""
+    <section
+      id={@id}
+      class={["verdict-block", "verdict-block-#{@status}"]}
+      aria-labelledby={"#{@id}-title"}
+    >
+      <h2 id={"#{@id}-title"} class="sr-only">{gettext("Ocena ceny")}</h2>
+      {render_slot(@header)}
+      <div class="verdict-body">{render_slot(@inner_block)}</div>
+    </section>
+    """
+  end
+
+  attr :id, :string, required: true
+  slot :inner_block, required: true
+
+  def verdict_method(assigns) do
+    ~H"""
+    <details id={@id} class="verdict-method">
+      <summary data-track="product_section_opened" data-track-section="verdict_method">
+        {gettext("Jak liczymy?")}<.fluent_icon name={:chevron_down} class="verdict-method-chevron" />
+      </summary>
+      {render_slot(@inner_block)}
+    </details>
+    """
+  end
 end

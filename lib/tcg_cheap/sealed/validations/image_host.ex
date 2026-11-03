@@ -1,9 +1,9 @@
 defmodule TcgCheap.Sealed.Validations.ImageHost do
-  @moduledoc "An image URL attribute is on a host we mirror from (`TcgCheap.Catalogue.ExternalImage`)."
+  @moduledoc "An image URL attribute is on a host we mirror from (`TcgCheap.Sealed.ExternalImage`)."
 
   use Ash.Resource.Validation
 
-  alias TcgCheap.Catalogue.ExternalImage
+  alias TcgCheap.Sealed.ExternalImage
 
   @impl true
   def init(opts), do: {:ok, opts}

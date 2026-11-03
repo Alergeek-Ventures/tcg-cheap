@@ -39,6 +39,8 @@ defmodule TcgCheap.Sealed.ShopFeed do
   # A pre-order is never in stock; feeds that cannot tell leave `preorder` out.
   @type offer :: %{
           optional(:preorder) => boolean(),
+          optional(:kind) => :single | :sealed,
+          optional(:category) => String.t() | nil,
           shop_product_id: String.t(),
           title: String.t(),
           url: String.t(),
@@ -49,7 +51,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
         }
 
   @doc """
-  Fetches every sealed product the shop currently lists. `req_options` are
+  Fetches every sealed product and configured single the shop currently lists. `req_options` are
   merged into each request (a `Req.Test` plug, for instance).
   """
   @callback fetch(Shop.t(), req_options :: keyword()) :: {:ok, [offer()]} | {:error, term()}
@@ -192,6 +194,13 @@ defmodule TcgCheap.Sealed.ShopFeed do
     Matcher.sealed_title?(title) and (pokemon?(title) or pokemon?(category))
   end
 
+  @doc "Category prefixes take precedence over the sealed title rule."
+  def single?(%Shop{singles_categories: prefixes}, category)
+      when is_list(prefixes) and is_binary(category),
+      do: Enum.any?(prefixes, &String.starts_with?(category, &1))
+
+  def single?(_shop, _category), do: false
+
   defp pokemon?(nil), do: false
   # "Pokemony", "Pokemonów" in Polish category names count too.
   defp pokemon?(text),
@@ -214,13 +223,15 @@ defmodule TcgCheap.Sealed.ShopFeed do
   the limits of `price/1`.
   """
   @spec decimal_price(term()) :: {:ok, Decimal.t()} | :error
-  def decimal_price(value) when is_binary(value) do
+  def decimal_price(value, kind \\ :sealed)
+
+  def decimal_price(value, kind) when is_binary(value) do
     if Regex.match?(@decimal_price, value),
-      do: price(Decimal.new(value)),
+      do: price(Decimal.new(value), kind),
       else: :error
   end
 
-  def decimal_price(_value), do: :error
+  def decimal_price(_value, _kind), do: :error
 
   @doc "A product title with HTML entities decoded and whitespace collapsed."
   @spec title(term()) :: {:ok, String.t()} | :error
@@ -295,8 +306,13 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
   @doc "A price from 1 zł to 1 000 000 zł."
   @spec price(Decimal.t()) :: {:ok, Decimal.t()} | :error
-  def price(%Decimal{} = price) do
-    if not Decimal.lt?(price, @min_price) and not Decimal.gt?(price, @max_price),
+  def price(price, kind \\ :sealed)
+
+  def price(%Decimal{} = price, kind) do
+    # Bulk commons legitimately cost 0.50 zł; 0.01 zł remains a token price.
+    minimum = if kind == :single, do: Decimal.new("0.10"), else: @min_price
+
+    if not Decimal.lt?(price, minimum) and not Decimal.gt?(price, @max_price),
       do: {:ok, price},
       else: :error
   end

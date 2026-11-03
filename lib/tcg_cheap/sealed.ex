@@ -15,6 +15,36 @@ defmodule TcgCheap.Sealed do
   @current_for_seconds 3 * 86_400
 
   tools do
+    tool(:list_unmatched_card_offers, AgentTools, :list_unmatched_card_offers,
+      annotations: [read_only_hint: true]
+    )
+
+    tool(:list_matched_card_offers, AgentTools, :list_matched_card_offers,
+      annotations: [read_only_hint: true]
+    )
+
+    tool(:list_card_decisions, AgentTools, :list_card_decisions,
+      annotations: [read_only_hint: true]
+    )
+
+    tool(:explain_card_match, AgentTools, :explain_card_match,
+      annotations: [read_only_hint: true]
+    )
+
+    tool(:search_cards, AgentTools, :search_cards, annotations: [read_only_hint: true])
+
+    tool(:assign_card_offer, AgentTools, :assign_card_offer,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
+    tool(:exclude_card_offer, AgentTools, :exclude_card_offer,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
+    tool(:clear_card_decision, AgentTools, :clear_card_decision,
+      annotations: [read_only_hint: false, destructive_hint: false, idempotent_hint: true]
+    )
+
     tool(:shop_status, AgentTools, :shop_status, annotations: [read_only_hint: true])
 
     tool(:list_unmatched_offers, AgentTools, :unmatched_offers,
@@ -194,8 +224,26 @@ defmodule TcgCheap.Sealed do
     end
 
     resource TcgCheap.Sealed.TcgdexCard do
+      define :list_cards, action: :read
       define :list_cards_due_for_cardmarket, action: :cardmarket_due, args: [:checked_before]
       define :record_card_cardmarket_id, action: :record_cardmarket_id, args: [:cardmarket_id]
+    end
+
+    resource TcgCheap.Sealed.ShopFetch do
+      define :record_shop_fetch, action: :record
+    end
+
+    resource TcgCheap.Sealed.CardOffer do
+      define :upsert_card_offer, action: :upsert
+      define :list_card_offers, action: :read
+      define :get_card_offer, action: :read, get_by: [:id]
+      define :match_card_offer, action: :match
+      define :assign_card_offer_manually, action: :assign_manually
+      define :exclude_card_offer_manually, action: :exclude_manually
+      define :clear_manual_card_offer, action: :clear_manual
+      define :list_card_offers_seen_since, action: :seen_since, args: [:since]
+      define :latest_card_fetches, action: :latest_fetches, args: [:since]
+      define :list_manual_card_offers, action: :manual
     end
 
     resource TcgCheap.Sealed.CardPrice
@@ -263,6 +311,23 @@ defmodule TcgCheap.Sealed do
       end
 
     Enum.filter(offers, &(DateTime.compare(&1.last_seen_at, Map.fetch!(latest, &1.shop)) == :eq))
+  end
+
+  @doc "Current singles, using each shop's latest card fetch within three days."
+  def current_card_offers(now \\ DateTime.utc_now()) do
+    since = DateTime.add(now, -@current_for_seconds, :second)
+    latest = latest_card_fetches!(since)
+
+    require Ash.Query
+    require Ash.Expr
+    query = TcgCheap.Sealed.CardOffer |> Ash.Query.filter(is_nil(language) or language == "en")
+
+    filter =
+      Enum.reduce(latest, false, fn {shop, time}, acc ->
+        Ash.Expr.expr(^acc or (shop == ^shop and last_seen_at == ^time))
+      end)
+
+    query |> Ash.Query.filter(^filter) |> Ash.read!(domain: __MODULE__)
   end
 
   @doc """

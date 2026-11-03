@@ -54,7 +54,7 @@ defmodule TcgCheap.MixProject do
       {:sobelow, "~> 0.18", only: [:dev, :test]},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ash_phoenix, "~> 2.3"},
-      {:ash_backpex, "~> 0.5"},
+      {:backpex, "~> 0.22.0"},
       # live_dashboard_logger 0.0.3 (latest) still requires ~> 0.8.6; 0.9 keeps the
       # PageBuilder API it uses.
       {:phoenix_live_dashboard, "~> 0.9", override: true},

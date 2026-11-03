@@ -253,54 +253,32 @@ defmodule TcgCheapWeb.SetComponents do
         <ol id={"#{@id}-#{index}-list"} class={[length(group.cards) < 6 && "set-cards-short"]}>
           <li :for={card <- group.cards}>
             <span class="set-cards-number">{card.number}</span>
-            <span>{card.name}</span>
-            <.card_price card={card} />
+            <.link
+              :if={Map.get(card, :public_path)}
+              navigate={card.public_path}
+              class="single-card-name"
+            >{card.name}</.link>
+            <span :if={!Map.get(card, :public_path)}>{card.name}</span>
+            <span :if={Map.get(card, :polish_price)} class="single-card-pl">
+              <strong>{Polish.zloty(card.polish_price)}</strong>
+              <TcgCheapWeb.GuideComponents.single_verdict_badge verdict={card.polish_verdict} />
+            </span>
+            <.card_price :if={!Map.get(card, :polish_price)} card={card} />
           </li>
         </ol>
       </details>
     </div>
-    <p class="guide-note table-note">
-      <span :if={!@cards_source_url}>{gettext("Lista kart: TCGdex.")}</span>
-      <span :if={@priced_on}>
-        {gettext("Ceny: trend na Cardmarket z %{date}.", date: Polish.date(@priced_on))}
-      </span>
-    </p>
+    <p class="guide-note table-note">{gettext("Ceny sklepów bez dostawy; CM — trend Cardmarket.")}</p>
     """
   end
 
   attr :card, :map, required: true
 
-  # The card's Cardmarket trend, linked to its Cardmarket page when TCGdex
-  # gives the product id.
-  defp card_price(%{card: %{cardmarket_id: nil}} = assigns) do
-    ~H"""
-    <span class="set-cards-price set-cards-no-price">{gettext("brak ceny")}</span>
-    """
-  end
-
   defp card_price(assigns) do
-    price = assigns.card.cardmarket_price
-    assigns = assign(assigns, :trend, price && price.trend)
-
     ~H"""
-    <a
-      href={"https://www.cardmarket.com/en/Pokemon/Products?idProduct=#{@card.cardmarket_id}"}
-      class={["set-cards-price", !@trend && "set-cards-no-price"]}
-      target="_blank"
-      rel="noopener nofollow"
-      aria-label={
-        if(@trend,
-          do:
-            gettext("Trend %{price}: %{card} na Cardmarket (nowa karta)",
-              price: Polish.eur(@trend),
-              card: @card.name
-            ),
-          else: gettext("Brak ceny: %{card} na Cardmarket (nowa karta)", card: @card.name)
-        )
-      }
-    >
-      {if(@trend, do: Polish.eur(@trend), else: gettext("brak ceny"))}
-    </a>
+    <span :if={Map.get(@card, :cardmarket_trend_pln)} class="set-cards-price">CM ≈ {Polish.rough_zloty(
+      @card.cardmarket_trend_pln
+    )}</span>
     """
   end
 end

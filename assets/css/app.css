@@ -1,4 +1,4 @@
-/* Public pages (the buying guide, trade and card pages). The admin loads
+/* Public buying-guide pages. The admin loads
    admin.css instead, with daisyUI and Backpex, which these pages do not use:
    they were most of this render-blocking stylesheet on phones. */
 

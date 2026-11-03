@@ -9,6 +9,8 @@ defmodule TcgCheap.Sealed.Shop do
       title decides) and `product_path` (the permalink path shape);
     * Shopify: `collection` (the Pokémon collection handle; nil reads the
       whole shop);
+    * `singles_categories` – category path prefixes for single cards; nil disables singles.
+      Supported only by GoogleFeed and CeneoFeed.
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
       cover the whole shop); IdoSell: `feed_path` (a Pokémon category or
       search listing, query included);
@@ -41,6 +43,7 @@ defmodule TcgCheap.Sealed.Shop do
               [
                 :category,
                 :sealed_categories,
+                :singles_categories,
                 :product_path,
                 :collection,
                 :feed_path,
@@ -59,6 +62,7 @@ defmodule TcgCheap.Sealed.Shop do
           max_pages: pos_integer(),
           category: String.t() | nil,
           sealed_categories: [String.t()] | nil,
+          singles_categories: [String.t()] | nil,
           product_path: Regex.t() | nil,
           collection: String.t() | nil,
           feed_path: String.t() | nil,

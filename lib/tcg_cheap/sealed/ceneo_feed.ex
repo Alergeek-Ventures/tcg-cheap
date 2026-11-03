@@ -6,7 +6,9 @@ defmodule TcgCheap.Sealed.CeneoFeed do
   64 MB. Ceneo feeds carry prices in PLN by definition and Shoper lists only
   products it has in stock.
 
-  A product counts when it is sealed Pokémon
+  Configured `singles_categories` prefixes of `cat` identify singles first,
+  regardless of title; they use the same validation with a 0.10 zł minimum.
+  Otherwise a product counts when it is sealed Pokémon
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on its name and `cat`). It is
   in stock when its `stock` is positive and its `avail` is one of Ceneo's
   shipping times (1, 3, 7 or 14 days) or 99 ("ask the shop"); 90 (on order)
@@ -35,30 +37,39 @@ defmodule TcgCheap.Sealed.CeneoFeed do
 
     with {:ok, response} <- ShopFeed.get(shop, shop.feed_path, [], req_options, opts),
          {:ok, offers} <-
-           XmlRecords.parse(response.body, ["offers", "o"], @fields, &sealed_pokemon?/1) do
+           XmlRecords.parse(response.body, ["offers", "o"], @fields, &included?(&1, shop)) do
       {:ok, ShopFeed.offers(shop, offers, &normalize(shop, &1))}
     end
   end
 
   # Products with an invalid name are kept for normalize/2 to count.
-  defp sealed_pokemon?(offer) do
+  defp included?(offer, shop) do
     case ShopFeed.title(XmlRecords.text(offer, ["name"])) do
-      {:ok, title} -> ShopFeed.sealed_pokemon?(title, XmlRecords.text(offer, ["cat"]))
-      :error -> true
+      {:ok, title} ->
+        ShopFeed.single?(shop, XmlRecords.text(offer, ["cat"])) or
+          ShopFeed.sealed_pokemon?(title, XmlRecords.text(offer, ["cat"]))
+
+      :error ->
+        true
     end
   end
 
   defp normalize(shop, offer) do
     attr = &XmlRecords.attr(offer, [], &1)
 
+    category = XmlRecords.text(offer, ["cat"])
+    kind = if ShopFeed.single?(shop, category), do: :single, else: :sealed
+
     with {:ok, title} <- ShopFeed.title(XmlRecords.text(offer, ["name"])),
          {:ok, id} <- ShopFeed.product_id(attr.("id")),
          {:ok, _uri} <- ShopFeed.https_url(attr.("url"), [shop.host]),
-         {:ok, price} <- ShopFeed.decimal_price(attr.("price")),
+         {:ok, price} <- ShopFeed.decimal_price(attr.("price"), kind),
          {:ok, in_stock} <- in_stock(attr.("avail"), attr.("stock")) do
       {:ok,
        [
          %{
+           kind: kind,
+           category: category && String.slice(category, 0, 300),
            shop_product_id: id,
            title: title,
            url: attr.("url"),

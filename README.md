@@ -8,10 +8,11 @@ Phoenix LiveView, Ash, Oban and PostgreSQL.
   verdict (good / normal / expensive) based on what the product has really
   cost over the last 30 days. `/produkty/:slug` shows all offers with each
   shop's delivery cost and pickup city, and a 90-day price chart.
-- **Trading guide (singles, next phase):** `/cards/:tcgdex_id` and `/trade`
-  value single cards with daily Cardmarket prices.
+- **Trading guide (next phase):** singles and trades will be rebuilt on the
+  buying-guide domain. The former `/cards/:tcgdex_id` and `/trade` pages redirect
+  permanently to `/`.
 - **Admin:** `/admin` (provisioned accounts only) — buying-guide desk for
-  manual offer matching, operations, Oban and LiveDashboard.
+  manual offer matching, Oban and LiveDashboard.
 
 ## Local development
 

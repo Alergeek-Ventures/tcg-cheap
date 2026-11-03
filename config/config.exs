@@ -59,17 +59,10 @@ config :tcg_cheap,
   ash_domains: [
     TcgCheap.Core,
     TcgCheap.Accounts,
-    TcgCheap.Operations,
     TcgCheap.Sealed,
     TcgCheap.Storage
   ],
   token_signing_secret: :endpoint_secret_key_base
-
-config :tcg_cheap, :acquisition_health,
-  stranded_after_seconds: 900,
-  reconcile_limit: 100,
-  circuit_breaker_failure_threshold: 5,
-  stale_after_seconds: %{"nbp" => 129_600, "cardmarket_bulk" => 129_600}
 
 config :backpex,
   pubsub_server: TcgCheap.PubSub,
@@ -94,9 +87,6 @@ config :tcg_cheap, Oban,
   repo: TcgCheap.Repo,
   queues: [
     exchange_rates: 1,
-    catalogue_sync: 1,
-    operations: 1,
-    cardmarket_bulk: 1,
     sealed: 1,
     media: 1
   ],
@@ -107,14 +97,9 @@ config :tcg_cheap, Oban,
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,
      crontab: [
-       {"*/15 * * * *", TcgCheap.Catalogue.SinglesCatalogueBootstrapWorker,
-        args: %{"policy_version" => 1}},
-       {"*/15 * * * *", TcgCheap.Catalogue.CuratedPlayableBootstrapWorker,
-        args: %{"evidence_version" => "2026-08-19-naic"}},
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
-       {"30 1 * * *", TcgCheap.Pricing.CardmarketBulk.SyncWorker, args: %{}},
-       # Buying guide: the Cardmarket sealed catalogue after the singles bulk sync,
+       # Buying guide: the Cardmarket sealed catalogue,
        # then one fetch job per shop; the sealed queue runs them one at a time.
        # Times are UTC: the import starts at 3:00 Polish winter time (4:00 in
        # summer), so the data is fresh for the morning.
@@ -126,28 +111,9 @@ config :tcg_cheap, Oban,
        {"15 3 * * *", TcgCheap.Sealed.SuggestedPriceWorker, args: %{}},
        # Product photos copied into our storage, a batch at a time.
        {"*/10 * * * *", TcgCheap.Sealed.PhotoMirrorWorker, args: %{}},
-       {"*/10 * * * *", TcgCheap.Storage.RemoteImageWorker, args: %{}},
-       {"*/15 * * * *", TcgCheap.Operations.AcquisitionReconcilerWorker, args: %{}}
+       {"*/10 * * * *", TcgCheap.Storage.RemoteImageWorker, args: %{}}
      ]}
   ]
-
-config :tcg_cheap, :catalogue_sync,
-  provider: TcgCheap.Catalogue.Tcgdex,
-  provider_options: [],
-  batch_size: 20,
-  batch_delay_seconds: 900,
-  budget_backoff_seconds: 3_600
-
-config :tcg_cheap, :singles_collection,
-  pitch_black_set_id: "me05",
-  paper_series_ids: ["sv", "me"],
-  rolling_rarities: ["Illustration rare", "Special illustration rare"],
-  chunk_size: 20
-
-config :tcg_cheap, :cardmarket_bulk_plausibility,
-  minimum_product_rows: 10_000,
-  minimum_singles_price_rows: 10_000,
-  minimum_priceable_singles_rows: 5_000
 
 config :tcg_cheap, :admin_login_limiter,
   limit: 5,
@@ -155,56 +121,9 @@ config :tcg_cheap, :admin_login_limiter,
   max_entries: 10_000,
   prune_interval_ms: 60_000
 
-config :tcg_cheap, :public_acquisition_limiter,
-  limit: 30,
-  window_ms: 60 * 60 * 1_000,
-  max_entries: 10_000,
-  prune_interval_ms: 60_000
-
-config :tcg_cheap, :cardmarket_bulk,
-  adapter: TcgCheap.Pricing.CardmarketBulk.Adapter,
-  adapter_options: [],
-  row_count_anomaly_bound: 0.10
-
-config :tcg_cheap, :exchange_rate_clock, &DateTime.utc_now/0
-
 config :tcg_cheap, :exchange_rate_provider,
   adapter: TcgCheap.Pricing.NbpExchangeRate,
   options: []
-
-config :tcg_cheap, :acquisition_budget,
-  global_hourly_request_limit: 100,
-  global_daily_request_limit: 1_000,
-  global_monthly_spend_limit: "50.00",
-  providers: [
-    [
-      provider_key: "tcgdex_catalogue",
-      display_name: "TCGdex Catalogue",
-      estimated_cost_per_request: "0.00",
-      hourly_request_limit: 100,
-      daily_request_limit: 1_000,
-      monthly_request_limit: 20_000,
-      monthly_spend_limit: "0.00"
-    ],
-    [
-      provider_key: "cardmarket_bulk",
-      display_name: "Cardmarket Bulk Pricing",
-      estimated_cost_per_request: "0.00",
-      hourly_request_limit: 10,
-      daily_request_limit: 10,
-      monthly_request_limit: 310,
-      monthly_spend_limit: "0.00"
-    ],
-    [
-      provider_key: "nbp",
-      display_name: "Narodowy Bank Polski",
-      estimated_cost_per_request: "0.00",
-      hourly_request_limit: 24,
-      daily_request_limit: 100,
-      monthly_request_limit: 1_000,
-      monthly_spend_limit: "0.00"
-    ]
-  ]
 
 # Configure the endpoint
 config :tcg_cheap, TcgCheapWeb.Endpoint,

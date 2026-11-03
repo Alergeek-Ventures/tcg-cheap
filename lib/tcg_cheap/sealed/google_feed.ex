@@ -5,7 +5,9 @@ defmodule TcgCheap.Sealed.GoogleFeed do
   `/console/integration/execute/name/GoogleProductSearch`; such exports reach
   tens of megabytes, so the response may be up to 64 MB.
 
-  A product counts when it is sealed Pokémon
+  Configured `singles_categories` prefixes of `g:product_type` identify singles first,
+  regardless of title; they use the same validation with a 0.10 zł minimum.
+  Otherwise a product counts when it is sealed Pokémon
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on its title and
   `g:product_type`). Its price is `g:price`, or a lower `g:sale_price`
   while `g:sale_price_effective_date` (if given) includes now, in PLN;
@@ -45,29 +47,36 @@ defmodule TcgCheap.Sealed.GoogleFeed do
 
     with {:ok, response} <- ShopFeed.get(shop, shop.feed_path, [], req_options, opts),
          {:ok, entries} <-
-           XmlRecords.parse(response.body, ["feed", "entry"], @fields, &sealed_pokemon?/1) do
+           XmlRecords.parse(response.body, ["feed", "entry"], @fields, &included?(&1, shop)) do
       now = DateTime.utc_now()
       {:ok, ShopFeed.offers(shop, entries, &normalize(shop, now, &1))}
     end
   end
 
   # Products with an invalid title are kept for normalize/3 to count.
-  defp sealed_pokemon?(entry) do
+  defp included?(entry, shop) do
     case ShopFeed.title(XmlRecords.text(entry, ["title"])) do
-      {:ok, title} -> ShopFeed.sealed_pokemon?(title, XmlRecords.text(entry, ["g:product_type"]))
-      :error -> true
+      {:ok, title} ->
+        ShopFeed.single?(shop, XmlRecords.text(entry, ["g:product_type"])) or
+          ShopFeed.sealed_pokemon?(title, XmlRecords.text(entry, ["g:product_type"]))
+
+      :error ->
+        true
     end
   end
 
   defp normalize(shop, now, entry) do
     text = &XmlRecords.text(entry, [&1])
 
+    category = text.("g:product_type")
+    kind = if ShopFeed.single?(shop, category), do: :single, else: :sealed
+
     with {:ok, title} <- ShopFeed.title(text.("title")),
          {:ok, id} <- ShopFeed.product_id(text.("g:id")),
          {:ok, _uri} <- ShopFeed.https_url(text.("link"), [shop.host]),
-         {:ok, price} <- price(text.("g:price")),
+         {:ok, price} <- price(text.("g:price"), kind),
          {:ok, sale_price} <-
-           sale_price(text.("g:sale_price"), text.("g:sale_price_effective_date"), now),
+           sale_price(text.("g:sale_price"), text.("g:sale_price_effective_date"), now, kind),
          {:ok, availability} <-
            availability(
              text.("g:availability"),
@@ -76,6 +85,8 @@ defmodule TcgCheap.Sealed.GoogleFeed do
       {:ok,
        [
          %{
+           kind: kind,
+           category: category && String.slice(category, 0, 300),
            shop_product_id: id,
            title: title,
            url: text.("link"),
@@ -90,27 +101,27 @@ defmodule TcgCheap.Sealed.GoogleFeed do
     end
   end
 
-  defp price(value) when is_binary(value) do
+  defp price(value, kind) when is_binary(value) do
     case String.split(value, " ") do
-      [amount, "PLN"] -> ShopFeed.decimal_price(amount)
+      [amount, "PLN"] -> ShopFeed.decimal_price(amount, kind)
       _ -> :error
     end
   end
 
-  defp price(_value), do: :error
+  defp price(_value, _kind), do: :error
 
   # A "sale" price above the regular one is not a sale.
   defp lower(nil, price), do: price
   defp lower(sale_price, price), do: Decimal.min(sale_price, price)
 
-  defp sale_price(nil, _dates, _now), do: {:ok, nil}
-  defp sale_price(value, nil, _now), do: price(value)
+  defp sale_price(nil, _dates, _now, _kind), do: {:ok, nil}
+  defp sale_price(value, nil, _now, kind), do: price(value, kind)
 
-  defp sale_price(value, dates, now) do
+  defp sale_price(value, dates, now, kind) do
     with [from, to] <- String.split(dates, "/"),
          {:ok, from, _offset} <- DateTime.from_iso8601(from),
          {:ok, to, _offset} <- DateTime.from_iso8601(to),
-         {:ok, price} <- price(value) do
+         {:ok, price} <- price(value, kind) do
       if DateTime.compare(now, from) != :lt and DateTime.compare(now, to) != :gt,
         do: {:ok, price},
         else: {:ok, nil}
