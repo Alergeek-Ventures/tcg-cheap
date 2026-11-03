@@ -135,8 +135,10 @@ defmodule TcgCheap.Sealed.Refresh do
     offers = Sealed.list_offers!(query: [select: [:title, :ean, :manual?, :product_id]])
     index = Matcher.index(products, Sealed.known_eans())
 
+    # An offer that no longer matches (nil) is unmatched again: a wrong match
+    # poisons the price history more than a missing one.
     for %Offer{manual?: false} = offer <- offers,
-        id = Matcher.product_id(offer, index),
+        id <- [Matcher.product_id(offer, index)],
         id != offer.product_id do
       # Nothing subscribes to offer notifications; drop them inside the transaction.
       Sealed.match_offer!(offer, id, return_notifications?: true)
