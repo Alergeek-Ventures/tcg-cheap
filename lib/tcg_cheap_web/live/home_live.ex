@@ -3,17 +3,20 @@ defmodule TcgCheapWeb.HomeLive do
   The buying guide: the Cardmarket sealed catalogue with the cheapest Polish
   price and a verdict, searchable (`?q=`), filterable in a side panel by kind
   (`?rodzaj=`), language edition (`?wersja=`, English unless `wszystkie`
-  or an expansion is chosen) and expansion (`?rozszerzenie=`, a Cardmarket
-  expansion id), and paged with "Pokaż
-  więcej".
+  or an expansion is chosen) and expansion, and paged with "Pokaż więcej".
+
+  A chosen expansion's list is its set page (`/rozszerzenia/<name>-<id>`, the
+  Cardmarket expansion id; `?rozszerzenie=<id>` leads there): the answer for
+  the set on top, its products, and the set's pull rates and cards.
   """
 
   use TcgCheapWeb, :live_view
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.GuideComponents
+  import TcgCheapWeb.SetComponents
 
-  alias TcgCheap.Sealed.{Guide, Kinds, Regions}
+  alias TcgCheap.Sealed.{Catalogue, Guide, Kinds, Regions}
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
   @max_query_length 100
@@ -23,43 +26,94 @@ defmodule TcgCheapWeb.HomeLive do
   # Expansions listed before "Pokaż wszystkie".
   @first_expansions 12
 
+  defmodule NotFound do
+    @moduledoc false
+    defexception message: "expansion not found", plug_status: 404
+  end
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      socket
      |> VisitorLocation.assign_location()
-     |> assign(:all_expansions?, false)
+     |> assign(all_expansions?: false, set_page: nil)
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")}
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
-    seo = SEO.home(params)
-    socket = assign(socket, seo: seo, page_title: seo.title)
-
     filters = %{
       query: params |> query_param() |> String.trim() |> String.slice(0, @max_query_length),
       kind: Map.get(@kind_params, params["rodzaj"]),
-      expansion: expansion_param(params["rozszerzenie"])
+      expansion: expansion_param(socket.assigns.live_action, params)
     }
 
     filters = Map.put(filters, :region, region_param(params["wersja"], filters.expansion))
 
     previous = socket.assigns[:filters]
-    {:noreply, socket |> list(filters) |> track_changes(previous)}
+    socket = list(socket, filters)
+    expansion = chosen_expansion(socket.assigns)
+    socket = update(socket, :filters, &Map.put(&1, :expansion_name, expansion && expansion.name))
+
+    # An expansion's list lives at its set page, under its current name.
+    at_set_page? = expansion && params["slug"] == Catalogue.slug(expansion.name, expansion.id)
+
+    case {socket.assigns.live_action, expansion, at_set_page?} do
+      {:expansion, nil, _at_set_page?} ->
+        raise NotFound
+
+      {_action, %{}, false} ->
+        {:noreply, push_patch(socket, to: list_path(socket.assigns.filters, []), replace: true)}
+
+      {:expansion, expansion, true} ->
+        set_page = set_page(socket, expansion)
+        seo = SEO.expansion(params, expansion, set_page)
+
+        {:noreply,
+         socket
+         |> assign(set_page: set_page, seo: seo, page_title: seo.title)
+         |> track_changes(previous)}
+
+      {:index, nil, _at_set_page?} ->
+        seo = SEO.home(params)
+
+        {:noreply,
+         socket
+         |> assign(set_page: nil, seo: seo, page_title: seo.title)
+         |> track_changes(previous)}
+    end
   end
+
+  defp chosen_expansion(%{filters: %{expansion: id}, facets: facets}),
+    do: id && Enum.find(facets.expansions, &(&1.id == id))
+
+  # The set's booster, pull rates and cards change only with the expansion.
+  defp set_page(%{assigns: %{set_page: %{id: id} = page}}, %{id: id}), do: page
+
+  defp set_page(_socket, %{id: id, name: name}),
+    do: id |> Guide.expansion(name, DateTime.utc_now()) |> Map.put(:id, id)
 
   defp query_param(%{"q" => query}) when is_binary(query), do: query
   defp query_param(_params), do: ""
 
-  defp expansion_param(value) when is_binary(value) do
+  # The set page's slug ends in the Cardmarket id; the list's `rozszerzenie`
+  # is that id and leads to the set page.
+  defp expansion_param(:expansion, %{"slug" => slug}) do
+    case Regex.run(~r/-(\d+)\z/, slug) do
+      [_, id] -> expansion_id(id)
+      nil -> nil
+    end
+  end
+
+  defp expansion_param(_action, %{"rozszerzenie" => id}) when is_binary(id), do: expansion_id(id)
+  defp expansion_param(_action, _params), do: nil
+
+  defp expansion_id(value) do
     case Integer.parse(value) do
       {id, ""} when id in 1..9_999_999 -> id
       _ -> nil
     end
   end
-
-  defp expansion_param(_value), do: nil
 
   defp list(socket, filters) do
     {summaries, more?, count} = Guide.browse(filters, 0, DateTime.utc_now())
@@ -177,28 +231,45 @@ defmodule TcgCheapWeb.HomeLive do
     end
   end
 
-  # The list with some filters changed. The language links offered under a
-  # chosen expansion are only its own, so the expansion can stay.
+  # The list with some filters changed: a chosen expansion's at its set page.
+  # The language links offered under a chosen expansion are only its own, so
+  # the expansion can stay.
   defp list_path(filters, changes) do
     filters = Map.merge(filters, Map.new(changes))
 
     params =
-      [
-        q: filters.query,
-        rodzaj: filters.kind,
-        wersja: region_value(filters),
-        rozszerzenie: filters.expansion
-      ]
+      [q: filters.query, rodzaj: filters.kind, wersja: region_value(filters)]
       |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
       |> Enum.map(fn {key, value} -> {key, to_string(value)} end)
 
-    ~p"/?#{params}"
+    base_path(filters) <> if(params == [], do: "", else: "?" <> URI.encode_query(params))
   end
+
+  defp base_path(%{expansion: id, expansion_name: name}) when is_integer(id) and is_binary(name),
+    do: SEO.expansion_path(id, name)
+
+  defp base_path(_filters), do: ~p"/"
 
   defp filtered?(filters), do: filters.kind || region_value(filters) || filters.expansion
 
-  defp active_filters(filters),
+  # On a set page the set is the page, not a filter to clear.
+  defp active_filters(filters, nil = _set_page),
     do: Enum.count([filters.kind, region_value(filters), filters.expansion], & &1)
+
+  defp active_filters(filters, _set_page),
+    do: Enum.count([filters.kind, region_value(filters)], & &1)
+
+  defp clear_filters_path(filters, nil = _set_page),
+    do:
+      list_path(filters,
+        kind: nil,
+        region: default_region(nil),
+        expansion: nil,
+        expansion_name: nil
+      )
+
+  defp clear_filters_path(filters, _set_page),
+    do: list_path(filters, kind: nil, region: default_region(filters.expansion))
 
   attr :filters, :map, required: true
   attr :facets, :map, required: true
@@ -272,7 +343,7 @@ defmodule TcgCheapWeb.HomeLive do
           <.link
             id="expansion-all"
             class="guide-expansions-all"
-            patch={list_path(@filters, expansion: nil)}
+            patch={list_path(@filters, expansion: nil, expansion_name: nil)}
             aria-current={if(is_nil(@filters.expansion), do: "true")}
           >{gettext("Wszystkie")}</.link>
           <ul class="guide-expansion-tiles">
@@ -333,7 +404,13 @@ defmodule TcgCheapWeb.HomeLive do
     <li>
       <.link
         id={"expansion-#{@expansion.id}"}
-        patch={list_path(@filters, expansion: @expansion.id)}
+        patch={
+          list_path(@filters,
+            expansion: @expansion.id,
+            expansion_name: @expansion.name,
+            region: default_region(@expansion.id)
+          )
+        }
         aria-current={if(@filters.expansion == @expansion.id, do: "true")}
         title={@expansion.name}
       >
@@ -356,9 +433,85 @@ defmodule TcgCheapWeb.HomeLive do
     """
   end
 
+  attr :name, :string, required: true
+  attr :page, :map, required: true
+
+  # A set page's top: the set, then its answer at a glance (the single
+  # booster's price, the rarest pull rates, the cards), the same facts as its
+  # search snippet.
+  defp set_intro(assigns) do
+    set = assigns.page.set
+
+    assigns =
+      assign(assigns,
+        logo_url: set && set.logo_url,
+        rarest: if(set && set.pull_rates, do: Enum.take(set.pull_rates.rates, 2), else: []),
+        cards: set && set.card_count > 0 && set
+      )
+
+    ~H"""
+    <section id="set-intro" class="guide-intro set-intro" aria-labelledby="guide-title">
+      <.link id="set-back" navigate={~p"/"} class="guide-back">
+        <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
+      </.link>
+      <div class="set-title">
+        <img :if={@logo_url} src={@logo_url} alt="" class="set-logo" />
+        <h1 id="guide-title">{@name}</h1>
+      </div>
+      <%!-- Each fact leads on: the booster to its page, the odds and the cards to their tables. --%>
+      <%= if @page.booster || @rarest != [] || @cards do %>
+        <ul id="set-facts" class="set-facts">
+          <li :if={@page.booster}>
+            <.link
+              id="set-booster"
+              navigate={~p"/produkty/#{@page.booster.product.slug}"}
+              class="set-fact"
+            >
+              <span class="set-fact-label">
+                {if(@page.booster.preorder?,
+                  do: gettext("Booster w przedsprzedaży"),
+                  else: gettext("Pojedynczy booster")
+                )}<span aria-hidden="true">→</span>
+              </span>
+              <%= if cheapest = @page.booster.verdict.cheapest do %>
+                <strong>{Polish.price(cheapest.price)}</strong>
+                <span class="set-fact-detail">{gettext("w %{shop}", shop: shop_name(cheapest))}</span>
+              <% else %>
+                <strong>{gettext("brak na stanie")}</strong>
+              <% end %>
+            </.link>
+          </li>
+          <li :for={row <- @rarest}>
+            <a href="#product-pull-rates" class="set-fact">
+              <span class="set-fact-label">{row.rarity}<span aria-hidden="true">↓</span></span>
+              <strong>{Polish.odds(row.rate)}</strong>
+            </a>
+          </li>
+          <li :if={@cards}>
+            <a href="#product-cards" class="set-fact">
+              <span class="set-fact-label">
+                {gettext("Karty w secie")}<span aria-hidden="true">↓</span>
+              </span>
+              <strong>{Polish.number(@cards.card_count)}</strong>
+              <span :if={@cards.top_card} class="set-fact-detail">
+                {gettext("najdroższa: %{card}, %{price}",
+                  card: elem(@cards.top_card, 0).name,
+                  price: Polish.eur(elem(@cards.top_card, 1))
+                )}
+              </span>
+            </a>
+          </li>
+        </ul>
+      <% else %>
+        <p id="guide-promise">{Enum.join(SEO.expansion_answer(@name, @page), " ")}</p>
+      <% end %>
+    </section>
+    """
+  end
+
   @impl true
   def render(assigns) do
-    assigns = assign(assigns, :active, active_filters(assigns.filters))
+    assigns = assign(assigns, :active, active_filters(assigns.filters, assigns.set_page))
 
     ~H"""
     <Layouts.app flash={@flash}>
@@ -374,21 +527,25 @@ defmodule TcgCheapWeb.HomeLive do
           />
         </.site_header>
         <main id="guide-main" class="guide-main">
-          <section class="guide-intro" aria-labelledby="guide-title">
-            <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
-            <p id="guide-promise">
-              {gettext(
-                "Wpisz produkt Pokémon TCG, a pokażemy najtańszą ofertę w polskich sklepach i powiemy, czy cena jest dobra."
-              )}
-            </p>
-          </section>
+          <%= if @set_page do %>
+            <.set_intro name={@filters.expansion_name} page={@set_page} />
+          <% else %>
+            <section class="guide-intro" aria-labelledby="guide-title">
+              <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
+              <p id="guide-promise">
+                {gettext(
+                  "Wpisz produkt Pokémon TCG, a pokażemy najtańszą ofertę w polskich sklepach i powiemy, czy cena jest dobra."
+                )}
+              </p>
+            </section>
+          <% end %>
 
           <section class="guide-search" aria-labelledby="guide-search-title">
             <h2 id="guide-search-title" class="sr-only">{gettext("Szukaj produktu")}</h2>
             <.form
               for={@form}
               id="guide-search-form"
-              action={~p"/"}
+              action={base_path(@filters)}
               method="get"
               phx-change="search"
               phx-submit="search"
@@ -404,7 +561,12 @@ defmodule TcgCheapWeb.HomeLive do
                   maxlength="100"
                   autocomplete="off"
                   phx-debounce="300"
-                  placeholder={gettext("np. Pitch Black ETB")}
+                  placeholder={
+                    if(@set_page,
+                      do: gettext("np. Elite Trainer Box"),
+                      else: gettext("np. Pitch Black ETB")
+                    )
+                  }
                 />
                 <button
                   type="button"
@@ -429,12 +591,6 @@ defmodule TcgCheapWeb.HomeLive do
                 name="wersja"
                 value={region_value(@filters)}
               />
-              <input
-                :if={@filters.expansion}
-                type="hidden"
-                name="rozszerzenie"
-                value={@filters.expansion}
-              />
             </.form>
           </section>
 
@@ -448,20 +604,23 @@ defmodule TcgCheapWeb.HomeLive do
             <section class="guide-results" aria-labelledby="guide-results-title">
               <div class="guide-results-heading">
                 <h2 id="guide-results-title" tabindex="-1">
-                  {if @filters.query == "" and !filtered?(@filters),
-                    do: gettext("Produkty w wersji angielskiej"),
-                    else: gettext("Wyniki")}
+                  <%= cond do %>
+                    <% @filters.query == "" and !filtered?(@filters) -> %>
+                      {gettext("Produkty w wersji angielskiej")}
+                    <% @filters.query == "" and @set_page != nil -> %>
+                      {gettext("Produkty i ceny")}
+                    <% true -> %>
+                      {gettext("Wyniki")}
+                  <% end %>
                 </h2>
                 <p id="guide-result-count" aria-live="polite">
                   {Polish.plural(@result_count, "produkt", "produkty", "produktów")}
-                  <span :if={filtered?(@filters)}>
+                  <span :if={@active > 0}>
                     ·
                     <.link
                       id="guide-filters-clear"
                       class="guide-filters-clear"
-                      patch={
-                        list_path(@filters, kind: nil, region: default_region(nil), expansion: nil)
-                      }
+                      patch={clear_filters_path(@filters, @set_page)}
                     >{gettext("Wyczyść filtry")}</.link>
                   </span>
                 </p>
@@ -547,6 +706,18 @@ defmodule TcgCheapWeb.HomeLive do
                 <p>
                   {gettext("Pokazano %{loaded} z %{count}.", loaded: @loaded, count: @result_count)}
                 </p>
+              </div>
+              <div :if={@set_page && @set_page.set} id="set-content" class="guide-set">
+                <.pull_rates
+                  pull_rates={@set_page.set.pull_rates}
+                  standard_pack_size={@set_page.set.standard_pack_size}
+                />
+                <.set_cards
+                  rarities={@set_page.set.rarities}
+                  cards_source_url={@set_page.set.cards_source_url}
+                  priced_on={@set_page.set.priced_on}
+                  logo_url={@set_page.set.logo_url}
+                />
               </div>
             </section>
           </div>

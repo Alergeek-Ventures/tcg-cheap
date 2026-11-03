@@ -2,6 +2,8 @@ defmodule TcgCheapWeb.Polish do
   @moduledoc "Guide formatting: Polish PLN prices and locale-aware dates and counts."
   use Gettext, backend: TcgCheapWeb.Gettext
 
+  alias TcgCheap.Sealed.PullRates.Rate
+
   # A no-break space keeps "1 299,99 zł" on one line.
   @nbsp "\u00A0"
 
@@ -110,6 +112,49 @@ defmodule TcgCheapWeb.Polish do
 
     "#{number(count)} #{word}"
   end
+
+  @doc ~S'How often a pull rate hits, in the page language: "1 na 5 paczek", "3 w każdej paczce".'
+  @spec odds(Rate.t()) :: String.t()
+  def odds(rate) do
+    case Rate.odds(rate) do
+      {:one_in, packs, _about?} ->
+        one_in(packs)
+
+      {:per_pack, cards} ->
+        gettext("%{count} w każdej paczce", count: cards)
+
+      {:hits, _percent, hits, packs} ->
+        gettext("%{hits} z %{packs} paczek", hits: decimal(hits), packs: decimal(packs))
+    end
+  end
+
+  # Whole packs from 10 up ("1 na 58 paczek"), one decimal below ("1 na 2,5
+  # paczki"). No "ok.": the note above the table says these are estimates.
+  defp one_in(packs) do
+    packs = Decimal.round(packs, if(Decimal.lt?(packs, 10), do: 1, else: 0))
+
+    if Decimal.integer?(packs) do
+      count = Decimal.to_integer(packs)
+      ngettext("1 na %{count} paczkę", "1 na %{count} paczki", count, count: number(count))
+    else
+      gettext("1 na %{packs} paczki", packs: decimal(packs))
+    end
+  end
+
+  @doc ~S'A decimal in the page language, grouped: "1,3" in Polish, "1.3" in English, "1 081".'
+  @spec decimal(Decimal.t()) :: String.t()
+  def decimal(value) do
+    case value |> Decimal.normalize() |> Decimal.to_string(:normal) |> String.split(".") do
+      [whole] ->
+        number(String.to_integer(whole))
+
+      [whole, fraction] ->
+        number(String.to_integer(whole)) <> decimal_separator() <> fraction
+    end
+  end
+
+  defp decimal_separator,
+    do: if(Gettext.get_locale(TcgCheapWeb.Gettext) == "en", do: ".", else: ",")
 
   defp group(digits) do
     {sign, digits} =

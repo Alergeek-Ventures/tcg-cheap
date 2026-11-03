@@ -9,6 +9,9 @@ defmodule TcgCheap.Sealed.Guide do
   @history_days 90
   @logos_for_ms :timer.minutes(10)
   @page_size 30
+  # The most products an expansion has is about 55: its page lists them all,
+  # so its pull rates and cards follow right after.
+  @expansion_page_size 60
   # The cheapest tracked parcel to Poland from Germany, Cardmarket's largest
   # seller country (DHL Paket up to 2 kg, Cardmarket's shipping calculator,
   # 2026-11-02); orders above 25 € must be tracked, which covers most sealed
@@ -57,7 +60,7 @@ defmodule TcgCheap.Sealed.Guide do
   def browse(filters, offset, %DateTime{} = now) do
     page =
       Sealed.browse_products!(filters.query, filters.kind, filters.region, filters.expansion,
-        page: [limit: @page_size, offset: offset, count: true],
+        page: [limit: page_size(filters), offset: offset, count: true],
         query: [select: @summary_fields],
         load: [
           :stored_photo_small_url,
@@ -69,6 +72,9 @@ defmodule TcgCheap.Sealed.Guide do
 
     {summaries(page.results, now), page.more?, page.count || 0}
   end
+
+  defp page_size(%{expansion: id}) when is_integer(id), do: @expansion_page_size
+  defp page_size(_filters), do: @page_size
 
   @doc """
   What the language, kind and expansion filters offer under the other filters:
@@ -342,6 +348,67 @@ defmodule TcgCheap.Sealed.Guide do
 
   # Smaller English packs share the set's card pool, but not its standard-pack odds.
   defp booster_set(%Product{kind: :booster, region: :en, cardmarket_expansion_id: id} = product) do
+    set = expansion_set(id)
+    Map.put(set, :smaller_pack?, smaller_pack?(product, set.standard_pack_size))
+  end
+
+  defp booster_set(_product), do: nil
+
+  @doc """
+  What an expansion's page shows besides its products: its English single
+  booster (`booster`, a summary, nil when there is none) and the set's pull
+  rates and cards as on that booster's page with the card count and the most
+  valuable card (`set`, nil when we have neither).
+  `name` is the expansion's name.
+  """
+  @spec expansion(integer(), String.t(), DateTime.t()) :: %{
+          set: map() | nil,
+          booster: summary() | nil
+        }
+  def expansion(id, name, %DateTime{} = now) do
+    set = expansion_set(id)
+
+    booster =
+      [
+        query: [
+          filter: [kind: :booster, region: :en, cardmarket_expansion_id: id],
+          select: @summary_fields
+        ]
+      ]
+      |> Sealed.list_products!()
+      |> single_booster(name)
+      |> List.wrap()
+      |> summaries(now)
+      |> List.first()
+
+    cards = Enum.flat_map(set.rarities, & &1.cards)
+
+    priced =
+      for %{cardmarket_price: %{trend: %Decimal{} = trend}} = card <- cards, do: {card, trend}
+
+    set =
+      Map.merge(set, %{
+        card_count: length(cards),
+        top_card: Enum.max_by(priced, &elem(&1, 1), Decimal, fn -> nil end)
+      })
+
+    %{
+      set: if(set.pull_rates || cards != [], do: set),
+      booster: booster
+    }
+  end
+
+  # "<set> Booster", else the set's only full-size booster ("Trick or Trade
+  # BOOster", "EX Emerald Booster"); none when several could be meant.
+  defp single_booster(boosters, name) do
+    Enum.find(boosters, &(&1.name == name <> " Booster")) ||
+      case Enum.reject(boosters, &pack_size/1) do
+        [booster] -> booster
+        _boosters -> nil
+      end
+  end
+
+  defp expansion_set(id) do
     sets = sets_with_cards(id)
     pull_rates = set_pull_rates(sets)
     cards = Enum.flat_map(sets, & &1.cards)
@@ -350,15 +417,12 @@ defmodule TcgCheap.Sealed.Guide do
     %{
       pull_rates: pull_rates(pull_rates, rarities),
       standard_pack_size: pull_rates && pull_rates.cards_per_pack,
-      smaller_pack?: smaller_pack?(product, pull_rates),
       rarities: rarities,
       cards_source_url: Enum.find_value(sets, & &1.cards_source_url),
       logo_url: id && Map.get(logos(), id),
       priced_on: priced_on(cards)
     }
   end
-
-  defp booster_set(_product), do: nil
 
   # An expansion's English sets, a set and its gallery subsets, with their cards.
   defp sets_with_cards(nil), do: []
@@ -386,9 +450,8 @@ defmodule TcgCheap.Sealed.Guide do
     end
   end
 
-  defp smaller_pack?(product, pull_rates) do
+  defp smaller_pack?(product, standard) do
     size = pack_size(product)
-    standard = pull_rates && pull_rates.cards_per_pack
     not is_nil(size) and (is_nil(standard) or size < standard)
   end
 
