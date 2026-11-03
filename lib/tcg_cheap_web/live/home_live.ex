@@ -494,8 +494,8 @@ defmodule TcgCheapWeb.HomeLive do
                   >
                     <.product_image
                       small_photo={summary.product.stored_photo_small_url}
-                      photo={summary.product.photo_card_url}
-                      page_photo={summary.product.photo_page_url}
+                      photo={summary.product.stored_photo_card_url}
+                      page_photo={summary.product.stored_photo_page_url}
                       blur={summary.product.photo_placeholder}
                       sizes="(max-width: 42rem) 4.5rem, 5.5rem"
                       loading={

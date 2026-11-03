@@ -13,7 +13,10 @@ defmodule TcgCheap.Pricing.Singles.Changes.ReplaceCurrentSnapshot do
   defp replace_current_snapshot(changeset) do
     card_printing_id = Ash.Changeset.get_attribute(changeset, :card_printing_id)
 
-    with {:ok, card_printing} <- Core.lock_card_printing_for_update(card_printing_id),
+    with {:ok, card_printing} <-
+           Core.lock_card_printing_for_update(card_printing_id,
+             query: [select: [:mapping_status, :cardmarket_product_id]]
+           ),
          :ok <- validate_current_bulk_mapping(changeset, card_printing),
          {:ok, current} <-
            Core.get_current_single_valuation(card_printing_id, "cardmarket_bulk_v1"),

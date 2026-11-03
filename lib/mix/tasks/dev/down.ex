@@ -4,6 +4,9 @@ defmodule Mix.Tasks.Dev.Down do
   alias Mix.Tasks.Dev.Shared
 
   @shortdoc "Stop this worktree's local services"
+
+  @phx_server ~r/\bmix phx\.server\b/
+
   def run(_args) do
     env = Shared.load_env()
     branch = env["BRANCH"]
@@ -47,7 +50,7 @@ defmodule Mix.Tasks.Dev.Down do
   @doc false
   def safe_to_signal?(command, process_cwd, current_worktree)
       when is_binary(command) and is_binary(process_cwd) and is_binary(current_worktree) do
-    Regex.match?(~r/\bmix phx\.server\b/, command) and process_cwd == current_worktree
+    Regex.match?(@phx_server, command) and process_cwd == current_worktree
   end
 
   def safe_to_signal?(_, _, _), do: false

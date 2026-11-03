@@ -22,6 +22,9 @@ defmodule TcgCheap.Sealed.GildiaGrodzisk do
   alias TcgCheap.Sealed.{Shop, ShopFeed}
 
   @price ~r/\A([0-9]{1,7}),([0-9]{2}) PLN\z/
+  @total ~r/\A([0-9]{1,6}) produkt(?:ów|y)?\z/u
+  @spaces ~r/\s+/u
+  @thousands_space ~r/(?<=\d) (?=\d)/
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -72,7 +75,7 @@ defmodule TcgCheap.Sealed.GildiaGrodzisk do
     text =
       document |> Floki.find("div.front-listing__toolbar > p") |> Floki.text() |> String.trim()
 
-    case Regex.run(~r/\A([0-9]{1,6}) produkt(?:ów|y)?\z/u, text) do
+    case Regex.run(@total, text) do
       [_, total] -> {:ok, String.to_integer(total)}
       nil -> {:error, :malformed_pagination}
     end
@@ -132,9 +135,9 @@ defmodule TcgCheap.Sealed.GildiaGrodzisk do
       product
       |> Floki.find(".front-product-card__final")
       |> Floki.text()
-      |> String.replace(~r/\s+/u, " ")
+      |> String.replace(@spaces, " ")
       |> String.trim()
-      |> String.replace(~r/(?<=\d) (?=\d)/, "")
+      |> String.replace(@thousands_space, "")
 
     case Regex.run(@price, text) do
       [_, zloty, grosze] -> ShopFeed.decimal_price("#{zloty}.#{grosze}")

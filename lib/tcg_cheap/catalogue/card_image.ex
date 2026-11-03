@@ -13,6 +13,9 @@ defmodule TcgCheap.Catalogue.CardImage do
   @host "assets.tcgdex.net"
   @qualified_path ~r{/((?:high|low)\.(?:png|jpg|webp))$}
   @known_extension ~r/\.[A-Za-z0-9]+$/
+  @image_extension ~r/\.(?:png|jpg|webp)$/
+  @unsafe_path_character ~r/[\s\\\x00-\x1F\x7F]/
+  @bare_percent ~r/%(?![0-9A-Fa-f]{2})/
 
   @doc "Returns the local URL for the stored detail variant of a TCGdex card."
   @spec detail_url(term()) :: String.t() | nil
@@ -41,7 +44,7 @@ defmodule TcgCheap.Catalogue.CardImage do
   def logo_source_url(url) when is_binary(url) do
     with {:ok, uri} <- parse_url(url),
          {:ok, path} <- valid_path(uri.path) do
-      path = Regex.replace(~r/\.(?:png|jpg|webp)$/, path, "")
+      path = Regex.replace(@image_extension, path, "")
       "https://#{@host}#{path}.webp"
     else
       _ -> nil
@@ -104,8 +107,8 @@ defmodule TcgCheap.Catalogue.CardImage do
         path != "/" and
         not String.ends_with?(path, "/") and
         String.valid?(path) and
-        not Regex.match?(~r/[\s\\\x00-\x1F\x7F]/, path) and
-        not Regex.match?(~r/%(?![0-9A-Fa-f]{2})/, path) and
+        not Regex.match?(@unsafe_path_character, path) and
+        not Regex.match?(@bare_percent, path) and
         not Enum.any?(String.split(path, "/"), &(&1 in [".", ".."]))
 
     if valid?, do: {:ok, path}, else: :error

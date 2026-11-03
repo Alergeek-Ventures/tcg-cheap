@@ -21,16 +21,16 @@ defmodule TcgCheap.Sealed.PhotoMirrorWorker do
     %{stored: stored, failed: failed} = PhotoMirror.run(@batch)
     if stored + failed > 0, do: Logger.info("Product photos: #{stored} stored, #{failed} failed")
 
-    # Photos stored before the small variant existed, while no new ones wait.
-    %{added: added, failed: small_failed} =
+    # Stored photos lacking a variant (e.g. one added since), while no new ones wait.
+    %{added: added, failed: variants_failed} =
       if stored + failed < @batch,
-        do: PhotoMirror.add_small_variants(@batch),
+        do: PhotoMirror.add_missing_variants(@batch),
         else: %{added: 0, failed: 0}
 
-    if added + small_failed > 0,
-      do: Logger.info("Small product photos: #{added} added, #{small_failed} failed")
+    if added + variants_failed > 0,
+      do: Logger.info("Product photo variants: #{added} completed, #{variants_failed} failed")
 
-    if stored + failed == @batch or (added > 0 and added + small_failed == @batch),
+    if stored + failed == @batch or (added > 0 and added + variants_failed == @batch),
       do: {:snooze, 1},
       else: :ok
   end

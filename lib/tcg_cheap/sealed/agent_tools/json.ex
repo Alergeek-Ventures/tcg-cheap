@@ -4,6 +4,17 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
   alias TcgCheap.Sealed.{Offer, Product, ProductContents, PullRates, Shops, SuggestedPrice}
   alias TcgCheap.Sealed.TcgdexSet
 
+  @product_fields [
+    :id,
+    :slug,
+    :name,
+    :kind,
+    :set_name,
+    :cardmarket_id,
+    :cardmarket_expansion_id,
+    :eans
+  ]
+
   @spec offer(Offer.t()) :: map()
   def offer(%Offer{} = offer) do
     %{
@@ -23,21 +34,13 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
     |> put_product(offer.product)
   end
 
+  @doc "The product fields `product/1` reads."
+  @spec product_fields() :: [atom()]
+  def product_fields, do: @product_fields
+
   @spec product(Product.t() | nil) :: map() | nil
   def product(nil), do: nil
-
-  def product(%Product{} = product) do
-    Map.take(product, [
-      :id,
-      :slug,
-      :name,
-      :kind,
-      :set_name,
-      :cardmarket_id,
-      :cardmarket_expansion_id,
-      :eans
-    ])
-  end
+  def product(%Product{} = product), do: Map.take(product, @product_fields)
 
   @spec contents(ProductContents.t() | nil) :: map() | nil
   def contents(nil), do: nil

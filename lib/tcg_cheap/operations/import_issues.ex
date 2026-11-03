@@ -134,7 +134,10 @@ defmodule TcgCheap.Operations.ImportIssues do
   @spec unresolved_catalogue_set_ids() ::
           {:ok, [String.t()]} | {:error, :import_issue_read_failed}
   def unresolved_catalogue_set_ids do
-    case Operations.list_unresolved_catalogue_sets(authorize?: false) do
+    case Operations.list_unresolved_catalogue_sets(
+           authorize?: false,
+           query: [select: [:target_key]]
+         ) do
       {:ok, issues} when length(issues) <= 1000 ->
         {:ok, issues |> Enum.map(& &1.target_key) |> Enum.uniq() |> Enum.sort()}
 

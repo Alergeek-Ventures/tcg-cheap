@@ -14,6 +14,10 @@ defmodule TcgCheap.Catalogue.GlcLegality do
 
   @policy_version "glc_local_2026-04-20"
 
+  # Rule-box suffixes are tokens, not arbitrary substrings (for example,
+  # "Vileplume" and "Gengar" must remain ordinary Pokémon names).
+  @rule_box_suffix ~r/(?:^|[\s-])(?:ex|gx|vmax|vstar|v-union|v|break)$/iu
+
   # Exact TCGdex printings and the all-printings Double Colorless Energy group
   # from the current GLC community ban list. IDs are grouped by source entry:
   # Lysandre's Trump Card (xy4-99, xy4-118), Oranguru (sm5-114), Forest of
@@ -58,13 +62,11 @@ defmodule TcgCheap.Catalogue.GlcLegality do
   defp banned?(%{tcgdex_id: id}), do: MapSet.member?(@banned_tcgdex_ids, id)
   defp banned?(_), do: false
 
-  # Rule-box suffixes are tokens, not arbitrary substrings (for example,
-  # "Vileplume" and "Gengar" must remain ordinary Pokémon names).
   defp rule_box_pokemon?(name) do
     normalized = String.trim(name)
 
     String.starts_with?(String.downcase(normalized), "radiant ") or
       String.contains?(normalized, "◇") or
-      Regex.match?(~r/(?:^|[\s-])(?:ex|gx|vmax|vstar|v-union|v|break)$/iu, normalized)
+      Regex.match?(@rule_box_suffix, normalized)
   end
 end

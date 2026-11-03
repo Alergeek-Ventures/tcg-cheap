@@ -12,7 +12,7 @@ defmodule TcgCheap.Sealed.Product do
 
   alias TcgCheap.Sealed.{Kinds, Regions}
   alias TcgCheap.Sealed.Preparations.{Browse, PhotosMissingVariant}
-  alias TcgCheap.Storage.Calculations.{StoredVariantUrl, VariantPlaceholder}
+  alias TcgCheap.Storage.Calculations.StoredVariant
   alias TcgCheap.Storage.Variants.ResizedImage
 
   postgres do
@@ -113,10 +113,10 @@ defmodule TcgCheap.Sealed.Product do
               )
     end
 
-    read :photos_without_small do
-      description "Mirrored photos stored before the current `small` variant existed."
+    read :photos_missing_variants do
+      description "Mirrored photos lacking the current version of a variant, e.g. one added since."
       argument :limit, :integer, allow_nil?: false
-      prepare {PhotosMissingVariant, variant: :small}
+      prepare PhotosMissingVariant
       prepare build(limit: arg(:limit))
     end
 
@@ -282,15 +282,29 @@ defmodule TcgCheap.Sealed.Product do
   calculations do
     calculate :photo_placeholder,
               :string,
-              {VariantPlaceholder, attachment: :photo, variant: :card} do
+              {StoredVariant, attachment: :photo, variant: :card, value: :placeholder} do
       description "Inline blurred preview shown while the photo loads."
       public? true
     end
 
     calculate :stored_photo_small_url,
               :string,
-              {StoredVariantUrl, attachment: :photo, variant: :small} do
+              {StoredVariant, attachment: :photo, variant: :small, value: :url} do
       description "The `small` photo once stored; rendering never generates it."
+      public? true
+    end
+
+    calculate :stored_photo_card_url,
+              :string,
+              {StoredVariant, attachment: :photo, variant: :card, value: :url} do
+      description "The `card` photo once stored; rendering never generates it."
+      public? true
+    end
+
+    calculate :stored_photo_page_url,
+              :string,
+              {StoredVariant, attachment: :photo, variant: :page, value: :url} do
+      description "The `page` photo once stored; rendering never generates it."
       public? true
     end
   end

@@ -24,6 +24,9 @@ defmodule TcgCheap.Geo.Towns do
   defmodule SearchKey do
     @moduledoc false
 
+    @combining_mark ~r/\p{Mn}/u
+    @separators ~r/[\s-]+/u
+
     # Search keys ignore case, Polish letters and hyphens: "bielsko biala"
     # finds Bielsko-Biała. A module of its own so the town list can use it
     # at compile time.
@@ -32,8 +35,8 @@ defmodule TcgCheap.Geo.Towns do
       |> String.downcase()
       |> String.replace("ł", "l")
       |> :unicode.characters_to_nfd_binary()
-      |> String.replace(~r/\p{Mn}/u, "")
-      |> String.replace(~r/[\s-]+/u, " ")
+      |> String.replace(@combining_mark, "")
+      |> String.replace(@separators, " ")
       |> String.trim()
     end
   end

@@ -35,6 +35,7 @@ defmodule TcgCheap.Sealed.SkyShop do
   @preorder ["Preorder", "Przedsprzedaż"]
   @unavailable ["Produkt niedostępny", "Oczekuje na dostawę"]
   @thumbnail ~r/(_%5B[0-9]+%5D)_[0-9]{2,4}(\.[a-z]+)\z/
+  @page_label ~r/\AStrona (\d{1,3}) z (\d{1,3})\z/
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -72,7 +73,7 @@ defmodule TcgCheap.Sealed.SkyShop do
         {:ok, 1, 1}
 
       [label] ->
-        case Regex.run(~r/\AStrona (\d{1,3}) z (\d{1,3})\z/, label) do
+        case Regex.run(@page_label, label) do
           [_, number, last] -> {:ok, String.to_integer(number), String.to_integer(last)}
           nil -> :error
         end

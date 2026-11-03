@@ -24,6 +24,10 @@ defmodule TcgCheap.Sealed.Pasaz24 do
   @cdn "www.pasaz24cdn.pl"
   @link ~r|\A/product/[^/?\s]+-s([0-9]{1,9})(?:\?[^\s]*)?\z|
   @price ~r/\A([0-9]{1,7}),([0-9]{2}) zł\z/
+  @total ~r/\AIlość ofert: ([0-9]{1,6})\z/u
+  @page_count ~r/OfferPaginationVm\(\{\s*pagesCount:\s*([0-9]{1,4})\s*\}\)/
+  @spaces ~r/\s+/u
+  @thousands_space ~r/(?<=\d) (?=\d)/
 
   @impl true
   def image_hosts(%Shop{}), do: [@cdn]
@@ -77,14 +81,14 @@ defmodule TcgCheap.Sealed.Pasaz24 do
   defp total(document) do
     text = document |> Floki.find("h4.list-products-amount") |> Floki.text()
 
-    case Regex.run(~r/\AIlość ofert: ([0-9]{1,6})\z/u, String.trim(text)) do
+    case Regex.run(@total, String.trim(text)) do
       [_, total] -> {:ok, String.to_integer(total)}
       nil -> {:error, :malformed_pagination}
     end
   end
 
   defp page_count(body) do
-    case Regex.run(~r/OfferPaginationVm\(\{\s*pagesCount:\s*([0-9]{1,4})\s*\}\)/, body) do
+    case Regex.run(@page_count, body) do
       [_, pages] -> {:ok, String.to_integer(pages)}
       nil -> {:error, :malformed_pagination}
     end
@@ -129,9 +133,9 @@ defmodule TcgCheap.Sealed.Pasaz24 do
       product
       |> Floki.find("span.product-price-wrap")
       |> Floki.text()
-      |> String.replace(~r/\s+/u, " ")
+      |> String.replace(@spaces, " ")
       |> String.trim()
-      |> String.replace(~r/(?<=\d) (?=\d)/, "")
+      |> String.replace(@thousands_space, "")
 
     case Regex.run(@price, text) do
       [_, zloty, grosze] -> ShopFeed.decimal_price("#{zloty}.#{grosze}")

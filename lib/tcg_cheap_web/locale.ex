@@ -3,6 +3,8 @@ defmodule TcgCheapWeb.Locale do
   import Plug.Conn, only: [get_session: 2]
   import Phoenix.Component, only: [assign: 3]
 
+  @control_character ~r/[\x00-\x1f\x7f]/
+
   def init(opts), do: opts
 
   def call(conn, _opts) do
@@ -35,7 +37,7 @@ defmodule TcgCheapWeb.Locale do
 
     if String.valid?(decoded) and String.starts_with?(decoded, "/") and
          not String.starts_with?(decoded, "//") and not String.contains?(decoded, "\\") and
-         not Regex.match?(~r/[\x00-\x1f\x7f]/, decoded),
+         not Regex.match?(@control_character, decoded),
        do: path,
        else: "/"
   end

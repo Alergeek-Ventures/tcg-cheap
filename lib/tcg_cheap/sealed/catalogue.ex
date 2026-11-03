@@ -23,6 +23,9 @@ defmodule TcgCheap.Sealed.Catalogue do
   # Single words too generic to name a set on their own.
   @generic_words ~w(mega pokemon chinese japanese korean special gift)
 
+  @parenthesized ~r/\s*\([^)]*\)/u
+  @unit_count ~r/\A\d{1,2}\z/
+
   @search_words %{
     booster: "booster pack saszetka",
     booster_bundle: "bundle",
@@ -157,14 +160,14 @@ defmodule TcgCheap.Sealed.Catalogue do
 
   defp words(name) do
     name
-    |> String.replace(~r/\s*\([^)]*\)/u, "")
+    |> String.replace(@parenthesized, "")
     |> String.split(" ", trim: true)
     |> Enum.map(&String.trim_trailing(&1, ":"))
   end
 
   defp kind_word?(word) do
     normalized = Matcher.normalize(word)
-    normalized in @kind_words or normalized == "" or String.match?(normalized, ~r/\A\d{1,2}\z/)
+    normalized in @kind_words or normalized == "" or String.match?(normalized, @unit_count)
   end
 
   defp generic_prefix?([word]), do: Matcher.normalize(word) in @generic_words

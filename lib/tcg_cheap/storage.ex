@@ -48,12 +48,14 @@ defmodule TcgCheap.Storage do
       |> Application.fetch_env!(:storage)
       |> Config.service(%{"S3_PORT" => System.get_env("S3_PORT")})
 
-  @doc "The origin public objects are served from, for the CSP image sources."
+  @doc """
+  The origin public objects are served from, for the CSP image sources: the
+  service's `public_base_url`, else its `endpoint_url`, both configured as a
+  bare origin.
+  """
   @spec public_origin() :: String.t()
   def public_origin do
     {_module, opts} = service()
-    %URI{} = uri = URI.parse(opts[:public_base_url] || opts[:endpoint_url])
-
-    URI.to_string(%URI{scheme: uri.scheme, host: uri.host, port: uri.port})
+    opts[:public_base_url] || opts[:endpoint_url]
   end
 end

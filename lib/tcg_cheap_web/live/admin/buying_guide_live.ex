@@ -118,7 +118,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
 
   defp load(socket) do
     now = DateTime.utc_now()
-    offers = Sealed.list_offers!()
+    offers = Sealed.list_offers!(query: [select: ShopStatus.rows_fields()])
     current = Sealed.current_offers(now)
 
     {unmatched, excluded} =

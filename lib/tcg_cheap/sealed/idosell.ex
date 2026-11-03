@@ -24,6 +24,8 @@ defmodule TcgCheap.Sealed.IdoSell do
 
   alias TcgCheap.Sealed.{Ean, Shop, ShopFeed, XmlRecords}
 
+  @product_id ~r/\A[1-9][0-9]{0,11}\z/
+
   @fields [
     [],
     ["name"],
@@ -140,7 +142,7 @@ defmodule TcgCheap.Sealed.IdoSell do
   end
 
   defp product_id(id) when is_binary(id) do
-    if Regex.match?(~r/\A[1-9][0-9]{0,11}\z/, id), do: {:ok, id}, else: :error
+    if Regex.match?(@product_id, id), do: {:ok, id}, else: :error
   end
 
   defp product_id(_id), do: :error

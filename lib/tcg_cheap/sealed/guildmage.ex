@@ -24,6 +24,8 @@ defmodule TcgCheap.Sealed.Guildmage do
   @pagination ~r/\\"pagination\\":\{\\"size\\":[0-9]+,\\"totalElements\\":([0-9]+),\\"totalPages\\":([0-9]+),\\"number\\":([0-9]+)\}/
   @slug ~r|\A/product/[^\s/?#]*-([0-9]{1,12})\z|
   @price ~r/\A([0-9]{1,7}),([0-9]{2}) zł\z/u
+  @available ~r/\ADostępne [0-9]{1,6} szt\.\z/u
+  @spaces ~r/\s+/u
 
   @impl true
   def image_hosts(%Shop{}), do: [@cdn]
@@ -94,7 +96,8 @@ defmodule TcgCheap.Sealed.Guildmage do
          category = product |> Floki.find("p") |> Floki.text(),
          true <- ShopFeed.sealed_pokemon?(title, category) || :ignore,
          [_, id] <- Regex.run(@slug, link || ""),
-         {:ok, url} <- ShopFeed.https_url("https://#{shop.host}#{URI.encode(link)}", [shop.host]),
+         url = "https://#{shop.host}#{URI.encode(link)}",
+         {:ok, _uri} <- ShopFeed.https_url(url, [shop.host]),
          {:ok, price} <- price(product),
          {:ok, in_stock} <- in_stock(product) do
       {:ok,
@@ -102,7 +105,7 @@ defmodule TcgCheap.Sealed.Guildmage do
          %{
            shop_product_id: id,
            title: title,
-           url: URI.to_string(url),
+           url: url,
            image_url: image_url(product),
            ean: nil,
            price: price,
@@ -120,7 +123,7 @@ defmodule TcgCheap.Sealed.Guildmage do
       product
       |> Floki.find("h6")
       |> Floki.text()
-      |> String.replace(~r/\s+/u, " ")
+      |> String.replace(@spaces, " ")
       |> String.trim()
 
     case Regex.run(@price, text) do
@@ -133,7 +136,7 @@ defmodule TcgCheap.Sealed.Guildmage do
     chip = product |> Floki.find(".MuiChip-label") |> Floki.text() |> String.trim()
 
     cond do
-      Regex.match?(~r/\ADostępne [0-9]{1,6} szt\.\z/u, chip) -> {:ok, true}
+      Regex.match?(@available, chip) -> {:ok, true}
       chip == "Brak w magazynie" -> {:ok, false}
       true -> :error
     end

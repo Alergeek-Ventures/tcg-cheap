@@ -111,7 +111,8 @@ defmodule TcgCheap.Sealed.Am76 do
     with {:ok, title} <- ShopFeed.title(name(product)),
          true <- ShopFeed.sealed_pokemon?(title, category) || :ignore,
          [_, id] <- Regex.run(@link, link(product) || ""),
-         {:ok, url} <- ShopFeed.https_url("https://#{shop.host}/#{link(product)}", [shop.host]),
+         url = "https://#{shop.host}/#{link(product)}",
+         {:ok, _uri} <- ShopFeed.https_url(url, [shop.host]),
          {:ok, price} <- price(product),
          {:ok, in_stock} <- in_stock(product) do
       {:ok,
@@ -119,7 +120,7 @@ defmodule TcgCheap.Sealed.Am76 do
          %{
            shop_product_id: id,
            title: title,
-           url: URI.to_string(url),
+           url: url,
            image_url: image_url(shop, product),
            ean: nil,
            price: price,

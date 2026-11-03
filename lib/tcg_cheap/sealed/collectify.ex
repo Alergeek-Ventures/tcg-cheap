@@ -23,6 +23,8 @@ defmodule TcgCheap.Sealed.Collectify do
   @link ~r|\A/product/([a-z0-9-]+)\z|
   @price ~r/\A([0-9]{1,7}),([0-9]{2}) zł\z/u
   @page_label ~r/\AStrona ([0-9]{1,3})(?:, bieżąca)?\z/
+  @spaces ~r/\s+/u
+  @thousands_space ~r/(?<=\d) (?=\d)/
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -129,7 +131,8 @@ defmodule TcgCheap.Sealed.Collectify do
          true <- ShopFeed.sealed_pokemon?(title, "Pokemon") || :ignore,
          [_, slug] <- Regex.run(@link, link(card)),
          {:ok, id} <- ShopFeed.product_id(slug),
-         {:ok, url} <- ShopFeed.https_url("https://#{shop.host}#{link(card)}", [shop.host]),
+         url = "https://#{shop.host}#{link(card)}",
+         {:ok, _uri} <- ShopFeed.https_url(url, [shop.host]),
          {:ok, price} <- price(card),
          {:ok, in_stock} <- in_stock(card) do
       {:ok,
@@ -137,7 +140,7 @@ defmodule TcgCheap.Sealed.Collectify do
          %{
            shop_product_id: id,
            title: title,
-           url: URI.to_string(url),
+           url: url,
            image_url: image_url(shop, card),
            ean: nil,
            price: price,
@@ -156,9 +159,9 @@ defmodule TcgCheap.Sealed.Collectify do
         case Regex.run(
                @price,
                text
-               |> String.replace(~r/\s+/u, " ")
+               |> String.replace(@spaces, " ")
                |> String.trim()
-               |> String.replace(~r/(?<=\d) (?=\d)/, "")
+               |> String.replace(@thousands_space, "")
              ) do
           [_, zloty, grosze] -> ShopFeed.decimal_price("#{zloty}.#{grosze}")
           nil -> :error

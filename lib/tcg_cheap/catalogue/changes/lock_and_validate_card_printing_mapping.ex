@@ -50,6 +50,12 @@ defmodule TcgCheap.Catalogue.Changes.LockAndValidateCardPrintingMapping do
     query =
       TcgCheap.Catalogue.CardPrinting
       |> Ash.Query.for_read(:lock_for_update_by_id, %{id: id})
+      |> Ash.Query.select([
+        :cardmarket_product_id,
+        :mapping_status,
+        :mapping_authority,
+        :updated_at
+      ])
 
     case Ash.read_one(query, domain: TcgCheap.Core, authorize?: false) do
       {:ok, latest} ->

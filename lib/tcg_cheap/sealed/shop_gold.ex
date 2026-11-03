@@ -34,6 +34,8 @@ defmodule TcgCheap.Sealed.ShopGold do
   alias TcgCheap.Sealed.{HtmlListing, Shop, ShopFeed}
 
   @thumbnail ~r"/mini/[0-9]{2,4}px_"
+  @total ~r/\Aogółem produktów: ([0-9]{1,6})\z/u
+  @link_id ~r/-p-([0-9]+)\.html\z/
 
   # Shops that convert their thumbnails to WebP: the thumbnail's name no
   # longer carries the original's extension, so the photo is the largest
@@ -95,7 +97,7 @@ defmodule TcgCheap.Sealed.ShopGold do
   defp total(document) do
     with text when is_binary(text) <-
            HtmlListing.text(HtmlListing.first(document, ".IndexStron span")),
-         [_, total] <- Regex.run(~r/\Aogółem produktów: ([0-9]{1,6})\z/u, text) do
+         [_, total] <- Regex.run(@total, text) do
       {:ok, String.to_integer(total)}
     else
       _ -> {:error, :malformed_pagination}
@@ -124,7 +126,7 @@ defmodule TcgCheap.Sealed.ShopGold do
     price = price_text(box)
 
     with true <- is_binary(href) and is_binary(title) and is_binary(price),
-         [_, id] <- Regex.run(~r/-p-([0-9]+)\.html\z/, href) do
+         [_, id] <- Regex.run(@link_id, href) do
       %{
         id: id,
         href: href,

@@ -15,6 +15,7 @@ defmodule TcgCheapWeb.AnalyticsProxy do
   @request_headers ~w(accept content-type content-encoding user-agent x-forwarded-for x-conversations-token)
   @response_headers ~w(content-type content-encoding cache-control)
   @body_limit 1_000_000
+  @safe_suffix ~r/^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*(?:\/[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*)*\/?$/
 
   @impl Plug
   def init(opts), do: opts
@@ -58,11 +59,7 @@ defmodule TcgCheapWeb.AnalyticsProxy do
   defp safe_suffix?(path, prefix) do
     suffix = String.replace_prefix(path, prefix, "")
 
-    suffix == "" or
-      Regex.match?(
-        ~r/^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*(?:\/[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*)*\/?$/,
-        suffix
-      )
+    suffix == "" or Regex.match?(@safe_suffix, suffix)
   end
 
   defp read_body(conn) when conn.method in ["GET", "HEAD"], do: {:ok, "", conn}

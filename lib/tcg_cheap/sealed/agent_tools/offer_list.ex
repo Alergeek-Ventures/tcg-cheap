@@ -45,7 +45,12 @@ defmodule TcgCheap.Sealed.AgentTools.OfferList do
     slice = Enum.slice(listed, args.offset, args.limit)
 
     index =
-      if slice != [], do: Matcher.index(Sealed.list_products!(), Sealed.known_eans())
+      if slice != [],
+        do:
+          Matcher.index(
+            Sealed.list_products!(query: [select: [:name, :set_name]]),
+            Sealed.known_eans()
+          )
 
     %{
       total: length(listed),
@@ -62,7 +67,7 @@ defmodule TcgCheap.Sealed.AgentTools.OfferList do
   end
 
   defp page(:manual, offers, args, now) do
-    current = now |> Sealed.current_offers() |> MapSet.new(& &1.id)
+    current = now |> Sealed.current_offers(:all, select: []) |> MapSet.new(& &1.id)
     slice = offers |> Enum.slice(args.offset, args.limit) |> Ash.load!(:product, domain: Sealed)
     paged(offers, slice, args, &Map.put(Json.offer(&1), :current, MapSet.member?(current, &1.id)))
   end

@@ -4,17 +4,19 @@ defmodule TcgCheap.Catalogue.Tcgdex do
 
   @base "https://api.tcgdex.net/v2/en"
   @max_response_bytes 2 * 1024 * 1024
+  @set_id ~r/\A[A-Za-z0-9][A-Za-z0-9._-]*\z/
+  @card_id ~r/\A[A-Za-z0-9](?:[A-Za-z0-9._!-]|%[0-9A-Fa-f]{2})*\z/
 
   @doc false
   def valid_set_id?(id) when is_binary(id),
-    do: byte_size(id) in 1..128 and Regex.match?(~r/\A[A-Za-z0-9][A-Za-z0-9._-]*\z/, id)
+    do: byte_size(id) in 1..128 and Regex.match?(@set_id, id)
 
   def valid_set_id?(_), do: false
 
   @doc false
   def valid_card_id?(id) when is_binary(id) do
     byte_size(id) in 1..128 and
-      Regex.match?(~r/\A[A-Za-z0-9](?:[A-Za-z0-9._!-]|%[0-9A-Fa-f]{2})*\z/, id)
+      Regex.match?(@card_id, id)
   end
 
   def valid_card_id?(_), do: false

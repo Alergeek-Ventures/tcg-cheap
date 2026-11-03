@@ -13,6 +13,9 @@ defmodule TcgCheap.Sealed.PullRates.Rate do
   @one_in "(about )?1 in (#{@number})"
   @per_pack ~S"(\d{1,2}) per pack"
   @hits "(#{@number})% \\((#{@number}) of (#{@number}) packs\\)"
+  @one_in_odds ~r/\A#{@one_in}\z/
+  @per_pack_odds ~r/\A#{@per_pack}\z/
+  @hits_odds ~r/\A#{@hits}\z/
 
   @type odds ::
           {:one_in, Decimal.t(), boolean()}
@@ -57,14 +60,14 @@ defmodule TcgCheap.Sealed.PullRates.Rate do
 
   def odds(per_pack) when is_binary(per_pack) do
     cond do
-      match = Regex.run(~r/\A#{@one_in}\z/, per_pack) ->
+      match = Regex.run(@one_in_odds, per_pack) ->
         [_, about, packs] = match
         {:one_in, decimal(packs), about != ""}
 
-      match = Regex.run(~r/\A#{@per_pack}\z/, per_pack) ->
+      match = Regex.run(@per_pack_odds, per_pack) ->
         {:per_pack, match |> List.last() |> String.to_integer()}
 
-      match = Regex.run(~r/\A#{@hits}\z/, per_pack) ->
+      match = Regex.run(@hits_odds, per_pack) ->
         [_, percent, hits, packs] = match
         {:hits, decimal(percent), decimal(hits), decimal(packs)}
 

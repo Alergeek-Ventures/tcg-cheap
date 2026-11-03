@@ -14,6 +14,8 @@ defmodule TcgCheapWeb.ProductLive do
   alias TcgCheap.Sealed.PullRates.Rate
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
+  @shiny_rarity ~r/\b(ball|reverse)\b/i
+
   defmodule NotFound do
     @moduledoc false
     defexception message: "product not found", plug_status: 404
@@ -126,7 +128,7 @@ defmodule TcgCheapWeb.ProductLive do
 
           <div class="product-top">
             <.product_image
-              photo={@page.product.photo_page_url}
+              photo={@page.product.stored_photo_page_url}
               blur={@page.product.photo_placeholder}
               kind={@page.product.kind}
               alt={@page.product.name}
@@ -830,7 +832,7 @@ defmodule TcgCheapWeb.ProductLive do
   defp booster_photo(item, boosters) do
     case booster(item, boosters) do
       %{stored_photo_small_url: url} when is_binary(url) -> url
-      %{photo_card_url: url} when is_binary(url) -> url
+      %{stored_photo_card_url: url} when is_binary(url) -> url
       _none -> nil
     end
   end
@@ -1140,7 +1142,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   # Rows such as "Poké Ball Rare" or "Reverse Rare" have no group of their
   # own: they are shiny versions of the cards listed below.
-  defp shiny_version?(row), do: is_nil(row.group) and row.rarity =~ ~r/\b(ball|reverse)\b/i
+  defp shiny_version?(row), do: is_nil(row.group) and row.rarity =~ @shiny_rarity
 
   defp sources_label(count), do: ngettext("Źródło:", "Źródła:", count)
 

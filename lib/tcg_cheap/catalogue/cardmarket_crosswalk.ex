@@ -86,8 +86,11 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
     |> Enum.uniq()
     |> Enum.chunk_every(@chunk)
     |> Enum.reduce_while({:ok, []}, fn ids, {:ok, acc} ->
-      query = Product |> Ash.Query.for_read(:by_product_ids, %{cardmarket_product_ids: ids})
-      query = Ash.Query.filter(query, expr(last_batch_id == ^batch_id))
+      query =
+        Product
+        |> Ash.Query.for_read(:by_product_ids, %{cardmarket_product_ids: ids})
+        |> Ash.Query.filter(expr(last_batch_id == ^batch_id))
+        |> Ash.Query.select([:cardmarket_product_id, :expansion_id])
 
       case Ash.read(query, domain: TcgCheap.Core, authorize?: false) do
         {:ok, rows} -> {:cont, {:ok, Enum.reverse(rows, acc)}}
@@ -162,12 +165,10 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
     query =
       CardmarketExpansionMapping
       |> Ash.Query.for_read(:by_batch, %{source_batch_id: attrs.source_batch_id})
-
-    query =
-      Ash.Query.filter(
-        query,
+      |> Ash.Query.filter(
         expr(card_set_id == ^attrs.card_set_id and expansion_id == ^attrs.expansion_id)
       )
+      |> Ash.Query.select([:card_set_id, :expansion_id, :status])
 
     case Ash.read_one(query, domain: TcgCheap.Core, authorize?: false) do
       {:ok, mapping} when not is_nil(mapping) ->
@@ -190,7 +191,15 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
 
   defp existing_evidence(batch_id) do
     query =
-      CardmarketCardMappingEvidence |> Ash.Query.for_read(:by_batch, %{source_batch_id: batch_id})
+      CardmarketCardMappingEvidence
+      |> Ash.Query.for_read(:by_batch, %{source_batch_id: batch_id})
+      |> Ash.Query.select([
+        :inserted_at,
+        :card_printing_id,
+        :expansion_mapping_id,
+        :decision,
+        :cardmarket_product_id
+      ])
 
     case Ash.read(query, domain: TcgCheap.Core, authorize?: false) do
       {:ok, rows} ->
@@ -261,7 +270,10 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
   end
 
   defp canonical_sets do
-    query = Ash.Query.limit(TcgCheap.Catalogue.CardSet, @canonical_set_limit + 1)
+    query =
+      TcgCheap.Catalogue.CardSet
+      |> Ash.Query.select([:cardmarket_mapping_authority, :cardmarket_expansion_id])
+      |> Ash.Query.limit(@canonical_set_limit + 1)
 
     case Ash.read(query, authorize?: false) do
       {:ok, sets} when length(sets) <= @canonical_set_limit -> {:ok, Map.new(sets, &{&1.id, &1})}
@@ -293,7 +305,8 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
 
   defp load_products_for_pair(batch_id, expansion_id) do
     case Core.list_cardmarket_bulk_products_for_batch_and_expansion(batch_id, expansion_id,
-           authorize?: false
+           authorize?: false,
+           query: [select: [:cardmarket_product_id, :name]]
          ) do
       {:ok, products} -> {:ok, Enum.sort_by(products, &{&1.cardmarket_product_id, &1.id})}
       {:error, reason} -> {:error, {:persistence, reason}}
@@ -302,12 +315,14 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
 
   defp process_cards(batch, mapping, cards, products, existing, used_products, counts) do
     card_names = Enum.frequencies_by(cards, &SearchText.normalize_cardmarket_name(&1.name))
-    product_names = Enum.frequencies_by(products, &SearchText.normalize_cardmarket_name(&1.name))
+    products_by_name = Enum.group_by(products, &SearchText.normalize_cardmarket_name(&1.name))
+    product_names = Map.new(products_by_name, fn {name, named} -> {name, length(named)} end)
 
     context = %{
       batch: batch,
       mapping: mapping,
       products: products,
+      products_by_name: products_by_name,
       card_names: card_names,
       product_names: product_names,
       used_products: used_products
@@ -330,10 +345,10 @@ defmodule TcgCheap.Catalogue.CardmarketCrosswalk do
           Map.merge(context, %{
             card: card,
             candidates:
-              Enum.filter(
-                context.products,
-                &(SearchText.normalize_cardmarket_name(&1.name) ==
-                    SearchText.normalize_cardmarket_name(card.name))
+              Map.get(
+                context.products_by_name,
+                SearchText.normalize_cardmarket_name(card.name),
+                []
               ),
             existing_evidence: evidence,
             superseded_evidence: superseded_auto_match(card, context.mapping, card_evidence),

@@ -48,7 +48,16 @@ defmodule TcgCheap.Catalogue.Changes.CardmarketBulkMapping do
 
   defp lock_query(cs) do
     id = Ash.Changeset.get_data(cs, :id)
-    Ash.Query.for_read(TcgCheap.Catalogue.CardPrinting, :lock_for_update_by_id, %{id: id})
+
+    TcgCheap.Catalogue.CardPrinting
+    |> Ash.Query.for_read(:lock_for_update_by_id, %{id: id})
+    |> Ash.Query.select([
+      :cardmarket_product_id,
+      :mapping_status,
+      :mapping_authority,
+      :mapping_review_reason,
+      :updated_at
+    ])
   end
 
   defp validate_locked(cs, latest, expected, evidence) do
@@ -83,6 +92,7 @@ defmodule TcgCheap.Catalogue.Changes.CardmarketBulkMapping do
           TcgCheap.Catalogue.CardmarketCardMappingEvidence
           |> Ash.Query.for_read(:read, %{})
           |> Ash.Query.filter(expr(id == ^id))
+          |> Ash.Query.select([:decision, :card_printing_id, :cardmarket_product_id])
 
         case Ash.read_one(query, domain: TcgCheap.Core, authorize?: false) do
           {:ok, evidence} when not is_nil(evidence) -> {:ok, evidence}

@@ -17,6 +17,9 @@ defmodule TcgCheap.Sealed.HtmlListing do
 
   alias TcgCheap.Sealed.{Shop, ShopFeed}
 
+  @spaces ~r/[\s\x{a0}]+/u
+  @price ~r/\A([0-9]{1,7})(?:[,.]([0-9]{1,2}))?(?:zł|PLN)?\.?\z/u
+
   @type product :: %{
           required(:id) => String.t() | nil,
           required(:title) => String.t() | nil,
@@ -159,7 +162,7 @@ defmodule TcgCheap.Sealed.HtmlListing do
   def text(nil), do: nil
 
   def text(node) do
-    case node |> Floki.text(sep: " ") |> String.replace(~r/[\s\x{a0}]+/u, " ") |> String.trim() do
+    case node |> Floki.text(sep: " ") |> String.replace(@spaces, " ") |> String.trim() do
       "" -> nil
       text -> text
     end
@@ -182,9 +185,9 @@ defmodule TcgCheap.Sealed.HtmlListing do
   def price_text(nil), do: :error
 
   def price_text(text) do
-    squeezed = String.replace(text, ~r/[\s\x{a0}]+/u, "")
+    squeezed = String.replace(text, @spaces, "")
 
-    case Regex.run(~r/\A([0-9]{1,7})(?:[,.]([0-9]{1,2}))?(?:zł|PLN)?\.?\z/u, squeezed) do
+    case Regex.run(@price, squeezed) do
       [_, whole] -> {:ok, whole}
       [_, whole, cents] -> {:ok, whole <> "." <> cents}
       nil -> :error

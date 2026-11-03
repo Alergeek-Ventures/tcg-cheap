@@ -23,6 +23,7 @@ defmodule TcgCheap.Catalogue.Changes.RecordCardSetCardmarketMappingDecision do
     mapping =
       CardmarketExpansionMapping
       |> Ash.Query.for_read(:by_id, %{id: mapping_id})
+      |> Ash.Query.select([:source_batch_id])
       |> Ash.read_one!(domain: TcgCheap.Core, authorize?: false)
 
     attrs = %{

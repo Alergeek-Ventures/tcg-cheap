@@ -19,6 +19,7 @@ defmodule TcgCheap.Sealed.Shopify do
   alias TcgCheap.Sealed.{Ean, Matcher, Shop, ShopFeed}
 
   @per_page 250
+  @handle ~r/\A[a-z0-9]+(?:[-_][a-z0-9]+)*\z/
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host, "cdn.shopify.com"]
@@ -101,7 +102,7 @@ defmodule TcgCheap.Sealed.Shopify do
   defp sealed?(_shop, title), do: Matcher.sealed_title?(title)
 
   defp handle(handle) when is_binary(handle) and byte_size(handle) <= 255 do
-    if Regex.match?(~r/\A[a-z0-9]+(?:[-_][a-z0-9]+)*\z/, handle), do: {:ok, handle}, else: :error
+    if Regex.match?(@handle, handle), do: {:ok, handle}, else: :error
   end
 
   defp handle(_handle), do: :error

@@ -112,7 +112,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
              "#{image.id}.#{extension(type)}",
              type
            ),
-         blob <- Ash.load!(blob, :variants),
+         blob <- Ash.load!(blob, variants: Ash.Query.select(Storage.Blob, [:key, :variant_name])),
          %{} = thumbnail <- Enum.find(blob.variants, &(&1.variant_name == "thumbnail")),
          %{} = detail <- Enum.find(blob.variants, &(&1.variant_name == "detail")) do
       Storage.record_remote_image_attempt!(image, %{
