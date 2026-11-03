@@ -6,6 +6,7 @@ defmodule TcgCheap.Sealed.CardGuide do
   alias TcgCheap.Sealed.{
     CardImage,
     CardOffer,
+    CardPrice,
     CardReference,
     Catalogue,
     Guide,
@@ -71,7 +72,7 @@ defmodule TcgCheap.Sealed.CardGuide do
 
   # Collisions use the stable TCGdex id, including subset, only where necessary.
   # One bounded catalogue query per read model, never one query per link.
-  defp collision_ids(ids \\ nil) do
+  defp collision_ids(ids \\ nil, numbers \\ nil) do
     query =
       from(c in TcgdexCard,
         join: s in TcgdexSet,
@@ -82,6 +83,8 @@ defmodule TcgCheap.Sealed.CardGuide do
 
     query = if ids, do: where(query, [_, s], s.cardmarket_expansion_id in ^ids), else: query
 
+    query = if numbers, do: where(query, [c], c.number in ^numbers), else: query
+
     query
     |> Repo.all()
     |> Enum.group_by(fn {id, c} -> {id, slug(c)} end)
@@ -90,6 +93,146 @@ defmodule TcgCheap.Sealed.CardGuide do
     end)
     |> MapSet.new()
   end
+
+  @page_size 30
+
+  @doc "Current Polish shop cards, searched, counted and paged in SQL."
+  def browse(filters, offset) do
+    query = browse_query(filters)
+    count = Repo.aggregate(query, :count)
+    search = String.downcase(filters.query)
+    relevance = relevance(filters.query)
+
+    order = [
+      desc: dynamic([_, s], fragment("lower(?) = ?", s.name, ^search)),
+      desc: dynamic([_, _, o], not is_nil(o.price)),
+      desc: dynamic([c], fragment("lower(?) = ?", c.name, ^search)),
+      desc: dynamic([c], fragment("ltrim(?, '0') = ltrim(?, '0')", c.number, ^search)),
+      desc: relevance,
+      desc_nulls_last: dynamic([_, s], s.released_on),
+      asc: dynamic([c], c.number),
+      asc: dynamic([c], c.id)
+    ]
+
+    order =
+      if filters.query == "",
+        do: [desc_nulls_last: dynamic([_, _, _, p], p.trend)] ++ order,
+        else: order
+
+    rows =
+      from([c, s, o] in query,
+        order_by: ^order,
+        offset: ^offset,
+        limit: ^(@page_size + 1),
+        select: %{card: c, set: s, price: o.price}
+      )
+      |> Repo.all()
+
+    page = Enum.take(rows, @page_size)
+    ids = Enum.map(page, & &1.set.cardmarket_expansion_id)
+    numbers = Enum.map(page, & &1.card.number)
+    collisions = collision_ids(ids, numbers)
+    names = expansion_names()
+    sources = Enum.map(page, &CardImage.single_source_url(&1.set, &1.card.number))
+
+    mirrored =
+      sources
+      |> Enum.reject(&is_nil/1)
+      |> Enum.map(&CardImage.source_hash/1)
+      |> Storage.list_mirrored_remote_images!()
+      |> MapSet.new(& &1.id)
+
+    results =
+      Enum.map(page, fn row ->
+        name = Map.fetch!(names, row.set.cardmarket_expansion_id)
+        source = CardImage.single_source_url(row.set, row.card.number)
+
+        image =
+          if source && MapSet.member?(mirrored, CardImage.source_hash(source)),
+            do: CardImage.thumbnail_url(source)
+
+        Map.merge(row, %{
+          expansion_name: name,
+          path: path(row.card, name, row.set.cardmarket_expansion_id, collisions),
+          image: image
+        })
+      end)
+
+    {results, length(rows) > @page_size, count}
+  end
+
+  # Exact collector numbers and name/set words outrank incidental substrings,
+  # including when the query combines several identity fields.
+  defp relevance(query) do
+    query
+    |> String.downcase()
+    |> String.split(~r/\s+/, trim: true)
+    |> Enum.reduce(dynamic(fragment("0 + 0")), fn word, score ->
+      number = String.trim_leading(word, "0")
+
+      dynamic(
+        [c, s],
+        ^score +
+          fragment(
+            "CASE WHEN lower(?) = ? OR ltrim(?, '0') = ? OR lower(?) = ? OR ? = ANY(regexp_split_to_array(lower(?), '[^[:alnum:]]+')) THEN 1 ELSE 0 END",
+            c.name,
+            ^word,
+            c.number,
+            ^number,
+            s.abbreviation,
+            ^word,
+            ^word,
+            c.name
+          )
+      )
+    end)
+  end
+
+  defp browse_query(filters) do
+    offers =
+      from(o in current_query(),
+        where: is_nil(o.grading),
+        group_by: o.card_id,
+        select: %{card_id: o.card_id, price: min(o.price) |> filter(o.in_stock)}
+      )
+
+    query =
+      from(c in TcgdexCard,
+        join: s in TcgdexSet,
+        on: c.tcgdex_set_id == s.id,
+        join: o in subquery(offers),
+        on: o.card_id == c.id,
+        left_join: p in CardPrice,
+        on: p.cardmarket_id == c.cardmarket_id,
+        where: s.language == "en" and not is_nil(s.cardmarket_expansion_id)
+      )
+
+    query = stock_filter(query, Map.get(filters, :stock))
+
+    # Empty discovery lists only cards that can be bought now.
+    query = if filters.query == "", do: where(query, [_, _, o], not is_nil(o.price)), else: query
+
+    filters.query
+    |> String.split(~r/\s+/, trim: true)
+    |> Enum.reduce(query, fn word, query ->
+      escaped = String.replace(word, ~r/[\\%_]/, fn char -> "\\" <> char end)
+      pattern = "%" <> escaped <> "%"
+      number = String.trim_leading(word, "0")
+
+      where(
+        query,
+        [c, s],
+        ilike(c.name, ^pattern) or ilike(c.number, ^pattern) or
+          fragment("ltrim(?, '0') = ?", c.number, ^number) or
+          ilike(s.name, ^pattern) or ilike(s.abbreviation, ^pattern) or
+          ilike(s.tcgdex_id, ^pattern)
+      )
+    end)
+  end
+
+  defp stock_filter(query, :in), do: where(query, [_, _, o], not is_nil(o.price))
+  defp stock_filter(query, :out), do: where(query, [_, _, o], is_nil(o.price))
+  defp stock_filter(query, nil), do: query
 
   # Shipping dominates when trend is below the shipping component of the
   # backend reference. CardReference alone owns shipping thresholds/amounts.
@@ -185,7 +328,8 @@ defmodule TcgCheap.Sealed.CardGuide do
 
   # Keep freshness (including successful empty fetches) owned by Sealed.
   # The OR predicate is bounded by shop count, and card_id remains in SQL.
-  defp current_query do
+  @doc false
+  def current_query do
     since = DateTime.add(DateTime.utc_now(), -3 * 86_400, :second)
     latest = Sealed.latest_card_fetches!(since)
 
@@ -225,21 +369,11 @@ defmodule TcgCheap.Sealed.CardGuide do
       name = Map.get(names, set.cardmarket_expansion_id)
 
       card
-      |> Map.put(
-        :polish_verdict,
-        card_verdict(
-          List.first(rows),
-          card,
-          if(rows == [], do: :normal, else: hd(rows).variant),
-          rate
-        )
-      )
       |> Map.put(:polish_price, if(rows != [], do: hd(rows).price))
       |> Map.put(
         :cardmarket_trend_pln,
         Guide.to_pln(card.cardmarket_price && card.cardmarket_price.trend, rate)
       )
-      |> Map.put(:polish_shops, rows |> Enum.map(& &1.shop) |> Enum.uniq() |> length())
       |> Map.put(
         :public_path,
         if(name, do: path(card, name, set.cardmarket_expansion_id, collisions))

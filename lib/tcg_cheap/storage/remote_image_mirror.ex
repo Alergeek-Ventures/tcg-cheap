@@ -2,8 +2,10 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   @moduledoc "Registers known database sources and mirrors them in bounded background batches."
 
   require Logger
+  import Ecto.Query
 
-  alias TcgCheap.Sealed.CardImage
+  alias TcgCheap.Repo
+  alias TcgCheap.Sealed.{CardGuide, CardImage, TcgdexCard, TcgdexSet}
   alias TcgCheap.Storage
 
   # Keyset scan across the known source columns. No request parameter can add a
@@ -96,9 +98,68 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   @doc "Mirrors due images; failures wait a day while fresh images continue."
   @spec run(pos_integer(), keyword()) :: non_neg_integer()
   def run(limit, req_options \\ []) do
-    images = Storage.list_pending_remote_images!(limit)
+    # Register offered cards before the catalogue keyset scan reaches them.
+    # The same priority is applied when selecting due work, including resumed jobs.
+    sources = offered_sources()
+
+    from(s in subquery(sources),
+      left_join: image in Storage.RemoteImage,
+      on: image.source_url == s.source_url,
+      where: is_nil(image.id),
+      order_by: s.source_url,
+      limit: ^limit,
+      select: s.source_url
+    )
+    |> Repo.all()
+    |> Enum.each(fn url ->
+      if source = canonical_source(url, "card") do
+        Storage.register_remote_image!(%{id: CardImage.source_hash(source), source_url: source})
+      end
+    end)
+
+    yesterday = DateTime.add(DateTime.utc_now(), -86_400, :second)
+
+    images =
+      from(image in Storage.RemoteImage,
+        left_join: s in subquery(sources),
+        on: image.source_url == s.source_url,
+        where:
+          is_nil(image.thumbnail_key) or is_nil(image.detail_key) or is_nil(image.attempted_at),
+        where: is_nil(image.attempted_at) or image.attempted_at < ^yesterday,
+        order_by: [
+          desc: not is_nil(s.source_url),
+          asc_nulls_first: image.attempted_at,
+          asc: image.id
+        ],
+        limit: ^limit,
+        select: image
+      )
+      |> Repo.all()
+
     Enum.each(images, &mirror(&1, req_options))
     length(images)
+  end
+
+  # All current offers count, including out-of-stock cards people search for.
+  # Source construction matches CardImage.single_source_url/2; no remote I/O.
+  defp offered_sources do
+    from(c in TcgdexCard,
+      join: s in TcgdexSet,
+      on: c.tcgdex_set_id == s.id,
+      join: o in subquery(CardGuide.current_query()),
+      on: o.card_id == c.id,
+      where: is_nil(o.grading) and s.language == "en" and is_nil(s.cards_source_url),
+      where: fragment("? ~ '/logo([.](png|webp|jpg)){0,1}$'", s.logo_url),
+      distinct: true,
+      select: %{
+        source_url:
+          fragment(
+            "regexp_replace(?, '/logo([.](png|webp|jpg)){0,1}$', '') || '/' || ? || '/high.webp'",
+            s.logo_url,
+            c.number
+          )
+      }
+    )
   end
 
   # A cropped photo is cut out of its picture, then cut to the item if the

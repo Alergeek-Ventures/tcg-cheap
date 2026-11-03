@@ -26,31 +26,6 @@ defmodule TcgCheapWeb.GuideComponents do
   def single_verdict_label(:unavailable),
     do: gettext("Brak ofert bez gradingu na stanie w Polsce")
 
-  defp single_verdict_short(:cheaper), do: gettext("Taniej")
-  defp single_verdict_short(:expensive), do: gettext("Drożej")
-  defp single_verdict_short(:similar), do: gettext("Podobnie")
-  defp single_verdict_short(:pennies), do: gettext("Grosze")
-  defp single_verdict_short(_), do: gettext("Bez porównania")
-
-  attr :verdict, :atom, required: true
-
-  def single_verdict_badge(assigns) do
-    ~H"""
-    <span
-      class={[
-        "verdict-badge",
-        "single-verdict-badge",
-        "verdict-#{single_verdict_status(@verdict)}",
-        @verdict == :pennies && "single-pennies"
-      ]}
-      title={single_verdict_label(@verdict)}
-    >
-      {single_verdict_short(@verdict)}
-      <.verdict_icon :if={@verdict != :pennies} status={single_verdict_status(@verdict)} />
-    </span>
-    """
-  end
-
   @doc "The public masthead: the wordmark, linking to the buying guide, and optional controls."
   attr :id, :string, default: "site-header"
   attr :locale, :string, default: nil
@@ -941,9 +916,11 @@ defmodule TcgCheapWeb.GuideComponents do
   attr :label, :string, required: true
   slot :inner_block, required: true
 
+  attr :open, :boolean, default: false
+
   def offers_disclosure(assigns) do
     ~H"""
-    <details id={@id} class="verdict-method offers-out">
+    <details id={@id} class="verdict-method offers-out" open={@open}>
       <summary data-track="product_section_opened" data-track-section="out_of_stock_offers">
         {@label}<.fluent_icon name={:chevron_down} class="verdict-method-chevron" />
       </summary>

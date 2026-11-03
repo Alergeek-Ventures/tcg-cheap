@@ -16,7 +16,7 @@ defmodule TcgCheapWeb.HomeLive do
   import TcgCheapWeb.GuideComponents
   import TcgCheapWeb.SetComponents
 
-  alias TcgCheap.Sealed.{Catalogue, Guide, Kinds, Regions}
+  alias TcgCheap.Sealed.{CardGuide, Catalogue, Guide, Kinds, Regions}
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
   @max_query_length 100
@@ -37,18 +37,18 @@ defmodule TcgCheapWeb.HomeLive do
      socket
      |> VisitorLocation.assign_location()
      |> assign(all_expansions?: false, set_page: nil)
-     |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")}
+     |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")
+     |> stream_configure(:cards, dom_id: &"card-#{&1.card.id}")
+     |> stream_configure(:cards_out, dom_id: &"card-out-#{&1.card.id}")
+     |> stream(:cards_out, [])
+     |> stream(:products, [])
+     |> stream(:cards, [])}
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
-    filters = %{
-      query: params |> query_param() |> String.trim() |> String.slice(0, @max_query_length),
-      kind: Map.get(@kind_params, params["rodzaj"]),
-      expansion: expansion_param(socket.assigns.live_action, params)
-    }
-
-    filters = Map.put(filters, :region, region_param(params["wersja"], filters.expansion))
+    filters = parse_filters(socket.assigns.live_action, params)
+    mode = filters.mode
 
     previous = socket.assigns[:filters]
     socket = list(socket, filters)
@@ -59,6 +59,14 @@ defmodule TcgCheapWeb.HomeLive do
     at_set_page? = expansion && params["slug"] == Catalogue.slug(expansion.name, expansion.id)
 
     case {socket.assigns.live_action, expansion, at_set_page?} do
+      {:index, _expansion, _at_set_page?} when mode == :cards ->
+        seo = SEO.home(params)
+
+        {:noreply,
+         socket
+         |> assign(set_page: nil, seo: seo, page_title: seo.title)
+         |> track_changes(previous)}
+
       {:expansion, nil, _at_set_page?} ->
         raise NotFound
 
@@ -82,6 +90,19 @@ defmodule TcgCheapWeb.HomeLive do
          |> assign(set_page: nil, seo: seo, page_title: seo.title)
          |> track_changes(previous)}
     end
+  end
+
+  defp parse_filters(action, params) do
+    mode = if action == :index and params["widok"] == "karty", do: :cards, else: :products
+    expansion = if mode == :products, do: expansion_param(action, params)
+
+    %{
+      mode: mode,
+      query: params |> query_param() |> String.trim() |> String.slice(0, @max_query_length),
+      kind: if(mode == :products, do: Map.get(@kind_params, params["rodzaj"])),
+      expansion: expansion,
+      region: if(mode == :products, do: region_param(params["wersja"], expansion))
+    }
   end
 
   defp chosen_expansion(%{filters: %{expansion: id}, facets: facets}),
@@ -120,18 +141,50 @@ defmodule TcgCheapWeb.HomeLive do
     end
   end
 
+  defp sealed_filters(filters), do: Map.take(filters, [:query, :kind, :region, :expansion])
+
+  defp list(socket, %{mode: :cards} = filters) do
+    {available, more?, count} = CardGuide.browse(Map.put(filters, :stock, :in), 0)
+    {unavailable, out_more?, out_count} = CardGuide.browse(Map.put(filters, :stock, :out), 0)
+    only_out? = count == 0
+    rows = if only_out?, do: unavailable, else: available
+
+    socket
+    |> assign(
+      filters: filters,
+      facets: %{expansions: [], regions: [], kinds: []},
+      form: to_form(%{"q" => filters.query}),
+      result_count: count + out_count,
+      cards_stock: if(only_out?, do: :out, else: :in),
+      cards_main_count: if(only_out?, do: out_count, else: count),
+      cards_out_count: if(only_out?, do: 0, else: out_count),
+      cards_out_loaded: length(unavailable),
+      cards_out_more?: out_more?,
+      cards_out_open?: false,
+      loaded: length(rows),
+      more?: if(only_out?, do: out_more?, else: more?),
+      priority_product_id: nil
+    )
+    |> stream(:products, [], reset: true)
+    |> stream(:cards, rows, reset: true)
+    |> stream(:cards_out, if(only_out?, do: [], else: unavailable), reset: true)
+  end
+
   defp list(socket, filters) do
-    {summaries, more?, count} = Guide.browse(filters, 0, DateTime.utc_now())
+    {summaries, more?, count} = Guide.browse(sealed_filters(filters), 0, DateTime.utc_now())
     first_summary = List.first(summaries)
 
     socket
     |> assign(:filters, filters)
-    |> assign(:facets, Guide.facets(filters))
+    |> assign(:facets, Guide.facets(sealed_filters(filters)))
     |> assign(:form, to_form(%{"q" => filters.query}))
+    |> assign(:cards_out_count, 0)
     |> assign(:result_count, count)
     |> assign(:loaded, length(summaries))
     |> assign(:more?, more?)
     |> assign(:priority_product_id, first_summary && first_summary.product.id)
+    |> stream(:cards_out, [], reset: true)
+    |> stream(:cards, [], reset: true)
     |> stream(:products, summaries, reset: true)
   end
 
@@ -194,9 +247,43 @@ defmodule TcgCheapWeb.HomeLive do
 
   def handle_event("search", _params, socket), do: {:noreply, socket}
 
+  def handle_event(
+        "more",
+        _params,
+        %{assigns: %{more?: true, filters: %{mode: :cards} = filters}} = socket
+      ) do
+    {rows, more?, _count} =
+      CardGuide.browse(
+        Map.put(filters, :stock, socket.assigns.cards_stock),
+        socket.assigns.loaded
+      )
+
+    {:noreply,
+     socket
+     |> assign(loaded: socket.assigns.loaded + length(rows), more?: more?)
+     |> stream(:cards, rows)}
+  end
+
+  def handle_event("more_out", _params, %{assigns: %{cards_out_more?: true}} = socket) do
+    {rows, more?, _count} =
+      CardGuide.browse(
+        Map.put(socket.assigns.filters, :stock, :out),
+        socket.assigns.cards_out_loaded
+      )
+
+    {:noreply,
+     socket
+     |> assign(
+       cards_out_open?: true,
+       cards_out_loaded: socket.assigns.cards_out_loaded + length(rows),
+       cards_out_more?: more?
+     )
+     |> stream(:cards_out, rows)}
+  end
+
   def handle_event("more", _params, %{assigns: %{more?: true}} = socket) do
     %{filters: filters, loaded: loaded} = socket.assigns
-    {summaries, more?, _count} = Guide.browse(filters, loaded, DateTime.utc_now())
+    {summaries, more?, _count} = Guide.browse(sealed_filters(filters), loaded, DateTime.utc_now())
 
     socket =
       socket
@@ -228,6 +315,8 @@ defmodule TcgCheapWeb.HomeLive do
   defp default_region(_expansion), do: nil
 
   # The `wersja` of a list: none for the default edition.
+  defp region_value(%{mode: :cards}), do: nil
+
   defp region_value(%{region: region, expansion: expansion}) do
     cond do
       region == default_region(expansion) -> nil
@@ -243,12 +332,19 @@ defmodule TcgCheapWeb.HomeLive do
     filters = Map.merge(filters, Map.new(changes))
 
     params =
-      [q: filters.query, rodzaj: filters.kind, wersja: region_value(filters)]
+      [
+        q: filters.query,
+        rodzaj: filters.kind,
+        wersja: region_value(filters),
+        widok: if(filters.mode == :cards, do: "karty")
+      ]
       |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
       |> Enum.map(fn {key, value} -> {key, to_string(value)} end)
 
     base_path(filters) <> if(params == [], do: "", else: "?" <> URI.encode_query(params))
   end
+
+  defp base_path(%{mode: :cards}), do: ~p"/"
 
   defp base_path(%{expansion: id, expansion_name: name}) when is_integer(id) and is_binary(name),
     do: SEO.expansion_path(id, name)
@@ -259,6 +355,11 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp active_filters(filters),
     do: Enum.count([filters.kind, region_value(filters), filters.expansion], & &1)
+
+  defp result_label(count, :cards), do: Polish.plural(count, "karta", "karty", "kart")
+
+  defp result_label(count, :products),
+    do: Polish.plural(count, "produkt", "produkty", "produktów")
 
   attr :filters, :map, required: true
   attr :facets, :map, required: true
@@ -278,7 +379,12 @@ defmodule TcgCheapWeb.HomeLive do
     ~H"""
     <aside id="guide-filters" class="guide-filters" aria-label={gettext("Filtry")}>
       <div id="guide-filters-body" class="guide-filters-body">
-        <nav id="guide-regions" class="guide-filter" aria-labelledby="guide-regions-title">
+        <nav
+          :if={@filters.mode == :products}
+          id="guide-regions"
+          class="guide-filter"
+          aria-labelledby="guide-regions-title"
+        >
           <h2 id="guide-regions-title">{gettext("Wersja językowa")}</h2>
           <ul>
             <li>
@@ -300,7 +406,12 @@ defmodule TcgCheapWeb.HomeLive do
             </li>
           </ul>
         </nav>
-        <nav id="guide-kinds" class="guide-filter" aria-labelledby="guide-kinds-title">
+        <nav
+          :if={@filters.mode == :products}
+          id="guide-kinds"
+          class="guide-filter"
+          aria-labelledby="guide-kinds-title"
+        >
           <h2 id="guide-kinds-title">{gettext("Rodzaj")}</h2>
           <ul>
             <li>
@@ -370,7 +481,7 @@ defmodule TcgCheapWeb.HomeLive do
           }
         >
           {gettext("Pokaż %{products}",
-            products: Polish.plural(@result_count, "produkt", "produkty", "produktów")
+            products: result_label(@result_count, @filters.mode)
           )}
         </button>
       </div>
@@ -493,6 +604,40 @@ defmodule TcgCheapWeb.HomeLive do
     """
   end
 
+  attr :id, :string, required: true
+  attr :row, :map, required: true
+
+  defp card_row(assigns) do
+    ~H"""
+    <li
+      id={@id}
+      class="guide-product guide-card"
+    >
+      <.link navigate={@row.path} class="guide-product-link">
+        <div class="guide-product-image guide-card-image">
+          <img
+            :if={@row.image}
+            src={@row.image}
+            alt=""
+            loading="lazy"
+            width="88"
+            height="88"
+          />
+          <span :if={!@row.image} class="guide-card-placeholder" aria-hidden="true"></span>
+        </div>
+        <div class="guide-product-copy">
+          <h3 class="guide-product-name">{@row.card.name}</h3>
+          <p class="guide-product-meta">{@row.card.number} · {@row.expansion_name}</p>
+        </div>
+        <p class="guide-product-price">
+          <strong :if={@row.price}>{Polish.price(@row.price)}</strong>
+          <span :if={!@row.price}>{gettext("brak na stanie")}</span>
+        </p>
+      </.link>
+    </li>
+    """
+  end
+
   @impl true
   def render(assigns) do
     assigns = assign(assigns, :active, active_filters(assigns.filters))
@@ -517,15 +662,42 @@ defmodule TcgCheapWeb.HomeLive do
             <section class="guide-intro" aria-labelledby="guide-title">
               <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
               <p id="guide-promise">
-                {gettext(
-                  "Wpisz produkt Pokémon TCG, a pokażemy najtańszą ofertę w polskich sklepach i powiemy, czy cena jest dobra."
-                )}
+                {gettext("Najtańsze oferty Pokémon TCG w polskich sklepach.")}
               </p>
             </section>
           <% end %>
 
+          <nav
+            :if={!@set_page}
+            id="guide-mode"
+            class="guide-mode"
+            aria-label={gettext("Szukaj w katalogu")}
+          >
+            <.link
+              id="mode-products"
+              patch={
+                list_path(@filters,
+                  mode: :products,
+                  expansion: nil,
+                  expansion_name: nil,
+                  region: :en
+                )
+              }
+              aria-current={if(@filters.mode == :products, do: "true")}
+            >{gettext("Produkty")}</.link>
+            <.link
+              id="mode-cards"
+              patch={list_path(@filters, mode: :cards, kind: nil, region: nil, expansion: nil)}
+              aria-current={if(@filters.mode == :cards, do: "true")}
+            >{gettext("Karty")}</.link>
+          </nav>
           <section class="guide-search" aria-labelledby="guide-search-title">
-            <h2 id="guide-search-title" class="sr-only">{gettext("Szukaj produktu")}</h2>
+            <h2 id="guide-search-title" class="sr-only">
+              {if(@filters.mode == :cards,
+                do: gettext("Szukaj karty"),
+                else: gettext("Szukaj produktu")
+              )}
+            </h2>
             <.form
               for={@form}
               id="guide-search-form"
@@ -534,25 +706,30 @@ defmodule TcgCheapWeb.HomeLive do
               phx-change="search"
               phx-submit="search"
             >
-              <label for="guide-search-query" class="guide-search-label">{gettext("Szukaj produktu")}</label>
+              <label for="guide-search-query" class="guide-search-label">{if(@filters.mode == :cards,
+                do: gettext("Szukaj karty"),
+                else: gettext("Szukaj produktu")
+              )}</label>
               <div class="guide-search-field">
                 <.fluent_icon name={:search} class="guide-search-icon" />
                 <.input
                   field={@form[:q]}
-                  type="search"
+                  type={if(@filters.mode == :cards, do: "text", else: "search")}
                   id="guide-search-query"
                   class="guide-search-input"
                   maxlength="100"
                   autocomplete="off"
                   phx-debounce="300"
                   placeholder={
-                    if(@set_page,
-                      do: gettext("np. Elite Trainer Box"),
-                      else: gettext("np. Pitch Black ETB")
-                    )
+                    cond do
+                      @filters.mode == :cards -> gettext("np. Charizard ex 199")
+                      @set_page -> gettext("np. Elite Trainer Box")
+                      true -> gettext("np. Pitch Black ETB")
+                    end
                   }
                 />
                 <button
+                  :if={@filters.mode == :products}
                   type="button"
                   id="guide-filters-toggle"
                   class="guide-filters-toggle"
@@ -565,9 +742,12 @@ defmodule TcgCheapWeb.HomeLive do
                     |> JS.toggle_attribute({"aria-expanded", "true", "false"})
                   }
                 >
-                  <.fluent_icon name={:filter} />{gettext("Filtry")}<span :if={@active > 0}> ({@active})</span>
+                  <.fluent_icon name={:filter} />{gettext("Filtry")}<span :if={
+                    @filters.mode == :products and @active > 0
+                  }> ({@active})</span>
                 </button>
               </div>
+              <input :if={@filters.mode == :cards} type="hidden" name="widok" value="karty" />
               <input :if={@filters.kind} type="hidden" name="rodzaj" value={@filters.kind} />
               <input
                 :if={region_value(@filters)}
@@ -578,8 +758,9 @@ defmodule TcgCheapWeb.HomeLive do
             </.form>
           </section>
 
-          <div class="guide-browse">
+          <div class={["guide-browse", @filters.mode == :cards && "guide-browse-cards"]}>
             <.filters
+              :if={@filters.mode == :products}
               filters={@filters}
               facets={@facets}
               result_count={@result_count}
@@ -589,6 +770,8 @@ defmodule TcgCheapWeb.HomeLive do
               <div class="guide-results-heading">
                 <h2 id="guide-results-title" tabindex="-1">
                   <%= cond do %>
+                    <% @filters.mode == :cards and @filters.query == "" -> %>
+                      {gettext("Karty na stanie w Polsce")}
                     <% @filters.query == "" and !filtered?(@filters) -> %>
                       {gettext("Produkty w wersji angielskiej")}
                     <% @filters.query == "" and @set_page != nil -> %>
@@ -598,10 +781,10 @@ defmodule TcgCheapWeb.HomeLive do
                   <% end %>
                 </h2>
                 <p id="guide-result-count" aria-live="polite">
-                  {Polish.plural(@result_count, "produkt", "produkty", "produktów")}
+                  {result_label(@result_count, @filters.mode)}
                 </p>
                 <.link
-                  :if={@active > 0}
+                  :if={@filters.mode == :products and @active > 0}
                   id="guide-filters-clear"
                   class="guide-filters-clear"
                   patch={
@@ -624,6 +807,8 @@ defmodule TcgCheapWeb.HomeLive do
               >
                 <li id="guide-products-empty" class="guide-empty hidden only:block">
                   <%= cond do %>
+                    <% @filters.mode == :cards -> %>
+                      {gettext("Nie znaleźliśmy takiej karty. Wpisz angielską nazwę, np. Pikachu.")}
                     <% filtered?(@filters) -> %>
                       {gettext(
                         "Nic nie znaleźliśmy przy tych filtrach. Spróbuj samej nazwy dodatku albo usuń filtry."
@@ -631,7 +816,21 @@ defmodule TcgCheapWeb.HomeLive do
                     <% true -> %>
                       {gettext("Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black.")}
                   <% end %>
-                  <.link id="guide-empty-reset" patch={~p"/"}>{gettext("Pokaż wszystkie produkty")}</.link>
+                  <.link
+                    id="guide-empty-reset"
+                    patch={
+                      list_path(@filters,
+                        query: "",
+                        expansion: nil,
+                        expansion_name: nil,
+                        kind: nil,
+                        region: default_region(nil)
+                      )
+                    }
+                  >{if(@filters.mode == :cards,
+                    do: gettext("Pokaż wszystkie karty"),
+                    else: gettext("Pokaż wszystkie produkty")
+                  )}</.link>
                 </li>
                 <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">
                   <.link
@@ -684,6 +883,7 @@ defmodule TcgCheapWeb.HomeLive do
                     </div>
                   </.link>
                 </li>
+                <.card_row :for={{dom_id, row} <- @streams.cards} id={dom_id} row={row} />
               </ul>
               <div :if={@more?} class="guide-more">
                 <button
@@ -695,9 +895,36 @@ defmodule TcgCheapWeb.HomeLive do
                   {gettext("Pokaż więcej")}
                 </button>
                 <p>
-                  {gettext("Pokazano %{loaded} z %{count}.", loaded: @loaded, count: @result_count)}
+                  {gettext("Pokazano %{loaded} z %{count}.",
+                    loaded: @loaded,
+                    count: if(@filters.mode == :cards, do: @cards_main_count, else: @result_count)
+                  )}
                 </p>
               </div>
+              <.offers_disclosure
+                :if={@cards_out_count > 0}
+                id="guide-cards-out"
+                open={@cards_out_open?}
+                label={gettext("Bez towaru: %{cards}", cards: result_label(@cards_out_count, :cards))}
+              >
+                <ul id="guide-cards-out-list" class="guide-products" phx-update="stream">
+                  <.card_row :for={{dom_id, row} <- @streams.cards_out} id={dom_id} row={row} />
+                </ul>
+                <div :if={@cards_out_more?} class="guide-more">
+                  <button
+                    id="guide-more-out"
+                    type="button"
+                    phx-click="more_out"
+                    phx-disable-with={gettext("Wczytuję…")}
+                  >{gettext("Pokaż więcej")}</button>
+                  <p>
+                    {gettext("Pokazano %{loaded} z %{count}.",
+                      loaded: @cards_out_loaded,
+                      count: @cards_out_count
+                    )}
+                  </p>
+                </div>
+              </.offers_disclosure>
               <div :if={@set_page && @set_page.set} id="set-content" class="guide-set">
                 <.pull_rates
                   pull_rates={@set_page.set.pull_rates}

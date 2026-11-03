@@ -660,8 +660,6 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .single-image-fallback { inline-size: 45%; block-size: auto; max-block-size: 80%; fill: none; stroke: var(--muted); stroke-width: 1.5; }
 .guide-world .single-card-name { font: 700 1.2rem/1.2 "Barlow Condensed", sans-serif; min-inline-size: 0; overflow-wrap: anywhere; padding-block: .6rem; }
 .guide-world .single-card-pl { display: flex; flex-wrap: wrap; align-items: center; justify-content: end; gap: .35rem; font: 700 1.2rem/1.2 "Barlow Condensed", sans-serif; white-space: nowrap; }
-.guide-world .single-card-pl .single-verdict-badge { font-size: .75rem; padding: .2rem .3rem; }
-.guide-world .single-card-pl .single-pennies { border-color: transparent; color: var(--muted); }
 .guide-world .set-cards-group li:has(.single-card-name) { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; gap: .2rem .5rem; }
 .guide-world .set-cards-group li:has(.single-card-name) .set-cards-price { font-size: .8rem; white-space: nowrap; color: var(--muted); }
 .guide-world .single-card-name:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
@@ -669,3 +667,22 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 @media (hover: hover) and (pointer: fine) {
   .guide-world .single-card-name:hover { text-decoration: underline; }
 }
+
+/* The mode control shares the guide's square, restrained filter treatment. */
+.guide-world .guide-mode { display: inline-flex; border: 1px solid var(--ink); margin-block-end: 1rem; }
+.guide-world .guide-mode a { align-items: center; display: inline-flex; justify-content: center; min-block-size: 3rem; padding-inline: 1.5rem; font: 700 1.25rem/1 "Barlow Condensed", sans-serif; text-decoration: none; }
+.guide-world .guide-mode a[aria-current="true"] { background: var(--ink); color: var(--paper); }
+.guide-world .guide-mode a:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+.guide-world .guide-mode a:active { background: var(--orange); color: var(--paper); }
+@media (hover: hover) and (pointer: fine) {
+  .guide-world .guide-mode a:hover { text-decoration: underline; text-underline-offset: .2rem; }
+}
+.guide-world .guide-card .guide-product-link { display: grid; grid-template-columns: clamp(3rem, 6vw, 5.5rem) minmax(0, 1fr) auto; }
+.guide-world .guide-card-image { display: grid; place-items: center; grid-row: auto; inline-size: 100%; }
+.guide-world .guide-card-image img { inline-size: 100%; block-size: auto; aspect-ratio: 1; object-fit: contain; }
+.guide-world .guide-card .guide-product-price { grid-column: auto; }
+.guide-world .guide-card .guide-product-price strong { font-size: clamp(1.1rem, 2vw, 1.5rem); }
+
+.guide-world .guide-browse-cards { grid-template-columns: minmax(0, 1fr); }
+.guide-world .guide-card-placeholder { inline-size: 55%; aspect-ratio: 63 / 88; background: var(--paper); border: 1px solid color-mix(in oklch, var(--muted) 30%, transparent); }
+.guide-world .set-cards-price img { display: inline-block; vertical-align: middle; }
