@@ -12,7 +12,9 @@ defmodule TcgCheap.Sealed.Matcher do
     * every *qualifier* in the title (kind words such as "box", "case",
       "half", "center", "mini", and edition languages) appears in the
       product name — so "Half Booster Box" never matches "Booster Box" and a
-      Japanese offer never matches an English product.
+      Japanese offer never matches an English product. A product's language
+      edition answers for its language word ("JP" for a Japanese product whose
+      name does not say it), and a single booster for "pack" ("Booster Pack").
 
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
@@ -84,9 +86,18 @@ defmodule TcgCheap.Sealed.Matcher do
                 ~w(booster box bundle display case half mini tin elite trainer center premium collection
                    checklane blister pack sleeved jumbo build battle prerelease deck league figure poster
                    binder pin sticker tech ultra super special illustration deluxe toolkit chest kit stadium
-                   enhanced surprise pouch portfolio starter gift calendar jp korean chinese sch tch thai
+                   enhanced surprise pouch portfolio starter gift calendar slim jp korean chinese sch tch thai
                    indonesian german french italian spanish)
               )
+
+  # Title qualifiers a product meets without naming them: its language edition
+  # (`TcgCheap.Sealed.Regions`) and, for a single booster, "pack".
+  @region_words %{ja: "jp", zh: "chinese", ko: "korean", id: "indonesian", th: "thai"}
+  @kind_words %{booster: "pack"}
+
+  # A count of two or more packs, as in "Booster Pack (36 boosterów)" or "(36)":
+  # a display, never a single booster. A count of cards ("(10 kart)") is not one.
+  @packs ~r/\(\s*(?:[2-9]|\d{2,3})\s*(?:booster(?:ów|ow|y|s)?|paczek|paczki|packs?|szt\.?|sztuk)?\s*\)/iu
 
   # Words naming a kind of sealed product, as in Cardmarket's sealed product
   # names. A title with none of them is a single card or an accessory.
@@ -145,7 +156,9 @@ defmodule TcgCheap.Sealed.Matcher do
   @type product :: %{
           required(:id) => term(),
           required(:name) => String.t(),
-          optional(:set_name) => String.t() | nil
+          optional(:set_name) => String.t() | nil,
+          optional(:region) => atom(),
+          optional(:kind) => atom()
         }
   @type result :: {:matched, term()} | :unmatched | :ambiguous | {:excluded, String.t()}
 
@@ -159,7 +172,13 @@ defmodule TcgCheap.Sealed.Matcher do
       for product <- products,
           tokens = MapSet.new(product_tokens(product.name)),
           MapSet.size(tokens) >= 2,
-          do: %{id: product.id, tokens: tokens, size: MapSet.size(tokens)}
+          do: %{
+            id: product.id,
+            tokens: tokens,
+            size: MapSet.size(tokens),
+            meets: meets(product),
+            booster?: Map.get(product, :kind) == :booster
+          }
 
     frequency = entries |> Enum.flat_map(&MapSet.to_list(&1.tokens)) |> Enum.frequencies()
 
@@ -186,7 +205,7 @@ defmodule TcgCheap.Sealed.Matcher do
 
     with nil <- exclusion(normalized),
          :error <- Map.fetch(index.eans, Map.get(offer, :ean) || "") do
-      title |> offer_tokens(index.sets) |> best(index)
+      title |> offer_tokens(index.sets) |> best(index, Regex.match?(@packs, title))
     else
       {:ok, id} -> {:matched, id}
       reason -> {:excluded, reason}
@@ -244,13 +263,14 @@ defmodule TcgCheap.Sealed.Matcher do
   def explain(%{title: title} = offer, %__MODULE__{} = index, limit \\ 5) when is_binary(title) do
     offer_tokens = offer_tokens(title, index.sets)
     offer_set = MapSet.new(offer_tokens)
+    packs? = Regex.match?(@packs, title)
     qualifiers = MapSet.intersection(offer_set, @qualifiers)
 
     candidates =
       for entry <- index.entries,
           shared = MapSet.size(MapSet.intersection(entry.tokens, offer_set)),
           shared > 0 do
-        {candidate?(entry, offer_set, qualifiers), shared, entry}
+        {candidate?(entry, offer_set, qualifiers, packs?), shared, entry}
       end
       |> Enum.sort_by(fn {qualifies?, shared, entry} ->
         {not qualifies?, -shared, entry.size - shared}
@@ -261,7 +281,10 @@ defmodule TcgCheap.Sealed.Matcher do
           id: entry.id,
           tokens: Enum.sort(entry.tokens),
           missing: entry.tokens |> MapSet.difference(offer_set) |> Enum.sort(),
-          missing_qualifiers: qualifiers |> MapSet.difference(entry.tokens) |> Enum.sort(),
+          missing_qualifiers:
+            qualifiers
+            |> MapSet.difference(MapSet.union(entry.tokens, entry.meets))
+            |> Enum.sort(),
           unexplained: offer_set |> MapSet.difference(entry.tokens) |> Enum.sort(),
           qualifies?: qualifies?
         }
@@ -281,7 +304,7 @@ defmodule TcgCheap.Sealed.Matcher do
     }
   end
 
-  defp best(offer_tokens, index) do
+  defp best(offer_tokens, index, packs?) do
     offer_set = MapSet.new(offer_tokens)
     qualifiers = MapSet.intersection(offer_set, @qualifiers)
 
@@ -289,7 +312,7 @@ defmodule TcgCheap.Sealed.Matcher do
       offer_set
       |> Enum.flat_map(&Map.get(index.by_rare_token, &1, []))
       |> Enum.uniq()
-      |> Enum.filter(&candidate?(&1, offer_set, qualifiers))
+      |> Enum.filter(&candidate?(&1, offer_set, qualifiers, packs?))
 
     case Enum.group_by(candidates, & &1.size) |> Enum.max_by(&elem(&1, 0), fn -> nil end) do
       nil -> :unmatched
@@ -298,9 +321,19 @@ defmodule TcgCheap.Sealed.Matcher do
     end
   end
 
-  defp candidate?(entry, offer_set, qualifiers) do
-    MapSet.subset?(entry.tokens, offer_set) and MapSet.subset?(qualifiers, entry.tokens) and
+  defp candidate?(entry, offer_set, qualifiers, packs?) do
+    not (packs? and entry.booster?) and MapSet.subset?(entry.tokens, offer_set) and
+      MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
       MapSet.size(MapSet.difference(offer_set, entry.tokens)) <= @max_unexplained
+  end
+
+  defp meets(product) do
+    [
+      Map.get(@region_words, Map.get(product, :region)),
+      Map.get(@kind_words, Map.get(product, :kind))
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> MapSet.new()
   end
 
   defp offer_tokens(title, sets) do

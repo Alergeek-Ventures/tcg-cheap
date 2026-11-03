@@ -14,7 +14,7 @@ defmodule TcgCheap.Sealed.AgentTools.ExplainMatch do
   @impl true
   def run(input, _opts, _context) do
     with {:ok, subject, offer} <- subject(input.arguments) do
-      products = Sealed.list_products!(query: [select: Json.product_fields()])
+      products = Sealed.list_products!(query: [select: [:region | Json.product_fields()]])
       index = Matcher.index(products, Sealed.known_eans())
       explanation = Matcher.explain(subject, index, input.arguments.candidates)
       {:ok, present(explanation, subject, offer, Map.new(products, &{&1.id, &1}))}

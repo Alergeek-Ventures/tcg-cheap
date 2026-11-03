@@ -48,7 +48,7 @@ defmodule TcgCheap.Sealed.AgentTools.OfferList do
       if slice != [],
         do:
           Matcher.index(
-            Sealed.list_products!(query: [select: [:name, :set_name]]),
+            Sealed.list_products!(query: [select: [:name, :set_name, :region, :kind]]),
             Sealed.known_eans()
           )
 
