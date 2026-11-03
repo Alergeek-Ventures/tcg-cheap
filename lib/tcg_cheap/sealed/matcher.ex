@@ -359,7 +359,7 @@ defmodule TcgCheap.Sealed.Matcher do
   # matches a product whose name has at most one token more, besides "blister"
   # and "collection", that is neither a kind word (so "Mini Tin" never becomes
   # "Mini Tin Display"), a word of the product's set ("Booster Bundle" never
-  # becomes the 151 one) nor a number (a year), when every other title word the
+  # becomes the 151 one), a number (a year) nor "version", when every other title word the
   # name lacks is one no product name uses (so "Blister Spritzee" never becomes
   # the Seel blister) and no other product fits the same way.
   defp unique_variant(offer_set, qualifiers, index, packs?) do
@@ -385,7 +385,7 @@ defmodule TcgCheap.Sealed.Matcher do
   end
 
   # The name tokens a title lacks: omissible kind words and at most one other
-  # token that is neither a kind word, a set word nor a number.
+  # token that is neither a kind word, a set word, a number nor "version".
   defp omits_variant_only?(entry, missing) do
     case missing |> MapSet.difference(@omissible) |> MapSet.to_list() do
       [] -> MapSet.size(missing) > 0
@@ -394,9 +394,11 @@ defmodule TcgCheap.Sealed.Matcher do
     end
   end
 
+  # "Version" tells printings of one product apart ("Zarude 2-Pack Blister
+  # Version 1" and "Version 2"), so a title must name it.
   defp variant_token?(token, entry) do
-    not MapSet.member?(@qualifiers, token) and not MapSet.member?(entry.set_tokens, token) and
-      not String.match?(token, ~r/\A\d+\z/)
+    token != "version" and not MapSet.member?(@qualifiers, token) and
+      not MapSet.member?(entry.set_tokens, token) and not String.match?(token, ~r/\A\d+\z/)
   end
 
   defp candidate?(entry, offer_set, qualifiers, packs?) do
