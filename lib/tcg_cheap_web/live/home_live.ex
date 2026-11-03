@@ -354,7 +354,7 @@ defmodule TcgCheapWeb.HomeLive do
   defp filtered?(filters), do: filters.kind || region_value(filters) || filters.expansion
 
   defp active_filters(filters),
-    do: Enum.count([filters.kind, region_value(filters), filters.expansion], & &1)
+    do: Enum.count([filters.kind, region_value(filters)], & &1)
 
   defp result_label(count, :cards), do: Polish.plural(count, "karta", "karty", "kart")
 
@@ -394,14 +394,13 @@ defmodule TcgCheapWeb.HomeLive do
                 aria-current={if(is_nil(@filters.region), do: "true")}
               >{gettext("Wszystkie")}</.link>
             </li>
-            <li :for={{region, count} <- @facets.regions}>
+            <li :for={{region, _count} <- @facets.regions}>
               <.link
                 id={"region-#{region}"}
                 patch={list_path(@filters, region: region)}
                 aria-current={if(@filters.region == region, do: "true")}
               >
                 {Regions.label(region)}
-                <span class="guide-filter-count">{Polish.number(count)}</span>
               </.link>
             </li>
           </ul>
@@ -421,14 +420,13 @@ defmodule TcgCheapWeb.HomeLive do
                 aria-current={if(is_nil(@filters.kind), do: "true")}
               >{gettext("Wszystkie")}</.link>
             </li>
-            <li :for={{kind, count} <- @facets.kinds}>
+            <li :for={{kind, _count} <- @facets.kinds}>
               <.link
                 id={"kind-#{kind}"}
                 patch={list_path(@filters, kind: kind)}
                 aria-current={if(@filters.kind == kind, do: "true")}
               >
                 {Kinds.label(kind)}
-                <span class="guide-filter-count">{Polish.number(count)}</span>
               </.link>
             </li>
           </ul>
@@ -443,7 +441,18 @@ defmodule TcgCheapWeb.HomeLive do
           <.link
             id="expansion-all"
             class="guide-expansions-all"
-            patch={list_path(@filters, expansion: nil, expansion_name: nil)}
+            patch={
+              list_path(@filters,
+                expansion: nil,
+                expansion_name: nil,
+                region:
+                  if(@filters.expansion,
+                    do: @filters.region || default_region(nil),
+                    else: @filters.region
+                  )
+              )
+            }
+            phx-click={close_filters()}
             aria-current={if(is_nil(@filters.expansion), do: "true")}
           >{gettext("Wszystkie")}</.link>
           <ul class="guide-expansion-tiles">
@@ -474,8 +483,7 @@ defmodule TcgCheapWeb.HomeLive do
           id="guide-filters-apply"
           class="guide-filters-apply"
           phx-click={
-            JS.remove_class("guide-filters-open", to: "#guide-filters")
-            |> JS.set_attribute({"aria-expanded", "false"}, to: "#guide-filters-toggle")
+            close_filters()
             |> JS.focus(to: "#guide-results-title")
             |> JS.dispatch("guide:reveal", to: "#guide-results-title")
           }
@@ -489,14 +497,19 @@ defmodule TcgCheapWeb.HomeLive do
     """
   end
 
+  defp close_filters do
+    JS.remove_class("guide-filters-open", to: "#guide-filters")
+    |> JS.set_attribute({"aria-expanded", "false"}, to: "#guide-filters-toggle")
+  end
+
   attr :expansion, :map, required: true
   attr :filters, :map, required: true
   attr :tile, :boolean, default: false, doc: "a tile, else a row of the list"
 
   # The language tag shows only while every language is listed. A logo is
   # captioned with the English name on a tile and named beside it in a row; a
-  # row without a logo (a tile too, as phones show tiles as rows) keeps a blank
-  # slot so the names line up.
+  # desktop row without a logo keeps a blank slot so the names line up.
+  # Phones show names and counts only.
   defp expansion_option(assigns) do
     assigns = assign(assigns, :logo_url, assigns.expansion.logo_url)
 
@@ -511,6 +524,7 @@ defmodule TcgCheapWeb.HomeLive do
             region: default_region(@expansion.id)
           )
         }
+        phx-click={close_filters()}
         aria-current={if(@filters.expansion == @expansion.id, do: "true")}
         title={@expansion.name}
       >
@@ -659,38 +673,39 @@ defmodule TcgCheapWeb.HomeLive do
           <%= if @set_page do %>
             <.set_intro name={@filters.expansion_name} page={@set_page} />
           <% else %>
-            <section class="guide-intro" aria-labelledby="guide-title">
-              <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
-              <p id="guide-promise">
-                {gettext("Najtańsze oferty Pokémon TCG w polskich sklepach.")}
-              </p>
-            </section>
-          <% end %>
+            <div class="guide-top">
+              <section class="guide-intro" aria-labelledby="guide-title">
+                <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
+                <p id="guide-promise">
+                  {gettext("Najtańsze oferty Pokémon TCG w polskich sklepach.")}
+                </p>
+              </section>
 
-          <nav
-            :if={!@set_page}
-            id="guide-mode"
-            class="guide-mode"
-            aria-label={gettext("Szukaj w katalogu")}
-          >
-            <.link
-              id="mode-products"
-              patch={
-                list_path(@filters,
-                  mode: :products,
-                  expansion: nil,
-                  expansion_name: nil,
-                  region: :en
-                )
-              }
-              aria-current={if(@filters.mode == :products, do: "true")}
-            >{gettext("Produkty")}</.link>
-            <.link
-              id="mode-cards"
-              patch={list_path(@filters, mode: :cards, kind: nil, region: nil, expansion: nil)}
-              aria-current={if(@filters.mode == :cards, do: "true")}
-            >{gettext("Karty")}</.link>
-          </nav>
+              <nav
+                id="guide-mode"
+                class="guide-mode"
+                aria-label={gettext("Szukaj w katalogu")}
+              >
+                <.link
+                  id="mode-products"
+                  patch={
+                    list_path(@filters,
+                      mode: :products,
+                      expansion: nil,
+                      expansion_name: nil,
+                      region: :en
+                    )
+                  }
+                  aria-current={if(@filters.mode == :products, do: "true")}
+                >{gettext("Produkty")}</.link>
+                <.link
+                  id="mode-cards"
+                  patch={list_path(@filters, mode: :cards, kind: nil, region: nil, expansion: nil)}
+                  aria-current={if(@filters.mode == :cards, do: "true")}
+                >{gettext("Karty")}</.link>
+              </nav>
+            </div>
+          <% end %>
           <section class="guide-search" aria-labelledby="guide-search-title">
             <h2 id="guide-search-title" class="sr-only">
               {if(@filters.mode == :cards,
@@ -714,7 +729,7 @@ defmodule TcgCheapWeb.HomeLive do
                 <.fluent_icon name={:search} class="guide-search-icon" />
                 <.input
                   field={@form[:q]}
-                  type={if(@filters.mode == :cards, do: "text", else: "search")}
+                  type="text"
                   id="guide-search-query"
                   class="guide-search-input"
                   maxlength="100"
@@ -774,6 +789,8 @@ defmodule TcgCheapWeb.HomeLive do
                       {gettext("Karty na stanie w Polsce")}
                     <% @filters.query == "" and !filtered?(@filters) -> %>
                       {gettext("Produkty w wersji angielskiej")}
+                    <% @filters.query == "" and @filters.kind -> %>
+                      {Kinds.label(@filters.kind)}
                     <% @filters.query == "" and @set_page != nil -> %>
                       {gettext("Produkty i ceny")}
                     <% true -> %>
@@ -783,21 +800,6 @@ defmodule TcgCheapWeb.HomeLive do
                 <p id="guide-result-count" aria-live="polite">
                   {result_label(@result_count, @filters.mode)}
                 </p>
-                <.link
-                  :if={@filters.mode == :products and @active > 0}
-                  id="guide-filters-clear"
-                  class="guide-filters-clear"
-                  patch={
-                    list_path(@filters,
-                      kind: nil,
-                      region: default_region(nil),
-                      expansion: nil,
-                      expansion_name: nil
-                    )
-                  }
-                >
-                  <.fluent_icon name={:dismiss} />{gettext("Wyczyść filtry")}
-                </.link>
               </div>
               <ul
                 id="guide-products"
@@ -806,15 +808,10 @@ defmodule TcgCheapWeb.HomeLive do
                 data-track-positions
               >
                 <li id="guide-products-empty" class="guide-empty hidden only:block">
-                  <%= cond do %>
-                    <% @filters.mode == :cards -> %>
-                      {gettext("Nie znaleźliśmy takiej karty. Wpisz angielską nazwę, np. Pikachu.")}
-                    <% filtered?(@filters) -> %>
-                      {gettext(
-                        "Nic nie znaleźliśmy przy tych filtrach. Spróbuj samej nazwy dodatku albo usuń filtry."
-                      )}
-                    <% true -> %>
-                      {gettext("Nic nie znaleźliśmy. Spróbuj samej nazwy dodatku, np. Pitch Black.")}
+                  <%= if @filters.mode == :cards do %>
+                    {gettext("Nie znaleźliśmy takiej karty. Wpisz angielską nazwę, np. Pikachu.")}
+                  <% else %>
+                    {gettext("Nic nie znaleźliśmy.")}
                   <% end %>
                   <.link
                     id="guide-empty-reset"
@@ -865,7 +862,9 @@ defmodule TcgCheapWeb.HomeLive do
                       <span :if={summary.verdict.cheapest} class="guide-product-shop">
                         {shop_name(summary.verdict.cheapest)}
                       </span>
+                      <%!-- Too few shops for a verdict: the row shows only the price; the product page says why. --%>
                       <.verdict_badge
+                        :if={summary.verdict.status not in [:cardmarket, :insufficient_data]}
                         verdict={summary.verdict}
                         id={"verdict-#{summary.product.slug}"}
                         class="guide-product-verdict"

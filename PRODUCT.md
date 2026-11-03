@@ -53,8 +53,9 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   trend in PLN plus a tracked parcel from Germany, when they are known (the
   page says which one lowered the limit). The limits are shown in whole
   złoty so a price seen in a physical shop can be judged too. With fewer
-  shops there is no verdict ("Za mało sklepów"); the Cardmarket trend in
-  PLN is shown as context on the product page.
+  shops there is no verdict: the list row shows only the price, the
+  product page says "Za mało sklepów" and gives the Cardmarket trend in PLN
+  as context.
 - History bounds a good price only: the same price against the median
   daily lowest price of the last 30 days (≥ 7 days with stock), shown as one
   line ("Taniej / Tyle co / Drożej niż w ostatnich 30 dniach") and a chart

@@ -82,6 +82,11 @@ window.addEventListener("phx:navigate", ({detail}) => {
     nameRowPhoto(location.pathname)
   }
   if (!detail.patch) landingScroll = detail.pop ? history.state?.scroll : !location.hash && 0
+  // Set pages share HomeLive, so their path changes are patches. Unlike a
+  // filter change, entering a set must show its title at the top.
+  if (detail.patch && shownPath !== location.pathname && location.pathname.startsWith("/rozszerzenia/")) {
+    window.scrollTo({top: 0, behavior: "instant"})
+  }
   cameFromList = shownPath === "/" && location.pathname !== "/"
   shownPath = location.pathname
 })
