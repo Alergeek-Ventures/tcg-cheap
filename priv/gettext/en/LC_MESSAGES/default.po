@@ -1146,8 +1146,8 @@ msgstr "Cards in the %{deck} deck"
 
 #: lib/tcg_cheap_web/live/product_live.ex:824
 #, elixir-autogen, elixir-format
-msgid "Karty według listy wydawcy; set, numer i zdjęcie z TCGdex, nazwa otwiera kartę na Cardmarket."
-msgstr "Cards as the publisher lists them; set, number and picture from TCGdex, the name opens the card on Cardmarket."
+msgid "Karty według listy wydawcy; set, numer i zdjęcie z TCGdex lub innych źródeł, nazwa otwiera kartę na Cardmarket."
+msgstr "Cards as the publisher lists them; set, number and picture from TCGdex or other sources, the name opens the card on Cardmarket."
 
 #: lib/tcg_cheap_web/live/product_live.ex:840
 #, elixir-autogen, elixir-format

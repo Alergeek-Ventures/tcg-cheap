@@ -1153,7 +1153,7 @@ msgstr ""
 
 #: lib/tcg_cheap_web/live/product_live.ex:824
 #, elixir-autogen, elixir-format
-msgid "Karty według listy wydawcy; set, numer i zdjęcie z TCGdex, nazwa otwiera kartę na Cardmarket."
+msgid "Karty według listy wydawcy; set, numer i zdjęcie z TCGdex lub innych źródeł, nazwa otwiera kartę na Cardmarket."
 msgstr ""
 
 #: lib/tcg_cheap_web/live/product_live.ex:840

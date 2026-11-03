@@ -822,7 +822,7 @@ defmodule TcgCheapWeb.ProductLive do
       </div>
       <p class="guide-note">
         {gettext(
-          "Karty według listy wydawcy; set, numer i zdjęcie z TCGdex, nazwa otwiera kartę na Cardmarket."
+          "Karty według listy wydawcy; set, numer i zdjęcie z TCGdex lub innych źródeł, nazwa otwiera kartę na Cardmarket."
         )}
       </p>
     </div>
