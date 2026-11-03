@@ -1,11 +1,14 @@
 defmodule TcgCheap.Catalogue.SearchText do
   @moduledoc "Canonical normalization shared by persisted search text and queries."
 
+  @whitespace ~r/\s+/u
+  @apostrophes ~r/[‘’ʼ＇]/u
+
   def normalize(value) when is_binary(value) do
     value
     |> String.normalize(:nfkc)
     |> String.trim()
-    |> String.replace(~r/\s+/u, " ")
+    |> String.replace(@whitespace, " ")
     |> String.downcase(:greek)
   end
 
@@ -14,6 +17,6 @@ defmodule TcgCheap.Catalogue.SearchText do
   def normalize_cardmarket_name(value) do
     value
     |> normalize()
-    |> String.replace(~r/[‘’ʼ＇]/u, "'")
+    |> String.replace(@apostrophes, "'")
   end
 end

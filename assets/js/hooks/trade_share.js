@@ -11,7 +11,7 @@ const TradeShare = {
       try {
         path = this.el?.dataset?.tradePath
         if (typeof path !== "string" || !path.startsWith("/trade")) return
-        const value = new URL(path, window.location.origin).href
+        const value = window.location.origin + path
 
         try {
           if (navigator.clipboard?.writeText) {

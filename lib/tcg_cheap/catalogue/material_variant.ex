@@ -1,6 +1,7 @@
 defmodule TcgCheap.Catalogue.MaterialVariant do
   @moduledoc "Conservative material-variant semantics shared by importing and crosswalking."
   @record_keys ~w(type subtype stamp stamps size firstEdition wPromo jumbo preRelease foil)
+  @obvious_cardmarket_marker ~r/\b(first|1st)\s*edition\b|\bpromo\b|\bstamp(?:ed)?\b|\bjumbo\b|\bpre[- ]?release\b/i
 
   @spec descriptors(map() | list(), map() | list()) :: map()
   def descriptors(variants, detailed) do
@@ -61,11 +62,7 @@ defmodule TcgCheap.Catalogue.MaterialVariant do
   end
 
   def obvious_cardmarket_marker?(name) when is_binary(name),
-    do:
-      Regex.match?(
-        ~r/\b(first|1st)\s*edition\b|\bpromo\b|\bstamp(?:ed)?\b|\bjumbo\b|\bpre[- ]?release\b/i,
-        name
-      )
+    do: Regex.match?(@obvious_cardmarket_marker, name)
 
   def obvious_cardmarket_marker?(_), do: false
 

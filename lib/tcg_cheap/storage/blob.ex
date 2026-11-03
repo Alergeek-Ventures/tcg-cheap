@@ -11,7 +11,7 @@ defmodule TcgCheap.Storage.Blob do
     data_layer: AshPostgres.DataLayer,
     extensions: [AshStorage.BlobResource]
 
-  alias TcgCheap.Storage.Changes.PurgeVariants
+  alias TcgCheap.Storage.Changes.{PurgeVariants, StorePlaceholder}
 
   postgres do
     table "storage_blobs"
@@ -19,11 +19,17 @@ defmodule TcgCheap.Storage.Blob do
   end
 
   changes do
+    change StorePlaceholder, on: [:create]
     change PurgeVariants, on: [:destroy]
   end
 
   attributes do
     uuid_primary_key :id
+
+    attribute :placeholder, :string do
+      description "A variant's tiny WebP data URI, shown blurred while the image loads."
+      public? true
+    end
 
     create_timestamp :created_at
     update_timestamp :updated_at

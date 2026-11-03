@@ -125,8 +125,6 @@ defmodule TcgCheap.Core do
         action: :mark_details_enrichment_failed,
         args: [:failed_at]
 
-      define :list_card_printings_by_tcgdex_ids, action: :by_tcgdex_ids, args: [:tcgdex_ids]
-
       define :list_detail_enrichment_candidates,
         action: :detail_enrichment_candidates,
         args: [:cursor, :limit]
@@ -139,10 +137,6 @@ defmodule TcgCheap.Core do
       define :list_public_card_printings_by_tcgdex_ids,
         action: :public_by_tcgdex_ids,
         args: [:tcgdex_ids]
-
-      define :search_card_printings,
-        action: :search,
-        args: [:query, {:optional, :limit}]
 
       define :search_public_card_printings,
         action: :public_search,

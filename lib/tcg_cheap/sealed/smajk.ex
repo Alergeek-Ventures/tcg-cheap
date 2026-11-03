@@ -24,6 +24,8 @@ defmodule TcgCheap.Sealed.Smajk do
   alias TcgCheap.Sealed.{Shop, ShopFeed}
 
   @price ~r/\A([0-9]{1,7})\.([0-9]{2}) PLN\z/
+  @spaces ~r/\s+/u
+  @thousands_space ~r/(?<=\d) (?=\d)/
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -96,7 +98,8 @@ defmodule TcgCheap.Sealed.Smajk do
          true <- ShopFeed.sealed_pokemon?(title, category) || :ignore,
          {:ok, id} <- ShopFeed.product_id(id(product)),
          "/p/" <> _ <- link,
-         {:ok, url} <- ShopFeed.https_url("https://#{shop.host}#{URI.encode(link)}", [shop.host]),
+         url = "https://#{shop.host}#{URI.encode(link)}",
+         {:ok, _uri} <- ShopFeed.https_url(url, [shop.host]),
          {:ok, price} <- price(product),
          {:ok, in_stock} <- in_stock(product) do
       {:ok,
@@ -104,7 +107,7 @@ defmodule TcgCheap.Sealed.Smajk do
          %{
            shop_product_id: id,
            title: title,
-           url: URI.to_string(url),
+           url: url,
            image_url: image_url(shop, product),
            ean: nil,
            price: price,
@@ -125,9 +128,9 @@ defmodule TcgCheap.Sealed.Smajk do
       end
 
     text =
-      current |> Enum.take(1) |> Floki.text() |> String.replace(~r/\s+/u, " ") |> String.trim()
+      current |> Enum.take(1) |> Floki.text() |> String.replace(@spaces, " ") |> String.trim()
 
-    case Regex.run(@price, String.replace(text, ~r/(?<=\d) (?=\d)/, "")) do
+    case Regex.run(@price, String.replace(text, @thousands_space, "")) do
       [_, zloty, grosze] -> ShopFeed.decimal_price("#{zloty}.#{grosze}")
       nil -> :error
     end

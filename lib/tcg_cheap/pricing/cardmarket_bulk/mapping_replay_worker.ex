@@ -46,11 +46,11 @@ defmodule TcgCheap.Pricing.CardmarketBulk.MappingReplayWorker do
       Ash.Query.for_read(Batch, :read, %{})
       |> Ash.Query.filter(expr(id == ^batch_id and status == "succeeded"))
 
-    case Ash.read_one(decision_query, authorize?: false) do
-      {:ok, nil} ->
+    case Ash.exists(decision_query, authorize?: false) do
+      {:ok, false} ->
         {:discard, :decision_not_found}
 
-      {:ok, %CardSetCardmarketMappingDecision{}} ->
+      {:ok, true} ->
         case Ash.read_one(query, authorize?: false) do
           {:ok, nil} -> {:discard, :batch_not_succeeded}
           {:ok, %Batch{} = batch} -> replay(batch)

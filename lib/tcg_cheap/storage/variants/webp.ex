@@ -2,9 +2,10 @@ defmodule TcgCheap.Storage.Variants.Webp do
   @moduledoc """
   Writes image variants as WebP together with an inline placeholder.
 
-  The placeholder is a tiny WebP encoded as a data URI and stored in the variant
-  blob metadata under `placeholder`. The guide renders it blurred while the full
-  image loads, so it has to stay small enough to ship inline with every record.
+  The placeholder is a tiny WebP encoded as a data URI, stored in the variant
+  blob's `placeholder` column (`TcgCheap.Storage.Changes.StorePlaceholder`).
+  The guide renders it blurred while the full image loads, so it has to stay
+  small enough to ship inline with every record.
   """
 
   @placeholder_width 8

@@ -41,6 +41,8 @@ defmodule TcgCheapWeb.SocialImage do
   # A render waits this long for a free slot before giving up.
   @slot_wait_ms 3_000
   @min_title 40
+  @xml_forbidden ~r/[\x00-\x08\x0B\x0C\x0E-\x1F]/u
+  @spaces ~r/\s+/u
 
   def width, do: @width
   def height, do: @height
@@ -53,9 +55,10 @@ defmodule TcgCheapWeb.SocialImage do
   @spec product_version(map()) :: String.t()
   def product_version(%{product: product, verdict: verdict} = page) do
     version(
-      {product.name, product.photo_page_url, product.kind, product.set_name, product.region,
-       verdict.status, verdict.cheapest && {verdict.cheapest.price, verdict.cheapest.shop},
-       verdict.typical, length(verdict.shop_prices), page.past.last_known,
+      {product.name, product.stored_photo_page_url, product.kind, product.set_name,
+       product.region, verdict.status,
+       verdict.cheapest && {verdict.cheapest.price, verdict.cheapest.shop}, verdict.typical,
+       length(verdict.shop_prices), page.past.last_known,
        page.suggested_price && page.suggested_price.price}
     )
   end
@@ -110,7 +113,7 @@ defmodule TcgCheapWeb.SocialImage do
   @spec product(map()) :: {:ok, binary()} | {:partial, binary()} | {:error, term()}
   def product(%{product: product} = page) do
     with_slot(fn ->
-      photo = photo(product.photo_page_url)
+      photo = photo(product.stored_photo_page_url)
 
       {column, tile} =
         case photo do
@@ -369,8 +372,8 @@ defmodule TcgCheapWeb.SocialImage do
   defp normalize(text),
     do:
       text
-      |> String.replace(~r/[\x00-\x08\x0B\x0C\x0E-\x1F]/u, "")
-      |> String.split(~r/\s+/u, trim: true)
+      |> String.replace(@xml_forbidden, "")
+      |> String.split(@spaces, trim: true)
       |> Enum.join(" ")
 
   # The fewest lines greedy wrapping needs, then the split with the most

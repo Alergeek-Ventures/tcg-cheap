@@ -16,6 +16,19 @@ defmodule TcgCheap.Sealed.Refresh do
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{DailyPrice, Matcher, Offer, Shop}
 
+  # Matching reads names and set names; availability compares and updates
+  # the rest. Kind and region stay for the product's validations.
+  @product_fields [
+    :name,
+    :set_name,
+    :kind,
+    :region,
+    :available,
+    :lowest_price,
+    :lowest_preorder_price,
+    :image_url
+  ]
+
   @spec run(Shop.t(), keyword()) :: {:ok, %{offers: non_neg_integer()}} | {:error, term()}
   def run(%Shop{} = shop, opts \\ []) do
     now = Keyword.get_lazy(opts, :now, &DateTime.utc_now/0)
@@ -50,9 +63,16 @@ defmodule TcgCheap.Sealed.Refresh do
   @spec recompute(DateTime.t()) :: :ok
   def recompute(%DateTime{} = now) do
     lock_recompute()
-    products = Sealed.list_products!()
+    products = Sealed.list_products!(query: [select: @product_fields])
     rematch_offers(products)
-    current = now |> Sealed.current_offers() |> Enum.filter(& &1.product_id)
+
+    current =
+      now
+      |> Sealed.current_offers(:all,
+        select: [:product_id, :price, :in_stock, :preorder, :image_url]
+      )
+      |> Enum.filter(& &1.product_id)
+
     record_shop_prices(current, DateTime.to_date(now))
     update_products(products, current)
     :ok
@@ -112,7 +132,7 @@ defmodule TcgCheap.Sealed.Refresh do
   end
 
   defp rematch_offers(products) do
-    offers = Sealed.list_offers!()
+    offers = Sealed.list_offers!(query: [select: [:title, :ean, :manual?, :product_id]])
     index = Matcher.index(products, Sealed.known_eans())
 
     for %Offer{manual?: false} = offer <- offers,
@@ -127,7 +147,8 @@ defmodule TcgCheap.Sealed.Refresh do
     by_product = current |> Enum.filter(& &1.in_stock) |> Enum.group_by(& &1.product_id)
 
     previously_priced =
-      for %{lowest_price: %Decimal{}, product_id: id} <- Sealed.list_daily_prices_on!(today),
+      for %{lowest_price: %Decimal{}, product_id: id} <-
+            Sealed.list_daily_prices_on!(today, query: [select: [:product_id, :lowest_price]]),
           do: id
 
     ids = Enum.uniq(Enum.map(current, & &1.product_id) ++ previously_priced)

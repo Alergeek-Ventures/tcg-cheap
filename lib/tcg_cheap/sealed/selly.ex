@@ -23,6 +23,9 @@ defmodule TcgCheap.Sealed.Selly do
 
   alias TcgCheap.Sealed.{Ean, HtmlListing, Shop, ShopFeed}
 
+  @link_id ~r/,id([0-9]+)\.html\z/
+  @medium_image ~r{(/[0-9]+)_med(\.[a-z]+)(?=\?|\z)}
+
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
 
@@ -94,7 +97,7 @@ defmodule TcgCheap.Sealed.Selly do
     price = HtmlListing.text(HtmlListing.first(box, "strong.price"))
 
     with true <- is_binary(href) and is_binary(title) and is_binary(price),
-         [_, id] <- Regex.run(~r/,id([0-9]+)\.html\z/, href) do
+         [_, id] <- Regex.run(@link_id, href) do
       %{
         id: id,
         href: href,
@@ -159,7 +162,7 @@ defmodule TcgCheap.Sealed.Selly do
   defp image_url(_shop, nil), do: nil
 
   defp image_url(shop, path) do
-    path = Regex.replace(~r{(/[0-9]+)_med(\.[a-z]+)(?=\?|\z)}, path, "\\1_max\\2")
+    path = Regex.replace(@medium_image, path, "\\1_max\\2")
     ShopFeed.image_url("https://#{shop.host}#{path}", image_hosts(shop))
   end
 end

@@ -20,6 +20,8 @@ defmodule TcgCheap.Sealed.Sellingo do
 
   alias TcgCheap.Sealed.{HtmlListing, Shop, ShopFeed}
 
+  @total ~r/\A\(([0-9]{1,6}) Produkt(?:y|ów)?\)\z/u
+
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
 
@@ -44,7 +46,7 @@ defmodule TcgCheap.Sealed.Sellingo do
   defp total(document) do
     with text when is_binary(text) <-
            HtmlListing.text(HtmlListing.first(document, ".c-section-header__subtext")),
-         [_, total] <- Regex.run(~r/\A\(([0-9]{1,6}) Produkt(?:y|ów)?\)\z/u, text) do
+         [_, total] <- Regex.run(@total, text) do
       {:ok, String.to_integer(total)}
     else
       _ -> {:error, :malformed_pagination}

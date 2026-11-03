@@ -32,7 +32,11 @@ defmodule TcgCheap.Catalogue.Changes.LockAndValidateCardmarketExpansion do
 
   defp lock_set(changeset) do
     id = Ash.Changeset.get_data(changeset, :id)
-    query = Ash.Query.for_read(TcgCheap.Catalogue.CardSet, :lock_for_update_by_id, %{id: id})
+
+    query =
+      TcgCheap.Catalogue.CardSet
+      |> Ash.Query.for_read(:lock_for_update_by_id, %{id: id})
+      |> Ash.Query.select([:cardmarket_expansion_id, :cardmarket_mapping_authority, :updated_at])
 
     case Ash.read_one(query, domain: TcgCheap.Core, authorize?: false) do
       {:ok, nil} ->
@@ -57,6 +61,7 @@ defmodule TcgCheap.Catalogue.Changes.LockAndValidateCardmarketExpansion do
     query =
       Ash.Query.for_read(CardmarketExpansionMapping, :read, %{})
       |> Ash.Query.filter(expr(id == ^id))
+      |> Ash.Query.select([:source_batch_id, :card_set_id, :expansion_id, :status])
 
     with {:ok, mapping} when not is_nil(mapping) <-
            Ash.read_one(query, domain: TcgCheap.Core, authorize?: false),

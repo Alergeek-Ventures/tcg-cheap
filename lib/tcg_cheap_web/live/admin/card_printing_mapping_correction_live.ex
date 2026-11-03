@@ -10,6 +10,7 @@ defmodule TcgCheapWeb.Admin.CardPrintingMappingCorrectionLive do
   require Ash.Query
 
   @max_product_id 9_223_372_036_854_775_807
+  @digits ~r/^[0-9]+$/
 
   @fields [
     :id,
@@ -347,7 +348,7 @@ defmodule TcgCheapWeb.Admin.CardPrintingMappingCorrectionLive do
   end
 
   defp parse_product_id(value) when is_binary(value) do
-    if Regex.match?(~r/^[0-9]+$/, value) do
+    if Regex.match?(@digits, value) do
       case Integer.parse(value) do
         {id, ""} when id in 1..@max_product_id -> {:ok, id}
         _ -> :error

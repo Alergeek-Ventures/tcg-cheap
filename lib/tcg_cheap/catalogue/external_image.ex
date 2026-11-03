@@ -68,13 +68,9 @@ defmodule TcgCheap.Catalogue.ExternalImage do
 
   @spec valid?(term()) :: boolean()
   def valid?(url) do
-    with true <- ExternalUrl.valid?(url),
-         %URI{host: host, port: 443} when is_binary(host) <- URI.parse(url) do
-      String.downcase(host) in hosts()
-    else
+    case ExternalUrl.parse(url) do
+      {:ok, %URI{host: host, port: 443}} -> String.downcase(host) in hosts()
       _ -> false
     end
-  rescue
-    _ -> false
   end
 end

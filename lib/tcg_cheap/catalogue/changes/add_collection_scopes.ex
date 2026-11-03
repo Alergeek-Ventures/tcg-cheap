@@ -44,6 +44,12 @@ defmodule TcgCheap.Catalogue.Changes.AddCollectionScopes do
   defp lock_latest(changeset) do
     CardPrinting
     |> Ash.Query.for_read(:lock_for_update_by_id, %{id: Ash.Changeset.get_data(changeset, :id)})
+    |> Ash.Query.select([
+      :collection_scopes,
+      :collection_scope_source,
+      :collection_scoped_at,
+      :collection_expires_on
+    ])
     |> Ash.read_one(domain: TcgCheap.Core, authorize?: false)
     |> case do
       {:ok, %CardPrinting{} = card} -> {:ok, card}

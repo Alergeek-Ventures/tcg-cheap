@@ -18,6 +18,7 @@ defmodule TcgCheap.Trades.Composition do
   @max_quantity 99
   @max_rows 50
   @max_side_bytes 8_000
+  @digits ~r/^\d+$/u
 
   defstruct left: [], right: []
 
@@ -183,7 +184,7 @@ defmodule TcgCheap.Trades.Composition do
   end
 
   defp parse_quantity(value) do
-    if value != "" and String.match?(value, ~r/^\d+$/u) do
+    if value != "" and String.match?(value, @digits) do
       case Integer.parse(value) do
         {quantity, ""} when quantity in 1..@max_quantity -> {:ok, quantity}
         _ -> :error

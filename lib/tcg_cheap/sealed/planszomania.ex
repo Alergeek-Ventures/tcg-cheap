@@ -60,7 +60,8 @@ defmodule TcgCheap.Sealed.Planszomania do
     with {:ok, title} <- ShopFeed.title(row |> Floki.find("a.title") |> Floki.text()),
          true <- ShopFeed.sealed_pokemon?(title, category(row)) || :ignore,
          [_, id] <- Regex.run(@link, link || ""),
-         {:ok, url} <- ShopFeed.https_url("https://#{shop.host}/#{link}", [shop.host]),
+         url = "https://#{shop.host}/#{link}",
+         {:ok, _uri} <- ShopFeed.https_url(url, [shop.host]),
          {:ok, price} <- price(row),
          {:ok, in_stock} <- in_stock(row) do
       {:ok,
@@ -68,7 +69,7 @@ defmodule TcgCheap.Sealed.Planszomania do
          %{
            shop_product_id: id,
            title: title,
-           url: URI.to_string(url),
+           url: url,
            image_url: image_url(shop, row),
            ean: nil,
            price: price,

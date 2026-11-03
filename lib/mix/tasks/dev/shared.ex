@@ -2,12 +2,14 @@ defmodule Mix.Tasks.Dev.Shared do
   @moduledoc "Shared, deliberately small primitives for the local lifecycle tasks."
 
   @compose_file "local/compose.yml"
+  @non_word ~r/[^a-z0-9]+/
+  @dotenv_assignment ~r/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/
 
   def sanitize_branch(branch) when is_binary(branch) do
     branch
     |> String.trim()
     |> String.downcase()
-    |> String.replace(~r/[^a-z0-9]+/, "-")
+    |> String.replace(@non_word, "-")
     |> String.trim("-")
     |> case do
       "" -> "main"
@@ -51,9 +53,7 @@ defmodule Mix.Tasks.Dev.Shared do
   end
 
   defp parse_dotenv_assignment(line, acc) do
-    case Regex.run(~r/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/, line,
-           capture: :all_but_first
-         ) do
+    case Regex.run(@dotenv_assignment, line, capture: :all_but_first) do
       [key, value] -> Map.put(acc, key, unquote_value(value))
       _ -> acc
     end

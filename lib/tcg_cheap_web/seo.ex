@@ -202,6 +202,6 @@ defmodule TcgCheapWeb.SEO do
   end
 
   # Our stored copy of the packaging photo when there is one, else the shop's.
-  defp image(%{photo_page_url: url}) when is_binary(url), do: url
+  defp image(%{stored_photo_page_url: url}) when is_binary(url), do: url
   defp image(_product), do: nil
 end

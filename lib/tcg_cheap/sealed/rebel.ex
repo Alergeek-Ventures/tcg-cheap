@@ -33,6 +33,12 @@ defmodule TcgCheap.Sealed.Rebel do
   @pause_ms 5_000
   @max_pages 10
   @reprint_window_days 2 * 365
+  @display_of_36 ~r/Booster Display \(36\)/i
+  @unit_count ~r/\((\d+)\)/
+  @display ~r/display/i
+  @row_id ~r/\Aproduct-row product-(\d{1,20})\b/
+  @product_path ~r{\A/products/[a-z0-9-]+\.html\z}
+  @barcode ~r/\b\d{12,13}\b/
 
   @type item :: %{
           rebel_id: String.t(),
@@ -69,7 +75,11 @@ defmodule TcgCheap.Sealed.Rebel do
   """
   @spec rematch() :: non_neg_integer()
   def rematch do
-    english = Enum.filter(Sealed.list_products!(), &(&1.region == :en))
+    english =
+      Sealed.list_products!(
+        query: [filter: [region: :en], select: [:name, :set_name, :cardmarket_added_on]]
+      )
+
     eans = Sealed.known_eans()
 
     Sealed.list_suggested_prices!()
@@ -97,7 +107,7 @@ defmodule TcgCheap.Sealed.Rebel do
   @doc "The product an item matches automatically, or nil."
   @spec product_id(map(), Matcher.t()) :: Ecto.UUID.t() | nil
   def product_id(item, index) do
-    title = String.replace(item.title, ~r/Booster Display \(36\)/i, "Booster Box")
+    title = String.replace(item.title, @display_of_36, "Booster Box")
 
     if several_units?(title),
       do: nil,
@@ -105,8 +115,8 @@ defmodule TcgCheap.Sealed.Rebel do
   end
 
   defp several_units?(title) do
-    case Regex.run(~r/\((\d+)\)/, title) do
-      [_, count] -> String.to_integer(count) > 1 and not (title =~ ~r/display/i)
+    case Regex.run(@unit_count, title) do
+      [_, count] -> String.to_integer(count) > 1 and not (title =~ @display)
       nil -> false
     end
   end
@@ -149,8 +159,8 @@ defmodule TcgCheap.Sealed.Rebel do
     path =
       link && link |> Floki.attribute("href") |> List.first("") |> URI.parse() |> Map.get(:path)
 
-    with [_, id] <- Regex.run(~r/\Aproduct-row product-(\d{1,20})\b/, class(row)),
-         true <- is_binary(path) and path =~ ~r{\A/products/[a-z0-9-]+\.html\z},
+    with [_, id] <- Regex.run(@row_id, class(row)),
+         true <- is_binary(path) and path =~ @product_path,
          {:ok, title} <- ShopFeed.title(HtmlListing.text(link)),
          {:ok, price} <- row |> Floki.find("td") |> List.last() |> HtmlListing.text() |> price() do
       [%{rebel_id: id, title: title, url: @base <> path, price: price}]
@@ -189,7 +199,7 @@ defmodule TcgCheap.Sealed.Rebel do
   defp barcode(nil), do: nil
 
   defp barcode(text) do
-    case Regex.run(~r/\b\d{12,13}\b/, text) do
+    case Regex.run(@barcode, text) do
       [code] -> Ean.normalize(code)
       nil -> nil
     end

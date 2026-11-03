@@ -25,6 +25,7 @@ defmodule TcgCheap.Sealed.MagicznyRynek do
 
   @images ["magicznyrynek.pl", "cards.magicznyrynek.aexol.work"]
   @next_data ~r|<script id="__NEXT_DATA__" type="application/json"[^>]*>(.*?)</script>|s
+  @variant_id ~r/\A[0-9]{1,12}\z/
 
   @impl true
   def image_hosts(%Shop{}), do: @images
@@ -92,17 +93,15 @@ defmodule TcgCheap.Sealed.MagicznyRynek do
          true <- ShopFeed.sealed_pokemon?(title, "Pokemon") || :ignore,
          {:ok, id} <- ShopFeed.product_id(product["productId"]),
          {:ok, variant} <- variant_id(product["productVariantId"]),
-         {:ok, url} <-
-           ShopFeed.https_url("https://#{shop.host}/products/#{product["slug"]}/#{variant}/", [
-             shop.host
-           ]),
+         url = "https://#{shop.host}/products/#{product["slug"]}/#{variant}/",
+         {:ok, _uri} <- ShopFeed.https_url(url, [shop.host]),
          {:ok, price} <- price(product["priceWithTax"]) do
       {:ok,
        [
          %{
            shop_product_id: id,
            title: title,
-           url: URI.to_string(url),
+           url: url,
            image_url: image_url(product["productAsset"]),
            ean: nil,
            price: price,
@@ -118,7 +117,7 @@ defmodule TcgCheap.Sealed.MagicznyRynek do
   defp normalize(_shop, _product), do: :invalid
 
   defp variant_id(id) when is_binary(id) do
-    if Regex.match?(~r/\A[0-9]{1,12}\z/, id), do: {:ok, id}, else: :error
+    if Regex.match?(@variant_id, id), do: {:ok, id}, else: :error
   end
 
   defp variant_id(_id), do: :error

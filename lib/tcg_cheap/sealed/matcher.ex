@@ -131,6 +131,14 @@ defmodule TcgCheap.Sealed.Matcher do
   # Two or more pieces ("x3", "10x", "36 szt"); "1 szt" is still one item.
   @multiples ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuk|szt|pcs))(?: |\z)/
 
+  # Pack counts such as "(36)" or "(18 boosterów)" say nothing about identity.
+  @pack_count ~r/\(\s*\d{1,3}\s*[[:alpha:]]*\s*\)/u
+  @case_units ~r/\A\d{1,2}\z/
+  @digit_letter ~r/(\d)([a-z])/
+  @letter_digit ~r/([a-z])(\d)/
+  @diacritic ~r/\p{Mn}/u
+  @non_word ~r/[^a-z0-9]+/
+
   defstruct entries: [], by_rare_token: %{}, sets: [], eans: %{}
 
   @type t :: %__MODULE__{}
@@ -295,10 +303,9 @@ defmodule TcgCheap.Sealed.Matcher do
       MapSet.size(MapSet.difference(offer_set, entry.tokens)) <= @max_unexplained
   end
 
-  # Pack counts such as "(36)" or "(18 boosterów)" say nothing about identity.
   defp offer_tokens(title, sets) do
     title
-    |> String.replace(~r/\(\s*\d{1,3}\s*[[:alpha:]]*\s*\)/u, " ")
+    |> String.replace(@pack_count, " ")
     |> tokens()
     |> strip_series(sets)
   end
@@ -326,7 +333,7 @@ defmodule TcgCheap.Sealed.Matcher do
     tokens = tokens(name)
 
     if "case" in tokens,
-      do: Enum.reject(tokens, &String.match?(&1, ~r/\A\d{1,2}\z/)),
+      do: Enum.reject(tokens, &String.match?(&1, @case_units)),
       else: tokens
   end
 
@@ -336,8 +343,8 @@ defmodule TcgCheap.Sealed.Matcher do
     normalized =
       text
       |> normalize()
-      |> String.replace(~r/(\d)([a-z])/, "\\1 \\2")
-      |> String.replace(~r/([a-z])(\d)/, "\\1 \\2")
+      |> String.replace(@digit_letter, "\\1 \\2")
+      |> String.replace(@letter_digit, "\\1 \\2")
 
     @synonyms
     |> Enum.reduce(" " <> normalized <> " ", fn {from, to}, acc ->
@@ -355,9 +362,9 @@ defmodule TcgCheap.Sealed.Matcher do
     |> String.downcase()
     |> String.replace("ł", "l")
     |> :unicode.characters_to_nfd_binary()
-    |> String.replace(~r/\p{Mn}/u, "")
+    |> String.replace(@diacritic, "")
     |> String.replace("&", " and ")
-    |> String.replace(~r/[^a-z0-9]+/, " ")
+    |> String.replace(@non_word, " ")
     |> String.trim()
   end
 

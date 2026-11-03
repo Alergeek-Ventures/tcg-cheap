@@ -40,6 +40,9 @@ defmodule TcgCheap.Sealed.PrestaShop do
   @preorder ~r/\b(?:przedsprzedaz|przedpremier|zapowiedz|preorder|pre order)/
   @premiere ~r/\bpremier\w*(?: (\d{1,2}) (\d{1,2}|[a-z]{3}) (\d{4}))?/
   @months ~w(sty lut mar kwi maj cze lip sie wrz paz lis gru)
+  # "1 799,95 zł", with a no-break space for the thousands and before "zł".
+  @price ~r/\A([0-9][0-9\s\x{a0}]*),([0-9]{2})[\s\x{a0}]zł\z/u
+  @non_digit ~r/[^0-9]/
 
   @impl true
   def image_hosts(%Shop{images: false}), do: []
@@ -216,11 +219,10 @@ defmodule TcgCheap.Sealed.PrestaShop do
          else: (_ -> :error)
   end
 
-  # "1 799,95 zł", with a no-break space for the thousands and before "zł".
   defp price(text) when is_binary(text) do
-    case Regex.run(~r/\A([0-9][0-9\s\x{a0}]*),([0-9]{2})[\s\x{a0}]zł\z/u, text) do
+    case Regex.run(@price, text) do
       [_text, whole, fraction] ->
-        ShopFeed.decimal_price(String.replace(whole, ~r/[^0-9]/, "") <> "." <> fraction)
+        ShopFeed.decimal_price(String.replace(whole, @non_digit, "") <> "." <> fraction)
 
       nil ->
         :error

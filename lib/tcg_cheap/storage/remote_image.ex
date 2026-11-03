@@ -36,6 +36,7 @@ defmodule TcgCheap.Storage.RemoteImage do
       argument :hash, :string, allow_nil?: false
       get? true
       filter expr(id == ^arg(:hash))
+      prepare build(select: [:thumbnail_key, :detail_key, :trim_margins, :attempted_at])
     end
 
     read :registered do

@@ -17,6 +17,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetPullRates do
   @pull_rates ~w(cards_per_pack rates sources borrowed_from checked_on)
   @rate ~w(rarity per_pack percent card)
   @source ~w(url sample_packs data_from)
+  @diacritic ~r/\p{Mn}/u
 
   @impl true
   def run(input, _opts, _context) do
@@ -128,7 +129,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetPullRates do
   defp normalize(name) do
     name
     |> String.normalize(:nfd)
-    |> String.replace(~r/\p{Mn}/u, "")
+    |> String.replace(@diacritic, "")
     |> String.downcase()
     |> String.trim()
   end

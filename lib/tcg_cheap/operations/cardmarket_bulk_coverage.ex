@@ -10,6 +10,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
 
   @policy "cardmarket_bulk_v1"
   @provider "cardmarket_bulk"
+  @sha256_hex ~r/\A[0-9a-fA-F]{64}\z/
   @doc "Loads persisted Cardmarket bulk coverage evidence and diagnostics."
   def load_system(opts \\ []), do: load_report(nil, opts, false)
 
@@ -182,7 +183,7 @@ defmodule TcgCheap.Operations.CardmarketBulkCoverage do
       b.priceable_singles_count <= b.singles_price_row_count
   end
 
-  defp valid_hash?(value), do: is_binary(value) and Regex.match?(~r/\A[0-9a-fA-F]{64}\z/, value)
+  defp valid_hash?(value), do: is_binary(value) and Regex.match?(@sha256_hex, value)
 
   defp past_utc?(%DateTime{time_zone: "Etc/UTC"} = value, now),
     do: DateTime.compare(value, now) != :gt

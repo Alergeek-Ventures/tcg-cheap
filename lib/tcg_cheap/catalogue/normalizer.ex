@@ -1,6 +1,8 @@
 defmodule TcgCheap.Catalogue.Normalizer do
   @moduledoc false
 
+  @file_extension ~r/\.[A-Za-z0-9]+(?:[?#].*)?$/
+
   def canonical_local_id(value) when is_integer(value), do: Integer.to_string(value)
   def canonical_local_id(value) when is_binary(value), do: String.trim(value)
 
@@ -12,7 +14,7 @@ defmodule TcgCheap.Catalogue.Normalizer do
 
     cond do
       value == "" -> nil
-      String.match?(value, ~r/\.[A-Za-z0-9]+(?:[?#].*)?$/) -> value
+      String.match?(value, @file_extension) -> value
       kind == :card -> value <> "/high.webp"
       true -> value <> ".webp"
     end

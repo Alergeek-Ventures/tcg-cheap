@@ -150,7 +150,7 @@ defmodule TcgCheap.Sealed do
       define :set_product_contents, action: :set_contents, args: [:contents]
       define :set_product_photo, action: :set_photo, args: [:checked_photo_url]
       define :list_photos_to_mirror, action: :photos_to_mirror, args: [:limit]
-      define :list_photos_without_small, action: :photos_without_small, args: [:limit]
+      define :list_photos_missing_variants, action: :photos_missing_variants, args: [:limit]
       define :record_photo_source, action: :record_photo_source, args: [:photo_source_url]
       define :record_photo_attempt, action: :record_photo_attempt
       define :get_product, action: :read, get_by: [:id], not_found_error?: false
@@ -240,16 +240,26 @@ defmodule TcgCheap.Sealed do
     end
   end
 
-  @doc "Every current offer, or only those of the given products (see the module documentation)."
-  @spec current_offers(DateTime.t(), [Ecto.UUID.t()] | :all) :: [Offer.t()]
-  def current_offers(%DateTime{} = now, product_ids \\ :all) do
+  @doc """
+  Every current offer, or only those of the given products (see the module
+  documentation). `select:` reads only these offer fields (besides `id`,
+  `shop` and `last_seen_at`).
+  """
+  @spec current_offers(DateTime.t(), [Ecto.UUID.t()] | :all, keyword()) :: [Offer.t()]
+  def current_offers(%DateTime{} = now, product_ids \\ :all, opts \\ []) do
     since = DateTime.add(now, -@current_for_seconds, :second)
     latest = latest_shop_fetches!(since)
 
+    read =
+      case Keyword.fetch(opts, :select) do
+        {:ok, fields} -> [query: [select: [:shop, :last_seen_at | fields]]]
+        :error -> []
+      end
+
     offers =
       case product_ids do
-        :all -> list_offers_seen_since!(since)
-        ids -> list_offers_seen_since_for_products!(since, ids)
+        :all -> list_offers_seen_since!(since, read)
+        ids -> list_offers_seen_since_for_products!(since, ids, read)
       end
 
     Enum.filter(offers, &(DateTime.compare(&1.last_seen_at, Map.fetch!(latest, &1.shop)) == :eq))
@@ -265,7 +275,9 @@ defmodule TcgCheap.Sealed do
 
   defp confirmed_eans do
     from_products =
-      for product <- list_products_with_eans!(), ean <- product.eans, do: {ean, product.id}
+      for product <- list_products_with_eans!(query: [select: [:eans]]),
+          ean <- product.eans,
+          do: {ean, product.id}
 
     from_offers =
       for %Offer{ean: ean, product_id: id} <- list_manual_offers!(),

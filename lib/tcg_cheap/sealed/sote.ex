@@ -28,6 +28,7 @@ defmodule TcgCheap.Sealed.Sote do
 
   @in_stock ["Duża ilość", "Średnia ilość", "Ostatnie sztuki"]
   @out_of_stock ["Brak", "Przedsprzedaż"]
+  @page_number ~r/\A[0-9]{1,3}\z/
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -82,7 +83,7 @@ defmodule TcgCheap.Sealed.Sote do
       document
       |> Floki.find("ul.pagination li a")
       |> Enum.map(&HtmlListing.text/1)
-      |> Enum.filter(&(is_binary(&1) and Regex.match?(~r/\A[0-9]{1,3}\z/, &1)))
+      |> Enum.filter(&(is_binary(&1) and Regex.match?(@page_number, &1)))
       |> Enum.map(&String.to_integer/1)
 
     if active == Integer.to_string(page) and numbers != [],

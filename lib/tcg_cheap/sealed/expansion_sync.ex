@@ -32,6 +32,7 @@ defmodule TcgCheap.Sealed.ExpansionSync do
   @pause_ms 100
   @budget_ms :timer.minutes(5)
   @logo_host "https://assets.tcgdex.net/"
+  @ex_era_id ~r/\Aex\d+\z/
 
   @spec run(keyword()) ::
           {:ok, %{checked: non_neg_integer(), remapped: non_neg_integer()}} | {:error, term()}
@@ -101,7 +102,7 @@ defmodule TcgCheap.Sealed.ExpansionSync do
   # Cardmarket includes the EX series label in these booster titles; TCGdex
   # leaves it out of the set name. Apply this only to EX-era TCGdex ids.
   defp booster_name(%{name: name, tcgdex_id: id}) when is_binary(name) do
-    name = if Regex.match?(~r/\Aex\d+\z/, id), do: "EX " <> name, else: name
+    name = if Regex.match?(@ex_era_id, id), do: "EX " <> name, else: name
     Matcher.normalize(name)
   end
 

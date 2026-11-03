@@ -35,6 +35,7 @@ defmodule TcgCheap.Sealed.Kinds do
   @card_set 1654
 
   @excluded_categories [@coins, @lot]
+  @non_word ~r/[^a-z0-9]+/u
 
   @spec all() :: [atom()]
   def all, do: Keyword.keys(@kinds)
@@ -66,7 +67,7 @@ defmodule TcgCheap.Sealed.Kinds do
   """
   @spec from_cardmarket(integer(), String.t()) :: atom()
   def from_cardmarket(category_id, name) do
-    words = name |> String.downcase() |> String.split(~r/[^a-z0-9]+/u, trim: true)
+    words = name |> String.downcase() |> String.split(@non_word, trim: true)
 
     cond do
       "case" in words -> :case

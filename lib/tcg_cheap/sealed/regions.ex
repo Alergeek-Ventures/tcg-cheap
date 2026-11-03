@@ -55,6 +55,7 @@ defmodule TcgCheap.Sealed.Regions do
   ]
 
   @chinese_code ~r/^[A-Za-z0-9.]*\d[A-Za-z0-9.]*C:/
+  @non_letter ~r/[^a-z]+/
 
   @spec all() :: [atom()]
   def all, do: Keyword.keys(@regions)
@@ -110,7 +111,7 @@ defmodule TcgCheap.Sealed.Regions do
   defp from_tcgdex(_language), do: nil
 
   defp from_name(name) do
-    words = name |> String.downcase() |> String.split(~r/[^a-z]+/, trim: true)
+    words = name |> String.downcase() |> String.split(@non_letter, trim: true)
 
     cond do
       Regex.match?(@chinese_code, name) -> :zh

@@ -36,7 +36,9 @@ defmodule TcgCheap.Sealed.PhotoMirror do
 
     offers =
       DateTime.utc_now()
-      |> Sealed.current_offers(Enum.map(products, & &1.id))
+      |> Sealed.current_offers(Enum.map(products, & &1.id),
+        select: [:product_id, :price, :in_stock, :image_url]
+      )
       |> Enum.group_by(& &1.product_id)
 
     products
@@ -46,19 +48,24 @@ defmodule TcgCheap.Sealed.PhotoMirror do
   end
 
   @doc """
-  Makes the `small` variant for up to `limit` photos stored before it existed;
-  returns how many were added and how many failed. Pages show it once stored.
+  Makes the missing variants (e.g. one added since) of up to `limit` stored
+  photos; returns how many photos were completed and how many failed. Pages
+  show a variant once stored.
   """
-  @spec add_small_variants(pos_integer()) :: %{
+  @spec add_missing_variants(pos_integer()) :: %{
           added: non_neg_integer(),
           failed: non_neg_integer()
         }
-  def add_small_variants(limit) do
-    # AshStorage's own URL calculation generates a missing variant.
+  def add_missing_variants(limit) do
+    # AshStorage's own URL calculations generate a missing variant.
     limit
-    |> Sealed.list_photos_without_small!()
-    |> Ash.load!(:photo_small_url)
-    |> Enum.frequencies_by(&if(&1.photo_small_url, do: :added, else: :failed))
+    |> Sealed.list_photos_missing_variants!()
+    |> Ash.load!([:photo_small_url, :photo_card_url, :photo_page_url])
+    |> Enum.frequencies_by(fn product ->
+      if product.photo_small_url && product.photo_card_url && product.photo_page_url,
+        do: :added,
+        else: :failed
+    end)
     |> then(&%{added: Map.get(&1, :added, 0), failed: Map.get(&1, :failed, 0)})
   end
 
@@ -73,7 +80,7 @@ defmodule TcgCheap.Sealed.PhotoMirror do
              "#{product.slug}.#{@types[type]}",
              type
            ),
-         blob <- Ash.load!(blob, :variants),
+         blob <- Ash.load!(blob, variants: Ash.Query.select(Storage.Blob, [:variant_name])),
          true <-
            Enum.all?(["small", "card", "page"], fn name ->
              Enum.any?(blob.variants, &(&1.variant_name == name))

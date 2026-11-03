@@ -314,7 +314,7 @@ defmodule TcgCheap.Catalogue.Importer do
     do: existing && existing.card_set_id && existing.card_set_id != target_set.id
 
   defp existing_set(tcgdex_id) do
-    case Core.get_card_set_by_tcgdex_id(tcgdex_id) do
+    case Core.get_card_set_by_tcgdex_id(tcgdex_id, query: [select: [:id]]) do
       {:ok, existing} -> existing
       {:error, _} -> nil
     end

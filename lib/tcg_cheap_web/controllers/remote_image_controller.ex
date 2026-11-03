@@ -5,11 +5,12 @@ defmodule TcgCheapWeb.RemoteImageController do
   alias AshStorage.Service.Context
   alias TcgCheap.Storage
 
+  @hash ~r/\A[0-9a-f]{64}\z/
   @placeholder ~s(<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1" viewBox="0 0 1 1"></svg>)
 
   def show(conn, %{"hash" => hash, "size" => size} = params)
       when size in ["thumbnail", "detail"] do
-    with true <- Regex.match?(~r/\A[0-9a-f]{64}\z/, hash),
+    with true <- Regex.match?(@hash, hash),
          {:ok, image} when not is_nil(image) <- Storage.get_remote_image(hash),
          key when is_binary(key) <- stored_key(image, size) do
       {service, opts} = Storage.service()

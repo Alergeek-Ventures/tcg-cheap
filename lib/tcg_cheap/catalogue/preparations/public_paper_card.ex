@@ -7,8 +7,6 @@ defmodule TcgCheap.Catalogue.Preparations.PublicPaperCard do
 
   @impl true
   def prepare(query, _opts, _context) do
-    query
-    |> Ash.Query.filter(expr(not is_nil(card_set.series_id) and card_set.series_id != "tcgp"))
-    |> Ash.Query.load(:card_set)
+    Ash.Query.filter(query, expr(not is_nil(card_set.series_id) and card_set.series_id != "tcgp"))
   end
 end

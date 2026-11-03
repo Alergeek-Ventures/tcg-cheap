@@ -21,6 +21,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   @contents ~w(items sources checked_on)
   @item ~w(quantity type name tcgdex_id set number cardmarket_id image photo cards variants)
   @deck_card ~w(quantity name tcgdex_id category set number cardmarket_id image)
+  @diacritic ~r/\p{Mn}/u
 
   @impl true
   def run(input, _opts, _context) do
@@ -152,7 +153,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   defp same_name?(given, name), do: normalize(given) == normalize(name)
 
   defp normalize(name),
-    do: name |> String.normalize(:nfd) |> String.replace(~r/\p{Mn}/u, "") |> String.downcase()
+    do: name |> String.normalize(:nfd) |> String.replace(@diacritic, "") |> String.downcase()
 
   defp invalid(field, message),
     do: {:error, InvalidArgument.exception(field: field, message: message)}

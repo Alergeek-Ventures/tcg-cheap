@@ -9,6 +9,9 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
   @singles_category 51
   @metrics ~w(avg low trend avg1 avg7 avg30 avg-holo low-holo trend-holo avg1-holo avg7-holo avg30-holo)
   @malformed_provider_response {:error, {:malformed, :invalid_content_type}}
+  @json_content_type ~r/\Aapplication\/json(?:\s*;\s*[!#$%&'*+\-.^_`|~0-9A-Za-z]+\s*=\s*(?:"(?:[^"\\]|\\.)*"|[!#$%&'*+\-.^_`|~0-9A-Za-z]+))*\z/i
+  @compact_utc_offset ~r/([+-]\d{2})(\d{2})\z/
+  @decimal_string ~r/\A\d+(?:\.\d+)?\z/
 
   defstruct [
     :raw_body,
@@ -136,13 +139,9 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
 
   defp valid_json_content_type?(response) do
     case Req.Response.get_header(response, "content-type") do
-      [value] when is_binary(value) -> Regex.match?(json_content_type_regex(), value)
+      [value] when is_binary(value) -> Regex.match?(@json_content_type, value)
       _ -> false
     end
-  end
-
-  defp json_content_type_regex do
-    ~r/\Aapplication\/json(?:\s*;\s*[!#$%&'*+\-.^_`|~0-9A-Za-z]+\s*=\s*(?:"(?:[^"\\]|\\.)*"|[!#$%&'*+\-.^_`|~0-9A-Za-z]+))*\z/i
   end
 
   defp parse(body, kind, opts) when is_binary(body) do
@@ -198,7 +197,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
     do: Enum.count(rows, &(!is_nil(&1.selected_value)))
 
   defp created_at(%{"version" => 1, "createdAt" => value}) when is_binary(value) do
-    normalized = Regex.replace(~r/([+-]\d{2})(\d{2})\z/, value, "\\1:\\2")
+    normalized = Regex.replace(@compact_utc_offset, value, "\\1:\\2")
 
     case DateTime.from_iso8601(normalized) do
       {:ok, date, _} -> {:ok, date}
@@ -379,7 +378,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
   defp decimal(value) when is_integer(value) and value >= 0, do: decimal(Decimal.new(value))
 
   defp decimal(value) when is_binary(value) do
-    if String.match?(value, ~r/\A\d+(?:\.\d+)?\z/),
+    if String.match?(value, @decimal_string),
       do: decimal(Decimal.new(value)),
       else: {:error, {:invalid_number, value}}
   end

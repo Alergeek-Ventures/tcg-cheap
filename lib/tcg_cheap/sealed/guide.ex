@@ -14,6 +14,18 @@ defmodule TcgCheap.Sealed.Guide do
   # 2026-11-02); orders above 25 € must be tracked, which covers most sealed
   # products.
   @cardmarket_shipping_eur Decimal.new("15.49")
+  # The product fields a summary and its list row read.
+  @summary_fields [
+    :slug,
+    :name,
+    :kind,
+    :region,
+    :set_name,
+    :cardmarket_expansion_id,
+    :cardmarket_trend
+  ]
+  @pack_size ~r/\((\d+) Cards?\)/i
+  @card_number ~r/\A(\D*)(\d+)(.*)\z/
 
   @type summary :: %{
           product: Product.t(),
@@ -46,7 +58,13 @@ defmodule TcgCheap.Sealed.Guide do
     page =
       Sealed.browse_products!(filters.query, filters.kind, filters.region, filters.expansion,
         page: [limit: @page_size, offset: offset, count: true],
-        load: [:stored_photo_small_url, :photo_card_url, :photo_page_url, :photo_placeholder]
+        query: [select: @summary_fields],
+        load: [
+          :stored_photo_small_url,
+          :stored_photo_card_url,
+          :stored_photo_page_url,
+          :photo_placeholder
+        ]
       )
 
     {summaries(page.results, now), page.more?, page.count || 0}
@@ -153,7 +171,11 @@ defmodule TcgCheap.Sealed.Guide do
   defp read_logos do
     tcgdex =
       for {id, %{language: "en", logo_url: "" <> url}} <-
-            TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!()),
+            TcgdexSet.by_expansion(
+              Sealed.list_tcgdex_sets!(
+                query: [select: [:cardmarket_expansion_id, :language, :name, :logo_url]]
+              )
+            ),
           source = CardImage.logo_source_url(url),
           do: {id, source, CardImage.logo_url(url)}
 
@@ -226,9 +248,20 @@ defmodule TcgCheap.Sealed.Guide do
     today = DateTime.to_date(now)
     rate = eur_pln(today)
     ids = Enum.map(products, & &1.id)
-    offers = now |> Sealed.current_offers(ids) |> Enum.group_by(& &1.product_id)
+
+    offers =
+      now
+      |> Sealed.current_offers(ids, select: [:product_id, :price, :in_stock, :preorder])
+      |> Enum.group_by(& &1.product_id)
+
     since = Date.add(today, -(PriceGuide.window_days() - 1))
-    histories = ids |> Sealed.list_price_histories!(since) |> Enum.group_by(& &1.product_id)
+
+    histories =
+      ids
+      |> Sealed.list_price_histories!(since,
+        query: [select: [:product_id, :date, :lowest_price]]
+      )
+      |> Enum.group_by(& &1.product_id)
 
     premieres = premieres(products)
 
@@ -248,7 +281,7 @@ defmodule TcgCheap.Sealed.Guide do
   """
   @spec product(String.t(), DateTime.t()) :: {:ok, map()} | :error
   def product(slug, %DateTime{} = now) do
-    case Sealed.get_product_by_slug!(slug, load: [:photo_page_url, :photo_placeholder]) do
+    case Sealed.get_product_by_slug!(slug, load: [:stored_photo_page_url, :photo_placeholder]) do
       nil ->
         :error
 
@@ -300,7 +333,9 @@ defmodule TcgCheap.Sealed.Guide do
 
       names ->
         names
-        |> Sealed.list_boosters_by_name!(region, load: [:stored_photo_small_url, :photo_card_url])
+        |> Sealed.list_boosters_by_name!(region,
+          load: [:stored_photo_small_url, :stored_photo_card_url]
+        )
         |> Map.new(&{String.replace_suffix(&1.name, " Booster", ""), &1})
     end
   end
@@ -336,7 +371,7 @@ defmodule TcgCheap.Sealed.Guide do
   defp booster_set(_product), do: nil
 
   defp pack_size(product) do
-    case Regex.run(~r/\((\d+) Cards?\)/i, product.name) do
+    case Regex.run(@pack_size, product.name) do
       [_, count] -> String.to_integer(count)
       nil -> nil
     end
@@ -362,7 +397,11 @@ defmodule TcgCheap.Sealed.Guide do
   defp set_odds([], _boosters), do: []
 
   defp set_odds(groups, boosters) do
-    sets = Enum.group_by(Sealed.list_english_tcgdex_sets!(), & &1.cardmarket_expansion_id)
+    sets =
+      Sealed.list_english_tcgdex_sets!(
+        query: [select: [:cardmarket_expansion_id, :language, :name, :pull_rates]]
+      )
+      |> Enum.group_by(& &1.cardmarket_expansion_id)
 
     Enum.map(groups, fn {name, items} ->
       booster = Map.fetch!(boosters, name)
@@ -418,7 +457,7 @@ defmodule TcgCheap.Sealed.Guide do
 
   # "TG05" after "TG04", "010" after "9": a letter prefix, then the number.
   defp number_order(number) do
-    case Regex.run(~r/\A(\D*)(\d+)(.*)\z/, number) do
+    case Regex.run(@card_number, number) do
       [_, prefix, digits, rest] -> {prefix, String.to_integer(digits), rest}
       nil -> {number, 0, ""}
     end

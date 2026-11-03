@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.CrawlController do
   def sitemap(conn, _params) do
     ids =
       DateTime.utc_now()
-      |> Sealed.current_offers()
+      |> Sealed.current_offers(:all, select: [:product_id, :in_stock])
       |> Enum.filter(&(&1.in_stock and &1.product_id != nil))
       |> Enum.map(& &1.product_id)
       |> Enum.uniq()

@@ -26,6 +26,11 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @max_body_bytes 5_000_000
   @max_title_length 300
   @max_url_length 2_000
+  @product_id ~r/\A[A-Za-z0-9_-]{1,40}\z/
+  @decimal_price ~r/\A[0-9]{1,7}(?:\.[0-9]{1,2})?\z/
+  @spaces ~r/\s+/u
+  @entity ~r/&(#x[0-9a-f]{1,6}|#[0-9]{1,7}|[a-z]{2,8});/i
+  @https_url ~r/\Ahttps:\/\/[^\s]+\z/
   # Shops list products they cannot price yet (pre-orders) at a token 0.01 zł;
   # no sealed product costs under 1 zł, so a lower price is no price.
   @min_price Decimal.new(1)
@@ -199,7 +204,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @doc "A shop's own product id: 1–40 letters, digits, `_` or `-`."
   @spec product_id(term()) :: {:ok, String.t()} | :error
   def product_id(id) when is_binary(id) do
-    if Regex.match?(~r/\A[A-Za-z0-9_-]{1,40}\z/, id), do: {:ok, id}, else: :error
+    if Regex.match?(@product_id, id), do: {:ok, id}, else: :error
   end
 
   def product_id(_id), do: :error
@@ -210,7 +215,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
   """
   @spec decimal_price(term()) :: {:ok, Decimal.t()} | :error
   def decimal_price(value) when is_binary(value) do
-    if Regex.match?(~r/\A[0-9]{1,7}(?:\.[0-9]{1,2})?\z/, value),
+    if Regex.match?(@decimal_price, value),
       do: price(Decimal.new(value)),
       else: :error
   end
@@ -220,7 +225,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @doc "A product title with HTML entities decoded and whitespace collapsed."
   @spec title(term()) :: {:ok, String.t()} | :error
   def title(name) when is_binary(name) do
-    title = name |> html_decode() |> String.replace(~r/\s+/u, " ") |> String.trim()
+    title = name |> html_decode() |> String.replace(@spaces, " ") |> String.trim()
 
     if String.valid?(title) and String.length(title) in 1..@max_title_length,
       do: {:ok, title},
@@ -247,7 +252,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
   }
 
   defp html_decode(value) do
-    Regex.replace(~r/&(#x[0-9a-f]{1,6}|#[0-9]{1,7}|[a-z]{2,8});/i, value, fn entity, code ->
+    Regex.replace(@entity, value, fn entity, code ->
       decode_entity(entity, code)
     end)
   end
@@ -272,7 +277,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
     if uri.scheme == "https" and uri.host in hosts and uri.port == 443 and
          is_nil(uri.userinfo) and is_nil(uri.fragment) and is_binary(uri.path) and
-         String.match?(url, ~r/\Ahttps:\/\/[^\s]+\z/),
+         String.match?(url, @https_url),
        do: {:ok, uri},
        else: :error
   end

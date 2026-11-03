@@ -45,6 +45,10 @@ defmodule TcgCheap.Sealed.ShoperListing do
 
   @current_cache_image ~r|\A((?:https://[^/]+)?/environment/cache/images/)productGfx_(\d{1,12})_\d{1,4}_\d{1,4}/|
   @classic_cache_image ~r|\A((?:https://[^/]+)?)/environment/cache/images/\d{1,4}_\d{1,4}_productGfx_([0-9a-f]{32}\.[A-Za-z]{3,4})\z|
+  @page_count ~r/\Az (\d{1,3})\z/
+  @block_path ~r|\A/pl/p/[^/]+/(\d{1,12})\z|
+  @space ~r/\s/u
+  @price ~r/\A(\d{1,7}),(\d{2}) zł\z/
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
@@ -178,7 +182,7 @@ defmodule TcgCheap.Sealed.ShoperListing do
   defp pages_label(document) do
     for text <-
           document |> Floki.find(".pagination__page-selector-text") |> Enum.map(&Floki.text/1),
-        [_, pages] <- [Regex.run(~r/\Az (\d{1,3})\z/, String.trim(text))],
+        [_, pages] <- [Regex.run(@page_count, String.trim(text))],
         uniq: true,
         do: String.to_integer(pages)
   end
@@ -228,7 +232,7 @@ defmodule TcgCheap.Sealed.ShoperListing do
   end
 
   defp block_id(path) when is_binary(path) do
-    case Regex.run(~r|\A/pl/p/[^/]+/(\d{1,12})\z|, path) do
+    case Regex.run(@block_path, path) do
       [_, id] -> id
       nil -> nil
     end
@@ -256,9 +260,9 @@ defmodule TcgCheap.Sealed.ShoperListing do
       |> Floki.find("div.price em")
       |> Enum.take(1)
       |> Floki.text()
-      |> String.replace(~r/\s/u, " ")
+      |> String.replace(@space, " ")
 
-    case Regex.run(~r/\A(\d{1,7}),(\d{2}) zł\z/, String.trim(text)) do
+    case Regex.run(@price, String.trim(text)) do
       [_, zloty, grosze] -> "#{zloty}.#{grosze}"
       nil -> nil
     end

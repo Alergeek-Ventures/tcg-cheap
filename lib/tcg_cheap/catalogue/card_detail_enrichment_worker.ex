@@ -131,15 +131,20 @@ defmodule TcgCheap.Catalogue.CardDetailEnrichmentWorker do
              Keyword.put(provider.provider_options, :request_admitter, admitter)
            ),
          {:ok, _imported} <- import_card(card, payload, synced_at),
-         {:ok, fresh} <- Core.get_card_printing_by_tcgdex_id(tcgdex_id) do
+         {:ok, fresh} <-
+           Core.get_card_printing_by_tcgdex_id(tcgdex_id, query: [select: [:tcgdex_id]]) do
       maybe_continue(continuation?, fresh)
     end
   end
 
   defp canonical_card(local_id, tcgdex_id) do
-    case Core.get_card_printing_by_tcgdex_id(tcgdex_id) do
+    query = [
+      select: [:tcgdex_id, :card_set_id, :details_synced_at, :details_enrichment_failed_at]
+    ]
+
+    case Core.get_card_printing_by_tcgdex_id(tcgdex_id, query: query) do
       {:ok, %{id: ^local_id, tcgdex_id: ^tcgdex_id} = card} ->
-        case Ash.load(card, [:card_set, :source_payload], authorize?: false) do
+        case Ash.load(card, :card_set, authorize?: false) do
           {:ok, %{card_set: %{tcgdex_id: _, name: _, series_id: series_id} = _set} = loaded}
           when is_binary(series_id) and series_id != "tcgp" ->
             {:ok, loaded}

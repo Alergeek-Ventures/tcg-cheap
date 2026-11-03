@@ -172,21 +172,6 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       filter expr(tcgdex_id == ^arg(:tcgdex_id))
     end
 
-    read :by_tcgdex_ids do
-      argument :tcgdex_ids, {:array, :string},
-        allow_nil?: false,
-        constraints: [max_length: 100, items: [max_length: 160], nil_items?: false]
-
-      filter expr(tcgdex_id in ^arg(:tcgdex_ids))
-
-      prepare build(
-                load: [
-                  :card_set,
-                  :cardmarket_bulk_v1_current_valuation
-                ]
-              )
-    end
-
     read :cardmarket_anchors do
       argument :cursor, :string, allow_nil?: true
 
@@ -247,9 +232,22 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       filter expr(tcgdex_id == ^arg(:tcgdex_id))
 
       prepare build(
-                load: [
-                  :card_set,
-                  :cardmarket_bulk_v1_current_valuation
+                select: [
+                  :id,
+                  :tcgdex_id,
+                  :name,
+                  :set_name,
+                  :collector_number,
+                  :image_url,
+                  :rarity,
+                  :category,
+                  :illustrator,
+                  :regulation_mark,
+                  :standard_legal,
+                  :expanded_legal,
+                  :cardmarket_product_id,
+                  :details_synced_at,
+                  :details_enrichment_failed_at
                 ]
               )
 
@@ -264,25 +262,37 @@ defmodule TcgCheap.Catalogue.CardPrinting do
       filter expr(tcgdex_id in ^arg(:tcgdex_ids))
 
       prepare build(
-                load: [
-                  :card_set,
-                  :cardmarket_bulk_v1_current_valuation
-                ]
+                select: [
+                  :id,
+                  :tcgdex_id,
+                  :name,
+                  :set_name,
+                  :collector_number,
+                  :image_url,
+                  :cardmarket_product_id
+                ],
+                load: [:cardmarket_bulk_v1_current_valuation]
               )
 
       prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
-    end
-
-    read :search do
-      argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
-      argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]
-      prepare TcgCheap.Catalogue.Preparations.Search
     end
 
     read :public_search do
       argument :query, :string, allow_nil?: false, constraints: [max_length: 100]
       argument :limit, :integer, allow_nil?: false, default: 10, constraints: [min: 1, max: 20]
       prepare TcgCheap.Catalogue.Preparations.PublicSearch
+
+      prepare build(
+                select: [
+                  :id,
+                  :tcgdex_id,
+                  :name,
+                  :set_name,
+                  :collector_number,
+                  :image_url,
+                  :cardmarket_product_id
+                ]
+              )
     end
 
     read :detail_enrichment_candidates do
@@ -299,7 +309,7 @@ defmodule TcgCheap.Catalogue.CardPrinting do
                  (is_nil(^arg(:cursor)) or tcgdex_id > ^arg(:cursor))
              )
 
-      prepare build(load: [:card_set], sort: [tcgdex_id: :asc, id: :asc], limit: arg(:limit))
+      prepare build(select: [:tcgdex_id], sort: [tcgdex_id: :asc, id: :asc], limit: arg(:limit))
       prepare TcgCheap.Catalogue.Preparations.PublicPaperCard
     end
 
@@ -470,10 +480,8 @@ defmodule TcgCheap.Catalogue.CardPrinting do
              :import,
              :seed_brief,
              :by_tcgdex_id,
-             :by_tcgdex_ids,
              :public_by_tcgdex_id,
              :public_by_tcgdex_ids,
-             :search,
              :public_search,
              :detail_enrichment_candidates,
              :set_collection_scope,

@@ -7,7 +7,6 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
   alias TcgCheap.Pricing.CardmarketBulk.Batch
   alias TcgCheap.Pricing.CardmarketBulk.Price
   alias TcgCheap.Pricing.CardmarketBulk.Product
-  alias TcgCheap.Pricing.Singles.SingleValuationSnapshot
   alias TcgCheap.Repo
 
   require Ash.Query
@@ -38,12 +37,10 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
              {:ok, prices} <- load_prices(cards, batch.id),
              {:ok, product_expansions} <- load_product_expansions(cards, batch.id),
              {:ok, evidence} <- load_evidence(cards, batch.id),
-             {:ok, snapshots} <- load_snapshots(cards),
              {:ok, counts} <-
                process(
                  cards,
                  prices,
-                 snapshots,
                  batch,
                  approved_sets,
                  product_expansions,
@@ -63,10 +60,18 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
 
   defp approved_sets(batch_id) do
     query =
-      Ash.Query.for_read(CardmarketExpansionMapping, :by_batch, %{source_batch_id: batch_id})
+      CardmarketExpansionMapping
+      |> Ash.Query.for_read(:by_batch, %{source_batch_id: batch_id})
+      |> Ash.Query.select([:card_set_id, :expansion_id, :authority, :status])
+
+    sets_query =
+      Ash.Query.select(TcgCheap.Catalogue.CardSet, [
+        :cardmarket_mapping_authority,
+        :cardmarket_expansion_id
+      ])
 
     with {:ok, rows} <- Ash.read(query, domain: TcgCheap.Core, authorize?: false),
-         {:ok, sets} <- Ash.read(TcgCheap.Catalogue.CardSet, authorize?: false) do
+         {:ok, sets} <- Ash.read(sets_query, authorize?: false) do
       admin = Map.new(sets, &{&1.id, administrator_expansion(&1)})
 
       {:ok,
@@ -106,6 +111,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
       Product
       |> Ash.Query.for_read(:by_product_ids, %{cardmarket_product_ids: ids})
       |> Ash.Query.filter(expr(last_batch_id == ^batch_id))
+      |> Ash.Query.select([:cardmarket_product_id, :expansion_id])
 
     case Ash.read(query, domain: TcgCheap.Core, authorize?: false) do
       {:ok, rows} -> {:ok, Map.new(rows, &{&1.cardmarket_product_id, &1.expansion_id})}
@@ -120,8 +126,11 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
       |> Enum.filter(&is_integer/1)
       |> Enum.uniq()
 
-    query = Ash.Query.for_read(Price, :by_product_ids, %{cardmarket_product_ids: ids})
-    query = Ash.Query.filter(query, expr(last_batch_id == ^batch_id))
+    query =
+      Price
+      |> Ash.Query.for_read(:by_product_ids, %{cardmarket_product_ids: ids})
+      |> Ash.Query.filter(expr(last_batch_id == ^batch_id))
+      |> Ash.Query.select([:cardmarket_product_id, :selected_metric, :selected_value_eur])
 
     case Ash.read(query, authorize?: false) do
       {:ok, rows} -> {:ok, Map.new(rows, &{&1.cardmarket_product_id, &1})}
@@ -136,6 +145,12 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
       CardmarketCardMappingEvidence
       |> Ash.Query.for_read(:by_batch, %{source_batch_id: batch_id})
       |> Ash.Query.filter(expr(card_printing_id in ^ids))
+      |> Ash.Query.select([
+        :card_printing_id,
+        :cardmarket_product_id,
+        :expansion_mapping_id,
+        :decision
+      ])
 
     case Ash.read(query, authorize?: false) do
       {:ok, rows} ->
@@ -149,26 +164,9 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
     end
   end
 
-  defp load_snapshots(cards) do
-    ids = cards |> Enum.map(& &1.id) |> Enum.uniq()
-    policy = @policy
-
-    query =
-      Ash.Query.filter(
-        SingleValuationSnapshot,
-        expr(card_printing_id in ^ids and policy_version == ^policy and current? == true)
-      )
-
-    case Ash.read(query, authorize?: false) do
-      {:ok, rows} -> {:ok, Map.new(rows, &{&1.card_printing_id, &1})}
-      other -> {:error, {:persistence, other}}
-    end
-  end
-
   defp process(
          cards,
          prices,
-         snapshots,
          batch,
          approved_sets,
          product_expansions,
@@ -179,7 +177,6 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
       case process_card(
              card,
              prices,
-             snapshots,
              batch,
              approved_sets,
              product_expansions,
@@ -195,7 +192,6 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
   defp process_card(
          %{card_set_id: set_id, cardmarket_product_id: product_id} = card,
          prices,
-         snapshots,
          batch,
          approved_sets,
          product_expansions,
@@ -206,7 +202,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
 
     case {set_id, Map.get(approved_sets, {set_id, expansion_id})} do
       {set_id, mapping_id} when not is_nil(set_id) and not is_nil(mapping_id) ->
-        process_card_mapping(card, prices, snapshots, batch, evidence, mapping_id, counts)
+        process_card_mapping(card, prices, batch, evidence, mapping_id, counts)
 
       _ ->
         {:ok, Map.update!(counts, :unapproved_mapping, &(&1 + 1))}
@@ -216,7 +212,6 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
   defp process_card(
          _card,
          _prices,
-         _snapshots,
          _batch,
          _approved_sets,
          _product_expansions,
@@ -228,7 +223,6 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
   defp process_card_mapping(
          %{cardmarket_product_id: id} = card,
          prices,
-         snapshots,
          batch,
          evidence,
          mapping_id,
@@ -237,17 +231,17 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
        when is_integer(id) do
     case Map.get(evidence, {card.id, id, mapping_id}) do
       %{decision: decision} when decision in ["anchor", "auto_matched"] ->
-        process_card_price(card, prices, snapshots, batch, counts, id)
+        process_card_price(card, prices, batch, counts, id)
 
       _ ->
         {:ok, Map.update!(counts, :unapproved_mapping, &(&1 + 1))}
     end
   end
 
-  defp process_card_mapping(_card, _prices, _snapshots, _batch, _evidence, _mapping_id, counts),
+  defp process_card_mapping(_card, _prices, _batch, _evidence, _mapping_id, counts),
     do: {:ok, Map.update!(counts, :unapproved_mapping, &(&1 + 1))}
 
-  defp process_card_price(card, prices, snapshots, batch, counts, id) do
+  defp process_card_price(card, prices, batch, counts, id) do
     case Map.get(prices, id) do
       nil ->
         {:ok, Map.update!(counts, :missing_price, &(&1 + 1))}
@@ -255,14 +249,14 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
       %{selected_value_eur: value, selected_metric: metric} = price
       when not is_nil(value) and
              metric in ["avg7", "avg30", "trend", "avg", "low"] ->
-        process_valued(card, price, metric, snapshots, batch, counts, id)
+        process_valued(card, price, metric, batch, counts, id)
 
       %{selected_value_eur: _} ->
         {:ok, Map.update!(counts, :unavailable_value, &(&1 + 1))}
     end
   end
 
-  defp process_valued(card, price, metric, _snapshots, batch, counts, id) do
+  defp process_valued(card, price, metric, batch, counts, id) do
     if valid_value?(price.selected_value_eur) do
       record_valued_locked(card, price, metric, batch, counts, id)
     else
@@ -287,8 +281,11 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Materializer do
   end
 
   defp record_valued_transaction(card, price, metric, batch, counts, id) do
-    with {:ok, _card} <- Core.lock_card_printing_for_update(card.id),
-         {:ok, current} <- Core.get_current_single_valuation(card.id, @policy) do
+    with {:ok, _card} <- Core.lock_card_printing_for_update(card.id, query: [select: [:id]]),
+         {:ok, current} <-
+           Core.get_current_single_valuation(card.id, @policy,
+             query: [select: [:fetched_at, :provider_updated_at, :cardmarket_product_id]]
+           ) do
       materialize_locked(current, card, price, metric, batch, counts, id)
     else
       {:error, reason} -> Repo.rollback({:persistence, reason})

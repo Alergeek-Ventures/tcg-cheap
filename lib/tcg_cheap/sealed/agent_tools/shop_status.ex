@@ -8,8 +8,14 @@ defmodule TcgCheap.Sealed.AgentTools.ShopStatus do
 
   @impl true
   def run(_input, _opts, _context) do
-    {:ok, rows(Sealed.list_offers!(), Sealed.current_offers(DateTime.utc_now()))}
+    offers = Sealed.list_offers!(query: [select: rows_fields()])
+    current = Sealed.current_offers(DateTime.utc_now(), :all, select: rows_fields())
+    {:ok, rows(offers, current)}
   end
+
+  @doc "The offer fields `rows/2` reads."
+  @spec rows_fields() :: [atom()]
+  def rows_fields, do: [:shop, :last_seen_at, :product_id, :in_stock]
 
   @doc "One row per configured shop, given every stored offer and the current ones."
   @spec rows([Sealed.Offer.t()], [Sealed.Offer.t()]) :: [map()]
