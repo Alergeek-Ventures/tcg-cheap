@@ -3,7 +3,7 @@ defmodule TcgCheapWeb.SingleLive do
   use TcgCheapWeb, :live_view
   use Gettext, backend: TcgCheapWeb.Gettext
   import TcgCheapWeb.GuideComponents
-  alias TcgCheap.Sealed.{CardGuide, CardImage, CardReference, Guide, Matcher}
+  alias TcgCheap.Sealed.{CardGuide, CardImage, CardReference, Matcher}
   alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
 
   defmodule NotFound do
@@ -118,18 +118,6 @@ defmodule TcgCheapWeb.SingleLive do
     ]
     |> Enum.reject(&is_nil/1)
   end
-
-  defp cm_product(page) do
-    %{
-      cardmarket_id: page.card.cardmarket_id,
-      cardmarket_trend: page.price && page.price.trend,
-      cardmarket_price_updated_on: page.price && page.price.priced_on,
-      cardmarket_added_on: nil
-    }
-  end
-
-  defp reverse_trend(page),
-    do: if("reverse" in page.card.variants && page.price, do: page.price.trend_holo)
 
   @impl true
   def render(assigns) do
@@ -323,14 +311,6 @@ defmodule TcgCheapWeb.SingleLive do
             </.offers_disclosure>
             <.offer_disclaimer id="single-disclaimer" />
           </section>
-          <.cardmarket_reference
-            id="single-cardmarket"
-            product={cm_product(@page)}
-            cardmarket_pln={Guide.to_pln(@page.price && @page.price.trend, @page.rate)}
-            eur_pln={@page.rate}
-            reverse={reverse_trend(@page)}
-            reverse_pln={Guide.to_pln(reverse_trend(@page), @page.rate)}
-          />
         </main>
         <.site_footer />
       </div>

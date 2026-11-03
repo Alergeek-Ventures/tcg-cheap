@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.SEO do
       social_image: home_image(),
       social_image_alt: home_image_alt(),
       robots:
-        if(Enum.any?(~w(q rodzaj wersja rozszerzenie), &Map.has_key?(params, &1)),
+        if(Enum.any?(~w(q rodzaj wersja rozszerzenie widok), &Map.has_key?(params, &1)),
           do: "noindex, follow",
           else: "index, follow"
         ),
