@@ -113,15 +113,17 @@ config :tcg_cheap, Oban,
         args: %{"evidence_version" => "2026-08-19-naic"}},
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
-       {"0 3 * * *", TcgCheap.Pricing.CardmarketBulk.SyncWorker, args: %{}},
+       {"30 1 * * *", TcgCheap.Pricing.CardmarketBulk.SyncWorker, args: %{}},
        # Buying guide: the Cardmarket sealed catalogue after the singles bulk sync,
        # then one fetch job per shop; the sealed queue runs them one at a time.
-       {"30 3 * * *", TcgCheap.Sealed.CatalogueImportWorker, args: %{}},
-       {"0 4 * * *", TcgCheap.Sealed.FetchWorker, args: %{}},
+       # Times are UTC: the import starts at 3:00 Polish winter time (4:00 in
+       # summer), so the data is fresh for the morning.
+       {"0 2 * * *", TcgCheap.Sealed.CatalogueImportWorker, args: %{}},
+       {"30 2 * * *", TcgCheap.Sealed.FetchWorker, args: %{}},
        # The cards of new TCGdex sets, for the single booster pages.
-       {"0 5 * * *", TcgCheap.Sealed.CardSyncWorker, args: %{}},
+       {"0 3 * * *", TcgCheap.Sealed.CardSyncWorker, args: %{}},
        # Suggested retail prices from the REBEL wholesaler, for the product pages.
-       {"0 6 * * *", TcgCheap.Sealed.SuggestedPriceWorker, args: %{}},
+       {"15 3 * * *", TcgCheap.Sealed.SuggestedPriceWorker, args: %{}},
        # Product photos copied into our storage, a batch at a time.
        {"*/10 * * * *", TcgCheap.Sealed.PhotoMirrorWorker, args: %{}},
        {"*/10 * * * *", TcgCheap.Storage.RemoteImageWorker, args: %{}},
