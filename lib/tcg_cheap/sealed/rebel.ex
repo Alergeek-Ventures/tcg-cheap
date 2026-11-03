@@ -77,7 +77,7 @@ defmodule TcgCheap.Sealed.Rebel do
   def rematch do
     english =
       Sealed.list_products!(
-        query: [filter: [region: :en], select: [:name, :set_name, :cardmarket_added_on]]
+        query: [filter: [region: :en], select: [:name, :set_name, :kind, :cardmarket_added_on]]
       )
 
     eans = Sealed.known_eans()
