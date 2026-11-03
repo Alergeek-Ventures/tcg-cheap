@@ -18,8 +18,10 @@ defmodule TcgCheap.Sealed.Matcher do
 
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
-  history. Titles for multi-item bundles, empty, damaged, opened or used
-  boxes, singles and accessories are excluded outright; a title naming a
+  history. When nothing matches, a title may leave out what names a set's only
+  product of its kind (a promo Pokémon, "Blister", "Collection"); a booster
+  display is a booster box. Titles for multi-item bundles, empty, damaged,
+  opened or used boxes, singles and accessories are excluded outright; a title naming a
   pre-order matches like any other (`preorder_title?/1` marks the offer). Otherwise a known
   EAN (`TcgCheap.Sealed.known_eans/0`) wins over the title.
   """
@@ -42,6 +44,10 @@ defmodule TcgCheap.Sealed.Matcher do
 
   @synonyms [
     {"eu version", ""},
+    # A display of boosters is what Cardmarket calls a booster box; other
+    # displays ("Mini Tin Display", "Build & Battle Box Display") keep the word.
+    {"booster box display", "booster box"},
+    {"booster display", "booster box"},
     {"world championships deck", "wcd"},
     {"etb", "elite trainer box"},
     {"min tin", "mini tin"},
@@ -62,6 +68,7 @@ defmodule TcgCheap.Sealed.Matcher do
     {"koreanska", "korean"},
     {"koreanskie", "korean"},
     {"kor", "korean"},
+    {"korea", "korean"},
     {"chinski", "chinese"},
     {"chinska", "chinese"},
     {"chinskie", "chinese"},
@@ -89,6 +96,9 @@ defmodule TcgCheap.Sealed.Matcher do
                    enhanced surprise pouch portfolio starter gift calendar slim jp korean chinese sch tch thai
                    indonesian german french italian spanish)
               )
+
+  # Kind words a title may leave out of its set's only product of that kind.
+  @omissible MapSet.new(~w(blister collection))
 
   # Title qualifiers a product meets without naming them: its language edition
   # (`TcgCheap.Sealed.Regions`) and, for a single booster, "pack".
@@ -120,6 +130,8 @@ defmodule TcgCheap.Sealed.Matcher do
     "opened",
     "used",
     "bez folii",
+    "bez boosterow",
+    "z zestawu",
     "repack",
     "single",
     "singles",
@@ -150,7 +162,12 @@ defmodule TcgCheap.Sealed.Matcher do
   @diacritic ~r/\p{Mn}/u
   @non_word ~r/[^a-z0-9]+/
 
-  defstruct entries: [], by_rare_token: %{}, sets: [], eans: %{}
+  defstruct entries: [],
+            by_rare_token: %{},
+            by_rare_pair: %{},
+            known_tokens: MapSet.new(),
+            sets: [],
+            eans: %{}
 
   @type t :: %__MODULE__{}
   @type product :: %{
@@ -177,15 +194,22 @@ defmodule TcgCheap.Sealed.Matcher do
             tokens: tokens,
             size: MapSet.size(tokens),
             meets: meets(product),
+            set_tokens: MapSet.new(tokens(Map.get(product, :set_name) || "")),
             booster?: Map.get(product, :kind) == :booster
           }
 
     frequency = entries |> Enum.flat_map(&MapSet.to_list(&1.tokens)) |> Enum.frequencies()
 
-    by_rare_token =
-      Enum.group_by(entries, fn entry ->
-        Enum.min_by(entry.tokens, &{Map.fetch!(frequency, &1), &1})
-      end)
+    rarest = fn entry -> Enum.sort_by(entry.tokens, &{Map.fetch!(frequency, &1), &1}) end
+
+    by_rare_token = Enum.group_by(entries, &hd(rarest.(&1)))
+
+    # A title may lack one name token (see `unique_variant/4`), possibly the
+    # rarest, so the second rarest reaches those products too.
+    by_rare_pair =
+      for entry <- entries, token <- Enum.take(rarest.(entry), 2), reduce: %{} do
+        acc -> Map.update(acc, token, [entry], &[entry | &1])
+      end
 
     sets =
       products
@@ -195,7 +219,14 @@ defmodule TcgCheap.Sealed.Matcher do
       |> Enum.reject(&(&1 == "" or &1 in @series))
       |> Enum.uniq()
 
-    %__MODULE__{entries: entries, by_rare_token: by_rare_token, sets: sets, eans: eans}
+    %__MODULE__{
+      entries: entries,
+      by_rare_token: by_rare_token,
+      by_rare_pair: by_rare_pair,
+      known_tokens: frequency |> Map.keys() |> MapSet.new(),
+      sets: sets,
+      eans: eans
+    }
   end
 
   @doc "Matches an offer (`:title`, optional `:ean`) against an index."
@@ -315,10 +346,57 @@ defmodule TcgCheap.Sealed.Matcher do
       |> Enum.filter(&candidate?(&1, offer_set, qualifiers, packs?))
 
     case Enum.group_by(candidates, & &1.size) |> Enum.max_by(&elem(&1, 0), fn -> nil end) do
-      nil -> :unmatched
+      nil -> unique_variant(offer_set, qualifiers, index, packs?)
       {_size, [entry]} -> {:matched, entry.id}
       {_size, _tie} -> :ambiguous
     end
+  end
+
+  # Shops often leave out what tells a set's only product of its kind from
+  # others: "Delta Reign 3-Pack Blister" for "Delta Reign: Seel 3-Pack Blister",
+  # "30th Celebration 2-Pack" for "30th Celebration: Eevee 2-Pack Blister",
+  # "Tech Sticker Lucario" for the "Lucario Tech Sticker Collection". A title
+  # matches a product whose name has at most one token more, besides "blister"
+  # and "collection", that is neither a kind word (so "Mini Tin" never becomes
+  # "Mini Tin Display"), a word of the product's set ("Booster Bundle" never
+  # becomes the 151 one) nor a number (a year), when every other title word the
+  # name lacks is one no product name uses (so "Blister Spritzee" never becomes
+  # the Seel blister) and no other product fits the same way.
+  defp unique_variant(offer_set, qualifiers, index, packs?) do
+    offer_set
+    |> Enum.flat_map(&Map.get(index.by_rare_pair, &1, []))
+    |> Enum.uniq()
+    |> Enum.filter(&variant?(&1, offer_set, qualifiers, index.known_tokens, packs?))
+    |> case do
+      [entry] -> {:matched, entry.id}
+      [] -> :unmatched
+      _several -> :ambiguous
+    end
+  end
+
+  defp variant?(entry, offer_set, qualifiers, known_tokens, packs?) do
+    unexplained = MapSet.difference(offer_set, entry.tokens)
+
+    omits_variant_only?(entry, MapSet.difference(entry.tokens, offer_set)) and
+      not (packs? and entry.booster?) and
+      MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
+      MapSet.size(unexplained) <= @max_unexplained and
+      MapSet.disjoint?(unexplained, known_tokens)
+  end
+
+  # The name tokens a title lacks: omissible kind words and at most one other
+  # token that is neither a kind word, a set word nor a number.
+  defp omits_variant_only?(entry, missing) do
+    case missing |> MapSet.difference(@omissible) |> MapSet.to_list() do
+      [] -> MapSet.size(missing) > 0
+      [token] -> variant_token?(token, entry)
+      _more -> false
+    end
+  end
+
+  defp variant_token?(token, entry) do
+    not MapSet.member?(@qualifiers, token) and not MapSet.member?(entry.set_tokens, token) and
+      not String.match?(token, ~r/\A\d+\z/)
   end
 
   defp candidate?(entry, offer_set, qualifiers, packs?) do
