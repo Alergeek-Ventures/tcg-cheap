@@ -4,7 +4,7 @@ defmodule TcgCheapWeb.SEO do
   use TcgCheapWeb, :html
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.Kinds
+  alias TcgCheap.Sealed.{Catalogue, Kinds}
   alias TcgCheapWeb.{GuideComponents, Polish, SocialImage}
 
   def home(params) do
@@ -14,11 +14,8 @@ defmodule TcgCheapWeb.SEO do
         "Porównaj ceny Pokémon TCG w polskich sklepach. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
       ),
       url(~p"/"),
-      social_image: url(~p"/og?#{[v: SocialImage.home_version()]}"),
-      social_image_alt:
-        "TCG Cheap. " <>
-          gettext("Sprawdź, czy cena jest dobra") <>
-          ". " <> SocialImage.home_promise(),
+      social_image: home_image(),
+      social_image_alt: home_image_alt(),
       robots:
         if(Enum.any?(~w(q rodzaj wersja rozszerzenie), &Map.has_key?(params, &1)),
           do: "noindex, follow",
@@ -33,15 +30,136 @@ defmodule TcgCheapWeb.SEO do
     )
   end
 
+  @doc "The set page's path: the expansion's name plus its Cardmarket id, like a product's."
+  @spec expansion_path(integer(), String.t()) :: String.t()
+  def expansion_path(id, name), do: ~p"/rozszerzenia/#{Catalogue.slug(name, id)}"
+
+  @doc "The set page's full URL."
+  @spec expansion_url(integer(), String.t()) :: String.t()
+  def expansion_url(id, name), do: url(~p"/rozszerzenia/#{Catalogue.slug(name, id)}")
+
+  # A set's page is what people search for by name: "<set> cena", "<set>
+  # drop rate", "<set> lista kart". Its list narrowed by a search or a
+  # filter stays out of search.
+  def expansion(params, %{id: id, name: name}, page) do
+    canonical = expansion_url(id, name)
+
+    metadata(
+      expansion_title(name, page.set),
+      Enum.join(expansion_answer(name, page), " "),
+      canonical,
+      social_image: home_image(),
+      social_image_alt: home_image_alt(),
+      robots:
+        if(Enum.any?(~w(q rodzaj wersja), &Map.has_key?(params, &1)),
+          do: "noindex, follow",
+          else: "index, follow"
+        ),
+      structured_data: %{
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => [
+          %{
+            "@type" => "ListItem",
+            "position" => 1,
+            "name" => gettext("Wszystkie produkty"),
+            "item" => url(~p"/")
+          },
+          %{"@type" => "ListItem", "position" => 2, "name" => name, "item" => canonical}
+        ]
+      }
+    )
+  end
+
+  defp expansion_title(name, %{pull_rates: %{}}),
+    do: gettext("%{expansion} – ceny, drop rate i lista kart Pokémon TCG", expansion: name)
+
+  defp expansion_title(name, %{rarities: [_ | _]}),
+    do: gettext("%{expansion} – ceny i lista kart Pokémon TCG", expansion: name)
+
+  defp expansion_title(name, _set),
+    do: gettext("%{expansion} – ceny boosterów, ETB i boxów Pokémon TCG", expansion: name)
+
+  @doc """
+  The set page's answer, in sentences, for its top and its search snippet:
+  the single booster's cheapest price, the rarest pull rates, the number of
+  cards and the dearest one.
+  """
+  @spec expansion_answer(String.t(), %{
+          :set => map() | nil,
+          :booster => map() | nil,
+          optional(atom()) => any()
+        }) :: [String.t()]
+  def expansion_answer(name, %{set: set, booster: booster}) do
+    [
+      booster_answer(name, booster),
+      set && pull_rates_summary(set.pull_rates),
+      set && cards_answer(set)
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> case do
+      [] ->
+        [
+          gettext(
+            "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w polskich sklepach.",
+            expansion: name
+          )
+        ]
+
+      sentences ->
+        sentences
+    end
+  end
+
+  defp booster_answer(_name, nil), do: nil
+
+  defp booster_answer(name, %{verdict: %{cheapest: nil}}),
+    do:
+      gettext("Boostera %{expansion} żaden polski sklep nie ma teraz na stanie.",
+        expansion: name
+      )
+
+  defp booster_answer(name, %{verdict: %{cheapest: cheapest}, preorder?: true}),
+    do:
+      gettext("Booster %{expansion}: przedsprzedaż od %{price} w %{shop}.",
+        expansion: name,
+        price: Polish.price(cheapest.price),
+        shop: GuideComponents.shop_name(cheapest)
+      )
+
+  defp booster_answer(name, %{verdict: %{cheapest: cheapest}}),
+    do:
+      gettext("Booster %{expansion}: najtaniej teraz %{price} w %{shop}.",
+        expansion: name,
+        price: Polish.price(cheapest.price),
+        shop: GuideComponents.shop_name(cheapest)
+      )
+
+  defp cards_answer(%{card_count: 0}), do: nil
+
+  defp cards_answer(%{card_count: count, top_card: nil}),
+    do: gettext("Set liczy %{cards}.", cards: Polish.plural(count, "karta", "karty", "kart"))
+
+  defp cards_answer(%{card_count: count, top_card: {card, trend}}),
+    do:
+      gettext("Set liczy %{cards}, najdroższa to %{card} (%{price} na Cardmarket).",
+        cards: Polish.plural(count, "karta", "karty", "kart"),
+        card: card.name,
+        price: Polish.eur(trend)
+      )
+
+  defp home_image, do: url(~p"/og?#{[v: SocialImage.home_version()]}")
+
+  defp home_image_alt,
+    do:
+      "TCG Cheap. " <>
+        gettext("Sprawdź, czy cena jest dobra") <> ". " <> SocialImage.home_promise()
+
   def product(page) do
     product = page.product
     canonical = url(~p"/produkty/#{product.slug}")
 
-    description =
-      gettext(
-        "%{name}: porównaj ceny i dostępność w polskich sklepach. Sprawdź historię cen oraz oferty z dostawą lub odbiorem osobistym.",
-        name: product.name
-      )
+    description = product_description(page)
 
     product_data = %{
       "@type" => "Product",
@@ -77,7 +195,7 @@ defmodule TcgCheapWeb.SEO do
       end
 
     metadata(
-      gettext("%{name} – ceny i oferty Pokémon TCG", name: product.name),
+      product_title(page),
       description,
       canonical,
       social_image:
@@ -90,25 +208,116 @@ defmodule TcgCheapWeb.SEO do
             [
               %{
                 "@type" => "BreadcrumbList",
-                "itemListElement" => [
-                  %{
-                    "@type" => "ListItem",
-                    "position" => 1,
-                    "name" => gettext("Wszystkie produkty"),
-                    "item" => url(~p"/")
-                  },
-                  %{
-                    "@type" => "ListItem",
-                    "position" => 2,
-                    "name" => product.name,
-                    "item" => canonical
-                  }
-                ]
+                "itemListElement" =>
+                  [
+                    %{
+                      "@type" => "ListItem",
+                      "position" => 1,
+                      "name" => gettext("Wszystkie produkty"),
+                      "item" => url(~p"/")
+                    },
+                    %{
+                      "@type" => "ListItem",
+                      "position" => 2,
+                      "name" => product.name,
+                      "item" => canonical
+                    }
+                  ]
+                  |> with_expansion_crumb(product)
               }
             ]
       }
     )
   end
+
+  # The expansion's list sits between all products and the product.
+  defp with_expansion_crumb([all, item], %{cardmarket_expansion_id: id, set_name: name})
+       when is_integer(id) and is_binary(name) do
+    [
+      all,
+      %{
+        "@type" => "ListItem",
+        "position" => 2,
+        "name" => name,
+        "item" => expansion_url(id, name)
+      },
+      %{item | "position" => 3}
+    ]
+  end
+
+  defp with_expansion_crumb(items, _product), do: items
+
+  # The answer first, as search results and AI assistants quote it: today's
+  # cheapest price, where, and how it compares with the other Polish shops.
+  defp product_description(%{product: product, verdict: verdict} = page) do
+    lead =
+      case {verdict.cheapest, page.preorder?} do
+        {nil, _preorder?} ->
+          gettext("%{name}: teraz żaden polski sklep nie ma tego produktu na stanie.",
+            name: product.name
+          )
+
+        {cheapest, true} ->
+          gettext("%{name}: przedsprzedaż od %{price} w %{shop}.",
+            name: product.name,
+            price: Polish.price(cheapest.price),
+            shop: GuideComponents.shop_name(cheapest)
+          )
+
+        {cheapest, false} ->
+          gettext("%{name}: najtaniej teraz %{price} w %{shop}.",
+            name: product.name,
+            price: Polish.price(cheapest.price),
+            shop: GuideComponents.shop_name(cheapest)
+          )
+      end
+
+    [lead, comparison(verdict) | set_content(page)]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" ")
+  end
+
+  # A single booster's page also holds its set's pull rates and cards, which
+  # people search for by name ("<set> drop rate", "<set> lista kart").
+  defp product_title(%{booster_set: %{pull_rates: %{}}, product: product}),
+    do: gettext("%{name} – cena, drop rate i lista kart", name: product.name)
+
+  defp product_title(%{booster_set: %{rarities: [_ | _]}, product: product}),
+    do: gettext("%{name} – cena i lista kart", name: product.name)
+
+  defp product_title(%{product: product}),
+    do: gettext("%{name} – ceny i oferty Pokémon TCG", name: product.name)
+
+  defp set_content(%{booster_set: %{rarities: [_ | _] = rarities} = set}) do
+    cards = Enum.sum_by(rarities, &length(&1.cards))
+
+    [
+      pull_rates_summary(set.pull_rates),
+      # "Lista 22 kart": the genitive after "lista", whatever the count.
+      gettext("Lista %{count} kart z cenami.", count: Polish.number(cards))
+    ]
+  end
+
+  defp set_content(_page), do: [gettext("Porównanie cen w polskich sklepach i historia cen.")]
+
+  # The two rarest rates, as the page's table states them.
+  defp pull_rates_summary(%{rates: [_ | _] = rates}) do
+    odds = Enum.map_join(Enum.take(rates, 2), ", ", &"#{&1.rarity} #{Polish.odds(&1.rate)}")
+    gettext("Szansa na drop (pull rates): %{odds}.", odds: odds)
+  end
+
+  defp pull_rates_summary(_pull_rates), do: nil
+
+  defp comparison(%{status: status, typical: typical, typical_source: :shops} = verdict)
+       when status in [:good, :normal, :expensive],
+       do:
+         gettext("%{verdict} – typowa cena w %{shops} sklepach to %{typical}.",
+           verdict: GuideComponents.verdict_label(verdict),
+           typical: Polish.zloty(typical),
+           shops: length(verdict.shop_prices)
+         )
+
+  defp comparison(_verdict), do: nil
 
   # The answer the product's card shows, for its alt text.
   defp answer(%{cheapest: %{price: price} = cheapest} = verdict),

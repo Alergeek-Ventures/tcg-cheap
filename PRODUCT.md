@@ -64,6 +64,13 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   pre-order offers and clearly marked as a pre-order, with the days until
   the expansion's premiere (the same street date for every shop) when it is
   known; otherwise pre-orders are listed in their own group.
+- Set pages (owner decision, 2026-11-03): every named expansion has a page
+  (`/rozszerzenia/<name>-<id>`) that answers first (the single booster's
+  cheapest price, the rarest pull rates, the card count and the most valuable
+  card), then lists the set's products with their verdicts, its pull rates
+  and its cards with Cardmarket prices. Pages state the answer in their first
+  sentence and search metadata, so search engines and AI assistants can quote
+  it.
 - Public pages read only the local database; shops and Cardmarket are fetched
   by background jobs.
 - The singles/trade pages are still English and will be simplified next.

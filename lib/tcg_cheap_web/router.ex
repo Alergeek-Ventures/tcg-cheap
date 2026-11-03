@@ -127,7 +127,8 @@ defmodule TcgCheapWeb.Router do
     get "/lang/:locale", LocaleController, :update
 
     live_session :guide, on_mount: [TcgCheapWeb.Locale] do
-      live "/", HomeLive
+      live "/", HomeLive, :index
+      live "/rozszerzenia/:slug", HomeLive, :expansion
       live "/produkty/:slug", ProductLive
     end
   end

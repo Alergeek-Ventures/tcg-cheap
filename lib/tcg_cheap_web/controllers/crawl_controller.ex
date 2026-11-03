@@ -2,9 +2,12 @@ defmodule TcgCheapWeb.CrawlController do
   use TcgCheapWeb, :controller
 
   alias TcgCheap.Sealed
+  alias TcgCheap.Sealed.Guide
+  alias TcgCheapWeb.SEO
 
-  # Only products a Polish shop has in stock now: the rest of the catalogue
-  # has no offer to compare, so it stays reachable but isn't submitted.
+  # Only products a Polish shop has in stock now, and their expansions' set
+  # pages: the rest of the catalogue has no offer to compare, so it stays
+  # reachable but isn't submitted.
   def sitemap(conn, _params) do
     ids =
       DateTime.utc_now()
@@ -14,10 +17,31 @@ defmodule TcgCheapWeb.CrawlController do
       |> Enum.uniq()
 
     products =
-      Sealed.list_products!(query: [filter: [id: [in: ids]], select: [:slug], sort: [:slug]])
+      Sealed.list_products!(
+        query: [
+          filter: [id: [in: ids]],
+          select: [:slug, :cardmarket_expansion_id],
+          sort: [:slug]
+        ]
+      )
+
+    # Set pages under the names they are shown with: named expansions only.
+    in_stock = MapSet.new(products, & &1.cardmarket_expansion_id)
+
+    expansions =
+      %{query: "", kind: nil, region: nil, expansion: nil}
+      |> Guide.facets()
+      |> Map.fetch!(:expansions)
+      |> Enum.filter(&MapSet.member?(in_stock, &1.id))
+      |> Enum.sort_by(& &1.id)
+
+    locations =
+      [url(~p"/")] ++
+        Enum.map(expansions, &SEO.expansion_url(&1.id, &1.name)) ++
+        Enum.map(products, &url(~p"/produkty/#{&1.slug}"))
 
     entries =
-      for location <- [url(~p"/") | Enum.map(products, &url(~p"/produkty/#{&1.slug}"))] do
+      for location <- locations do
         {"url", [], [{"loc", [], [location]}]}
       end
 

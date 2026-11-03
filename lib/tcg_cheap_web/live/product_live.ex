@@ -8,6 +8,7 @@ defmodule TcgCheapWeb.ProductLive do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.GuideComponents
+  import TcgCheapWeb.SetComponents
 
   alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Regions, Shops}
@@ -141,7 +142,9 @@ defmodule TcgCheapWeb.ProductLive do
                   id="product-set"
                 > · <.link
                   :if={@page.product.cardmarket_expansion_id}
-                  navigate={~p"/?#{[rozszerzenie: @page.product.cardmarket_expansion_id]}"}
+                  navigate={
+                    SEO.expansion_path(@page.product.cardmarket_expansion_id, @page.product.set_name)
+                  }
                 >{@page.product.set_name}</.link><span :if={!@page.product.cardmarket_expansion_id}>{@page.product.set_name}</span></span><span id="product-region">
                   {gettext("· wersja %{edition}",
                     edition:
@@ -202,7 +205,8 @@ defmodule TcgCheapWeb.ProductLive do
               phx-update="stream"
               data-track-positions
             >
-              <li id="offer-list-empty" class="guide-empty hidden only:block">
+              <%!-- Rendered only when empty: readers that skip CSS would take it for the answer. --%>
+              <li :if={@in_stock_count == 0} id="offer-list-empty" class="guide-empty">
                 {gettext("Teraz żaden sklep nie ma tego produktu na stanie.")}
               </li>
               <.offer
@@ -941,127 +945,6 @@ defmodule TcgCheapWeb.ProductLive do
   defp drop_link(%{booster_set: %{pull_rates: nil}}), do: nil
   defp drop_link(_page), do: "#product-pull-rates"
 
-  attr :pull_rates, :map, required: true
-  attr :standard_pack_size, :integer, default: nil
-  attr :smaller_pack?, :boolean, default: false
-
-  defp pull_rates(%{pull_rates: nil} = assigns) do
-    ~H"""
-    <section
-      id="product-pull-rates"
-      class="product-section"
-      aria-labelledby="product-pull-rates-title"
-    >
-      <div class="product-section-heading">
-        <h2 id="product-pull-rates-title">{gettext("Szansa na drop")}</h2>
-      </div>
-      <.standard_pack_note count={@standard_pack_size} smaller?={@smaller_pack?} />
-      <p id="pull-rates-unknown" class="guide-note">
-        {gettext("Nie znamy jeszcze szans na drop w tym secie.")}
-      </p>
-    </section>
-    """
-  end
-
-  defp pull_rates(assigns) do
-    ~H"""
-    <section
-      id="product-pull-rates"
-      class="product-section"
-      aria-labelledby="product-pull-rates-title"
-    >
-      <div class="product-section-heading">
-        <h2 id="product-pull-rates-title">{gettext("Szansa na drop")}</h2>
-        <p>{gettext("sprawdzono %{date}", date: Polish.date(@pull_rates.checked_on))}</p>
-      </div>
-      <.standard_pack_note count={@standard_pack_size} smaller?={@smaller_pack?} />
-      <.borrowed_note from={@pull_rates.borrowed_from} />
-      <table id="pull-rates" class="pull-rates">
-        <thead>
-          <tr>
-            <th scope="col">{gettext("Rzadkość")}</th>
-            <th scope="col">
-              <%= if @smaller_pack? and @standard_pack_size do %>
-                {gettext("Szansa w paczce %{count} kart", count: @standard_pack_size)}
-              <% else %>
-                {gettext("Szansa w paczce")}
-              <% end %>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr :for={row <- @pull_rates.rates}>
-            <th scope="row">
-              <%= if row.group do %>
-                <a href={"#set-cards-#{row.group}-list"}>{row.rarity}</a>
-              <% else %>
-                {row.rarity}
-              <% end %>
-              <span class="pull-rate-detail">{odds(row.rate)}</span>
-              <span :if={row.rate.card} class="pull-rate-detail">
-                {gettext("konkretna karta: %{name}", name: row.rate.card)}
-              </span>
-            </th>
-            <td class="pull-rate-percent">{chance(row.rate)}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="table-notes">
-        <p id="pull-rates-estimate" class="guide-note pull-rates-estimate">
-          <.fluent_icon name={:info} />
-          <span>{gettext("To szacunki społeczności")}</span>
-        </p>
-        <p class="guide-note table-sources">
-          {sources_label(length(@pull_rates.sources))}
-          <%= for {source, index} <- Enum.with_index(@pull_rates.sources) do %>
-            <span :if={index > 0}>·</span>
-            <a href={source.url} target="_blank" rel="noopener nofollow">{host(source.url)}</a>
-            <span :if={source_details(source) != []}>({Enum.join(source_details(source), ", ")})</span>
-          <% end %>
-        </p>
-      </div>
-    </section>
-    """
-  end
-
-  attr :from, :string, default: nil
-
-  # Estimates of another set standing in until this set's own are out: the
-  # one caveat that changes how to read the table, so it stands apart.
-  defp borrowed_note(assigns) do
-    ~H"""
-    <p :if={@from} class="pull-rates-borrowed">
-      <.fluent_icon name={:info} />
-      <span>
-        {gettext(
-          "Tego setu nikt jeszcze nie policzył: to szanse z wcześniejszego setu (%{set}), niezweryfikowane dla tego.",
-          set: @from
-        )}
-      </span>
-    </p>
-    """
-  end
-
-  attr :count, :integer, default: nil
-  attr :smaller?, :boolean, default: false
-
-  defp standard_pack_note(assigns) do
-    ~H"""
-    <p :if={@smaller?} id="pull-rates-pack-size" class="guide-note">
-      <%= if @count do %>
-        {gettext(
-          "Te szanse dotyczą zwykłej paczki %{count} kart. W tej paczce jest mniej kart, więc szanse są niższe – o ile, nie wiadomo.",
-          count: @count
-        )}
-      <% else %>
-        {gettext(
-          "Te szanse dotyczą zwykłej paczki. W tej paczce jest mniej kart, więc szanse są niższe – o ile, nie wiadomo."
-        )}
-      <% end %>
-    </p>
-    """
-  end
-
   attr :sets, :list, required: true
 
   defp booster_odds(assigns) do
@@ -1142,217 +1025,9 @@ defmodule TcgCheapWeb.ProductLive do
       :guaranteed -> gettext("w każdej paczce")
       nil -> gettext("Brak danych")
       value when value > 99 -> "> 99%"
-      value when value < 0.01 -> "< 0,01%" |> String.replace(",", decimal_separator())
+      value when value < 0.01 -> "< " <> Polish.decimal(Decimal.new("0.01")) <> "%"
       value -> "≈ " <> percent(Decimal.from_float(value))
     end
-  end
-
-  defp sources_label(count), do: ngettext("Źródło:", "Źródła:", count)
-
-  # "pokebeach.com" for www.pokebeach.com.
-  defp host(url), do: url |> URI.parse() |> Map.fetch!(:host) |> String.replace_prefix("www.", "")
-
-  # "dane TCGplayer", "8 000 otwartych paczek".
-  defp source_details(source) do
-    [
-      source.data_from && gettext("dane %{source}", source: source.data_from),
-      source.sample_packs &&
-        ngettext("%{count} otwarta paczka", "%{count} otwarte paczki", source.sample_packs,
-          count: Polish.number(source.sample_packs)
-        )
-    ]
-    |> Enum.filter(& &1)
-  end
-
-  # How often, said in the page's language: "1 na 5 paczek", "3 w każdej paczce".
-  defp odds(rate) do
-    case Rate.odds(rate) do
-      {:one_in, packs, _about?} ->
-        one_in(packs)
-
-      {:per_pack, cards} ->
-        gettext("%{count} w każdej paczce", count: cards)
-
-      {:hits, _percent, hits, packs} ->
-        gettext("%{hits} z %{packs} paczek", hits: decimal(hits), packs: decimal(packs))
-    end
-  end
-
-  # Whole packs from 10 up ("1 na 58 paczek"), one decimal below ("1 na 2,5
-  # paczki"). No "ok.": the note above the table says these are estimates.
-  defp one_in(packs) do
-    packs = Decimal.round(packs, if(Decimal.lt?(packs, 10), do: 1, else: 0))
-
-    if Decimal.integer?(packs) do
-      count = Decimal.to_integer(packs)
-      ngettext("1 na %{count} paczkę", "1 na %{count} paczki", count, count: Polish.number(count))
-    else
-      gettext("1 na %{packs} paczki", packs: decimal(packs))
-    end
-  end
-
-  # The chance of a pack holding the rarity: "20%", "6,5%", "0,73%"; a fixed
-  # count per pack as "3×".
-  defp chance(rate) do
-    case Rate.odds(rate) do
-      {:per_pack, cards} -> "#{cards}×"
-      _odds -> rate |> Rate.percent() |> percent()
-    end
-  end
-
-  defp percent(percent) do
-    cond do
-      Decimal.compare(percent, 10) != :lt -> percent(percent, 0)
-      Decimal.compare(percent, 1) != :lt -> percent(percent, 1)
-      true -> percent(percent, 2)
-    end
-  end
-
-  defp percent(percent, places), do: decimal(Decimal.round(percent, places)) <> "%"
-
-  # "1,3" in Polish, "1.3" in English, grouped: "1 081".
-  defp decimal(value) do
-    case value |> Decimal.normalize() |> Decimal.to_string(:normal) |> String.split(".") do
-      [whole] ->
-        Polish.number(String.to_integer(whole))
-
-      [whole, fraction] ->
-        Polish.number(String.to_integer(whole)) <> decimal_separator() <> fraction
-    end
-  end
-
-  defp decimal_separator,
-    do: if(Gettext.get_locale(TcgCheapWeb.Gettext) == "en", do: ".", else: ",")
-
-  attr :rarities, :list, required: true
-  attr :cards_source_url, :string, default: nil
-  attr :priced_on, Date, default: nil
-  attr :logo_url, :string, default: nil
-
-  defp set_cards(%{rarities: []} = assigns) do
-    ~H"""
-    <section id="product-cards" class="product-section" aria-labelledby="product-cards-title">
-      <div class="product-section-heading">
-        <h2 id="product-cards-title">{gettext("Karty do zdobycia")}</h2>
-      </div>
-      <p id="cards-unknown" class="guide-note">
-        {gettext("Nie mamy jeszcze listy kart z tego setu.")}
-      </p>
-    </section>
-    """
-  end
-
-  defp set_cards(assigns) do
-    ~H"""
-    <section id="product-cards" class="product-section" aria-labelledby="product-cards-title">
-      <div class="product-section-heading set-cards-heading">
-        <h2 id="product-cards-title">
-          {gettext("Karty do zdobycia")}
-          <span class="heading-count">{set_card_count(@rarities)}</span>
-        </h2>
-        <img :if={@logo_url} src={@logo_url} alt="" class="set-cards-logo" />
-      </div>
-      <.rarity_cards
-        id="set-cards"
-        rarities={@rarities}
-        cards_source_url={@cards_source_url}
-        priced_on={@priced_on}
-      />
-    </section>
-    """
-  end
-
-  defp set_card_count(rarities) do
-    count = rarities |> Enum.map(&length(&1.cards)) |> Enum.sum()
-
-    ngettext("%{count} karta w secie", "%{count} karty w secie", count,
-      count: Polish.number(count)
-    )
-  end
-
-  attr :id, :string, required: true
-  attr :rarities, :list, required: true
-  attr :cards_source_url, :string, default: nil
-  attr :priced_on, Date, default: nil
-  attr :open_first?, :boolean, default: true
-
-  # A set's cards by rarity, the rarest first, each rarity folding open;
-  # `id`-N-list is a rarity's list, which the pull-rate rows link to.
-  defp rarity_cards(assigns) do
-    ~H"""
-    <p :if={@cards_source_url} id={"#{@id}-unofficial"} class="guide-note pull-rates-estimate">
-      <.fluent_icon name={:info} />
-      <span>
-        {gettext("Nieoficjalna lista kart sprzed premiery, może się jeszcze zmienić. Źródło:")}
-        <a href={@cards_source_url} target="_blank" rel="noopener nofollow">
-          {host(@cards_source_url)}
-        </a>
-      </span>
-    </p>
-    <div id={@id} class="set-cards">
-      <details
-        :for={{group, index} <- Enum.with_index(@rarities)}
-        id={"#{@id}-#{index}"}
-        class="set-cards-group"
-        open={@open_first? and index == 0}
-      >
-        <summary>
-          <span class="set-cards-rarity">{group.rarity || gettext("Rzadkość nieznana")}</span>
-          <span class="set-cards-count">{length(group.cards)}</span>
-          <.fluent_icon name={:chevron_down} class="set-cards-chevron" />
-        </summary>
-        <ol id={"#{@id}-#{index}-list"} class={[length(group.cards) < 6 && "set-cards-short"]}>
-          <li :for={card <- group.cards}>
-            <span class="set-cards-number">{card.number}</span>
-            <span>{card.name}</span>
-            <.card_price card={card} />
-          </li>
-        </ol>
-      </details>
-    </div>
-    <p class="guide-note table-note">
-      <span :if={!@cards_source_url}>{gettext("Lista kart: TCGdex.")}</span>
-      <span :if={@priced_on}>
-        {gettext("Ceny: trend na Cardmarket z %{date}.", date: Polish.date(@priced_on))}
-      </span>
-    </p>
-    """
-  end
-
-  attr :card, :map, required: true
-
-  # The card's Cardmarket trend, linked to its Cardmarket page when TCGdex
-  # gives the product id.
-  defp card_price(%{card: %{cardmarket_id: nil}} = assigns) do
-    ~H"""
-    <span class="set-cards-price set-cards-no-price">{gettext("brak ceny")}</span>
-    """
-  end
-
-  defp card_price(assigns) do
-    price = assigns.card.cardmarket_price
-    assigns = assign(assigns, :trend, price && price.trend)
-
-    ~H"""
-    <a
-      href={"https://www.cardmarket.com/en/Pokemon/Products?idProduct=#{@card.cardmarket_id}"}
-      class={["set-cards-price", !@trend && "set-cards-no-price"]}
-      target="_blank"
-      rel="noopener nofollow"
-      aria-label={
-        if(@trend,
-          do:
-            gettext("Trend %{price}: %{card} na Cardmarket (nowa karta)",
-              price: Polish.eur(@trend),
-              card: @card.name
-            ),
-          else: gettext("Brak ceny: %{card} na Cardmarket (nowa karta)", card: @card.name)
-        )
-      }
-    >
-      {if(@trend, do: Polish.eur(@trend), else: gettext("brak ceny"))}
-    </a>
-    """
   end
 
   attr :suggested, :map, required: true

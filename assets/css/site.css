@@ -537,6 +537,19 @@
 /* In-page links and the results jump land below the sticky masthead (and search bar). */
 html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1px); }
 .guide-world #guide-results-title { scroll-margin-block-start: calc(var(--guide-search-gap) + var(--guide-search-size)); }
+/* A set page: the set's logo and name, its facts at a glance, then its
+   products, pull rates and cards. */
+.guide-world .set-title { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+.guide-world .set-logo { block-size: 4rem; inline-size: auto; max-inline-size: min(12rem, 45vw); object-fit: contain; }
+.guide-world .set-facts { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); list-style: none; margin: 1.25rem 0 0; padding: 0; }
+.guide-world .set-fact { align-content: start; background: var(--paper); color: var(--ink); display: grid; gap: .35rem; min-block-size: 100%; padding: .85rem 1rem; text-decoration: none; }
+@media (hover: hover) and (pointer: fine) { .guide-world .set-fact:hover strong { color: var(--orange); } }
+.guide-world .set-fact-label { color: var(--muted); display: flex; font-size: .875rem; gap: .5rem; justify-content: space-between; line-height: 1.3; }
+.guide-world .set-fact-label > span { color: var(--orange); flex: none; }
+.guide-world .set-fact strong { font: 700 1.75rem/1 "Barlow Condensed", sans-serif; letter-spacing: -.01em; }
+.guide-world .set-fact-detail { font-size: .875rem; line-height: 1.35; overflow-wrap: anywhere; }
+.guide-world .guide-set { margin-block-start: 3rem; }
+.guide-world .guide-set .product-section { scroll-margin-block-start: calc(var(--guide-search-gap) * 2 + var(--guide-search-size)); }
 .guide-world .guide-filters-toggle[aria-expanded="true"] { background: var(--ink); color: var(--bench-light); }
 .guide-world .guide-filters-body { display: grid; gap: 1.5rem; }
 .guide-world .guide-filters-clear { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
@@ -656,8 +669,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .product-facts #product-kind { color: var(--ink); }
 .guide-world .product-facts a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 /* Jumps to the sections below: links in ink, spaced as touch targets. */
-.guide-world .product-jumps { display: flex; flex-wrap: wrap; gap: 0 2rem; margin-block-start: .75rem; }
-.guide-world .product-jumps a { align-items: center; color: var(--ink); display: inline-flex; gap: .5rem; min-block-size: 2.75rem; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.guide-world .product-jumps { display: flex; flex-wrap: wrap; gap: 0 1.25rem; margin-block-start: .75rem; }
+.guide-world .product-jumps a { align-items: center; color: var(--ink); display: inline-flex; gap: .5rem; min-block-size: 3rem; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
 .guide-world .product-jumps .fluent-icon { block-size: 1.25rem; color: var(--orange); flex: none; inline-size: 1.25rem; }
 @media (hover: hover) and (pointer: fine) { .guide-world .product-jumps a:hover { color: var(--orange); } }
 .guide-world .verdict-block { background: var(--paper); grid-area: verdict; min-width: 0; }
