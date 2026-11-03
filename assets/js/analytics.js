@@ -21,8 +21,6 @@ let searchSent = false
 const pageType = path => {
   if (path === "/") return "home"
   if (path.startsWith("/produkty/")) return "product"
-  if (path.startsWith("/cards/")) return "card"
-  if (path === "/trade") return "trade"
   return "other"
 }
 

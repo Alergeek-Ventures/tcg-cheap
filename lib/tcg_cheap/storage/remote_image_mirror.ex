@@ -3,18 +3,21 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
 
   require Logger
 
-  alias TcgCheap.Catalogue.CardImage
+  alias TcgCheap.Sealed.CardImage
   alias TcgCheap.Storage
 
   # Keyset scan across the known source columns. No request parameter can add a
   # source, and neither rendering nor the media controller invokes this query.
   @sources """
   SELECT url, kind FROM (
-    SELECT image_url AS url, 'card' AS kind FROM card_printings
-    UNION
-    SELECT logo_url AS url, 'logo' AS kind FROM card_sets
-    UNION
     SELECT logo_url AS url, 'logo' AS kind FROM sealed_tcgdex_sets
+    UNION
+    SELECT regexp_replace(s.logo_url, '/logo(\\.(png|webp|jpg))?$', '') || '/' || c.number,
+           'card' AS kind
+      FROM sealed_tcgdex_cards c
+      JOIN sealed_tcgdex_sets s ON c.tcgdex_set_id = s.id
+      WHERE s.language = 'en' AND s.cards_source_url IS NULL
+        AND s.logo_url ~ '/logo(\\.(png|webp|jpg))?$'
     UNION
     SELECT item->>'image' AS url, 'card' AS kind
       FROM sealed_products,

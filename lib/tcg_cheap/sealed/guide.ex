@@ -1,9 +1,19 @@
 defmodule TcgCheap.Sealed.Guide do
   @moduledoc "Read models for the public buying-guide pages."
 
-  alias TcgCheap.Catalogue.CardImage
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Kinds, PriceGuide, Product, Rarities, Regions, TcgdexSet}
+
+  alias TcgCheap.Sealed.{
+    CardGuide,
+    CardImage,
+    Kinds,
+    PriceGuide,
+    Product,
+    Rarities,
+    Regions,
+    TcgdexSet
+  }
+
   alias TcgCheap.Sealed.PullRates.Rate
 
   @history_days 90
@@ -205,6 +215,19 @@ defmodule TcgCheap.Sealed.Guide do
 
   # The chosen expansion stays listed, with no products, when the other
   # filters leave none of it.
+  def expansion_names do
+    catalogue =
+      Sealed.list_tcgdex_sets!(query: [filter: [language: "en"]])
+      |> TcgdexSet.by_expansion()
+      |> Map.new(fn {id, set} -> {id, set.name} end)
+
+    sealed =
+      facets(%{query: "", kind: nil, region: nil, expansion: nil}).expansions
+      |> Map.new(&{&1.id, &1.name})
+
+    Map.merge(catalogue, sealed)
+  end
+
   defp chosen_elsewhere(nil, _expansions, _logos), do: []
 
   defp chosen_elsewhere(id, expansions, logos) do
@@ -411,7 +434,7 @@ defmodule TcgCheap.Sealed.Guide do
   defp expansion_set(id) do
     sets = sets_with_cards(id)
     pull_rates = set_pull_rates(sets)
-    cards = Enum.flat_map(sets, & &1.cards)
+    cards = sets |> Enum.flat_map(& &1.cards) |> CardGuide.enrich(sets)
     rarities = by_rarity(cards)
 
     %{
@@ -474,7 +497,7 @@ defmodule TcgCheap.Sealed.Guide do
     Enum.map(groups, fn {name, items} ->
       booster = Map.fetch!(boosters, name)
       sets = sets_with_cards(booster.cardmarket_expansion_id)
-      cards = Enum.flat_map(sets, & &1.cards)
+      cards = sets |> Enum.flat_map(& &1.cards) |> CardGuide.enrich(sets)
       rarities = by_rarity(cards)
 
       %{

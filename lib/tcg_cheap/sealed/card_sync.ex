@@ -4,7 +4,9 @@ defmodule TcgCheap.Sealed.CardSync do
   (`TcgCheap.Sealed.TcgdexSet`) into `TcgCheap.Sealed.TcgdexCard`, for the
   lists of cards on single booster pages. TCGdex's set documents list cards
   without their rarity, so one GraphQL query per set reads every card's
-  number, name and rarity.
+  number, name, rarity and variant flags. One REST set document supplies its
+  official abbreviation and printed card count. Sets copied before these
+  identity fields existed are copied again once, including old releases.
 
   Every set is copied once; sets released in the last half year again once
   a day, as TCGdex fills in new sets. A set TCGdex fails to return, or
@@ -30,7 +32,7 @@ defmodule TcgCheap.Sealed.CardSync do
 
   @url "https://api.tcgdex.net/v2/graphql"
   @card_url "https://api.tcgdex.net/v2/en/cards/"
-  @query "query($id: ID!) { cards(filters: {id: $id}) { id localId name rarity set { id } } }"
+  @query "query($id: ID!) { cards(filters: {id: $id}) { id localId name rarity variants { normal reverse holo firstEdition } set { id } } }"
   @recent_days 183
   @retry_after_hours 20
   @cardmarket_retry_days 7
@@ -70,6 +72,7 @@ defmodule TcgCheap.Sealed.CardSync do
     lookups =
       look_up_until(cards, deadline, request_options, %{looked_up: 0, lookups_failed: 0}, 0)
 
+    if counts.synced > 0, do: Sealed.CardRefresh.rematch_unmatched()
     {:ok, Map.merge(counts, lookups)}
   end
 
@@ -163,10 +166,11 @@ defmodule TcgCheap.Sealed.CardSync do
   defp cardmarket_id(_none), do: nil
 
   defp sync(set, {request_options, now}) do
-    with {:ok, cards} <- fetch_cards(set.tcgdex_id, request_options),
+    with {:ok, metadata} <- fetch_set(set.tcgdex_id, request_options),
+         {:ok, cards} <- fetch_cards(set.tcgdex_id, request_options),
          cards = Enum.map(cards, &subset_rarity(&1, set)),
          :ok <- replaces_unofficial(set, cards, now),
-         {:ok, _set} <- Sealed.record_tcgdex_set_cards(set, cards) do
+         {:ok, _set} <- Sealed.record_tcgdex_set_cards(set, cards, metadata) do
       :ok
     else
       {:error, reason} ->
@@ -233,6 +237,37 @@ defmodule TcgCheap.Sealed.CardSync do
     end
   end
 
+  defp fetch_set(id, request_options) do
+    Process.sleep(@pause_ms)
+
+    options =
+      Keyword.merge(
+        [
+          url: "https://api.tcgdex.net/v2/en/sets/" <> URI.encode(id, &URI.char_unreserved?/1),
+          redirect: false,
+          retry: false,
+          receive_timeout: 30_000
+        ],
+        request_options
+      )
+
+    case Req.get(options) do
+      {:ok, %{status: 200, body: %{"id" => ^id, "cardCount" => %{"official" => count}} = body}}
+      when is_integer(count) and count >= 0 ->
+        {:ok,
+         %{abbreviation: get_in(body, ["abbreviation", "official"]), official_card_count: count}}
+
+      {:ok, %{status: status}} ->
+        {:error, {:set_metadata, status}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp variants(flags) when is_map(flags), do: for({key, true} <- flags, do: key)
+  defp variants(_flags), do: []
+
   defp cards_of_set(cards, set_id) do
     cards
     |> Enum.reject(&match?(%{"set" => %{"id" => "" <> id}} when id != set_id, &1))
@@ -255,7 +290,13 @@ defmodule TcgCheap.Sealed.CardSync do
          set_id
        )
        when id != "" and number != "" and name != "",
-       do: %{tcgdex_id: id, number: number, name: name, rarity: rarity(card["rarity"])}
+       do: %{
+         tcgdex_id: id,
+         number: number,
+         name: name,
+         rarity: rarity(card["rarity"]),
+         variants: variants(card["variants"])
+       }
 
   defp card(_incomplete, _set_id), do: nil
 

@@ -2,15 +2,15 @@ defmodule TcgCheap.Sealed.AgentTools.SetPhoto do
   @moduledoc """
   Sets or clears a product's checked photo, which `TcgCheap.Sealed.PhotoMirror`
   stores in place of the shops' photos. The image host is checked against
-  `TcgCheap.Catalogue.ExternalImage`.
+  `TcgCheap.Sealed.ExternalImage`.
   """
 
   use Ash.Resource.Actions.Implementation
 
   alias Ash.Error.Action.InvalidArgument
-  alias TcgCheap.Catalogue.ExternalImage
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.Json
+  alias TcgCheap.Sealed.ExternalImage
 
   @impl true
   def run(input, _opts, _context) do

@@ -21,9 +21,9 @@ defmodule TcgCheap.Sealed.CardPrice do
     defaults [:read]
 
     create :record do
-      accept [:cardmarket_id, :trend, :priced_on]
+      accept [:cardmarket_id, :trend, :trend_holo, :low, :priced_on]
       upsert? true
-      upsert_fields [:trend, :priced_on, :updated_at]
+      upsert_fields [:trend, :trend_holo, :low, :priced_on, :updated_at]
     end
 
     destroy :prune do
@@ -38,6 +38,9 @@ defmodule TcgCheap.Sealed.CardPrice do
       allow_nil? false
       public? true
     end
+
+    attribute :trend_holo, :decimal, public?: true
+    attribute :low, :decimal, public?: true
 
     attribute :trend, :decimal do
       description "Cardmarket's trend price in EUR, nil when it gives none."

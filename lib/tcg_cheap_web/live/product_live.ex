@@ -10,7 +10,7 @@ defmodule TcgCheapWeb.ProductLive do
   import TcgCheapWeb.GuideComponents
   import TcgCheapWeb.SetComponents
 
-  alias TcgCheap.Catalogue.CardImage
+  alias TcgCheap.Sealed.CardImage
   alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Regions, Shops}
   alias TcgCheap.Sealed.PullRates.Rate
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
@@ -190,14 +190,7 @@ defmodule TcgCheapWeb.ProductLive do
           </div>
 
           <section id="product-offers" class="product-section" aria-labelledby="product-offers-title">
-            <div class="product-section-heading">
-              <h2 id="product-offers-title">{gettext("Oferty w sklepach")}</h2>
-              <p :if={@in_stock_count > 0}>
-                {gettext("%{offers} na stanie",
-                  offers: Polish.plural(@in_stock_count, "oferta", "oferty", "ofert")
-                )}
-              </p>
-            </div>
+            <.offers_heading id="product-offers-title" count={@in_stock_count} />
             <%!-- Distances to pickup stay out of PostHog's autocapture; shop links track themselves. --%>
             <ul
               id="offer-list"
@@ -243,16 +236,15 @@ defmodule TcgCheapWeb.ProductLive do
                 />
               </ul>
             </section>
-            <details
+            <.offers_disclosure
               :if={@out_of_stock_count > 0}
               id="offers-out-of-stock"
-              class="verdict-method offers-out"
-            >
-              <summary data-track="product_section_opened" data-track-section="out_of_stock_offers">
-                {gettext("Bez towaru: %{offers}",
+              label={
+                gettext("Bez towaru: %{offers}",
                   offers: Polish.plural(@out_of_stock_count, "oferta", "oferty", "ofert")
-                )}<.fluent_icon name={:chevron_down} class="verdict-method-chevron" />
-              </summary>
+                )
+              }
+            >
               <ul
                 id="offer-list-out"
                 class="offer-list ph-no-capture"
@@ -267,13 +259,8 @@ defmodule TcgCheapWeb.ProductLive do
                   today={@page.today}
                 />
               </ul>
-            </details>
-            <p id="offer-disclaimer" class="guide-note offer-disclaimer">
-              <.fluent_icon name={:shield_error} />
-              {gettext(
-                "Jesteśmy niezależnym agregatorem: nie sprzedajemy produktów i nie weryfikujemy sklepów. Zanim zapłacisz, sprawdź sklep – opinie, dane firmy i regulamin."
-              )}
-            </p>
+            </.offers_disclosure>
+            <.offer_disclaimer />
           </section>
 
           <%!-- A booster's card list says what it holds better than "we do not know". --%>
@@ -320,128 +307,6 @@ defmodule TcgCheapWeb.ProductLive do
     """
   end
 
-  attr :id, :string, required: true
-  attr :offer, :map, required: true
-  attr :location, :map, default: nil
-  attr :today, Date, required: true
-
-  # One shop's offer. In stock is the default, so a row only says when it is
-  # not (or that it is a pre-order), and when it was checked if that was not
-  # today.
-  defp offer(assigns) do
-    assigns = assign(assigns, :checked_on, DateTime.to_date(assigns.offer.last_seen_at))
-
-    ~H"""
-    <li id={@id} class={["offer", !@offer.in_stock && !@offer.preorder && "offer-unavailable"]}>
-      <.shop_logo shop={@offer.shop} />
-      <div class="offer-shop">
-        <strong>{shop_name(@offer)}</strong>
-        <.offer_delivery offer={@offer} location={@location} />
-      </div>
-      <p class="offer-price">
-        <span :if={@offer.preorder} class="offer-preorder-label">{gettext("przedsprzedaż")}</span>
-        <strong>{Polish.price(@offer.price)}</strong>
-        <span
-          :if={(!@offer.in_stock and !@offer.preorder) or @checked_on != @today}
-          class="offer-checked"
-        >
-          {offer_note(@offer.in_stock or @offer.preorder, @checked_on, @today)}
-        </span>
-      </p>
-      <a
-        href={@offer.url}
-        target="_blank"
-        rel="noopener nofollow"
-        class="offer-link"
-        data-track="shop_link_clicked"
-        data-track-placement="offers"
-        data-track-shop={@offer.shop}
-        data-track-price={@offer.price}
-        data-track-in-stock={to_string(@offer.in_stock)}
-        data-track-preorder={to_string(@offer.preorder)}
-        aria-label={
-          gettext("%{shop}: przejdź do sklepu (otwiera się w nowej karcie)", shop: shop_name(@offer))
-        }
-      >{gettext("Do sklepu")}</a>
-    </li>
-    """
-  end
-
-  defp offer_note(true, checked_on, today),
-    do: gettext("sprawdzono %{when}", when: Polish.days_ago(checked_on, today))
-
-  defp offer_note(false, today, today), do: gettext("brak na stanie")
-
-  defp offer_note(false, checked_on, today),
-    do: gettext("brak na stanie, sprawdzono %{when}", when: Polish.days_ago(checked_on, today))
-
-  attr :offer, :map, required: true
-  attr :location, :map, default: nil
-
-  # What delivery adds to an offer, from the shop's published terms:
-  # "dostawa od 14,99 zł · darmowa od 400 zł · odbiór osobisty: Kraków (491 km)".
-  # Pickup within the radius stands out on a line of its own.
-  defp offer_delivery(assigns) do
-    {shop, km} =
-      case Shops.fetch(assigns.offer.shop) do
-        {:ok, shop} -> {shop, VisitorLocation.pickup_km(shop.key, assigns.location)}
-        :error -> {nil, nil}
-      end
-
-    near? = km != nil and km <= VisitorLocation.radius_km()
-
-    assigns =
-      assign(assigns,
-        shop: shop,
-        km: km,
-        near?: near?,
-        terms: if(shop, do: delivery_terms(shop, assigns.offer.price, km, near?), else: [])
-      )
-
-    # A no-break space keeps each "·" at the end of a line, never at the start.
-    ~H"""
-    <span :if={@terms != []} class="offer-delivery">{Enum.join(@terms, "\u00A0· ")}</span>
-    <span :if={@near?} class="offer-pickup-near">
-      <.fluent_icon name={:location} />{gettext("odbiór: %{city}, %{distance}",
-        city: @shop.pickup_city,
-        distance: VisitorLocation.km(@km)
-      )}
-    </span>
-    """
-  end
-
-  defp delivery_terms(shop, price, km, near?) do
-    threshold = shop.free_shipping_from
-    shipping = shipping(shop, price)
-
-    # The threshold stays visible: shops often grant it for some carriers only.
-    cost =
-      case shipping do
-        :free -> gettext("darmowa dostawa od %{amount}", amount: amount(threshold))
-        {:from, from} -> gettext("dostawa od %{amount}", amount: amount(from))
-        :unknown -> gettext("koszt dostawy w koszyku")
-      end
-
-    [
-      cost,
-      threshold && shipping != :free && gettext("darmowa od %{amount}", amount: amount(threshold)),
-      pickup_term(shop.pickup_city, km, near?)
-    ]
-    |> Enum.filter(&is_binary/1)
-  end
-
-  # Pickup within the radius is shown on its own line instead.
-  defp pickup_term(nil, _km, _near?), do: nil
-  defp pickup_term(_city, _km, true), do: nil
-  defp pickup_term(city, nil, false), do: gettext("odbiór osobisty: %{city}", city: city)
-
-  defp pickup_term(city, km, false),
-    do:
-      gettext("odbiór osobisty: %{city} (%{distance})",
-        city: city,
-        distance: VisitorLocation.km(km)
-      )
-
   defp shipping(shop, price) do
     threshold = shop.free_shipping_from
 
@@ -476,58 +341,6 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp amount(value),
     do: if(Decimal.integer?(value), do: Polish.zloty(value), else: Polish.price(value))
-
-  attr :product, :map, required: true
-  attr :cardmarket_pln, :any, required: true
-  attr :eur_pln, :map, default: nil
-
-  defp cardmarket_reference(assigns) do
-    ~H"""
-    <section
-      id="product-cardmarket"
-      class="product-section cardmarket-reference"
-      aria-labelledby="product-cardmarket-title"
-    >
-      <div class="product-section-heading">
-        <h2 id="product-cardmarket-title" class="cardmarket-title">
-          <img src={~p"/images/cardmarket.png"} alt="" width="24" height="24" />{gettext(
-            "Cena na Cardmarket"
-          )}
-        </h2>
-        <p :if={@product.cardmarket_price_updated_on}>
-          {gettext("stan na %{date}", date: Polish.date(@product.cardmarket_price_updated_on))}
-        </p>
-      </div>
-      <%= if @product.cardmarket_trend do %>
-        <p id="cardmarket-trend" class="cardmarket-trend">
-          {gettext("Trend:")} <strong>{Polish.eur(@product.cardmarket_trend)}</strong>
-          <span :if={@cardmarket_pln}>≈ {Polish.zloty(@cardmarket_pln)}</span>
-        </p>
-        <p class="guide-note">
-          {gettext("Europejska giełda.")}
-          <span :if={@eur_pln}>
-            {gettext("Kurs NBP %{rate} zł z %{date}.",
-              rate: Polish.rate(@eur_pln.rate),
-              date: Polish.date(@eur_pln.date)
-            )}
-          </span>
-          <span :if={@product.cardmarket_added_on} id="product-added">
-            {gettext("Na Cardmarket od %{date}.", date: Polish.date(@product.cardmarket_added_on))}
-          </span>
-        </p>
-        <p class="reference-link">
-          <a href={cardmarket_url(@product.cardmarket_id)} target="_blank" rel="noopener nofollow">
-            {gettext("Zobacz na Cardmarket")} →
-          </a>
-        </p>
-      <% else %>
-        <p id="cardmarket-none" class="guide-note">
-          {gettext("Cardmarket nie podaje jeszcze ceny tego produktu.")}
-        </p>
-      <% end %>
-    </section>
-    """
-  end
 
   attr :contents, :map, required: true
   attr :boosters, :map, required: true
@@ -1157,149 +970,113 @@ defmodule TcgCheapWeb.ProductLive do
       )
 
     ~H"""
-    <section
-      id="product-verdict"
-      class={["verdict-block", "verdict-block-#{@verdict.status}"]}
-      aria-labelledby="product-verdict-title"
-    >
-      <h2 id="product-verdict-title" class="sr-only">{gettext("Ocena ceny")}</h2>
-      <.verdict_badge verdict={@verdict} id="verdict-badge" class="verdict-badge-large" />
-      <div class="verdict-body">
-        <div :if={@verdict.cheapest} class="verdict-now">
-          <div>
-            <p id="verdict-price" class="verdict-price">{Polish.price(@verdict.cheapest.price)}</p>
-            <p id="verdict-shop" class="verdict-shop">
-              {if(@page.preorder?,
-                do: gettext("najtaniej w przedsprzedaży w"),
-                else: gettext("najtaniej teraz w")
-              )} <strong>{shop_name(@verdict.cheapest)}</strong>
-            </p>
-          </div>
-          <a
-            id="verdict-go"
-            href={@verdict.cheapest.url}
-            target="_blank"
-            rel="noopener nofollow"
-            class="verdict-go"
-            data-track="shop_link_clicked"
-            data-track-placement="verdict"
-            data-track-shop={@verdict.cheapest.shop}
-            data-track-price={@verdict.cheapest.price}
-            data-track-in-stock={to_string(@verdict.cheapest.in_stock)}
-            data-track-preorder={to_string(@verdict.cheapest.preorder)}
-          >
-            {gettext("Do sklepu")}<span class="sr-only">{gettext("(otwiera się w nowej karcie)")}</span>
-          </a>
+    <.verdict_panel id="product-verdict" status={@verdict.status}>
+      <:header>
+        <.verdict_badge verdict={@verdict} id="verdict-badge" class="verdict-badge-large" />
+      </:header>
+      <.verdict_now :if={@verdict.cheapest} offer={@verdict.cheapest} preorder?={@page.preorder?} />
+      <p :if={@page.preorder?} id="verdict-preorder" class="verdict-preorder-note">
+        <.verdict_icon status={:preorder} />
+        <span>{preorder_note(@page.premiere, @page.premiere_in)}</span>
+      </p>
+      <div :if={@range} id="verdict-range" class="verdict-range" aria-hidden="true">
+        <div class="verdict-range-bar">
+          <span class="verdict-range-good" style={"--to: #{@range.good_at}%"}></span>
+          <span
+            class="verdict-range-normal"
+            style={"--from: #{@range.good_at}%; --to: #{@range.normal_at}%"}
+          ></span>
+          <span class="verdict-range-expensive" style={"--from: #{@range.normal_at}%"}></span>
+          <span class="verdict-range-now" style={"--at: #{@range.cheapest_at}%"}></span>
         </div>
-        <p :if={@page.preorder?} id="verdict-preorder" class="verdict-preorder-note">
-          <.verdict_icon status={:preorder} />
-          <span>{preorder_note(@page.premiere, @page.premiere_in)}</span>
-        </p>
-        <div :if={@range} id="verdict-range" class="verdict-range" aria-hidden="true">
-          <div class="verdict-range-bar">
-            <span class="verdict-range-good" style={"--to: #{@range.good_at}%"}></span>
-            <span
-              class="verdict-range-normal"
-              style={"--from: #{@range.good_at}%; --to: #{@range.normal_at}%"}
-            ></span>
-            <span class="verdict-range-expensive" style={"--from: #{@range.normal_at}%"}></span>
-            <span class="verdict-range-now" style={"--at: #{@range.cheapest_at}%"}></span>
-          </div>
-          <div class="verdict-range-limits">
-            <span style={"--at: #{@range.good_at}%"}>{Polish.zloty(@verdict.good_max)}</span>
-            <span style={"--at: #{@range.normal_at}%"}>{Polish.zloty(@verdict.normal_max)}</span>
-          </div>
-        </div>
-        <p :if={@reason} id="verdict-reason" class="verdict-reason">{@reason}</p>
-        <p :if={@good_bound} id="verdict-good-bound" class="verdict-reason">{@good_bound}</p>
-        <p :if={@verdict.status == :cardmarket} id="verdict-cardmarket" class="verdict-cardmarket">
-          <.cardmarket_price
-            price={@verdict.typical}
-            href={cardmarket_url(@page.product.cardmarket_id)}
-          />
-          <span>{gettext("na Cardmarket, bez wysyłki")}</span>
-        </p>
-        <p
-          :if={@past.status in [:low, :usual, :high]}
-          id="verdict-past"
-          class={["verdict-past", "verdict-past-#{@past.status}"]}
-        >
-          <.verdict_icon status={past_tone(@past.status)} />
-          <span>
-            <strong>{past_label(@past.status)}</strong>
-            {gettext("(zwykle %{price})", price: Polish.zloty(@past.typical))}
-          </span>
-        </p>
-        <p :if={@verdict.status == :cardmarket} id="verdict-pending" class="guide-note">
-          {if(@page.preorder?,
-            do:
-              gettext(
-                "Ocenę pokażemy, gdy produkt będzie w przedsprzedaży w co najmniej %{count} sklepach.",
-                count: PriceGuide.min_shops()
-              ),
-            else:
-              gettext(
-                "Ocenę pokażemy, gdy produkt będzie na stanie w co najmniej %{count} sklepach.",
-                count: PriceGuide.min_shops()
-              )
-          )}
-        </p>
-        <.nearby_line :if={@nearby} nearby={@nearby} />
-        <div class="verdict-more">
-          <details id="verdict-history" class="verdict-method">
-            <summary data-track="product_section_opened" data-track-section="price_history">
-              {gettext("Historia cen")}<.fluent_icon
-                name={:chevron_down}
-                class="verdict-method-chevron"
-              />
-            </summary>
-            <.price_chart
-              id="price-history"
-              series={chart_series(@page)}
-              from={Date.add(@page.today, -(Guide.history_days() - 1))}
-              to={@page.today}
-              typical={@past.typical}
-            />
-          </details>
-          <details id="verdict-method" class="verdict-method">
-            <summary data-track="product_section_opened" data-track-section="verdict_method">
-              {gettext("Jak liczymy?")}<.fluent_icon
-                name={:chevron_down}
-                class="verdict-method-chevron"
-              />
-            </summary>
-            <p>
-              {gettext(
-                "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów).",
-                minimum: PriceGuide.min_shops()
-              )}
-              <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
-                {gettext(
-                  "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
-                )}
-              </span>
-              <span :if={@page.preorder?} id="verdict-method-preorder">
-                {gettext(
-                  "Gdy żaden sklep nie ma produktu na stanie, liczymy tak samo z ofert przedsprzedaży."
-                )}
-              </span>
-            </p>
-            <p>
-              {gettext(
-                "Dobra cena jest co najmniej 5% niższa od typowej, od zwykłej z ostatnich %{window} dni i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo.",
-                window: PriceGuide.window_days()
-              )}
-            </p>
-            <p>
-              {gettext(
-                "Ceny w sklepach są bez wysyłki. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec.",
-                shipping: Polish.eur(Guide.cardmarket_shipping_eur())
-              )}
-            </p>
-          </details>
+        <div class="verdict-range-limits">
+          <span style={"--at: #{@range.good_at}%"}>{Polish.zloty(@verdict.good_max)}</span>
+          <span style={"--at: #{@range.normal_at}%"}>{Polish.zloty(@verdict.normal_max)}</span>
         </div>
       </div>
-    </section>
+      <p :if={@reason} id="verdict-reason" class="verdict-reason">{@reason}</p>
+      <p :if={@good_bound} id="verdict-good-bound" class="verdict-reason">{@good_bound}</p>
+      <p :if={@verdict.status == :cardmarket} id="verdict-cardmarket" class="verdict-cardmarket">
+        <.cardmarket_price
+          price={@verdict.typical}
+          href={cardmarket_url(@page.product.cardmarket_id)}
+        />
+        <span>{gettext("na Cardmarket, bez wysyłki")}</span>
+      </p>
+      <p
+        :if={@past.status in [:low, :usual, :high]}
+        id="verdict-past"
+        class={["verdict-past", "verdict-past-#{@past.status}"]}
+      >
+        <.verdict_icon status={past_tone(@past.status)} />
+        <span>
+          <strong>{past_label(@past.status)}</strong>
+          {gettext("(zwykle %{price})", price: Polish.zloty(@past.typical))}
+        </span>
+      </p>
+      <p :if={@verdict.status == :cardmarket} id="verdict-pending" class="guide-note">
+        {if(@page.preorder?,
+          do:
+            gettext(
+              "Ocenę pokażemy, gdy produkt będzie w przedsprzedaży w co najmniej %{count} sklepach.",
+              count: PriceGuide.min_shops()
+            ),
+          else:
+            gettext(
+              "Ocenę pokażemy, gdy produkt będzie na stanie w co najmniej %{count} sklepach.",
+              count: PriceGuide.min_shops()
+            )
+        )}
+      </p>
+      <.nearby_line :if={@nearby} nearby={@nearby} />
+      <div class="verdict-more">
+        <details id="verdict-history" class="verdict-method">
+          <summary data-track="product_section_opened" data-track-section="price_history">
+            {gettext("Historia cen")}<.fluent_icon
+              name={:chevron_down}
+              class="verdict-method-chevron"
+            />
+          </summary>
+          <.price_chart
+            id="price-history"
+            series={chart_series(@page)}
+            from={Date.add(@page.today, -(Guide.history_days() - 1))}
+            to={@page.today}
+            typical={@past.typical}
+          />
+        </details>
+        <.verdict_method id="verdict-method">
+          <p>
+            {gettext(
+              "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów).",
+              minimum: PriceGuide.min_shops()
+            )}
+            <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
+              {gettext(
+                "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
+              )}
+            </span>
+            <span :if={@page.preorder?} id="verdict-method-preorder">
+              {gettext(
+                "Gdy żaden sklep nie ma produktu na stanie, liczymy tak samo z ofert przedsprzedaży."
+              )}
+            </span>
+          </p>
+          <p>
+            {gettext(
+              "Dobra cena jest co najmniej 5% niższa od typowej, od zwykłej z ostatnich %{window} dni i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo.",
+              window: PriceGuide.window_days()
+            )}
+          </p>
+          <p>
+            {gettext(
+              "Ceny w sklepach są bez wysyłki. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec.",
+              shipping: Polish.eur(Guide.cardmarket_shipping_eur())
+            )}
+          </p>
+        </.verdict_method>
+      </div>
+    </.verdict_panel>
     """
   end
 

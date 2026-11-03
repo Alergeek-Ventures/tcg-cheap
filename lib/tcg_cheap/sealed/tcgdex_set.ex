@@ -61,7 +61,7 @@ defmodule TcgCheap.Sealed.TcgdexSet do
 
       filter expr(
                language == "en" and not is_nil(cardmarket_expansion_id) and
-                 (is_nil(cards_checked_at) or
+                 (is_nil(official_card_count) or is_nil(cards_checked_at) or
                     (released_on >= ^arg(:released_since) and
                        cards_checked_at < ^arg(:checked_before)))
              )
@@ -102,7 +102,8 @@ defmodule TcgCheap.Sealed.TcgdexSet do
                         tcgdex_id: [type: :string, allow_nil?: false],
                         number: [type: :string, allow_nil?: false],
                         name: [type: :string, allow_nil?: false],
-                        rarity: [type: :string]
+                        rarity: [type: :string],
+                        variants: [type: {:array, :string}]
                       ]
                     ]
       end
@@ -121,6 +122,7 @@ defmodule TcgCheap.Sealed.TcgdexSet do
     end
 
     update :record_cards do
+      accept [:abbreviation, :official_card_count]
       description "Replaces the set's cards with those TCGdex lists now."
 
       argument :cards, {:array, :map} do
@@ -131,7 +133,8 @@ defmodule TcgCheap.Sealed.TcgdexSet do
                         tcgdex_id: [type: :string, allow_nil?: false],
                         number: [type: :string, allow_nil?: false],
                         name: [type: :string, allow_nil?: false],
-                        rarity: [type: :string]
+                        rarity: [type: :string],
+                        variants: [type: {:array, :string}]
                       ]
                     ]
       end
@@ -153,6 +156,8 @@ defmodule TcgCheap.Sealed.TcgdexSet do
     attribute :tcgdex_id, :string, allow_nil?: false, public?: true, constraints: [max_length: 40]
     attribute :cardmarket_expansion_id, :integer, public?: true
     attribute :name, :string, public?: true, constraints: [max_length: 200]
+    attribute :abbreviation, :string, public?: true, constraints: [max_length: 30]
+    attribute :official_card_count, :integer, public?: true, constraints: [min: 0]
     attribute :logo_url, :string, public?: true, constraints: [max_length: 500]
     attribute :released_on, :date, public?: true
     attribute :checked_at, :utc_datetime_usec, allow_nil?: false, public?: true

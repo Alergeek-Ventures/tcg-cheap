@@ -73,7 +73,9 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   it.
 - Public pages read only the local database; shops and Cardmarket are fetched
   by background jobs.
-- The singles/trade pages are still English and will be simplified next.
+- The legacy singles catalogue, valuation and trade pages have been removed.
+  Singles and trades will be rebuilt on the buying-guide domain; the former
+  `/cards/:tcgdex_id` and `/trade` URLs redirect permanently to `/`.
 
 ## Evidence on Hand
 

@@ -43,6 +43,13 @@ defmodule TcgCheapWeb.Router do
      a wrong match poisons the price history.
   4. list_matched_offers: audit automatic matches; fix a wrong one with assign_offer or exclude_offer.
   5. list_manual_decisions and clear_manual_decision: review or undo manual decisions.
+  Daily English singles workflow: check shop_status singles counts, list_unmatched_card_offers
+  (filter shop/reason/set), explain_card_match, then search_cards. assign_card_offer fixes an exact
+  identity; exclude_card_offer rejects a non-card. Never assign non-English cards to English ones.
+  list_matched_card_offers suspicious=true audits price and variant outliers; special patterned
+  prints have no reference. list_card_decisions and clear_card_decision review and undo decisions.
+  enqueue_card_sync copies the English sets needed by singles matching. Singles decisions never
+  recompute sealed prices.
   set_product_eans maintains verified barcodes for matching.
   set_product_contents records what a box holds (items, a fixed deck's cards, sources) for its page.
   set_product_photo replaces missing, tiny or wrong shop photos with a checked one.
@@ -89,6 +96,14 @@ defmodule TcgCheapWeb.Router do
       mcp_name: "TCG Cheap buying guide",
       instructions: @mcp_instructions,
       tools: [
+        :list_unmatched_card_offers,
+        :list_matched_card_offers,
+        :list_card_decisions,
+        :explain_card_match,
+        :search_cards,
+        :assign_card_offer,
+        :exclude_card_offer,
+        :clear_card_decision,
         :shop_status,
         :list_unmatched_offers,
         :list_matched_offers,
@@ -117,8 +132,8 @@ defmodule TcgCheapWeb.Router do
   scope "/", TcgCheapWeb do
     pipe_through :browser
 
-    live "/trade", TradeLive
-    live "/cards/:tcgdex_id", CardDetailLive
+    get "/trade", LegacyRedirectController, :home
+    get "/cards/:tcgdex_id", LegacyRedirectController, :home
   end
 
   scope "/", TcgCheapWeb do
@@ -130,6 +145,18 @@ defmodule TcgCheapWeb.Router do
       live "/", HomeLive, :index
       live "/rozszerzenia/:slug", HomeLive, :expansion
       live "/produkty/:slug", ProductLive
+    end
+  end
+
+  pipeline :single_canonical do
+    plug TcgCheapWeb.SingleCanonical
+  end
+
+  scope "/", TcgCheapWeb do
+    pipe_through [:browser, :guide_locale, :single_canonical]
+
+    live_session :singles, on_mount: [TcgCheapWeb.Locale] do
+      live "/rozszerzenia/:slug/karty/:card_slug", SingleLive
     end
   end
 
@@ -172,16 +199,6 @@ defmodule TcgCheapWeb.Router do
     ash_authentication_live_session :admin_review,
       on_mount: [{TcgCheapWeb.AdminAuth, :require_admin}, Backpex.InitAssigns] do
       live "/buying-guide", BuyingGuideLive
-      live "/operations", OperationsLive
-      live_resources "/operations/import-issues", ImportIssueLive, only: [:index, :show]
-      live "/catalogue/cards/:id/correct", CardPrintingMappingCorrectionLive
-
-      live_resources "/catalogue/card-mapping-history", CardPrintingMappingDecisionLive,
-        only: [:index, :show]
-
-      live_resources "/catalogue/card-sets", CardSetLive, only: [:index, :show]
-      live_resources "/catalogue/cards", CardPrintingLive, only: [:index, :show]
-      live_resources "/catalogue/valuations", SingleValuationSnapshotLive, only: [:index, :show]
     end
   end
 

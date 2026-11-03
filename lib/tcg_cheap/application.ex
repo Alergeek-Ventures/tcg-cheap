@@ -18,8 +18,6 @@ defmodule TcgCheap.Application do
       {Ecto.Migrator, repos: Application.fetch_env!(:tcg_cheap, :ecto_repos)},
       {AshAuthentication.Supervisor, otp_app: :tcg_cheap},
       {TcgCheapWeb.AdminLoginLimiter, Application.get_env(:tcg_cheap, :admin_login_limiter, [])},
-      {TcgCheapWeb.PublicAcquisitionLimiter,
-       Application.get_env(:tcg_cheap, :public_acquisition_limiter, [])},
       {DNSCluster, query: Application.get_env(:tcg_cheap, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: TcgCheap.PubSub},
       {Task.Supervisor, name: TcgCheap.Storage.DownloadSupervisor},

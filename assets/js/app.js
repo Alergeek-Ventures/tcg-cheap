@@ -25,8 +25,6 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/tcg_cheap"
 import {Hooks as BackpexHooks, backpexParams} from "backpex"
 import {createLiveToastHook} from "live_toast"
-import CardAutocomplete from "./hooks/card_autocomplete"
-import TradeShare from "./hooks/trade_share"
 import VisitorLocation from "./hooks/visitor_location"
 import initAnalytics from "./analytics"
 import topbar from "../vendor/topbar"
@@ -130,7 +128,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
   // No visitor location here: these params also go into the socket URL, which
   // proxies log. The VisitorLocation hook sends it as an event instead.
   params: backpexParams({_csrf_token: csrfToken}),
-  hooks: {...colocatedHooks, CardAutocomplete, TradeShare, VisitorLocation, LiveToast: createLiveToastHook(), ...BackpexHooks},
+  hooks: {...colocatedHooks, VisitorLocation, LiveToast: createLiveToastHook(), ...BackpexHooks},
   dom: {
     onDocumentPatch,
     // A loaded photo stays shown when LiveView patches it (the mark is set in the root layout).

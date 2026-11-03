@@ -3,7 +3,7 @@ defmodule TcgCheapWeb.CSPNonce do
 
   import Plug.Conn
 
-  alias TcgCheap.Catalogue.ExternalImage
+  alias TcgCheap.Sealed.ExternalImage
 
   @nonce_bytes 18
   def init(opts), do: opts

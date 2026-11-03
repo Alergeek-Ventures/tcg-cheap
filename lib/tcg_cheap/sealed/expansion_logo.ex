@@ -3,7 +3,7 @@ defmodule TcgCheap.Sealed.ExpansionLogo do
   The logo an agent or admin found for a Cardmarket expansion that TCGdex
   gives none for (Japanese and other editions, promos), with the https page
   it came from and the day it was checked. The image must be on a host we
-  mirror from (`TcgCheap.Catalogue.ExternalImage`); the guide shows it only
+  mirror from (`TcgCheap.Sealed.ExternalImage`); the guide shows it only
   once it is mirrored, and a mirrored English TCGdex logo wins over it.
   """
 

@@ -85,7 +85,12 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   defp chosen_expansion(%{filters: %{expansion: id}, facets: facets}),
-    do: id && Enum.find(facets.expansions, &(&1.id == id))
+    do: id && (Enum.find(facets.expansions, &(&1.id == id)) || catalogue_expansion(id))
+
+  defp catalogue_expansion(id) do
+    if name = Map.get(Guide.expansion_names(), id),
+      do: %{id: id, name: name, count: 0, logo_url: nil}
+  end
 
   # The set's booster, pull rates and cards change only with the expansion.
   defp set_page(%{assigns: %{set_page: %{id: id} = page}}, %{id: id}), do: page

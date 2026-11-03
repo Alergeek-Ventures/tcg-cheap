@@ -11,8 +11,6 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
     ]
 
   alias TcgCheap.Core
-  alias TcgCheap.Operations.AcquisitionTracker
-  alias TcgCheap.Pricing.ExchangeRateAcquisition
 
   @canonical %{
     "source" => "nbp",
@@ -25,19 +23,14 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
   def timeout(_job), do: :timer.seconds(60)
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: args} = job) do
+  def perform(%Oban.Job{args: args}) do
     with {:ok, args} <- validate_args(args),
-         result <-
-           AcquisitionTracker.run(
-             job,
-             tracker_options(),
-             &execute(args, &1, job)
-           ) do
-      result
+         {:ok, result} <- acquire(args),
+         {:ok, _rate} <- persist(result) do
+      :ok
     else
-      {:cancel, reason} ->
-        broadcast_failure(reason)
-        {:cancel, reason}
+      {:retry, reason} -> {:error, reason}
+      {:cancel, reason} -> {:cancel, reason}
     end
   end
 
@@ -46,44 +39,12 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
   defp validate_args(@canonical), do: {:ok, @canonical}
   defp validate_args(_), do: {:cancel, :malformed_job_args}
 
-  defp execute(args, request_admitter, job) do
-    with {:ok, result} <- acquire(args, request_admitter),
-         {:ok, rate} <- persist(result) do
-      Phoenix.PubSub.broadcast(
-        TcgCheap.PubSub,
-        ExchangeRateAcquisition.topic(),
-        {:exchange_rate_completed, %{exchange_rate: rate}}
-      )
-
-      :ok
-    else
-      {:retry, reason} ->
-        retry_or_fail(job, reason)
-
-      {:cancel, reason} ->
-        broadcast_failure(reason)
-        {:cancel, reason}
-    end
-  end
-
-  defp acquire(args, request_admitter) do
+  defp acquire(args) do
     case provider_config() do
-      {:ok, adapter, options} -> admitted_fetch(adapter, args, options, request_admitter)
+      {:ok, adapter, options} -> classify_fetch(safely_fetch(adapter, args, options))
       _ -> {:cancel, :invalid_provider_configuration}
     end
   end
-
-  defp admitted_fetch(adapter, args, options, request_admitter) do
-    options = Keyword.put(options, :request_admitter, request_admitter)
-    classify_fetch(safely_fetch(adapter, args, options))
-  end
-
-  defp tracker_options,
-    do: [
-      provider_key: "nbp",
-      operation: "exchange_rate",
-      target_key: "EUR/PLN"
-    ]
 
   defp classify_fetch({:ok, {:ok, result}}), do: validate_result(result)
   defp classify_fetch({:ok, {:error, reason}}), do: classify(reason)
@@ -188,26 +149,9 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
 
   defp classify({:transport_error, _}), do: {:retry, :transport_error}
   defp classify(:transport_error), do: {:retry, :transport_error}
-  defp classify(:budget_persistence_failed), do: {:retry, :budget_persistence_failed}
   defp classify(:no_published_rate), do: {:cancel, :no_published_rate}
   defp classify({:http_error, _}), do: {:cancel, :http_error}
   defp classify(reason), do: {:cancel, reason}
 
   defp finite_decimal?(value), do: not Decimal.nan?(value) and not Decimal.inf?(value)
-
-  defp retry_or_fail(%Oban.Job{attempt: attempt, max_attempts: max} = _job, reason)
-       when attempt >= max do
-    broadcast_failure(reason)
-    {:error, reason}
-  end
-
-  defp retry_or_fail(_job, reason), do: {:error, reason}
-
-  defp broadcast_failure(reason) do
-    Phoenix.PubSub.broadcast(
-      TcgCheap.PubSub,
-      ExchangeRateAcquisition.topic(),
-      {:exchange_rate_failed, %{reason: reason}}
-    )
-  end
 end

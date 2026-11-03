@@ -2,7 +2,7 @@ defmodule TcgCheapWeb.CrawlController do
   use TcgCheapWeb, :controller
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.Guide
+  alias TcgCheap.Sealed.{CardGuide, Guide}
   alias TcgCheapWeb.SEO
 
   # Only products a Polish shop has in stock now, and their expansions' set
@@ -38,7 +38,11 @@ defmodule TcgCheapWeb.CrawlController do
     locations =
       [url(~p"/")] ++
         Enum.map(expansions, &SEO.expansion_url(&1.id, &1.name)) ++
-        Enum.map(products, &url(~p"/produkty/#{&1.slug}"))
+        Enum.map(products, &url(~p"/produkty/#{&1.slug}")) ++
+        Enum.map(
+          CardGuide.sitemap_paths(),
+          &unverified_url(TcgCheapWeb.Endpoint, &1)
+        )
 
     entries =
       for location <- locations do

@@ -33,12 +33,90 @@ defmodule TcgCheap.Sealed.AgentTools do
   @recomputes "Manual decisions are never overwritten by automatic matching. Prices, availability and today's daily prices are recomputed in the same transaction, which can take a few seconds."
 
   actions do
+    action :list_unmatched_card_offers, :map do
+      description "Current single-card offers without an automatic identity or manual decision. Exclusions are hidden by default, counted by reason. Returns evidence and up to 3 candidates per row. Filters combine; pages return total, limit, offset and items."
+      argument :shop, :string
+      argument :title, :string
+      argument :set, :string
+      argument :reason, :string
+      argument :include_excluded, :boolean, default: false
+      argument :limit, :integer, default: 50, constraints: [min: 1, max: 200]
+      argument :offset, :integer, default: 0, constraints: [min: 0]
+      run {TcgCheap.Sealed.AgentTools.CardTools, operation: :unmatched}
+    end
+
+    action :list_matched_card_offers, :map do
+      description "Audit current automatic English single-card matches, variant, condition and grading. Raw Cardmarket trend plus delivery in PLN is the reference (trend_holo for reverse). Special patterns have no reference. suspicious selects price_ratio < 0.3 or > 3, or an impossible reverse variant. Graded prices include a premium: review grading before changing identity."
+      argument :shop, :string
+      argument :title, :string
+      argument :set, :string
+      argument :card, :string
+      argument :suspicious, :boolean, default: false
+      argument :limit, :integer, default: 50, constraints: [min: 1, max: 200]
+      argument :offset, :integer, default: 0, constraints: [min: 0]
+      run {TcgCheap.Sealed.AgentTools.CardTools, operation: :matched}
+    end
+
+    action :list_card_decisions, :map do
+      description "Manual single-card assignments and exclusions, including aged offers with current=false. Review or undo with clear_card_decision. Filters combine and paging includes total."
+      argument :shop, :string
+      argument :title, :string
+      argument :set, :string
+      argument :limit, :integer, default: 50, constraints: [min: 1, max: 200]
+      argument :offset, :integer, default: 0, constraints: [min: 0]
+      run {TcgCheap.Sealed.AgentTools.CardTools, operation: :decisions}
+    end
+
+    action :explain_card_match, :map do
+      description "Explain a single-card match by offer_id or title plus optional category: parsed language, condition, grading, variant, printed identity, set evidence and card candidates with name and variant agreement. Non-English cards are excluded; ambiguity is never guessed."
+      argument :offer_id, :uuid
+      argument :title, :string
+      argument :category, :string
+      run {TcgCheap.Sealed.AgentTools.CardTools, operation: :explain}
+    end
+
+    action :search_cards, :map do
+      description "Search synced English cards by name words, set id/name/abbreviation and printed number. Returns rarity, variants, Cardmarket id and trend/trend_holo EUR plus delivered reference PLN. Reference does not include grading premiums."
+      argument :name, :string
+      argument :set, :string
+      argument :number, :string
+      argument :limit, :integer, default: 50, constraints: [min: 1, max: 200]
+      argument :offset, :integer, default: 0, constraints: [min: 0]
+      run {TcgCheap.Sealed.AgentTools.CardTools, operation: :search}
+    end
+
+    action :assign_card_offer, :map do
+      description "Assign a single-card offer manually to its exact synced English card (TCGdex id or UUID) and variant normal/reverse/special. A patterned or stamped printing is special, with no reference price. Manual identities survive automatic matching. Atomic write under the singles lock; never recomputes sealed prices."
+      argument :offer_id, :uuid, allow_nil?: false
+      argument :card, :string, allow_nil?: false
+
+      argument :variant, :atom,
+        allow_nil?: false,
+        constraints: [one_of: [:normal, :reverse, :special]]
+
+      run {TcgCheap.Sealed.AgentTools.CardTools, operation: :assign}
+    end
+
+    action :exclude_card_offer, :map do
+      description "Exclude a single-card offer manually, optionally recording why. Automatic matching will leave it excluded. Undo with clear_card_decision. Atomic write under the singles lock."
+      argument :offer_id, :uuid, allow_nil?: false
+      argument :note, :string, constraints: [max_length: 300]
+      run {TcgCheap.Sealed.AgentTools.CardTools, operation: :exclude}
+    end
+
+    action :clear_card_decision, :map do
+      description "Undo a manual single-card decision and immediately re-run automatic matching for that offer. Atomic under the singles lock; sealed prices are unaffected."
+      argument :offer_id, :uuid, allow_nil?: false
+      run {TcgCheap.Sealed.AgentTools.CardTools, operation: :clear}
+    end
+
     action :shop_status, {:array, :map} do
       description """
       Per configured shop: `last_fetch` (UTC time of the latest successful fetch, null if never),
       `seen` (offers in that fetch), `matched` (of those, assigned to a catalogue product) and
       `matched_in_stock` (current matched offers in stock). #{@current} Start here to see whether
-      fetching works and how well each shop matches.
+      fetching works and how well each shop matches. Singles have independent singles_seen,
+      singles_matched, singles_matched_in_stock and singles_last_fetch fields.
       """
 
       run ShopStatus
@@ -392,8 +470,8 @@ defmodule TcgCheap.Sealed.AgentTools do
 
     action :enqueue_card_sync, :map do
       description """
-      Queues a background copy of the TCGdex set cards (also run daily), which set_pull_rates
-      needs before it accepts a set's rates, then looks up the Cardmarket product ids of cards
+      Queues a background copy of the TCGdex set cards (also run daily), needed by singles
+      matching and set_pull_rates, then looks up the Cardmarket product ids of cards
       without one (about a thousand per run), which link booster pages' cards to Cardmarket and
       their prices. One run stops after five minutes; queue another while sets remain unsynced or
       cards lack ids. Returns the job; `already_queued` is true when a copy was already waiting or

@@ -1,9 +1,10 @@
 defmodule TcgCheap.Sealed.Refresh do
   @moduledoc """
-  Fetches one shop through its feed client (`source`) and stores the result in
-  a single transaction.
+  Fetches one shop through its feed client (`source`). Sealed offers commit
+  first; singles are then stored and matched in a separate transaction under
+  their own lock, so they never hold up sealed price recomputations.
 
-  A successful fetch upserts every offer seen and then `recompute/1`s: all
+  The sealed transaction upserts every sealed offer seen and `recompute/1`s: all
   stored offers are re-matched (the catalogue may have changed; manual
   assignments are kept), today's lowest shop price is recorded per product,
   and each product's availability, lowest price (or, with nothing in stock,
@@ -14,7 +15,7 @@ defmodule TcgCheap.Sealed.Refresh do
 
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{DailyPrice, Matcher, Offer, Shop}
+  alias TcgCheap.Sealed.{CardRefresh, DailyPrice, Matcher, Offer, Shop}
 
   # Matching reads names and set names; availability compares and updates
   # the rest. Kind and region stay for the product's validations.
@@ -38,19 +39,30 @@ defmodule TcgCheap.Sealed.Refresh do
         {:error, :empty_feed}
 
       {:ok, fetched} ->
-        Repo.transaction(
-          fn ->
-            lock_recompute()
-            upsert_offers(shop, fetched, now)
-            recompute(now)
-            %{offers: length(fetched)}
-          end,
-          timeout: transaction_timeout()
-        )
+        {singles, sealed} = Enum.split_with(fetched, &(Map.get(&1, :kind) == :single))
+        sealed = Enum.map(sealed, &Map.drop(&1, [:kind, :category]))
+
+        with {:ok, counts} <- store_sealed(shop, sealed, now),
+             {:ok, card_counts} <- CardRefresh.run(shop, singles, now) do
+          {:ok, Map.merge(counts, card_counts)}
+        end
 
       {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  defp store_sealed(shop, offers, now) do
+    Repo.transaction(
+      fn ->
+        lock_recompute()
+        upsert_offers(shop, offers, now)
+        Sealed.record_shop_fetch!(%{shop: shop.key, fetched_at: now}, return_notifications?: true)
+        recompute(now)
+        %{offers: length(offers)}
+      end,
+      timeout: transaction_timeout()
+    )
   end
 
   @doc "How long a transaction that recomputes prices may take."

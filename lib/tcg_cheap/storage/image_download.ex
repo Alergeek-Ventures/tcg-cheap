@@ -1,7 +1,7 @@
 defmodule TcgCheap.Storage.ImageDownload do
   @moduledoc "Bounded downloads of allowlisted raster images for background mirroring, and their trimming."
 
-  alias TcgCheap.Catalogue.ExternalImage
+  alias TcgCheap.Sealed.ExternalImage
 
   @max_bytes 15 * 1024 * 1024
   @max_pixels 40_000_000

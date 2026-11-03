@@ -9,7 +9,7 @@ defmodule TcgCheap.Sealed.PhotoMirror do
   picked one, cut to the box when it floats in transparent margins. A
   product whose shop photos are all too poor gets a `checked_photo_url` from
   an admin or agent, which is stored instead. Only image hosts on the
-  `TcgCheap.Catalogue.ExternalImage` allowlist are fetched.
+  `TcgCheap.Sealed.ExternalImage` allowlist are fetched.
   """
 
   require Logger

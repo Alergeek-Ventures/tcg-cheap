@@ -332,6 +332,60 @@ defmodule TcgCheapWeb.SEO do
 
   # `social_image` is the designed link-preview card (TcgCheapWeb.SocialImage),
   # not the product photo, which stays in the structured data.
+  def single(page) do
+    card = page.card
+    canonical = unverified_url(TcgCheapWeb.Endpoint, page.path)
+    answer = Enum.find(page.answers, & &1.cheapest)
+
+    description =
+      if answer do
+        gettext(
+          "%{name} %{number}: od %{price} w polskich sklepach. %{verdict}. Ceny, stan i warianty karty.",
+          name: card.name,
+          number: card.number,
+          price: Polish.price(answer.cheapest.price),
+          verdict: GuideComponents.single_verdict_label(answer.verdict)
+        )
+      else
+        gettext(
+          "%{name} %{number}: brak ofert bez gradingu na stanie w polskich sklepach. Sprawdź referencję Cardmarket i pozostałe oferty.",
+          name: card.name,
+          number: card.number
+        )
+      end
+
+    metadata(
+      gettext("%{name} %{number} %{set} – cena karty Pokémon w Polsce",
+        name: card.name,
+        number: card.number,
+        set: page.expansion_name
+      ),
+      description,
+      canonical,
+      social_image: home_image(),
+      social_image_alt: home_image_alt(),
+      structured_data: %{
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => [
+          %{
+            "@type" => "ListItem",
+            "position" => 1,
+            "name" => gettext("Wszystkie produkty"),
+            "item" => url(~p"/")
+          },
+          %{
+            "@type" => "ListItem",
+            "position" => 2,
+            "name" => page.expansion_name,
+            "item" => expansion_url(card.tcgdex_set.cardmarket_expansion_id, page.expansion_name)
+          },
+          %{"@type" => "ListItem", "position" => 3, "name" => card.name, "item" => canonical}
+        ]
+      }
+    )
+  end
+
   defp metadata(title, description, canonical, opts) do
     %{
       title: title,
