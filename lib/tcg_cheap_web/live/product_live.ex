@@ -277,6 +277,7 @@ defmodule TcgCheapWeb.ProductLive do
             :if={@page.product.contents || is_nil(@page.booster_set)}
             contents={@page.product.contents}
             boosters={@page.boosters}
+            odds?={not is_nil(@page.booster_set)}
           />
 
           <.deck_list
@@ -526,6 +527,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   attr :contents, :map, required: true
   attr :boosters, :map, required: true
+  attr :odds?, :boolean, default: false, doc: "a single booster's page, whose pull rates follow"
 
   defp contents(%{contents: nil} = assigns) do
     ~H"""
@@ -544,7 +546,7 @@ defmodule TcgCheapWeb.ProductLive do
     items =
       assigns.contents.items
       |> Enum.with_index()
-      |> Enum.sort_by(fn {item, _index} -> item_rank(item.type) end)
+      |> Enum.sort_by(fn {item, _index} -> item_rank(item.type, assigns.odds?) end)
 
     assigns =
       assign(assigns,
@@ -566,6 +568,9 @@ defmodule TcgCheapWeb.ProductLive do
               <%= cond do %>
                 <% booster = booster(item, @boosters) -> %>
                   <.link navigate={~p"/produkty/#{booster.slug}"}>{item_label(item)}</.link>
+                <% @odds? and item.type == :other -> %>
+                  <%!-- A single booster holds only its random cards besides energy and a code: their chances are below. --%>
+                  <a href="#product-pull-rates">{item_label(item)}</a>
                 <% item.cardmarket_id -> %>
                   <a
                     href={cardmarket_url(item.cardmarket_id)}
@@ -924,7 +929,11 @@ defmodule TcgCheapWeb.ProductLive do
 
   # What a buyer opens comes first, the accessories after it.
   @item_order ~w(deck booster promo_card oversize_card card energy_cards)a
-  defp item_rank(type), do: Enum.find_index(@item_order, &(&1 == type)) || length(@item_order)
+  # A single booster lists its random cards first, then the energy and the code.
+  defp item_rank(:other, true = _odds?), do: -1
+
+  defp item_rank(type, _odds?),
+    do: Enum.find_index(@item_order, &(&1 == type)) || length(@item_order)
 
   # The jump to the odds: a booster's own, or those of the packs in a box.
   defp drop_link(%{booster_set: nil, booster_odds: []}), do: nil
