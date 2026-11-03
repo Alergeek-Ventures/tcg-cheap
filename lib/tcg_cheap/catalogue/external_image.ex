@@ -19,8 +19,10 @@ defmodule TcgCheap.Catalogue.ExternalImage do
   ]
 
   # Retailers and news sites whose public pictures of what a sealed product
-  # holds were checked by eye and set as contents item photos.
+  # holds were checked by eye and set as contents item photos, and Bulbapedia's
+  # archive for scans of new promo cards TCGdex does not list yet.
   @contents_photo_hosts [
+    "archives.bulbagarden.net",
     "bills-archive.nyc3.cdn.digitaloceanspaces.com",
     "card-binder.com",
     "cdn.shopify.com",
