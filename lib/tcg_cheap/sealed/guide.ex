@@ -276,7 +276,7 @@ defmodule TcgCheap.Sealed.Guide do
   the product's history (`past`), offers, 90 days of history, REBEL's
   suggested retail price when one matches, our single booster of the same
   edition for each set the contents name (`boosters`, by set name), their combined odds
-  (`booster_odds`) and, for any English single booster, its set's pull rates
+  and cards (`booster_odds`) and, for any English single booster, its set's pull rates
   and cards (`booster_set`, nil for other products).
   """
   @spec product(String.t(), DateTime.t()) :: {:ok, map()} | :error
@@ -342,33 +342,42 @@ defmodule TcgCheap.Sealed.Guide do
 
   # Smaller English packs share the set's card pool, but not its standard-pack odds.
   defp booster_set(%Product{kind: :booster, region: :en, cardmarket_expansion_id: id} = product) do
-    sets =
-      if id,
-        do: Sealed.list_english_sets_of_expansion!(id, load: [cards: :cardmarket_price]),
-        else: []
-
-    main = TcgdexSet.by_expansion(sets) |> Map.values() |> List.first()
-    pull_rates = Enum.find_value([main | sets], &(&1 && &1.pull_rates))
+    sets = sets_with_cards(id)
+    pull_rates = set_pull_rates(sets)
     cards = Enum.flat_map(sets, & &1.cards)
     rarities = by_rarity(cards)
 
     %{
       pull_rates: pull_rates(pull_rates, rarities),
-      cards_per_pack: pack_size(product) || (pull_rates && pull_rates.cards_per_pack),
       standard_pack_size: pull_rates && pull_rates.cards_per_pack,
       smaller_pack?: smaller_pack?(product, pull_rates),
       rarities: rarities,
       cards_source_url: Enum.find_value(sets, & &1.cards_source_url),
       logo_url: id && Map.get(logos(), id),
-      priced_on:
-        cards
-        |> Enum.map(&(&1.cardmarket_price && &1.cardmarket_price.priced_on))
-        |> Enum.reject(&is_nil/1)
-        |> Enum.max(Date, fn -> nil end)
+      priced_on: priced_on(cards)
     }
   end
 
   defp booster_set(_product), do: nil
+
+  # An expansion's English sets, a set and its gallery subsets, with their cards.
+  defp sets_with_cards(nil), do: []
+
+  defp sets_with_cards(expansion_id),
+    do: Sealed.list_english_sets_of_expansion!(expansion_id, load: [cards: :cardmarket_price])
+
+  # The main set's pull rates, else a subset's.
+  defp set_pull_rates(sets) do
+    main = TcgdexSet.by_expansion(sets) |> Map.values() |> List.first()
+    Enum.find_value([main | sets], &(&1 && &1.pull_rates))
+  end
+
+  defp priced_on(cards) do
+    cards
+    |> Enum.map(&(&1.cardmarket_price && &1.cardmarket_price.priced_on))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.max(Date, fn -> nil end)
+  end
 
   defp pack_size(product) do
     case Regex.run(@pack_size, product.name) do
@@ -396,26 +405,23 @@ defmodule TcgCheap.Sealed.Guide do
 
   defp set_odds([], _boosters), do: []
 
+  # Each set's odds across its packs and its cards, so the box's page lists
+  # them without a trip to the single booster's page.
   defp set_odds(groups, boosters) do
-    sets =
-      Sealed.list_english_tcgdex_sets!(
-        query: [select: [:cardmarket_expansion_id, :language, :name, :pull_rates]]
-      )
-      |> Enum.group_by(& &1.cardmarket_expansion_id)
-
     Enum.map(groups, fn {name, items} ->
       booster = Map.fetch!(boosters, name)
-      sets = Map.get(sets, booster.cardmarket_expansion_id || :none, [])
-
-      main = TcgdexSet.by_expansion(sets) |> Map.values() |> List.first()
-      rates = Enum.find_value([main | sets], &(&1 && &1.pull_rates))
-      count = Enum.sum(Enum.map(items, & &1.quantity))
+      sets = sets_with_cards(booster.cardmarket_expansion_id)
+      cards = Enum.flat_map(sets, & &1.cards)
+      rarities = by_rarity(cards)
 
       %{
         name: name,
         slug: booster.slug,
-        count: count,
-        pull_rates: pull_rates(rates, [])
+        count: Enum.sum(Enum.map(items, & &1.quantity)),
+        pull_rates: pull_rates(set_pull_rates(sets), rarities),
+        rarities: rarities,
+        cards_source_url: Enum.find_value(sets, & &1.cards_source_url),
+        priced_on: priced_on(cards)
       }
     end)
   end

@@ -646,14 +646,20 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 /* Product page: identity, then the verdict as the first answer. */
 .guide-world .guide-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; gap: .4rem; margin-bottom: .5rem; min-height: 3rem; }
 .guide-world .product-top { align-items: center; display: grid; gap: 1rem; grid-template-areas: "image identity" "verdict verdict"; grid-template-columns: 6.5rem minmax(0, 1fr); margin-bottom: 2rem; }
-.guide-world .product-hero-image { aspect-ratio: 1; grid-area: image; width: 100%; }
+/* The photo sits on a white card, as shop photos are shot on white. */
+.guide-world .product-hero-image { aspect-ratio: 1; background: #fff; border: 1px solid var(--rule); grid-area: image; width: 100%; }
+.guide-world .product-hero-image img { box-sizing: border-box; padding: .5rem; }
 .guide-world .product-identity { grid-area: identity; min-width: 0; }
 .guide-world #product-name { font-size: clamp(1.6rem, 6vw, 2.5rem); letter-spacing: -.03em; line-height: 1; overflow-wrap: anywhere; }
 .guide-world .product-facts { color: var(--muted); font-size: .875rem; line-height: 1.5; margin: .5rem 0 0; }
 .guide-world .product-facts span { overflow-wrap: anywhere; }
 .guide-world .product-facts #product-kind { color: var(--ink); }
 .guide-world .product-facts a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
-.guide-world :is(#product-inside, #product-booster-links) a { white-space: nowrap; }
+/* Jumps to the sections below: links in ink, spaced as touch targets. */
+.guide-world .product-jumps { display: flex; flex-wrap: wrap; gap: 0 2rem; margin-block-start: .75rem; }
+.guide-world .product-jumps a { align-items: center; color: var(--ink); display: inline-flex; gap: .5rem; min-block-size: 2.75rem; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.guide-world .product-jumps .fluent-icon { block-size: 1.25rem; color: var(--orange); flex: none; inline-size: 1.25rem; }
+@media (hover: hover) and (pointer: fine) { .guide-world .product-jumps a:hover { color: var(--orange); } }
 .guide-world .verdict-block { background: var(--paper); grid-area: verdict; min-width: 0; }
 .guide-world .verdict-badge-large { border-width: 0; font-size: 1.6rem; gap: .5rem; justify-content: space-between; padding: .7rem 1.25rem; white-space: normal; width: 100%; }
 /* As in the list: the label leads, the mark sits at the right edge. */
@@ -721,32 +727,43 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world #product-contents .guide-note { margin-block-start: .5rem; }
 .guide-world #product-contents .guide-note a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 /* Pull rates: one row per rarity, the rarest first; the chance on the right, "1 na 5 paczek" under the rarity. */
-.guide-world .pull-rates-estimate { align-items: start; display: flex; gap: .5rem; margin: 0 0 .5rem; max-inline-size: 70ch; }
+.guide-world .pull-rates-estimate { align-items: start; display: flex; gap: .5rem; margin: 0 0 1rem; max-inline-size: 70ch; }
 .guide-world .pull-rates-estimate svg { flex: none; margin-block-start: .1rem; }
-.guide-world .pull-rates { background: var(--paper); border-collapse: collapse; inline-size: 100%; max-inline-size: 44rem; }
+.guide-world .pull-rates { background: var(--paper); border-collapse: collapse; inline-size: 100%; }
 .guide-world .pull-rates :is(th, td) { border-block-end: 1px solid var(--rule); padding: .5rem .75rem; text-align: start; vertical-align: baseline; }
 .guide-world .pull-rates thead th { color: var(--muted); font-size: .8125rem; font-weight: 400; text-wrap: balance; }
-.guide-world .pull-rates thead th:last-child { min-inline-size: 9rem; }
-.guide-world .pull-rates tbody th { font-weight: 700; }
+.guide-world .pull-rates thead th:last-child { white-space: nowrap; }
+.guide-world .pull-rates tbody th { font-weight: 400; }
 .guide-world .pull-rates tbody th a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 @media (hover: hover) and (pointer: fine) { .guide-world .pull-rates tbody tr:hover { background: var(--bench-light); } .guide-world .pull-rates tbody th a:hover { color: var(--orange); } }
 .guide-world .pull-rates :is(th, td):first-child { inline-size: 100%; }
 .guide-world .pull-rates :is(th, td):last-child { text-align: end; }
 .guide-world .pull-rate-detail { color: var(--muted); display: block; font-size: .8125rem; font-weight: 400; }
-.guide-world .pull-rate-percent { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+/* The chance is the figure to read, so it takes the display face. */
+.guide-world .pull-rate-percent { font: 700 1.25rem/1.2 "Barlow Condensed", sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* A box's sets: the set name, its odds, then its cards, each set a block of its own. */
 .guide-world .booster-odds-set { margin-block-start: 1.5rem; }
-.guide-world .booster-odds-set h3 { font-size: 1.25rem; }
-.guide-world .booster-odds-set a { text-decoration: underline; text-underline-offset: .15em; }
-.guide-world .booster-odds-set > .guide-note { margin-block-start: .5rem; }
-.guide-world #product-pull-rates > .guide-note:last-child { margin-block-start: .5rem; }
-.guide-world #product-pull-rates .guide-note a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
+.guide-world .booster-odds-set h3 { font-size: 1.375rem; margin: 0 0 .5rem; }
+.guide-world .booster-odds-cards-title { font: 700 1.125rem/1.2 "Barlow Condensed", sans-serif; margin: 1.5rem 0 .5rem; }
+/* A heading's count reads as a quiet aside to the title. */
+.guide-world .heading-count { color: var(--muted); font: 400 .875rem "Azeret Mono", ui-monospace, monospace; margin-inline-start: .5rem; white-space: nowrap; }
+.guide-world .table-note { margin-block: .5rem 0; }
+.guide-world :is(.table-note, .table-sources) a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
+/* Under a table: what the figures are on the left, where they come from on the right; stacked when narrow. */
+.guide-world .table-notes { align-items: start; display: flex; flex-wrap: wrap; gap: .25rem 2rem; justify-content: space-between; margin-block-start: .5rem; }
+.guide-world .table-notes .pull-rates-estimate { margin: 0; }
+.guide-world .table-sources { margin: 0 0 0 auto; text-align: end; }
+@media (max-width: 42rem) { .guide-world .table-sources { margin-inline-start: 0; text-align: start; } }
+/* A caveat that changes how the table reads stands apart from the quiet notes. */
+.guide-world .pull-rates-borrowed { align-items: start; background: var(--bench-light); border: 1px solid var(--rule); display: flex; gap: .5rem; margin: 0 0 1rem; padding: .75rem 1rem; }
+.guide-world .pull-rates-borrowed .fluent-icon { color: var(--orange); flex: none; margin-block-start: .2rem; }
 /* The set's cards: one fold per rarity, the rarest open; numbers in a column. */
 .guide-world .set-cards { background: var(--paper); padding: 0 .75rem; }
 .guide-world .set-cards-group + .set-cards-group { border-block-start: 1px solid var(--rule); }
 .guide-world .set-cards-group summary { align-items: center; cursor: pointer; display: flex; gap: .5rem; list-style: none; min-block-size: 3rem; }
 .guide-world .set-cards-group summary::-webkit-details-marker { display: none; }
 .guide-world .set-cards-group summary:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
-.guide-world .set-cards-rarity { font-weight: 700; }
+.guide-world .set-cards-rarity { font-weight: 400; }
 .guide-world .set-cards-count { color: var(--muted); font-variant-numeric: tabular-nums; margin-inline-start: auto; }
 .guide-world .set-cards-chevron { flex: none; transition: transform .2s ease-out; }
 .guide-world .set-cards-group[open] .set-cards-chevron { transform: rotate(180deg); }
@@ -756,18 +773,16 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .set-cards-number { color: var(--muted); flex: none; font-variant-numeric: tabular-nums; min-inline-size: 2.5rem; }
 .guide-world .set-cards-price { flex: none; font-variant-numeric: tabular-nums; margin-inline-start: auto; white-space: nowrap; }
 .guide-world a.set-cards-price { color: inherit; margin-block: -.35rem; padding-block: .35rem; padding-inline-start: .5rem; text-decoration: underline; text-underline-offset: .15em; }
-.guide-world .set-cards-heading { align-items: center; display: grid; gap: .5rem 1rem; grid-template-columns: minmax(0, 1fr) auto; }
-.guide-world .set-cards-heading h2 { grid-column: 1 / -1; }
-.guide-world .set-cards-facts { color: var(--muted); font-size: .875rem; line-height: 1.5; list-style: none; margin: 0; padding: 0; }
+.guide-world .set-cards-heading { align-items: center; }
 .guide-world .set-cards-logo { block-size: 3.5rem; inline-size: auto; max-inline-size: min(10rem, 40vw); object-fit: contain; }
 @media (hover: hover) and (pointer: fine) { .guide-world a.set-cards-price:hover { color: var(--orange); } }
 .guide-world .set-cards-price.set-cards-no-price { color: var(--muted); font-size: .875rem; }
-.guide-world #product-cards > .guide-note { margin-block-start: .5rem; }
 .guide-world .cardmarket-trend { margin: 0 0 .5rem; }
 .guide-world .cardmarket-trend strong { font: 700 1.5rem/1.1 "Barlow Condensed", sans-serif; white-space: nowrap; }
 .guide-world .cardmarket-trend span { color: var(--muted); white-space: nowrap; }
-.guide-world .cardmarket-trend a { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; white-space: nowrap; }
-.guide-world .cardmarket-trend a:hover { color: var(--orange); }
+.guide-world .reference-link { margin: .5rem 0 0; }
+.guide-world .reference-link a { align-items: center; color: var(--ink); display: inline-flex; min-block-size: 2.75rem; text-decoration: underline; text-underline-offset: .2em; }
+@media (hover: hover) and (pointer: fine) { .guide-world .reference-link a:hover { color: var(--orange); } }
 
 /* Offers: shop and listing title, price, stock and one outbound action. */
 .guide-world .offer { align-items: center; background: var(--paper); display: grid; gap: .25rem 1rem; grid-template-areas: "logo shop price link"; grid-template-columns: 7.5rem minmax(0, 1fr) auto auto; padding: .75rem .75rem .75rem 1rem; }
@@ -887,6 +902,9 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 }
 @media (min-width: 56rem) {
   .guide-world .product-top { align-items: start; column-gap: 2.5rem; grid-template-areas: "image identity" "image verdict"; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto 1fr; row-gap: 1.25rem; }
+  /* The photo spans the name and the verdict, centred in that height; size containment keeps a tall photo from stretching the rows. */
+  .guide-world .product-hero-image { align-self: stretch; aspect-ratio: auto; contain: size; min-block-size: 20rem; }
+  .guide-world .product-hero-image img { padding: .75rem; }
   .guide-world .verdict-body { padding: 1.5rem; }
 }
 @media (max-width: 42rem) {
