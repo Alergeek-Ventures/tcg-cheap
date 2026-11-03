@@ -252,24 +252,8 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp filtered?(filters), do: filters.kind || region_value(filters) || filters.expansion
 
-  # On a set page the set is the page, not a filter to clear.
-  defp active_filters(filters, nil = _set_page),
+  defp active_filters(filters),
     do: Enum.count([filters.kind, region_value(filters), filters.expansion], & &1)
-
-  defp active_filters(filters, _set_page),
-    do: Enum.count([filters.kind, region_value(filters)], & &1)
-
-  defp clear_filters_path(filters, nil = _set_page),
-    do:
-      list_path(filters,
-        kind: nil,
-        region: default_region(nil),
-        expansion: nil,
-        expansion_name: nil
-      )
-
-  defp clear_filters_path(filters, _set_page),
-    do: list_path(filters, kind: nil, region: default_region(filters.expansion))
 
   attr :filters, :map, required: true
   attr :facets, :map, required: true
@@ -451,9 +435,6 @@ defmodule TcgCheapWeb.HomeLive do
 
     ~H"""
     <section id="set-intro" class="guide-intro set-intro" aria-labelledby="guide-title">
-      <.link id="set-back" navigate={~p"/"} class="guide-back">
-        <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
-      </.link>
       <div class="set-title">
         <img :if={@logo_url} src={@logo_url} alt="" class="set-logo" />
         <h1 id="guide-title">{@name}</h1>
@@ -471,7 +452,7 @@ defmodule TcgCheapWeb.HomeLive do
                 {if(@page.booster.preorder?,
                   do: gettext("Booster w przedsprzedaży"),
                   else: gettext("Pojedynczy booster")
-                )}<span aria-hidden="true">→</span>
+                )}
               </span>
               <%= if cheapest = @page.booster.verdict.cheapest do %>
                 <strong>{Polish.price(cheapest.price)}</strong>
@@ -483,15 +464,13 @@ defmodule TcgCheapWeb.HomeLive do
           </li>
           <li :for={row <- @rarest}>
             <a href="#product-pull-rates" class="set-fact">
-              <span class="set-fact-label">{row.rarity}<span aria-hidden="true">↓</span></span>
+              <span class="set-fact-label">{row.rarity}</span>
               <strong>{Polish.odds(row.rate)}</strong>
             </a>
           </li>
           <li :if={@cards}>
             <a href="#product-cards" class="set-fact">
-              <span class="set-fact-label">
-                {gettext("Karty w secie")}<span aria-hidden="true">↓</span>
-              </span>
+              <span class="set-fact-label">{gettext("Karty w secie")}</span>
               <strong>{Polish.number(@cards.card_count)}</strong>
               <span :if={@cards.top_card} class="set-fact-detail">
                 {gettext("najdroższa: %{card}, %{price}",
@@ -511,7 +490,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   @impl true
   def render(assigns) do
-    assigns = assign(assigns, :active, active_filters(assigns.filters, assigns.set_page))
+    assigns = assign(assigns, :active, active_filters(assigns.filters))
 
     ~H"""
     <Layouts.app flash={@flash}>
@@ -615,15 +594,22 @@ defmodule TcgCheapWeb.HomeLive do
                 </h2>
                 <p id="guide-result-count" aria-live="polite">
                   {Polish.plural(@result_count, "produkt", "produkty", "produktów")}
-                  <span :if={@active > 0}>
-                    ·
-                    <.link
-                      id="guide-filters-clear"
-                      class="guide-filters-clear"
-                      patch={clear_filters_path(@filters, @set_page)}
-                    >{gettext("Wyczyść filtry")}</.link>
-                  </span>
                 </p>
+                <.link
+                  :if={@active > 0}
+                  id="guide-filters-clear"
+                  class="guide-filters-clear"
+                  patch={
+                    list_path(@filters,
+                      kind: nil,
+                      region: default_region(nil),
+                      expansion: nil,
+                      expansion_name: nil
+                    )
+                  }
+                >
+                  <.fluent_icon name={:dismiss} />{gettext("Wyczyść filtry")}
+                </.link>
               </div>
               <ul
                 id="guide-products"
