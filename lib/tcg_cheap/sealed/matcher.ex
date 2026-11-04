@@ -14,7 +14,8 @@ defmodule TcgCheap.Sealed.Matcher do
       product name — so "Half Booster Box" never matches "Booster Box" and a
       Japanese offer never matches an English product. A product's language
       edition answers for its language word ("JP" for a Japanese product whose
-      name does not say it), and a single booster for "pack" ("Booster Pack").
+      name does not say it), and a single booster for "pack" ("Booster Pack");
+      such a word does not count against the few title words a name may lack.
 
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
@@ -26,8 +27,8 @@ defmodule TcgCheap.Sealed.Matcher do
   EAN (`TcgCheap.Sealed.known_eans/0`) wins over the title.
   """
 
-  @stopwords ~w(pokemon tcg the and of s a z na i w edycja karty kart karta oryginalne oryginalny
-                angielski angielska angielskie english en eng wersja nowy nowa prerelease)
+  @stopwords ~w(pokemon tcg ptcg the and of s a z na i w edycja karty kart karta oryginal oryginalne
+                oryginalny angielski angielska angielskie english en eng wersja nowy nowa prerelease)
 
   @plurals %{
     "boosters" => "booster",
@@ -44,6 +45,8 @@ defmodule TcgCheap.Sealed.Matcher do
 
   @synonyms [
     {"eu version", ""},
+    # A shop's tag line; "produkt" alone may still mean something ("produkt opóźniony").
+    {"produkt kolekcjonerski", ""},
     # A display of boosters is what Cardmarket calls a booster box; other
     # displays ("Mini Tin Display", "Build & Battle Box Display") keep the word.
     {"booster box display", "booster box"},
@@ -60,6 +63,7 @@ defmodule TcgCheap.Sealed.Matcher do
     {"japanese", "jp"},
     {"japan", "jp"},
     {"jpn", "jp"},
+    {"jap", "jp"},
     {"japonski", "jp"},
     {"japonska", "jp"},
     {"japonskie", "jp"},
@@ -72,6 +76,9 @@ defmodule TcgCheap.Sealed.Matcher do
     {"chinski", "chinese"},
     {"chinska", "chinese"},
     {"chinskie", "chinese"},
+    {"china", "chinese"},
+    {"chiny", "chinese"},
+    {"chn", "chinese"},
     {"indonezyjski", "indonesian"},
     {"tajski", "thai"},
     {"niemiecki", "german"},
@@ -105,9 +112,10 @@ defmodule TcgCheap.Sealed.Matcher do
   @region_words %{ja: "jp", zh: "chinese", ko: "korean", id: "indonesian", th: "thai"}
   @kind_words %{booster: "pack"}
 
-  # A count of two or more packs, as in "Booster Pack (36 boosterów)" or "(36)":
-  # a display, never a single booster. A count of cards ("(10 kart)") is not one.
-  @packs ~r/\(\s*(?:[2-9]|\d{2,3})\s*(?:booster(?:ów|ow|y|s)?|paczek|paczki|packs?|szt\.?|sztuk)?\s*\)/iu
+  # A count of two or more packs, as in "Booster Pack (36 boosterów)", "(36)",
+  # "Booster 3 boostery" or "3-pack": a display, a lot or a blister, never a
+  # single booster. A count of cards ("(10 kart)") is not one.
+  @packs ~r/\(\s*(?:[2-9]|\d{2,3})\s*(?:booster(?:ów|ow|y|s)?|paczek|paczki|packs?|szt\.?|sztuk)?\s*\)|(?<![\w.,])(?:[2-9]|\d{2,3})[\s\p{Pd}]*(?:booster(?:ów|ow|y|s)|paczek|paczki|packs?)(?!\w)/iu
 
   # Words naming a kind of sealed product, as in Cardmarket's sealed product
   # names. A title with none of them is a single card or an accessory.
@@ -133,6 +141,9 @@ defmodule TcgCheap.Sealed.Matcher do
     "bez boosterow",
     "z zestawu",
     "repack",
+    # A pack opened live on stream for the buyer, not a sealed product.
+    "booster break",
+    "poke break",
     "single",
     "singles",
     "pojedyncza",
@@ -151,8 +162,8 @@ defmodule TcgCheap.Sealed.Matcher do
   # Polish word stems for damaged, opened or used items ("uszkodzone", "otwarty", "używany"…).
   @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan)/
 
-  # Two or more pieces ("x3", "10x", "36 szt"); "1 szt" is still one item.
-  @multiples ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuk|szt|pcs))(?: |\z)/
+  # Two or more pieces ("x3", "10x", "36 szt", "3 sztuki"); "1 szt" is still one item.
+  @multiples ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuki|sztuk|szt|pcs))(?: |\z)/
 
   # Pack counts such as "(36)" or "(18 boosterów)" say nothing about identity.
   @pack_count ~r/\(\s*\d{1,3}\s*[[:alpha:]]*\s*\)/u
@@ -316,7 +327,7 @@ defmodule TcgCheap.Sealed.Matcher do
             qualifiers
             |> MapSet.difference(MapSet.union(entry.tokens, entry.meets))
             |> Enum.sort(),
-          unexplained: offer_set |> MapSet.difference(entry.tokens) |> Enum.sort(),
+          unexplained: offer_set |> unexplained(entry) |> Enum.sort(),
           qualifies?: qualifies?
         }
       end)
@@ -375,7 +386,7 @@ defmodule TcgCheap.Sealed.Matcher do
   end
 
   defp variant?(entry, offer_set, qualifiers, known_tokens, packs?) do
-    unexplained = MapSet.difference(offer_set, entry.tokens)
+    unexplained = unexplained(offer_set, entry)
 
     omits_variant_only?(entry, MapSet.difference(entry.tokens, offer_set)) and
       not (packs? and entry.booster?) and
@@ -404,8 +415,15 @@ defmodule TcgCheap.Sealed.Matcher do
   defp candidate?(entry, offer_set, qualifiers, packs?) do
     not (packs? and entry.booster?) and MapSet.subset?(entry.tokens, offer_set) and
       MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
-      MapSet.size(MapSet.difference(offer_set, entry.tokens)) <= @max_unexplained
+      MapSet.size(unexplained(offer_set, entry)) <= @max_unexplained
   end
+
+  # Title tokens the product name does not account for. A qualifier the product
+  # meets without naming it ("JP" for a Japanese product, "pack" for a booster)
+  # is accounted for, so "Battle Partners Japoński Booster [sv9]" spends its
+  # allowance on "sv 9" only.
+  defp unexplained(offer_set, entry),
+    do: offer_set |> MapSet.difference(entry.tokens) |> MapSet.difference(entry.meets)
 
   defp meets(product) do
     [
