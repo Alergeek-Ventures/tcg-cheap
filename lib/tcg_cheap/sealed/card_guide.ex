@@ -410,6 +410,8 @@ defmodule TcgCheap.Sealed.CardGuide do
       card
       |> Map.put(:polish_price, if(rows != [], do: hd(rows).price))
       |> Map.put(:polish_shop, if(rows != [], do: hd(rows).shop))
+      # Only a normal print compares with the Cardmarket trend, as on the card's page.
+      |> Map.put(:normal_offer, Enum.find(rows, &(&1.variant == :normal)))
       |> Map.put(:image_source, CardImage.single_source_url(set, card.number))
       |> Map.put(
         :cardmarket_trend_pln,
@@ -419,11 +421,42 @@ defmodule TcgCheap.Sealed.CardGuide do
         :cardmarket_delivered_pln,
         CardReference.pln(card.cardmarket_price, :normal, rate)
       )
+      |> Map.put(:expansion_name, name)
       |> Map.put(
         :public_path,
         if(name, do: path(card, name, set.cardmarket_expansion_id, collisions))
       )
     end)
+  end
+
+  @doc "Every card in stock in a Polish shop, enriched as by `enrich/2`."
+  def in_stock do
+    rows =
+      from([c, s, _o, p] in browse_query(%{query: "", expansion: nil}), select: {c, s, p})
+      |> Repo.all()
+
+    rows
+    |> Enum.map(fn {card, _set, price} -> %{card | cardmarket_price: price} end)
+    |> enrich(rows |> Enum.map(&elem(&1, 1)) |> Enum.uniq_by(& &1.id))
+  end
+
+  @doc "How many cards the English sets of named expansions hold."
+  def catalogue_size do
+    from(c in TcgdexCard,
+      join: s in TcgdexSet,
+      on: c.tcgdex_set_id == s.id,
+      where: s.language == "en" and not is_nil(s.cardmarket_expansion_id)
+    )
+    |> Repo.aggregate(:count)
+  end
+
+  @doc "How many shops have an ungraded card in stock."
+  def shop_count do
+    from(o in current_query(),
+      where: o.in_stock and is_nil(o.grading),
+      select: count(o.shop, :distinct)
+    )
+    |> Repo.one()
   end
 
   @doc "The lower available card price, excluding delivery."

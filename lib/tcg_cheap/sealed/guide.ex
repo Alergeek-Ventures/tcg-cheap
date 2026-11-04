@@ -15,9 +15,10 @@ defmodule TcgCheap.Sealed.Guide do
   }
 
   alias TcgCheap.Sealed.PullRates.Rate
+  alias TcgCheap.Storage.Variants.Webp
 
   @history_days 90
-  @logos_for_ms :timer.minutes(10)
+  @cached_for_ms :timer.minutes(10)
   @page_size 30
   # The most products an expansion has is about 55: its page lists them all,
   # so its pull rates and cards follow right after.
@@ -170,17 +171,21 @@ defmodule TcgCheap.Sealed.Guide do
 
   # Logos change only with a TCGdex sync, a logo set for an expansion or a
   # newly mirrored image, so every list render shares one map for a while.
-  defp logos do
+  defp logos, do: cached(:logos, &read_logos/0)
+
+  # Shared by every render for `@cached_for_ms`; the reader that finds it
+  # stale reads it again.
+  defp cached(key, read) do
     now = System.monotonic_time(:millisecond)
 
-    case :persistent_term.get({__MODULE__, :logos}, nil) do
-      {expires_at, logos} when expires_at > now ->
-        logos
+    case :persistent_term.get({__MODULE__, key}, nil) do
+      {expires_at, value} when expires_at > now ->
+        value
 
       _missing_or_stale ->
-        logos = read_logos()
-        :persistent_term.put({__MODULE__, :logos}, {now + @logos_for_ms, logos})
-        logos
+        value = read.()
+        :persistent_term.put({__MODULE__, key}, {now + @cached_for_ms, value})
+        value
     end
   end
 
@@ -449,6 +454,9 @@ defmodule TcgCheap.Sealed.Guide do
 
   # Cards under this Cardmarket trend are too cheap for a "deal" to matter.
   @deal_floor Decimal.new(20)
+  # More than 40% under its reference, an offer is more often matched to the wrong
+  # product (half a booster box, a promo's other print) than a real deal.
+  @deal_min_ratio Decimal.new("0.6")
 
   # The singles banner: the card a Polish shop sells furthest under its
   # Cardmarket price with delivery to Poland (what a singles verdict
@@ -458,23 +466,9 @@ defmodule TcgCheap.Sealed.Guide do
     priced = Enum.map(cards, &CardGuide.price/1) |> Enum.reject(&is_nil/1)
 
     %{
-      deal:
-        deal &&
-          %{
-            card: deal,
-            price: deal.polish_price,
-            shop: deal.polish_shop,
-            trend: deal.cardmarket_delivered_pln,
-            percent: discount(deal),
-            image: Map.fetch!(images, deal.id),
-            path: deal.public_path
-          },
+      deal: deal && deal_view(deal, images),
       in_stock: Enum.count(cards, & &1.polish_price),
-      cheaper:
-        Enum.count(cards, fn card ->
-          card.polish_price && card.cardmarket_delivered_pln &&
-            Decimal.lt?(card.polish_price, card.cardmarket_delivered_pln)
-        end),
+      cheaper: cheaper(cards),
       total: length(cards),
       # A sum missing some cards' prices would understate the set.
       set_price:
@@ -484,21 +478,142 @@ defmodule TcgCheap.Sealed.Guide do
     }
   end
 
+  @doc """
+  The singles banner across all expansions, for the card list without one:
+  the best deal among the cards in stock in Poland, how many there are of
+  the catalogue's cards, how many undercut Cardmarket, the most valuable
+  one and how many shops sell them. Shared for a few minutes.
+  """
+  def singles_market, do: cached(:singles_market, &read_singles_market/0)
+
+  defp read_singles_market do
+    cards = CardGuide.in_stock()
+    deal = best_deal(cards)
+    top = Enum.max_by(cards, &CardGuide.price/1, Decimal, fn -> nil end)
+
+    %{
+      deal: deal && deal_view(deal, CardGuide.images([deal])),
+      in_stock: length(cards),
+      cheaper: cheaper(cards),
+      total: CardGuide.catalogue_size(),
+      # The whole catalogue has no price of its own, as a set does.
+      set_price: nil,
+      top: top && %{card: top, price: CardGuide.price(top)},
+      shops: CardGuide.shop_count()
+    }
+  end
+
+  defp deal_view(deal, images) do
+    %{
+      card: deal,
+      price: deal.normal_offer.price,
+      shop: deal.normal_offer.shop,
+      trend: deal.cardmarket_delivered_pln,
+      percent: discount(deal),
+      image: Map.fetch!(images, deal.id),
+      path: deal.public_path
+    }
+  end
+
+  defp cheaper(cards), do: Enum.count(cards, &cheaper?/1)
+
+  defp cheaper?(%{
+         normal_offer: %{price: price},
+         cardmarket_delivered_pln: %Decimal{} = delivered
+       }),
+       do: Decimal.lt?(price, delivered)
+
+  defp cheaper?(_card), do: false
+
+  @doc """
+  The sealed banner, for the product list without an expansion: the four
+  products in stock furthest under their typical shop price today (good
+  prices, see `PriceGuide`), best first, each with its photo's height over
+  width, how many products are in stock in
+  Poland, how many of them at a good price, and in how many shops. Shared
+  for a few minutes.
+  """
+  def sealed_market, do: cached(:sealed_market, &read_sealed_market/0)
+
+  defp read_sealed_market do
+    now = DateTime.utc_now()
+
+    offers =
+      Sealed.current_offers(now, :all, select: [:product_id, :in_stock])
+      # Unmatched offers (accessories, other games) are no product of ours.
+      |> Enum.filter(&(&1.in_stock and &1.product_id))
+
+    summaries =
+      [
+        query: [
+          filter: [id: [in: offers |> Enum.map(& &1.product_id) |> Enum.uniq()]],
+          select: @summary_fields
+        ]
+      ]
+      |> Sealed.list_products!()
+      |> summaries(now)
+
+    good = Enum.filter(summaries, &(&1.verdict.status == :good))
+
+    # A good price always has a typical shop price to undercut.
+    deals =
+      good
+      |> Enum.map(&{&1, Decimal.div(&1.verdict.cheapest.price, &1.verdict.typical)})
+      |> Enum.filter(fn {_summary, ratio} -> Decimal.gte?(ratio, @deal_min_ratio) end)
+      |> Enum.sort_by(&elem(&1, 1), Decimal)
+      |> Enum.take(4)
+      |> Enum.map(&elem(&1, 0))
+
+    products =
+      Sealed.list_products!(
+        query: [filter: [id: [in: Enum.map(deals, & &1.product.id)]]],
+        load: [:stored_photo_card_url, :photo_placeholder]
+      )
+      |> Map.new(&{&1.id, &1})
+
+    %{
+      deals: Enum.map(deals, &sealed_deal(&1, Map.fetch!(products, &1.product.id))),
+      in_stock: length(summaries),
+      good: length(good),
+      offers: length(offers),
+      shops: offers |> Enum.map(& &1.shop) |> Enum.uniq() |> length()
+    }
+  end
+
+  defp sealed_deal(%{verdict: verdict}, product) do
+    %{
+      product: product,
+      photo_aspect:
+        product.photo_placeholder && Webp.placeholder_aspect(product.photo_placeholder),
+      price: verdict.cheapest.price,
+      shop: verdict.cheapest.shop,
+      typical: verdict.typical,
+      shops: length(verdict.shop_prices),
+      percent:
+        Decimal.new(1)
+        |> Decimal.sub(Decimal.div(verdict.cheapest.price, verdict.typical))
+        |> Decimal.mult(100)
+        |> Decimal.round(0)
+        |> Decimal.to_integer()
+    }
+  end
+
+  # First editions have no reference of their own (see `CardGuide.card_verdict/4`).
   defp best_deal(cards) do
     cards
-    |> Enum.filter(fn card ->
-      card.polish_price && card.cardmarket_delivered_pln &&
-        card.cardmarket_trend_pln && Decimal.gte?(card.cardmarket_trend_pln, @deal_floor) &&
-        Decimal.lt?(card.polish_price, card.cardmarket_delivered_pln)
-    end)
-    |> Enum.min_by(&Decimal.div(&1.polish_price, &1.cardmarket_delivered_pln), Decimal, fn ->
-      nil
-    end)
+    |> Enum.filter(
+      &(cheaper?(&1) and "firstEdition" not in &1.variants and
+          Decimal.gte?(&1.cardmarket_trend_pln, @deal_floor))
+    )
+    |> Enum.map(&{&1, Decimal.div(&1.normal_offer.price, &1.cardmarket_delivered_pln)})
+    |> Enum.filter(fn {_card, ratio} -> Decimal.gte?(ratio, @deal_min_ratio) end)
+    |> Enum.min_by(&elem(&1, 1), Decimal, fn -> {nil, nil} end)
+    |> elem(0)
   end
 
   defp discount(card) do
     Decimal.new(1)
-    |> Decimal.sub(Decimal.div(card.polish_price, card.cardmarket_delivered_pln))
+    |> Decimal.sub(Decimal.div(card.normal_offer.price, card.cardmarket_delivered_pln))
     |> Decimal.mult(100)
     |> Decimal.round(0)
     |> Decimal.to_integer()
