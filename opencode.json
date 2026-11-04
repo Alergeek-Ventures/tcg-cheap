@@ -3,12 +3,20 @@
   "mcp": {
     "servers": {
       "tidewave": {
-        "type": "remote",
-        "url": "http://localhost:{file:.server.port}/tidewave/mcp"
+        "type": "local",
+        "command": [
+          "sh",
+          "-c",
+          "exec npx -y mcp-remote@0.16.0 \"http://localhost:$(cat .server.port 2>/dev/null || echo 4004)/tidewave/mcp\""
+        ]
       },
       "buying-guide": {
-        "type": "remote",
-        "url": "http://localhost:{file:.server.port}/mcp"
+        "type": "local",
+        "command": [
+          "sh",
+          "-c",
+          "exec npx -y mcp-remote@0.16.0 \"http://localhost:$(cat .server.port 2>/dev/null || echo 4004)/mcp\""
+        ]
       },
       "posthog": {
         "type": "remote",
