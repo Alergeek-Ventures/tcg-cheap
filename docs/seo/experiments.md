@@ -35,7 +35,7 @@ merge, deploy and evaluation. Plan and measure: [strategy.md](strategy.md).
   `AggregateOffer` (PLN, low/high and count) from the current in-stock,
   ungraded offers of the answer's variant, so the low price equals the "od"
   price the page and its description state. No offer, no block.
-  Branch `feat/seo-card-product-structured-data`.
+  PR #102 (branch `feat/seo-card-product-structured-data`).
 - Baseline (2026-11-04): GSC product snippets valid items 2; organic search
   sessions since 2026-11-02: 1 (a product page), sessions with
   `shop_link_clicked` from organic search: 0.
@@ -45,5 +45,6 @@ merge, deploy and evaluation. Plan and measure: [strategy.md](strategy.md).
   pages with `shop_link_clicked`.
 - Evaluate: first check one week after deploy (valid/invalid items), effect
   three weeks after deploy.
-- State: PR in review; not merged, not deployed.
+- State: PR #102 open, reviewed (sol-loop, approved); not merged, not
+  deployed. Merging deploys to production, so it is the owner's call.
 - Result: pending.
