@@ -140,7 +140,9 @@
 .guide-world .guide-intro { margin-bottom: 1.25rem; }
 .guide-world #guide-title { font-size: clamp(2rem, 5vw, 2.5rem); letter-spacing: -.04em; line-height: 1; }
 .guide-world #guide-promise { margin: .5rem 0 0; max-width: 52ch; }
-.guide-world .guide-search { align-content: center; background: var(--bench-light); block-size: var(--guide-search-size); box-shadow: 0 var(--guide-search-gap) 0 var(--bench), 0 calc(-1 * var(--guide-search-gap)) 0 var(--bench); display: grid; inset-block-start: calc(var(--guide-header-size) + var(--guide-search-gap)); margin-bottom: 1.5rem; padding-inline: 1.25rem; position: sticky; z-index: 2; }
+/* The bar: the set, the query and the catalogue in one sticky row; the menus hang from all of it. */
+.guide-world .guide-search { align-items: stretch; background: var(--bench-light); block-size: var(--guide-search-size); box-shadow: 0 var(--guide-search-gap) 0 var(--bench), 0 calc(-1 * var(--guide-search-gap)) 0 var(--bench); display: flex; inset-block-start: calc(var(--guide-header-size) + var(--guide-search-gap)); margin-bottom: 1.5rem; position: sticky; z-index: 2; }
+.guide-world #guide-search-form { align-content: center; display: grid; flex: 1; min-inline-size: 0; padding-inline: 1.25rem .75rem; }
 .guide-world .guide-search-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: clip; position: absolute; white-space: nowrap; }
 .guide-world .guide-search-field { align-items: center; display: flex; position: relative; }
 .guide-world .guide-search-field .fieldset { flex: 1; margin: 0; min-inline-size: 0; padding: 0; }
@@ -201,9 +203,6 @@
 
 /* Filters: a side panel on wide screens, folded behind "Filtry" on narrow ones. */
 .guide-world .guide-browse { align-items: start; display: grid; gap: 1.5rem; }
-.guide-world .guide-filters-toggle { align-items: center; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); cursor: pointer; display: inline-flex; flex: none; font: 700 1.1rem/1 "Barlow Condensed", sans-serif; gap: .4rem; margin-inline-start: .5rem; min-block-size: 3rem; padding-inline: .75rem; }
-.guide-world .guide-filters-toggle:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
-.guide-world .guide-filters-toggle:active { border-color: var(--ink); }
 /* In-page links and the results jump land below the sticky masthead (and search bar). */
 html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1px); }
 .guide-world #guide-results-title { scroll-margin-block-start: calc(var(--guide-search-gap) + var(--guide-search-size)); }
@@ -333,8 +332,6 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 
 .guide-world .guide-set { margin-block-start: 3rem; }
 .guide-world .guide-set .product-section { scroll-margin-block-start: calc(var(--guide-search-gap) * 2 + var(--guide-search-size)); }
-.guide-world .guide-filters-toggle[aria-expanded="true"] { background: var(--ink); color: var(--bench-light); }
-.guide-world .guide-filters-body { display: grid; gap: 1.5rem; }
 .guide-world .guide-results-heading { align-items: center; justify-content: flex-start; }
 .guide-world #guide-result-count { margin-inline-start: auto; }
 .guide-world .guide-filter h2 { font-size: 1.15rem; margin-block-end: .5rem; }
@@ -345,66 +342,110 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .guide-filter a:active { border-color: var(--ink); }
 .guide-world .guide-filter-count { align-items: center; color: var(--muted); display: inline-flex; font: 400 .75rem/1 "Azeret Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; gap: .3rem; }
 .guide-world .guide-filter a[aria-current] .guide-filter-count { color: inherit; }
-/* Expansions: logo tiles two to a row, then the rest as a list of names, a small logo beside each. */
-.guide-world .guide-expansions-all { margin-block-end: .35rem; }
-.guide-world .guide-filter .guide-expansion-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.guide-world .guide-expansion-tiles a { block-size: 100%; display: grid; gap: .3rem; grid-template-columns: minmax(0, 1fr); grid-template-rows: 2.5rem 1fr auto; justify-items: center; padding: .4rem; text-align: center; }
-@media (min-width: 48rem) { .guide-world .guide-expansion-tiles a { padding-inline: .25rem; } .guide-world .guide-expansion-tiles .guide-expansion-nologo { display: none; } }
-.guide-world .guide-expansion-tiles img { block-size: 2.5rem; inline-size: 100%; object-fit: contain; }
-.guide-world .guide-expansion-tiles .guide-expansion-name:not(.guide-expansion-caption) { -webkit-box-orient: vertical; -webkit-line-clamp: 2; align-self: center; display: -webkit-box; grid-row: 1; line-height: 1.05; overflow: clip; overflow-wrap: anywhere; }
-.guide-world .guide-expansion-tiles .guide-expansion-caption { -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: var(--muted); display: -webkit-box; font-size: .6875rem; inline-size: 100%; line-height: 1.2; overflow: clip; text-wrap: balance; }
-.guide-world .guide-expansion-tiles .guide-filter-count { grid-row: 3; }
-.guide-world .guide-expansion-tiles a[aria-current] { background: var(--paper); border-color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); color: var(--ink); }
-.guide-world .guide-expansion-tiles a[aria-current] .guide-filter-count { background: var(--ink); color: var(--bench-light); padding: .15rem .35rem; }
+/* Sets: rows of a small logo and the name beside the list, a shelf of tiles above it on a narrow screen. */
+/* "Wszystkie sety" spans the column, as large as one of its rows is wide */
+.guide-world .guide-filter .guide-expansions-all { display: flex; font-size: 1.15rem; justify-content: center; margin-block-end: .35rem; min-block-size: 3.25rem; }
 .guide-world .guide-filter .guide-expansion-names { display: grid; gap: 0; max-block-size: 22rem; overflow-y: auto; overscroll-behavior: contain; }
 .guide-world .guide-expansion-names a { border-color: transparent; display: grid; grid-template-columns: 3.5rem minmax(0, 1fr) auto; min-block-size: 2.25rem; padding-block: .2rem; text-align: start; }
 .guide-world .guide-expansion-names img { block-size: 1.75rem; inline-size: 100%; object-fit: contain; }
 .guide-world .guide-expansion-names .guide-expansion-name { grid-column: 2; line-height: 1.05; overflow-wrap: anywhere; }
 .guide-world .guide-expansion-names li + li a:not([aria-current]) { border-block-start-color: var(--rule); }
+.guide-world .guide-expansion-names a[aria-current] { background: var(--paper); border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); color: var(--ink); }
+.guide-world .guide-expansion-names a[aria-current] .guide-filter-count { background: var(--ink); color: var(--bench-light); padding: .15rem .35rem; }
 .guide-world .guide-expansion-nologo { background: color-mix(in srgb, var(--bench) 45%, var(--paper)); block-size: 1.25rem; inline-size: 2.25rem; justify-self: center; }
 @media (min-width: 48rem) {
-  .guide-world .guide-expansion-names a { column-gap: .4rem; grid-template-columns: 2.75rem minmax(0, 1fr) auto; }
-  .guide-world .guide-expansion-names .guide-expansion-name { font-size: .875rem; text-wrap: balance; }
+  .guide-world .guide-expansion-names a { column-gap: .5rem; grid-template-columns: 4.25rem minmax(0, 1fr) auto; min-block-size: 3rem; }
+  .guide-world .guide-expansion-names img { block-size: 2rem; }
+  .guide-world .guide-expansion-names .guide-expansion-name { font-size: .95rem; text-wrap: balance; }
   .guide-world .guide-expansion-names .guide-filter-count { align-items: end; flex-direction: column; gap: .15rem; }
 }
 .guide-world .guide-expansion-region { border: 1px solid currentColor; font-size: .625rem; line-height: 1; padding: .05rem .2rem; }
-.guide-world .guide-expansions summary { color: var(--ink); cursor: pointer; font-size: .875rem; margin-block-start: .35rem; min-block-size: 2.25rem; padding-block: .4rem; }
-.guide-world .guide-filters-apply { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; inset-block-end: 0; margin: 0 -1rem -1rem; min-block-size: 3rem; position: sticky; }
-.guide-world .guide-filters-apply:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
+.guide-world .guide-expansions-more summary { color: var(--ink); cursor: pointer; font-size: .875rem; margin-block-start: .35rem; min-block-size: 2.75rem; padding-block: .6rem; }
 @media (hover: hover) and (pointer: fine) {
   .guide-world .guide-filter a:hover { border-color: var(--ink); }
-  .guide-world .guide-filters-toggle:hover { border-color: var(--ink); }
 }
-@media (min-width: 48rem) {
+
+/* The kind menu: under the whole bar, over a dimmed page. */
+.guide-world .guide-pop > summary { cursor: pointer; list-style: none; transition: background-color .15s ease-out, color .15s ease-out; }
+.guide-world .guide-pop > summary::-webkit-details-marker { display: none; }
+.guide-world .guide-pop-chevron { block-size: 1rem; flex: none; inline-size: 1rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .guide-world .guide-pop-chevron { transition: rotate .15s ease-out; }
+}
+.guide-world .guide-pop[open] .guide-pop-chevron { rotate: .5turn; }
+.guide-world .guide-pop > summary:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
+.guide-world .guide-panel { align-content: start; background: var(--bench-light); border: 1px solid var(--ink); box-shadow: .375rem .375rem 0 var(--ink); display: grid; gap: 1.25rem; inset-block-start: 100%; inset-inline: 0; max-block-size: calc(100dvh - var(--guide-sticky-size) - 1.5rem); overflow-y: auto; overscroll-behavior: contain; padding: 1rem 1.25rem 1.25rem; position: absolute; z-index: 3; }
+.guide-world .guide-panel nav { display: grid; gap: .5rem; }
+.guide-world .guide-panel a { min-block-size: 2.75rem; padding-inline: .75rem; }
+.guide-world .guide-panel .guide-kinds-exact a { font-size: .875rem; min-block-size: 2.25rem; }
+html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-mix(in oklch, var(--ink) 30%, transparent); content: ""; inset: 0; position: fixed; z-index: 1; }
+
+/* The set slot: every set (four squares), else the chosen set's logo; it glides to the sets. */
+.guide-world .guide-set-slot { align-items: center; border-inline-end: 1px solid var(--rule); color: var(--ink); display: flex; flex: none; gap: .6rem; padding-inline: 1rem .85rem; text-decoration: none; transition: background-color .15s ease-out, color .15s ease-out; }
+.guide-world .guide-set-slot:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
+.guide-world .guide-set-icon { display: grid; flex: none; gap: 3px; grid-template-columns: repeat(2, .7rem); }
+.guide-world .guide-set-icon i { aspect-ratio: 1; border: 1.5px solid currentColor; }
+.guide-world .guide-set-icon i:first-child { background: var(--orange); border-color: var(--orange); }
+.guide-world .guide-set-label, .guide-world .guide-set-name { font: 700 1.2rem/1 "Barlow Condensed", sans-serif; }
+.guide-world .guide-set-label { white-space: nowrap; }
+.guide-world .guide-set-name { max-inline-size: 9rem; text-wrap: balance; }
+.guide-world .guide-set-logo { block-size: 2.75rem; inline-size: auto; max-inline-size: 9rem; object-fit: contain; }
+.guide-world .guide-narrow { display: none; }
+.guide-world .guide-set-slot:has(.guide-set-logo, .guide-set-name) { background: var(--paper); box-shadow: inset 0 -3px 0 var(--ink); }
+.guide-world .guide-set-slot:active { background: var(--orange); color: var(--paper); }
+
+/* The products tab is also the kind menu, named after the chosen kind. */
+.guide-world .guide-kind-menu { display: grid; grid-template-rows: 1fr auto; }
+.guide-world .guide-kind-menu > summary { align-items: center; block-size: 100%; background: var(--ink); color: var(--paper); display: flex; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1.05 "Barlow Condensed", sans-serif; gap: .4rem; justify-content: center; padding-inline: clamp(.6rem, .2rem + 1.4vw, 1.4rem); }
+.guide-world .guide-kind-name { max-inline-size: 7rem; text-align: center; text-wrap: balance; }
+.guide-world .guide-tag { border: 1px solid currentColor; font-size: .625rem; line-height: 1; padding: .1rem .2rem; text-transform: uppercase; }
+.guide-world .guide-kind-menu > summary:active { background: var(--orange); }
+@media (hover: hover) and (pointer: fine) {
+  .guide-world .guide-set-slot:not(:active):hover { background: color-mix(in oklch, var(--orange) 22%, var(--bench-light)); }
+  .guide-world .guide-kind-menu > summary:not(:active):hover { background: color-mix(in oklch, var(--ink) 82%, var(--orange)); }
+}
+
+/* The sets: a column beside the list on a wide screen, scrolling on its own;
+   a shelf of tiles above the list on a narrow one. The bar's set slot glides here. */
+.guide-world #guide-expansions { scroll-margin-block-start: calc(var(--guide-search-gap) * 2 + var(--guide-search-size)); }
+.guide-world .guide-filters { min-inline-size: 0; }
+.guide-world .guide-filters .guide-expansion-shelf { max-block-size: none; }
+@media (min-width: 64rem) {
   .guide-world .guide-browse { gap: 2rem; grid-template-columns: 15rem minmax(0, 1fr); }
   .guide-world .guide-filters { inset-block-start: calc(var(--guide-sticky-size) + 1rem); max-block-size: calc(100svh - var(--guide-sticky-size) - 2rem); overflow-y: auto; overscroll-behavior: contain; position: sticky; scrollbar-width: thin; }
-  .guide-world :is(.guide-filters-toggle, .guide-filters-apply) { display: none; }
 }
-/* Phones: the toggle in the search bar opens the filters as a panel under the sticky bar. */
+@media (max-width: 63.99rem) {
+  .guide-world .guide-filter .guide-expansion-shelf { display: flex; flex-wrap: nowrap; gap: .375rem; overflow-x: auto; overscroll-behavior-x: contain; padding-block-end: .5rem; scroll-snap-type: x proximity; scrollbar-width: thin; }
+  .guide-world .guide-expansion-shelf li { flex: none; inline-size: 7.5rem; scroll-snap-align: start; }
+  .guide-world .guide-expansion-shelf a { block-size: 100%; border-color: var(--rule); column-gap: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: 2.25rem auto auto; justify-items: center; min-block-size: 5rem; padding: .45rem .4rem; text-align: center; }
+  .guide-world .guide-expansion-shelf li + li a:not([aria-current]) { border-block-start-color: var(--rule); }
+  .guide-world .guide-expansion-shelf img { block-size: 2.25rem; }
+  .guide-world .guide-expansion-shelf .guide-expansion-name { -webkit-box-orient: vertical; -webkit-line-clamp: 2; display: -webkit-box; font-size: .8rem; grid-column: 1; overflow: clip; }
+  .guide-world .guide-expansion-shelf img + .guide-expansion-name { color: var(--muted); font-size: .6875rem; }
+  .guide-world .guide-expansion-shelf .guide-expansion-nologo { display: none; }
+  .guide-world .guide-expansion-shelf a:not(:has(img)) { grid-template-rows: 1fr auto; }
+  .guide-world .guide-expansion-shelf .guide-filter-count { flex-direction: row; }
+}
 @media (max-width: 47.99rem) {
-  .guide-world .guide-search { margin-inline: -1rem; padding-inline: 1rem; }
-  .guide-world .guide-search-input { font-size: clamp(1.125rem, 5vw, 1.25rem); }
-  .guide-world .guide-filters:not(.guide-filters-open) { display: none; }
-  .guide-world .guide-filters-open { background: var(--bench-light); border-block-start: 1px solid var(--rule); inset: var(--guide-filters-top, var(--guide-sticky-size)) 0 0; overflow-y: auto; overscroll-behavior: contain; position: fixed; z-index: 2; }
-  html:has(.guide-filters-open) { overflow: hidden; }
+  .guide-world .guide-search { margin-inline: -1rem; }
+  .guide-world #guide-search-form { padding-inline: .75rem .5rem; }
+  .guide-world .guide-search-icon { display: none; }
+  .guide-world .guide-search-input { font-size: clamp(1.125rem, 5vw, 1.25rem); padding-inline-start: 0; }
+  .guide-world .guide-set-slot { gap: .35rem; padding-inline: .75rem .5rem; }
+  .guide-world .guide-wide { display: none; }
+  .guide-world .guide-narrow { display: inline; }
+  .guide-world .guide-set-logo { block-size: 2rem; max-inline-size: 4.5rem; }
+  .guide-world .guide-set-name { font-size: 1rem; max-inline-size: 4.5rem; }
+  .guide-world .guide-kind-name { max-inline-size: 4.25rem; }
+  .guide-world .guide-panel { border-inline: 0; box-shadow: none; max-block-size: calc(100dvh - var(--guide-sticky-size)); padding-inline: 1rem; }
   /* The fixed report button would cover the footer's end, so the page ends below it. */
   html:has(#report:not([hidden])) .guide-world .site-footer { padding-block-end: calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem); }
-  /* The panel takes the screen, so the report button would cover its last filters. */
-  html:has(.guide-filters-open) #report-toggle { display: none; }
-  /* The home indicator gap comes on top of the bar, not out of it. */
-  .guide-world .guide-filters-apply { min-block-size: calc(3.5rem + env(safe-area-inset-bottom)); padding-block-end: env(safe-area-inset-bottom); }
-  .guide-world .guide-filters-body { gap: 1rem; padding: 1rem; }
-  /* The expansion tiles become rows like the rest, tall enough to tap. */
-  .guide-world .guide-filter .guide-expansion-tiles { gap: 0; grid-template-columns: minmax(0, 1fr); }
-  .guide-world .guide-expansion-tiles a { border-color: transparent; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto; justify-items: stretch; min-block-size: 2.75rem; padding-block: .25rem; text-align: start; }
-  .guide-world .guide-expansion-tiles li + li a:not([aria-current]) { border-block-start-color: var(--rule); }
-  .guide-world :is(.guide-expansion-tiles, .guide-expansion-names) :is(img, .guide-expansion-nologo) { display: none; }
-  .guide-world .guide-expansion-names a { grid-template-columns: minmax(0, 1fr) auto; }
-  .guide-world .guide-expansion-names .guide-expansion-name { grid-column: 1; }
   .guide-world .site-footer p { flex-wrap: wrap; justify-content: center; text-wrap: balance; }
   .guide-world .site-footer a { white-space: nowrap; }
-  .guide-world .guide-expansion-tiles .guide-expansion-name { align-self: center; color: inherit; font-size: inherit; grid-column: 1; grid-row: 1; line-height: 1.05; text-wrap: wrap; }
-  .guide-world .guide-expansion-tiles .guide-filter-count { grid-column: 2; grid-row: 1; }
+}
+@media (max-width: 24rem) {
+  .guide-world :is(.guide-set-slot, .guide-kind-menu > summary) .guide-pop-chevron { display: none; }
+  .guide-world .guide-set-logo { max-inline-size: 3.5rem; }
 }
 .guide-world .guide-more { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: 1rem; }
 .guide-world .guide-more button { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 1.5rem; }
@@ -771,20 +812,15 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   .guide-world .single-card-name:hover { text-decoration: underline; }
 }
 
-/* The mode control shares the guide's square, restrained filter treatment. */
-/* The Produkty / Karty switch sits right of the title on wide screens and spans the width on phones. */
-/* the catalogue to search, at the end of the search bar; on a phone the
-   filters button keeps only its icon to leave the query room */
-@media (max-width: 30rem) {
-  .guide-world .guide-filters-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: clip; position: absolute; white-space: nowrap; }
-}
-.guide-world .guide-mode { border: 1px solid var(--ink); display: grid; flex: none; grid-template-columns: 1fr 1fr; margin-inline-start: .5rem; }
-.guide-world .guide-mode a { align-items: center; display: inline-flex; font: 700 clamp(1rem, .9rem + .5vw, 1.15rem)/1 "Barlow Condensed", sans-serif; justify-content: center; min-block-size: 2.75rem; padding-inline: clamp(.5rem, .2rem + 1.2vw, 1rem); text-decoration: none; }
+/* The catalogue to search fills the end of the bar, top to bottom, as part of it. */
+.guide-world .guide-mode { border-inline-start: 1px solid var(--rule); display: grid; flex: none; grid-template-columns: auto auto; }
+.guide-world .guide-mode a { align-items: center; color: var(--ink); display: inline-flex; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1 "Barlow Condensed", sans-serif; justify-content: center; padding-inline: clamp(.6rem, .2rem + 1.4vw, 1.4rem); text-decoration: none; transition: background-color .15s ease-out, color .15s ease-out; }
+.guide-world .guide-mode a + a { border-inline-start: 1px solid var(--rule); }
 .guide-world .guide-mode a[aria-current="true"] { background: var(--ink); color: var(--paper); }
-.guide-world .guide-mode a:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+.guide-world .guide-mode a:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
 .guide-world .guide-mode a:active { background: var(--orange); color: var(--paper); }
 @media (hover: hover) and (pointer: fine) {
-  .guide-world .guide-mode a:hover { text-decoration: underline; text-underline-offset: .2rem; }
+  .guide-world .guide-mode a:not([aria-current="true"]):not(:active):hover { background: color-mix(in oklch, var(--orange) 22%, var(--bench-light)); }
 }
 .guide-world .guide-card .guide-product-link { display: grid; grid-template-columns: clamp(3rem, 6vw, 5.5rem) minmax(0, 1fr) auto; }
 .guide-world .guide-card-image { display: grid; place-items: center; grid-row: auto; inline-size: 100%; }

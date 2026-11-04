@@ -165,7 +165,7 @@ defmodule TcgCheap.Sealed.Product do
     read :browse do
       description "Products for the public list: in stock in Poland first, then newest."
       argument :query, :string, default: ""
-      argument :kind, :atom, constraints: [one_of: Kinds.all()]
+      argument :kind, :atom, constraints: [one_of: Kinds.choices()]
       argument :region, :atom, constraints: [one_of: Regions.all()]
       argument :expansion, :integer, description: "A Cardmarket expansion id."
 
@@ -176,7 +176,7 @@ defmodule TcgCheap.Sealed.Product do
     read :facets do
       description "Every product the public list would show, unpaged, for its filter counts."
       argument :query, :string, default: ""
-      argument :kind, :atom, constraints: [one_of: Kinds.all()]
+      argument :kind, :atom, constraints: [one_of: Kinds.choices()]
       argument :region, :atom, constraints: [one_of: Regions.all()]
       argument :expansion, :integer
       prepare Browse

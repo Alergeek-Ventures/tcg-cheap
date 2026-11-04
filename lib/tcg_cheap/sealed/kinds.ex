@@ -22,6 +22,16 @@ defmodule TcgCheap.Sealed.Kinds do
     case: "Karton zbiorczy"
   ]
 
+  # What a buyer picks first: a handful of shelves, each one or more kinds
+  # (owner decision, 2026-11-04). The list filter takes a shelf or an exact kind.
+  @shelves [
+    boosters: [:booster, :booster_bundle, :blister],
+    boxes: [:booster_box, :case],
+    elite_trainer_box: [:elite_trainer_box],
+    collections: [:collection, :tin],
+    decks: [:deck, :card_set]
+  ]
+
   @booster 52
   @display 53
   @theme_deck 54
@@ -40,7 +50,27 @@ defmodule TcgCheap.Sealed.Kinds do
   @spec all() :: [atom()]
   def all, do: Keyword.keys(@kinds)
 
+  @doc "The shelves in the order the list offers them."
+  @spec shelves() :: [atom()]
+  def shelves, do: Keyword.keys(@shelves)
+
+  @doc "Every value the list's kind filter takes: a shelf or an exact kind."
+  @spec choices() :: [atom()]
+  def choices, do: Enum.uniq(shelves() ++ all())
+
+  @doc "The kinds a shelf holds, or the kind itself."
+  @spec members(atom()) :: [atom()]
+  def members(choice), do: Keyword.get(@shelves, choice, [choice])
+
+  @doc "The shelf a kind stands on."
+  @spec shelf(atom()) :: atom()
+  def shelf(kind), do: Enum.find_value(@shelves, fn {shelf, kinds} -> kind in kinds && shelf end)
+
   @spec label(atom()) :: String.t()
+  def label(:boosters), do: gettext("Boostery")
+  def label(:boxes), do: gettext("Booster Boxy")
+  def label(:collections), do: gettext("Kolekcje i puszki")
+  def label(:decks), do: gettext("Talie")
   def label(kind), do: translate_label(Keyword.fetch!(@kinds, kind))
 
   @spec labels() :: keyword(String.t())

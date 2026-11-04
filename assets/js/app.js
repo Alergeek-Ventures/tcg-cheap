@@ -183,20 +183,25 @@ document.addEventListener("click", e => {
   target.scrollIntoView({behavior: "smooth", block: "start"})
   history.pushState(history.state, "", link.hash)
 })
-// Phone filters open as a panel right under the search bar, the page first scrolled
-// to bring the bar up to its sticky place so the panel gets the screen below it
-// (measured again when the screen turns or resizes while the panel is open).
-const pinFilters = ({type}) => {
+// The search bar's menu opens right under it: opening it first glides the bar
+// up to its sticky place, so the menu gets the screen below it.
+window.addEventListener("guide:pin-filters", () => {
   const search = document.querySelector(".guide-search")
-  if (!search) return
-  if (type === "guide:pin-filters" && !document.querySelector(".guide-filters-open")) {
-    const lift = search.getBoundingClientRect().top - parseFloat(getComputedStyle(search).insetBlockStart)
-    if (lift > 0) window.scrollBy({top: lift, behavior: "instant"})
-  }
-  document.documentElement.style.setProperty("--guide-filters-top", `${Math.round(search.getBoundingClientRect().bottom)}px`)
-}
-window.addEventListener("guide:pin-filters", pinFilters)
-window.addEventListener("resize", e => { if (document.querySelector(".guide-filters-open")) pinFilters(e) })
+  if (!search || document.querySelector(".guide-pop[open]")) return
+  const lift = search.getBoundingClientRect().top - parseFloat(getComputedStyle(search).insetBlockStart)
+  const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"
+  if (lift > 0) window.scrollBy({top: lift, behavior})
+})
+// A menu closes on a click outside it, or on Escape (focus back on its button).
+document.addEventListener("click", e => {
+  for (const menu of document.querySelectorAll(".guide-pop[open]")) if (!menu.contains(e.target)) menu.open = false
+})
+document.addEventListener("keydown", e => {
+  const menu = e.key === "Escape" && document.querySelector(".guide-pop[open]")
+  if (!menu) return
+  menu.open = false
+  menu.querySelector("summary").focus()
+})
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
