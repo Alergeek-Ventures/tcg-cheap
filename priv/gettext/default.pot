@@ -1512,3 +1512,8 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "w %{shop}"
 msgstr ""
+
+#: lib/tcg_cheap_web/seo.ex:423
+#, elixir-autogen, elixir-format
+msgid "Karta Pokémon TCG"
+msgstr ""
