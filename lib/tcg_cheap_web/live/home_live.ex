@@ -36,7 +36,11 @@ defmodule TcgCheapWeb.HomeLive do
     {:ok,
      socket
      |> VisitorLocation.assign_location()
-     |> assign(all_expansions?: false, set_page: nil)
+     |> assign(
+       all_expansions?: false,
+       set_page: nil,
+       list_restore: if(connected?(socket), do: get_connect_params(socket)["_guide_list"])
+     )
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")
      |> stream_configure(:cards, dom_id: &"card-#{&1.card.id}")
      |> stream_configure(:cards_out, dom_id: &"card-out-#{&1.card.id}")
@@ -46,12 +50,12 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   @impl true
-  def handle_params(params, _uri, socket) do
+  def handle_params(params, uri, socket) do
     filters = parse_filters(socket.assigns.live_action, params)
     mode = filters.mode
 
     previous = socket.assigns[:filters]
-    socket = list(socket, filters)
+    socket = socket |> list(filters) |> restore_list(uri)
     expansion = chosen_expansion(socket.assigns)
     socket = update(socket, :filters, &Map.put(&1, :expansion_name, expansion && expansion.name))
 
@@ -188,6 +192,38 @@ defmodule TcgCheapWeb.HomeLive do
     |> stream(:products, summaries, reset: true)
   end
 
+  # Per-history-entry presentation state complements the URL's query/filters.
+  # Restore only on a fresh mount of that exact URL, before LiveView restores
+  # scroll. Refetch the rows so prices stay current.
+  defp restore_list(
+         %{assigns: %{list_restore: %{"url" => url, "open" => open} = saved}} = socket,
+         uri
+       )
+       when is_binary(url) and is_list(open) do
+    parsed = URI.parse(uri)
+    path = parsed.path <> if(parsed.query in [nil, ""], do: "", else: "?" <> parsed.query)
+    socket = assign(socket, :list_restore, nil)
+
+    if path == url do
+      socket
+      |> restore_rows(saved["loaded"], :loaded, :more?, &load_more/1)
+      |> restore_rows(saved["outLoaded"], :cards_out_loaded, :cards_out_more?, &load_more_out/1)
+      |> assign(:cards_out_open?, "guide-cards-out" in open)
+    else
+      socket
+    end
+  end
+
+  defp restore_list(socket, _uri), do: socket
+
+  defp restore_rows(socket, count, loaded, more?, load) when is_integer(count) and count > 0 do
+    if socket.assigns[more?] && socket.assigns[loaded] < count,
+      do: restore_rows(load.(socket), count, loaded, more?, load),
+      else: socket
+  end
+
+  defp restore_rows(socket, _count, _loaded, _more?, _load), do: socket
+
   # Only changes made on the page: the first render arrives with its pageview,
   # whose URL already holds the query and filters.
   defp track_changes(socket, nil), do: socket
@@ -247,61 +283,63 @@ defmodule TcgCheapWeb.HomeLive do
 
   def handle_event("search", _params, socket), do: {:noreply, socket}
 
-  def handle_event(
-        "more",
-        _params,
-        %{assigns: %{more?: true, filters: %{mode: :cards} = filters}} = socket
-      ) do
-    {rows, more?, _count} =
-      CardGuide.browse(
-        Map.put(filters, :stock, socket.assigns.cards_stock),
-        socket.assigns.loaded
-      )
-
-    {:noreply,
-     socket
-     |> assign(loaded: socket.assigns.loaded + length(rows), more?: more?)
-     |> stream(:cards, rows)}
-  end
-
-  def handle_event("more_out", _params, %{assigns: %{cards_out_more?: true}} = socket) do
-    {rows, more?, _count} =
-      CardGuide.browse(
-        Map.put(socket.assigns.filters, :stock, :out),
-        socket.assigns.cards_out_loaded
-      )
-
-    {:noreply,
-     socket
-     |> assign(
-       cards_out_open?: true,
-       cards_out_loaded: socket.assigns.cards_out_loaded + length(rows),
-       cards_out_more?: more?
-     )
-     |> stream(:cards_out, rows)}
-  end
-
   def handle_event("more", _params, %{assigns: %{more?: true}} = socket) do
-    %{filters: filters, loaded: loaded} = socket.assigns
-    {summaries, more?, _count} = Guide.browse(sealed_filters(filters), loaded, DateTime.utc_now())
+    socket = load_more(socket)
 
-    socket =
-      socket
-      |> assign(:loaded, loaded + length(summaries))
-      |> assign(:more?, more?)
-      |> stream(:products, summaries)
-
-    properties = Map.put(list_properties(socket), :loaded, socket.assigns.loaded)
-    {:noreply, Analytics.track(socket, "more_products_loaded", properties)}
+    if socket.assigns.filters.mode == :products do
+      properties = Map.put(list_properties(socket), :loaded, socket.assigns.loaded)
+      {:noreply, Analytics.track(socket, "more_products_loaded", properties)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("more", _params, socket), do: {:noreply, socket}
+
+  def handle_event("more_out", _params, %{assigns: %{cards_out_more?: true}} = socket),
+    do: {:noreply, load_more_out(socket)}
 
   def handle_event("all-expansions", _params, socket),
     do: {:noreply, assign(socket, :all_expansions?, true)}
 
   def handle_event("location-" <> _ = event, params, socket) do
     {:noreply, VisitorLocation.handle_event(event, params, socket)}
+  end
+
+  defp load_more(%{assigns: %{filters: %{mode: :cards} = filters}} = socket) do
+    {rows, more?, _count} =
+      CardGuide.browse(
+        Map.put(filters, :stock, socket.assigns.cards_stock),
+        socket.assigns.loaded
+      )
+
+    socket
+    |> assign(loaded: socket.assigns.loaded + length(rows), more?: more?)
+    |> stream(:cards, rows)
+  end
+
+  defp load_more(%{assigns: %{filters: filters, loaded: loaded}} = socket) do
+    {rows, more?, _count} = Guide.browse(sealed_filters(filters), loaded, DateTime.utc_now())
+
+    socket
+    |> assign(loaded: loaded + length(rows), more?: more?)
+    |> stream(:products, rows)
+  end
+
+  defp load_more_out(socket) do
+    {rows, more?, _count} =
+      CardGuide.browse(
+        Map.put(socket.assigns.filters, :stock, :out),
+        socket.assigns.cards_out_loaded
+      )
+
+    socket
+    |> assign(
+      cards_out_open?: true,
+      cards_out_loaded: socket.assigns.cards_out_loaded + length(rows),
+      cards_out_more?: more?
+    )
+    |> stream(:cards_out, rows)
   end
 
   defp region_param(@all_regions, _expansion), do: nil
@@ -568,6 +606,14 @@ defmodule TcgCheapWeb.HomeLive do
       <div class="set-title">
         <img :if={@logo_url} src={@logo_url} alt="" class="set-logo" />
         <h1 id="guide-title">{@name}</h1>
+        <.link
+          id="set-close"
+          patch={~p"/"}
+          class="set-close"
+          aria-label={gettext("Zamknij set i wyczyść filtry")}
+        >
+          <.fluent_icon name={:dismiss} />
+        </.link>
       </div>
       <%!-- Each fact leads on: the booster to its page, the odds and the cards to their tables. --%>
       <%= if @page.booster || @rarest != [] || @cards do %>
@@ -644,8 +690,10 @@ defmodule TcgCheapWeb.HomeLive do
           <p class="guide-product-meta">{@row.card.number} · {@row.expansion_name}</p>
         </div>
         <p class="guide-product-price">
-          <strong :if={@row.price}>{Polish.price(@row.price)}</strong>
-          <span :if={!@row.price}>{gettext("brak na stanie")}</span>
+          <strong :if={@row.price || @row.cardmarket_trend_pln}>{Polish.price(
+            @row.price || @row.cardmarket_trend_pln
+          )}</strong>
+          <span :if={!@row.price && !@row.cardmarket_trend_pln}>{gettext("Cena nieznana")}</span>
         </p>
       </.link>
     </li>
@@ -669,7 +717,7 @@ defmodule TcgCheapWeb.HomeLive do
             error={@location_error}
           />
         </.site_header>
-        <main id="guide-main" class="guide-main">
+        <main id="guide-main" class="guide-main" data-guide-url={@locale_return_to}>
           <%= if @set_page do %>
             <.set_intro name={@filters.expansion_name} page={@set_page} />
           <% else %>
@@ -784,18 +832,7 @@ defmodule TcgCheapWeb.HomeLive do
             <section class="guide-results" aria-labelledby="guide-results-title">
               <div class="guide-results-heading">
                 <h2 id="guide-results-title" tabindex="-1">
-                  <%= cond do %>
-                    <% @filters.mode == :cards and @filters.query == "" -> %>
-                      {gettext("Karty na stanie w Polsce")}
-                    <% @filters.query == "" and !filtered?(@filters) -> %>
-                      {gettext("Produkty w wersji angielskiej")}
-                    <% @filters.query == "" and @filters.kind -> %>
-                      {Kinds.label(@filters.kind)}
-                    <% @filters.query == "" and @set_page != nil -> %>
-                      {gettext("Produkty i ceny")}
-                    <% true -> %>
-                      {gettext("Wyniki")}
-                  <% end %>
+                  {gettext("Wyniki")}
                 </h2>
                 <p id="guide-result-count" aria-live="polite">
                   {result_label(@result_count, @filters.mode)}

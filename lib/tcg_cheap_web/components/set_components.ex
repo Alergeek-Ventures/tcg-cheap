@@ -259,16 +259,13 @@ defmodule TcgCheapWeb.SetComponents do
               class="single-card-name"
             >{card.name}</.link>
             <span :if={!Map.get(card, :public_path)}>{card.name}</span>
-            <span :if={Map.get(card, :polish_price)} class="single-card-pl">
-              <strong>{Polish.price(card.polish_price)}</strong>
-            </span>
-            <.card_price :if={!Map.get(card, :polish_price)} card={card} />
+            <.card_price card={card} />
           </li>
         </ol>
       </details>
     </div>
     <p class="guide-note table-note">
-      {gettext("Ceny w polskich sklepach, bez dostawy. Z ikoną: Cardmarket, gdy w Polsce brak.")}
+      {gettext("Ceny bez dostawy: polskie sklepy, a gdy brak na stanie — trend Cardmarket w złotych.")}
     </p>
     """
   end
@@ -276,13 +273,15 @@ defmodule TcgCheapWeb.SetComponents do
   attr :card, :map, required: true
 
   defp card_price(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :price,
+        Map.get(assigns.card, :polish_price) || Map.get(assigns.card, :cardmarket_trend_pln)
+      )
+
     ~H"""
-    <span :if={Map.get(@card, :cardmarket_trend_pln)} class="set-cards-price"><img
-      src={~p"/images/cardmarket.png"}
-      alt="Cardmarket"
-      width="16"
-      height="16"
-    /> ≈ {Polish.rough_zloty(@card.cardmarket_trend_pln)}</span>
+    <span :if={@price} class="set-cards-price">{Polish.price(@price)}</span>
     """
   end
 end

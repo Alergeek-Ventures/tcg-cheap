@@ -39,6 +39,16 @@ defmodule TcgCheapWeb.SingleLive do
     end
   end
 
+  @impl true
+  def handle_params(_params, uri, socket) do
+    # Live navigation does not run the HTTP canonical plug.
+    if URI.parse(uri).path == socket.assigns.page.path do
+      {:noreply, socket}
+    else
+      {:noreply, push_navigate(socket, to: socket.assigns.page.path)}
+    end
+  end
+
   defp group(%{grading: grade, in_stock: false}) when is_binary(grade), do: :graded_out
   defp group(%{grading: grade}) when is_binary(grade), do: :graded
   defp group(%{in_stock: true}), do: :raw
@@ -134,14 +144,19 @@ defmodule TcgCheapWeb.SingleLive do
             error={@location_error}
           />
         </.site_header>
-        <main id="single-page" class="guide-main product-page single-page">
+        <main
+          id="single-page"
+          class="guide-main product-page single-page"
+          data-guide-url={@locale_return_to}
+        >
           <.link
-            id="single-set-link"
+            id="single-back"
+            data-guide-back
             navigate={
               SEO.expansion_path(@page.card.tcgdex_set.cardmarket_expansion_id, @page.expansion_name)
             }
             class="guide-back"
-          ><.fluent_icon name={:arrow_left} />{@page.expansion_name}</.link>
+          ><.fluent_icon name={:arrow_left} />{gettext("Wróć")}</.link>
           <div class="product-top">
             <div class="product-image product-hero-image single-image">
               <img
@@ -185,7 +200,7 @@ defmodule TcgCheapWeb.SingleLive do
                 ]}>
                   {if(@primary.cheapest,
                     do: single_verdict_label(@primary.verdict),
-                    else: gettext("Brak na stanie w polskich sklepach")
+                    else: verdict_label(%{status: :out_of_stock})
                   )}<.verdict_icon status={single_verdict_status(@primary.verdict)} />
                 </span>
               </:header>
@@ -217,7 +232,7 @@ defmodule TcgCheapWeb.SingleLive do
                   </p>
                   <p :if={@primary.verdict == :pennies}>
                     {gettext(
-                      "Grosze w obu miejscach: karta w Polsce kosztuje najwyżej 3 zł, a wysyłka z Cardmarket więcej niż sama karta."
+                      "Karta kosztuje w Polsce najwyżej 3 zł, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
                     )}
                   </p>
                   <p :if={@primary.variant == :special}>

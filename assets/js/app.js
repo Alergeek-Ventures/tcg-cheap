@@ -50,92 +50,89 @@ import topbar from "../vendor/topbar"
   })
 })()
 
-// Page transitions: LiveView navigations (links, back and forward) cross-fade
-// as a view transition, and the product photo moves between its row in the
-// list and the product page. Other patches (search, filters, live updates)
-// apply at once.
-const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)")
-// Names the photo of the list row linking to `path`, the one that moves.
-const nameRowPhoto = path => {
-  document.querySelectorAll(".guide-product-image").forEach(el => el.style.viewTransitionName = "")
-  const photo = path && document.querySelector(`.guide-product-link[href="${CSS.escape(path)}"] .product-image`)
-  if (photo) photo.style.viewTransitionName = "product-photo"
-}
+// LiveView owns navigation, history and scroll restoration. Keep document patches
+// synchronous: capturing the detached incoming view showed the outgoing page
+// underneath it during the old View Transition.
 let shownPath = location.pathname
-let navigatingFrom = null
-// Where LiveView scrolls the page it navigates to, a frame after the patch:
-// the top, or on back and forward where that page was left.
-let landingScroll = null
-// Whether the page shown was opened from the list in this tab.
-let cameFromList = false
-// Patches arriving while a transition waits to apply its own, applied in order after it.
-let heldPatches = null
-
-// A link navigation announces itself before the new page arrives; back and
-// forward only after the address has already changed.
-window.addEventListener("phx:page-loading-start", ({detail}) => {
-  if (detail.kind === "redirect") navigatingFrom = location.pathname
-})
-window.addEventListener("phx:navigate", ({detail}) => {
-  if (detail.pop && !detail.patch) {
-    navigatingFrom = shownPath
-    nameRowPhoto(location.pathname)
+let returnTo = null
+// How much of a list is shown (rows loaded, sections open), kept in its
+// history entry so going back restores it. It is saved whenever it changes,
+// not only on leaving: an entry reached by history traversal is left by
+// traversal too, when this entry can no longer be written.
+const listShown = () => document.querySelector("#guide-products, #product-cards")
+// The page on screen is the entry's own page only once LiveView has rendered
+// it: during history traversal the old page stays shown under the new URL.
+const pageIsEntry = () =>
+  document.querySelector("main[data-guide-url]")?.dataset.guideUrl === location.pathname + location.search
+const saveList = () => {
+  if (!listShown()) return
+  const list = document.querySelector("#guide-products")
+  history.replaceState({...history.state, guideList: {
+    url: location.pathname + location.search,
+    loaded: list?.querySelectorAll(".guide-product").length || 0,
+    outLoaded: document.querySelectorAll("#guide-cards-out-list .guide-card").length,
+    open: [...document.querySelectorAll("main details[open][id]")].map(el => el.id),
+  }}, "")
+}
+// While another page is on its way the old one stays on screen, but the
+// history entry is already the new page's: changes then must not be saved.
+let leaving = false
+let saveQueued = false
+const queueSave = () => {
+  if (saveQueued || leaving || !pageIsEntry()) return
+  saveQueued = true
+  requestAnimationFrame(() => { saveQueued = false; if (!leaving && pageIsEntry()) saveList() })
+}
+new MutationObserver(records => {
+  if (records.some(r => r.target.closest?.("#guide-products, #guide-cards-out-list"))) queueSave()
+}).observe(document.documentElement, {childList: true, subtree: true})
+document.addEventListener("toggle", e => e.target.matches?.("main details[id]") && queueSave(), true)
+window.addEventListener("phx:before-navigate", ({detail}) => {
+  returnTo = null
+  if (!detail.pop && !detail.patch && listShown()) {
+    returnTo = location.href
+    saveList()
   }
-  if (!detail.patch) landingScroll = detail.pop ? history.state?.scroll : !location.hash && 0
-  // Set pages share HomeLive, so their path changes are patches. Unlike a
-  // filter change, entering a set must show its title at the top.
-  if (detail.patch && shownPath !== location.pathname && location.pathname.startsWith("/rozszerzenia/")) {
+  leaving = true
+})
+// A new page has joined; a patch keeps the page (and history traversal of a
+// patch reports no loading), so it ends the wait at once.
+window.addEventListener("phx:page-loading-stop", () => { leaving = false })
+window.addEventListener("phx:navigate", ({detail}) => {
+  if (detail.patch) leaving = false
+  if (!detail.pop && !detail.patch && returnTo) {
+    history.replaceState({...history.state, guideReturnTo: returnTo}, "")
+  }
+  returnTo = null
+  // Set pages share HomeLive. Entering or closing a set is a page change,
+  // whereas filters retain scroll; history traversal uses LiveView's scroll.
+  if (!detail.pop && detail.patch && shownPath !== location.pathname) {
     window.scrollTo({top: 0, behavior: "instant"})
   }
-  cameFromList = shownPath === "/" && location.pathname !== "/"
   shownPath = location.pathname
 })
-// Back to the list from a product opened there goes back in history, so the
-// list returns with its search, filters and scroll. LiveView's own link
-// handler listens on window, after this one.
+// This entry's origin survives forward navigation and reloads. Direct links
+// retain the server-rendered fallback (the set for cards, home for products).
 document.addEventListener("click", e => {
-  if (!cameFromList || !e.target.closest?.("#product-back") || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+  if (!history.state?.guideReturnTo || !e.target.closest?.("[data-guide-back]") || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
   e.preventDefault()
   e.stopPropagation()
   history.back()
 })
-window.addEventListener("phx:page-loading-stop", ({detail}) => {
-  if (detail.kind === "redirect") navigatingFrom = null
-})
-document.addEventListener("click", e => nameRowPhoto(e.target.closest?.(".guide-product-link")?.getAttribute("href")), true)
-
-const onDocumentPatch = start => {
-  if (heldPatches) return heldPatches.push(start)
-  const from = navigatingFrom
-  if (!from || !document.startViewTransition || reduceMotion.matches) return start()
-
-  navigatingFrom = null
-  heldPatches = []
-  document.startViewTransition(() => {
-    try {
-      start()
-      // The new page is captured right after this, so it scrolls now for the
-      // photo to land where it shows.
-      if (typeof landingScroll === "number") window.scrollTo(0, landingScroll)
-      landingScroll = null
-      // Back on the list, the photo returns to its product's row.
-      nameRowPhoto(from)
-      while (heldPatches.length) heldPatches.shift()()
-    } finally {
-      heldPatches = null
-    }
-  }).finished.finally(() => nameRowPhoto(null))
-}
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+const connectParams = backpexParams({_csrf_token: csrfToken})
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   // No visitor location here: these params also go into the socket URL, which
   // proxies log. The VisitorLocation hook sends it as an event instead.
-  params: backpexParams({_csrf_token: csrfToken}),
+  params: () => ({...connectParams(), _guide_list: history.state?.guideList}),
   hooks: {...colocatedHooks, VisitorLocation, LiveToast: createLiveToastHook(), ...BackpexHooks},
   dom: {
-    onDocumentPatch,
+    onNodeAdded(el) {
+      const saved = history.state?.guideList
+      if (el.matches?.("details[id]") && saved?.url === location.pathname + location.search) el.open = saved.open.includes(el.id)
+    },
     // A loaded photo stays shown when LiveView patches it (the mark is set in the root layout).
     onBeforeElUpdated(from, to) {
       if (from.hasAttribute("data-loaded") && from.getAttribute("src") === to.getAttribute("src")) to.setAttribute("data-loaded", from.getAttribute("data-loaded"))

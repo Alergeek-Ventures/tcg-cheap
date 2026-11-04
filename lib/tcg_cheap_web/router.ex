@@ -140,22 +140,26 @@ defmodule TcgCheapWeb.Router do
     pipe_through [:browser, :guide_locale]
 
     get "/lang/:locale", LocaleController, :update
-
-    live_session :guide, on_mount: [TcgCheapWeb.Locale] do
-      live "/", HomeLive, :index
-      live "/rozszerzenia/:slug", HomeLive, :expansion
-      live "/produkty/:slug", ProductLive
-    end
   end
 
   pipeline :single_canonical do
     plug TcgCheapWeb.SingleCanonical
   end
 
-  scope "/", TcgCheapWeb do
-    pipe_through [:browser, :guide_locale, :single_canonical]
+  # All public guide pages share history and LiveView navigation. Crossing a
+  # live_session boundary forces a full document reload, including on Safari.
+  live_session :guide, on_mount: [TcgCheapWeb.Locale] do
+    scope "/", TcgCheapWeb do
+      pipe_through [:browser, :guide_locale]
 
-    live_session :singles, on_mount: [TcgCheapWeb.Locale] do
+      live "/", HomeLive, :index
+      live "/rozszerzenia/:slug", HomeLive, :expansion
+      live "/produkty/:slug", ProductLive
+    end
+
+    scope "/", TcgCheapWeb do
+      pipe_through [:browser, :guide_locale, :single_canonical]
+
       live "/rozszerzenia/:slug/karty/:card_slug", SingleLive
     end
   end
