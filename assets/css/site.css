@@ -292,12 +292,10 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 /* chips and the footer link stay small; their tap area reaches 44px tall */
 .guide-world :is(.set-chase-chip, .set-chase-foot a) { position: relative; }
 .guide-world :is(.set-chase-chip, .set-chase-foot a)::after { content: ""; inset: min(0px, (100% - 44px) / 2) 0; position: absolute; }
-.guide-world .set-chase-booster { align-items: center; color: var(--ink); display: flex; flex-wrap: wrap; gap: .5rem 1rem; grid-column: 1 / -1; min-block-size: 3rem; text-decoration: none; }
-.guide-world .set-chase-booster strong { font: 700 1.8rem/1 "Barlow Condensed", sans-serif; text-decoration: underline; text-decoration-thickness: .06em; text-underline-offset: .12em; }
-.guide-world :is(.set-chase-booster, .set-chase-chip-buy):active { background: var(--bench-light); }
+.guide-world .set-chase-chip-buy:active { background: var(--bench-light); }
 .guide-world .set-chase-chip-pull:active { background: color-mix(in oklch, var(--ink) 85%, var(--orange)); }
 @media (hover: hover) and (pointer: fine) {
-  .guide-world .set-chase :is(.set-chase-chip, .set-chase-booster):hover { text-decoration: underline; }
+  .guide-world .set-chase .set-chase-chip:hover { text-decoration: underline; }
 }
 
 /* Wide: the card overlaps the left of the pair and leans into the margin; the
@@ -320,6 +318,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   .guide-world .set-chase-rest { align-self: stretch; grid-column: 3; grid-row: 1 / span 2; grid-template-rows: auto 1fr; }
   .guide-world .set-chase-more { grid-auto-rows: 1fr; grid-template-columns: minmax(0, 1fr); }
   .guide-world .set-chase:not(.set-chase-empty) .set-chase-facts { align-self: stretch; grid-auto-rows: 1fr; grid-column: 3; grid-row: 1 / span 2; grid-template-columns: minmax(0, 1fr); }
+  /* one or two numbers keep their size, level with the bottom of the pair */
+  .guide-world .set-chase:not(.set-chase-empty) .set-chase-facts:not(:has(li:nth-child(3))) { align-self: end; grid-auto-rows: auto; }
   .guide-world .set-chase-empty { grid-template-columns: minmax(0, 1fr); }
   /* beside the pair three numbers fit; the fourth only rounds out the 2×2 grid on narrow screens */
   .guide-world .set-chase:not(.set-chase-empty) .set-chase-fact-extra { display: none; }

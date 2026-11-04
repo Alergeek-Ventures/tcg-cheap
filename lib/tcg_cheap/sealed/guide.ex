@@ -415,7 +415,8 @@ defmodule TcgCheap.Sealed.Guide do
   """
   @spec expansion(integer(), String.t(), DateTime.t()) :: %{
           set: map() | nil,
-          booster: summary() | nil
+          booster: summary() | nil,
+          cardmarket: [%{kind: atom(), price: Decimal.t()}]
         }
   def expansion(id, name, %DateTime{} = now) do
     set = expansion_set(id)
@@ -425,7 +426,8 @@ defmodule TcgCheap.Sealed.Guide do
         query: [
           filter: [kind: :booster, region: :en, cardmarket_expansion_id: id],
           select: @summary_fields
-        ]
+        ],
+        load: [:stored_photo_card_url]
       ]
       |> Sealed.list_products!()
       |> single_booster(name)
@@ -469,8 +471,32 @@ defmodule TcgCheap.Sealed.Guide do
 
     %{
       set: if(set.pull_rates || cards != [], do: set),
-      booster: booster
+      booster: booster,
+      cardmarket: cardmarket_boxes(id, name, now)
     }
+  end
+
+  # The set's own Booster Box and Elite Trainer Box on Cardmarket (trend in
+  # PLN, without delivery), for a banner that has no card prices to show.
+  defp cardmarket_boxes(id, name, now) do
+    rate = eur_pln(DateTime.to_date(now))
+
+    names = %{
+      "#{name} Booster Box" => :booster_box,
+      "#{name} Elite Trainer Box" => :elite_trainer_box
+    }
+
+    [
+      query: [
+        filter: [cardmarket_expansion_id: id, region: :en, name: [in: Map.keys(names)]],
+        select: [:name, :cardmarket_trend]
+      ]
+    ]
+    |> Sealed.list_products!()
+    |> Enum.map(&%{kind: Map.fetch!(names, &1.name), price: to_pln(&1.cardmarket_trend, rate)})
+    # No trend, or no exchange rate yet, leaves a box without a price.
+    |> Enum.filter(& &1.price)
+    |> Enum.sort_by(&(&1.kind != :booster_box))
   end
 
   # Cards under this Cardmarket trend are too cheap for a "deal" to matter.
