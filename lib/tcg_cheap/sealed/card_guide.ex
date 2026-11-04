@@ -120,11 +120,11 @@ defmodule TcgCheap.Sealed.CardGuide do
         else: order
 
     rows =
-      from([c, s, o] in query,
+      from([c, s, o, p] in query,
         order_by: ^order,
         offset: ^offset,
         limit: ^(@page_size + 1),
-        select: %{card: c, set: s, price: o.price}
+        select: %{card: c, set: s, price: o.price, trend: p.trend}
       )
       |> Repo.all()
 
@@ -142,6 +142,8 @@ defmodule TcgCheap.Sealed.CardGuide do
       |> Storage.list_mirrored_remote_images!()
       |> MapSet.new(& &1.id)
 
+    rate = Guide.eur_pln(Date.utc_today())
+
     results =
       Enum.map(page, fn row ->
         name = Map.fetch!(names, row.set.cardmarket_expansion_id)
@@ -152,6 +154,7 @@ defmodule TcgCheap.Sealed.CardGuide do
             do: CardImage.thumbnail_url(source)
 
         Map.merge(row, %{
+          cardmarket_trend_pln: Guide.to_pln(row.trend, rate),
           expansion_name: name,
           path: path(row.card, name, row.set.cardmarket_expansion_id, collisions),
           image: image

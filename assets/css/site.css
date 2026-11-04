@@ -332,9 +332,10 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 
 /* Product page: identity, then the verdict as the first answer. */
 .guide-world .guide-back { align-items: center; color: var(--ink); display: inline-flex; font-size: .875rem; gap: .4rem; margin-bottom: .5rem; min-height: 3rem; }
-.guide-world .product-top { align-items: center; display: grid; gap: 1rem; grid-template-areas: "image identity" "verdict verdict"; grid-template-columns: 6.5rem minmax(0, 1fr); margin-bottom: 2rem; }
+/* Phones: the photo above the name, as wide as the page and a third of the screen high. */
+.guide-world .product-top { align-items: center; display: grid; gap: .75rem; grid-template-areas: "image" "identity" "verdict"; grid-template-columns: minmax(0, 1fr); margin-bottom: 2rem; }
 /* The photo sits on a white card, as shop photos are shot on white. */
-.guide-world .product-hero-image { aspect-ratio: 1; background: #fff; border: 1px solid var(--rule); grid-area: image; width: 100%; }
+.guide-world .product-hero-image { background: #fff; block-size: clamp(11rem, 36svh, 20rem); border: 1px solid var(--rule); grid-area: image; width: 100%; }
 .guide-world .product-hero-image img { box-sizing: border-box; padding: .5rem; }
 .guide-world .product-identity { grid-area: identity; min-width: 0; }
 .guide-world :is(#product-name, #single-name) { font-size: clamp(1.6rem, 6vw, 2.5rem); letter-spacing: -.03em; line-height: 1; overflow-wrap: anywhere; }
@@ -584,13 +585,17 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .verdict-more details[open] { flex-basis: 100%; }
 .guide-world .verdict-more .price-chart { margin-block: .5rem; }
 .guide-world a:focus-visible, .guide-world input:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
-@media (min-width: 30rem) {
-  .guide-world .product-top { grid-template-columns: 8.5rem minmax(0, 1fr); }
+/* A card scan has its own border: no white frame around it on phones. */
+@media (max-width: 55.999rem) {
+  .guide-world .single-image { background: none; border: 0; }
+  .guide-world .single-image img { padding: 0; }
 }
 @media (min-width: 56rem) {
   .guide-world .product-top { align-items: start; column-gap: 2.5rem; grid-template-areas: "image identity" "image verdict"; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto 1fr; row-gap: 1.25rem; }
   /* The photo spans the name and the verdict, centred in that height; size containment keeps a tall photo from stretching the rows. */
-  .guide-world .product-hero-image { align-self: stretch; aspect-ratio: auto; contain: size; min-block-size: 20rem; }
+  .guide-world .product-hero-image { align-self: stretch; block-size: auto; contain: size; min-block-size: 28rem; }
+  /* A photo taller than the verdict leaves room under the panel instead of stretching it. */
+  .guide-world .product-top .verdict-block { align-self: start; }
   .guide-world .product-hero-image img { padding: .75rem; }
   .guide-world .verdict-body { padding: 1.5rem; }
 }
@@ -619,17 +624,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   .guide-world .visitor-location-summary { font-size: .75rem; gap: .25rem; }
   .guide-world .site-wordmark img { block-size: 1.75rem; }
 }
-/* Page transitions (see app.js): a short cross-fade, the header stays put and
-   the product photo moves between the list and its page. */
-@view-transition { navigation: auto; }
-.guide-world .site-header { view-transition-name: site-header; }
-.guide-world .product-hero-image { view-transition-name: product-photo; }
-::view-transition-group(*) { animation-duration: .25s; }
-/* A photo already at hand shows in the new page's capture, not only once marked loaded a frame later. */
-:active-view-transition .guide-world .product-image img[data-progressive] { opacity: 1; transition: none; }
 @media (prefers-reduced-motion: reduce) {
   .guide-world .verdict-method-chevron { transition: none; }
-  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .guide-world .product-image img { transition: none !important; }
 }
 
@@ -653,10 +649,8 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .single-image { overflow: clip; }
 .guide-world .single-image img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: contain; }
 .guide-world .single-image-fallback { inline-size: 45%; block-size: auto; max-block-size: 80%; fill: none; stroke: var(--muted); stroke-width: 1.5; }
-.guide-world .single-card-name { font: 700 1.2rem/1.2 "Barlow Condensed", sans-serif; min-inline-size: 0; overflow-wrap: anywhere; padding-block: .6rem; }
-.guide-world .single-card-pl { display: flex; flex-wrap: wrap; align-items: center; justify-content: end; gap: .35rem; font: 700 1.2rem/1.2 "Barlow Condensed", sans-serif; white-space: nowrap; }
+.guide-world .single-card-name { font: inherit; min-inline-size: 0; overflow-wrap: anywhere; padding-block: .6rem; }
 .guide-world .set-cards-group li:has(.single-card-name) { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; gap: .2rem .5rem; }
-.guide-world .set-cards-group li:has(.single-card-name) .set-cards-price { font-size: .8rem; white-space: nowrap; color: var(--muted); }
 .guide-world .single-card-name:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .guide-world .single-card-name:active { color: var(--orange); }
 @media (hover: hover) and (pointer: fine) {
@@ -684,4 +678,11 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 
 .guide-world .guide-browse-cards { grid-template-columns: minmax(0, 1fr); }
 .guide-world .guide-card-placeholder { inline-size: 55%; aspect-ratio: 63 / 88; background: var(--paper); border: 1px solid color-mix(in oklch, var(--muted) 30%, transparent); }
-.guide-world .set-cards-price img { display: inline-block; vertical-align: middle; }
+
+/* The close action keeps a 48px target without crowding a long set name. */
+.guide-world .set-title { flex-wrap: nowrap; align-items: start; }
+.guide-world .set-title h1 { min-inline-size: 0; overflow-wrap: anywhere; }
+.guide-world .set-close { align-items: center; display: inline-flex; flex: none; justify-content: center; margin-inline-start: auto; min-block-size: 3rem; min-inline-size: 3rem; color: var(--ink); }
+.guide-world .set-close:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.guide-world .set-close:active { color: var(--orange); }
+@media (hover: hover) and (pointer: fine) { .guide-world .set-close:hover { color: var(--orange); } }

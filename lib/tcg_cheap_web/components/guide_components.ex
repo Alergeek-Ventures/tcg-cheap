@@ -17,14 +17,12 @@ defmodule TcgCheapWeb.GuideComponents do
   def single_verdict_status(:unavailable), do: :out_of_stock
   def single_verdict_status(_), do: :insufficient_data
 
-  def single_verdict_label(:pennies), do: gettext("Grosze w obu miejscach")
-  def single_verdict_label(:cheaper), do: gettext("Taniej niż zakup na Cardmarket")
-  def single_verdict_label(:similar), do: gettext("Podobnie jak na Cardmarket (±15%)")
-  def single_verdict_label(:expensive), do: gettext("Drożej niż zakup na Cardmarket")
-  def single_verdict_label(:unknown), do: gettext("Brak porównywalnej ceny referencyjnej")
+  # The same short words as a sealed product's verdict; how the price was
+  # judged is told under "Jak liczymy?".
+  def single_verdict_label(:unknown), do: gettext("Brak ceny Cardmarket")
 
-  def single_verdict_label(:unavailable),
-    do: gettext("Brak ofert bez gradingu na stanie w Polsce")
+  def single_verdict_label(verdict),
+    do: verdict_label(%{status: single_verdict_status(verdict)})
 
   @doc "The public masthead: the wordmark, linking to the buying guide, and optional controls."
   attr :id, :string, default: "site-header"

@@ -23,7 +23,8 @@ defmodule TcgCheapWeb.Locale do
      |> assign(:html_lang, locale)
      |> Phoenix.LiveView.attach_hook(:locale_path, :handle_params, fn _params, uri, socket ->
        uri = URI.parse(uri)
-       path = uri.path <> if(uri.query, do: "?" <> uri.query, else: "")
+       # As the browser's location writes it: an empty query ("/x?") is none.
+       path = uri.path <> if(uri.query in [nil, ""], do: "", else: "?" <> uri.query)
        {:cont, assign(socket, :locale_return_to, path)}
      end)}
   end

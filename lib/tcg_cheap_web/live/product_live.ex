@@ -118,10 +118,11 @@ defmodule TcgCheapWeb.ProductLive do
         <main
           id="product-main"
           class="guide-main product-page"
+          data-guide-url={@locale_return_to}
           data-track-context
           data-track-product-slug={@page.product.slug}
         >
-          <.link id="product-back" navigate={~p"/"} class="guide-back">
+          <.link id="product-back" data-guide-back navigate={~p"/"} class="guide-back">
             <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
           </.link>
 
