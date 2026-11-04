@@ -4,7 +4,7 @@ defmodule TcgCheapWeb.SEO do
   use TcgCheapWeb, :html
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{Catalogue, Kinds}
+  alias TcgCheap.Sealed.{CardImage, Catalogue, Kinds}
   alias TcgCheapWeb.{GuideComponents, Polish, SocialImage}
 
   def home(params) do
@@ -368,24 +368,78 @@ defmodule TcgCheapWeb.SEO do
       social_image_alt: home_image_alt(),
       structured_data: %{
         "@context" => "https://schema.org",
-        "@type" => "BreadcrumbList",
-        "itemListElement" => [
-          %{
-            "@type" => "ListItem",
-            "position" => 1,
-            "name" => gettext("Wszystkie produkty"),
-            "item" => url(~p"/")
-          },
-          %{
-            "@type" => "ListItem",
-            "position" => 2,
-            "name" => page.expansion_name,
-            "item" => expansion_url(card.tcgdex_set.cardmarket_expansion_id, page.expansion_name)
-          },
-          %{"@type" => "ListItem", "position" => 3, "name" => card.name, "item" => canonical}
-        ]
+        "@graph" =>
+          List.wrap(single_product(page, answer, description, canonical)) ++
+            [
+              %{
+                "@type" => "BreadcrumbList",
+                "itemListElement" => [
+                  %{
+                    "@type" => "ListItem",
+                    "position" => 1,
+                    "name" => gettext("Wszystkie produkty"),
+                    "item" => url(~p"/")
+                  },
+                  %{
+                    "@type" => "ListItem",
+                    "position" => 2,
+                    "name" => page.expansion_name,
+                    "item" =>
+                      expansion_url(card.tcgdex_set.cardmarket_expansion_id, page.expansion_name)
+                  },
+                  %{
+                    "@type" => "ListItem",
+                    "position" => 3,
+                    "name" => card.name,
+                    "item" => canonical
+                  }
+                ]
+              }
+            ]
       }
     )
+  end
+
+  # Like a sealed product's: only current, in-stock, ungraded shop offers, and
+  # only the answer's variant, so the price range starts at the "od" price the
+  # description and the page's answer state. Without an answer there's no
+  # Product block, as Google requires offers on one.
+  defp single_product(_page, nil, _description, _canonical), do: nil
+
+  defp single_product(page, answer, description, canonical) do
+    offers =
+      Enum.filter(
+        page.offers,
+        &(&1.in_stock and is_nil(&1.grading) and &1.variant == answer.variant)
+      )
+
+    {low, high} = Enum.min_max_by(offers, & &1.price, Decimal)
+
+    product = %{
+      "@type" => "Product",
+      "name" => "#{page.card.name} #{page.card.number} #{page.expansion_name}",
+      "description" => description,
+      "url" => canonical,
+      "category" => gettext("Karta Pokémon TCG"),
+      "offers" => %{
+        "@type" => "AggregateOffer",
+        "url" => canonical,
+        "priceCurrency" => "PLN",
+        "lowPrice" => Decimal.to_string(low.price, :normal),
+        "highPrice" => Decimal.to_string(high.price, :normal),
+        "offerCount" => length(offers)
+      }
+    }
+
+    # The card picture the page shows, from our own mirror.
+    if page.image,
+      do:
+        Map.put(
+          product,
+          "image",
+          unverified_url(TcgCheapWeb.Endpoint, CardImage.detail_url(page.image))
+        ),
+      else: product
   end
 
   defp metadata(title, description, canonical, opts) do

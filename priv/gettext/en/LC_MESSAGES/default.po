@@ -1505,3 +1505,8 @@ msgstr "e.g. Elite Trainer Box"
 #, elixir-autogen, elixir-format
 msgid "w %{shop}"
 msgstr "at %{shop}"
+
+#: lib/tcg_cheap_web/seo.ex:423
+#, elixir-autogen, elixir-format
+msgid "Karta Pokémon TCG"
+msgstr "Pokémon TCG card"
