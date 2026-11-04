@@ -766,27 +766,17 @@ defmodule TcgCheapWeb.HomeLive do
             count={@card_count}
             cards_href={@cards_href}
           />
+        <% @page.booster -> %>
+          <.set_booster
+            booster={@page.booster}
+            set={@page.set}
+            cardmarket={@page.cardmarket}
+            count={@card_count}
+            cards_href={@cards_href}
+          />
         <% true -> %>
-          <%= if @page.booster || @card_count > 0 do %>
+          <%= if @card_count > 0 do %>
             <div id="set-chase" class="set-chase set-chase-empty">
-              <.link
-                :if={@page.booster}
-                id="set-booster"
-                navigate={~p"/produkty/#{@page.booster.product.slug}"}
-                class="set-chase-booster"
-              >
-                <span>{if(@page.booster.preorder?,
-                  do: gettext("Booster w przedsprzedaży"),
-                  else: gettext("Pojedynczy booster")
-                )}</span>
-                <%= if cheapest = @page.booster.verdict.cheapest do %>
-                  <strong>{Polish.price(cheapest.price)}</strong>
-                  <span>{gettext("w %{shop}", shop: shop_name(cheapest))}</span>
-                <% else %>
-                  <strong>{gettext("brak na stanie")}</strong>
-                <% end %>
-                <.verdict_badge verdict={@page.booster.verdict} />
-              </.link>
               <.chase_foot count={@card_count} priced?={false} href={@cards_href} />
             </div>
           <% else %>
@@ -1005,6 +995,158 @@ defmodule TcgCheapWeb.HomeLive do
     </div>
     """
   end
+
+  attr :booster, :map, required: true
+  attr :set, :map, default: nil
+  attr :cardmarket, :list, default: []
+  attr :count, :integer, required: true
+  attr :cards_href, :string, required: true
+
+  # A set whose cards have no prices yet opens with its single booster: what
+  # shops usually ask against the cheapest offer, then the set in numbers.
+  defp set_booster(assigns) do
+    reference = booster_reference(assigns.booster)
+
+    assigns =
+      assign(assigns,
+        cheapest: assigns.booster.verdict.cheapest,
+        reference: reference,
+        percent: booster_discount(assigns.booster.verdict.cheapest, reference),
+        facts: booster_facts(assigns, reference)
+      )
+
+    ~H"""
+    <div id="set-chase" class="set-chase">
+      <.link
+        class={["set-chase-art", @booster.product.stored_photo_card_url && "set-chase-products"]}
+        navigate={~p"/produkty/#{@booster.product.slug}"}
+        tabindex="-1"
+        aria-hidden="true"
+      >
+        <img
+          :if={@booster.product.stored_photo_card_url}
+          src={@booster.product.stored_photo_card_url}
+          alt=""
+          loading="eager"
+          style="--photo-aspect: 1"
+        />
+        <span :if={!@booster.product.stored_photo_card_url} class="set-chase-img set-chase-noart">
+          <span class="set-chase-noart-note">{gettext("brak zdjęcia")}</span>
+        </span>
+      </.link>
+      <div class="set-chase-head">
+        <p class="set-chase-kicker">
+          {if(@booster.preorder?,
+            do: gettext("Booster w przedsprzedaży"),
+            else: gettext("Pojedynczy booster")
+          )}
+        </p>
+        <h2 class="set-chase-name">
+          <.link id="set-booster" navigate={~p"/produkty/#{@booster.product.slug}"}>
+            {@booster.product.name}
+          </.link>
+        </h2>
+        <p class="set-chase-meta"><.verdict_badge verdict={@booster.verdict} /></p>
+      </div>
+      <div class="set-chase-pair">
+        <p :if={@reference} id="set-chase-pull" class="set-chase-side set-chase-pull">
+          <%= case @reference do %>
+            <% {:shops, typical, shops} -> %>
+              <span class="set-chase-label">{gettext("Zwykle w sklepach")}</span>
+              <strong>{Polish.price(typical)}</strong>
+              <span class="set-chase-detail">{ngettext(
+                "mediana z %{count} sklepu",
+                "mediana z %{count} sklepów",
+                shops
+              )}</span>
+            <% {:cardmarket, price, _shops} -> %>
+              <span class="set-chase-label">{gettext("Na Cardmarket")}</span>
+              <strong>{Polish.price(price)}</strong>
+              <span class="set-chase-detail">{gettext("z wysyłką do Polski")}</span>
+          <% end %>
+        </p>
+        <span :if={@percent} class="set-chase-or">{"−#{@percent}%"}</span>
+        <.link
+          id="set-chase-buy"
+          class="set-chase-side set-chase-buy"
+          navigate={~p"/produkty/#{@booster.product.slug}"}
+        >
+          <%= if @cheapest do %>
+            <span class="set-chase-label">{gettext("Kupisz za")}</span>
+            <strong>{Polish.price(@cheapest.price)}</strong>
+            <span class="set-chase-detail">{gettext("w %{shop}", shop: shop_name(@cheapest))}</span>
+          <% else %>
+            <span class="set-chase-label">{gettext("Kupisz za")}</span>
+            <strong class="set-chase-unknown">{gettext("brak na stanie")}</strong>
+          <% end %>
+        </.link>
+      </div>
+      <ul :if={@facts != []} id="set-booster-facts" class="set-chase-facts">
+        <li
+          :for={{{value, label}, index} <- Enum.with_index(@facts)}
+          class={index == 3 && "set-chase-fact-extra"}
+        >
+          <strong>{value}</strong>
+          <span>{label}</span>
+        </li>
+      </ul>
+      <.chase_foot count={@count} priced?={false} href={@cards_href} />
+    </div>
+    """
+  end
+
+  # The shops' median when enough shops have it, else Cardmarket with delivery.
+  defp booster_reference(%{verdict: %{typical_source: :shops} = verdict}),
+    do: {:shops, verdict.typical, length(verdict.shop_prices)}
+
+  defp booster_reference(%{cardmarket_delivered_pln: %Decimal{} = price}),
+    do: {:cardmarket, price, nil}
+
+  defp booster_reference(_booster), do: nil
+
+  # Three numbers beside the banner, as on every set page, and a fourth for
+  # the 2×2 grid on a phone: the set's own first, then its boxes on Cardmarket.
+  defp booster_facts(
+         %{booster: booster, set: set, cardmarket: cardmarket, count: count},
+         reference
+       ) do
+    # Borrowed odds are another set's, so they say nothing of this one's chase.
+    rarest =
+      set && set.pull_rates && !set.pull_rates.borrowed_from && List.first(set.pull_rates.rates)
+
+    shop_count = match?({:shops, _typical, _shops}, reference) && elem(reference, 2)
+
+    [
+      count > 0 && {Polish.number(count), ngettext("karta w secie", "kart w secie", count)},
+      rarest && {Polish.odds(rarest.rate), rarest.rarity},
+      shop_count && {Polish.number(shop_count), booster_shops_label(booster, shop_count)}
+      | Enum.map(
+          cardmarket,
+          &{Polish.price(&1.price), gettext("%{kind} na Cardmarket", kind: Kinds.label(&1.kind))}
+        )
+    ]
+    |> Enum.filter(& &1)
+    |> Enum.take(4)
+  end
+
+  defp booster_shops_label(%{preorder?: true}, count),
+    do: ngettext("sklep przyjmuje zamówienia", "sklepy przyjmują zamówienia", count)
+
+  defp booster_shops_label(_booster, count),
+    do: ngettext("sklep ma go na stanie", "sklepy mają go na stanie", count)
+
+  # How far the cheapest offer is under the reference, when it is.
+  defp booster_discount(%{price: price}, {_source, reference, _shops}) do
+    if Decimal.lt?(price, reference),
+      do:
+        Decimal.new(1)
+        |> Decimal.sub(Decimal.div(price, reference))
+        |> Decimal.mult(100)
+        |> Decimal.round(0)
+        |> Decimal.to_integer()
+  end
+
+  defp booster_discount(_cheapest, _reference), do: nil
 
   attr :top, :map, required: true
   attr :next, :list, required: true
