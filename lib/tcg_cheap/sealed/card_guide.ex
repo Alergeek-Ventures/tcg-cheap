@@ -384,11 +384,13 @@ defmodule TcgCheap.Sealed.CardGuide do
     end)
   end
 
+  # Only cards whose page has an answer: an in-stock, ungraded current offer,
+  # the same rule as page/3. The rest stay reachable but noindex.
   def sitemap_paths do
     cards =
       from(c in TcgdexCard,
         join: o in subquery(current_query()),
-        on: o.card_id == c.id,
+        on: o.card_id == c.id and o.in_stock and is_nil(o.grading),
         join: s in TcgdexSet,
         on: c.tcgdex_set_id == s.id,
         where: s.language == "en" and not is_nil(s.cardmarket_expansion_id),
