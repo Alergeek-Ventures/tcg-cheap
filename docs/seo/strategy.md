@@ -41,7 +41,8 @@ thin mass-generated pages, keyword stuffing.
 - Card pages: indexed and in the sitemap only while they have an in-stock,
   ungraded offer (PR #99); otherwise `noindex, follow`, still 200 and linked.
 - Structured data mirrors visible content: `Product` + `AggregateOffer` only
-  from current in-stock offers, `BreadcrumbList` on every guide page.
+  from current in-stock offers; `BreadcrumbList` on product, set and card
+  pages; `WebSite` on the home page.
 
 ## Backlog
 
