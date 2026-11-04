@@ -1,7 +1,8 @@
 defmodule TcgCheap.Sealed.Regions do
   @moduledoc """
   The language edition of a product, decided per Cardmarket expansion (every
-  product of an expansion shares it).
+  product of an expansion shares it), except for the few products Cardmarket
+  files with another edition's (`for_product/2`).
 
   Cardmarket publishes no languages. In order:
 
@@ -43,7 +44,30 @@ defmodule TcgCheap.Sealed.Regions do
     6638 => :ja,
     6639 => :ja,
     # Gem Pack badges and the Mid-Autumn gift box
-    5838 => :zh
+    5838 => :zh,
+    # Checked against Polish shop listings ("CHI", "CHINA", "Chiński") or the
+    # "CSM2.1C:" code on 2026-11-04: Eevee Evolution Advanced Gift Boxes, Card
+    # Display Set Gift Boxes (Eevee, Charizard), Pikachu Legendary Celebration,
+    # Golden Energy.
+    6401 => :zh,
+    6356 => :zh,
+    6357 => :zh,
+    6348 => :zh,
+    6548 => :zh
+  }
+
+  # Products of another edition than their expansion's, by Cardmarket product
+  # id, checked against Polish shop listings ("Japoński", "JPN") on 2026-11-04.
+  @known_products %{
+    # Ninja Spinner (M4) Booster and Booster Box, filed with Traditional Chinese
+    # value sets
+    873_179 => :ja,
+    873_182 => :ja,
+    # Pokémon Center Tohoku, Hiroshima and Fukuoka Special Boxes, filed with the
+    # English Scarlet & Violet products
+    830_070 => :ja,
+    830_071 => :ja,
+    830_072 => :ja
   }
 
   @words [
@@ -94,6 +118,11 @@ defmodule TcgCheap.Sealed.Regions do
       {expansion, region}
     end)
   end
+
+  @doc "The region of a product, given its Cardmarket id and its expansion's region."
+  @spec for_product(integer(), atom()) :: atom()
+  def for_product(cardmarket_id, expansion_region),
+    do: Map.get(@known_products, cardmarket_id, expansion_region)
 
   defp from_names(names) do
     case names |> Enum.map(&from_name/1) |> Enum.reject(&is_nil/1) |> Enum.frequencies() do
