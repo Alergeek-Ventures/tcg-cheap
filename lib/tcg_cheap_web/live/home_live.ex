@@ -39,6 +39,7 @@ defmodule TcgCheapWeb.HomeLive do
      |> assign(
        all_expansions?: false,
        set_page: nil,
+       market: nil,
        list_restore: if(connected?(socket), do: get_connect_params(socket)["_guide_list"])
      )
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")
@@ -71,6 +72,7 @@ defmodule TcgCheapWeb.HomeLive do
          socket
          |> assign(
            set_page: expansion && set_page(socket, expansion),
+           market: singles_market(expansion),
            seo: seo,
            page_title: seo.title
          )
@@ -88,7 +90,7 @@ defmodule TcgCheapWeb.HomeLive do
 
         {:noreply,
          socket
-         |> assign(set_page: set_page, seo: seo, page_title: seo.title)
+         |> assign(set_page: set_page, market: nil, seo: seo, page_title: seo.title)
          |> track_changes(previous)}
 
       {:index, nil, _at_set_page?} ->
@@ -96,7 +98,12 @@ defmodule TcgCheapWeb.HomeLive do
 
         {:noreply,
          socket
-         |> assign(set_page: nil, seo: seo, page_title: seo.title)
+         |> assign(
+           set_page: nil,
+           market: Guide.sealed_market(),
+           seo: seo,
+           page_title: seo.title
+         )
          |> track_changes(previous)}
     end
   end
@@ -121,6 +128,10 @@ defmodule TcgCheapWeb.HomeLive do
     if name = Map.get(Guide.expansion_names(), id),
       do: %{id: id, name: name, count: 0, logo_url: nil}
   end
+
+  # Without a chosen expansion, the card list opens with the whole guide's singles.
+  defp singles_market(nil), do: Guide.singles_market()
+  defp singles_market(_expansion), do: nil
 
   # The set's booster, pull rates and cards change only with the expansion.
   defp set_page(%{assigns: %{set_page: %{id: id} = page}}, %{id: id}), do: page
@@ -685,9 +696,131 @@ defmodule TcgCheapWeb.HomeLive do
     """
   end
 
+  attr :filters, :map, required: true
+  attr :market, :map, required: true
+
+  # The list without an expansion opens like a set page: our title and promise
+  # where the set's logo goes, then the whole guide's numbers for singles or
+  # sealed products, so choosing a set swaps the content, not the layout.
+  defp site_intro(assigns) do
+    ~H"""
+    <section id="set-intro" class="guide-intro set-intro" aria-labelledby="guide-title">
+      <div class="set-title site-title">
+        <div class="site-title-text">
+          <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
+          <p id="guide-promise">{gettext("Najtańsze oferty Pokémon TCG w polskich sklepach.")}</p>
+        </div>
+      </div>
+      <%= if @filters.mode == :cards do %>
+        <.set_singles
+          singles={@market}
+          top={@market.top}
+          cards_href="#guide-results-title"
+          all?={true}
+        />
+      <% else %>
+        <.sealed_market market={@market} />
+      <% end %>
+    </section>
+    """
+  end
+
+  attr :market, :map, required: true
+
+  # The sealed banner: the product a Polish shop sells furthest under the
+  # typical shop price today, then the product market in numbers.
+  defp sealed_market(assigns) do
+    ~H"""
+    <div id="set-chase" class={["set-chase", @market.deals == [] && "set-chase-empty"]}>
+      <%= if deal = List.first(@market.deals) do %>
+        <div class="set-chase-art set-chase-products" aria-hidden="true">
+          <.link
+            :for={deal <- photo_stack(@market.deals)}
+            navigate={~p"/produkty/#{deal.product.slug}"}
+            tabindex="-1"
+            style={"--photo-aspect: #{Float.round(deal.photo_aspect, 3)}"}
+          >
+            <img src={deal.product.stored_photo_card_url} alt="" loading="eager" />
+          </.link>
+        </div>
+        <div class="set-chase-head">
+          <p class="set-chase-kicker">{gettext("Najlepsza okazja teraz")}</p>
+          <h2 class="set-chase-name">
+            <.link navigate={~p"/produkty/#{deal.product.slug}"}>{deal.product.name}</.link>
+          </h2>
+          <p class="set-chase-meta">{Kinds.label(deal.product.kind)}</p>
+        </div>
+        <div class="set-chase-pair">
+          <p id="set-chase-pull" class="set-chase-side set-chase-pull">
+            <span class="set-chase-label">{gettext("Zwykle w sklepach")}</span>
+            <strong>{Polish.price(deal.typical)}</strong>
+            <span class="set-chase-detail">{ngettext(
+              "mediana z %{count} sklepu",
+              "mediana z %{count} sklepów",
+              deal.shops
+            )}</span>
+          </p>
+          <span class="set-chase-or">{"−#{deal.percent}%"}</span>
+          <.link
+            id="set-chase-buy"
+            class="set-chase-side set-chase-buy"
+            navigate={~p"/produkty/#{deal.product.slug}"}
+          >
+            <span class="set-chase-label">{gettext("Kupisz za")}</span>
+            <strong>{Polish.price(deal.price)}</strong>
+            <span class="set-chase-detail">{chase_source({:shop, deal.shop})}</span>
+          </.link>
+        </div>
+      <% end %>
+      <ul id="sealed-market-facts" class="set-chase-facts">
+        <li>
+          <strong>{Polish.number(@market.in_stock)}</strong>
+          <span>{ngettext(
+            "produkt na stanie w Polsce",
+            "produkty na stanie w Polsce",
+            @market.in_stock
+          )}</span>
+        </li>
+        <li>
+          <strong>{Polish.number(@market.good)}</strong>
+          <span>{gettext("w dobrej cenie dziś")}</span>
+        </li>
+        <li>
+          <strong>{Polish.number(@market.shops)}</strong>
+          <span>{ngettext(
+            "sklep z produktami na stanie",
+            "sklepy z produktami na stanie",
+            @market.shops
+          )}</span>
+        </li>
+        <li class="set-chase-fact-extra">
+          <strong>{Polish.number(@market.offers)}</strong>
+          <span>{ngettext("oferta na stanie", "oferty na stanie", @market.offers)}</span>
+        </li>
+      </ul>
+      <p class="set-chase-foot">
+        <span>{gettext("Ceny bez dostawy.")}</span>
+        <a href="#guide-results-title">{gettext("Zobacz produkty")}</a>
+      </p>
+    </div>
+    """
+  end
+
+  # The best deals' photos stacked in the card's place: three flat ones
+  # (boxes), else two, scaled together to fit.
+  defp photo_stack(deals) do
+    photos = Enum.filter(deals, &(&1.product.stored_photo_card_url && &1.photo_aspect))
+    three = Enum.take(photos, 3)
+
+    if length(three) == 3 and Enum.sum_by(three, & &1.photo_aspect) <= 2,
+      do: three,
+      else: Enum.take(photos, 2)
+  end
+
   attr :singles, :map, default: nil
   attr :top, :map, default: nil
   attr :cards_href, :string, required: true
+  attr :all?, :boolean, default: false
 
   # The singles banner: the set's best deal in a Polish shop against its
   # Cardmarket trend, then what the set's singles market looks like in numbers.
@@ -699,9 +832,23 @@ defmodule TcgCheapWeb.HomeLive do
           <.chase_art top={deal} hero?={true} />
         </.link>
         <div class="set-chase-head">
-          <p class="set-chase-kicker">{gettext("Najlepsza okazja w secie")}</p>
+          <p class="set-chase-kicker">
+            {if(@all?,
+              do: gettext("Najlepsza okazja teraz"),
+              else: gettext("Najlepsza okazja w secie")
+            )}
+          </p>
           <h2 class="set-chase-name"><.link navigate={deal.path}>{deal.card.name}</.link></h2>
-          <p class="set-chase-meta">{chase_identity(deal.card)}</p>
+          <p class="set-chase-meta">
+            {if(@all?,
+              do:
+                gettext("nr %{number} · %{expansion}",
+                  number: deal.card.number,
+                  expansion: deal.card.expansion_name
+                ),
+              else: chase_identity(deal.card)
+            )}
+          </p>
         </div>
         <div class="set-chase-pair">
           <p id="set-chase-pull" class="set-chase-side set-chase-pull">
@@ -726,13 +873,28 @@ defmodule TcgCheapWeb.HomeLive do
           <strong>{Polish.about(@singles.set_price)}</strong>
           <span>{gettext("cały set, najtaniej")}</span>
         </li>
-        <li :if={@top}>
-          <strong>{Polish.price(@top.price)}</strong>
-          <span>{gettext("najcenniejsza: %{card}", card: @top.card.name)}</span>
-        </li>
-        <li class="set-chase-fact-extra">
+        <li :if={@all?}>
           <strong>{Polish.number(@singles.cheaper)}</strong>
           <span>{gettext("taniej niż na Cardmarket z wysyłką")}</span>
+        </li>
+        <li :if={@top}>
+          <strong>{Polish.price(@top.price)}</strong>
+          <span>{if(@all?,
+            do: gettext("najcenniejsza na stanie: %{card}", card: @top.card.name),
+            else: gettext("najcenniejsza: %{card}", card: @top.card.name)
+          )}</span>
+        </li>
+        <li :if={!@all?} class={@singles.set_price && "set-chase-fact-extra"}>
+          <strong>{Polish.number(@singles.cheaper)}</strong>
+          <span>{gettext("taniej niż na Cardmarket z wysyłką")}</span>
+        </li>
+        <li :if={@all?} class="set-chase-fact-extra">
+          <strong>{Polish.number(@singles.shops)}</strong>
+          <span>{ngettext(
+            "sklep z kartami na stanie",
+            "sklepy z kartami na stanie",
+            @singles.shops
+          )}</span>
         </li>
       </ul>
       <p class="set-chase-foot">
@@ -987,38 +1149,7 @@ defmodule TcgCheapWeb.HomeLive do
             <% @set_page -> %>
               <.set_intro name={@filters.expansion_name} page={@set_page} />
             <% true -> %>
-              <div class="guide-top">
-                <section class="guide-intro" aria-labelledby="guide-title">
-                  <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
-                  <p id="guide-promise">
-                    {gettext("Najtańsze oferty Pokémon TCG w polskich sklepach.")}
-                  </p>
-                </section>
-
-                <nav
-                  id="guide-mode"
-                  class="guide-mode"
-                  aria-label={gettext("Szukaj w katalogu")}
-                >
-                  <.link
-                    id="mode-products"
-                    patch={
-                      list_path(@filters,
-                        mode: :products,
-                        expansion: nil,
-                        expansion_name: nil,
-                        region: :en
-                      )
-                    }
-                    aria-current={if(@filters.mode == :products, do: "true")}
-                  >{gettext("Produkty")}</.link>
-                  <.link
-                    id="mode-cards"
-                    patch={list_path(@filters, mode: :cards, kind: nil, region: nil, expansion: nil)}
-                    aria-current={if(@filters.mode == :cards, do: "true")}
-                  >{gettext("Karty")}</.link>
-                </nav>
-              </div>
+              <.site_intro filters={@filters} market={@market} />
           <% end %>
           <section class="guide-search" aria-labelledby="guide-search-title">
             <h2 id="guide-search-title" class="sr-only">
@@ -1050,13 +1181,27 @@ defmodule TcgCheapWeb.HomeLive do
                   autocomplete="off"
                   phx-debounce="300"
                   placeholder={
-                    cond do
-                      @filters.mode == :cards -> gettext("np. Charizard ex 199")
-                      @set_page -> gettext("np. Elite Trainer Box")
-                      true -> gettext("np. Pitch Black ETB")
-                    end
+                    if(@filters.mode == :cards, do: gettext("np. Pikachu"), else: gettext("np. ETB"))
                   }
                 />
+                <nav id="guide-mode" class="guide-mode" aria-label={gettext("Szukaj w katalogu")}>
+                  <.link
+                    id="mode-products"
+                    patch={
+                      list_path(@filters,
+                        mode: :products,
+                        kind: nil,
+                        region: default_region(@filters.expansion)
+                      )
+                    }
+                    aria-current={if(@filters.mode == :products, do: "true")}
+                  >{gettext("Produkty")}</.link>
+                  <.link
+                    id="mode-cards"
+                    patch={list_path(@filters, mode: :cards, kind: nil, region: nil)}
+                    aria-current={if(@filters.mode == :cards, do: "true")}
+                  >{gettext("Karty")}</.link>
+                </nav>
                 <button
                   type="button"
                   id="guide-filters-toggle"
@@ -1070,7 +1215,7 @@ defmodule TcgCheapWeb.HomeLive do
                     |> JS.toggle_attribute({"aria-expanded", "true", "false"})
                   }
                 >
-                  <.fluent_icon name={:filter} />{gettext("Filtry")}<span :if={
+                  <.fluent_icon name={:filter} /><span class="guide-filters-label">{gettext("Filtry")}</span><span :if={
                     @filters.mode == :products and @active > 0
                   }> ({@active})</span>
                 </button>

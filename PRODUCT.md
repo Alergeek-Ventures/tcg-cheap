@@ -79,7 +79,17 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   a chosen expansion opens with a singles banner in the same style: the set's
   best deal (a Polish shop price furthest under the Cardmarket price with
   delivery), its cards in stock in Poland, the whole set at the lowest prices
-  and its most valuable card.
+  and its most valuable card. Only a normal print's offer is compared with
+  the Cardmarket price, as on the card's page.
+- The lists without an expansion (owner decision, 2026-11-04) open the same
+  way, so choosing a set swaps content, not layout: our title and promise
+  where a set's logo goes, then a banner for the whole guide. Cards show the
+  best deal of any set, cards in stock, how many undercut Cardmarket and the
+  most valuable one in stock; products show the product furthest under its
+  typical shop price with the next deals' photos, products in stock, how
+  many are at a good price and in how many shops. A deal more than 40% under
+  its reference is skipped as a likely wrong match. The Produkty/Karty switch
+  sits in the search bar on every list and keeps a chosen set.
 - Public pages read only the local database; shops and Cardmarket are fetched
   by background jobs.
 - The legacy singles catalogue, valuation and trade pages have been removed.

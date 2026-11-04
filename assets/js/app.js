@@ -140,6 +140,12 @@ const liveSocket = new LiveSocket("/live", Socket, {
   },
 })
 
+// A set banner's card overlaps the sticky search bar only while the page rests
+// at the top; once it scrolls, the card slides under the bar (site.css).
+const markScrolled = () => document.documentElement.toggleAttribute("data-scrolled", window.scrollY > 0)
+window.addEventListener("scroll", markScrolled, {passive: true})
+markScrolled()
+
 // Bring an element to the top once the layout above it has changed, e.g. the
 // results after the filter panel folds away on a phone.
 window.addEventListener("guide:reveal", e => e.target.scrollIntoView({block: "start"}))
