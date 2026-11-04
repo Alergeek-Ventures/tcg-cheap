@@ -18,6 +18,13 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
   `http://localhost:{PORT}/tidewave/mcp` and the buying-guide MCP tools
   (offer matching, barcodes, fetch jobs) at `http://localhost:{PORT}/mcp`.
   Caddy integration is explicitly deferred.
+- Every coding agent gets the same MCP servers. Each harness reads its own
+  file: `.mcp.json` (Claude Code), `.codex/config.toml` (Codex) and
+  `opencode.json` (OpenCode); add, change or remove a server in all three.
+  Local servers run through the pinned `mcp-remote` bridge, which reads
+  `.server.port`, so they reach the current worktree. The remote servers in
+  `opencode.json` (PostHog, Sentry) are still OpenCode-only; do not expect
+  them in Claude Code or Codex.
 
 ## Project conventions
 

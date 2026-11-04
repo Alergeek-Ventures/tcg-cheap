@@ -1,8 +1,20 @@
 {
   "mcpServers": {
+    "tidewave": {
+      "type": "stdio",
+      "command": "sh",
+      "args": [
+        "-c",
+        "exec npx -y mcp-remote@0.16.0 \"http://localhost:$(cat .server.port 2>/dev/null || echo 4004)/tidewave/mcp\""
+      ]
+    },
     "buying-guide": {
-      "type": "http",
-      "url": "http://localhost:${PORT:-4004}/mcp"
+      "type": "stdio",
+      "command": "sh",
+      "args": [
+        "-c",
+        "exec npx -y mcp-remote@0.16.0 \"http://localhost:$(cat .server.port 2>/dev/null || echo 4004)/mcp\""
+      ]
     }
   }
 }
