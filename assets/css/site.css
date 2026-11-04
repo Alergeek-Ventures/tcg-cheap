@@ -207,16 +207,124 @@
 /* In-page links and the results jump land below the sticky masthead (and search bar). */
 html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1px); }
 .guide-world #guide-results-title { scroll-margin-block-start: calc(var(--guide-search-gap) + var(--guide-search-size)); }
-/* A set page: the set's logo and name, its facts at a glance, then its
-   products, pull rates and cards. */
-.guide-world .set-title { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
-.guide-world .set-logo { block-size: 4rem; inline-size: auto; max-inline-size: min(12rem, 45vw); object-fit: contain; }
-.guide-world .set-facts { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); list-style: none; margin: 1.25rem 0 0; padding: 0; }
-.guide-world .set-fact { align-content: start; background: var(--paper); color: var(--ink); display: grid; gap: .35rem; min-block-size: 100%; padding: .85rem 1rem; text-decoration: none; }
-@media (hover: hover) and (pointer: fine) { .guide-world .set-fact:hover strong { color: var(--orange); } }
-.guide-world .set-fact-label { color: var(--muted); font-size: .875rem; line-height: 1.3; }
-.guide-world .set-fact strong { font: 700 1.75rem/1 "Barlow Condensed", sans-serif; letter-spacing: -.01em; }
-.guide-world .set-fact-detail { font-size: .875rem; line-height: 1.35; overflow-wrap: anywhere; }
+/* A set page: the set's logo (or its name without one) centred above the
+   most valuable card, then its products, pull rates and cards. */
+.guide-world #set-intro { container: set-intro / inline-size; }
+.guide-world .set-title { align-items: center; display: grid; gap: .5rem; grid-template-columns: 3rem minmax(0, 1fr) 3rem; padding-block: clamp(.75rem, .5rem + 1cqi, 1.5rem); }
+.guide-world .set-title h1 { font-size: clamp(2rem, 1.4rem + 2.4vw, 2.75rem); grid-column: 2; justify-self: center; line-height: 1; min-inline-size: 0; overflow-wrap: break-word; text-align: center; }
+.guide-world .set-title .set-close { grid-column: 3; }
+.guide-world .set-logo { block-size: clamp(4rem, 3rem + 4cqi, 5.5rem); display: block; inline-size: auto; max-inline-size: 100%; object-fit: contain; }
+
+/* Set page top: the most valuable card, pulled from packs or bought. */
+.guide-world .set-chase { align-items: center; display: grid; gap: 1.75rem 1.25rem; grid-template-columns: min(36%, 10rem) minmax(0, 1fr); margin-block-start: 1rem; }
+.guide-world .set-chase-kicker { color: var(--muted); font: 400 .8rem/1.35 "Azeret Mono", ui-monospace, monospace; margin: 0; text-wrap: pretty; }
+.guide-world .set-chase-art { display: block; rotate: -2deg; }
+.guide-world .set-chase-img { aspect-ratio: 63 / 88; block-size: auto; border-radius: 4.5% / 3.3%; box-shadow: .35rem .35rem 0 var(--ink); display: block; inline-size: 100%; object-fit: cover; }
+.guide-world .set-chase-noart { align-content: center; background: repeating-linear-gradient(-45deg, var(--bench) 0 .5rem, var(--paper) 0 1rem); border: 2px solid var(--ink); display: grid; gap: .25rem; justify-items: center; padding: .25rem; text-align: center; }
+.guide-world .set-chase-noart-number { font: 700 clamp(1.25rem, 8cqi, 2.75rem)/1 "Barlow Condensed", sans-serif; }
+.guide-world .set-chase-noart-note { color: var(--muted); font: 400 .7rem/1.2 "Azeret Mono", ui-monospace, monospace; }
+.guide-world .set-chase-head { display: grid; gap: .5rem; min-inline-size: 0; }
+.guide-world .set-chase-name { font-size: clamp(1.9rem, 1.3rem + 2.5vw, 3rem); line-height: .95; overflow-wrap: break-word; }
+.guide-world .set-chase-name a { color: inherit; text-decoration: none; }
+.guide-world .set-chase-meta { font-size: .8rem; margin: 0; }
+
+.guide-world .set-chase-pair { display: grid; gap: .5rem; grid-column: 1 / -1; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); position: relative; }
+.guide-world .set-chase-side { align-content: start; color: var(--ink); display: grid; gap: .3rem; grid-row: span 3; grid-template-rows: subgrid; margin: 0; min-inline-size: 0; padding: 1rem; text-decoration: none; }
+.guide-world .set-chase-side strong { font: 700 clamp(1.6rem, 1.1rem + 2vw, 2.6rem)/1 "Barlow Condensed", sans-serif; overflow-wrap: break-word; }
+.guide-world .set-chase-label { color: var(--muted); font-size: .8rem; line-height: 1.3; }
+.guide-world .set-chase-detail { font-size: .8rem; line-height: 1.35; text-wrap: balance; }
+.guide-world .set-chase-side strong.set-chase-unknown { font-size: clamp(1.15rem, 1rem + .6vw, 1.4rem); line-height: 1.1; }
+.guide-world .set-chase-buy { background: var(--paper); }
+.guide-world .set-chase-pull { background: var(--ink); color: var(--bench-light); }
+.guide-world .set-chase-pull .set-chase-label { color: color-mix(in oklch, var(--bench-light) 72%, transparent); }
+/* "albo" sits on the seam between the two answers: across it side by side, along it stacked */
+.guide-world .set-chase-or { background: var(--rise); border-radius: 999px; color: var(--bench-light); font: 700 .95rem/1 "Barlow Condensed", sans-serif; inset-block-start: 0; inset-inline-start: 50%; padding: .3rem .6rem .35rem; position: absolute; translate: -50% -50%; }
+/* the pair stacks below two 9.5rem columns and their gap; "albo" then sits on the horizontal seam */
+.guide-world .set-chase-pair { container: chase-pair / inline-size; }
+@container chase-pair (inline-size < 19.5rem) {
+  .guide-world .set-chase-or { inset-block-start: 50%; inset-inline: auto 1rem; translate: 0 -50%; }
+}
+
+.guide-world .set-chase-rest { display: grid; gap: .5rem; grid-column: 1 / -1; }
+/* the singles banner's numbers: a row under the pair, a column beside it when wide */
+.guide-world .set-chase-facts { display: grid; gap: .5rem; grid-column: 1 / -1; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); list-style: none; margin: 0; padding: 0; }
+.guide-world .set-chase-facts li { align-content: start; background: var(--paper); display: grid; gap: .25rem; padding: .75rem 1rem; }
+.guide-world .set-chase-facts strong { font: 700 clamp(1.4rem, 1.1rem + 1vw, 1.9rem)/1 "Barlow Condensed", sans-serif; }
+.guide-world .set-chase-facts span { color: var(--muted); font-size: .8rem; line-height: 1.3; overflow-wrap: break-word; }
+/* phones keep only the most valuable card; the rest are in the card list */
+@container set-intro (inline-size < 36rem) {
+  .guide-world .set-chase-rest { display: none; }
+}
+.guide-world .set-chase-more { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); list-style: none; margin: 0; padding: 0; }
+.guide-world .set-chase-more > li { display: grid; }
+.guide-world .set-chase-mini { align-items: center; background: var(--paper); color: var(--ink); column-gap: .75rem; display: grid; grid-template-columns: 3rem minmax(0, 1fr); padding: .5rem .75rem .5rem .5rem; row-gap: .15rem; text-decoration: none; }
+.guide-world .set-chase-mini-thumb { display: block; grid-row: span 3; }
+.guide-world .set-chase-mini-art { aspect-ratio: 63 / 88; block-size: auto; border-radius: 4.5% / 3.3%; display: block; inline-size: 100%; object-fit: cover; }
+.guide-world .set-chase-mini .set-chase-noart { border-width: 1px; }
+.guide-world .set-chase-mini .set-chase-noart-number { font-size: .95rem; }
+.guide-world .set-chase-mini-name { color: inherit; font: 700 1.1rem/1.1 "Barlow Condensed", sans-serif; overflow-wrap: break-word; text-decoration: none; }
+.guide-world .set-chase-mini-meta { color: var(--muted); font-size: .75rem; line-height: 1.3; }
+.guide-world .set-chase-chips { display: flex; flex-wrap: wrap; gap: .25rem; margin-block-start: .2rem; }
+.guide-world .set-chase-chip { color: inherit; font: 700 1rem/1 "Barlow Condensed", sans-serif; padding: .25rem .45rem .3rem; text-decoration: none; white-space: nowrap; }
+.guide-world .set-chase-chip-buy { box-shadow: inset 0 0 0 1px var(--rule); }
+.guide-world .set-chase-chip-pull { background: var(--ink); color: var(--bench-light); }
+.guide-world .set-chase-chip-unknown { background: none; box-shadow: inset 0 0 0 1px var(--rule); color: var(--muted); font-weight: 400; }
+
+.guide-world .set-chase-foot { align-items: baseline; color: var(--muted); display: flex; flex-wrap: wrap; font-size: .8rem; gap: .25rem 1rem; grid-column: 1 / -1; justify-content: flex-end; line-height: 1.4; margin: 0; }
+.guide-world .set-chase-foot a { color: var(--ink); font-weight: 600; min-block-size: 1.5rem; text-underline-offset: .2em; }
+
+.guide-world .set-chase :is(a):focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.guide-world .set-chase-buy:active { background: var(--bench-light); }
+.guide-world .set-chase-pull:active { background: color-mix(in oklch, var(--ink) 85%, var(--orange)); }
+@media (hover: hover) and (pointer: fine) {
+  .guide-world .set-chase-name a:hover, .guide-world .set-chase-mini:has(.set-chase-mini-thumb:hover, .set-chase-mini-name:hover) .set-chase-mini-name { text-decoration: underline; }
+  .guide-world a.set-chase-side:hover strong { text-decoration: underline; text-decoration-thickness: .06em; text-underline-offset: .12em; }
+}
+
+/* chips and the footer link stay small; their tap area reaches 44px tall */
+.guide-world :is(.set-chase-chip, .set-chase-foot a) { position: relative; }
+.guide-world :is(.set-chase-chip, .set-chase-foot a)::after { content: ""; inset: min(0px, (100% - 44px) / 2) 0; position: absolute; }
+.guide-world .set-chase-booster { align-items: center; color: var(--ink); display: flex; flex-wrap: wrap; gap: .5rem 1rem; grid-column: 1 / -1; min-block-size: 3rem; text-decoration: none; }
+.guide-world .set-chase-booster strong { font: 700 1.8rem/1 "Barlow Condensed", sans-serif; text-decoration: underline; text-decoration-thickness: .06em; text-underline-offset: .12em; }
+.guide-world :is(.set-chase-booster, .set-chase-chip-buy):active { background: var(--bench-light); }
+.guide-world .set-chase-chip-pull:active { background: color-mix(in oklch, var(--ink) 85%, var(--orange)); }
+@media (hover: hover) and (pointer: fine) {
+  .guide-world .set-chase :is(.set-chase-chip, .set-chase-booster):hover { text-decoration: underline; }
+}
+
+/* Wide: the card overlaps the left of the pair and leans into the margin; the
+   pair and the right column end on the same line. */
+@container set-intro (inline-size >= 52rem) {
+  .guide-world .set-chase { --chase-art: 15.5rem; align-items: start; grid-template-columns: 14rem minmax(0, 1fr) 22rem; grid-template-rows: auto auto; row-gap: 1rem; }
+  /* the card spans down to the footnote's row and its bottom corner just reaches into the search bar */
+  .guide-world .set-chase-art { align-self: end; grid-column: 1; grid-row: 1 / span 3; inline-size: var(--chase-art); margin-block-end: -1.6rem; position: relative; translate: -1.5rem 0; z-index: 1; }
+  .guide-world .set-chase:not(.set-chase-empty) > .set-chase-foot { grid-column: 2 / -1; grid-row: 3; }
+  /* the singles banner is lower (three numbers beside it), so its card is smaller */
+  .guide-world .set-chase:has(.set-chase-facts) { --chase-art: 14rem; }
+  .guide-world .set-chase-head { align-self: end; grid-column: 2; grid-row: 1; }
+  .guide-world .set-chase-pair { align-self: end; grid-column: 1 / span 2; grid-row: 2; grid-template-columns: calc(var(--chase-art) - 1.5rem) minmax(0, 1fr) minmax(0, 1fr); }
+  /* the dark block runs on under the card; the part beside it is as wide as the light one */
+  .guide-world .set-chase-pull { grid-column: 1 / span 2; }
+  .guide-world .set-chase-buy { grid-column: 3; }
+  /* the dark block's text starts in line with the card's name */
+  .guide-world .set-chase-pull { padding-inline-start: calc(14rem + 1.25rem); }
+  .guide-world .set-chase-or { grid-column: 3; grid-row: 1; inset-inline-start: 0; translate: calc(-50% - .25rem) -50%; }
+  .guide-world .set-chase-rest { align-self: stretch; grid-column: 3; grid-row: 1 / span 2; grid-template-rows: auto 1fr; }
+  .guide-world .set-chase-more { grid-auto-rows: 1fr; grid-template-columns: minmax(0, 1fr); }
+  .guide-world .set-chase:not(.set-chase-empty) .set-chase-facts { align-self: stretch; grid-auto-rows: 1fr; grid-column: 3; grid-row: 1 / span 2; grid-template-columns: minmax(0, 1fr); }
+  .guide-world .set-chase-empty { grid-template-columns: minmax(0, 1fr); }
+  /* beside the pair three numbers fit; the fourth only rounds out the 2×2 grid on narrow screens */
+  .guide-world .set-chase:not(.set-chase-empty) .set-chase-fact-extra { display: none; }
+}
+/* At rest the card also overlaps the top of the sticky search bar; from the
+   first scrolled pixel it goes back under it (and under the header). */
+@supports (animation-timeline: scroll()) {
+  @container set-intro (inline-size >= 52rem) {
+    .guide-world .set-chase-art { animation: set-chase-under linear both; animation-range: 0 1px; animation-timeline: scroll(root); }
+  }
+}
+@keyframes set-chase-under { from { z-index: 3; } to { z-index: 1; } }
+
 .guide-world .guide-set { margin-block-start: 3rem; }
 .guide-world .guide-set .product-section { scroll-margin-block-start: calc(var(--guide-search-gap) * 2 + var(--guide-search-size)); }
 .guide-world .guide-filters-toggle[aria-expanded="true"] { background: var(--ink); color: var(--bench-light); }
@@ -676,13 +784,11 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .guide-card .guide-product-price { grid-column: auto; }
 .guide-world .guide-card .guide-product-price strong { font-size: clamp(1.1rem, 2vw, 1.5rem); }
 
-.guide-world .guide-browse-cards { grid-template-columns: minmax(0, 1fr); }
 .guide-world .guide-card-placeholder { inline-size: 55%; aspect-ratio: 63 / 88; background: var(--paper); border: 1px solid color-mix(in oklch, var(--muted) 30%, transparent); }
 
 /* The close action keeps a 48px target without crowding a long set name. */
-.guide-world .set-title { flex-wrap: nowrap; align-items: start; }
-.guide-world .set-title h1 { min-inline-size: 0; overflow-wrap: anywhere; }
 .guide-world .set-close { align-items: center; display: inline-flex; flex: none; justify-content: center; margin-inline-start: auto; min-block-size: 3rem; min-inline-size: 3rem; color: var(--ink); }
 .guide-world .set-close:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .guide-world .set-close:active { color: var(--orange); }
 @media (hover: hover) and (pointer: fine) { .guide-world .set-close:hover { color: var(--orange); } }
+

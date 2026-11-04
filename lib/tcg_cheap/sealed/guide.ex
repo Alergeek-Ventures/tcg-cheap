@@ -165,6 +165,9 @@ defmodule TcgCheap.Sealed.Guide do
     expansions ++ chosen_elsewhere(filters.expansion, expansions, logos)
   end
 
+  @doc "The expansions' mirrored logos by Cardmarket expansion id."
+  def expansion_logos, do: logos()
+
   # Logos change only with a TCGdex sync, a logo set for an expansion or a
   # newly mirrored image, so every list render shares one map for a while.
   defp logos do
@@ -406,19 +409,130 @@ defmodule TcgCheap.Sealed.Guide do
 
     cards = Enum.flat_map(set.rarities, & &1.cards)
 
-    priced =
-      for %{cardmarket_price: %{trend: %Decimal{} = trend}} = card <- cards, do: {card, trend}
+    top_cards =
+      cards
+      |> Enum.filter(&CardGuide.price/1)
+      |> Enum.sort_by(&CardGuide.price/1, {:desc, Decimal})
+      |> Enum.take(4)
+
+    deal = best_deal(cards)
+    images = CardGuide.images(Enum.uniq_by(List.wrap(deal) ++ top_cards, & &1.id))
+
+    top_cards =
+      Enum.map(top_cards, fn card ->
+        packs = card_packs(card, set)
+        cheapest = booster && !booster.preorder? && booster.verdict.cheapest
+
+        %{
+          card: card,
+          price: CardGuide.price(card),
+          source: CardGuide.price_source(card),
+          image: Map.fetch!(images, card.id),
+          path: card.public_path,
+          packs: packs,
+          cost: if(packs && cheapest, do: Decimal.mult(cheapest.price, packs))
+        }
+      end)
 
     set =
       Map.merge(set, %{
         card_count: length(cards),
-        top_card: Enum.max_by(priced, &elem(&1, 1), Decimal, fn -> nil end)
+        top_cards: top_cards,
+        singles: singles(cards, deal, images)
       })
 
     %{
       set: if(set.pull_rates || cards != [], do: set),
       booster: booster
     }
+  end
+
+  # Cards under this Cardmarket trend are too cheap for a "deal" to matter.
+  @deal_floor Decimal.new(20)
+
+  # The singles banner: the card a Polish shop sells furthest under its
+  # Cardmarket price with delivery to Poland (what a singles verdict
+  # compares), how many of the set's cards are in stock in Poland and what the
+  # whole set costs at the lower of the two prices.
+  defp singles(cards, deal, images) do
+    priced = Enum.map(cards, &CardGuide.price/1) |> Enum.reject(&is_nil/1)
+
+    %{
+      deal:
+        deal &&
+          %{
+            card: deal,
+            price: deal.polish_price,
+            shop: deal.polish_shop,
+            trend: deal.cardmarket_delivered_pln,
+            percent: discount(deal),
+            image: Map.fetch!(images, deal.id),
+            path: deal.public_path
+          },
+      in_stock: Enum.count(cards, & &1.polish_price),
+      cheaper:
+        Enum.count(cards, fn card ->
+          card.polish_price && card.cardmarket_delivered_pln &&
+            Decimal.lt?(card.polish_price, card.cardmarket_delivered_pln)
+        end),
+      total: length(cards),
+      # A sum missing some cards' prices would understate the set.
+      set_price:
+        if(priced != [] and length(priced) == length(cards),
+          do: Enum.reduce(priced, &Decimal.add/2)
+        )
+    }
+  end
+
+  defp best_deal(cards) do
+    cards
+    |> Enum.filter(fn card ->
+      card.polish_price && card.cardmarket_delivered_pln &&
+        card.cardmarket_trend_pln && Decimal.gte?(card.cardmarket_trend_pln, @deal_floor) &&
+        Decimal.lt?(card.polish_price, card.cardmarket_delivered_pln)
+    end)
+    |> Enum.min_by(&Decimal.div(&1.polish_price, &1.cardmarket_delivered_pln), Decimal, fn ->
+      nil
+    end)
+  end
+
+  defp discount(card) do
+    Decimal.new(1)
+    |> Decimal.sub(Decimal.div(card.polish_price, card.cardmarket_delivered_pln))
+    |> Decimal.mult(100)
+    |> Decimal.round(0)
+    |> Decimal.to_integer()
+  end
+
+  @doc "Average packs for this printing, using only the set's own observed rates."
+  def card_packs(%{rarity: nil}, _set), do: nil
+  def card_packs(_card, %{pull_rates: nil}), do: nil
+
+  def card_packs(_card, %{pull_rates: %{borrowed_from: borrowed}}) when not is_nil(borrowed),
+    do: nil
+
+  def card_packs(card, set) do
+    # Rates name rarities and cards ignoring case, as `set_pull_rates` checks
+    # them; each rate already points at its rarity's group in the card list.
+    rarity = card.rarity |> Rarities.label() |> String.downcase()
+    group = Enum.find_index(set.rarities, &(&1.rarity && String.downcase(&1.rarity) == rarity))
+    name = String.downcase(card.name)
+    rows = if group, do: Enum.filter(set.pull_rates.rates, &(&1.group == group)), else: []
+
+    row =
+      Enum.find(rows, &(&1.rate.card && String.downcase(&1.rate.card) == name)) ||
+        Enum.find(rows, &is_nil(&1.rate.card))
+
+    if row do
+      count = if row.rate.card, do: 1, else: length(Enum.at(set.rarities, group).cards)
+
+      Decimal.new(100)
+      |> Decimal.div(Rate.percent(row.rate))
+      |> Decimal.mult(count)
+      |> Decimal.round(0)
+      |> Decimal.to_integer()
+      |> max(1)
+    end
   end
 
   # "<set> Booster", else the set's only full-size booster ("Trick or Trade

@@ -41,6 +41,30 @@ defmodule TcgCheapWeb.Polish do
   def rough_zloty(%Decimal{} = value),
     do: if(Decimal.lt?(value, 10), do: price(value), else: zloty(value))
 
+  @doc "A rounded estimate of a pack-opening cost."
+  def about(%Decimal{} = value) do
+    cond do
+      Decimal.gte?(value, 1_000_000) ->
+        gettext("ok. %{amount} mln zł",
+          amount: value |> Decimal.div(1_000_000) |> Decimal.round(1) |> decimal()
+        )
+
+      Decimal.gte?(value, 10_000) ->
+        gettext("ok. %{amount} tys. zł",
+          amount: value |> Decimal.div(1_000) |> Decimal.round(0) |> decimal()
+        )
+
+      true ->
+        step = if Decimal.gte?(value, 1_000), do: 100, else: 10
+        amount = value |> Decimal.div(step) |> Decimal.round(0) |> Decimal.mult(step) |> zloty()
+        gettext("ok. %{amount}", amount: amount)
+    end
+  end
+
+  @doc "A localized number of packs."
+  def packs(count),
+    do: ngettext("%{packs} paczka", "%{packs} paczki", count, packs: number(count))
+
   @doc ~S'Formats a whole number with Polish digit grouping: "1 299".'
   @spec number(integer()) :: String.t()
   def number(value) when is_integer(value), do: group(Integer.to_string(value))

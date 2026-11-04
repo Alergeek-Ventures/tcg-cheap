@@ -210,7 +210,10 @@ defmodule TcgCheap.Sealed.CardGuide do
         where: s.language == "en" and not is_nil(s.cardmarket_expansion_id)
       )
 
-    query = stock_filter(query, Map.get(filters, :stock))
+    query =
+      query
+      |> stock_filter(Map.get(filters, :stock))
+      |> expansion_filter(Map.get(filters, :expansion))
 
     # Empty discovery lists only cards that can be bought now.
     query = if filters.query == "", do: where(query, [_, _, o], not is_nil(o.price)), else: query
@@ -233,9 +236,42 @@ defmodule TcgCheap.Sealed.CardGuide do
     end)
   end
 
+  @doc """
+  The expansions of the cards a search finds, for the list's expansion filter:
+  newest first, each with its logo and the number of its cards in stock; the
+  chosen one stays listed when the search leaves none of it.
+  """
+  def expansion_facets(filters) do
+    logos = Guide.expansion_logos()
+    # Named per expansion as the product list names it, not after one of its
+    # TCGdex sets ("Brilliant Stars", not "Brilliant Stars Trainer Gallery").
+    names = Guide.expansion_names()
+
+    counts =
+      from([c, s] in browse_query(%{filters | expansion: nil} |> Map.put(:stock, :in)),
+        group_by: s.cardmarket_expansion_id,
+        order_by: [desc_nulls_last: max(s.released_on)],
+        select: %{id: s.cardmarket_expansion_id, count: count(c.id, :distinct)}
+      )
+      |> Repo.all()
+
+    chosen =
+      if filters.expansion && !Enum.any?(counts, &(&1.id == filters.expansion)),
+        do: [%{id: filters.expansion, count: 0}],
+        else: []
+
+    for expansion <- counts ++ chosen,
+        name = Map.get(names, expansion.id),
+        do:
+          Map.merge(expansion, %{name: name, region: :en, logo_url: Map.get(logos, expansion.id)})
+  end
+
   defp stock_filter(query, :in), do: where(query, [_, _, o], not is_nil(o.price))
   defp stock_filter(query, :out), do: where(query, [_, _, o], is_nil(o.price))
   defp stock_filter(query, nil), do: query
+
+  defp expansion_filter(query, nil), do: query
+  defp expansion_filter(query, id), do: where(query, [_, s], s.cardmarket_expansion_id == ^id)
 
   # Shipping dominates when trend is below the shipping component of the
   # backend reference. CardReference alone owns shipping thresholds/amounts.
@@ -373,14 +409,54 @@ defmodule TcgCheap.Sealed.CardGuide do
 
       card
       |> Map.put(:polish_price, if(rows != [], do: hd(rows).price))
+      |> Map.put(:polish_shop, if(rows != [], do: hd(rows).shop))
+      |> Map.put(:image_source, CardImage.single_source_url(set, card.number))
       |> Map.put(
         :cardmarket_trend_pln,
         Guide.to_pln(card.cardmarket_price && card.cardmarket_price.trend, rate)
       )
       |> Map.put(
+        :cardmarket_delivered_pln,
+        CardReference.pln(card.cardmarket_price, :normal, rate)
+      )
+      |> Map.put(
         :public_path,
         if(name, do: path(card, name, set.cardmarket_expansion_id, collisions))
       )
+    end)
+  end
+
+  @doc "The lower available card price, excluding delivery."
+  def price(card) do
+    case {Map.get(card, :polish_price), Map.get(card, :cardmarket_trend_pln)} do
+      {nil, trend} -> trend
+      {polish, nil} -> polish
+      {polish, trend} -> Decimal.min(polish, trend)
+    end
+  end
+
+  @doc "The source of the chosen price; Polish shops win ties."
+  def price_source(card) do
+    polish = Map.get(card, :polish_price)
+    trend = Map.get(card, :cardmarket_trend_pln)
+
+    if polish && (is_nil(trend) || Decimal.lte?(polish, trend)),
+      do: {:shop, card.polish_shop},
+      else: :cardmarket
+  end
+
+  @doc "The mirrored source image of each card by id (nil when not mirrored yet), in one query."
+  def images(cards) do
+    mirrored =
+      cards
+      |> Enum.map(& &1.image_source)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.map(&CardImage.source_hash/1)
+      |> Storage.list_mirrored_remote_images!()
+      |> MapSet.new(& &1.id)
+
+    Map.new(cards, fn %{image_source: source} = card ->
+      {card.id, if(source && MapSet.member?(mirrored, CardImage.source_hash(source)), do: source)}
     end)
   end
 
