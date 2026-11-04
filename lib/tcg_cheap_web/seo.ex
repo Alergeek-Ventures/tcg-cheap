@@ -362,6 +362,8 @@ defmodule TcgCheapWeb.SEO do
       ),
       description,
       canonical,
+      # Matches CardGuide.sitemap_paths/0: a card without an offer leaves the index until one returns.
+      robots: if(answer, do: "index, follow", else: "noindex, follow"),
       social_image: home_image(),
       social_image_alt: home_image_alt(),
       structured_data: %{
