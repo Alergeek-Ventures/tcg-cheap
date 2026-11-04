@@ -169,9 +169,22 @@ defmodule TcgCheap.Sealed.Guide do
   @doc "The expansions' mirrored logos by Cardmarket expansion id."
   def expansion_logos, do: logos()
 
-  # Logos change only with a TCGdex sync, a logo set for an expansion or a
-  # newly mirrored image, so every list render shares one map for a while.
-  defp logos, do: cached(:logos, &read_logos/0)
+  # Cache sources, not object keys: replacing a mirrored image deletes the
+  # previous objects, so each render resolves the currently stored variants.
+  defp logos do
+    sources = cached(:logo_sources, &read_logo_sources/0)
+
+    mirrored =
+      sources
+      |> Enum.map(&CardImage.source_hash(elem(&1, 1)))
+      |> TcgCheap.Storage.mirrored_image_urls(:detail)
+
+    # TCGdex last, so its mirrored logo replaces a set one.
+    for {id, source} <- sources,
+        url = Map.get(mirrored, CardImage.source_hash(source)),
+        into: %{},
+        do: {id, url}
+  end
 
   # Shared by every render for `@cached_for_ms`; the reader that finds it
   # stale reads it again.
@@ -192,7 +205,7 @@ defmodule TcgCheap.Sealed.Guide do
   # Per expansion, the mirrored English TCGdex logo, else the mirrored logo
   # set for it (`TcgCheap.Sealed.ExpansionLogo`, for any edition). Only
   # mirrored images are shown, so a tile never shows a broken image.
-  defp read_logos do
+  defp read_logo_sources do
     tcgdex =
       for {id, %{language: "en", logo_url: "" <> url}} <-
             TcgdexSet.by_expansion(
@@ -201,29 +214,32 @@ defmodule TcgCheap.Sealed.Guide do
               )
             ),
           source = CardImage.logo_source_url(url),
-          do: {id, source, CardImage.logo_url(url)}
+          do: {id, source}
 
     set =
       for logo <- Sealed.list_expansion_logos!(),
           source = CardImage.expansion_logo_source_url(logo.url),
-          do: {logo.cardmarket_expansion_id, source, CardImage.expansion_logo_url(logo.url)}
+          do: {logo.cardmarket_expansion_id, source}
 
-    mirrored =
-      (tcgdex ++ set)
-      |> Enum.map(&CardImage.source_hash(elem(&1, 1)))
-      |> TcgCheap.Storage.list_mirrored_remote_images!()
-      |> MapSet.new(& &1.id)
-
-    # TCGdex last, so its logo replaces a set one.
-    for {id, source, url} <- set ++ tcgdex,
-        MapSet.member?(mirrored, CardImage.source_hash(source)),
-        into: %{},
-        do: {id, url}
+    set ++ tcgdex
   end
 
   # The chosen expansion stays listed, with no products, when the other
   # filters leave none of it.
-  def expansion_names do
+  # Like logos, names change with catalogue syncs, not with a search or page.
+  def expansion_names(required_ids \\ []) do
+    names = cached(:expansion_names, &read_expansion_names/0)
+
+    if Enum.all?(required_ids, &Map.has_key?(names, &1)) do
+      names
+    else
+      # A catalogue sync can add an expansion while the names are still cached.
+      :persistent_term.erase({__MODULE__, :expansion_names})
+      cached(:expansion_names, &read_expansion_names/0)
+    end
+  end
+
+  defp read_expansion_names do
     catalogue =
       Sealed.list_tcgdex_sets!(query: [filter: [language: "en"]])
       |> TcgdexSet.by_expansion()
@@ -487,8 +503,9 @@ defmodule TcgCheap.Sealed.Guide do
   def singles_market, do: cached(:singles_market, &read_singles_market/0)
 
   defp read_singles_market do
-    cards = CardGuide.in_stock()
+    cards = CardGuide.market_cards()
     deal = best_deal(cards)
+    deal = deal && CardGuide.with_public_identity(deal)
     top = Enum.max_by(cards, &CardGuide.price/1, Decimal, fn -> nil end)
 
     %{

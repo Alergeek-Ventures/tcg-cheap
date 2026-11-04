@@ -125,7 +125,7 @@ defmodule TcgCheapWeb.HomeLive do
     do: id && (Enum.find(facets.expansions, &(&1.id == id)) || catalogue_expansion(id))
 
   defp catalogue_expansion(id) do
-    if name = Map.get(Guide.expansion_names(), id),
+    if name = Map.get(Guide.expansion_names([id]), id),
       do: %{id: id, name: name, count: 0, logo_url: nil}
   end
 
