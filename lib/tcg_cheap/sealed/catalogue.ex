@@ -70,7 +70,8 @@ defmodule TcgCheap.Sealed.Catalogue do
         cardmarket_id: product.id_product,
         name: product.name,
         kind: kind,
-        region: Map.fetch!(regions, product.id_expansion),
+        region:
+          Regions.for_product(product.id_product, Map.fetch!(regions, product.id_expansion)),
         cardmarket_category_id: product.category_id,
         cardmarket_expansion_id: product.id_expansion,
         set_name: set_name,
