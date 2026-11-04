@@ -7,6 +7,7 @@ defmodule TcgCheap.Storage do
 
   use Ash.Domain, otp_app: :tcg_cheap
 
+  alias AshStorage.Service.Context
   alias TcgCheap.Storage.Config
 
   resources do
@@ -47,6 +48,20 @@ defmodule TcgCheap.Storage do
       :tcg_cheap
       |> Application.fetch_env!(:storage)
       |> Config.service(%{"S3_PORT" => System.get_env("S3_PORT")})
+
+  @doc "Public URLs of already mirrored variants, resolved in one database read."
+  @spec mirrored_image_urls([String.t()], :thumbnail | :detail) :: %{String.t() => String.t()}
+  def mirrored_image_urls(hashes, size) when size in [:thumbnail, :detail] do
+    field = if size == :thumbnail, do: :thumbnail_key, else: :detail_key
+    {service, opts} = service()
+    context = Context.new(opts)
+
+    for image <- list_mirrored_remote_images!(hashes, query: [select: [field]]),
+        key = Map.fetch!(image, field),
+        not is_nil(key),
+        into: %{},
+        do: {image.id, service.url(key, context)}
+  end
 
   @doc """
   The origin public objects are served from, for the CSP image sources: the

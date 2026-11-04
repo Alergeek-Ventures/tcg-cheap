@@ -29,14 +29,14 @@ defmodule TcgCheap.Sealed.CardGuide do
     do:
       "/rozszerzenia/#{Catalogue.slug(expansion_name, expansion_id)}/karty/#{slug(card, collisions || collision_ids())}"
 
-  def expansion_names do
-    Guide.expansion_names()
+  def expansion_names(required_ids \\ []) do
+    Guide.expansion_names(required_ids)
   end
 
   def find(expansion_slug, card_slug) do
     with [_, id] <- Regex.run(~r/-(\d+)\z/, expansion_slug),
          id = String.to_integer(id),
-         name when is_binary(name) <- Map.get(expansion_names(), id) do
+         name when is_binary(name) <- Map.get(expansion_names([id]), id) do
       cards =
         from(c in TcgdexCard,
           join: s in TcgdexSet,
@@ -97,6 +97,10 @@ defmodule TcgCheap.Sealed.CardGuide do
   @page_size 30
 
   @doc "Current Polish shop cards, searched, counted and paged in SQL."
+  # Empty discovery only includes in-stock cards, so its other section is
+  # necessarily empty. Do not run the catalogue query again to prove that.
+  def browse(%{query: "", stock: :out}, _offset), do: {[], false, 0}
+
   def browse(filters, offset) do
     query = browse_query(filters)
     count = Repo.aggregate(query, :count)
@@ -132,15 +136,14 @@ defmodule TcgCheap.Sealed.CardGuide do
     ids = Enum.map(page, & &1.set.cardmarket_expansion_id)
     numbers = Enum.map(page, & &1.card.number)
     collisions = collision_ids(ids, numbers)
-    names = expansion_names()
+    names = expansion_names(ids)
     sources = Enum.map(page, &CardImage.single_source_url(&1.set, &1.card.number))
 
     mirrored =
       sources
       |> Enum.reject(&is_nil/1)
       |> Enum.map(&CardImage.source_hash/1)
-      |> Storage.list_mirrored_remote_images!()
-      |> MapSet.new(& &1.id)
+      |> Storage.mirrored_image_urls(:thumbnail)
 
     rate = Guide.eur_pln(Date.utc_today())
 
@@ -150,8 +153,7 @@ defmodule TcgCheap.Sealed.CardGuide do
         source = CardImage.single_source_url(row.set, row.card.number)
 
         image =
-          if source && MapSet.member?(mirrored, CardImage.source_hash(source)),
-            do: CardImage.thumbnail_url(source)
+          if source, do: Map.get(mirrored, CardImage.source_hash(source))
 
         Map.merge(row, %{
           cardmarket_trend_pln: Guide.to_pln(row.trend, rate),
@@ -245,8 +247,6 @@ defmodule TcgCheap.Sealed.CardGuide do
     logos = Guide.expansion_logos()
     # Named per expansion as the product list names it, not after one of its
     # TCGdex sets ("Brilliant Stars", not "Brilliant Stars Trainer Gallery").
-    names = Guide.expansion_names()
-
     counts =
       from([c, s] in browse_query(%{filters | expansion: nil} |> Map.put(:stock, :in)),
         group_by: s.cardmarket_expansion_id,
@@ -259,6 +259,8 @@ defmodule TcgCheap.Sealed.CardGuide do
       if filters.expansion && !Enum.any?(counts, &(&1.id == filters.expansion)),
         do: [%{id: filters.expansion, count: 0}],
         else: []
+
+    names = expansion_names(Enum.map(counts ++ chosen, & &1.id))
 
     for expansion <- counts ++ chosen,
         name = Map.get(names, expansion.id),
@@ -392,12 +394,9 @@ defmodule TcgCheap.Sealed.CardGuide do
   end
 
   def enrich(cards, sets) do
-    offers =
-      current_offers(Enum.map(cards, & &1.id))
-      |> Enum.filter(&(&1.in_stock and is_nil(&1.grading)))
-      |> Enum.group_by(& &1.card_id)
+    offers = in_stock_prices(Enum.map(cards, & &1.id))
 
-    names = expansion_names()
+    names = expansion_names(Enum.map(sets, & &1.cardmarket_expansion_id))
     collisions = collision_ids(Enum.map(sets, & &1.cardmarket_expansion_id))
     sets = Map.new(sets, &{&1.id, &1})
     rate = Guide.eur_pln(Date.utc_today())
@@ -408,36 +407,72 @@ defmodule TcgCheap.Sealed.CardGuide do
       name = Map.get(names, set.cardmarket_expansion_id)
 
       card
-      |> Map.put(:polish_price, if(rows != [], do: hd(rows).price))
-      |> Map.put(:polish_shop, if(rows != [], do: hd(rows).shop))
-      # Only a normal print compares with the Cardmarket trend, as on the card's page.
-      |> Map.put(:normal_offer, Enum.find(rows, &(&1.variant == :normal)))
-      |> Map.put(:image_source, CardImage.single_source_url(set, card.number))
-      |> Map.put(
-        :cardmarket_trend_pln,
-        Guide.to_pln(card.cardmarket_price && card.cardmarket_price.trend, rate)
-      )
-      |> Map.put(
-        :cardmarket_delivered_pln,
-        CardReference.pln(card.cardmarket_price, :normal, rate)
-      )
-      |> Map.put(:expansion_name, name)
-      |> Map.put(
-        :public_path,
-        if(name, do: path(card, name, set.cardmarket_expansion_id, collisions))
-      )
+      |> with_prices(rows, rate)
+      |> with_public_identity(set, name, collisions)
     end)
   end
 
-  @doc "Every card in stock in a Polish shop, enriched as by `enrich/2`."
-  def in_stock do
+  defp in_stock_prices(card_ids) do
+    from(o in current_query(),
+      where: o.card_id in ^card_ids and o.in_stock and is_nil(o.grading),
+      order_by: [asc: o.price, asc: o.shop, asc: o.id],
+      select: map(o, [:card_id, :price, :shop, :variant])
+    )
+    |> Repo.all()
+    |> Enum.group_by(& &1.card_id)
+  end
+
+  defp with_prices(card, offers, rate) do
+    card
+    |> Map.put(:polish_price, if(offers != [], do: hd(offers).price))
+    |> Map.put(:polish_shop, if(offers != [], do: hd(offers).shop))
+    # Only a normal print compares with the Cardmarket trend, as on the card's page.
+    |> Map.put(:normal_offer, Enum.find(offers, &(&1.variant == :normal)))
+    |> Map.put(
+      :cardmarket_trend_pln,
+      Guide.to_pln(card.cardmarket_price && card.cardmarket_price.trend, rate)
+    )
+    |> Map.put(:cardmarket_delivered_pln, CardReference.pln(card.cardmarket_price, :normal, rate))
+  end
+
+  defp with_public_identity(card, set, name, collisions) do
+    card
+    |> Map.put(:image_source, CardImage.single_source_url(set, card.number))
+    |> Map.put(:expansion_name, name)
+    |> Map.put(
+      :public_path,
+      if(name, do: path(card, name, set.cardmarket_expansion_id, collisions))
+    )
+  end
+
+  @doc "Resolves the public identity of the one card selected for the market banner."
+  def with_public_identity(card) do
+    set = card.tcgdex_set
+    name = Map.get(expansion_names([set.cardmarket_expansion_id]), set.cardmarket_expansion_id)
+    collisions = collision_ids([set.cardmarket_expansion_id], [card.number])
+    with_public_identity(card, set, name, collisions)
+  end
+
+  @doc "In-stock card prices for the market banner, without building thousands of links and image URLs."
+  def market_cards do
     rows =
-      from([c, s, _o, p] in browse_query(%{query: "", expansion: nil}), select: {c, s, p})
+      from([c, s, _o, p] in browse_query(%{query: "", expansion: nil}),
+        select: {
+          struct(c, [:id, :tcgdex_id, :tcgdex_set_id, :name, :number, :variants]),
+          struct(s, [:id, :cardmarket_expansion_id, :logo_url, :cards_source_url]),
+          struct(p, [:cardmarket_id, :trend])
+        }
+      )
       |> Repo.all()
 
-    rows
-    |> Enum.map(fn {card, _set, price} -> %{card | cardmarket_price: price} end)
-    |> enrich(rows |> Enum.map(&elem(&1, 1)) |> Enum.uniq_by(& &1.id))
+    offers = in_stock_prices(Enum.map(rows, fn {card, _, _} -> card.id end))
+
+    rate = Guide.eur_pln(Date.utc_today())
+
+    Enum.map(rows, fn {card, set, price} ->
+      %{card | cardmarket_price: price, tcgdex_set: set}
+      |> with_prices(Map.get(offers, card.id, []), rate)
+    end)
   end
 
   @doc "How many cards the English sets of named expansions hold."
@@ -508,7 +543,7 @@ defmodule TcgCheap.Sealed.CardGuide do
       )
       |> Repo.all()
 
-    names = expansion_names()
+    names = expansion_names(Enum.map(cards, &elem(&1, 1)))
     collisions = collision_ids()
     for {card, id} <- cards, name = Map.get(names, id), name, do: path(card, name, id, collisions)
   end
