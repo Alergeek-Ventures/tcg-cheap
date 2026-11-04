@@ -88,8 +88,14 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   most valuable one in stock; products show the product furthest under its
   typical shop price with the next deals' photos, products in stock, how
   many are at a good price and in how many shops. A deal more than 40% under
-  its reference is skipped as a likely wrong match. The Produkty/Karty switch
-  sits in the search bar on every list and keeps a chosen set.
+  its reference is skipped as a likely wrong match.
+- The search bar is the list's one control (owner decision, 2026-11-04): the
+  chosen set (its logo, else "Wszystkie sety") that glides to the list of sets,
+  the query, and Produkty/Karty, which keeps a chosen set. Sets are chosen in
+  one place: a column beside the list on a wide screen, a shelf above it on a
+  narrow one. "Produkty" opens the kind and language menu; kinds come as five
+  shelves (Boostery, Booster Boxy, Elite Trainer Box, Kolekcje i puszki,
+  Talie), each shelf's exact kinds one step further.
 - Public pages read only the local database; shops and Cardmarket are fetched
   by background jobs.
 - The legacy singles catalogue, valuation and trade pages have been removed.

@@ -20,11 +20,11 @@ defmodule TcgCheapWeb.HomeLive do
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
   @max_query_length 100
-  @kind_params Map.new(Kinds.all(), &{Atom.to_string(&1), &1})
+  @kind_params Map.new(Kinds.choices(), &{Atom.to_string(&1), &1})
   @region_params Map.new(Regions.all(), &{Atom.to_string(&1), &1})
   @all_regions "wszystkie"
-  # Expansions listed before "Pokaż wszystkie".
-  @first_expansions 12
+  # Sets shown before "Starsze sety".
+  @first_expansions 14
 
   defmodule NotFound do
     @moduledoc false
@@ -408,9 +408,6 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp filtered?(filters), do: filters.kind || region_value(filters) || filters.expansion
 
-  defp active_filters(filters),
-    do: Enum.count([filters.kind, region_value(filters)], & &1)
-
   defp result_label(count, :cards), do: Polish.plural(count, "karta", "karty", "kart")
 
   defp result_label(count, :products),
@@ -418,34 +415,140 @@ defmodule TcgCheapWeb.HomeLive do
 
   attr :filters, :map, required: true
   attr :facets, :map, required: true
-  attr :result_count, :integer, required: true
-  attr :all_expansions?, :boolean, required: true
 
-  # Language edition, kind and expansion; folded behind "Filtry" on phones.
-  defp filters(assigns) do
-    # The chosen expansion leads, so it stays in view among the tiles.
-    {first, rest} =
-      assigns.facets.expansions
-      |> Enum.sort_by(&(&1.id != assigns.filters.expansion))
-      |> Enum.split(@first_expansions)
-
-    assigns = assign(assigns, first: first, rest: rest)
+  # The bar opens with the set: every set (four squares), or the chosen set's
+  # own logo, as in the banner. Sets are chosen in one place, the list of sets,
+  # which this glides to.
+  defp set_slot(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :chosen,
+        Enum.find(assigns.facets.expansions, &(&1.id == assigns.filters.expansion))
+      )
 
     ~H"""
-    <aside id="guide-filters" class="guide-filters" aria-label={gettext("Filtry")}>
-      <div id="guide-filters-body" class="guide-filters-body">
-        <nav
-          :if={@filters.mode == :products}
-          id="guide-regions"
-          class="guide-filter"
-          aria-labelledby="guide-regions-title"
-        >
+    <a
+      id="guide-set-slot"
+      href="#guide-expansions"
+      class="guide-set-slot"
+      aria-label={
+        if(@chosen,
+          do: gettext("Set: %{set}. Zmień", set: @chosen.name),
+          else: gettext("Wybierz set")
+        )
+      }
+    >
+      <%= cond do %>
+        <% @chosen && @chosen.logo_url -> %>
+          <img src={@chosen.logo_url} alt="" class="guide-set-logo" />
+        <% @chosen -> %>
+          <span class="guide-set-name">{@chosen.name}</span>
+        <% true -> %>
+          <span class="guide-set-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="guide-set-label">
+            <span class="guide-wide">{gettext("Wszystkie sety")}</span>
+            <span class="guide-narrow">{gettext("Sety")}</span>
+          </span>
+      <% end %>
+      <.fluent_icon name={:chevron_down} class="guide-pop-chevron" />
+    </a>
+    """
+  end
+
+  attr :filters, :map, required: true
+  attr :facets, :map, required: true
+
+  # The products tab is also the kind menu: shelves, the chosen shelf's exact
+  # kinds and the language edition. It is named after the chosen kind.
+  defp kind_menu(assigns) do
+    counts = Map.new(assigns.facets.kinds)
+    shelf = assigns.filters.kind && (Kinds.shelf(assigns.filters.kind) || assigns.filters.kind)
+
+    assigns =
+      assign(assigns,
+        shelves:
+          for(shelf <- Kinds.shelves(), count = shelf_count(counts, shelf), do: {shelf, count}),
+        exact:
+          if(shelf,
+            do:
+              for(
+                kind <- Kinds.members(shelf),
+                Map.has_key?(counts, kind),
+                do: {kind, counts[kind]}
+              ),
+            else: []
+          ),
+        total: counts |> Map.values() |> Enum.sum()
+      )
+
+    ~H"""
+    <details
+      id="guide-kind-menu"
+      class="guide-pop guide-kind-menu"
+      name="guide-pop"
+      phx-mounted={JS.ignore_attributes(["open"])}
+    >
+      <summary
+        id="mode-products"
+        aria-current="true"
+        data-track="filters_panel_opened"
+        phx-click={JS.dispatch("guide:pin-filters", to: "#guide-search-form")}
+      >
+        <span class="guide-kind-name">
+          {if(@filters.kind, do: Kinds.label(@filters.kind), else: gettext("Produkty"))}
+        </span>
+        <span :if={region_value(@filters)} class="guide-tag">
+          {if(@filters.region, do: Regions.tag(@filters.region), else: gettext("wszystkie"))}
+        </span>
+        <.fluent_icon name={:chevron_down} class="guide-pop-chevron" />
+      </summary>
+      <div class="guide-panel guide-filter">
+        <nav id="guide-kinds" aria-labelledby="guide-kinds-title">
+          <h2 id="guide-kinds-title">{gettext("Rodzaj")}</h2>
+          <ul>
+            <li>
+              <.link
+                id="kind-all"
+                patch={list_path(@filters, kind: nil)}
+                phx-click={close_menus()}
+                aria-current={if(is_nil(@filters.kind), do: "true")}
+              >
+                {gettext("Wszystkie")}<span class="guide-filter-count">{Polish.number(@total)}</span>
+              </.link>
+            </li>
+            <li :for={{shelf, count} <- @shelves}>
+              <.link
+                id={"kind-#{shelf}"}
+                patch={list_path(@filters, kind: shelf)}
+                phx-click={close_menus()}
+                aria-current={if(@filters.kind == shelf, do: "true")}
+              >
+                {Kinds.label(shelf)}<span class="guide-filter-count">{Polish.number(count)}</span>
+              </.link>
+            </li>
+          </ul>
+          <ul :if={length(@exact) > 1} class="guide-kinds-exact">
+            <li :for={{kind, count} <- @exact}>
+              <.link
+                id={"kind-#{kind}"}
+                patch={list_path(@filters, kind: kind)}
+                phx-click={close_menus()}
+                aria-current={if(@filters.kind == kind, do: "true")}
+              >
+                {Kinds.label(kind)}<span class="guide-filter-count">{Polish.number(count)}</span>
+              </.link>
+            </li>
+          </ul>
+        </nav>
+        <nav id="guide-regions" aria-labelledby="guide-regions-title">
           <h2 id="guide-regions-title">{gettext("Wersja językowa")}</h2>
           <ul>
             <li>
               <.link
                 id="region-all"
                 patch={list_path(@filters, region: nil)}
+                phx-click={close_menus()}
                 aria-current={if(is_nil(@filters.region), do: "true")}
               >{gettext("Wszystkie")}</.link>
             </li>
@@ -453,6 +556,7 @@ defmodule TcgCheapWeb.HomeLive do
               <.link
                 id={"region-#{region}"}
                 patch={list_path(@filters, region: region)}
+                phx-click={close_menus()}
                 aria-current={if(@filters.region == region, do: "true")}
               >
                 {Regions.label(region)}
@@ -460,111 +564,108 @@ defmodule TcgCheapWeb.HomeLive do
             </li>
           </ul>
         </nav>
-        <nav
-          :if={@filters.mode == :products}
-          id="guide-kinds"
-          class="guide-filter"
-          aria-labelledby="guide-kinds-title"
-        >
-          <h2 id="guide-kinds-title">{gettext("Rodzaj")}</h2>
-          <ul>
-            <li>
-              <.link
-                id="kind-all"
-                patch={list_path(@filters, kind: nil)}
-                aria-current={if(is_nil(@filters.kind), do: "true")}
-              >{gettext("Wszystkie")}</.link>
-            </li>
-            <li :for={{kind, _count} <- @facets.kinds}>
-              <.link
-                id={"kind-#{kind}"}
-                patch={list_path(@filters, kind: kind)}
-                aria-current={if(@filters.kind == kind, do: "true")}
-              >
-                {Kinds.label(kind)}
-              </.link>
-            </li>
-          </ul>
-        </nav>
-        <nav
-          :if={@facets.expansions != []}
-          id="guide-expansions"
-          class="guide-filter guide-expansions"
-          aria-labelledby="guide-expansions-title"
-        >
-          <h2 id="guide-expansions-title">{gettext("Rozszerzenie")}</h2>
-          <.link
-            id="expansion-all"
-            class="guide-expansions-all"
-            patch={
-              list_path(@filters,
-                expansion: nil,
-                expansion_name: nil,
-                region:
-                  if(@filters.expansion,
-                    do: @filters.region || default_region(nil),
-                    else: @filters.region
-                  )
-              )
-            }
-            phx-click={close_filters()}
-            aria-current={if(is_nil(@filters.expansion), do: "true")}
-          >{gettext("Wszystkie")}</.link>
-          <ul class="guide-expansion-tiles">
-            <.expansion_option
-              :for={expansion <- @first}
-              expansion={expansion}
-              filters={@filters}
-              tile
-            />
-          </ul>
-          <details
-            :if={@rest != []}
-            id="guide-expansions-more"
-            phx-mounted={JS.ignore_attributes(["open"])}
-          >
-            <%!-- Rendered on first opening: hundreds of rows (noindex filter links)
-                 would otherwise weigh down every page load and patch. --%>
-            <summary phx-click={!@all_expansions? && "all-expansions"}>
-              {gettext("Pokaż pozostałe (%{count})", count: length(@rest))}
-            </summary>
-            <ul :if={@all_expansions?} class="guide-expansion-names">
-              <.expansion_option :for={expansion <- @rest} expansion={expansion} filters={@filters} />
-            </ul>
-          </details>
-        </nav>
-        <button
-          type="button"
-          id="guide-filters-apply"
-          class="guide-filters-apply"
-          phx-click={
-            close_filters()
-            |> JS.focus(to: "#guide-results-title")
-            |> JS.dispatch("guide:reveal", to: "#guide-results-title")
-          }
-        >
-          {gettext("Pokaż %{products}",
-            products: result_label(@result_count, @filters.mode)
-          )}
-        </button>
       </div>
+    </details>
+    """
+  end
+
+  defp shelf_count(counts, shelf) do
+    case shelf |> Kinds.members() |> Enum.map(&counts[&1]) |> Enum.reject(&is_nil/1) do
+      [] -> nil
+      found -> Enum.sum(found)
+    end
+  end
+
+  attr :filters, :map, required: true
+  attr :facets, :map, required: true
+  attr :all_expansions?, :boolean, required: true
+
+  # The sets, newest first: beside the list on a wide screen, a shelf above it
+  # on a narrow one.
+  defp set_column(assigns) do
+    {first, rest} = split_expansions(assigns.facets.expansions, assigns.filters.expansion)
+
+    assigns = assign(assigns, first: first, rest: rest)
+
+    ~H"""
+    <aside id="guide-filters" class="guide-filters" aria-label={gettext("Sety")}>
+      <nav
+        :if={@facets.expansions != []}
+        id="guide-expansions"
+        class="guide-filter guide-expansions"
+        aria-labelledby="guide-expansions-title"
+      >
+        <h2 id="guide-expansions-title">{gettext("Sety")}</h2>
+        <.expansions_all filters={@filters} />
+        <ul class="guide-expansion-names guide-expansion-shelf">
+          <.expansion_option :for={expansion <- @first} expansion={expansion} filters={@filters} />
+        </ul>
+        <.expansions_rest rest={@rest} filters={@filters} all_expansions?={@all_expansions?} />
+      </nav>
     </aside>
     """
   end
 
-  defp close_filters do
-    JS.remove_class("guide-filters-open", to: "#guide-filters")
-    |> JS.set_attribute({"aria-expanded", "false"}, to: "#guide-filters-toggle")
+  # The chosen expansion leads, so it stays in view among the first ones.
+  defp split_expansions(expansions, chosen) do
+    expansions
+    |> Enum.sort_by(&(&1.id != chosen))
+    |> Enum.split(@first_expansions)
   end
+
+  attr :filters, :map, required: true
+
+  defp expansions_all(assigns) do
+    ~H"""
+    <.link
+      class="guide-expansions-all"
+      patch={
+        list_path(@filters,
+          expansion: nil,
+          expansion_name: nil,
+          region:
+            if(@filters.expansion,
+              do: @filters.region || default_region(nil),
+              else: @filters.region
+            )
+        )
+      }
+      phx-click={close_menus()}
+      aria-current={if(is_nil(@filters.expansion), do: "true")}
+    >{gettext("Wszystkie sety")}</.link>
+    """
+  end
+
+  attr :rest, :list, required: true
+  attr :filters, :map, required: true
+  attr :all_expansions?, :boolean, required: true
+
+  defp expansions_rest(assigns) do
+    ~H"""
+    <details
+      :if={@rest != []}
+      class="guide-expansions-more"
+      phx-mounted={JS.ignore_attributes(["open"])}
+    >
+      <%!-- Rendered on first opening: hundreds of rows (noindex filter links)
+           would otherwise weigh down every page load and patch. --%>
+      <summary phx-click={!@all_expansions? && "all-expansions"}>
+        {gettext("Starsze sety (%{count})", count: length(@rest))}
+      </summary>
+      <ul :if={@all_expansions?} class="guide-expansion-names">
+        <.expansion_option :for={expansion <- @rest} expansion={expansion} filters={@filters} />
+      </ul>
+    </details>
+    """
+  end
+
+  defp close_menus, do: JS.remove_attribute("open", to: ".guide-pop")
 
   attr :expansion, :map, required: true
   attr :filters, :map, required: true
-  attr :tile, :boolean, default: false, doc: "a tile, else a row of the list"
 
-  # The language tag shows only while every language is listed. A logo is
-  # captioned with the English name on a tile and named beside it in a row; a
-  # desktop row without a logo keeps a blank slot so the names line up.
-  # Phones show names and counts only.
+  # The language tag shows only while every language is listed. A row without
+  # a logo keeps a blank slot so the names line up.
   defp expansion_option(assigns) do
     assigns = assign(assigns, :logo_url, assigns.expansion.logo_url)
 
@@ -579,13 +680,13 @@ defmodule TcgCheapWeb.HomeLive do
             region: default_region(@expansion.id)
           )
         }
-        phx-click={close_filters()}
+        phx-click={close_menus()}
         aria-current={if(@filters.expansion == @expansion.id, do: "true")}
         title={@expansion.name}
       >
         <img :if={@logo_url} src={@logo_url} alt="" loading="lazy" />
         <span :if={is_nil(@logo_url)} class="guide-expansion-nologo" aria-hidden="true"></span>
-        <span class={["guide-expansion-name", @tile && @logo_url && "guide-expansion-caption"]}>
+        <span class="guide-expansion-name">
           {@expansion.name}
         </span>
         <span class="guide-filter-count">
@@ -1121,8 +1222,6 @@ defmodule TcgCheapWeb.HomeLive do
 
   @impl true
   def render(assigns) do
-    assigns = assign(assigns, :active, active_filters(assigns.filters))
-
     ~H"""
     <Layouts.app flash={@flash}>
       <SEO.sync seo={@seo} />
@@ -1158,6 +1257,7 @@ defmodule TcgCheapWeb.HomeLive do
                 else: gettext("Szukaj produktu")
               )}
             </h2>
+            <.set_slot filters={@filters} facets={@facets} />
             <.form
               for={@form}
               id="guide-search-form"
@@ -1184,41 +1284,6 @@ defmodule TcgCheapWeb.HomeLive do
                     if(@filters.mode == :cards, do: gettext("np. Pikachu"), else: gettext("np. ETB"))
                   }
                 />
-                <nav id="guide-mode" class="guide-mode" aria-label={gettext("Szukaj w katalogu")}>
-                  <.link
-                    id="mode-products"
-                    patch={
-                      list_path(@filters,
-                        mode: :products,
-                        kind: nil,
-                        region: default_region(@filters.expansion)
-                      )
-                    }
-                    aria-current={if(@filters.mode == :products, do: "true")}
-                  >{gettext("Produkty")}</.link>
-                  <.link
-                    id="mode-cards"
-                    patch={list_path(@filters, mode: :cards, kind: nil, region: nil)}
-                    aria-current={if(@filters.mode == :cards, do: "true")}
-                  >{gettext("Karty")}</.link>
-                </nav>
-                <button
-                  type="button"
-                  id="guide-filters-toggle"
-                  class="guide-filters-toggle"
-                  aria-controls="guide-filters-body"
-                  aria-expanded="false"
-                  data-track="filters_panel_opened"
-                  phx-click={
-                    JS.dispatch("guide:pin-filters", to: "#guide-search-form")
-                    |> JS.toggle_class("guide-filters-open", to: "#guide-filters")
-                    |> JS.toggle_attribute({"aria-expanded", "true", "false"})
-                  }
-                >
-                  <.fluent_icon name={:filter} /><span class="guide-filters-label">{gettext("Filtry")}</span><span :if={
-                    @filters.mode == :products and @active > 0
-                  }> ({@active})</span>
-                </button>
               </div>
               <input :if={@filters.mode == :cards} type="hidden" name="widok" value="karty" />
               <input
@@ -1235,15 +1300,31 @@ defmodule TcgCheapWeb.HomeLive do
                 value={region_value(@filters)}
               />
             </.form>
+            <nav id="guide-mode" class="guide-mode" aria-label={gettext("Szukaj w katalogu")}>
+              <%= if @filters.mode == :products do %>
+                <.kind_menu filters={@filters} facets={@facets} />
+              <% else %>
+                <.link
+                  id="mode-products"
+                  patch={
+                    list_path(@filters,
+                      mode: :products,
+                      kind: nil,
+                      region: default_region(@filters.expansion)
+                    )
+                  }
+                >{gettext("Produkty")}</.link>
+              <% end %>
+              <.link
+                id="mode-cards"
+                patch={list_path(@filters, mode: :cards, kind: nil, region: nil)}
+                aria-current={if(@filters.mode == :cards, do: "true")}
+              >{gettext("Karty")}</.link>
+            </nav>
           </section>
 
           <div class="guide-browse">
-            <.filters
-              filters={@filters}
-              facets={@facets}
-              result_count={@result_count}
-              all_expansions?={@all_expansions?}
-            />
+            <.set_column filters={@filters} facets={@facets} all_expansions?={@all_expansions?} />
             <section class="guide-results" aria-labelledby="guide-results-title">
               <div class="guide-results-heading">
                 <h2 id="guide-results-title" tabindex="-1">

@@ -113,7 +113,8 @@ defmodule TcgCheap.Sealed.Guide do
 
     regions =
       groups
-      |> matching(kind: filters.kind, cardmarket_expansion_id: filters.expansion)
+      |> on_shelf(filters.kind)
+      |> matching(cardmarket_expansion_id: filters.expansion)
       |> sum_by(& &1.region)
 
     kinds =
@@ -126,15 +127,19 @@ defmodule TcgCheap.Sealed.Guide do
       kinds:
         for(
           kind <- Kinds.all(),
-          count = kinds[kind] || (kind == filters.kind && 0),
+          count = kinds[kind] || (filters.kind && kind in Kinds.members(filters.kind) && 0),
           do: {kind, count}
         ),
       expansions:
         groups
-        |> matching(kind: filters.kind, region: filters.region)
+        |> on_shelf(filters.kind)
+        |> matching(region: filters.region)
         |> expansions(filters)
     }
   end
+
+  defp on_shelf(groups, nil), do: groups
+  defp on_shelf(groups, kind), do: Enum.filter(groups, &(&1.kind in Kinds.members(kind)))
 
   defp matching(groups, filters) do
     Enum.filter(groups, fn group ->

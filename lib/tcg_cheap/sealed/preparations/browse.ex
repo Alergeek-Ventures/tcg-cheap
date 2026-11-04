@@ -1,7 +1,7 @@
 defmodule TcgCheap.Sealed.Preparations.Browse do
   @moduledoc """
   Filters products by every word of the query (against the normalized search
-  text) and an optional kind, language edition and Cardmarket expansion, and
+  text) and an optional kind (or shelf of kinds), language edition and Cardmarket expansion, and
   orders them: available in a Polish shop first, then those available as a
   pre-order, then the newest Cardmarket additions.
   """
@@ -11,7 +11,7 @@ defmodule TcgCheap.Sealed.Preparations.Browse do
   require Ash.Query
   require Ash.Sort
 
-  alias TcgCheap.Sealed.Matcher
+  alias TcgCheap.Sealed.{Kinds, Matcher}
 
   @max_words 8
 
@@ -25,7 +25,7 @@ defmodule TcgCheap.Sealed.Preparations.Browse do
 
     query
     |> filter_words(words)
-    |> filter_by(:kind, Ash.Query.get_argument(query, :kind))
+    |> filter_kind(Ash.Query.get_argument(query, :kind))
     |> filter_by(:region, Ash.Query.get_argument(query, :region))
     |> filter_by(:cardmarket_expansion_id, Ash.Query.get_argument(query, :expansion))
     |> Ash.Query.sort([
@@ -42,6 +42,9 @@ defmodule TcgCheap.Sealed.Preparations.Browse do
       Ash.Query.filter(query, contains(search_text, ^(" " <> word)))
     end)
   end
+
+  defp filter_kind(query, nil), do: query
+  defp filter_kind(query, kind), do: Ash.Query.filter(query, kind in ^Kinds.members(kind))
 
   defp filter_by(query, _field, nil), do: query
   defp filter_by(query, field, value), do: Ash.Query.filter(query, ^ref(field) == ^value)
