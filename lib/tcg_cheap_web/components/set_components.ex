@@ -4,6 +4,7 @@ defmodule TcgCheapWeb.SetComponents do
   use TcgCheapWeb, :html
   use Gettext, backend: TcgCheapWeb.Gettext
 
+  alias TcgCheap.Sealed.CardGuide
   alias TcgCheap.Sealed.PullRates.Rate
   alias TcgCheapWeb.Polish
 
@@ -265,7 +266,7 @@ defmodule TcgCheapWeb.SetComponents do
       </details>
     </div>
     <p class="guide-note table-note">
-      {gettext("Ceny bez dostawy: polskie sklepy, a gdy brak na stanie — trend Cardmarket w złotych.")}
+      {gettext("Ceny bez dostawy: polski sklep albo trend Cardmarket w złotych, co tańsze.")}
     </p>
     """
   end
@@ -277,7 +278,7 @@ defmodule TcgCheapWeb.SetComponents do
       assign(
         assigns,
         :price,
-        Map.get(assigns.card, :polish_price) || Map.get(assigns.card, :cardmarket_trend_pln)
+        CardGuide.price(assigns.card)
       )
 
     ~H"""

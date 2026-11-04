@@ -137,15 +137,15 @@ defmodule TcgCheapWeb.SEO do
 
   defp cards_answer(%{card_count: 0}), do: nil
 
-  defp cards_answer(%{card_count: count, top_card: nil}),
+  defp cards_answer(%{card_count: count, top_cards: []}),
     do: gettext("Set liczy %{cards}.", cards: Polish.plural(count, "karta", "karty", "kart"))
 
-  defp cards_answer(%{card_count: count, top_card: {card, trend}}),
+  defp cards_answer(%{card_count: count, top_cards: [top | _]}),
     do:
-      gettext("Set liczy %{cards}, najdroższa to %{card} (%{price} na Cardmarket).",
+      gettext("Set liczy %{cards}, najdroższa to %{card} (%{price}, bez dostawy).",
         cards: Polish.plural(count, "karta", "karty", "kart"),
-        card: card.name,
-        price: Polish.eur(trend)
+        card: top.card.name,
+        price: Polish.price(top.price)
       )
 
   defp home_image, do: url(~p"/og?#{[v: SocialImage.home_version()]}")

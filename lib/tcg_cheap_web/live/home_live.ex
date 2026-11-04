@@ -16,7 +16,7 @@ defmodule TcgCheapWeb.HomeLive do
   import TcgCheapWeb.GuideComponents
   import TcgCheapWeb.SetComponents
 
-  alias TcgCheap.Sealed.{CardGuide, Catalogue, Guide, Kinds, Regions}
+  alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Guide, Kinds, Rarities, Regions, Shops}
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
   @max_query_length 100
@@ -63,12 +63,17 @@ defmodule TcgCheapWeb.HomeLive do
     at_set_page? = expansion && params["slug"] == Catalogue.slug(expansion.name, expansion.id)
 
     case {socket.assigns.live_action, expansion, at_set_page?} do
-      {:index, _expansion, _at_set_page?} when mode == :cards ->
+      {:index, expansion, _at_set_page?} when mode == :cards ->
         seo = SEO.home(params)
 
+        # A chosen expansion's cards open with the same banner as its set page.
         {:noreply,
          socket
-         |> assign(set_page: nil, seo: seo, page_title: seo.title)
+         |> assign(
+           set_page: expansion && set_page(socket, expansion),
+           seo: seo,
+           page_title: seo.title
+         )
          |> track_changes(previous)}
 
       {:expansion, nil, _at_set_page?} ->
@@ -98,7 +103,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp parse_filters(action, params) do
     mode = if action == :index and params["widok"] == "karty", do: :cards, else: :products
-    expansion = if mode == :products, do: expansion_param(action, params)
+    expansion = expansion_param(action, params)
 
     %{
       mode: mode,
@@ -156,7 +161,7 @@ defmodule TcgCheapWeb.HomeLive do
     socket
     |> assign(
       filters: filters,
-      facets: %{expansions: [], regions: [], kinds: []},
+      facets: %{expansions: CardGuide.expansion_facets(filters), regions: [], kinds: []},
       form: to_form(%{"q" => filters.query}),
       result_count: count + out_count,
       cards_stock: if(only_out?, do: :out, else: :in),
@@ -374,7 +379,8 @@ defmodule TcgCheapWeb.HomeLive do
         q: filters.query,
         rodzaj: filters.kind,
         wersja: region_value(filters),
-        widok: if(filters.mode == :cards, do: "karty")
+        widok: if(filters.mode == :cards, do: "karty"),
+        rozszerzenie: if(filters.mode == :cards, do: filters.expansion)
       ]
       |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
       |> Enum.map(fn {key, value} -> {key, to_string(value)} end)
@@ -586,81 +592,324 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   attr :name, :string, required: true
-  attr :page, :map, required: true
+  attr :logo_url, :string, default: nil
+  attr :close, :string, required: true
 
-  # A set page's top: the set, then its answer at a glance (the single
-  # booster's price, the rarest pull rates, the cards), the same facts as its
-  # search snippet.
+  # The set's logo carries its name, so the name is only written out without one.
+  defp set_title(assigns) do
+    ~H"""
+    <div class="set-title">
+      <h1 id="guide-title">
+        <img :if={@logo_url} src={@logo_url} alt={@name} class="set-logo" />
+        <%= if !@logo_url do %>
+          {@name}
+        <% end %>
+      </h1>
+      <.link
+        id="set-close"
+        patch={@close}
+        class="set-close"
+        aria-label={gettext("Zamknij set i wyczyść filtry")}
+      >
+        <.fluent_icon name={:dismiss} />
+      </.link>
+    </div>
+    """
+  end
+
+  attr :name, :string, required: true
+  attr :page, :map, required: true
+  attr :close, :string, default: "/"
+  attr :cards_href, :string, default: "#product-cards"
+  attr :singles?, :boolean, default: false
+
+  # A set page's top: the set's most valuable card, what pulling it from packs
+  # costs on average against buying it, and the next three cards the same way;
+  # a set without card prices shows its single booster instead.
   defp set_intro(assigns) do
     set = assigns.page.set
 
     assigns =
       assign(assigns,
         logo_url: set && set.logo_url,
-        rarest: if(set && set.pull_rates, do: Enum.take(set.pull_rates.rates, 2), else: []),
-        cards: set && set.card_count > 0 && set
+        top_cards: if(set, do: set.top_cards, else: []),
+        card_count: if(set, do: set.card_count, else: 0)
       )
 
     ~H"""
     <section id="set-intro" class="guide-intro set-intro" aria-labelledby="guide-title">
-      <div class="set-title">
-        <img :if={@logo_url} src={@logo_url} alt="" class="set-logo" />
-        <h1 id="guide-title">{@name}</h1>
-        <.link
-          id="set-close"
-          patch={~p"/"}
-          class="set-close"
-          aria-label={gettext("Zamknij set i wyczyść filtry")}
-        >
-          <.fluent_icon name={:dismiss} />
-        </.link>
-      </div>
-      <%!-- Each fact leads on: the booster to its page, the odds and the cards to their tables. --%>
-      <%= if @page.booster || @rarest != [] || @cards do %>
-        <ul id="set-facts" class="set-facts">
-          <li :if={@page.booster}>
-            <.link
-              id="set-booster"
-              navigate={~p"/produkty/#{@page.booster.product.slug}"}
-              class="set-fact"
-            >
-              <span class="set-fact-label">
-                {if(@page.booster.preorder?,
+      <.set_title name={@name} logo_url={@logo_url} close={@close} />
+      <%= cond do %>
+        <% @singles? -> %>
+          <.set_singles
+            singles={@page.set && @page.set.singles}
+            top={List.first(@top_cards)}
+            cards_href={@cards_href}
+          />
+        <% @top_cards != [] -> %>
+          <.set_chase
+            top={hd(@top_cards)}
+            next={tl(@top_cards)}
+            booster={@page.booster}
+            count={@card_count}
+            cards_href={@cards_href}
+          />
+        <% true -> %>
+          <%= if @page.booster || @card_count > 0 do %>
+            <div id="set-chase" class="set-chase set-chase-empty">
+              <.link
+                :if={@page.booster}
+                id="set-booster"
+                navigate={~p"/produkty/#{@page.booster.product.slug}"}
+                class="set-chase-booster"
+              >
+                <span>{if(@page.booster.preorder?,
                   do: gettext("Booster w przedsprzedaży"),
                   else: gettext("Pojedynczy booster")
-                )}
-              </span>
-              <%= if cheapest = @page.booster.verdict.cheapest do %>
-                <strong>{Polish.price(cheapest.price)}</strong>
-                <span class="set-fact-detail">{gettext("w %{shop}", shop: shop_name(cheapest))}</span>
-              <% else %>
-                <strong>{gettext("brak na stanie")}</strong>
-              <% end %>
-            </.link>
-          </li>
-          <li :for={row <- @rarest}>
-            <a href="#product-pull-rates" class="set-fact">
-              <span class="set-fact-label">{row.rarity}</span>
-              <strong>{Polish.odds(row.rate)}</strong>
-            </a>
-          </li>
-          <li :if={@cards}>
-            <a href="#product-cards" class="set-fact">
-              <span class="set-fact-label">{gettext("Karty w secie")}</span>
-              <strong>{Polish.number(@cards.card_count)}</strong>
-              <span :if={@cards.top_card} class="set-fact-detail">
-                {gettext("najdroższa: %{card}, %{price}",
-                  card: elem(@cards.top_card, 0).name,
-                  price: Polish.eur(elem(@cards.top_card, 1))
-                )}
-              </span>
-            </a>
-          </li>
-        </ul>
-      <% else %>
-        <p id="guide-promise">{Enum.join(SEO.expansion_answer(@name, @page), " ")}</p>
+                )}</span>
+                <%= if cheapest = @page.booster.verdict.cheapest do %>
+                  <strong>{Polish.price(cheapest.price)}</strong>
+                  <span>{gettext("w %{shop}", shop: shop_name(cheapest))}</span>
+                <% else %>
+                  <strong>{gettext("brak na stanie")}</strong>
+                <% end %>
+                <.verdict_badge verdict={@page.booster.verdict} />
+              </.link>
+              <.chase_foot count={@card_count} priced?={false} href={@cards_href} />
+            </div>
+          <% else %>
+            <p id="guide-promise">{Enum.join(SEO.expansion_answer(@name, @page), " ")}</p>
+          <% end %>
       <% end %>
     </section>
+    """
+  end
+
+  attr :singles, :map, default: nil
+  attr :top, :map, default: nil
+  attr :cards_href, :string, required: true
+
+  # The singles banner: the set's best deal in a Polish shop against its
+  # Cardmarket trend, then what the set's singles market looks like in numbers.
+  defp set_singles(assigns) do
+    ~H"""
+    <div :if={@singles} id="set-chase" class={["set-chase", !@singles.deal && "set-chase-empty"]}>
+      <%= if deal = @singles.deal do %>
+        <.link class="set-chase-art" navigate={deal.path} tabindex="-1" aria-hidden="true">
+          <.chase_art top={deal} hero?={true} />
+        </.link>
+        <div class="set-chase-head">
+          <p class="set-chase-kicker">{gettext("Najlepsza okazja w secie")}</p>
+          <h2 class="set-chase-name"><.link navigate={deal.path}>{deal.card.name}</.link></h2>
+          <p class="set-chase-meta">{chase_identity(deal.card)}</p>
+        </div>
+        <div class="set-chase-pair">
+          <p id="set-chase-pull" class="set-chase-side set-chase-pull">
+            <span class="set-chase-label">{gettext("Na Cardmarket")}</span>
+            <strong>{Polish.price(deal.trend)}</strong>
+            <span class="set-chase-detail">{gettext("z wysyłką do Polski")}</span>
+          </p>
+          <span class="set-chase-or">{"−#{deal.percent}%"}</span>
+          <.link id="set-chase-buy" class="set-chase-side set-chase-buy" navigate={deal.path}>
+            <span class="set-chase-label">{gettext("Kupisz ją za")}</span>
+            <strong>{Polish.price(deal.price)}</strong>
+            <span class="set-chase-detail">{chase_source({:shop, deal.shop})}</span>
+          </.link>
+        </div>
+      <% end %>
+      <ul id="set-singles-facts" class="set-chase-facts">
+        <li>
+          <strong>{Polish.number(@singles.in_stock)}</strong>
+          <span>{gettext("z %{total} kart na stanie w Polsce", total: Polish.number(@singles.total))}</span>
+        </li>
+        <li :if={@singles.set_price}>
+          <strong>{Polish.about(@singles.set_price)}</strong>
+          <span>{gettext("cały set, najtaniej")}</span>
+        </li>
+        <li :if={@top}>
+          <strong>{Polish.price(@top.price)}</strong>
+          <span>{gettext("najcenniejsza: %{card}", card: @top.card.name)}</span>
+        </li>
+        <li class="set-chase-fact-extra">
+          <strong>{Polish.number(@singles.cheaper)}</strong>
+          <span>{gettext("taniej niż na Cardmarket z wysyłką")}</span>
+        </li>
+      </ul>
+      <p class="set-chase-foot">
+        <span>{gettext("Ceny w polskich sklepach bez dostawy.")}</span>
+        <a href={@cards_href}>{gettext("Zobacz karty")}</a>
+      </p>
+    </div>
+    """
+  end
+
+  attr :top, :map, required: true
+  attr :next, :list, required: true
+  attr :booster, :map, required: true
+  attr :count, :integer, required: true
+  attr :cards_href, :string, required: true
+
+  defp set_chase(assigns) do
+    ~H"""
+    <div id="set-chase" class="set-chase">
+      <.link class="set-chase-art" navigate={@top.path} tabindex="-1" aria-hidden="true">
+        <.chase_art top={@top} hero?={true} />
+      </.link>
+      <div class="set-chase-head">
+        <p class="set-chase-kicker">{gettext("Najcenniejsza karta w secie")}</p>
+        <h2 class="set-chase-name"><.link navigate={@top.path}>{@top.card.name}</.link></h2>
+        <p class="set-chase-meta">{chase_identity(@top.card)}</p>
+      </div>
+      <div class="set-chase-pair">
+        <.link
+          :if={@top.packs && @booster}
+          id="set-chase-pull"
+          class="set-chase-side set-chase-pull"
+          navigate={~p"/produkty/#{@booster.product.slug}"}
+        >
+          <.chase_pull_copy top={@top} booster={@booster} />
+        </.link>
+        <p :if={!@top.packs || !@booster} id="set-chase-pull" class="set-chase-side set-chase-pull">
+          <.chase_pull_copy top={@top} booster={@booster} />
+        </p>
+        <span class="set-chase-or" aria-hidden="true">{gettext("albo")}</span>
+        <.link id="set-chase-buy" class="set-chase-side set-chase-buy" navigate={@top.path}>
+          <span class="set-chase-label">{gettext("Kupisz ją za")}</span>
+          <strong>{Polish.price(@top.price)}</strong>
+          <span class="set-chase-detail">{chase_source(@top.source)}</span>
+        </.link>
+      </div>
+      <div :if={@next != []} class="set-chase-rest">
+        <h3 id="set-chase-next-title" class="set-chase-kicker">
+          {gettext("Kolejne: wylosujesz albo kupisz")}
+        </h3>
+        <ul id="set-chase-next" class="set-chase-more" aria-labelledby="set-chase-next-title">
+          <li :for={top <- @next}>
+            <div class="set-chase-mini">
+              <.link class="set-chase-mini-thumb" navigate={top.path} tabindex="-1" aria-hidden="true">
+                <.chase_art top={top} />
+              </.link>
+              <.link class="set-chase-mini-name" navigate={top.path}>{top.card.name}</.link>
+              <span class="set-chase-mini-meta">{chase_identity(top.card)}</span>
+              <span class="set-chase-chips">
+                <.link
+                  :if={top.packs && @booster}
+                  class="set-chase-chip set-chase-chip-pull"
+                  navigate={~p"/produkty/#{@booster.product.slug}"}
+                >
+                  <span class="sr-only">{gettext("wylosujesz średnio: ")}</span>{chase_pull_short(top)}
+                </.link>
+                <span
+                  :if={!top.packs || !@booster}
+                  class={[
+                    "set-chase-chip set-chase-chip-pull",
+                    !top.packs && "set-chase-chip-unknown"
+                  ]}
+                >
+                  <span class="sr-only">{gettext("wylosujesz: ")}</span>{chase_pull_short(top)}
+                </span>
+                <.link class="set-chase-chip set-chase-chip-buy" navigate={top.path}>
+                  <span class="sr-only">{gettext("kupisz za ")}</span>{Polish.price(top.price)}
+                </.link>
+              </span>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <.chase_foot count={@count} priced?={true} href={@cards_href} />
+    </div>
+    """
+  end
+
+  attr :top, :map, required: true
+  attr :hero?, :boolean, default: false
+
+  defp chase_art(assigns) do
+    ~H"""
+    <img
+      :if={@top.image}
+      src={
+        if(@hero?, do: CardImage.detail_url(@top.image), else: CardImage.thumbnail_url(@top.image))
+      }
+      alt=""
+      width="600"
+      height="825"
+      loading={if(@hero?, do: "eager", else: "lazy")}
+      class={if(@hero?, do: "set-chase-img", else: "set-chase-mini-art")}
+    />
+    <span
+      :if={!@top.image}
+      class={[if(@hero?, do: "set-chase-img", else: "set-chase-mini-art"), "set-chase-noart"]}
+      aria-hidden="true"
+    >
+      <span class="set-chase-noart-number">{@top.card.number}</span>
+      <span :if={@hero?} class="set-chase-noart-note">{gettext("brak zdjęcia")}</span>
+    </span>
+    """
+  end
+
+  attr :top, :map, required: true
+  attr :booster, :map, required: true
+
+  defp chase_pull_copy(assigns) do
+    ~H"""
+    <%= cond do %>
+      <% is_nil(@top.packs) -> %>
+        <span class="set-chase-label">{gettext("Wylosujesz?")}</span>
+        <strong class="set-chase-unknown">{gettext("szansy nie znamy")}</strong>
+      <% @top.cost -> %>
+        <span class="set-chase-label">{gettext("Wylosujesz średnio za")}</span>
+        <strong>{Polish.about(@top.cost)}</strong>
+        <span class="set-chase-detail">{gettext("%{packs} po %{price}",
+          packs: Polish.packs(@top.packs),
+          price: Polish.price(@booster.verdict.cheapest.price)
+        )}</span>
+      <% true -> %>
+        <span class="set-chase-label">{gettext("Wylosujesz średnio raz na")}</span>
+        <strong>{Polish.packs(@top.packs)}</strong>
+        <span class="set-chase-detail">{chase_booster_state(@booster)}</span>
+    <% end %>
+    """
+  end
+
+  defp chase_booster_state(%{preorder?: true, premiere: %Date{} = date}),
+    do: gettext("booster w przedsprzedaży, premiera %{date}", date: Polish.day_month(date))
+
+  defp chase_booster_state(%{preorder?: true}), do: gettext("booster w przedsprzedaży")
+  defp chase_booster_state(_booster), do: gettext("boostera nie ma teraz na stanie")
+
+  defp chase_pull_short(%{packs: nil}), do: gettext("szansy nie znamy")
+  defp chase_pull_short(%{cost: %Decimal{} = cost}), do: Polish.about(cost)
+
+  defp chase_pull_short(%{packs: packs}),
+    do: gettext("raz na %{packs}", packs: Polish.packs(packs))
+
+  defp chase_identity(card),
+    do:
+      gettext("nr %{number} · %{rarity}",
+        number: card.number,
+        rarity:
+          if(card.rarity, do: Rarities.label(card.rarity), else: gettext("Rzadkość nieznana"))
+      )
+
+  defp chase_source({:shop, shop}), do: gettext("w %{shop}", shop: Shops.name(shop))
+  defp chase_source(:cardmarket), do: gettext("na Cardmarket")
+
+  attr :count, :integer, required: true
+  attr :priced?, :boolean, required: true
+  attr :href, :string, required: true
+
+  defp chase_foot(assigns) do
+    ~H"""
+    <p class="set-chase-foot">
+      <span :if={@priced?}>{gettext("Ceny bez dostawy, szanse to szacunki.")}</span>
+      <a :if={@count > 0} href={@href}>{ngettext(
+        "Wszystkie karty (%{cards})",
+        "Wszystkie %{cards} karty",
+        @count,
+        cards: Polish.number(@count)
+      )}</a>
+    </p>
     """
   end
 
@@ -668,6 +917,16 @@ defmodule TcgCheapWeb.HomeLive do
   attr :row, :map, required: true
 
   defp card_row(assigns) do
+    assigns =
+      assign(
+        assigns,
+        :price,
+        CardGuide.price(%{
+          polish_price: assigns.row.price,
+          cardmarket_trend_pln: assigns.row.cardmarket_trend_pln
+        })
+      )
+
     ~H"""
     <li
       id={@id}
@@ -690,10 +949,8 @@ defmodule TcgCheapWeb.HomeLive do
           <p class="guide-product-meta">{@row.card.number} · {@row.expansion_name}</p>
         </div>
         <p class="guide-product-price">
-          <strong :if={@row.price || @row.cardmarket_trend_pln}>{Polish.price(
-            @row.price || @row.cardmarket_trend_pln
-          )}</strong>
-          <span :if={!@row.price && !@row.cardmarket_trend_pln}>{gettext("Cena nieznana")}</span>
+          <strong :if={@price}>{Polish.price(@price)}</strong>
+          <span :if={!@price}>{gettext("Cena nieznana")}</span>
         </p>
       </.link>
     </li>
@@ -718,41 +975,50 @@ defmodule TcgCheapWeb.HomeLive do
           />
         </.site_header>
         <main id="guide-main" class="guide-main" data-guide-url={@locale_return_to}>
-          <%= if @set_page do %>
-            <.set_intro name={@filters.expansion_name} page={@set_page} />
-          <% else %>
-            <div class="guide-top">
-              <section class="guide-intro" aria-labelledby="guide-title">
-                <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
-                <p id="guide-promise">
-                  {gettext("Najtańsze oferty Pokémon TCG w polskich sklepach.")}
-                </p>
-              </section>
+          <%= cond do %>
+            <% @set_page && @filters.mode == :cards -> %>
+              <.set_intro
+                name={@filters.expansion_name}
+                page={@set_page}
+                close={list_path(@filters, expansion: nil, expansion_name: nil)}
+                cards_href="#guide-results-title"
+                singles?={true}
+              />
+            <% @set_page -> %>
+              <.set_intro name={@filters.expansion_name} page={@set_page} />
+            <% true -> %>
+              <div class="guide-top">
+                <section class="guide-intro" aria-labelledby="guide-title">
+                  <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
+                  <p id="guide-promise">
+                    {gettext("Najtańsze oferty Pokémon TCG w polskich sklepach.")}
+                  </p>
+                </section>
 
-              <nav
-                id="guide-mode"
-                class="guide-mode"
-                aria-label={gettext("Szukaj w katalogu")}
-              >
-                <.link
-                  id="mode-products"
-                  patch={
-                    list_path(@filters,
-                      mode: :products,
-                      expansion: nil,
-                      expansion_name: nil,
-                      region: :en
-                    )
-                  }
-                  aria-current={if(@filters.mode == :products, do: "true")}
-                >{gettext("Produkty")}</.link>
-                <.link
-                  id="mode-cards"
-                  patch={list_path(@filters, mode: :cards, kind: nil, region: nil, expansion: nil)}
-                  aria-current={if(@filters.mode == :cards, do: "true")}
-                >{gettext("Karty")}</.link>
-              </nav>
-            </div>
+                <nav
+                  id="guide-mode"
+                  class="guide-mode"
+                  aria-label={gettext("Szukaj w katalogu")}
+                >
+                  <.link
+                    id="mode-products"
+                    patch={
+                      list_path(@filters,
+                        mode: :products,
+                        expansion: nil,
+                        expansion_name: nil,
+                        region: :en
+                      )
+                    }
+                    aria-current={if(@filters.mode == :products, do: "true")}
+                  >{gettext("Produkty")}</.link>
+                  <.link
+                    id="mode-cards"
+                    patch={list_path(@filters, mode: :cards, kind: nil, region: nil, expansion: nil)}
+                    aria-current={if(@filters.mode == :cards, do: "true")}
+                  >{gettext("Karty")}</.link>
+                </nav>
+              </div>
           <% end %>
           <section class="guide-search" aria-labelledby="guide-search-title">
             <h2 id="guide-search-title" class="sr-only">
@@ -792,7 +1058,6 @@ defmodule TcgCheapWeb.HomeLive do
                   }
                 />
                 <button
-                  :if={@filters.mode == :products}
                   type="button"
                   id="guide-filters-toggle"
                   class="guide-filters-toggle"
@@ -811,6 +1076,12 @@ defmodule TcgCheapWeb.HomeLive do
                 </button>
               </div>
               <input :if={@filters.mode == :cards} type="hidden" name="widok" value="karty" />
+              <input
+                :if={@filters.mode == :cards and @filters.expansion}
+                type="hidden"
+                name="rozszerzenie"
+                value={@filters.expansion}
+              />
               <input :if={@filters.kind} type="hidden" name="rodzaj" value={@filters.kind} />
               <input
                 :if={region_value(@filters)}
@@ -821,9 +1092,8 @@ defmodule TcgCheapWeb.HomeLive do
             </.form>
           </section>
 
-          <div class={["guide-browse", @filters.mode == :cards && "guide-browse-cards"]}>
+          <div class="guide-browse">
             <.filters
-              :if={@filters.mode == :products}
               filters={@filters}
               facets={@facets}
               result_count={@result_count}
@@ -961,7 +1231,11 @@ defmodule TcgCheapWeb.HomeLive do
                   </p>
                 </div>
               </.offers_disclosure>
-              <div :if={@set_page && @set_page.set} id="set-content" class="guide-set">
+              <div
+                :if={@filters.mode == :products && @set_page && @set_page.set}
+                id="set-content"
+                class="guide-set"
+              >
                 <.pull_rates
                   pull_rates={@set_page.set.pull_rates}
                   standard_pack_size={@set_page.set.standard_pack_size}

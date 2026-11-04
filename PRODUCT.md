@@ -65,13 +65,21 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   pre-order offers and clearly marked as a pre-order, with the days until
   the expansion's premiere (the same street date for every shop) when it is
   known; otherwise pre-orders are listed in their own group.
-- Set pages (owner decision, 2026-11-03): every named expansion has a page
-  (`/rozszerzenia/<name>-<id>`) that answers first (the single booster's
-  cheapest price, the rarest pull rates, the card count and the most valuable
-  card), then lists the set's products with their verdicts, its pull rates
-  and its cards with Cardmarket prices. Pages state the answer in their first
-  sentence and search metadata, so search engines and AI assistants can quote
-  it.
+- Set pages (owner decision, 2026-11-03, banner revised 2026-11-04): every
+  named expansion has a page (`/rozszerzenia/<name>-<id>`) that answers first
+  with a banner under the set's logo: its most valuable card and what pulling
+  it from packs costs on average against buying it, then the next three cards
+  the same way (a set without card prices shows its single booster instead).
+  The page then lists the set's products with their verdicts, its pull rates
+  and its cards. One card price is used everywhere: the lower of the cheapest
+  Polish shop offer and the Cardmarket trend in złoty, without delivery.
+  Pages state the answer in their first sentence and search metadata, so
+  search engines and AI assistants can quote it.
+- The card list (`?widok=karty`) filters by expansion like the product list;
+  a chosen expansion opens with a singles banner in the same style: the set's
+  best deal (a Polish shop price furthest under the Cardmarket price with
+  delivery), its cards in stock in Poland, the whole set at the lowest prices
+  and its most valuable card.
 - Public pages read only the local database; shops and Cardmarket are fetched
   by background jobs.
 - The legacy singles catalogue, valuation and trade pages have been removed.
