@@ -45,6 +45,42 @@ merge, deploy and evaluation. Plan and measure: [strategy.md](strategy.md).
   pages with `shop_link_clicked`.
 - Evaluate: first check one week after deploy (valid/invalid items), effect
   three weeks after deploy.
-- State: PR #102 open, reviewed (sol-loop, approved); not merged, not
-  deployed. Merging deploys to production, so it is the owner's call.
+- State: PR #102 merged 2026-11-04 (`80aee1e`) and deployed. Verified on
+  production 2026-11-04 (30/30 sampled indexable cards carry `Product` with
+  `lowPrice` equal to the "od" price; 5/5 noindex cards carry none) and
+  2026-11-05 (4/4 sampled cards still do).
+- Evaluate: 2026-11-11 (GSC product snippets), 2026-11-25 (effect).
+- Result: pending. PostHog 2026-11-02 – 2026-11-05 06:00 UTC: organic search
+  sessions 1 (2026-11-02), with `shop_link_clicked` 0 — still the baseline.
+
+## E2 — Set pages of cards in stock into the sitemap
+
+- Hypothesis: the sitemap lists a set page only when one of the set's sealed
+  products is in stock, a rule from before singles. Sets whose cards are in
+  stock but whose boosters are not (mostly Sun & Moon era and promos) are
+  missing, so their in-stock cards reach Google only as loose sitemap URLs,
+  without the set page that links them. Submitting those set pages gives each
+  of those cards a crawled hub and lets "<set> lista kart / ceny" match a page.
+- Sources: production on 2026-11-05: sitemap 6,228 URLs (96 sets, 678
+  products, 5,453 cards). Crawling the 96 submitted set pages reached 4,765
+  of the 5,453 cards; the other 688 belong to sets missing from the sitemap
+  (e.g. Cosmic Eclipse 115 cards, Team Up 77, Burning Shadows 73, SVP Black
+  Star Promos 70). Those set pages answer 200, `index, follow`, canonical to
+  themselves, and list their cards.
+- Change: the sitemap adds the set page of every card it submits, under the
+  name the card path uses; the sealed rule is unchanged. Branch
+  `fix/seo-sitemap-card-sets`. On a copy of dev data: sets 88 → 118, products
+  and cards unchanged; 30/30 added set pages 200, `index, follow`,
+  self-canonical, linking cards; card sets without their set page 30 → 0.
+- Baseline (2026-11-05): 688 submitted cards (12.6 %) without a submitted set
+  page; GSC unavailable to the agent; organic sessions 1, organic
+  `shop_link_clicked` 0.
+- Metrics: after deploy, every card set in the sitemap (check on production);
+  GSC indexed set pages and card URLs of the added sets vs. "Discovered –
+  currently not indexed"; later organic sessions landing on `/rozszerzenia/`.
+- Evaluate: production check right after deploy; GSC 2026-11-19; effect
+  2026-12-03. Confounded with E0 and E1 on card indexing: compare the added
+  sets' cards with the rest.
+- State: implemented, PR pending. Merging deploys to production, so it is the
+  owner's call.
 - Result: pending.

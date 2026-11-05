@@ -40,6 +40,8 @@ thin mass-generated pages, keyword stuffing.
   `noindex, follow`.
 - Card pages: indexed and in the sitemap only while they have an in-stock,
   ungraded offer (PR #99); otherwise `noindex, follow`, still 200 and linked.
+- Set pages: in the sitemap when a sealed product or a card of the set is in
+  stock (E2); always `index, follow` unless filtered or searched.
 - Structured data mirrors visible content: `Product` + `AggregateOffer` only
   from current in-stock offers; `BreadcrumbList` on product, set and card
   pages; `WebSite` on the home page.
@@ -49,17 +51,18 @@ thin mass-generated pages, keyword stuffing.
 Ranked by expected effect on the measure, evidence first. Pick one experiment
 at a time; move the running one forward before starting another.
 
-1. Card pages: `Product` + `AggregateOffer` structured data (running, see
-   experiments.md, E1).
-2. Card pages are leaves: they link only to their set. Link a card to the
+1. Card pages: `Product` + `AggregateOffer` structured data (deployed,
+   waiting for evaluation, see experiments.md, E1).
+2. Set pages of cards in stock into the sitemap (E2, PR pending).
+3. Card pages are leaves: they link only to their set. Link a card to the
    sealed products whose set contains it and to the set's other cards with
    offers, so crawlers reach indexable cards outside the set page.
-3. Set and card pages share the home link-preview image; give set pages
+4. Set and card pages share the home link-preview image; give set pages
    their own (set logo plus the booster answer), as product pages have.
-4. Sitemap has no `lastmod`; add it from the offers' last price change only
+5. Sitemap has no `lastmod`; add it from the offers' last price change only
    if Google shows crawl lag on changed pages in GSC.
 
-## Access (checked 2026-11-04)
+## Access (checked 2026-11-04; repo, GitHub, production and PostHog rechecked 2026-11-05)
 
 - Repo, worktrees, GitHub push/PR/CI: yes. Merging to `main` deploys to
   production automatically (Coolify), so merge is the owner's decision.
