@@ -19,17 +19,26 @@ defmodule TcgCheap.Sealed.CardImage do
   @unsafe_path_character ~r/[\s\\\x00-\x1F\x7F]/
   @bare_percent ~r/%(?![0-9A-Fa-f]{2})/
 
-  @doc "A catalogue card's image lies in its set's TCGdex card image directory, named by its number."
-  def single_source_url(%{card_images_url: "" <> directory, cards_source_url: nil}, number),
+  @doc """
+  A catalogue card's image sources, best first: the card in its set's TCGdex
+  card image directory, then Limitless TCG's scan. Pages show the first one
+  mirrored; TCGdex lacks the images of some sets (Shining Legends, MEP Black
+  Star Promos) and of some cards (SVP 175).
+  """
+  @spec single_sources(map(), String.t()) :: [String.t()]
+  def single_sources(%{cards_source_url: nil} = set, number),
+    do: Enum.reject([tcgdex_card(set, number), limitless_scan(set, number)], &is_nil/1)
+
+  def single_sources(_set, _number), do: []
+
+  defp tcgdex_card(%{card_images_url: "" <> directory}, number),
     do: source_url(directory <> "/" <> number)
 
-  # TCGdex has no card images of some sets (Shining Legends, Dragon Majesty,
-  # MEP Black Star Promos). Limitless TCG names its scans by the official set
-  # code and the printed number, padded to three digits.
-  def single_source_url(
-        %{card_images_url: nil, abbreviation: "" <> code, cards_source_url: nil},
-        number
-      ) do
+  defp tcgdex_card(_set, _number), do: nil
+
+  # Limitless TCG names its scans by the official set code and the printed
+  # number, padded to three digits.
+  defp limitless_scan(%{abbreviation: "" <> code}, number) do
     if Regex.match?(~r/\A\d+\z/, number) do
       card_source_url(
         "#{@limitless}/#{code}/#{code}_#{String.pad_leading(number, 3, "0")}_R_EN_LG.png"
@@ -37,7 +46,7 @@ defmodule TcgCheap.Sealed.CardImage do
     end
   end
 
-  def single_source_url(_set, _number), do: nil
+  defp limitless_scan(_set, _number), do: nil
 
   @doc "Returns the local URL for the stored detail variant of a card image."
   @spec detail_url(term()) :: String.t() | nil
