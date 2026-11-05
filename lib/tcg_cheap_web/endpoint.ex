@@ -13,7 +13,8 @@ defmodule TcgCheapWeb.Endpoint do
 
   socket "/live", Phoenix.LiveView.Socket,
     websocket: [connect_info: [:peer_data, session: @session_options]],
-    longpoll: [connect_info: [:peer_data, session: @session_options]]
+    # Keep idle polls below the ten-second timeout seen in PageSpeed's requests.
+    longpoll: [window_ms: 5_000, connect_info: [:peer_data, session: @session_options]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
