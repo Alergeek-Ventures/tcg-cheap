@@ -12,7 +12,7 @@ defmodule TcgCheap.Sealed.CardImage do
 
   @host "assets.tcgdex.net"
   @limitless "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci"
-  @limitless_scan ~r"\Ahttps://limitlesstcg\.nyc3\.cdn\.digitaloceanspaces\.com/tpci/([A-Z0-9]+)/\1_\d{3,}_R_EN_LG\.png\z"
+  @limitless_scan ~r"\Ahttps://limitlesstcg\.nyc3\.cdn\.digitaloceanspaces\.com/tpci/(?:([A-Z0-9]+)/\1_\d{3,}|CRZ/CRZ_GG[1-9]\d?)_R_EN_LG\.png\z"
   @qualified_path ~r{/((?:high|low)\.(?:png|jpg|webp))$}
   @known_extension ~r/\.[A-Za-z0-9]+$/
   @image_extension ~r/\.(?:png|jpg|webp)$/
@@ -36,8 +36,13 @@ defmodule TcgCheap.Sealed.CardImage do
 
   defp tcgdex_card(_set, _number), do: nil
 
-  # Limitless TCG names its scans by the official set code and the printed
-  # number, padded to three digits.
+  # Galarian Gallery uses Crown Zenith's directory and its unpadded GG number.
+  defp limitless_scan(%{abbreviation: "CRZ:GG"}, "GG" <> digits) do
+    if Regex.match?(~r/\A\d{2}\z/, digits),
+      do: card_source_url("#{@limitless}/CRZ/CRZ_GG#{String.to_integer(digits)}_R_EN_LG.png")
+  end
+
+  # Other scans use the official set code and the number padded to three digits.
   defp limitless_scan(%{abbreviation: "" <> code}, number) do
     if Regex.match?(~r/\A\d+\z/, number) do
       card_source_url(
