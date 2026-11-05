@@ -81,6 +81,9 @@ merge, deploy and evaluation. Plan and measure: [strategy.md](strategy.md).
 - Evaluate: production check right after deploy; GSC 2026-11-19; effect
   2026-12-03. Confounded with E0 and E1 on card indexing: compare the added
   sets' cards with the rest.
-- State: implemented, PR pending. Merging deploys to production, so it is the
-  owner's call.
+- State: PR #109 merged 2026-11-05 on the owner's instruction (`e0dcc2a`),
+  deployed by CI. Verified on production 2026-11-05: sitemap 6,257 URLs
+  (125 sets, 678 products, 5,453 cards, no duplicates); 29/29 added set
+  pages 200, `index, follow`, self-canonical, linking cards; submitted cards
+  without their set page submitted: 0.
 - Result: pending.
