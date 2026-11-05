@@ -279,7 +279,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
       {:ok,
        %Product{
          id_product: row["idProduct"],
-         name: name,
+         name: unescape_quotes(name),
          category: category,
          category_id: category_id,
          id_expansion: expansion,
@@ -397,6 +397,10 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
         {:error, {:invalid_integer, key}}
     end
   end
+
+  # The sealed catalogue keeps CSV quote escaping in its JSON names:
+  # `WCD 2025: Liao Fu Guan ""Joltdengo""`.
+  defp unescape_quotes(name), do: String.replace(name, ~s(""), ~s("))
 
   defp nonblank(row, key) do
     case Map.get(row, key) do
