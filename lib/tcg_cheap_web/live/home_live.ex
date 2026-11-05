@@ -779,18 +779,26 @@ defmodule TcgCheapWeb.HomeLive do
   # typical shop price today, then the product market in numbers.
   defp sealed_market(assigns) do
     ~H"""
-    <div id="set-chase" class={["set-chase", @market.deals == [] && "set-chase-empty"]}>
-      <%= if deal = List.first(@market.deals) do %>
-        <div class="set-chase-art set-chase-products" aria-hidden="true">
-          <.link
-            :for={deal <- photo_stack(@market.deals)}
-            navigate={~p"/produkty/#{deal.product.slug}"}
-            tabindex="-1"
-            style={"--photo-aspect: #{Float.round(deal.photo_aspect, 3)}"}
-          >
-            <img src={deal.product.stored_photo_card_url} alt="" loading="eager" />
-          </.link>
-        </div>
+    <div id="set-chase" class={["set-chase", !@market.deal && "set-chase-empty"]}>
+      <%= if deal = @market.deal do %>
+        <%!-- One product: what it holds above, the box itself below, in a card's shape. --%>
+        <.link
+          class="set-chase-art set-chase-products"
+          navigate={~p"/produkty/#{deal.product.slug}"}
+          tabindex="-1"
+          aria-hidden="true"
+        >
+          <span :if={deal.contents_photos != []} class="set-chase-contents">
+            <img :for={photo <- deal.contents_photos} src={photo} alt="" loading="eager" />
+          </span>
+          <img
+            :if={deal.product.stored_photo_card_url}
+            src={deal.product.stored_photo_card_url}
+            alt=""
+            loading="eager"
+            class="set-chase-box"
+          />
+        </.link>
         <div class="set-chase-head">
           <p class="set-chase-kicker">{gettext("Najlepsza okazja teraz")}</p>
           <h2 class="set-chase-name">
@@ -852,17 +860,6 @@ defmodule TcgCheapWeb.HomeLive do
       </p>
     </div>
     """
-  end
-
-  # The best deals' photos stacked in the card's place: three flat ones
-  # (boxes), else two, scaled together to fit.
-  defp photo_stack(deals) do
-    photos = Enum.filter(deals, &(&1.product.stored_photo_card_url && &1.photo_aspect))
-    three = Enum.take(photos, 3)
-
-    if length(three) == 3 and Enum.sum_by(three, & &1.photo_aspect) <= 2,
-      do: three,
-      else: Enum.take(photos, 2)
   end
 
   attr :singles, :map, default: nil
@@ -985,7 +982,7 @@ defmodule TcgCheapWeb.HomeLive do
           src={@booster.product.stored_photo_card_url}
           alt=""
           loading="eager"
-          style="--photo-aspect: 1"
+          class="set-chase-box"
         />
         <span :if={!@booster.product.stored_photo_card_url} class="set-chase-img set-chase-noart">
           <span class="set-chase-noart-note">{gettext("brak zdjęcia")}</span>

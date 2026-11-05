@@ -31,19 +31,6 @@ defmodule TcgCheap.Storage.Variants.Webp do
     end
   end
 
-  @doc "The height of a placeholder's image over its width, roughly (it is 8 pixels wide)."
-  @spec placeholder_aspect(String.t()) :: float() | nil
-  def placeholder_aspect("data:image/webp;base64," <> data) do
-    with {:ok, webp} <- Base.decode64(data),
-         {:ok, image} <- Image.from_binary(webp) do
-      Image.height(image) / Image.width(image)
-    else
-      _invalid -> nil
-    end
-  end
-
-  def placeholder_aspect(_placeholder), do: nil
-
   # sobelow_skip ["Traversal.FileModule"]
   # dest_path is a temporary path allocated by AshStorage.VariantGenerator.
   defp write_file(dest_path, data), do: File.write(dest_path, data)
