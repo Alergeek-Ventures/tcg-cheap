@@ -25,8 +25,13 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
            'card' AS kind
       FROM sealed_tcgdex_cards c
       JOIN sealed_tcgdex_sets s ON c.tcgdex_set_id = s.id
-      WHERE s.language = 'en' AND s.cards_source_url IS NULL AND s.card_images_url IS NULL
+      WHERE s.language = 'en' AND s.cards_source_url IS NULL
         AND s.abbreviation ~ '^[A-Z0-9]+$' AND c.number ~ '^[0-9]+$'
+        -- Only where TCGdex has no image: no directory, or the card's failed to download.
+        AND (s.card_images_url IS NULL OR EXISTS (
+          SELECT 1 FROM storage_remote_images r
+           WHERE r.id = encode(sha256(convert_to(s.card_images_url || '/' || c.number || '/high.webp', 'UTF8')), 'hex')
+             AND r.attempted_at IS NOT NULL AND r.detail_key IS NULL))
     UNION
     SELECT item->>'image' AS url, 'card' AS kind
       FROM sealed_products,
@@ -148,7 +153,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   end
 
   # All current offers count, including out-of-stock cards people search for.
-  # Source construction matches CardImage.single_source_url/2; no remote I/O.
+  # Source construction matches CardImage.single_sources/2; no remote I/O.
   defp offered_sources do
     from(c in TcgdexCard,
       join: s in TcgdexSet,

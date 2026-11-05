@@ -137,11 +137,10 @@ defmodule TcgCheap.Sealed.CardGuide do
     numbers = Enum.map(page, & &1.card.number)
     collisions = collision_ids(ids, numbers)
     names = expansion_names(ids)
-    sources = Enum.map(page, &CardImage.single_source_url(&1.set, &1.card.number))
 
     mirrored =
-      sources
-      |> Enum.reject(&is_nil/1)
+      page
+      |> Enum.flat_map(&CardImage.single_sources(&1.set, &1.card.number))
       |> Enum.map(&CardImage.source_hash/1)
       |> Storage.mirrored_image_urls(:thumbnail)
 
@@ -150,10 +149,11 @@ defmodule TcgCheap.Sealed.CardGuide do
     results =
       Enum.map(page, fn row ->
         name = Map.fetch!(names, row.set.cardmarket_expansion_id)
-        source = CardImage.single_source_url(row.set, row.card.number)
 
         image =
-          if source, do: Map.get(mirrored, CardImage.source_hash(source))
+          row.set
+          |> CardImage.single_sources(row.card.number)
+          |> Enum.find_value(&Map.get(mirrored, CardImage.source_hash(&1)))
 
         Map.merge(row, %{
           cardmarket_trend_pln: Guide.to_pln(row.trend, rate),
@@ -347,12 +347,19 @@ defmodule TcgCheap.Sealed.CardGuide do
   end
 
   defp image(card) do
-    source = CardImage.single_source_url(card.tcgdex_set, card.number)
-
-    if source &&
-         Storage.list_mirrored_remote_images!([CardImage.source_hash(source)]) != [],
-       do: source
+    sources = CardImage.single_sources(card.tcgdex_set, card.number)
+    first_mirrored(sources, mirrored_hashes(sources))
   end
+
+  defp mirrored_hashes(sources) do
+    sources
+    |> Enum.map(&CardImage.source_hash/1)
+    |> Storage.list_mirrored_remote_images!()
+    |> MapSet.new(& &1.id)
+  end
+
+  defp first_mirrored(sources, mirrored),
+    do: Enum.find(sources, &MapSet.member?(mirrored, CardImage.source_hash(&1)))
 
   def verdict(nil, _), do: :unavailable
   def verdict(_, nil), do: :unknown
@@ -437,7 +444,7 @@ defmodule TcgCheap.Sealed.CardGuide do
 
   defp with_public_identity(card, set, name, collisions) do
     card
-    |> Map.put(:image_source, CardImage.single_source_url(set, card.number))
+    |> Map.put(:image_sources, CardImage.single_sources(set, card.number))
     |> Map.put(:expansion_name, name)
     |> Map.put(
       :public_path,
@@ -521,17 +528,8 @@ defmodule TcgCheap.Sealed.CardGuide do
 
   @doc "The mirrored source image of each card by id (nil when not mirrored yet), in one query."
   def images(cards) do
-    mirrored =
-      cards
-      |> Enum.map(& &1.image_source)
-      |> Enum.reject(&is_nil/1)
-      |> Enum.map(&CardImage.source_hash/1)
-      |> Storage.list_mirrored_remote_images!()
-      |> MapSet.new(& &1.id)
-
-    Map.new(cards, fn %{image_source: source} = card ->
-      {card.id, if(source && MapSet.member?(mirrored, CardImage.source_hash(source)), do: source)}
-    end)
+    mirrored = cards |> Enum.flat_map(& &1.image_sources) |> mirrored_hashes()
+    Map.new(cards, &{&1.id, first_mirrored(&1.image_sources, mirrored)})
   end
 
   # Only cards whose page has an answer: an in-stock, ungraded current offer,
