@@ -20,6 +20,14 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       WHERE s.language = 'en' AND s.cards_source_url IS NULL
         AND s.card_images_url IS NOT NULL
     UNION
+    SELECT 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/' || s.abbreviation || '/'
+             || s.abbreviation || '_' || lpad(c.number, greatest(3, length(c.number)), '0') || '_R_EN_LG.png',
+           'card' AS kind
+      FROM sealed_tcgdex_cards c
+      JOIN sealed_tcgdex_sets s ON c.tcgdex_set_id = s.id
+      WHERE s.language = 'en' AND s.cards_source_url IS NULL AND s.card_images_url IS NULL
+        AND s.abbreviation ~ '^[A-Z0-9]+$' AND c.number ~ '^[0-9]+$'
+    UNION
     SELECT item->>'image' AS url, 'card' AS kind
       FROM sealed_products,
            jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item
@@ -148,10 +156,26 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       join: o in subquery(CardGuide.current_query()),
       on: o.card_id == c.id,
       where: is_nil(o.grading) and s.language == "en" and is_nil(s.cards_source_url),
-      where: not is_nil(s.card_images_url),
+      where:
+        not is_nil(s.card_images_url) or
+          (fragment("? ~ '^[A-Z0-9]+$'", s.abbreviation) and fragment("? ~ '^[0-9]+$'", c.number)),
       distinct: true,
       select: %{
-        source_url: fragment("? || '/' || ? || '/high.webp'", s.card_images_url, c.number)
+        source_url:
+          fragment(
+            """
+            CASE WHEN ? IS NOT NULL THEN ? || '/' || ? || '/high.webp'
+            ELSE 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/' || ? || '/' || ? || '_'
+                 || lpad(?, greatest(3, length(?)), '0') || '_R_EN_LG.png' END
+            """,
+            s.card_images_url,
+            s.card_images_url,
+            c.number,
+            s.abbreviation,
+            s.abbreviation,
+            c.number,
+            c.number
+          )
       }
     )
   end
@@ -192,7 +216,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   defp trim_margins(body, type, true),
     do: Storage.ImageDownload.trim_transparent_margins(body, type)
 
-  defp canonical_source(url, "card"), do: CardImage.source_url(url)
+  defp canonical_source(url, "card"), do: CardImage.card_source_url(url)
   defp canonical_source(url, "logo"), do: CardImage.logo_source_url(url)
   defp canonical_source(url, "photo"), do: CardImage.photo_source_url(url)
   defp canonical_source(url, "expansion_logo"), do: CardImage.expansion_logo_source_url(url)

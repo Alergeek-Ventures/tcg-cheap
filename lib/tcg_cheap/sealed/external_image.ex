@@ -58,10 +58,16 @@ defmodule TcgCheap.Sealed.ExternalImage do
     "www.serebii.net"
   ]
 
+  # Limitless TCG's card scans, for sets TCGdex has no card images of
+  # (`TcgCheap.Sealed.CardImage.single_source_url/2`).
+  @card_scan_hosts ["limitlesstcg.nyc3.cdn.digitaloceanspaces.com"]
+
   @doc "Every host an image may be rendered from."
   @spec hosts() :: [String.t()]
   def hosts,
-    do: @official_hosts ++ @contents_photo_hosts ++ @expansion_logo_hosts ++ Shops.image_hosts()
+    do:
+      @official_hosts ++
+        @contents_photo_hosts ++ @expansion_logo_hosts ++ @card_scan_hosts ++ Shops.image_hosts()
 
   @doc "Returns the CSP image sources: local assets and our own object storage only."
   @spec csp_sources() :: [String.t()]
