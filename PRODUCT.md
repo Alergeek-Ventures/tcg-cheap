@@ -94,7 +94,10 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   2026-11-05). Sets are chosen in one place: a column beside the list on a
   wide screen, a shelf above it on a narrow one. "Produkty" opens the kind and language menu; kinds come as five
   shelves (Boostery, Booster Boxy, Elite Trainer Box, Kolekcje i puszki,
-  Talie), each shelf's exact kinds one step further.
+  Talie), each shelf's exact kinds one step further. The tab keeps its name;
+  a badge counts the chosen kind and language (owner decision, 2026-11-05).
+  The tabs are slim on a desktop and wider on a phone, where the query takes
+  the whole bar while it is typed.
 - Public pages read only the local database; shops and Cardmarket are fetched
   by background jobs.
 - The legacy singles catalogue, valuation and trade pages have been removed.

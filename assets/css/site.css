@@ -59,7 +59,7 @@
 /* Masthead and search stay at the top while the list scrolls; both keep one fixed height so the
    search and the filters can sit right under them. A long town name is cut, never wrapped. */
 .guide-world { --guide-header-size: calc(4rem + 1px); --guide-search-gap: .75rem; --guide-search-size: 4rem; --guide-sticky-size: calc(var(--guide-header-size) + var(--guide-search-gap) + var(--guide-search-size)); }
-.guide-world .site-header { background: var(--bench); block-size: var(--guide-header-size); flex-wrap: nowrap; inset-block-start: 0; position: sticky; z-index: 3; }
+.guide-world .site-header { background: var(--bench); block-size: var(--guide-header-size); flex-wrap: nowrap; inset-block-start: 0; position: sticky; z-index: 4; }
 .guide-world .site-header > :last-child, .guide-world .site-header :is(.visitor-location-summary, .visitor-location-label) { max-inline-size: 100%; min-inline-size: 0; }
 .guide-world .site-header .visitor-location-panel { max-block-size: calc(100svh - var(--guide-header-size) - 1rem); overflow-y: auto; overscroll-behavior: contain; }
 .guide-language { border-inline-end: 1px solid var(--rule); display: flex; margin-inline-start: auto; padding-inline-end: .5rem; }
@@ -140,8 +140,9 @@
 .guide-world .guide-intro { margin-bottom: 1.25rem; }
 .guide-world #guide-title { font-size: clamp(2rem, 5vw, 2.5rem); letter-spacing: -.04em; line-height: 1; }
 .guide-world #guide-promise { margin: .5rem 0 0; max-width: 52ch; }
-/* The bar: the set, the query and the catalogue in one sticky row; the menus hang from all of it. */
-.guide-world .guide-search { align-items: stretch; background: var(--bench-light); block-size: var(--guide-search-size); box-shadow: 0 var(--guide-search-gap) 0 var(--bench), 0 calc(-1 * var(--guide-search-gap)) 0 var(--bench); display: flex; inset-block-start: calc(var(--guide-header-size) + var(--guide-search-gap)); margin-bottom: 1.5rem; position: sticky; z-index: 2; }
+/* The bar: the query and the catalogue in one sticky row; the menus hang from all of it. Its bench
+   hides what scrolls under it, also to its left, where the banner card overhangs. */
+.guide-world .guide-search { align-items: stretch; background: var(--bench-light); block-size: var(--guide-search-size); --guide-search-cover: var(--bench); box-shadow: 0 var(--guide-search-gap) 0 var(--guide-search-cover), 0 calc(-1 * var(--guide-search-gap)) 0 var(--guide-search-cover), -2.5rem 0 0 var(--guide-search-gap) var(--guide-search-cover); display: flex; inset-block-start: calc(var(--guide-header-size) + var(--guide-search-gap)); margin-bottom: 1.5rem; position: sticky; z-index: 2; }
 .guide-world #guide-search-form { align-content: center; display: grid; flex: 1; min-inline-size: 0; padding-inline: 1.25rem .75rem; }
 .guide-world .guide-search-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: clip; position: absolute; white-space: nowrap; }
 .guide-world .guide-search-field { align-items: center; display: flex; position: relative; }
@@ -325,10 +326,17 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
   /* beside the pair three numbers fit; the fourth only rounds out the 2×2 grid on narrow screens */
   .guide-world .set-chase:not(.set-chase-empty) .set-chase-fact-extra { display: none; }
 }
-/* At rest the card also overlaps the top of the sticky search bar; from the
-   first scrolled pixel (app.js marks it) it goes back under it and the header. */
+/* The card lies on the sticky search bar until it scrolls away under the
+   header. Scrolling down lifts it off the bar; it settles back as it comes
+   into view on the way up (app.js marks it). Under an open menu's dimming it
+   goes under the bar with the rest of the page. */
 @container set-intro (inline-size >= 52rem) {
-  :root:not([data-scrolled]) .guide-world .set-chase-art { z-index: 3; }
+  .guide-world .set-chase-art { z-index: 3; }
+  :root[data-card-lifted] .guide-world .set-chase-art { translate: -1.5rem -1rem; }
+  html:has(.guide-pop[open]) .guide-world .set-chase-art { z-index: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .guide-world .set-chase-art { transition: translate .25s ease-out; }
 }
 
 .guide-world .guide-set { margin-block-start: 3rem; }
@@ -380,14 +388,14 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .guide-panel a { min-block-size: 2.75rem; padding-inline: .75rem; }
 .guide-world .guide-panel .guide-kinds-exact a { font-size: .875rem; min-block-size: 2.25rem; }
 html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-mix(in oklch, var(--ink) 30%, transparent); content: ""; inset: 0; position: fixed; z-index: 1; }
+/* the bar stands above the dimming, so its bench takes the dimmed colour */
+html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: color-mix(in srgb, var(--ink) 30%, var(--bench)); }
 
 /* The products tab is also the kind menu, named after the chosen kind. */
 .guide-world .guide-kind-menu { display: grid; grid-template-rows: 1fr auto; min-inline-size: 0; }
-.guide-world .guide-kind-menu > summary { align-content: center; align-items: center; block-size: 100%; background: var(--ink); color: var(--paper); display: flex; flex-wrap: wrap; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1.05 "Barlow Condensed", sans-serif; gap: .15rem .35rem; justify-content: center; padding-inline: var(--guide-tab-pad); position: relative; }
-/* the arrow stands at the tab's end, so the name is centred as Karty is */
-.guide-world .guide-kind-menu > summary .guide-pop-chevron { inset-block-start: 50%; inset-inline-end: .6rem; position: absolute; translate: 0 -50%; }
-.guide-world .guide-kind-name { text-align: center; text-wrap: balance; }
-.guide-world .guide-tag { border: 1px solid currentColor; font-size: .625rem; line-height: 1; padding: .1rem .2rem; text-transform: uppercase; }
+.guide-world .guide-kind-menu > summary { align-items: center; block-size: 100%; background: var(--ink); color: var(--paper); display: flex; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1.05 "Barlow Condensed", sans-serif; gap: .35rem; justify-content: center; padding-inline: var(--guide-tab-pad); position: relative; }
+/* how many filters are chosen, pinned to the tab's top corner */
+.guide-world .guide-chosen { align-items: center; background: var(--orange); border: 2px solid var(--bench-light); border-radius: 999px; color: var(--paper); display: inline-flex; font: 700 1.2rem/1 "Barlow Condensed", sans-serif; min-inline-size: 2.1rem; aspect-ratio: 1; inset-block-start: -.35rem; inset-inline-end: -.6rem; justify-content: center; position: absolute; z-index: 1; }
 .guide-world .guide-kind-menu > summary:active { background: var(--orange); }
 @media (hover: hover) and (pointer: fine) {
   .guide-world .guide-kind-menu > summary:not(:active):hover { background: color-mix(in oklch, var(--ink) 82%, var(--orange)); }
@@ -422,9 +430,6 @@ html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-m
   html:has(#report:not([hidden])) .guide-world .site-footer { padding-block-end: calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem); }
   .guide-world .site-footer p { flex-wrap: wrap; justify-content: center; text-wrap: balance; }
   .guide-world .site-footer a { white-space: nowrap; }
-}
-@media (max-width: 24rem) {
-  .guide-world .guide-kind-menu > summary .guide-pop-chevron { display: none; }
 }
 .guide-world .guide-more { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: 1rem; }
 .guide-world .guide-more button { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 1.5rem; }
@@ -792,16 +797,18 @@ html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-m
 }
 
 /* The catalogue to search fills the end of the bar, top to bottom, as part of it. */
-/* Produkty and Karty are as wide as each other and keep that width whatever
-   the kind menu is named, so the query never jumps; a long kind wraps. */
-.guide-world .guide-mode { --guide-tab-pad: 1.75rem; border-inline-start: 1px solid var(--rule); display: grid; flex: none; grid-template-columns: repeat(2, clamp(6.5rem, 3rem + 9vw, 10rem)); }
-/* below a desktop the tab is narrow: a smaller arrow closer to the edge leaves the name two lines and its tag a third */
+/* Produkty and Karty are as wide as each other. A desktop has room to spare,
+   so they stay slim; on a phone they are wider to hit with a thumb, and the
+   query takes the whole bar while it is typed, then truncates beside them. */
+.guide-world .guide-mode { --guide-tab-pad: .75rem; border-inline-start: 1px solid var(--rule); display: grid; flex: none; grid-template-columns: repeat(2, 7.5rem); }
 @media (max-width: 63.99rem) {
-  .guide-world .guide-mode { --guide-tab-pad: 1rem; }
-  .guide-world .guide-kind-menu > summary { font-size: 1rem; line-height: 1; }
-  .guide-world .guide-kind-menu > summary .guide-pop-chevron { block-size: .75rem; inline-size: .75rem; inset-inline-end: .2rem; }
+  .guide-world .guide-mode { --guide-tab-pad: .5rem; grid-template-columns: repeat(2, min(8.5rem, 34vw)); }
+  /* collapsed, not removed, so Tab from the query still reaches them and brings them back */
+  .guide-world .guide-search:has(.guide-search-input:focus) .guide-mode { border-inline-start: 0; grid-template-columns: repeat(2, 0); overflow: clip; }
+  .guide-world .guide-chosen { inset-block-start: -.7rem; }
+  .guide-world .guide-kind-menu > summary { font-size: 1rem; gap: .25rem; line-height: 1; }
+  .guide-world .guide-kind-menu > summary .guide-pop-chevron { block-size: .75rem; inline-size: .75rem; }
 }
-@media (max-width: 24rem) { .guide-world .guide-mode { --guide-tab-pad: .4rem; } }
 .guide-world .guide-mode a { align-items: center; color: var(--ink); display: inline-flex; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1 "Barlow Condensed", sans-serif; justify-content: center; padding-inline: var(--guide-tab-pad); text-decoration: none; transition: background-color .15s ease-out, color .15s ease-out; }
 .guide-world .guide-mode a + a { border-inline-start: 1px solid var(--rule); }
 .guide-world .guide-mode a[aria-current="true"] { background: var(--ink); color: var(--paper); }
