@@ -305,7 +305,9 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 @container set-intro (inline-size >= 52rem) {
   .guide-world .set-chase { --chase-art: 15.5rem; align-items: start; grid-template-columns: 14rem minmax(0, 1fr) 22rem; grid-template-rows: auto auto; row-gap: 1rem; }
   /* the card spans down to the footnote's row and its bottom corner just reaches into the search bar */
-  .guide-world .set-chase-art { align-self: end; grid-column: 1; grid-row: 1 / span 3; inline-size: var(--chase-art); margin-block-end: -1.6rem; position: relative; translate: -1.5rem 0; z-index: 1; }
+  /* Keep the horizontal overlap out of the scroll transition: Firefox can
+     animate translate when this container query first applies. */
+  .guide-world .set-chase-art { align-self: end; grid-column: 1; grid-row: 1 / span 3; inline-size: var(--chase-art); inset-inline-start: -1.5rem; margin-block-end: -1.6rem; position: relative; z-index: 1; }
   .guide-world .set-chase:not(.set-chase-empty) > .set-chase-foot { grid-column: 2 / -1; grid-row: 3; }
   /* the singles banner is lower (three numbers beside it), so its card is smaller */
   .guide-world .set-chase:has(.set-chase-facts) { --chase-art: 14rem; }
@@ -332,7 +334,7 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
    goes under the bar with the rest of the page. */
 @container set-intro (inline-size >= 52rem) {
   .guide-world .set-chase-art { z-index: 3; }
-  :root[data-card-lifted] .guide-world .set-chase-art { translate: -1.5rem -1rem; }
+  :root[data-card-lifted] .guide-world .set-chase-art { translate: 0 -1rem; }
   html:has(.guide-pop[open]) .guide-world .set-chase-art { z-index: 1; }
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -640,8 +642,11 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .offer-disclaimer .fluent-icon { block-size: 1.5rem; color: var(--orange); flex: 0 0 auto; inline-size: 1.5rem; stroke: currentColor; stroke-width: .6; }
 
 /* Visitor location: a quiet header disclosure whose panel drops below it. */
-.guide-world .visitor-location { position: relative; }
-.guide-world .visitor-location-summary { align-items: center; cursor: pointer; display: inline-flex; font-size: .875rem; gap: .4rem; list-style: none; max-inline-size: min(16rem, 55vw); min-block-size: 3rem; }
+/* Reserve the default label's space before restore; a saved town truncates in
+   the same slot instead of moving the language flags when LiveView connects. */
+.guide-world .visitor-location { font-size: .875rem; inline-size: 11.25rem; position: relative; }
+.guide-world .visitor-location-pending { visibility: hidden; }
+.guide-world .visitor-location-summary { align-items: center; cursor: pointer; display: flex; font-size: inherit; gap: .4rem; justify-content: flex-end; list-style: none; min-block-size: 3rem; }
 .guide-world .visitor-location-summary::-webkit-details-marker { display: none; }
 .guide-world .visitor-location-label { overflow: clip; text-decoration: underline; text-overflow: ellipsis; text-underline-offset: .2rem; white-space: nowrap; }
 .guide-world .visitor-location-panel { background: var(--paper); border: 1px solid var(--ink); display: grid; gap: .75rem; inline-size: min(22rem, calc(100vw - 2rem)); inset-block-start: 100%; inset-inline-end: 0; padding: 1rem; position: absolute; z-index: 10; }
@@ -760,7 +765,8 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
   .guide-world .verdict-badge-large { padding-inline: 1rem; }
 }
 @media (max-width: 26rem) {
-  .guide-world .visitor-location-summary { font-size: .75rem; gap: .25rem; }
+  .guide-world .visitor-location { font-size: .75rem; inline-size: 9.75rem; }
+  .guide-world .visitor-location-summary { gap: .25rem; }
   .guide-world .site-wordmark img { block-size: 1.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -830,4 +836,3 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .set-close:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .guide-world .set-close:active { color: var(--orange); }
 @media (hover: hover) and (pointer: fine) { .guide-world .set-close:hover { color: var(--orange); } }
-
