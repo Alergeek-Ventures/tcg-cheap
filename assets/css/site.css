@@ -223,11 +223,12 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .set-chase-kicker { color: var(--muted); font: 400 .8rem/1.35 "Azeret Mono", ui-monospace, monospace; margin: 0; text-wrap: pretty; }
 .guide-world .set-chase-art { display: block; rotate: -2deg; }
 .guide-world .set-chase-img { aspect-ratio: 63 / 88; block-size: auto; border-radius: 4.5% / 3.3%; box-shadow: .35rem .35rem 0 var(--ink); display: block; inline-size: 100%; object-fit: cover; }
-/* the best deals' photos on a sheet of paper in the card's shape; each takes
-   height in proportion to its own, so all shrink alike to fit */
-.guide-world .set-chase-products { aspect-ratio: 63 / 88; background: var(--paper); box-shadow: .35rem .35rem 0 var(--ink); display: flex; flex-direction: column; gap: .5rem; padding: 5%; }
-.guide-world .set-chase-products > a { display: block; flex: var(--photo-aspect) 1 0; min-block-size: 0; }
-.guide-world .set-chase-products img { block-size: 100%; display: block; inline-size: 100%; object-fit: contain; }
+/* a sealed product on a sheet of paper in the card's shape */
+.guide-world .set-chase-products { aspect-ratio: 63 / 88; background: var(--paper); box-shadow: .35rem .35rem 0 var(--ink); display: grid; gap: .5rem; grid-template-rows: minmax(0, 1fr); padding: 6%; }
+.guide-world .set-chase-products:has(.set-chase-contents) { grid-template-rows: minmax(0, 1fr) minmax(0, 2.2fr); }
+.guide-world .set-chase-products img { block-size: 100%; display: block; inline-size: 100%; min-block-size: 0; min-inline-size: 0; object-fit: contain; }
+/* what the box holds, side by side above it */
+.guide-world .set-chase-contents { display: grid; gap: .4rem; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; min-block-size: 0; }
 .guide-world .set-chase-noart { align-content: center; background: repeating-linear-gradient(-45deg, var(--bench) 0 .5rem, var(--paper) 0 1rem); border: 2px solid var(--ink); display: grid; gap: .25rem; justify-items: center; padding: .25rem; text-align: center; }
 .guide-world .set-chase-noart-number { font: 700 clamp(1.25rem, 8cqi, 2.75rem)/1 "Barlow Condensed", sans-serif; }
 .guide-world .set-chase-noart-note { color: var(--muted); font: 400 .7rem/1.2 "Azeret Mono", ui-monospace, monospace; }
@@ -382,7 +383,9 @@ html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-m
 
 /* The products tab is also the kind menu, named after the chosen kind. */
 .guide-world .guide-kind-menu { display: grid; grid-template-rows: 1fr auto; min-inline-size: 0; }
-.guide-world .guide-kind-menu > summary { align-content: center; align-items: center; block-size: 100%; background: var(--ink); color: var(--paper); display: flex; flex-wrap: wrap; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1.05 "Barlow Condensed", sans-serif; gap: .15rem .35rem; justify-content: center; padding-inline: clamp(.35rem, .1rem + 1.2vw, 1.2rem); }
+.guide-world .guide-kind-menu > summary { align-content: center; align-items: center; block-size: 100%; background: var(--ink); color: var(--paper); display: flex; flex-wrap: wrap; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1.05 "Barlow Condensed", sans-serif; gap: .15rem .35rem; justify-content: center; padding-inline: var(--guide-tab-pad); position: relative; }
+/* the arrow stands at the tab's end, so the name is centred as Karty is */
+.guide-world .guide-kind-menu > summary .guide-pop-chevron { inset-block-start: 50%; inset-inline-end: .6rem; position: absolute; translate: 0 -50%; }
 .guide-world .guide-kind-name { text-align: center; text-wrap: balance; }
 .guide-world .guide-tag { border: 1px solid currentColor; font-size: .625rem; line-height: 1; padding: .1rem .2rem; text-transform: uppercase; }
 .guide-world .guide-kind-menu > summary:active { background: var(--orange); }
@@ -791,8 +794,15 @@ html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-m
 /* The catalogue to search fills the end of the bar, top to bottom, as part of it. */
 /* Produkty and Karty are as wide as each other and keep that width whatever
    the kind menu is named, so the query never jumps; a long kind wraps. */
-.guide-world .guide-mode { border-inline-start: 1px solid var(--rule); display: grid; flex: none; grid-template-columns: repeat(2, clamp(5.5rem, 3.5rem + 6vw, 8.5rem)); }
-.guide-world .guide-mode a { align-items: center; color: var(--ink); display: inline-flex; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1 "Barlow Condensed", sans-serif; justify-content: center; padding-inline: clamp(.6rem, .2rem + 1.4vw, 1.4rem); text-decoration: none; transition: background-color .15s ease-out, color .15s ease-out; }
+.guide-world .guide-mode { --guide-tab-pad: 1.75rem; border-inline-start: 1px solid var(--rule); display: grid; flex: none; grid-template-columns: repeat(2, clamp(6.5rem, 3rem + 9vw, 10rem)); }
+/* below a desktop the tab is narrow: a smaller arrow closer to the edge leaves the name two lines and its tag a third */
+@media (max-width: 63.99rem) {
+  .guide-world .guide-mode { --guide-tab-pad: 1rem; }
+  .guide-world .guide-kind-menu > summary { font-size: 1rem; line-height: 1; }
+  .guide-world .guide-kind-menu > summary .guide-pop-chevron { block-size: .75rem; inline-size: .75rem; inset-inline-end: .2rem; }
+}
+@media (max-width: 24rem) { .guide-world .guide-mode { --guide-tab-pad: .4rem; } }
+.guide-world .guide-mode a { align-items: center; color: var(--ink); display: inline-flex; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1 "Barlow Condensed", sans-serif; justify-content: center; padding-inline: var(--guide-tab-pad); text-decoration: none; transition: background-color .15s ease-out, color .15s ease-out; }
 .guide-world .guide-mode a + a { border-inline-start: 1px solid var(--rule); }
 .guide-world .guide-mode a[aria-current="true"] { background: var(--ink); color: var(--paper); }
 .guide-world .guide-mode a:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }

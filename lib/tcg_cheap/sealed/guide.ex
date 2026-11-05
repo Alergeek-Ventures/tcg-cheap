@@ -15,7 +15,6 @@ defmodule TcgCheap.Sealed.Guide do
   }
 
   alias TcgCheap.Sealed.PullRates.Rate
-  alias TcgCheap.Storage.Variants.Webp
 
   @history_days 90
   @cached_for_ms :timer.minutes(10)
@@ -574,12 +573,11 @@ defmodule TcgCheap.Sealed.Guide do
   defp cheaper?(_card), do: false
 
   @doc """
-  The sealed banner, for the product list without an expansion: the four
-  products in stock furthest under their typical shop price today (good
-  prices, see `PriceGuide`), best first, each with its photo's height over
-  width, how many products are in stock in
-  Poland, how many of them at a good price, and in how many shops. Shared
-  for a few minutes.
+  The sealed banner, for the product list without an expansion: the product
+  in stock furthest under its typical shop price today (a good price, see
+  `PriceGuide`) with its box photo and up to three photos of what it holds,
+  how many products are in stock in Poland, how many of them at a good
+  price, and in how many shops. Shared for a few minutes.
   """
   def sealed_market, do: cached(:sealed_market, &read_sealed_market/0)
 
@@ -609,18 +607,10 @@ defmodule TcgCheap.Sealed.Guide do
       |> Enum.map(&{&1, Decimal.div(&1.verdict.cheapest.price, &1.verdict.typical)})
       |> Enum.filter(fn {_summary, ratio} -> Decimal.gte?(ratio, @deal_min_ratio) end)
       |> Enum.sort_by(&elem(&1, 1), Decimal)
-      |> Enum.take(4)
       |> Enum.map(&elem(&1, 0))
 
-    products =
-      Sealed.list_products!(
-        query: [filter: [id: [in: Enum.map(deals, & &1.product.id)]]],
-        load: [:stored_photo_card_url, :photo_placeholder]
-      )
-      |> Map.new(&{&1.id, &1})
-
     %{
-      deals: Enum.map(deals, &sealed_deal(&1, Map.fetch!(products, &1.product.id))),
+      deal: deals |> List.first() |> sealed_deal(),
       in_stock: length(summaries),
       good: length(good),
       offers: length(offers),
@@ -628,11 +618,16 @@ defmodule TcgCheap.Sealed.Guide do
     }
   end
 
-  defp sealed_deal(%{verdict: verdict}, product) do
+  # The deal with its own photos: the box, and what it holds where a checked
+  # photo of the contents is mirrored (a deck's cards, its coin, its pin).
+  defp sealed_deal(nil), do: nil
+
+  defp sealed_deal(%{verdict: verdict, product: %{slug: slug}}) do
+    product = Sealed.get_product_by_slug!(slug, load: [:stored_photo_card_url])
+
     %{
       product: product,
-      photo_aspect:
-        product.photo_placeholder && Webp.placeholder_aspect(product.photo_placeholder),
+      contents_photos: contents_photos(product.contents),
       price: verdict.cheapest.price,
       shop: verdict.cheapest.shop,
       typical: verdict.typical,
@@ -644,6 +639,28 @@ defmodule TcgCheap.Sealed.Guide do
         |> Decimal.round(0)
         |> Decimal.to_integer()
     }
+  end
+
+  @contents_photos 3
+
+  defp contents_photos(nil), do: []
+
+  defp contents_photos(contents) do
+    sources =
+      contents.items
+      |> Enum.map(&CardImage.photo_source_url(&1.photo))
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+
+    mirrored =
+      sources
+      |> Enum.map(&CardImage.source_hash/1)
+      |> TcgCheap.Storage.mirrored_image_urls(:thumbnail)
+
+    sources
+    |> Enum.map(&Map.get(mirrored, CardImage.source_hash(&1)))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.take(@contents_photos)
   end
 
   # First editions have no reference of their own (see `CardGuide.card_verdict/4`).
