@@ -11,6 +11,8 @@ defmodule TcgCheap.Sealed.CardImage do
   alias TcgCheap.Sealed.ExternalImage
 
   @host "assets.tcgdex.net"
+  @limitless "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci"
+  @limitless_scan ~r"\Ahttps://limitlesstcg\.nyc3\.cdn\.digitaloceanspaces\.com/tpci/([A-Z0-9]+)/\1_\d{3,}_R_EN_LG\.png\z"
   @qualified_path ~r{/((?:high|low)\.(?:png|jpg|webp))$}
   @known_extension ~r/\.[A-Za-z0-9]+$/
   @image_extension ~r/\.(?:png|jpg|webp)$/
@@ -21,15 +23,37 @@ defmodule TcgCheap.Sealed.CardImage do
   def single_source_url(%{card_images_url: "" <> directory, cards_source_url: nil}, number),
     do: source_url(directory <> "/" <> number)
 
+  # TCGdex has no card images of some sets (Shining Legends, Dragon Majesty,
+  # MEP Black Star Promos). Limitless TCG names its scans by the official set
+  # code and the printed number, padded to three digits.
+  def single_source_url(
+        %{card_images_url: nil, abbreviation: "" <> code, cards_source_url: nil},
+        number
+      ) do
+    if Regex.match?(~r/\A\d+\z/, number) do
+      card_source_url(
+        "#{@limitless}/#{code}/#{code}_#{String.pad_leading(number, 3, "0")}_R_EN_LG.png"
+      )
+    end
+  end
+
   def single_source_url(_set, _number), do: nil
 
-  @doc "Returns the local URL for the stored detail variant of a TCGdex card."
+  @doc "Returns the local URL for the stored detail variant of a card image."
   @spec detail_url(term()) :: String.t() | nil
-  def detail_url(url), do: local_url(source_url(url), "detail")
+  def detail_url(url), do: local_url(card_source_url(url), "detail")
 
-  @doc "Returns the local URL for the stored thumbnail variant of a TCGdex card."
+  @doc "Returns the local URL for the stored thumbnail variant of a card image."
   @spec thumbnail_url(term()) :: String.t() | nil
-  def thumbnail_url(url), do: local_url(source_url(url), "thumbnail")
+  def thumbnail_url(url), do: local_url(card_source_url(url), "thumbnail")
+
+  @doc "Canonical remote source of a card image: a TCGdex card or a Limitless TCG scan."
+  @spec card_source_url(term()) :: String.t() | nil
+  def card_source_url(url) when is_binary(url) do
+    if Regex.match?(@limitless_scan, url), do: url, else: source_url(url)
+  end
+
+  def card_source_url(_url), do: nil
 
   @doc "Canonical remote source; only the background mirror downloads it."
   @spec source_url(term()) :: String.t() | nil

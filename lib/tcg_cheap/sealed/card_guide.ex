@@ -459,7 +459,13 @@ defmodule TcgCheap.Sealed.CardGuide do
       from([c, s, _o, p] in browse_query(%{query: "", expansion: nil}),
         select: {
           struct(c, [:id, :tcgdex_id, :tcgdex_set_id, :name, :number, :variants]),
-          struct(s, [:id, :cardmarket_expansion_id, :card_images_url, :cards_source_url]),
+          struct(s, [
+            :id,
+            :cardmarket_expansion_id,
+            :card_images_url,
+            :abbreviation,
+            :cards_source_url
+          ]),
           struct(p, [:cardmarket_id, :trend])
         }
       )
