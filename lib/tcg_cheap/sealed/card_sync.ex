@@ -5,8 +5,9 @@ defmodule TcgCheap.Sealed.CardSync do
   lists of cards on single booster pages. TCGdex's set documents list cards
   without their rarity, so one GraphQL query per set reads every card's
   number, name, rarity and variant flags. One REST set document supplies its
-  official abbreviation and printed card count. Sets copied before these
-  identity fields existed are copied again once, including old releases.
+  official abbreviation, printed card count and the directory of its card
+  images. Sets copied before these identity fields existed are copied again
+  once, including old releases.
 
   Every set is copied once; sets released in the last half year again once
   a day, as TCGdex fills in new sets. A set TCGdex fails to return, or
@@ -255,7 +256,11 @@ defmodule TcgCheap.Sealed.CardSync do
       {:ok, %{status: 200, body: %{"id" => ^id, "cardCount" => %{"official" => count}} = body}}
       when is_integer(count) and count >= 0 ->
         {:ok,
-         %{abbreviation: get_in(body, ["abbreviation", "official"]), official_card_count: count}}
+         %{
+           abbreviation: get_in(body, ["abbreviation", "official"]),
+           official_card_count: count,
+           card_images_url: card_images_url(body["cards"])
+         }}
 
       {:ok, %{status: status}} ->
         {:error, {:set_metadata, status}}
@@ -264,6 +269,22 @@ defmodule TcgCheap.Sealed.CardSync do
         {:error, reason}
     end
   end
+
+  # The directory of the first card image TCGdex gives. Sets have no image
+  # path of their own and many lack a logo, but every card image of a set lies
+  # in one directory, named after the card's number.
+  defp card_images_url(cards) when is_list(cards) do
+    Enum.find_value(cards, fn
+      %{"image" => "https://" <> _ = image, "localId" => "" <> number} ->
+        if String.ends_with?(image, "/" <> number),
+          do: String.replace_suffix(image, "/" <> number, "")
+
+      _card ->
+        nil
+    end)
+  end
+
+  defp card_images_url(_cards), do: nil
 
   defp variants(flags) when is_map(flags), do: for({key, true} <- flags, do: key)
   defp variants(_flags), do: []

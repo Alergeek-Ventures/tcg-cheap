@@ -122,7 +122,7 @@ defmodule TcgCheap.Sealed.TcgdexSet do
     end
 
     update :record_cards do
-      accept [:abbreviation, :official_card_count]
+      accept [:abbreviation, :official_card_count, :card_images_url]
       description "Replaces the set's cards with those TCGdex lists now."
 
       argument :cards, {:array, :map} do
@@ -159,6 +159,17 @@ defmodule TcgCheap.Sealed.TcgdexSet do
     attribute :abbreviation, :string, public?: true, constraints: [max_length: 30]
     attribute :official_card_count, :integer, public?: true, constraints: [min: 0]
     attribute :logo_url, :string, public?: true, constraints: [max_length: 500]
+
+    attribute :card_images_url, :string do
+      description """
+      TCGdex's asset directory of the set's card images (`https://assets.tcgdex.net/en/sv/sv05`);
+      a card's image is this plus `/` and its number. Nil while TCGdex has no card image of the set.
+      """
+
+      public? true
+      constraints max_length: 500
+    end
+
     attribute :released_on, :date, public?: true
     attribute :checked_at, :utc_datetime_usec, allow_nil?: false, public?: true
 
