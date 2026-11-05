@@ -208,7 +208,7 @@ defmodule TcgCheapWeb.VisitorLocation do
     <%!-- ph-no-capture: PostHog's autocapture would record the town names. --%>
     <details
       id="visitor-location"
-      class="visitor-location ph-no-capture"
+      class={["visitor-location ph-no-capture", !@ready && "visitor-location-pending"]}
       phx-hook="VisitorLocation"
       data-located={
         gettext("Lokalizacja: %{town}. Pokazujemy odległości do odbioru osobistego.", town: "%{town}")
@@ -217,7 +217,6 @@ defmodule TcgCheapWeb.VisitorLocation do
       data-locating={gettext("Ustalam lokalizację…")}
       data-failed={gettext("Przeglądarka nie udostępniła lokalizacji. Wpisz miejscowość poniżej.")}
       phx-mounted={JS.ignore_attributes(["open"])}
-      hidden={!@ready}
     >
       <summary id="visitor-location-summary" class="visitor-location-summary">
         <.fluent_icon name={:location} />
