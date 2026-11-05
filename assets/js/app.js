@@ -140,11 +140,40 @@ const liveSocket = new LiveSocket("/live", Socket, {
   },
 })
 
-// A set banner's card overlaps the sticky search bar only while the page rests
-// at the top; once it scrolls, the card slides under the bar (site.css).
-const markScrolled = () => document.documentElement.toggleAttribute("data-scrolled", window.scrollY > 0)
-window.addEventListener("scroll", markScrolled, {passive: true})
-markScrolled()
+// A banner's card rests on the sticky search bar. Scrolling down lifts it off
+// the bar; once it has gone under the header, it settles back as it comes
+// into view again on the way up (site.css).
+let lastScrollY = window.scrollY
+let cardAway = false
+// Whether the card shows below the header; null on a page without one.
+const cardInView = () => {
+  const card = document.querySelector(".set-chase-art")
+  if (card === null) return null
+  const headerBottom = document.querySelector(".site-header")?.getBoundingClientRect().bottom ?? 0
+  return card.getBoundingClientRect().bottom > headerBottom
+}
+const markCardLifted = () => {
+  const y = window.scrollY
+  const inView = cardInView()
+  if (inView === false) cardAway = true
+  if (y === 0 || (cardAway && inView && y < lastScrollY)) {
+    document.documentElement.removeAttribute("data-card-lifted")
+    cardAway = false
+  } else if (inView !== null && y > lastScrollY) {
+    document.documentElement.setAttribute("data-card-lifted", "")
+  }
+  lastScrollY = y
+}
+// A new page starts from where its card is: out of view, it is lifted. A
+// patch (filters) keeps the state the scrolling gave it.
+const resetCardLifted = () => {
+  cardAway = cardInView() === false
+  document.documentElement.toggleAttribute("data-card-lifted", cardAway)
+  lastScrollY = window.scrollY
+}
+window.addEventListener("scroll", markCardLifted, {passive: true})
+window.addEventListener("phx:page-loading-stop", e => e.detail?.kind === "patch" || resetCardLifted())
+resetCardLifted()
 
 // Bring an element to the top once the layout above it has changed, e.g. the
 // results after the filter panel folds away on a phone.

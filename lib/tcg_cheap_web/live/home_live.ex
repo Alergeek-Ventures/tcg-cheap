@@ -417,7 +417,7 @@ defmodule TcgCheapWeb.HomeLive do
   attr :facets, :map, required: true
 
   # The products tab is also the kind menu: shelves, the chosen shelf's exact
-  # kinds and the language edition. It is named after the chosen kind.
+  # kinds and the language edition. A badge counts the chosen kind and edition.
   defp kind_menu(assigns) do
     counts = Map.new(assigns.facets.kinds)
     shelf = assigns.filters.kind && (Kinds.shelf(assigns.filters.kind) || assigns.filters.kind)
@@ -436,7 +436,8 @@ defmodule TcgCheapWeb.HomeLive do
               ),
             else: []
           ),
-        total: counts |> Map.values() |> Enum.sum()
+        total: counts |> Map.values() |> Enum.sum(),
+        chosen: Enum.count([assigns.filters.kind, region_value(assigns.filters)], & &1)
       )
 
     ~H"""
@@ -452,13 +453,11 @@ defmodule TcgCheapWeb.HomeLive do
         data-track="filters_panel_opened"
         phx-click={JS.dispatch("guide:pin-filters", to: "#guide-search-form")}
       >
-        <span class="guide-kind-name">
-          {if(@filters.kind, do: Kinds.label(@filters.kind), else: gettext("Produkty"))}
-        </span>
-        <span :if={region_value(@filters)} class="guide-tag">
-          {if(@filters.region, do: Regions.tag(@filters.region), else: gettext("wszystkie"))}
-        </span>
+        {gettext("Produkty")}
         <.fluent_icon name={:chevron_down} class="guide-pop-chevron" />
+        <span :if={@chosen > 0} class="guide-chosen">
+          {@chosen}<span class="sr-only">{ngettext(" filtr", " filtry", @chosen)}</span>
+        </span>
       </summary>
       <div class="guide-panel guide-filter">
         <nav id="guide-kinds" aria-labelledby="guide-kinds-title">
