@@ -53,7 +53,8 @@ at a time; move the running one forward before starting another.
 
 1. Card pages: `Product` + `AggregateOffer` structured data (deployed,
    waiting for evaluation, see experiments.md, E1).
-2. Set pages of cards in stock into the sitemap (E2, PR pending).
+2. Set pages of cards in stock into the sitemap (E2, deployed 2026-11-05,
+   waiting for evaluation).
 3. Card pages are leaves: they link only to their set. Link a card to the
    sealed products whose set contains it and to the set's other cards with
    offers, so crawlers reach indexable cards outside the set page.
