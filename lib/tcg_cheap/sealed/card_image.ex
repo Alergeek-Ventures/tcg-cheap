@@ -17,12 +17,9 @@ defmodule TcgCheap.Sealed.CardImage do
   @unsafe_path_character ~r/[\s\\\x00-\x1F\x7F]/
   @bare_percent ~r/%(?![0-9A-Fa-f]{2})/
 
-  @doc "A catalogue card shares its set logo's TCGdex asset directory, including promo series."
-  def single_source_url(%{logo_url: logo, cards_source_url: nil}, number) when is_binary(logo) do
-    if Regex.match?(~r{/logo(?:\.(?:png|webp|jpg))?$}, logo) do
-      logo |> String.replace(~r{/logo(?:\.(?:png|webp|jpg))?$}, "/" <> number) |> source_url()
-    end
-  end
+  @doc "A catalogue card's image lies in its set's TCGdex card image directory, named by its number."
+  def single_source_url(%{card_images_url: "" <> directory, cards_source_url: nil}, number),
+    do: source_url(directory <> "/" <> number)
 
   def single_source_url(_set, _number), do: nil
 

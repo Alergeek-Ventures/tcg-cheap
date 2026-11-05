@@ -14,12 +14,11 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   SELECT url, kind FROM (
     SELECT logo_url AS url, 'logo' AS kind FROM sealed_tcgdex_sets
     UNION
-    SELECT regexp_replace(s.logo_url, '/logo(\\.(png|webp|jpg))?$', '') || '/' || c.number,
-           'card' AS kind
+    SELECT s.card_images_url || '/' || c.number, 'card' AS kind
       FROM sealed_tcgdex_cards c
       JOIN sealed_tcgdex_sets s ON c.tcgdex_set_id = s.id
       WHERE s.language = 'en' AND s.cards_source_url IS NULL
-        AND s.logo_url ~ '/logo(\\.(png|webp|jpg))?$'
+        AND s.card_images_url IS NOT NULL
     UNION
     SELECT item->>'image' AS url, 'card' AS kind
       FROM sealed_products,
@@ -149,15 +148,10 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       join: o in subquery(CardGuide.current_query()),
       on: o.card_id == c.id,
       where: is_nil(o.grading) and s.language == "en" and is_nil(s.cards_source_url),
-      where: fragment("? ~ '/logo([.](png|webp|jpg)){0,1}$'", s.logo_url),
+      where: not is_nil(s.card_images_url),
       distinct: true,
       select: %{
-        source_url:
-          fragment(
-            "regexp_replace(?, '/logo([.](png|webp|jpg)){0,1}$', '') || '/' || ? || '/high.webp'",
-            s.logo_url,
-            c.number
-          )
+        source_url: fragment("? || '/' || ? || '/high.webp'", s.card_images_url, c.number)
       }
     )
   end
