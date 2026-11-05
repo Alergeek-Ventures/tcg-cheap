@@ -529,8 +529,9 @@ defmodule TcgCheap.Sealed.CardGuide do
   end
 
   # Only cards whose page has an answer: an in-stock, ungraded current offer,
-  # the same rule as page/3. The rest stay reachable but noindex.
-  def sitemap_paths do
+  # the same rule as page/3. The rest stay reachable but noindex. Each comes
+  # with its expansion, whose set page lists it.
+  def sitemap_cards do
     cards =
       from(c in TcgdexCard,
         join: o in subquery(current_query()),
@@ -545,6 +546,10 @@ defmodule TcgCheap.Sealed.CardGuide do
 
     names = expansion_names(Enum.map(cards, &elem(&1, 1)))
     collisions = collision_ids()
-    for {card, id} <- cards, name = Map.get(names, id), name, do: path(card, name, id, collisions)
+
+    for {card, id} <- cards,
+        name = Map.get(names, id),
+        name,
+        do: {id, name, path(card, name, id, collisions)}
   end
 end
