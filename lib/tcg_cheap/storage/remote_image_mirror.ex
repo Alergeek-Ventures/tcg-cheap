@@ -33,6 +33,13 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
            WHERE r.id = encode(sha256(convert_to(s.card_images_url || '/' || c.number || '/high.webp', 'UTF8')), 'hex')
              AND r.attempted_at IS NOT NULL AND r.detail_key IS NULL))
     UNION
+    SELECT 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRZ/CRZ_GG'
+             || ltrim(substring(c.number FROM 3), '0') || '_R_EN_LG.png', 'card' AS kind
+      FROM sealed_tcgdex_cards c
+      JOIN sealed_tcgdex_sets s ON c.tcgdex_set_id = s.id
+      WHERE s.language = 'en' AND s.cards_source_url IS NULL
+        AND s.abbreviation = 'CRZ:GG' AND c.number ~ '^GG[0-9]{2}$'
+    UNION
     SELECT item->>'image' AS url, 'card' AS kind
       FROM sealed_products,
            jsonb_array_elements(COALESCE(contents->'items', '[]'::jsonb)) AS item
@@ -163,18 +170,25 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       where: is_nil(o.grading) and s.language == "en" and is_nil(s.cards_source_url),
       where:
         not is_nil(s.card_images_url) or
-          (fragment("? ~ '^[A-Z0-9]+$'", s.abbreviation) and fragment("? ~ '^[0-9]+$'", c.number)),
+          (fragment("? ~ '^[A-Z0-9]+$'", s.abbreviation) and fragment("? ~ '^[0-9]+$'", c.number)) or
+          (s.abbreviation == "CRZ:GG" and fragment("? ~ '^GG[0-9]{2}$'", c.number)),
       distinct: true,
       select: %{
         source_url:
           fragment(
             """
             CASE WHEN ? IS NOT NULL THEN ? || '/' || ? || '/high.webp'
+            WHEN ? = 'CRZ:GG' AND ? ~ '^GG[0-9]{2}$'
+            THEN 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRZ/CRZ_GG'
+                 || ltrim(substring(? FROM 3), '0') || '_R_EN_LG.png'
             ELSE 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/' || ? || '/' || ? || '_'
                  || lpad(?, greatest(3, length(?)), '0') || '_R_EN_LG.png' END
             """,
             s.card_images_url,
             s.card_images_url,
+            c.number,
+            s.abbreviation,
+            c.number,
             c.number,
             s.abbreviation,
             s.abbreviation,
