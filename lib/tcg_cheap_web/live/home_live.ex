@@ -416,49 +416,6 @@ defmodule TcgCheapWeb.HomeLive do
   attr :filters, :map, required: true
   attr :facets, :map, required: true
 
-  # The bar opens with the set: every set (four squares), or the chosen set's
-  # own logo, as in the banner. Sets are chosen in one place, the list of sets,
-  # which this glides to.
-  defp set_slot(assigns) do
-    assigns =
-      assign(
-        assigns,
-        :chosen,
-        Enum.find(assigns.facets.expansions, &(&1.id == assigns.filters.expansion))
-      )
-
-    ~H"""
-    <a
-      id="guide-set-slot"
-      href="#guide-expansions"
-      class="guide-set-slot"
-      aria-label={
-        if(@chosen,
-          do: gettext("Set: %{set}. Zmień", set: @chosen.name),
-          else: gettext("Wybierz set")
-        )
-      }
-    >
-      <%= cond do %>
-        <% @chosen && @chosen.logo_url -> %>
-          <img src={@chosen.logo_url} alt="" class="guide-set-logo" />
-        <% @chosen -> %>
-          <span class="guide-set-name">{@chosen.name}</span>
-        <% true -> %>
-          <span class="guide-set-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-          <span class="guide-set-label">
-            <span class="guide-wide">{gettext("Wszystkie sety")}</span>
-            <span class="guide-narrow">{gettext("Sety")}</span>
-          </span>
-      <% end %>
-      <.fluent_icon name={:chevron_down} class="guide-pop-chevron" />
-    </a>
-    """
-  end
-
-  attr :filters, :map, required: true
-  attr :facets, :map, required: true
-
   # The products tab is also the kind menu: shelves, the chosen shelf's exact
   # kinds and the language edition. It is named after the chosen kind.
   defp kind_menu(assigns) do
@@ -1399,7 +1356,6 @@ defmodule TcgCheapWeb.HomeLive do
                 else: gettext("Szukaj produktu")
               )}
             </h2>
-            <.set_slot filters={@filters} facets={@facets} />
             <.form
               for={@form}
               id="guide-search-form"

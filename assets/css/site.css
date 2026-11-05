@@ -380,34 +380,18 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .guide-panel .guide-kinds-exact a { font-size: .875rem; min-block-size: 2.25rem; }
 html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-mix(in oklch, var(--ink) 30%, transparent); content: ""; inset: 0; position: fixed; z-index: 1; }
 
-/* The set slot: every set (four squares), else the chosen set's logo; it glides to the sets. */
-.guide-world .guide-set-slot { align-items: center; border-inline-end: 1px solid var(--rule); color: var(--ink); display: flex; flex: none; gap: .6rem; padding-inline: 1rem .85rem; text-decoration: none; transition: background-color .15s ease-out, color .15s ease-out; }
-.guide-world .guide-set-slot:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
-.guide-world .guide-set-icon { display: grid; flex: none; gap: 3px; grid-template-columns: repeat(2, .7rem); }
-.guide-world .guide-set-icon i { aspect-ratio: 1; border: 1.5px solid currentColor; }
-.guide-world .guide-set-icon i:first-child { background: var(--orange); border-color: var(--orange); }
-.guide-world .guide-set-label, .guide-world .guide-set-name { font: 700 1.2rem/1 "Barlow Condensed", sans-serif; }
-.guide-world .guide-set-label { white-space: nowrap; }
-.guide-world .guide-set-name { max-inline-size: 9rem; text-wrap: balance; }
-.guide-world .guide-set-logo { block-size: 2.75rem; inline-size: auto; max-inline-size: 9rem; object-fit: contain; }
-.guide-world .guide-narrow { display: none; }
-.guide-world .guide-set-slot:has(.guide-set-logo, .guide-set-name) { background: var(--paper); box-shadow: inset 0 -3px 0 var(--ink); }
-.guide-world .guide-set-slot:active { background: var(--orange); color: var(--paper); }
-
 /* The products tab is also the kind menu, named after the chosen kind. */
-.guide-world .guide-kind-menu { display: grid; grid-template-rows: 1fr auto; }
-.guide-world .guide-kind-menu > summary { align-items: center; block-size: 100%; background: var(--ink); color: var(--paper); display: flex; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1.05 "Barlow Condensed", sans-serif; gap: .4rem; justify-content: center; padding-inline: clamp(.6rem, .2rem + 1.4vw, 1.4rem); }
-.guide-world .guide-kind-name { max-inline-size: 7rem; text-align: center; text-wrap: balance; }
+.guide-world .guide-kind-menu { display: grid; grid-template-rows: 1fr auto; min-inline-size: 0; }
+.guide-world .guide-kind-menu > summary { align-content: center; align-items: center; block-size: 100%; background: var(--ink); color: var(--paper); display: flex; flex-wrap: wrap; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1.05 "Barlow Condensed", sans-serif; gap: .15rem .35rem; justify-content: center; padding-inline: clamp(.35rem, .1rem + 1.2vw, 1.2rem); }
+.guide-world .guide-kind-name { text-align: center; text-wrap: balance; }
 .guide-world .guide-tag { border: 1px solid currentColor; font-size: .625rem; line-height: 1; padding: .1rem .2rem; text-transform: uppercase; }
 .guide-world .guide-kind-menu > summary:active { background: var(--orange); }
 @media (hover: hover) and (pointer: fine) {
-  .guide-world .guide-set-slot:not(:active):hover { background: color-mix(in oklch, var(--orange) 22%, var(--bench-light)); }
   .guide-world .guide-kind-menu > summary:not(:active):hover { background: color-mix(in oklch, var(--ink) 82%, var(--orange)); }
 }
 
 /* The sets: a column beside the list on a wide screen, scrolling on its own;
-   a shelf of tiles above the list on a narrow one. The bar's set slot glides here. */
-.guide-world #guide-expansions { scroll-margin-block-start: calc(var(--guide-search-gap) * 2 + var(--guide-search-size)); }
+   a shelf of tiles above the list on a narrow one. */
 .guide-world .guide-filters { min-inline-size: 0; }
 .guide-world .guide-filters .guide-expansion-shelf { max-block-size: none; }
 @media (min-width: 64rem) {
@@ -428,15 +412,8 @@ html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-m
 }
 @media (max-width: 47.99rem) {
   .guide-world .guide-search { margin-inline: -1rem; }
-  .guide-world #guide-search-form { padding-inline: .75rem .5rem; }
-  .guide-world .guide-search-icon { display: none; }
-  .guide-world .guide-search-input { font-size: clamp(1.125rem, 5vw, 1.25rem); padding-inline-start: 0; }
-  .guide-world .guide-set-slot { gap: .35rem; padding-inline: .75rem .5rem; }
-  .guide-world .guide-wide { display: none; }
-  .guide-world .guide-narrow { display: inline; }
-  .guide-world .guide-set-logo { block-size: 2rem; max-inline-size: 4.5rem; }
-  .guide-world .guide-set-name { font-size: 1rem; max-inline-size: 4.5rem; }
-  .guide-world .guide-kind-name { max-inline-size: 4.25rem; }
+  .guide-world #guide-search-form { padding-inline: 1rem .5rem; }
+  .guide-world .guide-search-input { font-size: clamp(1.125rem, 5vw, 1.25rem); }
   .guide-world .guide-panel { border-inline: 0; box-shadow: none; max-block-size: calc(100dvh - var(--guide-sticky-size)); padding-inline: 1rem; }
   /* The fixed report button would cover the footer's end, so the page ends below it. */
   html:has(#report:not([hidden])) .guide-world .site-footer { padding-block-end: calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem); }
@@ -444,8 +421,7 @@ html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-m
   .guide-world .site-footer a { white-space: nowrap; }
 }
 @media (max-width: 24rem) {
-  .guide-world :is(.guide-set-slot, .guide-kind-menu > summary) .guide-pop-chevron { display: none; }
-  .guide-world .guide-set-logo { max-inline-size: 3.5rem; }
+  .guide-world .guide-kind-menu > summary .guide-pop-chevron { display: none; }
 }
 .guide-world .guide-more { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-top: 1rem; }
 .guide-world .guide-more button { background: var(--ink); border: 0; color: var(--bench-light); cursor: pointer; font: 700 1.1rem "Barlow Condensed", sans-serif; min-height: 3rem; padding: 0 1.5rem; }
@@ -813,7 +789,9 @@ html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-m
 }
 
 /* The catalogue to search fills the end of the bar, top to bottom, as part of it. */
-.guide-world .guide-mode { border-inline-start: 1px solid var(--rule); display: grid; flex: none; grid-template-columns: auto auto; }
+/* Produkty and Karty are as wide as each other and keep that width whatever
+   the kind menu is named, so the query never jumps; a long kind wraps. */
+.guide-world .guide-mode { border-inline-start: 1px solid var(--rule); display: grid; flex: none; grid-template-columns: repeat(2, clamp(5.5rem, 3.5rem + 6vw, 8.5rem)); }
 .guide-world .guide-mode a { align-items: center; color: var(--ink); display: inline-flex; font: 700 clamp(1rem, .9rem + .5vw, 1.2rem)/1 "Barlow Condensed", sans-serif; justify-content: center; padding-inline: clamp(.6rem, .2rem + 1.4vw, 1.4rem); text-decoration: none; transition: background-color .15s ease-out, color .15s ease-out; }
 .guide-world .guide-mode a + a { border-inline-start: 1px solid var(--rule); }
 .guide-world .guide-mode a[aria-current="true"] { background: var(--ink); color: var(--paper); }
