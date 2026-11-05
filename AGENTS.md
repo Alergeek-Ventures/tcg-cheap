@@ -38,6 +38,9 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
   verify changes in the running app (and through the MCP tools) instead.
 - Fix real Sobelow findings; use narrow, explained skips only for intentional
   findings.
+- When you test production (https://tcg.cheap) in a browser, type a search
+  phrase starting with `zzz` in the search bar once, so PostHog can find your
+  browser and exclude it from analytics as internal traffic.
 
 ## Product north star
 
