@@ -10,11 +10,15 @@ defmodule TcgCheap.Sealed.ShopFeed do
   of feed is one more module implementing this behaviour.
 
   Requests go only to the shop's fixed HTTPS host, one at a time with a short
-  pause before each (several shops refuse quick successive requests), follow
-  no redirects and read at most 5 MB per page, or more where a client asks for it (a whole-shop XML
-  export). Every product field is untrusted: products with an invalid id,
-  title, URL, price or availability are skipped and counted in a warning. Any
-  transport, status, pagination or shape problem fails the whole fetch so that
+  pause before each (several shops refuse quick successive requests; a client
+  may ask for a longer one), follow no redirects and read at most 5 MB per
+  page, or more where a client asks for it (a whole-shop XML export). A
+  rate-limited request (429) is repeated once after the shop's `Retry-After`
+  when that is short; otherwise the fetch fails and
+  `TcgCheap.Sealed.FetchWorker` retries it minutes later. Every product field
+  is untrusted: products with an invalid id, title, URL, price or availability
+  are skipped and counted in a warning. Any transport, status, pagination or
+  shape problem fails the whole fetch so that
   a partial catalogue is never mistaken for a complete one.
   """
 
@@ -23,6 +27,10 @@ defmodule TcgCheap.Sealed.ShopFeed do
   alias TcgCheap.Sealed.{Matcher, Shop}
 
   @request_pause_ms 1_000
+  # Kept short: a Shopify fetch may wait once per request (up to 7 requests),
+  # and the job must stay within its 5-minute timeout.
+  @rate_limit_delay_ms 10_000
+  @max_retry_after_ms 10_000
   @max_body_bytes 5_000_000
   @max_title_length 300
   @max_url_length 2_000
@@ -60,11 +68,13 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @callback image_hosts(Shop.t()) :: [String.t()]
 
   @doc """
-  GETs `path` on the shop's host, after a #{@request_pause_ms} ms pause, and
-  returns the 200 response with its raw body, at most `max_body_bytes` long
-  (default 5 MB).
+  GETs `path` on the shop's host, after a pause (`pause_ms`, default
+  #{@request_pause_ms} ms), and returns the 200 response with its raw body, at
+  most `max_body_bytes` long (default 5 MB).
   """
-  @spec get(Shop.t(), String.t(), keyword(), keyword(), [{:max_body_bytes, pos_integer()}]) ::
+  @spec get(Shop.t(), String.t(), keyword(), keyword(), [
+          {:max_body_bytes, pos_integer()} | {:pause_ms, pos_integer()}
+        ]) ::
           {:ok, Req.Response.t()} | {:error, term()}
   def get(%Shop{host: host}, path, params, req_options, opts \\ []) do
     max_body_bytes = Keyword.get(opts, :max_body_bytes, @max_body_bytes)
@@ -79,11 +89,12 @@ defmodule TcgCheap.Sealed.ShopFeed do
         connect_options: [timeout: 5_000],
         receive_timeout: 15_000,
         redirect: false,
-        retry: false
+        retry: &retry_rate_limited/2,
+        max_retries: 1
       )
       |> Req.merge(req_options)
 
-    Process.sleep(@request_pause_ms)
+    Process.sleep(Keyword.get(opts, :pause_ms, @request_pause_ms))
 
     case Req.request(request) do
       {:ok, %Req.Response{status: 200, body: :too_large}} -> {:error, :response_too_large}
@@ -91,6 +102,25 @@ defmodule TcgCheap.Sealed.ShopFeed do
       {:ok, %Req.Response{status: status}} -> {:error, {:http_status, status}}
       {:error, exception} -> {:error, {:transport, exception.__struct__}}
     end
+  end
+
+  # Waits in the job only when the shop asks for a short pause (or names
+  # none); a longer one would hold up the shops queued behind it.
+  defp retry_rate_limited(_request, %Req.Response{status: 429} = response) do
+    case retry_after(response) do
+      nil -> {:delay, @rate_limit_delay_ms}
+      delay when delay <= @max_retry_after_ms -> {:delay, delay}
+      _long -> false
+    end
+  end
+
+  defp retry_rate_limited(_request, _response_or_exception), do: false
+
+  defp retry_after(response) do
+    Req.Response.get_retry_after(response)
+  rescue
+    # An unparsable HTTP date; the header is the shop's, not ours.
+    ArgumentError -> nil
   end
 
   defp bounded_body({:data, data}, {request, response}, max_body_bytes) do
