@@ -479,7 +479,7 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .product-hero-image { background: #fff; block-size: clamp(11rem, 36svh, 20rem); border: 1px solid var(--rule); grid-area: image; width: 100%; }
 .guide-world .product-hero-image img { box-sizing: border-box; padding: .5rem; }
 .guide-world .product-identity { grid-area: identity; min-width: 0; }
-.guide-world :is(#product-name, #single-name) { font-size: clamp(1.6rem, 6vw, 2.5rem); letter-spacing: -.03em; line-height: 1; overflow-wrap: anywhere; }
+.guide-world :is(#product-name, #single-name, #booster-prices-title) { font-size: clamp(1.6rem, 6vw, 2.5rem); letter-spacing: -.03em; line-height: 1; overflow-wrap: anywhere; }
 .guide-world .product-facts { color: var(--muted); font-size: .875rem; line-height: 1.5; margin: .5rem 0 0; }
 .guide-world .product-facts span { overflow-wrap: anywhere; }
 .guide-world .product-facts #product-kind { color: var(--ink); }
@@ -836,3 +836,24 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .set-close:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 .guide-world .set-close:active { color: var(--orange); }
 @media (hover: hover) and (pointer: fine) { .guide-world .set-close:hover { color: var(--orange); } }
+
+/* Retail chains' prices: an offer row without a logo, dashed like a pre-order mark. */
+.guide-world .retail-deal { background: transparent; border: 1px dashed var(--rule); grid-template-areas: "logo shop price"; grid-template-columns: 7.5rem minmax(0, 1fr) auto; }
+/* Unlike a shop's, a chain's logo stays on a phone, beside the price: it names the deal at a glance. */
+@media (max-width: 42rem) {
+  .guide-world .retail-deal { grid-template-areas: "logo price" "shop shop"; grid-template-columns: minmax(0, 1fr) auto; }
+  .guide-world .retail-deal .shop-logo { display: block; width: 6rem; }
+  /* The chip's middle square holds the whole mark, flush with the text edge. */
+  .guide-world .retail-deal .shop-logo-square { aspect-ratio: 1; object-fit: cover; width: 2.5rem; }
+}
+.guide-world .retail-deal a { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
+@media (hover: hover) and (pointer: fine) { .guide-world .retail-deal a:hover { color: var(--orange); } }
+.guide-world .retail-deals .guide-note { margin-block-start: .5rem; }
+
+/* The booster price page: the answer under its question, then the boosters. */
+.guide-world .booster-prices-intro { display: grid; gap: .5rem; margin-block-end: 2rem; }
+.guide-world .booster-prices-intro .verdict-price { margin-block-start: .75rem; }
+.guide-world .booster-prices-intro .guide-note { font-size: 1rem; margin: 0; }
+.guide-world .booster-prices .guide-products + .guide-note { margin-block-start: .5rem; }
+/* The banner's box art hangs below it; the line keeps clear of it. */
+.guide-world #home-booster-prices { margin-block: 2rem 1rem; }

@@ -16,7 +16,20 @@ defmodule TcgCheapWeb.HomeLive do
   import TcgCheapWeb.GuideComponents
   import TcgCheapWeb.SetComponents
 
-  alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Guide, Kinds, Rarities, Regions, Shops}
+  alias TcgCheap.Sealed
+
+  alias TcgCheap.Sealed.{
+    CardGuide,
+    CardImage,
+    Catalogue,
+    Guide,
+    Kinds,
+    Rarities,
+    Regions,
+    RetailDeal,
+    Shops
+  }
+
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
   @max_query_length 100
@@ -40,6 +53,7 @@ defmodule TcgCheapWeb.HomeLive do
        all_expansions?: false,
        set_page: nil,
        market: nil,
+       retail_deal: nil,
        list_restore: if(connected?(socket), do: get_connect_params(socket)["_guide_list"])
      )
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")
@@ -101,6 +115,7 @@ defmodule TcgCheapWeb.HomeLive do
          |> assign(
            set_page: nil,
            market: Guide.sealed_market(),
+           retail_deal: List.first(Sealed.list_current_retail_deals!(Date.utc_today())),
            seo: seo,
            page_title: seo.title
          )
@@ -1344,6 +1359,24 @@ defmodule TcgCheapWeb.HomeLive do
               <.set_intro name={@filters.expansion_name} page={@set_page} />
             <% true -> %>
               <.site_intro filters={@filters} market={@market} />
+              <%!-- One line: the cheapest chain price today; the booster page lists them all. --%>
+              <p :if={@filters.mode == :products} id="home-booster-prices" class="reference-link">
+                <%= if deal = @retail_deal do %>
+                  <span id="home-retail-deal">{gettext(
+                    "W sieciówkach: %{product} %{price}, %{chain} %{days}",
+                    product: if(deal.product, do: deal.product.name, else: deal.title),
+                    price: Polish.price(deal.price),
+                    chain: RetailDeal.chain_name(deal.chain),
+                    days: Polish.days(deal.starts_on, deal.ends_on)
+                  )} ·&nbsp;</span><.link navigate={~p"/ile-kosztuje-booster-pokemon"}>{gettext(
+                    "wszystkie ceny boosterów"
+                  )}&nbsp;→</.link>
+                <% else %>
+                  <.link navigate={~p"/ile-kosztuje-booster-pokemon"}>{gettext(
+                    "Ile kosztuje booster? Ceny boosterów"
+                  )}&nbsp;→</.link>
+                <% end %>
+              </p>
           <% end %>
           <section class="guide-search" aria-labelledby="guide-search-title">
             <h2 id="guide-search-title" class="sr-only">

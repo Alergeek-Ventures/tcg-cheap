@@ -36,6 +36,66 @@ defmodule TcgCheapWeb.SEO do
     )
   end
 
+  # People ask what a booster costs, also in the chains ("ile kosztuje booster
+  # pokemon w żabce"): the answer is today's cheapest English booster.
+  def booster_prices(page) do
+    canonical = url(~p"/ile-kosztuje-booster-pokemon")
+
+    metadata(
+      gettext("Ile kosztuje booster Pokémon? Aktualne ceny w Polsce"),
+      Enum.join(booster_answer(page), " "),
+      canonical,
+      social_image: home_image(),
+      social_image_alt: home_image_alt(),
+      structured_data: %{
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => [
+          %{
+            "@type" => "ListItem",
+            "position" => 1,
+            "name" => gettext("Wszystkie produkty"),
+            "item" => url(~p"/")
+          },
+          %{
+            "@type" => "ListItem",
+            "position" => 2,
+            "name" => gettext("Ile kosztuje booster"),
+            "item" => canonical
+          }
+        ]
+      }
+    )
+  end
+
+  @doc """
+  The booster price page's answer, in sentences: the cheapest booster of the
+  recent English sets in a Polish shop today and the newest set's booster.
+  The chains' prices stay in their own list: they are not all boosters.
+  """
+  @spec booster_answer(%{
+          :boosters => list(),
+          :cheapest => map() | nil,
+          optional(atom()) => any()
+        }) :: [String.t()]
+  def booster_answer(%{cheapest: nil}),
+    do: [gettext("Teraz żaden polski sklep nie ma angielskiego boostera na stanie.")]
+
+  def booster_answer(%{boosters: [newest | _], cheapest: cheapest}) do
+    [
+      gettext(
+        "Booster z ostatnich angielskich setów kosztuje dziś od %{price} (%{product}, %{shop}).",
+        price: Polish.price(cheapest.verdict.cheapest.price),
+        product: cheapest.product.name,
+        shop: GuideComponents.shop_name(cheapest.verdict.cheapest)
+      ),
+      gettext("Najnowszy set w sklepach, %{set}: od %{price}.",
+        set: newest.product.set_name,
+        price: Polish.price(newest.verdict.cheapest.price)
+      )
+    ]
+  end
+
   @doc "The set page's path: the expansion's name plus its Cardmarket id, like a product's."
   @spec expansion_path(integer(), String.t()) :: String.t()
   def expansion_path(id, name), do: ~p"/rozszerzenia/#{Catalogue.slug(name, id)}"

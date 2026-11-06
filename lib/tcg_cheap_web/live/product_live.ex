@@ -11,7 +11,7 @@ defmodule TcgCheapWeb.ProductLive do
   import TcgCheapWeb.SetComponents
 
   alias TcgCheap.Sealed.CardImage
-  alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Regions, Shops}
+  alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Regions, RetailDeal, Shops}
   alias TcgCheap.Sealed.PullRates.Rate
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
@@ -166,6 +166,14 @@ defmodule TcgCheapWeb.ProductLive do
                   data-track-section="suggested_price"
                 >{gettext("skąd ta cena?")}</a>
               </p>
+              <p :if={@page.retail_deals != []} id="product-retail-deal" class="product-facts">
+                {retail_deal_line(@page.retail_deals)} ·
+                <a
+                  href="#product-retail-deals"
+                  data-track="product_section_opened"
+                  data-track-section="retail_deals"
+                >{gettext("zobacz")}&nbsp;↓</a>
+              </p>
               <nav
                 :if={@page.product.contents || drop_link(@page)}
                 id="product-jumps"
@@ -264,6 +272,13 @@ defmodule TcgCheapWeb.ProductLive do
             <.offer_disclaimer />
           </section>
 
+          <.retail_deals
+            :if={@page.retail_deals != []}
+            id="product-retail-deals"
+            title={gettext("W sieciówkach")}
+            deals={@page.retail_deals}
+          />
+
           <%!-- A booster's card list says what it holds better than "we do not know". --%>
           <.contents
             :if={@page.product.contents || is_nil(@page.booster_set)}
@@ -307,6 +322,21 @@ defmodule TcgCheapWeb.ProductLive do
     </Layouts.app>
     """
   end
+
+  # Chain and days first: a leaflet price, not the cheapest price the verdict states.
+  defp retail_deal_line([deal]),
+    do:
+      gettext("%{chain}, %{days}: %{price}",
+        chain: RetailDeal.chain_name(deal.chain),
+        days: Polish.days(deal.starts_on, deal.ends_on),
+        price: Polish.price(deal.price)
+      )
+
+  defp retail_deal_line(deals),
+    do:
+      gettext("W sieciówkach: %{prices}",
+        prices: Polish.plural(length(deals), "cena z gazetki", "ceny z gazetek", "cen z gazetek")
+      )
 
   defp shipping(shop, price) do
     threshold = shop.free_shipping_from

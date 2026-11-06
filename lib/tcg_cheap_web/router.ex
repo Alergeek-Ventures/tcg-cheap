@@ -59,6 +59,9 @@ defmodule TcgCheapWeb.Router do
   set_expansion_logo records a checked logo for an expansion's tile in the public expansion filter.
   list_suggested_prices shows REBEL's suggested retail prices; decide_suggested_price assigns an
   unmatched one to its exact product (same number of units) or keeps it unmatched.
+  Retail chains (Lidl, Rossmann, Żabka…) publish no feed: check their leaflets and deal posts,
+  record_retail_deal each Pokémon TCG price with its days and source, list_retail_deals to avoid
+  duplicates and remove_retail_deal a wrong one.
   Write tools recompute prices at once. enqueue_shop_fetch and enqueue_catalogue_import refresh
   the data in the background.
   """
@@ -80,6 +83,7 @@ defmodule TcgCheapWeb.Router do
   # TcgCheapWeb.MarkdownNegotiation: no session, cookies or HTML.
   scope "/md", TcgCheapWeb do
     get "/", MarkdownController, :home
+    get "/ile-kosztuje-booster-pokemon", MarkdownController, :booster_prices
     get "/produkty/:slug", MarkdownController, :product
     get "/rozszerzenia/:slug", MarkdownController, :expansion
     get "/rozszerzenia/:slug/karty/:card_slug", MarkdownController, :single
@@ -135,7 +139,10 @@ defmodule TcgCheapWeb.Router do
         :enqueue_card_sync,
         :list_suggested_prices,
         :decide_suggested_price,
-        :enqueue_suggested_price_fetch
+        :enqueue_suggested_price_fetch,
+        :list_retail_deals,
+        :record_retail_deal,
+        :remove_retail_deal
       ]
   end
 
@@ -165,6 +172,7 @@ defmodule TcgCheapWeb.Router do
       live "/", HomeLive, :index
       live "/rozszerzenia/:slug", HomeLive, :expansion
       live "/produkty/:slug", ProductLive
+      live "/ile-kosztuje-booster-pokemon", BoosterPriceLive
     end
 
     scope "/", TcgCheapWeb do

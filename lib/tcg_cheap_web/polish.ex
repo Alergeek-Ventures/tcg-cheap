@@ -85,6 +85,16 @@ defmodule TcgCheapWeb.Polish do
       else: "#{date.day} #{Enum.at(@months, date.month - 1)}"
   end
 
+  @doc ~S'The days a deal runs: "2–8 listopada", "30 października – 5 listopada", "od 17 sierpnia".'
+  @spec days(Date.t(), Date.t() | nil) :: String.t()
+  def days(%Date{} = from, nil), do: gettext("od %{day}", day: day_month(from))
+  def days(%Date{} = day, day), do: day_month(day)
+
+  def days(%Date{month: month, year: year} = from, %Date{month: month, year: year} = to),
+    do: "#{from.day}–#{day_month(to)}"
+
+  def days(%Date{} = from, %Date{} = to), do: "#{day_month(from)} – #{day_month(to)}"
+
   @short_months ~w(sty lut mar kwi maj cze lip sie wrz paź lis gru)
 
   @doc ~S'A short date for chart axes: "17 lip".'

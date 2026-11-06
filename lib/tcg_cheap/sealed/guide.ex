@@ -22,6 +22,8 @@ defmodule TcgCheap.Sealed.Guide do
   # The most products an expansion has is about 55: its page lists them all,
   # so its pull rates and cards follow right after.
   @expansion_page_size 60
+  # Sets on the booster price page: about a year of releases.
+  @booster_sets 12
   # The cheapest tracked parcel to Poland from Germany, Cardmarket's largest
   # seller country (DHL Paket up to 2 kg, Cardmarket's shipping calculator,
   # 2026-11-02); orders above 25 € must be tracked, which covers most sealed
@@ -374,6 +376,8 @@ defmodule TcgCheap.Sealed.Guide do
            today: today,
            eur_pln: rate,
            suggested_price: Sealed.get_suggested_price_for_product!(product.id),
+           retail_deals:
+             Sealed.list_current_retail_deals!(today, query: [filter: [product_id: product.id]]),
            boosters: boosters,
            booster_odds: booster_odds(product, boosters),
            booster_set: booster_set(product)
@@ -404,6 +408,46 @@ defmodule TcgCheap.Sealed.Guide do
   end
 
   defp booster_set(_product), do: nil
+
+  @doc """
+  The booster price page: each English single booster a Polish shop has in
+  stock (`boosters`, summaries, newest expansion first, at most #{@booster_sets}),
+  the cheapest of them (`cheapest`, nil when none) and the retail chains'
+  deals running today (`retail_deals`).
+  """
+  @spec booster_prices(DateTime.t()) :: %{
+          boosters: [summary()],
+          cheapest: summary() | nil,
+          retail_deals: list(),
+          today: Date.t()
+        }
+  def booster_prices(%DateTime{} = now) do
+    today = DateTime.to_date(now)
+
+    boosters =
+      [
+        query: [
+          filter: [available: true, kind: :booster, region: :en],
+          select: @summary_fields,
+          sort: [cardmarket_expansion_id: :desc]
+        ],
+        load: [:stored_photo_small_url, :stored_photo_card_url, :photo_placeholder]
+      ]
+      |> Sealed.list_products!()
+      # The set's own pack, not its sleeved or smaller ones.
+      |> Enum.filter(&(&1.set_name && &1.name == &1.set_name <> " Booster"))
+      |> summaries(now)
+      # `available` is as of the last refresh: keep the ones in stock now.
+      |> Enum.filter(&(&1.verdict.cheapest && not &1.preorder?))
+      |> Enum.take(@booster_sets)
+
+    %{
+      boosters: boosters,
+      cheapest: Enum.min_by(boosters, & &1.verdict.cheapest.price, Decimal, fn -> nil end),
+      retail_deals: Sealed.list_current_retail_deals!(today),
+      today: today
+    }
+  end
 
   @doc """
   What an expansion's page shows besides its products: its English single
