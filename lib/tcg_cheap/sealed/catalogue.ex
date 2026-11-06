@@ -10,7 +10,8 @@ defmodule TcgCheap.Sealed.Catalogue do
   start with the most shared one. A colon bounds a variant when an unqualified
   product confirms that boundary. A lone product uses the text before a colon
   in its name. When nothing is convincing the set name stays empty. The
-  language edition comes from `TcgCheap.Sealed.Regions`.
+  language edition comes from `TcgCheap.Sealed.Regions`. The few product names
+  Cardmarket gets wrong are corrected here; the slug keeps Cardmarket's name.
   """
 
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
@@ -22,6 +23,12 @@ defmodule TcgCheap.Sealed.Catalogue do
 
   # Single words too generic to name a set on their own.
   @generic_words ~w(mega pokemon chinese japanese korean special gift)
+
+  # Cardmarket names that are wrong, by product id, checked on 2026-11-06.
+  @names %{
+    # The tin is Mega Latias: Pokémon Center, TCGplayer and the Polish shops.
+    834_807 => "Mega Heroes: Mega Latias Mini Tin"
+  }
 
   @parenthesized ~r/\s*\([^)]*\)/u
   @unit_count ~r/\A\d{1,2}\z/
@@ -62,13 +69,14 @@ defmodule TcgCheap.Sealed.Catalogue do
     regions = Regions.by_expansion(names, Map.new(tcgdex, fn {id, set} -> {id, set.language} end))
 
     Enum.map(products, fn product ->
-      kind = Kinds.from_cardmarket(product.category_id, product.name)
+      name = Map.get(@names, product.id_product, product.name)
+      kind = Kinds.from_cardmarket(product.category_id, name)
       set_name = Map.get(set_names, product.id_expansion)
       price = Map.get(prices, product.id_product)
 
       %{
         cardmarket_id: product.id_product,
-        name: product.name,
+        name: name,
         kind: kind,
         region:
           Regions.for_product(product.id_product, Map.fetch!(regions, product.id_expansion)),
@@ -77,7 +85,7 @@ defmodule TcgCheap.Sealed.Catalogue do
         set_name: set_name,
         cardmarket_added_on: added_on(product.date_added),
         slug: slug(product.name, product.id_product),
-        search_text: search_text(product.name, set_name, kind),
+        search_text: search_text(name, set_name, kind),
         cardmarket_trend: price && price.trend,
         cardmarket_low: price && price.low,
         cardmarket_avg: price && price.avg,
