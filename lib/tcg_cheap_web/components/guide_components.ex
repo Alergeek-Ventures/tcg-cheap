@@ -553,6 +553,64 @@ defmodule TcgCheapWeb.GuideComponents do
     )
   end
 
+  @doc "A product's row in a list: photo, name, kind, cheapest shop, verdict and price."
+  attr :summary, :map, required: true
+  attr :priority, :boolean, default: false, doc: "the list's first photo, loaded eagerly"
+
+  def product_row(assigns) do
+    ~H"""
+    <.link
+      navigate={~p"/produkty/#{@summary.product.slug}"}
+      class="guide-product-link"
+      data-track="product_clicked"
+      data-track-product-slug={@summary.product.slug}
+      data-track-verdict={@summary.verdict.status}
+      data-track-preorder={to_string(@summary.preorder?)}
+    >
+      <.product_image
+        small_photo={@summary.product.stored_photo_small_url}
+        photo={@summary.product.stored_photo_card_url}
+        page_photo={@summary.product.stored_photo_page_url}
+        blur={@summary.product.photo_placeholder}
+        sizes="(max-width: 42rem) 4.5rem, 5.5rem"
+        loading={if(@priority, do: "eager", else: "lazy")}
+        fetchpriority={if(@priority, do: "high")}
+        kind={@summary.product.kind}
+        alt=""
+        class="guide-product-image"
+      />
+      <div class="guide-product-copy">
+        <h3 class="guide-product-name">{@summary.product.name}</h3>
+        <p class="guide-product-meta">
+          {product_meta(@summary.product)}
+        </p>
+      </div>
+      <div class="guide-product-deal">
+        <span :if={@summary.verdict.cheapest} class="guide-product-shop">
+          {shop_name(@summary.verdict.cheapest)}
+        </span>
+        <%!-- Too few shops for a verdict: the row shows only the price; the product page says why. --%>
+        <.verdict_badge
+          :if={@summary.verdict.status not in [:cardmarket, :insufficient_data]}
+          verdict={@summary.verdict}
+          id={"verdict-#{@summary.product.slug}"}
+          class="guide-product-verdict"
+        />
+        <p :if={@summary.verdict.cheapest} class="guide-product-price">
+          <span
+            :if={@summary.preorder?}
+            id={"preorder-#{@summary.product.slug}"}
+            class="guide-product-preorder"
+          >
+            <.verdict_icon status={:preorder} />{preorder_tag(@summary.premiere_in)}
+          </span>
+          <strong>{Polish.price(@summary.verdict.cheapest.price)}</strong>
+        </p>
+      </div>
+    </.link>
+    """
+  end
+
   @doc """
   Kind, the set where the name does not already say it, and the language
   edition unless English: "Kolekcja · Pitch Black", "Booster · Japońska".

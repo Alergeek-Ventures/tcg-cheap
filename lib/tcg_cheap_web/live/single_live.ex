@@ -3,7 +3,7 @@ defmodule TcgCheapWeb.SingleLive do
   use TcgCheapWeb, :live_view
   use Gettext, backend: TcgCheapWeb.Gettext
   import TcgCheapWeb.GuideComponents
-  alias TcgCheap.Sealed.{CardGuide, CardImage, CardReference, Matcher}
+  alias TcgCheap.Sealed.{CardGuide, CardImage, CardReference, Guide, Matcher}
   alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
 
   defmodule NotFound do
@@ -24,6 +24,12 @@ defmodule TcgCheapWeb.SingleLive do
          |> assign(
            primary: Enum.find(page.answers, & &1.cheapest) || hd(page.answers),
            page: page,
+           booster:
+             Guide.set_booster(
+               card.tcgdex_set.cardmarket_expansion_id,
+               name,
+               DateTime.utc_now()
+             ),
            seo: seo,
            page_title: seo.title,
            counts: Map.new(groups, fn {k, v} -> {k, length(v)} end)
@@ -325,6 +331,19 @@ defmodule TcgCheapWeb.SingleLive do
               </ul>
             </.offers_disclosure>
             <.offer_disclaimer id="single-disclaimer" />
+          </section>
+          <section
+            :if={@booster}
+            id="single-booster"
+            class="product-section"
+            aria-labelledby="single-booster-title"
+          >
+            <div class="product-section-heading">
+              <h2 id="single-booster-title">{gettext("Booster z tego rozszerzenia")}</h2>
+            </div>
+            <ul class="guide-products">
+              <li class="guide-product"><.product_row summary={@booster} /></li>
+            </ul>
           </section>
         </main>
         <.site_footer />
