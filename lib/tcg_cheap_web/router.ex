@@ -73,6 +73,16 @@ defmodule TcgCheapWeb.Router do
     get "/media/tcgdex/:hash/:size", RemoteImageController, :show
     get "/sitemap.xml", CrawlController, :sitemap
     get "/robots.txt", CrawlController, :robots
+    get "/llms.txt", CrawlController, :llms
+  end
+
+  # Markdown versions of the guide's pages for AI agents, reached through
+  # TcgCheapWeb.MarkdownNegotiation: no session, cookies or HTML.
+  scope "/md", TcgCheapWeb do
+    get "/", MarkdownController, :home
+    get "/produkty/:slug", MarkdownController, :product
+    get "/rozszerzenia/:slug", MarkdownController, :expansion
+    get "/rozszerzenia/:slug/karty/:card_slug", MarkdownController, :single
   end
 
   # Link-preview cards for crawlers: no session, cookies or HTML.

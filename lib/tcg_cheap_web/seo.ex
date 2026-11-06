@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.SEO do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.{CardImage, Catalogue, Kinds}
-  alias TcgCheapWeb.{GuideComponents, Polish, SocialImage}
+  alias TcgCheapWeb.{GuideComponents, PageMarkdown, Polish, SocialImage}
 
   def home(params) do
     metadata(
@@ -23,9 +23,15 @@ defmodule TcgCheapWeb.SEO do
         ),
       structured_data: %{
         "@context" => "https://schema.org",
-        "@type" => "WebSite",
-        "name" => "TCG Cheap",
-        "url" => url(~p"/")
+        "@graph" => [
+          %{"@type" => "WebSite", "name" => "TCG Cheap", "url" => url(~p"/")},
+          %{
+            "@type" => "Organization",
+            "name" => "TCG Cheap",
+            "url" => url(~p"/"),
+            "logo" => static_url(TcgCheapWeb.Endpoint, ~p"/apple-touch-icon.png")
+          }
+        ]
       }
     )
   end
@@ -447,6 +453,7 @@ defmodule TcgCheapWeb.SEO do
       title: title,
       description: description,
       canonical: canonical,
+      markdown: PageMarkdown.url_for(canonical),
       robots: Keyword.get(opts, :robots, "index, follow"),
       social_image: Keyword.fetch!(opts, :social_image),
       social_image_alt: Keyword.fetch!(opts, :social_image_alt),
@@ -461,6 +468,7 @@ defmodule TcgCheapWeb.SEO do
     <meta id="seo-description" name="description" content={@seo.description} />
     <meta id="seo-robots" name="robots" content={@seo.robots} />
     <link id="seo-canonical" rel="canonical" href={@seo.canonical} />
+    <link id="seo-markdown" rel="alternate" type="text/markdown" href={@seo.markdown} />
     <meta id="seo-og-title" property="og:title" content={@seo.title <> " · TCG Cheap"} />
     <meta id="seo-og-description" property="og:description" content={@seo.description} />
     <meta id="seo-og-url" property="og:url" content={@seo.canonical} />
@@ -513,6 +521,7 @@ defmodule TcgCheapWeb.SEO do
             else element.removeAttribute("content")
           }
           document.getElementById("seo-canonical").setAttribute("href", seo.canonical)
+          document.getElementById("seo-markdown").setAttribute("href", seo.markdown)
           document.getElementById("seo-structured-data").textContent = JSON.stringify(seo.structured_data)
         },
       }

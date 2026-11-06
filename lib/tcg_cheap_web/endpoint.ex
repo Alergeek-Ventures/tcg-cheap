@@ -63,6 +63,7 @@ defmodule TcgCheapWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+  plug TcgCheapWeb.MarkdownNegotiation
   plug TcgCheapWeb.Router
 
   @doc false
