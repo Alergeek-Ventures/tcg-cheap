@@ -419,20 +419,7 @@ defmodule TcgCheap.Sealed.Guide do
         }
   def expansion(id, name, %DateTime{} = now) do
     set = expansion_set(id)
-
-    booster =
-      [
-        query: [
-          filter: [kind: :booster, region: :en, cardmarket_expansion_id: id],
-          select: @summary_fields
-        ],
-        load: [:stored_photo_card_url]
-      ]
-      |> Sealed.list_products!()
-      |> single_booster(name)
-      |> List.wrap()
-      |> summaries(now)
-      |> List.first()
+    booster = set_booster(id, name, now)
 
     cards = Enum.flat_map(set.rarities, & &1.cards)
 
@@ -473,6 +460,31 @@ defmodule TcgCheap.Sealed.Guide do
       booster: booster,
       cardmarket: cardmarket_boxes(id, name, now)
     }
+  end
+
+  @doc """
+  An expansion's English single booster as a summary with its list row's
+  photos, nil when there is none. `name` is the expansion's name.
+  """
+  @spec set_booster(integer(), String.t(), DateTime.t()) :: summary() | nil
+  def set_booster(id, name, %DateTime{} = now) do
+    [
+      query: [
+        filter: [kind: :booster, region: :en, cardmarket_expansion_id: id],
+        select: @summary_fields
+      ],
+      load: [
+        :stored_photo_small_url,
+        :stored_photo_card_url,
+        :stored_photo_page_url,
+        :photo_placeholder
+      ]
+    ]
+    |> Sealed.list_products!()
+    |> single_booster(name)
+    |> List.wrap()
+    |> summaries(now)
+    |> List.first()
   end
 
   # The set's own Booster Box and Elite Trainer Box on Cardmarket (trend in

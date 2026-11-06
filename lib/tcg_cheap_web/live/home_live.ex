@@ -1457,57 +1457,10 @@ defmodule TcgCheapWeb.HomeLive do
                   )}</.link>
                 </li>
                 <li :for={{dom_id, summary} <- @streams.products} id={dom_id} class="guide-product">
-                  <.link
-                    navigate={~p"/produkty/#{summary.product.slug}"}
-                    class="guide-product-link"
-                    data-track="product_clicked"
-                    data-track-product-slug={summary.product.slug}
-                    data-track-verdict={summary.verdict.status}
-                    data-track-preorder={to_string(summary.preorder?)}
-                  >
-                    <.product_image
-                      small_photo={summary.product.stored_photo_small_url}
-                      photo={summary.product.stored_photo_card_url}
-                      page_photo={summary.product.stored_photo_page_url}
-                      blur={summary.product.photo_placeholder}
-                      sizes="(max-width: 42rem) 4.5rem, 5.5rem"
-                      loading={
-                        if(summary.product.id == @priority_product_id, do: "eager", else: "lazy")
-                      }
-                      fetchpriority={if(summary.product.id == @priority_product_id, do: "high")}
-                      kind={summary.product.kind}
-                      alt=""
-                      class="guide-product-image"
-                    />
-                    <div class="guide-product-copy">
-                      <h3 class="guide-product-name">{summary.product.name}</h3>
-                      <p class="guide-product-meta">
-                        {product_meta(summary.product)}
-                      </p>
-                    </div>
-                    <div class="guide-product-deal">
-                      <span :if={summary.verdict.cheapest} class="guide-product-shop">
-                        {shop_name(summary.verdict.cheapest)}
-                      </span>
-                      <%!-- Too few shops for a verdict: the row shows only the price; the product page says why. --%>
-                      <.verdict_badge
-                        :if={summary.verdict.status not in [:cardmarket, :insufficient_data]}
-                        verdict={summary.verdict}
-                        id={"verdict-#{summary.product.slug}"}
-                        class="guide-product-verdict"
-                      />
-                      <p :if={summary.verdict.cheapest} class="guide-product-price">
-                        <span
-                          :if={summary.preorder?}
-                          id={"preorder-#{summary.product.slug}"}
-                          class="guide-product-preorder"
-                        >
-                          <.verdict_icon status={:preorder} />{preorder_tag(summary.premiere_in)}
-                        </span>
-                        <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
-                      </p>
-                    </div>
-                  </.link>
+                  <.product_row
+                    summary={summary}
+                    priority={summary.product.id == @priority_product_id}
+                  />
                 </li>
                 <.card_row :for={{dom_id, row} <- @streams.cards} id={dom_id} row={row} />
               </ul>
