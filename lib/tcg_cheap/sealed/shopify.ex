@@ -12,6 +12,10 @@ defmodule TcgCheap.Sealed.Shopify do
   images (the variant's own, else the product's) may come from the shop's
   host or Shopify's CDN; EANs come from
   variant SKUs. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
+
+  Shopify rate-limits our address across all its shops at once (every Shopify
+  shop answered 429 in the same minutes), so its requests are paced
+  5 s apart instead of the usual 1 s.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
@@ -19,6 +23,7 @@ defmodule TcgCheap.Sealed.Shopify do
   alias TcgCheap.Sealed.{Ean, Matcher, Shop, ShopFeed}
 
   @per_page 250
+  @request_pause_ms 5_000
   @handle ~r/\A[a-z0-9]+(?:[-_][a-z0-9]+)*\z/
 
   @impl true
@@ -33,7 +38,8 @@ defmodule TcgCheap.Sealed.Shopify do
   end
 
   defp check_currency(shop, req_options) do
-    with {:ok, response} <- ShopFeed.get(shop, "/meta.json", [], req_options),
+    with {:ok, response} <-
+           ShopFeed.get(shop, "/meta.json", [], req_options, pause_ms: @request_pause_ms),
          {:ok, %{"currency" => "PLN"}} <- ShopFeed.decode(response) do
       :ok
     else
@@ -61,7 +67,10 @@ defmodule TcgCheap.Sealed.Shopify do
   defp request(shop, req_options, page) do
     params = [limit: @per_page, page: page]
 
-    with {:ok, response} <- ShopFeed.get(shop, products_path(shop), params, req_options),
+    with {:ok, response} <-
+           ShopFeed.get(shop, products_path(shop), params, req_options,
+             pause_ms: @request_pause_ms
+           ),
          {:ok, %{"products" => products}} when is_list(products) <- ShopFeed.decode(response) do
       {:ok, products}
     else

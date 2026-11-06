@@ -3,6 +3,11 @@ defmodule TcgCheap.Sealed.FetchWorker do
   Oban job that refreshes one shop's offers. The daily cron runs it without a
   shop, which queues one job per configured shop; the `sealed` queue then
   fetches them one after another.
+
+  A fetch the shop rate-limited (HTTP 429) is retried 20 and then 40 minutes
+  later, plus up to 5 minutes of jitter so rate-limited shops do not return
+  together; Oban's default backoff (seconds) would ask again while the shop
+  still refuses us. Other failures keep the default backoff.
   """
 
   use Oban.Worker,
@@ -20,6 +25,15 @@ defmodule TcgCheap.Sealed.FetchWorker do
 
   @impl Oban.Worker
   def timeout(_job), do: :timer.minutes(5)
+
+  @impl Oban.Worker
+  def backoff(%Oban.Job{
+        attempt: attempt,
+        unsaved_error: %{reason: %Oban.PerformError{reason: {:error, {:http_status, 429}}}}
+      }),
+      do: attempt * 20 * 60 + :rand.uniform(5 * 60)
+
+  def backoff(job), do: super(job)
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"shop" => key}}) do
