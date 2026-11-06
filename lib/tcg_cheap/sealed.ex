@@ -10,7 +10,7 @@ defmodule TcgCheap.Sealed do
 
   use Ash.Domain, otp_app: :tcg_cheap, extensions: [AshAi]
 
-  alias TcgCheap.Sealed.{AgentTools, Offer, Product, SuggestedPrice}
+  alias TcgCheap.Sealed.{AgentTools, Offer, Product, RetailDeal, SuggestedPrice}
 
   @current_for_seconds 3 * 86_400
 
@@ -146,6 +146,34 @@ defmodule TcgCheap.Sealed do
     tool(:enqueue_suggested_price_fetch, AgentTools, :enqueue_suggested_price_fetch,
       annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
     )
+
+    tool :list_retail_deals, RetailDeal, :read do
+      description """
+      Lists the recorded retail chain deals (Lidl, Rossmann, Żabka…), past ones included; filter
+      and sort them, e.g. by starts_on. Pages use limit and offset.
+      """
+
+      action_parameters([:filter, :sort, :limit, :offset])
+      annotations(read_only_hint: true)
+    end
+
+    tool :record_retail_deal, RetailDeal, :record do
+      description """
+      Records a Pokémon TCG price in a retail chain's shops from the chain's leaflet or a deal
+      post you checked: chain, the leaflet's title, the price in PLN, its days and the https
+      source. Set product_id (search_products) only to the exact product the leaflet names; a
+      chain's own set stays without one. Leave ends_on null when the source gives no end; never
+      guess one. Shown on the product page, the home page and the booster price page, never in
+      the price verdict. To correct a deal, remove it and record it again.
+      """
+
+      annotations(read_only_hint: false, destructive_hint: false, idempotent_hint: false)
+    end
+
+    tool :remove_retail_deal, RetailDeal, :destroy do
+      description "Removes a recorded retail chain deal (wrong, or withdrawn by the chain)."
+      annotations(read_only_hint: false, destructive_hint: true, idempotent_hint: true)
+    end
   end
 
   resources do
@@ -269,6 +297,10 @@ defmodule TcgCheap.Sealed do
         action: :for_product,
         args: [:product_id],
         not_found_error?: false
+    end
+
+    resource TcgCheap.Sealed.RetailDeal do
+      define :list_current_retail_deals, action: :current, args: [:today]
     end
 
     resource AgentTools

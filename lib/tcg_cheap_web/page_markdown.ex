@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   use TcgCheapWeb, :verified_routes
 
-  alias TcgCheap.Sealed.{CardGuide, Kinds, PriceGuide, Rarities, Regions, Shops}
+  alias TcgCheap.Sealed.{CardGuide, Kinds, PriceGuide, Rarities, Regions, RetailDeal, Shops}
   alias TcgCheapWeb.{GuideComponents, Polish, SEO}
 
   @doc "The markdown version's URL of a page's canonical URL."
@@ -29,9 +29,18 @@ defmodule TcgCheapWeb.PageMarkdown do
     ]
   end
 
-  def home(seo, summaries, today) do
+  def home(seo, summaries, retail_deal, today) do
     page(seo, today, [
       section("Jak oceniamy cenę", list(method())),
+      section(
+        "Ile kosztuje booster",
+        [
+          retail_deal &&
+            "W sieciówkach: #{if retail_deal.product, do: retail_deal.product.name, else: retail_deal.title} #{Polish.price(retail_deal.price)}, #{RetailDeal.chain_name(retail_deal.chain)} #{Polish.days(retail_deal.starts_on, retail_deal.ends_on)}.",
+          "Ceny boosterów i wszystkie okazje w sieciówkach: #{url_for(url(~p"/ile-kosztuje-booster-pokemon"))}"
+        ]
+        |> Enum.filter(&is_binary/1)
+      ),
       section(
         "Produkty",
         [
@@ -42,6 +51,16 @@ defmodule TcgCheapWeb.PageMarkdown do
     ])
   end
 
+  def booster_prices(seo, page) do
+    page(seo, page.today, [
+      section("Boostery w polskich sklepach", [
+        "Angielskie, najnowsze sety najpierw. Najniższa cena na stanie w polskich sklepach internetowych, bez dostawy.",
+        products_table(page.boosters)
+      ]),
+      retail_deals(page.retail_deals)
+    ])
+  end
+
   def product(seo, page) do
     product = page.product
 
@@ -49,6 +68,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       section("Werdykt", list(verdict_facts(page))),
       section("Produkt", list(product_facts(product))),
       section("Oferty w polskich sklepach", offers_table(page.offers, page.today)),
+      retail_deals(page.retail_deals),
       page.booster_set && pull_rates(page.booster_set)
     ])
   end
@@ -151,6 +171,33 @@ defmodule TcgCheapWeb.PageMarkdown do
             SEO.expansion_url(product.cardmarket_expansion_id, product.set_name)
           )
     ]
+  end
+
+  # As on the HTML pages: apart from the shop offers, never in the verdict.
+  defp retail_deals([]), do: nil
+
+  defp retail_deals(deals) do
+    section("W sieciówkach", [
+      "Ceny z gazetek sieci i zgłoszeń z konkretnych sklepów. Dostępność bywa różna, więc nie wliczamy ich do oceny.",
+      table(
+        ["Sieć", "Produkt", "Cena", "Kiedy", "Źródło"],
+        Enum.map(deals, fn deal ->
+          [
+            RetailDeal.chain_name(deal.chain),
+            if(deal.product,
+              do: link(deal.title, url(~p"/produkty/#{deal.product.slug}")),
+              else: deal.title
+            ),
+            Polish.price(deal.price),
+            Enum.join(
+              Enum.reject([Polish.days(deal.starts_on, deal.ends_on), deal.note], &is_nil/1),
+              ", "
+            ),
+            link("źródło", deal.source_url)
+          ]
+        end)
+      )
+    ])
   end
 
   defp offers_table([], _today), do: "Żaden polski sklep nie ma teraz tej oferty."

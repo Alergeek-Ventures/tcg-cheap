@@ -4,7 +4,7 @@ defmodule TcgCheapWeb.GuideComponents do
   use TcgCheapWeb, :html
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{Kinds, Regions, Shops}
+  alias TcgCheap.Sealed.{Kinds, Regions, RetailDeal, Shops}
   alias TcgCheapWeb.{Polish, VisitorLocation}
 
   def card_variant_label(:normal), do: gettext("Zwykła / holo")
@@ -701,6 +701,71 @@ defmodule TcgCheapWeb.GuideComponents do
     do: gettext("Za mało sklepów")
 
   def verdict_label(%{status: :out_of_stock}), do: gettext("Brak w sklepach")
+  attr :id, :string, required: true
+  attr :deals, :list, required: true
+  attr :title, :string, required: true
+  attr :products?, :boolean, default: false, doc: "name each deal's product, for lists of many"
+
+  @doc """
+  Retail chains' prices running today (`TcgCheap.Sealed.RetailDeal`), with
+  their days and source, apart from the shop offers: stock differs from shop
+  to shop, so they never enter the verdict.
+  """
+  def retail_deals(assigns) do
+    ~H"""
+    <section id={@id} class="product-section retail-deals" aria-labelledby={"#{@id}-title"}>
+      <div class="product-section-heading">
+        <h2 id={"#{@id}-title"}>{@title}</h2>
+      </div>
+      <%!-- Dashed like a pre-order mark: a price to check in a store, not an offer to buy. --%>
+      <ul class="offer-list">
+        <li :for={deal <- @deals} id={"#{@id}-#{deal.id}"} class="offer retail-deal">
+          <%!-- Every chain's logo carries its name, so the row shows no name beside it. --%>
+          <img
+            src={~p"/images/chains/#{Atom.to_string(deal.chain) <> ".webp"}"}
+            alt={RetailDeal.chain_name(deal.chain)}
+            width="96"
+            height="32"
+            loading="lazy"
+            class={["shop-logo", RetailDeal.square_logo?(deal.chain) && "shop-logo-square"]}
+          />
+          <div class="offer-shop">
+            <span :if={@products?} class="retail-deal-product">
+              <.link :if={deal.product} navigate={~p"/produkty/#{deal.product.slug}"}>{deal.product.name}</.link>
+              <span :if={!deal.product}>{deal.title}</span>
+            </span>
+            <span class="offer-delivery">{deal_days(deal)} ·
+            <a
+              href={deal.source_url}
+              target="_blank"
+              rel="noopener nofollow"
+              data-track="retail_deal_source_clicked"
+              data-track-chain={deal.chain}
+              aria-label={
+                gettext("%{chain}: źródło ceny (otwiera się w nowej karcie)",
+                  chain: RetailDeal.chain_name(deal.chain)
+                )
+              }
+            >{gettext("źródło")}&nbsp;↗</a></span>
+          </div>
+          <p class="offer-price"><strong>{Polish.price(deal.price)}</strong></p>
+        </li>
+      </ul>
+      <p class="guide-note">
+        {gettext("Ceny z gazetek i zgłoszeń. Dostępność różna, nie wliczamy ich do oceny.")}
+      </p>
+    </section>
+    """
+  end
+
+  @doc ~S(A retail deal's days and caveat: "2–8 listopada · wybrane sklepy".)
+  def deal_days(deal) do
+    # A no-break space keeps each "·" at the end of a line, never at the start.
+    [Polish.days(deal.starts_on, deal.ends_on), deal.note]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join("\u00A0· ")
+  end
+
   attr :id, :string, required: true
   attr :offer, :map, required: true
   attr :location, :map, default: nil

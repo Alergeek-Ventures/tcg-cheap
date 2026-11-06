@@ -8,16 +8,26 @@ defmodule TcgCheapWeb.MarkdownController do
 
   use TcgCheapWeb, :controller
 
+  alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{CardGuide, Catalogue, Guide}
   alias TcgCheapWeb.{PageMarkdown, SEO}
 
   # The home page's default list: English editions, as the HTML opens with.
   def home(conn, _params) do
     now = DateTime.utc_now()
+    today = DateTime.to_date(now)
     {summaries, _more?, _count} = Guide.browse(list_filters(nil, :en), 0, now)
+    retail_deal = List.first(Sealed.list_current_retail_deals!(today))
     seo = SEO.home(%{})
 
-    send_markdown(conn, seo, PageMarkdown.home(seo, summaries, DateTime.to_date(now)))
+    send_markdown(conn, seo, PageMarkdown.home(seo, summaries, retail_deal, today))
+  end
+
+  def booster_prices(conn, _params) do
+    page = Guide.booster_prices(DateTime.utc_now())
+    seo = SEO.booster_prices(page)
+
+    send_markdown(conn, seo, PageMarkdown.booster_prices(seo, page))
   end
 
   def product(conn, %{"slug" => slug}) do
