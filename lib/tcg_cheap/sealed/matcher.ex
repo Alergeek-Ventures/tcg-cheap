@@ -16,6 +16,9 @@ defmodule TcgCheap.Sealed.Matcher do
       edition answers for its language word ("JP" for a Japanese product whose
       name does not say it), and a single booster for "pack" ("Booster Pack");
       such a word does not count against the few title words a name may lack.
+      A leading Chinese set code ("CBB3C:", "CSV9.5C:") is not part of the
+      name: shops rarely write it, and when they do its words count as
+      explained.
 
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
@@ -26,6 +29,8 @@ defmodule TcgCheap.Sealed.Matcher do
   pre-order matches like any other (`preorder_title?/1` marks the offer). Otherwise a known
   EAN (`TcgCheap.Sealed.known_eans/0`) wins over the title.
   """
+
+  alias TcgCheap.Sealed.Regions
 
   @stopwords ~w(pokemon tcg ptcg the and of s a z na i w edycja karty kart karta oryginal oryginalne
                 oryginalny angielski angielska angielskie english en eng wersja nowy nowa prerelease)
@@ -198,13 +203,15 @@ defmodule TcgCheap.Sealed.Matcher do
   def index(products, eans \\ %{}) do
     entries =
       for product <- products,
-          tokens = MapSet.new(product_tokens(product.name)),
+          {code, name} = Regions.chinese_code(product.name) || {"", product.name},
+          tokens = MapSet.new(product_tokens(name)),
           MapSet.size(tokens) >= 2,
           do: %{
             id: product.id,
             tokens: tokens,
             size: MapSet.size(tokens),
             meets: meets(product),
+            code_tokens: MapSet.new(tokens(code)),
             set_tokens: MapSet.new(tokens(Map.get(product, :set_name) || "")),
             booster?: Map.get(product, :kind) == :booster
           }
@@ -222,6 +229,12 @@ defmodule TcgCheap.Sealed.Matcher do
         acc -> Map.update(acc, token, [entry], &[entry | &1])
       end
 
+    # A set code's words are still words some product name uses (`unique_variant/4`).
+    known_tokens =
+      entries
+      |> Enum.flat_map(&MapSet.to_list(MapSet.union(&1.tokens, &1.code_tokens)))
+      |> MapSet.new()
+
     sets =
       products
       |> Enum.map(&Map.get(&1, :set_name))
@@ -234,7 +247,7 @@ defmodule TcgCheap.Sealed.Matcher do
       entries: entries,
       by_rare_token: by_rare_token,
       by_rare_pair: by_rare_pair,
-      known_tokens: frequency |> Map.keys() |> MapSet.new(),
+      known_tokens: known_tokens,
       sets: sets,
       eans: eans
     }
@@ -296,7 +309,9 @@ defmodule TcgCheap.Sealed.Matcher do
       with the title, qualifying ones first (most specific first), each with
       `:id`, its name `:tokens`, `:missing` (name tokens absent from the
       title), `:missing_qualifiers` (title qualifiers absent from the name),
-      `:unexplained` (title tokens absent from the name) and `:qualifies?`.
+      `:unexplained` (title tokens absent from the name), `:code_tokens` (the
+      words of its leading Chinese set code, which a title may name but need
+      not) and `:qualifies?`.
 
   Products whose names reduce to fewer than two tokens are not indexed and
   never match.
@@ -328,6 +343,7 @@ defmodule TcgCheap.Sealed.Matcher do
             |> MapSet.difference(MapSet.union(entry.tokens, entry.meets))
             |> Enum.sort(),
           unexplained: offer_set |> unexplained(entry) |> Enum.sort(),
+          code_tokens: Enum.sort(entry.code_tokens),
           qualifies?: qualifies?
         }
       end)
@@ -421,9 +437,13 @@ defmodule TcgCheap.Sealed.Matcher do
   # Title tokens the product name does not account for. A qualifier the product
   # meets without naming it ("JP" for a Japanese product, "pack" for a booster)
   # is accounted for, so "Battle Partners Japoński Booster [sv9]" spends its
-  # allowance on "sv 9" only.
-  defp unexplained(offer_set, entry),
-    do: offer_set |> MapSet.difference(entry.tokens) |> MapSet.difference(entry.meets)
+  # allowance on "sv 9" only; so is its set code ("[CSV9.5C]").
+  defp unexplained(offer_set, entry) do
+    offer_set
+    |> MapSet.difference(entry.tokens)
+    |> MapSet.difference(entry.meets)
+    |> MapSet.difference(entry.code_tokens)
+  end
 
   defp meets(product) do
     [

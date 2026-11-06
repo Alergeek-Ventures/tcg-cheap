@@ -78,7 +78,7 @@ defmodule TcgCheap.Sealed.Regions do
     {~w(thai), :th}
   ]
 
-  @chinese_code ~r/^[A-Za-z0-9.]*\d[A-Za-z0-9.]*C:/
+  @chinese_code ~r/\A([A-Za-z0-9.]*\d[A-Za-z0-9.]*C):\s*(.*)\z/s
   @non_letter ~r/[^a-z]+/
 
   @spec all() :: [atom()]
@@ -119,6 +119,19 @@ defmodule TcgCheap.Sealed.Regions do
     end)
   end
 
+  @doc ~S"""
+  Splits a leading Chinese set code off a product name:
+  "CBB3C: Gem Pack Vol. 3 Booster" → `{"CBB3C", "Gem Pack Vol. 3 Booster"}`;
+  nil for a name without one.
+  """
+  @spec chinese_code(String.t()) :: {String.t(), String.t()} | nil
+  def chinese_code(name) do
+    case Regex.run(@chinese_code, name, capture: :all_but_first) do
+      [code, rest] -> {code, rest}
+      nil -> nil
+    end
+  end
+
   @doc "The region of a product, given its Cardmarket id and its expansion's region."
   @spec for_product(integer(), atom()) :: atom()
   def for_product(cardmarket_id, expansion_region),
@@ -143,7 +156,7 @@ defmodule TcgCheap.Sealed.Regions do
     words = name |> String.downcase() |> String.split(@non_letter, trim: true)
 
     cond do
-      Regex.match?(@chinese_code, name) -> :zh
+      chinese_code(name) -> :zh
       String.contains?(name, "ID/TH") -> :id
       true -> Enum.find_value(@words, &from_words(&1, words))
     end

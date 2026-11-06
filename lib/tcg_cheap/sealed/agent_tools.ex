@@ -245,8 +245,9 @@ defmodule TcgCheap.Sealed.AgentTools do
       `candidates`, each saying why it does or does not qualify. Rules: every name token must be
       in the title, every title qualifier in the name, at most `max_unexplained` title tokens may
       be absent from the name, the most specific qualifying product wins and a tie stays
-      unmatched; a known EAN (product barcode or manual assignment) wins over the title; excluded titles never
-      match. It changes nothing.
+      unmatched; a leading Chinese set code in a name ("CBB3C:") is not a name token, and a title
+      may name it without it counting as absent (`set_code_tokens`); a known EAN (product barcode
+      or manual assignment) wins over the title; excluded titles never match. It changes nothing.
       """
 
       argument :offer_id, :uuid, description: "A stored offer to explain."
