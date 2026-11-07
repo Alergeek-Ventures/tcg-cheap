@@ -1699,8 +1699,9 @@ defmodule TcgCheap.Sealed.Shops do
       name: "TCG King",
       host: "tcgking.nl",
       source: Shopify,
-      # Every product is a single card, One Piece and Lorcana too.
-      singles_categories: ["all"],
+      # "all" also lists One Piece and Lorcana cards and sealed products;
+      # this collection holds exactly its Pokémon singles (November 2026).
+      singles_categories: ["pokemon-all-singles"],
       currency: "EUR",
       singles_only: true,
       country: "NL",
