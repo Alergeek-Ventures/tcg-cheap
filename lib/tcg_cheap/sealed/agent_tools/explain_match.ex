@@ -68,7 +68,8 @@ defmodule TcgCheap.Sealed.AgentTools.ExplainMatch do
             missing_tokens: candidate.missing,
             missing_qualifiers: candidate.missing_qualifiers,
             unexplained_tokens: candidate.unexplained,
-            set_code_tokens: candidate.code_tokens
+            set_code_tokens: candidate.code_tokens,
+            met_qualifiers: candidate.meets
           }
         end)
     }
