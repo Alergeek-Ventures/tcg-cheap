@@ -8,6 +8,11 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   alias TcgCheap.Sealed.{CardGuide, CardImage, TcgdexCard, TcgdexSet}
   alias TcgCheap.Storage
 
+  # Fixed by `CardImage.classic_collection/0`, never by a request.
+  @classic_collection_values Enum.map_join(CardImage.classic_collection(), ", ", fn {number, code} ->
+                               "('#{number}', '#{code}')"
+                             end)
+
   # Keyset scan across the known source columns. No request parameter can add a
   # source, and neither rendering nor the media controller invokes this query.
   @sources """
@@ -30,13 +35,20 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       JOIN sealed_tcgdex_sets s ON c.tcgdex_set_id = s.id
       WHERE s.language = 'en'
         AND s.abbreviation ~ '^[A-Z0-9]+$' AND c.number ~ '^([0-9]+|[A-Z])$'
-        -- CardImage's @limitless_elsewhere: Limitless files another set's cards under its code.
+        -- 30C_001 is 30th Celebration's card; the collection's scans follow below.
         AND s.tcgdex_id <> '30th-c'
         -- Only where TCGdex has no image: no directory, or the card's failed to download.
         AND (s.card_images_url IS NULL OR EXISTS (
           SELECT 1 FROM storage_remote_images r
            WHERE r.id = encode(sha256(convert_to(s.card_images_url || '/' || c.number || '/high.webp', 'UTF8')), 'hex')
              AND r.attempted_at IS NOT NULL AND r.detail_key IS NULL))
+    UNION
+    SELECT 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/30C/30C_' || m.code || '_R_EN_LG.png',
+           'card' AS kind
+      FROM sealed_tcgdex_cards c
+      JOIN sealed_tcgdex_sets s ON c.tcgdex_set_id = s.id
+      JOIN (VALUES #{@classic_collection_values}) AS m(number, code) ON m.number = c.number
+      WHERE s.language = 'en' AND s.tcgdex_id = '30th-c'
     UNION
     SELECT 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRZ/CRZ_GG'
              || ltrim(substring(c.number FROM 3), '0') || '_R_EN_LG.png', 'card' AS kind
@@ -173,7 +185,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       join: o in subquery(CardGuide.current_query()),
       on: o.card_id == c.id,
       where: is_nil(o.grading) and s.language == "en",
-      # CardImage's @limitless_elsewhere: no TCGdex directory and no Limitless scan.
+      # Not 30C_001 (30th Celebration's) for the collection; @sources has its scans.
       where: not is_nil(s.card_images_url) or s.tcgdex_id != "30th-c",
       where:
         not is_nil(s.card_images_url) or

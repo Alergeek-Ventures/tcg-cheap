@@ -12,12 +12,43 @@ defmodule TcgCheap.Sealed.CardImage do
 
   @host "assets.tcgdex.net"
   @limitless "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci"
-  # TCGdex sets whose official code Limitless TCG files another set's cards
-  # under: 30th Classic Collection shares "30C" with 30th Celebration, whose
-  # 30C_001 is Exeggcute, not the collection's Charizard. Keep in sync with
-  # `TcgCheap.Storage.RemoteImageMirror`.
-  @limitless_elsewhere ~w(30th-c)
-  @limitless_scan ~r"\Ahttps://limitlesstcg\.nyc3\.cdn\.digitaloceanspaces\.com/tpci/(?:([A-Z0-9]+)/\1_(?:\d{3,}|[A-Z])|CRZ/CRZ_GG[1-9]\d?)_R_EN_LG\.png\z"
+  # 30th Classic Collection shares "30C" with 30th Celebration, whose 30C_001
+  # is Exeggcute, not the collection's Charizard: Limitless TCG files the
+  # collection as 30C_CC1–CC30, in another order than TCGdex's numbers
+  # (matched by name and checked by eye on 2026-11-07).
+  @classic_collection %{
+    "001" => "CC2",
+    "002" => "CC8",
+    "003" => "CC11",
+    "004" => "CC20",
+    "005" => "CC3",
+    "006" => "CC9",
+    "007" => "CC5",
+    "008" => "CC25",
+    "009" => "CC22",
+    "010" => "CC13",
+    "011" => "CC14",
+    "012" => "CC27",
+    "013" => "CC24",
+    "014" => "CC1",
+    "015" => "CC4",
+    "016" => "CC19",
+    "017" => "CC23",
+    "018" => "CC15",
+    "019" => "CC16",
+    "020" => "CC17",
+    "021" => "CC18",
+    "022" => "CC12",
+    "023" => "CC21",
+    "024" => "CC6",
+    "025" => "CC10",
+    "026" => "CC28",
+    "027" => "CC29",
+    "028" => "CC26",
+    "029" => "CC7",
+    "030" => "CC30"
+  }
+  @limitless_scan ~r"\Ahttps://limitlesstcg\.nyc3\.cdn\.digitaloceanspaces\.com/tpci/(?:([A-Z0-9]+)/\1_(?:\d{3,}|[A-Z])|CRZ/CRZ_GG[1-9]\d?|30C/30C_CC[1-9]\d?)_R_EN_LG\.png\z"
   @qualified_path ~r{/((?:high|low)\.(?:png|jpg|webp))$}
   @known_extension ~r/\.[A-Za-z0-9]+$/
   @image_extension ~r/\.(?:png|jpg|webp)$/
@@ -41,7 +72,10 @@ defmodule TcgCheap.Sealed.CardImage do
 
   defp tcgdex_card(_set, _number), do: nil
 
-  defp limitless_scan(%{tcgdex_id: id}, _number) when id in @limitless_elsewhere, do: nil
+  defp limitless_scan(%{tcgdex_id: "30th-c"}, number) do
+    if code = Map.get(@classic_collection, number),
+      do: card_source_url("#{@limitless}/30C/30C_#{code}_R_EN_LG.png")
+  end
 
   # Galarian Gallery uses Crown Zenith's directory and its unpadded GG number.
   defp limitless_scan(%{abbreviation: "CRZ:GG"}, "GG" <> digits) do
@@ -67,6 +101,10 @@ defmodule TcgCheap.Sealed.CardImage do
   end
 
   defp limitless_scan(_set, _number), do: nil
+
+  @doc "30th Classic Collection's Limitless TCG scan codes by TCGdex card number."
+  @spec classic_collection() :: %{String.t() => String.t()}
+  def classic_collection, do: @classic_collection
 
   @doc "Returns the local URL for the stored detail variant of a card image."
   @spec detail_url(term()) :: String.t() | nil
