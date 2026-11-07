@@ -12,6 +12,11 @@ defmodule TcgCheap.Sealed.CardImage do
 
   @host "assets.tcgdex.net"
   @limitless "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci"
+  # TCGdex sets whose official code Limitless TCG files another set's cards
+  # under: 30th Classic Collection shares "30C" with 30th Celebration, whose
+  # 30C_001 is Exeggcute, not the collection's Charizard. Keep in sync with
+  # `TcgCheap.Storage.RemoteImageMirror`.
+  @limitless_elsewhere ~w(30th-c)
   @limitless_scan ~r"\Ahttps://limitlesstcg\.nyc3\.cdn\.digitaloceanspaces\.com/tpci/(?:([A-Z0-9]+)/\1_(?:\d{3,}|[A-Z])|CRZ/CRZ_GG[1-9]\d?)_R_EN_LG\.png\z"
   @qualified_path ~r{/((?:high|low)\.(?:png|jpg|webp))$}
   @known_extension ~r/\.[A-Za-z0-9]+$/
@@ -35,6 +40,8 @@ defmodule TcgCheap.Sealed.CardImage do
     do: source_url(directory <> "/" <> number)
 
   defp tcgdex_card(_set, _number), do: nil
+
+  defp limitless_scan(%{tcgdex_id: id}, _number) when id in @limitless_elsewhere, do: nil
 
   # Galarian Gallery uses Crown Zenith's directory and its unpadded GG number.
   defp limitless_scan(%{abbreviation: "CRZ:GG"}, "GG" <> digits) do

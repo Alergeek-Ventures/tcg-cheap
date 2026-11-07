@@ -468,6 +468,7 @@ defmodule TcgCheap.Sealed.CardGuide do
           struct(c, [:id, :tcgdex_id, :tcgdex_set_id, :name, :number, :variants]),
           struct(s, [
             :id,
+            :tcgdex_id,
             :cardmarket_expansion_id,
             :card_images_url,
             :abbreviation,
