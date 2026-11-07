@@ -1959,7 +1959,7 @@ msgstr[2] " filtrów"
 msgid "%{chain}: źródło ceny (otwiera się w nowej karcie)"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/booster_price_live.ex:81
+#: lib/tcg_cheap_web/live/booster_price_live.ex:89
 #, elixir-autogen, elixir-format
 msgid "Boostery w polskich sklepach"
 msgstr ""
@@ -1984,7 +1984,7 @@ msgstr ""
 msgid "Najnowszy set w sklepach, %{set}: od %{price}."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/booster_price_live.ex:86
+#: lib/tcg_cheap_web/live/booster_price_live.ex:94
 #: lib/tcg_cheap_web/seo.ex:82
 #, elixir-autogen, elixir-format
 msgid "Teraz żaden polski sklep nie ma angielskiego boostera na stanie."
@@ -1995,7 +1995,7 @@ msgstr ""
 msgid "W sieciówkach"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/booster_price_live.ex:82
+#: lib/tcg_cheap_web/live/booster_price_live.ex:90
 #, elixir-autogen, elixir-format
 msgid "angielskie, najnowsze sety najpierw"
 msgstr ""
@@ -2035,7 +2035,7 @@ msgstr ""
 msgid "Ile kosztuje booster? Ceny boosterów"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/booster_price_live.ex:123
+#: lib/tcg_cheap_web/live/booster_price_live.ex:131
 #, elixir-autogen, elixir-format
 msgid "Najniższa cena na stanie w polskich sklepach internetowych, bez dostawy. Ocenę ceny znajdziesz na stronie boostera."
 msgstr ""
@@ -2065,7 +2065,7 @@ msgstr ""
 msgid "Wszystkie ceny boosterów"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/booster_price_live.ex:132
+#: lib/tcg_cheap_web/live/booster_price_live.ex:78
 #: lib/tcg_cheap_web/live/home_live.ex:806
 #, elixir-autogen, elixir-format
 msgid "Okazje w sieciówkach"

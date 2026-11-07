@@ -1936,7 +1936,7 @@ msgstr[1] " filters"
 msgid "%{chain}: źródło ceny (otwiera się w nowej karcie)"
 msgstr "%{chain}: price source (opens in a new tab)"
 
-#: lib/tcg_cheap_web/live/booster_price_live.ex:81
+#: lib/tcg_cheap_web/live/booster_price_live.ex:89
 #, elixir-autogen, elixir-format
 msgid "Boostery w polskich sklepach"
 msgstr "Boosters in Polish shops"
@@ -1961,7 +1961,7 @@ msgstr "How much is a Pokémon booster? Current prices in Poland"
 msgid "Najnowszy set w sklepach, %{set}: od %{price}."
 msgstr "The newest set in shops, %{set}: from %{price}."
 
-#: lib/tcg_cheap_web/live/booster_price_live.ex:86
+#: lib/tcg_cheap_web/live/booster_price_live.ex:94
 #: lib/tcg_cheap_web/seo.ex:82
 #, elixir-autogen, elixir-format
 msgid "Teraz żaden polski sklep nie ma angielskiego boostera na stanie."
@@ -1972,7 +1972,7 @@ msgstr "No Polish shop has an English booster in stock right now."
 msgid "W sieciówkach"
 msgstr "In retail chains"
 
-#: lib/tcg_cheap_web/live/booster_price_live.ex:82
+#: lib/tcg_cheap_web/live/booster_price_live.ex:90
 #, elixir-autogen, elixir-format
 msgid "angielskie, najnowsze sety najpierw"
 msgstr "English, newest sets first"
@@ -2012,7 +2012,7 @@ msgstr "Prices from leaflets and reports. Stock varies; they do not count toward
 msgid "Ile kosztuje booster? Ceny boosterów"
 msgstr "How much is a booster? Booster prices"
 
-#: lib/tcg_cheap_web/live/booster_price_live.ex:123
+#: lib/tcg_cheap_web/live/booster_price_live.ex:131
 #, elixir-autogen, elixir-format
 msgid "Najniższa cena na stanie w polskich sklepach internetowych, bez dostawy. Ocenę ceny znajdziesz na stronie boostera."
 msgstr "The lowest in-stock price in Polish online shops, without delivery. The price verdict is on each booster's page."
@@ -2042,7 +2042,7 @@ msgstr "Booster from this set"
 msgid "Wszystkie ceny boosterów"
 msgstr "All booster prices"
 
-#: lib/tcg_cheap_web/live/booster_price_live.ex:132
+#: lib/tcg_cheap_web/live/booster_price_live.ex:78
 #: lib/tcg_cheap_web/live/home_live.ex:806
 #, elixir-autogen, elixir-format
 msgid "Okazje w sieciówkach"
