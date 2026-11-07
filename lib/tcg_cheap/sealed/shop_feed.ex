@@ -70,10 +70,13 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @doc """
   GETs `path` on the shop's host, after a pause (`pause_ms`, default
   #{@request_pause_ms} ms), and returns the 200 response with its raw body, at
-  most `max_body_bytes` long (default 5 MB).
+  most `max_body_bytes` long (default 5 MB), over the HTTP `protocols` given
+  (default HTTP/1.1).
   """
   @spec get(Shop.t(), String.t(), keyword(), keyword(), [
-          {:max_body_bytes, pos_integer()} | {:pause_ms, pos_integer()}
+          {:max_body_bytes, pos_integer()}
+          | {:pause_ms, pos_integer()}
+          | {:protocols, [:http1 | :http2]}
         ]) ::
           {:ok, Req.Response.t()} | {:error, term()}
   def get(%Shop{host: host}, path, params, req_options, opts \\ []) do
@@ -86,7 +89,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
         headers: [{"user-agent", "TcgCheap/1.0 (buying guide)"}],
         decode_body: false,
         into: &bounded_body(&1, &2, max_body_bytes),
-        connect_options: [timeout: 5_000],
+        connect_options: [timeout: 5_000, protocols: Keyword.get(opts, :protocols, [:http1])],
         receive_timeout: 15_000,
         redirect: false,
         retry: &retry_rate_limited/2,
