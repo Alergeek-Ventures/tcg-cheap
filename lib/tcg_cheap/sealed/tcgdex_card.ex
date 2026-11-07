@@ -30,6 +30,21 @@ defmodule TcgCheap.Sealed.TcgdexCard do
       upsert_fields [:number, :name, :rarity, :variants, :updated_at]
     end
 
+    create :record_unofficial do
+      description """
+      Records a card of an unofficial list (`TcgCheap.Sealed.TcgdexSet`'s
+      `record_unofficial_cards`) with the Cardmarket product id read from
+      Cardmarket's catalogue, as TCGdex has no document for it yet. The list
+      is recorded whole, so an id left out clears one recorded before; TCGdex's
+      cards keep the id when they replace the list.
+      """
+
+      accept [:tcgdex_set_id, :tcgdex_id, :number, :name, :rarity, :variants, :cardmarket_id]
+      upsert? true
+      upsert_identity :tcgdex_id
+      upsert_fields [:number, :name, :rarity, :variants, :cardmarket_id, :updated_at]
+    end
+
     read :cardmarket_due do
       description """
       Cards without a Cardmarket product id never looked up, or looked up
@@ -92,7 +107,11 @@ defmodule TcgCheap.Sealed.TcgdexCard do
     attribute :variants, {:array, :string}, public?: true, default: []
 
     attribute :cardmarket_id, :integer do
-      description "The Cardmarket product id TCGdex gives the card, nil when unknown."
+      description """
+      The Cardmarket product id TCGdex gives the card (or an unofficial list,
+      from Cardmarket's catalogue), nil when unknown.
+      """
+
       public? true
       constraints min: 1
     end

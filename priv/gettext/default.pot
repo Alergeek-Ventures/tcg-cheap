@@ -1146,11 +1146,6 @@ msgstr ""
 msgid "Zwykle najtaniej %{price} w ostatnich %{days} dniach."
 msgstr ""
 
-#: lib/tcg_cheap_web/components/set_components.ex:236
-#, elixir-autogen, elixir-format
-msgid "Nieoficjalna lista kart sprzed premiery, może się jeszcze zmienić. Źródło:"
-msgstr ""
-
 #: lib/tcg_cheap_web/components/set_components.ex:106
 #, elixir-autogen, elixir-format
 msgid "Tego setu nikt jeszcze nie policzył: to szanse z wcześniejszego setu (%{set}), niezweryfikowane dla tego."
@@ -1774,7 +1769,7 @@ msgstr ""
 msgid "z wysyłką do Polski"
 msgstr ""
 
-#: lib/tcg_cheap_web/seo.ex:489
+#: lib/tcg_cheap_web/seo.ex:490
 #, elixir-autogen, elixir-format
 msgid "Karta Pokémon TCG"
 msgstr ""
@@ -2119,4 +2114,9 @@ msgstr ""
 #: lib/tcg_cheap_web/components/guide_components.ex:945
 #, elixir-autogen, elixir-format
 msgid "wysyłka ze Szwecji"
+msgstr ""
+
+#: lib/tcg_cheap_web/components/set_components.ex:236
+#, elixir-autogen, elixir-format
+msgid "Nieoficjalna lista kart, może się jeszcze zmienić. Źródło:"
 msgstr ""

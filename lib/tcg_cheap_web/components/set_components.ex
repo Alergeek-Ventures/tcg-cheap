@@ -233,7 +233,7 @@ defmodule TcgCheapWeb.SetComponents do
     <p :if={@cards_source_url} id={"#{@id}-unofficial"} class="guide-note pull-rates-estimate">
       <.fluent_icon name={:info} />
       <span>
-        {gettext("Nieoficjalna lista kart sprzed premiery, może się jeszcze zmienić. Źródło:")}
+        {gettext("Nieoficjalna lista kart, może się jeszcze zmienić. Źródło:")}
         <a href={@cards_source_url} target="_blank" rel="noopener nofollow">
           {host(@cards_source_url)}
         </a>
