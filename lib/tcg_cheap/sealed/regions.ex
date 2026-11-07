@@ -59,10 +59,18 @@ defmodule TcgCheap.Sealed.Regions do
   # Products of another edition than their expansion's, by Cardmarket product
   # id, checked against Polish shop listings ("Japoński", "JPN") on 2026-11-04.
   @known_products %{
-    # Ninja Spinner (M4) Booster and Booster Box, filed with Traditional Chinese
-    # value sets
+    # Ninja Spinner (M4) Booster, Booster Box and Booster Box Case, filed with
+    # Traditional Chinese value sets
     873_179 => :ja,
     873_182 => :ja,
+    873_183 => :ja,
+    # Terastal Festival ex (sv8a) Booster, Booster Box and Booster Box Case:
+    # Cardmarket lists Japanese and Korean copies as one product, in an
+    # expansion whose two Korean accessories make it Korean; Polish shops sell
+    # the Japanese edition. Checked on 2026-11-07.
+    794_933 => :ja,
+    794_934 => :ja,
+    800_365 => :ja,
     # Pokémon Center Tohoku, Hiroshima and Fukuoka Special Boxes, filed with the
     # English Scarlet & Violet products
     830_070 => :ja,
