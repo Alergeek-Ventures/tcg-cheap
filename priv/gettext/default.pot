@@ -1890,11 +1890,6 @@ msgstr ""
 msgid "Sety"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:614
-#, elixir-autogen, elixir-format
-msgid "Starsze sety (%{count})"
-msgstr ""
-
 #: lib/tcg_cheap/sealed/kinds.ex:73
 #, elixir-autogen, elixir-format
 msgid "Talie"
@@ -2079,4 +2074,9 @@ msgstr ""
 #: lib/tcg_cheap_web/components/guide_components.ex:75
 #, elixir-autogen, elixir-format
 msgid "Najnowsze sety"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/home_live.ex:614
+#, elixir-autogen, elixir-format
+msgid "Pozostałe sety (%{count})"
 msgstr ""

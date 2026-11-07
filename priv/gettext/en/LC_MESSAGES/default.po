@@ -1883,11 +1883,6 @@ msgstr "Collections and tins"
 msgid "Sety"
 msgstr "Sets"
 
-#: lib/tcg_cheap_web/live/home_live.ex:614
-#, elixir-autogen, elixir-format
-msgid "Starsze sety (%{count})"
-msgstr "Older sets (%{count})"
-
 #: lib/tcg_cheap/sealed/kinds.ex:73
 #, elixir-autogen, elixir-format
 msgid "Talie"
@@ -2073,3 +2068,8 @@ msgstr "Important links"
 #, elixir-autogen, elixir-format
 msgid "Najnowsze sety"
 msgstr "Newest sets"
+
+#: lib/tcg_cheap_web/live/home_live.ex:614
+#, elixir-autogen, elixir-format
+msgid "Pozostałe sety (%{count})"
+msgstr "Other sets (%{count})"

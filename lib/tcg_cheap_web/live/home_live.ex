@@ -26,7 +26,7 @@ defmodule TcgCheapWeb.HomeLive do
   @kind_params Map.new(Kinds.choices(), &{Atom.to_string(&1), &1})
   @region_params Map.new(Regions.all(), &{Atom.to_string(&1), &1})
   @all_regions "wszystkie"
-  # Sets shown before "Starsze sety".
+  # Sets shown before "Pozostałe sety".
   @first_expansions 14
 
   defmodule NotFound do
@@ -611,7 +611,7 @@ defmodule TcgCheapWeb.HomeLive do
       <%!-- Rendered on first opening: hundreds of rows (noindex filter links)
            would otherwise weigh down every page load and patch. --%>
       <summary phx-click={!@all_expansions? && "all-expansions"}>
-        {gettext("Starsze sety (%{count})", count: length(@rest))}
+        {gettext("Pozostałe sety (%{count})", count: length(@rest))}
       </summary>
       <ul :if={@all_expansions?} class="guide-expansion-names">
         <.expansion_option :for={expansion <- @rest} expansion={expansion} filters={@filters} />
