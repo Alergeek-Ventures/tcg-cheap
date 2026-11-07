@@ -14,8 +14,12 @@ defmodule TcgCheap.Sealed.Matcher do
       product name — so "Half Booster Box" never matches "Booster Box" and a
       Japanese offer never matches an English product. A product's language
       edition answers for its language word ("JP" for a Japanese product whose
-      name does not say it), and a single booster for "pack" ("Booster Pack");
-      such a word does not count against the few title words a name may lack.
+      name does not say it), a single booster for "pack" ("Booster Pack") and
+      a product also sold in a Jumbo version (Chinese sets) for "slim"; such
+      a word does not count against the few title words a name may lack. A
+      "Checklane" title is a "1-Pack Blister" unless it says "Premium" or
+      counts packs, and must then name the blister's Pokémon and no other
+      word; a "Blister Bundle" is the blister.
       A leading Chinese set code ("CBB3C:", "CSV9.5C:") is not part of the
       name: shops rarely write it, and when they do its words count as
       explained.
@@ -56,6 +60,10 @@ defmodule TcgCheap.Sealed.Matcher do
     # displays ("Mini Tin Display", "Build & Battle Box Display") keep the word.
     {"booster box display", "booster box"},
     {"booster display", "booster box"},
+    # A blister "bundle" is the blister itself (REBEL's "3-Pack Blister Bundle"
+    # carries the 3-Pack Blister's EAN), unlike a Booster Bundle.
+    {"blister bundle", "blister"},
+    {"slim pack", "slim"},
     {"world championships deck", "wcd"},
     {"etb", "elite trainer box"},
     {"min tin", "mini tin"},
@@ -113,13 +121,15 @@ defmodule TcgCheap.Sealed.Matcher do
   @omissible MapSet.new(~w(blister collection))
 
   # Title qualifiers a product meets without naming them: its language edition
-  # (`TcgCheap.Sealed.Regions`) and, for a single booster, "pack".
+  # (`TcgCheap.Sealed.Regions`), for a single booster, "pack", for a 1-Pack
+  # Blister, "checklane" (`checklane/1`) and, for a product sold in a Jumbo
+  # version too, "slim" (`meet_slim/1`).
   @region_words %{ja: "jp", zh: "chinese", ko: "korean", id: "indonesian", th: "thai"}
   @kind_words %{booster: "pack"}
 
   # A count of two or more packs, as in "Booster Pack (36 boosterów)", "(36)",
   # "Booster 3 boostery" or "3-pack": a display, a lot or a blister, never a
-  # single booster. A count of cards ("(10 kart)") is not one.
+  # single booster or 1-Pack Blister. A count of cards ("(10 kart)") is not one.
   @packs ~r/\(\s*(?:[2-9]|\d{2,3})\s*(?:booster(?:ów|ow|y|s)?|paczek|paczki|packs?|szt\.?|sztuk)?\s*\)|(?<![\w.,])(?:[2-9]|\d{2,3})[\s\p{Pd}]*(?:booster(?:ów|ow|y|s)|paczek|paczki|packs?)(?!\w)/iu
 
   # Words naming a kind of sealed product, as in Cardmarket's sealed product
@@ -181,6 +191,7 @@ defmodule TcgCheap.Sealed.Matcher do
   defstruct entries: [],
             by_rare_token: %{},
             by_rare_pair: %{},
+            by_token: %{},
             known_tokens: MapSet.new(),
             sets: [],
             eans: %{}
@@ -204,17 +215,20 @@ defmodule TcgCheap.Sealed.Matcher do
     entries =
       for product <- products,
           {code, name} = Regions.chinese_code(product.name) || {"", product.name},
-          tokens = MapSet.new(product_tokens(name)),
+          name_tokens = product_tokens(name),
+          tokens = MapSet.new(name_tokens),
           MapSet.size(tokens) >= 2,
           do: %{
             id: product.id,
             tokens: tokens,
             size: MapSet.size(tokens),
-            meets: meets(product),
+            meets: meets(product, single_blister?(name_tokens)),
             code_tokens: MapSet.new(tokens(code)),
             set_tokens: MapSet.new(tokens(Map.get(product, :set_name) || "")),
-            booster?: Map.get(product, :kind) == :booster
+            single?: Map.get(product, :kind) == :booster or single_blister?(name_tokens)
           }
+
+    entries = meet_slim(entries)
 
     frequency = entries |> Enum.flat_map(&MapSet.to_list(&1.tokens)) |> Enum.frequencies()
 
@@ -247,6 +261,7 @@ defmodule TcgCheap.Sealed.Matcher do
       entries: entries,
       by_rare_token: by_rare_token,
       by_rare_pair: by_rare_pair,
+      by_token: by_token(entries),
       known_tokens: known_tokens,
       sets: sets,
       eans: eans
@@ -260,7 +275,8 @@ defmodule TcgCheap.Sealed.Matcher do
 
     with nil <- exclusion(normalized),
          :error <- Map.fetch(index.eans, Map.get(offer, :ean) || "") do
-      title |> offer_tokens(index.sets) |> best(index, Regex.match?(@packs, title))
+      packs? = Regex.match?(@packs, title)
+      title |> offer_tokens(index.sets, packs?) |> best(index, packs?)
     else
       {:ok, id} -> {:matched, id}
       reason -> {:excluded, reason}
@@ -302,7 +318,8 @@ defmodule TcgCheap.Sealed.Matcher do
     * `:ean_product_id` – the product identified by the known EAN, or nil
       (it wins over the title when not excluded);
     * `:tokens` – the title tokens compared with product names, after pack
-      counts and a leading series are removed;
+      counts and a leading series are removed and "1 Pack Blister" follows
+      "Checklane" in a title that neither says "Premium" nor counts packs;
     * `:qualifiers` – the title tokens a matching product name must contain;
     * `:max_unexplained` – how many title tokens may be absent from the name;
     * `:candidates` – up to `limit` indexed products sharing the most tokens
@@ -311,16 +328,18 @@ defmodule TcgCheap.Sealed.Matcher do
       title), `:missing_qualifiers` (title qualifiers absent from the name),
       `:unexplained` (title tokens absent from the name), `:code_tokens` (the
       words of its leading Chinese set code, which a title may name but need
-      not) and `:qualifies?`.
+      not), `:meets` (qualifiers it meets without naming them: its language,
+      "pack" for a single booster, "checklane" for a 1-Pack Blister, "slim"
+      for a product sold in a Jumbo version too) and `:qualifies?`.
 
   Products whose names reduce to fewer than two tokens are not indexed and
   never match.
   """
   @spec explain(map(), t(), pos_integer()) :: map()
   def explain(%{title: title} = offer, %__MODULE__{} = index, limit \\ 5) when is_binary(title) do
-    offer_tokens = offer_tokens(title, index.sets)
-    offer_set = MapSet.new(offer_tokens)
     packs? = Regex.match?(@packs, title)
+    offer_tokens = offer_tokens(title, index.sets, packs?)
+    offer_set = MapSet.new(offer_tokens)
     qualifiers = MapSet.intersection(offer_set, @qualifiers)
 
     candidates =
@@ -344,6 +363,7 @@ defmodule TcgCheap.Sealed.Matcher do
             |> Enum.sort(),
           unexplained: offer_set |> unexplained(entry) |> Enum.sort(),
           code_tokens: Enum.sort(entry.code_tokens),
+          meets: Enum.sort(entry.meets),
           qualifies?: qualifies?
         }
       end)
@@ -388,37 +408,81 @@ defmodule TcgCheap.Sealed.Matcher do
   # "Mini Tin Display"), a word of the product's set ("Booster Bundle" never
   # becomes the 151 one), a number (a year) nor "version", when every other title word the
   # name lacks is one no product name uses (so "Blister Spritzee" never becomes
-  # the Seel blister) and no other product fits the same way.
+  # the Seel blister) and no other product fits the same way. A title naming
+  # none of the variant ("Obsidian Flames Checklane Blister") fits as well a
+  # product whose variant takes several words or a number ("Paldean Wooper",
+  # "Porygon2"), which leaves it ambiguous.
   defp unique_variant(offer_set, qualifiers, index, packs?) do
     offer_set
     |> Enum.flat_map(&Map.get(index.by_rare_pair, &1, []))
     |> Enum.uniq()
-    |> Enum.filter(&variant?(&1, offer_set, qualifiers, index.known_tokens, packs?))
+    |> Enum.filter(&fits?(&1, offer_set, qualifiers, index.known_tokens, packs?, :variant))
     |> case do
-      [entry] -> {:matched, entry.id}
-      [] -> :unmatched
-      _several -> :ambiguous
+      [entry] ->
+        if lookalike?(entry, offer_set, qualifiers, index, packs?),
+          do: :ambiguous,
+          else: {:matched, entry.id}
+
+      [] ->
+        :unmatched
+
+      _several ->
+        :ambiguous
     end
   end
 
-  defp variant?(entry, offer_set, qualifiers, known_tokens, packs?) do
-    unexplained = unexplained(offer_set, entry)
+  defp lookalike?(entry, offer_set, qualifiers, index, packs?) do
+    names_variant? =
+      entry.tokens |> MapSet.intersection(offer_set) |> Enum.any?(&variant_token?(&1, entry))
 
-    omits_variant_only?(entry, MapSet.difference(entry.tokens, offer_set)) and
-      not (packs? and entry.booster?) and
-      MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
-      MapSet.size(unexplained) <= @max_unexplained and
-      MapSet.disjoint?(unexplained, known_tokens)
+    not names_variant? and
+      offer_set
+      |> lookalike_candidates(index)
+      |> Enum.any?(
+        &(&1.id != entry.id and fits?(&1, offer_set, qualifiers, index.known_tokens, packs?, :any))
+      )
   end
 
-  # The name tokens a title lacks: omissible kind words and at most one other
-  # token that is neither a kind word, a set word, a number nor "version".
-  defp omits_variant_only?(entry, missing) do
+  # A product that fits a title names each of its words some product name
+  # uses, but for the qualifiers it meets, so the rarest such word reaches it.
+  defp lookalike_candidates(offer_set, index) do
+    offer_set
+    |> Enum.filter(
+      &(MapSet.member?(index.known_tokens, &1) and not MapSet.member?(@qualifiers, &1))
+    )
+    |> Enum.map(&Map.fetch!(index.by_token, &1))
+    |> Enum.min_by(&length/1, fn -> index.entries end)
+  end
+
+  defp fits?(entry, offer_set, qualifiers, known_tokens, packs?, omits) do
+    unexplained = unexplained(offer_set, entry)
+
+    omits?(omits, entry, MapSet.difference(entry.tokens, offer_set)) and
+      not (packs? and entry.single?) and
+      MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
+      MapSet.size(unexplained) <= @max_unexplained and
+      MapSet.disjoint?(unexplained, known_tokens) and
+      checklane_fits?(entry, offer_set, unexplained)
+  end
+
+  # The name tokens a title lacks: omissible kind words and, for `:variant`,
+  # at most one other token that is neither a kind word, a set word, a number
+  # nor "version"; for `:any`, any others but kind and set words.
+  defp omits?(:variant, entry, missing) do
     case missing |> MapSet.difference(@omissible) |> MapSet.to_list() do
       [] -> MapSet.size(missing) > 0
       [token] -> variant_token?(token, entry)
       _more -> false
     end
+  end
+
+  defp omits?(:any, entry, missing) do
+    MapSet.size(missing) > 0 and
+      missing
+      |> MapSet.difference(@omissible)
+      |> Enum.all?(
+        &(not MapSet.member?(@qualifiers, &1) and not MapSet.member?(entry.set_tokens, &1))
+      )
   end
 
   # "Version" tells printings of one product apart ("Zarude 2-Pack Blister
@@ -429,9 +493,21 @@ defmodule TcgCheap.Sealed.Matcher do
   end
 
   defp candidate?(entry, offer_set, qualifiers, packs?) do
-    not (packs? and entry.booster?) and MapSet.subset?(entry.tokens, offer_set) and
+    not (packs? and entry.single?) and MapSet.subset?(entry.tokens, offer_set) and
       MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
-      MapSet.size(unexplained(offer_set, entry)) <= @max_unexplained
+      MapSet.size(unexplained(offer_set, entry)) <= @max_unexplained and
+      checklane_fits?(entry, offer_set, unexplained(offer_set, entry))
+  end
+
+  # A "Checklane" title (`checklane/1`) must name the blister's Pokémon and no
+  # other word: shops also write "Checklane" for the Premium Checklane
+  # Blisters' Pokémon ("Checklane Scorbunny") and for one of two blisters
+  # ("Checklane Blister Eevee/Zarude", "Mix"), and the set's only 1-Pack
+  # Blister must not take those.
+  defp checklane_fits?(entry, offer_set, unexplained) do
+    not MapSet.member?(offer_set, "checklane") or MapSet.member?(offer_set, "premium") or
+      (entry.tokens |> MapSet.intersection(offer_set) |> Enum.any?(&variant_token?(&1, entry)) and
+         not Enum.any?(unexplained, &String.match?(&1, ~r/[a-z]/)))
   end
 
   # Title tokens the product name does not account for. A qualifier the product
@@ -445,21 +521,63 @@ defmodule TcgCheap.Sealed.Matcher do
     |> MapSet.difference(entry.code_tokens)
   end
 
-  defp meets(product) do
+  # Every word of a name or its set code, for `lookalike?/5`.
+  defp by_token(entries) do
+    for entry <- entries,
+        token <- MapSet.union(entry.tokens, entry.code_tokens),
+        reduce: %{} do
+      acc -> Map.update(acc, token, [entry], &[entry | &1])
+    end
+  end
+
+  # Chinese sets come as a regular product (5-card packs, 15 to a box) and a
+  # Jumbo one (20-card packs, 6 to a box); shops call the regular one "slim".
+  defp meet_slim(entries) do
+    names = MapSet.new(entries, &{&1.tokens, &1.code_tokens})
+
+    for entry <- entries do
+      jumbo = {MapSet.put(entry.tokens, "jumbo"), entry.code_tokens}
+
+      if not MapSet.member?(entry.tokens, "jumbo") and MapSet.member?(names, jumbo),
+        do: %{entry | meets: MapSet.put(entry.meets, "slim")},
+        else: entry
+    end
+  end
+
+  # "1-Pack Blister" in a row: "Zarude 2-Pack Blister Version 1" is not one.
+  defp single_blister?(name_tokens),
+    do: String.contains?(" #{Enum.join(name_tokens, " ")} ", " 1 pack blister ")
+
+  defp meets(product, single_blister?) do
     [
       Map.get(@region_words, Map.get(product, :region)),
-      Map.get(@kind_words, Map.get(product, :kind))
+      Map.get(@kind_words, Map.get(product, :kind)),
+      if(single_blister?, do: "checklane")
     ]
     |> Enum.reject(&is_nil/1)
     |> MapSet.new()
   end
 
-  defp offer_tokens(title, sets) do
-    title
-    |> String.replace(@pack_count, " ")
-    |> tokens()
-    |> strip_series(sets)
+  defp offer_tokens(title, sets, packs?) do
+    tokens =
+      title
+      |> String.replace(@pack_count, " ")
+      |> tokens()
+      |> strip_series(sets)
+
+    if packs? or "premium" in tokens, do: tokens, else: checklane(tokens)
   end
+
+  # Shops call a single pack in a blister a "Checklane (Blister/Booster)",
+  # Cardmarket a "1-Pack Blister", which meets "checklane" (`meets/2`). A
+  # "Premium Checklane Blister" is another product, which Cardmarket names so,
+  # and a title counting packs is not a single one, so both keep the word.
+  defp checklane(["checklane", "booster" | rest]),
+    do: ~w(checklane 1 pack blister) ++ checklane(rest)
+
+  defp checklane(["checklane" | rest]), do: ~w(checklane 1 pack blister) ++ checklane(rest)
+  defp checklane([token | rest]), do: [token | checklane(rest)]
+  defp checklane([]), do: []
 
   # Drops a leading series name when a set name follows it.
   defp strip_series(tokens, sets) do
