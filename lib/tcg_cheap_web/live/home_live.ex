@@ -1563,7 +1563,7 @@ defmodule TcgCheapWeb.HomeLive do
             </section>
           </div>
         </main>
-        <.site_footer />
+        <.site_footer sets={@footer_sets} />
       </div>
     </Layouts.app>
     """

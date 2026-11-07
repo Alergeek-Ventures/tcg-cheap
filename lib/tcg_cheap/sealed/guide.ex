@@ -631,6 +631,23 @@ defmodule TcgCheap.Sealed.Guide do
   defp cheaper?(_card), do: false
 
   @doc """
+  The English sets with products in stock, newest first, as the home page's
+  set list leads with them (`facets/1`): the sets every page's footer links.
+  Shared for a few minutes.
+  """
+  @spec newest_expansions(pos_integer()) :: [%{id: integer(), name: String.t()}]
+  def newest_expansions(count) do
+    :newest_expansions
+    |> cached(fn ->
+      %{query: "", kind: nil, region: :en, expansion: nil}
+      |> facets()
+      |> Map.fetch!(:expansions)
+      |> Enum.map(&Map.take(&1, [:id, :name]))
+    end)
+    |> Enum.take(count)
+  end
+
+  @doc """
   The sealed banner, for the product list without an expansion: the product
   in stock furthest under its typical shop price today (a good price, see
   `PriceGuide`) with its box photo and up to three photos of what it holds,

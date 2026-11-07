@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.GuideComponents do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.{Kinds, Regions, RetailDeal, Shops}
-  alias TcgCheapWeb.{Polish, VisitorLocation}
+  alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
 
   def card_variant_label(:normal), do: gettext("Zwykła / holo")
   def card_variant_label(:reverse), do: gettext("Reverse holo")
@@ -61,10 +61,37 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
-  @doc "The public footer: who built the guide."
+  attr :sets, :list, required: true, doc: "the newest sets (`TcgCheapWeb.SiteFooter`)"
+
+  @doc """
+  The public footer: the newest sets and the guide's own pages, so every page
+  leads to them, then who built it.
+  """
   def site_footer(assigns) do
     ~H"""
     <footer id="site-footer" class="site-footer">
+      <div class="site-footer-columns">
+        <nav :if={@sets != []} id="site-footer-sets" aria-labelledby="site-footer-sets-title">
+          <h2 id="site-footer-sets-title">{gettext("Najnowsze sety")}</h2>
+          <ul class="site-footer-links site-footer-sets">
+            <li :for={set <- @sets}>
+              <.link navigate={SEO.expansion_path(set.id, set.name)}>{set.name}</.link>
+            </li>
+          </ul>
+        </nav>
+        <nav id="site-footer-pages" aria-labelledby="site-footer-pages-title">
+          <h2 id="site-footer-pages-title">{gettext("Ważne linki")}</h2>
+          <ul class="site-footer-links">
+            <li><.link navigate={~p"/"}>{gettext("Ceny produktów")}</.link></li>
+            <li><.link navigate={~p"/?widok=karty"}>{gettext("Ceny kart")}</.link></li>
+            <li>
+              <.link navigate={~p"/ile-kosztuje-booster-pokemon"}>
+                {gettext("Ile kosztuje booster Pokémon?")}
+              </.link>
+            </li>
+          </ul>
+        </nav>
+      </div>
       <p>
         built with
         <svg class="site-footer-ball" viewBox="0 0 16 16" role="img" aria-label="Poké Ball">
