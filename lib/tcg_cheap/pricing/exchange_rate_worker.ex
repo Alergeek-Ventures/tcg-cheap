@@ -1,5 +1,5 @@
 defmodule TcgCheap.Pricing.ExchangeRateWorker do
-  @moduledoc "Oban acquisition job for the NBP EUR/PLN rate."
+  @moduledoc "Oban acquisition job for one currency's NBP rate to PLN."
   use Oban.Worker,
     queue: :exchange_rates,
     max_attempts: 5,
@@ -11,13 +11,7 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
     ]
 
   alias TcgCheap.Core
-
-  @canonical %{
-    "source" => "nbp",
-    "table" => "A",
-    "base_currency" => "EUR",
-    "quote_currency" => "PLN"
-  }
+  alias TcgCheap.Pricing.ExchangeRate
 
   @impl Oban.Worker
   def timeout(_job), do: :timer.seconds(60)
@@ -36,20 +30,33 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
 
   def perform(_), do: {:cancel, :malformed_job_args}
 
-  defp validate_args(@canonical), do: {:ok, @canonical}
+  defp validate_args(
+         %{
+           "source" => "nbp",
+           "table" => "A",
+           "base_currency" => currency,
+           "quote_currency" => "PLN"
+         } = args
+       )
+       when map_size(args) == 4 do
+    if currency in ExchangeRate.currencies(),
+      do: {:ok, args},
+      else: {:cancel, :malformed_job_args}
+  end
+
   defp validate_args(_), do: {:cancel, :malformed_job_args}
 
   defp acquire(args) do
     case provider_config() do
-      {:ok, adapter, options} -> classify_fetch(safely_fetch(adapter, args, options))
+      {:ok, adapter, options} -> adapter |> safely_fetch(args, options) |> classify_fetch(args)
       _ -> {:cancel, :invalid_provider_configuration}
     end
   end
 
-  defp classify_fetch({:ok, {:ok, result}}), do: validate_result(result)
-  defp classify_fetch({:ok, {:error, reason}}), do: classify(reason)
-  defp classify_fetch({:ok, _other}), do: {:cancel, :malformed_provider_result}
-  defp classify_fetch({:error, reason}), do: classify(reason)
+  defp classify_fetch({:ok, {:ok, result}}, args), do: validate_result(result, args)
+  defp classify_fetch({:ok, {:error, reason}}, _args), do: classify(reason)
+  defp classify_fetch({:ok, _other}, _args), do: {:cancel, :malformed_provider_result}
+  defp classify_fetch({:error, reason}, _args), do: classify(reason)
 
   @doc false
   def provider_config do
@@ -105,9 +112,10 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
            fetched_at: %DateTime{} = fetched_at,
            source: "nbp",
            table: "A",
-           base_currency: "EUR",
+           base_currency: currency,
            quote_currency: "PLN"
-         } = result
+         } = result,
+         %{"base_currency" => currency}
        )
        when is_binary(no) and no != "" do
     if String.trim(no) == "" do
@@ -131,7 +139,7 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
     end
   end
 
-  defp validate_result(_), do: {:cancel, :malformed_provider_result}
+  defp validate_result(_result, _args), do: {:cancel, :malformed_provider_result}
 
   defp persist(result) do
     case Core.record_exchange_rate(result) do

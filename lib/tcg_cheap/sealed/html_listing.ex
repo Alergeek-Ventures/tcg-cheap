@@ -2,9 +2,10 @@ defmodule TcgCheap.Sealed.HtmlListing do
   @moduledoc """
   What the clients that read a shop's HTML category pages share: fetching
   and parsing a page, reading a node's text and price, walking a shop's
-  `listing_paths`, and – for clients that describe each page as a `t:page/0`
-  (`TcgCheap.Sealed.ShoperListing`, `TcgCheap.Sealed.SkyShop`) – paging
-  through a listing and turning its products into offers.
+  `listing_paths` and `singles_categories` (the listings of single cards,
+  `read_singles/2`), and – for clients that describe each page as a
+  `t:page/0` (`TcgCheap.Sealed.ShoperListing`, `TcgCheap.Sealed.SkyShop`) –
+  paging through a listing and turning its products into offers.
 
   `read/2` accepts the pages only when they form the complete listing: each
   page names itself `n`, none announces more than `max_pages` pages, the
@@ -19,6 +20,11 @@ defmodule TcgCheap.Sealed.HtmlListing do
 
   @spaces ~r/[\s\x{a0}]+/u
   @price ~r/\A([0-9]{1,7})(?:[,.]([0-9]{1,2}))?(?:zł|PLN)?\.?\z/u
+  # Per singles listing, which is far longer than a sealed one. A page takes
+  # 1–2.5 s with the pause (Arena's 32 pages of 96 singles: 78 s), so one full
+  # listing stays well within the job's 5-minute timeout; a shop with several
+  # long listings must keep their sum within it too.
+  @max_singles_pages 40
 
   @type product :: %{
           required(:id) => String.t() | nil,
@@ -27,7 +33,8 @@ defmodule TcgCheap.Sealed.HtmlListing do
           required(:image) => String.t() | nil,
           required(:price) => String.t() | nil,
           required(:in_stock) => boolean() | nil,
-          optional(:preorder) => boolean()
+          optional(:preorder) => boolean(),
+          optional(:category) => String.t() | nil
         }
   @type page :: %{
           number: pos_integer(),
@@ -50,7 +57,25 @@ defmodule TcgCheap.Sealed.HtmlListing do
   """
   @spec read_listings(Shop.t(), (String.t() -> {:ok, [map()]} | {:error, term()})) ::
           {:ok, [map()]} | {:error, term()}
-  def read_listings(%Shop{listing_paths: [_ | _] = paths}, read) do
+  def read_listings(%Shop{listing_paths: [_ | _] = paths}, read), do: read_paths(paths, read)
+
+  @doc """
+  Reads the shop's `singles_categories`, the paths of its listings of single
+  cards, with `read` (path, max pages -> `{:ok, products}` |
+  `{:error, reason}`), at most #{@max_singles_pages} pages each, and tags
+  every product as a single: `{:single, product}`. A shop without singles
+  categories reads none. Any failing listing fails the fetch.
+  """
+  @spec read_singles(Shop.t(), (String.t(), pos_integer() -> {:ok, [term()]} | {:error, term()})) ::
+          {:ok, [{:single, term()}]} | {:error, term()}
+  def read_singles(%Shop{singles_categories: nil}, _read), do: {:ok, []}
+
+  def read_singles(%Shop{singles_categories: [_ | _] = paths}, read) do
+    with {:ok, products} <- read_paths(paths, &read.(&1, @max_singles_pages)),
+         do: {:ok, Enum.map(products, &{:single, &1})}
+  end
+
+  defp read_paths(paths, read) do
     Enum.reduce_while(paths, {:ok, []}, fn path, {:ok, acc} ->
       case read.(path) do
         {:ok, products} -> {:cont, {:ok, acc ++ products}}
@@ -110,36 +135,55 @@ defmodule TcgCheap.Sealed.HtmlListing do
 
   @doc """
   Turns the products of a complete listing into unique offers. `sealed?` says
-  whether a title is a sealed Pokémon product; links and images, relative to
-  the shop's host, are made absolute on it. Listings carry no EAN.
+  whether a title is a sealed Pokémon product; every product of a singles
+  listing (`{:single, product}`, see `read_singles/2`) is a single, priced
+  with the singles minimum, whose category is its listing's `category`. Links
+  and images, relative to the shop's host, are made absolute on it. Listings
+  carry no EAN.
   """
-  @spec offers(Shop.t(), [product()], (String.t() -> boolean())) :: [ShopFeed.offer()]
+  @spec offers(Shop.t(), [product() | {:single, product()}], (String.t() -> boolean())) ::
+          [ShopFeed.offer()]
   def offers(shop, products, sealed?),
     do: ShopFeed.offers(shop, products, &normalize(shop, &1, sealed?))
+
+  defp normalize(shop, {:single, product}, _sealed?) do
+    with {:ok, title} <- ShopFeed.title(product.title),
+         {:ok, offer} <- offer(shop, product, title, :single) do
+      {:ok, [Map.merge(offer, %{kind: :single, category: Map.get(product, :category)})]}
+    else
+      _ -> :invalid
+    end
+  end
 
   defp normalize(shop, product, sealed?) do
     with {:ok, title} <- ShopFeed.title(product.title),
          true <- sealed?.(title) || :ignore,
-         {:ok, id} <- ShopFeed.product_id(product.id),
-         {:ok, url} <- product_url(shop, product.path),
-         {:ok, price} <- ShopFeed.decimal_price(product.price),
-         in_stock when is_boolean(in_stock) <- product.in_stock do
-      {:ok,
-       [
-         %{
-           shop_product_id: id,
-           title: title,
-           url: url,
-           image_url: image_url(shop, product.image),
-           ean: nil,
-           price: price,
-           in_stock: in_stock,
-           preorder: Map.get(product, :preorder, false)
-         }
-       ]}
+         {:ok, offer} <- offer(shop, product, title, :sealed) do
+      {:ok, [offer]}
     else
       :ignore -> :ignore
       _ -> :invalid
+    end
+  end
+
+  defp offer(shop, product, title, kind) do
+    with {:ok, id} <- ShopFeed.product_id(product.id),
+         {:ok, url} <- product_url(shop, product.path),
+         {:ok, price} <- ShopFeed.decimal_price(product.price, kind),
+         in_stock when is_boolean(in_stock) <- product.in_stock do
+      {:ok,
+       %{
+         shop_product_id: id,
+         title: title,
+         url: url,
+         image_url: image_url(shop, product.image),
+         ean: nil,
+         price: price,
+         in_stock: in_stock,
+         preorder: Map.get(product, :preorder, false)
+       }}
+    else
+      _ -> :error
     end
   end
 

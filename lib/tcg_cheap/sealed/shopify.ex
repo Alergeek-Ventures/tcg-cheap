@@ -3,7 +3,10 @@ defmodule TcgCheap.Sealed.Shopify do
   Reads the public product list of a Shopify shop: `/products.json`, or
   `/collections/<collection>/products.json` when the shop has a Pokémon
   `collection`, 250 products per page up to the first empty page, at most
-  `max_pages` pages. The shop's currency (`/meta.json`) must be PLN.
+  `max_pages` pages. The shop's currency (`/meta.json`) must be its
+  configured `currency`. Every product of the shop's `singles_categories`
+  (collection handles, each read the same way) is a single, priced with a
+  0.10 minimum, without a category (see `with_kind/2`).
 
   Price and availability are per variant, so each variant is one offer. A
   product counts as sealed when its title names a sealed product
@@ -33,24 +36,43 @@ defmodule TcgCheap.Sealed.Shopify do
   @impl true
   def fetch(%Shop{} = shop, req_options) do
     with :ok <- check_currency(shop, req_options),
-         {:ok, products} <- fetch_pages(shop, req_options, 1, []) do
+         {:ok, sealed} <- sealed_products(shop, req_options),
+         {:ok, singles} <- singles_products(shop, req_options) do
+      products = Enum.map(sealed, &{:sealed, &1}) ++ Enum.map(singles, &{:single, &1})
       {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
     end
+  end
+
+  defp sealed_products(%Shop{singles_only: true}, _req_options), do: {:ok, []}
+
+  defp sealed_products(shop, req_options),
+    do: fetch_pages(shop, products_path(shop), req_options, 1, [])
+
+  defp singles_products(%Shop{singles_categories: nil}, _req_options), do: {:ok, []}
+
+  defp singles_products(shop, req_options) do
+    Enum.reduce_while(shop.singles_categories, {:ok, []}, fn handle, {:ok, acc} ->
+      case fetch_pages(shop, "/collections/#{handle}/products.json", req_options, 1, []) do
+        {:ok, products} -> {:cont, {:ok, acc ++ products}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
   end
 
   defp check_currency(shop, req_options) do
     with {:ok, response} <-
            ShopFeed.get(shop, "/meta.json", [], req_options, @request_opts),
-         {:ok, %{"currency" => "PLN"}} <- ShopFeed.decode(response) do
+         {:ok, %{"currency" => currency}} when currency == shop.currency <-
+           ShopFeed.decode(response) do
       :ok
     else
-      {:ok, _meta} -> {:error, :not_pln}
+      {:ok, _meta} -> {:error, :unexpected_currency}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp fetch_pages(shop, req_options, page, acc) do
-    case request(shop, req_options, page) do
+  defp fetch_pages(shop, path, req_options, page, acc) do
+    case request(shop, path, req_options, page) do
       {:ok, products} when page > shop.max_pages and products != [] ->
         {:error, :too_many_pages}
 
@@ -58,18 +80,17 @@ defmodule TcgCheap.Sealed.Shopify do
         {:ok, acc |> Enum.reverse() |> List.flatten()}
 
       {:ok, products} ->
-        fetch_pages(shop, req_options, page + 1, [products | acc])
+        fetch_pages(shop, path, req_options, page + 1, [products | acc])
 
       {:error, reason} ->
         {:error, reason}
     end
   end
 
-  defp request(shop, req_options, page) do
+  defp request(shop, path, req_options, page) do
     params = [limit: @per_page, page: page]
 
-    with {:ok, response} <-
-           ShopFeed.get(shop, products_path(shop), params, req_options, @request_opts),
+    with {:ok, response} <- ShopFeed.get(shop, path, params, req_options, @request_opts),
          {:ok, %{"products" => products}} when is_list(products) <- ShopFeed.decode(response) do
       {:ok, products}
     else
@@ -81,11 +102,12 @@ defmodule TcgCheap.Sealed.Shopify do
   defp products_path(%Shop{collection: nil}), do: "/products.json"
   defp products_path(%Shop{collection: handle}), do: "/collections/#{handle}/products.json"
 
-  defp normalize(shop, %{"variants" => [_ | _] = variants} = product) do
+  defp normalize(shop, {kind, %{"variants" => [_ | _] = variants} = product}) do
     with {:ok, title} <- ShopFeed.title(product["title"]),
-         true <- sealed?(shop, title) || :ignore,
+         true <- (kind == :single or sealed?(shop, title)) || :ignore,
          {:ok, handle} <- handle(product["handle"]) do
       product_offer = %{
+        kind: kind,
         title: title,
         url: "https://#{shop.host}/products/#{handle}",
         image_url: image_url(shop, product["images"]),
@@ -96,7 +118,7 @@ defmodule TcgCheap.Sealed.Shopify do
       offers = Enum.map(variants, &variant_offer(product_offer, &1))
 
       if Enum.all?(offers, &match?({:ok, _offer}, &1)),
-        do: {:ok, Enum.map(offers, fn {:ok, offer} -> offer end)},
+        do: {:ok, Enum.map(offers, fn {:ok, offer} -> with_kind(offer, kind) end)},
         else: :invalid
     else
       :ignore -> :ignore
@@ -105,6 +127,12 @@ defmodule TcgCheap.Sealed.Shopify do
   end
 
   defp normalize(_shop, _product), do: :invalid
+
+  defp with_kind(offer, :sealed), do: offer
+
+  # Product types of singles name an era ("XY") or a condition, which the
+  # card matcher would take for a conflicting set, so singles have no category.
+  defp with_kind(offer, :single), do: Map.merge(offer, %{kind: :single, category: nil})
 
   defp sealed?(%Shop{collection: nil}, title), do: ShopFeed.sealed_pokemon?(title, nil)
   defp sealed?(_shop, title), do: Matcher.sealed_title?(title)
@@ -117,7 +145,7 @@ defmodule TcgCheap.Sealed.Shopify do
 
   defp variant_offer(product, %{"id" => id, "available" => available} = variant)
        when is_integer(id) and id > 0 and is_boolean(available) do
-    with {:ok, price} <- ShopFeed.decimal_price(variant["price"]),
+    with {:ok, price} <- ShopFeed.decimal_price(variant["price"], product.kind),
          {:ok, title} <- variant_title(product, variant["title"]) do
       {:ok,
        %{

@@ -928,12 +928,23 @@ defmodule TcgCheapWeb.GuideComponents do
       end
 
     [
+      abroad_term(shop.country),
       cost,
       threshold && shipping != :free && gettext("darmowa od %{amount}", amount: amount(threshold)),
       pickup_term(shop.pickup_city, km, near?)
     ]
     |> Enum.filter(&is_binary/1)
   end
+
+  # Shops abroad (`Shop.country`): their prices are converted to złoty.
+  defp abroad_term(nil), do: nil
+  defp abroad_term("NL"), do: gettext("wysyłka z Holandii")
+  defp abroad_term("DE"), do: gettext("wysyłka z Niemiec")
+  defp abroad_term("BE"), do: gettext("wysyłka z Belgii")
+  defp abroad_term("GB"), do: gettext("wysyłka z Wielkiej Brytanii")
+  defp abroad_term("SE"), do: gettext("wysyłka ze Szwecji")
+  defp abroad_term("DK"), do: gettext("wysyłka z Danii")
+  defp abroad_term("CZ"), do: gettext("wysyłka z Czech")
 
   # Pickup within the radius is shown on its own line instead.
   defp pickup_term(nil, _km, _near?), do: nil

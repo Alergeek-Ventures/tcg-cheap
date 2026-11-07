@@ -9,8 +9,23 @@ defmodule TcgCheap.Sealed.Shop do
       title decides) and `product_path` (the permalink path shape);
     * Shopify: `collection` (the Pokémon collection handle; nil reads the
       whole shop);
-    * `singles_categories` – category path prefixes for single cards; nil disables singles.
-      Supported only by GoogleFeed and CeneoFeed.
+    * `singles_categories` – where the shop lists single cards; nil disables
+      singles. Google Merchant and Ceneo feeds: category path prefixes;
+      WooCommerce: category ids (subcategories included); Shopify:
+      collection handles; Shoper listings and PrestaShop: the paths of the
+      singles listings, each read to its last page (at most 40 pages each,
+      `TcgCheap.Sealed.HtmlListing.read_singles/2`); nopCommerce:
+      `"<category id>:<option id>"`, a singles category and the shop's
+      specification option meaning "In Stock"; Shoptet: category listing
+      paths; Chasedex and Pokemonki: not read (the shop's own index
+      decides), any list enables singles;
+    * `currency` – the ISO code of the shop's prices, PLN unless the shop is
+      abroad; other prices are converted to PLN at the latest NBP rate
+      (`TcgCheap.Pricing.ExchangeRate.currencies/0`) when fetched;
+    * `singles_only` – true for a shop read only for its singles (shops
+      abroad, compared like Cardmarket); its sealed products are ignored;
+    * `country` – the ISO code of a shop abroad, shown with its delivery; nil
+      for a Polish shop;
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
       cover the whole shop); IdoSell: `feed_path` (a Pokémon category or
       search listing, query included);
@@ -20,7 +35,8 @@ defmodule TcgCheap.Sealed.Shop do
       listings: `mixed_listing` (true when the category also lists other
       games, so a title must say Pokémon) and `preorder_path` (the shop's
       own listing of pre-orders, which never count as in stock);
-    * `shipping_from` – the cheapest delivery price in PLN, `free_shipping_from`
+    * `shipping_from` – the cheapest delivery price in PLN (for a shop abroad,
+      its price to Poland converted when configured), `free_shipping_from`
       – the order value from which delivery is free, `pickup_city` – the city
       of the shop's own store where orders can be picked up in person; each nil
       when the shop does not publish it;
@@ -51,6 +67,9 @@ defmodule TcgCheap.Sealed.Shop do
                 :mixed_listing,
                 :preorder_path,
                 :pickup_location,
+                :country,
+                currency: "PLN",
+                singles_only: false,
                 images: true
               ]
 
@@ -69,6 +88,9 @@ defmodule TcgCheap.Sealed.Shop do
           listing_paths: [String.t()] | nil,
           mixed_listing: boolean() | nil,
           preorder_path: String.t() | nil,
+          currency: String.t(),
+          singles_only: boolean(),
+          country: String.t() | nil,
           images: boolean(),
           shipping_from: Decimal.t() | nil,
           free_shipping_from: Decimal.t() | nil,

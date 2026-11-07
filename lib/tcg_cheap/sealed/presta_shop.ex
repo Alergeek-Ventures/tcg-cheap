@@ -18,10 +18,14 @@ defmodule TcgCheap.Sealed.PrestaShop do
   The listings are the shop's Pokémon categories, so a product counts when its
   title names a sealed product (`TcgCheap.Sealed.Matcher.sealed_title?/1`;
   titles often omit "Pokémon" there); accessories and other games' items that
-  pass are left to `TcgCheap.Sealed.Matcher`. Its price is the current price
-  in złoty. It is in stock when PrestaShop offers it for adding to the cart
-  (`add_to_cart_url`, which PrestaShop leaves out of unavailable products)
-  and neither its listing tile nor its default category (`category_name`;
+  pass are left to `TcgCheap.Sealed.Matcher`. The shop's `singles_categories`
+  are the paths of its categories of single cards, read the same way (see
+  `TcgCheap.Sealed.HtmlListing.read_singles/2` for their page limit); every
+  product there is a single, priced with the singles minimum, whose category
+  is its default category (`category_name`, usually its set). Its price is the
+  current price in złoty. It is in stock when PrestaShop offers it for adding
+  to the cart (`add_to_cart_url`, which PrestaShop leaves out of unavailable
+  products) and neither its listing tile nor its default category (`category_name`;
   RGFK files pre-orders under "Przedsprzedaż") names a pre-order
   ("Przedsprzedaż", "Zapowiedź", "Premiera", …): the shops' faceted stock counts ("W magazynie") equal this
   rule on the shops that show them. A pre-order offered for adding to the
@@ -53,14 +57,16 @@ defmodule TcgCheap.Sealed.PrestaShop do
     req_options = Keyword.update(req_options, :headers, @headers, &(@headers ++ &1))
 
     with {:ok, products} <-
-           HtmlListing.read_listings(shop, &fetch_listing(shop, &1, req_options)) do
-      {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
+           HtmlListing.read_listings(shop, &fetch_listing(shop, &1, shop.max_pages, req_options)),
+         {:ok, singles} <-
+           HtmlListing.read_singles(shop, &fetch_listing(shop, &1, &2, req_options)) do
+      {:ok, ShopFeed.offers(shop, products ++ singles, &normalize(shop, &1))}
     end
   end
 
-  defp fetch_listing(shop, path, req_options) do
+  defp fetch_listing(shop, path, max_pages, req_options) do
     with {:ok, first} <- request(shop, path, req_options, 1),
-         {:ok, pages} <- page_count(shop, first),
+         {:ok, pages} <- page_count(max_pages, first),
          {:ok, rest} <- fetch_rest(shop, path, req_options, first, pages) do
       listed = Enum.flat_map([first | rest], & &1.products)
       distinct = listed |> Enum.map(& &1.id) |> Enum.uniq() |> length()
@@ -70,16 +76,16 @@ defmodule TcgCheap.Sealed.PrestaShop do
 
   # One empty category of several is fine; a shop with no offers at all fails
   # in `TcgCheap.Sealed.Refresh`.
-  defp page_count(_shop, %{total: 0, products: []}), do: {:ok, 1}
-  defp page_count(_shop, %{products: []}), do: {:error, :malformed_response}
-  defp page_count(_shop, %{from: from}) when from != 1, do: {:error, :malformed_pagination}
+  defp page_count(_max_pages, %{total: 0, products: []}), do: {:ok, 1}
+  defp page_count(_max_pages, %{products: []}), do: {:error, :malformed_response}
+  defp page_count(_max_pages, %{from: from}) when from != 1, do: {:error, :malformed_pagination}
 
-  defp page_count(shop, %{total: total, products: products, pages_count: pages_count}) do
+  defp page_count(max_pages, %{total: total, products: products, pages_count: pages_count}) do
     size = length(products)
     pages = div(total + size - 1, size)
 
     cond do
-      pages > shop.max_pages -> {:error, :too_many_pages}
+      pages > max_pages -> {:error, :too_many_pages}
       pages == 1 and size != total -> {:error, :incomplete_listing}
       pages_count not in [nil, pages] -> {:error, :malformed_pagination}
       true -> {:ok, pages}
@@ -188,27 +194,47 @@ defmodule TcgCheap.Sealed.PrestaShop do
     end
   end
 
-  defp normalize(shop, %{id: id, product: product, tile: tile}) do
+  defp normalize(shop, {:single, %{product: product} = listed}) do
+    with {:ok, title} <- ShopFeed.title(product["name"]),
+         {:ok, offer} <- offer(shop, listed, title, :single) do
+      {:ok, [Map.merge(offer, %{kind: :single, category: category(product)})]}
+    else
+      _ -> :invalid
+    end
+  end
+
+  defp normalize(shop, %{product: product} = listed) do
     with {:ok, title} <- ShopFeed.title(product["name"]),
          true <- Matcher.sealed_title?(title) || :ignore,
-         {:ok, id} <- ShopFeed.product_id(id),
-         {:ok, url} <- product_url(shop, product["url"]),
-         {:ok, price} <- price(product["price"]) do
-      {:ok,
-       [
-         %{
-           shop_product_id: id,
-           title: title,
-           url: url,
-           image_url: image_url(shop, product["cover"]),
-           ean: nil,
-           price: price
-         }
-         |> Map.merge(availability(product, title, "#{tile} #{product["category_name"]}"))
-       ]}
+         {:ok, offer} <- offer(shop, listed, title, :sealed) do
+      {:ok, [offer]}
     else
       :ignore -> :ignore
       _ -> :invalid
+    end
+  end
+
+  defp offer(shop, %{id: id, product: product, tile: tile}, title, kind) do
+    with {:ok, id} <- ShopFeed.product_id(id),
+         {:ok, url} <- product_url(shop, product["url"]),
+         {:ok, price} <- price(product["price"], kind) do
+      {:ok,
+       %{
+         shop_product_id: id,
+         title: title,
+         url: url,
+         image_url: image_url(shop, product["cover"]),
+         ean: nil,
+         price: price
+       }
+       |> Map.merge(availability(product, title, "#{tile} #{product["category_name"]}"))}
+    end
+  end
+
+  defp category(product) do
+    case ShopFeed.title(product["category_name"]) do
+      {:ok, name} -> name
+      :error -> nil
     end
   end
 
@@ -219,17 +245,17 @@ defmodule TcgCheap.Sealed.PrestaShop do
          else: (_ -> :error)
   end
 
-  defp price(text) when is_binary(text) do
+  defp price(text, kind) when is_binary(text) do
     case Regex.run(@price, text) do
       [_text, whole, fraction] ->
-        ShopFeed.decimal_price(String.replace(whole, @non_digit, "") <> "." <> fraction)
+        ShopFeed.decimal_price(String.replace(whole, @non_digit, "") <> "." <> fraction, kind)
 
       nil ->
         :error
     end
   end
 
-  defp price(_text), do: :error
+  defp price(_text, _kind), do: :error
 
   defp image_url(shop, %{} = cover) do
     url = get_in(cover, ["large", "url"]) || get_in(cover, ["medium", "url"])

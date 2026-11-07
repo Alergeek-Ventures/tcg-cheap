@@ -26,6 +26,12 @@ defmodule TcgCheap.Sealed.ShoperListing do
   whose title must also say Pokémon
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2`).
 
+  The shop's `singles_categories` are the paths of its listings of single
+  cards (`/pl/c/<name>/<id>` or `/pl/collection/<name>/<id>`), read the same
+  way (see `TcgCheap.Sealed.HtmlListing.read_singles/2` for their page
+  limit); every product there is a single, priced with the singles minimum,
+  whose category is the listing's heading ("Single - Angielskie").
+
   The listing price is the current gross price in złoty. A product is in
   stock when its tile offers an add-to-cart button (current themes) or a
   quantity field (classic themes); "Powiadom mnie o dostępności", "Niedostępny"
@@ -75,7 +81,13 @@ defmodule TcgCheap.Sealed.ShoperListing do
 
   @impl true
   def fetch(%Shop{} = shop, req_options) do
-    with {:ok, products} <- HtmlListing.read(&request(shop, req_options, &1), shop.max_pages),
+    with {:ok, products} <-
+           HtmlListing.read(&request(shop, shop.feed_path, req_options, &1), shop.max_pages),
+         {:ok, singles} <-
+           HtmlListing.read_singles(
+             shop,
+             &HtmlListing.read(fn number -> request(shop, &1, req_options, number) end, &2)
+           ),
          {:ok, preorders} <- preorder_ids(shop, req_options) do
       products =
         Enum.map(
@@ -86,12 +98,12 @@ defmodule TcgCheap.Sealed.ShoperListing do
           )
         )
 
-      {:ok, HtmlListing.offers(shop, products, &sealed?(shop, &1))}
+      {:ok, HtmlListing.offers(shop, products ++ singles, &sealed?(shop, &1))}
     end
   end
 
-  defp request(shop, req_options, number) do
-    path = if number == 1, do: shop.feed_path, else: "#{shop.feed_path}/#{number}"
+  defp request(shop, listing_path, req_options, number) do
+    path = if number == 1, do: listing_path, else: "#{listing_path}/#{number}"
     request_path(shop, path, req_options)
   end
 
@@ -117,11 +129,19 @@ defmodule TcgCheap.Sealed.ShoperListing do
   # -- Pages -----------------------------------------------------------------
 
   defp parse_page(document) do
-    case Floki.find(document, "product-list product-tile") do
-      [] -> parse_empty_or_classic(document)
-      tiles -> parse_tiles(document, tiles)
-    end
+    result =
+      case Floki.find(document, "product-list product-tile") do
+        [] -> parse_empty_or_classic(document)
+        tiles -> parse_tiles(document, tiles)
+      end
+
+    with {:ok, page} <- result,
+         do: {:ok, with_category(page, HtmlListing.text(HtmlListing.first(document, "h1")))}
   end
+
+  # The listing's heading, the category of its singles.
+  defp with_category(page, heading),
+    do: %{page | products: Enum.map(page.products, &Map.put(&1, :category, heading))}
 
   defp parse_empty_or_classic(document) do
     case Floki.find(document, ".products div.product") do

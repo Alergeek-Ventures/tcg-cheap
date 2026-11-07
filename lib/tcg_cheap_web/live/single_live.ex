@@ -206,7 +206,7 @@ defmodule TcgCheapWeb.SingleLive do
                 ]}>
                   {if(@primary.cheapest,
                     do: single_verdict_label(@primary.verdict),
-                    else: verdict_label(%{status: :out_of_stock})
+                    else: gettext("Brak w polskich sklepach")
                   )}<.verdict_icon status={single_verdict_status(@primary.verdict)} />
                 </span>
               </:header>
