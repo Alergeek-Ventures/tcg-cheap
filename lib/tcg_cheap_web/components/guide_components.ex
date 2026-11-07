@@ -717,46 +717,70 @@ defmodule TcgCheapWeb.GuideComponents do
       <div class="product-section-heading">
         <h2 id={"#{@id}-title"}>{@title}</h2>
       </div>
-      <%!-- Dashed like a pre-order mark: a price to check in a store, not an offer to buy. --%>
-      <ul class="offer-list">
-        <li :for={deal <- @deals} id={"#{@id}-#{deal.id}"} class="offer retail-deal">
-          <%!-- Every chain's logo carries its name, so the row shows no name beside it. --%>
-          <img
-            src={~p"/images/chains/#{Atom.to_string(deal.chain) <> ".webp"}"}
-            alt={RetailDeal.chain_name(deal.chain)}
-            width="96"
-            height="32"
-            loading="lazy"
-            class={["shop-logo", RetailDeal.square_logo?(deal.chain) && "shop-logo-square"]}
-          />
-          <div class="offer-shop">
-            <span :if={@products?} class="retail-deal-product">
-              <.link :if={deal.product} navigate={~p"/produkty/#{deal.product.slug}"}>{deal.product.name}</.link>
-              <span :if={!deal.product}>{deal.title}</span>
-            </span>
-            <span class="offer-delivery">{deal_days(deal)} ·
-            <a
-              href={deal.source_url}
-              target="_blank"
-              rel="noopener nofollow"
-              data-track="retail_deal_source_clicked"
-              data-track-chain={deal.chain}
-              aria-label={
-                gettext("%{chain}: źródło ceny (otwiera się w nowej karcie)",
-                  chain: RetailDeal.chain_name(deal.chain)
-                )
-              }
-            >{gettext("źródło")}&nbsp;↗</a></span>
-          </div>
-          <p class="offer-price"><strong>{Polish.price(deal.price)}</strong></p>
-        </li>
-      </ul>
+      <.retail_clips id={@id} deals={@deals} products?={@products?} />
       <p class="guide-note">
         {gettext("Ceny z gazetek i zgłoszeń. Dostępność różna, nie wliczamy ich do oceny.")}
       </p>
     </section>
     """
   end
+
+  attr :id, :string, required: true, doc: "prefix of each deal's DOM id"
+  attr :deals, :list, required: true
+  attr :products?, :boolean, default: false, doc: "name each deal's product, for lists of many"
+
+  @doc """
+  Retail deals as clippings from a leaflet, as the chains print them: the
+  chain's logo, the price on a sticker, "nowe" for a deal that started in the
+  last two days, then its days and the source the price was checked in.
+  """
+  def retail_clips(assigns) do
+    ~H"""
+    <ul class="retail-clips">
+      <li
+        :for={deal <- @deals}
+        id={"#{@id}-#{deal.id}"}
+        class={["retail-clip", !@products? && "retail-clip-unnamed"]}
+      >
+        <span :if={fresh_deal?(deal)} class="retail-clip-fresh">{gettext("nowe")}</span>
+        <%!-- Every chain's logo carries its name, so the clipping shows no name beside it. --%>
+        <img
+          src={~p"/images/chains/#{Atom.to_string(deal.chain) <> ".webp"}"}
+          alt={RetailDeal.chain_name(deal.chain)}
+          width="96"
+          height="32"
+          loading="lazy"
+          class={[
+            "retail-clip-logo",
+            RetailDeal.square_logo?(deal.chain) && "retail-clip-logo-square"
+          ]}
+        />
+        <strong class="retail-clip-sticker">{Polish.price(deal.price)}</strong>
+        <p :if={@products?} class="retail-clip-name">
+          <.link :if={deal.product} navigate={~p"/produkty/#{deal.product.slug}"}>{deal.product.name}</.link>
+          <span :if={!deal.product}>{deal.title}</span>
+        </p>
+        <p class="retail-clip-when">{deal_days(deal)}</p>
+        <p class="retail-clip-source">
+          <a
+            href={deal.source_url}
+            target="_blank"
+            rel="noopener nofollow"
+            data-track="retail_deal_source_clicked"
+            data-track-chain={deal.chain}
+            aria-label={
+              gettext("%{chain}: źródło ceny (otwiera się w nowej karcie)",
+                chain: RetailDeal.chain_name(deal.chain)
+              )
+            }
+          >{gettext("źródło")}&nbsp;↗</a>
+        </p>
+      </li>
+    </ul>
+    """
+  end
+
+  defp fresh_deal?(deal), do: Date.diff(Date.utc_today(), deal.starts_on) <= 2
 
   @doc ~S(A retail deal's days and caveat: "2–8 listopada · wybrane sklepy".)
   def deal_days(deal) do

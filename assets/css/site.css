@@ -838,17 +838,6 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .set-close:active { color: var(--orange); }
 @media (hover: hover) and (pointer: fine) { .guide-world .set-close:hover { color: var(--orange); } }
 
-/* Retail chains' prices: an offer row without a logo, dashed like a pre-order mark. */
-.guide-world .retail-deal { background: transparent; border: 1px dashed var(--rule); grid-template-areas: "logo shop price"; grid-template-columns: 7.5rem minmax(0, 1fr) auto; }
-/* Unlike a shop's, a chain's logo stays on a phone, beside the price: it names the deal at a glance. */
-@media (max-width: 42rem) {
-  .guide-world .retail-deal { grid-template-areas: "logo price" "shop shop"; grid-template-columns: minmax(0, 1fr) auto; }
-  .guide-world .retail-deal .shop-logo { display: block; width: 6rem; }
-  /* The chip's middle square holds the whole mark, flush with the text edge. */
-  .guide-world .retail-deal .shop-logo-square { aspect-ratio: 1; object-fit: cover; width: 2.5rem; }
-}
-.guide-world .retail-deal a { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
-@media (hover: hover) and (pointer: fine) { .guide-world .retail-deal a:hover { color: var(--orange); } }
 .guide-world .retail-deals .guide-note { margin-block-start: .5rem; }
 
 /* The booster price page: the answer under its question, then the boosters. */
@@ -859,36 +848,38 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 /* The banner's box art hangs below it; the chain deals under it keep clear of it. */
 .guide-world #home-booster-prices { margin-block: 3rem 1rem; }
 
-/* Retail chains' prices as news on the home page: clippings from a leaflet, each a coupon with
-   its price on a yellow sticker, as the chains print it. */
-.guide-world .retail-news { --leaflet: oklch(0.89 0.17 96); }
-.guide-world .retail-news p { margin: 0; }
-.guide-world .retail-news-head { align-items: baseline; display: flex; flex-wrap: wrap; gap: 0 1rem; justify-content: space-between; margin-block-end: .75rem; }
+/* Retail chains' prices as news on the home page, under the banner. */
+.guide-world .retail-news-head { align-items: baseline; display: flex; flex-wrap: wrap; gap: 0 1rem; justify-content: space-between; margin-block-end: .25rem; }
 .guide-world .retail-news-head h2 { font-size: clamp(1.4rem, 1.2rem + 1vw, 1.9rem); line-height: 1; }
-.guide-world .retail-news-head a { align-items: center; display: inline-flex; font-size: .85rem; min-block-size: 2.75rem; }
-.guide-world .retail-news :is(.retail-news-head, .retail-news-source) a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
-/* Three deals share the row; one or two keep a clipping's size instead of stretching across the page.
-   The sticker and the "nowe" tab hang over the cards' top edge. */
-.guide-world .retail-news-cards { display: flex; flex-wrap: wrap; gap: 1.5rem 1rem; list-style: none; margin: 0; padding: 1rem 0 0; }
-.guide-world .retail-news-card { background: var(--paper); border: 2px dashed color-mix(in oklch, var(--ink) 55%, transparent); display: grid; flex: 1 1 16rem; gap: .5rem 1rem; grid-template-areas: "logo sticker" "name name" "when when" "source source"; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 2.5rem auto auto 1fr; max-inline-size: 24rem; padding: 1rem; position: relative; }
-.guide-world .retail-news-logo { align-self: center; aspect-ratio: 3; block-size: auto; border-radius: .375rem; display: block; grid-area: logo; inline-size: 6rem; mix-blend-mode: multiply; }
+.guide-world .retail-news-head a { align-items: center; color: var(--ink); display: inline-flex; font-size: .85rem; min-block-size: 2.75rem; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+@media (hover: hover) and (pointer: fine) { .guide-world .retail-news-head a:hover { color: var(--orange); } }
+
+/* Retail deals as clippings from a leaflet, each a coupon with its price on a yellow sticker, as the
+   chains print it. Three share the row; one or two keep a clipping's size instead of stretching
+   across the page. The sticker and the "nowe" tab hang over the cards' top edge. */
+.guide-world .retail-clips { --leaflet: oklch(0.89 0.17 96); display: flex; flex-wrap: wrap; gap: 1.5rem 1rem; list-style: none; margin: 0; padding: 1.5rem 0 0; }
+.guide-world .retail-clip { background: var(--paper); border: 2px dashed color-mix(in oklch, var(--ink) 55%, transparent); display: grid; flex: 1 1 16rem; gap: .5rem 1rem; grid-template-areas: "logo sticker" "name name" "when when" "source source"; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 2.5rem auto auto 1fr; max-inline-size: 24rem; padding: 1rem; position: relative; }
+/* On a product's page the product is the page's own, so its clippings name none. */
+.guide-world .retail-clip-unnamed { grid-template-areas: "logo sticker" "when when" "source source"; grid-template-rows: 2.5rem auto 1fr; }
+.guide-world .retail-clip p { margin: 0; }
+.guide-world .retail-clip-logo { align-self: center; aspect-ratio: 3; block-size: auto; border-radius: .375rem; display: block; grid-area: logo; inline-size: 6rem; mix-blend-mode: multiply; }
 /* A square mark (Lidl, Aldi…) fills its own square instead of a dot in a wide chip. */
-.guide-world .retail-news-logo.retail-news-logo-square { aspect-ratio: 1; inline-size: 2.5rem; object-fit: cover; }
-.guide-world .retail-news-fresh { background: var(--orange); color: var(--bench-light); font: 700 .8rem/1 "Barlow Condensed", sans-serif; inset-block-start: -.75rem; inset-inline-start: .75rem; letter-spacing: .06em; padding: .25rem .45rem .3rem; position: absolute; text-transform: uppercase; }
-.guide-world .retail-news-sticker { align-self: start; background: var(--leaflet); box-shadow: .2rem .2rem 0 var(--ink); font: 700 clamp(1.5rem, 1.3rem + .8vw, 1.9rem)/1 "Barlow Condensed", sans-serif; grid-area: sticker; margin-block-start: -1.75rem; padding: .4rem .6rem .45rem; rotate: 2deg; white-space: nowrap; }
-.guide-world .retail-news-card .retail-news-name { font: 700 1.3rem/1.1 "Barlow Condensed", sans-serif; grid-area: name; margin-block-start: .25rem; overflow-wrap: break-word; text-wrap: balance; }
+.guide-world .retail-clip-logo.retail-clip-logo-square { aspect-ratio: 1; inline-size: 2.5rem; object-fit: cover; }
+.guide-world .retail-clip-fresh { background: var(--orange); color: var(--bench-light); font: 700 .8rem/1 "Barlow Condensed", sans-serif; inset-block-start: -.75rem; inset-inline-start: .75rem; letter-spacing: .06em; padding: .25rem .45rem .3rem; position: absolute; text-transform: uppercase; }
+.guide-world .retail-clip-sticker { align-self: start; background: var(--leaflet); box-shadow: .2rem .2rem 0 var(--ink); font: 700 clamp(1.5rem, 1.3rem + .8vw, 1.9rem)/1 "Barlow Condensed", sans-serif; grid-area: sticker; margin-block-start: -1.75rem; padding: .4rem .6rem .45rem; rotate: 2deg; white-space: nowrap; }
+.guide-world .retail-clip .retail-clip-name { font: 700 1.3rem/1.1 "Barlow Condensed", sans-serif; grid-area: name; margin-block-start: .25rem; overflow-wrap: break-word; text-wrap: balance; }
 /* A named product links to its page; its name still reads as a headline, like a chain's own set.
    The inline link's padding widens its tap target without moving the lines. */
-.guide-world .retail-news-name a { color: inherit; padding-block: .6rem; text-decoration: none; }
-.guide-world .retail-news-when { color: var(--muted); font-size: .8rem; grid-area: when; line-height: 1.4; overflow-wrap: break-word; }
-.guide-world .retail-news-source { align-self: end; font-size: .8rem; grid-area: source; }
-.guide-world .retail-news-source a { align-items: center; display: inline-flex; min-block-size: 2.75rem; }
+.guide-world .retail-clip-name a { color: inherit; padding-block: .6rem; text-decoration: none; }
+.guide-world .retail-clip-when { color: var(--muted); font-size: .8rem; grid-area: when; line-height: 1.4; overflow-wrap: break-word; }
+.guide-world .retail-clip-source { align-self: end; font-size: .8rem; grid-area: source; }
+.guide-world .retail-clip-source a { align-items: center; color: var(--ink); display: inline-flex; min-block-size: 2.75rem; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
 @media (hover: hover) and (pointer: fine) {
-  .guide-world .retail-news a:hover { color: var(--orange); }
-  .guide-world .retail-news-name a:hover { text-decoration: underline; text-decoration-thickness: .06em; text-underline-offset: .12em; }
+  .guide-world .retail-clip a:hover { color: var(--orange); }
+  .guide-world .retail-clip-name a:hover { text-decoration: underline; text-decoration-thickness: .06em; text-underline-offset: .12em; }
 }
 /* On a phone the cards scroll sideways to the screen's edges, the next one peeking in. */
 @media (max-width: 42rem) {
-  .guide-world .retail-news-cards { display: grid; grid-auto-columns: minmax(15rem, 80%); grid-auto-flow: column; margin-inline: -1rem; overflow-x: auto; overscroll-behavior-inline: contain; padding: 1rem 1rem .5rem; scroll-padding-inline: 1rem; scroll-snap-type: inline mandatory; scrollbar-width: thin; }
-  .guide-world .retail-news-card { max-inline-size: none; scroll-snap-align: start; }
+  .guide-world .retail-clips { display: grid; grid-auto-columns: minmax(15rem, 80%); grid-auto-flow: column; margin-inline: -1rem; overflow-x: auto; overscroll-behavior-inline: contain; padding: 1.5rem 1rem .5rem; scroll-padding-inline: 1rem; scroll-snap-type: inline mandatory; scrollbar-width: thin; }
+  .guide-world .retail-clip { max-inline-size: none; scroll-snap-align: start; }
 }

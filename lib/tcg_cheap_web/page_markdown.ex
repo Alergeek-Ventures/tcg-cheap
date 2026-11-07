@@ -57,7 +57,7 @@ defmodule TcgCheapWeb.PageMarkdown do
         "Angielskie, najnowsze sety najpierw. Najniższa cena na stanie w polskich sklepach internetowych, bez dostawy.",
         products_table(page.boosters)
       ]),
-      retail_deals(page.retail_deals)
+      retail_deals("Okazje w sieciówkach", page.retail_deals)
     ])
   end
 
@@ -68,7 +68,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       section("Werdykt", list(verdict_facts(page))),
       section("Produkt", list(product_facts(product))),
       section("Oferty w polskich sklepach", offers_table(page.offers, page.today)),
-      retail_deals(page.retail_deals),
+      retail_deals("W sieciówkach", page.retail_deals),
       page.booster_set && pull_rates(page.booster_set)
     ])
   end
@@ -174,10 +174,10 @@ defmodule TcgCheapWeb.PageMarkdown do
   end
 
   # As on the HTML pages: apart from the shop offers, never in the verdict.
-  defp retail_deals([]), do: nil
+  defp retail_deals(_title, []), do: nil
 
-  defp retail_deals(deals) do
-    section("W sieciówkach", [
+  defp retail_deals(title, deals) do
+    section(title, [
       "Ceny z gazetek sieci i zgłoszeń z konkretnych sklepów. Dostępność bywa różna, więc nie wliczamy ich do oceny.",
       table(
         ["Sieć", "Produkt", "Cena", "Kiedy", "Źródło"],
