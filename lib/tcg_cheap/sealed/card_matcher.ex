@@ -32,6 +32,41 @@ defmodule TcgCheap.Sealed.CardMatcher do
   @grading ~r/\b(PSA|CGC|BGS|Beckett|ACE|TAG)\s*(10|[1-9](?:[.,]5)?)\b/i
   @not_card ~r/\b(deck|talia|lot|bundle|zestaw|koszulki|sleeves|booster|box|display|jumbo|oversize|proxy|replika|random|losow\w*|portfolio|binder|album|toploader|playmat|komplet|pakiet)\b/u
   @special ~r/\b((poke|master|quick|dusk)\s*ball|ball pattern|energy\s*(symbol|pattern)|stamped|stamp|cosmos|cosmic holo|galaxy holo|galactic holo|holo energy pattern|rocket reverse)\b/
+  # 30th Classic Collection reprints print their original number (Charizard
+  # 4/102), which shops quote; TCGdex numbers them 001–030 in order of it.
+  # Three cards print 106 and two print 11, so the name still has to agree.
+  @classic_collection_printed %{
+    "001" => "4",
+    "002" => "5",
+    "003" => "11",
+    "004" => "11",
+    "005" => "18",
+    "006" => "19",
+    "007" => "25",
+    "008" => "33",
+    "009" => "41",
+    "010" => "43",
+    "011" => "47",
+    "012" => "50",
+    "013" => "57",
+    "014" => "58",
+    "015" => "69",
+    "016" => "85",
+    "017" => "89",
+    "018" => "94",
+    "019" => "99",
+    "020" => "100",
+    "021" => "101",
+    "022" => "106",
+    "023" => "106",
+    "024" => "106",
+    "025" => "108",
+    "026" => "114",
+    "027" => "123",
+    "028" => "138",
+    "029" => "149",
+    "030" => "203"
+  }
 
   @doc "Build once per batch from English synced sets with their loaded cards."
   def index(sets) do
@@ -66,9 +101,16 @@ defmodule TcgCheap.Sealed.CardMatcher do
         set.abbreviation && set.abbreviation |> String.downcase() |> String.split(":") |> hd(),
       abbreviation: set.abbreviation && String.downcase(set.abbreviation),
       total: set.official_card_count,
-      cards: Enum.group_by(set.cards, &number(&1.number))
+      cards: Enum.group_by(set.cards, &printed_number_of(set.tcgdex_id, &1.number))
     }
   end
+
+  # A Classic Collection card TCGdex adds later stays unreachable (nil) until
+  # its printed number is known, rather than answering to TCGdex's number.
+  defp printed_number_of("30th-c", tcgdex_number),
+    do: Map.get(@classic_collection_printed, tcgdex_number)
+
+  defp printed_number_of(_set, tcgdex_number), do: number(tcgdex_number)
 
   @doc "Identity result; explain/2 includes the evidence and rejected candidates."
   def match(offer, index), do: offer |> explain(index) |> Map.fetch!(:result)
@@ -179,7 +221,7 @@ defmodule TcgCheap.Sealed.CardMatcher do
         do: String.replace(title, "delta species", " "),
         else: title
 
-    without_base_set_description(title)
+    title |> without_base_set_description() |> classic_collection_label()
   end
 
   defp without_base_set_description(text) do
@@ -189,6 +231,11 @@ defmodule TcgCheap.Sealed.CardMatcher do
       "\\1"
     )
   end
+
+  # Shops name the subset "30th Celebration: Classic Collection", TCGdex
+  # "30th Classic Collection"; otherwise the parent set's name would win.
+  defp classic_collection_label(text),
+    do: String.replace(text, "30th celebration classic collection", "30th classic collection")
 
   @doc "Parsed offer attributes, independent of the catalogue."
   def parse(offer) do
@@ -201,6 +248,7 @@ defmodule TcgCheap.Sealed.CardMatcher do
     identity_title = Regex.replace(@grading, title, " ")
     fraction = Regex.run(~r/\b([a-z]{0,5}\d{1,4})\s*\/\s*([a-z]{0,5}\d{1,4})\b/i, identity_title)
     {code, code_number} = code_number(identity_title, fraction)
+    fraction = if pikachu_place?(code, code_number, fraction), do: nil, else: fraction
     {num, total} = printed_number(fraction, code_number, identity_title)
 
     %{
@@ -323,9 +371,18 @@ defmodule TcgCheap.Sealed.CardMatcher do
 
   defp reverse?(text), do: Regex.match?(~r/\b(reverse|rev holo|rh)\b/, text)
 
+  # A Classic Collection reprint is labelled "30C BS 4": the subset's code, the
+  # original set's and the original number, which the reprint still prints.
+  defp code_number(title, fraction) do
+    case Regex.run(~r/\b30C\s+[A-Z]{2,4}\s+(\d{1,3})\b/, title) do
+      [_, number] -> {"30c", number}
+      nil -> set_code_number(title, fraction)
+    end
+  end
+
   # Promo cards print no total, so next to a printed fraction a compact
   # "SWSH06" is the set's label ("SWSH06: Chilling Reign"), not a promo number.
-  defp code_number(title, fraction) do
+  defp set_code_number(title, fraction) do
     case Regex.run(~r/\b((?=[A-Z0-9]{0,4}[A-Z])[A-Z0-9]{2,5})\s+((?:TG|GG|SV)?\d{1,4})\b/, title) do
       [_, code, number] -> {String.downcase(code), number}
       nil when is_nil(fraction) -> compact_promo(title)
@@ -348,6 +405,19 @@ defmodule TcgCheap.Sealed.CardMatcher do
       nil -> {nil, nil}
     end
   end
+
+  # 30th Celebration's Pikachu 023–052 are also counted 1/30–30/30 by their
+  # place in that run: "Pikachu 30C 042 20/30" names one card twice.
+  defp pikachu_place?("30c", code_number, [_, place, "30"]) do
+    with {code_number, ""} <- Integer.parse(code_number),
+         {place, ""} <- Integer.parse(place) do
+      place in 1..30 and code_number == place + 22
+    else
+      _ -> false
+    end
+  end
+
+  defp pikachu_place?(_code, _code_number, _fraction), do: false
 
   defp printed_number([_, num, total], _code, _title), do: {num, number(total)}
 
@@ -442,7 +512,13 @@ defmodule TcgCheap.Sealed.CardMatcher do
     if Regex.match?(~r/\bera\b|promos?/i, segment) do
       :no_set
     else
-      segment = segment |> Matcher.normalize() |> without_base_set_description() |> compact()
+      segment =
+        segment
+        |> Matcher.normalize()
+        |> without_base_set_description()
+        |> classic_collection_label()
+        |> compact()
+
       sets |> Enum.filter(&named_in_category?(&1, segment)) |> category_candidates()
     end
   end
