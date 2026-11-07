@@ -57,10 +57,14 @@ defmodule TcgCheap.Sealed.PrestaShop do
     req_options = Keyword.update(req_options, :headers, @headers, &(@headers ++ &1))
 
     with {:ok, products} <-
-           HtmlListing.read_listings(shop, &fetch_listing(shop, &1, shop.max_pages, req_options)),
-         {:ok, singles} <-
-           HtmlListing.read_singles(shop, &fetch_listing(shop, &1, &2, req_options)) do
-      {:ok, ShopFeed.offers(shop, products ++ singles, &normalize(shop, &1))}
+           HtmlListing.read_listings(shop, &fetch_listing(shop, &1, shop.max_pages, req_options)) do
+      singles = HtmlListing.read_singles(shop, &fetch_listing(shop, &1, &2, req_options))
+
+      ShopFeed.with_singles(
+        products,
+        singles,
+        &ShopFeed.offers(shop, &1, fn product -> normalize(shop, product) end)
+      )
     end
   end
 

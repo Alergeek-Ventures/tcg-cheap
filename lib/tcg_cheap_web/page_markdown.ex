@@ -99,7 +99,12 @@ defmodule TcgCheapWeb.PageMarkdown do
           card.rarity && "Rzadkość: #{Rarities.label(card.rarity)}"
         ])
       ),
-      section("Oferty w polskich sklepach", card_offers_table(page.offers, today))
+      section(
+        "Oferty w polskich sklepach",
+        page.offers
+        |> Enum.reject(&(&1.shop in Shops.abroad_keys()))
+        |> card_offers_table(today)
+      )
     ])
   end
 

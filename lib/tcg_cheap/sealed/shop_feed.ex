@@ -60,9 +60,13 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
   @doc """
   Fetches every sealed product and configured single the shop currently lists. `req_options` are
-  merged into each request (a `Req.Test` plug, for instance).
+  merged into each request (a `Req.Test` plug, for instance). A client that
+  reads singles with requests of their own answers `{:partial, offers,
+  reason}` when only those failed, so the sealed offers are still stored
+  (`with_singles/3`).
   """
-  @callback fetch(Shop.t(), req_options :: keyword()) :: {:ok, [offer()]} | {:error, term()}
+  @callback fetch(Shop.t(), req_options :: keyword()) ::
+              {:ok, [offer()]} | {:partial, [offer()], term()} | {:error, term()}
 
   @doc "The hosts the shop's product images may be shown from."
   @callback image_hosts(Shop.t()) :: [String.t()]
@@ -216,6 +220,19 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
     offers |> Enum.reverse() |> Enum.uniq_by(& &1.shop_product_id)
   end
+
+  @doc """
+  The result of a fetch whose singles (`{:single, product}`) were read apart
+  from its sealed `products`: all offers made with `to_offers`, or, when the
+  singles failed, `{:partial, offers, reason}` with the sealed ones alone.
+  """
+  @spec with_singles([term()], {:ok, [term()]} | {:error, term()}, ([term()] -> [offer()])) ::
+          {:ok, [offer()]} | {:partial, [offer()], term()}
+  def with_singles(products, {:ok, singles}, to_offers),
+    do: {:ok, to_offers.(products ++ singles)}
+
+  def with_singles(products, {:error, reason}, to_offers),
+    do: {:partial, to_offers.(products), reason}
 
   @doc """
   Whether a product of a mixed listing is sealed Pokémon: its title names a

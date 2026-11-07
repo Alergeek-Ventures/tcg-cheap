@@ -36,10 +36,17 @@ defmodule TcgCheap.Sealed.Shopify do
   @impl true
   def fetch(%Shop{} = shop, req_options) do
     with :ok <- check_currency(shop, req_options),
-         {:ok, sealed} <- sealed_products(shop, req_options),
-         {:ok, singles} <- singles_products(shop, req_options) do
-      products = Enum.map(sealed, &{:sealed, &1}) ++ Enum.map(singles, &{:single, &1})
-      {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
+         {:ok, sealed} <- sealed_products(shop, req_options) do
+      singles =
+        with {:ok, singles} <- singles_products(shop, req_options),
+             do: {:ok, Enum.map(singles, &{:single, &1})}
+
+      sealed
+      |> Enum.map(&{:sealed, &1})
+      |> ShopFeed.with_singles(
+        singles,
+        &ShopFeed.offers(shop, &1, fn p -> normalize(shop, p) end)
+      )
     end
   end
 
