@@ -53,11 +53,11 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   def booster_prices(seo, page) do
     page(seo, page.today, [
+      retail_deals("Okazje w sieciówkach", page.retail_deals),
       section("Boostery w polskich sklepach", [
         "Angielskie, najnowsze sety najpierw. Najniższa cena na stanie w polskich sklepach internetowych, bez dostawy.",
         products_table(page.boosters)
-      ]),
-      retail_deals("Okazje w sieciówkach", page.retail_deals)
+      ])
     ])
   end
 

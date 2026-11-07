@@ -1,8 +1,8 @@
 defmodule TcgCheapWeb.BoosterPriceLive do
   @moduledoc """
-  What a Pokémon booster costs in Poland today: the answer on top, each
-  recent English set's booster with its cheapest shop price and verdict,
-  and the retail chains' deals running today.
+  What a Pokémon booster costs in Poland today: the answer on top, the
+  retail chains' deals running today, then each recent English set's
+  booster with its cheapest shop price and verdict.
   """
 
   use TcgCheapWeb, :live_view
@@ -72,6 +72,14 @@ defmodule TcgCheapWeb.BoosterPriceLive do
             <% end %>
           </section>
 
+          <.retail_deals
+            :if={@page.retail_deals != []}
+            id="booster-prices-retail-deals"
+            title={gettext("Okazje w sieciówkach")}
+            deals={@page.retail_deals}
+            products?
+          />
+
           <section
             id="booster-prices-shops"
             class="product-section"
@@ -125,14 +133,6 @@ defmodule TcgCheapWeb.BoosterPriceLive do
               )}
             </p>
           </section>
-
-          <.retail_deals
-            :if={@page.retail_deals != []}
-            id="booster-prices-retail-deals"
-            title={gettext("Okazje w sieciówkach")}
-            deals={@page.retail_deals}
-            products?
-          />
         </main>
         <.site_footer />
       </div>
