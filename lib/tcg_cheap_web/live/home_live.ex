@@ -541,8 +541,8 @@ defmodule TcgCheapWeb.HomeLive do
   attr :facets, :map, required: true
   attr :all_expansions?, :boolean, required: true
 
-  # The sets, newest first: beside the list on a wide screen, a shelf above it
-  # on a narrow one.
+  # The sets, English ones first (`TcgCheap.Sealed.Guide.facets/1`): beside
+  # the list on a wide screen, a shelf above it on a narrow one.
   defp set_column(assigns) do
     {first, rest} = split_expansions(assigns.facets.expansions, assigns.filters.expansion)
 

@@ -91,8 +91,9 @@ defmodule TcgCheap.Sealed.Guide do
   @doc """
   What the language, kind and expansion filters offer under the other filters:
   product counts per language edition and per kind (the chosen kind stays,
-  with none), and the named expansions (those with
-  a product in stock first, then newest first) with their logo when one is
+  with none), and the named expansions (English ones first, then the other
+  language editions in turn; within each, those with a product in stock
+  first, then newest first) with their logo when one is
   mirrored: the English TCGdex logo, else the one set for the expansion.
   """
   @spec facets(filters()) :: %{
@@ -167,6 +168,7 @@ defmodule TcgCheap.Sealed.Guide do
       |> named_expansions(logos)
       |> Enum.sort_by(&(&1.newest || ~D[1990-01-01]), {:desc, Date})
       |> Enum.sort_by(&(!&1.available?))
+      |> Enum.sort_by(&Enum.find_index(Regions.all(), fn region -> region == &1.region end))
       |> Enum.map(&Map.drop(&1, [:available?, :newest]))
 
     expansions ++ chosen_elsewhere(filters.expansion, expansions, logos)
