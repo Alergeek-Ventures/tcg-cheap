@@ -18,17 +18,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   alias TcgCheap.Sealed
 
-  alias TcgCheap.Sealed.{
-    CardGuide,
-    CardImage,
-    Catalogue,
-    Guide,
-    Kinds,
-    Rarities,
-    Regions,
-    RetailDeal,
-    Shops
-  }
+  alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Guide, Kinds, Rarities, Regions, Shops}
 
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
@@ -795,9 +785,6 @@ defmodule TcgCheapWeb.HomeLive do
     |> Enum.take(3)
   end
 
-  # A deal that started in the last two days is announced as new.
-  defp fresh_deal?(deal), do: Date.diff(Date.utc_today(), deal.starts_on) <= 2
-
   attr :deals, :list, required: true
 
   # Retail chains' prices running today, announced as news under the banner;
@@ -812,54 +799,14 @@ defmodule TcgCheapWeb.HomeLive do
     """
   end
 
-  # Each deal a clipping from a leaflet: the chain's logo, the price on a
-  # sticker, the product, its days and the source the price was checked in.
   defp retail_news(assigns) do
     ~H"""
-    <section
-      id="home-booster-prices"
-      class="retail-news"
-      aria-labelledby="home-retail-news-title"
-    >
+    <section id="home-booster-prices" aria-labelledby="home-retail-news-title">
       <div class="retail-news-head">
         <h2 id="home-retail-news-title">{gettext("Okazje w sieciówkach")}</h2>
         <.link navigate={~p"/ile-kosztuje-booster-pokemon"}>{gettext("Wszystkie ceny boosterów")}&nbsp;→</.link>
       </div>
-      <ul class="retail-news-cards">
-        <li :for={deal <- @deals} id={"home-retail-deal-#{deal.id}"} class="retail-news-card">
-          <span :if={fresh_deal?(deal)} class="retail-news-fresh">{gettext("nowe")}</span>
-          <img
-            src={~p"/images/chains/#{Atom.to_string(deal.chain) <> ".webp"}"}
-            alt={RetailDeal.chain_name(deal.chain)}
-            width="96"
-            height="32"
-            class={[
-              "retail-news-logo",
-              RetailDeal.square_logo?(deal.chain) && "retail-news-logo-square"
-            ]}
-          />
-          <strong class="retail-news-sticker">{Polish.price(deal.price)}</strong>
-          <p class="retail-news-name">
-            <.link :if={deal.product} navigate={~p"/produkty/#{deal.product.slug}"}>{deal.product.name}</.link>
-            <span :if={!deal.product}>{deal.title}</span>
-          </p>
-          <p class="retail-news-when">{deal_days(deal)}</p>
-          <p class="retail-news-source">
-            <a
-              href={deal.source_url}
-              target="_blank"
-              rel="noopener nofollow"
-              data-track="retail_deal_source_clicked"
-              data-track-chain={deal.chain}
-              aria-label={
-                gettext("%{chain}: źródło ceny (otwiera się w nowej karcie)",
-                  chain: RetailDeal.chain_name(deal.chain)
-                )
-              }
-            >{gettext("źródło")}&nbsp;↗</a>
-          </p>
-        </li>
-      </ul>
+      <.retail_clips id="home-retail-deal" deals={@deals} products? />
     </section>
     """
   end

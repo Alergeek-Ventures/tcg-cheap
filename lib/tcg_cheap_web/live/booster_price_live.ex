@@ -129,7 +129,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
           <.retail_deals
             :if={@page.retail_deals != []}
             id="booster-prices-retail-deals"
-            title={gettext("W sieciówkach")}
+            title={gettext("Okazje w sieciówkach")}
             deals={@page.retail_deals}
             products?
           />
