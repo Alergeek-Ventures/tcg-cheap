@@ -9,7 +9,7 @@ defmodule TcgCheap.Sealed.CardMatcher do
   alias TcgCheap.Sealed.Matcher
 
   @languages [
-    {"ja", ~r/\b(jp|jap|jpn|japanese|japonsk\w*)\b/u},
+    {"ja", ~r/\b(jp|jap|jpn|japanese|japonsk\w*|japonia)\b/u},
     {"zh", ~r/\b(cn|chn|chinese|chinsk\w*)\b/u},
     {"ko", ~r/\b(kr|kor|korean|koreansk\w*)\b/u},
     {"pl", ~r/\b(polska|polski|polskie|polskiej|polska wersja)\b|\bpl\s*$/u},
@@ -68,6 +68,20 @@ defmodule TcgCheap.Sealed.CardMatcher do
     "030" => "203"
   }
 
+  # Black Star Promo numbers carry the era prefix instead of a set code. "XY"
+  # alone is also the XY base set's abbreviation, so a promo prefix names its
+  # promo set explicitly, and only when no total is printed.
+  @promo_sets %{"svp" => "svp", "swsh" => "swshp", "sm" => "smp", "xy" => "xyp", "mep" => "mep"}
+  # English promo set labels. A bare "SvP Promo" is left out: it also labels
+  # Japanese "053/SV-P" numbering.
+  @promo_labels [
+    {"svp", ~r/\b(?:scarlet (?:and )?violet(?: black star)?|svp? black star) promos?\b/},
+    {"swshp", ~r/\b(?:sword (?:and )?shield(?: black star)?|swsh black star) promos?\b/},
+    {"smp", ~r/\b(?:sun (?:and )?moon(?: black star)?|sm black star) promos?\b/},
+    {"xyp", ~r/\bxy(?: black star)? promos?\b/},
+    {"mep", ~r/\b(?:mega evolution|mep)(?: black star)? promos?\b/}
+  ]
+
   @doc "Build once per batch from English synced sets with their loaded cards."
   def index(sets) do
     sets = Enum.filter(sets, &(&1.language == "en" and is_list(&1.cards) and &1.cards != []))
@@ -101,16 +115,22 @@ defmodule TcgCheap.Sealed.CardMatcher do
         set.abbreviation && set.abbreviation |> String.downcase() |> String.split(":") |> hd(),
       abbreviation: set.abbreviation && String.downcase(set.abbreviation),
       total: set.official_card_count,
-      cards: Enum.group_by(set.cards, &printed_number_of(set.tcgdex_id, &1.number))
+      cards: Enum.group_by(set.cards, &set_number(set.tcgdex_id, &1.number))
     }
   end
 
   # A Classic Collection card TCGdex adds later stays unreachable (nil) until
   # its printed number is known, rather than answering to TCGdex's number.
-  defp printed_number_of("30th-c", tcgdex_number),
+  defp set_number("30th-c", tcgdex_number),
     do: Map.get(@classic_collection_printed, tcgdex_number)
 
-  defp printed_number_of(_set, tcgdex_number), do: number(tcgdex_number)
+  # TCGdex numbers SWSH, SM and XY promos "SWSH001"; the offer's promo prefix
+  # already chose the set, so look its cards up by the digits alone.
+  defp set_number(set_id, value) do
+    if set_id in Map.values(@promo_sets),
+      do: String.replace(number(value), ~r/^[a-z]+(?=\d)/, ""),
+      else: number(value)
+  end
 
   @doc "Identity result; explain/2 includes the evidence and rejected candidates."
   def match(offer, index), do: offer |> explain(index) |> Map.fetch!(:result)
@@ -126,13 +146,14 @@ defmodule TcgCheap.Sealed.CardMatcher do
         compact_title: String.replace(set_title, " ", "")
     }
 
-    sets = candidates(set_parse, index.sets)
+    promo_labels = promo_label_sets(parsed, index.sets)
+    sets = candidates(set_parse, index.sets, promo_labels)
     named = Enum.filter(index.sets, &named_in_title?(&1, set_parse))
     # Keep independent set evidence, even when a different set has a longer name.
     # A parent label inside a subset name is redundant, not a second identity.
     named = most_specific_sets(named)
     category = category_sets(parsed.category, index.sets)
-    evidence = Enum.uniq_by(named ++ category, & &1.id)
+    evidence = Enum.uniq_by(named ++ category ++ promo_labels, & &1.id)
 
     identity =
       Enum.reduce(named, identity_title(parsed), fn set, text ->
@@ -161,7 +182,8 @@ defmodule TcgCheap.Sealed.CardMatcher do
     conflict =
       possible_sets != [] and
         not Enum.any?(possible_sets, fn id ->
-          Enum.all?(named, &related_set?(id, &1.id)) and category_agrees?(id, category)
+          Enum.all?(named ++ promo_labels, &related_set?(id, &1.id)) and
+            category_agrees?(id, category)
         end)
 
     parsed = Map.put(parsed, :set_conflict, conflict)
@@ -199,7 +221,10 @@ defmodule TcgCheap.Sealed.CardMatcher do
   end
 
   defp set_title(parsed, index) do
-    coded = Enum.filter(index.sets, &code_matches?(&1, parsed))
+    coded =
+      Enum.uniq(
+        promo_code_sets(parsed, index.sets) ++ Enum.filter(index.sets, &code_matches?(&1, parsed))
+      )
 
     cards =
       if coded == [],
@@ -261,7 +286,8 @@ defmodule TcgCheap.Sealed.CardMatcher do
       number_conflict:
         not is_nil(code_number) and not is_nil(fraction) and
           number(code_number) != number(Enum.at(fraction, 1)),
-      number: num && number(num),
+      # Several promo numbers are several cards ("MEP023 & MEP024"), not one.
+      number: if(num && not several_promos?(identity_title), do: number(num)),
       total: total,
       title: title,
       category: category,
@@ -382,16 +408,22 @@ defmodule TcgCheap.Sealed.CardMatcher do
 
   # Promo cards print no total, so next to a printed fraction a compact
   # "SWSH06" is the set's label ("SWSH06: Chilling Reign"), not a promo number.
+  # A card's mechanic is not a set code ("Armarouge EX 125 SVP").
   defp set_code_number(title, fraction) do
-    case Regex.run(~r/\b((?=[A-Z0-9]{0,4}[A-Z])[A-Z0-9]{2,5})\s+((?:TG|GG|SV)?\d{1,4})\b/, title) do
+    case Regex.run(
+           ~r/\b(?!(?:EX|GX)\b)((?=[A-Z0-9]{0,4}[A-Z])[A-Z0-9]{2,5})\s+((?:TG|GG|SV)?\d{1,4})\b/,
+           title
+         ) do
       [_, code, number] -> {String.downcase(code), number}
       nil when is_nil(fraction) -> compact_promo(title)
       nil -> {nil, nil}
     end
   end
 
+  # "SVP-EN-144" is an English promo number too; "XY67a" an alternate print.
+  # A following number makes it a set code instead ("sm9 013").
   defp compact_promo(title) do
-    case Regex.run(~r/\b(SVP|SWSH|SM|XY)(\d{1,3})\b/i, title) do
+    case Regex.run(~r/\b(SVP|SWSH|SM|XY|MEP)(?:-EN-)?(\d{1,3}a?)\b(?!\s*\d)/i, title) do
       [_, code, num] -> {String.downcase(code), num}
       nil -> number_code(title)
     end
@@ -419,6 +451,13 @@ defmodule TcgCheap.Sealed.CardMatcher do
 
   defp pikachu_place?(_code, _code_number, _fraction), do: false
 
+  defp several_promos?(title) do
+    ~r/\b(?:SVP|SWSH|SM|XY|MEP)(?:\s*|-EN-)\d{1,3}a?\b/i
+    |> Regex.scan(title)
+    |> Enum.uniq()
+    |> length() > 1
+  end
+
   defp printed_number([_, num, total], _code, _title), do: {num, number(total)}
 
   defp printed_number(nil, code_number, title) do
@@ -441,30 +480,59 @@ defmodule TcgCheap.Sealed.CardMatcher do
     |> String.replace(~r/([a-z])0+(?=\d)/, "\\1")
   end
 
-  defp candidates(parsed, sets) do
+  defp candidates(parsed, sets, promo_labels) do
+    promo = promo_code_sets(parsed, sets)
     coded = Enum.filter(sets, &code_matches?(&1, parsed))
 
     named = if coded == [], do: named_sets(parsed, sets), else: []
 
     cond do
-      coded != [] ->
-        Enum.map(coded, &{&1, :abbreviation})
+      # "XY 146" may still be the XY base set's card; the name decides.
+      promo != [] or coded != [] ->
+        Enum.map(promo, &{&1, :promo}) ++
+          Enum.map(coded -- promo, &{&1, :abbreviation})
 
-      parsed.code in ["svp", "swsh", "sm", "xy"] ->
+      Map.has_key?(@promo_sets, parsed.code) ->
         []
 
       named != [] ->
         named |> most_specific_sets() |> Enum.map(&{&1, :name})
 
-      parsed.total ->
-        sets
-        |> Enum.filter(&(&1.total && number(to_string(&1.total)) == parsed.total))
-        |> Enum.map(&{&1, :total})
+      promo_labels != [] ->
+        Enum.map(promo_labels, &{&1, :promo_label})
 
       true ->
-        []
+        total_sets(parsed.total, sets)
     end
   end
+
+  defp total_sets(nil, _sets), do: []
+
+  # Black Star Promos print no total.
+  defp total_sets(total, sets) do
+    sets
+    |> Enum.filter(&(&1.total && number(to_string(&1.total)) == total))
+    |> Enum.reject(&(&1.id in Map.values(@promo_sets)))
+    |> Enum.map(&{&1, :total})
+  end
+
+  defp promo_code_sets(%{code: code, total: nil}, sets),
+    do: Enum.filter(sets, &(&1.id == Map.get(@promo_sets, code)))
+
+  defp promo_code_sets(_parsed, _sets), do: []
+
+  # Shops also label set-numbered blister promos ("Iron Moth 028/182 - Scarlet &
+  # Violet Promo"); only a lone number without a total is a Black Star Promo
+  # number ("Eevee 101a/149" is not promo 149).
+  defp promo_label_sets(%{total: nil} = parsed, sets) do
+    ids = for {id, regex} <- @promo_labels, Regex.match?(regex, parsed.text), do: id
+
+    if length(Regex.scan(~r/\d+/, parsed.title)) == 1,
+      do: Enum.filter(sets, &(&1.id in ids)),
+      else: []
+  end
+
+  defp promo_label_sets(_parsed, _sets), do: []
 
   defp named_sets(parsed, sets) do
     in_title =
