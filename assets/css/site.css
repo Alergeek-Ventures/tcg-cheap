@@ -74,6 +74,15 @@
 
 .guide-world .site-footer { border-block-start: 1px solid var(--rule); color: var(--muted); font-size: .875rem; padding: 1.5rem 1rem; text-align: center; }
 .guide-world .site-footer p { align-items: center; display: inline-flex; gap: .4rem; margin: 0; }
+/* Sets and the guide's pages side by side, or one under the other where they do not fit. */
+.guide-world .site-footer-columns { display: grid; gap: 1.5rem 3rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); margin: 0 auto 1rem; max-inline-size: 70rem; text-align: start; }
+.guide-world .site-footer-columns > nav:first-child:last-child { grid-column: 1 / -1; }
+.guide-world .site-footer h2 { color: var(--ink); font-size: 1.15rem; margin-block-end: .25rem; }
+.guide-world .site-footer-links { list-style: none; margin: 0; padding: 0; }
+.guide-world .site-footer-sets { column-gap: 1.5rem; columns: 10rem; }
+.guide-world .site-footer-links li { break-inside: avoid; }
+/* Plain links in a list: lighter than the credit's, and long set names wrap. */
+.guide-world .site-footer .site-footer-links a { font-weight: 400; text-decoration-color: color-mix(in oklch, currentColor 40%, transparent); white-space: normal; }
 .guide-world .site-footer-ball { block-size: 1.1em; color: var(--ink); flex: none; inline-size: 1.1em; }
 .guide-world .site-footer a { align-items: center; color: var(--ink); display: inline-flex; font-weight: 700; margin-inline: -.25rem; min-block-size: 3rem; padding-inline: .25rem; text-decoration: underline; text-underline-offset: .15em; }
 .guide-world .site-footer a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }

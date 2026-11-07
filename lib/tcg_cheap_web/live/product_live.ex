@@ -317,7 +317,7 @@ defmodule TcgCheapWeb.ProductLive do
 
           <.suggested_price :if={@page.suggested_price} suggested={@page.suggested_price} />
         </main>
-        <.site_footer />
+        <.site_footer sets={@footer_sets} />
       </div>
     </Layouts.app>
     """
