@@ -77,7 +77,15 @@ defmodule TcgCheap.Sealed.TcgdexSet do
       (`TcgCheap.Sealed.CardSync`).
       """
 
-      accept [:tcgdex_id, :name, :cardmarket_expansion_id, :released_on, :cards_source_url]
+      accept [
+        :tcgdex_id,
+        :name,
+        :abbreviation,
+        :cardmarket_expansion_id,
+        :released_on,
+        :cards_source_url
+      ]
+
       upsert? true
       upsert_identity :tcgdex_id
       # TCGdex's cards, once copied, are never overwritten by an unofficial list.
@@ -85,6 +93,7 @@ defmodule TcgCheap.Sealed.TcgdexSet do
 
       upsert_fields [
         :name,
+        :abbreviation,
         :cardmarket_expansion_id,
         :released_on,
         :cards_source_url,
