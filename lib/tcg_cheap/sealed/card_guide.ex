@@ -10,6 +10,7 @@ defmodule TcgCheap.Sealed.CardGuide do
     CardReference,
     Catalogue,
     Guide,
+    Shops,
     TcgdexCard,
     TcgdexSet
   }
@@ -195,7 +196,7 @@ defmodule TcgCheap.Sealed.CardGuide do
 
   defp browse_query(filters) do
     offers =
-      from(o in current_query(),
+      from(o in polish_query(),
         where: is_nil(o.grading),
         group_by: o.card_id,
         select: %{card_id: o.card_id, price: min(o.price) |> filter(o.in_stock)}
@@ -322,6 +323,7 @@ defmodule TcgCheap.Sealed.CardGuide do
         cheapest =
           offers
           |> Enum.filter(&(&1.in_stock and is_nil(&1.grading) and &1.variant == variant))
+          |> Enum.reject(&(&1.shop in Shops.abroad_keys()))
           |> List.first()
 
         reference = CardReference.pln(card.cardmarket_price, variant, rate)
@@ -392,6 +394,15 @@ defmodule TcgCheap.Sealed.CardGuide do
     )
   end
 
+  @doc """
+  The current offers of Polish shops: the card's price "in Poland", its
+  cheapest shop and the shop count. Shops abroad only appear in a card's
+  offer list, for comparison like Cardmarket.
+  """
+  def polish_query do
+    from(o in current_query(), where: o.shop not in ^Shops.abroad_keys())
+  end
+
   def current_offers(card_ids) do
     from(o in current_query(),
       where: o.card_id in ^card_ids,
@@ -420,7 +431,7 @@ defmodule TcgCheap.Sealed.CardGuide do
   end
 
   defp in_stock_prices(card_ids) do
-    from(o in current_query(),
+    from(o in polish_query(),
       where: o.card_id in ^card_ids and o.in_stock and is_nil(o.grading),
       order_by: [asc: o.price, asc: o.shop, asc: o.id],
       select: map(o, [:card_id, :price, :shop, :variant])
@@ -499,9 +510,9 @@ defmodule TcgCheap.Sealed.CardGuide do
     |> Repo.aggregate(:count)
   end
 
-  @doc "How many shops have an ungraded card in stock."
+  @doc "How many Polish shops have an ungraded card in stock."
   def shop_count do
-    from(o in current_query(),
+    from(o in polish_query(),
       where: o.in_stock and is_nil(o.grading),
       select: count(o.shop, :distinct)
     )
@@ -539,7 +550,7 @@ defmodule TcgCheap.Sealed.CardGuide do
   def sitemap_cards do
     cards =
       from(c in TcgdexCard,
-        join: o in subquery(current_query()),
+        join: o in subquery(polish_query()),
         on: o.card_id == c.id and o.in_stock and is_nil(o.grading),
         join: s in TcgdexSet,
         on: c.tcgdex_set_id == s.id,

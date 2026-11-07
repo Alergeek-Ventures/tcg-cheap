@@ -328,8 +328,17 @@ defmodule TcgCheap.Sealed.CardMatcher do
   defp code_number(title, fraction) do
     case Regex.run(~r/\b((?=[A-Z0-9]{0,4}[A-Z])[A-Z0-9]{2,5})\s+((?:TG|GG|SV)?\d{1,4})\b/, title) do
       [_, code, number] -> {String.downcase(code), number}
-      nil when is_nil(fraction) -> compact_promo(title)
+      nil when is_nil(fraction) -> number_code(title)
       nil -> {nil, nil}
+    end
+  end
+
+  # Some shops write the number first: "Charizard ex 228 OBF". The code still
+  # has to be a set's abbreviation and the name has to agree.
+  defp number_code(title) do
+    case Regex.run(~r/\b((?:TG|GG|SV)?\d{1,4})\s+([A-Z][A-Z0-9]{1,4})\b(?!\s*\d)/, title) do
+      [_, number, code] -> {String.downcase(code), number}
+      nil -> compact_promo(title)
     end
   end
 
@@ -397,9 +406,10 @@ defmodule TcgCheap.Sealed.CardMatcher do
     if in_title == [], do: category_sets(parsed.category, sets), else: in_title
   end
 
+  # Google feeds separate a category path with ">", Shoper's Ceneo feed with " / ".
   defp category_sets(category, sets) do
     category
-    |> String.split(">")
+    |> String.split(~r/>| \/ /)
     |> Enum.reverse()
     |> Enum.find_value([], &category_segment(&1, sets))
     |> then(fn result -> if result == :no_set, do: [], else: result end)

@@ -97,8 +97,18 @@ config :tcg_cheap, Oban,
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,
      crontab: [
+       # NBP rates to PLN: EUR for Cardmarket, the others for shops abroad
+       # (TcgCheap.Pricing.ExchangeRate.currencies/0).
        {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "EUR", quote_currency: "PLN"}},
+       {"1 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
+        args: %{source: "nbp", table: "A", base_currency: "GBP", quote_currency: "PLN"}},
+       {"2 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
+        args: %{source: "nbp", table: "A", base_currency: "SEK", quote_currency: "PLN"}},
+       {"3 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
+        args: %{source: "nbp", table: "A", base_currency: "CZK", quote_currency: "PLN"}},
+       {"4 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
+        args: %{source: "nbp", table: "A", base_currency: "DKK", quote_currency: "PLN"}},
        # Buying guide: the Cardmarket sealed catalogue,
        # then one fetch job per shop; the sealed queue runs them one at a time.
        # Times are UTC: the import starts at 3:00 Polish winter time (4:00 in

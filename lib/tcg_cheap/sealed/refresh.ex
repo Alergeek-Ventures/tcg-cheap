@@ -40,9 +40,11 @@ defmodule TcgCheap.Sealed.Refresh do
 
       {:ok, fetched} ->
         {singles, sealed} = Enum.split_with(fetched, &(Map.get(&1, :kind) == :single))
+
         sealed = Enum.map(sealed, &Map.drop(&1, [:kind, :category]))
 
-        with {:ok, counts} <- store_sealed(shop, sealed, now),
+        with {:ok, singles} <- in_pln(shop, singles, now),
+             {:ok, counts} <- store_sealed(shop, sealed, now),
              {:ok, card_counts} <- CardRefresh.run(shop, singles, now) do
           {:ok, Map.merge(counts, card_counts)}
         end
@@ -51,6 +53,31 @@ defmodule TcgCheap.Sealed.Refresh do
         {:error, reason}
     end
   end
+
+  # Prices of a shop abroad are stored in PLN at the latest NBP rate, so they
+  # compare with Polish shops and Cardmarket like any other offer. NBP skips
+  # weekends and holidays; a rate over a week old means its job stopped.
+  defp in_pln(%Shop{currency: "PLN"}, offers, _now), do: {:ok, offers}
+
+  defp in_pln(%Shop{currency: currency}, offers, now) do
+    today = DateTime.to_date(now)
+
+    case TcgCheap.Core.get_latest_exchange_rate(today, currency) do
+      {:ok, %{rate: rate, effective_date: date}} ->
+        if Date.diff(today, date) <= 7,
+          do: {:ok, Enum.map(offers, &%{&1 | price: to_pln(&1.price, rate)})},
+          else: {:error, {:stale_exchange_rate, currency, date}}
+
+      _missing ->
+        {:error, {:no_exchange_rate, currency}}
+    end
+  end
+
+  defp to_pln(price, rate), do: price |> Decimal.mult(rate) |> Decimal.round(2)
+
+  # A shop read only for its singles (`Shop.singles_only`) has no sealed side
+  # to store or recompute; its sealed products are dropped here.
+  defp store_sealed(%Shop{singles_only: true}, _offers, _now), do: {:ok, %{offers: 0}}
 
   defp store_sealed(shop, offers, now) do
     Repo.transaction(

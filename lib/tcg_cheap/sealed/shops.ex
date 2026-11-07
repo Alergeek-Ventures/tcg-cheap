@@ -1,6 +1,8 @@
 defmodule TcgCheap.Sealed.Shops do
   @moduledoc """
-  The Polish shops whose product feeds the buying guide reads, fixed in code:
+  The shops whose product feeds the buying guide reads, fixed in code (Polish
+  shops, and shops abroad read only for their singles, see
+  `TcgCheap.Sealed.Shop`):
   where and how to read each feed (see `TcgCheap.Sealed.Shop`) and the
   delivery facts shown next to its offers. The owner agreed recurring
   fetching from these shops.
@@ -17,19 +19,26 @@ defmodule TcgCheap.Sealed.Shops do
   `priv/static/images/shops/<key>.webp`; a shop without a file shows none.
   Morion Games and Hearts Pub have only their favicons (taken 2026-11-02):
   Morion's header image is a banner and Hearts Pub sits behind a bot check.
+  The logos of the shops added for singles, and of those that had none, were
+  taken on 2026-11-07, the same way.
   """
+
+  alias TcgCheap.Pricing.ExchangeRate
 
   alias TcgCheap.Sealed.{
     Am76,
     CeneoFeed,
+    Chasedex,
     Collectify,
     GildiaGrodzisk,
     GoogleFeed,
     Guildmage,
     IdoSell,
     MagicznyRynek,
+    NopCommerce,
     Pasaz24,
     Planszomania,
+    Pokemonki,
     PrestaShop,
     Sellingo,
     Selly,
@@ -37,6 +46,7 @@ defmodule TcgCheap.Sealed.Shops do
     ShoperListing,
     ShopGold,
     Shopify,
+    Shoptet,
     SkyShop,
     Smajk,
     Sote,
@@ -413,6 +423,8 @@ defmodule TcgCheap.Sealed.Shops do
       host: "sklepkartoteka.pl",
       source: WooCommerce,
       category: "78,80",
+      # English singles only; Japanese, Korean and Chinese ones have their own.
+      singles_categories: ["79"],
       product_path: @produkt,
       max_pages: 3,
       shipping_from: Decimal.new("16.99"),
@@ -598,6 +610,7 @@ defmodule TcgCheap.Sealed.Shops do
       host: "pi-ka.space",
       source: WooCommerce,
       category: "587",
+      singles_categories: ["123"],
       product_path: @product,
       max_pages: 5,
       shipping_from: nil,
@@ -606,6 +619,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "pikatube",
+      singles_categories: ["Single/Slaby/Akcesoria"],
       name: "PikaTube",
       host: "pikatube.pl",
       source: GoogleFeed,
@@ -681,6 +695,7 @@ defmodule TcgCheap.Sealed.Shops do
       name: "Poke-Lab",
       host: "poke-lab.pl",
       source: Shopify,
+      singles_categories: ["pojedyncze-karty"],
       max_pages: 5,
       shipping_from: nil,
       free_shipping_from: Decimal.new("400"),
@@ -703,6 +718,7 @@ defmodule TcgCheap.Sealed.Shops do
       host: "pokenest.pl",
       source: WooCommerce,
       category: "70,76,77,90,91,92",
+      singles_categories: ["99"],
       product_path: @produkt,
       max_pages: 5,
       shipping_from: nil,
@@ -740,6 +756,7 @@ defmodule TcgCheap.Sealed.Shops do
       host: "razorcards.pl",
       source: WooCommerce,
       category: "35,108,112,114,119",
+      singles_categories: ["105"],
       product_path: @produkt,
       max_pages: 12,
       shipping_from: nil,
@@ -798,6 +815,7 @@ defmodule TcgCheap.Sealed.Shops do
       host: "strefakart.pl",
       source: WooCommerce,
       category: "17",
+      singles_categories: ["51"],
       product_path: @product,
       max_pages: 8,
       shipping_from: Decimal.new("10"),
@@ -830,7 +848,8 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "swiatkart",
-      singles_categories: ["Single > Pokemon Single"],
+      # The feed files every single under plain "Single", other games too.
+      singles_categories: ["Single"],
       name: "Świat Kart",
       host: "swiatkart.pl",
       source: GoogleFeed,
@@ -969,6 +988,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "arenasklep",
+      singles_categories: ["/13-pokemon-tcg-single"],
       name: "Arena Centrum Gier",
       host: "arena-sklep.pl",
       source: PrestaShop,
@@ -1390,6 +1410,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "kartexpol",
+      singles_categories: ["/pl/c/Angielskie/216"],
       name: "Kartexpol",
       host: "www.kartexpol.pl",
       source: ShoperListing,
@@ -1424,6 +1445,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "mycards",
+      singles_categories: ["/pl/c/Single-Angielskie/26"],
       name: "MyCards.pl",
       host: "mycards.pl",
       source: ShoperListing,
@@ -1435,6 +1457,12 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "pokesmart",
+      singles_categories: [
+        "/pl/c/Era-Mega-Evolution/273",
+        "/pl/c/Era-Scarlet-Violet/79",
+        "/pl/c/Era-Sword-Shield/78",
+        "/pl/c/Karty-Promo/261"
+      ],
       name: "PokeSmart",
       host: "pokesmart.pl",
       source: ShoperListing,
@@ -1447,6 +1475,7 @@ defmodule TcgCheap.Sealed.Shops do
     },
     %Shop{
       key: "raventcg",
+      singles_categories: ["/pl/collection/Karty-Single/13"],
       name: "RavenTCG",
       host: "raventcg.pl",
       source: ShoperListing,
@@ -1559,10 +1588,175 @@ defmodule TcgCheap.Sealed.Shops do
       shipping_from: Decimal.new("15"),
       free_shipping_from: Decimal.new("499"),
       pickup_city: nil
+    },
+    %Shop{
+      key: "pokemoon",
+      singles_categories: ["Single angielskie"],
+      name: "PokeMoon",
+      host: "pokemoon.pl",
+      source: CeneoFeed,
+      feed_path: @shoper_ceneo,
+      max_pages: 1,
+      shipping_from: Decimal.new("13.90"),
+      free_shipping_from: Decimal.new("290"),
+      pickup_city: "Warszawa"
+    },
+    %Shop{
+      key: "letsgotry",
+      name: "LetsGoTry",
+      host: "letsgotry.pl",
+      source: PrestaShop,
+      listing_paths: ["/pl/37-angielskie", "/pl/33-japonskie"],
+      # English singles only; "/pl/850-pokemon-tcg" lists Japanese ones too.
+      singles_categories: ["/pl/777-pojedyncze-single"],
+      max_pages: 10,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "pokemonki",
+      name: "Pokémonki",
+      host: "pokemonki.pl",
+      source: Pokemonki,
+      # Not read (the set index decides); nil would disable singles.
+      singles_categories: ["all"],
+      max_pages: 40,
+      shipping_from: Decimal.new("13.99"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: nil
+    },
+    # Stragan Ogra's singles shop.
+    %Shop{
+      key: "kolekcjonerkart",
+      name: "Kolekcjoner Kart",
+      host: "kolekcjonerkart.pl",
+      source: WooCommerce,
+      singles_categories: ["19"],
+      product_path: @produkt,
+      # No sealed category; singles have their own page limit.
+      max_pages: 1,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: "Chrzanów",
+      pickup_location: {50.1423, 19.4082}
+    },
+    # Shops abroad: singles only, priced in their currency and compared like
+    # Cardmarket; delivery to Poland converted to PLN when configured
+    # (NBP, 6 November 2026: EUR 4.39, GBP 5.26, SEK 0.40, CZK 0.18, DKK 0.59).
+    %Shop{
+      key: "rarecards",
+      name: "RareCards",
+      host: "rarecards.nl",
+      source: Shopify,
+      singles_categories: ["losse-pokemon-kaarten"],
+      currency: "EUR",
+      singles_only: true,
+      country: "NL",
+      max_pages: 30,
+      # €7.95, free from €250.
+      shipping_from: Decimal.new("34.92"),
+      free_shipping_from: Decimal.new("1098"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgking",
+      name: "TCG King",
+      host: "tcgking.nl",
+      source: Shopify,
+      # Every product is a single card, One Piece and Lorcana too.
+      singles_categories: ["all"],
+      currency: "EUR",
+      singles_only: true,
+      country: "NL",
+      max_pages: 20,
+      # €10.95, free from €100.
+      shipping_from: Decimal.new("48.10"),
+      free_shipping_from: Decimal.new("439"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "gemipulls",
+      name: "GemiPulls",
+      host: "gemipulls.com",
+      source: Shopify,
+      singles_categories: ["singles"],
+      currency: "DKK",
+      singles_only: true,
+      country: "DK",
+      max_pages: 5,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "chasedex",
+      name: "Chasedex",
+      host: "chasedex.se",
+      source: Chasedex,
+      # Not read (the sitemaps decide); nil would disable singles.
+      singles_categories: ["all"],
+      currency: "SEK",
+      singles_only: true,
+      country: "SE",
+      max_pages: 80,
+      # 99 SEK tracked letter to the EU, free from 799 SEK.
+      shipping_from: Decimal.new("39.40"),
+      free_shipping_from: Decimal.new("318"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "unicorncards",
+      name: "Unicorn Cards",
+      host: "unicorncards.co.uk",
+      source: NopCommerce,
+      singles_categories: ["1:1"],
+      currency: "GBP",
+      singles_only: true,
+      country: "GB",
+      max_pages: 40,
+      # £5.90 for any number of singles, duties paid (IOSS), free from £100.
+      shipping_from: Decimal.new("31.05"),
+      free_shipping_from: Decimal.new("526.30"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "bulbazard",
+      name: "Bulbazard",
+      host: "www.bulbazard.cz",
+      source: Shoptet,
+      singles_categories: ["/kusove-karty-pokemon/"],
+      currency: "CZK",
+      singles_only: true,
+      country: "CZ",
+      max_pages: 40,
+      # Zásilkovna (Packeta) to Poland 149 Kč.
+      shipping_from: Decimal.new("26.89"),
+      free_shipping_from: nil,
+      pickup_city: nil
     }
   ]
 
   @keys Enum.map(@shops, & &1.key)
+
+  # A shop abroad is read only for its singles, through a client that checks
+  # the currency of its prices, in a currency with a daily NBP rate, from a
+  # country the offer list can name (`GuideComponents`).
+  @abroad_sources [Shopify, WooCommerce, Chasedex, NopCommerce, Shoptet]
+  @countries ~w(NL DE BE GB SE DK CZ)
+
+  for shop <- @shops, shop.currency != "PLN" or shop.country != nil do
+    unless shop.singles_only and shop.source in @abroad_sources and
+             shop.currency in ExchangeRate.currencies() and
+             shop.country in @countries,
+           do: raise(ArgumentError, "shop abroad #{shop.key} is misconfigured")
+  end
+
+  @abroad_keys for shop <- @shops, shop.country != nil, do: shop.key
+
+  @doc "The shops abroad, compared with Polish shops like Cardmarket."
+  @spec abroad_keys() :: [String.t()]
+  def abroad_keys, do: @abroad_keys
 
   @spec all() :: [Shop.t()]
   def all, do: @shops

@@ -1,7 +1,15 @@
 defmodule TcgCheap.Pricing.ExchangeRate do
-  @moduledoc "The canonical NBP EUR/PLN observation for each effective date."
+  @moduledoc """
+  The canonical NBP table A mid rate to PLN for each currency and effective
+  date: EUR for Cardmarket, the others for shops abroad.
+  """
 
   use Ash.Resource, domain: TcgCheap.Core, data_layer: AshPostgres.DataLayer
+
+  @currencies ~w(EUR GBP SEK CZK DKK)
+
+  @doc "The currencies whose PLN rate is recorded daily."
+  def currencies, do: @currencies
 
   postgres do
     table "exchange_rates"
@@ -34,10 +42,11 @@ defmodule TcgCheap.Pricing.ExchangeRate do
 
     read :latest do
       argument :as_of, :date, allow_nil?: false
+      argument :base_currency, :string, allow_nil?: false, default: "EUR"
       get? true
 
       filter expr(
-               source == "nbp" and table == "A" and base_currency == "EUR" and
+               source == "nbp" and table == "A" and base_currency == ^arg(:base_currency) and
                  quote_currency == "PLN" and effective_date <= ^arg(:as_of)
              )
 
@@ -47,9 +56,10 @@ defmodule TcgCheap.Pricing.ExchangeRate do
     read :history do
       argument :as_of, :date, allow_nil?: false
       argument :limit, :integer, allow_nil?: false, default: 90, constraints: [min: 1, max: 366]
+      argument :base_currency, :string, allow_nil?: false, default: "EUR"
 
       filter expr(
-               source == "nbp" and table == "A" and base_currency == "EUR" and
+               source == "nbp" and table == "A" and base_currency == ^arg(:base_currency) and
                  quote_currency == "PLN" and effective_date <= ^arg(:as_of)
              )
 
@@ -63,7 +73,7 @@ defmodule TcgCheap.Pricing.ExchangeRate do
   validations do
     validate one_of(:source, ["nbp"])
     validate one_of(:table, ["A"])
-    validate one_of(:base_currency, ["EUR"])
+    validate one_of(:base_currency, @currencies)
     validate one_of(:quote_currency, ["PLN"])
     validate compare(:rate, greater_than: 0)
   end

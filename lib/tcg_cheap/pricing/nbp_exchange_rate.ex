@@ -1,8 +1,9 @@
 defmodule TcgCheap.Pricing.NbpExchangeRate do
-  @moduledoc "Fetches and validates the NBP table A EUR exchange rate."
+  @moduledoc "Fetches and validates one currency's NBP table A exchange rate."
   @behaviour TcgCheap.Pricing.ExchangeRateProvider
+  alias TcgCheap.Pricing.ExchangeRate
   alias TcgCheap.Pricing.ExchangeRateProvider.Result
-  @url "https://api.nbp.pl/api/exchangerates/rates/a/eur/"
+  @url "https://api.nbp.pl/api/exchangerates/rates/a/"
   @allowed [:plug, :retry, :max_retries, :clock]
 
   @impl true
@@ -10,17 +11,18 @@ defmodule TcgCheap.Pricing.NbpExchangeRate do
         %{
           "source" => "nbp",
           "table" => "A",
-          "base_currency" => "EUR",
+          "base_currency" => currency,
           "quote_currency" => "PLN"
         } = request,
         options
       )
-      when is_list(options) and map_size(request) == 4 do
-    with :ok <- valid_options(options),
+      when is_list(options) and map_size(request) == 4 and is_binary(currency) do
+    with true <- currency in ExchangeRate.currencies() || {:error, :invalid_request},
+         :ok <- valid_options(options),
          {:ok, fetched_at} <- clock(options),
-         {:ok, response} <- request(options),
+         {:ok, response} <- request(currency, options),
          {:ok, payload} <- decode(response.body) do
-      normalize(payload, fetched_at)
+      normalize(payload, currency, fetched_at)
     end
   end
 
@@ -69,10 +71,10 @@ defmodule TcgCheap.Pricing.NbpExchangeRate do
     end
   end
 
-  defp request(options) do
+  defp request(currency, options) do
     req_options =
       [
-        url: @url,
+        url: @url <> String.downcase(currency) <> "/",
         decode_body: false,
         receive_timeout: 10_000,
         retry: Keyword.get(options, :retry, :safe_transient),
@@ -102,13 +104,14 @@ defmodule TcgCheap.Pricing.NbpExchangeRate do
     end
   end
 
-  defp normalize(%{"table" => "A", "code" => "EUR", "rates" => [rate]}, fetched_at),
-    do: normalize_rate(rate, fetched_at)
+  defp normalize(%{"table" => "A", "code" => currency, "rates" => [rate]}, currency, fetched_at),
+    do: normalize_rate(rate, currency, fetched_at)
 
-  defp normalize(_payload, _fetched_at), do: {:error, :malformed_shape}
+  defp normalize(_payload, _currency, _fetched_at), do: {:error, :malformed_shape}
 
   defp normalize_rate(
          %{"mid" => value, "effectiveDate" => date, "no" => no},
+         currency,
          fetched_at
        )
        when is_binary(date) and is_binary(no) do
@@ -126,7 +129,7 @@ defmodule TcgCheap.Pricing.NbpExchangeRate do
          fetched_at: fetched_at,
          source: "nbp",
          table: "A",
-         base_currency: "EUR",
+         base_currency: currency,
          quote_currency: "PLN"
        }}
     else
@@ -134,7 +137,7 @@ defmodule TcgCheap.Pricing.NbpExchangeRate do
     end
   end
 
-  defp normalize_rate(_, _), do: {:error, :malformed_rate}
+  defp normalize_rate(_, _, _), do: {:error, :malformed_rate}
 
   defp decimal_value(value) when is_integer(value), do: {:ok, Decimal.new(value)}
   defp decimal_value(%Decimal{} = value), do: {:ok, value}
