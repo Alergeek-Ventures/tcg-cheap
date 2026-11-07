@@ -28,13 +28,13 @@ defmodule TcgCheap.Sealed.CardImage do
   A catalogue card's image sources, best first: the card in its set's TCGdex
   card image directory, then Limitless TCG's scan. Pages show the first one
   mirrored; TCGdex lacks the images of some sets (Shining Legends, MEP Black
-  Star Promos) and of some cards (SVP 175).
+  Star Promos, a new set not listed yet) and of some cards (SVP 175). A set
+  with an unofficial card list has Limitless TCG's scans once its official
+  code was recorded with it.
   """
   @spec single_sources(map(), String.t()) :: [String.t()]
-  def single_sources(%{cards_source_url: nil} = set, number),
+  def single_sources(set, number),
     do: Enum.reject([tcgdex_card(set, number), limitless_scan(set, number)], &is_nil/1)
-
-  def single_sources(_set, _number), do: []
 
   defp tcgdex_card(%{card_images_url: "" <> directory}, number),
     do: source_url(directory <> "/" <> number)

@@ -28,7 +28,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
            'card' AS kind
       FROM sealed_tcgdex_cards c
       JOIN sealed_tcgdex_sets s ON c.tcgdex_set_id = s.id
-      WHERE s.language = 'en' AND s.cards_source_url IS NULL
+      WHERE s.language = 'en'
         AND s.abbreviation ~ '^[A-Z0-9]+$' AND c.number ~ '^([0-9]+|[A-Z])$'
         -- CardImage's @limitless_elsewhere: Limitless files another set's cards under its code.
         AND s.tcgdex_id <> '30th-c'
@@ -172,7 +172,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       on: c.tcgdex_set_id == s.id,
       join: o in subquery(CardGuide.current_query()),
       on: o.card_id == c.id,
-      where: is_nil(o.grading) and s.language == "en" and is_nil(s.cards_source_url),
+      where: is_nil(o.grading) and s.language == "en",
       # CardImage's @limitless_elsewhere: no TCGdex directory and no Limitless scan.
       where: not is_nil(s.card_images_url) or s.tcgdex_id != "30th-c",
       where:

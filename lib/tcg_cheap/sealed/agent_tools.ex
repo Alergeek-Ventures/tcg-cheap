@@ -404,6 +404,11 @@ defmodule TcgCheap.Sealed.AgentTools do
       argument :set, :string, allow_nil?: false, description: "The TCGdex set id, e.g. me06."
       argument :name, :string, allow_nil?: false, description: "The set's English name."
 
+      argument :abbreviation, :string,
+        constraints: [match: ~r/\A[A-Z0-9]+\z/],
+        description:
+          "The set's official code as printed on its cards (e.g. DLR), which Limitless TCG names its card scans by; without it the cards show no pictures until TCGdex lists them. Give it only when the list's numbers are the printed ones and the code is this set's own (check limitlesstcg.com/cards/<code>); left out, a code recorded before stays."
+
       argument :expansion_id, :integer,
         allow_nil?: false,
         constraints: [min: 1],

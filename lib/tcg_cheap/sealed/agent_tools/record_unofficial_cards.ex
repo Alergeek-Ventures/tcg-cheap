@@ -19,14 +19,17 @@ defmodule TcgCheap.Sealed.AgentTools.RecordUnofficialCards do
 
     with :ok <- not_on_tcgdex(args.set),
          {:ok, set} <-
-           Sealed.record_unofficial_set_cards(%{
+           %{
              tcgdex_id: args.set,
              name: args.name,
              cardmarket_expansion_id: args.expansion_id,
              released_on: args.released_on,
              cards_source_url: args.source_url,
              cards: Enum.map(args.cards, &Map.put(&1, :tcgdex_id, "#{args.set}-#{&1.number}"))
-           }) do
+           }
+           # A code left out keeps the one recorded before; an explicit nil would clear it.
+           |> Map.merge(Map.take(args, [:abbreviation]))
+           |> Sealed.record_unofficial_set_cards() do
       {:ok, set |> Json.tcgdex_set() |> Map.put(:cards, length(args.cards))}
     end
   end
