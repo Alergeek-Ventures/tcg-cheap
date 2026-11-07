@@ -135,6 +135,10 @@ defmodule TcgCheap.Sealed do
       annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
     )
 
+    tool(:enqueue_exchange_rate_fetch, AgentTools, :enqueue_exchange_rate_fetch,
+      annotations: [read_only_hint: false, destructive_hint: false, open_world_hint: true]
+    )
+
     tool(:list_suggested_prices, AgentTools, :suggested_prices,
       annotations: [read_only_hint: true]
     )

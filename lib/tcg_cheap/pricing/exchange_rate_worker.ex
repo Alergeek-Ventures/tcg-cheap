@@ -13,6 +13,13 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
   alias TcgCheap.Core
   alias TcgCheap.Pricing.ExchangeRate
 
+  @doc "Queues the acquisition of one currency's latest NBP rate to PLN."
+  def enqueue(currency) do
+    %{source: "nbp", table: "A", base_currency: currency, quote_currency: "PLN"}
+    |> new()
+    |> Oban.insert()
+  end
+
   @impl Oban.Worker
   def timeout(_job), do: :timer.seconds(60)
 
