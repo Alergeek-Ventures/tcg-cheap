@@ -397,9 +397,11 @@ defmodule TcgCheap.Sealed.AgentTools do
       TCGdex will use (e.g. me06 after me05; check TCGdex's open pull requests), the name its
       boosters carry, the Cardmarket expansion id of its sealed products, the release day and
       every card with its collector number as TCGdex writes it ("001"), English name and
-      rarity as TCGdex spells it. Record only a list a source publishes, never guesses. TCGdex's
-      cards replace this list once TCGdex lists as many, or two weeks after release; a set
-      whose TCGdex cards are copied is refused. Returns the set.
+      rarity as TCGdex spells it, and once Cardmarket lists the set's singles each card's
+      Cardmarket product id, which gives it its Cardmarket page and price. Record only a list a
+      source publishes, never guesses; the list is recorded whole, so send every card again.
+      TCGdex's cards replace this list once TCGdex lists as many, or two weeks after release; a
+      set whose TCGdex cards are copied is refused. Returns the set.
       """
 
       argument :set, :string, allow_nil?: false, description: "The TCGdex set id, e.g. me06."
@@ -426,7 +428,13 @@ defmodule TcgCheap.Sealed.AgentTools do
                       fields: [
                         number: [type: :string, allow_nil?: false],
                         name: [type: :string, allow_nil?: false],
-                        rarity: [type: :string]
+                        rarity: [type: :string],
+                        cardmarket_id: [
+                          type: :integer,
+                          constraints: [min: 1],
+                          description:
+                            "The card's Cardmarket product id (its Cardmarket page and price), from Cardmarket's singles of the set's expansion; give it only when sure it is this printing (same number, name and rarity, e.g. its price matches Limitless TCG's for the card). Left out, the card has none until TCGdex lists the set."
+                        ]
                       ]
                     ]
       end

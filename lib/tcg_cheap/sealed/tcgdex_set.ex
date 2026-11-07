@@ -112,7 +112,8 @@ defmodule TcgCheap.Sealed.TcgdexSet do
                         number: [type: :string, allow_nil?: false],
                         name: [type: :string, allow_nil?: false],
                         rarity: [type: :string],
-                        variants: [type: {:array, :string}]
+                        variants: [type: {:array, :string}],
+                        cardmarket_id: [type: :integer, constraints: [min: 1]]
                       ]
                     ]
       end
@@ -122,7 +123,7 @@ defmodule TcgCheap.Sealed.TcgdexSet do
       change set_attribute(:language, "en")
       change set_attribute(:checked_at, &DateTime.utc_now/0)
       change set_attribute(:cards_checked_at, &DateTime.utc_now/0)
-      change TcgCheap.Sealed.Changes.RecordCards
+      change {TcgCheap.Sealed.Changes.RecordCards, action: :record_unofficial}
     end
 
     update :set_pull_rates do

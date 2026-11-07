@@ -1,7 +1,8 @@
 defmodule TcgCheap.Sealed.Changes.RecordCards do
   @moduledoc """
   Replaces a TCGdex set's cards with the `cards` argument in the action's
-  transaction: listed cards are upserted, the others removed.
+  transaction: listed cards are upserted with `TcgCheap.Sealed.TcgdexCard`'s
+  `action` (`:record` by default), the others removed.
   """
 
   use Ash.Resource.Change
@@ -12,7 +13,7 @@ defmodule TcgCheap.Sealed.Changes.RecordCards do
   alias TcgCheap.Sealed.TcgdexCard
 
   @impl true
-  def change(changeset, _opts, _context) do
+  def change(changeset, opts, _context) do
     Ash.Changeset.after_action(changeset, fn changeset, set ->
       cards = Ash.Changeset.get_argument(changeset, :cards)
       ids = Enum.map(cards, & &1.tcgdex_id)
@@ -20,7 +21,7 @@ defmodule TcgCheap.Sealed.Changes.RecordCards do
       %Ash.BulkResult{status: :success} =
         cards
         |> Enum.map(&Map.put(&1, :tcgdex_set_id, set.id))
-        |> Ash.bulk_create!(TcgdexCard, :record,
+        |> Ash.bulk_create!(TcgdexCard, Keyword.get(opts, :action, :record),
           domain: Sealed,
           return_errors?: true,
           stop_on_error?: true

@@ -25,7 +25,15 @@ defmodule TcgCheap.Sealed.AgentTools.RecordUnofficialCards do
              cardmarket_expansion_id: args.expansion_id,
              released_on: args.released_on,
              cards_source_url: args.source_url,
-             cards: Enum.map(args.cards, &Map.put(&1, :tcgdex_id, "#{args.set}-#{&1.number}"))
+             # An id left out is an explicit nil, which clears one recorded before: a field no
+             # card of the batch gives is left out of the upsert, keeping the old ids.
+             cards:
+               Enum.map(
+                 args.cards,
+                 &(&1
+                   |> Map.put_new(:cardmarket_id, nil)
+                   |> Map.put(:tcgdex_id, "#{args.set}-#{&1.number}"))
+               )
            }
            # A code left out keeps the one recorded before; an explicit nil would clear it.
            |> Map.merge(Map.take(args, [:abbreviation]))
