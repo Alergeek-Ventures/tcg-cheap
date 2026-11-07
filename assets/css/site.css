@@ -331,10 +331,11 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 /* The card lies on the sticky search bar until it scrolls away under the
    header. Scrolling down lifts it off the bar; it settles back as it comes
    into view on the way up (app.js marks it). Under an open menu's dimming it
-   goes under the bar with the rest of the page. */
+   goes under the bar with the rest of the page. On the home page the chain
+   deals stand between the card and the bar, so it has nothing to lift off. */
 @container set-intro (inline-size >= 52rem) {
   .guide-world .set-chase-art { z-index: 3; }
-  :root[data-card-lifted] .guide-world .set-chase-art { translate: 0 -1rem; }
+  :root[data-card-lifted] .guide-world:not(:has(#home-booster-prices)) .set-chase-art { translate: 0 -1rem; }
   html:has(.guide-pop[open]) .guide-world .set-chase-art { z-index: 1; }
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -855,5 +856,39 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .booster-prices-intro .verdict-price { margin-block-start: .75rem; }
 .guide-world .booster-prices-intro .guide-note { font-size: 1rem; margin: 0; }
 .guide-world .booster-prices .guide-products + .guide-note { margin-block-start: .5rem; }
-/* The banner's box art hangs below it; the line keeps clear of it. */
-.guide-world #home-booster-prices { margin-block: 2rem 1rem; }
+/* The banner's box art hangs below it; the chain deals under it keep clear of it. */
+.guide-world #home-booster-prices { margin-block: 3rem 1rem; }
+
+/* Retail chains' prices as news on the home page: clippings from a leaflet, each a coupon with
+   its price on a yellow sticker, as the chains print it. */
+.guide-world .retail-news { --leaflet: oklch(0.89 0.17 96); }
+.guide-world .retail-news p { margin: 0; }
+.guide-world .retail-news-head { align-items: baseline; display: flex; flex-wrap: wrap; gap: 0 1rem; justify-content: space-between; margin-block-end: .75rem; }
+.guide-world .retail-news-head h2 { font-size: clamp(1.4rem, 1.2rem + 1vw, 1.9rem); line-height: 1; }
+.guide-world .retail-news-head a { align-items: center; display: inline-flex; font-size: .85rem; min-block-size: 2.75rem; }
+.guide-world .retail-news :is(.retail-news-head, .retail-news-source) a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+/* Three deals share the row; one or two keep a clipping's size instead of stretching across the page.
+   The sticker and the "nowe" tab hang over the cards' top edge. */
+.guide-world .retail-news-cards { display: flex; flex-wrap: wrap; gap: 1.5rem 1rem; list-style: none; margin: 0; padding: 1rem 0 0; }
+.guide-world .retail-news-card { background: var(--paper); border: 2px dashed color-mix(in oklch, var(--ink) 55%, transparent); display: grid; flex: 1 1 16rem; gap: .5rem 1rem; grid-template-areas: "logo sticker" "name name" "when when" "source source"; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 2.5rem auto auto 1fr; max-inline-size: 24rem; padding: 1rem; position: relative; }
+.guide-world .retail-news-logo { align-self: center; aspect-ratio: 3; block-size: auto; border-radius: .375rem; display: block; grid-area: logo; inline-size: 6rem; mix-blend-mode: multiply; }
+/* A square mark (Lidl, Aldi…) fills its own square instead of a dot in a wide chip. */
+.guide-world .retail-news-logo.retail-news-logo-square { aspect-ratio: 1; inline-size: 2.5rem; object-fit: cover; }
+.guide-world .retail-news-fresh { background: var(--orange); color: var(--bench-light); font: 700 .8rem/1 "Barlow Condensed", sans-serif; inset-block-start: -.75rem; inset-inline-start: .75rem; letter-spacing: .06em; padding: .25rem .45rem .3rem; position: absolute; text-transform: uppercase; }
+.guide-world .retail-news-sticker { align-self: start; background: var(--leaflet); box-shadow: .2rem .2rem 0 var(--ink); font: 700 clamp(1.5rem, 1.3rem + .8vw, 1.9rem)/1 "Barlow Condensed", sans-serif; grid-area: sticker; margin-block-start: -1.75rem; padding: .4rem .6rem .45rem; rotate: 2deg; white-space: nowrap; }
+.guide-world .retail-news-card .retail-news-name { font: 700 1.3rem/1.1 "Barlow Condensed", sans-serif; grid-area: name; margin-block-start: .25rem; overflow-wrap: break-word; text-wrap: balance; }
+/* A named product links to its page; its name still reads as a headline, like a chain's own set.
+   The inline link's padding widens its tap target without moving the lines. */
+.guide-world .retail-news-name a { color: inherit; padding-block: .6rem; text-decoration: none; }
+.guide-world .retail-news-when { color: var(--muted); font-size: .8rem; grid-area: when; line-height: 1.4; overflow-wrap: break-word; }
+.guide-world .retail-news-source { align-self: end; font-size: .8rem; grid-area: source; }
+.guide-world .retail-news-source a { align-items: center; display: inline-flex; min-block-size: 2.75rem; }
+@media (hover: hover) and (pointer: fine) {
+  .guide-world .retail-news a:hover { color: var(--orange); }
+  .guide-world .retail-news-name a:hover { text-decoration: underline; text-decoration-thickness: .06em; text-underline-offset: .12em; }
+}
+/* On a phone the cards scroll sideways to the screen's edges, the next one peeking in. */
+@media (max-width: 42rem) {
+  .guide-world .retail-news-cards { display: grid; grid-auto-columns: minmax(15rem, 80%); grid-auto-flow: column; margin-inline: -1rem; overflow-x: auto; overscroll-behavior-inline: contain; padding: 1rem 1rem .5rem; scroll-padding-inline: 1rem; scroll-snap-type: inline mandatory; scrollbar-width: thin; }
+  .guide-world .retail-news-card { max-inline-size: none; scroll-snap-align: start; }
+}
