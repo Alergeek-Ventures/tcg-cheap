@@ -1726,6 +1726,27 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: nil
     },
     %Shop{
+      key: "pokemagic",
+      name: "PokeMagic",
+      host: "pokemagic.nl",
+      source: WooCommerce,
+      # The Scarlet & Violet, Mega Evolution, Sword & Shield and Sun & Moon
+      # series (about 60 pages in November 2026): the whole singles category
+      # runs over the 80-page limit. English cards only: the shop also sells
+      # Japanese ones, its language attribute tells them apart.
+      singles_categories: ["8871", "8872", "8873", "8874"],
+      singles_attribute: {"pa_taal", 219},
+      product_path: @product,
+      currency: "EUR",
+      singles_only: true,
+      country: "NL",
+      max_pages: 1,
+      # €13.95 to Poland, also for an order of €270.
+      shipping_from: Decimal.new("61.28"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
       key: "chasedex",
       name: "Chasedex",
       host: "chasedex.se",

@@ -9,8 +9,9 @@ defmodule TcgCheap.Sealed.WooCommerce do
   `sealed_categories`, or, for a shop without curated sealed categories, when
   its title names a sealed product (`TcgCheap.Sealed.Matcher.sealed_title?/1`).
   Every product of the shop's `singles_categories` (category ids, requested
-  separately, in stock only, subcategories included, at most 80 pages
-  instead of `max_pages`) is a single, priced with a 0.10 minimum; its category is the
+  separately, in stock only, with the shop's `singles_attribute` term when it
+  has one, subcategories included, at most 80 pages instead of `max_pages`)
+  is a single, priced with a 0.10 minimum; its category is the
   name of its first category. Its permalink must be on the shop's host and
   match `product_path`, and its price must be in the shop's `currency`. Its image is the Store API's `src`, the full upload,
   except where a plugin has swapped in a smaller copy (see `with_originals/3`).
@@ -43,7 +44,13 @@ defmodule TcgCheap.Sealed.WooCommerce do
     with {:ok, sealed} <- products(shop, sealed_category(shop), shop.max_pages, req_options) do
       singles =
         with {:ok, singles} <-
-               products(shop, singles_category(shop), @max_singles_pages, req_options, @in_stock),
+               products(
+                 shop,
+                 singles_category(shop),
+                 @max_singles_pages,
+                 req_options,
+                 @in_stock ++ attribute_filter(shop.singles_attribute)
+               ),
              do: {:ok, Enum.map(singles, &{:single, &1})}
 
       sealed
@@ -60,6 +67,14 @@ defmodule TcgCheap.Sealed.WooCommerce do
 
   defp singles_category(%Shop{singles_categories: nil}), do: nil
   defp singles_category(shop), do: Enum.join(shop.singles_categories, ",")
+
+  # A shop whose singles mix languages marks each card's language as a product
+  # attribute (PokeMagic: `pa_taal`, "Engels"); the Store API filters by its
+  # term id.
+  defp attribute_filter(nil), do: []
+
+  defp attribute_filter({taxonomy, term_id}),
+    do: [{"attributes[0][attribute]", taxonomy}, {"attributes[0][term_id]", term_id}]
 
   defp products(shop, category, max_pages, req_options, filter \\ [])
 

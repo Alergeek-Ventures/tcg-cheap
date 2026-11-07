@@ -6,7 +6,9 @@ defmodule TcgCheap.Sealed.Shop do
     * `source` – the `TcgCheap.Sealed.ShopFeed` client that reads the feed;
     * WooCommerce: `category` (Pokémon category ids to request, required),
       `sealed_categories` (category slugs that count as sealed; nil when the
-      title decides) and `product_path` (the permalink path shape);
+      title decides), `product_path` (the permalink path shape) and
+      `singles_attribute` (`{attribute taxonomy, term id}` every single must
+      have, for a shop whose singles mix languages; nil for none);
     * Shopify: `collection` (the Pokémon collection handle; nil reads the
       whole shop);
     * `singles_categories` – where the shop lists single cards; nil disables
@@ -61,6 +63,7 @@ defmodule TcgCheap.Sealed.Shop do
                 :category,
                 :sealed_categories,
                 :singles_categories,
+                :singles_attribute,
                 :product_path,
                 :collection,
                 :feed_path,
@@ -83,6 +86,7 @@ defmodule TcgCheap.Sealed.Shop do
           category: String.t() | nil,
           sealed_categories: [String.t()] | nil,
           singles_categories: [String.t()] | nil,
+          singles_attribute: {String.t(), pos_integer()} | nil,
           product_path: Regex.t() | nil,
           collection: String.t() | nil,
           feed_path: String.t() | nil,
