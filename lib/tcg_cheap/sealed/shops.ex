@@ -14,6 +14,12 @@ defmodule TcgCheap.Sealed.Shops do
   Pickup store coordinates were geocoded from the store addresses with
   OpenStreetMap Nominatim on 2026-11-01.
 
+  singleTCG and PokeKarty ask crawlers in their robots.txt not to read the
+  endpoints used here (`/api`, and the Store API with its `per_page` and
+  `stock_status` parameters); the owner decided on 2026-11-07 to read them
+  anyway, for the public prices only, at the usual pace and with the guide's
+  own user agent.
+
   Logos are the shops' own, taken from their sites on 2026-11-01 and
   normalised to a 240×80 WebP on a white chip (dark for light logos) in
   `priv/static/images/shops/<key>.webp`; a shop without a file shows none.
@@ -47,6 +53,7 @@ defmodule TcgCheap.Sealed.Shops do
     ShopGold,
     Shopify,
     Shoptet,
+    SingleTcg,
     SkyShop,
     Smajk,
     Sote,
@@ -1625,6 +1632,34 @@ defmodule TcgCheap.Sealed.Shops do
       shipping_from: Decimal.new("13.99"),
       free_shipping_from: Decimal.new("300"),
       pickup_city: nil
+    },
+    %Shop{
+      key: "singletcg",
+      name: "single TCG",
+      host: "singletcg.pl",
+      source: SingleTcg,
+      # Not read (the shop's two listings decide); nil would disable singles.
+      singles_categories: ["all"],
+      max_pages: 40,
+      # InPost parcel locker 15.28 zł (up to 200 zł), no free delivery.
+      shipping_from: Decimal.new("15.28"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "pokekarty",
+      name: "PokeKarty",
+      host: "www.pokekarty.pl",
+      source: WooCommerce,
+      # The versioned path answers with a bot check; this one is the same API.
+      feed_path: "/wp-json/wc/store/products",
+      category: "80,81,82,83,84,89",
+      singles_categories: ["1431"],
+      product_path: ~r{\A/product/[a-z0-9-]+\z},
+      max_pages: 10,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: "Warszawa"
     },
     # Stragan Ogra's singles shop.
     %Shop{
