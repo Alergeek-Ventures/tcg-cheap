@@ -1,15 +1,16 @@
 defmodule TcgCheap.Sealed.WooCommerce do
   @moduledoc """
   Reads the public WooCommerce Store API of a shop
-  (`/wp-json/wc/store/v1/products`), limited to the shop's Pokémon `category`
+  (`/wp-json/wc/store/v1/products`, or the shop's `feed_path` where that
+  one is answered by a bot check), limited to the shop's Pokémon `category`
   ids and at most `max_pages` pages of 100 products.
 
   A product counts as sealed when it is in one of the shop's
   `sealed_categories`, or, for a shop without curated sealed categories, when
   its title names a sealed product (`TcgCheap.Sealed.Matcher.sealed_title?/1`).
   Every product of the shop's `singles_categories` (category ids, requested
-  separately, subcategories included, at most 80 pages instead of
-  `max_pages`) is a single, priced with a 0.10 minimum; its category is the
+  separately, in stock only, subcategories included, at most 80 pages
+  instead of `max_pages`) is a single, priced with a 0.10 minimum; its category is the
   name of its first category. Its permalink must be on the shop's host and
   match `product_path`, and its price must be in the shop's `currency`. Its image is the Store API's `src`, the full upload,
   except where a plugin has swapped in a smaller copy (see `with_originals/3`).
@@ -27,6 +28,11 @@ defmodule TcgCheap.Sealed.WooCommerce do
   # pages in November 2026); a page takes 1.5–2.5 s with the pause, so 80
   # stay within the job's 5-minute timeout.
   @max_singles_pages 80
+  @products_path "/wp-json/wc/store/v1/products"
+  # Singles sold out are left out of the request: a shop's singles category
+  # can be many times longer than its stock. The array form is the one the
+  # Store API documents.
+  @in_stock [{"stock_status[]", "instock"}]
   @fields "id,name,permalink,prices,categories,images,sku,is_purchasable,is_in_stock,is_on_backorder"
 
   @impl true
@@ -36,7 +42,7 @@ defmodule TcgCheap.Sealed.WooCommerce do
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, sealed} <- products(shop, sealed_category(shop), shop.max_pages, req_options),
          {:ok, singles} <-
-           products(shop, singles_category(shop), @max_singles_pages, req_options) do
+           products(shop, singles_category(shop), @max_singles_pages, req_options, @in_stock) do
       products = Enum.map(sealed, &{:sealed, &1}) ++ Enum.map(singles, &{:single, &1})
       {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
     end
@@ -48,19 +54,23 @@ defmodule TcgCheap.Sealed.WooCommerce do
   defp singles_category(%Shop{singles_categories: nil}), do: nil
   defp singles_category(shop), do: Enum.join(shop.singles_categories, ",")
 
-  defp products(_shop, nil, _max_pages, _req_options), do: {:ok, []}
+  defp products(shop, category, max_pages, req_options, filter \\ [])
 
-  defp products(shop, category, max_pages, req_options),
-    do: fetch_pages(shop, category, max_pages, req_options, 1, nil, [])
+  defp products(_shop, nil, _max_pages, _req_options, _filter), do: {:ok, []}
 
-  defp fetch_pages(_shop, _category, _max_pages, _req_options, page, total, acc)
+  defp products(shop, category, max_pages, req_options, filter) do
+    query = %{category: category, filter: filter, max_pages: max_pages}
+    fetch_pages(shop, query, req_options, 1, nil, [])
+  end
+
+  defp fetch_pages(_shop, _query, _req_options, page, total, acc)
        when is_integer(total) and page > total,
        do: {:ok, acc |> Enum.reverse() |> List.flatten()}
 
-  defp fetch_pages(shop, category, max_pages, req_options, page, total, acc) do
-    with {:ok, products, page_total} <- request(shop, category, req_options, page),
-         :ok <- check_total(max_pages, total, page_total) do
-      fetch_pages(shop, category, max_pages, req_options, page + 1, page_total, [products | acc])
+  defp fetch_pages(shop, query, req_options, page, total, acc) do
+    with {:ok, products, page_total} <- request(shop, query, req_options, page),
+         :ok <- check_total(query.max_pages, total, page_total) do
+      fetch_pages(shop, query, req_options, page + 1, page_total, [products | acc])
     end
   end
 
@@ -71,13 +81,15 @@ defmodule TcgCheap.Sealed.WooCommerce do
   defp check_total(_max_pages, total, total), do: :ok
   defp check_total(_max_pages, _total, _page_total), do: {:error, :pagination_changed}
 
-  defp request(shop, category, req_options, page) do
-    params = [category: category, page: page, per_page: @per_page, _fields: @fields]
+  defp request(shop, query, req_options, page) do
+    params =
+      [category: query.category, page: page, per_page: @per_page, _fields: @fields] ++
+        query.filter
 
     with {:ok, response} <-
-           ShopFeed.get(shop, "/wp-json/wc/store/v1/products", params, req_options),
+           ShopFeed.get(shop, shop.feed_path || @products_path, params, req_options),
          {:ok, products} when is_list(products) <- ShopFeed.decode(response),
-         {:ok, total} <- total_pages(response) do
+         {:ok, total} <- total_pages(response, products) do
       {:ok, with_originals(shop, products, req_options), total}
     else
       {:ok, _not_a_list} -> {:error, :malformed_response}
@@ -145,9 +157,11 @@ defmodule TcgCheap.Sealed.WooCommerce do
 
   defp put_original(product, _originals), do: product
 
-  defp total_pages(response) do
+  # An empty category (no single in stock) has no pages at all.
+  defp total_pages(response, products) do
     with [value | _] <- Req.Response.get_header(response, "x-wp-totalpages"),
-         {pages, ""} when pages >= 1 <- Integer.parse(String.trim(value)) do
+         {pages, ""} when pages >= 1 or (pages == 0 and products == []) <-
+           Integer.parse(String.trim(value)) do
       {:ok, pages}
     else
       _ -> {:error, :malformed_pagination}

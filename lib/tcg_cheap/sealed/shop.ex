@@ -17,7 +17,7 @@ defmodule TcgCheap.Sealed.Shop do
       `TcgCheap.Sealed.HtmlListing.read_singles/2`); nopCommerce:
       `"<category id>:<option id>"`, a singles category and the shop's
       specification option meaning "In Stock"; Shoptet: category listing
-      paths; Chasedex and Pokemonki: not read (the shop's own index
+      paths; Chasedex, Pokemonki and SingleTcg: not read (the shop's own index
       decides), any list enables singles;
     * `currency` – the ISO code of the shop's prices, PLN unless the shop is
       abroad; other prices are converted to PLN at the latest NBP rate
@@ -27,7 +27,8 @@ defmodule TcgCheap.Sealed.Shop do
     * `country` – the ISO code of a shop abroad, shown with its delivery; nil
       for a Polish shop;
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
-      cover the whole shop); IdoSell: `feed_path` (a Pokémon category or
+      cover the whole shop); WooCommerce: `feed_path` (the Store API products
+      path, nil for the usual one); IdoSell: `feed_path` (a Pokémon category or
       search listing, query included);
     * shops read from their HTML listings: `feed_path` (the one listing) or,
       for PrestaShop, shopGold, Sellingo, Selly and SOTE, `listing_paths` (the
