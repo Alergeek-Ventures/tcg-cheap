@@ -63,7 +63,8 @@ defmodule TcgCheapWeb.Router do
   record_retail_deal each Pokémon TCG price with its days and source, list_retail_deals to avoid
   duplicates and remove_retail_deal a wrong one.
   Write tools recompute prices at once. enqueue_shop_fetch and enqueue_catalogue_import refresh
-  the data in the background.
+  the data in the background. Shops abroad need their currency's NBP rate from the last week:
+  enqueue_exchange_rate_fetch gets one before such a shop's fetch.
   """
 
   # AI agents (see TcgCheap.Sealed tools): a bearer token, no session or cookies.
@@ -137,6 +138,7 @@ defmodule TcgCheapWeb.Router do
         :enqueue_shop_fetch,
         :enqueue_catalogue_import,
         :enqueue_card_sync,
+        :enqueue_exchange_rate_fetch,
         :list_suggested_prices,
         :decide_suggested_price,
         :enqueue_suggested_price_fetch,

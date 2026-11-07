@@ -1,12 +1,14 @@
 defmodule TcgCheap.Sealed.AgentTools.Enqueue do
   @moduledoc """
-  Queues a shop fetch, a catalogue import, a collection of suggested prices
-  or a copy of the TCGdex set cards (`job:` option) as an Oban job.
+  Queues a shop fetch, a catalogue import, a collection of suggested prices,
+  a copy of the TCGdex set cards or an NBP exchange rate (`job:` option) as
+  an Oban job.
   """
 
   use Ash.Resource.Actions.Implementation
 
   alias Ash.Error.Action.InvalidArgument
+  alias TcgCheap.Pricing.{ExchangeRate, ExchangeRateWorker}
 
   alias TcgCheap.Sealed.{
     CardSyncWorker,
@@ -33,6 +35,18 @@ defmodule TcgCheap.Sealed.AgentTools.Enqueue do
   defp enqueue(:catalogue_import, _args), do: CatalogueImportWorker.enqueue()
   defp enqueue(:suggested_prices, _args), do: SuggestedPriceWorker.enqueue()
   defp enqueue(:card_sync, _args), do: CardSyncWorker.enqueue()
+
+  defp enqueue(:exchange_rate, %{currency: currency}) do
+    if currency in ExchangeRate.currencies() do
+      ExchangeRateWorker.enqueue(currency)
+    else
+      {:error,
+       InvalidArgument.exception(
+         field: :currency,
+         message: "unknown currency; use one of #{Enum.join(ExchangeRate.currencies(), ", ")}"
+       )}
+    end
+  end
 
   defp enqueue(:shop_fetch, %{shop: shop}) do
     if shop in Shops.keys() do
