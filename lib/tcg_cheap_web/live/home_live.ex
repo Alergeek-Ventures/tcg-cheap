@@ -53,7 +53,7 @@ defmodule TcgCheapWeb.HomeLive do
        all_expansions?: false,
        set_page: nil,
        market: nil,
-       retail_deal: nil,
+       retail_deals: [],
        list_restore: if(connected?(socket), do: get_connect_params(socket)["_guide_list"])
      )
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")
@@ -115,7 +115,7 @@ defmodule TcgCheapWeb.HomeLive do
          |> assign(
            set_page: nil,
            market: Guide.sealed_market(),
-           retail_deal: List.first(Sealed.list_current_retail_deals!(Date.utc_today())),
+           retail_deals: newest_retail_deals(Date.utc_today()),
            seo: seo,
            page_title: seo.title
          )
@@ -787,6 +787,83 @@ defmodule TcgCheapWeb.HomeLive do
     """
   end
 
+  # The newest chain deals first: the home page reports them as news.
+  defp newest_retail_deals(today) do
+    today
+    |> Sealed.list_current_retail_deals!()
+    |> Enum.sort_by(& &1.starts_on, {:desc, Date})
+    |> Enum.take(3)
+  end
+
+  # A deal that started in the last two days is announced as new.
+  defp fresh_deal?(deal), do: Date.diff(Date.utc_today(), deal.starts_on) <= 2
+
+  attr :deals, :list, required: true
+
+  # Retail chains' prices running today, announced as news under the banner;
+  # the booster price page lists them all. Without one, a link to that page.
+  defp retail_news(%{deals: []} = assigns) do
+    ~H"""
+    <p id="home-booster-prices" class="reference-link">
+      <.link navigate={~p"/ile-kosztuje-booster-pokemon"}>{gettext(
+        "Ile kosztuje booster? Ceny boosterów"
+      )}&nbsp;→</.link>
+    </p>
+    """
+  end
+
+  # Each deal a clipping from a leaflet: the chain's logo, the price on a
+  # sticker, the product, its days and the source the price was checked in.
+  defp retail_news(assigns) do
+    ~H"""
+    <section
+      id="home-booster-prices"
+      class="retail-news"
+      aria-labelledby="home-retail-news-title"
+    >
+      <div class="retail-news-head">
+        <h2 id="home-retail-news-title">{gettext("Okazje w sieciówkach")}</h2>
+        <.link navigate={~p"/ile-kosztuje-booster-pokemon"}>{gettext("Wszystkie ceny boosterów")}&nbsp;→</.link>
+      </div>
+      <ul class="retail-news-cards">
+        <li :for={deal <- @deals} id={"home-retail-deal-#{deal.id}"} class="retail-news-card">
+          <span :if={fresh_deal?(deal)} class="retail-news-fresh">{gettext("nowe")}</span>
+          <img
+            src={~p"/images/chains/#{Atom.to_string(deal.chain) <> ".webp"}"}
+            alt={RetailDeal.chain_name(deal.chain)}
+            width="96"
+            height="32"
+            class={[
+              "retail-news-logo",
+              RetailDeal.square_logo?(deal.chain) && "retail-news-logo-square"
+            ]}
+          />
+          <strong class="retail-news-sticker">{Polish.price(deal.price)}</strong>
+          <p class="retail-news-name">
+            <.link :if={deal.product} navigate={~p"/produkty/#{deal.product.slug}"}>{deal.product.name}</.link>
+            <span :if={!deal.product}>{deal.title}</span>
+          </p>
+          <p class="retail-news-when">{deal_days(deal)}</p>
+          <p class="retail-news-source">
+            <a
+              href={deal.source_url}
+              target="_blank"
+              rel="noopener nofollow"
+              data-track="retail_deal_source_clicked"
+              data-track-chain={deal.chain}
+              aria-label={
+                gettext("%{chain}: źródło ceny (otwiera się w nowej karcie)",
+                  chain: RetailDeal.chain_name(deal.chain)
+                )
+              }
+            >{gettext("źródło")}&nbsp;↗</a>
+          </p>
+        </li>
+      </ul>
+    </section>
+    """
+  end
+
   attr :market, :map, required: true
 
   # The sealed banner: the product a Polish shop sells furthest under the
@@ -1359,24 +1436,7 @@ defmodule TcgCheapWeb.HomeLive do
               <.set_intro name={@filters.expansion_name} page={@set_page} />
             <% true -> %>
               <.site_intro filters={@filters} market={@market} />
-              <%!-- One line: the cheapest chain price today; the booster page lists them all. --%>
-              <p :if={@filters.mode == :products} id="home-booster-prices" class="reference-link">
-                <%= if deal = @retail_deal do %>
-                  <span id="home-retail-deal">{gettext(
-                    "W sieciówkach: %{product} %{price}, %{chain} %{days}",
-                    product: if(deal.product, do: deal.product.name, else: deal.title),
-                    price: Polish.price(deal.price),
-                    chain: RetailDeal.chain_name(deal.chain),
-                    days: Polish.days(deal.starts_on, deal.ends_on)
-                  )} ·&nbsp;</span><.link navigate={~p"/ile-kosztuje-booster-pokemon"}>{gettext(
-                    "wszystkie ceny boosterów"
-                  )}&nbsp;→</.link>
-                <% else %>
-                  <.link navigate={~p"/ile-kosztuje-booster-pokemon"}>{gettext(
-                    "Ile kosztuje booster? Ceny boosterów"
-                  )}&nbsp;→</.link>
-                <% end %>
-              </p>
+              <.retail_news :if={@filters.mode == :products} deals={@retail_deals} />
           <% end %>
           <section class="guide-search" aria-labelledby="guide-search-title">
             <h2 id="guide-search-title" class="sr-only">
