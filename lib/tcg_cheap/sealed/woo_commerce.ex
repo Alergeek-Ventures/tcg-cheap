@@ -40,11 +40,18 @@ defmodule TcgCheap.Sealed.WooCommerce do
 
   @impl true
   def fetch(%Shop{} = shop, req_options) do
-    with {:ok, sealed} <- products(shop, sealed_category(shop), shop.max_pages, req_options),
-         {:ok, singles} <-
-           products(shop, singles_category(shop), @max_singles_pages, req_options, @in_stock) do
-      products = Enum.map(sealed, &{:sealed, &1}) ++ Enum.map(singles, &{:single, &1})
-      {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
+    with {:ok, sealed} <- products(shop, sealed_category(shop), shop.max_pages, req_options) do
+      singles =
+        with {:ok, singles} <-
+               products(shop, singles_category(shop), @max_singles_pages, req_options, @in_stock),
+             do: {:ok, Enum.map(singles, &{:single, &1})}
+
+      sealed
+      |> Enum.map(&{:sealed, &1})
+      |> ShopFeed.with_singles(
+        singles,
+        &ShopFeed.offers(shop, &1, fn p -> normalize(shop, p) end)
+      )
     end
   end
 

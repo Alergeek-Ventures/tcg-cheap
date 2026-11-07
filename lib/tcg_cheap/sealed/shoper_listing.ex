@@ -83,11 +83,6 @@ defmodule TcgCheap.Sealed.ShoperListing do
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, products} <-
            HtmlListing.read(&request(shop, shop.feed_path, req_options, &1), shop.max_pages),
-         {:ok, singles} <-
-           HtmlListing.read_singles(
-             shop,
-             &HtmlListing.read(fn number -> request(shop, &1, req_options, number) end, &2)
-           ),
          {:ok, preorders} <- preorder_ids(shop, req_options) do
       products =
         Enum.map(
@@ -98,7 +93,17 @@ defmodule TcgCheap.Sealed.ShoperListing do
           )
         )
 
-      {:ok, HtmlListing.offers(shop, products ++ singles, &sealed?(shop, &1))}
+      singles =
+        HtmlListing.read_singles(
+          shop,
+          &HtmlListing.read(fn number -> request(shop, &1, req_options, number) end, &2)
+        )
+
+      ShopFeed.with_singles(
+        products,
+        singles,
+        &HtmlListing.offers(shop, &1, fn title -> sealed?(shop, title) end)
+      )
     end
   end
 

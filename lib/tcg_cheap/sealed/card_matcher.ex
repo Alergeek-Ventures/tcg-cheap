@@ -328,8 +328,15 @@ defmodule TcgCheap.Sealed.CardMatcher do
   defp code_number(title, fraction) do
     case Regex.run(~r/\b((?=[A-Z0-9]{0,4}[A-Z])[A-Z0-9]{2,5})\s+((?:TG|GG|SV)?\d{1,4})\b/, title) do
       [_, code, number] -> {String.downcase(code), number}
-      nil when is_nil(fraction) -> number_code(title)
+      nil when is_nil(fraction) -> compact_promo(title)
       nil -> {nil, nil}
+    end
+  end
+
+  defp compact_promo(title) do
+    case Regex.run(~r/\b(SVP|SWSH|SM|XY)(\d{1,3})\b/i, title) do
+      [_, code, num] -> {String.downcase(code), num}
+      nil -> number_code(title)
     end
   end
 
@@ -338,13 +345,6 @@ defmodule TcgCheap.Sealed.CardMatcher do
   defp number_code(title) do
     case Regex.run(~r/\b((?:TG|GG|SV)?\d{1,4})\s+([A-Z][A-Z0-9]{1,4})\b(?!\s*\d)/, title) do
       [_, number, code] -> {String.downcase(code), number}
-      nil -> compact_promo(title)
-    end
-  end
-
-  defp compact_promo(title) do
-    case Regex.run(~r/\b(SVP|SWSH|SM|XY)(\d{1,3})\b/i, title) do
-      [_, code, num] -> {String.downcase(code), num}
       nil -> {nil, nil}
     end
   end

@@ -13,6 +13,8 @@ defmodule TcgCheap.Sealed.Refresh do
   failed, so its last offers simply age out instead of staying current.
   """
 
+  require Logger
+
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{CardRefresh, DailyPrice, Matcher, Offer, Shop}
@@ -37,6 +39,16 @@ defmodule TcgCheap.Sealed.Refresh do
     case shop.source.fetch(shop, Keyword.get(opts, :req_options, [])) do
       {:ok, []} ->
         {:error, :empty_feed}
+
+      # Singles read apart failed: the sealed offers stay current, while the
+      # shop's singles are left as they were and age out unless a later fetch
+      # reads them again.
+      {:partial, [], reason} ->
+        {:error, reason}
+
+      {:partial, sealed, reason} ->
+        Logger.warning("singles fetch #{shop.key} failed: #{inspect(reason)}")
+        store_sealed(shop, Enum.map(sealed, &Map.drop(&1, [:kind, :category])), now)
 
       {:ok, fetched} ->
         {singles, sealed} = Enum.split_with(fetched, &(Map.get(&1, :kind) == :single))

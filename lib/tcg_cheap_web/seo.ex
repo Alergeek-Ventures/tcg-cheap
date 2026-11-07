@@ -4,7 +4,7 @@ defmodule TcgCheapWeb.SEO do
   use TcgCheapWeb, :html
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{CardImage, Catalogue, Kinds}
+  alias TcgCheap.Sealed.{CardImage, Catalogue, Kinds, Shops}
   alias TcgCheapWeb.{GuideComponents, PageMarkdown, Polish, SocialImage}
 
   def home(params) do
@@ -466,9 +466,9 @@ defmodule TcgCheapWeb.SEO do
     )
   end
 
-  # Like a sealed product's: only current, in-stock, ungraded shop offers, and
-  # only the answer's variant, so the price range starts at the "od" price the
-  # description and the page's answer state. Without an answer there's no
+  # Like a sealed product's: only current, in-stock, ungraded offers of Polish
+  # shops, and only the answer's variant, so the price range starts at the "od"
+  # price the description and the page's answer state. Without an answer there's no
   # Product block, as Google requires offers on one.
   defp single_product(_page, nil, _description, _canonical), do: nil
 
@@ -476,7 +476,8 @@ defmodule TcgCheapWeb.SEO do
     offers =
       Enum.filter(
         page.offers,
-        &(&1.in_stock and is_nil(&1.grading) and &1.variant == answer.variant)
+        &(&1.in_stock and is_nil(&1.grading) and &1.variant == answer.variant and
+            &1.shop not in Shops.abroad_keys())
       )
 
     {low, high} = Enum.min_max_by(offers, & &1.price, Decimal)
