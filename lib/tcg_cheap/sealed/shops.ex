@@ -1730,11 +1730,13 @@ defmodule TcgCheap.Sealed.Shops do
       name: "PokeMagic",
       host: "pokemagic.nl",
       source: WooCommerce,
-      # The Scarlet & Violet, Mega Evolution, Sword & Shield and Sun & Moon
-      # series (about 60 pages in November 2026): the whole singles category
-      # runs over the 80-page limit. English cards only: the shop also sells
-      # Japanese ones, its language attribute tells them apart.
-      singles_categories: ["8871", "8872", "8873", "8874"],
+      # The Scarlet & Violet, Mega Evolution and Sword & Shield series (about
+      # 47 pages in November 2026). Pages take about 2.8 s, so the whole
+      # singles category (85 pages) and even Sun & Moon on top (61 pages,
+      # 173 s before matching) leave too little of the 5-minute job. English
+      # cards only: the shop also sells Japanese ones, its language attribute
+      # tells them apart.
+      singles_categories: ["8871", "8872", "8873"],
       singles_attribute: {"pa_taal", 219},
       product_path: @product,
       currency: "EUR",
