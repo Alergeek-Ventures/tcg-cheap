@@ -10,8 +10,9 @@ defmodule TcgCheap.Sealed.Catalogue do
   start with the most shared one. A colon bounds a variant when an unqualified
   product confirms that boundary. A lone product uses the text before a colon
   in its name. When nothing is convincing the set name stays empty. The
-  language edition comes from `TcgCheap.Sealed.Regions`. The few product names
-  Cardmarket gets wrong are corrected here; the slug keeps Cardmarket's name.
+  language edition comes from `TcgCheap.Sealed.Regions`. The few product and
+  set names Cardmarket's data gets wrong are corrected here; the slug keeps
+  Cardmarket's name.
   """
 
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
@@ -28,6 +29,14 @@ defmodule TcgCheap.Sealed.Catalogue do
   @names %{
     # The tin is Mega Latias: Pokémon Center, TCGplayer and the Polish shops.
     834_807 => "Mega Heroes: Mega Latias Mini Tin"
+  }
+
+  # Derived set names that are wrong, by expansion id, checked on 2026-11-07.
+  @set_names %{
+    # Two Korean accessories (Binder Set, Playmat Set) share the expansion with
+    # the Terastal Festival ex booster, box and case, which Cardmarket lists
+    # once for Japanese and Korean copies.
+    5928 => "Terastal Festival ex"
   }
 
   @parenthesized ~r/\s*\([^)]*\)/u
@@ -62,7 +71,7 @@ defmodule TcgCheap.Sealed.Catalogue do
       Map.new(names, fn {expansion, names} ->
         case tcgdex do
           %{^expansion => %{language: "en", name: name}} when is_binary(name) -> {expansion, name}
-          _ -> {expansion, set_name(names)}
+          _ -> {expansion, Map.get_lazy(@set_names, expansion, fn -> set_name(names) end)}
         end
       end)
 
