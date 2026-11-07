@@ -21,12 +21,15 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
         AND s.card_images_url IS NOT NULL
     UNION
     SELECT 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/' || s.abbreviation || '/'
-             || s.abbreviation || '_' || lpad(c.number, greatest(3, length(c.number)), '0') || '_R_EN_LG.png',
+             || s.abbreviation || '_'
+             || CASE WHEN c.number ~ '^[A-Z]$' THEN c.number
+                ELSE lpad(c.number, greatest(3, length(c.number)), '0') END
+             || '_R_EN_LG.png',
            'card' AS kind
       FROM sealed_tcgdex_cards c
       JOIN sealed_tcgdex_sets s ON c.tcgdex_set_id = s.id
       WHERE s.language = 'en' AND s.cards_source_url IS NULL
-        AND s.abbreviation ~ '^[A-Z0-9]+$' AND c.number ~ '^[0-9]+$'
+        AND s.abbreviation ~ '^[A-Z0-9]+$' AND c.number ~ '^([0-9]+|[A-Z])$'
         -- Only where TCGdex has no image: no directory, or the card's failed to download.
         AND (s.card_images_url IS NULL OR EXISTS (
           SELECT 1 FROM storage_remote_images r
