@@ -153,7 +153,12 @@
    framed and shadowed like the menu, so an open menu reads as one card with it. Its bench hides
    what scrolls under it, also to its left, where the banner card overhangs; the shadow comes
    first so the bench does not paint over it. */
-.guide-world .guide-search { align-items: stretch; background: var(--bench-light); block-size: var(--guide-search-size); border: 1px solid var(--ink); --guide-search-cover: var(--bench); box-shadow: .375rem .375rem 0 var(--ink), 0 var(--guide-search-gap) 0 var(--guide-search-cover), 0 calc(-1 * var(--guide-search-gap)) 0 var(--guide-search-cover), -2.5rem 0 0 var(--guide-search-gap) var(--guide-search-cover); display: flex; inset-block-start: calc(var(--guide-header-size) + var(--guide-search-gap)); margin-bottom: 1.5rem; position: sticky; z-index: 2; }
+.guide-world .guide-search { align-items: stretch; background: var(--bench-light); block-size: var(--guide-search-size); --guide-search-cover: var(--bench); box-shadow: .375rem .375rem 0 var(--ink), 0 var(--guide-search-gap) 0 var(--guide-search-cover), 0 calc(-1 * var(--guide-search-gap)) 0 var(--guide-search-cover), -2.5rem 0 0 var(--guide-search-gap) var(--guide-search-cover); display: flex; inset-block-start: calc(var(--guide-header-size) + var(--guide-search-gap)); margin-bottom: 1.5rem; position: sticky; z-index: 2; }
+/* The frame lies over the bar's edges rather than being its border, so the menu, hung from the
+   bar's padding box, shares the bar's edges exactly; a border plus a 1px offset parts them by a
+   fraction of a pixel wherever the browser rounds the border to the screen's pixels. Coming last,
+   it lies over the tabs, which reach the bar's edges. */
+.guide-world .guide-search::after { border: 1px solid var(--ink); content: ""; inset: 0; pointer-events: none; position: absolute; }
 .guide-world #guide-search-form { align-content: center; display: grid; flex: 1; min-inline-size: 0; padding-inline: 1.25rem .75rem; }
 .guide-world .guide-search-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: clip; position: absolute; white-space: nowrap; }
 .guide-world .guide-search-field { align-items: center; display: flex; position: relative; }
@@ -167,6 +172,8 @@
 /* The focus ring goes round the whole search bar, not the field inside its padding. */
 .guide-world .guide-search-input:focus-visible { outline: none; }
 .guide-world .guide-search:has(.guide-search-input:focus-visible) { outline: 3px solid var(--orange); outline-offset: -3px; }
+/* the frame lies over the ring's outer edge, so it takes the ring's colour */
+.guide-world .guide-search:has(.guide-search-input:focus-visible)::after { border-color: var(--orange); }
 .guide-world .guide-results-heading, .guide-world .product-section-heading { align-items: baseline; border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .25rem 1rem; justify-content: space-between; margin-bottom: .5rem; padding-bottom: .5rem; }
 .guide-world .guide-results-heading h2, .guide-world .product-section-heading h2 { font-size: clamp(1.5rem, 3vw, 1.75rem); line-height: 1; }
 .guide-world .guide-results-heading p, .guide-world .product-section-heading p { color: var(--muted); font-size: .875rem; margin: 0; }
@@ -342,15 +349,16 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 /* The card lies on the sticky search bar until it scrolls away under the
    header. Scrolling down lifts it off the bar; it settles back as it comes
    into view on the way up (app.js marks it). Under an open menu's dimming it
-   goes under the bar with the rest of the page. On the home page the chain
-   deals stand between the card and the bar, so it has nothing to lift off. */
+   goes under the bar with the rest of the page, and comes back over the bar
+   only once the dimming has faded. On the home page the chain deals stand
+   between the card and the bar, so it has nothing to lift off. */
 @container set-intro (inline-size >= 52rem) {
-  .guide-world .set-chase-art { z-index: 3; }
+  .guide-world .set-chase-art { transition: z-index 0s .2s; z-index: 3; }
   :root[data-card-lifted] .guide-world:not(:has(#home-booster-prices)) .set-chase-art { translate: 0 -1rem; }
-  html:has(.guide-pop[open]) .guide-world .set-chase-art { z-index: 1; }
+  html:has(.guide-pop[open]) .guide-world .set-chase-art { transition-delay: 0s; z-index: 1; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .guide-world .set-chase-art { transition: translate .25s ease-out; }
+  .guide-world .set-chase-art { transition: translate .25s ease-out, z-index 0s .2s; }
 }
 
 .guide-world .guide-set { margin-block-start: 3rem; }
@@ -373,7 +381,10 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 .guide-world .guide-expansion-names img { block-size: 1.75rem; inline-size: 100%; object-fit: contain; }
 .guide-world .guide-expansion-names .guide-expansion-name { grid-column: 2; line-height: 1.05; overflow-wrap: anywhere; }
 .guide-world .guide-expansion-names li + li a:not([aria-current]) { border-block-start-color: var(--rule); }
-.guide-world .guide-expansion-names a[aria-current] { background: var(--paper); border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); color: var(--ink); }
+.guide-world .guide-expansion-names a[aria-current] { background: var(--paper); border-color: var(--ink); color: var(--ink); position: relative; }
+/* The chosen set's doubled frame: a second 1px frame just inside the border. Both are borders, so
+   the browser rounds both to the screen's pixels alike; an inset shadow stays fractional and blurs. */
+.guide-world .guide-expansion-names a[aria-current]::before { border: 1px solid var(--ink); content: ""; inset: 0; pointer-events: none; position: absolute; }
 .guide-world .guide-expansion-names a[aria-current] .guide-filter-count { background: var(--ink); color: var(--bench-light); padding: .15rem .35rem; }
 .guide-world .guide-expansion-nologo { background: color-mix(in srgb, var(--bench) 45%, var(--paper)); block-size: 1.25rem; inline-size: 2.25rem; justify-self: center; }
 @media (min-width: 48rem) {
@@ -397,14 +408,18 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 }
 .guide-world .guide-pop[open] .guide-pop-chevron { rotate: .5turn; }
 .guide-world .guide-pop > summary:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
-/* The menu continues the bar's frame: it hangs from the bar's border box, its sides on the bar's
-   sides, and the bar's bottom border is the seam between them. */
-.guide-world .guide-panel { align-content: start; background: var(--bench-light); border: 1px solid var(--ink); border-block-start: 0; box-shadow: .375rem .375rem 0 var(--ink); display: grid; gap: 1.25rem; inset-block-start: calc(100% + 1px); inset-inline: -1px; max-block-size: calc(100dvh - var(--guide-sticky-size) - 1.5rem); overflow-y: auto; overscroll-behavior: contain; padding: 1rem 1.25rem 1.25rem; position: absolute; z-index: 3; }
+/* The menu continues the bar's frame: its sides on the bar's sides, and the bar's bottom edge is
+   the seam between them. */
+.guide-world .guide-panel { align-content: start; background: var(--bench-light); border: 1px solid var(--ink); border-block-start: 0; box-shadow: .375rem .375rem 0 var(--ink); display: grid; gap: 1.25rem; inset-block-start: 100%; inset-inline: 0; max-block-size: calc(100dvh - var(--guide-sticky-size) - 1.5rem); overflow-y: auto; overscroll-behavior: contain; padding: 1rem 1.25rem 1.25rem; position: absolute; z-index: 3; }
 .guide-world .guide-panel nav { display: grid; gap: .5rem; }
 .guide-world .guide-panel a { min-block-size: 2.75rem; padding-inline: .75rem; }
 .guide-world .guide-panel .guide-kinds-exact a { font-size: .875rem; min-block-size: 2.25rem; }
-html:has(.guide-pop[open]) .guide-world .guide-main::after { background: color-mix(in oklch, var(--ink) 30%, transparent); content: ""; inset: 0; position: fixed; z-index: 1; }
-/* the bar stands above the dimming, so its bench takes the dimmed colour */
+/* The dimming is always there, unseen and unclickable, so it can fade in and out with the menu.
+   Open, it takes the clicks outside the menu, which close it. */
+.guide-world .guide-main::after { background: color-mix(in oklch, var(--ink) 30%, transparent); content: ""; inset: 0; opacity: 0; pointer-events: none; position: fixed; transition: opacity .2s ease-out; z-index: 1; }
+html:has(.guide-pop[open]) .guide-world .guide-main::after { opacity: 1; pointer-events: auto; }
+/* the bar stands above the dimming, so its bench takes the dimmed colour, at the same pace */
+.guide-world .guide-search { transition: box-shadow .2s ease-out; }
 html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: color-mix(in srgb, var(--ink) 30%, var(--bench)); }
 
 /* The products tab is also the kind menu, named after the chosen kind. */
@@ -439,10 +454,11 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 }
 @media (max-width: 47.99rem) {
   /* edge to edge like the menu: no side borders and no offset shadow, only the bench */
-  .guide-world .guide-search { border-inline: 0; box-shadow: 0 var(--guide-search-gap) 0 var(--guide-search-cover), 0 calc(-1 * var(--guide-search-gap)) 0 var(--guide-search-cover), -2.5rem 0 0 var(--guide-search-gap) var(--guide-search-cover); margin-inline: -1rem; }
+  .guide-world .guide-search::after { border-inline: 0; }
+  .guide-world .guide-search { box-shadow: 0 var(--guide-search-gap) 0 var(--guide-search-cover), 0 calc(-1 * var(--guide-search-gap)) 0 var(--guide-search-cover), -2.5rem 0 0 var(--guide-search-gap) var(--guide-search-cover); margin-inline: -1rem; }
   .guide-world #guide-search-form { padding-inline: 1rem .5rem; }
   .guide-world .guide-search-input { font-size: clamp(1.125rem, 5vw, 1.25rem); }
-  .guide-world .guide-panel { border-inline: 0; box-shadow: none; inset-inline: 0; max-block-size: calc(100dvh - var(--guide-sticky-size)); padding-inline: 1rem; }
+  .guide-world .guide-panel { border-inline: 0; box-shadow: none; max-block-size: calc(100dvh - var(--guide-sticky-size)); padding-inline: 1rem; }
   /* The fixed report button would cover the footer's end, so the page ends below it. */
   html:has(#report:not([hidden])) .guide-world .site-footer { padding-block-end: calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem); }
   .guide-world .site-footer p { flex-wrap: wrap; justify-content: center; text-wrap: balance; }
@@ -834,6 +850,8 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .guide-mode a + a { border-inline-start: 1px solid var(--rule); }
 .guide-world .guide-mode a[aria-current="true"] { background: var(--ink); color: var(--paper); }
 .guide-world .guide-mode a:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
+/* a focused tab stands over the bar's frame, so its ring shows in full at the bar's edges */
+.guide-world .guide-mode a:focus-visible, .guide-world .guide-kind-menu > summary:focus-visible { position: relative; z-index: 1; }
 .guide-world .guide-mode a:active { background: var(--orange); color: var(--paper); }
 @media (hover: hover) and (pointer: fine) {
   .guide-world .guide-mode a:not([aria-current="true"]):not(:active):hover { background: color-mix(in oklch, var(--orange) 22%, var(--bench-light)); }
