@@ -22,7 +22,10 @@ defmodule TcgCheap.Sealed.Matcher do
       word; a "Blister Bundle" is the blister.
       A leading Chinese set code ("CBB3C:", "CSV9.5C:") is not part of the
       name: shops rarely write it, and when they do its words count as
-      explained.
+      explained. Nor is a "Simplified Chinese" marker ("S-Ch" in
+      "CSV10.5C: Black Bolt S-Ch Booster Box"), which shops leave out too;
+      such a product has a namesake in another edition, so the title must
+      say it is Chinese or name the set code instead.
 
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
@@ -215,14 +218,15 @@ defmodule TcgCheap.Sealed.Matcher do
     entries =
       for product <- products,
           {code, name} = Regions.chinese_code(product.name) || {"", product.name},
-          name_tokens = product_tokens(name),
+          {sch, name_tokens} = name |> product_tokens() |> Enum.split_with(&(&1 == "sch")),
           tokens = MapSet.new(name_tokens),
           MapSet.size(tokens) >= 2,
           do: %{
             id: product.id,
             tokens: tokens,
             size: MapSet.size(tokens),
-            meets: meets(product, single_blister?(name_tokens)),
+            meets: meets(product, single_blister?(name_tokens), sch != []),
+            sch?: sch != [],
             code_tokens: MapSet.new(tokens(code)),
             set_tokens: MapSet.new(tokens(Map.get(product, :set_name) || "")),
             single?: Map.get(product, :kind) == :booster or single_blister?(name_tokens)
@@ -330,7 +334,9 @@ defmodule TcgCheap.Sealed.Matcher do
       words of its leading Chinese set code, which a title may name but need
       not), `:meets` (qualifiers it meets without naming them: its language,
       "pack" for a single booster, "checklane" for a 1-Pack Blister, "slim"
-      for a product sold in a Jumbo version too) and `:qualifies?`.
+      for a product sold in a Jumbo version too, "sch" for one named
+      "S-Ch"), `:edition_named?` (false when such a product's title says
+      neither "Chinese" nor its set code) and `:qualifies?`.
 
   Products whose names reduce to fewer than two tokens are not indexed and
   never match.
@@ -364,6 +370,7 @@ defmodule TcgCheap.Sealed.Matcher do
           unexplained: offer_set |> unexplained(entry) |> Enum.sort(),
           code_tokens: Enum.sort(entry.code_tokens),
           meets: Enum.sort(entry.meets),
+          edition_named?: edition_named?(entry, offer_set),
           qualifies?: qualifies?
         }
       end)
@@ -462,7 +469,8 @@ defmodule TcgCheap.Sealed.Matcher do
       MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
       MapSet.size(unexplained) <= @max_unexplained and
       MapSet.disjoint?(unexplained, known_tokens) and
-      checklane_fits?(entry, offer_set, unexplained)
+      checklane_fits?(entry, offer_set, unexplained) and
+      edition_named?(entry, offer_set)
   end
 
   # The name tokens a title lacks: omissible kind words and, for `:variant`,
@@ -496,7 +504,19 @@ defmodule TcgCheap.Sealed.Matcher do
     not (packs? and entry.single?) and MapSet.subset?(entry.tokens, offer_set) and
       MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
       MapSet.size(unexplained(offer_set, entry)) <= @max_unexplained and
-      checklane_fits?(entry, offer_set, unexplained(offer_set, entry))
+      checklane_fits?(entry, offer_set, unexplained(offer_set, entry)) and
+      edition_named?(entry, offer_set)
+  end
+
+  # A name's "S-Ch" (or "Simplified Chinese") is not a name token, but such a
+  # product has a namesake in another edition ("CSV10.5C: Black Bolt S-Ch
+  # Booster" and "Black Bolt Booster"), so the title must say it is Chinese
+  # ("chiński", "S-Ch") or name the product's set code ("Black Bolt CSV10.5C").
+  defp edition_named?(%{sch?: false}, _offer_set), do: true
+
+  defp edition_named?(entry, offer_set) do
+    MapSet.member?(offer_set, "sch") or MapSet.member?(offer_set, "chinese") or
+      (MapSet.size(entry.code_tokens) > 0 and MapSet.subset?(entry.code_tokens, offer_set))
   end
 
   # A "Checklane" title (`checklane/1`) must name the blister's Pokémon and no
@@ -548,11 +568,12 @@ defmodule TcgCheap.Sealed.Matcher do
   defp single_blister?(name_tokens),
     do: String.contains?(" #{Enum.join(name_tokens, " ")} ", " 1 pack blister ")
 
-  defp meets(product, single_blister?) do
+  defp meets(product, single_blister?, sch?) do
     [
       Map.get(@region_words, Map.get(product, :region)),
       Map.get(@kind_words, Map.get(product, :kind)),
-      if(single_blister?, do: "checklane")
+      if(single_blister?, do: "checklane"),
+      if(sch?, do: "sch")
     ]
     |> Enum.reject(&is_nil/1)
     |> MapSet.new()
