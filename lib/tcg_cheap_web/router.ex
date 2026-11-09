@@ -75,6 +75,7 @@ defmodule TcgCheapWeb.Router do
 
   scope "/", TcgCheapWeb do
     get "/media/tcgdex/:hash/:size", RemoteImageController, :show
+    get "/img/*path", StoredImageController, :show
     get "/sitemap.xml", CrawlController, :sitemap
     get "/robots.txt", CrawlController, :robots
     get "/llms.txt", CrawlController, :llms

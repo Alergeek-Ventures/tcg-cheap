@@ -834,6 +834,7 @@ defmodule TcgCheapWeb.HomeLive do
             src={deal.product.stored_photo_card_url}
             alt=""
             loading="eager"
+            fetchpriority="high"
             class="set-chase-box"
           />
         </.link>
@@ -1020,6 +1021,7 @@ defmodule TcgCheapWeb.HomeLive do
           src={@booster.product.stored_photo_card_url}
           alt=""
           loading="eager"
+          fetchpriority="high"
           class="set-chase-box"
         />
         <span :if={!@booster.product.stored_photo_card_url} class="set-chase-img set-chase-noart">

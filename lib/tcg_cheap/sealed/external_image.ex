@@ -72,7 +72,7 @@ defmodule TcgCheap.Sealed.ExternalImage do
   @doc "Returns the CSP image sources: local assets and our own object storage only."
   @spec csp_sources() :: [String.t()]
   def csp_sources,
-    do: ["'self'", "data:", TcgCheap.Storage.public_origin()]
+    do: ["'self'", "data:" | TcgCheap.Storage.image_origins()]
 
   @spec valid?(term()) :: boolean()
   def valid?(url) do

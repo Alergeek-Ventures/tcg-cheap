@@ -25,10 +25,13 @@ end
 config :tcg_cheap, TcgCheapWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4004"))]
 
-# Object storage per resource, with this worktree's local S3 port in dev.
+# Object storage per resource, with this worktree's local S3 and server ports in dev.
 :tcg_cheap
 |> Application.fetch_env!(:storage)
-|> StorageConfig.resource_configs(%{"S3_PORT" => System.get_env("S3_PORT")})
+|> StorageConfig.resource_configs(%{
+  "S3_PORT" => System.get_env("S3_PORT"),
+  "PORT" => System.get_env("PORT")
+})
 |> Enum.each(fn {resource, resource_config} -> config :tcg_cheap, resource, resource_config end)
 
 # Bearer token for the AI agent MCP endpoint at /mcp (TcgCheapWeb.McpAuth).

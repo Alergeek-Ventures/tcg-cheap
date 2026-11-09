@@ -59,11 +59,15 @@ config :tcg_cheap, TcgCheapWeb.Endpoint,
 # Enable dev routes for dashboard and mailbox
 config :tcg_cheap, dev_routes: true
 
-# This worktree's SeaweedFS from `mix dev.up` (local/compose.yml).
+# This worktree's SeaweedFS from `mix dev.up` (local/compose.yml), served
+# through this worktree's own /img route as in production.
 config :tcg_cheap, :storage,
   services: [
     s3_public: [
-      runtime_opts: [endpoint_url: {:localhost_url_from_port, env: "S3_PORT", default: 8333}]
+      runtime_opts: [
+        endpoint_url: {:localhost_url_from_port, env: "S3_PORT", default: 8333},
+        public_base_url: {:localhost_url_from_port, env: "PORT", default: 4004, path: "/img"}
+      ]
     ]
   ]
 

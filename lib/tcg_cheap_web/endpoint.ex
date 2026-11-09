@@ -68,5 +68,7 @@ defmodule TcgCheapWeb.Endpoint do
 
   @doc false
   def log_level(%Plug.Conn{path_info: ["health" | _]}), do: false
+  # A page loads dozens of images; StoredImageController logs its failures.
+  def log_level(%Plug.Conn{path_info: ["img" | _]}), do: false
   def log_level(_conn), do: :info
 end

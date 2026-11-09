@@ -19,7 +19,9 @@ defmodule TcgCheap.Storage.Service.PublicS3 do
   @impl true
   @spec service_opts_fields() :: keyword()
   def service_opts_fields do
-    Keyword.put(S3.service_opts_fields(), :public_base_url, type: :string)
+    S3.service_opts_fields()
+    |> Keyword.put(:public_base_url, type: :string)
+    |> Keyword.put(:bucket_url, type: :string)
   end
 
   @impl true
@@ -62,24 +64,35 @@ defmodule TcgCheap.Storage.Service.PublicS3 do
 
   @impl true
   @spec url(String.t(), Context.t()) :: String.t()
-  def url(key, %Context{} = ctx) do
+  def url(key, %Context{} = ctx), do: public_base_url(ctx) <> encode_key(prefixed_key(key, ctx))
+
+  @doc """
+  The URL pages link objects under, ending in a slash: `:public_base_url`
+  (our own `/img` route in production), else the bucket itself.
+  """
+  @spec public_base_url(Context.t()) :: String.t()
+  def public_base_url(%Context{} = ctx) do
     case Keyword.get(ctx.service_opts, :public_base_url) do
       base_url when is_binary(base_url) ->
-        base_url = String.trim(base_url)
-
-        if base_url == "" do
-          fallback_url(key, ctx)
-        else
-          String.trim_trailing(base_url, "/") <> "/" <> encode_key(prefixed_key(key, ctx))
+        case String.trim(base_url) do
+          "" -> bucket_base_url(ctx)
+          base_url -> String.trim_trailing(base_url, "/") <> "/"
         end
 
       nil ->
-        fallback_url(key, ctx)
+        bucket_base_url(ctx)
 
       base_url ->
         raise ArgumentError, "expected :public_base_url to be a string, got: #{inspect(base_url)}"
     end
   end
+
+  @doc """
+  The bucket's own URL of an object path (a key with any prefix), whatever
+  pages link to: objects are public-read, so it needs no signature.
+  """
+  @spec bucket_url(String.t(), Context.t()) :: String.t()
+  def bucket_url(path, %Context{} = ctx), do: bucket_base_url(ctx) <> encode_key(path)
 
   defp req(opts) do
     signing_opts =
@@ -109,9 +122,21 @@ defmodule TcgCheap.Storage.Service.PublicS3 do
 
   defp encode_key(key), do: URI.encode(key, &(&1 == ?/ or URI.char_unreserved?(&1)))
 
-  defp fallback_url(key, %Context{} = ctx) do
-    opts = Keyword.put(ctx.service_opts, :presigned, false)
-    S3.url(key, %{ctx | service_opts: opts})
+  # `:bucket_url` (OVH reads anonymously only on the bucket's own host), else
+  # "<endpoint>/<bucket>/", built by the bundled service from an empty key.
+  defp bucket_base_url(%Context{} = ctx) do
+    case Keyword.get(ctx.service_opts, :bucket_url) do
+      nil ->
+        opts =
+          ctx.service_opts
+          |> Keyword.drop([:public_base_url, :prefix])
+          |> Keyword.put(:presigned, false)
+
+        S3.url("", %{ctx | service_opts: opts})
+
+      bucket_url ->
+        String.trim_trailing(bucket_url, "/") <> "/"
+    end
   end
 
   defp upload_headers(%Context{} = ctx, data) do
