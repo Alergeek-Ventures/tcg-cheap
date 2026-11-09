@@ -367,15 +367,15 @@ defmodule TcgCheap.Sealed do
   end
 
   @doc """
-  Every known barcode and its product: a product's own EANs and the EANs of
-  offers and REBEL items assigned to it manually. A code claimed by two
-  products identifies neither and is left out.
+  Every known barcode and its product. A product's own EANs win; the EANs of
+  offers and REBEL items assigned manually identify a product only for a code
+  no product owns, since shops sometimes send another product's barcode. A code
+  claimed by two products, or learned for two products, identifies neither and
+  is left out; assignments never decide a code products claim.
   """
   @spec known_eans() :: %{String.t() => Ecto.UUID.t()}
-  def known_eans, do: unique_eans(confirmed_eans())
-
-  defp confirmed_eans do
-    from_products =
+  def known_eans do
+    owned =
       for product <- list_products_with_eans!(query: [select: [:eans]]),
           ean <- product.eans,
           do: {ean, product.id}
@@ -390,7 +390,10 @@ defmodule TcgCheap.Sealed do
           is_binary(ean) and not is_nil(id),
           do: {ean, id}
 
-    from_products ++ from_offers ++ from_rebel
+    owned_eans = MapSet.new(owned, &elem(&1, 0))
+    learned = Enum.reject(from_offers ++ from_rebel, &MapSet.member?(owned_eans, elem(&1, 0)))
+
+    Map.merge(unique_eans(owned), unique_eans(learned))
   end
 
   defp unique_eans(pairs) do
