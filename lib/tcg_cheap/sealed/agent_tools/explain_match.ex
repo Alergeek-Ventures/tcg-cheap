@@ -131,6 +131,8 @@ defmodule TcgCheap.Sealed.AgentTools.ExplainMatch do
         "name tokens missing from the title: #{Enum.join(candidate.missing, ", ")}",
       candidate.missing_qualifiers != [] &&
         "title qualifiers missing from the name: #{Enum.join(candidate.missing_qualifiers, ", ")}",
+      not candidate.edition_named? &&
+        "an S-Ch product, but the title says neither Chinese nor its set code",
       length(candidate.unexplained) > explanation.max_unexplained &&
         "#{length(candidate.unexplained)} title tokens not in the name (at most #{explanation.max_unexplained}): " <>
           Enum.join(candidate.unexplained, ", ")
