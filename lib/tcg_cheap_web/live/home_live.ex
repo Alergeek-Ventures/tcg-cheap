@@ -44,6 +44,8 @@ defmodule TcgCheapWeb.HomeLive do
        set_page: nil,
        market: nil,
        retail_deals: [],
+       # A reconnect mounts the page again; its view was already counted.
+       remount?: connected?(socket) and get_connect_params(socket)["_mounts"] != 0,
        list_restore: if(connected?(socket), do: get_connect_params(socket)["_guide_list"])
      )
      |> stream_configure(:products, dom_id: &"product-#{&1.product.slug}")
@@ -85,8 +87,12 @@ defmodule TcgCheapWeb.HomeLive do
       {:expansion, nil, _at_set_page?} ->
         raise NotFound
 
-      {_action, %{}, false} ->
-        {:noreply, push_patch(socket, to: list_path(socket.assigns.filters, []), replace: true)}
+      # The patch lands on the set page with the same expansion, so its view counts here.
+      {_action, %{} = expansion, false} ->
+        {:noreply,
+         socket
+         |> track_set_view(expansion, previous)
+         |> push_patch(to: list_path(socket.assigns.filters, []), replace: true)}
 
       {:expansion, expansion, true} ->
         set_page = set_page(socket, expansion)
@@ -95,6 +101,7 @@ defmodule TcgCheapWeb.HomeLive do
         {:noreply,
          socket
          |> assign(set_page: set_page, market: nil, seo: seo, page_title: seo.title)
+         |> track_set_view(expansion, previous)
          |> track_changes(previous)}
 
       {:index, nil, _at_set_page?} ->
@@ -254,9 +261,26 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp restore_rows(socket, _count, _loaded, _more?, _load), do: socket
 
+  # Once per set page visit: on arrival, or when another set is chosen.
+  defp track_set_view(%{assigns: %{remount?: true}} = socket, _expansion, nil), do: socket
+
+  defp track_set_view(socket, %{id: id}, %{expansion: id}), do: socket
+
+  defp track_set_view(socket, expansion, _previous),
+    do:
+      Analytics.track(socket, "expansion_viewed", %{
+        expansion: expansion.id,
+        expansion_name: expansion.name
+      })
+
   # Only changes made on the page: the first render arrives with its pageview,
   # whose URL already holds the query and filters.
   defp track_changes(socket, nil), do: socket
+
+  # Switching between products and cards also resets the other list's filters.
+  defp track_changes(%{assigns: %{filters: %{mode: mode}}} = socket, %{mode: previous})
+       when mode != previous,
+       do: Analytics.track(socket, "mode_changed", list_properties(socket))
 
   defp track_changes(%{assigns: %{filters: filters}} = socket, previous) do
     changed =
@@ -293,6 +317,7 @@ defmodule TcgCheapWeb.HomeLive do
     %{filters: filters, facets: facets} = assigns
 
     %{
+      mode: filters.mode,
       query: filters.query,
       kind: filters.kind,
       region: filters.region,
@@ -316,24 +341,33 @@ defmodule TcgCheapWeb.HomeLive do
   def handle_event("more", _params, %{assigns: %{more?: true}} = socket) do
     socket = load_more(socket)
 
-    if socket.assigns.filters.mode == :products do
-      properties = Map.put(list_properties(socket), :loaded, socket.assigns.loaded)
-      {:noreply, Analytics.track(socket, "more_products_loaded", properties)}
-    else
-      {:noreply, socket}
+    case socket.assigns do
+      %{filters: %{mode: :products}, loaded: loaded} ->
+        properties = Map.put(list_properties(socket), :loaded, loaded)
+        {:noreply, Analytics.track(socket, "more_products_loaded", properties)}
+
+      %{filters: %{mode: :cards}, loaded: loaded, cards_stock: stock} ->
+        {:noreply, track_more_cards(socket, stock, loaded)}
     end
   end
 
   def handle_event("more", _params, socket), do: {:noreply, socket}
 
-  def handle_event("more_out", _params, %{assigns: %{cards_out_more?: true}} = socket),
-    do: {:noreply, load_more_out(socket)}
+  def handle_event("more_out", _params, %{assigns: %{cards_out_more?: true}} = socket) do
+    socket = load_more_out(socket)
+    {:noreply, track_more_cards(socket, :out, socket.assigns.cards_out_loaded)}
+  end
 
   def handle_event("all-expansions", _params, socket),
     do: {:noreply, assign(socket, :all_expansions?, true)}
 
   def handle_event("location-" <> _ = event, params, socket) do
     {:noreply, VisitorLocation.handle_event(event, params, socket)}
+  end
+
+  defp track_more_cards(socket, stock, loaded) do
+    properties = Map.merge(list_properties(socket), %{stock: stock, loaded: loaded})
+    Analytics.track(socket, "more_cards_loaded", properties)
   end
 
   defp load_more(%{assigns: %{filters: %{mode: :cards} = filters}} = socket) do
@@ -919,9 +953,23 @@ defmodule TcgCheapWeb.HomeLive do
   # Cardmarket trend, then what the set's singles market looks like in numbers.
   defp set_singles(assigns) do
     ~H"""
-    <div :if={@singles} id="set-chase" class={["set-chase", !@singles.deal && "set-chase-empty"]}>
+    <div
+      :if={@singles}
+      id="set-chase"
+      class={["set-chase", !@singles.deal && "set-chase-empty"]}
+      data-track-context
+      data-track-placement="banner"
+      data-track-card={@singles.deal && @singles.deal.card.id}
+      data-track-card-name={@singles.deal && @singles.deal.card.name}
+    >
       <%= if deal = @singles.deal do %>
-        <.link class="set-chase-art" navigate={deal.path} tabindex="-1" aria-hidden="true">
+        <.link
+          class="set-chase-art"
+          navigate={deal.path}
+          data-track="card_clicked"
+          tabindex="-1"
+          aria-hidden="true"
+        >
           <.chase_art top={deal} hero?={true} />
         </.link>
         <div class="set-chase-head">
@@ -931,7 +979,12 @@ defmodule TcgCheapWeb.HomeLive do
               else: gettext("Najlepsza okazja w secie")
             )}
           </p>
-          <h2 class="set-chase-name"><.link navigate={deal.path}>{deal.card.name}</.link></h2>
+          <h2 class="set-chase-name">
+            <.link
+              navigate={deal.path}
+              data-track="card_clicked"
+            >{deal.card.name}</.link>
+          </h2>
           <p class="set-chase-meta">
             {if(@all?,
               do:
@@ -950,7 +1003,12 @@ defmodule TcgCheapWeb.HomeLive do
             <span class="set-chase-detail">{gettext("z wysyłką do Polski")}</span>
           </p>
           <span class="set-chase-or">{"−#{deal.percent}%"}</span>
-          <.link id="set-chase-buy" class="set-chase-side set-chase-buy" navigate={deal.path}>
+          <.link
+            id="set-chase-buy"
+            class="set-chase-side set-chase-buy"
+            navigate={deal.path}
+            data-track="card_clicked"
+          >
             <span class="set-chase-label">{gettext("Kupisz ją za")}</span>
             <strong>{Polish.price(deal.price)}</strong>
             <span class="set-chase-detail">{chase_source({:shop, deal.shop})}</span>
@@ -1159,13 +1217,31 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp set_chase(assigns) do
     ~H"""
-    <div id="set-chase" class="set-chase">
-      <.link class="set-chase-art" navigate={@top.path} tabindex="-1" aria-hidden="true">
+    <div
+      id="set-chase"
+      class="set-chase"
+      data-track-context
+      data-track-placement="banner"
+      data-track-card={@top.card.id}
+      data-track-card-name={@top.card.name}
+    >
+      <.link
+        class="set-chase-art"
+        navigate={@top.path}
+        data-track="card_clicked"
+        tabindex="-1"
+        aria-hidden="true"
+      >
         <.chase_art top={@top} hero?={true} />
       </.link>
       <div class="set-chase-head">
         <p class="set-chase-kicker">{gettext("Najcenniejsza karta w secie")}</p>
-        <h2 class="set-chase-name"><.link navigate={@top.path}>{@top.card.name}</.link></h2>
+        <h2 class="set-chase-name">
+          <.link
+            navigate={@top.path}
+            data-track="card_clicked"
+          >{@top.card.name}</.link>
+        </h2>
         <p class="set-chase-meta">{chase_identity(@top.card)}</p>
       </div>
       <div class="set-chase-pair">
@@ -1181,7 +1257,12 @@ defmodule TcgCheapWeb.HomeLive do
           <.chase_pull_copy top={@top} booster={@booster} />
         </p>
         <span class="set-chase-or" aria-hidden="true">{gettext("albo")}</span>
-        <.link id="set-chase-buy" class="set-chase-side set-chase-buy" navigate={@top.path}>
+        <.link
+          id="set-chase-buy"
+          class="set-chase-side set-chase-buy"
+          navigate={@top.path}
+          data-track="card_clicked"
+        >
           <span class="set-chase-label">{gettext("Kupisz ją za")}</span>
           <strong>{Polish.price(@top.price)}</strong>
           <span class="set-chase-detail">{chase_source(@top.source)}</span>
@@ -1192,12 +1273,28 @@ defmodule TcgCheapWeb.HomeLive do
           {gettext("Kolejne: wylosujesz albo kupisz")}
         </h3>
         <ul id="set-chase-next" class="set-chase-more" aria-labelledby="set-chase-next-title">
-          <li :for={top <- @next}>
+          <li
+            :for={top <- @next}
+            data-track-context
+            data-track-placement="banner"
+            data-track-card={top.card.id}
+            data-track-card-name={top.card.name}
+          >
             <div class="set-chase-mini">
-              <.link class="set-chase-mini-thumb" navigate={top.path} tabindex="-1" aria-hidden="true">
+              <.link
+                class="set-chase-mini-thumb"
+                navigate={top.path}
+                data-track="card_clicked"
+                tabindex="-1"
+                aria-hidden="true"
+              >
                 <.chase_art top={top} />
               </.link>
-              <.link class="set-chase-mini-name" navigate={top.path}>{top.card.name}</.link>
+              <.link
+                class="set-chase-mini-name"
+                navigate={top.path}
+                data-track="card_clicked"
+              >{top.card.name}</.link>
               <span class="set-chase-mini-meta">{chase_identity(top.card)}</span>
               <span class="set-chase-chips">
                 <.link
@@ -1216,7 +1313,11 @@ defmodule TcgCheapWeb.HomeLive do
                 >
                   <span class="sr-only">{gettext("wylosujesz: ")}</span>{chase_pull_short(top)}
                 </span>
-                <.link class="set-chase-chip set-chase-chip-buy" navigate={top.path}>
+                <.link
+                  class="set-chase-chip set-chase-chip-buy"
+                  navigate={top.path}
+                  data-track="card_clicked"
+                >
                   <span class="sr-only">{gettext("kupisz za ")}</span>{Polish.price(top.price)}
                 </.link>
               </span>
@@ -1340,7 +1441,14 @@ defmodule TcgCheapWeb.HomeLive do
       id={@id}
       class="guide-product guide-card"
     >
-      <.link navigate={@row.path} class="guide-product-link">
+      <.link
+        navigate={@row.path}
+        class="guide-product-link"
+        data-track="card_clicked"
+        data-track-placement="list"
+        data-track-card={@row.card.id}
+        data-track-card-name={@row.card.name}
+      >
         <div class="guide-product-image guide-card-image">
           <img
             :if={@row.image}
