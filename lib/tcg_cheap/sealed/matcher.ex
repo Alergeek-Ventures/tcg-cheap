@@ -89,6 +89,9 @@ defmodule TcgCheap.Sealed.Matcher do
     {"koreanskie", "korean"},
     {"kor", "korean"},
     {"korea", "korean"},
+    # Shops mark a Korean edition with a bare "KR" too ("Booster Box sv9a KR");
+    # as a word of its own it never names anything else in a sealed title.
+    {"kr", "korean"},
     {"chinski", "chinese"},
     {"chinska", "chinese"},
     {"chinskie", "chinese"},
