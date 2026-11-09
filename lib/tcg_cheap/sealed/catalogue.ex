@@ -47,7 +47,8 @@ defmodule TcgCheap.Sealed.Catalogue do
     booster_bundle: "bundle",
     booster_box: "display box",
     elite_trainer_box: "etb",
-    blister: "blister",
+    # A blister holds boosters and shares their shelf: "booster 3 pack" finds it.
+    blister: "blister booster",
     collection: "collection box",
     tin: "tin",
     deck: "deck",
@@ -207,11 +208,9 @@ defmodule TcgCheap.Sealed.Catalogue do
   @doc "Lower-case ASCII text searched by the public list."
   @spec search_text(String.t(), String.t() | nil, atom()) :: String.t()
   def search_text(name, set_name, kind) do
-    # The leading space lets every word be found as a prefix with " " <> word.
-    " " <>
-      ([name, set_name || "", Kinds.label(kind), Map.fetch!(@search_words, kind)]
-       |> Enum.join(" ")
-       |> Matcher.normalize())
+    [name, set_name || "", Kinds.label(kind), Map.fetch!(@search_words, kind)]
+    |> Enum.join(" ")
+    |> Matcher.normalize()
   end
 
   defp added_on(<<date::binary-size(10), _rest::binary>>) do

@@ -168,6 +168,13 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp sealed_filters(filters), do: Map.take(filters, [:query, :kind, :region, :expansion])
 
+  # The cards the same words find when products find none, often a Pokémon's
+  # name typed into the products list. A chosen kind means a product was meant.
+  defp card_matches(%{kind: nil, query: query, expansion: expansion}) when query != "",
+    do: CardGuide.count(query, expansion)
+
+  defp card_matches(_filters), do: 0
+
   defp list(socket, %{mode: :cards} = filters) do
     {available, more?, count} = CardGuide.browse(Map.put(filters, :stock, :in), 0)
     {unavailable, out_more?, out_count} = CardGuide.browse(Map.put(filters, :stock, :out), 0)
@@ -178,6 +185,7 @@ defmodule TcgCheapWeb.HomeLive do
     |> assign(
       filters: filters,
       facets: %{expansions: CardGuide.expansion_facets(filters), regions: [], kinds: []},
+      card_matches: 0,
       form: to_form(%{"q" => filters.query}),
       result_count: count + out_count,
       cards_stock: if(only_out?, do: :out, else: :in),
@@ -205,6 +213,7 @@ defmodule TcgCheapWeb.HomeLive do
     |> assign(:form, to_form(%{"q" => filters.query}))
     |> assign(:cards_out_count, 0)
     |> assign(:result_count, count)
+    |> assign(:card_matches, if(count == 0, do: card_matches(filters), else: 0))
     |> assign(:loaded, length(summaries))
     |> assign(:more?, more?)
     |> assign(:priority_product_id, first_summary && first_summary.product.id)
@@ -1481,6 +1490,11 @@ defmodule TcgCheapWeb.HomeLive do
                     {gettext("Nie znaleźliśmy takiej karty. Wpisz angielską nazwę, np. Pikachu.")}
                   <% else %>
                     {gettext("Nic nie znaleźliśmy.")}
+                    <.link
+                      :if={@card_matches > 0}
+                      id="guide-empty-cards"
+                      patch={list_path(@filters, mode: :cards, kind: nil, region: nil)}
+                    >{gettext("Pokaż pasujące karty: %{count}", count: @card_matches)}</.link>
                   <% end %>
                   <.link
                     id="guide-empty-reset"

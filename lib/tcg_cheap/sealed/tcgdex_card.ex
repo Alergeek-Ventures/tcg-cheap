@@ -18,6 +18,14 @@ defmodule TcgCheap.Sealed.TcgdexCard do
     references do
       reference :tcgdex_set, on_delete: :delete
     end
+
+    custom_statements do
+      # ParadeDB full-text index for misspelt card names in `CardGuide.browse/2`.
+      statement :sealed_tcgdex_cards_name_search_index do
+        up "CREATE INDEX sealed_tcgdex_cards_name_search_index ON sealed_tcgdex_cards USING paradedb (id, name)"
+        down "DROP INDEX sealed_tcgdex_cards_name_search_index"
+      end
+    end
   end
 
   actions do

@@ -46,7 +46,7 @@ msgstr "%{shop}: przejdź do sklepu (otwiera się w nowej karcie)"
 msgid "(wybór;"
 msgstr "(wybór;"
 
-#: lib/tcg_cheap/sealed/regions.ex:101
+#: lib/tcg_cheap/sealed/regions.ex:119
 #, elixir-autogen, elixir-format
 msgid "Angielska"
 msgstr "Angielska"
@@ -101,7 +101,7 @@ msgstr "Cardmarket nie podaje jeszcze ceny tego produktu."
 msgid "Cena na Cardmarket"
 msgstr "Cena na Cardmarket"
 
-#: lib/tcg_cheap/sealed/regions.ex:103
+#: lib/tcg_cheap/sealed/regions.ex:121
 #, elixir-autogen, elixir-format
 msgid "Chińska"
 msgstr "Chińska"
@@ -127,12 +127,12 @@ msgstr "Drogo"
 msgid "Elite Trainer Box"
 msgstr "Elite Trainer Box"
 
-#: lib/tcg_cheap/sealed/regions.ex:105
+#: lib/tcg_cheap/sealed/regions.ex:123
 #, elixir-autogen, elixir-format
 msgid "Indonezyjska"
 msgstr "Indonezyjska"
 
-#: lib/tcg_cheap/sealed/regions.ex:102
+#: lib/tcg_cheap/sealed/regions.ex:120
 #, elixir-autogen, elixir-format
 msgid "Japońska"
 msgstr "Japońska"
@@ -152,7 +152,7 @@ msgstr "Karton zbiorczy"
 msgid "Kolekcja"
 msgstr "Kolekcja"
 
-#: lib/tcg_cheap/sealed/regions.ex:104
+#: lib/tcg_cheap/sealed/regions.ex:122
 #, elixir-autogen, elixir-format
 msgid "Koreańska"
 msgstr "Koreańska"
@@ -237,19 +237,19 @@ msgstr "Oferty w sklepach"
 msgid "Ostatnio najtaniej: %{price} (%{date})."
 msgstr "Ostatnio najtaniej: %{price} (%{date})."
 
-#: lib/tcg_cheap_web/live/home_live.ex:1517
-#: lib/tcg_cheap_web/live/home_live.ex:1540
+#: lib/tcg_cheap_web/live/home_live.ex:1533
+#: lib/tcg_cheap_web/live/home_live.ex:1556
 #, elixir-autogen, elixir-format
 msgid "Pokazano %{loaded} z %{count}."
 msgstr "Pokazano %{loaded} z %{count}."
 
-#: lib/tcg_cheap_web/live/home_live.ex:1514
-#: lib/tcg_cheap_web/live/home_live.ex:1538
+#: lib/tcg_cheap_web/live/home_live.ex:1530
+#: lib/tcg_cheap_web/live/home_live.ex:1554
 #, elixir-autogen, elixir-format
 msgid "Pokaż więcej"
 msgstr "Pokaż więcej"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1496
+#: lib/tcg_cheap_web/live/home_live.ex:1512
 #, elixir-autogen, elixir-format
 msgid "Pokaż wszystkie produkty"
 msgstr "Pokaż wszystkie produkty"
@@ -269,7 +269,7 @@ msgstr "Przeglądarka nie udostępniła lokalizacji. Wpisz miejscowość poniże
 msgid "Puszka"
 msgstr "Puszka"
 
-#: lib/tcg_cheap_web/live/home_live.ex:469
+#: lib/tcg_cheap_web/live/home_live.ex:478
 #, elixir-autogen, elixir-format
 msgid "Rodzaj"
 msgstr "Rodzaj"
@@ -280,8 +280,8 @@ msgstr "Rodzaj"
 msgid "Sprawdź, czy cena jest dobra"
 msgstr "Sprawdź, czy cena jest dobra"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1392
-#: lib/tcg_cheap_web/live/home_live.ex:1405
+#: lib/tcg_cheap_web/live/home_live.ex:1403
+#: lib/tcg_cheap_web/live/home_live.ex:1416
 #, elixir-autogen, elixir-format
 msgid "Szukaj produktu"
 msgstr "Szukaj produktu"
@@ -291,7 +291,7 @@ msgstr "Szukaj produktu"
 msgid "Ta lokalizacja jest poza Polską. Wpisz miejscowość."
 msgstr "Ta lokalizacja jest poza Polską. Wpisz miejscowość."
 
-#: lib/tcg_cheap/sealed/regions.ex:106
+#: lib/tcg_cheap/sealed/regions.ex:124
 #, elixir-autogen, elixir-format
 msgid "Tajska"
 msgstr "Tajska"
@@ -350,13 +350,13 @@ msgstr "Użyj mojej lokalizacji"
 msgid "W %{shop} %{delivery}"
 msgstr "W %{shop} %{delivery}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1512
-#: lib/tcg_cheap_web/live/home_live.ex:1537
+#: lib/tcg_cheap_web/live/home_live.ex:1528
+#: lib/tcg_cheap_web/live/home_live.ex:1553
 #, elixir-autogen, elixir-format
 msgid "Wczytuję…"
 msgstr "Wczytuję…"
 
-#: lib/tcg_cheap_web/live/home_live.ex:506
+#: lib/tcg_cheap_web/live/home_live.ex:515
 #, elixir-autogen, elixir-format
 msgid "Wersja językowa"
 msgstr "Wersja językowa"
@@ -366,8 +366,8 @@ msgstr "Wersja językowa"
 msgid "Widzisz cenę w sklepie?"
 msgstr "Widzisz cenę w sklepie?"
 
-#: lib/tcg_cheap_web/live/home_live.ex:478
-#: lib/tcg_cheap_web/live/home_live.ex:514
+#: lib/tcg_cheap_web/live/home_live.ex:487
+#: lib/tcg_cheap_web/live/home_live.ex:523
 #, elixir-autogen, elixir-format
 msgid "Wszystkie"
 msgstr "Wszystkie"
@@ -382,7 +382,7 @@ msgstr "Wszystkie"
 msgid "Wszystkie produkty"
 msgstr "Wszystkie produkty"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1465
+#: lib/tcg_cheap_web/live/home_live.ex:1476
 #, elixir-autogen, elixir-format
 msgid "Wyniki"
 msgstr "Wyniki"
@@ -729,8 +729,8 @@ msgstr ""
 msgid "Nie znamy jeszcze zawartości tego produktu."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:1026
-#: lib/tcg_cheap_web/live/home_live.ex:1243
+#: lib/tcg_cheap_web/live/home_live.ex:1037
+#: lib/tcg_cheap_web/live/home_live.ex:1254
 #: lib/tcg_cheap_web/live/product_live.ex:492
 #, elixir-autogen, elixir-format
 msgid "brak zdjęcia"
@@ -832,7 +832,7 @@ msgid "Bez towaru: %{offers}"
 msgstr "Bez towaru: %{offers}"
 
 #: lib/tcg_cheap_web/components/guide_components.ex:878
-#: lib/tcg_cheap_web/live/home_live.ex:1072
+#: lib/tcg_cheap_web/live/home_live.ex:1083
 #, elixir-autogen, elixir-format
 msgid "brak na stanie"
 msgstr "brak na stanie"
@@ -956,7 +956,7 @@ msgid "Rzadkość"
 msgstr ""
 
 #: lib/tcg_cheap_web/components/set_components.ex:250
-#: lib/tcg_cheap_web/live/home_live.ex:1289
+#: lib/tcg_cheap_web/live/home_live.ex:1300
 #: lib/tcg_cheap_web/live/single_live.ex:190
 #, elixir-autogen, elixir-format
 msgid "Rzadkość nieznana"
@@ -1230,7 +1230,7 @@ msgstr "Produkt jest teraz w przedsprzedaży w %{shops}. Porównamy ceny, gdy b�
 msgid "Ceny Pokémon TCG z polskich sklepów, sprawdzane codziennie."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:762
+#: lib/tcg_cheap_web/live/home_live.ex:771
 #, elixir-autogen, elixir-format
 msgid "Czy to dobra cena?"
 msgstr ""
@@ -1403,18 +1403,18 @@ msgstr ""
 msgid "Boostera %{expansion} żaden polski sklep nie ma teraz na stanie."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:1032
+#: lib/tcg_cheap_web/live/home_live.ex:1043
 #, elixir-autogen, elixir-format
 msgid "Booster w przedsprzedaży"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:1033
+#: lib/tcg_cheap_web/live/home_live.ex:1044
 #, elixir-autogen, elixir-format
 msgid "Pojedynczy booster"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:1069
-#: lib/tcg_cheap_web/live/home_live.ex:1292
+#: lib/tcg_cheap_web/live/home_live.ex:1080
+#: lib/tcg_cheap_web/live/home_live.ex:1303
 #, elixir-autogen, elixir-format
 msgid "w %{shop}"
 msgstr ""
@@ -1434,12 +1434,12 @@ msgstr "%{name} %{number}: brak ofert bez gradingu na stanie w polskich sklepach
 msgid "%{name} %{number}: od %{price} w polskich sklepach. %{verdict}. Ceny, stan i warianty karty."
 msgstr "%{name} %{number}: od %{price} w polskich sklepach. %{verdict}. Ceny, stan i warianty karty."
 
-#: lib/tcg_cheap_web/live/home_live.ex:1260
+#: lib/tcg_cheap_web/live/home_live.ex:1271
 #, elixir-autogen, elixir-format
 msgid "%{packs} po %{price}"
 msgstr "%{packs} po %{price}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1527
+#: lib/tcg_cheap_web/live/home_live.ex:1543
 #, elixir-autogen, elixir-format
 msgid "Bez towaru: %{cards}"
 msgstr "Bez towaru: %{cards}"
@@ -1464,12 +1464,12 @@ msgstr "Cardmarket nie rozdziela edycji. Nie wystawiamy werdyktu dla pierwszej e
 msgid "Cena na Cardmarket z wysyłką"
 msgstr "Cena na Cardmarket z wysyłką"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1350
+#: lib/tcg_cheap_web/live/home_live.ex:1361
 #, elixir-autogen, elixir-format
 msgid "Cena nieznana"
 msgstr "Cena nieznana"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1302
+#: lib/tcg_cheap_web/live/home_live.ex:1313
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy, szanse to szacunki."
 msgstr "Ceny bez dostawy, szanse to szacunki."
@@ -1489,7 +1489,7 @@ msgstr "Cenę w Polsce porównujemy z trendem Cardmarket i wysyłką jednej kart
 msgid "Karta kosztuje w Polsce najwyżej 3 zł, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
 msgstr "Karta kosztuje w Polsce najwyżej 3 zł, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
 
-#: lib/tcg_cheap_web/live/home_live.ex:1456
+#: lib/tcg_cheap_web/live/home_live.ex:1467
 #, elixir-autogen, elixir-format
 msgid "Karty"
 msgstr "Karty"
@@ -1499,38 +1499,38 @@ msgstr "Karty"
 msgid "Karty z oceną (PSA, CGC): %{count}"
 msgstr "Karty z oceną (PSA, CGC): %{count}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1181
+#: lib/tcg_cheap_web/live/home_live.ex:1192
 #, elixir-autogen, elixir-format
 msgid "Kolejne: wylosujesz albo kupisz"
 msgstr "Kolejne: wylosujesz albo kupisz"
 
-#: lib/tcg_cheap_web/live/home_live.ex:944
-#: lib/tcg_cheap_web/live/home_live.ex:1174
+#: lib/tcg_cheap_web/live/home_live.ex:954
+#: lib/tcg_cheap_web/live/home_live.ex:1185
 #, elixir-autogen, elixir-format
 msgid "Kupisz ją za"
 msgstr "Kupisz ją za"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1156
+#: lib/tcg_cheap_web/live/home_live.ex:1167
 #, elixir-autogen, elixir-format
 msgid "Najcenniejsza karta w secie"
 msgstr "Najcenniejsza karta w secie"
 
-#: lib/tcg_cheap_web/live/home_live.ex:763
+#: lib/tcg_cheap_web/live/home_live.ex:772
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w polskich sklepach."
 msgstr "Najtańsze oferty Pokémon TCG w polskich sklepach."
 
-#: lib/tcg_cheap_web/live/home_live.ex:1481
+#: lib/tcg_cheap_web/live/home_live.ex:1492
 #, elixir-autogen, elixir-format
 msgid "Nic nie znaleźliśmy."
 msgstr "Nic nie znaleźliśmy."
 
-#: lib/tcg_cheap_web/live/home_live.ex:1479
+#: lib/tcg_cheap_web/live/home_live.ex:1490
 #, elixir-autogen, elixir-format
 msgid "Nie znaleźliśmy takiej karty. Wpisz angielską nazwę, np. Pikachu."
 msgstr "Nie znaleźliśmy takiej karty. Wpisz angielską nazwę, np. Pikachu."
 
-#: lib/tcg_cheap_web/live/home_live.ex:1495
+#: lib/tcg_cheap_web/live/home_live.ex:1511
 #, elixir-autogen, elixir-format
 msgid "Pokaż wszystkie karty"
 msgstr "Pokaż wszystkie karty"
@@ -1540,8 +1540,8 @@ msgstr "Pokaż wszystkie karty"
 msgid "Porównujemy karty bez oceny. Sprawdź wariant i stan w sklepie."
 msgstr "Porównujemy karty bez oceny. Sprawdź wariant i stan w sklepie."
 
-#: lib/tcg_cheap_web/live/home_live.ex:461
-#: lib/tcg_cheap_web/live/home_live.ex:1450
+#: lib/tcg_cheap_web/live/home_live.ex:470
+#: lib/tcg_cheap_web/live/home_live.ex:1461
 #, elixir-autogen, elixir-format
 msgid "Produkty"
 msgstr "Produkty"
@@ -1561,13 +1561,13 @@ msgstr "Reverse holo:"
 msgid "Set liczy %{cards}, najdroższa to %{card} (%{price}, bez dostawy)."
 msgstr "Set liczy %{cards}, najdroższa to %{card} (%{price}, bez dostawy)."
 
-#: lib/tcg_cheap_web/live/home_live.ex:1391
-#: lib/tcg_cheap_web/live/home_live.ex:1404
+#: lib/tcg_cheap_web/live/home_live.ex:1402
+#: lib/tcg_cheap_web/live/home_live.ex:1415
 #, elixir-autogen, elixir-format
 msgid "Szukaj karty"
 msgstr "Szukaj karty"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1437
+#: lib/tcg_cheap_web/live/home_live.ex:1448
 #, elixir-autogen, elixir-format
 msgid "Szukaj w katalogu"
 msgstr "Szukaj w katalogu"
@@ -1582,12 +1582,12 @@ msgstr "Teraz żaden sklep nie ma tej karty na stanie."
 msgid "Wróć"
 msgstr "Wróć"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1265
+#: lib/tcg_cheap_web/live/home_live.ex:1276
 #, elixir-autogen, elixir-format
 msgid "Wylosujesz średnio raz na"
 msgstr "Wylosujesz średnio raz na"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1258
+#: lib/tcg_cheap_web/live/home_live.ex:1269
 #, elixir-autogen, elixir-format
 msgid "Wylosujesz średnio za"
 msgstr "Wylosujesz średnio za"
@@ -1602,7 +1602,7 @@ msgstr "Wzory specjalne nie mają wspólnej ceny referencyjnej."
 msgid "Wzór specjalny"
 msgstr "Wzór specjalny"
 
-#: lib/tcg_cheap_web/live/home_live.ex:685
+#: lib/tcg_cheap_web/live/home_live.ex:694
 #, elixir-autogen, elixir-format
 msgid "Zamknij set i wyczyść filtry"
 msgstr "Zamknij set i wyczyść filtry"
@@ -1612,27 +1612,27 @@ msgstr "Zamknij set i wyczyść filtry"
 msgid "Zwykła / holo"
 msgstr "Zwykła / holo"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1172
+#: lib/tcg_cheap_web/live/home_live.ex:1183
 #, elixir-autogen, elixir-format
 msgid "albo"
 msgstr "albo"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1275
+#: lib/tcg_cheap_web/live/home_live.ex:1286
 #, elixir-autogen, elixir-format
 msgid "booster w przedsprzedaży"
 msgstr "booster w przedsprzedaży"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1273
+#: lib/tcg_cheap_web/live/home_live.ex:1284
 #, elixir-autogen, elixir-format
 msgid "booster w przedsprzedaży, premiera %{date}"
 msgstr "booster w przedsprzedaży, premiera %{date}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1276
+#: lib/tcg_cheap_web/live/home_live.ex:1287
 #, elixir-autogen, elixir-format
 msgid "boostera nie ma teraz na stanie"
 msgstr "boostera nie ma teraz na stanie"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1209
+#: lib/tcg_cheap_web/live/home_live.ex:1220
 #, elixir-autogen, elixir-format
 msgid "kupisz za "
 msgstr "kupisz za "
@@ -1647,7 +1647,7 @@ msgstr "list polecony z Polski"
 msgid "list z Niemiec"
 msgstr "list z Niemiec"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1293
+#: lib/tcg_cheap_web/live/home_live.ex:1304
 #, elixir-autogen, elixir-format
 msgid "na Cardmarket"
 msgstr "na Cardmarket"
@@ -1657,7 +1657,7 @@ msgstr "na Cardmarket"
 msgid "na Cardmarket z wysyłką"
 msgstr "na Cardmarket z wysyłką"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1286
+#: lib/tcg_cheap_web/live/home_live.ex:1297
 #, elixir-autogen, elixir-format
 msgid "nr %{number} · %{rarity}"
 msgstr "nr %{number} · %{rarity}"
@@ -1677,13 +1677,13 @@ msgstr "ok. %{amount} mln zł"
 msgid "ok. %{amount} tys. zł"
 msgstr "ok. %{amount} tys. zł"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1282
+#: lib/tcg_cheap_web/live/home_live.ex:1293
 #, elixir-autogen, elixir-format
 msgid "raz na %{packs}"
 msgstr "raz na %{packs}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1256
-#: lib/tcg_cheap_web/live/home_live.ex:1278
+#: lib/tcg_cheap_web/live/home_live.ex:1267
+#: lib/tcg_cheap_web/live/home_live.ex:1289
 #, elixir-autogen, elixir-format
 msgid "szansy nie znamy"
 msgstr "szansy nie znamy"
@@ -1693,12 +1693,12 @@ msgstr "szansy nie znamy"
 msgid "trend Cardmarket %{trend} + wysyłka %{shipping} (%{source})"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:1197
+#: lib/tcg_cheap_web/live/home_live.ex:1208
 #, elixir-autogen, elixir-format
 msgid "wylosujesz średnio: "
 msgstr "wylosujesz średnio: "
 
-#: lib/tcg_cheap_web/live/home_live.ex:1206
+#: lib/tcg_cheap_web/live/home_live.ex:1217
 #, elixir-autogen, elixir-format
 msgid "wylosujesz: "
 msgstr "wylosujesz: "
@@ -1711,7 +1711,7 @@ msgstr[0] "%{packs} paczka"
 msgstr[1] "%{packs} paczki"
 msgstr[2] "%{packs} paczek"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1303
+#: lib/tcg_cheap_web/live/home_live.ex:1314
 #, elixir-autogen, elixir-format
 msgid "Wszystkie karty (%{cards})"
 msgid_plural "Wszystkie %{cards} karty"
@@ -1719,55 +1719,55 @@ msgstr[0] "Wszystkie karty (%{cards})"
 msgstr[1] "Wszystkie %{cards} karty"
 msgstr[2] "Wszystkie %{cards} kart"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1255
+#: lib/tcg_cheap_web/live/home_live.ex:1266
 #, elixir-autogen, elixir-format
 msgid "Wylosujesz?"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:984
+#: lib/tcg_cheap_web/live/home_live.ex:994
 #, elixir-autogen, elixir-format
 msgid "Ceny w polskich sklepach bez dostawy."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:938
-#: lib/tcg_cheap_web/live/home_live.ex:1055
+#: lib/tcg_cheap_web/live/home_live.ex:948
+#: lib/tcg_cheap_web/live/home_live.ex:1066
 #, elixir-autogen, elixir-format
 msgid "Na Cardmarket"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:921
+#: lib/tcg_cheap_web/live/home_live.ex:931
 #, elixir-autogen, elixir-format
 msgid "Najlepsza okazja w secie"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:985
+#: lib/tcg_cheap_web/live/home_live.ex:995
 #, elixir-autogen, elixir-format
 msgid "Zobacz karty"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:957
+#: lib/tcg_cheap_web/live/home_live.ex:967
 #, elixir-autogen, elixir-format
 msgid "cały set, najtaniej"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:967
+#: lib/tcg_cheap_web/live/home_live.ex:977
 #, elixir-autogen, elixir-format
 msgid "najcenniejsza: %{card}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:961
-#: lib/tcg_cheap_web/live/home_live.ex:972
+#: lib/tcg_cheap_web/live/home_live.ex:971
+#: lib/tcg_cheap_web/live/home_live.ex:982
 #, elixir-autogen, elixir-format
 msgid "taniej niż na Cardmarket z wysyłką"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:953
+#: lib/tcg_cheap_web/live/home_live.ex:963
 #, elixir-autogen, elixir-format
 msgid "z %{total} kart na stanie w Polsce"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:940
-#: lib/tcg_cheap_web/live/home_live.ex:1057
+#: lib/tcg_cheap_web/live/home_live.ex:950
+#: lib/tcg_cheap_web/live/home_live.ex:1068
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Polski"
 msgstr ""
@@ -1777,37 +1777,37 @@ msgstr ""
 msgid "Karta Pokémon TCG"
 msgstr "Karta Pokémon TCG"
 
-#: lib/tcg_cheap_web/live/home_live.ex:896
+#: lib/tcg_cheap_web/live/home_live.ex:906
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:863
-#: lib/tcg_cheap_web/live/home_live.ex:1067
-#: lib/tcg_cheap_web/live/home_live.ex:1071
+#: lib/tcg_cheap_web/live/home_live.ex:873
+#: lib/tcg_cheap_web/live/home_live.ex:1078
+#: lib/tcg_cheap_web/live/home_live.ex:1082
 #, elixir-autogen, elixir-format
 msgid "Kupisz za"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:841
-#: lib/tcg_cheap_web/live/home_live.ex:920
+#: lib/tcg_cheap_web/live/home_live.ex:851
+#: lib/tcg_cheap_web/live/home_live.ex:930
 #, elixir-autogen, elixir-format
 msgid "Najlepsza okazja teraz"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:897
+#: lib/tcg_cheap_web/live/home_live.ex:907
 #, elixir-autogen, elixir-format
 msgid "Zobacz produkty"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:849
-#: lib/tcg_cheap_web/live/home_live.ex:1047
+#: lib/tcg_cheap_web/live/home_live.ex:859
+#: lib/tcg_cheap_web/live/home_live.ex:1058
 #, elixir-autogen, elixir-format
 msgid "Zwykle w sklepach"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:851
-#: lib/tcg_cheap_web/live/home_live.ex:1049
+#: lib/tcg_cheap_web/live/home_live.ex:861
+#: lib/tcg_cheap_web/live/home_live.ex:1060
 #, elixir-autogen, elixir-format
 msgid "mediana z %{count} sklepu"
 msgid_plural "mediana z %{count} sklepów"
@@ -1815,27 +1815,27 @@ msgstr[0] "mediana z %{count} sklepu"
 msgstr[1] "mediana z %{count} sklepów"
 msgstr[2] "mediana z %{count} sklepów"
 
-#: lib/tcg_cheap_web/live/home_live.ex:966
+#: lib/tcg_cheap_web/live/home_live.ex:976
 #, elixir-autogen, elixir-format
 msgid "najcenniejsza na stanie: %{card}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:1418
+#: lib/tcg_cheap_web/live/home_live.ex:1429
 #, elixir-autogen, elixir-format
 msgid "np. ETB"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:1418
+#: lib/tcg_cheap_web/live/home_live.ex:1429
 #, elixir-autogen, elixir-format
 msgid "np. Pikachu"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:928
+#: lib/tcg_cheap_web/live/home_live.ex:938
 #, elixir-autogen, elixir-format
 msgid "nr %{number} · %{expansion}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:892
+#: lib/tcg_cheap_web/live/home_live.ex:902
 #, elixir-autogen, elixir-format
 msgid "oferta na stanie"
 msgid_plural "oferty na stanie"
@@ -1843,7 +1843,7 @@ msgstr[0] "oferta na stanie"
 msgstr[1] "oferty na stanie"
 msgstr[2] "ofert na stanie"
 
-#: lib/tcg_cheap_web/live/home_live.ex:872
+#: lib/tcg_cheap_web/live/home_live.ex:882
 #, elixir-autogen, elixir-format
 msgid "produkt na stanie w Polsce"
 msgid_plural "produkty na stanie w Polsce"
@@ -1851,7 +1851,7 @@ msgstr[0] "produkt na stanie w Polsce"
 msgstr[1] "produkty na stanie w Polsce"
 msgstr[2] "produktów na stanie w Polsce"
 
-#: lib/tcg_cheap_web/live/home_live.ex:976
+#: lib/tcg_cheap_web/live/home_live.ex:986
 #, elixir-autogen, elixir-format
 msgid "sklep z kartami na stanie"
 msgid_plural "sklepy z kartami na stanie"
@@ -1859,7 +1859,7 @@ msgstr[0] "sklep z kartami na stanie"
 msgstr[1] "sklepy z kartami na stanie"
 msgstr[2] "sklepów z kartami na stanie"
 
-#: lib/tcg_cheap_web/live/home_live.ex:884
+#: lib/tcg_cheap_web/live/home_live.ex:894
 #, elixir-autogen, elixir-format
 msgid "sklep z produktami na stanie"
 msgid_plural "sklepy z produktami na stanie"
@@ -1867,7 +1867,7 @@ msgstr[0] "sklep z produktami na stanie"
 msgstr[1] "sklepy z produktami na stanie"
 msgstr[2] "sklepów z produktami na stanie"
 
-#: lib/tcg_cheap_web/live/home_live.ex:880
+#: lib/tcg_cheap_web/live/home_live.ex:890
 #, elixir-autogen, elixir-format
 msgid "w dobrej cenie dziś"
 msgstr ""
@@ -1887,8 +1887,8 @@ msgstr ""
 msgid "Kolekcje i puszki"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:552
-#: lib/tcg_cheap_web/live/home_live.ex:559
+#: lib/tcg_cheap_web/live/home_live.ex:561
+#: lib/tcg_cheap_web/live/home_live.ex:568
 #, elixir-autogen, elixir-format
 msgid "Sety"
 msgstr ""
@@ -1898,12 +1898,12 @@ msgstr ""
 msgid "Talie"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:596
+#: lib/tcg_cheap_web/live/home_live.ex:605
 #, elixir-autogen, elixir-format
 msgid "Wszystkie sety"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:1112
+#: lib/tcg_cheap_web/live/home_live.ex:1123
 #, elixir-autogen, elixir-format
 msgid "karta w secie"
 msgid_plural "kart w secie"
@@ -1911,7 +1911,7 @@ msgstr[0] "karta w secie"
 msgstr[1] "karty w secie"
 msgstr[2] "kart w secie"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1128
+#: lib/tcg_cheap_web/live/home_live.ex:1139
 #, elixir-autogen, elixir-format
 msgid "sklep ma go na stanie"
 msgid_plural "sklepy mają go na stanie"
@@ -1919,7 +1919,7 @@ msgstr[0] "sklep ma go na stanie"
 msgstr[1] "sklepy mają go na stanie"
 msgstr[2] "sklepów ma go na stanie"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1125
+#: lib/tcg_cheap_web/live/home_live.ex:1136
 #, elixir-autogen, elixir-format
 msgid "sklep przyjmuje zamówienia"
 msgid_plural "sklepy przyjmują zamówienia"
@@ -1927,12 +1927,12 @@ msgstr[0] "sklep przyjmuje zamówienia"
 msgstr[1] "sklepy przyjmują zamówienia"
 msgstr[2] "sklepów przyjmuje zamówienia"
 
-#: lib/tcg_cheap_web/live/home_live.ex:1117
+#: lib/tcg_cheap_web/live/home_live.ex:1128
 #, elixir-autogen, elixir-format
 msgid "%{kind} na Cardmarket"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:464
+#: lib/tcg_cheap_web/live/home_live.ex:473
 #, elixir-autogen, elixir-format
 msgid " filtr"
 msgid_plural " filtry"
@@ -2017,7 +2017,7 @@ msgstr ""
 msgid "Ceny z gazetek i zgłoszeń. Dostępność różna, nie wliczamy ich do oceny."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:795
+#: lib/tcg_cheap_web/live/home_live.ex:804
 #, elixir-autogen, elixir-format
 msgid "Ile kosztuje booster? Ceny boosterów"
 msgstr ""
@@ -2047,13 +2047,13 @@ msgstr ""
 msgid "Booster z tego rozszerzenia"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:807
+#: lib/tcg_cheap_web/live/home_live.ex:816
 #, elixir-autogen, elixir-format
 msgid "Wszystkie ceny boosterów"
 msgstr ""
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:78
-#: lib/tcg_cheap_web/live/home_live.ex:806
+#: lib/tcg_cheap_web/live/home_live.ex:815
 #, elixir-autogen, elixir-format
 msgid "Okazje w sieciówkach"
 msgstr ""
@@ -2083,7 +2083,7 @@ msgstr ""
 msgid "Najnowsze sety"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/home_live.ex:614
+#: lib/tcg_cheap_web/live/home_live.ex:623
 #, elixir-autogen, elixir-format
 msgid "Pozostałe sety (%{count})"
 msgstr ""
@@ -2147,3 +2147,8 @@ msgstr "karta z kodem do Pokémon TCG Online lub Live"
 #, elixir-autogen, elixir-format
 msgid "znaczniki obrażeń"
 msgstr "znaczniki obrażeń"
+
+#: lib/tcg_cheap_web/live/home_live.ex:1497
+#, elixir-autogen, elixir-format
+msgid "Pokaż pasujące karty: %{count}"
+msgstr "Pokaż pasujące karty: %{count}"
