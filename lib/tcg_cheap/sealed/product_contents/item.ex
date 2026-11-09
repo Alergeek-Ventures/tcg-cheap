@@ -38,7 +38,7 @@ defmodule TcgCheap.Sealed.ProductContents.Item do
     end
 
     attribute :name, :string do
-      description "English: the set of a booster, the card's name (TCGdex's when omitted), a deck's featured Pokémon, or what an item of type other is. Accessories are shown by type only."
+      description "English: the set of a booster, the card's name (TCGdex's when omitted), a deck's featured Pokémon, or what an item of type other is. Accessories are shown by type only, except a single energy card's name (in Polish, e.g. a booster's 'Basic Energy lub znacznik VSTAR')."
       public? true
       constraints max_length: 200
     end

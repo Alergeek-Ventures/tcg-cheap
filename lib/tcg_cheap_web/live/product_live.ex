@@ -285,6 +285,7 @@ defmodule TcgCheapWeb.ProductLive do
             contents={@page.product.contents}
             boosters={@page.boosters}
             odds?={not is_nil(@page.booster_set)}
+            listed_on={@page.product.cardmarket_added_on}
           />
 
           <.deck_list
@@ -376,6 +377,7 @@ defmodule TcgCheapWeb.ProductLive do
   attr :contents, :map, required: true
   attr :boosters, :map, required: true
   attr :odds?, :boolean, default: false, doc: "a single booster's page, whose pull rates follow"
+  attr :listed_on, Date, default: nil, doc: "when Cardmarket listed the product"
 
   defp contents(%{contents: nil} = assigns) do
     ~H"""
@@ -395,6 +397,7 @@ defmodule TcgCheapWeb.ProductLive do
       assigns.contents.items
       |> Enum.with_index()
       |> Enum.sort_by(fn {item, _index} -> item_rank(item.type, assigns.odds?) end)
+      |> Enum.map(fn {item, index} -> {item, index, item_label(item, assigns.listed_on)} end)
 
     assigns =
       assign(assigns,
@@ -409,24 +412,24 @@ defmodule TcgCheapWeb.ProductLive do
         <p>{gettext("sprawdzono %{date}", date: Polish.date(@contents.checked_on))}</p>
       </div>
       <ul id="contents-items" class="contents-items" style={"--rows: #{@rows}"}>
-        <li :for={{item, index} <- @items}>
+        <li :for={{item, index, label} <- @items}>
           <span class="contents-text">
             <span class="contents-quantity">{item.quantity}×</span>
             <span class="contents-label">
               <%= cond do %>
                 <% booster = booster(item, @boosters) -> %>
-                  <.link navigate={~p"/produkty/#{booster.slug}"}>{item_label(item)}</.link>
+                  <.link navigate={~p"/produkty/#{booster.slug}"}>{label}</.link>
                 <% @odds? and item.type == :other -> %>
                   <%!-- A single booster holds only its random cards besides energy and a code: their chances are below. --%>
-                  <a href="#product-pull-rates">{item_label(item)}</a>
+                  <a href="#product-pull-rates">{label}</a>
                 <% item.cardmarket_id -> %>
                   <a
                     href={cardmarket_url(item.cardmarket_id)}
                     target="_blank"
                     rel="noopener nofollow"
-                  >{item_label(item)}</a>
+                  >{label}</a>
                 <% true -> %>
-                  {item_label(item)}
+                  {label}
               <% end %>
               <span :if={item.set} class="contents-card-set">{item.set} {item.number}</span>
               <span :if={item.variants not in [nil, []]} class="contents-card-set">
@@ -451,7 +454,7 @@ defmodule TcgCheapWeb.ProductLive do
                 href={CardImage.detail_url(item.image)}
                 class="contents-photo"
                 data-photo-preview
-                aria-label={gettext("Zdjęcie: %{item}", item: item_label(item))}
+                aria-label={gettext("Zdjęcie: %{item}", item: label)}
               >
                 <img src={image_url} alt="" width="34" height="48" loading="lazy" />
               </a>
@@ -460,7 +463,7 @@ defmodule TcgCheapWeb.ProductLive do
                 href={CardImage.photo_url(item.photo, "detail")}
                 class="contents-photo"
                 data-photo-preview
-                aria-label={gettext("Zdjęcie: %{item}", item: item_label(item))}
+                aria-label={gettext("Zdjęcie: %{item}", item: label)}
               >
                 <img src={photo_url} alt="" height="48" loading="lazy" />
               </a>
@@ -480,7 +483,7 @@ defmodule TcgCheapWeb.ProductLive do
                 class="contents-photo contents-photo-generic"
                 data-photo-preview
                 title={gettext("Zdjęcie poglądowe z innego produktu")}
-                aria-label={gettext("Zdjęcie poglądowe: %{item}", item: item_label(item))}
+                aria-label={gettext("Zdjęcie poglądowe: %{item}", item: label)}
               >
                 <img src={generic_url} alt="" height="48" loading="lazy" />
                 <span class="contents-photo-note">{gettext("zdjęcie poglądowe")}</span>
@@ -720,6 +723,19 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp generic_photo(_item), do: nil
 
+  # Code cards were printed for Pokémon TCG Online, from 2022 for either game;
+  # from Crown Zenith, listed on Cardmarket in November 2022, for TCG Live
+  # only. TCG Online's codes still redeem in TCG Live.
+  @tcg_live_only_from ~D[2022-11-01]
+
+  defp item_label(%{type: :code_card}, %Date{} = listed_on) do
+    if Date.before?(listed_on, @tcg_live_only_from),
+      do: gettext("karta z kodem do Pokémon TCG Online lub Live"),
+      else: gettext("karta z kodem do Pokémon TCG Live")
+  end
+
+  defp item_label(item, _listed_on), do: item_label(item)
+
   defp item_label(%{type: :booster, name: nil}), do: gettext("booster")
   defp item_label(%{type: :booster, name: set}), do: gettext("booster %{set}", set: set)
   defp item_label(%{type: :promo_card, name: nil}), do: gettext("karta promo")
@@ -741,9 +757,13 @@ defmodule TcgCheapWeb.ProductLive do
   defp item_label(%{type: :deck, name: nil}), do: gettext("talia gotowa do gry")
   defp item_label(%{type: :deck, name: deck}), do: gettext("talia %{deck}", deck: deck)
   defp item_label(%{type: :sleeves}), do: gettext("koszulki na karty")
+  # A booster's single energy slot can hold something else, as its name says.
+  defp item_label(%{type: :energy_cards, quantity: 1, name: name}) when is_binary(name), do: name
+  defp item_label(%{type: :energy_cards, quantity: 1}), do: gettext("karta energii")
   defp item_label(%{type: :energy_cards}), do: gettext("karty energii")
   defp item_label(%{type: :dice}), do: gettext("kość do gry")
-  defp item_label(%{type: :damage_counters}), do: gettext("kości do liczenia obrażeń")
+  # Dice in elite trainer boxes, tokens in decks.
+  defp item_label(%{type: :damage_counters}), do: gettext("znaczniki obrażeń")
   defp item_label(%{type: :coin}), do: gettext("moneta")
   defp item_label(%{type: :condition_markers}), do: gettext("znaczniki stanów")
   defp item_label(%{type: :deck_box}), do: gettext("pudełko na talię")
