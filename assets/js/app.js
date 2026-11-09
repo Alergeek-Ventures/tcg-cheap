@@ -237,9 +237,16 @@ topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
+// Search engines read the server-rendered page, which already holds all of it.
+// Their renderers keep no WebSocket, so a live connection falls back to
+// long-polling, and those polls were 73 % of Googlebot's requests to the site
+// (Search Console crawl stats, week to 2026-11-07), crawl budget the pages
+// themselves did not get.
+const searchCrawler = /Googlebot|Google-InspectionTool|AdsBot-Google|Storebot-Google|bingbot|Applebot|YandexBot|DuckDuckBot|Baiduspider|PetalBot|SeznamBot/i.test(navigator.userAgent)
+
 // connect if there are any LiveViews on the page
 initAnalytics()
-liveSocket.connect()
+if (!searchCrawler) liveSocket.connect()
 
 // expose liveSocket on window for web console debug logs and latency simulation:
 // >> liveSocket.enableDebug()
