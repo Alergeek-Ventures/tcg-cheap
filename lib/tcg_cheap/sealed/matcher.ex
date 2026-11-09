@@ -25,7 +25,11 @@ defmodule TcgCheap.Sealed.Matcher do
       explained. Nor is a "Simplified Chinese" marker ("S-Ch" in
       "CSV10.5C: Black Bolt S-Ch Booster Box"), which shops leave out too;
       such a product has a namesake in another edition, so the title must
-      say it is Chinese or name the set code instead.
+      say it is Chinese or name the set code instead. Nor need a title
+      name the "ex" ending a Japanese set's name ("Terastal Festival
+      Booster Box" for "Terastal Festival ex Booster Box") when the
+      product's name holds that set name and no other "ex"; such a
+      product then counts one token less (`set_ex/2`).
 
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
@@ -228,6 +232,7 @@ defmodule TcgCheap.Sealed.Matcher do
             id: product.id,
             tokens: tokens,
             size: MapSet.size(tokens),
+            omissible: set_ex(product, name_tokens),
             meets: meets(product, single_blister?(name_tokens), sch != []),
             sch?: sch != [],
             code_tokens: MapSet.new(tokens(code)),
@@ -239,7 +244,12 @@ defmodule TcgCheap.Sealed.Matcher do
 
     frequency = entries |> Enum.flat_map(&MapSet.to_list(&1.tokens)) |> Enum.frequencies()
 
-    rarest = fn entry -> Enum.sort_by(entry.tokens, &{Map.fetch!(frequency, &1), &1}) end
+    # A token a title may leave out (`set_ex/2`) cannot be what reaches a product.
+    rarest = fn entry ->
+      entry.tokens
+      |> MapSet.difference(entry.omissible)
+      |> Enum.sort_by(&{Map.fetch!(frequency, &1), &1})
+    end
 
     by_rare_token = Enum.group_by(entries, &hd(rarest.(&1)))
 
@@ -332,7 +342,8 @@ defmodule TcgCheap.Sealed.Matcher do
     * `:candidates` – up to `limit` indexed products sharing the most tokens
       with the title, qualifying ones first (most specific first), each with
       `:id`, its name `:tokens`, `:missing` (name tokens absent from the
-      title), `:missing_qualifiers` (title qualifiers absent from the name),
+      title, but for its set's "ex" a title may leave out),
+      `:missing_qualifiers` (title qualifiers absent from the name),
       `:unexplained` (title tokens absent from the name), `:code_tokens` (the
       words of its leading Chinese set code, which a title may name but need
       not), `:meets` (qualifiers it meets without naming them: its language,
@@ -365,7 +376,11 @@ defmodule TcgCheap.Sealed.Matcher do
         %{
           id: entry.id,
           tokens: Enum.sort(entry.tokens),
-          missing: entry.tokens |> MapSet.difference(offer_set) |> Enum.sort(),
+          missing:
+            entry.tokens
+            |> MapSet.difference(offer_set)
+            |> MapSet.difference(entry.omissible)
+            |> Enum.sort(),
           missing_qualifiers:
             qualifiers
             |> MapSet.difference(MapSet.union(entry.tokens, entry.meets))
@@ -402,7 +417,11 @@ defmodule TcgCheap.Sealed.Matcher do
       |> Enum.uniq()
       |> Enum.filter(&candidate?(&1, offer_set, qualifiers, packs?))
 
-    case Enum.group_by(candidates, & &1.size) |> Enum.max_by(&elem(&1, 0), fn -> nil end) do
+    # A product counts the name tokens the title names, so one whose set's "ex"
+    # the title leaves out (`set_ex/2`) yields to a product named in full.
+    named = &MapSet.size(MapSet.intersection(&1.tokens, offer_set))
+
+    case Enum.group_by(candidates, named) |> Enum.max_by(&elem(&1, 0), fn -> nil end) do
       nil -> unique_variant(offer_set, qualifiers, index, packs?)
       {_size, [entry]} -> {:matched, entry.id}
       {_size, _tie} -> :ambiguous
@@ -504,7 +523,8 @@ defmodule TcgCheap.Sealed.Matcher do
   end
 
   defp candidate?(entry, offer_set, qualifiers, packs?) do
-    not (packs? and entry.single?) and MapSet.subset?(entry.tokens, offer_set) and
+    not (packs? and entry.single?) and
+      entry.tokens |> MapSet.difference(entry.omissible) |> MapSet.subset?(offer_set) and
       MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
       MapSet.size(unexplained(offer_set, entry)) <= @max_unexplained and
       checklane_fits?(entry, offer_set, unexplained(offer_set, entry)) and
@@ -570,6 +590,21 @@ defmodule TcgCheap.Sealed.Matcher do
   # "1-Pack Blister" in a row: "Zarude 2-Pack Blister Version 1" is not one.
   defp single_blister?(name_tokens),
     do: String.contains?(" #{Enum.join(name_tokens, " ")} ", " 1 pack blister ")
+
+  # Japanese sets end their names in "ex" ("Terastal Festival ex"), which shops
+  # leave out ("Terastal Festival Booster Box Japoński"). A Japanese product's
+  # name may lose that "ex" when it holds the whole set name and no other "ex"
+  # (a Pokémon's, as in "Scarlet ex & Violet ex Special Set"); `best/3` then
+  # counts it one token less, so a product the title names in full wins.
+  defp set_ex(product, name_tokens) do
+    set = tokens(Map.get(product, :set_name) || "")
+
+    if Map.get(product, :region) == :ja and match?([_, _ | _], set) and List.last(set) == "ex" and
+         Enum.count(name_tokens, &(&1 == "ex")) == 1 and
+         String.contains?(" #{Enum.join(name_tokens, " ")} ", " #{Enum.join(set, " ")} "),
+       do: MapSet.new(["ex"]),
+       else: MapSet.new()
+  end
 
   defp meets(product, single_blister?, sch?) do
     [
