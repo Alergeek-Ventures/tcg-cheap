@@ -93,8 +93,9 @@ defmodule TcgCheap.Sealed.Kinds do
 
   @doc """
   The kind of a Cardmarket product. Multi-unit cases and displays of tins or
-  blisters become `:case`, whatever their category; a "Display Set" is one
-  set with a stand that shows a card off, not a display of many.
+  blisters become `:case`, whatever their category; a "Display Set" or a
+  "… Display Gift Box" is one box with a stand that shows a card off, not a
+  display of many.
   """
   @spec from_cardmarket(integer(), String.t()) :: atom()
   def from_cardmarket(category_id, name) do
@@ -107,8 +108,10 @@ defmodule TcgCheap.Sealed.Kinds do
     end
   end
 
-  defp display_of_units?(words),
-    do: "display" in words and ["display", "set"] not in Enum.chunk_every(words, 2, 1)
+  defp display_of_units?(words) do
+    pairs = Enum.chunk_every(words, 2, 1)
+    "display" in words and ["display", "set"] not in pairs and ["gift", "box"] not in pairs
+  end
 
   defp category_kind(@booster, _words), do: :booster
 
