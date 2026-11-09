@@ -4,7 +4,7 @@ defmodule TcgCheapWeb.SingleLive do
   use Gettext, backend: TcgCheapWeb.Gettext
   import TcgCheapWeb.GuideComponents
   alias TcgCheap.Sealed.{CardGuide, CardImage, CardReference, Guide, Matcher}
-  alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -18,11 +18,12 @@ defmodule TcgCheapWeb.SingleLive do
         page = CardGuide.page(card, name, path)
         seo = SEO.single(page)
         groups = Enum.group_by(page.offers, &group/1)
+        primary = Enum.find(page.answers, & &1.cheapest) || hd(page.answers)
 
         {:ok,
          socket
          |> assign(
-           primary: Enum.find(page.answers, & &1.cheapest) || hd(page.answers),
+           primary: primary,
            page: page,
            booster:
              Guide.set_booster(
@@ -38,7 +39,8 @@ defmodule TcgCheapWeb.SingleLive do
          |> stream(:raw, Map.get(groups, :raw, []))
          |> stream(:unavailable, Map.get(groups, :unavailable, []))
          |> stream(:graded, Map.get(groups, :graded, []))
-         |> stream(:graded_out, Map.get(groups, :graded_out, []))}
+         |> stream(:graded_out, Map.get(groups, :graded_out, []))
+         |> track_view(page, primary)}
 
       :error ->
         raise NotFound
@@ -53,6 +55,29 @@ defmodule TcgCheapWeb.SingleLive do
     else
       {:noreply, push_navigate(socket, to: socket.assigns.page.path)}
     end
+  end
+
+  # Once per visit to the page: a reconnect mounts it again.
+  defp track_view(socket, page, primary) do
+    if connected?(socket) and get_connect_params(socket)["_mounts"] == 0,
+      do: Analytics.track(socket, "card_viewed", viewed_properties(page, primary)),
+      else: socket
+  end
+
+  defp viewed_properties(%{card: card} = page, primary) do
+    %{
+      card: card.id,
+      card_name: card.name,
+      card_number: card.number,
+      rarity: card.rarity,
+      expansion_name: page.expansion_name,
+      variant: primary.variant,
+      verdict: primary.verdict,
+      cheapest_price: primary.cheapest && Decimal.to_float(primary.cheapest.price),
+      cheapest_shop: primary.cheapest && primary.cheapest.shop,
+      offer_count: length(page.offers),
+      in_stock_count: Enum.count(page.offers, & &1.in_stock)
+    }
   end
 
   defp group(%{grading: grade, in_stock: false}) when is_binary(grade), do: :graded_out
