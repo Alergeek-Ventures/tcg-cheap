@@ -248,13 +248,15 @@ defmodule TcgCheap.Sealed.AgentTools do
       be absent from the name, the most specific qualifying product wins and a tie stays
       unmatched; a leading Chinese set code in a name ("CBB3C:") is not a name token, and a title
       may name it without it counting as absent (`set_code_tokens`); nor is "S-Ch" ("Simplified
-      Chinese"), but such a product needs a title saying Chinese or naming its set code; a
-      product meets some title qualifiers without naming them (`met_qualifiers`: its language,
-      "pack" for a single booster, "checklane" for a 1-Pack Blister, "slim" for the non-Jumbo
-      product of a set sold in both, "sch" for an S-Ch product); a "Checklane" title without
-      "Premium" or a pack count must name the blister's Pokémon and no other word; a known EAN
-      (product barcode or manual assignment) wins over the title; excluded titles never match. It
-      changes nothing.
+      Chinese"), but such a product needs a title saying Chinese or naming its set code; a title
+      may leave out the "ex" ending a Japanese set's name ("Terastal Festival ex") when the
+      product's name holds that set name and no other "ex", and such a product then yields to
+      one the title names in full; a product meets some title qualifiers without naming them
+      (`met_qualifiers`: its language, "pack" for a single booster, "checklane" for a 1-Pack
+      Blister, "slim" for the non-Jumbo product of a set sold in both, "sch" for an S-Ch
+      product); a "Checklane" title without "Premium" or a pack count must name the blister's
+      Pokémon and no other word; a known EAN (product barcode or manual assignment) wins over the
+      title; excluded titles never match. It changes nothing.
       """
 
       argument :offer_id, :uuid, description: "A stored offer to explain."
