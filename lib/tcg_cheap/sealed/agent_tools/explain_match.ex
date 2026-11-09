@@ -79,11 +79,13 @@ defmodule TcgCheap.Sealed.AgentTools.ExplainMatch do
   defp result({:excluded, _reason}), do: {:excluded, nil}
   defp result(other), do: {other, nil}
 
-  # The qualifying candidates of the greatest size, i.e. the title match.
-  defp winners(%{candidates: candidates}) do
+  # The qualifying candidates naming the most title tokens, i.e. the title
+  # match (a set's "ex" the title leaves out does not count, as in the matcher).
+  defp winners(%{candidates: candidates, tokens: tokens}) do
+    named = fn candidate -> Enum.count(candidate.tokens, &(&1 in tokens)) end
     qualifying = Enum.filter(candidates, & &1.qualifies?)
-    top = qualifying |> Enum.map(&length(&1.tokens)) |> Enum.max(fn -> 0 end)
-    qualifying |> Enum.filter(&(length(&1.tokens) == top)) |> MapSet.new(& &1.id)
+    top = qualifying |> Enum.map(named) |> Enum.max(fn -> 0 end)
+    qualifying |> Enum.filter(&(named.(&1) == top)) |> MapSet.new(& &1.id)
   end
 
   defp summary(%{result: {:excluded, reason}}, _offer, _products),
