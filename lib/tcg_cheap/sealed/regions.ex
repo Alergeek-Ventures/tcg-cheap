@@ -8,7 +8,7 @@ defmodule TcgCheap.Sealed.Regions do
 
     1. The product names, when at least a third of them say it: a language
        word ("JP", "Japanese", "Chinese", "ID/TH", …) or a Chinese set code
-       such as "CBB3C:" or "CSVH1aC:". A third, not one: an English
+       such as "CBB3C:", "CSVH1aC:" or "CSNC:". A third, not one: an English
        expansion may hold a single "JP Raging Bolt" deck. Names come first
        because TCGdex sometimes points a Japanese set at a Chinese expansion.
     2. TCGdex: an expansion holding the cards of a Japanese TCGdex set is
@@ -53,7 +53,20 @@ defmodule TcgCheap.Sealed.Regions do
     6356 => :zh,
     6357 => :zh,
     6348 => :zh,
-    6548 => :zh
+    6548 => :zh,
+    # Checked on 2026-11-09 against the publisher (pokemon-card.com) and
+    # TCGplayer's Pokémon Japan line: Stellar Tera Type Starter Sets Sylveon ex
+    # and Ceruledge ex, Premium Trainer Box MEGA (Japanese and Korean only).
+    5841 => :ja,
+    5842 => :ja,
+    6239 => :ja,
+    # Pikachu & Eevee Quicksand Card Display Pendant Gift Box: Cardmarket's
+    # expansion says "Sword & Shield S-Chinese".
+    6303 => :zh,
+    # "CSVNC: Land of Kitakami Special Pack" and the four Ogerpon Gift Boxes
+    # that hold it (Simplified Chinese, May 2026); one code in five names is
+    # below the names' third.
+    6579 => :zh
   }
 
   # Products of another edition than their expansion's, by Cardmarket product
@@ -75,7 +88,10 @@ defmodule TcgCheap.Sealed.Regions do
     # English Scarlet & Violet products
     830_070 => :ja,
     830_071 => :ja,
-    830_072 => :ja
+    830_072 => :ja,
+    # Pokémon Center Yokohama Special Box (2018), sold only at Pokémon Center
+    # Yokohama and Pokémon Center Online (pokemon.co.jp), checked on 2026-11-09
+    575_116 => :ja
   }
 
   @words [
@@ -86,7 +102,9 @@ defmodule TcgCheap.Sealed.Regions do
     {~w(thai), :th}
   ]
 
-  @chinese_code ~r/\A([A-Za-z0-9.]*\d[A-Za-z0-9.]*C):\s*(.*)\z/s
+  # Most codes hold a digit ("CBB3C", "CSV9.5C"); a few are letters between
+  # "CS" and "C" ("CSFC", "CSNC", "CSMAC").
+  @chinese_code ~r/\A([A-Za-z0-9.]*\d[A-Za-z0-9.]*C|CS[A-Z]*C):\s*(.*)\z/s
   @non_letter ~r/[^a-z]+/
 
   @spec all() :: [atom()]
