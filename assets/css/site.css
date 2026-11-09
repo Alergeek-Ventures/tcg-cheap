@@ -149,9 +149,11 @@
 .guide-world .guide-intro { margin-bottom: 1.25rem; }
 .guide-world #guide-title { font-size: clamp(2rem, 5vw, 2.5rem); letter-spacing: -.04em; line-height: 1; }
 .guide-world #guide-promise { margin: .5rem 0 0; max-width: 52ch; }
-/* The bar: the query and the catalogue in one sticky row; the menus hang from all of it. Its bench
-   hides what scrolls under it, also to its left, where the banner card overhangs. */
-.guide-world .guide-search { align-items: stretch; background: var(--bench-light); block-size: var(--guide-search-size); --guide-search-cover: var(--bench); box-shadow: 0 var(--guide-search-gap) 0 var(--guide-search-cover), 0 calc(-1 * var(--guide-search-gap)) 0 var(--guide-search-cover), -2.5rem 0 0 var(--guide-search-gap) var(--guide-search-cover); display: flex; inset-block-start: calc(var(--guide-header-size) + var(--guide-search-gap)); margin-bottom: 1.5rem; position: sticky; z-index: 2; }
+/* The bar: the query and the catalogue in one sticky row; the menus hang from all of it. It is
+   framed and shadowed like the menu, so an open menu reads as one card with it. Its bench hides
+   what scrolls under it, also to its left, where the banner card overhangs; the shadow comes
+   first so the bench does not paint over it. */
+.guide-world .guide-search { align-items: stretch; background: var(--bench-light); block-size: var(--guide-search-size); border: 1px solid var(--ink); --guide-search-cover: var(--bench); box-shadow: .375rem .375rem 0 var(--ink), 0 var(--guide-search-gap) 0 var(--guide-search-cover), 0 calc(-1 * var(--guide-search-gap)) 0 var(--guide-search-cover), -2.5rem 0 0 var(--guide-search-gap) var(--guide-search-cover); display: flex; inset-block-start: calc(var(--guide-header-size) + var(--guide-search-gap)); margin-bottom: 1.5rem; position: sticky; z-index: 2; }
 .guide-world #guide-search-form { align-content: center; display: grid; flex: 1; min-inline-size: 0; padding-inline: 1.25rem .75rem; }
 .guide-world .guide-search-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: clip; position: absolute; white-space: nowrap; }
 .guide-world .guide-search-field { align-items: center; display: flex; position: relative; }
@@ -395,7 +397,9 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 }
 .guide-world .guide-pop[open] .guide-pop-chevron { rotate: .5turn; }
 .guide-world .guide-pop > summary:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
-.guide-world .guide-panel { align-content: start; background: var(--bench-light); border: 1px solid var(--ink); box-shadow: .375rem .375rem 0 var(--ink); display: grid; gap: 1.25rem; inset-block-start: 100%; inset-inline: 0; max-block-size: calc(100dvh - var(--guide-sticky-size) - 1.5rem); overflow-y: auto; overscroll-behavior: contain; padding: 1rem 1.25rem 1.25rem; position: absolute; z-index: 3; }
+/* The menu continues the bar's frame: it hangs from the bar's border box, its sides on the bar's
+   sides, and the bar's bottom border is the seam between them. */
+.guide-world .guide-panel { align-content: start; background: var(--bench-light); border: 1px solid var(--ink); border-block-start: 0; box-shadow: .375rem .375rem 0 var(--ink); display: grid; gap: 1.25rem; inset-block-start: calc(100% + 1px); inset-inline: -1px; max-block-size: calc(100dvh - var(--guide-sticky-size) - 1.5rem); overflow-y: auto; overscroll-behavior: contain; padding: 1rem 1.25rem 1.25rem; position: absolute; z-index: 3; }
 .guide-world .guide-panel nav { display: grid; gap: .5rem; }
 .guide-world .guide-panel a { min-block-size: 2.75rem; padding-inline: .75rem; }
 .guide-world .guide-panel .guide-kinds-exact a { font-size: .875rem; min-block-size: 2.25rem; }
@@ -434,10 +438,11 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
   .guide-world .guide-expansion-shelf .guide-filter-count { flex-direction: row; }
 }
 @media (max-width: 47.99rem) {
-  .guide-world .guide-search { margin-inline: -1rem; }
+  /* edge to edge like the menu: no side borders and no offset shadow, only the bench */
+  .guide-world .guide-search { border-inline: 0; box-shadow: 0 var(--guide-search-gap) 0 var(--guide-search-cover), 0 calc(-1 * var(--guide-search-gap)) 0 var(--guide-search-cover), -2.5rem 0 0 var(--guide-search-gap) var(--guide-search-cover); margin-inline: -1rem; }
   .guide-world #guide-search-form { padding-inline: 1rem .5rem; }
   .guide-world .guide-search-input { font-size: clamp(1.125rem, 5vw, 1.25rem); }
-  .guide-world .guide-panel { border-inline: 0; box-shadow: none; max-block-size: calc(100dvh - var(--guide-sticky-size)); padding-inline: 1rem; }
+  .guide-world .guide-panel { border-inline: 0; box-shadow: none; inset-inline: 0; max-block-size: calc(100dvh - var(--guide-sticky-size)); padding-inline: 1rem; }
   /* The fixed report button would cover the footer's end, so the page ends below it. */
   html:has(#report:not([hidden])) .guide-world .site-footer { padding-block-end: calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem); }
   .guide-world .site-footer p { flex-wrap: wrap; justify-content: center; text-wrap: balance; }
