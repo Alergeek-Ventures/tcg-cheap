@@ -167,6 +167,10 @@ defmodule TcgCheap.Sealed.CardGuide do
     {results, length(rows) > @page_size, count}
   end
 
+  @doc "How many Polish shop cards a search finds, in stock or not, in an optional expansion."
+  def count(query, expansion),
+    do: Repo.aggregate(browse_query(%{query: query, expansion: expansion}), :count)
+
   # Exact collector numbers and name/set words outrank incidental substrings,
   # including when the query combines several identity fields.
   defp relevance(query) do
@@ -221,23 +225,65 @@ defmodule TcgCheap.Sealed.CardGuide do
     # Empty discovery lists only cards that can be bought now.
     query = if filters.query == "", do: where(query, [_, _, o], not is_nil(o.price)), else: query
 
-    filters.query
-    |> String.split(~r/\s+/, trim: true)
-    |> Enum.reduce(query, fn word, query ->
-      escaped = String.replace(word, ~r/[\\%_]/, fn char -> "\\" <> char end)
-      pattern = "%" <> escaped <> "%"
-      number = String.trim_leading(word, "0")
+    words = String.split(filters.query, ~r/\s+/, trim: true)
+    typos = typos(words)
 
-      where(
-        query,
-        [c, s],
-        ilike(c.name, ^pattern) or ilike(c.number, ^pattern) or
-          fragment("ltrim(?, '0') = ?", c.number, ^number) or
-          ilike(s.name, ^pattern) or ilike(s.abbreviation, ^pattern) or
-          ilike(s.tcgdex_id, ^pattern)
-      )
+    Enum.reduce(words, query, fn word, query ->
+      if word in typos, do: typo_filter(query, word), else: word_filter(query, word)
     end)
   end
+
+  defp word_filter(query, word) do
+    escaped = String.replace(word, ~r/[\\%_]/, fn char -> "\\" <> char end)
+    pattern = "%" <> escaped <> "%"
+    number = String.trim_leading(word, "0")
+
+    where(
+      query,
+      [c, s],
+      ilike(c.name, ^pattern) or ilike(c.number, ^pattern) or
+        fragment("ltrim(?, '0') = ?", c.number, ^number) or
+        ilike(s.name, ^pattern) or ilike(s.abbreviation, ^pattern) or
+        ilike(s.tcgdex_id, ^pattern)
+    )
+  end
+
+  # A misspelt card name, within one edit of a name word's start ("meoth"
+  # finds Meowth), through the names' ParadeDB index.
+  defp typo_filter(query, word),
+    do: where(query, [c], fragment("? &&& ?::text::pdb.fuzzy(1, t)", c.name, ^word))
+
+  # Shorter words are prefixes still being typed; one edit would match
+  # almost anything.
+  @min_typo_length 4
+
+  # A letters-only word that no card name and no set name, abbreviation or id
+  # holds is a typo. One that some card holds is meant as typed, even when no
+  # Polish shop sells that card.
+  defp typos(words) do
+    case Enum.filter(words, &typo_candidate?/1) do
+      [] ->
+        []
+
+      candidates ->
+        held =
+          candidates
+          |> Enum.with_index(1)
+          |> Enum.map_join(", ", fn {_word, index} ->
+            pattern = "'%' || $#{index}::text || '%'"
+
+            "EXISTS (SELECT 1 FROM sealed_tcgdex_cards WHERE name ILIKE #{pattern}) OR " <>
+              "EXISTS (SELECT 1 FROM sealed_tcgdex_sets WHERE name ILIKE #{pattern} " <>
+              "OR abbreviation ILIKE #{pattern} OR tcgdex_id ILIKE #{pattern})"
+          end)
+
+        %{rows: [found]} = Repo.query!("SELECT " <> held, candidates)
+        for {word, false} <- Enum.zip(candidates, found), do: word
+    end
+  end
+
+  defp typo_candidate?(word),
+    do: String.length(word) >= @min_typo_length and Regex.match?(~r/\A\p{L}+\z/u, word)
 
   @doc """
   The expansions of the cards a search finds, for the list's expansion filter:

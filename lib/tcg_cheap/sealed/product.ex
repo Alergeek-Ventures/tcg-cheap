@@ -25,6 +25,14 @@ defmodule TcgCheap.Sealed.Product do
       index [:region]
       index [:cardmarket_expansion_id]
     end
+
+    custom_statements do
+      # ParadeDB full-text index for `Preparations.Browse`.
+      statement :sealed_products_search_index do
+        up "CREATE INDEX sealed_products_search_index ON sealed_products USING paradedb (id, search_text)"
+        down "DROP INDEX sealed_products_search_index"
+      end
+    end
   end
 
   # The packaging photo, mirrored from the shop that offers the product or
@@ -163,7 +171,7 @@ defmodule TcgCheap.Sealed.Product do
     end
 
     read :browse do
-      description "Products for the public list: in stock in Poland first, then newest."
+      description "Products for the public list: in stock in Poland first, then pre-orders, then the best matches of a search, then newest."
       argument :query, :string, default: ""
       argument :kind, :atom, constraints: [one_of: Kinds.choices()]
       argument :region, :atom, constraints: [one_of: Regions.all()]
@@ -229,12 +237,7 @@ defmodule TcgCheap.Sealed.Product do
     attribute :set_name, :string, public?: true, constraints: [max_length: 200]
     attribute :cardmarket_added_on, :date, public?: true
     attribute :slug, :string, allow_nil?: false, public?: true, constraints: [max_length: 220]
-    # Untrimmed: the leading space lets every word be found as a prefix.
-    attribute :search_text, :string,
-      allow_nil?: false,
-      public?: true,
-      default: "",
-      constraints: [trim?: false]
+    attribute :search_text, :string, allow_nil?: false, public?: true, default: ""
 
     attribute :image_url, :string, public?: true, constraints: [max_length: 2_000]
     attribute :cardmarket_trend, :decimal, public?: true

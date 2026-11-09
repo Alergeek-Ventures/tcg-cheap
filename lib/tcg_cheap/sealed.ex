@@ -59,10 +59,11 @@ defmodule TcgCheap.Sealed do
 
     tool :search_products, Product, :browse do
       description """
-      Searches the sealed catalogue: every word of query must appear in the product name or set
-      (case and accents ignored), optionally of one kind. Products in stock come first, then the
-      newest. Use the returned id with assign_offer or set_product_eans. Pages use limit (at most
-      100) and offset.
+      Searches the sealed catalogue: every word of query must start a word of the product name or
+      set (case and accents ignored); a word of 4+ letters that no product holds is read as a typo
+      and matched within one edit. Optionally of one kind. Products in stock come first, then the
+      best matches, then the newest. Use the returned id with assign_offer or set_product_eans.
+      Pages use limit (at most 100) and offset.
       """
 
       action_parameters([:limit, :offset])
