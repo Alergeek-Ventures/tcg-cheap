@@ -88,7 +88,7 @@ defmodule TcgCheap.Storage.Config do
     env_name = Keyword.fetch!(opts, :env)
     port = runtime_value(runtime_values, env_name) || Keyword.get(opts, :default)
 
-    if blank?(port), do: nil, else: "http://localhost:#{port}"
+    if blank?(port), do: nil, else: "http://localhost:#{port}#{Keyword.get(opts, :path)}"
   end
 
   defp resolve_runtime_opt({:env, env_name}, runtime_values) when is_binary(env_name) do

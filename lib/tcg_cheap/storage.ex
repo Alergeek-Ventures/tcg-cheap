@@ -41,13 +41,16 @@ defmodule TcgCheap.Storage do
     end
   end
 
-  @doc "The active storage service as `{module, opts}`, with this worktree's local S3 port."
+  @doc "The active storage service as `{module, opts}`, with this worktree's local S3 and server ports."
   @spec service() :: {module(), keyword()}
   def service,
     do:
       :tcg_cheap
       |> Application.fetch_env!(:storage)
-      |> Config.service(%{"S3_PORT" => System.get_env("S3_PORT")})
+      |> Config.service(%{
+        "S3_PORT" => System.get_env("S3_PORT"),
+        "PORT" => System.get_env("PORT")
+      })
 
   @doc "Public URLs of already mirrored variants, resolved in one database read."
   @spec mirrored_image_urls([String.t()], :thumbnail | :detail) :: %{String.t() => String.t()}
@@ -64,13 +67,45 @@ defmodule TcgCheap.Storage do
   end
 
   @doc """
-  The origin public objects are served from, for the CSP image sources: the
-  service's `public_base_url`, else its `endpoint_url`, both configured as a
-  bare origin.
+  The origins pages load public objects from, for the CSP image sources: where
+  pages link them, and the bucket itself, which redirects cached before pages
+  linked our own `/img` route (`TcgCheapWeb.RemoteImageController`) still reach.
   """
-  @spec public_origin() :: String.t()
-  def public_origin do
-    {_module, opts} = service()
-    opts[:public_base_url] || opts[:endpoint_url]
+  @spec image_origins() :: [String.t()]
+  def image_origins do
+    {service, opts} = service()
+    context = Context.new(opts)
+
+    Enum.uniq([origin(service.public_base_url(context)), origin(service.bucket_url("", context))])
+  end
+
+  defp origin(url) do
+    %URI{scheme: scheme, host: host, port: port} = URI.parse(url)
+    to_string(%URI{scheme: scheme, host: host, port: port})
+  end
+
+  @doc """
+  The object path of a URL pages link a public object at (`service().url/2`),
+  else `:error`.
+  """
+  @spec object_path(String.t()) :: {:ok, String.t()} | :error
+  def object_path(url) when is_binary(url) do
+    base = public_base_url()
+
+    if String.starts_with?(url, base) and url != base,
+      do: {:ok, url |> String.replace_prefix(base, "") |> URI.decode()},
+      else: :error
+  end
+
+  @doc "Where an object path is read from: the bucket itself, whatever pages link to."
+  @spec bucket_url(String.t()) :: String.t()
+  def bucket_url(path) do
+    {service, opts} = service()
+    service.bucket_url(path, Context.new(opts))
+  end
+
+  defp public_base_url do
+    {service, opts} = service()
+    service.public_base_url(Context.new(opts))
   end
 end

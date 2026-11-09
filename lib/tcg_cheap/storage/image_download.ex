@@ -86,12 +86,16 @@ defmodule TcgCheap.Storage.ImageDownload do
      max(1, min(round(height * image_height / 100), image_height - top))}
   end
 
-  @doc "Downloads a stored variant, never following redirects away from our storage."
+  @doc """
+  Downloads a stored variant by the URL pages link it at, straight from the
+  bucket (not through our own `/img` route), never following redirects.
+  """
   @spec fetch_stored(term()) :: {:ok, binary(), String.t()} | {:error, term()}
   def fetch_stored(url) when is_binary(url) do
-    if String.starts_with?(url, TcgCheap.Storage.public_origin() <> "/"),
-      do: download(url, [], false),
-      else: {:error, :host_not_allowed}
+    case TcgCheap.Storage.object_path(url) do
+      {:ok, path} -> download(TcgCheap.Storage.bucket_url(path), [], false)
+      :error -> {:error, :host_not_allowed}
+    end
   end
 
   def fetch_stored(_url), do: {:error, :host_not_allowed}

@@ -179,13 +179,15 @@ defmodule TcgCheap.Sealed.Guide do
 
   # Cache sources, not object keys: replacing a mirrored image deletes the
   # previous objects, so each render resolves the currently stored variants.
+  # Logos show at most ~5.5rem tall, mostly as ~2rem expansion filter tiles:
+  # the thumbnail is sharp there, and half the bytes of a large logo's detail.
   defp logos do
     sources = cached(:logo_sources, &read_logo_sources/0)
 
     mirrored =
       sources
       |> Enum.map(&CardImage.source_hash(elem(&1, 1)))
-      |> TcgCheap.Storage.mirrored_image_urls(:detail)
+      |> TcgCheap.Storage.mirrored_image_urls(:thumbnail)
 
     # TCGdex last, so its mirrored logo replaces a set one.
     for {id, source} <- sources,
