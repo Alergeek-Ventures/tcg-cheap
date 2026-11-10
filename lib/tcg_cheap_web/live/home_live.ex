@@ -816,9 +816,18 @@ defmodule TcgCheapWeb.HomeLive do
     <section id="set-intro" class="guide-intro set-intro" aria-labelledby="guide-title">
       <div class="set-title site-title">
         <div class="site-title-text">
-          <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
+          <%!-- The card list's own question, as the products list asks its own. --%>
+          <h1 id="guide-title">
+            {if(@filters.mode == :cards,
+              do: gettext("Ile kosztuje ta karta?"),
+              else: gettext("Czy to dobra cena?")
+            )}
+          </h1>
           <p id="guide-promise">
-            {gettext("Najtańsze oferty Pokémon TCG w sklepach wysyłających do Polski.")}
+            {if(@filters.mode == :cards,
+              do: gettext("Najtańsze karty Pokémon TCG w sklepach wysyłających do Polski."),
+              else: gettext("Najtańsze oferty Pokémon TCG w sklepach wysyłających do Polski.")
+            )}
           </p>
         </div>
       </div>
@@ -1044,7 +1053,16 @@ defmodule TcgCheapWeb.HomeLive do
           <strong>{Polish.number(@singles.cheaper)}</strong>
           <span>{gettext("taniej niż na Cardmarket z wysyłką")}</span>
         </li>
-        <li :if={@top}>
+        <%!-- The whole guide's numbers match the products list's: in stock, cheaper, shops; the dearest card rounds out the phone grid. --%>
+        <li :if={@all?}>
+          <strong>{Polish.number(@singles.shops)}</strong>
+          <span>{ngettext(
+            "sklep z kartami na stanie",
+            "sklepy z kartami na stanie",
+            @singles.shops
+          )}</span>
+        </li>
+        <li :if={@top} class={@all? && "set-chase-fact-extra"}>
           <strong>{Polish.price(@top.price)}</strong>
           <span>{if(@all?,
             do: gettext("najcenniejsza na stanie: %{card}", card: @top.card.name),
@@ -1055,17 +1073,9 @@ defmodule TcgCheapWeb.HomeLive do
           <strong>{Polish.number(@singles.cheaper)}</strong>
           <span>{gettext("taniej niż na Cardmarket z wysyłką")}</span>
         </li>
-        <li :if={@all?} class="set-chase-fact-extra">
-          <strong>{Polish.number(@singles.shops)}</strong>
-          <span>{ngettext(
-            "sklep z kartami na stanie",
-            "sklepy z kartami na stanie",
-            @singles.shops
-          )}</span>
-        </li>
       </ul>
       <p class="set-chase-foot">
-        <span>{gettext("Ceny bez dostawy, z zagranicy z wysyłką.")}</span>
+        <span>{gettext("Ceny bez dostawy. Z zagranicy: z wysyłką do Polski.")}</span>
         <a href={@cards_href}>{gettext("Zobacz karty")}</a>
       </p>
     </div>
