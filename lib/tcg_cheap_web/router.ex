@@ -182,6 +182,7 @@ defmodule TcgCheapWeb.Router do
 
       live "/produkty/:slug", ProductLive
       live "/ile-kosztuje-booster-pokemon", BoosterPriceLive
+      live "/bot", BotLive
     end
 
     scope "/", TcgCheapWeb do
