@@ -14,9 +14,10 @@ defmodule TcgCheap.Sealed.FetchWorker do
   shop still refuses us. Other failures keep the default backoff.
 
   A failure on the last attempt is reported with `TcgCheap.Sealed.FetchFailure`:
-  an error the fetch returns by `perform/1`; a raise, crash or Oban timeout,
-  which never returns there, and a job the Lifeline discards as orphaned by the
-  Oban telemetry handler that `attach_failure_reports/0` attaches at app start.
+  an error the fetch returns by `perform/1`, and a raise, crash or Oban timeout,
+  which never returns there, by the Oban telemetry handler that
+  `attach_failure_reports/0` attaches at app start. A job the Lifeline discards
+  as orphaned is not reported: its telemetry carries no worker or arguments.
   """
 
   use Oban.Worker,
@@ -35,46 +36,50 @@ defmodule TcgCheap.Sealed.FetchWorker do
   alias TcgCheap.Sealed.{FetchFailure, Refresh, Shopify, Shops}
 
   @worker inspect(__MODULE__)
+  @failure_handler "sealed-fetch-failures"
 
-  @doc "Reports a last attempt that raised, crashed, timed out or was orphaned; at app start."
-  @spec attach_failure_reports() :: :ok | {:error, :already_exists}
+  @doc """
+  Attaches the handler that reports a last attempt that raised, crashed or
+  timed out; called at app start. Attaching again replaces the handler.
+  """
+  @spec attach_failure_reports() :: :ok
   def attach_failure_reports do
-    :telemetry.attach_many(
-      "sealed-fetch-failures",
-      [[:oban, :job, :exception], [:oban, :plugin, :stop]],
-      &__MODULE__.handle_failure_event/4,
-      nil
-    )
+    _detached = :telemetry.detach(@failure_handler)
+
+    case :telemetry.attach(
+           @failure_handler,
+           [:oban, :job, :exception],
+           &__MODULE__.handle_failure_event/4,
+           nil
+         ) do
+      :ok -> :ok
+      {:error, reason} -> Logger.warning("sealed fetch failures not reported: #{inspect(reason)}")
+    end
+  end
+
+  # :telemetry detaches a handler that raises, which would silently end these
+  # reports, so a failing report is only logged.
+  @doc false
+  def handle_failure_event(_event, _measurements, metadata, _config) do
+    report_failure(metadata)
+  catch
+    kind, reason ->
+      Logger.warning(
+        "sealed fetch failure not reported: #{Exception.format(kind, reason, __STACKTRACE__)}"
+      )
   end
 
   # An `{:error, reason}` from `perform/1` (`Oban.PerformError`) is already
   # reported by `refresh/2`, with the fetch's own reason.
-  @doc false
-  def handle_failure_event(
-        [:oban, :job, :exception],
-        _measurements,
-        %{job: %Oban.Job{worker: @worker, args: %{"shop" => key}} = job, reason: reason},
-        _config
-      )
-      when job.attempt >= job.max_attempts and not is_struct(reason, Oban.PerformError),
-      do: FetchFailure.report(:sealed, key, failure_reason(reason))
+  defp report_failure(%{
+         job: %Oban.Job{worker: @worker, args: %{"shop" => key}} = job,
+         reason: reason
+       })
+       when is_binary(key) and job.attempt >= job.max_attempts and
+              not is_struct(reason, Oban.PerformError),
+       do: FetchFailure.report(:sealed, key, failure_reason(reason))
 
-  def handle_failure_event(
-        [:oban, :plugin, :stop],
-        _measurements,
-        %{
-          plugin: Oban.Lifeline,
-          discarded_jobs: jobs
-        },
-        _config
-      ) do
-    for %Oban.Job{worker: @worker, args: %{"shop" => key}} <- jobs,
-        do: FetchFailure.report(:sealed, key, :orphaned)
-
-    :ok
-  end
-
-  def handle_failure_event(_event, _measurements, _metadata, _config), do: :ok
+  defp report_failure(_metadata), do: :ok
 
   defp failure_reason(%Oban.TimeoutError{}), do: :timeout
   defp failure_reason(exception), do: exception
