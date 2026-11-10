@@ -1870,27 +1870,32 @@ defmodule TcgCheap.Sealed.Shops do
   Nil for a shop abroad whose delivery price is unknown: it is only listed.
   """
   @spec compared_price(String.t(), Decimal.t()) :: Decimal.t() | nil
-  def compared_price(key, price) do
-    case fetch(key) do
-      {:ok, %Shop{country: country, shipping_from: shipping, free_shipping_from: free_from}}
-      when country != nil ->
-        cond do
-          shipping == nil -> nil
-          free_from && not Decimal.lt?(price, free_from) -> price
-          true -> Decimal.add(price, shipping)
-        end
+  def compared_price(key, price), do: shop_price(fetch(key), price)
 
-      # A Polish shop, or one no longer configured.
-      _polish ->
-        price
+  defp shop_price(
+         {:ok, %Shop{country: country, shipping_from: shipping, free_shipping_from: free_from}},
+         price
+       )
+       when country != nil do
+    cond do
+      shipping == nil -> nil
+      free_from && not Decimal.lt?(price, free_from) -> price
+      true -> Decimal.add(price, shipping)
     end
   end
+
+  # A Polish shop, or one no longer configured.
+  defp shop_price(_polish, price), do: price
 
   @doc "The offers that count in prices, each at its `compared_price/2`."
   @spec compared([offer]) :: [offer] when offer: %{shop: String.t(), price: Decimal.t()}
   def compared(offers) do
+    # Each shop is looked up once, not once per offer: the singles banner
+    # prices every card offer in stock.
+    shops = offers |> Enum.map(& &1.shop) |> Enum.uniq() |> Map.new(&{&1, fetch(&1)})
+
     for offer <- offers,
-        price = compared_price(offer.shop, offer.price),
+        price = shop_price(Map.fetch!(shops, offer.shop), offer.price),
         price != nil,
         do: %{offer | price: price}
   end
