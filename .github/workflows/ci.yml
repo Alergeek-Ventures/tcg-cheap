@@ -10,9 +10,12 @@ on:
 permissions:
   contents: read
 
+# A newer push cancels a pull request's run, but not main's: cancelling it
+# could stop a deploy halfway, or its rollback. Runs on main queue instead,
+# and a newer push only replaces one still waiting.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   database-image:
@@ -263,6 +266,7 @@ jobs:
           ref: d1f0dd1864e3b1b5830459787057408b587434f6
 
       - name: Deploy to Coolify
+        id: deploy
         uses: ./.av-secret-service/coolify-deploy
         with:
           infisical-identity-id: ${{ vars.INFISICAL_MACHINE_IDENTITY_ID }}
@@ -273,12 +277,27 @@ jobs:
 
       # Coolify's health check passes a release whose pages answer 500.
       # Exit code 1 means a page is broken, 2 that the check could not tell.
+      # Coolify builds main's head, which is newer than this run's commit
+      # when a push came in while this run waited or checked.
       - name: Check production pages
         id: pages
         timeout-minutes: 10
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          DEPLOYMENT: ${{ steps.deploy.outputs.deployment-uuid }}
         run: |
+          deployed="$(curl -fsS --retry 3 --max-time 30 \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            "$COOLIFY_API/deployments/$DEPLOYMENT" | jq -r .commit || true)"
+
+          if ! [[ "$deployed" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::warning::Coolify names no commit for its deployment (${deployed:-no answer}); expecting $GITHUB_SHA"
+            deployed="$GITHUB_SHA"
+          fi
+
+          echo "deployed=$deployed" >> "$GITHUB_OUTPUT"
           code=0
-          bash .github/scripts/check-production.sh "$GITHUB_SHA" || code=$?
+          bash .github/scripts/check-production.sh "$deployed" || code=$?
           echo "code=$code" >> "$GITHUB_OUTPUT"
           exit "$code"
 
@@ -288,7 +307,7 @@ jobs:
       - name: Roll back to the running revision
         if: >-
           failure() && steps.pages.outputs.code == '1' &&
-          steps.running.outputs.revision != '' && steps.running.outputs.revision != github.sha
+          steps.running.outputs.revision != '' && steps.running.outputs.revision != steps.pages.outputs.deployed
         timeout-minutes: 20
         env:
           COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
