@@ -1429,8 +1429,8 @@ msgstr "Prices exclude delivery; odds are estimates."
 
 #: lib/tcg_cheap_web/live/single_live.ex:265
 #, elixir-autogen, elixir-format
-msgid "Karta kosztuje w Polsce najwyżej 3 zł, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
-msgstr "The card costs at most 3 zł in Poland, and Cardmarket delivery costs more than the card itself, so this is a normal price."
+msgid "Karta kosztuje w sklepach najwyżej 3 zł, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
+msgstr "The card costs at most 3 zł in shops, and Cardmarket delivery costs more than the card itself, so this is a normal price."
 
 #: lib/tcg_cheap_web/live/home_live.ex:1580
 #, elixir-autogen, elixir-format

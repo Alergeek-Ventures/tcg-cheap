@@ -263,7 +263,7 @@ defmodule TcgCheapWeb.SingleLive do
                   </p>
                   <p :if={@primary.verdict == :pennies}>
                     {gettext(
-                      "Karta kosztuje w Polsce najwyżej 3 zł, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
+                      "Karta kosztuje w sklepach najwyżej 3 zł, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
                     )}
                   </p>
                   <p :if={@primary.variant == :special}>

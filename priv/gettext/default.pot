@@ -1436,7 +1436,7 @@ msgstr ""
 
 #: lib/tcg_cheap_web/live/single_live.ex:265
 #, elixir-autogen, elixir-format
-msgid "Karta kosztuje w Polsce najwyżej 3 zł, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
+msgid "Karta kosztuje w sklepach najwyżej 3 zł, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
 msgstr ""
 
 #: lib/tcg_cheap_web/live/home_live.ex:1580
