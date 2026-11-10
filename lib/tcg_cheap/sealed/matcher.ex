@@ -107,6 +107,8 @@ defmodule TcgCheap.Sealed.Matcher do
     {"china", "chinese"},
     {"chiny", "chinese"},
     {"chn", "chinese"},
+    # Like "KR": a bare "CN" marks a Chinese edition ("Booster (CN)").
+    {"cn", "chinese"},
     {"indonezyjski", "indonesian"},
     {"tajski", "thai"},
     {"niemiecki", "german"},

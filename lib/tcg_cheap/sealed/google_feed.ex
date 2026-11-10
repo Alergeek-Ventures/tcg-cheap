@@ -1,16 +1,17 @@
 defmodule TcgCheap.Sealed.GoogleFeed do
   @moduledoc """
-  Reads a shop's Google Merchant product feed (Atom with `g:` fields) at its
-  `feed_path` in one request. Shoper publishes it for the whole shop at
-  `/console/integration/execute/name/GoogleProductSearch`; such exports reach
-  tens of megabytes, so the response may be up to 64 MB.
+  Reads a shop's Google Merchant product feed (Atom, or RSS 2.0, with `g:`
+  fields) at its `feed_path` in one request. Shoper publishes it for the
+  whole shop at `/console/integration/execute/name/GoogleProductSearch`; such
+  exports reach tens of megabytes, so the response may be up to 64 MB.
 
   Configured `singles_categories` prefixes of `g:product_type` identify singles first,
   regardless of title; they use the same validation with a 0.10 zł minimum.
   Otherwise a product counts when it is sealed Pokémon
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on its title and
   `g:product_type`). Its price is `g:price`, or a lower `g:sale_price`
-  while `g:sale_price_effective_date` (if given) includes now, in PLN;
+  while `g:sale_price_effective_date` (if given) includes now, in the shop's
+  `currency`;
   `g:availability` "in stock" (or `in_stock`) is in stock, "out of stock",
   "preorder" and "backorder" are not; "preorder" is a pre-order (`preorder`).
   Shoper exports pre-orders as "in stock" too, with a `g:max_handling_time`
@@ -38,6 +39,9 @@ defmodule TcgCheap.Sealed.GoogleFeed do
     ["g:gtin"]
   ]
 
+  # Google accepts both formats; the root element tells them apart.
+  @rss_root ~r/\A\s*(?:<\?xml[^>]*\?>\s*)?<rss[\s>]/
+
   @impl true
   def image_hosts(%Shop{host: host}), do: [host]
 
@@ -47,10 +51,19 @@ defmodule TcgCheap.Sealed.GoogleFeed do
 
     with {:ok, response} <- ShopFeed.get(shop, shop.feed_path, [], req_options, opts),
          {:ok, entries} <-
-           XmlRecords.parse(response.body, ["feed", "entry"], @fields, &included?(&1, shop)) do
+           XmlRecords.parse(
+             response.body,
+             record_path(response.body),
+             @fields,
+             &included?(&1, shop)
+           ) do
       now = DateTime.utc_now()
       {:ok, ShopFeed.offers(shop, entries, &normalize(shop, now, &1))}
     end
+  end
+
+  defp record_path(body) do
+    if Regex.match?(@rss_root, body), do: ["rss", "channel", "item"], else: ["feed", "entry"]
   end
 
   # Products with an invalid title are kept for normalize/3 to count.
@@ -74,9 +87,15 @@ defmodule TcgCheap.Sealed.GoogleFeed do
     with {:ok, title} <- ShopFeed.title(text.("title")),
          {:ok, id} <- ShopFeed.product_id(text.("g:id")),
          {:ok, _uri} <- ShopFeed.https_url(text.("link"), [shop.host]),
-         {:ok, price} <- price(text.("g:price"), kind),
+         {:ok, price} <- price(text.("g:price"), shop.currency, kind),
          {:ok, sale_price} <-
-           sale_price(text.("g:sale_price"), text.("g:sale_price_effective_date"), now, kind),
+           sale_price(
+             text.("g:sale_price"),
+             text.("g:sale_price_effective_date"),
+             now,
+             shop.currency,
+             kind
+           ),
          {:ok, availability} <-
            availability(
              text.("g:availability"),
@@ -101,27 +120,27 @@ defmodule TcgCheap.Sealed.GoogleFeed do
     end
   end
 
-  defp price(value, kind) when is_binary(value) do
+  defp price(value, currency, kind) when is_binary(value) do
     case String.split(value, " ") do
-      [amount, "PLN"] -> ShopFeed.decimal_price(amount, kind)
+      [amount, ^currency] -> ShopFeed.decimal_price(amount, kind)
       _ -> :error
     end
   end
 
-  defp price(_value, _kind), do: :error
+  defp price(_value, _currency, _kind), do: :error
 
   # A "sale" price above the regular one is not a sale.
   defp lower(nil, price), do: price
   defp lower(sale_price, price), do: Decimal.min(sale_price, price)
 
-  defp sale_price(nil, _dates, _now, _kind), do: {:ok, nil}
-  defp sale_price(value, nil, _now, kind), do: price(value, kind)
+  defp sale_price(nil, _dates, _now, _currency, _kind), do: {:ok, nil}
+  defp sale_price(value, nil, _now, currency, kind), do: price(value, currency, kind)
 
-  defp sale_price(value, dates, now, kind) do
+  defp sale_price(value, dates, now, currency, kind) do
     with [from, to] <- String.split(dates, "/"),
          {:ok, from, _offset} <- DateTime.from_iso8601(from),
          {:ok, to, _offset} <- DateTime.from_iso8601(to),
-         {:ok, price} <- price(value, kind) do
+         {:ok, price} <- price(value, currency, kind) do
       if DateTime.compare(now, from) != :lt and DateTime.compare(now, to) != :gt,
         do: {:ok, price},
         else: {:ok, nil}

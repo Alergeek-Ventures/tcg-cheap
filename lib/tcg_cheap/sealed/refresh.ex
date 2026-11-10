@@ -17,7 +17,7 @@ defmodule TcgCheap.Sealed.Refresh do
 
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{CardRefresh, DailyPrice, Matcher, Offer, Shop}
+  alias TcgCheap.Sealed.{CardRefresh, DailyPrice, Matcher, Offer, Shop, Shops}
 
   # Matching reads names and set names; availability compares and updates
   # the rest. Kind and region stay for the product's validations.
@@ -48,7 +48,9 @@ defmodule TcgCheap.Sealed.Refresh do
 
       {:partial, sealed, reason} ->
         Logger.warning("singles fetch #{shop.key} failed: #{inspect(reason)}")
-        store_sealed(shop, Enum.map(sealed, &Map.drop(&1, [:kind, :category])), now)
+
+        with {:ok, sealed} <- in_pln(shop, sealed, now),
+             do: store_sealed(shop, Enum.map(sealed, &Map.drop(&1, [:kind, :category])), now)
 
       {:ok, fetched} ->
         {singles, sealed} = Enum.split_with(fetched, &(Map.get(&1, :kind) == :single))
@@ -56,6 +58,7 @@ defmodule TcgCheap.Sealed.Refresh do
         sealed = Enum.map(sealed, &Map.drop(&1, [:kind, :category]))
 
         with {:ok, singles} <- in_pln(shop, singles, now),
+             {:ok, sealed} <- in_pln(shop, sealed, now),
              {:ok, counts} <- store_sealed(shop, sealed, now),
              {:ok, card_counts} <- CardRefresh.run(shop, singles, now) do
           {:ok, Map.merge(counts, card_counts)}
@@ -117,12 +120,14 @@ defmodule TcgCheap.Sealed.Refresh do
     products = Sealed.list_products!(query: [select: @product_fields])
     rematch_offers(products)
 
+    # Shops abroad only appear in a product's offer list; its price "in
+    # Poland", history, availability and photo come from Polish shops.
     current =
       now
       |> Sealed.current_offers(:all,
         select: [:product_id, :price, :in_stock, :preorder, :image_url]
       )
-      |> Enum.filter(& &1.product_id)
+      |> Enum.filter(&(&1.product_id && &1.shop not in Shops.abroad_keys()))
 
     record_shop_prices(current, DateTime.to_date(now))
     update_products(products, current)
