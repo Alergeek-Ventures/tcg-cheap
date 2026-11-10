@@ -89,6 +89,7 @@ defmodule TcgCheapWeb.Router do
   # TcgCheapWeb.MarkdownNegotiation: no session, cookies or HTML.
   scope "/md", TcgCheapWeb do
     get "/", MarkdownController, :home
+    get "/karty", MarkdownController, :cards
     get "/ile-kosztuje-booster-pokemon", MarkdownController, :booster_prices
     get "/produkty/:slug", MarkdownController, :product
     get "/rozszerzenia/:slug", MarkdownController, :expansion
@@ -181,6 +182,8 @@ defmodule TcgCheapWeb.Router do
       pipe_through [:browser, :guide_locale]
 
       live "/produkty/:slug", ProductLive
+      # The card list, the products list's equal; its expansion stays a filter.
+      live "/karty", HomeLive, :cards
       live "/ile-kosztuje-booster-pokemon", BoosterPriceLive
       live "/bot", BotLive
     end

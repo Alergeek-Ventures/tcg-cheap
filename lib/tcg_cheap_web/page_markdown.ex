@@ -51,6 +51,15 @@ defmodule TcgCheapWeb.PageMarkdown do
     ])
   end
 
+  def cards(seo, cards, today) do
+    page(seo, today, [
+      section("Karty", [
+        "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepów za granicą z wysyłką) i ocena wobec Cardmarket z przesyłką. Pełna lista rozszerzeń: #{url(~p"/llms.txt")}",
+        cards_table(cards)
+      ])
+    ])
+  end
+
   def booster_prices(seo, page) do
     page(seo, page.today, [
       retail_deals("Okazje w sieciówkach", page.retail_deals),
@@ -236,6 +245,26 @@ defmodule TcgCheapWeb.PageMarkdown do
   defp stock(%{in_stock: true}), do: "na stanie"
   defp stock(%{preorder: true}), do: "przedsprzedaż"
   defp stock(_offer), do: "brak"
+
+  defp cards_table([]), do: "Brak kart na stanie."
+
+  defp cards_table(cards) do
+    table(
+      ["Karta", "Rozszerzenie", "Najtaniej", "Ocena"],
+      Enum.map(cards, fn row ->
+        [
+          link("#{row.card.name} #{row.card.number}", url_from_path(row.path)),
+          row.expansion_name,
+          if(row.offer,
+            do:
+              "#{Polish.price(row.offer.price)} w #{GuideComponents.priced_shop_name(row.offer)}",
+            else: "brak na stanie"
+          ),
+          GuideComponents.single_verdict_label(row.verdict)
+        ]
+      end)
+    )
+  end
 
   defp products_table([]), do: "Brak produktów."
 

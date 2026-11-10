@@ -8,6 +8,9 @@ defmodule TcgCheapWeb.HomeLive do
   A chosen expansion's list is its set page (`/rozszerzenia/<name>-<id>`, the
   Cardmarket expansion id; `?rozszerzenie=<id>` leads there): the answer for
   the set on top, its products, and the set's pull rates and cards.
+
+  The card list (`/karty`) is the same list of English single cards, with the
+  expansion as a filter (`?rozszerzenie=<id>`).
   """
 
   use TcgCheapWeb, :live_view
@@ -59,7 +62,6 @@ defmodule TcgCheapWeb.HomeLive do
   @impl true
   def handle_params(params, uri, socket) do
     filters = parse_filters(socket.assigns.live_action, params)
-    mode = filters.mode
 
     previous = socket.assigns[:filters]
     socket = socket |> list(filters) |> restore_list(uri)
@@ -70,15 +72,16 @@ defmodule TcgCheapWeb.HomeLive do
     at_set_page? = expansion && params["slug"] == Catalogue.slug(expansion.name, expansion.id)
 
     case {socket.assigns.live_action, expansion, at_set_page?} do
-      {:index, expansion, _at_set_page?} when mode == :cards ->
-        seo = SEO.home(params)
+      {:cards, expansion, _at_set_page?} ->
+        market = singles_market(expansion)
+        seo = SEO.cards(params, market)
 
         # A chosen expansion's cards open with the same banner as its set page.
         {:noreply,
          socket
          |> assign(
            set_page: expansion && set_page(socket, expansion),
-           market: singles_market(expansion),
+           market: market,
            seo: seo,
            page_title: seo.page_title
          )
@@ -121,7 +124,7 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   defp parse_filters(action, params) do
-    mode = if action == :index and params["widok"] == "karty", do: :cards, else: :products
+    mode = if action == :cards, do: :cards, else: :products
     expansion = expansion_param(action, params)
 
     %{
@@ -448,7 +451,6 @@ defmodule TcgCheapWeb.HomeLive do
         q: filters.query,
         rodzaj: filters.kind,
         wersja: region_value(filters),
-        widok: if(filters.mode == :cards, do: "karty"),
         rozszerzenie: if(filters.mode == :cards, do: filters.expansion)
       ]
       |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
@@ -457,7 +459,7 @@ defmodule TcgCheapWeb.HomeLive do
     base_path(filters) <> if(params == [], do: "", else: "?" <> URI.encode_query(params))
   end
 
-  defp base_path(%{mode: :cards}), do: ~p"/"
+  defp base_path(%{mode: :cards}), do: ~p"/karty"
 
   defp base_path(%{expansion: id, expansion_name: name}) when is_integer(id) and is_binary(name),
     do: SEO.expansion_path(id, name)
@@ -1573,7 +1575,6 @@ defmodule TcgCheapWeb.HomeLive do
                   }
                 />
               </div>
-              <input :if={@filters.mode == :cards} type="hidden" name="widok" value="karty" />
               <input
                 :if={@filters.mode == :cards and @filters.expansion}
                 type="hidden"

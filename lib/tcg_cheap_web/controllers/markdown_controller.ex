@@ -23,6 +23,15 @@ defmodule TcgCheapWeb.MarkdownController do
     send_markdown(conn, seo, PageMarkdown.home(seo, summaries, retail_deal, today))
   end
 
+  # The card list's first page, as the HTML opens without a search.
+  def cards(conn, _params) do
+    market = Guide.singles_market()
+    %{available: {cards, _more?, _count}} = Guide.card_discovery()
+    seo = SEO.cards(%{}, market)
+
+    send_markdown(conn, seo, PageMarkdown.cards(seo, cards, Date.utc_today()))
+  end
+
   def booster_prices(conn, _params) do
     page = Guide.booster_prices(DateTime.utc_now())
     seo = SEO.booster_prices(page)
