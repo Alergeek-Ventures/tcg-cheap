@@ -1,7 +1,8 @@
 defmodule TcgCheap.Sealed.DailyPrice do
   @moduledoc """
-  One product's prices on one day: the lowest in-stock price in Polish shops
-  (nil, with `shops_in_stock` zero, when no shop had it) and the Cardmarket
+  One product's prices on one day: the lowest in-stock price in shops (a shop
+  abroad's with delivery, `TcgCheap.Sealed.Shops.compared_price/2`; nil, with
+  `shops_in_stock` zero, when no shop had it) and the Cardmarket
   trend in EUR. Shop fetches and the catalogue import each write their own
   columns.
   """
@@ -47,7 +48,7 @@ defmodule TcgCheap.Sealed.DailyPrice do
     end
 
     read :last_stocked do
-      description "The latest day on which some Polish shop had the product."
+      description "The latest day on which some shop had the product."
       argument :product_id, :uuid, allow_nil?: false
       filter expr(product_id == ^arg(:product_id) and not is_nil(lowest_price))
       prepare build(sort: [date: :desc], limit: 1)

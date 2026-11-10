@@ -20,23 +20,27 @@ web
 A deliberately simple guide with two parts:
 
 1. **Zakupy (buying guide, live):** for any sealed Pokémon product, show where
-   it is cheapest in Polish shops right now and whether that price is good,
-   normal or expensive compared with what other Polish shops ask today, with
-   the product's recent prices as context.
+   it is cheapest in shops delivering to Poland right now and whether that
+   price is good, normal or expensive compared with what other shops ask
+   today, with the product's recent prices as context.
 2. **Wymiany (trading guide, next phase):** check whether a trade of single
    cards is fair.
 
 ## Positioning
 
 An honest, independent price check in Polish. Verdicts are based only on
-prices you can actually buy at (in-stock offers in Polish shops, falling back
-to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
+prices you can actually buy at (in-stock offers in Polish shops, and in shops
+abroad with their delivery to Poland, falling back to the Cardmarket trend),
+never on MSRP. Missing data is shown as missing.
 
 ## Operating Context
 
 - On a phone in a shop or at a fair: "is this price OK?" in seconds.
 - On desktop before buying online: compare shops and see the price history.
-- No accounts. Prices exclude shipping.
+- No accounts. Polish shops' prices exclude shipping; shops abroad count with
+  their cheapest delivery to Poland (owner decision, 2026-11-10: "liczyć jak
+  polskie, ale z przesyłką"), and their price says so. A shop abroad whose
+  delivery price is unknown is only listed.
 
 ## Capabilities and Constraints
 
@@ -47,7 +51,7 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   automatically; an administrator can assign the rest by hand. Each offer shows the shop's cheapest delivery,
   free-delivery threshold and pickup city where the shop publishes them.
 - Verdict: the cheapest in-stock price against today's market. Typical
-  price = median of the Polish shops' lowest in-stock prices (one per shop,
+  price = median of the shops' lowest in-stock prices (one per shop,
   at least 3 shops). Good ≤ 95%, normal ≤ 110%, expensive above; a good
   price must also be ≤ 95% of the 30-day usual price and of the Cardmarket
   trend in PLN plus a tracked parcel from Germany, when they are known (the
@@ -72,7 +76,8 @@ to the Cardmarket trend), never on MSRP. Missing data is shown as missing.
   the same way (a set without card prices shows its single booster instead).
   The page then lists the set's products with their verdicts, its pull rates
   and its cards. One card price is used everywhere: the lower of the cheapest
-  Polish shop offer and the Cardmarket trend in złoty, without delivery.
+  shop offer (abroad with delivery) and the Cardmarket trend in złoty,
+  without delivery.
   Pages state the answer in their first sentence and search metadata, so
   search engines and AI assistants can quote it.
 - The card list (`?widok=karty`) filters by expansion like the product list;

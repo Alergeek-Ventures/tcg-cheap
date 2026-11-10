@@ -356,7 +356,8 @@ defmodule TcgCheap.Sealed.Guide do
         offers =
           now
           |> Sealed.current_offers([product.id])
-          |> Enum.sort_by(&{not &1.in_stock, Decimal.to_float(&1.price), &1.shop})
+          # By the price compared in the verdict: a shop abroad's with delivery.
+          |> Enum.sort_by(&{not &1.in_stock, Shops.listing_price(&1), &1.shop})
 
         since = Date.add(today, -(@history_days - 1))
         history = Sealed.list_price_history!(product.id, since)
@@ -565,7 +566,7 @@ defmodule TcgCheap.Sealed.Guide do
   # product (half a booster box, a promo's other print) than a real deal.
   @deal_min_ratio Decimal.new("0.6")
 
-  # The singles banner: the card a Polish shop sells furthest under its
+  # The singles banner: the card a shop sells furthest under its
   # Cardmarket price with delivery to Poland (what a singles verdict
   # compares), how many of the set's cards are in stock in Poland and what the
   # whole set costs at the lower of the two prices.
@@ -666,7 +667,8 @@ defmodule TcgCheap.Sealed.Guide do
       Sealed.current_offers(now, :all, select: [:product_id, :in_stock])
       # Unmatched offers (accessories, other games) are no product of ours.
       |> Enum.filter(
-        &(&1.in_stock and not is_nil(&1.product_id) and &1.shop not in Shops.abroad_keys())
+        &(&1.in_stock and not is_nil(&1.product_id) and
+            &1.shop not in Shops.listed_only_keys())
       )
 
     summaries =
@@ -951,9 +953,10 @@ defmodule TcgCheap.Sealed.Guide do
   def to_pln(%Decimal{} = eur, %{rate: rate}), do: eur |> Decimal.mult(rate) |> Decimal.round(2)
   def to_pln(_eur, _rate), do: nil
 
-  # The verdict judges prices in Polish shops; shops abroad are only listed.
+  # The verdict judges each shop at its compared price: a shop abroad's
+  # includes delivery to Poland.
   defp summary(product, offers, rate, usual, {premieres, now}) do
-    offers = Enum.reject(offers, &(&1.shop in Shops.abroad_keys()))
+    offers = Shops.compared(offers)
     in_stock = Enum.filter(offers, & &1.in_stock)
     preorders = Enum.filter(offers, & &1.preorder)
     # With nothing in stock, pre-orders are rated the same way.

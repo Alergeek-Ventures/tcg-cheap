@@ -1,7 +1,7 @@
 defmodule TcgCheap.Sealed.Product do
   @moduledoc """
   One sealed product from the Cardmarket catalogue, with its latest Cardmarket
-  price (EUR) and the current Polish shop availability derived from offers.
+  price (EUR) and the current shop availability derived from offers.
   """
 
   use Ash.Resource,

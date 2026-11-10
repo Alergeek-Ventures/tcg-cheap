@@ -62,7 +62,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
               <p id="booster-prices-answer" class="guide-note">
                 {gettext("%{product} w %{shop} · najnowszy set, %{set}: od %{price}",
                   product: cheapest.product.name,
-                  shop: shop_name(cheapest.verdict.cheapest),
+                  shop: priced_shop_name(cheapest.verdict.cheapest),
                   set: hd(@page.boosters).product.set_name,
                   price: Polish.price(hd(@page.boosters).verdict.cheapest.price)
                 )}
@@ -86,7 +86,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
             aria-labelledby="booster-prices-shops-title"
           >
             <div class="product-section-heading">
-              <h2 id="booster-prices-shops-title">{gettext("Boostery w polskich sklepach")}</h2>
+              <h2 id="booster-prices-shops-title">{gettext("Boostery w sklepach")}</h2>
               <p>{gettext("angielskie, najnowsze sety najpierw")}</p>
             </div>
             <ul id="booster-prices-list" class="guide-products">
@@ -118,7 +118,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
                   </div>
                   <div class="guide-product-deal">
                     <span :if={summary.verdict.cheapest} class="guide-product-shop">
-                      {shop_name(summary.verdict.cheapest)}
+                      {priced_shop_name(summary.verdict.cheapest)}
                     </span>
                     <p :if={summary.verdict.cheapest} class="guide-product-price">
                       <strong>{Polish.price(summary.verdict.cheapest.price)}</strong>
@@ -129,7 +129,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
             </ul>
             <p class="guide-note">
               {gettext(
-                "Najniższa cena na stanie w polskich sklepach internetowych, bez dostawy. Ocenę ceny znajdziesz na stronie boostera."
+                "Najniższa cena na stanie w sklepach internetowych, bez dostawy (z zagranicy z wysyłką). Ocenę ceny znajdziesz na stronie boostera."
               )}
             </p>
           </section>

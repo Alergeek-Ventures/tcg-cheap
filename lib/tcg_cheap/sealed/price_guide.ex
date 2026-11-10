@@ -3,8 +3,8 @@ defmodule TcgCheap.Sealed.PriceGuide do
   Judges the cheapest price you can buy a product at right now, twice.
 
   `verdict/3` is the guide's answer: is it a good price today? The typical
-  price is the median of today's prices in Polish shops, one per shop (its
-  lowest in-stock offer), when at least 3 shops have the product. A price
+  price is the median of today's shop prices, one per shop (its lowest
+  in-stock offer, a shop abroad's with delivery), when at least 3 shops have the product. A price
   is good up to 95% of it, normal up to 110%, and expensive above that, so
   the cheapest offer is good when it clearly undercuts the typical shop.
   A good price must also be at most 95% of each known reference: the usual

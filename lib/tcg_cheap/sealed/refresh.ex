@@ -119,14 +119,15 @@ defmodule TcgCheap.Sealed.Refresh do
     products = Sealed.list_products!(query: [select: @product_fields])
     rematch_offers(products)
 
-    # Shops abroad only appear in a product's offer list; its price "in
-    # Poland", history, availability and photo come from Polish shops.
+    # A shop abroad counts at its price with delivery to Poland; one with an
+    # unknown delivery price is only listed.
     current =
       now
       |> Sealed.current_offers(:all,
         select: [:product_id, :price, :in_stock, :preorder, :image_url]
       )
-      |> Enum.filter(&(&1.product_id && &1.shop not in Shops.abroad_keys()))
+      |> Enum.filter(& &1.product_id)
+      |> Shops.compared()
 
     record_shop_prices(current, DateTime.to_date(now))
     update_products(products, current)

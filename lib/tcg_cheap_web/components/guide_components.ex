@@ -614,7 +614,7 @@ defmodule TcgCheapWeb.GuideComponents do
       </div>
       <div class="guide-product-deal">
         <span :if={@summary.verdict.cheapest} class="guide-product-shop">
-          {shop_name(@summary.verdict.cheapest)}
+          {priced_shop_name(@summary.verdict.cheapest)}
         </span>
         <%!-- Too few shops for a verdict: the row shows only the price; the product page says why. --%>
         <.verdict_badge
@@ -656,6 +656,36 @@ defmodule TcgCheapWeb.GuideComponents do
 
   @spec shop_name(map()) :: String.t()
   def shop_name(%{shop: shop}), do: Shops.name(shop)
+
+  @doc """
+  The shop of a compared price (`Shops.compared/1`), saying when the price
+  includes delivery from abroad: "Bangerpack, z wysyłką ze Szwecji".
+  """
+  @spec priced_shop_name(map()) :: String.t()
+  def priced_shop_name(offer) do
+    case delivered_term(offer) do
+      nil -> shop_name(offer)
+      term -> shop_name(offer) <> ", " <> term
+    end
+  end
+
+  @doc "\"z wysyłką ze Szwecji\" for a compared price from a shop abroad, else nil."
+  @spec delivered_term(map()) :: String.t() | nil
+  def delivered_term(%{shop: key}) do
+    case Shops.fetch(key) do
+      {:ok, %{country: country}} -> delivered_from(country)
+      :error -> nil
+    end
+  end
+
+  defp delivered_from(nil), do: nil
+  defp delivered_from("NL"), do: gettext("z wysyłką z Holandii")
+  defp delivered_from("DE"), do: gettext("z wysyłką z Niemiec")
+  defp delivered_from("BE"), do: gettext("z wysyłką z Belgii")
+  defp delivered_from("GB"), do: gettext("z wysyłką z Wielkiej Brytanii")
+  defp delivered_from("SE"), do: gettext("z wysyłką ze Szwecji")
+  defp delivered_from("DK"), do: gettext("z wysyłką z Danii")
+  defp delivered_from("CZ"), do: gettext("z wysyłką z Czech")
 
   @doc """
   A Cardmarket price in złoty behind the Cardmarket logo, the one mark for a
@@ -997,7 +1027,10 @@ defmodule TcgCheapWeb.GuideComponents do
           {if(@preorder?,
             do: gettext("najtaniej w przedsprzedaży w"),
             else: gettext("najtaniej teraz w")
-          )} <strong>{shop_name(@offer)}</strong>
+          )}
+          <strong>{shop_name(@offer)}</strong><span :if={delivered_term(@offer)}>, {delivered_term(
+            @offer
+          )}</span>
         </p>
       </div>
       <a
