@@ -20,6 +20,7 @@ let searchSent = false
 
 const pageType = path => {
   if (path === "/") return "home"
+  if (path === "/karty") return "cards"
   if (path.startsWith("/produkty/")) return "product"
   if (path === "/ile-kosztuje-booster-pokemon") return "booster_prices"
   if (/^\/rozszerzenia\/[^/]+\/karty\//.test(path)) return "card"

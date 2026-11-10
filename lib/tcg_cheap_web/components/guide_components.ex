@@ -83,7 +83,7 @@ defmodule TcgCheapWeb.GuideComponents do
           <h2 id="site-footer-pages-title">{gettext("Ważne linki")}</h2>
           <ul class="site-footer-links">
             <li><.link navigate={~p"/"}>{gettext("Ceny produktów")}</.link></li>
-            <li><.link navigate={~p"/?widok=karty"}>{gettext("Ceny kart")}</.link></li>
+            <li><.link navigate={~p"/karty"}>{gettext("Ceny kart")}</.link></li>
             <li>
               <.link navigate={~p"/ile-kosztuje-booster-pokemon"}>
                 {gettext("Ile kosztuje booster Pokémon?")}

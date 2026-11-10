@@ -9,15 +9,15 @@ defmodule TcgCheapWeb.SEO do
 
   def home(params) do
     metadata(
-      gettext("Pokémon TCG – porównywarka cen boosterów i boxów"),
+      gettext("Pokémon TCG – ceny kart, boosterów i boxów"),
       gettext(
-        "Porównaj ceny Pokémon TCG w sklepach wysyłających do Polski. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
+        "Porównaj ceny Pokémon TCG w sklepach wysyłających do Polski. Sprawdź oferty boosterów, ETB, boxów i angielskich kart, historię cen i czy warto kupić teraz."
       ),
       url(~p"/"),
       social_image: home_image(),
       social_image_alt: home_image_alt(),
       robots:
-        if(Enum.any?(~w(q rodzaj wersja rozszerzenie widok), &Map.has_key?(params, &1)),
+        if(Enum.any?(~w(q rodzaj wersja rozszerzenie), &Map.has_key?(params, &1)),
           do: "noindex, follow",
           else: "index, follow"
         ),
@@ -34,6 +34,51 @@ defmodule TcgCheapWeb.SEO do
         ]
       }
     )
+  end
+
+  # The card list stands beside the products list as its equal: people search
+  # for card prices as much as for boosters. Narrowed by a search or an
+  # expansion it stays out of search, as the products list does.
+  def cards(params, market) do
+    canonical = url(~p"/karty")
+
+    metadata(
+      gettext("Ceny kart Pokémon TCG w Polsce"),
+      fit_description(card_list_answer(market)),
+      canonical,
+      social_image: home_image(),
+      social_image_alt: home_image_alt(),
+      robots:
+        if(Enum.any?(~w(q rozszerzenie), &Map.has_key?(params, &1)),
+          do: "noindex, follow",
+          else: "index, follow"
+        ),
+      structured_data: %{
+        "@context" => "https://schema.org",
+        "@type" => "CollectionPage",
+        "name" => gettext("Ceny kart Pokémon TCG w Polsce"),
+        "url" => canonical
+      }
+    )
+  end
+
+  # A chosen expansion's list has no market of its own; it is not indexed.
+  defp card_list_answer(nil),
+    do: [gettext("Angielskie karty Pokémon TCG w sklepach wysyłających do Polski.")]
+
+  defp card_list_answer(market) do
+    [
+      gettext(
+        "Angielskie karty Pokémon TCG w sklepach wysyłających do Polski: %{cards} na stanie.",
+        cards: Polish.plural(market.in_stock, "karta", "karty", "kart")
+      ),
+      market.cheaper > 0 &&
+        gettext("%{count} z nich taniej niż na Cardmarket z przesyłką.",
+          count: Polish.number(market.cheaper)
+        ),
+      gettext("Najniższa cena i ocena każdej karty.")
+    ]
+    |> Enum.filter(&is_binary/1)
   end
 
   # People ask what a booster costs, also in the chains ("ile kosztuje booster
@@ -146,7 +191,7 @@ defmodule TcgCheapWeb.SEO do
     canonical = expansion_url(id, name)
 
     metadata(
-      fit_title(expansion_titles(name, page.set)),
+      fit_title(expansion_titles(name, page)),
       fit_description(expansion_answer(name, page)),
       canonical,
       social_image: home_image(),
@@ -172,21 +217,51 @@ defmodule TcgCheapWeb.SEO do
     )
   end
 
-  defp expansion_titles(name, %{pull_rates: %{}}),
+  # A set whose cards Polish shops sell is searched for its card prices too,
+  # and for its boosters' when it has one.
+  defp expansion_titles(name, %{set: %{singles: %{in_stock: in_stock}} = set, booster: nil})
+       when in_stock > 0,
+       do:
+         Enum.filter(
+           [
+             set.pull_rates && gettext("%{expansion} – ceny kart i drop rate", expansion: name),
+             gettext("%{expansion} – ceny kart Pokémon TCG", expansion: name),
+             gettext("%{expansion} – ceny kart", expansion: name),
+             name
+           ],
+           &is_binary/1
+         )
+
+  defp expansion_titles(name, %{set: %{singles: %{in_stock: in_stock}} = set})
+       when in_stock > 0,
+       do:
+         Enum.filter(
+           [
+             set.pull_rates &&
+               gettext("%{expansion} – ceny kart i boosterów, drop rate", expansion: name),
+             gettext("%{expansion} – ceny kart i boosterów Pokémon TCG", expansion: name),
+             gettext("%{expansion} – ceny kart i boosterów", expansion: name),
+             gettext("%{expansion} – ceny kart", expansion: name),
+             name
+           ],
+           &is_binary/1
+         )
+
+  defp expansion_titles(name, %{set: %{pull_rates: %{}}}),
     do: [
       gettext("%{expansion} – ceny, drop rate i lista kart Pokémon TCG", expansion: name),
       gettext("%{expansion} – ceny, drop rate i lista kart", expansion: name),
       name
     ]
 
-  defp expansion_titles(name, %{rarities: [_ | _]}),
+  defp expansion_titles(name, %{set: %{rarities: [_ | _]}}),
     do: [
       gettext("%{expansion} – ceny i lista kart Pokémon TCG", expansion: name),
       gettext("%{expansion} – ceny i lista kart", expansion: name),
       name
     ]
 
-  defp expansion_titles(name, _set),
+  defp expansion_titles(name, _page),
     do: [
       gettext("%{expansion} – ceny boosterów, ETB i boxów Pokémon TCG", expansion: name),
       gettext("%{expansion} – ceny boosterów, ETB i boxów", expansion: name),
