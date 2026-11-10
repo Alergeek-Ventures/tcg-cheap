@@ -25,6 +25,14 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
   `.server.port`, so they reach the current worktree. The remote servers in
   `opencode.json` (PostHog, Sentry) are still OpenCode-only; do not expect
   them in Claude Code or Codex.
+- OpenSEO (hosted SEO research, project `tcg.cheap`) reaches every harness as
+  the global `gw-openseo` gateway server; we do not use its plugin or skills.
+  Free reads (account, projects, project context, Search Console data) are
+  fine; ask the owner before any call that spends credits. Its data is input,
+  not direction: check every recommendation against [PRODUCT.md](PRODUCT.md)
+  (honest prices, no MSRP verdicts, missing data shown as missing) and never
+  add thin mass pages, keyword stuffing or invented ratings. Keep SEO notes
+  out of the repo.
 
 ## Project conventions
 
