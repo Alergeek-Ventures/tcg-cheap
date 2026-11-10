@@ -63,6 +63,11 @@ defmodule TcgCheap.Sealed.Matcher do
     {"eu version", ""},
     # A shop's tag line; "produkt" alone may still mean something ("produkt opóźniony").
     {"produkt kolekcjonerski", ""},
+    # Smyk's tag line ("…, gra karciana w puszce, dodatek"); "dodatek" (expansion)
+    # names no product either.
+    {"gra karciana w puszce", ""},
+    {"gra karciana", ""},
+    {"dodatek", ""},
     # A display of boosters is what Cardmarket calls a booster box; other
     # displays ("Mini Tin Display", "Build & Battle Box Display") keep the word.
     {"booster box display", "booster box"},
