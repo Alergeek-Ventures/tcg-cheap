@@ -1723,7 +1723,8 @@ defmodule TcgCheap.Sealed.Shops do
       currency: "EUR",
       country: "SE",
       max_pages: 1,
-      # €10.99 to Poland in its checkout for a €1.99 cart (2026-11-10).
+      # €10.99 to Poland in its checkout for a €1.99 cart (2026-11-10): a lower
+      # bound, a heavier parcel (a booster box) may cost more.
       shipping_from: Decimal.new("48.25"),
       free_shipping_from: nil,
       pickup_city: nil
@@ -1809,9 +1810,10 @@ defmodule TcgCheap.Sealed.Shops do
       singles_only: true,
       country: "SE",
       max_pages: 80,
-      # 99 SEK tracked letter to the EU, free from 799 SEK.
+      # 99 SEK tracked letter to the EU, free from 799 SEK (319.60 zł, rounded
+      # up so no order is shown with free delivery it does not get).
       shipping_from: Decimal.new("39.40"),
-      free_shipping_from: Decimal.new("318"),
+      free_shipping_from: Decimal.new("320"),
       pickup_city: nil
     },
     %Shop{

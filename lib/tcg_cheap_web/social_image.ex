@@ -69,7 +69,7 @@ defmodule TcgCheapWeb.SocialImage do
   @doc "The promise under the home card's headline."
   @spec home_promise() :: String.t()
   def home_promise,
-    do: gettext("Ceny Pokémon TCG z polskich sklepów, sprawdzane codziennie.")
+    do: gettext("Ceny Pokémon TCG ze sklepów wysyłających do Polski, sprawdzane codziennie.")
 
   @doc "The home card: the promise and the verdict scale."
   @spec home() :: {:ok, binary()} | {:error, term()}

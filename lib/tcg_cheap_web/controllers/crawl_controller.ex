@@ -106,7 +106,7 @@ defmodule TcgCheapWeb.CrawlController do
     body = """
     # TCG Cheap
 
-    > Niezależna porównywarka cen Pokémon TCG w polskich sklepach: dla każdego produktu zamkniętego (boostery, booster boxy, Elite Trainer Boxy, puszki, kolekcje) i angielskiej karty pokazuje, gdzie jest teraz najtaniej i czy to dobra cena.
+    > Niezależna porównywarka cen Pokémon TCG w sklepach wysyłających do Polski: dla każdego produktu zamkniętego (boostery, booster boxy, Elite Trainer Boxy, puszki, kolekcje) i angielskiej karty pokazuje, gdzie jest teraz najtaniej i czy to dobra cena.
 
     #{Enum.join(PageMarkdown.method(), " ")} Bez kont. Strona jest po polsku.
 
@@ -114,7 +114,7 @@ defmodule TcgCheapWeb.CrawlController do
 
     ## Strony
 
-    - [Strona główna](#{PageMarkdown.url_for(url(~p"/"))}): produkty na stanie w polskich sklepach z najniższą ceną i oceną
+    - [Strona główna](#{PageMarkdown.url_for(url(~p"/"))}): produkty na stanie w sklepach z najniższą ceną i oceną
     - [Ile kosztuje booster Pokémon](#{PageMarkdown.url_for(url(~p"/ile-kosztuje-booster-pokemon"))}): najtańszy angielski booster każdego z ostatnich setów i okazje w sieciówkach (Lidl, Rossmann, Żabka…)
 
     ## Rozszerzenia

@@ -11,7 +11,7 @@ defmodule TcgCheapWeb.SEO do
     metadata(
       gettext("Pokémon TCG – porównywarka cen boosterów, ETB i boxów"),
       gettext(
-        "Porównaj ceny Pokémon TCG w polskich sklepach. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
+        "Porównaj ceny Pokémon TCG w sklepach wysyłających do Polski. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
       ),
       url(~p"/"),
       social_image: home_image(),
@@ -167,7 +167,7 @@ defmodule TcgCheapWeb.SEO do
       [] ->
         [
           gettext(
-            "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w polskich sklepach.",
+            "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Polski.",
             expansion: name
           )
         ]

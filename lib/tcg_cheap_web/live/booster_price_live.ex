@@ -65,7 +65,8 @@ defmodule TcgCheapWeb.BoosterPriceLive do
                   shop: priced_shop_name(cheapest.verdict.cheapest),
                   set: hd(@page.boosters).product.set_name,
                   price: Polish.price(hd(@page.boosters).verdict.cheapest.price)
-                )}
+                )
+                |> glue_short_words()}
               </p>
             <% else %>
               <p id="booster-prices-answer">{SEO.booster_answer(@page)}</p>
