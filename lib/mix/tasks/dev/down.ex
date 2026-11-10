@@ -9,15 +9,15 @@ defmodule Mix.Tasks.Dev.Down do
 
   def run(_args) do
     env = Shared.load_env()
-    branch = env["BRANCH"]
-    session = Shared.session(branch)
+    # The Phoenix tmux session is named after the project.
+    project = Shared.project(env["BRANCH"])
 
     if System.find_executable("tmux"),
-      do: System.cmd("tmux", ["kill-session", "-t", session], stderr_to_stdout: true)
+      do: System.cmd("tmux", ["kill-session", "-t", project], stderr_to_stdout: true)
 
     stop_fallback_server()
 
-    Shared.compose(["-p", Shared.project(branch), "down"], Map.to_list(env))
+    Shared.compose(["-p", project, "down"], Map.to_list(env))
   end
 
   defp stop_fallback_server do

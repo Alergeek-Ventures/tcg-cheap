@@ -3,6 +3,7 @@ defmodule Mix.Tasks.Dev.Shared do
 
   @compose_file "local/compose.yml"
   @non_word ~r/[^a-z0-9]+/
+  @ansi_sgr ~r/\e\[[0-9;]*m/
   @dotenv_assignment ~r/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/
 
   def sanitize_branch(branch) when is_binary(branch) do
@@ -32,7 +33,6 @@ defmodule Mix.Tasks.Dev.Shared do
   end
 
   def worktree_id(_), do: "main"
-  def session(branch), do: "tcg-cheap-#{worktree_id(branch)}"
 
   def parse_dotenv(content) when is_binary(content) do
     content
@@ -142,7 +142,35 @@ defmodule Mix.Tasks.Dev.Shared do
     end
   end
 
-  def project(branch), do: "tcg-cheap-#{worktree_id(branch)}"
+  @doc """
+  The compose project of this worktree's containers, else the name derived from
+  BRANCH. BRANCH can change after `dev.up` (a renamed branch, a BRANCH
+  variable), so the containers are found by the compose file directory that
+  compose labels them with.
+  """
+  def project(branch), do: container_project() || "tcg-cheap-#{worktree_id(branch)}"
+
+  defp container_project do
+    working_dir = Path.expand(Path.dirname(@compose_file))
+
+    case container([
+           "ps",
+           "--all",
+           "--filter",
+           "label=com.docker.compose.project.working_dir=#{working_dir}",
+           "--format",
+           ~s({{.Label "com.docker.compose.project"}})
+         ]) do
+      {output, 0} ->
+        output
+        |> String.replace(@ansi_sgr, "")
+        |> String.split("\n", trim: true)
+        |> Enum.find(&String.starts_with?(&1, "tcg-cheap-"))
+
+      {output, status} ->
+        Mix.raise("listing containers failed (exit #{status}):\n#{output}")
+    end
+  end
 
   @doc "Runs the container runtime itself (`podman ps`, `podman exec`, …)."
   def container(args) do

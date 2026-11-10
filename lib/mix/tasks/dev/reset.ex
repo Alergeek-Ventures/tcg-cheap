@@ -5,8 +5,10 @@ defmodule Mix.Tasks.Dev.Reset do
 
   @shortdoc "Stop local services and remove this worktree's database volume"
   def run(args) do
-    Mix.Task.run("dev.down", args)
     env = Shared.load_env()
-    Shared.compose(["-p", Shared.project(env["BRANCH"]), "down", "-v"], Map.to_list(env))
+    # Before dev.down removes the containers that identify the project.
+    project = Shared.project(env["BRANCH"])
+    Mix.Task.run("dev.down", args)
+    Shared.compose(["-p", project, "down", "-v"], Map.to_list(env))
   end
 end
