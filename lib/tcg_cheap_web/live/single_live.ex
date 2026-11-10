@@ -32,7 +32,7 @@ defmodule TcgCheapWeb.SingleLive do
                DateTime.utc_now()
              ),
            seo: seo,
-           page_title: seo.title,
+           page_title: seo.page_title,
            counts: Map.new(groups, fn {k, v} -> {k, length(v)} end)
          )
          |> VisitorLocation.assign_location()

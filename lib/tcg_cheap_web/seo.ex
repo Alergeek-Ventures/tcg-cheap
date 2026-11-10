@@ -9,7 +9,7 @@ defmodule TcgCheapWeb.SEO do
 
   def home(params) do
     metadata(
-      gettext("Pokémon TCG – porównywarka cen boosterów, ETB i boxów"),
+      gettext("Pokémon TCG – porównywarka cen boosterów i boxów"),
       gettext(
         "Porównaj ceny Pokémon TCG w sklepach wysyłających do Polski. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
       ),
@@ -42,8 +42,8 @@ defmodule TcgCheapWeb.SEO do
     canonical = url(~p"/ile-kosztuje-booster-pokemon")
 
     metadata(
-      gettext("Ile kosztuje booster Pokémon? Aktualne ceny w Polsce"),
-      Enum.join(booster_answer(page), " "),
+      gettext("Ile kosztuje booster Pokémon? Ceny w Polsce"),
+      fit_description(booster_answer(page)),
       canonical,
       social_image: home_image(),
       social_image_alt: home_image_alt(),
@@ -146,8 +146,8 @@ defmodule TcgCheapWeb.SEO do
     canonical = expansion_url(id, name)
 
     metadata(
-      expansion_title(name, page.set),
-      Enum.join(expansion_answer(name, page), " "),
+      fit_title(expansion_titles(name, page.set)),
+      fit_description(expansion_answer(name, page)),
       canonical,
       social_image: home_image(),
       social_image_alt: home_image_alt(),
@@ -172,14 +172,26 @@ defmodule TcgCheapWeb.SEO do
     )
   end
 
-  defp expansion_title(name, %{pull_rates: %{}}),
-    do: gettext("%{expansion} – ceny, drop rate i lista kart Pokémon TCG", expansion: name)
+  defp expansion_titles(name, %{pull_rates: %{}}),
+    do: [
+      gettext("%{expansion} – ceny, drop rate i lista kart Pokémon TCG", expansion: name),
+      gettext("%{expansion} – ceny, drop rate i lista kart", expansion: name),
+      name
+    ]
 
-  defp expansion_title(name, %{rarities: [_ | _]}),
-    do: gettext("%{expansion} – ceny i lista kart Pokémon TCG", expansion: name)
+  defp expansion_titles(name, %{rarities: [_ | _]}),
+    do: [
+      gettext("%{expansion} – ceny i lista kart Pokémon TCG", expansion: name),
+      gettext("%{expansion} – ceny i lista kart", expansion: name),
+      name
+    ]
 
-  defp expansion_title(name, _set),
-    do: gettext("%{expansion} – ceny boosterów, ETB i boxów Pokémon TCG", expansion: name)
+  defp expansion_titles(name, _set),
+    do: [
+      gettext("%{expansion} – ceny boosterów, ETB i boxów Pokémon TCG", expansion: name),
+      gettext("%{expansion} – ceny boosterów, ETB i boxów", expansion: name),
+      name
+    ]
 
   @doc """
   The set page's answer, in sentences, for its top and its search snippet:
@@ -297,7 +309,7 @@ defmodule TcgCheapWeb.SEO do
       end
 
     metadata(
-      product_title(page),
+      fit_title(product_titles(page)),
       description,
       canonical,
       social_image:
@@ -376,19 +388,31 @@ defmodule TcgCheapWeb.SEO do
 
     [lead, comparison(verdict) | set_content(page)]
     |> Enum.reject(&is_nil/1)
-    |> Enum.join(" ")
+    |> fit_description()
   end
 
   # A single booster's page also holds its set's pull rates and cards, which
   # people search for by name ("<set> drop rate", "<set> lista kart").
-  defp product_title(%{booster_set: %{pull_rates: %{}}, product: product}),
-    do: gettext("%{name} – cena, drop rate i lista kart", name: product.name)
+  defp product_titles(%{booster_set: %{pull_rates: %{}}, product: product}),
+    do: [
+      gettext("%{name} – cena, drop rate i lista kart", name: product.name),
+      gettext("%{name} – cena", name: product.name),
+      product.name
+    ]
 
-  defp product_title(%{booster_set: %{rarities: [_ | _]}, product: product}),
-    do: gettext("%{name} – cena i lista kart", name: product.name)
+  defp product_titles(%{booster_set: %{rarities: [_ | _]}, product: product}),
+    do: [
+      gettext("%{name} – cena i lista kart", name: product.name),
+      gettext("%{name} – cena", name: product.name),
+      product.name
+    ]
 
-  defp product_title(%{product: product}),
-    do: gettext("%{name} – ceny i oferty Pokémon TCG", name: product.name)
+  defp product_titles(%{product: product}),
+    do: [
+      gettext("%{name} – ceny i oferty Pokémon TCG", name: product.name),
+      gettext("%{name} – ceny i oferty", name: product.name),
+      product.name
+    ]
 
   defp set_content(%{booster_set: %{rarities: [_ | _] = rarities} = set}) do
     cards = Enum.sum_by(rarities, &length(&1.cards))
@@ -441,13 +465,15 @@ defmodule TcgCheapWeb.SEO do
 
     description =
       if answer do
-        gettext(
-          "%{name} %{number}: od %{price} w sklepach wysyłających do Polski. %{verdict}. Ceny, stan i warianty karty.",
-          name: card.name,
-          number: card.number,
-          price: Polish.price(answer.cheapest.price),
-          verdict: GuideComponents.single_verdict_label(answer.verdict)
-        )
+        fit_description([
+          gettext("%{name} %{number}: od %{price} w sklepach wysyłających do Polski.",
+            name: card.name,
+            number: card.number,
+            price: Polish.price(answer.cheapest.price)
+          ),
+          GuideComponents.single_verdict_label(answer.verdict) <> ".",
+          gettext("Ceny, stan i warianty karty.")
+        ])
       else
         gettext(
           "%{name} %{number}: brak ofert bez gradingu na stanie w sklepach. Sprawdź referencję Cardmarket i pozostałe oferty.",
@@ -456,12 +482,14 @@ defmodule TcgCheapWeb.SEO do
         )
       end
 
+    card_name = "#{card.name} #{card.number} #{page.expansion_name}"
+
     metadata(
-      gettext("%{name} %{number} %{set} – cena karty Pokémon w Polsce",
-        name: card.name,
-        number: card.number,
-        set: page.expansion_name
-      ),
+      fit_title([
+        gettext("%{card} – cena karty Pokémon w Polsce", card: card_name),
+        gettext("%{card} – cena karty Pokémon", card: card_name),
+        card_name
+      ]),
       description,
       canonical,
       # Matches CardGuide.sitemap_cards/0: a card without an offer leaves the index until one returns.
@@ -543,9 +571,37 @@ defmodule TcgCheapWeb.SEO do
       else: product
   end
 
+  # Search results show about 60 characters of a title and 160 of a
+  # description and cut the rest. A page lists its title from the fullest to
+  # the shortest form; the description keeps the first sentences that fit, so
+  # the answer always stays.
+  @title_limit 60
+  @description_limit 160
+  @brand " · TCG Cheap"
+
+  defp fit_title(titles),
+    do: Enum.find(titles, List.last(titles), &(String.length(&1) <= @title_limit))
+
+  defp fit_description([first | rest]) do
+    Enum.reduce_while(rest, first, fn sentence, description ->
+      longer = description <> " " <> sentence
+
+      if String.length(longer) <= @description_limit,
+        do: {:cont, longer},
+        else: {:halt, description}
+    end)
+  end
+
+  # The browser tab's and the search result's title, with our name when it fits.
+  defp page_title(title) do
+    branded = title <> @brand
+    if String.length(branded) <= @title_limit, do: branded, else: title
+  end
+
   defp metadata(title, description, canonical, opts) do
     %{
       title: title,
+      page_title: page_title(title),
       description: description,
       canonical: canonical,
       # nil leaves the alternate link without an href.

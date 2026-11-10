@@ -23,7 +23,7 @@ defmodule TcgCheapWeb.BotLive do
     {:ok,
      assign(socket,
        seo: seo,
-       page_title: seo.title,
+       page_title: seo.page_title,
        contact: @contact,
        shop_count: length(Shops.all())
      )}

@@ -11,7 +11,7 @@
         data-proxy-paths={Jason.encode!(posthog.proxy_paths)}
       />
     <% end %>
-    <.live_title default="TCG Cheap" suffix=" · TCG Cheap" phx-no-format>{assigns[:page_title]}</.live_title>
+    <.live_title default="TCG Cheap" phx-no-format>{assigns[:page_title]}</.live_title>
     <%= if assigns[:seo] do %>
       <TcgCheapWeb.SEO.head seo={@seo} />
     <% else %>
