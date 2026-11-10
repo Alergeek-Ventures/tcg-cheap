@@ -11,6 +11,9 @@ defmodule TcgCheap.Sealed.Shops do
   the shops' own pages on 2026-10-31; nil means the shop does not publish it.
   Card Gallery and PokeCoffee delivery pages were checked on 2026-11-03.
   Card Gallery publishes pickup in Kraków; PokeCoffee publishes no pickup or free threshold.
+  Smyk and Empik delivery pages were checked on 2026-11-10; both chains also
+  deliver to their own stores for free, which a single pickup city cannot show,
+  so their delivery facts are the cheapest delivery to a parcel point.
   Pickup store coordinates were geocoded from the store addresses with
   OpenStreetMap Nominatim on 2026-11-01.
 
@@ -26,7 +29,7 @@ defmodule TcgCheap.Sealed.Shops do
   Morion Games and Hearts Pub have only their favicons (taken 2026-11-02):
   Morion's header image is a banner and Hearts Pub sits behind a bot check.
   The logos of the shops added for singles, and of those that had none, were
-  taken on 2026-11-07, the same way.
+  taken on 2026-11-07, the same way; Smyk's and Empik's on 2026-11-10.
   """
 
   alias TcgCheap.Pricing.ExchangeRate
@@ -36,6 +39,7 @@ defmodule TcgCheap.Sealed.Shops do
     CeneoFeed,
     Chasedex,
     Collectify,
+    Empik,
     GildiaGrodzisk,
     GoogleFeed,
     Guildmage,
@@ -56,6 +60,7 @@ defmodule TcgCheap.Sealed.Shops do
     SingleTcg,
     SkyShop,
     Smajk,
+    Smyk,
     Sote,
     WooCommerce
   }
@@ -1244,6 +1249,28 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 5,
       shipping_from: nil,
       free_shipping_from: Decimal.new("300"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "smyk",
+      name: "Smyk",
+      host: "www.smyk.com",
+      source: Smyk,
+      feed_path: "/pl/pl/zabawki-gry/pokemon-tcg.html",
+      max_pages: 1,
+      shipping_from: Decimal.new("8.99"),
+      free_shipping_from: Decimal.new("199"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "empik",
+      name: "Empik",
+      host: "www.empik.com",
+      source: Empik,
+      feed_path: "/zabawki/karty-kolekcjonerskie,3777,s",
+      max_pages: 10,
+      shipping_from: Decimal.new("10.99"),
+      free_shipping_from: Decimal.new("250"),
       pickup_city: nil
     },
     %Shop{
