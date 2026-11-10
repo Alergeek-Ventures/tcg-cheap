@@ -104,7 +104,6 @@ defmodule TcgCheap.Sealed.CardGuide do
 
   def browse(filters, offset) do
     query = browse_query(filters)
-    count = Repo.aggregate(query, :count)
     search = String.downcase(filters.query)
     relevance = relevance(filters.query)
 
@@ -124,16 +123,24 @@ defmodule TcgCheap.Sealed.CardGuide do
         do: [desc_nulls_last: dynamic([_, _, _, p], p.trend)] ++ order,
         else: order
 
+    # The sort already reads every matching card, so the window counts them
+    # in the same pass.
     rows =
       from([c, s, o, p] in query,
         order_by: ^order,
         offset: ^offset,
         limit: ^(@page_size + 1),
-        select: %{card: c, set: s, price: o.price, trend: p.trend}
+        select: %{card: c, set: s, price: o.price, trend: p.trend, count: over(count())}
       )
       |> Repo.all()
 
-    page = Enum.take(rows, @page_size)
+    count =
+      case rows do
+        [%{count: count} | _] -> count
+        [] -> 0
+      end
+
+    page = rows |> Enum.take(@page_size) |> Enum.map(&Map.delete(&1, :count))
     ids = Enum.map(page, & &1.set.cardmarket_expansion_id)
     numbers = Enum.map(page, & &1.card.number)
     collisions = collision_ids(ids, numbers)
@@ -198,7 +205,31 @@ defmodule TcgCheap.Sealed.CardGuide do
     end)
   end
 
+  # A search or an expansion picks its cards first, through the cards'
+  # indexes, and only their current offers are grouped; a search of a few
+  # hundred cards never groups the offers of all of them.
   defp browse_query(filters) do
+    words = String.split(filters.query, ~r/\s+/, trim: true)
+    expansion = Map.get(filters, :expansion)
+
+    query =
+      from(c in TcgdexCard,
+        join: s in TcgdexSet,
+        on: c.tcgdex_set_id == s.id,
+        join: o in subquery(card_offers(words, expansion)),
+        on: o.card_id == c.id,
+        left_join: p in CardPrice,
+        on: p.cardmarket_id == c.cardmarket_id,
+        where: s.language == "en" and not is_nil(s.cardmarket_expansion_id)
+      )
+      |> stock_filter(Map.get(filters, :stock))
+
+    # Empty discovery lists only cards that can be bought now.
+    if filters.query == "", do: where(query, [_, _, o], not is_nil(o.price)), else: query
+  end
+
+  # Per card, the lowest in-stock price of its current, ungraded Polish offers.
+  defp card_offers(words, expansion) do
     offers =
       from(o in subquery(compared_query()),
         where: is_nil(o.grading),
@@ -206,45 +237,55 @@ defmodule TcgCheap.Sealed.CardGuide do
         select: %{card_id: o.card_id, price: min(o.price) |> filter(o.in_stock)}
       )
 
-    query =
+    # As an array, the matching cards reach their offers through the offers'
+    # card index instead of a scan of every offer.
+    if words == [] and is_nil(expansion),
+      do: offers,
+      else:
+        where(
+          offers,
+          [o],
+          fragment("? = ANY(ARRAY(?))", o.card_id, subquery(matching_cards(words, expansion)))
+        )
+  end
+
+  defp matching_cards(words, expansion) do
+    typos = typos(words)
+
+    cards =
       from(c in TcgdexCard,
         join: s in TcgdexSet,
         on: c.tcgdex_set_id == s.id,
-        join: o in subquery(offers),
-        on: o.card_id == c.id,
-        left_join: p in CardPrice,
-        on: p.cardmarket_id == c.cardmarket_id,
-        where: s.language == "en" and not is_nil(s.cardmarket_expansion_id)
+        select: c.id
       )
+      |> expansion_filter(expansion)
 
-    query =
-      query
-      |> stock_filter(Map.get(filters, :stock))
-      |> expansion_filter(Map.get(filters, :expansion))
-
-    # Empty discovery lists only cards that can be bought now.
-    query = if filters.query == "", do: where(query, [_, _, o], not is_nil(o.price)), else: query
-
-    words = String.split(filters.query, ~r/\s+/, trim: true)
-    typos = typos(words)
-
-    Enum.reduce(words, query, fn word, query ->
+    Enum.reduce(words, cards, fn word, query ->
       if word in typos, do: typo_filter(query, word), else: word_filter(query, word)
     end)
   end
 
+  # Every condition is on the card itself, the set's ones as a list of set
+  # ids, so that Postgres combines the cards' trigram and number indexes.
   defp word_filter(query, word) do
     escaped = String.replace(word, ~r/[\\%_]/, fn char -> "\\" <> char end)
     pattern = "%" <> escaped <> "%"
     number = String.trim_leading(word, "0")
 
+    sets =
+      from(s in TcgdexSet,
+        where:
+          ilike(s.name, ^pattern) or ilike(s.abbreviation, ^pattern) or
+            ilike(s.tcgdex_id, ^pattern),
+        select: s.id
+      )
+
     where(
       query,
-      [c, s],
+      [c],
       ilike(c.name, ^pattern) or ilike(c.number, ^pattern) or
         fragment("ltrim(?, '0') = ?", c.number, ^number) or
-        ilike(s.name, ^pattern) or ilike(s.abbreviation, ^pattern) or
-        ilike(s.tcgdex_id, ^pattern)
+        fragment("? = ANY(ARRAY(?))", c.tcgdex_set_id, subquery(sets))
     )
   end
 
