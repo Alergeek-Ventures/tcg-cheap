@@ -11,10 +11,12 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
   Requests go only to the shop's fixed HTTPS host (its `feed_host`, when
   set), one at a time with a short pause before each (several shops refuse
-  quick successive requests; a client may ask for a longer one), follow no redirects and read at most 5 MB per
-  page, or more where a client asks for it (a whole-shop XML export). A
-  rate-limited request (429) is repeated once after the shop's `Retry-After`
-  when that is short; otherwise the fetch fails and
+  quick successive requests; a client may ask for a longer one), follow no
+  redirects and read at most 5 MB per page, or more where a client asks for
+  it (a whole-shop XML export); a client may also have them signed
+  (`TcgCheap.WebBotAuth`). A rate-limited request (429) is repeated once
+  after the shop's `Retry-After` when that is short (a client may allow a
+  longer wait); otherwise the fetch fails and
   `TcgCheap.Sealed.FetchWorker` retries it minutes later. Every product field
   is untrusted: products with an invalid id, title, URL, price or availability
   are skipped and counted in a warning. Any transport, status, pagination or
@@ -25,9 +27,10 @@ defmodule TcgCheap.Sealed.ShopFeed do
   require Logger
 
   alias TcgCheap.Sealed.{Matcher, Shop}
+  alias TcgCheap.WebBotAuth
 
   @request_pause_ms 1_000
-  # Kept short: a Shopify fetch may wait once per request (up to 7 requests),
+  # Kept short by default: a wait holds up the shops queued behind this one,
   # and the job must stay within its 5-minute timeout.
   @rate_limit_delay_ms 10_000
   @max_retry_after_ms 10_000
@@ -75,17 +78,22 @@ defmodule TcgCheap.Sealed.ShopFeed do
   GETs `path` on the shop's host (or `feed_host`), after a pause
   (`pause_ms`, default #{@request_pause_ms} ms), and returns the 200 response with its raw body, at
   most `max_body_bytes` long (default 5 MB), over the HTTP `protocols` given
-  (default HTTP/1.1).
+  (default HTTP/1.1). With `sign: true` the request is signed with Web Bot
+  Auth; a 429 is retried after a `Retry-After` of at most
+  `max_retry_after_ms` (default #{@max_retry_after_ms} ms).
   """
   @spec get(Shop.t(), String.t(), keyword(), keyword(), [
           {:max_body_bytes, pos_integer()}
+          | {:max_retry_after_ms, pos_integer()}
           | {:pause_ms, pos_integer()}
           | {:protocols, [:http1 | :http2]}
+          | {:sign, boolean()}
         ]) ::
           {:ok, Req.Response.t()} | {:error, term()}
   def get(%Shop{} = shop, path, params, req_options, opts \\ []) do
     host = shop.feed_host || shop.host
     max_body_bytes = Keyword.get(opts, :max_body_bytes, @max_body_bytes)
+    max_retry_after_ms = Keyword.get(opts, :max_retry_after_ms, @max_retry_after_ms)
 
     request =
       Req.new(
@@ -97,9 +105,10 @@ defmodule TcgCheap.Sealed.ShopFeed do
         connect_options: [timeout: 5_000, protocols: Keyword.get(opts, :protocols, [:http1])],
         receive_timeout: 15_000,
         redirect: false,
-        retry: &retry_rate_limited/2,
+        retry: &retry_rate_limited(&1, &2, max_retry_after_ms),
         max_retries: 1
       )
+      |> sign(Keyword.get(opts, :sign, false))
       |> Req.merge(req_options)
 
     Process.sleep(Keyword.get(opts, :pause_ms, @request_pause_ms))
@@ -112,17 +121,23 @@ defmodule TcgCheap.Sealed.ShopFeed do
     end
   end
 
-  # Waits in the job only when the shop asks for a short pause (or names
-  # none); a longer one would hold up the shops queued behind it.
-  defp retry_rate_limited(_request, %Req.Response{status: 429} = response) do
+  # A request step, so a retry is signed afresh.
+  defp sign(request, true),
+    do: Req.Request.append_request_steps(request, web_bot_auth: &WebBotAuth.sign/1)
+
+  defp sign(request, false), do: request
+
+  # Waits in the job only when the shop asks for a pause the client allows (or
+  # names none); a longer one would hold up the shops queued behind it.
+  defp retry_rate_limited(_request, %Req.Response{status: 429} = response, max_retry_after_ms) do
     case retry_after(response) do
       nil -> {:delay, @rate_limit_delay_ms}
-      delay when delay <= @max_retry_after_ms -> {:delay, delay}
+      delay when delay <= max_retry_after_ms -> {:delay, delay}
       _long -> false
     end
   end
 
-  defp retry_rate_limited(_request, _response_or_exception), do: false
+  defp retry_rate_limited(_request, _response_or_exception, _max_retry_after_ms), do: false
 
   defp retry_after(response) do
     Req.Response.get_retry_after(response)

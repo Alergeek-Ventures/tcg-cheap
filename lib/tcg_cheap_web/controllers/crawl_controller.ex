@@ -3,6 +3,7 @@ defmodule TcgCheapWeb.CrawlController do
 
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{CardGuide, Guide, Shops}
+  alias TcgCheap.WebBotAuth
   alias TcgCheapWeb.{PageMarkdown, Polish, SEO}
 
   def sitemap(conn, _params) do
@@ -145,5 +146,20 @@ defmodule TcgCheapWeb.CrawlController do
     conn
     |> put_resp_content_type("text/plain")
     |> send_resp(200, body)
+  end
+
+  # The public key our requests to shops are signed with (TcgCheap.WebBotAuth),
+  # itself signed for the authority it was asked at, as the directory draft
+  # requires; only on our own host, so no other site can pass it off as its own.
+  def signatures_directory(conn, _params) do
+    with true <- conn.host == TcgCheapWeb.Endpoint.host(),
+         {:ok, body, headers} <- conn |> request_url() |> URI.parse() |> WebBotAuth.directory() do
+      conn
+      |> merge_resp_headers(headers)
+      |> put_resp_content_type("application/http-message-signatures-directory+json", nil)
+      |> send_resp(200, body)
+    else
+      _no_directory -> send_resp(conn, 404, "")
+    end
   end
 end
