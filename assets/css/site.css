@@ -147,7 +147,7 @@
 .guide-world .fluent-icon { display: inline-block; flex: 0 0 auto; height: 1.1rem; width: 1.1rem; }
 .guide-world .guide-main { margin: 0 auto; max-width: 72rem; padding: 2rem 1rem 3rem; }
 .guide-world .guide-intro { margin-bottom: 1.25rem; }
-.guide-world #guide-title { font-size: clamp(2rem, 5vw, 2.5rem); letter-spacing: -.04em; line-height: 1; }
+.guide-world :is(#guide-title, #bot-title) { font-size: clamp(2rem, 5vw, 2.5rem); letter-spacing: -.04em; line-height: 1; }
 .guide-world #guide-promise { margin: .5rem 0 0; max-width: 52ch; }
 /* The bar: the query and the catalogue in one sticky row; the menus hang from all of it. It is
    framed and shadowed like the menu, so an open menu reads as one card with it. Its bench hides
@@ -876,6 +876,56 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .booster-prices-intro .verdict-price { margin-block-start: .75rem; }
 .guide-world .booster-prices-intro .guide-note { font-size: 1rem; margin: 0; }
 .guide-world .booster-prices .guide-products + .guide-note { margin-block-start: .5rem; }
+/* The bot page, for shop owners. One object with an ink shadow, the booster sheet beside the
+   title; the numbers and the bot's identity are flat paper, the opt-out a dashed clip; orange
+   only on what a shop owner clicks. */
+.guide-world .bot-page > :not(.guide-back) { max-inline-size: 46rem; }
+.guide-world .bot-intro { align-items: center; display: grid; gap: 1.25rem 1.5rem; grid-template-areas: "art title" "lead lead" "numbers numbers"; grid-template-columns: min(30%, 7rem) minmax(0, 1fr); }
+.guide-world .bot-intro-art { aspect-ratio: 63 / 88; background: var(--paper); box-shadow: .35rem .35rem 0 var(--ink); display: grid; grid-area: art; padding: 8% 6%; rotate: -2deg; }
+.guide-world .bot-intro-art img { block-size: 100%; display: block; inline-size: 100%; min-block-size: 0; object-fit: contain; }
+.guide-world .bot-intro #bot-title { grid-area: title; }
+.guide-world .bot-lead { grid-area: lead; margin: 0; }
+/* Three short numbers side by side, never two and one. */
+.guide-world .bot-intro .set-chase-facts { grid-area: numbers; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 39.99rem) { .guide-world .bot-intro .set-chase-facts li { padding: .75rem; } }
+@media (min-width: 40rem) {
+  .guide-world .bot-intro { grid-template-areas: "art title" "art lead" "numbers numbers"; grid-template-columns: 11rem minmax(0, 1fr); }
+  .guide-world .bot-intro #bot-title { align-self: end; }
+  .guide-world .bot-lead { align-self: start; }
+}
+/* Wide screens: the numbers stand in a column on the right, as on the home page. */
+@media (min-width: 64rem) {
+  .guide-world .bot-page > .bot-intro { grid-template-areas: "art title numbers" "art lead numbers"; grid-template-columns: 11rem minmax(0, 34rem) minmax(14rem, 1fr); max-inline-size: none; }
+  .guide-world .bot-intro .set-chase-facts { align-self: stretch; grid-auto-rows: 1fr; grid-template-columns: minmax(0, 1fr); }
+}
+.guide-world .bot-page section:not(.bot-intro) { margin-block-start: 2.5rem; }
+.guide-world .bot-page h2 { border-block-end: 1px solid var(--rule); font-size: clamp(1.5rem, 3vw, 1.75rem); line-height: 1; padding-block-end: .5rem; }
+.guide-world .bot-page :is(.bot-card, .bot-clip) h2 { border: 0; padding: 0; }
+.guide-world .bot-page :is(section > p, .bot-points) { margin-block: .75rem 0; }
+.guide-world .bot-page code { font-family: inherit; }
+/* Icons stand in for bullets, quiet in one column. */
+.guide-world .bot-points { display: grid; gap: .75rem; list-style: none; padding: 0; }
+.guide-world .bot-points li { display: grid; gap: .75rem; grid-template-columns: 1.25rem minmax(0, 1fr); }
+.guide-world .bot-page :is(.bot-points, .bot-facts a, #bot-contact-email) .fluent-icon { block-size: 1.25rem; inline-size: 1.25rem; }
+.guide-world .bot-points .fluent-icon { color: var(--muted); margin-block-start: .2rem; }
+.guide-world .bot-page :is(.bot-facts a, #bot-contact-email) .fluent-icon { color: var(--orange); }
+/* The bot's identity: a flat evidence slip. */
+.guide-world .bot-card { background: var(--paper); padding: 1.25rem clamp(1rem, 4vw, 1.5rem); }
+.guide-world .bot-facts dt { color: var(--muted); font-size: .875rem; margin-block-start: .75rem; }
+.guide-world .bot-facts dd { margin: 0; overflow-wrap: anywhere; }
+.guide-world .bot-facts dd span { color: var(--muted); display: block; font-size: .875rem; }
+/* The opt-out on a dashed leaflet clip, the one thing to do here. */
+.guide-world .bot-clip { background: var(--paper); border: 2px dashed color-mix(in oklch, var(--ink) 55%, transparent); padding: 1.25rem clamp(1rem, 4vw, 1.75rem); }
+.guide-world .bot-owner { margin-block-start: 1.5rem; }
+.guide-world .bot-page :is(section, .bot-owner) a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .2em; }
+.guide-world .bot-page :is(section, .bot-owner) a:active { color: var(--orange); }
+/* The address to write to and the keys are what a shop owner acts on: 48px targets. */
+.guide-world .bot-page :is(#bot-contact-email, .bot-facts a) { display: inline-flex; gap: .5rem; min-block-size: 3rem; }
+/* The key stays by the first line of an address that wraps. */
+.guide-world .bot-facts a { align-items: flex-start; padding-block-start: .6rem; }
+.guide-world .bot-facts a .fluent-icon { margin-block-start: .2rem; }
+.guide-world #bot-contact-email { align-items: center; text-decoration-color: var(--orange); text-decoration-thickness: 2px; }
+@media (hover: hover) and (pointer: fine) { .guide-world .bot-page :is(section, .bot-owner) a:hover { color: var(--orange); } }
 /* The banner's box art hangs below it; the chain deals under it keep clear of it. */
 .guide-world #home-booster-prices { margin-block: 3rem 1rem; }
 

@@ -68,6 +68,41 @@ defmodule TcgCheapWeb.SEO do
     )
   end
 
+  # For shop owners and the bot registries that link to it; it has no
+  # markdown version.
+  def bot do
+    canonical = url(~p"/bot")
+
+    metadata(
+      gettext("Bot TCG Cheap – informacje dla sklepów"),
+      gettext(
+        "Jak bot TCG Cheap czyta publiczne listy produktów sklepów, jak go rozpoznać i jak poprosić, żeby przestał."
+      ),
+      canonical,
+      markdown: nil,
+      social_image: home_image(),
+      social_image_alt: home_image_alt(),
+      structured_data: %{
+        "@context" => "https://schema.org",
+        "@type" => "BreadcrumbList",
+        "itemListElement" => [
+          %{
+            "@type" => "ListItem",
+            "position" => 1,
+            "name" => gettext("Wszystkie produkty"),
+            "item" => url(~p"/")
+          },
+          %{
+            "@type" => "ListItem",
+            "position" => 2,
+            "name" => gettext("Bot TCG Cheap"),
+            "item" => canonical
+          }
+        ]
+      }
+    )
+  end
+
   @doc """
   The booster price page's answer, in sentences: the cheapest booster of the
   recent English sets in a Polish shop today and the newest set's booster.
@@ -513,7 +548,8 @@ defmodule TcgCheapWeb.SEO do
       title: title,
       description: description,
       canonical: canonical,
-      markdown: PageMarkdown.url_for(canonical),
+      # nil leaves the alternate link without an href.
+      markdown: Keyword.get_lazy(opts, :markdown, fn -> PageMarkdown.url_for(canonical) end),
       robots: Keyword.get(opts, :robots, "index, follow"),
       social_image: Keyword.fetch!(opts, :social_image),
       social_image_alt: Keyword.fetch!(opts, :social_image_alt),
@@ -581,7 +617,9 @@ defmodule TcgCheapWeb.SEO do
             else element.removeAttribute("content")
           }
           document.getElementById("seo-canonical").setAttribute("href", seo.canonical)
-          document.getElementById("seo-markdown").setAttribute("href", seo.markdown)
+          const markdown = document.getElementById("seo-markdown")
+          if (seo.markdown) markdown.setAttribute("href", seo.markdown)
+          else markdown.removeAttribute("href")
           document.getElementById("seo-structured-data").textContent = JSON.stringify(seo.structured_data)
         },
       }
