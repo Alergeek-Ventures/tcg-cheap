@@ -75,14 +75,24 @@ defmodule TcgCheap.Sealed.Am76 do
   defp request(shop, req_options, number) do
     with {:ok, response} <- ShopFeed.get(shop, shop.feed_path, [p: number], req_options),
          {:ok, document} <- ShopFeed.html(%{response | body: decode(response.body)}),
-         {:ok, current, count} <- pager(document) do
+         {:ok, current, count} <- pager(document),
+         {:ok, category} <- category(document) do
       {:ok,
        %{
          products: Floki.find(document, "div.panel.popover-info-opis"),
-         category: document |> Floki.find("h1") |> Floki.text() |> String.trim(),
+         category: category,
          number: current,
          count: count
        }}
+    end
+  end
+
+  # The category heading names the sealed filter's category; a page without it
+  # is not the listing.
+  defp category(document) do
+    case document |> Floki.find("h1") |> Floki.text() |> String.trim() do
+      "" -> {:error, :malformed_listing}
+      category -> {:ok, category}
     end
   end
 
