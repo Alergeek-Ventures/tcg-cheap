@@ -1,7 +1,7 @@
 defmodule TcgCheap.Sealed.Shops do
   @moduledoc """
   The shops whose product feeds the buying guide reads, fixed in code (Polish
-  shops, and shops abroad read only for their singles, see
+  shops, and shops abroad listed apart from the prices in Polish shops, see
   `TcgCheap.Sealed.Shop`):
   where and how to read each feed (see `TcgCheap.Sealed.Shop`) and the
   delivery facts shown next to its offers. The owner agreed recurring
@@ -29,7 +29,8 @@ defmodule TcgCheap.Sealed.Shops do
   Morion Games and Hearts Pub have only their favicons (taken 2026-11-02):
   Morion's header image is a banner and Hearts Pub sits behind a bot check.
   The logos of the shops added for singles, and of those that had none, were
-  taken on 2026-11-07, the same way; Smyk's and Empik's on 2026-11-10.
+  taken on 2026-11-07, the same way; Smyk's, Empik's and Bangerpack's on
+  2026-11-10.
   """
 
   alias TcgCheap.Pricing.ExchangeRate
@@ -1703,9 +1704,29 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: "Chrzanów",
       pickup_location: {50.1423, 19.4082}
     },
-    # Shops abroad: singles only, priced in their currency and compared like
-    # Cardmarket; delivery to Poland converted to PLN when configured
-    # (NBP, 6 November 2026: EUR 4.39, GBP 5.26, SEK 0.40, CZK 0.18, DKK 0.59).
+    # Shops abroad: priced in their currency and compared like Cardmarket,
+    # mostly for their singles; delivery to Poland converted to PLN when
+    # configured (NBP, 6 November 2026: EUR 4.39, GBP 5.26, SEK 0.40, CZK 0.18,
+    # DKK 0.59).
+    #
+    # Bangerpack (White Tree AB, Helsingborg) asked to be listed and gave its
+    # Google Shopping export, served from its CDN in euros; it holds sealed
+    # products only. Its FAQ (2026-11-10) says it ships to Poland at a price
+    # shown only in the checkout and has no free delivery.
+    %Shop{
+      key: "bangerpack",
+      name: "Bangerpack",
+      host: "bangerpack.com",
+      source: GoogleFeed,
+      feed_host: "cdn.bangerpack.com",
+      feed_path: "/shopping-pl.xml",
+      currency: "EUR",
+      country: "SE",
+      max_pages: 1,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
     %Shop{
       key: "rarecards",
       name: "RareCards",
@@ -1825,14 +1846,14 @@ defmodule TcgCheap.Sealed.Shops do
 
   @keys Enum.map(@shops, & &1.key)
 
-  # A shop abroad is read only for its singles, through a client that checks
-  # the currency of its prices, in a currency with a daily NBP rate, from a
-  # country the offer list can name (`GuideComponents`).
-  @abroad_sources [Shopify, WooCommerce, Chasedex, NopCommerce, Shoptet]
+  # A shop abroad is read through a client that checks the currency of its
+  # prices, in a currency with a daily NBP rate, from a country the offer list
+  # can name (`GuideComponents`).
+  @abroad_sources [Shopify, WooCommerce, Chasedex, NopCommerce, Shoptet, GoogleFeed]
   @countries ~w(NL DE BE GB SE DK CZ)
 
   for shop <- @shops, shop.currency != "PLN" or shop.country != nil do
-    unless shop.singles_only and shop.source in @abroad_sources and
+    unless shop.source in @abroad_sources and
              shop.currency in ExchangeRate.currencies() and
              shop.country in @countries,
            do: raise(ArgumentError, "shop abroad #{shop.key} is misconfigured")

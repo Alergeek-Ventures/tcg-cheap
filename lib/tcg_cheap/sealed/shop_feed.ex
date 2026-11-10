@@ -9,9 +9,9 @@ defmodule TcgCheap.Sealed.ShopFeed do
   HTML listings, mostly built on `TcgCheap.Sealed.HtmlListing`); a new kind
   of feed is one more module implementing this behaviour.
 
-  Requests go only to the shop's fixed HTTPS host, one at a time with a short
-  pause before each (several shops refuse quick successive requests; a client
-  may ask for a longer one), follow no redirects and read at most 5 MB per
+  Requests go only to the shop's fixed HTTPS host (its `feed_host`, when
+  set), one at a time with a short pause before each (several shops refuse
+  quick successive requests; a client may ask for a longer one), follow no redirects and read at most 5 MB per
   page, or more where a client asks for it (a whole-shop XML export). A
   rate-limited request (429) is repeated once after the shop's `Retry-After`
   when that is short; otherwise the fetch fails and
@@ -72,8 +72,8 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @callback image_hosts(Shop.t()) :: [String.t()]
 
   @doc """
-  GETs `path` on the shop's host, after a pause (`pause_ms`, default
-  #{@request_pause_ms} ms), and returns the 200 response with its raw body, at
+  GETs `path` on the shop's host (or `feed_host`), after a pause
+  (`pause_ms`, default #{@request_pause_ms} ms), and returns the 200 response with its raw body, at
   most `max_body_bytes` long (default 5 MB), over the HTTP `protocols` given
   (default HTTP/1.1).
   """
@@ -83,7 +83,8 @@ defmodule TcgCheap.Sealed.ShopFeed do
           | {:protocols, [:http1 | :http2]}
         ]) ::
           {:ok, Req.Response.t()} | {:error, term()}
-  def get(%Shop{host: host}, path, params, req_options, opts \\ []) do
+  def get(%Shop{} = shop, path, params, req_options, opts \\ []) do
+    host = shop.feed_host || shop.host
     max_body_bytes = Keyword.get(opts, :max_body_bytes, @max_body_bytes)
 
     request =

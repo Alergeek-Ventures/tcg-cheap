@@ -67,7 +67,12 @@ defmodule TcgCheapWeb.PageMarkdown do
     page(seo, page.today, [
       section("Werdykt", list(verdict_facts(page))),
       section("Produkt", list(product_facts(product))),
-      section("Oferty w polskich sklepach", offers_table(page.offers, page.today)),
+      section(
+        "Oferty w polskich sklepach",
+        page.offers
+        |> Enum.reject(&(&1.shop in Shops.abroad_keys()))
+        |> offers_table(page.today)
+      ),
       retail_deals("W sieciówkach", page.retail_deals),
       page.booster_set && pull_rates(page.booster_set)
     ])

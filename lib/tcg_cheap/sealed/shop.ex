@@ -24,14 +24,18 @@ defmodule TcgCheap.Sealed.Shop do
     * `currency` – the ISO code of the shop's prices, PLN unless the shop is
       abroad; other prices are converted to PLN at the latest NBP rate
       (`TcgCheap.Pricing.ExchangeRate.currencies/0`) when fetched;
-    * `singles_only` – true for a shop read only for its singles (shops
-      abroad, compared like Cardmarket); its sealed products are ignored;
+    * `singles_only` – true for a shop read only for its singles; its sealed
+      products are ignored;
     * `country` – the ISO code of a shop abroad, shown with its delivery; nil
-      for a Polish shop;
+      for a Polish shop. A shop abroad appears in a product's or card's offer
+      list, compared like Cardmarket, but never in the prices "in Polish
+      shops" (verdicts, lowest prices, history);
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
-      cover the whole shop); WooCommerce: `feed_path` (the Store API products
-      path, nil for the usual one); IdoSell: `feed_path` (a Pokémon category or
-      search listing, query included);
+      cover the whole shop) and `feed_host` (the shop's own host serving the
+      export, such as its CDN, when it is not `host`); WooCommerce:
+      `feed_path` (the Store API products path, nil for the usual one);
+      IdoSell: `feed_path` (a Pokémon category or search listing, query
+      included);
     * shops read from their HTML listings: `feed_path` (the one listing) or,
       for PrestaShop, shopGold, Sellingo, Selly and SOTE, `listing_paths` (the
       Pokémon category listings, each read to its last page); Shoper
@@ -67,6 +71,7 @@ defmodule TcgCheap.Sealed.Shop do
                 :product_path,
                 :collection,
                 :feed_path,
+                :feed_host,
                 :listing_paths,
                 :mixed_listing,
                 :preorder_path,
@@ -90,6 +95,7 @@ defmodule TcgCheap.Sealed.Shop do
           product_path: Regex.t() | nil,
           collection: String.t() | nil,
           feed_path: String.t() | nil,
+          feed_host: String.t() | nil,
           listing_paths: [String.t()] | nil,
           mixed_listing: boolean() | nil,
           preorder_path: String.t() | nil,

@@ -240,10 +240,11 @@ defmodule TcgCheapWeb.SEO do
         do: Map.put(product_data, "image", image),
         else: product_data
 
-    # Only current, in-stock shop offers count, never MSRP, Cardmarket or a last-known price.
-    # Google requires offers on a Product, so without one there's no Product block.
+    # Only current, in-stock offers of Polish shops count, never MSRP, Cardmarket or a
+    # last-known price. Google requires offers on a Product, so without one there's no
+    # Product block.
     product_data =
-      case Enum.filter(page.offers, & &1.in_stock) do
+      case Enum.filter(page.offers, &(&1.in_stock and &1.shop not in Shops.abroad_keys())) do
         [] ->
           nil
 

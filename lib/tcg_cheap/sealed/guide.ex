@@ -11,6 +11,7 @@ defmodule TcgCheap.Sealed.Guide do
     Product,
     Rarities,
     Regions,
+    Shops,
     TcgdexSet
   }
 
@@ -664,7 +665,7 @@ defmodule TcgCheap.Sealed.Guide do
     offers =
       Sealed.current_offers(now, :all, select: [:product_id, :in_stock])
       # Unmatched offers (accessories, other games) are no product of ours.
-      |> Enum.filter(&(&1.in_stock and &1.product_id))
+      |> Enum.filter(&(&1.in_stock and &1.product_id and &1.shop not in Shops.abroad_keys()))
 
     summaries =
       [
@@ -948,7 +949,9 @@ defmodule TcgCheap.Sealed.Guide do
   def to_pln(%Decimal{} = eur, %{rate: rate}), do: eur |> Decimal.mult(rate) |> Decimal.round(2)
   def to_pln(_eur, _rate), do: nil
 
+  # The verdict judges prices in Polish shops; shops abroad are only listed.
   defp summary(product, offers, rate, usual, {premieres, now}) do
+    offers = Enum.reject(offers, &(&1.shop in Shops.abroad_keys()))
     in_stock = Enum.filter(offers, & &1.in_stock)
     preorders = Enum.filter(offers, & &1.preorder)
     # With nothing in stock, pre-orders are rated the same way.

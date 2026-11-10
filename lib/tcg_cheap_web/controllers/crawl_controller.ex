@@ -2,7 +2,7 @@ defmodule TcgCheapWeb.CrawlController do
   use TcgCheapWeb, :controller
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{CardGuide, Guide}
+  alias TcgCheap.Sealed.{CardGuide, Guide, Shops}
   alias TcgCheapWeb.{PageMarkdown, Polish, SEO}
 
   def sitemap(conn, _params) do
@@ -38,7 +38,9 @@ defmodule TcgCheapWeb.CrawlController do
     ids =
       DateTime.utc_now()
       |> Sealed.current_offers(:all, select: [:product_id, :in_stock])
-      |> Enum.filter(&(&1.in_stock and &1.product_id != nil))
+      |> Enum.filter(
+        &(&1.in_stock and &1.product_id != nil and &1.shop not in Shops.abroad_keys())
+      )
       |> Enum.map(& &1.product_id)
       |> Enum.uniq()
 
