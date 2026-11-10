@@ -130,7 +130,7 @@ defmodule TcgCheap.Sealed.CardGuide do
         order_by: ^order,
         offset: ^offset,
         limit: ^(@page_size + 1),
-        select: %{card: c, set: s, price: o.price, trend: p.trend, count: over(count())}
+        select: %{card: c, set: s, price: o.price, cardmarket: p, count: over(count())}
       )
       |> Repo.all()
 
@@ -153,25 +153,42 @@ defmodule TcgCheap.Sealed.CardGuide do
       |> Storage.mirrored_image_urls(:thumbnail)
 
     rate = Guide.eur_pln(Date.utc_today())
+    offers = in_stock_prices(Enum.map(page, & &1.card.id))
 
     results =
-      Enum.map(page, fn row ->
+      Enum.map(page, fn %{cardmarket: price} = row ->
         name = Map.fetch!(names, row.set.cardmarket_expansion_id)
+        card = %{row.card | cardmarket_price: price}
+        {variant, offer} = primary_offer(Map.get(offers, card.id, []))
 
         image =
           row.set
-          |> CardImage.single_sources(row.card.number)
+          |> CardImage.single_sources(card.number)
           |> Enum.find_value(&Map.get(mirrored, CardImage.source_hash(&1)))
 
-        Map.merge(row, %{
-          cardmarket_trend_pln: Guide.to_pln(row.trend, rate),
+        row
+        |> Map.delete(:cardmarket)
+        |> Map.merge(%{
+          card: card,
+          offer: offer,
+          verdict: card_verdict(offer, card, variant, rate),
+          cardmarket_trend_pln: Guide.to_pln(price && price.trend, rate),
           expansion_name: name,
-          path: path(row.card, name, row.set.cardmarket_expansion_id, collisions),
+          path: path(card, name, row.set.cardmarket_expansion_id, collisions),
           image: image
         })
       end)
 
     {results, length(rows) > @page_size, count}
+  end
+
+  # The offer the card's page answers with (`page/3`): the cheapest in-stock
+  # offer of its first variant in stock, normal before reverse before special.
+  defp primary_offer(offers) do
+    Enum.find_value([:normal, :reverse, :special], {nil, nil}, fn variant ->
+      offer = Enum.find(offers, &(&1.variant == variant))
+      offer && {variant, offer}
+    end)
   end
 
   @doc "How many Polish shop cards a search finds, in stock or not, in an optional expansion."
@@ -228,7 +245,7 @@ defmodule TcgCheap.Sealed.CardGuide do
     if filters.query == "", do: where(query, [_, _, o], not is_nil(o.price)), else: query
   end
 
-  # Per card, the lowest in-stock price of its current, ungraded Polish offers.
+  # Per card, the lowest in-stock compared price of its current, ungraded offers.
   defp card_offers(words, expansion) do
     offers =
       from(o in subquery(compared_query()),

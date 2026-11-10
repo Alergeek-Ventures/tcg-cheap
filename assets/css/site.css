@@ -857,9 +857,8 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
   .guide-world .guide-mode a:not([aria-current="true"]):not(:active):hover { background: color-mix(in oklch, var(--orange) 22%, var(--bench-light)); }
 }
 .guide-world .guide-card .guide-product-link { display: grid; grid-template-columns: clamp(3rem, 6vw, 5.5rem) minmax(0, 1fr) auto; }
-.guide-world .guide-card-image { display: grid; place-items: center; grid-row: auto; inline-size: 100%; }
+.guide-world .guide-card-image { display: grid; place-items: center; inline-size: 100%; }
 .guide-world .guide-card-image img { inline-size: 100%; block-size: auto; aspect-ratio: 1; object-fit: contain; }
-.guide-world .guide-card .guide-product-price { grid-column: auto; }
 .guide-world .guide-card .guide-product-price strong { font-size: clamp(1.1rem, 2vw, 1.5rem); }
 
 .guide-world .guide-card-placeholder { inline-size: 55%; aspect-ratio: 63 / 88; background: var(--paper); border: 1px solid color-mix(in oklch, var(--muted) 30%, transparent); }

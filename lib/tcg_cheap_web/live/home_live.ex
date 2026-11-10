@@ -1441,14 +1441,17 @@ defmodule TcgCheapWeb.HomeLive do
   attr :row, :map, required: true
 
   defp card_row(assigns) do
+    # With an offer in stock, the row answers as the card's page does: its
+    # cheapest shop, the verdict and that shop's price. Without one, the
+    # lower known price.
     assigns =
-      assign(
-        assigns,
-        :price,
-        CardGuide.price(%{
-          polish_price: assigns.row.price,
-          cardmarket_trend_pln: assigns.row.cardmarket_trend_pln
-        })
+      assign(assigns,
+        status: single_verdict_status(assigns.row.verdict),
+        price:
+          CardGuide.price(%{
+            polish_price: assigns.row.price,
+            cardmarket_trend_pln: assigns.row.cardmarket_trend_pln
+          })
       )
 
     ~H"""
@@ -1463,6 +1466,7 @@ defmodule TcgCheapWeb.HomeLive do
         data-track-placement="list"
         data-track-card={@row.card.id}
         data-track-card-name={@row.card.name}
+        data-track-verdict={@row.verdict}
       >
         <div class="guide-product-image guide-card-image">
           <img
@@ -1479,10 +1483,24 @@ defmodule TcgCheapWeb.HomeLive do
           <h3 class="guide-product-name">{@row.card.name}</h3>
           <p class="guide-product-meta">{@row.card.number} · {@row.expansion_name}</p>
         </div>
-        <p class="guide-product-price">
-          <strong :if={@price}>{Polish.price(@price)}</strong>
-          <span :if={!@price}>{gettext("Cena nieznana")}</span>
-        </p>
+        <div class="guide-product-deal">
+          <%= if @row.offer do %>
+            <span class="guide-product-shop">{priced_shop_name(@row.offer)}</span>
+            <%!-- Without a Cardmarket price there is nothing to judge; the card's page says why. --%>
+            <.verdict_badge
+              :if={@status != :insufficient_data}
+              verdict={%{status: @status}}
+              id={"card-verdict-#{@row.card.id}"}
+              class="guide-product-verdict"
+            />
+            <p class="guide-product-price"><strong>{Polish.price(@row.offer.price)}</strong></p>
+          <% else %>
+            <p class="guide-product-price">
+              <strong :if={@price}>{Polish.price(@price)}</strong>
+              <span :if={!@price}>{gettext("Cena nieznana")}</span>
+            </p>
+          <% end %>
+        </div>
       </.link>
     </li>
     """
