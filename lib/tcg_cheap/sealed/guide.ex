@@ -665,7 +665,9 @@ defmodule TcgCheap.Sealed.Guide do
     offers =
       Sealed.current_offers(now, :all, select: [:product_id, :in_stock])
       # Unmatched offers (accessories, other games) are no product of ours.
-      |> Enum.filter(&(&1.in_stock and &1.product_id and &1.shop not in Shops.abroad_keys()))
+      |> Enum.filter(
+        &(&1.in_stock and not is_nil(&1.product_id) and &1.shop not in Shops.abroad_keys())
+      )
 
     summaries =
       [
