@@ -80,7 +80,7 @@ defmodule TcgCheapWeb.HomeLive do
            set_page: expansion && set_page(socket, expansion),
            market: singles_market(expansion),
            seo: seo,
-           page_title: seo.title
+           page_title: seo.page_title
          )
          |> track_changes(previous)}
 
@@ -100,7 +100,7 @@ defmodule TcgCheapWeb.HomeLive do
 
         {:noreply,
          socket
-         |> assign(set_page: set_page, market: nil, seo: seo, page_title: seo.title)
+         |> assign(set_page: set_page, market: nil, seo: seo, page_title: seo.page_title)
          |> track_set_view(expansion, previous)
          |> track_changes(previous)}
 
@@ -114,7 +114,7 @@ defmodule TcgCheapWeb.HomeLive do
            market: Guide.sealed_market(),
            retail_deals: newest_retail_deals(Date.utc_today()),
            seo: seo,
-           page_title: seo.title
+           page_title: seo.page_title
          )
          |> track_changes(previous)}
     end
@@ -721,12 +721,14 @@ defmodule TcgCheapWeb.HomeLive do
   attr :logo_url, :string, default: nil
   attr :close, :string, required: true
 
-  # The set's logo carries its name, so the name is only written out without one.
+  # The set's logo carries its name, so the name is only visible without one;
+  # with a logo it stays in the heading's text for screen readers and search.
   defp set_title(assigns) do
     ~H"""
     <div class="set-title">
       <h1 id="guide-title">
-        <img :if={@logo_url} src={@logo_url} alt={@name} class="set-logo" />
+        <img :if={@logo_url} src={@logo_url} alt="" class="set-logo" />
+        <span :if={@logo_url} class="sr-only">{@name}</span>
         <%= if !@logo_url do %>
           {@name}
         <% end %>

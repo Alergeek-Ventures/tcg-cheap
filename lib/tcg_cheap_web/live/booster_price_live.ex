@@ -20,7 +20,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
 
     {:ok,
      socket
-     |> assign(page: page, seo: seo, page_title: seo.title)
+     |> assign(page: page, seo: seo, page_title: seo.page_title)
      |> VisitorLocation.assign_location()}
   end
 

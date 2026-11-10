@@ -31,7 +31,7 @@ defmodule TcgCheapWeb.ProductLive do
 
         {:ok,
          socket
-         |> assign(seo: seo, page_title: seo.title)
+         |> assign(seo: seo, page_title: seo.page_title)
          |> assign(:page, page)
          |> assign(:in_stock_count, length(in_stock))
          |> assign(:preorder_count, length(preorder))
