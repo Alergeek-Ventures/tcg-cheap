@@ -182,8 +182,18 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp card_matches(_filters), do: 0
 
+  # Without a search or an expansion, every visitor sees the same list.
+  defp card_list(%{query: "", expansion: nil}), do: Guide.card_discovery()
+
+  defp card_list(filters) do
+    %{
+      available: CardGuide.browse(Map.put(filters, :stock, :in), 0),
+      expansions: CardGuide.expansion_facets(filters)
+    }
+  end
+
   defp list(socket, %{mode: :cards} = filters) do
-    {available, more?, count} = CardGuide.browse(Map.put(filters, :stock, :in), 0)
+    %{available: {available, more?, count}, expansions: expansions} = card_list(filters)
     {unavailable, out_more?, out_count} = CardGuide.browse(Map.put(filters, :stock, :out), 0)
     only_out? = count == 0
     rows = if only_out?, do: unavailable, else: available
@@ -191,7 +201,7 @@ defmodule TcgCheapWeb.HomeLive do
     socket
     |> assign(
       filters: filters,
-      facets: %{expansions: CardGuide.expansion_facets(filters), regions: [], kinds: []},
+      facets: %{expansions: expansions, regions: [], kinds: []},
       card_matches: 0,
       form: to_form(%{"q" => filters.query}),
       result_count: count + out_count,

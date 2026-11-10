@@ -594,6 +594,23 @@ defmodule TcgCheap.Sealed.Guide do
   """
   def singles_market, do: cached(:singles_market, &read_singles_market/0)
 
+  @doc """
+  The card list without a search or an expansion: its first page (the cards
+  in stock, `CardGuide.browse/2`) and its expansion filter. The same for
+  every visitor, so shared for a few minutes like the singles banner; later
+  pages are read as they are asked for.
+  """
+  def card_discovery do
+    cached(:card_discovery, fn ->
+      filters = %{query: "", expansion: nil}
+
+      %{
+        available: CardGuide.browse(Map.put(filters, :stock, :in), 0),
+        expansions: CardGuide.expansion_facets(filters)
+      }
+    end)
+  end
+
   defp read_singles_market do
     cards = CardGuide.market_cards()
     deal = best_deal(cards)

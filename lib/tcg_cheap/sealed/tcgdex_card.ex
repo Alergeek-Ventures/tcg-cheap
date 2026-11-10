@@ -19,6 +19,14 @@ defmodule TcgCheap.Sealed.TcgdexCard do
       reference :tcgdex_set, on_delete: :delete
     end
 
+    # The substring search of `CardGuide.browse/2`: each word matches a name,
+    # a number or the number without leading zeros, which Postgres combines.
+    custom_indexes do
+      index ["name gin_trgm_ops"], name: "sealed_tcgdex_cards_name_trgm_index", using: "gin"
+      index ["number gin_trgm_ops"], name: "sealed_tcgdex_cards_number_trgm_index", using: "gin"
+      index ["ltrim(number, '0')"], name: "sealed_tcgdex_cards_number_digits_index"
+    end
+
     custom_statements do
       # ParadeDB full-text index for misspelt card names in `CardGuide.browse/2`.
       statement :sealed_tcgdex_cards_name_search_index do
