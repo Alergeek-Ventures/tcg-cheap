@@ -253,7 +253,7 @@ defmodule TcgCheapWeb.SingleLive do
                 <.verdict_method id="single-method">
                   <p>
                     {gettext(
-                      "Cenę w Polsce porównujemy z trendem Cardmarket i wysyłką jednej karty, z tolerancją ±15%. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
+                      "Cenę w sklepach porównujemy z trendem Cardmarket i wysyłką jednej karty, z tolerancją ±15%. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
                     )}
                   </p>
                   <p :if={@primary.reference}>

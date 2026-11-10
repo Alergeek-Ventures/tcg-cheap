@@ -669,14 +669,37 @@ defmodule TcgCheapWeb.GuideComponents do
     end
   end
 
-  @doc "\"z wysyłką ze Szwecji\" for a compared price from a shop abroad, else nil."
+  @doc """
+  "z wysyłką ze Szwecji" for a compared price from a shop abroad (its
+  delivery is known), else nil.
+  """
   @spec delivered_term(map()) :: String.t() | nil
   def delivered_term(%{shop: key}) do
     case Shops.fetch(key) do
-      {:ok, %{country: country}} -> delivered_from(country)
-      :error -> nil
+      {:ok, %{country: country, shipping_from: %Decimal{}}} ->
+        country |> delivered_from() |> glue_short_words()
+
+      _polish_or_listed ->
+        nil
     end
   end
+
+  @doc """
+  Binds one- and two-letter prepositions ("z", "ze", "w", "we") to the next
+  word with a no-break space, so a line never ends with one.
+  """
+  @spec glue_short_words(String.t() | nil) :: String.t() | nil
+  def glue_short_words(nil), do: nil
+
+  def glue_short_words(text),
+    do: Regex.replace(~r/(?<![\p{L}\p{N}])([zwZW]|[zwZW]e) /u, text, "\\1\u00A0")
+
+  @doc """
+  The price an offer row shows: its compared price (`Shops.compared_price/2`),
+  so a shop abroad's includes its delivery to Poland like the headline.
+  """
+  @spec row_price(map()) :: Decimal.t()
+  def row_price(offer), do: Shops.compared_price(offer.shop, offer.price) || offer.price
 
   defp delivered_from(nil), do: nil
   defp delivered_from("NL"), do: gettext("z wysyłką z Holandii")
@@ -874,7 +897,7 @@ defmodule TcgCheapWeb.GuideComponents do
         <span :if={Map.get(@offer, :preorder, false)} class="offer-preorder-label">{gettext(
           "przedsprzedaż"
         )}</span>
-        <strong>{Polish.price(@offer.price)}</strong>
+        <strong>{Polish.price(row_price(@offer))}</strong>
         <span
           :if={(!@offer.in_stock and !Map.get(@offer, :preorder, false)) or @checked_on != @today}
           class="offer-checked"
@@ -890,7 +913,7 @@ defmodule TcgCheapWeb.GuideComponents do
         data-track="shop_link_clicked"
         data-track-placement="offers"
         data-track-shop={@offer.shop}
-        data-track-price={@offer.price}
+        data-track-price={row_price(@offer)}
         data-track-in-stock={to_string(@offer.in_stock)}
         data-track-preorder={to_string(Map.get(@offer, :preorder, false))}
         data-track-card={Map.get(@offer, :card_id)}
@@ -935,7 +958,9 @@ defmodule TcgCheapWeb.GuideComponents do
 
     # A no-break space keeps each "·" at the end of a line, never at the start.
     ~H"""
-    <span :if={@terms != []} class="offer-delivery">{Enum.join(@terms, "\u00A0· ")}</span>
+    <span :if={@terms != []} class="offer-delivery">{@terms
+    |> Enum.join("\u00A0· ")
+    |> glue_short_words()}</span>
     <span :if={@near?} class="offer-pickup-near">
       <.fluent_icon name={:location} />{gettext("odbiór: %{city}, %{distance}",
         city: @shop.pickup_city,
@@ -943,6 +968,18 @@ defmodule TcgCheapWeb.GuideComponents do
       )}
     </span>
     """
+  end
+
+  # A shop abroad's row shows its price with delivery: say what that includes.
+  defp delivery_terms(%{country: country, shipping_from: %Decimal{}} = shop, price, _km, _near?)
+       when country != nil do
+    included =
+      case shipping(shop, price) do
+        :free -> gettext("w tym darmowa dostawa")
+        {:from, from} -> gettext("w tym dostawa %{amount}", amount: amount(from))
+      end
+
+    [abroad_term(country), included]
   end
 
   defp delivery_terms(shop, price, km, near?) do
@@ -1027,8 +1064,7 @@ defmodule TcgCheapWeb.GuideComponents do
           {if(@preorder?,
             do: gettext("najtaniej w przedsprzedaży w"),
             else: gettext("najtaniej teraz w")
-          )}
-          <strong>{shop_name(@offer)}</strong><span :if={delivered_term(@offer)}>, {delivered_term(
+          )}&nbsp;<strong>{shop_name(@offer)}</strong><span :if={delivered_term(@offer)}>, {delivered_term(
             @offer
           )}</span>
         </p>

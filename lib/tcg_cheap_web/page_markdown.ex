@@ -44,7 +44,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       section(
         "Produkty",
         [
-          "Najpierw produkty na stanie w polskich sklepach, potem najnowsze; angielskie wydania. Pełna lista rozszerzeń: #{url(~p"/llms.txt")}",
+          "Najpierw produkty na stanie w sklepach, potem najnowsze; angielskie wydania. Pełna lista rozszerzeń: #{url(~p"/llms.txt")}",
           products_table(summaries)
         ]
       )
@@ -207,12 +207,21 @@ defmodule TcgCheapWeb.PageMarkdown do
       ["Sklep", "Cena", "Dostępność"],
       Enum.map(offers, fn offer ->
         [
-          link(GuideComponents.shop_name(offer), offer.url),
-          Polish.price(offer.price),
+          link(offer_shop(offer), offer.url),
+          Polish.price(GuideComponents.row_price(offer)),
           availability(offer, today)
         ]
       end)
     )
+  end
+
+  # As on the HTML page, a shop abroad's price includes its delivery:
+  # "Bangerpack (z wysyłką ze Szwecji)".
+  defp offer_shop(offer) do
+    case GuideComponents.delivered_term(offer) do
+      nil -> GuideComponents.shop_name(offer)
+      term -> "#{GuideComponents.shop_name(offer)} (#{term})"
+    end
   end
 
   # An offer counts as current for a few days after a shop's last fetch; as
@@ -341,8 +350,8 @@ defmodule TcgCheapWeb.PageMarkdown do
       ["Sklep", "Cena", "Wariant", "Stan / grading", "Dostępność"],
       Enum.map(offers, fn offer ->
         [
-          link(GuideComponents.shop_name(offer), offer.url),
-          Polish.price(offer.price),
+          link(offer_shop(offer), offer.url),
+          Polish.price(GuideComponents.row_price(offer)),
           GuideComponents.card_variant_label(offer.variant),
           offer.grading || (offer.condition && condition(offer.condition)) || "",
           availability(offer, today)

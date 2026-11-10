@@ -916,8 +916,8 @@ defmodule TcgCheapWeb.HomeLive do
         <li>
           <strong>{Polish.number(@market.in_stock)}</strong>
           <span>{ngettext(
-            "produkt na stanie w Polsce",
-            "produkty na stanie w Polsce",
+            "produkt na stanie w sklepach",
+            "produkty na stanie w sklepach",
             @market.in_stock
           )}</span>
         </li>
@@ -1020,7 +1020,7 @@ defmodule TcgCheapWeb.HomeLive do
       <ul id="set-singles-facts" class="set-chase-facts">
         <li>
           <strong>{Polish.number(@singles.in_stock)}</strong>
-          <span>{gettext("z %{total} kart na stanie w Polsce", total: Polish.number(@singles.total))}</span>
+          <span>{gettext("z %{total} kart na stanie w sklepach", total: Polish.number(@singles.total))}</span>
         </li>
         <li :if={@singles.set_price}>
           <strong>{Polish.about(@singles.set_price)}</strong>
@@ -1137,7 +1137,8 @@ defmodule TcgCheapWeb.HomeLive do
           <%= if @cheapest do %>
             <span class="set-chase-label">{gettext("Kupisz za")}</span>
             <strong>{Polish.price(@cheapest.price)}</strong>
-            <span class="set-chase-detail">{gettext("w %{shop}", shop: priced_shop_name(@cheapest))}</span>
+            <span class="set-chase-detail">{gettext("w %{shop}", shop: priced_shop_name(@cheapest))
+            |> glue_short_words()}</span>
           <% else %>
             <span class="set-chase-label">{gettext("Kupisz za")}</span>
             <strong class="set-chase-unknown">{gettext("brak na stanie")}</strong>
@@ -1404,7 +1405,7 @@ defmodule TcgCheapWeb.HomeLive do
       )
 
   defp chase_source({:shop, shop}),
-    do: gettext("w %{shop}", shop: priced_shop_name(%{shop: shop}))
+    do: glue_short_words(gettext("w %{shop}", shop: priced_shop_name(%{shop: shop})))
 
   defp chase_source(:cardmarket), do: gettext("na Cardmarket")
 
