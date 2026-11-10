@@ -200,7 +200,7 @@ jobs:
     needs: [check, sentry-release]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     environment: production
     permissions:
       contents: read
@@ -208,7 +208,50 @@ jobs:
     concurrency:
       group: deploy-production
       cancel-in-progress: false
+    defaults:
+      run:
+        shell: bash
+    env:
+      COOLIFY_API: ${{ secrets.COOLIFY_API }}
+      COOLIFY_APP_UUID: ${{ vars.COOLIFY_APP_UUID }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      # The revision to roll back to: the running one, once its pages pass
+      # the same check, so a rollback never goes back to a broken release.
+      # Also lists Coolify's rollback images on every deploy, so a broken
+      # rollback path shows up as a warning before the day it is needed.
+      - name: Record the running revision
+        id: running
+        timeout-minutes: 10
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          revision="$(curl -fsS --retry 3 --max-time 10 https://tcg.cheap/health/live | jq -r .revision || true)"
+
+          if ! [[ "$revision" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::warning::Production reports no revision (${revision:-no answer}); a broken release cannot be rolled back"
+            exit 0
+          fi
+
+          if bash .github/scripts/check-production.sh "$revision"; then
+            echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::The running revision $revision fails the page check; a broken release cannot be rolled back"
+          fi
+
+          if ! tags="$(curl -fsS --retry 3 --max-time 30 \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            "$COOLIFY_API/applications/$COOLIFY_APP_UUID/rollback-images" | jq -r '.images[].tag')"; then
+            echo "::warning::Coolify did not list its rollback images"
+          elif ! grep -qx "$revision" <<<"$tags"; then
+            echo "::warning::Coolify holds no image of $revision to roll back to"
+          fi
+
       # Fetches prod:/app from Infisical over OIDC, syncs it to the Coolify
       # application, deploys (the app migrates as it starts) and waits.
       - name: Checkout AV secret service action
@@ -227,3 +270,69 @@ jobs:
           coolify-token: ${{ secrets.COOLIFY_TOKEN }}
           coolify-app-uuid: ${{ vars.COOLIFY_APP_UUID }}
           print-logs: false
+
+      # Coolify's health check passes a release whose pages answer 500.
+      # Exit code 1 means a page is broken, 2 that the check could not tell.
+      - name: Check production pages
+        id: pages
+        timeout-minutes: 10
+        run: |
+          code=0
+          bash .github/scripts/check-production.sh "$GITHUB_SHA" || code=$?
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          exit "$code"
+
+      # Puts back the image of the revision that ran before, with the current
+      # configuration, and leaves the job failed. The database stays migrated:
+      # Coolify restores code, not data.
+      - name: Roll back to the running revision
+        if: >-
+          failure() && steps.pages.outputs.code == '1' &&
+          steps.running.outputs.revision != '' && steps.running.outputs.revision != github.sha
+        timeout-minutes: 20
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          PREVIOUS: ${{ steps.running.outputs.revision }}
+        run: |
+          echo "::error::Rolling production back to $PREVIOUS"
+
+          # Not retried: a repeated POST could queue a second rollback.
+          deployment="$(curl -fsS --max-time 60 -X POST \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "{\"commit\": \"$PREVIOUS\"}" \
+            "$COOLIFY_API/applications/$COOLIFY_APP_UUID/rollback" | jq -r .deployment_uuid || true)"
+
+          if [ -z "$deployment" ] || [ "$deployment" = null ]; then
+            echo "::error::Coolify did not queue the rollback; roll back by hand in Coolify"
+            exit 1
+          fi
+
+          deadline=$((SECONDS + 600))
+
+          while true; do
+            status="$(curl -fsS --retry 3 --max-time 30 \
+              -H "Authorization: Bearer $COOLIFY_TOKEN" \
+              "$COOLIFY_API/deployments/$deployment" | jq -r .status || true)"
+            echo "Coolify rollback: ${status:-no answer}"
+
+            case "$status" in
+              finished | success) break ;;
+              failed | error | cancelled*)
+                echo "::error::Coolify rollback $deployment ended $status"
+                exit 1
+                ;;
+            esac
+
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "::error::Coolify rollback $deployment did not finish in time"
+              exit 1
+            fi
+
+            sleep 5
+          done
+
+          if ! bash .github/scripts/check-production.sh "$PREVIOUS"; then
+            echo "::error::$PREVIOUS fails the page check after the rollback; a migration of the broken release may not suit it"
+            exit 1
+          fi
