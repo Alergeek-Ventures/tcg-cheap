@@ -2,10 +2,11 @@ defmodule TcgCheap.Sealed.Am76 do
   @moduledoc """
   Reads the Pokémon category of am76.pl, a custom shop whose pages are
   windows-1250 (decoded to UTF-8 here, byte by byte, before parsing). The
-  category (`feed_path`) lists 8 products per page, `?p=N`; its heading says
-  which page of how many it is ("str. 2/3").
+  category (`feed_path`) lists 8 products per page, `?p=N`; the pager above
+  the products shows the current page unlinked and links the last page from
+  its fast-forward button (`&p=3`), also on a page past the last one.
 
-  Completeness is proved from that heading: every page must state the same
+  Completeness is proved from that pager: every page must state the same
   page count, which must not exceed `max_pages`; pages 1 to that count are
   read, each with products and every page but the last as full as the first;
   the page after the last must have no products; and no product may appear
@@ -32,7 +33,7 @@ defmodule TcgCheap.Sealed.Am76 do
           |> String.to_charlist()
           |> List.to_tuple()
 
-  @heading ~r/ - str\. ([0-9]{1,3})\/([0-9]{1,3})\z/
+  @last_page ~r/[?&]p=([0-9]{1,3})\z/
   @link ~r/\Aprodukt,[^\s:]{1,200}:([0-9]{1,9})\z/
 
   @impl true
@@ -74,27 +75,37 @@ defmodule TcgCheap.Sealed.Am76 do
   defp request(shop, req_options, number) do
     with {:ok, response} <- ShopFeed.get(shop, shop.feed_path, [p: number], req_options),
          {:ok, document} <- ShopFeed.html(%{response | body: decode(response.body)}),
-         {:ok, category, current, count} <- heading(document) do
+         {:ok, current, count} <- pager(document) do
       {:ok,
        %{
          products: Floki.find(document, "div.panel.popover-info-opis"),
-         category: category,
+         category: document |> Floki.find("h1") |> Floki.text() |> String.trim(),
          number: current,
          count: count
        }}
     end
   end
 
-  defp heading(document) do
-    text = document |> Floki.find("h1") |> Floki.text() |> String.trim()
+  # The pager above the products: its one unlinked entry is the current page
+  # and its fast-forward button links the last one.
+  defp pager(document) do
+    pager = Floki.find(document, "div.text-right > ul.pagination[data-original-title=Strony]")
+    current = pager |> Floki.find("li.disabled > a:not([href])") |> Enum.map(&Floki.text/1)
 
-    case Regex.run(@heading, text) do
-      [match, number, count] ->
-        {:ok, String.replace_suffix(text, match, ""), String.to_integer(number),
-         String.to_integer(count)}
+    last =
+      for link <- Floki.find(pager, "li > a"),
+          Floki.find(link, "span.glyphicon-fast-forward") != [],
+          href <- Floki.attribute(link, "href"),
+          do: href
 
-      nil ->
-        {:error, :malformed_pagination}
+    with [_] <- pager,
+         [current] <- current,
+         {number, ""} <- Integer.parse(current),
+         [href] <- last,
+         [_, count] <- Regex.run(@last_page, href) do
+      {:ok, number, String.to_integer(count)}
+    else
+      _ -> {:error, :malformed_pagination}
     end
   end
 
