@@ -13,11 +13,9 @@ defmodule TcgCheap.Sealed.Refresh do
   failed, so its last offers simply age out instead of staying current.
   """
 
-  require Logger
-
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{CardRefresh, DailyPrice, Matcher, Offer, Shop, Shops}
+  alias TcgCheap.Sealed.{CardRefresh, DailyPrice, FetchFailure, Matcher, Offer, Shop, Shops}
 
   # Matching reads names and set names; availability compares and updates
   # the rest. Kind and region stay for the product's validations.
@@ -47,7 +45,7 @@ defmodule TcgCheap.Sealed.Refresh do
         {:error, reason}
 
       {:partial, sealed, reason} ->
-        Logger.warning("singles fetch #{shop.key} failed: #{inspect(reason)}")
+        FetchFailure.report(:singles, shop.key, reason)
 
         with {:ok, sealed} <- in_pln(shop, sealed, now),
              do: store_sealed(shop, Enum.map(sealed, &Map.drop(&1, [:kind, :category])), now)

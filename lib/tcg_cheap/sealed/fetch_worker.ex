@@ -27,7 +27,7 @@ defmodule TcgCheap.Sealed.FetchWorker do
 
   require Logger
 
-  alias TcgCheap.Sealed.{Refresh, Shopify, Shops}
+  alias TcgCheap.Sealed.{FetchFailure, Refresh, Shopify, Shops}
 
   # Within the Lifeline's 30 minutes (config.exs), after which a job still
   # executing counts as orphaned and is run again.
@@ -54,9 +54,9 @@ defmodule TcgCheap.Sealed.FetchWorker do
   defp rate_limited_backoff(attempt), do: attempt * 20 * 60 + :rand.uniform(5 * 60)
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"shop" => key}}) do
+  def perform(%Oban.Job{args: %{"shop" => key}} = job) do
     case Shops.fetch(key) do
-      {:ok, shop} -> refresh(shop)
+      {:ok, shop} -> refresh(shop, job)
       :error -> {:cancel, :unknown_shop}
     end
   end
@@ -78,7 +78,7 @@ defmodule TcgCheap.Sealed.FetchWorker do
     end
   end
 
-  defp refresh(shop) do
+  defp refresh(shop, job) do
     options = Application.get_env(:tcg_cheap, __MODULE__, [])
 
     case Refresh.run(shop, req_options: Keyword.get(options, :req_options, [])) do
@@ -86,8 +86,18 @@ defmodule TcgCheap.Sealed.FetchWorker do
         Logger.info("sealed fetch #{shop.key}: #{count} offers")
         :ok
 
+      # Only the last attempt is a failed fetch: an earlier one is retried and
+      # may still read the shop the same night.
+      {:error, reason} when job.attempt < job.max_attempts ->
+        Logger.warning(
+          "sealed fetch #{shop.key} failed (attempt #{job.attempt} of #{job.max_attempts}), " <>
+            "retrying: #{inspect(reason)}"
+        )
+
+        {:error, reason}
+
       {:error, reason} ->
-        Logger.warning("sealed fetch #{shop.key} failed: #{inspect(reason)}")
+        FetchFailure.report(:sealed, shop.key, reason)
         {:error, reason}
     end
   end
