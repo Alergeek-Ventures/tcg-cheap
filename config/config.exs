@@ -88,6 +88,8 @@ config :tcg_cheap, Oban,
   queues: [
     exchange_rates: 1,
     sealed: 1,
+    # Shopify shops, beside the others (TcgCheap.Sealed.FetchWorker).
+    shopify: 1,
     media: 1
   ],
   # Jobs orphaned by a restart return to the queue; shop fetches are unique
@@ -110,7 +112,8 @@ config :tcg_cheap, Oban,
        {"4 15 * * *", TcgCheap.Pricing.ExchangeRateWorker,
         args: %{source: "nbp", table: "A", base_currency: "DKK", quote_currency: "PLN"}},
        # Buying guide: the Cardmarket sealed catalogue,
-       # then one fetch job per shop; the sealed queue runs them one at a time.
+       # then one fetch job per shop; the sealed and shopify queues run them
+       # one at a time each.
        # Times are UTC: the import starts at 3:00 Polish winter time (4:00 in
        # summer), so the data is fresh for the morning.
        {"0 2 * * *", TcgCheap.Sealed.CatalogueImportWorker, args: %{}},
@@ -124,6 +127,10 @@ config :tcg_cheap, Oban,
        {"*/10 * * * *", TcgCheap.Storage.RemoteImageWorker, args: %{}}
      ]}
   ]
+
+# Requests to Shopify shops are signed as this site (TcgCheap.WebBotAuth),
+# which serves the public key; the private key comes from WEB_BOT_AUTH_KEY.
+config :tcg_cheap, TcgCheap.WebBotAuth, agent: "https://tcg.cheap"
 
 config :tcg_cheap, :admin_login_limiter,
   limit: 5,

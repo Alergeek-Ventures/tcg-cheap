@@ -53,6 +53,29 @@ mcp_api_token =
 
 config :tcg_cheap, TcgCheapWeb.McpAuth, token: mcp_api_token
 
+# The Ed25519 private key that signs requests to Shopify shops
+# (TcgCheap.WebBotAuth): 32 random bytes, base64url without padding, e.g.
+#   elixir -e 'IO.puts(Base.url_encode64(:crypto.strong_rand_bytes(32), padding: false))'
+# Without it requests go out unsigned and no key directory is served. Set it
+# only in production: requests signed with any other key still name
+# tcg.cheap as their agent, whose directory does not list that key.
+web_bot_auth_key =
+  case String.trim(System.get_env("WEB_BOT_AUTH_KEY", "")) do
+    "" ->
+      nil
+
+    encoded ->
+      case Base.url_decode64(encoded, padding: false) do
+        {:ok, <<key::binary-size(32)>>} ->
+          key
+
+        _invalid ->
+          raise "environment variable WEB_BOT_AUTH_KEY must be 32 bytes, base64url without padding."
+      end
+  end
+
+config :tcg_cheap, TcgCheap.WebBotAuth, key: web_bot_auth_key
+
 # Error reporting, configured as in Firmowid. Production requires SENTRY_DSN
 # or the exact token "disabled"; elsewhere an unset DSN disables Sentry. The
 # release is the deployed commit (SOURCE_COMMIT from Coolify), which CI

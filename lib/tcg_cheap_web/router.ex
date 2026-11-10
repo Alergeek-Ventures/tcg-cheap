@@ -79,6 +79,10 @@ defmodule TcgCheapWeb.Router do
     get "/sitemap.xml", CrawlController, :sitemap
     get "/robots.txt", CrawlController, :robots
     get "/llms.txt", CrawlController, :llms
+
+    get "/.well-known/http-message-signatures-directory",
+        CrawlController,
+        :signatures_directory
   end
 
   # Markdown versions of the guide's pages for AI agents, reached through

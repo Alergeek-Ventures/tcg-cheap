@@ -2,12 +2,16 @@ defmodule TcgCheap.Sealed.FetchWorker do
   @moduledoc """
   Oban job that refreshes one shop's offers. The daily cron runs it without a
   shop, which queues one job per configured shop; the `sealed` queue then
-  fetches them one after another.
+  fetches them one after another. Shopify shops have the `shopify` queue,
+  also one at a time: their requests wait far longer (`TcgCheap.Sealed.Shopify`)
+  and would hold up every other shop, and one at a time keeps a single pace
+  towards Shopify, which may count the bot across all its shops.
 
-  A fetch the shop rate-limited (HTTP 429) is retried 20 and then 40 minutes
-  later, plus up to 5 minutes of jitter so rate-limited shops do not return
-  together; Oban's default backoff (seconds) would ask again while the shop
-  still refuses us. Other failures keep the default backoff.
+  A fetch the shop rate-limited (HTTP 429), or a Shopify fetch that ran out
+  of time (most likely waiting out `Retry-After`s), is retried 20 and then 40
+  minutes later, plus up to 5 minutes of jitter so rate-limited shops do not
+  return together; Oban's default backoff (seconds) would ask again while the
+  shop still refuses us. Other failures keep the default backoff.
   """
 
   use Oban.Worker,
@@ -15,15 +19,20 @@ defmodule TcgCheap.Sealed.FetchWorker do
     max_attempts: 3,
     unique: [
       period: :infinity,
+      # Not the queue: one job per shop, whichever queue it was put in.
+      fields: [:args, :worker],
       keys: [:shop],
       states: [:available, :scheduled, :executing, :retryable]
     ]
 
   require Logger
 
-  alias TcgCheap.Sealed.{Refresh, Shops}
+  alias TcgCheap.Sealed.{Refresh, Shopify, Shops}
 
+  # Within the Lifeline's 30 minutes (config.exs), after which a job still
+  # executing counts as orphaned and is run again.
   @impl Oban.Worker
+  def timeout(%Oban.Job{queue: "shopify"}), do: :timer.minutes(25)
   def timeout(_job), do: :timer.minutes(5)
 
   @impl Oban.Worker
@@ -31,9 +40,18 @@ defmodule TcgCheap.Sealed.FetchWorker do
         attempt: attempt,
         unsaved_error: %{reason: %Oban.PerformError{reason: {:error, {:http_status, 429}}}}
       }),
-      do: attempt * 20 * 60 + :rand.uniform(5 * 60)
+      do: rate_limited_backoff(attempt)
+
+  def backoff(%Oban.Job{
+        attempt: attempt,
+        queue: "shopify",
+        unsaved_error: %{reason: %Oban.TimeoutError{}}
+      }),
+      do: rate_limited_backoff(attempt)
 
   def backoff(job), do: super(job)
+
+  defp rate_limited_backoff(attempt), do: attempt * 20 * 60 + :rand.uniform(5 * 60)
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"shop" => key}}) do
@@ -51,7 +69,14 @@ defmodule TcgCheap.Sealed.FetchWorker do
 
   @doc "Queues a refresh of one shop."
   @spec enqueue(String.t()) :: {:ok, Oban.Job.t()} | {:error, term()}
-  def enqueue(key), do: %{"shop" => key} |> new() |> Oban.insert()
+  def enqueue(key), do: %{"shop" => key} |> new(queue: queue(key)) |> Oban.insert()
+
+  defp queue(key) do
+    case Shops.fetch(key) do
+      {:ok, %{source: Shopify}} -> :shopify
+      _other -> :sealed
+    end
+  end
 
   defp refresh(shop) do
     options = Application.get_env(:tcg_cheap, __MODULE__, [])
