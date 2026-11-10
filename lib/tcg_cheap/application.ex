@@ -5,10 +5,13 @@ defmodule TcgCheap.Application do
 
   use Application
 
+  alias TcgCheap.Sealed.FetchWorker
+
   @impl true
   def start(_type, _args) do
     # Before anything can crash with a visitor's location in its state.
     :ok = TcgCheapWeb.LocationLogFilter.install()
+    :ok = FetchWorker.attach_failure_reports()
 
     children = [
       TcgCheapWeb.Telemetry,
