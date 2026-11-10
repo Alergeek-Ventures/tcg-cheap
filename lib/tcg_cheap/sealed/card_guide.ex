@@ -200,7 +200,7 @@ defmodule TcgCheap.Sealed.CardGuide do
 
   defp browse_query(filters) do
     offers =
-      from(o in polish_query(),
+      from(o in subquery(compared_query()),
         where: is_nil(o.grading),
         group_by: o.card_id,
         select: %{card_id: o.card_id, price: min(o.price) |> filter(o.in_stock)}
@@ -354,7 +354,11 @@ defmodule TcgCheap.Sealed.CardGuide do
 
   def page(card, name, path) do
     rate = Guide.eur_pln(Date.utc_today())
-    offers = current_offers([card.id])
+    # By the price compared in the answers: a shop abroad's with delivery.
+    offers =
+      [card.id]
+      |> current_offers()
+      |> Enum.sort_by(&{not &1.in_stock, Shops.listing_price(&1), &1.shop, &1.id})
 
     variants =
       Enum.uniq(
@@ -369,8 +373,8 @@ defmodule TcgCheap.Sealed.CardGuide do
         cheapest =
           offers
           |> Enum.filter(&(&1.in_stock and is_nil(&1.grading) and &1.variant == variant))
-          |> Enum.reject(&(&1.shop in Shops.abroad_keys()))
-          |> List.first()
+          |> Shops.compared()
+          |> Enum.min_by(& &1.price, Decimal, fn -> nil end)
 
         reference = CardReference.pln(card.cardmarket_price, variant, rate)
 
@@ -441,12 +445,38 @@ defmodule TcgCheap.Sealed.CardGuide do
   end
 
   @doc """
-  The current offers of Polish shops: the card's price "in Poland", its
-  cheapest shop and the shop count. Shops abroad only appear in a card's
-  offer list, for comparison like Cardmarket.
+  The current offers that count in a card's price, its cheapest shop and the
+  shop count, each `price` the compared one (`Shops.compared_price/2`): a
+  shop abroad's includes delivery to Poland. Use it as a subquery, and only
+  for prices and counts: its other fields lose their types (a UUID comes back
+  as raw bytes).
   """
-  def polish_query do
-    from(o in current_query(), where: o.shop not in ^Shops.abroad_keys())
+  def compared_query do
+    from(o in current_query(), where: o.shop not in ^Shops.listed_only_keys())
+    |> select_merge(^%{price: compared_price()})
+  end
+
+  # `Shops.compared_price/2` in SQL.
+  defp compared_price do
+    Enum.reduce(Shops.delivered(), dynamic([o], o.price), fn {shop, {shipping, free_from}}, acc ->
+      delivered =
+        if free_from,
+          do:
+            dynamic(
+              [o],
+              fragment(
+                "CASE WHEN ? >= ? THEN ? ELSE ? + ? END",
+                o.price,
+                type(^free_from, :decimal),
+                o.price,
+                o.price,
+                type(^shipping, :decimal)
+              )
+            ),
+          else: dynamic([o], o.price + type(^shipping, :decimal))
+
+      dynamic([o], fragment("CASE WHEN ? = ? THEN ? ELSE ? END", o.shop, ^shop, ^delivered, ^acc))
+    end)
   end
 
   def current_offers(card_ids) do
@@ -477,12 +507,13 @@ defmodule TcgCheap.Sealed.CardGuide do
   end
 
   defp in_stock_prices(card_ids) do
-    from(o in polish_query(),
+    from(o in current_query(),
       where: o.card_id in ^card_ids and o.in_stock and is_nil(o.grading),
-      order_by: [asc: o.price, asc: o.shop, asc: o.id],
-      select: map(o, [:card_id, :price, :shop, :variant])
+      select: map(o, [:id, :card_id, :price, :shop, :variant])
     )
     |> Repo.all()
+    |> Shops.compared()
+    |> Enum.sort_by(&{Decimal.to_float(&1.price), &1.shop, &1.id})
     |> Enum.group_by(& &1.card_id)
   end
 
@@ -556,9 +587,9 @@ defmodule TcgCheap.Sealed.CardGuide do
     |> Repo.aggregate(:count)
   end
 
-  @doc "How many Polish shops have an ungraded card in stock."
+  @doc "How many shops counted in card prices have an ungraded card in stock."
   def shop_count do
-    from(o in polish_query(),
+    from(o in subquery(compared_query()),
       where: o.in_stock and is_nil(o.grading),
       select: count(o.shop, :distinct)
     )
@@ -596,7 +627,7 @@ defmodule TcgCheap.Sealed.CardGuide do
   def sitemap_cards do
     cards =
       from(c in TcgdexCard,
-        join: o in subquery(polish_query()),
+        join: o in subquery(compared_query()),
         on: o.card_id == c.id and o.in_stock and is_nil(o.grading),
         join: s in TcgdexSet,
         on: c.tcgdex_set_id == s.id,

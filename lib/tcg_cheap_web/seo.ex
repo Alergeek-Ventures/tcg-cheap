@@ -87,7 +87,7 @@ defmodule TcgCheapWeb.SEO do
         "Booster z ostatnich angielskich setów kosztuje dziś od %{price} (%{product}, %{shop}).",
         price: Polish.price(cheapest.verdict.cheapest.price),
         product: cheapest.product.name,
-        shop: GuideComponents.shop_name(cheapest.verdict.cheapest)
+        shop: GuideComponents.priced_shop_name(cheapest.verdict.cheapest)
       ),
       gettext("Najnowszy set w sklepach, %{set}: od %{price}.",
         set: newest.product.set_name,
@@ -190,7 +190,7 @@ defmodule TcgCheapWeb.SEO do
       gettext("Booster %{expansion}: przedsprzedaż od %{price} w %{shop}.",
         expansion: name,
         price: Polish.price(cheapest.price),
-        shop: GuideComponents.shop_name(cheapest)
+        shop: GuideComponents.priced_shop_name(cheapest)
       )
 
   defp booster_answer(name, %{verdict: %{cheapest: cheapest}}),
@@ -198,7 +198,7 @@ defmodule TcgCheapWeb.SEO do
       gettext("Booster %{expansion}: najtaniej teraz %{price} w %{shop}.",
         expansion: name,
         price: Polish.price(cheapest.price),
-        shop: GuideComponents.shop_name(cheapest)
+        shop: GuideComponents.priced_shop_name(cheapest)
       )
 
   defp cards_answer(%{card_count: 0}), do: nil
@@ -240,11 +240,11 @@ defmodule TcgCheapWeb.SEO do
         do: Map.put(product_data, "image", image),
         else: product_data
 
-    # Only current, in-stock offers of Polish shops count, never MSRP, Cardmarket or a
-    # last-known price. Google requires offers on a Product, so without one there's no
-    # Product block.
+    # Only current, in-stock offers count, at their compared price (a shop abroad's
+    # with delivery), never MSRP, Cardmarket or a last-known price. Google requires
+    # offers on a Product, so without one there's no Product block.
     product_data =
-      case Enum.filter(page.offers, &(&1.in_stock and &1.shop not in Shops.abroad_keys())) do
+      case page.offers |> Enum.filter(& &1.in_stock) |> Shops.compared() do
         [] ->
           nil
 
@@ -328,14 +328,14 @@ defmodule TcgCheapWeb.SEO do
           gettext("%{name}: przedsprzedaż od %{price} w %{shop}.",
             name: product.name,
             price: Polish.price(cheapest.price),
-            shop: GuideComponents.shop_name(cheapest)
+            shop: GuideComponents.priced_shop_name(cheapest)
           )
 
         {cheapest, false} ->
           gettext("%{name}: najtaniej teraz %{price} w %{shop}.",
             name: product.name,
             price: Polish.price(cheapest.price),
-            shop: GuideComponents.shop_name(cheapest)
+            shop: GuideComponents.priced_shop_name(cheapest)
           )
       end
 
@@ -365,7 +365,7 @@ defmodule TcgCheapWeb.SEO do
     ]
   end
 
-  defp set_content(_page), do: [gettext("Porównanie cen w polskich sklepach i historia cen.")]
+  defp set_content(_page), do: [gettext("Porównanie cen w sklepach i historia cen.")]
 
   # The two rarest rates, as the page's table states them.
   defp pull_rates_summary(%{rates: [_ | _] = rates}) do
@@ -392,7 +392,7 @@ defmodule TcgCheapWeb.SEO do
       gettext("%{verdict}: najtaniej teraz %{price} w %{shop}.",
         verdict: GuideComponents.verdict_label(verdict),
         price: Polish.price(price),
-        shop: GuideComponents.shop_name(cheapest)
+        shop: GuideComponents.priced_shop_name(cheapest)
       )
 
   defp answer(_verdict), do: gettext("Teraz żaden sklep nie ma tego produktu na stanie.")
@@ -407,7 +407,7 @@ defmodule TcgCheapWeb.SEO do
     description =
       if answer do
         gettext(
-          "%{name} %{number}: od %{price} w polskich sklepach. %{verdict}. Ceny, stan i warianty karty.",
+          "%{name} %{number}: od %{price} w sklepach wysyłających do Polski. %{verdict}. Ceny, stan i warianty karty.",
           name: card.name,
           number: card.number,
           price: Polish.price(answer.cheapest.price),
@@ -415,7 +415,7 @@ defmodule TcgCheapWeb.SEO do
         )
       else
         gettext(
-          "%{name} %{number}: brak ofert bez gradingu na stanie w polskich sklepach. Sprawdź referencję Cardmarket i pozostałe oferty.",
+          "%{name} %{number}: brak ofert bez gradingu na stanie w sklepach. Sprawdź referencję Cardmarket i pozostałe oferty.",
           name: card.name,
           number: card.number
         )
@@ -467,19 +467,17 @@ defmodule TcgCheapWeb.SEO do
     )
   end
 
-  # Like a sealed product's: only current, in-stock, ungraded offers of Polish
-  # shops, and only the answer's variant, so the price range starts at the "od"
+  # Like a sealed product's: only current, in-stock, ungraded offers at their
+  # compared price, and only the answer's variant, so the price range starts at the "od"
   # price the description and the page's answer state. Without an answer there's no
   # Product block, as Google requires offers on one.
   defp single_product(_page, nil, _description, _canonical), do: nil
 
   defp single_product(page, answer, description, canonical) do
     offers =
-      Enum.filter(
-        page.offers,
-        &(&1.in_stock and is_nil(&1.grading) and &1.variant == answer.variant and
-            &1.shop not in Shops.abroad_keys())
-      )
+      page.offers
+      |> Enum.filter(&(&1.in_stock and is_nil(&1.grading) and &1.variant == answer.variant))
+      |> Shops.compared()
 
     {low, high} = Enum.min_max_by(offers, & &1.price, Decimal)
 

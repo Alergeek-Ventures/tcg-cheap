@@ -27,9 +27,10 @@ defmodule TcgCheap.Sealed.Shop do
     * `singles_only` – true for a shop read only for its singles; its sealed
       products are ignored;
     * `country` – the ISO code of a shop abroad, shown with its delivery; nil
-      for a Polish shop. A shop abroad appears in a product's or card's offer
-      list, compared like Cardmarket, but never in the prices "in Polish
-      shops" (verdicts, lowest prices, history);
+      for a Polish shop. A shop abroad counts in every price (verdicts, lowest
+      prices, history) like a Polish shop, at its price with delivery to
+      Poland (`TcgCheap.Sealed.Shops.compared_price/2`); without a known
+      `shipping_from` it is only listed;
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
       cover the whole shop) and `feed_host` (the shop's own host serving the
       export, such as its CDN, when it is not `host`); WooCommerce:

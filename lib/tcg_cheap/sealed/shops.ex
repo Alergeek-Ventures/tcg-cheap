@@ -1,7 +1,7 @@
 defmodule TcgCheap.Sealed.Shops do
   @moduledoc """
   The shops whose product feeds the buying guide reads, fixed in code (Polish
-  shops, and shops abroad listed apart from the prices in Polish shops, see
+  shops, and shops abroad compared with their delivery to Poland, see
   `TcgCheap.Sealed.Shop`):
   where and how to read each feed (see `TcgCheap.Sealed.Shop`) and the
   delivery facts shown next to its offers. The owner agreed recurring
@@ -1704,10 +1704,10 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_city: "Chrzanów",
       pickup_location: {50.1423, 19.4082}
     },
-    # Shops abroad: priced in their currency and compared like Cardmarket,
-    # mostly for their singles; delivery to Poland converted to PLN when
-    # configured (NBP, 6 November 2026: EUR 4.39, GBP 5.26, SEK 0.40, CZK 0.18,
-    # DKK 0.59).
+    # Shops abroad: priced in their currency, mostly for their singles, and
+    # compared at their price with delivery to Poland converted to PLN (NBP,
+    # 6 November 2026: EUR 4.39, GBP 5.26, SEK 0.40, CZK 0.18, DKK 0.59); one
+    # without a known delivery price is only listed (`compared_price/2`).
     #
     # Bangerpack (White Tree AB, Helsingborg) asked to be listed and gave its
     # Google Shopping export, served from its CDN in euros; it holds sealed
@@ -1723,7 +1723,8 @@ defmodule TcgCheap.Sealed.Shops do
       currency: "EUR",
       country: "SE",
       max_pages: 1,
-      shipping_from: nil,
+      # €10.99 to Poland in its checkout for a €1.99 cart (2026-11-10).
+      shipping_from: Decimal.new("48.25"),
       free_shipping_from: nil,
       pickup_city: nil
     },
@@ -1769,7 +1770,8 @@ defmodule TcgCheap.Sealed.Shops do
       singles_only: true,
       country: "DK",
       max_pages: 5,
-      shipping_from: nil,
+      # 109 DKK standard to Poland in its cart, also for 699 DKK (2026-11-10).
+      shipping_from: Decimal.new("64.31"),
       free_shipping_from: nil,
       pickup_city: nil
     },
@@ -1859,11 +1861,60 @@ defmodule TcgCheap.Sealed.Shops do
            do: raise(ArgumentError, "shop abroad #{shop.key} is misconfigured")
   end
 
-  @abroad_keys for shop <- @shops, shop.country != nil, do: shop.key
+  @doc """
+  The price an offer is compared at with other shops' offers (verdicts,
+  lowest prices, history): a Polish shop's item price; a shop abroad's with
+  its cheapest delivery to Poland, none from its free-delivery threshold.
+  Nil for a shop abroad whose delivery price is unknown: it is only listed.
+  """
+  @spec compared_price(String.t(), Decimal.t()) :: Decimal.t() | nil
+  def compared_price(key, price) do
+    case fetch(key) do
+      {:ok, %Shop{country: country, shipping_from: shipping, free_shipping_from: free_from}}
+      when country != nil ->
+        cond do
+          shipping == nil -> nil
+          free_from && not Decimal.lt?(price, free_from) -> price
+          true -> Decimal.add(price, shipping)
+        end
 
-  @doc "The shops abroad, compared with Polish shops like Cardmarket."
-  @spec abroad_keys() :: [String.t()]
-  def abroad_keys, do: @abroad_keys
+      # A Polish shop, or one no longer configured.
+      _polish ->
+        price
+    end
+  end
+
+  @doc "The offers that count in prices, each at its `compared_price/2`."
+  @spec compared([offer]) :: [offer] when offer: %{shop: String.t(), price: Decimal.t()}
+  def compared(offers) do
+    for offer <- offers,
+        price = compared_price(offer.shop, offer.price),
+        price != nil,
+        do: %{offer | price: price}
+  end
+
+  @doc """
+  An offer's place in an offer list, as a float: its `compared_price/2`, or
+  its item price for a shop that is only listed.
+  """
+  @spec listing_price(%{shop: String.t(), price: Decimal.t()}) :: float()
+  def listing_price(offer),
+    do: Decimal.to_float(compared_price(offer.shop, offer.price) || offer.price)
+
+  @doc "Shops abroad compared with their delivery: `{shipping, free from}` by key."
+  @spec delivered() :: %{String.t() => {Decimal.t(), Decimal.t() | nil}}
+  def delivered do
+    for %Shop{country: country, shipping_from: shipping} = shop <- @shops,
+        country != nil and shipping != nil,
+        into: %{},
+        do: {shop.key, {shipping, shop.free_shipping_from}}
+  end
+
+  @doc "Shops abroad without a known delivery price: listed, never compared."
+  @spec listed_only_keys() :: [String.t()]
+  def listed_only_keys do
+    for %Shop{country: country, shipping_from: nil} = shop <- @shops, country != nil, do: shop.key
+  end
 
   @spec all() :: [Shop.t()]
   def all, do: @shops

@@ -167,7 +167,7 @@ defmodule TcgCheapWeb.SocialImage do
       case {verdict, past} do
         {%{cheapest: %{price: price} = cheapest}, _past} ->
           {{Polish.price(price), 104, @ink},
-           gettext("najtaniej teraz w %{shop}", shop: GuideComponents.shop_name(cheapest))}
+           gettext("najtaniej teraz w %{shop}", shop: GuideComponents.priced_shop_name(cheapest))}
 
         {_verdict, %{last_known: %{price: price, date: date}}} ->
           {{Polish.price(price), 68, @muted},

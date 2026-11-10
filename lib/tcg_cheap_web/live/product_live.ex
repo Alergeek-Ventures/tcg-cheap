@@ -361,9 +361,11 @@ defmodule TcgCheapWeb.ProductLive do
         Map.put(pickup, :extra, Decimal.sub(pickup.offer.price, cheapest.price))
 
       nil ->
+        # A shop abroad's compared price already includes its delivery.
         delivery =
           case Shops.fetch(cheapest.shop) do
-            {:ok, shop} -> shipping(shop, cheapest.price)
+            {:ok, %{country: nil} = shop} -> shipping(shop, cheapest.price)
+            {:ok, _abroad} -> :included
             :error -> :unknown
           end
 
@@ -930,7 +932,7 @@ defmodule TcgCheapWeb.ProductLive do
     [
       %{
         key: "shops",
-        label: gettext("Najniższa cena w polskich sklepach"),
+        label: gettext("Najniższa cena w sklepach"),
         class: "shops",
         points: Enum.map(page.history, &{&1.date, &1.lowest_price})
       },
@@ -996,6 +998,7 @@ defmodule TcgCheapWeb.ProductLive do
 
   defp delivery_note({:from, from}), do: gettext("dostawa od %{amount}", amount: amount(from))
   defp delivery_note(:free), do: gettext("dostawa gratis")
+  defp delivery_note(:included), do: gettext("cena z wysyłką")
 
   # Whole złoty, at least 1: "+110 zł".
   defp extra_zloty(extra),

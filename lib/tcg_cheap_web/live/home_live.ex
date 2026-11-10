@@ -18,7 +18,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   alias TcgCheap.Sealed
 
-  alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Guide, Kinds, Rarities, Regions, Shops}
+  alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Guide, Kinds, Rarities, Regions}
 
   alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
 
@@ -803,7 +803,9 @@ defmodule TcgCheapWeb.HomeLive do
       <div class="set-title site-title">
         <div class="site-title-text">
           <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
-          <p id="guide-promise">{gettext("Najtańsze oferty Pokémon TCG w polskich sklepach.")}</p>
+          <p id="guide-promise">
+            {gettext("Najtańsze oferty Pokémon TCG w sklepach wysyłających do Polski.")}
+          </p>
         </div>
       </div>
       <%= if @filters.mode == :cards do %>
@@ -1049,7 +1051,7 @@ defmodule TcgCheapWeb.HomeLive do
         </li>
       </ul>
       <p class="set-chase-foot">
-        <span>{gettext("Ceny w polskich sklepach bez dostawy.")}</span>
+        <span>{gettext("Ceny bez dostawy, z zagranicy z wysyłką.")}</span>
         <a href={@cards_href}>{gettext("Zobacz karty")}</a>
       </p>
     </div>
@@ -1135,7 +1137,7 @@ defmodule TcgCheapWeb.HomeLive do
           <%= if @cheapest do %>
             <span class="set-chase-label">{gettext("Kupisz za")}</span>
             <strong>{Polish.price(@cheapest.price)}</strong>
-            <span class="set-chase-detail">{gettext("w %{shop}", shop: shop_name(@cheapest))}</span>
+            <span class="set-chase-detail">{gettext("w %{shop}", shop: priced_shop_name(@cheapest))}</span>
           <% else %>
             <span class="set-chase-label">{gettext("Kupisz za")}</span>
             <strong class="set-chase-unknown">{gettext("brak na stanie")}</strong>
@@ -1401,7 +1403,9 @@ defmodule TcgCheapWeb.HomeLive do
           if(card.rarity, do: Rarities.label(card.rarity), else: gettext("Rzadkość nieznana"))
       )
 
-  defp chase_source({:shop, shop}), do: gettext("w %{shop}", shop: Shops.name(shop))
+  defp chase_source({:shop, shop}),
+    do: gettext("w %{shop}", shop: priced_shop_name(%{shop: shop}))
+
   defp chase_source(:cardmarket), do: gettext("na Cardmarket")
 
   attr :count, :integer, required: true

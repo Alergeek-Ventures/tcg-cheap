@@ -32,7 +32,7 @@ defmodule TcgCheapWeb.CrawlController do
     |> send_resp(200, body)
   end
 
-  # Only products and cards a Polish shop has in stock now, and their
+  # Only products and cards a compared shop has in stock now, and their
   # expansions' set pages: the rest of the catalogue has no offer to compare,
   # so it stays reachable but isn't submitted.
   defp listed_pages do
@@ -40,7 +40,7 @@ defmodule TcgCheapWeb.CrawlController do
       DateTime.utc_now()
       |> Sealed.current_offers(:all, select: [:product_id, :in_stock])
       |> Enum.filter(
-        &(&1.in_stock and &1.product_id != nil and &1.shop not in Shops.abroad_keys())
+        &(&1.in_stock and &1.product_id != nil and &1.shop not in Shops.listed_only_keys())
       )
       |> Enum.map(& &1.product_id)
       |> Enum.uniq()

@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   use TcgCheapWeb, :verified_routes
 
-  alias TcgCheap.Sealed.{CardGuide, Kinds, PriceGuide, Rarities, Regions, RetailDeal, Shops}
+  alias TcgCheap.Sealed.{CardGuide, Kinds, PriceGuide, Rarities, Regions, RetailDeal}
   alias TcgCheapWeb.{GuideComponents, Polish, SEO}
 
   @doc "The markdown version's URL of a page's canonical URL."
@@ -21,8 +21,8 @@ defmodule TcgCheapWeb.PageMarkdown do
   @spec method() :: [String.t()]
   def method do
     [
-      "Ceny pochodzą z publicznych feedów produktowych polskich sklepów, pobieranych raz dziennie, i nie obejmują dostawy.",
-      "Typowa cena to mediana najniższych cen na stanie w polskich sklepach (jedna cena na sklep, co najmniej #{PriceGuide.min_shops()} sklepy).",
+      "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie. Ceny polskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Polski.",
+      "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej #{PriceGuide.min_shops()} sklepy).",
       "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich #{PriceGuide.window_days()} dni i trendu Cardmarket w złotych z przesyłką z Niemiec, gdy są znane.",
       "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w złotych.",
       "Ocena nigdy nie opiera się na cenie sugerowanej producenta. Brakujące dane pokazujemy jako brakujące."
@@ -54,8 +54,8 @@ defmodule TcgCheapWeb.PageMarkdown do
   def booster_prices(seo, page) do
     page(seo, page.today, [
       retail_deals("Okazje w sieciówkach", page.retail_deals),
-      section("Boostery w polskich sklepach", [
-        "Angielskie, najnowsze sety najpierw. Najniższa cena na stanie w polskich sklepach internetowych, bez dostawy.",
+      section("Boostery w sklepach", [
+        "Angielskie, najnowsze sety najpierw. Najniższa cena na stanie w sklepach internetowych, bez dostawy (ze sklepów za granicą z wysyłką).",
         products_table(page.boosters)
       ])
     ])
@@ -67,12 +67,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     page(seo, page.today, [
       section("Werdykt", list(verdict_facts(page))),
       section("Produkt", list(product_facts(product))),
-      section(
-        "Oferty w polskich sklepach",
-        page.offers
-        |> Enum.reject(&(&1.shop in Shops.abroad_keys()))
-        |> offers_table(page.today)
-      ),
+      section("Oferty", offers_table(page.offers, page.today)),
       retail_deals("W sieciówkach", page.retail_deals),
       page.booster_set && pull_rates(page.booster_set)
     ])
@@ -104,12 +99,7 @@ defmodule TcgCheapWeb.PageMarkdown do
           card.rarity && "Rzadkość: #{Rarities.label(card.rarity)}"
         ])
       ),
-      section(
-        "Oferty w polskich sklepach",
-        page.offers
-        |> Enum.reject(&(&1.shop in Shops.abroad_keys()))
-        |> card_offers_table(today)
-      )
+      section("Oferty", card_offers_table(page.offers, today))
     ])
   end
 
@@ -154,9 +144,9 @@ defmodule TcgCheapWeb.PageMarkdown do
     [
       "Ocena: #{GuideComponents.verdict_label(verdict)}",
       verdict.cheapest &&
-        "Najtańsza oferta#{if page.preorder?, do: " (przedsprzedaż)", else: ""}: #{Polish.price(verdict.cheapest.price)} w #{GuideComponents.shop_name(verdict.cheapest)}",
+        "Najtańsza oferta#{if page.preorder?, do: " (przedsprzedaż)", else: ""}: #{Polish.price(verdict.cheapest.price)} w #{GuideComponents.priced_shop_name(verdict.cheapest)}",
       verdict.typical_source == :shops &&
-        "Typowa cena w polskich sklepach: #{Polish.zloty(verdict.typical)} (mediana z #{length(verdict.shop_prices)} sklepów)",
+        "Typowa cena w sklepach: #{Polish.zloty(verdict.typical)} (mediana z #{length(verdict.shop_prices)} sklepów)",
       verdict.good_max &&
         "Dobra cena do #{Polish.zloty(verdict.good_max)}, normalna do #{Polish.zloty(verdict.normal_max)}",
       past.typical &&
@@ -210,7 +200,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     ])
   end
 
-  defp offers_table([], _today), do: "Żaden polski sklep nie ma teraz tej oferty."
+  defp offers_table([], _today), do: "Żaden sklep nie ma teraz tej oferty."
 
   defp offers_table(offers, today) do
     table(
@@ -257,7 +247,7 @@ defmodule TcgCheapWeb.PageMarkdown do
   defp cheapest(%{verdict: %{cheapest: nil}}), do: "brak na stanie"
 
   defp cheapest(%{verdict: %{cheapest: cheapest}} = summary) do
-    offer = "#{Polish.price(cheapest.price)} w #{GuideComponents.shop_name(cheapest)}"
+    offer = "#{Polish.price(cheapest.price)} w #{GuideComponents.priced_shop_name(cheapest)}"
 
     cond do
       summary.preorder? and summary.premiere ->
@@ -320,7 +310,7 @@ defmodule TcgCheapWeb.PageMarkdown do
         title
 
       {price, {:shop, shop}} ->
-        "#{title}: #{Polish.price(price)} w #{Shops.name(shop)}"
+        "#{title}: #{Polish.price(price)} w #{GuideComponents.priced_shop_name(%{shop: shop})}"
 
       {price, :cardmarket} ->
         "#{title}: #{Polish.price(price)} (trend Cardmarket, bez dostawy)"
@@ -333,7 +323,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     price =
       if answer.cheapest,
         do:
-          "od #{Polish.price(answer.cheapest.price)} w #{GuideComponents.shop_name(answer.cheapest)}",
+          "od #{Polish.price(answer.cheapest.price)} w #{GuideComponents.priced_shop_name(answer.cheapest)}",
         else: "brak ofert bez gradingu na stanie"
 
     reference =
@@ -344,7 +334,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     "#{variant}: #{price}#{reference} (#{GuideComponents.single_verdict_label(answer.verdict)})"
   end
 
-  defp card_offers_table([], _today), do: "Żaden polski sklep nie ma teraz tej karty."
+  defp card_offers_table([], _today), do: "Żaden sklep nie ma teraz tej karty."
 
   defp card_offers_table(offers, today) do
     table(
