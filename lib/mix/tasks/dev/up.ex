@@ -29,7 +29,7 @@ defmodule Mix.Tasks.Dev.Up do
     wait_for_s3(s3_port)
     create_public_bucket(project)
     run_setup(env)
-    start_server(branch, env)
+    start_server(project, branch, env)
     wait_for_http(port)
     print_endpoints(port, db_port, s3_port)
   end
@@ -101,9 +101,7 @@ defmodule Mix.Tasks.Dev.Up do
     if status != 0, do: Mix.raise("mix setup failed:\n#{output}")
   end
 
-  defp start_server(branch, env) do
-    session = Shared.session(branch)
-
+  defp start_server(session, branch, env) do
     if System.find_executable("tmux") do
       start_tmux_server(session, env)
     else
