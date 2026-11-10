@@ -12,6 +12,11 @@ defmodule TcgCheap.Sealed.FetchWorker do
   minutes later, plus up to 5 minutes of jitter so rate-limited shops do not
   return together; Oban's default backoff (seconds) would ask again while the
   shop still refuses us. Other failures keep the default backoff.
+
+  A failure on the last attempt is reported with `TcgCheap.Sealed.FetchFailure`:
+  an error the fetch returns by `perform/1`; a raise, crash or Oban timeout,
+  which never returns there, and a job the Lifeline discards as orphaned by the
+  Oban telemetry handler that `attach_failure_reports/0` attaches at app start.
   """
 
   use Oban.Worker,
@@ -28,6 +33,51 @@ defmodule TcgCheap.Sealed.FetchWorker do
   require Logger
 
   alias TcgCheap.Sealed.{FetchFailure, Refresh, Shopify, Shops}
+
+  @worker inspect(__MODULE__)
+
+  @doc "Reports a last attempt that raised, crashed, timed out or was orphaned; at app start."
+  @spec attach_failure_reports() :: :ok | {:error, :already_exists}
+  def attach_failure_reports do
+    :telemetry.attach_many(
+      "sealed-fetch-failures",
+      [[:oban, :job, :exception], [:oban, :plugin, :stop]],
+      &__MODULE__.handle_failure_event/4,
+      nil
+    )
+  end
+
+  # An `{:error, reason}` from `perform/1` (`Oban.PerformError`) is already
+  # reported by `refresh/2`, with the fetch's own reason.
+  @doc false
+  def handle_failure_event(
+        [:oban, :job, :exception],
+        _measurements,
+        %{job: %Oban.Job{worker: @worker, args: %{"shop" => key}} = job, reason: reason},
+        _config
+      )
+      when job.attempt >= job.max_attempts and not is_struct(reason, Oban.PerformError),
+      do: FetchFailure.report(:sealed, key, failure_reason(reason))
+
+  def handle_failure_event(
+        [:oban, :plugin, :stop],
+        _measurements,
+        %{
+          plugin: Oban.Lifeline,
+          discarded_jobs: jobs
+        },
+        _config
+      ) do
+    for %Oban.Job{worker: @worker, args: %{"shop" => key}} <- jobs,
+        do: FetchFailure.report(:sealed, key, :orphaned)
+
+    :ok
+  end
+
+  def handle_failure_event(_event, _measurements, _metadata, _config), do: :ok
+
+  defp failure_reason(%Oban.TimeoutError{}), do: :timeout
+  defp failure_reason(exception), do: exception
 
   # Within the Lifeline's 30 minutes (config.exs), after which a job still
   # executing counts as orphaned and is run again.

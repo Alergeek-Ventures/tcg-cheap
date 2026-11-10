@@ -6,6 +6,8 @@ defmodule TcgCheap.Sealed.FetchFailure do
 
   Events group per fetch kind, shop and failure reason, so a shop failing
   every night stays one Issue, and a new reason or another shop opens its own.
+  The key keeps an HTTP status and a transport error's module, and drops the
+  details that vary between nights (response snippets, dates).
   """
 
   require Logger
@@ -14,7 +16,7 @@ defmodule TcgCheap.Sealed.FetchFailure do
 
   @spec report(kind(), String.t(), term()) :: :ok
   def report(kind, shop_key, reason) when kind in [:sealed, :singles] do
-    message = "#{kind} fetch #{shop_key} failed: #{inspect(reason)}"
+    message = "#{kind} fetch #{shop_key} failed: #{describe(reason)}"
     reason_key = reason_key(reason)
 
     Logger.error(message)
@@ -29,11 +31,14 @@ defmodule TcgCheap.Sealed.FetchFailure do
     :ok
   end
 
-  # A stable grouping key: the reason's name without the details that vary
-  # between nights (response snippets, dates), but with the HTTP status.
+  defp describe(reason) when is_exception(reason),
+    do: "#{inspect(reason.__struct__)}: #{Exception.message(reason)}"
+
+  defp describe(reason), do: inspect(reason)
+
   defp reason_key(reason) when is_atom(reason), do: Atom.to_string(reason)
   defp reason_key({:http_status, status}), do: "http_status_#{status}"
-  defp reason_key({:http_status, status, _path}), do: "http_status_#{status}"
+  defp reason_key({:transport, module}) when is_atom(module), do: "transport_#{inspect(module)}"
 
   defp reason_key(reason) when is_tuple(reason) and is_atom(elem(reason, 0)),
     do: Atom.to_string(elem(reason, 0))

@@ -41,6 +41,7 @@ defmodule TcgCheap.Sealed.Refresh do
       # Singles read apart failed: the sealed offers stay current, while the
       # shop's singles are left as they were and age out unless a later fetch
       # reads them again.
+      # With no sealed offers either, FetchWorker reports it as a failed sealed fetch.
       {:partial, [], reason} ->
         {:error, reason}
 
