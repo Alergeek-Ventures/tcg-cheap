@@ -143,8 +143,8 @@ defmodule TcgCheapWeb.SetComponents do
     [
       source.data_from && gettext("dane %{source}", source: source.data_from),
       source.sample_packs &&
-        ngettext("%{count} otwarta paczka", "%{count} otwarte paczki", source.sample_packs,
-          count: Polish.number(source.sample_packs)
+        ngettext("%{number} otwarta paczka", "%{number} otwarte paczki", source.sample_packs,
+          number: Polish.number(source.sample_packs)
         )
     ]
     |> Enum.filter(& &1)
@@ -213,8 +213,8 @@ defmodule TcgCheapWeb.SetComponents do
   def set_card_count(rarities) do
     count = rarities |> Enum.map(&length(&1.cards)) |> Enum.sum()
 
-    ngettext("%{count} karta w secie", "%{count} karty w secie", count,
-      count: Polish.number(count)
+    ngettext("%{number} karta w secie", "%{number} karty w secie", count,
+      number: Polish.number(count)
     )
   end
 

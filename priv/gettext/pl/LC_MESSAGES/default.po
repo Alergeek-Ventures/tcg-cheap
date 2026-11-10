@@ -4,13 +4,13 @@ msgstr ""
 "Language: pl\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
-#: lib/tcg_cheap_web/polish.ex:136
+#: lib/tcg_cheap_web/polish.ex:138
 #, elixir-autogen, elixir-format
-msgid "%{count} dnia"
-msgid_plural "%{count} dni"
-msgstr[0] "%{count} dnia"
-msgstr[1] "%{count} dni"
-msgstr[2] "%{count} dni"
+msgid "%{number} dnia"
+msgid_plural "%{number} dni"
+msgstr[0] "%{number} dnia"
+msgstr[1] "%{number} dni"
+msgstr[2] "%{number} dni"
 
 #: lib/tcg_cheap_web/polish.ex:117
 #, elixir-autogen, elixir-format
@@ -20,21 +20,21 @@ msgstr[0] "%{count} dzień temu"
 msgstr[1] "%{count} dni temu"
 msgstr[2] "%{count} dni temu"
 
-#: lib/tcg_cheap_web/polish.ex:133
+#: lib/tcg_cheap_web/polish.ex:135
 #, elixir-autogen, elixir-format
-msgid "%{count} oferta"
-msgid_plural "%{count} oferty"
-msgstr[0] "%{count} oferta"
-msgstr[1] "%{count} oferty"
-msgstr[2] "%{count} ofert"
+msgid "%{number} oferta"
+msgid_plural "%{number} oferty"
+msgstr[0] "%{number} oferta"
+msgstr[1] "%{number} oferty"
+msgstr[2] "%{number} ofert"
 
-#: lib/tcg_cheap_web/polish.ex:130
+#: lib/tcg_cheap_web/polish.ex:132
 #, elixir-autogen, elixir-format
-msgid "%{count} produkt"
-msgid_plural "%{count} produkty"
-msgstr[0] "%{count} produkt"
-msgstr[1] "%{count} produkty"
-msgstr[2] "%{count} produktów"
+msgid "%{number} produkt"
+msgid_plural "%{number} produkty"
+msgstr[0] "%{number} produkt"
+msgstr[1] "%{number} produkty"
+msgstr[2] "%{number} produktów"
 
 #: lib/tcg_cheap_web/components/guide_components.ex:922
 #, elixir-autogen, elixir-format
@@ -723,13 +723,13 @@ msgstr ""
 msgid "brak zdjęcia"
 msgstr "brak zdjęcia"
 
-#: lib/tcg_cheap_web/polish.ex:142
+#: lib/tcg_cheap_web/polish.ex:144
 #, elixir-autogen, elixir-format
-msgid "%{count} sklepie"
-msgid_plural "%{count} sklepach"
-msgstr[0] "%{count} sklepie"
-msgstr[1] "%{count} sklepach"
-msgstr[2] "%{count} sklepach"
+msgid "%{number} sklepie"
+msgid_plural "%{number} sklepach"
+msgstr[0] "%{number} sklepie"
+msgstr[1] "%{number} sklepach"
+msgstr[2] "%{number} sklepach"
 
 #: lib/tcg_cheap_web/live/product_live.ex:1109
 #, elixir-autogen, elixir-format
@@ -851,39 +851,39 @@ msgstr "Zobacz na Cardmarket"
 
 #: lib/tcg_cheap_web/components/set_components.ex:216
 #, elixir-autogen, elixir-format
-msgid "%{count} karta w secie"
-msgid_plural "%{count} karty w secie"
-msgstr[0] "%{count} karta w secie"
-msgstr[1] "%{count} karty w secie"
-msgstr[2] "%{count} kart w secie"
+msgid "%{number} karta w secie"
+msgid_plural "%{number} karty w secie"
+msgstr[0] "%{number} karta w secie"
+msgstr[1] "%{number} karty w secie"
+msgstr[2] "%{number} kart w secie"
 
 #: lib/tcg_cheap_web/components/set_components.ex:146
 #, elixir-autogen, elixir-format
-msgid "%{count} otwarta paczka"
-msgid_plural "%{count} otwarte paczki"
-msgstr[0] "%{count} otwarta paczka"
-msgstr[1] "%{count} otwarte paczki"
-msgstr[2] "%{count} otwartych paczek"
+msgid "%{number} otwarta paczka"
+msgid_plural "%{number} otwarte paczki"
+msgstr[0] "%{number} otwarta paczka"
+msgstr[1] "%{number} otwarte paczki"
+msgstr[2] "%{number} otwartych paczek"
 
-#: lib/tcg_cheap_web/polish.ex:163
+#: lib/tcg_cheap_web/polish.ex:165
 #, elixir-autogen, elixir-format
 msgid "%{count} w każdej paczce"
 msgstr ""
 
-#: lib/tcg_cheap_web/polish.ex:166
+#: lib/tcg_cheap_web/polish.ex:168
 #, elixir-autogen, elixir-format
 msgid "%{hits} z %{packs} paczek"
 msgstr ""
 
-#: lib/tcg_cheap_web/polish.ex:177
-#, elixir-autogen, elixir-format
-msgid "1 na %{count} paczkę"
-msgid_plural "1 na %{count} paczki"
-msgstr[0] "1 na %{count} paczkę"
-msgstr[1] "1 na %{count} paczki"
-msgstr[2] "1 na %{count} paczek"
-
 #: lib/tcg_cheap_web/polish.ex:179
+#, elixir-autogen, elixir-format
+msgid "1 na %{number} paczkę"
+msgid_plural "1 na %{number} paczki"
+msgstr[0] "1 na %{number} paczkę"
+msgstr[1] "1 na %{number} paczki"
+msgstr[2] "1 na %{number} paczek"
+
+#: lib/tcg_cheap_web/polish.ex:181
 #, elixir-autogen, elixir-format
 msgid "1 na %{packs} paczki"
 msgstr ""
@@ -1055,13 +1055,13 @@ msgstr ""
 msgid "Te szanse dotyczą zwykłej paczki. W tej paczce jest mniej kart, więc szanse są niższe – o ile, nie wiadomo."
 msgstr ""
 
-#: lib/tcg_cheap_web/polish.ex:139
+#: lib/tcg_cheap_web/polish.ex:141
 #, elixir-autogen, elixir-format
-msgid "%{count} karta"
-msgid_plural "%{count} karty"
-msgstr[0] "%{count} karta"
-msgstr[1] "%{count} karty"
-msgstr[2] "%{count} kart"
+msgid "%{number} karta"
+msgid_plural "%{number} karty"
+msgstr[0] "%{number} karta"
+msgstr[1] "%{number} karty"
+msgstr[2] "%{number} kart"
 
 #: lib/tcg_cheap_web/live/product_live.ex:700
 #, elixir-autogen, elixir-format

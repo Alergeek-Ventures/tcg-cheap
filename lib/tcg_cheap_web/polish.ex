@@ -124,22 +124,24 @@ defmodule TcgCheapWeb.Polish do
   def days_until(1), do: gettext("jutro")
   def days_until(days), do: ngettext("za %{count} dzień", "za %{count} dni", days)
 
+  # Gettext binds `count` to the raw integer, so the grouped number ("1 299")
+  # goes in as `number`; any counted phrase with a grouped number needs it.
   @doc ~S'Polish plural form: plural(5, "produkt", "produkty", "produktów") == "5 produktów".'
   @spec plural(integer(), String.t(), String.t(), String.t()) :: String.t()
   def plural(count, "produkt", "produkty", "produktów"),
-    do: ngettext("%{count} produkt", "%{count} produkty", count, count: number(count))
+    do: ngettext("%{number} produkt", "%{number} produkty", count, number: number(count))
 
   def plural(count, "oferta", "oferty", "ofert"),
-    do: ngettext("%{count} oferta", "%{count} oferty", count, count: number(count))
+    do: ngettext("%{number} oferta", "%{number} oferty", count, number: number(count))
 
   def plural(count, "dnia", "dni", "dni"),
-    do: ngettext("%{count} dnia", "%{count} dni", count, count: number(count))
+    do: ngettext("%{number} dnia", "%{number} dni", count, number: number(count))
 
   def plural(count, "karta", "karty", "kart"),
-    do: ngettext("%{count} karta", "%{count} karty", count, count: number(count))
+    do: ngettext("%{number} karta", "%{number} karty", count, number: number(count))
 
   def plural(count, "sklepie", "sklepach", "sklepach"),
-    do: ngettext("%{count} sklepie", "%{count} sklepach", count, count: number(count))
+    do: ngettext("%{number} sklepie", "%{number} sklepach", count, number: number(count))
 
   def plural(count, one, few, many) do
     word =
@@ -174,7 +176,7 @@ defmodule TcgCheapWeb.Polish do
 
     if Decimal.integer?(packs) do
       count = Decimal.to_integer(packs)
-      ngettext("1 na %{count} paczkę", "1 na %{count} paczki", count, count: number(count))
+      ngettext("1 na %{number} paczkę", "1 na %{number} paczki", count, number: number(count))
     else
       gettext("1 na %{packs} paczki", packs: decimal(packs))
     end
