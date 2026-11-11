@@ -59,7 +59,8 @@ defmodule TcgCheap.Sealed.ExternalImage do
   ]
 
   # Limitless TCG's card scans, for sets TCGdex has no card images of
-  # (`TcgCheap.Sealed.CardImage.single_sources/2`).
+  # (`TcgCheap.Sealed.CardImage.single_sources/2`). pokemontcg.io's scans of
+  # Sword & Shield promos come from its host among the expansion logos'.
   @card_scan_hosts ["limitlesstcg.nyc3.cdn.digitaloceanspaces.com"]
 
   @doc "Every host an image may be rendered from."
