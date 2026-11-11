@@ -104,8 +104,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
     %{set: set, stock: if(params["dostepne"] == "1", do: :in, else: :all)}
   end
 
-  # The filters live in the URL, so a filtered ranking can be shared; the
-  # fragment keeps the reader at the ranking.
+  # The filters live in the URL, so a filtered ranking can be shared.
   defp path(params) do
     query =
       params
