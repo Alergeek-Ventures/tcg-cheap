@@ -1481,6 +1481,9 @@ defmodule TcgCheapWeb.HomeLive do
             <% true -> %>
               <.site_intro filters={@filters} market={@market} />
               <.retail_news :if={@filters.mode == :products} deals={@retail_deals} />
+              <p :if={@filters.mode == :cards} id="home-expensive-cards" class="reference-link">
+                <.link navigate={~p"/najdrozsze-karty-pokemon"}>{gettext("Najdroższe karty Pokémon")}&nbsp;→</.link>
+              </p>
           <% end %>
           <section class="guide-search" aria-labelledby="guide-search-title">
             <h2 id="guide-search-title" class="sr-only">

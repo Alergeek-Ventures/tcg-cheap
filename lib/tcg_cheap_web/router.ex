@@ -91,6 +91,7 @@ defmodule TcgCheapWeb.Router do
     get "/", MarkdownController, :home
     get "/karty", MarkdownController, :cards
     get "/ile-kosztuje-booster-pokemon", MarkdownController, :booster_prices
+    get "/najdrozsze-karty-pokemon", MarkdownController, :expensive_cards
     get "/produkty/:slug", MarkdownController, :product
     get "/rozszerzenia/:slug", MarkdownController, :expansion
     get "/rozszerzenia/:slug/karty/:card_slug", MarkdownController, :single
@@ -185,6 +186,7 @@ defmodule TcgCheapWeb.Router do
       # The card list, the products list's equal; its expansion stays a filter.
       live "/karty", HomeLive, :cards
       live "/ile-kosztuje-booster-pokemon", BoosterPriceLive
+      live "/najdrozsze-karty-pokemon", ExpensiveCardsLive
       live "/bot", BotLive
     end
 

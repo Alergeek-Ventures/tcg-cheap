@@ -21,9 +21,9 @@ defmodule TcgCheap.Sealed.CardPrice do
     defaults [:read]
 
     create :record do
-      accept [:cardmarket_id, :trend, :trend_holo, :low, :priced_on]
+      accept [:cardmarket_id, :trend, :trend_holo, :low, :avg7, :avg30, :priced_on]
       upsert? true
-      upsert_fields [:trend, :trend_holo, :low, :priced_on, :updated_at]
+      upsert_fields [:trend, :trend_holo, :low, :avg7, :avg30, :priced_on, :updated_at]
     end
 
     destroy :prune do
@@ -44,6 +44,16 @@ defmodule TcgCheap.Sealed.CardPrice do
 
     attribute :trend, :decimal do
       description "Cardmarket's trend price in EUR, nil when it gives none."
+      public? true
+    end
+
+    attribute :avg7, :decimal do
+      description "The average sale price of the last 7 days in EUR (non-reverse), nil without sales."
+      public? true
+    end
+
+    attribute :avg30, :decimal do
+      description "The average sale price of the last 30 days in EUR (non-reverse), nil without sales."
       public? true
     end
 
