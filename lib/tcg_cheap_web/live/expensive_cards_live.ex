@@ -416,8 +416,10 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                   <.card_tile row={row} placement="expensive_today" says_absent?={false} />
                 </li>
               </ol>
-              <div class="expensive-column expensive-prose">
-                <p class="expensive-note">{stock_summary(@overview.highlights)}</p>
+              <div :if={@top} class="expensive-column expensive-prose">
+                <p class="expensive-note">
+                  {@overview.highlights |> stock_summary() |> glue_short_words()}
+                </p>
                 <p>
                   {gettext(
                     "Część ludzi kupuje karty jak akcje – licząc, że za kilka lat sprzedadzą je drożej. Przy najrzadszych kartach to się czasem udaje, co widać po rekordach z początku tego artykułu: Pikachu Illustrator w niecałe pięć lat podrożał ponad trzykrotnie. Ale ceny potrafią też spaść – po dodruku, gdy moda przemija albo gdy na rynek trafi więcej egzemplarzy – a przy sprzedaży część pieniędzy zabierają prowizje i wysyłka. Dlatego tego nie polecamy: kupuj karty, które chcesz mieć, a nie takie, na których chcesz zarobić."
@@ -1046,7 +1048,9 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
   defp tile_value(%{printings: [_, _ | _] = printings}) do
     {low, high} = printings |> Enum.map(& &1.value) |> Enum.min_max_by(&Decimal.to_float/1)
     # One line on a tile: "9 570–12 228 zł".
-    "#{low |> Decimal.round(0) |> Decimal.to_integer() |> Polish.number()}–#{Polish.zloty(high)}"
+    low = low |> Decimal.round(0) |> Decimal.to_integer()
+    high = high |> Decimal.round(0) |> Decimal.to_integer()
+    if low == high, do: Polish.zloty(high), else: "#{Polish.number(low)}–#{Polish.zloty(high)}"
   end
 
   defp tile_value(row), do: Polish.zloty(row.value)
