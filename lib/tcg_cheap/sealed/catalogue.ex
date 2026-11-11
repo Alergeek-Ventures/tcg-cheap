@@ -31,6 +31,14 @@ defmodule TcgCheap.Sealed.Catalogue do
     834_807 => "Mega Heroes: Mega Latias Mini Tin"
   }
 
+  # Cardmarket products that duplicate another product, left out of the
+  # catalogue so offers never tie between the two, checked on 2026-11-11.
+  @duplicates [
+    # "Blade Awakening Coin Set" = 862_201 "CSV7C: Blade Awakening Coin Set":
+    # same expansion and picture, no Cardmarket offers.
+    873_186
+  ]
+
   # Derived set names that are wrong, by expansion id, checked on 2026-11-07.
   @set_names %{
     # Two Korean accessories (Binder Set, Playmat Set) share the expansion with
@@ -64,7 +72,12 @@ defmodule TcgCheap.Sealed.Catalogue do
   @spec rows([Adapter.Product.t()], [Adapter.Price.t()], Date.t(), %{integer() => map()}) ::
           [map()]
   def rows(products, prices, %Date{} = priced_on, tcgdex) do
-    products = Enum.filter(products, &Kinds.included_category?(&1.category_id))
+    products =
+      Enum.filter(
+        products,
+        &(Kinds.included_category?(&1.category_id) and &1.id_product not in @duplicates)
+      )
+
     prices = Map.new(prices, &{&1.id_product, &1})
     names = Enum.group_by(products, & &1.id_expansion, & &1.name)
 
