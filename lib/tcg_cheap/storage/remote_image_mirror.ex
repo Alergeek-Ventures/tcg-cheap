@@ -187,7 +187,9 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   end
 
   # All current offers count, including out-of-stock cards people search for.
-  # Source construction matches CardImage.single_sources/2; no remote I/O.
+  # Source construction matches CardImage.single_sources/2, except
+  # pokemontcg.io's promo scans, which only the keyset scan registers; no
+  # remote I/O.
   defp offered_sources do
     from(c in TcgdexCard,
       join: s in TcgdexSet,
