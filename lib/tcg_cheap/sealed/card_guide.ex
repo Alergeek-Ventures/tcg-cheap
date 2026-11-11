@@ -191,6 +191,38 @@ defmodule TcgCheap.Sealed.CardGuide do
     end)
   end
 
+  # Other printings a card's page offers when nobody stocks it.
+  @versions 4
+  # The best offer first, as the card list judges it.
+  @verdict_ranks %{cheaper: 0, similar: 1, pennies: 1, unknown: 2, expensive: 3}
+
+  @doc """
+  Other printings of a card's name (another number or set: its Illustration
+  Rare, Special Illustration Rare, reprints) in stock now, as `browse/2` rows
+  with the best offers first: by verdict, then by price under the Cardmarket
+  trend. At most #{@versions}.
+  """
+  def in_stock_versions(card) do
+    name = String.downcase(card.name)
+
+    # Exact names come first in a search, so the first page holds them.
+    {rows, _more?, _count} = browse(%{query: card.name, stock: :in}, 0)
+
+    rows
+    |> Enum.filter(
+      &((&1.offer && &1.card.id != card.id) and String.downcase(&1.card.name) == name)
+    )
+    |> Enum.sort_by(&{Map.fetch!(@verdict_ranks, &1.verdict), trend_ratio(&1)})
+    |> Enum.take(@versions)
+  end
+
+  # Nil (no trend) sorts after any number.
+  defp trend_ratio(%{offer: offer, cardmarket_trend_pln: %Decimal{} = trend}) do
+    if Decimal.positive?(trend), do: Decimal.to_float(Decimal.div(offer.price, trend))
+  end
+
+  defp trend_ratio(_row), do: nil
+
   @doc "How many Polish shop cards a search finds, in stock or not, in an optional expansion."
   def count(query, expansion),
     do: Repo.aggregate(browse_query(%{query: query, expansion: expansion}), :count)

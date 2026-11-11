@@ -4,7 +4,7 @@ defmodule TcgCheapWeb.GuideComponents do
   use TcgCheapWeb, :html
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{Kinds, Regions, RetailDeal, Shops}
+  alias TcgCheap.Sealed.{CardGuide, Kinds, Regions, RetailDeal, Shops}
   alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
 
   def card_variant_label(:normal), do: gettext("Zwykła / holo")
@@ -579,6 +579,81 @@ defmodule TcgCheapWeb.GuideComponents do
         run -> {:cont, Enum.reverse(run), []}
       end
     )
+  end
+
+  @doc "A card's row in a list: image, name, number and set, cheapest shop, verdict and price."
+  attr :id, :string, required: true
+  attr :row, :map, required: true
+  attr :placement, :string, default: "list", doc: "where the click came from, for analytics"
+  attr :rarity?, :boolean, default: false, doc: "name the rarity, for printings of one card"
+
+  def card_row(assigns) do
+    # With an offer in stock, the row answers as the card's page does: its
+    # cheapest shop, the verdict and that shop's price. Without one, the
+    # lower known price.
+    assigns =
+      assign(assigns,
+        status: single_verdict_status(assigns.row.verdict),
+        price:
+          CardGuide.price(%{
+            polish_price: assigns.row.price,
+            cardmarket_trend_pln: assigns.row.cardmarket_trend_pln
+          })
+      )
+
+    ~H"""
+    <li
+      id={@id}
+      class="guide-product guide-card"
+    >
+      <.link
+        navigate={@row.path}
+        class="guide-product-link"
+        data-track="card_clicked"
+        data-track-placement={@placement}
+        data-track-card={@row.card.id}
+        data-track-card-name={@row.card.name}
+        data-track-verdict={@row.verdict}
+      >
+        <div class="guide-product-image guide-card-image">
+          <img
+            :if={@row.image}
+            src={@row.image}
+            alt=""
+            loading="lazy"
+            width="88"
+            height="88"
+          />
+          <span :if={!@row.image} class="guide-card-placeholder" aria-hidden="true"></span>
+        </div>
+        <div class="guide-product-copy">
+          <h3 class="guide-product-name">{@row.card.name}</h3>
+          <p class="guide-product-meta">
+            <span :if={@rarity? && @row.card.rarity}>{@row.card.rarity} ·</span>
+            {@row.card.number} · {@row.expansion_name}
+          </p>
+        </div>
+        <div class="guide-product-deal">
+          <%= if @row.offer do %>
+            <span class="guide-product-shop">{priced_shop_name(@row.offer)}</span>
+            <%!-- Without a Cardmarket price there is nothing to judge; the card's page says why. --%>
+            <.verdict_badge
+              :if={@status != :insufficient_data}
+              verdict={%{status: @status}}
+              id={"card-verdict-#{@row.card.id}"}
+              class="guide-product-verdict"
+            />
+            <p class="guide-product-price"><strong>{Polish.price(@row.offer.price)}</strong></p>
+          <% else %>
+            <p class="guide-product-price">
+              <strong :if={@price}>{Polish.price(@price)}</strong>
+              <span :if={!@price}>{gettext("Cena nieznana")}</span>
+            </p>
+          <% end %>
+        </div>
+      </.link>
+    </li>
+    """
   end
 
   @doc "A product's row in a list: photo, name, kind, cheapest shop, verdict and price."

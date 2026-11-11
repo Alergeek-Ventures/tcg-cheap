@@ -31,6 +31,7 @@ defmodule TcgCheapWeb.SingleLive do
                name,
                DateTime.utc_now()
              ),
+           versions: if(primary.cheapest, do: [], else: CardGuide.in_stock_versions(card)),
            seo: seo,
            page_title: seo.page_title,
            counts: Map.new(groups, fn {k, v} -> {k, length(v)} end)
@@ -356,6 +357,25 @@ defmodule TcgCheapWeb.SingleLive do
               </ul>
             </.offers_disclosure>
             <.offer_disclaimer id="single-disclaimer" />
+          </section>
+          <section
+            :if={@versions != []}
+            id="single-versions"
+            class="product-section"
+            aria-labelledby="single-versions-title"
+          >
+            <div class="product-section-heading">
+              <h2 id="single-versions-title">{gettext("Inne wersje tej karty na stanie")}</h2>
+            </div>
+            <ul class="guide-products">
+              <.card_row
+                :for={row <- @versions}
+                id={"single-version-#{row.card.id}"}
+                row={row}
+                placement="other_versions"
+                rarity?
+              />
+            </ul>
           </section>
           <section
             :if={@booster}

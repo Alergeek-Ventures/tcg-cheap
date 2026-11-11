@@ -537,14 +537,21 @@ defmodule TcgCheap.Sealed.Guide do
     |> List.first()
   end
 
+  # Cards under this Cardmarket trend are too cheap for a "deal" to matter.
+  @deal_floor Decimal.new(20)
+  # More than 40% under its reference, an offer is more often matched to the wrong
+  # product (half a booster box, a promo's other print) than a real deal.
+  @deal_min_ratio Decimal.new("0.6")
+
   # Products an out-of-stock product's page offers instead.
   @in_stock_from_set 4
 
   @doc """
   What a product nobody has in stock can be swapped for from its own
-  expansion: the cheapest other products of its edition in stock now
-  (`products`, summaries, at most #{@in_stock_from_set}) and how many of the
-  set's English cards are (`cards`). Nil for a product without an expansion.
+  expansion: the other products of its edition in stock now with the best
+  offers first (`products`, summaries, at most #{@in_stock_from_set}, see
+  `best_offer_first/1`) and how many of the set's English cards are
+  (`cards`). Nil for a product without an expansion.
   """
   @spec in_stock_from_set(Product.t(), DateTime.t()) ::
           %{products: [summary()], cards: non_neg_integer()} | nil
@@ -568,10 +575,29 @@ defmodule TcgCheap.Sealed.Guide do
       |> summaries(now)
       # `available` is as of the last refresh: keep the ones in stock now.
       |> Enum.filter(&(&1.verdict.cheapest && not &1.preorder?))
-      |> Enum.sort_by(& &1.verdict.cheapest.price, Decimal)
+      |> Enum.sort_by(&best_offer_first/1)
       |> Enum.take(@in_stock_from_set)
 
     %{products: products, cards: CardGuide.in_stock_count(id)}
+  end
+
+  # Unrated offers (too few shops, or a Cardmarket comparison) rank between
+  # normal and expensive ones.
+  @offer_ranks %{good: 0, normal: 1, cardmarket: 2, insufficient_data: 2, expensive: 3}
+
+  # The best offer first: by verdict, then by how far the cheapest price is
+  # under its reference (`typical`). One too far under it is more often a
+  # wrong match than a deal (see `@deal_min_ratio`), so it counts as unrated.
+  # Without a reference, the ratio is nil, which sorts after any number.
+  defp best_offer_first(%{verdict: %{status: status, cheapest: cheapest, typical: typical}}) do
+    ratio = typical && Decimal.div(cheapest.price, typical)
+
+    rank =
+      if ratio && Decimal.lt?(ratio, @deal_min_ratio),
+        do: @offer_ranks.cardmarket,
+        else: Map.fetch!(@offer_ranks, status)
+
+    {rank, ratio && Decimal.to_float(ratio)}
   end
 
   # The set's own Booster Box and Elite Trainer Box on Cardmarket (trend in
@@ -596,12 +622,6 @@ defmodule TcgCheap.Sealed.Guide do
     |> Enum.filter(& &1.price)
     |> Enum.sort_by(&(&1.kind != :booster_box))
   end
-
-  # Cards under this Cardmarket trend are too cheap for a "deal" to matter.
-  @deal_floor Decimal.new(20)
-  # More than 40% under its reference, an offer is more often matched to the wrong
-  # product (half a booster box, a promo's other print) than a real deal.
-  @deal_min_ratio Decimal.new("0.6")
 
   # The singles banner: the card a shop sells furthest under its
   # Cardmarket price with delivery to Poland (what a singles verdict
