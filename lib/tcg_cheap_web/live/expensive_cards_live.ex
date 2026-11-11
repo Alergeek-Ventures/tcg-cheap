@@ -396,28 +396,35 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
               <div class="expensive-column expensive-prose">
                 <h2 id="dzis-title">{gettext("Najdroższe karty Pokémon dziś")}</h2>
                 <p :if={@top}>
-                  {gettext("Na co dzień karty nie zmieniają właścicieli na aukcjach, tylko na")
+                  {gettext(
+                    "Rekordy z aukcji to pojedyncze egzemplarze, ocenione i zamknięte w etui. Karty z ostatnich lat kupuje się zwyczajnie – od innych kolekcjonerów na"
+                  )
                   |> glue_short_words()}&nbsp;<a
                     id="expensive-cardmarket"
                     href="https://www.cardmarket.com/en/Pokemon"
                     target="_blank"
                     rel="noopener nofollow"
                     class="cardmarket-price"
-                  ><img src={~p"/images/cardmarket.png"} alt="" width="16" height="16" />Cardmarket</a>
-                  {gettext(
-                    "– największym w Europie serwisie, na którym kolekcjonerzy kupują i sprzedają pojedyncze karty. Z tamtejszych transakcji bierzemy cenę rynkową karty bez oceny i przeliczamy ją na złote – dla kart od ery Sword & Shield, bo przy starszych w tej cenie mieszają się egzemplarze zniszczone, idealne i ocenione. Dziś najdroższy jest %{card} z %{set}, a ponad 1000 zł kosztuje %{count}.",
-                    card: @top.card.name,
-                    set: @top.card.expansion_name,
-                    count: Polish.plural(@overview.over_1000, "karta", "karty", "kart")
+                  ><img src={~p"/images/cardmarket.png"} alt="" width="16" height="16" />Cardmarket</a>{gettext(
+                    ", największym takim serwisie w Europie. Najdroższe z nich kosztują dziś nie miliony dolarów, tylko tysiące złotych."
                   )
                   |> glue_short_words()}
                 </p>
               </div>
               <ol class="expensive-tiles expensive-wide">
                 <li :for={row <- @overview.highlights} id={"dzis-#{row.card.id}"}>
-                  <.card_tile row={row} placement="expensive_today" />
+                  <.card_tile row={row} placement="expensive_today" says_absent?={false} />
                 </li>
               </ol>
+              <div class="expensive-column expensive-prose">
+                <p class="expensive-note">{stock_summary(@overview.highlights)}</p>
+                <p>
+                  {gettext(
+                    "Część ludzi kupuje karty jak akcje – licząc, że za kilka lat sprzedadzą je drożej. Przy najrzadszych kartach to się czasem udaje, co widać po rekordach z początku tego artykułu: Pikachu Illustrator w niecałe pięć lat podrożał ponad trzykrotnie. Ale ceny potrafią też spaść – po dodruku, gdy moda przemija albo gdy na rynek trafi więcej egzemplarzy – a przy sprzedaży część pieniędzy zabierają prowizje i wysyłka. Dlatego tego nie polecamy: kupuj karty, które chcesz mieć, a nie takie, na których chcesz zarobić."
+                  )
+                  |> glue_short_words()}
+                </p>
+              </div>
             </section>
 
             <section id="w-polsce" class="expensive-section" aria-labelledby="w-polsce-title">
@@ -968,6 +975,11 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
   attr :placement, :string, required: true
   attr :set_first?, :boolean, default: false
 
+  attr :says_absent?, :boolean,
+    default: true,
+    doc:
+      "whether a tile no Polish shop has says so; a band that says it once under its tiles does not"
+
   defp card_tile(assigns) do
     ~H"""
     <.link
@@ -1003,7 +1015,10 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
         <span :if={!@set_first?}>· {@row.card.expansion_name}</span>
       </span>
       <strong class="expensive-tile-value">{tile_value(@row)}</strong>
-      <span class={["expensive-stock", !@row.offer && "expensive-stock-none"]}>
+      <span
+        :if={@row.offer || @says_absent?}
+        class={["expensive-stock", !@row.offer && "expensive-stock-none"]}
+      >
         <%= if @row.offer do %>
           {gettext("W sklepach od %{price}", price: Polish.zloty(@row.offer.price))}
         <% else %>
@@ -1014,9 +1029,24 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
     """
   end
 
+  # Which of a band's cards a Polish shop has, said once under the band.
+  defp stock_summary(rows) do
+    case {Enum.count(rows, & &1.offer), length(rows)} do
+      {0, _total} ->
+        gettext("Żadnej z tych kart nie ma teraz w polskich sklepach.")
+
+      {all, all} ->
+        gettext("Wszystkie te karty kupisz teraz w polskich sklepach.")
+
+      {count, total} ->
+        gettext("Kupisz teraz %{count} z %{total} w polskim sklepie.", count: count, total: total)
+    end
+  end
+
   defp tile_value(%{printings: [_, _ | _] = printings}) do
     {low, high} = printings |> Enum.map(& &1.value) |> Enum.min_max_by(&Decimal.to_float/1)
-    "#{Polish.zloty(low)} – #{Polish.zloty(high)}"
+    # One line on a tile: "9 570–12 228 zł".
+    "#{low |> Decimal.round(0) |> Decimal.to_integer() |> Polish.number()}–#{Polish.zloty(high)}"
   end
 
   defp tile_value(row), do: Polish.zloty(row.value)
