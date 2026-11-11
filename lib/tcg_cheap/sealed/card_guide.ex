@@ -195,33 +195,42 @@ defmodule TcgCheap.Sealed.CardGuide do
   @versions 4
   # The best offer first, as the card list judges it.
   @verdict_ranks %{cheaper: 0, similar: 1, pennies: 1, unknown: 2, expensive: 3}
+  # As for sealed deals: this far under its reference, an offer is more often
+  # matched to the wrong card than a real bargain.
+  @suspect_ratio Decimal.new("0.6")
 
   @doc """
-  Other printings of a card's name (another number or set: its Illustration
-  Rare, Special Illustration Rare, reprints) in stock now, as `browse/2` rows
-  with the best offers first: by verdict, then by price under the Cardmarket
-  trend. At most #{@versions}.
+  Other cards of a card's name in stock now (its other printings: Illustration
+  Rare, Special Illustration Rare, reprints in other sets), as `browse/2` rows,
+  at most #{@versions}: its own set's first, then the best offers, by verdict
+  and by how far the price is under the delivered Cardmarket reference the
+  verdict uses.
   """
   def in_stock_versions(card) do
     name = String.downcase(card.name)
+    rate = Guide.eur_pln(Date.utc_today())
 
-    # Exact names come first in a search, so the first page holds them.
+    # Exact names come first in a search, so the first page holds them; the
+    # card itself is out of stock, so `stock: :in` leaves it out.
     {rows, _more?, _count} = browse(%{query: card.name, stock: :in}, 0)
 
     rows
-    |> Enum.filter(
-      &((&1.offer && &1.card.id != card.id) and String.downcase(&1.card.name) == name)
-    )
-    |> Enum.sort_by(&{Map.fetch!(@verdict_ranks, &1.verdict), trend_ratio(&1)})
+    |> Enum.filter(&(&1.offer != nil and String.downcase(&1.card.name) == name))
+    |> Enum.sort_by(&version_rank(&1, card.tcgdex_set_id, rate))
     |> Enum.take(@versions)
   end
 
-  # Nil (no trend) sorts after any number.
-  defp trend_ratio(%{offer: offer, cardmarket_trend_pln: %Decimal{} = trend}) do
-    if Decimal.positive?(trend), do: Decimal.to_float(Decimal.div(offer.price, trend))
-  end
+  # A ratio under `@suspect_ratio` ranks after the honest ones of its verdict;
+  # a missing ratio (nil) sorts after any number.
+  defp version_rank(%{card: printing, set: set, offer: offer, verdict: verdict}, set_id, rate) do
+    reference = CardReference.pln(printing.cardmarket_price, offer.variant, rate)
 
-  defp trend_ratio(_row), do: nil
+    ratio =
+      if reference && Decimal.positive?(reference), do: Decimal.div(offer.price, reference)
+
+    {set.id != set_id, Map.fetch!(@verdict_ranks, verdict),
+     ratio != nil and Decimal.lt?(ratio, @suspect_ratio), ratio && Decimal.to_float(ratio)}
+  end
 
   @doc "How many Polish shop cards a search finds, in stock or not, in an optional expansion."
   def count(query, expansion),
