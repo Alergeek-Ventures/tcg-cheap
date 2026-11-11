@@ -75,7 +75,7 @@ msgid "Booster Bundle"
 msgstr ""
 
 #: lib/tcg_cheap_web/components/guide_components.ex:864
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:998
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:1002
 #, elixir-autogen, elixir-format
 msgid "Brak w sklepach"
 msgstr ""
@@ -1661,8 +1661,8 @@ msgstr[1] ""
 msgid "Wylosujesz?"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:905
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:928
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:909
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:932
 #: lib/tcg_cheap_web/live/home_live.ex:1026
 #: lib/tcg_cheap_web/live/home_live.ex:1150
 #, elixir-autogen, elixir-format
@@ -1931,13 +1931,13 @@ msgid "W sieciówkach: %{prices}"
 msgstr ""
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:60
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:212
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:211
 #, elixir-autogen, elixir-format
 msgid "od %{price}"
 msgstr ""
 
 #: lib/tcg_cheap_web/components/guide_components.ex:937
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:266
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:265
 #, elixir-autogen, elixir-format
 msgid "źródło"
 msgstr ""
@@ -1988,7 +1988,7 @@ msgstr ""
 msgid "Pozostałe sety (%{count})"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:376
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:375
 #: lib/tcg_cheap_web/live/single_live.ex:235
 #, elixir-autogen, elixir-format
 msgid "Brak w polskich sklepach"
@@ -2437,22 +2437,22 @@ msgstr ""
 msgid "Inne karty %{name} na stanie"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:698
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:702
 #, elixir-autogen, elixir-format
 msgid "%{card} za %{value}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:981
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:985
 #, elixir-autogen, elixir-format
 msgid "%{count} wersje: %{numbers}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:709
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:713
 #, elixir-autogen, elixir-format
 msgid "%{in_stock} ze %{count} najdroższych kart jest na stanie"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:949
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:953
 #, elixir-autogen, elixir-format
 msgid "%{shown} z %{total}"
 msgstr ""
@@ -2462,57 +2462,57 @@ msgstr ""
 msgid "Base Set 4/102, pierwsze wydanie, 1999"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:641
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:640
 #, elixir-autogen, elixir-format
 msgid "Cena rynkowa to trend ceny angielskiej karty bez oceny na Cardmarket z %{date}, przeliczony po kursie NBP %{rate} zł za euro. Aktualizujemy ją codziennie."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:566
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:565
 #, elixir-autogen, elixir-format
 msgid "Cena."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:498
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:497
 #, elixir-autogen, elixir-format
 msgid "Ceny kart potrafią się zmienić w kilka dni: po premierze rozszerzenia, gdy Pokémon staje się modny albo gdy na rynek trafia dodruk. Poniżej karty spośród %{count} najdroższych, których cena w ostatnim tygodniu najbardziej odbiegła od średniej z miesiąca."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:496
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:495
 #, elixir-autogen, elixir-format
 msgid "Co drożeje, a co tanieje"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:728
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:732
 #, elixir-autogen, elixir-format
 msgid "Co drożeje, co tanieje"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:474
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:473
 #, elixir-autogen, elixir-format
 msgid "Co kilka miesięcy wychodzi nowe rozszerzenie, a z nim nowa karta, na którą polują wszyscy. W najnowszym, %{set}, najdroższy jest dziś %{card}."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:420
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:419
 #, elixir-autogen, elixir-format
 msgid "Codziennie sprawdzamy oferty kilkudziesięciu sklepów z kartami. %{in_stock} ze %{count} najdroższych kart ma teraz na stanie przynajmniej jeden z nich. Przy każdej karcie mówimy też, czy sklep ją wycenia taniej, podobnie czy drożej, niż kosztowałoby jej sprowadzenie z Cardmarket."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:617
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:616
 #, elixir-autogen, elixir-format
 msgid "Czy stare karty Pokémon są coś warte?"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:607
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:606
 #, elixir-autogen, elixir-format
 msgid "Dziś najdroższa karta na stanie w sklepach, które śledzimy, to %{card} (%{number}, %{set}): od %{price} w %{shop}."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:876
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:880
 #, elixir-autogen, elixir-format
 msgid "Filtry rankingu"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:316
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:315
 #, elixir-autogen, elixir-format
 msgid "Firmy takie jak PSA i CGC oceniają stan karty w skali od 1 do 10 i zamykają ją w plastikowym etui z etykietą. Dziesiątka zdarza się rzadko i to ona robi różnicę: Torchic ☆ z oceną 10 kosztował 2,7 mln dolarów, a ten sam Torchic z oceną 9 – siedemnaście razy mniej."
 msgstr ""
@@ -2522,94 +2522,89 @@ msgstr ""
 msgid "Gold Star, EX Team Rocket Returns 108/109, 2004"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:314
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:313
 #, elixir-autogen, elixir-format
 msgid "Idealny stan"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:604
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:603
 #, elixir-autogen, elixir-format
 msgid "Ile kosztuje najdroższa karta w polskim sklepie?"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:741
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:745
 #, elixir-autogen, elixir-format
 msgid "Ile warta jest twoja karta"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:541
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:540
 #, elixir-autogen, elixir-format
 msgid "Jak sprawdzić, ile jest warta twoja karta"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:589
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:588
 #, elixir-autogen, elixir-format
 msgid "Jaka jest najdroższa karta Pokémon na świecie?"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:596
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:595
 #, elixir-autogen, elixir-format
 msgid "Jaka jest najdroższa karta Pokémon po angielsku?"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:291
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:290
 #, elixir-autogen, elixir-format
 msgid "Karta pokazowa Blastoise z 1998 roku"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:297
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:296
 #, elixir-autogen, elixir-format
 msgid "Karta pokazowa Blastoise, CGC 8.5: 360 000 $ w 2021 roku."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:323
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:322
 #, elixir-autogen, elixir-format
 msgid "Karty z pierwszego angielskiego wydania z 1999 roku mają po lewej stronie, pod ilustracją, znaczek „Edition 1” i kosztują wielokrotnie więcej niż późniejsze dodruki. A wśród nowych kart najdrożej sprzedają się pełnoobrazkowe wersje ulubionych Pokémonów: Pikachu, Charizarda, Mew czy Umbreona."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:729
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:733
 #, elixir-autogen, elixir-format
 msgid "Karty, których cena zmieniła się w ostatnim tygodniu"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:345
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:344
 #, elixir-autogen, elixir-format
 msgid "Kolory to ukłon w stronę pierwszych gier: Pokémon Red, Green i Blue. W nich Mew był ukrytym, 151. Pokémonem, o którym Pokédex mówił, że jest tak rzadki, iż wielu ekspertów uważa go za fatamorganę. Karty okazały się równie nieuchwytne: sklep TCGplayer otworzył przed premierą ponad 3000 paczek i nie trafił ani jednego."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:543
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:542
 #, elixir-autogen, elixir-format
 msgid "Masz w szufladzie stare karty albo właśnie wyciągnąłeś coś błyszczącego? Zanim wystawisz kartę na sprzedaż, sprawdź pięć rzeczy."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:287
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:286
 #, elixir-autogen, elixir-format
 msgid "Mało egzemplarzy"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:684
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:688
 #, elixir-autogen, elixir-format
 msgid "Mało egzemplarzy, idealny stan i ulubieńcy z dzieciństwa"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:368
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:367
 #, elixir-autogen, elixir-format
 msgid "Mew %{letter}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:363
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:362
 #, elixir-autogen, elixir-format
 msgid "Mew %{letter} z 30th Celebration"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:258
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:257
 #, elixir-autogen, elixir-format
 msgid "Miejsce"
-msgstr ""
-
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:400
-#, elixir-autogen, elixir-format
-msgid "Na co dzień karty nie zmieniają właścicieli na aukcjach, tylko na Cardmarket – największym w Europie serwisie, na którym kolekcjonerzy kupują i sprzedają pojedyncze karty. Z tamtejszych transakcji bierzemy cenę rynkową każdej karty bez oceny i przeliczamy ją na złote. Dziś najdroższy jest %{card} z %{set}, a ponad 1000 zł kosztuje %{count}."
 msgstr ""
 
 #: lib/tcg_cheap_web/card_records.ex:143
@@ -2617,12 +2612,12 @@ msgstr ""
 msgid "Najbardziej rozpoznawalna karta Pokémon: Charizard z pierwszego angielskiego wydania z 1999 roku. Ocenę PSA 10 ma 123 egzemplarzy i ich ceny rosną z miesiąca na miesiąc: w grudniu 2025 jeden poszedł za 550 000 dolarów, w lutym 2026 ten wyciągnięty na żywo przez Logana Paula – za 954 800, a w październiku kolejny przekroczył milion."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:587
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:586
 #, elixir-autogen, elixir-format
 msgid "Najczęstsze pytania"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:162
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:161
 #, elixir-autogen, elixir-format
 msgid "Najdroższa karta Pokémon w historii kosztowała 16,49 mln dolarów. To Pikachu Illustrator – nagroda z japońskiego konkursu z 1998 roku, której nigdy nie dało się kupić w sklepie. Ale rekordy z aukcji to jedno, a karty, które realnie da się dziś kupić, to drugie. Opowiadamy o jednych i drugich – z cenami, które codziennie aktualizujemy."
 msgstr ""
@@ -2637,7 +2632,7 @@ msgstr ""
 msgid "Najdroższa karta Pokémon w języku angielskim. Gwiazdka przy nazwie to Gold Star: błyszcząca, inaczej ubarwiona wersja Pokémona, którą w angielskich boosterach pierwszy raz można było trafić właśnie w 2004 roku. Torchic nie jest ani legendarny, ani silny – zdecydował stan: najwyższą ocenę PSA 10 ma tylko 19 egzemplarzy. Na tej samej aukcji karta z oceną 9 poszła za 156 336 dolarów, siedemnaście razy taniej. Kilka tygodni wcześniej i później milion dolarów przekroczyły też Gold Stary z Rayquazą i Mudkipem."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:196
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:195
 #, elixir-autogen, elixir-format
 msgid "Najdroższa karta dziś"
 msgstr ""
@@ -2647,23 +2642,23 @@ msgstr ""
 msgid "Najdroższa karta dziś na Cardmarket: %{card}, %{value}."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:720
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:724
 #, elixir-autogen, elixir-format
 msgid "Najdroższa karta z %{set} i wcześniejszych"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:471
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:470
 #, elixir-autogen, elixir-format
 msgid "Najdroższa karta z każdego nowego rozszerzenia"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:207
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:206
 #, elixir-autogen, elixir-format
 msgid "Najdroższa w polskim sklepie"
 msgstr ""
 
 #: lib/tcg_cheap_web/components/guide_components.ex:94
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:160
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:159
 #: lib/tcg_cheap_web/live/home_live.ex:1485
 #: lib/tcg_cheap_web/seo.ex:136
 #: lib/tcg_cheap_web/seo.ex:154
@@ -2671,12 +2666,12 @@ msgstr ""
 msgid "Najdroższe karty Pokémon"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:398
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:397
 #, elixir-autogen, elixir-format
 msgid "Najdroższe karty Pokémon dziś"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:245
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:244
 #, elixir-autogen, elixir-format
 msgid "Najdroższe karty Pokémon w historii"
 msgstr ""
@@ -2686,32 +2681,32 @@ msgstr ""
 msgid "Najdroższe karty Pokémon – rekordy i ceny dziś"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:309
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:308
 #, elixir-autogen, elixir-format
 msgid "Najdroższe karty często w ogóle nie trafiały do sprzedaży. Pikachu Illustrator i Mudkip z Art Academy były nagrodami w konkursach na ilustrację, trofea Pikachu dostawali zwycięzcy turniejów. W 1998 roku Wizards of the Coast wydrukowało dwie karty pokazowe, żeby pokazać Nintendo, jak gra będzie wyglądać na Zachodzie – jedna z nich, z Blastoise'em, poszła w 2021 roku za 360 000 dolarów. Gdy na świecie jest kilkadziesiąt sztuk, każda aukcja jest wydarzeniem."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:696
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:700
 #, elixir-autogen, elixir-format
 msgid "Najdroższe karty dziś"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:418
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:417
 #, elixir-autogen, elixir-format
 msgid "Najdroższe karty w polskich sklepach"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:735
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:739
 #, elixir-autogen, elixir-format
 msgid "Najdroższe karty z cenami w polskich sklepach"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:339
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:338
 #, elixir-autogen, elixir-format
 msgid "Najdroższe karty, jakie można dziś kupić, pochodzą z 30th Celebration – jubileuszowego rozszerzenia na 30-lecie Pokémonów, które 16 września 2026 roku jako pierwsze w historii wyszło tego samego dnia po japońsku i po angielsku. Na oficjalnej liście kart ich nie było. Trzy sekretne Mew – czerwony, zielony i niebieski, oznaczone literami R, G i B – wypadły z pierwszych paczek, zanim ktokolwiek o nich usłyszał."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:171
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:170
 #, elixir-autogen, elixir-format
 msgid "Najważniejsze liczby"
 msgstr ""
@@ -2726,52 +2721,52 @@ msgstr ""
 msgid "Neo Genesis to rozszerzenie, które w 2000 roku wprowadziło do gry drugą generację Pokémonów. Ten Typhlosion ma do tego drobny błąd druku: czerwoną kropkę obok symbolu rozszerzenia. Ocenę PSA 10 dostało 13 egzemplarzy tej karty."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:939
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:943
 #, elixir-autogen, elixir-format
 msgid "Nie ma w polskich sklepach"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:619
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:618
 #, elixir-autogen, elixir-format
 msgid "Niektóre tak, ale wartość zależy od konkretnej karty, wydania i stanu – większość zwykłych kart z lat 90. kosztuje niewiele. Sprawdź numer, wersję i stan, a potem cenę w wyszukiwarce."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:718
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:722
 #, elixir-autogen, elixir-format
 msgid "Nowe rozszerzenia"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:550
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:549
 #, elixir-autogen, elixir-format
 msgid "Numer i rozszerzenie."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:551
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:550
 #, elixir-autogen, elixir-format
 msgid "Numer karty, na przykład 161/131, jest na dole karty, obok symbolu rozszerzenia."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:573
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:572
 #, elixir-autogen, elixir-format
 msgid "Ocena."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:678
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:682
 #, elixir-autogen, elixir-format
 msgid "Od 1,4 do 16,5 mln dolarów za jedną kartę"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:734
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:738
 #, elixir-autogen, elixir-format
 msgid "Pełny ranking"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:516
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:515
 #, elixir-autogen, elixir-format
 msgid "Pełny ranking najdroższych kart"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:321
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:320
 #, elixir-autogen, elixir-format
 msgid "Pierwsze wydanie i ulubieńcy"
 msgstr ""
@@ -2781,42 +2776,42 @@ msgstr ""
 msgid "Pierwszy japoński nakład kart z 1996 roku nie miał jeszcze w rogu symbolu rzadkości – stąd nazwa „No Rarity”. Charizard z tego nakładu w ocenie PSA 10 to najdroższy Charizard, jakiego sprzedano na aukcji."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:591
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:590
 #, elixir-autogen, elixir-format
 msgid "Pikachu Illustrator z oceną PSA 10, sprzedany w lutym 2026 roku na aukcji Goldin za 16 492 000 dolarów. To rekord Guinnessa dla wszystkich kart kolekcjonerskich."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:742
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:746
 #, elixir-autogen, elixir-format
 msgid "Pięć rzeczy do sprawdzenia, zanim sprzedasz"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:946
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:950
 #, elixir-autogen, elixir-format
 msgid "Pokaż kolejne %{count}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:156
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:155
 #, elixir-autogen, elixir-format
 msgid "Poradnik · ceny z %{date}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:574
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:573
 #, elixir-autogen, elixir-format
 msgid "Przy kartach wartych tysiące złotych i w bardzo dobrym stanie ocena PSA lub CGC może podnieść cenę. Przy tańszych jej koszt często przewyższa zysk."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:185
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:184
 #, elixir-autogen, elixir-format
 msgid "Rekord karty po angielsku"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:175
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:174
 #, elixir-autogen, elixir-format
 msgid "Rekord wszech czasów"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:282
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:281
 #, elixir-autogen, elixir-format
 msgid "Rekordowe karty łączą trzy rzeczy: jest ich bardzo mało, są w idealnym stanie i przedstawiają Pokémony, które ludzie kochają od dzieciństwa."
 msgstr ""
@@ -2826,58 +2821,58 @@ msgstr ""
 msgid "Rekordy aukcji i ceny w polskich sklepach."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:635
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:634
 #, elixir-autogen, elixir-format
 msgid "Rekordy to wyniki publicznych aukcji z prowizją kupującego, potwierdzone przez dom aukcyjny, Księgę rekordów Guinnessa albo duże media. Przy każdej karcie jest link do źródła. Stan na %{date}."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:677
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:681
 #, elixir-autogen, elixir-format
 msgid "Rekordy wszech czasów"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:879
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:883
 #, elixir-autogen, elixir-format
 msgid "Rozszerzenie"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:690
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:694
 #, elixir-autogen, elixir-format
 msgid "Sekretne karty, których nie było na liście"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:280
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:683
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:279
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:687
 #, elixir-autogen, elixir-format
 msgid "Skąd takie ceny"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:632
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:631
 #, elixir-autogen, elixir-format
 msgid "Skąd te liczby"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:562
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:561
 #, elixir-autogen, elixir-format
 msgid "Stan."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:598
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:597
 #, elixir-autogen, elixir-format
 msgid "Torchic ☆ (Gold Star) z rozszerzenia EX Team Rocket Returns z oceną PSA 10, sprzedany we wrześniu 2026 roku za 2,7 mln dolarów."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:689
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:693
 #, elixir-autogen, elixir-format
 msgid "Trzy Mew z 30th Celebration"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:337
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:336
 #, elixir-autogen, elixir-format
 msgid "Trzy Mew, których nie było na liście"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:896
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:900
 #, elixir-autogen, elixir-format
 msgid "Tylko na stanie"
 msgstr ""
@@ -2892,79 +2887,79 @@ msgstr ""
 msgid "W 2015 roku Pokémon zorganizował konkurs na ilustrację przy grze Pokémon Art Academy. Zwycięskie rysunki fanów trafiły na karty promocyjne wydrukowane w znikomej liczbie – tego Mudkipa narysował Daisuke Ochiai. Ocenę PSA 10 mają tylko trzy egzemplarze. Jeszcze w 2024 roku jeden z nich kosztował 42 000 dolarów; we wrześniu 2026 drugi poszedł za 3,72 mln, a miesiąc później trzeci – za 4,88 mln."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:247
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:246
 #, elixir-autogen, elixir-format
 msgid "W 2021 roku rekordem było 5,3 mln dolarów za jedną kartę. W 2026 ten sam egzemplarz poszedł za ponad trzy razy więcej, a karty, które kiedyś można było po prostu wyciągnąć z boostera, przekroczyły milion. Każda z tych kart to jeden konkretny egzemplarz: oceniony przez firmę gradingową, zamknięty w plastikowym etui i sprzedany na publicznej aukcji."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:219
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:218
 #, elixir-autogen, elixir-format
 msgid "W artykule"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:567
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:566
 #, elixir-autogen, elixir-format
 msgid "W naszej wyszukiwarce zobaczysz cenę rynkową karty i oferty sklepów, które śledzimy."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:707
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:711
 #, elixir-autogen, elixir-format
 msgid "W polskich sklepach"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:653
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:657
 #, elixir-autogen, elixir-format
 msgid "W polskich sklepach podajemy najniższą cenę zwykłej wersji karty bez oceny na stanie, z oceną jak na stronie karty. Bierzemy pod uwagę tylko sklepy z Polski. Pomijamy karty, których nie umiemy jednoznacznie połączyć z ceną na Cardmarket."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:374
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:996
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:373
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:1000
 #, elixir-autogen, elixir-format
 msgid "W sklepach od %{price}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:906
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:910
 #, elixir-autogen, elixir-format
 msgid "W sklepie"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:556
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:555
 #, elixir-autogen, elixir-format
 msgid "Wersja."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:152
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:151
 #, elixir-autogen, elixir-format
 msgid "Wszystkie karty"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:881
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:885
 #, elixir-autogen, elixir-format
 msgid "Wszystkie rozszerzenia"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:570
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:569
 #, elixir-autogen, elixir-format
 msgid "Wyszukaj kartę"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:563
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:562
 #, elixir-autogen, elixir-format
 msgid "Zagięcia, rysy i obite rogi wyraźnie obniżają cenę."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:299
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:852
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:298
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:856
 #, elixir-autogen, elixir-format
 msgid "Zdjęcie:"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:648
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:652
 #, elixir-autogen, elixir-format
 msgid "Zmiana porównuje średnią cenę sprzedaży z ostatnich 7 dni ze średnią z 30 dni. Liczymy ją tylko dla 100 najdroższych kart – tańsze sprzedają się rzadko i pojedyncza transakcja za bardzo ją przesuwa."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:557
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:556
 #, elixir-autogen, elixir-format
 msgid "Zwykła, reverse holo i pierwsze wydanie to osobne karty z osobnymi cenami."
 msgstr ""
@@ -2974,12 +2969,12 @@ msgstr ""
 msgid "Złotą kartę z napisem „No. 1 Trainer” dostali tylko zwycięzcy pierwszego oficjalnego turnieju Pokémon w Japonii w 1997 roku. Ten egzemplarz ma ocenę zaledwie 8, a i tak poszedł za ponad 3 mln dolarów – przy kartach-trofeach liczy się przede wszystkim to, że jest ich garstka. Brązowe trofeum za trzecie miejsce, z oceną PSA 10, sprzedano w maju 2026 za 1,77 mln dolarów."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:444
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:443
 #, elixir-autogen, elixir-format
 msgid "cena rynkowa %{value}"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:1025
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:1029
 #, elixir-autogen, elixir-format
 msgid "drożeje →"
 msgstr ""
@@ -3004,32 +2999,42 @@ msgstr ""
 msgid "nagroda za 1. miejsce w turnieju, Japonia, 1997"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:210
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:209
 #, elixir-autogen, elixir-format
 msgid "od "
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:383
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:382
 #, elixir-autogen, elixir-format
 msgid "Źródła:"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:910
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:914
 #, elixir-autogen, elixir-format
 msgid "Żadna karta nie pasuje do tych filtrów."
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:1024
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:1028
 #, elixir-autogen, elixir-format
 msgid "← tanieje"
 msgstr ""
 
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:518
-#, elixir-autogen, elixir-format
-msgid "500 najdroższych angielskich kart, od najdroższej. Wybierz rozszerzenie albo pokaż tylko te, które kupisz teraz w polskim sklepie."
-msgstr ""
-
-#: lib/tcg_cheap_web/live/expensive_cards_live.ex:157
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:156
 #, elixir-autogen, elixir-format
 msgid "Poradnik"
+msgstr ""
+
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:517
+#, elixir-autogen, elixir-format
+msgid "500 najdroższych angielskich kart od ery Sword & Shield, od najdroższej. Wybierz rozszerzenie albo pokaż tylko te, które kupisz teraz w polskim sklepie."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:647
+#, elixir-autogen, elixir-format
+msgid "Ceny z dziś podajemy dla kart od ery Sword & Shield (od listopada 2019). Przy starszych kartach trend Cardmarket miesza egzemplarze w różnym stanie i z oceną, więc nie mówi, ile kosztuje karta: zwykły Gengar ze Skyridge miał trend 8549 €, a najtańszy egzemplarz kosztował 325 €."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/expensive_cards_live.ex:399
+#, elixir-autogen, elixir-format
+msgid "Na co dzień karty nie zmieniają właścicieli na aukcjach, tylko na Cardmarket – największym w Europie serwisie, na którym kolekcjonerzy kupują i sprzedają pojedyncze karty. Z tamtejszych transakcji bierzemy cenę rynkową karty bez oceny i przeliczamy ją na złote – dla kart od ery Sword & Shield, bo przy starszych w tej cenie mieszają się egzemplarze zniszczone, idealne i ocenione. Dziś najdroższy jest %{card} z %{set}, a ponad 1000 zł kosztuje %{count}."
 msgstr ""

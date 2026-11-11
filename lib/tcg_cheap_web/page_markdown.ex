@@ -88,7 +88,7 @@ defmodule TcgCheapWeb.PageMarkdown do
         )
       ]),
       section("Najdroższe karty dziś", [
-        "Angielskie karty według ceny rynkowej: trendu Cardmarket w złotych#{rate(overview.rate)}. Najtaniej: najniższa cena karty na stanie w polskim sklepie, bez dostawy.",
+        "Angielskie karty od ery Sword & Shield (od listopada 2019) według ceny rynkowej: trendu Cardmarket w złotych#{rate(overview.rate)}. Przy starszych kartach trend miesza egzemplarze w różnym stanie i z oceną. Najtaniej: najniższa cena karty na stanie w polskim sklepie, bez dostawy.",
         expensive_cards_table(ranking)
       ]),
       section(

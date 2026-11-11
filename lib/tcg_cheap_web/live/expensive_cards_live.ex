@@ -397,7 +397,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                 <h2 id="dzis-title">{gettext("Najdroższe karty Pokémon dziś")}</h2>
                 <p :if={@top}>
                   {gettext(
-                    "Na co dzień karty nie zmieniają właścicieli na aukcjach, tylko na Cardmarket – największym w Europie serwisie, na którym kolekcjonerzy kupują i sprzedają pojedyncze karty. Z tamtejszych transakcji bierzemy cenę rynkową każdej karty bez oceny i przeliczamy ją na złote. Dziś najdroższy jest %{card} z %{set}, a ponad 1000 zł kosztuje %{count}.",
+                    "Na co dzień karty nie zmieniają właścicieli na aukcjach, tylko na Cardmarket – największym w Europie serwisie, na którym kolekcjonerzy kupują i sprzedają pojedyncze karty. Z tamtejszych transakcji bierzemy cenę rynkową karty bez oceny i przeliczamy ją na złote – dla kart od ery Sword & Shield, bo przy starszych w tej cenie mieszają się egzemplarze zniszczone, idealne i ocenione. Dziś najdroższy jest %{card} z %{set}, a ponad 1000 zł kosztuje %{count}.",
                     card: @top.card.name,
                     set: @top.card.expansion_name,
                     count: Polish.plural(@overview.over_1000, "karta", "karty", "kart")
@@ -515,7 +515,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                 <h2 id="ranking-title">{gettext("Pełny ranking najdroższych kart")}</h2>
                 <p>
                   {gettext(
-                    "500 najdroższych angielskich kart, od najdroższej. Wybierz rozszerzenie albo pokaż tylko te, które kupisz teraz w polskim sklepie."
+                    "500 najdroższych angielskich kart od ery Sword & Shield, od najdroższej. Wybierz rozszerzenie albo pokaż tylko te, które kupisz teraz w polskim sklepie."
                   )
                   |> glue_short_words()}
                 </p>
@@ -641,6 +641,11 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                     "Cena rynkowa to trend ceny angielskiej karty bez oceny na Cardmarket z %{date}, przeliczony po kursie NBP %{rate} zł za euro. Aktualizujemy ją codziennie.",
                     date: Polish.date(@overview.priced_on),
                     rate: Polish.rate(@overview.rate.rate)
+                  )}
+                </li>
+                <li>
+                  {gettext(
+                    "Ceny z dziś podajemy dla kart od ery Sword & Shield (od listopada 2019). Przy starszych kartach trend Cardmarket miesza egzemplarze w różnym stanie i z oceną, więc nie mówi, ile kosztuje karta: zwykły Gengar ze Skyridge miał trend 8549 €, a najtańszy egzemplarz kosztował 325 €."
                   )}
                 </li>
                 <li>

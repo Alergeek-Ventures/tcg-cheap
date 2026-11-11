@@ -6,9 +6,13 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
 
   `overview/0` feeds the article (the top cards, what our shops have, each
   new set's top card, what rises and falls); `ranking/3` is the filtered
-  list of the 500 most expensive under it. A card shares its Cardmarket product with another
-  card only when one of the two is linked wrongly; such cards are left out
-  rather than ranked at a price that may not be theirs.
+  list of the 500 most expensive under it.
+
+  Only cards of the Sword & Shield era on are priced: an older card's
+  Cardmarket trend mixes played, mint and graded copies, so it is not what
+  the card costs. A card shares its Cardmarket product with another card
+  only when one of the two is linked wrongly; such cards are left out rather
+  than ranked at a price that may not be theirs.
   """
 
   import Ecto.Query
@@ -36,6 +40,10 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
   @movers 5
   @highlights 6
   @new_sets 6
+  # The Sword & Shield era, from its first promos. Before it, a trend can be
+  # many times the cheapest copy on offer: Skyridge's non-holo Gengar trended
+  # at 8,549 € while one sold from 325 €; modern cards stay within 6×.
+  @since ~D[2019-11-15]
 
   @type filters :: %{set: integer() | nil, stock: :all | :in}
 
@@ -142,7 +150,7 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
         join: p in CardPrice,
         on: p.cardmarket_id == c.cardmarket_id,
         where: s.language == "en" and not is_nil(s.cardmarket_expansion_id),
-        where: not is_nil(s.released_on) and not is_nil(p.trend),
+        where: s.released_on >= ^@since and not is_nil(p.trend),
         distinct: s.cardmarket_expansion_id,
         order_by: [s.cardmarket_expansion_id],
         select: {s.cardmarket_expansion_id, s.released_on}
@@ -177,6 +185,7 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
       join: p in CardPrice,
       on: p.cardmarket_id == c.cardmarket_id,
       where: s.language == "en" and not is_nil(s.cardmarket_expansion_id),
+      where: s.released_on >= ^@since,
       where: not is_nil(p.trend) and c.cardmarket_id not in subquery(shared_ids()),
       order_by: [desc: p.trend, asc: c.id],
       limit: @slice,
@@ -300,7 +309,7 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
         join: p in CardPrice,
         on: p.cardmarket_id == c.cardmarket_id,
         where: s.language == "en" and not is_nil(s.cardmarket_expansion_id),
-        where: not is_nil(p.trend) and not is_nil(s.released_on),
+        where: not is_nil(p.trend) and s.released_on >= ^@since,
         where: c.cardmarket_id not in subquery(shared_ids()),
         select: %{
           card_id: c.id,
