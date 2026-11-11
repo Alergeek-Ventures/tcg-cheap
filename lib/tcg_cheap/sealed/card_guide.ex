@@ -679,6 +679,23 @@ defmodule TcgCheap.Sealed.CardGuide do
     Map.new(cards, &{&1.id, first_mirrored(&1.image_sources, mirrored)})
   end
 
+  @doc """
+  How many of an expansion's English cards have an answer on their page (an
+  in-stock, ungraded current offer, as in `sitemap_cards/0`).
+  """
+  @spec in_stock_count(integer()) :: non_neg_integer()
+  def in_stock_count(expansion_id) do
+    from(c in TcgdexCard,
+      join: o in subquery(compared_query()),
+      on: o.card_id == c.id and o.in_stock and is_nil(o.grading),
+      join: s in TcgdexSet,
+      on: c.tcgdex_set_id == s.id,
+      where: s.language == "en" and s.cardmarket_expansion_id == ^expansion_id,
+      select: count(c.id, :distinct)
+    )
+    |> Repo.one()
+  end
+
   # Only cards whose page has an answer: an in-stock, ungraded current offer,
   # the same rule as page/3. The rest stay reachable but noindex. Each comes
   # with its expansion, whose set page lists it.
