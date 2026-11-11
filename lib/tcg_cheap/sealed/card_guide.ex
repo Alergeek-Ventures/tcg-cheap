@@ -220,16 +220,19 @@ defmodule TcgCheap.Sealed.CardGuide do
     |> Enum.take(@versions)
   end
 
-  # A ratio under `@suspect_ratio` ranks after the honest ones of its verdict;
-  # a missing ratio (nil) sorts after any number.
+  # A ratio under `@suspect_ratio` ranks as unjudged, after the unjudged
+  # honest ones, as a suspect sealed offer does; a missing ratio (nil) sorts
+  # after any number.
   defp version_rank(%{card: printing, set: set, offer: offer, verdict: verdict}, set_id, rate) do
     reference = CardReference.pln(printing.cardmarket_price, offer.variant, rate)
 
     ratio =
       if reference && Decimal.positive?(reference), do: Decimal.div(offer.price, reference)
 
-    {set.id != set_id, Map.fetch!(@verdict_ranks, verdict),
-     ratio != nil and Decimal.lt?(ratio, @suspect_ratio), ratio && Decimal.to_float(ratio)}
+    suspect? = ratio != nil and Decimal.lt?(ratio, @suspect_ratio)
+    rank = if suspect?, do: @verdict_ranks.unknown, else: Map.fetch!(@verdict_ranks, verdict)
+
+    {set.id != set_id, rank, suspect?, ratio && Decimal.to_float(ratio)}
   end
 
   @doc "How many Polish shop cards a search finds, in stock or not, in an optional expansion."
