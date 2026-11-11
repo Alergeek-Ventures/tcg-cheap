@@ -1017,7 +1017,7 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 @media (hover: hover) and (pointer: fine) { .guide-world .expensive-toc-item:hover { border-color: color-mix(in oklch, var(--ink) 45%, transparent); } .guide-world .expensive-toc-item:hover strong { text-decoration: underline; } }
 
 /* Records: the graded card in its case beside its story. */
-.guide-world .expensive-records { display: grid; gap: 2.5rem; list-style: none; margin: 0; padding: 0; }
+.guide-world .expensive-records { display: grid; gap: 2.5rem; list-style: none; margin-block: 0; padding: 0; }
 .guide-world .expensive-records > li { align-items: start; column-gap: 2.5rem; display: grid; grid-template-columns: minmax(10rem, 15rem) minmax(0, 1fr); }
 .guide-world .expensive-records > li:nth-child(even) { grid-template-columns: minmax(0, 1fr) minmax(10rem, 15rem); }
 .guide-world .expensive-records > li:nth-child(even) .expensive-slab { grid-column: 2; grid-row: 1; }
@@ -1048,7 +1048,7 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 }
 
 /* The three Mew, fanned out like a hand of cards. */
-.guide-world .expensive-mews { display: flex; gap: clamp(.5rem, 3vw, 2rem); justify-content: center; list-style: none; margin: 0; padding: 1rem 0 1.5rem; }
+.guide-world .expensive-mews { display: flex; gap: clamp(.5rem, 3vw, 2rem); justify-content: center; list-style: none; margin-block: 0; padding: 1rem 0 1.5rem; }
 .guide-world .expensive-sources { text-align: center; }
 .guide-world .expensive-mews li { flex: 0 1 15rem; }
 .guide-world .expensive-mews li:nth-child(1) { rotate: -5deg; translate: 0 .75rem; }
@@ -1062,7 +1062,7 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .expensive-mews a:active img { outline: 3px solid var(--orange); outline-offset: 3px; }
 
 /* Tiles: a card's picture, name, value and whether our shops have it. */
-.guide-world .expensive-tiles { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.75rem), 1fr)); list-style: none; margin: 0; padding: 0; }
+.guide-world .expensive-tiles { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.75rem), 1fr)); list-style: none; margin-block: 0; padding: 0; }
 .guide-world .expensive-tile { align-content: start; background: var(--paper); border: 1px solid var(--rule); border-radius: .5rem; color: inherit; display: grid; gap: .125rem; min-block-size: 100%; padding: .75rem; text-decoration: none; }
 .guide-world .expensive-tile img { aspect-ratio: 245 / 342; block-size: auto; border-radius: 4.5% / 3.2%; box-shadow: 0 .5rem 1rem -.75rem color-mix(in oklch, var(--ink) 70%, transparent); inline-size: 100%; margin-block-end: .5rem; object-fit: cover; }
 .guide-world .expensive-tile-set { color: var(--muted); font-size: .75rem; margin-block-end: .375rem; }
@@ -1076,20 +1076,24 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .expensive-stock-none { color: var(--muted); }
 
 /* Our shops' most expensive cards: the card and its market price, then the verdict and the shop's price. */
-.guide-world .expensive-shop-list { list-style: none; margin: 0 auto; max-inline-size: 52rem; padding: 0; }
+/* The verdict and the price are columns of the whole list, so they line up
+   from row to row and every verdict is as wide as the widest. */
+.guide-world .expensive-shop-list { column-gap: 1rem; display: grid; grid-template-columns: 3.5rem minmax(0, 1fr) auto auto; list-style: none; margin: 0 auto; max-inline-size: 52rem; padding: 0; }
+.guide-world .expensive-shop-list > li { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; }
 .guide-world .expensive-shop-list > li + li { border-block-start: 1px solid var(--rule); }
-.guide-world .expensive-shop-row { align-items: center; color: inherit; column-gap: 1rem; display: grid; grid-template-columns: 3.5rem minmax(0, 1fr) auto; min-block-size: 5.5rem; padding: .5rem .25rem; text-decoration: none; }
+.guide-world .expensive-shop-row { align-items: center; color: inherit; display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; min-block-size: 5.5rem; padding: .5rem .25rem; text-decoration: none; }
 .guide-world .expensive-shop-row img { aspect-ratio: 245 / 342; block-size: auto; border-radius: 4.5% / 3.2%; inline-size: 3.5rem; object-fit: cover; }
-.guide-world .expensive-shop-copy { display: grid; gap: .125rem; min-inline-size: 0; }
+.guide-world .expensive-shop-copy { display: grid; gap: .125rem; grid-column: 2; min-inline-size: 0; }
 .guide-world .expensive-shop-name { font-family: "Barlow Condensed", sans-serif; font-size: 1.25rem; font-weight: 700; line-height: 1.1; }
 .guide-world .expensive-shop-meta { color: var(--muted); font-size: .75rem; overflow-wrap: anywhere; }
-.guide-world .expensive-shop-deal { align-items: center; display: flex; gap: .875rem; }
-.guide-world .expensive-shop-price { display: grid; font-size: .8125rem; justify-items: end; text-align: end; }
+.guide-world .expensive-shop-deal { display: contents; }
+.guide-world .expensive-shop-deal .verdict-badge { grid-column: 3; justify-content: center; justify-self: stretch; }
+.guide-world .expensive-shop-price { display: grid; font-size: .8125rem; grid-column: 4; justify-items: end; text-align: end; }
 .guide-world .expensive-shop-price strong { font-family: "Barlow Condensed", sans-serif; font-size: 1.625rem; line-height: 1; white-space: nowrap; }
 .guide-world .expensive-shop-price span { color: var(--muted); }
 .guide-world .expensive-shop-row:active { background: var(--bench-light); }
 @media (hover: hover) and (pointer: fine) { .guide-world .expensive-shop-row:hover { background: var(--bench-light); } .guide-world .expensive-shop-row:hover .expensive-shop-name { text-decoration: underline; } }
-@media (max-width: 40rem) { .guide-world .expensive-shop-row { grid-template-columns: 3rem minmax(0, 1fr); row-gap: .5rem; } .guide-world .expensive-shop-row img { grid-row: span 2; inline-size: 3rem; } .guide-world .expensive-shop-deal { grid-column: 2; } .guide-world .expensive-shop-price { justify-items: start; text-align: start; } }
+@media (max-width: 40rem) { .guide-world .expensive-shop-list { grid-template-columns: 3rem auto minmax(0, 1fr); } .guide-world .expensive-shop-row { row-gap: .5rem; } .guide-world .expensive-shop-row img { grid-column: 1; grid-row: span 2; inline-size: 3rem; } .guide-world .expensive-shop-copy { grid-column: 2 / -1; } .guide-world .expensive-shop-deal .verdict-badge { grid-column: 2; grid-row: 2; } .guide-world .expensive-shop-price { grid-column: 3; grid-row: 2; justify-items: start; text-align: start; } }
 
 /* Numbered: the reset takes list markers off every list. */
 .guide-world .expensive-steps { display: grid; gap: .75rem; list-style: decimal; margin: 0; padding-inline-start: 1.5rem; }
@@ -1185,9 +1189,15 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
   .guide-world .expensive-row-market-label { color: var(--muted); display: block; font-size: .8125rem; grid-area: mlabel; }
   .guide-world .expensive-row-market { font-size: 1.125rem; }
   .guide-world .expensive-row-verdict { justify-self: start; }
-  .guide-world .expensive-row-verdict .verdict-badge { min-inline-size: 0; }
   .guide-world .expensive-row-shop { font-size: 1.25rem; }
   .guide-world .expensive-row-none { grid-column: verdict-start / shop-end; grid-row: 4; text-align: start; }
+}
+/* Too narrow for the verdict and the price side by side: the price goes under
+   its verdict rather than over it. */
+@media (max-width: 24rem) {
+  .guide-world .expensive-row { grid-template-areas: "img name name" "img meta meta" "img mlabel market" "img verdict verdict" "img shop shop"; }
+  .guide-world .expensive-row-image { grid-row: 1 / span 5; }
+  .guide-world .expensive-row-shop { text-align: start; }
 }
 .guide-world .expensive-more-bar { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: center; margin-block-start: 1rem; }
 .guide-world .expensive-more-bar span { color: var(--muted); font-size: .8125rem; }
