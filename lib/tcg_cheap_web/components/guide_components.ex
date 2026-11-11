@@ -774,6 +774,67 @@ defmodule TcgCheapWeb.GuideComponents do
     end
   end
 
+  @generic_photos ~w(binder booster card_dividers code_card coin condition_markers damage_counters
+                     deck_box dice energy_cards player_guide playmat sleeves sticker storage_box)a
+
+  @doc """
+  A picture of what a contents item usually looks like (sleeves, dice…),
+  from another product; nil for items without one and for a named booster,
+  whose example would show another set's logo.
+  """
+  def generic_contents_photo(%{type: :booster, name: set}) when is_binary(set), do: nil
+
+  def generic_contents_photo(%{type: type}) when type in @generic_photos,
+    do: ~p"/images/contents/#{"#{type}.webp"}"
+
+  def generic_contents_photo(_item), do: nil
+
+  @doc "What a sealed product's contents item is called, in a sentence."
+  def contents_item_label(%{type: :booster, name: nil}), do: gettext("booster")
+  def contents_item_label(%{type: :booster, name: set}), do: gettext("booster %{set}", set: set)
+  def contents_item_label(%{type: :promo_card, name: nil}), do: gettext("karta promo")
+
+  def contents_item_label(%{type: :promo_card, name: card}),
+    do: gettext("karta promo %{card}", card: card)
+
+  def contents_item_label(%{type: :oversize_card, name: nil}), do: gettext("duża karta")
+
+  def contents_item_label(%{type: :oversize_card, name: card}),
+    do: gettext("duża karta %{card}", card: card)
+
+  def contents_item_label(%{type: :card, name: nil}), do: gettext("karta")
+  def contents_item_label(%{type: :card, name: card}), do: gettext("karta %{card}", card: card)
+
+  def contents_item_label(%{type: :deck, variants: [_ | _] = variants}),
+    do: gettext("talia losowa (1 z %{count})", count: length(variants))
+
+  def contents_item_label(%{type: :deck, name: nil}), do: gettext("talia gotowa do gry")
+  def contents_item_label(%{type: :deck, name: deck}), do: gettext("talia %{deck}", deck: deck)
+  def contents_item_label(%{type: :sleeves}), do: gettext("koszulki na karty")
+  # A booster's single energy slot can hold something else, as its name says.
+  def contents_item_label(%{type: :energy_cards, quantity: 1, name: name}) when is_binary(name),
+    do: name
+
+  def contents_item_label(%{type: :energy_cards, quantity: 1}), do: gettext("karta energii")
+  def contents_item_label(%{type: :energy_cards}), do: gettext("karty energii")
+  def contents_item_label(%{type: :dice}), do: gettext("kość do gry")
+  # Dice in elite trainer boxes, tokens in decks.
+  def contents_item_label(%{type: :damage_counters}), do: gettext("znaczniki obrażeń")
+  def contents_item_label(%{type: :coin}), do: gettext("moneta")
+  def contents_item_label(%{type: :condition_markers}), do: gettext("znaczniki stanów")
+  def contents_item_label(%{type: :deck_box}), do: gettext("pudełko na talię")
+  def contents_item_label(%{type: :storage_box}), do: gettext("pudełko na karty")
+  def contents_item_label(%{type: :card_dividers}), do: gettext("przekładki")
+  def contents_item_label(%{type: :player_guide}), do: gettext("przewodnik gracza")
+  def contents_item_label(%{type: :rule_sheet}), do: gettext("zasady gry")
+  def contents_item_label(%{type: :code_card}), do: gettext("karta z kodem do Pokémon TCG Live")
+  def contents_item_label(%{type: :sticker}), do: gettext("naklejki")
+  def contents_item_label(%{type: :pin}), do: gettext("przypinka")
+  def contents_item_label(%{type: :figure}), do: gettext("figurka")
+  def contents_item_label(%{type: :binder}), do: gettext("album")
+  def contents_item_label(%{type: :playmat}), do: gettext("mata do gry")
+  def contents_item_label(%{type: :other, name: name}), do: name
+
   @doc """
   Binds one- and two-letter prepositions ("z", "ze", "w", "we") to the next
   word with a no-break space, so a line never ends with one, and a dash to

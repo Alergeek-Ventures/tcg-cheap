@@ -96,7 +96,7 @@ defmodule TcgCheapWeb.CardValueLive do
               <h1 id="card-value-title">{gettext("Ile jest warta twoja karta Pokémon?")}</h1>
               <p class="expensive-lead">
                 {gettext(
-                  "Karty z dzieciństwa w szufladzie albo kolekcja po starszym bracie? Zanim je sprzedasz, sprawdź, ile kosztują dziś w polskich sklepach."
+                  "Karty z dzieciństwa w szufladzie albo kolekcja po starszym bracie? Zanim je sprzedasz, sprawdź, ile kosztują dziś w sklepach."
                 )
                 |> glue_short_words()}
               </p>
@@ -302,7 +302,7 @@ defmodule TcgCheapWeb.CardValueLive do
                 <li>
                   <strong>{gettext("Sprawdź cenę.")}</strong>
                   {gettext(
-                    "Wpisz kartę w wyszukiwarkę wyżej. Pokażemy, za ile sprzedają ją polskie sklepy, a na stronie karty także jej cenę na Cardmarket. Podajemy ceny kart angielskich – japońska czy niemiecka wersja kosztuje inaczej."
+                    "Wpisz kartę w wyszukiwarkę wyżej. Pokażemy, za ile sprzedają ją sklepy, a na stronie karty także jej cenę na Cardmarket. Podajemy ceny kart angielskich – japońska czy niemiecka wersja kosztuje inaczej."
                   )
                   |> glue_short_words()}
                 </li>

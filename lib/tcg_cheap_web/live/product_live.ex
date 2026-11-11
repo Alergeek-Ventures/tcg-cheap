@@ -518,7 +518,7 @@ defmodule TcgCheapWeb.ProductLive do
               >
                 <img src={booster_photo} alt="" height="48" loading="lazy" />
               </.link>
-            <% generic_url = generic_photo(item) -> %>
+            <% generic_url = generic_contents_photo(item) -> %>
               <a
                 href={generic_url}
                 class="contents-photo contents-photo-generic"
@@ -753,17 +753,6 @@ defmodule TcgCheapWeb.ProductLive do
 
   # Without a photo of this product's item, a common one of that kind stands
   # in, marked as not this product's.
-  @generic_photos ~w(binder booster card_dividers code_card coin condition_markers damage_counters
-                     deck_box dice energy_cards player_guide playmat sleeves sticker storage_box)a
-
-  # A named booster's example would show another set's logo.
-  defp generic_photo(%{type: :booster, name: set}) when is_binary(set), do: nil
-
-  defp generic_photo(%{type: type}) when type in @generic_photos,
-    do: ~p"/images/contents/#{"#{type}.webp"}"
-
-  defp generic_photo(_item), do: nil
-
   # Code cards were printed for Pokémon TCG Online, from 2022 for either game;
   # from Crown Zenith, listed on Cardmarket in November 2022, for TCG Live
   # only. TCG Online's codes still redeem in TCG Live.
@@ -775,50 +764,7 @@ defmodule TcgCheapWeb.ProductLive do
       else: gettext("karta z kodem do Pokémon TCG Live")
   end
 
-  defp item_label(item, _listed_on), do: item_label(item)
-
-  defp item_label(%{type: :booster, name: nil}), do: gettext("booster")
-  defp item_label(%{type: :booster, name: set}), do: gettext("booster %{set}", set: set)
-  defp item_label(%{type: :promo_card, name: nil}), do: gettext("karta promo")
-
-  defp item_label(%{type: :promo_card, name: card}),
-    do: gettext("karta promo %{card}", card: card)
-
-  defp item_label(%{type: :oversize_card, name: nil}), do: gettext("duża karta")
-
-  defp item_label(%{type: :oversize_card, name: card}),
-    do: gettext("duża karta %{card}", card: card)
-
-  defp item_label(%{type: :card, name: nil}), do: gettext("karta")
-  defp item_label(%{type: :card, name: card}), do: gettext("karta %{card}", card: card)
-
-  defp item_label(%{type: :deck, variants: [_ | _] = variants}),
-    do: gettext("talia losowa (1 z %{count})", count: length(variants))
-
-  defp item_label(%{type: :deck, name: nil}), do: gettext("talia gotowa do gry")
-  defp item_label(%{type: :deck, name: deck}), do: gettext("talia %{deck}", deck: deck)
-  defp item_label(%{type: :sleeves}), do: gettext("koszulki na karty")
-  # A booster's single energy slot can hold something else, as its name says.
-  defp item_label(%{type: :energy_cards, quantity: 1, name: name}) when is_binary(name), do: name
-  defp item_label(%{type: :energy_cards, quantity: 1}), do: gettext("karta energii")
-  defp item_label(%{type: :energy_cards}), do: gettext("karty energii")
-  defp item_label(%{type: :dice}), do: gettext("kość do gry")
-  # Dice in elite trainer boxes, tokens in decks.
-  defp item_label(%{type: :damage_counters}), do: gettext("znaczniki obrażeń")
-  defp item_label(%{type: :coin}), do: gettext("moneta")
-  defp item_label(%{type: :condition_markers}), do: gettext("znaczniki stanów")
-  defp item_label(%{type: :deck_box}), do: gettext("pudełko na talię")
-  defp item_label(%{type: :storage_box}), do: gettext("pudełko na karty")
-  defp item_label(%{type: :card_dividers}), do: gettext("przekładki")
-  defp item_label(%{type: :player_guide}), do: gettext("przewodnik gracza")
-  defp item_label(%{type: :rule_sheet}), do: gettext("zasady gry")
-  defp item_label(%{type: :code_card}), do: gettext("karta z kodem do Pokémon TCG Live")
-  defp item_label(%{type: :sticker}), do: gettext("naklejki")
-  defp item_label(%{type: :pin}), do: gettext("przypinka")
-  defp item_label(%{type: :figure}), do: gettext("figurka")
-  defp item_label(%{type: :binder}), do: gettext("album")
-  defp item_label(%{type: :playmat}), do: gettext("mata do gry")
-  defp item_label(%{type: :other, name: name}), do: name
+  defp item_label(item, _listed_on), do: contents_item_label(item)
 
   # A box holds one deck the publisher drew; a display holds several, each drawn.
   defp random_deck_note(%{quantity: 1, variants: variants}),
