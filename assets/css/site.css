@@ -1091,13 +1091,15 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 @media (hover: hover) and (pointer: fine) { .guide-world .expensive-shop-row:hover { background: var(--bench-light); } .guide-world .expensive-shop-row:hover .expensive-shop-name { text-decoration: underline; } }
 @media (max-width: 40rem) { .guide-world .expensive-shop-row { grid-template-columns: 3rem minmax(0, 1fr); row-gap: .5rem; } .guide-world .expensive-shop-row img { grid-row: span 2; inline-size: 3rem; } .guide-world .expensive-shop-deal { grid-column: 2; } .guide-world .expensive-shop-price { justify-items: start; text-align: start; } }
 
-.guide-world .expensive-steps { display: grid; gap: .75rem; margin: 0; padding-inline-start: 1.5rem; }
+/* Numbered: the reset takes list markers off every list. */
+.guide-world .expensive-steps { display: grid; gap: .75rem; list-style: decimal; margin: 0; padding-inline-start: 1.5rem; }
+.guide-world .expensive-steps li { padding-inline-start: .375rem; }
 .guide-world .expensive-steps li::marker { font-family: "Barlow Condensed", sans-serif; font-weight: 700; }
 .guide-world .expensive-faq { margin: 0; }
 .guide-world .expensive-faq dt { font-family: "Barlow Condensed", sans-serif; font-size: 1.25rem; font-weight: 700; line-height: 1.15; margin-block-start: 1.25rem; }
 .guide-world .expensive-faq dt:first-child { margin-block-start: 0; }
 .guide-world .expensive-faq dd { margin: .25rem 0 0; text-wrap: pretty; }
-.guide-world .expensive-method ul { color: var(--muted); font-size: .8125rem; margin: 0; padding-inline-start: 1.25rem; }
+.guide-world .expensive-method ul { color: var(--muted); font-size: .8125rem; list-style: disc; margin: 0; padding-inline-start: 1.25rem; }
 .guide-world .expensive-method li + li { margin-block-start: .5rem; }
 .guide-world .expensive-method h2 { font-size: 1.375rem; }
 
