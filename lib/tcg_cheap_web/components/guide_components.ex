@@ -89,6 +89,11 @@ defmodule TcgCheapWeb.GuideComponents do
                 {gettext("Ile kosztuje booster Pokémon?")}
               </.link>
             </li>
+            <li>
+              <.link navigate={~p"/najdrozsze-karty-pokemon"}>
+                {gettext("Najdroższe karty Pokémon")}
+              </.link>
+            </li>
             <li><.link navigate={~p"/bot"}>{gettext("Dla sklepów: nasz bot")}</.link></li>
           </ul>
         </nav>

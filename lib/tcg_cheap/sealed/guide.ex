@@ -197,9 +197,11 @@ defmodule TcgCheap.Sealed.Guide do
         do: {id, url}
   end
 
-  # Shared by every render for `@cached_for_ms`; the reader that finds it
-  # stale reads it again.
-  defp cached(key, read) do
+  @doc """
+  A read shared by every render for #{div(@cached_for_ms, 60_000)} minutes; the
+  reader that finds it stale reads it again.
+  """
+  def cached(key, read) do
     now = System.monotonic_time(:millisecond)
 
     case :persistent_term.get({__MODULE__, key}, nil) do

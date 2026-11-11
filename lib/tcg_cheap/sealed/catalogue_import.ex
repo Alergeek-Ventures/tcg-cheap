@@ -19,7 +19,17 @@ defmodule TcgCheap.Sealed.CatalogueImport do
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{CardPrice, Catalogue, ExpansionSync, Product, Refresh, TcgdexSet}
+
+  alias TcgCheap.Sealed.{
+    CardDailyPrice,
+    CardGuide,
+    CardPrice,
+    Catalogue,
+    ExpansionSync,
+    Product,
+    Refresh,
+    TcgdexSet
+  }
 
   require Ash.Query
 
@@ -113,22 +123,49 @@ defmodule TcgCheap.Sealed.CatalogueImport do
         trend: &1.trend,
         trend_holo: &1.trend_holo,
         low: &1.low,
+        avg7: &1.avg7,
+        avg30: &1.avg30,
         priced_on: priced_on
       }
     )
-    |> Enum.chunk_every(@chunk)
-    |> Enum.each(fn chunk ->
-      %Ash.BulkResult{status: :success} =
-        Ash.bulk_create!(chunk, CardPrice, :record,
-          domain: Sealed,
-          return_errors?: true,
-          stop_on_error?: true
-        )
-    end)
+    |> bulk_create(CardPrice)
 
     %Ash.BulkResult{status: :success} =
       CardPrice
       |> Ash.Query.filter(priced_on < ^priced_on)
       |> Ash.bulk_destroy!(:prune, %{}, domain: Sealed, return_errors?: true)
+
+    record_card_history(singles, priced_on)
+  end
+
+  # Only the cards of our catalogue: the guide prices every Pokémon single on
+  # Cardmarket, most of which no page shows.
+  defp record_card_history(singles, priced_on) do
+    catalogue = MapSet.new(CardGuide.cardmarket_ids())
+
+    singles
+    |> Enum.filter(&(MapSet.member?(catalogue, &1.id_product) and (&1.trend || &1.trend_holo)))
+    |> Enum.map(
+      &%{
+        cardmarket_id: &1.id_product,
+        priced_on: priced_on,
+        trend: &1.trend,
+        trend_holo: &1.trend_holo
+      }
+    )
+    |> bulk_create(CardDailyPrice)
+  end
+
+  defp bulk_create(rows, resource) do
+    rows
+    |> Enum.chunk_every(@chunk)
+    |> Enum.each(fn chunk ->
+      %Ash.BulkResult{status: :success} =
+        Ash.bulk_create!(chunk, resource, :record,
+          domain: Sealed,
+          return_errors?: true,
+          stop_on_error?: true
+        )
+    end)
   end
 end

@@ -113,6 +113,77 @@ defmodule TcgCheapWeb.SEO do
     )
   end
 
+  # "najdroższe karty pokemon" is asked about the records and about what
+  # costs most today: the description answers both. A filtered ranking is
+  # the same article: canonical to it and not indexed on its own.
+  def expensive_cards(overview, records, filters) do
+    canonical = url(~p"/najdrozsze-karty-pokemon")
+    filtered? = filters != %{set: nil, stock: :all}
+    title = gettext("Najdroższe karty Pokémon – rekordy i ceny dziś")
+
+    metadata(
+      title,
+      fit_description(expensive_cards_answer(overview, hd(records))),
+      canonical,
+      robots: if(filtered?, do: "noindex, follow", else: "index, follow"),
+      social_image: home_image(),
+      social_image_alt: home_image_alt(),
+      structured_data: %{
+        "@context" => "https://schema.org",
+        "@graph" => [
+          %{
+            "@type" => "Article",
+            "headline" => gettext("Najdroższe karty Pokémon"),
+            "inLanguage" => Gettext.get_locale(TcgCheapWeb.Gettext),
+            "dateModified" => overview.priced_on && Date.to_iso8601(overview.priced_on),
+            "author" => %{"@type" => "Organization", "name" => "TCG Cheap", "url" => url(~p"/")},
+            "mainEntityOfPage" => canonical
+          },
+          %{
+            "@type" => "BreadcrumbList",
+            "itemListElement" => [
+              %{
+                "@type" => "ListItem",
+                "position" => 1,
+                "name" => gettext("Karty"),
+                "item" => url(~p"/karty")
+              },
+              %{
+                "@type" => "ListItem",
+                "position" => 2,
+                "name" => gettext("Najdroższe karty Pokémon"),
+                "item" => canonical
+              }
+            ]
+          }
+        ]
+      }
+    )
+  end
+
+  defp expensive_cards_answer(overview, record) do
+    [
+      gettext("Najdroższa karta Pokémon w historii to %{card}: %{price} (%{grade}, %{year}).",
+        card: record.name,
+        price: TcgCheapWeb.CardRecords.usd(record.usd),
+        grade: record.grade,
+        year: elem(record.sold, 0)
+      ),
+      case overview.highlights do
+        [top | _] ->
+          gettext("Najdroższa karta dziś na Cardmarket: %{card}, %{value}.",
+            card: top.card.name,
+            value: Polish.zloty(top.value)
+          )
+
+        [] ->
+          nil
+      end,
+      gettext("Rekordy aukcji i ceny w polskich sklepach.")
+    ]
+    |> Enum.filter(&is_binary/1)
+  end
+
   # For shop owners and the bot registries that link to it; it has no
   # markdown version.
   def bot do

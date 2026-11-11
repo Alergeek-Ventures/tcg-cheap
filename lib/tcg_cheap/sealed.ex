@@ -280,6 +280,7 @@ defmodule TcgCheap.Sealed do
     end
 
     resource TcgCheap.Sealed.CardPrice
+    resource TcgCheap.Sealed.CardDailyPrice
 
     resource TcgCheap.Sealed.ExpansionLogo do
       define :list_expansion_logos, action: :read

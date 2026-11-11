@@ -9,7 +9,7 @@ defmodule TcgCheapWeb.PageMarkdown do
   use TcgCheapWeb, :verified_routes
 
   alias TcgCheap.Sealed.{CardGuide, Kinds, PriceGuide, Rarities, Regions, RetailDeal}
-  alias TcgCheapWeb.{GuideComponents, Polish, SEO}
+  alias TcgCheapWeb.{CardRecords, GuideComponents, Polish, SEO}
 
   @doc "The markdown version's URL of a page's canonical URL."
   @spec url_for(String.t()) :: String.t()
@@ -68,6 +68,59 @@ defmodule TcgCheapWeb.PageMarkdown do
         products_table(page.boosters)
       ])
     ])
+  end
+
+  def expensive_cards(seo, overview, records, ranking) do
+    page(seo, Date.utc_today(), [
+      section("Rekordy aukcji", [
+        "Najwyższy publiczny wynik aukcji każdej karty, z opłatą kupującego, potwierdzony przez dom aukcyjny, Guinness World Records albo duże media. Sprawdzone #{Date.to_iso8601(CardRecords.checked_on())}.",
+        table(
+          ["Karta", "Ocena", "Cena", "Sprzedana", "Dom aukcyjny"],
+          Enum.map(records, fn record ->
+            [
+              "#{link(record.name, record.source)} (#{record.detail})",
+              record.grade,
+              CardRecords.usd(record.usd),
+              CardRecords.month(record.sold),
+              record.house
+            ]
+          end)
+        )
+      ]),
+      section("Najdroższe karty dziś", [
+        "Angielskie karty według ceny rynkowej: trendu Cardmarket w złotych#{rate(overview.rate)}. Najtaniej: najniższa cena karty na stanie w polskim sklepie, bez dostawy.",
+        expensive_cards_table(ranking)
+      ]),
+      section(
+        "Najdroższa karta z nowych rozszerzeń",
+        list(
+          Enum.map(overview.new_sets, fn row ->
+            "#{row.card.expansion_name}: #{link(row.card.name, url_from_path(row.card.public_path))}, #{Polish.zloty(row.value)}"
+          end)
+        )
+      )
+    ])
+  end
+
+  defp rate(nil), do: ""
+  defp rate(rate), do: " po kursie NBP #{Polish.rate(rate.rate)} zł za euro"
+
+  defp expensive_cards_table(rows) do
+    table(
+      ["Karta", "Rozszerzenie", "Cena rynkowa", "Najtaniej w Polsce", "Ocena"],
+      Enum.map(rows, fn row ->
+        [
+          link("#{row.card.name} #{row.card.number}", url_from_path(row.card.public_path)),
+          row.card.expansion_name,
+          Polish.zloty(row.value),
+          if(row.offer,
+            do: "#{Polish.price(row.offer.price)} w #{GuideComponents.shop_name(row.offer)}",
+            else: "brak na stanie"
+          ),
+          if(row.verdict, do: GuideComponents.single_verdict_label(row.verdict), else: "")
+        ]
+      end)
+    )
   end
 
   def product(seo, page) do

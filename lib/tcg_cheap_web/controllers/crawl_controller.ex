@@ -10,7 +10,12 @@ defmodule TcgCheapWeb.CrawlController do
     %{expansions: expansions, products: products, cards: cards} = listed_pages()
 
     locations =
-      [url(~p"/"), url(~p"/karty"), url(~p"/ile-kosztuje-booster-pokemon")] ++
+      [
+        url(~p"/"),
+        url(~p"/karty"),
+        url(~p"/ile-kosztuje-booster-pokemon"),
+        url(~p"/najdrozsze-karty-pokemon")
+      ] ++
         Enum.map(expansions, fn {id, name} -> SEO.expansion_url(id, name) end) ++
         Enum.map(products, &url(~p"/produkty/#{&1.slug}")) ++
         Enum.map(cards, fn {_id, _name, path} -> unverified_url(TcgCheapWeb.Endpoint, path) end)
@@ -117,6 +122,7 @@ defmodule TcgCheapWeb.CrawlController do
     - [Strona główna](#{PageMarkdown.url_for(url(~p"/"))}): produkty na stanie w sklepach z najniższą ceną i oceną
     - [Ceny kart](#{PageMarkdown.url_for(url(~p"/karty"))}): angielskie karty na stanie w sklepach z najniższą ceną i oceną
     - [Ile kosztuje booster Pokémon](#{PageMarkdown.url_for(url(~p"/ile-kosztuje-booster-pokemon"))}): najtańszy angielski booster każdego z ostatnich setów i okazje w sieciówkach (Lidl, Rossmann, Żabka…)
+    - [Najdroższe karty Pokémon](#{PageMarkdown.url_for(url(~p"/najdrozsze-karty-pokemon"))}): rekordy aukcji ze źródłami i najdroższe angielskie karty dziś z cenami w polskich sklepach
 
     ## Rozszerzenia
 

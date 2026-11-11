@@ -689,6 +689,16 @@ defmodule TcgCheap.Sealed.CardGuide do
     |> Repo.aggregate(:count)
   end
 
+  @doc "The Cardmarket product ids of the cards in our catalogue."
+  def cardmarket_ids do
+    from(c in TcgdexCard,
+      where: not is_nil(c.cardmarket_id),
+      distinct: true,
+      select: c.cardmarket_id
+    )
+    |> Repo.all()
+  end
+
   @doc "How many shops counted in card prices have an ungraded card in stock."
   def shop_count do
     from(o in subquery(compared_query()),
