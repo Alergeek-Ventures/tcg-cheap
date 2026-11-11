@@ -365,7 +365,9 @@ defmodule TcgCheapWeb.SingleLive do
             aria-labelledby="single-versions-title"
           >
             <div class="product-section-heading">
-              <h2 id="single-versions-title">{gettext("Inne wersje tej karty na stanie")}</h2>
+              <h2 id="single-versions-title">
+                {gettext("Inne karty %{name} na stanie", name: @page.card.name)}
+              </h2>
             </div>
             <ul class="guide-products">
               <.card_row

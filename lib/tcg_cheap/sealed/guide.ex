@@ -587,17 +587,15 @@ defmodule TcgCheap.Sealed.Guide do
 
   # The best offer first: by verdict, then by how far the cheapest price is
   # under its reference (`typical`). One too far under it is more often a
-  # wrong match than a deal (see `@deal_min_ratio`), so it counts as unrated.
-  # Without a reference, the ratio is nil, which sorts after any number.
+  # wrong match than a deal (see `@deal_min_ratio`), so it ranks after the
+  # unrated ones. Without a reference the ratio is nil, which sorts after any
+  # number.
   defp best_offer_first(%{verdict: %{status: status, cheapest: cheapest, typical: typical}}) do
-    ratio = typical && Decimal.div(cheapest.price, typical)
+    ratio = if typical && Decimal.positive?(typical), do: Decimal.div(cheapest.price, typical)
+    suspect? = ratio != nil and Decimal.lt?(ratio, @deal_min_ratio)
+    rank = if suspect?, do: @offer_ranks.cardmarket, else: Map.fetch!(@offer_ranks, status)
 
-    rank =
-      if ratio && Decimal.lt?(ratio, @deal_min_ratio),
-        do: @offer_ranks.cardmarket,
-        else: Map.fetch!(@offer_ranks, status)
-
-    {rank, ratio && Decimal.to_float(ratio)}
+    {rank, suspect?, ratio && Decimal.to_float(ratio)}
   end
 
   # The set's own Booster Box and Elite Trainer Box on Cardmarket (trend in

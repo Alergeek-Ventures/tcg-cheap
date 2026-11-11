@@ -2420,5 +2420,5 @@ msgstr "Single cards: %{cards}"
 
 #: lib/tcg_cheap_web/live/single_live.ex:368
 #, elixir-autogen, elixir-format
-msgid "Inne wersje tej karty na stanie"
-msgstr "Other printings of this card in stock"
+msgid "Inne karty %{name} na stanie"
+msgstr "Other %{name} cards in stock"
