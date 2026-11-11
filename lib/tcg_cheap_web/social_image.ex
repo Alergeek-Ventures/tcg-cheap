@@ -1,9 +1,12 @@
 defmodule TcgCheapWeb.SocialImage do
   @moduledoc """
   Link-preview cards (Open Graph, 1200×630 JPEG) for the buying guide: the
-  home page and each product, drawn as SVG in the guide's look, rendered
-  with resvg and the bundled fonts (`priv/social_fonts`, OFL; full Latin
-  Extended, unlike the subset web fonts) and encoded with libvips.
+  home page, each product, each card, each expansion and the expensive
+  cards article, drawn as SVG in the guide's look, rendered with resvg and
+  the bundled fonts (`priv/social_fonts`, OFL; full Latin Extended, unlike
+  the subset web fonts) and encoded with libvips.
+
+  Text beside card scans is aligned towards them; text alone is centred.
 
   A product card shows the same answer as its page: the verdict, the
   cheapest in-stock price and shop, the typical and suggested prices. Its
@@ -14,8 +17,10 @@ defmodule TcgCheapWeb.SocialImage do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
+  alias TcgCheap.Sealed.{CardImage, Guide}
+  alias TcgCheap.Storage
   alias TcgCheap.Storage.ImageDownload
-  alias TcgCheapWeb.{GuideComponents, Polish}
+  alias TcgCheapWeb.{CardRecords, GuideComponents, Polish}
   alias Vix.Vips.Operation
 
   # Bump when the layout changes, so stored and cached cards are replaced.
@@ -35,12 +40,14 @@ defmodule TcgCheapWeb.SocialImage do
   @display "Barlow Condensed"
   @mono "Azeret Mono"
 
-  # The logo is 405×96.
+  # The logo is 405×96; a card scan is 245×342.
   @logo_ratio 405 / 96
+  @scan_ratio 342 / 245
   @max_renders 2
   # A render waits this long for a free slot before giving up.
   @slot_wait_ms 3_000
   @min_title 40
+  @title_sizes [72, 64, 56, 50, 44, @min_title]
   @xml_forbidden ~r/[\x00-\x08\x0B\x0C\x0E-\x1F]/u
   @spaces ~r/\s+/u
 
@@ -60,6 +67,61 @@ defmodule TcgCheapWeb.SocialImage do
        verdict.cheapest && {verdict.cheapest.price, verdict.cheapest.shop}, verdict.typical,
        length(verdict.shop_prices), page.past.last_known,
        page.suggested_price && page.suggested_price.price}
+    )
+  end
+
+  @doc "A version of what a card's preview shows (`CardGuide.page/3`)."
+  @spec card_version(map()) :: String.t()
+  def card_version(page) do
+    answer = card_answer_row(page)
+
+    version(
+      {page.card.name, page.card.number, page.expansion_name, page.image, answer.verdict,
+       answer.cheapest && {answer.cheapest.price, answer.cheapest.shop}, cardmarket_pln(page)}
+    )
+  end
+
+  @doc "A version of what an expansion's preview shows (`Guide.expansion/3`)."
+  @spec expansion_version(String.t(), map()) :: String.t()
+  def expansion_version(name, set_page) do
+    version(
+      {name, Enum.map(expansion_scans(set_page), &{&1.card.id, &1.price, &1.image}),
+       booster_price(set_page)}
+    )
+  end
+
+  @doc "A version of what the card list's preview shows (`Guide.singles_market/0`)."
+  @spec cards_version(map()) :: String.t()
+  def cards_version(market) do
+    deal = market.deal
+
+    version(
+      {market.in_stock, market.shops, deal && {deal.card.id, deal.price, deal.shop, deal.image}}
+    )
+  end
+
+  @doc "A version of what the booster price page's preview shows."
+  @spec boosters_version(map()) :: String.t()
+  def boosters_version(page) do
+    version(
+      Enum.map(
+        [page.cheapest, List.first(page.boosters)]
+        |> Enum.reject(&is_nil/1)
+        |> Enum.uniq_by(& &1.product.id),
+        fn booster ->
+          {booster.product.id, booster.product.stored_photo_card_url,
+           booster.verdict.cheapest.price, booster.verdict.cheapest.shop}
+        end
+      )
+    )
+  end
+
+  @doc "A version of what the expensive cards article's preview shows."
+  @spec expensive_cards_version(map()) :: String.t()
+  def expensive_cards_version(overview) do
+    version(
+      {CardRecords.checked_on(),
+       Enum.map(Enum.take(overview.highlights, 2), &{&1.card.id, &1.value, &1.image_large})}
     )
   end
 
@@ -158,8 +220,504 @@ defmodule TcgCheapWeb.SocialImage do
     end)
   end
 
-  # Badge, price and shop, then the typical and suggested prices, stacked
-  # up from the bottom edge; returns the SVG and its height.
+  @doc """
+  A card's preview from its guide page (`TcgCheap.Sealed.CardGuide.page/3`):
+  the scan on the left, the name and the answer beside it. `{:partial, jpeg}`
+  is a preview drawn without a scan that could not be fetched.
+  """
+  @spec card(map()) :: {:ok, binary()} | {:partial, binary()} | {:error, term()}
+  def card(page) do
+    with_slot(fn ->
+      scan = scan(page.image)
+      scan_width = round((@height - 2 * @margin) / @scan_ratio)
+
+      {column, art} =
+        case scan do
+          {:ok, png} -> {72 + scan_width + 56, card_scan(png, 72, @margin, scan_width, 0)}
+          _none -> {@margin + 16, nil}
+        end
+
+      width = @width - @margin - column
+      {answer, answer_height} = card_answer(page, column, width)
+
+      logo_height = 48
+      title_top = @margin + logo_height + 40
+      facts = wrap("#{page.card.number} · #{page.expansion_name}", 22, :mono, width, 1)
+      room = @height - @margin - answer_height - 32 - title_top - 44
+
+      {size, title} =
+        fit_title(normalize(page.card.name), width, room, 2, [96, 84 | @title_sizes])
+
+      line = round(size * 0.96)
+
+      preview =
+        render([
+          background(),
+          art,
+          logo(column, @margin, logo_height),
+          text_lines(title, column, title_top, size, line, :display, @ink),
+          text_lines(facts, column, title_top + length(title) * line + 14, 22, 30, :mono, @muted),
+          answer
+        ])
+
+      partial(preview, [scan])
+    end)
+  end
+
+  # The normal print's answer, or the first print a shop has in stock.
+  defp card_answer_row(page),
+    do: Enum.find(page.answers, & &1.cheapest) || hd(page.answers)
+
+  defp card_answer(page, x, width) do
+    %{cheapest: cheapest, verdict: verdict} = card_answer_row(page)
+    status = GuideComponents.single_verdict_status(verdict)
+    # Only a judged price or a missing one has a badge; "too few shops" means
+    # nothing on a card.
+    badge = if status in [:good, :normal, :expensive, :out_of_stock], do: %{status: status}
+
+    {price, line} =
+      case {cheapest, cardmarket_pln(page)} do
+        {%{price: price}, _cardmarket} ->
+          {{Polish.price(price), 104, @ink},
+           gettext("najtaniej teraz w %{shop}", shop: GuideComponents.priced_shop_name(cheapest))}
+
+        {nil, %Decimal{} = value} ->
+          {{Polish.zloty(value), 68, @muted}, gettext("cena na Cardmarket")}
+
+        {nil, nil} ->
+          {nil, gettext("Teraz żaden sklep nie ma tej karty na stanie.")}
+      end
+
+    answer_stack(badge, price, line, [], x, width)
+  end
+
+  defp cardmarket_pln(%{price: %{trend: trend}, rate: rate}), do: Guide.to_pln(trend, rate)
+  defp cardmarket_pln(_page), do: nil
+
+  @doc """
+  An expansion's preview from its set page (`TcgCheap.Sealed.Guide.expansion/3`):
+  its three most valuable cards fanned out, its name, its top card and its
+  booster beside them; without any scan, the name alone, centred.
+  """
+  @spec expansion(String.t(), map()) :: {:ok, binary()} | {:partial, binary()} | {:error, term()}
+  def expansion(name, set_page) do
+    with_slot(fn ->
+      tops = expansion_scans(set_page)
+      scans = Enum.map(tops, &scan(&1.image))
+      pngs = for {:ok, png} <- scans, do: png
+
+      figures =
+        Enum.filter(
+          [
+            (booster = booster_price(set_page)) &&
+              %{text: gettext("Booster od %{price}", price: Polish.price(booster)), size: 64},
+            (top = List.first(tops)) &&
+              %{
+                text: "#{top.card.name} ≈ #{Polish.zloty(top.price)}",
+                size: 48,
+                caption: top_card_caption(top)
+              }
+          ],
+          & &1
+        )
+
+      preview =
+        case pngs do
+          [] ->
+            render(centred_page(name, figures))
+
+          [png] ->
+            width = round((@height - 2 * @margin) / @scan_ratio)
+
+            render([
+              background(),
+              card_scan(png, 72, @margin, width, 0)
+              | titled_figures(name, figures, 72 + width + 56, "start")
+            ])
+
+          pngs ->
+            render([
+              background(),
+              fan(pngs, 300, 315) | titled_figures(name, figures, 600, "start")
+            ])
+        end
+
+      partial(preview, scans)
+    end)
+  end
+
+  # The cards on a set page's "most valuable" list that have a scan.
+  defp expansion_scans(%{set: %{top_cards: tops}}),
+    do: tops |> Enum.filter(& &1.image) |> Enum.take(3)
+
+  defp expansion_scans(_set_page), do: []
+
+  defp booster_price(%{booster: %{preorder?: false, verdict: %{cheapest: %{price: price}}}}),
+    do: price
+
+  defp booster_price(_set_page), do: nil
+
+  # Where the set's top card price comes from, as the set page says it.
+  defp top_card_caption(%{source: {:shop, shop}}),
+    do:
+      gettext("najcenniejsza karta · najtaniej w %{shop}", shop: TcgCheap.Sealed.Shops.name(shop))
+
+  defp top_card_caption(_top), do: gettext("najcenniejsza karta · Cardmarket")
+
+  @doc """
+  The expensive cards article's preview: the record card between today's two
+  most expensive, and the record and today's top price beside them.
+  """
+  @spec expensive_cards(map()) :: {:ok, binary()} | {:partial, binary()} | {:error, term()}
+  def expensive_cards(overview) do
+    record = hd(CardRecords.all())
+
+    with_slot(fn ->
+      today = Enum.take(overview.highlights, 2)
+      scans = [record_scan(record) | Enum.map(today, &stored_scan(&1.image_large))]
+      # The record in the middle, in front.
+      pngs = for {:ok, png} <- scans, do: png
+      pngs = middle_first(pngs)
+
+      figures =
+        Enum.filter(
+          [
+            %{
+              text: CardRecords.usd(record.usd),
+              size: 64,
+              caption: gettext("rekord: %{card}", card: record.name)
+            },
+            today != [] &&
+              %{
+                text: "#{hd(today).card.name} ≈ #{Polish.zloty(hd(today).value)}",
+                size: 48,
+                caption: gettext("najdroższa z ostatnich lat")
+              }
+          ],
+          & &1
+        )
+
+      headline = gettext("Najdroższe karty Pokémon")
+
+      preview =
+        case pngs do
+          [] ->
+            render(centred_page(headline, figures))
+
+          pngs ->
+            render([
+              background(),
+              fan(pngs, 930, 315, 250, 200) | titled_figures(headline, figures, 600, "end")
+            ])
+        end
+
+      partial(preview, scans)
+    end)
+  end
+
+  @doc """
+  The card list's preview from its market figures (`Guide.singles_market/0`):
+  the best deal's scan, the count in stock and the deal beside it.
+  """
+  @spec cards(map()) :: {:ok, binary()} | {:partial, binary()} | {:error, term()}
+  def cards(market) do
+    with_slot(fn ->
+      deal = market.deal
+      scan = scan(deal && deal.image)
+      title = gettext("Ceny kart Pokémon")
+
+      figures =
+        Enum.filter(
+          [
+            %{
+              text:
+                gettext("%{cards} na stanie",
+                  cards: Polish.plural(market.in_stock, "karta", "karty", "kart")
+                ),
+              size: 64,
+              caption:
+                gettext("w %{shops}",
+                  shops: Polish.plural(market.shops, "sklepie", "sklepach", "sklepach")
+                )
+            },
+            deal &&
+              %{
+                text:
+                  gettext("%{card} za %{price}",
+                    card: deal.card.name,
+                    price: Polish.price(deal.price)
+                  ),
+                size: 48,
+                caption:
+                  gettext("najlepsza okazja teraz · %{shop}",
+                    shop: TcgCheap.Sealed.Shops.name(deal.shop)
+                  )
+              }
+          ],
+          & &1
+        )
+
+      preview =
+        case scan do
+          {:ok, png} ->
+            width = round((@height - 2 * @margin) / @scan_ratio)
+
+            render([
+              background(),
+              card_scan(png, 72, @margin, width, 0)
+              | titled_figures(title, figures, 72 + width + 56, "start")
+            ])
+
+          _none ->
+            render(centred_page(title, figures))
+        end
+
+      partial(preview, [scan])
+    end)
+  end
+
+  @doc """
+  The booster price page's preview (`Guide.booster_prices/1`): the newest
+  set's booster on a paper tile, the cheapest booster and the newest one's
+  price beside it.
+  """
+  @spec boosters(map()) :: {:ok, binary()} | {:partial, binary()} | {:error, term()}
+  def boosters(page) do
+    with_slot(fn ->
+      newest = List.first(page.boosters)
+      cheapest = page.cheapest
+      photo = photo(newest && newest.product.stored_photo_card_url)
+      title = gettext("Ile kosztuje booster Pokémon?")
+
+      figures =
+        Enum.filter(
+          [
+            cheapest &&
+              %{
+                text:
+                  gettext("od %{price}", price: Polish.price(cheapest.verdict.cheapest.price)),
+                size: 64,
+                caption: gettext("najtańszy: %{set}", set: cheapest.product.set_name)
+              },
+            newest && (is_nil(cheapest) or newest.product.id != cheapest.product.id) &&
+              %{
+                text:
+                  "#{newest.product.set_name}: #{Polish.price(newest.verdict.cheapest.price)}",
+                size: 48,
+                caption:
+                  gettext("najnowszy set · %{shop}",
+                    shop: GuideComponents.priced_shop_name(newest.verdict.cheapest)
+                  )
+              }
+          ],
+          & &1
+        )
+
+      preview =
+        case photo do
+          {:ok, png} ->
+            render([
+              background(),
+              photo_tile(png, @margin, @margin, @height - 2 * @margin)
+              | titled_figures(title, figures, 630, "start")
+            ])
+
+          _none ->
+            render(centred_page(title, figures))
+        end
+
+      partial(preview, [photo])
+    end)
+  end
+
+  # [record, a, b] drawn as a fan: a left, b right, the record in front.
+  defp middle_first([record, a, b]), do: [a, b, record]
+  defp middle_first(pngs), do: pngs
+
+  # A title and figures (a big line and an optional caption under it),
+  # centred vertically and aligned at `x` towards the scans beside them:
+  # "end" when they are on the right, "start" when on the left.
+  defp titled_figures(title, figures, x, anchor) do
+    width = if anchor == "end", do: x - @margin - 16, else: @width - @margin - x
+    logo_height = 48
+    logo_x = if anchor == "end", do: x - round(logo_height * @logo_ratio), else: x
+    {size, lines} = fit_lines(normalize(title), width, [84, 72, 64, 56], 2)
+    line = round(size * 0.98)
+
+    laid =
+      Enum.map(figures, fn figure ->
+        figure_size = fit_size(figure.text, Map.get(figure, :size, 64), width)
+
+        captions =
+          case Map.get(figure, :caption) do
+            nil -> []
+            caption -> wrap(caption, 26, :mono, width, 2)
+          end
+
+        {figure.text, figure_size, captions,
+         round(figure_size * 0.95) + length(captions) * 34 + 26}
+      end)
+
+    height =
+      logo_height + 36 + length(lines) * line + 30 +
+        Enum.sum(Enum.map(laid, &elem(&1, 3)))
+
+    top = div(@height - height, 2)
+    title_top = top + logo_height + 36
+
+    {figure_svg, _end} =
+      Enum.map_reduce(laid, title_top + length(lines) * line + 30, fn {text, figure_size,
+                                                                       captions, figure_height},
+                                                                      figure_top ->
+        baseline = figure_top + round(figure_size * 0.78)
+
+        {[
+           text_line(text, x, baseline, figure_size, :display, @ink, anchor),
+           text_lines(captions, x, baseline + 10, 26, 34, :mono, @muted, anchor)
+         ], figure_top + figure_height}
+      end)
+
+    [
+      logo(logo_x, top, logo_height),
+      text_lines(lines, x, title_top, size, line, :display, @ink, anchor),
+      figure_svg
+    ]
+  end
+
+  # The largest size, from `size` down to 36, at which a line fits `width`.
+  defp fit_size(text, size, width) do
+    Enum.find(size..36//-4, 36, &(text_width(text, &1, :display) <= width))
+  end
+
+  # The largest size at which the text fits `max_lines` balanced lines; the
+  # smallest, ellipsized, otherwise.
+  defp fit_lines(text, width, sizes, max_lines) do
+    Enum.find_value(sizes, fn size ->
+      if length(greedy(text, size, :display, width)) <= max_lines,
+        do: {size, balanced(text, size, :display, width, max_lines)}
+    end) || {List.last(sizes), wrap(text, List.last(sizes), :display, width, max_lines)}
+  end
+
+  # A title and figures alone, centred, for a preview without a picture.
+  defp centred_page(title, figures) do
+    centre = div(@width, 2)
+    width = @width - 2 * (@margin + 64)
+    logo_height = 56
+    logo_width = round(logo_height * @logo_ratio)
+    {size, lines} = fit_lines(normalize(title), width, [88, 76, 64], 2)
+    line = round(size * 0.98)
+
+    laid =
+      Enum.map(figures, fn figure ->
+        figure_size = fit_size(figure.text, min(Map.get(figure, :size, 64), 56), width)
+
+        captions =
+          if caption = Map.get(figure, :caption), do: wrap(caption, 26, :mono, width, 1), else: []
+
+        {figure.text, figure_size, captions,
+         round(figure_size * 0.95) + length(captions) * 34 + 22}
+      end)
+
+    height =
+      logo_height + 40 + length(lines) * line + 30 + Enum.sum(Enum.map(laid, &elem(&1, 3)))
+
+    top = div(@height - height, 2)
+    title_top = top + logo_height + 40
+
+    {figure_svg, _end} =
+      Enum.map_reduce(laid, title_top + length(lines) * line + 30, fn {text, figure_size,
+                                                                       captions, figure_height},
+                                                                      figure_top ->
+        baseline = figure_top + round(figure_size * 0.78)
+
+        {[
+           text_line(text, centre, baseline, figure_size, :display, @ink, "middle"),
+           text_lines(captions, centre, baseline + 10, 26, 34, :mono, @muted, "middle")
+         ], figure_top + figure_height}
+      end)
+
+    [
+      background(),
+      logo(centre - div(logo_width, 2), top, logo_height),
+      text_lines(lines, centre, title_top, size, line, :display, @ink, "middle"),
+      figure_svg
+    ]
+  end
+
+  # Up to three scans fanned out around (cx, cy): the last one in front,
+  # straight and `front` wide; the others `side` wide, turned out to its sides.
+  defp fan(pngs, cx, cy, front \\ 220, side \\ 220) do
+    placed =
+      case pngs do
+        [only] ->
+          [{only, front, 0, 0, 0}]
+
+        [left, last] ->
+          [{left, side, -70, 16, -8}, {last, front, 70, 0, 4}]
+
+        [left, right, last] ->
+          [{left, side, -122, 20, -10}, {right, side, 122, 20, 10}, {last, front, 0, 0, 0}]
+      end
+
+    for {png, width, dx, dy, angle} <- placed do
+      height = round(width * @scan_ratio)
+      card_scan(png, cx + dx - div(width, 2), cy + dy - div(height, 2), width, angle)
+    end
+  end
+
+  # A card scan standing on the bench with a soft shadow, turned `angle`
+  # degrees about its centre.
+  defp card_scan(png, x, y, width, angle) do
+    height = round(width * @scan_ratio)
+    cx = x + width / 2
+    cy = y + height / 2
+
+    [
+      ~s|<g transform="rotate(#{angle} #{cx} #{cy})" filter="url(#lift)">|,
+      ~s(<image href="data:image/png;base64,#{Base.encode64(png)}" x="#{x}" y="#{y}" width="#{width}" height="#{height}" preserveAspectRatio="xMidYMid meet"/>),
+      "</g>"
+    ]
+  end
+
+  # A card's scan from our mirrored storage (its detail variant) by source.
+  defp scan(nil), do: :none
+
+  defp scan(source) do
+    hash = CardImage.source_hash(source)
+
+    case Storage.mirrored_image_urls([hash], :detail) do
+      %{^hash => url} -> stored_scan(url)
+      _missing -> :error
+    end
+  end
+
+  defp stored_scan(nil), do: :none
+  defp stored_scan(url), do: photo(url)
+
+  # A record's own picture, kept with the app (`priv/static/images/records`).
+  defp record_scan(%{image: nil}), do: :none
+
+  defp record_scan(%{image: file}) do
+    path = Application.app_dir(:tcg_cheap, "priv/static/images/records/" <> file)
+
+    with {:ok, body} <- File.read(path),
+         {:ok, image} <- Operation.thumbnail_buffer(body, 600, size: :VIPS_SIZE_DOWN),
+         {:ok, png} <- Image.write(image, :memory, suffix: ".png") do
+      {:ok, png}
+    else
+      _unusable -> :error
+    end
+  end
+
+  # A preview missing a picture it should have is served, not kept.
+  defp partial({:ok, jpeg}, pictures) do
+    if Enum.any?(pictures, &(&1 == :error)), do: {:partial, jpeg}, else: {:ok, jpeg}
+  end
+
+  defp partial(error, _pictures), do: error
+
+  # The product's verdict, cheapest price and shop, then its typical and
+  # suggested prices.
   defp answer_block(page, x, width) do
     %{verdict: verdict, past: past} = page
 
@@ -189,18 +747,24 @@ defmodule TcgCheapWeb.SocialImage do
         &is_binary/1
       )
 
+    answer_stack(verdict, price, shop_line, notes, x, width)
+  end
+
+  # Badge, price and shop line, then notes, stacked up from the bottom edge;
+  # returns the SVG and its height. A nil verdict draws no badge.
+  defp answer_stack(verdict, price, shop_line, notes, x, width) do
     shop_lines = wrap(shop_line, 23, :mono, width, 2)
-    badge_height = 72
+    badge_height = if verdict, do: 72 + 26, else: 0
     price_height = price_height(price)
     shop_height = length(shop_lines) * 34
     notes_height = if notes == [], do: 0, else: 12 + length(notes) * 30
-    height = badge_height + 26 + price_height + shop_height + notes_height
+    height = badge_height + price_height + shop_height + notes_height
     top = @height - @margin - height
-    price_top = top + badge_height + 26
+    price_top = top + badge_height
     shop_top = price_top + price_height
 
     svg = [
-      badge(verdict, x, top, badge_height, 40),
+      verdict && badge(verdict, x, top, 72, 40),
       price_line(price, x, price_top),
       text_lines(shop_lines, x, shop_top, 23, 34, :mono, @ink),
       text_lines(notes, x, shop_top + shop_height + 12, 20, 30, :mono, @muted)
@@ -333,9 +897,7 @@ defmodule TcgCheapWeb.SocialImage do
   # The largest size at which the whole name fits the room in balanced
   # lines; otherwise the smallest size, in as many lines as the room holds,
   # ellipsized.
-  defp fit_title(name, width, room, max_lines) do
-    sizes = [72, 64, 56, 50, 44, @min_title]
-
+  defp fit_title(name, width, room, max_lines, sizes \\ @title_sizes) do
     Enum.find_value(sizes, fn size ->
       lines = greedy(name, size, :display, width)
       fits? = length(lines) <= max_lines and length(lines) * round(size * 0.96) <= room
@@ -351,18 +913,18 @@ defmodule TcgCheapWeb.SocialImage do
        )}
   end
 
-  defp text_lines(lines, x, top, size, line_height, font, color) do
+  defp text_lines(lines, x, top, size, line_height, font, color, anchor \\ "start") do
     lines
     |> Enum.with_index()
     |> Enum.map(fn {line, index} ->
-      text_line(line, x, top + index * line_height + round(size * 0.8), size, font, color)
+      text_line(line, x, top + index * line_height + round(size * 0.8), size, font, color, anchor)
     end)
   end
 
-  defp text_line(text, x, baseline, size, font, color) do
+  defp text_line(text, x, baseline, size, font, color, anchor \\ "start") do
     {family, weight} = font_face(font)
 
-    ~s(<text x="#{x}" y="#{baseline}" font-family="#{family}" font-weight="#{weight}" font-size="#{size}" fill="#{color}">#{escape(text)}</text>)
+    ~s(<text x="#{x}" y="#{baseline}" text-anchor="#{anchor}" font-family="#{family}" font-weight="#{weight}" font-size="#{size}" fill="#{color}">#{escape(text)}</text>)
   end
 
   defp font_face(:display), do: {@display, 700}
@@ -493,6 +1055,7 @@ defmodule TcgCheapWeb.SocialImage do
 
     svg = [
       ~s(<svg xmlns="http://www.w3.org/2000/svg" width="#{@width}" height="#{@height}" viewBox="0 0 #{@width} #{@height}">),
+      ~s(<defs><filter id="lift" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#{@ink}" flood-opacity="0.28"/></filter></defs>),
       parts |> List.flatten() |> Enum.filter(&is_binary/1),
       "</svg>"
     ]

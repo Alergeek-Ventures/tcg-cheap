@@ -101,6 +101,11 @@ defmodule TcgCheapWeb.Router do
   scope "/og", TcgCheapWeb do
     get "/", SocialImageController, :home
     get "/produkty/:slug", SocialImageController, :product
+    get "/najdrozsze-karty-pokemon", SocialImageController, :expensive_cards
+    get "/karty", SocialImageController, :cards
+    get "/ile-kosztuje-booster-pokemon", SocialImageController, :boosters
+    get "/rozszerzenia/:slug", SocialImageController, :expansion
+    get "/rozszerzenia/:slug/karty/:card_slug", SocialImageController, :card
   end
 
   scope "/", TcgCheapWeb do

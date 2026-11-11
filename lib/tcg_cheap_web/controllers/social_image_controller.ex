@@ -12,7 +12,7 @@ defmodule TcgCheapWeb.SocialImageController do
   use TcgCheapWeb, :controller
 
   alias AshStorage.Service.Context
-  alias TcgCheap.Sealed.Guide
+  alias TcgCheap.Sealed.{CardGuide, Catalogue, ExpensiveCards, Guide}
   alias TcgCheapWeb.SocialImage
 
   require Logger
@@ -34,6 +34,79 @@ defmodule TcgCheapWeb.SocialImageController do
         conn |> put_resp_header("cache-control", "no-store") |> send_resp(404, "")
     end
   end
+
+  def expensive_cards(conn, _params) do
+    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
+    overview = ExpensiveCards.overview()
+    version = SocialImage.expensive_cards_version(overview)
+
+    serve(conn, "social/articles/najdrozsze-karty-pokemon-#{version}.jpg", fn ->
+      SocialImage.expensive_cards(overview)
+    end)
+  end
+
+  def cards(conn, _params) do
+    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
+
+    case Guide.singles_market() do
+      nil ->
+        not_found(conn)
+
+      market ->
+        serve(conn, "social/cards-#{SocialImage.cards_version(market)}.jpg", fn ->
+          SocialImage.cards(market)
+        end)
+    end
+  end
+
+  def boosters(conn, _params) do
+    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
+    page = Guide.booster_prices(DateTime.utc_now())
+
+    serve(conn, "social/boosters-#{SocialImage.boosters_version(page)}.jpg", fn ->
+      SocialImage.boosters(page)
+    end)
+  end
+
+  # As the set page: the expansion under its current name only.
+  def expansion(conn, %{"slug" => slug}) do
+    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
+
+    with [_, id] <- Regex.run(~r/-(\d+)\z/, slug),
+         {id, ""} <- Integer.parse(id),
+         name when is_binary(name) <- Map.get(Guide.expansion_names([id]), id),
+         true <- slug == Catalogue.slug(name, id) do
+      set_page = Guide.expansion(id, name, DateTime.utc_now())
+      version = SocialImage.expansion_version(name, set_page)
+
+      serve(conn, "social/expansions/#{slug}-#{version}.jpg", fn ->
+        SocialImage.expansion(name, set_page)
+      end)
+    else
+      _not_found -> not_found(conn)
+    end
+  end
+
+  # As the card page: the card under its current path only.
+  def card(conn, %{"slug" => set, "card_slug" => slug}) do
+    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
+    path = "/rozszerzenia/#{set}/karty/#{slug}"
+
+    case CardGuide.find(set, slug) do
+      {:ok, card, name, ^path} ->
+        page = CardGuide.page(card, name, path)
+
+        serve(conn, "social/cards/#{set}/#{slug}-#{SocialImage.card_version(page)}.jpg", fn ->
+          SocialImage.card(page)
+        end)
+
+      _moved_or_missing ->
+        not_found(conn)
+    end
+  end
+
+  defp not_found(conn),
+    do: conn |> put_resp_header("cache-control", "no-store") |> send_resp(404, "")
 
   defp serve(conn, key, render) do
     {service, opts} = TcgCheap.Storage.service()
