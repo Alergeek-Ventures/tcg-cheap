@@ -1,8 +1,8 @@
 defmodule TcgCheapWeb.SocialImage do
   @moduledoc """
   Link-preview cards (Open Graph, 1200×630 JPEG) for the buying guide: the
-  home page, each product, each card, each expansion and the expensive
-  cards article, drawn as SVG in the guide's look, rendered with resvg and
+  home page, each product, each card, each expansion, the expensive cards
+  article and the card value guide, drawn as SVG in the guide's look, rendered with resvg and
   the bundled fonts (`priv/social_fonts`, OFL; full Latin Extended, unlike
   the subset web fonts) and encoded with libvips.
 
@@ -140,6 +140,15 @@ defmodule TcgCheapWeb.SocialImage do
          Enum.take(overview.highlights, 2),
          &{&1.card.name, Polish.zloty(&1.value), &1.image_large}
        )}
+    )
+  end
+
+  @doc "A version of what the card value guide's preview shows."
+  @spec card_value_version(map()) :: String.t()
+  def card_value_version(guide) do
+    version(
+      {card_value_figures(guide.spread),
+       Enum.map(card_value_examples(guide), & &1.row.image_large)}
     )
   end
 
@@ -433,6 +442,65 @@ defmodule TcgCheapWeb.SocialImage do
 
       partial(preview, scans)
     end)
+  end
+
+  @doc """
+  The card value guide's preview (`TcgCheap.Sealed.CardValue.guide/0`): three
+  of its example cards fanned out, the dearest in front, and the question
+  with what half the cards and the dearest ones cost beside them.
+  """
+  @spec card_value(map()) :: {:ok, binary()} | {:partial, binary()} | {:error, term()}
+  def card_value(guide) do
+    with_slot(fn ->
+      scans = Enum.map(card_value_examples(guide), &stored_scan(&1.row.image_large))
+      pngs = for {:ok, png} <- scans, do: png
+      figures = card_value_figures(guide.spread)
+      headline = gettext("Ile jest warta twoja karta Pokémon?")
+
+      preview =
+        case pngs do
+          [] ->
+            render(centred_page(headline, figures))
+
+          pngs ->
+            render([
+              background(),
+              fan(pngs, 930, 315, 250, 200) | titled_figures(headline, figures, 600, "end")
+            ])
+        end
+
+      partial(preview, scans)
+    end)
+  end
+
+  # The cheapest, a middle and the dearest example, the dearest drawn last,
+  # in front.
+  defp card_value_examples(%{examples: examples}) do
+    case examples do
+      [_, _, _ | _] -> [hd(examples), Enum.at(examples, -2), List.last(examples)]
+      fewer -> fewer
+    end
+  end
+
+  defp card_value_figures(nil), do: []
+
+  defp card_value_figures(spread) do
+    Enum.filter(
+      [
+        %{
+          text: gettext("do %{price}", price: Polish.zloty_ceiling(spread.median)),
+          size: 64,
+          caption: gettext("kosztuje połowa kart w sklepach")
+        },
+        spread.over_100 > 0 &&
+          %{
+            text: gettext("1 na %{count}", count: round(spread.count / spread.over_100)),
+            size: 48,
+            caption: gettext("kosztuje ponad 100 zł")
+          }
+      ],
+      & &1
+    )
   end
 
   @doc """

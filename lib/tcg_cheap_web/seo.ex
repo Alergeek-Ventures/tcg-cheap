@@ -193,6 +193,60 @@ defmodule TcgCheapWeb.SEO do
     |> Enum.filter(&is_binary/1)
   end
 
+  def card_value(%{spread: spread} = guide) do
+    canonical = url(~p"/jak-sprawdzic-wartosc-karty-pokemon")
+    title = gettext("Jak sprawdzić wartość karty Pokémon")
+
+    metadata(
+      gettext("Jak sprawdzić wartość karty Pokémon – ile jest warta twoja karta"),
+      fit_description(
+        [
+          gettext(
+            "Wpisz nazwę albo numer z dołu karty Pokémon i sprawdź, ile kosztuje w polskich sklepach."
+          ),
+          spread &&
+            gettext("Połowa kart kosztuje do %{median} – sprawdź, czy twoja jest wyjątkiem.",
+              median: Polish.zloty_ceiling(spread.median)
+            ),
+          gettext("Do tego grading: kiedy się opłaca.")
+        ]
+        |> Enum.filter(&is_binary/1)
+      ),
+      canonical,
+      social_image:
+        url(
+          ~p"/og/jak-sprawdzic-wartosc-karty-pokemon?#{[v: SocialImage.card_value_version(guide)]}"
+        ),
+      social_image_alt:
+        gettext("Ile jest warta twoja karta Pokémon: ceny kart w polskich sklepach"),
+      structured_data: %{
+        "@context" => "https://schema.org",
+        "@graph" => [
+          %{
+            "@type" => "Article",
+            "headline" => title,
+            "inLanguage" => Gettext.get_locale(TcgCheapWeb.Gettext),
+            "dateModified" => spread && Date.to_iso8601(spread.on),
+            "author" => %{"@type" => "Organization", "name" => "TCG Cheap", "url" => url(~p"/")},
+            "mainEntityOfPage" => canonical
+          },
+          %{
+            "@type" => "BreadcrumbList",
+            "itemListElement" => [
+              %{
+                "@type" => "ListItem",
+                "position" => 1,
+                "name" => gettext("Karty"),
+                "item" => url(~p"/karty")
+              },
+              %{"@type" => "ListItem", "position" => 2, "name" => title, "item" => canonical}
+            ]
+          }
+        ]
+      }
+    )
+  end
+
   # For shop owners and the bot registries that link to it; it has no
   # markdown version.
   def bot do

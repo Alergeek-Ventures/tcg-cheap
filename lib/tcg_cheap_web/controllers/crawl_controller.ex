@@ -14,7 +14,8 @@ defmodule TcgCheapWeb.CrawlController do
         url(~p"/"),
         url(~p"/karty"),
         url(~p"/ile-kosztuje-booster-pokemon"),
-        url(~p"/najdrozsze-karty-pokemon")
+        url(~p"/najdrozsze-karty-pokemon"),
+        url(~p"/jak-sprawdzic-wartosc-karty-pokemon")
       ] ++
         Enum.map(expansions, fn {id, name} -> SEO.expansion_url(id, name) end) ++
         Enum.map(products, &url(~p"/produkty/#{&1.slug}")) ++
@@ -123,6 +124,7 @@ defmodule TcgCheapWeb.CrawlController do
     - [Ceny kart](#{PageMarkdown.url_for(url(~p"/karty"))}): angielskie karty na stanie w sklepach z najniższą ceną i oceną
     - [Ile kosztuje booster Pokémon](#{PageMarkdown.url_for(url(~p"/ile-kosztuje-booster-pokemon"))}): najtańszy angielski booster każdego z ostatnich setów i okazje w sieciówkach (Lidl, Rossmann, Żabka…)
     - [Najdroższe karty Pokémon](#{PageMarkdown.url_for(url(~p"/najdrozsze-karty-pokemon"))}): rekordy aukcji ze źródłami i najdroższe angielskie karty dziś z cenami w polskich sklepach
+    - [Jak sprawdzić wartość karty Pokémon](#{PageMarkdown.url_for(url(~p"/jak-sprawdzic-wartosc-karty-pokemon"))}): jak znaleźć numer, wersję i stan karty, rozkład cen kart w polskich sklepach i kiedy opłaca się grading
 
     ## Rozszerzenia
 

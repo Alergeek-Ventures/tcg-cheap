@@ -326,9 +326,29 @@ defmodule TcgCheap.Sealed.CardGuide do
     end)
   end
 
+  # "161/131" as printed at the bottom of a card: card 161 of a set of 131.
+  # Numbers past the count are its secret cards, so the count names the set.
+  defp word_filter(query, word) do
+    case Regex.run(~r"\A0*(\d{1,4})/0*(\d{1,4})\z", word) do
+      [_, number, count] -> printed_number_filter(query, number, String.to_integer(count))
+      nil -> text_filter(query, word)
+    end
+  end
+
+  defp printed_number_filter(query, number, count) do
+    sets = from(s in TcgdexSet, where: s.official_card_count == ^count, select: s.id)
+
+    where(
+      query,
+      [c],
+      fragment("ltrim(?, '0') = ?", c.number, ^number) and
+        fragment("? = ANY(ARRAY(?))", c.tcgdex_set_id, subquery(sets))
+    )
+  end
+
   # Every condition is on the card itself, the set's ones as a list of set
   # ids, so that Postgres combines the cards' trigram and number indexes.
-  defp word_filter(query, word) do
+  defp text_filter(query, word) do
     escaped = String.replace(word, ~r/[\\%_]/, fn char -> "\\" <> char end)
     pattern = "%" <> escaped <> "%"
     number = String.trim_leading(word, "0")

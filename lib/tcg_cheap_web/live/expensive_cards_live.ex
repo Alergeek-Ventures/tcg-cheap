@@ -316,6 +316,9 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                   "Firmy takie jak PSA i CGC oceniają stan karty w skali od 1 do 10 i zamykają ją w plastikowym etui z etykietą. Dziesiątka zdarza się rzadko i to ona robi różnicę: Torchic ☆ z oceną 10 kosztował 2,7 mln dolarów, a ten sam Torchic z oceną 9 – siedemnaście razy mniej."
                 )
                 |> glue_short_words()}
+                <.link navigate={~p"/jak-sprawdzic-wartosc-karty-pokemon#grading"}>
+                  {gettext("Jak działa ocena i kiedy się opłaca")}&nbsp;→
+                </.link>
               </p>
               <h3>{gettext("Pierwsze wydanie i ulubieńcy")}</h3>
               <p>
@@ -554,45 +557,16 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
               class="expensive-section expensive-column expensive-prose"
               aria-labelledby="jak-sprawdzic-title"
             >
-              <h2 id="jak-sprawdzic-title">{gettext("Jak sprawdzić, ile jest warta twoja karta")}</h2>
+              <h2 id="jak-sprawdzic-title">{gettext("Ile jest warta twoja karta")}</h2>
               <p>
                 {gettext(
-                  "Masz w szufladzie stare karty albo właśnie wyciągnąłeś coś błyszczącego? Zanim wystawisz kartę na sprzedaż, sprawdź pięć rzeczy."
+                  "Masz w szufladzie stare karty albo właśnie wyciągnąłeś coś błyszczącego? Numer z dołu karty, wersja i stan mówią, ile jest warta – a większość kart kosztuje niewiele."
                 )
                 |> glue_short_words()}
+                <.link navigate={~p"/jak-sprawdzic-wartosc-karty-pokemon"}>
+                  {gettext("Jak sprawdzić wartość karty Pokémon")}&nbsp;→
+                </.link>
               </p>
-              <ol class="expensive-steps">
-                <li>
-                  <strong>{gettext("Numer i rozszerzenie.")}</strong>
-                  {gettext(
-                    "Numer karty, na przykład 161/131, jest na dole karty, obok symbolu rozszerzenia."
-                  )}
-                </li>
-                <li>
-                  <strong>{gettext("Wersja.")}</strong>
-                  {gettext(
-                    "Zwykła, reverse holo i pierwsze wydanie to osobne karty z osobnymi cenami."
-                  )}
-                </li>
-                <li>
-                  <strong>{gettext("Stan.")}</strong>
-                  {gettext("Zagięcia, rysy i obite rogi wyraźnie obniżają cenę.")}
-                </li>
-                <li>
-                  <strong>{gettext("Cena.")}</strong>
-                  {gettext(
-                    "W naszej wyszukiwarce zobaczysz cenę rynkową karty i oferty sklepów, które śledzimy."
-                  )}
-                  <.link navigate={~p"/karty"}>{gettext("Wyszukaj kartę")}&nbsp;→</.link>
-                </li>
-                <li>
-                  <strong>{gettext("Ocena.")}</strong>
-                  {gettext(
-                    "Przy kartach wartych tysiące złotych i w bardzo dobrym stanie ocena PSA lub CGC może podnieść cenę. Przy tańszych jej koszt często przewyższa zysk."
-                  )
-                  |> glue_short_words()}
-                </li>
-              </ol>
             </section>
 
             <section
@@ -627,13 +601,6 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                     set: @top_in_stock.card.expansion_name,
                     price: Polish.zloty(@top_in_stock.offer.price),
                     shop: priced_shop_name(@top_in_stock.offer)
-                  )
-                  |> glue_short_words()}
-                </dd>
-                <dt>{gettext("Czy stare karty Pokémon są coś warte?")}</dt>
-                <dd>
-                  {gettext(
-                    "Niektóre tak, ale wartość zależy od konkretnej karty, wydania i stanu – większość zwykłych kart z lat 90. kosztuje niewiele. Sprawdź numer, wersję i stan, a potem cenę w wyszukiwarce."
                   )
                   |> glue_short_words()}
                 </dd>
@@ -760,7 +727,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
       %{
         id: "jak-sprawdzic",
         title: gettext("Ile warta jest twoja karta"),
-        teaser: gettext("Pięć rzeczy do sprawdzenia, zanim sprzedasz"),
+        teaser: gettext("Jak sprawdzić wartość karty, zanim ją sprzedasz"),
         image: nil,
         icon: "?"
       }

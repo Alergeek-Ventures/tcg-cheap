@@ -9,7 +9,7 @@ defmodule TcgCheapWeb.MarkdownController do
   use TcgCheapWeb, :controller
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{CardGuide, Catalogue, ExpensiveCards, Guide}
+  alias TcgCheap.Sealed.{CardGuide, CardValue, Catalogue, ExpensiveCards, Guide}
   alias TcgCheapWeb.{CardRecords, PageMarkdown, SEO}
 
   # The home page's default list: English editions, as the HTML opens with.
@@ -49,6 +49,13 @@ defmodule TcgCheapWeb.MarkdownController do
     seo = SEO.expensive_cards(overview, records, filters)
 
     send_markdown(conn, seo, PageMarkdown.expensive_cards(seo, overview, records, ranking))
+  end
+
+  def card_value(conn, _params) do
+    guide = CardValue.guide()
+    seo = SEO.card_value(guide)
+
+    send_markdown(conn, seo, PageMarkdown.card_value(seo, guide))
   end
 
   def product(conn, %{"slug" => slug}) do

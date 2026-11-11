@@ -36,6 +36,10 @@ defmodule TcgCheapWeb.Polish do
   def zloty(%Decimal{} = value), do: value |> Decimal.round(0) |> Decimal.to_integer() |> zloty()
   def zloty(value) when is_integer(value), do: number(value) <> @nbsp <> "zł"
 
+  @doc ~S'Whole złoty rounded up, for an upper bound: "do 4 zł" still holds for 3,40 zł.'
+  @spec zloty_ceiling(Decimal.t()) :: String.t()
+  def zloty_ceiling(%Decimal{} = value), do: value |> Decimal.round(0, :ceiling) |> zloty()
+
   @doc ~S'A rough amount: whole złoty, with grosze below 10 zł, where whole złoty would read "0 zł".'
   @spec rough_zloty(Decimal.t()) :: String.t()
   def rough_zloty(%Decimal{} = value),

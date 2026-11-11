@@ -53,6 +53,7 @@ defmodule TcgCheapWeb.MarkdownNegotiation do
   defp guide_page?(["karty"]), do: true
   defp guide_page?(["ile-kosztuje-booster-pokemon"]), do: true
   defp guide_page?(["najdrozsze-karty-pokemon"]), do: true
+  defp guide_page?(["jak-sprawdzic-wartosc-karty-pokemon"]), do: true
   defp guide_page?(["produkty", _slug]), do: true
   defp guide_page?(["rozszerzenia", _slug]), do: true
   defp guide_page?(["rozszerzenia", _slug, "karty", _card_slug]), do: true

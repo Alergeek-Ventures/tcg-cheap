@@ -102,6 +102,70 @@ defmodule TcgCheapWeb.PageMarkdown do
     ])
   end
 
+  def card_value(seo, %{spread: spread, examples: examples}) do
+    page(seo, Date.utc_today(), [
+      spread &&
+        section("Ile kosztuje karta Pokémon", [
+          "Połowa z #{Polish.number(spread.count)} angielskich kart na stanie w polskich sklepach kosztuje najwyżej #{Polish.zloty_ceiling(spread.median)}, a 9 na 10 – najwyżej #{Polish.zloty_ceiling(spread.ninetieth)}. Każda karta liczy się raz, z ceną najtańszej oferty w polskim sklepie, bez dostawy.",
+          table(
+            ["Cena", "Karty", "Udział"],
+            Enum.map(spread.bins, fn bin ->
+              [spread_range(bin), Polish.number(bin.count), spread_share(bin.count, spread.count)]
+            end)
+          )
+        ]),
+      examples != [] &&
+        section("Co kupisz za złotówkę, a co za tysiąc", [
+          "Karty, które polskie sklepy sprzedają za mniej więcej tyle, ile kosztują na Cardmarket.",
+          table(
+            ["Za około", "Karta", "Rozszerzenie", "Cena w sklepie"],
+            Enum.map(examples, fn %{price: price, row: row} ->
+              [
+                Polish.zloty(price),
+                link("#{row.card.name} #{row.card.number}", url_from_path(row.card.public_path)),
+                row.card.expansion_name,
+                "#{Polish.price(row.offer.price)} w #{GuideComponents.shop_name(row.offer)}"
+              ]
+            end)
+          )
+        ]),
+      section(
+        "Jak sprawdzić wartość karty",
+        list([
+          "Numer: na dole karty, np. 161/131 – karta 161 z rozszerzenia, które ma 131 kart; obok kod rozszerzenia i język. Numer większy niż liczba kart oznacza kartę sekretną. Na starych kartach numer jest w prawym dolnym rogu.",
+          "Wersja: zwykła, reverse holo albo pierwsze wydanie (znaczek „Edition 1” na starych kartach) mają osobne ceny.",
+          "Stan: zagięcia, rysy i obite rogi wyraźnie obniżają cenę.",
+          "Cena: wyszukaj kartę po nazwie albo numerze (także 161/131) na #{url(~p"/karty")}; strona karty ma ceny w polskich sklepach i cenę na Cardmarket.",
+          "Ocena (grading): tylko przy kartach wartych setki złotych i w idealnym stanie."
+        ])
+      ),
+      section(
+        "Ocena, czyli grading",
+        list([
+          "Firma gradingowa ocenia stan karty w skali od 1 do 10 i zamyka ją w plastikowym etui z etykietą (slab).",
+          "Firmy: PSA, CGC, Beckett, TAG, SGC (USA), ACE, MGC (Wielka Brytania), PCA (Francja), AP Grading (Niemcy).",
+          "Warto przy kartach wartych setki albo tysiące złotych, w idealnym stanie, na sprzedaż. Nie warto przy kartach za kilka złotych, ze śladami gry albo do grania.",
+          "Koszt: w CGC najtaniej 17 dolarów za kartę przy 25 kartach naraz albo 20 dolarów za jedną (cennik z listopada 2026), do tego wysyłka i około 150 dni roboczych czekania."
+        ])
+      ),
+      section(
+        "Za ile sprzedasz kartę",
+        "Sklep, który skupuje karty, zapłaci mniej niż jego cena sprzedaży. Na Cardmarket dostaniesz więcej, ale zapłacisz prowizję i sam wyślesz kartę."
+      )
+    ])
+  end
+
+  defp spread_range(%{from: 0, to: to}), do: "poniżej #{Polish.zloty(to)}"
+  defp spread_range(%{from: from, to: nil}), do: "od #{Polish.zloty(from)}"
+  defp spread_range(%{from: from, to: to}), do: "#{Polish.number(from)}–#{Polish.zloty(to)}"
+
+  defp spread_share(count, total) do
+    case round(count * 100 / total) do
+      0 when count > 0 -> "<1%"
+      share -> "#{share}%"
+    end
+  end
+
   # As the article: an offer it does not judge has no verdict, not "no
   # Cardmarket price".
   defp expensive_card_verdict(verdict) do
