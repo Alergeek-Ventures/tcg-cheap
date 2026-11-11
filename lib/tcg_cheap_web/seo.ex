@@ -46,8 +46,13 @@ defmodule TcgCheapWeb.SEO do
       gettext("Ceny kart Pokémon TCG w Polsce"),
       fit_description(card_list_answer(market)),
       canonical,
-      social_image: home_image(),
-      social_image_alt: home_image_alt(),
+      social_image:
+        if(market,
+          do: url(~p"/og/karty?#{[v: SocialImage.cards_version(market)]}"),
+          else: home_image()
+        ),
+      social_image_alt:
+        if(market, do: gettext("Ceny kart Pokémon w polskich sklepach"), else: home_image_alt()),
       robots:
         if(Enum.any?(~w(q rozszerzenie), &Map.has_key?(params, &1)),
           do: "noindex, follow",
@@ -90,8 +95,9 @@ defmodule TcgCheapWeb.SEO do
       gettext("Ile kosztuje booster Pokémon? Ceny w Polsce"),
       fit_description(booster_answer(page)),
       canonical,
-      social_image: home_image(),
-      social_image_alt: home_image_alt(),
+      social_image:
+        url(~p"/og/ile-kosztuje-booster-pokemon?#{[v: SocialImage.boosters_version(page)]}"),
+      social_image_alt: gettext("Ile kosztuje booster Pokémon: najtańsze boostery w sklepach"),
       structured_data: %{
         "@context" => "https://schema.org",
         "@type" => "BreadcrumbList",
@@ -126,8 +132,11 @@ defmodule TcgCheapWeb.SEO do
       fit_description(expensive_cards_answer(overview, hd(records))),
       canonical,
       robots: if(filtered?, do: "noindex, follow", else: "index, follow"),
-      social_image: home_image(),
-      social_image_alt: home_image_alt(),
+      social_image:
+        url(
+          ~p"/og/najdrozsze-karty-pokemon?#{[v: SocialImage.expensive_cards_version(overview)]}"
+        ),
+      social_image_alt: gettext("Najdroższe karty Pokémon: rekordy aukcji i ceny dziś"),
       structured_data: %{
         "@context" => "https://schema.org",
         "@graph" => [
@@ -265,8 +274,11 @@ defmodule TcgCheapWeb.SEO do
       fit_title(expansion_titles(name, page)),
       fit_description(expansion_answer(name, page)),
       canonical,
-      social_image: home_image(),
-      social_image_alt: home_image_alt(),
+      social_image:
+        unverified_url(TcgCheapWeb.Endpoint, "/og" <> expansion_path(id, name),
+          v: SocialImage.expansion_version(name, page)
+        ),
+      social_image_alt: gettext("%{expansion}: najcenniejsze karty i ceny", expansion: name),
       robots:
         if(Enum.any?(~w(q rodzaj wersja), &Map.has_key?(params, &1)),
           do: "noindex, follow",
@@ -640,8 +652,11 @@ defmodule TcgCheapWeb.SEO do
       canonical,
       # Matches CardGuide.sitemap_cards/0: a card without an offer leaves the index until one returns.
       robots: if(answer, do: "index, follow", else: "noindex, follow"),
-      social_image: home_image(),
-      social_image_alt: home_image_alt(),
+      social_image:
+        unverified_url(TcgCheapWeb.Endpoint, "/og" <> page.path,
+          v: SocialImage.card_version(page)
+        ),
+      social_image_alt: card_name,
       structured_data: %{
         "@context" => "https://schema.org",
         "@graph" =>
