@@ -940,11 +940,11 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
           <span class="expensive-row-market-label">{gettext("Na Cardmarket")}</span>
           <span class="expensive-row-market">{Polish.zloty(row.value)}</span>
           <%= if row.offer do %>
-            <span class="expensive-row-verdict">
-              <.verdict_badge
-                :if={single_verdict_status(row.verdict) != :insufficient_data}
-                verdict={%{status: single_verdict_status(row.verdict)}}
-              />
+            <span
+              :if={single_verdict_status(row.verdict) != :insufficient_data}
+              class="expensive-row-verdict"
+            >
+              <.verdict_badge verdict={%{status: single_verdict_status(row.verdict)}} />
             </span>
             <span class="expensive-row-shop">{Polish.price(row.offer.price)}</span>
           <% else %>
