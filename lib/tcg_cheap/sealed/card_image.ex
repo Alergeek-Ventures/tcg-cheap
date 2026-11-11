@@ -12,8 +12,9 @@ defmodule TcgCheap.Sealed.CardImage do
 
   @host "assets.tcgdex.net"
   @limitless "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci"
-  # TCGdex lacks some Sword & Shield promos (Special Delivery Bidoof SWSH177,
-  # Pikachu SWSH074) and Limitless TCG has none; pokemontcg.io has them.
+  # TCGdex lacks some Sword & Shield and Scarlet & Violet promos (Special
+  # Delivery Bidoof SWSH177, Pikachu with Grey Felt Hat SVP 085) and Limitless
+  # TCG has no scan of them; pokemontcg.io has them.
   @pokemontcg "https://images.pokemontcg.io"
   # 30th Classic Collection shares "30C" with 30th Celebration, whose 30C_001
   # is Exeggcute, not the collection's Charizard: Limitless TCG files the
@@ -52,7 +53,7 @@ defmodule TcgCheap.Sealed.CardImage do
     "030" => "CC30"
   }
   @limitless_scan ~r"\Ahttps://limitlesstcg\.nyc3\.cdn\.digitaloceanspaces\.com/tpci/(?:([A-Z0-9]+)/\1_(?:\d{3,}|[A-Z])|CRZ/CRZ_GG[1-9]\d?|30C/30C_CC[1-9]\d?)_R_EN_LG\.png\z"
-  @pokemontcg_scan ~r"\Ahttps://images\.pokemontcg\.io/swshp/SWSH\d{3}_hires\.png\z"
+  @pokemontcg_scan ~r"\Ahttps://images\.pokemontcg\.io/(?:swshp/SWSH\d{3}|svp/[1-9]\d{0,2})_hires\.png\z"
   @qualified_path ~r{/((?:high|low)\.(?:png|jpg|webp))$}
   @known_extension ~r/\.[A-Za-z0-9]+$/
   @image_extension ~r/\.(?:png|jpg|webp)$/
@@ -62,7 +63,7 @@ defmodule TcgCheap.Sealed.CardImage do
   @doc """
   A catalogue card's image sources, best first: the card in its set's TCGdex
   card image directory, then Limitless TCG's scan, then pokemontcg.io's scan
-  of a Sword & Shield promo (SWSH177, SWSH074). Pages show the first one
+  of a Sword & Shield or Scarlet & Violet promo. Pages show the first one
   mirrored; TCGdex lacks the images of some sets (Shining Legends, MEP Black
   Star Promos, a new set not listed yet) and of some cards (SVP 175). A set
   with an unofficial card list has Limitless TCG's scans once its official
@@ -114,6 +115,12 @@ defmodule TcgCheap.Sealed.CardImage do
       do: card_source_url("#{@pokemontcg}/swshp/#{number}_hires.png")
   end
 
+  # pokemontcg.io numbers Scarlet & Violet promos without leading zeros: 085 is 85.
+  defp pokemontcg_scan(%{tcgdex_id: "svp"}, number) do
+    if Regex.match?(~r/\A\d{3}\z/, number) and number != "000",
+      do: card_source_url("#{@pokemontcg}/svp/#{String.to_integer(number)}_hires.png")
+  end
+
   defp pokemontcg_scan(_set, _number), do: nil
 
   @doc "30th Classic Collection's Limitless TCG scan codes by TCGdex card number."
@@ -128,7 +135,7 @@ defmodule TcgCheap.Sealed.CardImage do
   @spec thumbnail_url(term()) :: String.t() | nil
   def thumbnail_url(url), do: local_url(card_source_url(url), "thumbnail")
 
-  @doc "Canonical remote source of a card image: a TCGdex card, a Limitless TCG scan or pokemontcg.io's scan of a Sword & Shield promo."
+  @doc "Canonical remote source of a card image: a TCGdex card, a Limitless TCG scan or pokemontcg.io's scan of a Sword & Shield or Scarlet & Violet promo."
   @spec card_source_url(term()) :: String.t() | nil
   def card_source_url(url) when is_binary(url) do
     if Regex.match?(@limitless_scan, url) or Regex.match?(@pokemontcg_scan, url),
