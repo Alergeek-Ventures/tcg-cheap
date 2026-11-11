@@ -1063,6 +1063,8 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 
 /* Tiles: a card's picture, name, value and whether our shops have it. */
 .guide-world .expensive-tiles { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.75rem), 1fr)); list-style: none; margin-block: 0; padding: 0; }
+/* Prose that picks the story up again under a band of tiles. */
+.guide-world .expensive-tiles + .expensive-prose { margin-block-start: 2rem; }
 .guide-world .expensive-tile { align-content: start; background: var(--paper); border: 1px solid var(--rule); border-radius: .5rem; color: inherit; display: grid; gap: .125rem; min-block-size: 100%; padding: .75rem; text-decoration: none; }
 .guide-world .expensive-tile img { aspect-ratio: 245 / 342; block-size: auto; border-radius: 4.5% / 3.2%; box-shadow: 0 .5rem 1rem -.75rem color-mix(in oklch, var(--ink) 70%, transparent); inline-size: 100%; margin-block-end: .5rem; object-fit: cover; }
 .guide-world .expensive-tile-set { color: var(--muted); font-size: .75rem; margin-block-end: .375rem; }
