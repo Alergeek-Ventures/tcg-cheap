@@ -102,6 +102,14 @@ defmodule TcgCheapWeb.PageMarkdown do
     ])
   end
 
+  # As the article: an offer it does not judge has no verdict, not "no
+  # Cardmarket price".
+  defp expensive_card_verdict(verdict) do
+    if verdict && GuideComponents.single_verdict_status(verdict) != :insufficient_data,
+      do: GuideComponents.single_verdict_label(verdict),
+      else: ""
+  end
+
   defp rate(nil), do: ""
   defp rate(rate), do: " po kursie NBP #{Polish.rate(rate.rate)} zł za euro"
 
@@ -117,7 +125,7 @@ defmodule TcgCheapWeb.PageMarkdown do
             do: "#{Polish.price(row.offer.price)} w #{GuideComponents.shop_name(row.offer)}",
             else: "brak na stanie"
           ),
-          if(row.verdict, do: GuideComponents.single_verdict_label(row.verdict), else: "")
+          expensive_card_verdict(row.verdict)
         ]
       end)
     )
