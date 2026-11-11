@@ -87,8 +87,7 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
       new_sets: shown.new_sets,
       movers: %{rising: shown.rising, falling: shown.falling},
       top_count: length(top),
-      top_in_stock: Enum.count(top, & &1.offer),
-      over_1000: Enum.count(rows, &Decimal.gte?(&1.value, 1000))
+      top_in_stock: Enum.count(top, & &1.offer)
     }
   end
 
