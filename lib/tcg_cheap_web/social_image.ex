@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.SocialImage do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{CardImage, Guide}
+  alias TcgCheap.Sealed.{CardImage, Guide, Shops}
   alias TcgCheap.Storage
   alias TcgCheap.Storage.ImageDownload
   alias TcgCheapWeb.{CardRecords, GuideComponents, Polish}
@@ -70,23 +70,35 @@ defmodule TcgCheapWeb.SocialImage do
     )
   end
 
+  # Versions hash what a preview draws, as drawn: a price to the złoty or
+  # grosz it shows, not the day's exact conversion, so a preview is drawn
+  # again only when it would look different.
+
   @doc "A version of what a card's preview shows (`CardGuide.page/3`)."
   @spec card_version(map()) :: String.t()
   def card_version(page) do
-    answer = card_answer_row(page)
+    %{cheapest: cheapest, verdict: verdict} = card_answer_row(page)
+
+    price =
+      if cheapest,
+        do: {Polish.price(cheapest.price), cheapest.shop},
+        else: (value = cardmarket_pln(page)) && Polish.zloty(value)
 
     version(
-      {page.card.name, page.card.number, page.expansion_name, page.image, answer.verdict,
-       answer.cheapest && {answer.cheapest.price, answer.cheapest.shop}, cardmarket_pln(page)}
+      {page.card.name, page.card.number, page.expansion_name, page.image,
+       GuideComponents.single_verdict_status(verdict), price}
     )
   end
 
   @doc "A version of what an expansion's preview shows (`Guide.expansion/3`)."
   @spec expansion_version(String.t(), map()) :: String.t()
   def expansion_version(name, set_page) do
+    top = top_card(set_page)
+
     version(
-      {name, Enum.map(expansion_scans(set_page), &{&1.card.id, &1.price, &1.image}),
-       booster_price(set_page)}
+      {name, Enum.map(expansion_scans(set_page), &{&1.card.id, &1.image}),
+       top && {top.card.name, Polish.zloty(top.price), top.source},
+       (booster = booster_price(set_page)) && Polish.price(booster)}
     )
   end
 
@@ -96,7 +108,8 @@ defmodule TcgCheapWeb.SocialImage do
     deal = market.deal
 
     version(
-      {market.in_stock, market.shops, deal && {deal.card.id, deal.price, deal.shop, deal.image}}
+      {market.in_stock, market.shops,
+       deal && {deal.card.name, Polish.price(deal.price), deal.shop, deal.image}}
     )
   end
 
@@ -109,8 +122,8 @@ defmodule TcgCheapWeb.SocialImage do
         |> Enum.reject(&is_nil/1)
         |> Enum.uniq_by(& &1.product.id),
         fn booster ->
-          {booster.product.id, booster.product.stored_photo_card_url,
-           booster.verdict.cheapest.price, booster.verdict.cheapest.shop}
+          {booster.product.id, booster.product.set_name, booster.product.stored_photo_card_url,
+           Polish.price(booster.verdict.cheapest.price), booster.verdict.cheapest.shop}
         end
       )
     )
@@ -119,9 +132,14 @@ defmodule TcgCheapWeb.SocialImage do
   @doc "A version of what the expensive cards article's preview shows."
   @spec expensive_cards_version(map()) :: String.t()
   def expensive_cards_version(overview) do
+    record = hd(CardRecords.all())
+
     version(
-      {CardRecords.checked_on(),
-       Enum.map(Enum.take(overview.highlights, 2), &{&1.card.id, &1.value, &1.image_large})}
+      {{record.id, record.name, record.usd, record.image},
+       Enum.map(
+         Enum.take(overview.highlights, 2),
+         &{&1.card.name, Polish.zloty(&1.value), &1.image_large}
+       )}
     )
   end
 
@@ -311,7 +329,7 @@ defmodule TcgCheapWeb.SocialImage do
           [
             (booster = booster_price(set_page)) &&
               %{text: gettext("Booster od %{price}", price: Polish.price(booster)), size: 64},
-            (top = List.first(tops)) &&
+            (top = top_card(set_page)) &&
               %{
                 text: "#{top.card.name} ≈ #{Polish.zloty(top.price)}",
                 size: 48,
@@ -346,6 +364,10 @@ defmodule TcgCheapWeb.SocialImage do
     end)
   end
 
+  # The set's most valuable card, with a scan or not.
+  defp top_card(%{set: %{top_cards: [top | _]}}), do: top
+  defp top_card(_set_page), do: nil
+
   # The cards on a set page's "most valuable" list that have a scan.
   defp expansion_scans(%{set: %{top_cards: tops}}),
     do: tops |> Enum.filter(& &1.image) |> Enum.take(3)
@@ -359,8 +381,7 @@ defmodule TcgCheapWeb.SocialImage do
 
   # Where the set's top card price comes from, as the set page says it.
   defp top_card_caption(%{source: {:shop, shop}}),
-    do:
-      gettext("najcenniejsza karta · najtaniej w %{shop}", shop: TcgCheap.Sealed.Shops.name(shop))
+    do: gettext("najcenniejsza karta · najtaniej w %{shop}", shop: Shops.name(shop))
 
   defp top_card_caption(_top), do: gettext("najcenniejsza karta · Cardmarket")
 
@@ -374,10 +395,9 @@ defmodule TcgCheapWeb.SocialImage do
 
     with_slot(fn ->
       today = Enum.take(overview.highlights, 2)
-      scans = [record_scan(record) | Enum.map(today, &stored_scan(&1.image_large))]
-      # The record in the middle, in front.
+      # The last scan is drawn in front: the record.
+      scans = Enum.map(today, &stored_scan(&1.image_large)) ++ [record_scan(record)]
       pngs = for {:ok, png} <- scans, do: png
-      pngs = middle_first(pngs)
 
       figures =
         Enum.filter(
@@ -450,7 +470,7 @@ defmodule TcgCheapWeb.SocialImage do
                 size: 48,
                 caption:
                   gettext("najlepsza okazja teraz · %{shop}",
-                    shop: TcgCheap.Sealed.Shops.name(deal.shop)
+                    shop: Shops.name(deal.shop)
                   )
               }
           ],
@@ -529,10 +549,6 @@ defmodule TcgCheapWeb.SocialImage do
       partial(preview, [photo])
     end)
   end
-
-  # [record, a, b] drawn as a fan: a left, b right, the record in front.
-  defp middle_first([record, a, b]), do: [a, b, record]
-  defp middle_first(pngs), do: pngs
 
   # A title and figures (a big line and an optional caption under it),
   # centred vertically and aligned at `x` towards the scans beside them:

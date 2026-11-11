@@ -72,9 +72,7 @@ defmodule TcgCheapWeb.SocialImageController do
   def expansion(conn, %{"slug" => slug}) do
     Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
 
-    with [_, id] <- Regex.run(~r/-(\d+)\z/, slug),
-         {id, ""} <- Integer.parse(id),
-         name when is_binary(name) <- Map.get(Guide.expansion_names([id]), id),
+    with {:ok, id, name} <- known_expansion(slug),
          true <- slug == Catalogue.slug(name, id) do
       set_page = Guide.expansion(id, name, DateTime.utc_now())
       version = SocialImage.expansion_version(name, set_page)
@@ -92,16 +90,27 @@ defmodule TcgCheapWeb.SocialImageController do
     Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
     path = "/rozszerzenia/#{set}/karty/#{slug}"
 
-    case CardGuide.find(set, slug) do
-      {:ok, card, name, ^path} ->
-        page = CardGuide.page(card, name, path)
+    with {:ok, _id, _name} <- known_expansion(set),
+         {:ok, card, name, ^path} <- CardGuide.find(set, slug) do
+      page = CardGuide.page(card, name, path)
 
-        serve(conn, "social/cards/#{set}/#{slug}-#{SocialImage.card_version(page)}.jpg", fn ->
-          SocialImage.card(page)
-        end)
+      serve(conn, "social/cards/#{set}/#{slug}-#{SocialImage.card_version(page)}.jpg", fn ->
+        SocialImage.card(page)
+      end)
+    else
+      _moved_or_missing -> not_found(conn)
+    end
+  end
 
-      _moved_or_missing ->
-        not_found(conn)
+  # An expansion id the cached names know, read without refreshing them: an
+  # unknown id in a crawler's URL must not clear the cache for everyone.
+  defp known_expansion(slug) do
+    with [_, id] <- Regex.run(~r/-(\d+)\z/, slug),
+         {id, ""} <- Integer.parse(id),
+         {:ok, name} <- Map.fetch(Guide.expansion_names(), id) do
+      {:ok, id, name}
+    else
+      _unknown -> :error
     end
   end
 
