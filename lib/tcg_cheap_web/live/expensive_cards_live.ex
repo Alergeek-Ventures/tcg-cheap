@@ -396,8 +396,16 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
               <div class="expensive-column expensive-prose">
                 <h2 id="dzis-title">{gettext("Najdroższe karty Pokémon dziś")}</h2>
                 <p :if={@top}>
+                  {gettext("Na co dzień karty nie zmieniają właścicieli na aukcjach, tylko na")
+                  |> glue_short_words()}&nbsp;<a
+                    id="expensive-cardmarket"
+                    href="https://www.cardmarket.com/en/Pokemon"
+                    target="_blank"
+                    rel="noopener nofollow"
+                    class="cardmarket-price"
+                  ><img src={~p"/images/cardmarket.png"} alt="" width="16" height="16" />Cardmarket</a>
                   {gettext(
-                    "Na co dzień karty nie zmieniają właścicieli na aukcjach, tylko na Cardmarket – największym w Europie serwisie, na którym kolekcjonerzy kupują i sprzedają pojedyncze karty. Z tamtejszych transakcji bierzemy cenę rynkową karty bez oceny i przeliczamy ją na złote – dla kart od ery Sword & Shield, bo przy starszych w tej cenie mieszają się egzemplarze zniszczone, idealne i ocenione. Dziś najdroższy jest %{card} z %{set}, a ponad 1000 zł kosztuje %{count}.",
+                    "– największym w Europie serwisie, na którym kolekcjonerzy kupują i sprzedają pojedyncze karty. Z tamtejszych transakcji bierzemy cenę rynkową karty bez oceny i przeliczamy ją na złote – dla kart od ery Sword & Shield, bo przy starszych w tej cenie mieszają się egzemplarze zniszczone, idealne i ocenione. Dziś najdroższy jest %{card} z %{set}, a ponad 1000 zł kosztuje %{count}.",
                     card: @top.card.name,
                     set: @top.card.expansion_name,
                     count: Polish.plural(@overview.over_1000, "karta", "karty", "kart")
