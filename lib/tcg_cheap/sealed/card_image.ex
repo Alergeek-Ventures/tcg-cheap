@@ -61,7 +61,8 @@ defmodule TcgCheap.Sealed.CardImage do
 
   @doc """
   A catalogue card's image sources, best first: the card in its set's TCGdex
-  card image directory, then Limitless TCG's scan. Pages show the first one
+  card image directory, then Limitless TCG's scan, then pokemontcg.io's scan
+  of a Sword & Shield promo (SWSH177, SWSH074). Pages show the first one
   mirrored; TCGdex lacks the images of some sets (Shining Legends, MEP Black
   Star Promos, a new set not listed yet) and of some cards (SVP 175). A set
   with an unofficial card list has Limitless TCG's scans once its official
@@ -127,7 +128,7 @@ defmodule TcgCheap.Sealed.CardImage do
   @spec thumbnail_url(term()) :: String.t() | nil
   def thumbnail_url(url), do: local_url(card_source_url(url), "thumbnail")
 
-  @doc "Canonical remote source of a card image: a TCGdex card or a Limitless TCG scan."
+  @doc "Canonical remote source of a card image: a TCGdex card, a Limitless TCG scan or pokemontcg.io's scan of a Sword & Shield promo."
   @spec card_source_url(term()) :: String.t() | nil
   def card_source_url(url) when is_binary(url) do
     if Regex.match?(@limitless_scan, url) or Regex.match?(@pokemontcg_scan, url),
