@@ -12,6 +12,9 @@ defmodule TcgCheap.Sealed.CardImage do
 
   @host "assets.tcgdex.net"
   @limitless "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci"
+  # TCGdex lacks some Sword & Shield promos (Special Delivery Bidoof SWSH177,
+  # Pikachu SWSH074) and Limitless TCG has none; pokemontcg.io has them.
+  @pokemontcg "https://images.pokemontcg.io"
   # 30th Classic Collection shares "30C" with 30th Celebration, whose 30C_001
   # is Exeggcute, not the collection's Charizard: Limitless TCG files the
   # collection as 30C_CC1–CC30, in another order than TCGdex's numbers
@@ -49,6 +52,7 @@ defmodule TcgCheap.Sealed.CardImage do
     "030" => "CC30"
   }
   @limitless_scan ~r"\Ahttps://limitlesstcg\.nyc3\.cdn\.digitaloceanspaces\.com/tpci/(?:([A-Z0-9]+)/\1_(?:\d{3,}|[A-Z])|CRZ/CRZ_GG[1-9]\d?|30C/30C_CC[1-9]\d?)_R_EN_LG\.png\z"
+  @pokemontcg_scan ~r"\Ahttps://images\.pokemontcg\.io/swshp/SWSH\d{3}_hires\.png\z"
   @qualified_path ~r{/((?:high|low)\.(?:png|jpg|webp))$}
   @known_extension ~r/\.[A-Za-z0-9]+$/
   @image_extension ~r/\.(?:png|jpg|webp)$/
@@ -64,8 +68,10 @@ defmodule TcgCheap.Sealed.CardImage do
   code was recorded with it.
   """
   @spec single_sources(map(), String.t()) :: [String.t()]
-  def single_sources(set, number),
-    do: Enum.reject([tcgdex_card(set, number), limitless_scan(set, number)], &is_nil/1)
+  def single_sources(set, number) do
+    [tcgdex_card(set, number), limitless_scan(set, number), pokemontcg_scan(set, number)]
+    |> Enum.reject(&is_nil/1)
+  end
 
   defp tcgdex_card(%{card_images_url: "" <> directory}, number),
     do: source_url(directory <> "/" <> number)
@@ -102,6 +108,13 @@ defmodule TcgCheap.Sealed.CardImage do
 
   defp limitless_scan(_set, _number), do: nil
 
+  defp pokemontcg_scan(%{tcgdex_id: "swshp"}, "SWSH" <> digits = number) do
+    if Regex.match?(~r/\A\d{3}\z/, digits),
+      do: card_source_url("#{@pokemontcg}/swshp/#{number}_hires.png")
+  end
+
+  defp pokemontcg_scan(_set, _number), do: nil
+
   @doc "30th Classic Collection's Limitless TCG scan codes by TCGdex card number."
   @spec classic_collection() :: %{String.t() => String.t()}
   def classic_collection, do: @classic_collection
@@ -117,7 +130,9 @@ defmodule TcgCheap.Sealed.CardImage do
   @doc "Canonical remote source of a card image: a TCGdex card or a Limitless TCG scan."
   @spec card_source_url(term()) :: String.t() | nil
   def card_source_url(url) when is_binary(url) do
-    if Regex.match?(@limitless_scan, url), do: url, else: source_url(url)
+    if Regex.match?(@limitless_scan, url) or Regex.match?(@pokemontcg_scan, url),
+      do: url,
+      else: source_url(url)
   end
 
   def card_source_url(_url), do: nil
