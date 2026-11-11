@@ -537,6 +537,43 @@ defmodule TcgCheap.Sealed.Guide do
     |> List.first()
   end
 
+  # Products an out-of-stock product's page offers instead.
+  @in_stock_from_set 4
+
+  @doc """
+  What a product nobody has in stock can be swapped for from its own
+  expansion: the cheapest other products of its edition in stock now
+  (`products`, summaries, at most #{@in_stock_from_set}) and how many of the
+  set's English cards are (`cards`). Nil for a product without an expansion.
+  """
+  @spec in_stock_from_set(Product.t(), DateTime.t()) ::
+          %{products: [summary()], cards: non_neg_integer()} | nil
+  def in_stock_from_set(%Product{cardmarket_expansion_id: nil}, _now), do: nil
+
+  def in_stock_from_set(%Product{cardmarket_expansion_id: id} = product, %DateTime{} = now) do
+    products =
+      [
+        query: [
+          filter: [
+            available: true,
+            cardmarket_expansion_id: id,
+            region: product.region,
+            id: [not_eq: product.id]
+          ],
+          select: @summary_fields
+        ],
+        load: [:stored_photo_small_url, :stored_photo_card_url, :photo_placeholder]
+      ]
+      |> Sealed.list_products!()
+      |> summaries(now)
+      # `available` is as of the last refresh: keep the ones in stock now.
+      |> Enum.filter(&(&1.verdict.cheapest && not &1.preorder?))
+      |> Enum.sort_by(& &1.verdict.cheapest.price, Decimal)
+      |> Enum.take(@in_stock_from_set)
+
+    %{products: products, cards: CardGuide.in_stock_count(id)}
+  end
+
   # The set's own Booster Box and Elite Trainer Box on Cardmarket (trend in
   # PLN, without delivery), for a banner that has no card prices to show.
   defp cardmarket_boxes(id, name, now) do

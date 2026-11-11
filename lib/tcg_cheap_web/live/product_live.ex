@@ -36,6 +36,7 @@ defmodule TcgCheapWeb.ProductLive do
          |> assign(:in_stock_count, length(in_stock))
          |> assign(:preorder_count, length(preorder))
          |> assign(:out_of_stock_count, length(out_of_stock))
+         |> assign(:from_set, from_set(page.product, in_stock))
          |> VisitorLocation.assign_location()
          |> stream_offers()
          |> track_view(page)}
@@ -44,6 +45,17 @@ defmodule TcgCheapWeb.ProductLive do
         raise NotFound
     end
   end
+
+  # A product nobody has in stock sends the visitor to what its set has
+  # instead, nil when it has nothing or the product names no set.
+  defp from_set(%{set_name: name} = product, []) when is_binary(name) do
+    case Guide.in_stock_from_set(product, DateTime.utc_now()) do
+      %{products: [], cards: 0} -> nil
+      from_set -> from_set
+    end
+  end
+
+  defp from_set(_product, _in_stock), do: nil
 
   # Once per visit to the page: a reconnect mounts it again.
   defp track_view(socket, page) do
@@ -270,6 +282,33 @@ defmodule TcgCheapWeb.ProductLive do
               </ul>
             </.offers_disclosure>
             <.offer_disclaimer />
+          </section>
+
+          <section
+            :if={@from_set}
+            id="product-from-set"
+            class="product-section"
+            aria-labelledby="product-from-set-title"
+          >
+            <div class="product-section-heading">
+              <h2 id="product-from-set-title">
+                {gettext("Na stanie z %{set}", set: @page.product.set_name)}
+              </h2>
+            </div>
+            <ul :if={@from_set.products != []} class="guide-products">
+              <li :for={summary <- @from_set.products} class="guide-product">
+                <.product_row summary={summary} />
+              </li>
+            </ul>
+            <p :if={@from_set.cards > 0} id="product-from-set-cards" class="product-facts">
+              <.link navigate={
+                SEO.expansion_path(@page.product.cardmarket_expansion_id, @page.product.set_name)
+              }>
+                {gettext("Pojedyncze karty: %{cards}",
+                  cards: Polish.plural(@from_set.cards, "karta", "karty", "kart")
+                )}
+              </.link>
+            </p>
           </section>
 
           <.retail_deals
