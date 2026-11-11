@@ -12,7 +12,7 @@ defmodule TcgCheapWeb.SocialImageController do
   use TcgCheapWeb, :controller
 
   alias AshStorage.Service.Context
-  alias TcgCheap.Sealed.{CardGuide, Catalogue, ExpensiveCards, Guide}
+  alias TcgCheap.Sealed.{CardGuide, CardValue, Catalogue, ExpensiveCards, Guide}
   alias TcgCheapWeb.SocialImage
 
   require Logger
@@ -42,6 +42,16 @@ defmodule TcgCheapWeb.SocialImageController do
 
     serve(conn, "social/articles/najdrozsze-karty-pokemon-#{version}.jpg", fn ->
       SocialImage.expensive_cards(overview)
+    end)
+  end
+
+  def card_value(conn, _params) do
+    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
+    guide = CardValue.guide()
+    version = SocialImage.card_value_version(guide)
+
+    serve(conn, "social/articles/jak-sprawdzic-wartosc-karty-pokemon-#{version}.jpg", fn ->
+      SocialImage.card_value(guide)
     end)
   end
 

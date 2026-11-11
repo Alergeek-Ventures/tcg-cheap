@@ -92,6 +92,7 @@ defmodule TcgCheapWeb.Router do
     get "/karty", MarkdownController, :cards
     get "/ile-kosztuje-booster-pokemon", MarkdownController, :booster_prices
     get "/najdrozsze-karty-pokemon", MarkdownController, :expensive_cards
+    get "/jak-sprawdzic-wartosc-karty-pokemon", MarkdownController, :card_value
     get "/produkty/:slug", MarkdownController, :product
     get "/rozszerzenia/:slug", MarkdownController, :expansion
     get "/rozszerzenia/:slug/karty/:card_slug", MarkdownController, :single
@@ -102,6 +103,7 @@ defmodule TcgCheapWeb.Router do
     get "/", SocialImageController, :home
     get "/produkty/:slug", SocialImageController, :product
     get "/najdrozsze-karty-pokemon", SocialImageController, :expensive_cards
+    get "/jak-sprawdzic-wartosc-karty-pokemon", SocialImageController, :card_value
     get "/karty", SocialImageController, :cards
     get "/ile-kosztuje-booster-pokemon", SocialImageController, :boosters
     get "/rozszerzenia/:slug", SocialImageController, :expansion
@@ -192,6 +194,7 @@ defmodule TcgCheapWeb.Router do
       live "/karty", HomeLive, :cards
       live "/ile-kosztuje-booster-pokemon", BoosterPriceLive
       live "/najdrozsze-karty-pokemon", ExpensiveCardsLive
+      live "/jak-sprawdzic-wartosc-karty-pokemon", CardValueLive
       live "/bot", BotLive
     end
 

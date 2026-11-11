@@ -94,6 +94,11 @@ defmodule TcgCheapWeb.GuideComponents do
                 {gettext("Najdroższe karty Pokémon")}
               </.link>
             </li>
+            <li>
+              <.link navigate={~p"/jak-sprawdzic-wartosc-karty-pokemon"}>
+                {gettext("Ile jest warta twoja karta?")}
+              </.link>
+            </li>
             <li><.link navigate={~p"/bot"}>{gettext("Dla sklepów: nasz bot")}</.link></li>
           </ul>
         </nav>
@@ -592,6 +597,10 @@ defmodule TcgCheapWeb.GuideComponents do
   attr :placement, :string, default: "list", doc: "where the click came from, for analytics"
   attr :rarity?, :boolean, default: false, doc: "name the rarity, for printings of one card"
 
+  attr :verdict?, :boolean,
+    default: true,
+    doc: "judge the shop's price; a guide for sellers shows the price alone"
+
   def card_row(assigns) do
     # With an offer in stock, the row answers as the card's page does: its
     # cheapest shop, the verdict and that shop's price. Without one, the
@@ -643,7 +652,7 @@ defmodule TcgCheapWeb.GuideComponents do
             <span class="guide-product-shop">{priced_shop_name(@row.offer)}</span>
             <%!-- Without a Cardmarket price there is nothing to judge; the card's page says why. --%>
             <.verdict_badge
-              :if={@status != :insufficient_data}
+              :if={@verdict? and @status != :insufficient_data}
               verdict={%{status: @status}}
               id={"card-verdict-#{@row.card.id}"}
               class="guide-product-verdict"
@@ -767,13 +776,17 @@ defmodule TcgCheapWeb.GuideComponents do
 
   @doc """
   Binds one- and two-letter prepositions ("z", "ze", "w", "we") to the next
-  word with a no-break space, so a line never ends with one.
+  word with a no-break space, so a line never ends with one, and a dash to
+  the word before it, so a line never starts with one.
   """
   @spec glue_short_words(String.t() | nil) :: String.t() | nil
   def glue_short_words(nil), do: nil
 
-  def glue_short_words(text),
-    do: Regex.replace(~r/(?<![\p{L}\p{N}])([zwZW]|[zwZW]e) /u, text, "\\1\u00A0")
+  def glue_short_words(text) do
+    text
+    |> then(&Regex.replace(~r/(?<![\p{L}\p{N}])([zwZW]|[zwZW]e) /u, &1, "\\1\u00A0"))
+    |> String.replace(" –", "\u00A0–")
+  end
 
   @doc """
   The price an offer row shows: its compared price (`Shops.compared_price/2`),
