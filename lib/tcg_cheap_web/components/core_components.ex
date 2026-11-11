@@ -477,6 +477,8 @@ defmodule TcgCheapWeb.CoreComponents do
       :search,
       :filter,
       :dismiss,
+      :checkmark_circle,
+      :dismiss_circle,
       :card_ui,
       :stack,
       :ribbon,
@@ -562,6 +564,16 @@ defmodule TcgCheapWeb.CoreComponents do
   defp fluent_icon_path(:filter) do
     {"0 0 20 20",
      "M3 5.5A.5.5 0 0 1 3.5 5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5Zm2 4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5Zm2 4a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Z"}
+  end
+
+  defp fluent_icon_path(:checkmark_circle) do
+    {"0 0 20 20",
+     "M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm3.36 5.65a.5.5 0 0 0-.64-.06l-.07.06L9 11.3 7.35 9.65l-.07-.06a.5.5 0 0 0-.7.7l.07.07 2 2 .07.06c.17.11.4.11.56 0l.07-.06 4-4 .07-.08a.5.5 0 0 0-.06-.63Z"}
+  end
+
+  defp fluent_icon_path(:dismiss_circle) do
+    {"0 0 20 20",
+     "M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16ZM7.8 7.11a.5.5 0 0 0-.63.06l-.06.07a.5.5 0 0 0 .06.64L9.3 10l-2.12 2.12-.06.07a.5.5 0 0 0 .06.64l.07.06c.2.13.47.11.64-.06L10 10.7l2.12 2.12.07.06c.2.13.46.11.64-.06l.06-.07a.5.5 0 0 0-.06-.64L10.7 10l2.12-2.12.06-.07a.5.5 0 0 0-.06-.64l-.07-.06a.5.5 0 0 0-.64.06L10 9.3 7.88 7.17l-.07-.06Z"}
   end
 
   defp fluent_icon_path(:dismiss) do

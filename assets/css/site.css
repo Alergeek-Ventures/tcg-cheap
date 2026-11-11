@@ -510,7 +510,7 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .product-hero-image { background: #fff; block-size: clamp(11rem, 36svh, 20rem); border: 1px solid var(--rule); grid-area: image; width: 100%; }
 .guide-world .product-hero-image img { box-sizing: border-box; padding: .5rem; }
 .guide-world .product-identity { grid-area: identity; min-width: 0; }
-.guide-world :is(#product-name, #single-name, #booster-prices-title) { font-size: clamp(1.6rem, 6vw, 2.5rem); letter-spacing: -.03em; line-height: 1; overflow-wrap: anywhere; }
+.guide-world :is(#product-name, #single-name) { font-size: clamp(1.6rem, 6vw, 2.5rem); letter-spacing: -.03em; line-height: 1; overflow-wrap: anywhere; }
 .guide-world .product-facts { color: var(--muted); font-size: .875rem; line-height: 1.5; margin: .5rem 0 0; }
 .guide-world .product-facts span { overflow-wrap: anywhere; }
 .guide-world .product-facts #product-kind { color: var(--ink); }
@@ -872,10 +872,6 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .retail-deals .guide-note { margin-block-start: .5rem; }
 
 /* The booster price page: the answer under its question, then the boosters. */
-.guide-world .booster-prices-intro { display: grid; gap: .5rem; margin-block-end: 2rem; }
-.guide-world .booster-prices-intro .verdict-price { margin-block-start: .75rem; }
-.guide-world .booster-prices-intro .guide-note { font-size: 1rem; margin: 0; }
-.guide-world .booster-prices .guide-products + .guide-note { margin-block-start: .5rem; }
 /* The bot page, for shop owners. One object with an ink shadow, the booster sheet beside the
    title; the numbers and the bot's identity are flat paper, the opt-out a dashed clip; orange
    only on what a shop owner clicks. */
@@ -968,15 +964,18 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 /* The most expensive cards: an article. Prose in a centred reading column, pictures and data in a
    wider centred band; the records are edited by hand, the rest comes from today's data. Changes draw
    in ink: green and red mean a good and a bad price everywhere else on the site. */
-.guide-world .expensive-article { display: grid; gap: 3.5rem; }
+.guide-world .expensive-article { display: grid; gap: 3rem; }
 .guide-world .expensive-column { margin-inline: auto; max-inline-size: 48rem; inline-size: 100%; }
 .guide-world .expensive-wide { margin-inline: auto; max-inline-size: 64rem; inline-size: 100%; }
 .guide-world .expensive-section { display: grid; gap: 1.5rem; }
 .guide-world .expensive-section.expensive-prose { display: block; }
 .guide-world .expensive-prose p { margin: 0 0 1rem; text-wrap: pretty; }
 .guide-world .expensive-prose p:last-child { margin-block-end: 0; }
-.guide-world .expensive-section h2 { font-size: clamp(1.875rem, 4vw, 2.5rem); line-height: 1.02; margin-block-end: .75rem; scroll-margin-block-start: calc(var(--guide-header-size) + 1rem); }
-.guide-world .expensive-prose h3 { font-size: 1.375rem; margin: 1.75rem 0 .375rem; }
+/* A section heading sits half as far from its text as from the section above (3rem); in a grid
+   section the grid's gap already gives that space. */
+.guide-world .expensive-section h2 { font-size: clamp(1.875rem, 4vw, 2.5rem); line-height: 1.02; margin-block-end: 1.5rem; scroll-margin-block-start: calc(var(--guide-header-size) + 1rem); }
+.guide-world .expensive-section:not(.expensive-prose) > h2 { margin-block-end: 0; }
+.guide-world .expensive-prose h3 { font-size: 1.375rem; margin: 1.75rem 0 .75rem; }
 .guide-world .expensive-aside { float: inline-end; margin: .25rem 0 1rem 1.5rem; max-inline-size: 11rem; }
 .guide-world .expensive-aside img { aspect-ratio: 245 / 342; block-size: auto; border-radius: 4.5% / 3.2%; box-shadow: 0 1rem 1.5rem -1rem color-mix(in oklch, var(--ink) 70%, transparent); display: block; inline-size: 100%; object-fit: cover; rotate: 3deg; }
 .guide-world .expensive-aside figcaption { color: var(--muted); font-size: .75rem; line-height: 1.35; margin-block-start: .75rem; }
@@ -1304,3 +1303,106 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .value-worth > div { background: var(--paper); border: 1px solid var(--rule); border-radius: .5rem; padding: 1rem 1.25rem; }
 .guide-world .value-worth .value-worth-title { font: 700 1.25rem/1.1 "Barlow Condensed", sans-serif; margin: 0 0 .5rem; }
 .guide-world .value-worth ul { display: grid; gap: .375rem; list-style: disc; margin: 0; padding-inline-start: 1.125rem; }
+
+/* What a booster costs: the articles' layout. What holds for every set is plain prose; today's
+   numbers sit in cream "today" cards headed by their set. Bars in ink with the value at the end;
+   orange only for what a box costs over its boosters, a dashed outline for what it saves. */
+.guide-world .boosters-today { background: var(--paper); border: 1px solid var(--rule); border-radius: .5rem; margin-block: .875rem 0; padding: .75rem 1rem .875rem; }
+.guide-world .boosters-today-head { align-items: baseline; display: flex; flex-wrap: wrap; gap: .25rem .75rem; margin-block-end: .375rem; }
+.guide-world .boosters-today-logo { block-size: 1.75rem; inline-size: auto; max-inline-size: 6rem; object-fit: contain; }
+.guide-world .boosters-today-head strong { font: 700 1.25rem/1.1 "Barlow Condensed", sans-serif; }
+.guide-world .boosters-today-head span { color: var(--muted); font-size: .75rem; }
+.guide-world .boosters-today p { font-size: .9375rem; line-height: 1.45; margin: .25rem 0; text-wrap: pretty; }
+.guide-world .boosters-today-main { min-inline-size: 0; }
+.guide-world .boosters-today-cards { align-items: end; border-block-start: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin-block-start: .5rem; padding-block-start: .5rem; }
+.guide-world .boosters-compare { border-inline-start: 1px solid var(--rule); padding-inline-start: 1.25rem; }
+.guide-world .boosters-today .boosters-compare-label { margin: 0; }
+@media (max-width: 30rem) { .guide-world .boosters-compare { border-inline-start: 0; padding-inline-start: 0; } }
+.guide-world .boosters-today-price a { color: var(--ink); }
+.guide-world .boosters-today strong, .guide-world .boosters-shelf strong { font-variant-numeric: tabular-nums; }
+.guide-world #w-sklepach { padding: 1.25rem; }
+.guide-world .boosters-shelf { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr)); list-style: none; margin: .5rem 0 0; padding: 0; }
+.guide-world .boosters-shelf-item { align-content: start; color: var(--ink); display: grid; gap: .125rem; text-decoration: none; }
+.guide-world .boosters-shelf-item .boosters-shelf-image { aspect-ratio: 1; background: #fff; border: 1px solid var(--rule); border-radius: .375rem; inline-size: 100%; margin-block-end: .375rem; }
+.guide-world .boosters-shelf-item .boosters-shelf-image img:not(.product-image-blur) { block-size: 100%; box-sizing: border-box; inline-size: 100%; object-fit: contain; padding: .375rem; }
+.guide-world .boosters-shelf-name { font-size: .8125rem; line-height: 1.3; }
+.guide-world .boosters-shelf-item strong { font: 700 1.25rem/1.1 "Barlow Condensed", sans-serif; }
+.guide-world .boosters-shelf-item:active strong { color: var(--orange); }
+@media (hover: hover) and (pointer: fine) { .guide-world .boosters-shelf-item:hover .boosters-shelf-name { text-decoration: underline; } }
+@media (max-width: 40rem) { .guide-world .boosters-shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.guide-world .boosters-intent img { aspect-ratio: 1; background: #fff; border: 1px solid var(--rule); border-radius: .375rem; box-sizing: border-box; object-fit: contain; padding: .125rem; }
+.guide-world .boosters-sets { display: grid; gap: .5rem; list-style: none; margin: .75rem 0 0; padding: 0; }
+.guide-world .boosters-sets li { align-items: center; border-block-start: 1px solid var(--rule); column-gap: 1rem; display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) minmax(0, 9rem); padding-block-start: .5rem; }
+.guide-world .boosters-set-name { display: grid; line-height: 1.2; min-inline-size: 0; }
+.guide-world .boosters-set-name time { color: var(--muted); font-size: .75rem; }
+.guide-world .boosters-set-name strong { font: 700 1.125rem/1.1 "Barlow Condensed", sans-serif; overflow-wrap: anywhere; }
+.guide-world .boosters-set-tag { align-items: center; display: inline-flex; font-size: .75rem; gap: .25rem; }
+.guide-world .boosters-set-tag .fluent-icon { block-size: .875rem; inline-size: .875rem; }
+.guide-world .boosters-set-price { align-items: center; color: var(--ink); display: flex; gap: .5rem; min-inline-size: 0; text-decoration: none; }
+.guide-world .boosters-set-bar { background: var(--ink); block-size: .875rem; border-radius: 0 4px 4px 0; flex: none; inline-size: max(2px, calc(var(--share) * (100% - 4.5rem))); }
+.guide-world .boosters-set-price strong { font: 700 1.0625rem/1 "Barlow Condensed", sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.guide-world .boosters-set-etb { color: var(--muted); font-size: .8125rem; }
+.guide-world .boosters-set-etb a { color: var(--ink); }
+.guide-world a.boosters-set-price:active strong { color: var(--orange); }
+@media (hover: hover) and (pointer: fine) { .guide-world a.boosters-set-price:hover strong { text-decoration: underline; } }
+@media (max-width: 36rem) { .guide-world .boosters-sets li { grid-template-columns: minmax(0, 1fr) auto; row-gap: .25rem; } .guide-world .boosters-set-name { grid-column: 1 / -1; } }
+.guide-world .boosters-extras { margin: .75rem 0 0; }
+.guide-world .boosters-extras ol { display: grid; gap: .75rem; list-style: none; margin: .5rem 0 0; padding: 0; }
+.guide-world .boosters-legend { display: flex; flex-wrap: wrap; font-size: .75rem; gap: .375rem 1rem; margin: .25rem 0 0; }
+.guide-world .boosters-legend span { align-items: center; display: inline-flex; gap: .375rem; }
+.guide-world .boosters-legend span::before { block-size: .75rem; border-radius: 2px; content: ""; inline-size: .75rem; }
+.guide-world .boosters-legend-loose::before { background: var(--ink); }
+.guide-world .boosters-legend-extra::before { background: var(--orange); }
+.guide-world .boosters-legend-saving::before { border: 1.5px dashed var(--ink); box-sizing: border-box; }
+.guide-world .boosters-extras li { align-items: center; column-gap: 1rem; display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 1fr); row-gap: .125rem; }
+.guide-world .boosters-extras-name { color: var(--ink); font-size: .875rem; line-height: 1.3; }
+.guide-world .boosters-extras-track { align-items: center; display: flex; min-inline-size: 0; }
+.guide-world .boosters-extras-track > span { block-size: 1.25rem; flex: none; }
+.guide-world .boosters-extras-loose { background: var(--ink); inline-size: max(2px, calc(var(--loose) * (100% - 4.5rem))); }
+.guide-world .boosters-extras-rest { border-radius: 0 4px 4px 0; inline-size: calc(var(--extra) * (100% - 4.5rem)); }
+.guide-world .boosters-extras-rest.is-extra { background: var(--orange); margin-inline-start: 2px; }
+.guide-world .boosters-extras-rest.is-saving { border: 1.5px dashed var(--ink); border-inline-start: 0; box-sizing: border-box; }
+.guide-world .boosters-extras-track strong { font: 700 1.125rem/1 "Barlow Condensed", sans-serif; font-variant-numeric: tabular-nums; margin-inline-start: .5rem; white-space: nowrap; }
+.guide-world .boosters-extras-note { color: var(--muted); font-size: .75rem; grid-column: 2; line-height: 1.4; }
+@media (max-width: 30rem) { .guide-world .boosters-extras li { grid-template-columns: minmax(0, 1fr); } .guide-world .boosters-extras-note { grid-column: 1; } }
+.guide-world .boosters-group { margin-block-start: 2rem; }
+.guide-world .boosters-group-label { align-items: center; color: var(--muted); display: flex; font: 700 1rem/1.2 "Barlow Condensed", sans-serif; gap: .75rem; margin: 0 0 .25rem; }
+.guide-world .boosters-group-label::after { background: var(--rule); block-size: 1px; content: ""; flex: 1; }
+.guide-world .boosters-type { padding-block: 1.25rem 1.75rem; }
+.guide-world .boosters-type + .boosters-type { border-block-start: 1px solid var(--rule); }
+.guide-world .boosters-type-head { column-gap: 1.5rem; display: grid; grid-template-areas: "photo title" "photo body"; grid-template-columns: 12rem minmax(0, 1fr); grid-template-rows: auto 1fr; }
+.guide-world .boosters-type-head:not(:has(.boosters-type-photo)) { grid-template-areas: "title" "body"; grid-template-columns: minmax(0, 1fr); }
+.guide-world .boosters-type-photo { grid-area: photo; }
+.guide-world .boosters-type-photo .boosters-type-image { aspect-ratio: 1; background: #fff; border: 1px solid var(--rule); border-radius: .5rem; inline-size: 100%; }
+.guide-world .boosters-type-photo .boosters-type-image img:not(.product-image-blur) { block-size: 100%; box-sizing: border-box; inline-size: 100%; object-fit: contain; padding: .5rem; }
+.guide-world .boosters-type h3 { align-self: end; font: 700 1.75rem/1.05 "Barlow Condensed", sans-serif; grid-area: title; margin: 0 0 .75rem; }
+.guide-world .boosters-type-body { grid-area: body; min-inline-size: 0; }
+.guide-world .boosters-type-body p { margin: 0 0 .625rem; text-wrap: pretty; }
+.guide-world .boosters-type-unique { font-size: .9375rem; }
+@media (max-width: 36rem) { .guide-world .boosters-type-head { column-gap: .875rem; grid-template-areas: "photo title" "body body"; grid-template-columns: 5.5rem minmax(0, 1fr); grid-template-rows: auto auto; } .guide-world .boosters-type h3 { align-self: center; font-size: 1.5rem; margin: 0; } .guide-world .boosters-type-body { margin-block-start: .75rem; } }
+.guide-world .boosters-verdict { align-content: center; column-gap: 1rem; display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); margin-block: .75rem 0; min-block-size: 4.5rem; row-gap: .375rem; }
+.guide-world .boosters-verdict:not(:has(.boosters-stamp)) { grid-template-columns: minmax(0, 1fr); }
+.guide-world .boosters-stamp { align-self: center; background: #fff; block-size: 4.5rem; border: 3px solid var(--orange); border-radius: 50%; box-sizing: border-box; grid-row: span 2; inline-size: 4.5rem; overflow: clip; }
+.guide-world .boosters-stamp img { block-size: auto; display: block; max-inline-size: none; }
+.guide-world .boosters-stamp.is-card img { inline-size: 160%; margin-block-start: -12%; margin-inline-start: -30%; }
+.guide-world .boosters-stamp.is-box img { aspect-ratio: 1; inline-size: 100%; object-fit: contain; padding: .25rem; box-sizing: border-box; }
+.guide-world .boosters-verdict p { align-items: start; column-gap: .5rem; display: grid; grid-template-columns: 1.25rem minmax(0, 1fr); margin: 0; text-wrap: pretty; }
+.guide-world .boosters-verdict .fluent-icon { block-size: 1.25rem; inline-size: 1.25rem; margin-block-start: .1875rem; }
+.guide-world .boosters-verdict-yes .fluent-icon { color: var(--rise); }
+.guide-world .boosters-verdict-no .fluent-icon { color: var(--fall); }
+.guide-world .boosters-verdict strong { font: 700 1.125rem/1.1 "Barlow Condensed", sans-serif; }
+.guide-world .boosters-contents { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; margin: 0 0 .25rem; padding: 0; }
+.guide-world .boosters-contents li { align-content: start; display: grid; font-size: .6875rem; gap: .1875rem; inline-size: 4.25rem; justify-items: center; line-height: 1.2; text-align: center; }
+.guide-world .boosters-contents img, .guide-world .boosters-contents .boosters-contents-image { aspect-ratio: 1; background: #fff; block-size: auto; border: 1px solid var(--rule); border-radius: .375rem; box-sizing: border-box; inline-size: 3.5rem; object-fit: contain; padding: .1875rem; }
+.guide-world .boosters-contents .boosters-contents-image img:not(.product-image-blur) { block-size: 100%; border: 0; inline-size: 100%; padding: 0; }
+.guide-world .boosters-today .boosters-contents-rest, .guide-world .boosters-today .boosters-compare-label { color: var(--muted); font-size: .75rem; }
+.guide-world .boosters-cards { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; margin: .25rem 0; padding: 0; }
+.guide-world .boosters-cards li { align-content: start; display: grid; font-size: .6875rem; inline-size: 4.5rem; line-height: 1.25; }
+.guide-world .boosters-cards img { aspect-ratio: 5 / 7; block-size: auto; border-radius: 4px; inline-size: 100%; margin-block-end: .25rem; object-fit: cover; }
+.guide-world .boosters-card-set, .guide-world .boosters-card-missing { color: var(--muted); }
+.guide-world .boosters-cards strong { font: 700 .9375rem/1.1 "Barlow Condensed", sans-serif; }
+.guide-world .boosters-advice { display: grid; gap: .75rem; list-style: none; margin: 1rem 0 0; padding: 0; }
+.guide-world .boosters-advice li { background: var(--paper); border: 1px solid var(--rule); border-radius: .5rem; padding: .875rem 1.125rem; text-wrap: pretty; }
+.guide-world .boosters-advice strong { font: 700 1.1875rem/1.1 "Barlow Condensed", sans-serif; margin-inline-end: .25rem; }
+.guide-world .boosters-advice-today { color: var(--muted); display: block; font-size: .875rem; margin-block-start: .375rem; }
+@media (max-width: 36rem) { .guide-world .boosters-verdict { column-gap: .75rem; grid-template-columns: 3.5rem minmax(0, 1fr); } .guide-world .boosters-stamp { block-size: 3.5rem; inline-size: 3.5rem; } .guide-world .boosters-today { padding: .875rem 1rem; } }

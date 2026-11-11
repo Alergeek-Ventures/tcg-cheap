@@ -93,26 +93,44 @@ defmodule TcgCheapWeb.SEO do
 
     metadata(
       gettext("Ile kosztuje booster Pokémon? Ceny w Polsce"),
-      fit_description(booster_answer(page)),
+      fit_description(
+        List.insert_at(
+          booster_answer(page),
+          1,
+          gettext("Co jest w ETB, blistrach i puszkach i ile dopłacasz za dodatki.")
+        )
+      ),
       canonical,
       social_image:
         url(~p"/og/ile-kosztuje-booster-pokemon?#{[v: SocialImage.boosters_version(page)]}"),
       social_image_alt: gettext("Ile kosztuje booster Pokémon: najtańsze boostery w sklepach"),
       structured_data: %{
         "@context" => "https://schema.org",
-        "@type" => "BreadcrumbList",
-        "itemListElement" => [
+        "@graph" => [
           %{
-            "@type" => "ListItem",
-            "position" => 1,
-            "name" => gettext("Wszystkie produkty"),
-            "item" => url(~p"/")
+            "@type" => "Article",
+            "headline" => gettext("Ile kosztuje booster Pokémon?"),
+            "inLanguage" => Gettext.get_locale(TcgCheapWeb.Gettext),
+            "dateModified" => Date.to_iso8601(page.today),
+            "author" => %{"@type" => "Organization", "name" => "TCG Cheap", "url" => url(~p"/")},
+            "mainEntityOfPage" => canonical
           },
           %{
-            "@type" => "ListItem",
-            "position" => 2,
-            "name" => gettext("Ile kosztuje booster"),
-            "item" => canonical
+            "@type" => "BreadcrumbList",
+            "itemListElement" => [
+              %{
+                "@type" => "ListItem",
+                "position" => 1,
+                "name" => gettext("Wszystkie produkty"),
+                "item" => url(~p"/")
+              },
+              %{
+                "@type" => "ListItem",
+                "position" => 2,
+                "name" => gettext("Ile kosztuje booster"),
+                "item" => canonical
+              }
+            ]
           }
         ]
       }
@@ -202,7 +220,7 @@ defmodule TcgCheapWeb.SEO do
       fit_description(
         [
           gettext(
-            "Wpisz nazwę albo numer z dołu karty Pokémon i sprawdź, ile kosztuje w polskich sklepach."
+            "Wpisz nazwę albo numer z dołu karty Pokémon i sprawdź, ile kosztuje w sklepach."
           ),
           spread &&
             gettext("Połowa kart kosztuje do %{median} – sprawdź, czy twoja jest wyjątkiem.",

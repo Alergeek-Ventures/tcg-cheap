@@ -147,6 +147,15 @@ defmodule TcgCheapWeb.Polish do
   def plural(count, "sklepie", "sklepach", "sklepach"),
     do: ngettext("%{number} sklepie", "%{number} sklepach", count, number: number(count))
 
+  def plural(count, "booster", "boostery", "boosterów"),
+    do: ngettext("%{number} booster", "%{number} boostery", count, number: number(count))
+
+  def plural(count, "puszkę", "puszki", "puszek"),
+    do: ngettext("%{number} puszkę", "%{number} puszki", count, number: number(count))
+
+  def plural(count, "kolekcję", "kolekcje", "kolekcji"),
+    do: ngettext("%{number} kolekcję", "%{number} kolekcje", count, number: number(count))
+
   def plural(count, one, few, many) do
     word =
       cond do

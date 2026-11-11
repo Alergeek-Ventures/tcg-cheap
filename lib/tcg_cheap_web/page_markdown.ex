@@ -62,12 +62,72 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   def booster_prices(seo, page) do
     page(seo, page.today, [
+      section("Najpierw: czego chcesz?", [
+        "Pokémony to dziś drogie hobby. Zanim cokolwiek kupisz, zastanów się, czego od niego chcesz:",
+        list([
+          "Emocji z otwierania: same boostery – pojedynczo, w Booster Bundle (6) albo w Booster Boxie (36).",
+          "Jednej konkretnej karty: kup ją osobno, booster to loteria – " <>
+            link("ceny kart w sklepach", url(~p"/karty")) <> ".",
+          "Prezentu: Elite Trainer Box, puszka albo kolekcja – płacisz też za opakowanie i dodatki.",
+          "Grania: Build & Battle Box (talia 40 kart i cztery boostery) albo gotowa talia 60 kart."
+        ])
+      ]),
+      section("Jak wychodzą nowe sety", [
+        "Nowy angielski set wychodzi mniej więcej co dwa miesiące. Do dwóch tygodni przed premierą sklepy z programu Play! Pokémon sprzedają Build & Battle Box na turnieje przedpremierowe (prerelease). W dniu premiery w sklepach pojawia się reszta: pojedyncze boostery, blistry, Booster Bundle, Elite Trainer Box i Booster Box. Puszki i kolekcje dochodzą później.",
+        "Set specjalny nie ma Booster Boxa; jego boostery są w ETB, Booster Bundle, blistrach, puszkach i kolekcjach.",
+        sets_table(page.sets)
+      ]),
+      extras_section(page.latest),
       retail_deals("Okazje w sieciówkach", page.retail_deals),
       section("Boostery w sklepach", [
         "Angielskie, najnowsze sety najpierw. Najniższa cena na stanie w sklepach internetowych, bez dostawy (ze sklepów za granicą z wysyłką).",
         products_table(page.boosters)
       ])
     ])
+  end
+
+  defp sets_table([]), do: nil
+
+  defp sets_table(sets) do
+    table(
+      ["Set", "Premiera", "Rodzaj", "Booster od", "Elite Trainer Box od"],
+      Enum.map(sets, fn set ->
+        [
+          link(set.name, url(~p"/produkty/#{set.booster.product.slug}")),
+          if(set.released_on, do: Date.to_iso8601(set.released_on), else: "–"),
+          if(set.booster_box?, do: "zwykły", else: "specjalny (bez Booster Boxa)"),
+          Polish.price(set.booster.verdict.cheapest.price),
+          if(set.etb, do: Polish.price(set.etb.verdict.cheapest.price), else: "brak na stanie")
+        ]
+      end)
+    )
+  end
+
+  # What each of the newest set's boxes costs over its boosters bought one
+  # by one, as the HTML chart shows it.
+  defp extras_section(nil), do: nil
+
+  defp extras_section(%{set: set, products: products}) do
+    rows =
+      for box <- products, box.extra do
+        [
+          link(box.product.name, url(~p"/produkty/#{box.product.slug}")),
+          Polish.zloty(box.price) <>
+            if(box.few_shops?, do: " (najniższa, mało sklepów)", else: ""),
+          "#{Polish.plural(box.boosters, "booster", "boostery", "boosterów")} po #{Polish.zloty(box.single)}: #{Polish.zloty(box.loose)}",
+          if(Decimal.negative?(box.extra),
+            do: "taniej o #{Polish.zloty(Decimal.abs(box.extra))}",
+            else: Polish.zloty(box.extra)
+          )
+        ]
+      end
+
+    if rows != [],
+      do:
+        section("Za co dopłacasz w pudełku – #{set}", [
+          "W pudełkach jednego setu są te same boostery, które kupisz osobno. Reszta ceny to dopłata za dodatki: kartę promo, akcesoria, talię albo samo opakowanie. Cena to typowa cena w sklepach (mediana najniższych cen); gdy pudełko ma mniej niż trzy sklepy – najniższa, i wtedy boostery też liczymy po najniższej cenie.",
+          table(["Pudełko", "Cena", "Te same boostery osobno", "Dopłata"], rows)
+        ])
   end
 
   def expensive_cards(seo, overview, records, ranking) do
@@ -135,7 +195,7 @@ defmodule TcgCheapWeb.PageMarkdown do
           "Numer: na dole karty, np. 161/131 – karta 161 z rozszerzenia, które ma 131 kart; obok kod rozszerzenia i język. Numer większy niż liczba kart oznacza kartę sekretną. Na starych kartach numer jest w prawym dolnym rogu.",
           "Wersja: zwykła, reverse holo albo pierwsze wydanie (znaczek „Edition 1” na starych kartach) mają osobne ceny.",
           "Stan: zagięcia, rysy i obite rogi wyraźnie obniżają cenę.",
-          "Cena: wyszukaj kartę po nazwie albo numerze (także 161/131) na #{url(~p"/karty")}; strona karty ma ceny w polskich sklepach i cenę na Cardmarket.",
+          "Cena: wyszukaj kartę po nazwie albo numerze (także 161/131) na #{url(~p"/karty")}; strona karty ma ceny w sklepach i cenę na Cardmarket.",
           "Ocena (grading): tylko przy kartach wartych setki złotych i w idealnym stanie."
         ])
       ),
