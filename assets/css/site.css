@@ -1192,12 +1192,15 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
   .guide-world .expensive-row-shop { font-size: 1.25rem; }
   .guide-world .expensive-row-none { grid-column: verdict-start / shop-end; grid-row: 4; text-align: start; }
 }
-/* Too narrow for the verdict and the price side by side: the price goes under
-   its verdict rather than over it. */
+/* Too narrow for a verdict and a price side by side: in the ranking and the
+   Polish-shops list the price goes under its verdict rather than over it. */
 @media (max-width: 24rem) {
   .guide-world .expensive-row { grid-template-areas: "img name name" "img meta meta" "img mlabel market" "img verdict verdict" "img shop shop"; }
   .guide-world .expensive-row-image { grid-row: 1 / span 5; }
   .guide-world .expensive-row-shop { text-align: start; }
+  .guide-world .expensive-row-none { grid-row: 4 / -1; }
+  .guide-world .expensive-shop-row img { grid-row: span 3; }
+  .guide-world .expensive-shop-price { grid-column: 2 / -1; grid-row: 3; }
 }
 .guide-world .expensive-more-bar { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: center; margin-block-start: 1rem; }
 .guide-world .expensive-more-bar span { color: var(--muted); font-size: .8125rem; }
