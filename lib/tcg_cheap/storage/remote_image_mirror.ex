@@ -43,11 +43,15 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
            WHERE r.id = encode(sha256(convert_to(s.card_images_url || '/' || c.number || '/high.webp', 'UTF8')), 'hex')
              AND r.attempted_at IS NOT NULL AND r.detail_key IS NULL))
     UNION
-    SELECT 'https://images.pokemontcg.io/swshp/' || c.number || '_hires.png', 'card' AS kind
+    SELECT 'https://images.pokemontcg.io/' || s.tcgdex_id || '/'
+             || CASE WHEN s.tcgdex_id = 'svp' THEN ltrim(c.number, '0') ELSE c.number END
+             || '_hires.png', 'card' AS kind
       FROM sealed_tcgdex_cards c
       JOIN sealed_tcgdex_sets s ON c.tcgdex_set_id = s.id
-      WHERE s.language = 'en' AND s.tcgdex_id = 'swshp' AND c.number ~ '^SWSH[0-9]{3}$'
-        -- Sword & Shield promos TCGdex has no image of, as for Limitless above.
+      WHERE s.language = 'en'
+        AND ((s.tcgdex_id = 'swshp' AND c.number ~ '^SWSH[0-9]{3}$')
+          OR (s.tcgdex_id = 'svp' AND c.number ~ '^[0-9]{3}$' AND c.number <> '000'))
+        -- Promos TCGdex has no image of, as for Limitless above.
         AND (s.card_images_url IS NULL OR EXISTS (
           SELECT 1 FROM storage_remote_images r
            WHERE r.id = encode(sha256(convert_to(s.card_images_url || '/' || c.number || '/high.webp', 'UTF8')), 'hex')
