@@ -24,10 +24,16 @@ defmodule TcgCheap.Sealed.CardSync do
   first, newest sets first. After three failed lookups in a row the rest
   waits for the next run.
 
+  TCGdex's ids are not always right (`TcgCheap.Sealed.CheckedCardmarketIds`):
+  a checked id wins over TCGdex's, and an id TCGdex gives several cards of
+  one set links none of them until it is checked, so no card shows another
+  card's price.
+
   A run stops after five minutes and leaves the rest for the next one.
   """
 
   alias TcgCheap.Sealed
+  alias TcgCheap.Sealed.CheckedCardmarketIds
 
   require Logger
 
@@ -50,7 +56,9 @@ defmodule TcgCheap.Sealed.CardSync do
              synced: non_neg_integer(),
              failed: non_neg_integer(),
              looked_up: non_neg_integer(),
-             lookups_failed: non_neg_integer()
+             lookups_failed: non_neg_integer(),
+             checked: non_neg_integer(),
+             unlinked: non_neg_integer()
            }}
   def run(opts \\ []) do
     now = Keyword.get_lazy(opts, :now, &DateTime.utc_now/0)
@@ -73,8 +81,53 @@ defmodule TcgCheap.Sealed.CardSync do
     lookups =
       look_up_until(cards, deadline, request_options, %{looked_up: 0, lookups_failed: 0}, 0)
 
+    fixes = %{checked: apply_checked_ids(), unlinked: unlink_shared_ids()}
+
     if counts.synced > 0, do: Sealed.CardRefresh.rematch_unmatched()
-    {:ok, Map.merge(counts, lookups)}
+    {:ok, counts |> Map.merge(lookups) |> Map.merge(fixes)}
+  end
+
+  # Cards whose id differs from the checked one take it, including cards
+  # looked up before it was checked.
+  defp apply_checked_ids do
+    checked = CheckedCardmarketIds.all()
+
+    [filter: [tcgdex_id: [in: Map.keys(checked)]], select: [:tcgdex_id, :cardmarket_id]]
+    |> then(&Sealed.list_cards!(query: &1))
+    |> Enum.reject(&(&1.cardmarket_id == Map.fetch!(checked, &1.tcgdex_id)))
+    |> Enum.count(
+      &match?({:ok, _}, Sealed.record_card_cardmarket_id(&1, Map.fetch!(checked, &1.tcgdex_id)))
+    )
+  end
+
+  # One id TCGdex gives several cards of a set names at most one of them (a
+  # common and its secret rare share it), and which one is unknown until it
+  # is checked, so the unchecked ones lose it: no price beats another card's.
+  defp unlink_shared_ids do
+    checked = CheckedCardmarketIds.all()
+
+    unlinked =
+      [
+        filter: [cardmarket_id: [is_nil: false]],
+        select: [:tcgdex_set_id, :tcgdex_id, :cardmarket_id]
+      ]
+      |> then(&Sealed.list_cards!(query: &1))
+      |> Enum.group_by(&{&1.tcgdex_set_id, &1.cardmarket_id})
+      |> Enum.flat_map(fn
+        {_key, [_one]} -> []
+        {_key, cards} -> Enum.reject(cards, &Map.has_key?(checked, &1.tcgdex_id))
+      end)
+      |> Enum.filter(&match?({:ok, _}, Sealed.record_card_cardmarket_id(&1, nil)))
+
+    if unlinked != [] do
+      Logger.warning(
+        "TCGdex gives one Cardmarket id to several cards of a set; #{length(unlinked)} unlinked " <>
+          "until checked in priv/cardmarket/card_ids.tsv, such as " <>
+          Enum.map_join(Enum.take(unlinked, 20), ", ", & &1.tcgdex_id)
+      )
+    end
+
+    length(unlinked)
   end
 
   defp sync_until([], _deadline, _context, counts), do: counts
@@ -118,13 +171,21 @@ defmodule TcgCheap.Sealed.CardSync do
   # A failed request leaves the card to be asked again in the next run; a
   # card TCGdex has no document for counts as one without an id.
   defp look_up(card, request_options) do
-    with {:ok, cardmarket_id} <- fetch_cardmarket_id(card.tcgdex_id, request_options),
+    with {:ok, cardmarket_id} <- checked_or_fetched(card, request_options),
          {:ok, _card} <- Sealed.record_card_cardmarket_id(card, cardmarket_id) do
       :ok
     else
       {:error, reason} ->
         Logger.warning("Cardmarket id of #{card.tcgdex_id} not found: #{inspect(reason)}")
         :error
+    end
+  end
+
+  # A checked id needs no request.
+  defp checked_or_fetched(card, request_options) do
+    case CheckedCardmarketIds.fetch(card.tcgdex_id) do
+      {:ok, cardmarket_id} -> {:ok, cardmarket_id}
+      :error -> fetch_cardmarket_id(card.tcgdex_id, request_options)
     end
   end
 

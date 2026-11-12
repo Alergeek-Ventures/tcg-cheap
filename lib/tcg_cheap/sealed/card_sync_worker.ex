@@ -22,7 +22,8 @@ defmodule TcgCheap.Sealed.CardSyncWorker do
 
     Logger.info(
       "TCGdex set cards: #{counts.synced} sets copied, #{counts.failed} failed; " <>
-        "Cardmarket ids: #{counts.looked_up} cards looked up, #{counts.lookups_failed} failed"
+        "Cardmarket ids: #{counts.looked_up} cards looked up, #{counts.lookups_failed} failed, " <>
+        "#{counts.checked} set from the checked list, #{counts.unlinked} unlinked as shared"
     )
 
     :ok
