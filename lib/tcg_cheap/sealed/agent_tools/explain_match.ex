@@ -97,6 +97,12 @@ defmodule TcgCheap.Sealed.AgentTools.ExplainMatch do
       "Matched by known EAN to #{name(products, id)} (product barcodes or a manual offer assignment)." <>
         manual_note(offer)
 
+  # The EAN's product does not fit the title's kind, language or pack count (`Matcher.match/2`).
+  defp summary(%{ean_product_id: ean_id} = explanation, offer, products) when ean_id != nil,
+    do:
+      "Its EAN belongs to #{name(products, ean_id)}, which does not fit the title's kind, language or pack count, so the title decides. " <>
+        summary(%{explanation | ean_product_id: nil}, offer, products)
+
   defp summary(%{result: {:matched, id}}, offer, products),
     do:
       "Matched by title to #{name(products, id)}, the most specific qualifying product." <>

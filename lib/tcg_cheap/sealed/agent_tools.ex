@@ -256,7 +256,9 @@ defmodule TcgCheap.Sealed.AgentTools do
       Blister, "slim" for the non-Jumbo product of a set sold in both, "sch" for an S-Ch
       product); a "Checklane" title without "Premium" or a pack count must name the blister's
       Pokémon and no other word; a known EAN (product barcode or manual assignment) wins over the
-      title; excluded titles never match. It changes nothing.
+      title, unless the title matches another product and the EAN's product does not fit the
+      title's qualifiers or pack count (a "Booster pack" with a Booster Box's EAN is the booster);
+      excluded titles never match. It changes nothing.
       """
 
       argument :offer_id, :uuid, description: "A stored offer to explain."
