@@ -7,10 +7,11 @@ defmodule TcgCheap.Sealed.HtmlListing do
   `t:page/0` (`TcgCheap.Sealed.ShoperListing`, `TcgCheap.Sealed.SkyShop`) –
   paging through a listing and turning its products into offers.
 
-  `read/2` accepts the pages only when they form the complete listing: each
+  `read/3` accepts the pages only when they form the complete listing: each
   page names itself `n`, none announces more than `max_pages` pages, the
   page count and the stated total (when the listing has one) do not change
-  between pages, the total equals the distinct products read, a page has products unless the listing
+  between pages, the total equals the distinct products read (in all passes,
+  when a listing is read more than once), a page has products unless the listing
   states that it is empty, and a page where no product is readable (no id,
   name, link, price or availability) is not a product list the client
   recognises.
@@ -87,19 +88,42 @@ defmodule TcgCheap.Sealed.HtmlListing do
   @doc """
   Reads a listing page by page with `request`, which returns the parsed page
   `n` or an error. The result is every product of every page, in order.
-  """
-  @spec read((pos_integer() -> {:ok, page()} | {:error, term()}), pos_integer()) ::
-          {:ok, [product()]} | {:error, term()}
-  def read(request, max_pages), do: read(request, max_pages, 1, nil, [])
 
-  defp read(request, max_pages, number, first, acc) do
+  A listing whose order is not stable between requests (products that tie
+  on the sort key are shuffled anew for each page) can show a product on
+  two pages and another on none, so one pass falls short of its stated
+  total. With `passes` above 1 such a listing is read again, at most
+  `passes` times in all, until the passes together hold the stated total;
+  every pass must agree with the first on the page count and the total.
+  The result then holds the products of every pass read.
+  """
+  @spec read((pos_integer() -> {:ok, page()} | {:error, term()}), pos_integer(), pos_integer()) ::
+          {:ok, [product()]} | {:error, term()}
+  def read(request, max_pages, passes \\ 1), do: read(request, max_pages, passes, nil, [])
+
+  defp read(request, max_pages, passes, first, before) do
+    with {:ok, first, products} <- read_pass(request, max_pages, 1, first, []) do
+      products = before ++ products
+
+      case complete(products, first.total) do
+        {:error, :incomplete_listing} when passes > 1 ->
+          read(request, max_pages, passes - 1, first, products)
+
+        result ->
+          result
+      end
+    end
+  end
+
+  defp read_pass(request, max_pages, number, first, acc) do
     with {:ok, page} <- request.(number),
          :ok <- check(page, max_pages, number, first || page) do
+      first = first || page
       acc = [page.products | acc]
 
       if number < page.last,
-        do: read(request, max_pages, number + 1, first || page, acc),
-        else: acc |> Enum.reverse() |> List.flatten() |> complete(page.total)
+        do: read_pass(request, max_pages, number + 1, first, acc),
+        else: {:ok, first, acc |> Enum.reverse() |> List.flatten()}
     end
   end
 
