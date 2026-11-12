@@ -5,11 +5,15 @@ defmodule TcgCheap.Sealed.Empik do
   of empik.com's marketplace sellers are left out. Pages hold 60 products;
   page n is the path with `,<60·(n−1)+1>` appended. The listing states its
   size ("Znaleziono 314 produktów"), from which its page count follows;
-  `TcgCheap.Sealed.HtmlListing.read/2` reads every page, at most `max_pages`,
-  and fails the fetch unless the distinct products read match that size. Each
-  page also holds a sponsored tile (`data-ad-info`), usually another seller's,
-  which is skipped; a marketplace product among the rest would break the count
-  and fail the fetch too.
+  `TcgCheap.Sealed.HtmlListing.read/3` reads every page, at most `max_pages`,
+  and fails the fetch unless the distinct products read match that size.
+  Empik orders products that tie on the sort key anew for each page, so one
+  pass shows some products twice at a page edge and misses as many others
+  (2026-11-12: 280–295 distinct of 312, three passes together all 312); the
+  listing is read again, up to four passes in all, until the passes
+  together hold every product. Each page also holds a sponsored tile
+  (`data-ad-info`), usually another seller's, which is skipped; a marketplace
+  product among the rest would break the count and fail the fetch too.
 
   The category mixes Panini, Lorcana and card accessories, so a product counts
   when it is sealed Pokémon (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on
@@ -26,6 +30,9 @@ defmodule TcgCheap.Sealed.Empik do
   alias TcgCheap.Sealed.{HtmlListing, Shop, ShopFeed}
 
   @page_size 60
+  # A pass is six pages of about 2 s each, so four stay well within the job's
+  # 5-minute timeout.
+  @passes 4
   @image_host "ecsmedia.pl"
   @found ~r/\AZnaleziono ([0-9]{1,6}) produkt/
 
@@ -34,7 +41,8 @@ defmodule TcgCheap.Sealed.Empik do
 
   @impl true
   def fetch(%Shop{} = shop, req_options) do
-    with {:ok, products} <- HtmlListing.read(&request(shop, req_options, &1), shop.max_pages) do
+    with {:ok, products} <-
+           HtmlListing.read(&request(shop, req_options, &1), shop.max_pages, @passes) do
       {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
     end
   end
