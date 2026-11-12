@@ -17,7 +17,11 @@ defmodule TcgCheapWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images favicon.ico apple-touch-icon.png)
+  # The IndexNow key file proves to Bing and others that our URL submissions
+  # (through OpenSEO) come from the site; the key is public by design.
+  def static_paths,
+    do:
+      ~w(assets fonts images favicon.ico apple-touch-icon.png 3d69f8ee063d49579a3ebcf198001316.txt)
 
   def router do
     quote do
