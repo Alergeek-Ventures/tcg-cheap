@@ -38,7 +38,10 @@ defmodule TcgCheap.Sealed.Matcher do
   display is a booster box. Titles for multi-item bundles, empty, damaged,
   opened or used boxes, singles and accessories are excluded outright; a title naming a
   pre-order matches like any other (`preorder_title?/1` marks the offer). Otherwise a known
-  EAN (`TcgCheap.Sealed.known_eans/0`) wins over the title.
+  EAN (`TcgCheap.Sealed.known_eans/0`) wins over the title, unless the title matches another
+  product and the EAN's product does not fit the title's qualifiers or pack count: shops sell
+  single boosters under their display's EAN ("Delta Reign – Booster pack" with the Booster
+  Box's barcode).
   """
 
   alias TcgCheap.Sealed.Regions
@@ -211,7 +214,8 @@ defmodule TcgCheap.Sealed.Matcher do
             by_token: %{},
             known_tokens: MapSet.new(),
             sets: [],
-            eans: %{}
+            eans: %{},
+            by_id: %{}
 
   @type t :: %__MODULE__{}
   @type product :: %{
@@ -288,24 +292,47 @@ defmodule TcgCheap.Sealed.Matcher do
       by_token: by_token(entries),
       known_tokens: known_tokens,
       sets: sets,
-      eans: eans
+      eans: eans,
+      by_id: Map.new(entries, &{&1.id, &1})
     }
   end
 
   @doc "Matches an offer (`:title`, optional `:ean`) against an index."
   @spec match(map(), t()) :: result()
   def match(%{title: title} = offer, %__MODULE__{} = index) when is_binary(title) do
-    normalized = normalize(title)
+    case exclusion(normalize(title)) do
+      nil ->
+        packs? = Regex.match?(@packs, title)
+        offer_tokens = offer_tokens(title, index.sets, packs?)
+        ean_id = Map.get(index.eans, Map.get(offer, :ean) || "")
+        ean_or_title(ean_id, best(offer_tokens, index, packs?), offer_tokens, index, packs?)
 
-    with nil <- exclusion(normalized),
-         :error <- Map.fetch(index.eans, Map.get(offer, :ean) || "") do
-      packs? = Regex.match?(@packs, title)
-      title |> offer_tokens(index.sets, packs?) |> best(index, packs?)
-    else
-      {:ok, id} -> {:matched, id}
-      reason -> {:excluded, reason}
+      reason ->
+        {:excluded, reason}
     end
   end
+
+  # Shops sell single boosters under their display's EAN ("Delta Reign –
+  # Booster pack" with the Booster Box's barcode). A known EAN wins over the
+  # title unless the title matches another product and the EAN's product does
+  # not fit the title's kind or language words or its pack count; a title that
+  # matches nothing, or a product left out of the index, leaves the EAN standing.
+  defp ean_or_title(nil, by_title, _offer_tokens, _index, _packs?), do: by_title
+
+  defp ean_or_title(ean_id, {:matched, title_id} = by_title, offer_tokens, index, packs?)
+       when title_id != ean_id do
+    qualifiers = offer_tokens |> MapSet.new() |> MapSet.intersection(@qualifiers)
+
+    case Map.fetch(index.by_id, ean_id) do
+      {:ok, entry} ->
+        if kind_fits?(entry, qualifiers, packs?), do: {:matched, ean_id}, else: by_title
+
+      :error ->
+        {:matched, ean_id}
+    end
+  end
+
+  defp ean_or_title(ean_id, _by_title, _offer_tokens, _index, _packs?), do: {:matched, ean_id}
 
   @doc "The matched product id, or nil."
   @spec product_id(map(), t()) :: term() | nil
@@ -340,7 +367,9 @@ defmodule TcgCheap.Sealed.Matcher do
     * `:normalized` – the normalized title;
     * `:exclusion` – the exclusion phrase or rule that rejects the title, or nil;
     * `:ean_product_id` – the product identified by the known EAN, or nil
-      (it wins over the title when not excluded);
+      (it wins over the title when not excluded, unless the title matches
+      another product and this one does not fit the title's qualifiers or
+      pack count);
     * `:tokens` – the title tokens compared with product names, after pack
       counts and a leading series are removed and "1 Pack Blister" follows
       "Checklane" in a title that neither says "Premium" nor counts packs;
@@ -530,12 +559,18 @@ defmodule TcgCheap.Sealed.Matcher do
   end
 
   defp candidate?(entry, offer_set, qualifiers, packs?) do
-    not (packs? and entry.single?) and
+    kind_fits?(entry, qualifiers, packs?) and
       entry.tokens |> MapSet.difference(entry.omissible) |> MapSet.subset?(offer_set) and
-      MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
       MapSet.size(unexplained(offer_set, entry)) <= @max_unexplained and
       checklane_fits?(entry, offer_set, unexplained(offer_set, entry)) and
       edition_named?(entry, offer_set)
+  end
+
+  # The title's kind and language words fit the product: it names or meets
+  # every qualifier, and a title counting packs is not a single one.
+  defp kind_fits?(entry, qualifiers, packs?) do
+    not (packs? and entry.single?) and
+      MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets))
   end
 
   # A name's "S-Ch" (or "Simplified Chinese") is not a name token, but such a
