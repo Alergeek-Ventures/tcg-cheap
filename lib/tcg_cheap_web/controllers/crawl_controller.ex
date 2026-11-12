@@ -2,28 +2,44 @@ defmodule TcgCheapWeb.CrawlController do
   use TcgCheapWeb, :controller
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{CardGuide, Guide, Shops}
+  alias TcgCheap.Sealed.{CardGuide, Guide, Shops, Sitemap}
   alias TcgCheap.WebBotAuth
   alias TcgCheapWeb.{PageMarkdown, Polish, SEO}
 
   def sitemap(conn, _params) do
     %{expansions: expansions, products: products, cards: cards} = listed_pages()
 
+    # A product or card page changes when its price does.
+    product_dates = products |> Enum.map(& &1.id) |> Sitemap.product_dates()
+
+    card_dates =
+      cards |> Enum.map(&elem(&1, 3)) |> Enum.filter(& &1) |> Enum.uniq() |> Sitemap.card_dates()
+
+    # The guides read today's prices, so they change every day; the date
+    # tells search engines to look again.
+    today = Date.utc_today()
+
+    guides =
+      for location <- [
+            url(~p"/ile-kosztuje-booster-pokemon"),
+            url(~p"/najdrozsze-karty-pokemon"),
+            url(~p"/jak-sprawdzic-wartosc-karty-pokemon")
+          ],
+          do: {location, today}
+
     locations =
-      [
-        url(~p"/"),
-        url(~p"/karty"),
-        url(~p"/ile-kosztuje-booster-pokemon"),
-        url(~p"/najdrozsze-karty-pokemon"),
-        url(~p"/jak-sprawdzic-wartosc-karty-pokemon")
-      ] ++
-        Enum.map(expansions, fn {id, name} -> SEO.expansion_url(id, name) end) ++
-        Enum.map(products, &url(~p"/produkty/#{&1.slug}")) ++
-        Enum.map(cards, fn {_id, _name, path} -> unverified_url(TcgCheapWeb.Endpoint, path) end)
+      [{url(~p"/"), nil}, {url(~p"/karty"), nil}] ++
+        guides ++
+        Enum.map(expansions, fn {id, name} -> {SEO.expansion_url(id, name), nil} end) ++
+        Enum.map(products, &{url(~p"/produkty/#{&1.slug}"), product_dates[&1.id]}) ++
+        Enum.map(cards, fn {_id, _name, path, cardmarket_id} ->
+          {unverified_url(TcgCheapWeb.Endpoint, path), card_dates[cardmarket_id]}
+        end)
 
     entries =
-      for location <- locations do
-        {"url", [], [{"loc", [], [location]}]}
+      for {location, lastmod} <- locations do
+        lastmod = lastmod && {"lastmod", [], [Date.to_iso8601(lastmod)]}
+        {"url", [], [{"loc", [], [location]} | List.wrap(lastmod)]}
       end
 
     body =
@@ -76,7 +92,7 @@ defmodule TcgCheapWeb.CrawlController do
     # lists those cards, under the name their paths use.
     expansions =
       cards
-      |> Map.new(fn {id, name, _path} -> {id, name} end)
+      |> Map.new(fn {id, name, _path, _cardmarket_id} -> {id, name} end)
       |> Map.merge(sealed_sets)
       |> Enum.sort()
 
@@ -122,7 +138,7 @@ defmodule TcgCheapWeb.CrawlController do
 
     - [Strona główna](#{PageMarkdown.url_for(url(~p"/"))}): produkty na stanie w sklepach z najniższą ceną i oceną
     - [Ceny kart](#{PageMarkdown.url_for(url(~p"/karty"))}): angielskie karty na stanie w sklepach z najniższą ceną i oceną
-    - [Ile kosztuje booster Pokémon](#{PageMarkdown.url_for(url(~p"/ile-kosztuje-booster-pokemon"))}): najtańszy angielski booster każdego z ostatnich setów i okazje w sieciówkach (Lidl, Rossmann, Żabka…)
+    - [Ile kosztuje booster Pokémon](#{PageMarkdown.url_for(url(~p"/ile-kosztuje-booster-pokemon"))}): poradnik zakupowy – co jest w blistrach, Booster Bundle, Elite Trainer Boxach, Booster Boxach, puszkach i kolekcjach, ile dopłacasz za dodatki ponad cenę boosterów (na przykładzie najnowszego setu) i kiedy co kupić; najtańszy booster każdego z ostatnich setów i okazje w sieciówkach
     - [Najdroższe karty Pokémon](#{PageMarkdown.url_for(url(~p"/najdrozsze-karty-pokemon"))}): rekordy aukcji ze źródłami i najdroższe angielskie karty dziś z cenami w polskich sklepach
     - [Jak sprawdzić wartość karty Pokémon](#{PageMarkdown.url_for(url(~p"/jak-sprawdzic-wartosc-karty-pokemon"))}): jak znaleźć numer, wersję i stan karty, rozkład cen kart w polskich sklepach i kiedy opłaca się grading
 
