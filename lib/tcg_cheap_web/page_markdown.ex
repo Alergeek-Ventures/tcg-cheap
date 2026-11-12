@@ -284,7 +284,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       section(
         "Karta",
         list([
-          "Numer: #{card.number}",
+          "Numer: #{CardGuide.printed_number(card)}",
           "Rozszerzenie: " <>
             link(
               page.expansion_name,

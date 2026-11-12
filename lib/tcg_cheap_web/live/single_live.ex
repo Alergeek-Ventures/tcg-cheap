@@ -213,8 +213,9 @@ defmodule TcgCheapWeb.SingleLive do
             <section class="product-identity single-identity" aria-labelledby="single-name">
               <h1 id="single-name">{@page.card.name}</h1>
               <p class="product-facts">
-                {@page.card.rarity || gettext("Rzadkość nieznana")} · {@page.card.number}/{@page.card.tcgdex_set.official_card_count ||
-                  "?"} ·
+                {@page.card.rarity || gettext("Rzadkość nieznana")} · {CardGuide.printed_number(
+                  @page.card
+                )} ·
                 <.link navigate={
                   SEO.expansion_path(
                     @page.card.tcgdex_set.cardmarket_expansion_id,

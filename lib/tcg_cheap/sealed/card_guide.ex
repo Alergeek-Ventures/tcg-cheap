@@ -26,6 +26,22 @@ defmodule TcgCheap.Sealed.CardGuide do
     if MapSet.member?(collisions, card.id), do: base <> "-" <> card.tcgdex_id, else: base
   end
 
+  @doc """
+  The number as printed at the bottom of the card, "014/159": what people read
+  off the card and type into a search. Needs the card's `tcgdex_set`. Black
+  Star promos and the basic energy sets print no set total, and subset cards
+  ("GG43", "TG05") count against their subset, not the set, so those keep the
+  bare number rather than show a total the card doesn't carry.
+  """
+  def printed_number(%{number: number, tcgdex_set: %{official_card_count: count, name: set_name}})
+      when is_integer(count) and count > 0 do
+    if number =~ ~r/\A\d+\z/ and not (set_name =~ ~r/Promo|Energy/),
+      do: "#{number}/#{count}",
+      else: number
+  end
+
+  def printed_number(card), do: card.number
+
   def path(card, expansion_name, expansion_id, collisions \\ nil),
     do:
       "/rozszerzenia/#{Catalogue.slug(expansion_name, expansion_id)}/karty/#{slug(card, collisions || collision_ids())}"
