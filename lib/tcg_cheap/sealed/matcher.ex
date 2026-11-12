@@ -39,9 +39,8 @@ defmodule TcgCheap.Sealed.Matcher do
   opened or used boxes, singles and accessories are excluded outright; a title naming a
   pre-order matches like any other (`preorder_title?/1` marks the offer). Otherwise a known
   EAN (`TcgCheap.Sealed.known_eans/0`) wins over the title, unless the title matches another
-  product and the EAN's product does not fit the title's qualifiers or pack count: shops sell
-  single boosters under their display's EAN ("Delta Reign – Booster pack" with the Booster
-  Box's barcode).
+  product and contradicts the EAN's one (`contradicts?/4`): shops sell single boosters under
+  their display's EAN and one Pokémon's tin under its sibling's.
   """
 
   alias TcgCheap.Sealed.Regions
@@ -81,6 +80,8 @@ defmodule TcgCheap.Sealed.Matcher do
     {"slim pack", "slim"},
     {"world championships deck", "wcd"},
     {"etb", "elite trainer box"},
+    # A common misspelling of the Enhanced Booster Box.
+    {"enchanced", "enhanced"},
     {"min tin", "mini tin"},
     {"puszka", "tin"},
     {"seria", "series"},
@@ -96,6 +97,7 @@ defmodule TcgCheap.Sealed.Matcher do
     {"japonska", "jp"},
     {"japonskie", "jp"},
     {"japonskich", "jp"},
+    {"japonia", "jp"},
     {"koreanski", "korean"},
     {"koreanska", "korean"},
     {"koreanskie", "korean"},
@@ -200,7 +202,8 @@ defmodule TcgCheap.Sealed.Matcher do
   # Two or more pieces ("x3", "10x", "36 szt", "3 sztuki"); "1 szt" is still one item.
   @multiples ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuki|sztuk|szt|pcs))(?: |\z)/
 
-  # Pack counts such as "(36)" or "(18 boosterów)" say nothing about identity.
+  # Pack counts such as "(36)" or "(10 boosterów)" say nothing about identity
+  # (but for 18, see `half_display/1`).
   @pack_count ~r/\(\s*\d{1,3}\s*[[:alpha:]]*\s*\)/u
   @case_units ~r/\A\d{1,2}\z/
   @digit_letter ~r/(\d)([a-z])/
@@ -312,20 +315,24 @@ defmodule TcgCheap.Sealed.Matcher do
     end
   end
 
-  # Shops sell single boosters under their display's EAN ("Delta Reign –
-  # Booster pack" with the Booster Box's barcode). A known EAN wins over the
-  # title unless the title matches another product and the EAN's product does
-  # not fit the title's kind or language words or its pack count; a title that
-  # matches nothing, or a product left out of the index, leaves the EAN standing.
+  # Shops reuse one product's EAN for another: a single booster under its
+  # display's barcode ("Delta Reign – Booster pack" with the Booster Box's), a
+  # tin, blister or box of one Pokémon under its sibling's ("Mega Charizard X ex
+  # Tin" with the Mega Clefable ex Tin's). A known EAN wins over the title
+  # unless the title matches another product and contradicts the EAN's one; a
+  # title that matches nothing, or a product left out of the index, leaves the
+  # EAN standing.
   defp ean_or_title(nil, by_title, _offer_tokens, _index, _packs?), do: by_title
 
   defp ean_or_title(ean_id, {:matched, title_id} = by_title, offer_tokens, index, packs?)
        when title_id != ean_id do
-    qualifiers = offer_tokens |> MapSet.new() |> MapSet.intersection(@qualifiers)
-
     case Map.fetch(index.by_id, ean_id) do
-      {:ok, entry} ->
-        if kind_fits?(entry, qualifiers, packs?), do: {:matched, ean_id}, else: by_title
+      {:ok, ean_entry} ->
+        title_entry = Map.fetch!(index.by_id, title_id)
+
+        if contradicts?(MapSet.new(offer_tokens), ean_entry, title_entry, packs?),
+          do: by_title,
+          else: {:matched, ean_id}
 
       :error ->
         {:matched, ean_id}
@@ -368,8 +375,7 @@ defmodule TcgCheap.Sealed.Matcher do
     * `:exclusion` – the exclusion phrase or rule that rejects the title, or nil;
     * `:ean_product_id` – the product identified by the known EAN, or nil
       (it wins over the title when not excluded, unless the title matches
-      another product and this one does not fit the title's qualifiers or
-      pack count);
+      another product and contradicts this one);
     * `:tokens` – the title tokens compared with product names, after pack
       counts and a leading series are removed and "1 Pack Blister" follows
       "Checklane" in a title that neither says "Premium" nor counts packs;
@@ -566,6 +572,25 @@ defmodule TcgCheap.Sealed.Matcher do
       edition_named?(entry, offer_set)
   end
 
+  # The title contradicts the EAN's product when that product does not fit the
+  # title's kind or language words or its pack count, or when the product the
+  # title matches has a word the title names and the EAN's product lacks
+  # (another Pokémon, set or edition). A title that only leaves words out, such
+  # as "30th Celebration Booster (CHI)" for the Simplified Chinese booster,
+  # does not contradict it.
+  defp contradicts?(offer_set, ean_entry, title_entry, packs?) do
+    qualifiers = MapSet.intersection(offer_set, @qualifiers)
+
+    ean_words =
+      ean_entry.tokens |> MapSet.union(ean_entry.meets) |> MapSet.union(ean_entry.code_tokens)
+
+    not kind_fits?(ean_entry, qualifiers, packs?) or
+      title_entry.tokens
+      |> MapSet.intersection(offer_set)
+      |> MapSet.difference(ean_words)
+      |> Enum.any?()
+  end
+
   # The title's kind and language words fit the product: it names or meets
   # every qualifier, and a title counting packs is not a single one.
   defp kind_fits?(entry, qualifiers, packs?) do
@@ -662,12 +687,17 @@ defmodule TcgCheap.Sealed.Matcher do
   defp offer_tokens(title, sets, packs?) do
     tokens =
       title
-      |> String.replace(@pack_count, " ")
+      |> String.replace(@pack_count, &half_display/1)
       |> tokens()
       |> strip_series(sets)
 
     if packs? or "premium" in tokens, do: tokens, else: checklane(tokens)
   end
+
+  # A pack count says nothing about identity, but for 18: Cardmarket names a
+  # half display "Booster Box (18 Boosters)", and a title counting 18 is one.
+  defp half_display(count),
+    do: if(Regex.match?(~r/\A\(\s*18\D/, count), do: " 18 ", else: " ")
 
   # Shops call a single pack in a blister a "Checklane (Blister/Booster)",
   # Cardmarket a "1-Pack Blister", which meets "checklane" (`meets/2`). A

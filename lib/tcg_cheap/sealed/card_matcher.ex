@@ -29,9 +29,14 @@ defmodule TcgCheap.Sealed.CardMatcher do
     {:poor, ~r/\b(po|poor|damaged)\b/},
     {:mint, ~r/\bmint\b/}
   ]
-  @grading ~r/\b(PSA|CGC|BGS|Beckett|ACE|TAG)\s*(10|[1-9](?:[.,]5)?)\b/i
+  # A grade may follow its label: "CGC Pristine 10", "PSA Gem Mint 10".
+  @grading ~r/\b(PSA|CGC|BGS|Beckett|ACE|TAG)\s*(?:(?:pristine|gem\s*mint|mint|perfect|black\s*label)\s*)?(10|[1-9](?:[.,]5)?)\b/i
   @not_card ~r/\b(deck|talia|lot|bundle|zestaw|koszulki|sleeves|booster|box|display|jumbo|oversize|proxy|replika|random|losow\w*|portfolio|binder|album|toploader|playmat|komplet|pakiet)\b/u
-  @special ~r/\b((poke|master|quick|dusk)\s*ball|ball pattern|energy\s*(symbol|pattern)|stamped|stamp|cosmos|cosmic holo|galaxy holo|galactic holo|holo energy pattern|rocket reverse)\b/
+  # Patterned and stamped printings, including the stamped promos of Play!
+  # Pokémon prize packs ("PPS7"), Pokémon Day, holiday calendars
+  # ("Snowflake"), store events ("GameStop", "Thank you"), tournament
+  # placements ("TOP 32") and Pokémon GO's peelable Ditto.
+  @special ~r/\b((poke|master|quick|dusk)\s*ball|ball pattern|energy\s*(symbol|pattern)|stamped|stamp|cosmos|cosmic holo|galaxy holo|galactic holo|holo energy pattern|rocket reverse|prize pack|pps\s*\d+|pokemon day|snowflake|gamestop|thank you|peelable|top\s*(4|8|16|32|64|128))\b/
   # 30th Classic Collection reprints print their original number (Charizard
   # 4/102), which shops quote; TCGdex numbers them 001–030 in order of it.
   # Three cards print 106 and two print 11, so the name still has to agree.
