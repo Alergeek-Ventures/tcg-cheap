@@ -85,7 +85,7 @@ defmodule TcgCheap.Sealed.TcgdexCard do
     end
 
     update :record_cardmarket_id do
-      description "Records the Cardmarket product id TCGdex gives the card, nil when none."
+      description "Records the card's Cardmarket product id (TCGdex's or a checked one), nil when none or unlinked."
       accept [:cardmarket_id]
       change set_attribute(:cardmarket_checked_at, &DateTime.utc_now/0)
     end
@@ -125,7 +125,9 @@ defmodule TcgCheap.Sealed.TcgdexCard do
     attribute :cardmarket_id, :integer do
       description """
       The Cardmarket product id TCGdex gives the card (or an unofficial list,
-      from Cardmarket's catalogue), nil when unknown.
+      from Cardmarket's catalogue), or the checked one
+      (`TcgCheap.Sealed.CheckedCardmarketIds`); nil when unknown or when
+      TCGdex gives it to another card of the set too.
       """
 
       public? true
