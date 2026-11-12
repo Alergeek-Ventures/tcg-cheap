@@ -714,11 +714,15 @@ defmodule TcgCheapWeb.SEO do
       end
 
     card_name = "#{card.name} #{number} #{page.expansion_name}"
+    short_name = "#{card.name} #{card.number} #{page.expansion_name}"
 
     metadata(
+      # A long name drops the set total ("014/159" → "014") before it drops
+      # "cena karty Pokémon".
       fit_title([
         gettext("%{card} – cena karty Pokémon w Polsce", card: card_name),
         gettext("%{card} – cena karty Pokémon", card: card_name),
+        gettext("%{card} – cena karty Pokémon", card: short_name),
         card_name
       ]),
       description,
