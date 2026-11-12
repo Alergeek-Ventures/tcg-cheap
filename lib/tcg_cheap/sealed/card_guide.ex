@@ -29,13 +29,14 @@ defmodule TcgCheap.Sealed.CardGuide do
   @doc """
   The number as printed at the bottom of the card, "014/159": what people read
   off the card and type into a search. Needs the card's `tcgdex_set`. Black
-  Star promos and the basic energy sets print no set total, and subset cards
-  ("GG43", "TG05") count against their subset, not the set, so those keep the
-  bare number rather than show a total the card doesn't carry.
+  Star promos and the basic energy sets print no set total, subset cards
+  ("GG43", "TG05") count against their subset, not the set, and Classic
+  Collection reprints may carry their original set's number, so those keep the
+  bare number rather than show a total the card may not carry.
   """
   def printed_number(%{number: number, tcgdex_set: %{official_card_count: count, name: set_name}})
       when is_integer(count) and count > 0 do
-    if number =~ ~r/\A\d+\z/ and not (set_name =~ ~r/Promo|Energy/),
+    if number =~ ~r/\A\d+\z/ and not ((set_name || "") =~ ~r/Promo|Energy|Classic Collection/),
       do: "#{number}/#{count}",
       else: number
   end
