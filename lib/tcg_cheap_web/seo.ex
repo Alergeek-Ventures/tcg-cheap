@@ -4,7 +4,7 @@ defmodule TcgCheapWeb.SEO do
   use TcgCheapWeb, :html
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{CardImage, Catalogue, Kinds, Shops}
+  alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Kinds, Shops}
   alias TcgCheapWeb.{GuideComponents, PageMarkdown, Polish, SocialImage}
 
   def home(params) do
@@ -690,6 +690,7 @@ defmodule TcgCheapWeb.SEO do
   # not the product photo, which stays in the structured data.
   def single(page) do
     card = page.card
+    number = CardGuide.printed_number(card)
     canonical = unverified_url(TcgCheapWeb.Endpoint, page.path)
     answer = Enum.find(page.answers, & &1.cheapest)
 
@@ -698,7 +699,7 @@ defmodule TcgCheapWeb.SEO do
         fit_description([
           gettext("%{name} %{number}: od %{price} w sklepach wysyłających do Polski.",
             name: card.name,
-            number: card.number,
+            number: number,
             price: Polish.price(answer.cheapest.price)
           ),
           GuideComponents.single_verdict_label(answer.verdict) <> ".",
@@ -708,11 +709,11 @@ defmodule TcgCheapWeb.SEO do
         gettext(
           "%{name} %{number}: brak ofert bez gradingu na stanie w sklepach. Sprawdź referencję Cardmarket i pozostałe oferty.",
           name: card.name,
-          number: card.number
+          number: number
         )
       end
 
-    card_name = "#{card.name} #{card.number} #{page.expansion_name}"
+    card_name = "#{card.name} #{number} #{page.expansion_name}"
 
     metadata(
       fit_title([
@@ -779,7 +780,7 @@ defmodule TcgCheapWeb.SEO do
 
     product = %{
       "@type" => "Product",
-      "name" => "#{page.card.name} #{page.card.number} #{page.expansion_name}",
+      "name" => "#{page.card.name} #{CardGuide.printed_number(page.card)} #{page.expansion_name}",
       "description" => description,
       "url" => canonical,
       "category" => gettext("Karta Pokémon TCG"),
