@@ -1,10 +1,12 @@
 defmodule TcgCheapWeb.LocationLogFilter do
   @moduledoc """
-  A primary `:logger` filter that keeps the visitor's location out of crash
-  reports. A crashing LiveView logs its last message and state (Elixir's
-  translator prints them at :error), and those hold the location under a
-  `"location"` event parameter or the `:location` assign; Phoenix's
-  `:filter_parameters` covers only its own parameter logs.
+  A primary `:logger` filter that keeps the visitor's location and the
+  session's CSRF token out of crash reports. A crashing LiveView logs its last
+  message and state (Elixir's translator prints them at :error), and those
+  hold the location under a `"location"` event parameter or the `:location`
+  assign, and the token in the connect params and the session, both under
+  `"_csrf_token"`; Phoenix's `:filter_parameters` covers only its own
+  parameter logs.
 
   Only structured events (`{:report, _}` and `{format, args}`) are searched,
   to a bounded depth; ordinary string log messages pass untouched.
@@ -51,7 +53,7 @@ defmodule TcgCheapWeb.LocationLogFilter do
   defp redact(%{} = map, depth) do
     :maps.map(
       fn
-        key, _value when key in ["location", :location] -> @filtered
+        key, _value when key in ["location", :location, "_csrf_token"] -> @filtered
         _key, value -> redact(value, depth - 1)
       end,
       map
