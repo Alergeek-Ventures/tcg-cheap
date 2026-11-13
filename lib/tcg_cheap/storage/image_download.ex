@@ -10,9 +10,15 @@ defmodule TcgCheap.Storage.ImageDownload do
   @spec fetch(term(), keyword()) :: {:ok, binary(), String.t()} | {:error, term()}
   def fetch(url, req_options \\ []) do
     if ExternalImage.valid?(url),
-      do: download(url, req_options, true),
+      do: download(request_url(url), req_options, true),
       else: {:error, :host_not_allowed}
   end
+
+  # Shops publish photo URLs with raw characters a request target may not
+  # hold, such as an en dash in a WordPress file name; browsers
+  # percent-encode them, while Req refuses the request ("invalid request
+  # target"). Encode them the same way, keeping the escapes already there.
+  defp request_url(url), do: URI.encode(url, &(URI.char_unescaped?(&1) or &1 == ?%))
 
   @doc """
   Cuts the transparent margins logos and packshots often pad their subject
