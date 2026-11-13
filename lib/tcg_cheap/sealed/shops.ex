@@ -1340,10 +1340,10 @@ defmodule TcgCheap.Sealed.Shops do
         "/booster-box-c-3.html",
         "/elite-trainer-box-etb-c-4.html",
         "/blistry-checklane-c-5.html",
-        "/boxy-c-6.html",
+        "/boxy-upc-c-6.html",
         "/puszki-c-7.html",
         "/decki-produkty-dla-graczy-c-9.html",
-        "/3-packi-c-192.html",
+        "/3-pack-tech-sticker-c-192.html",
         "/japonskie-karty-pokemon-c-130.html",
         "/chinskie-karty-pokemon-c-196.html"
       ],
