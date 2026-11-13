@@ -217,8 +217,9 @@ config :logger, :default_formatter,
 config :phoenix, :json_library, Jason
 
 # The visitor's location (connect params and the location control's events)
-# must never reach the logs; see TcgCheapWeb.VisitorLocation.
-config :phoenix, :filter_parameters, ["password", "location"]
+# must never reach the logs; see TcgCheapWeb.VisitorLocation. Nor may the
+# session's CSRF token, which LiveView sends in its connect params.
+config :phoenix, :filter_parameters, ["password", "location", "_csrf_token"]
 
 # Error reporting; runtime.exs sets the DSN, environment and release. Sentry's
 # scrubber covers request params, LiveView event breadcrumbs and stacktrace
