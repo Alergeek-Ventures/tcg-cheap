@@ -79,6 +79,8 @@ defmodule TcgCheap.Storage.Actions.ReplaceImage do
 
   # Only the pointer changes inside this transaction. Object deletion must not
   # happen until it commits: SQL rollback cannot restore deleted S3 files.
+  # Ash cannot send notifications from inside a transaction, so the action
+  # returns them and they go out once it commits.
   defp swap(record, name, blob) do
     record_type = to_string(record.__struct__)
     record_id = to_string(record.id)
@@ -86,25 +88,33 @@ defmodule TcgCheap.Storage.Actions.ReplaceImage do
 
     Repo.transaction(fn ->
       with {:ok, existing} <- Storage.get_image_attachment(record_type, record_id, name),
-           {:ok, attachment} <- set_blob(existing, record_type, record_id, name, blob.id) do
-        %{blob: blob, attachment: attachment, old_blob: existing && existing.blob}
+           {:ok, attachment, notifications} <-
+             set_blob(existing, record_type, record_id, name, blob.id) do
+        {%{blob: blob, attachment: attachment, old_blob: existing && existing.blob},
+         notifications}
       else
         {:error, reason} -> Repo.rollback(reason)
       end
     end)
+    |> notify()
   end
 
+  defp notify({:ok, {swapped, notifications}}) do
+    _unsent = Ash.Notifier.notify(notifications)
+    {:ok, swapped}
+  end
+
+  defp notify({:error, _reason} = error), do: error
+
   defp set_blob(nil, record_type, record_id, name, blob_id) do
-    Storage.create_image_attachment(%{
-      record_type: record_type,
-      record_id: record_id,
-      name: name,
-      blob_id: blob_id
-    })
+    Storage.create_image_attachment(
+      %{record_type: record_type, record_id: record_id, name: name, blob_id: blob_id},
+      return_notifications?: true
+    )
   end
 
   defp set_blob(existing, _record_type, _record_id, _name, blob_id),
-    do: Storage.replace_attachment_blob(existing, blob_id)
+    do: Storage.replace_attachment_blob(existing, blob_id, return_notifications?: true)
 
   defp cleanup(blob) do
     case Storage.purge_blob(blob) do
