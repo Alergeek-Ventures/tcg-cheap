@@ -789,8 +789,7 @@ defmodule TcgCheap.Sealed.CardGuide do
 
   # Only cards whose page has an answer: an in-stock, ungraded current offer,
   # the same rule as page/3. The rest stay reachable but noindex. Each comes
-  # with its expansion, whose set page lists it, and its Cardmarket product
-  # (nil when unknown), whose price history dates its page.
+  # with its expansion, whose set page lists it.
   def sitemap_cards do
     cards =
       from(c in TcgdexCard,
@@ -810,6 +809,6 @@ defmodule TcgCheap.Sealed.CardGuide do
     for {card, id} <- cards,
         name = Map.get(names, id),
         name,
-        do: {id, name, path(card, name, id, collisions), card.cardmarket_id}
+        do: {id, name, path(card, name, id, collisions)}
   end
 end

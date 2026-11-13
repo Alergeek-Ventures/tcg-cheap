@@ -9,11 +9,11 @@ defmodule TcgCheapWeb.CrawlController do
   def sitemap(conn, _params) do
     %{expansions: expansions, products: products, cards: cards} = listed_pages()
 
-    # A product or card page changes when its price does.
+    # A product page changes when its lowest price does. Card pages get no
+    # date: the only daily card price we keep, the Cardmarket trend, moves a
+    # little for most cards every day, and a date that is always today
+    # teaches search engines to ignore the sitemap's dates altogether.
     product_dates = products |> Enum.map(& &1.id) |> Sitemap.product_dates()
-
-    card_dates =
-      cards |> Enum.map(&elem(&1, 3)) |> Enum.filter(& &1) |> Enum.uniq() |> Sitemap.card_dates()
 
     # The guides read today's prices, so they change every day; the date
     # tells search engines to look again.
@@ -32,8 +32,8 @@ defmodule TcgCheapWeb.CrawlController do
         guides ++
         Enum.map(expansions, fn {id, name} -> {SEO.expansion_url(id, name), nil} end) ++
         Enum.map(products, &{url(~p"/produkty/#{&1.slug}"), product_dates[&1.id]}) ++
-        Enum.map(cards, fn {_id, _name, path, cardmarket_id} ->
-          {unverified_url(TcgCheapWeb.Endpoint, path), card_dates[cardmarket_id]}
+        Enum.map(cards, fn {_id, _name, path} ->
+          {unverified_url(TcgCheapWeb.Endpoint, path), nil}
         end)
 
     entries =
@@ -92,7 +92,7 @@ defmodule TcgCheapWeb.CrawlController do
     # lists those cards, under the name their paths use.
     expansions =
       cards
-      |> Map.new(fn {id, name, _path, _cardmarket_id} -> {id, name} end)
+      |> Map.new(fn {id, name, _path} -> {id, name} end)
       |> Map.merge(sealed_sets)
       |> Enum.sort()
 
