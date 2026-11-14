@@ -29,7 +29,7 @@ defmodule TcgCheapWeb.Region do
     :pages,
     :country
   ]
-  defstruct @enforce_keys
+  defstruct @enforce_keys ++ [visitors_from: []]
 
   @typedoc """
   A region as `TcgCheap.Country.region/0` defines it, with its market and
@@ -46,7 +46,8 @@ defmodule TcgCheapWeb.Region do
           hreflang: String.t(),
           slugs: %{products: String.t(), expansions: String.t(), cards: String.t()},
           pages: %{optional(atom()) => String.t()},
-          country: module()
+          country: module(),
+          visitors_from: [String.t()]
         }
 
   @doc "Every region, Poland first."
@@ -66,7 +67,8 @@ defmodule TcgCheapWeb.Region do
         hreflang: region.hreflang,
         slugs: region.slugs,
         pages: region.pages,
-        country: region.module
+        country: region.module,
+        visitors_from: Map.get(region, :visitors_from, [])
       }
     end
   end
@@ -88,10 +90,15 @@ defmodule TcgCheapWeb.Region do
     region
   end
 
-  @doc "The region for a visitor in a country (Cloudflare's `cf-ipcountry`): its own, else Poland's."
+  @doc """
+  The region for a visitor in a country (Cloudflare's `cf-ipcountry`): its
+  own, else the one it is among the `visitors_from` of, else Poland's.
+  """
   @spec for_country(String.t() | nil) :: t()
   def for_country(country),
-    do: Enum.find(all(), &(&1.market.country == country)) || poland()
+    do:
+      Enum.find(all(), &(&1.market.country == country)) ||
+        Enum.find(all(), &(country in &1.visitors_from)) || poland()
 
   @doc "The languages the guide renders in (`TcgCheapWeb.Languages`)."
   @spec languages() :: [String.t()]
