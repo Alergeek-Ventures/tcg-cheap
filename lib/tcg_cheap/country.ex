@@ -29,9 +29,12 @@ defmodule TcgCheap.Country do
       the card list: `%{products: …, expansions: …, cards: …}`;
     * `pages` – the guide's own pages it has, by page (`:booster_prices`,
       `:expensive_cards`, `:card_value`, `:bot`), each with its slug; a page
-      without a translation is left out.
+      without a translation is left out;
+    * `visitors_from` (optional) – other countries, by ISO code, whose
+      visitors the root sends to this region rather than to Poland's.
   """
   @type region :: %{
+          optional(:visitors_from) => [String.t()],
           code: String.t(),
           currency: String.t(),
           currency_symbol: String.t(),

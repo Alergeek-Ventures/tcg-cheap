@@ -47,19 +47,23 @@ as missing.
 
 - A region is a country: its shops (domestic ones, and shops abroad with a
   delivery there), its currency and its own URLs – Poland under `/pl/` in
-  złoty, Hungary under `/hu/` in forints, Sweden under `/se/` in kronor. The root redirects to the visitor's
-  region (their choice, else their location; Poland for any other country).
-  Polish URLs from before regions, including old home links with list filters,
-  redirect permanently to their Polish page in one hop.
-- Language is separate from region: Polish, Hungarian, Swedish or English, by default
-  the region's own, switchable on every page.
+  złoty, Hungary under `/hu/` in forints, Sweden under `/se/` in kronor,
+  Croatia under `/hr/` in euro. The root redirects to the visitor's region
+  (their choice, else their location; Bosnia and Herzegovina to Croatia's,
+  Poland for any other country). Polish URLs from before regions, including
+  old home links with list filters, redirect permanently to their Polish page
+  in one hop.
+- Language is separate from region: Polish, Hungarian, Swedish, Croatian or
+  English, by default the region's own, switchable on every page.
 - Every region applies the same rules: the same verdicts and limits in its own
   currency, prices of shops abroad converted at the NBP rate with their
-  delivery, the Cardmarket trend converted the same way.
+  delivery, the Cardmarket trend converted the same way. In a euro region the
+  trend is taken as is, without conversion.
 - Not every part exists everywhere yet. Polish only: articles, retail chain
   deals, singles from shops, the banners above the lists and a set's most
-  valuable cards. In Hungary and Sweden a card's price is its Cardmarket trend
-  in the region's currency, and a set page opens with its single booster.
+  valuable cards. In Hungary, Sweden and Croatia a card's price is its
+  Cardmarket trend in the region's currency, and a set page opens with its
+  single booster.
 - Text in each language reads as written for its buyers, never as a
   word-for-word translation.
 
@@ -77,7 +81,8 @@ as missing.
   the 30-day usual price and of the Cardmarket trend in the region's currency
   plus a tracked parcel from Germany, when they are known (the page says which
   one lowered the limit). The limits are shown in whole units of the region's
-  currency so a price seen in a physical shop can be judged too. With fewer
+  currency (in 0.10 euro steps in a euro region) so a price seen in a physical
+  shop can be judged too. With fewer
   shops there is no verdict: the list row shows only the price, the product page
   says "Za mało sklepów" and gives the Cardmarket trend in the region's currency
   as context.
@@ -148,7 +153,7 @@ as missing.
 
 ## Accessibility & Inclusion
 
-- Interface in Polish, Hungarian, Swedish and English; mobile-first and responsive.
+- Interface in Polish, Hungarian, Swedish, Croatian and English; mobile-first and responsive.
 - Semantic markup, keyboard access, visible focus, sufficient contrast,
   48px touch targets, no horizontal overflow at 390px.
 - Verdicts never rely on colour alone (text label plus icon).

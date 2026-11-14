@@ -1,0 +1,102 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/tcg_cheap/countries/croatia.ex:86
+#, elixir-autogen, elixir-format
+msgid "%{card} – cena karty Pokémon w euro"
+msgstr "%{card} – Pokémon card price in euros"
+
+#: lib/tcg_cheap/countries/croatia.ex:91
+#, elixir-autogen, elixir-format
+msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Chorwacji."
+msgstr "%{expansion}: compare prices of boosters, ETBs, boxes and collections in shops delivering to Croatia."
+
+#: lib/tcg_cheap/countries/croatia.ex:109
+#, elixir-autogen, elixir-format
+msgid "%{name}: teraz żaden sklep wysyłający do Chorwacji nie ma tego produktu na stanie."
+msgstr "%{name}: no shop delivering to Croatia has this product in stock right now."
+
+#: lib/tcg_cheap/countries/croatia.ex:79
+#, elixir-autogen, elixir-format
+msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w euro."
+msgstr "English Pokémon TCG cards with their Cardmarket price in euros."
+
+#: lib/tcg_cheap/countries/croatia.ex:100
+#, elixir-autogen, elixir-format
+msgid "Boostera %{expansion} żaden sklep wysyłający do Chorwacji nie ma teraz na stanie."
+msgstr "No shop delivering to Croatia has the %{expansion} booster in stock right now."
+
+#: lib/tcg_cheap/countries/croatia.ex:63
+#, elixir-autogen, elixir-format
+msgid "Ceny Pokémon TCG ze sklepów wysyłających do Chorwacji, sprawdzane codziennie."
+msgstr "Pokémon TCG prices from shops delivering to Croatia, checked daily."
+
+#: lib/tcg_cheap/countries/croatia.ex:144
+#, elixir-autogen, elixir-format
+msgid "Ceny chorwackich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Chorwacji. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
+msgstr "Croatian shops' prices exclude shipping; shops abroad include shipping to Croatia. For Cardmarket we add %{shipping} for a parcel from Germany."
+
+#: lib/tcg_cheap/countries/croatia.ex:82
+#, elixir-autogen, elixir-format
+msgid "Ceny kart Pokémon TCG w euro"
+msgstr "Pokémon TCG card prices in euros"
+
+#: lib/tcg_cheap/countries/croatia.ex:120
+#, elixir-autogen, elixir-format
+msgid "Ceny ze sklepów z zagranicy są z wysyłką do Chorwacji."
+msgstr "Prices from shops abroad include delivery to Croatia."
+
+#: lib/tcg_cheap/countries/croatia.ex:44
+#, elixir-autogen, elixir-format
+msgid "Chorwacja"
+msgstr "Croatia"
+
+#: lib/tcg_cheap/countries/croatia.ex:70
+#, elixir-autogen, elixir-format
+msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Chorwacji."
+msgstr "The cheapest Pokémon TCG offers in shops delivering to Croatia."
+
+#: lib/tcg_cheap/countries/croatia.ex:55
+#, elixir-autogen, elixir-format
+msgid "Porównaj ceny Pokémon TCG w sklepach wysyłających do Chorwacji. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
+msgstr "Compare Pokémon TCG prices in shops delivering to Croatia. Find booster, ETB and box offers, price history and whether now is the time to buy."
+
+#: lib/tcg_cheap/countries/croatia.ex:50
+#, elixir-autogen, elixir-format
+msgid "Przejdź do wersji chorwackiej"
+msgstr "Switch to the Croatian version"
+
+#: lib/tcg_cheap/countries/croatia.ex:125
+#, elixir-autogen, elixir-format
+msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr "Shops abroad sell in their own currency. We convert prices in currencies other than the euro at daily NBP rates. The shop's page may be in another language."
+
+#: lib/tcg_cheap/countries/croatia.ex:47
+#, elixir-autogen, elixir-format
+msgid "Wygląda na to, że jesteś w Chorwacji."
+msgstr "Looks like you're in Croatia."
+
+#: lib/tcg_cheap/countries/croatia.ex:18
+#, elixir-autogen, elixir-format
+msgid "wysyłka z Chorwacji"
+msgstr "ships from Croatia"
+
+#: lib/tcg_cheap/countries/croatia.ex:21
+#, elixir-autogen, elixir-format
+msgid "z wysyłką z Chorwacji"
+msgstr "with delivery from Croatia"
+
+#: lib/tcg_cheap/countries/croatia.ex:116
+#, elixir-autogen, elixir-format
+msgid "z wysyłką z Niemiec"
+msgstr "with delivery from Germany"
