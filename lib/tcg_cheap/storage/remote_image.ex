@@ -46,10 +46,23 @@ defmodule TcgCheap.Storage.RemoteImage do
     end
 
     # An image with variants but no attempt is due again (see :trim_margins).
+    # A failing source backs off: n failures wait min(2^(n-1), 16) days, so a
+    # missing scan is not fetched every day forever. RemoteImageMirror.run/2
+    # applies the same rule.
     read :pending do
       argument :limit, :integer, allow_nil?: false
       filter expr(is_nil(thumbnail_key) or is_nil(detail_key) or is_nil(attempted_at))
-      filter expr(is_nil(attempted_at) or attempted_at < ago(1, :day))
+
+      # Rows that failed before failures were counted (0) wait a day.
+      filter expr(
+               is_nil(attempted_at) or
+                 fragment(
+                   "? < now() AT TIME ZONE 'UTC' - make_interval(days => least(power(2, greatest(? - 1, 0))::integer, 16))",
+                   attempted_at,
+                   failed_attempts
+                 )
+             )
+
       prepare build(sort: [attempted_at: :asc_nils_first, id: :asc], limit: arg(:limit))
     end
 
@@ -61,6 +74,13 @@ defmodule TcgCheap.Storage.RemoteImage do
 
     update :record_attempt do
       accept [:thumbnail_key, :detail_key]
+      change set_attribute(:attempted_at, &DateTime.utc_now/0)
+      change set_attribute(:failed_attempts, 0)
+    end
+
+    # Keeps the current keys: a re-mirror that fails still serves the old variants.
+    update :record_failure do
+      change atomic_update(:failed_attempts, expr(failed_attempts + 1))
       change set_attribute(:attempted_at, &DateTime.utc_now/0)
     end
 
@@ -90,5 +110,12 @@ defmodule TcgCheap.Storage.RemoteImage do
     end
 
     attribute :attempted_at, :utc_datetime_usec
+
+    attribute :failed_attempts, :integer do
+      allow_nil? false
+      default 0
+
+      description "Consecutive failed mirror attempts; a success resets it. Sets the retry backoff."
+    end
   end
 end
