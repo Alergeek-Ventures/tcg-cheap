@@ -82,6 +82,8 @@ defmodule TcgCheap.Sealed.Guildmage do
          number: String.to_integer(current)
        }}
     else
+      # The shop's answer ({:http_status, 503}, a transport error), not ours.
+      {:error, reason} -> {:error, reason}
       _ -> {:error, :malformed_response}
     end
   end

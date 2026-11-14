@@ -84,6 +84,8 @@ defmodule TcgCheap.Sealed.MagicznyRynek do
                 is_integer(current) <- get_in(data, ["props", "pageProps"]) do
       {:ok, %{products: products, total: total, pages: pages, number: current}}
     else
+      # The shop's answer ({:http_status, 503}, a transport error), not ours.
+      {:error, reason} -> {:error, reason}
       _ -> {:error, :malformed_response}
     end
   end
