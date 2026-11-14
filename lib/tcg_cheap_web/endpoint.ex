@@ -1,12 +1,16 @@
 defmodule TcgCheapWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :tcg_cheap
 
-  # The session lives in a signed cookie: readable, but not alterable.
+  # The session lives in a signed and encrypted cookie. The production build
+  # sends it over HTTPS only; development serves plain HTTP. The options are
+  # fixed at compile time because the LiveView socket reuses them.
   @session_options [
     store: :cookie,
     key: "_tcg_cheap_key",
     signing_salt: "LO5M3vJn",
-    same_site: "Lax"
+    encryption_salt: "8W5ywsi0",
+    same_site: "Lax",
+    secure: Mix.env() == :prod
   ]
 
   socket "/live", Phoenix.LiveView.Socket,
