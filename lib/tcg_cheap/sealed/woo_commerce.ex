@@ -216,6 +216,12 @@ defmodule TcgCheap.Sealed.WooCommerce do
     with {:ok, id} <- product_id(product["id"]),
          {:ok, url} <- product_url(shop, product["permalink"]),
          {:ok, price} <- price(product["prices"], shop.currency, kind) do
+      # Some shops identify pre-orders only in their permalink, while the
+      # Store API still reports them as available (TCGbolt).
+      preorder =
+        Matcher.preorder_title?(title) or
+          Matcher.preorder_title?(String.replace(URI.parse(url).path, "-", " "))
+
       {:ok,
        %{
          shop_product_id: id,
@@ -224,7 +230,8 @@ defmodule TcgCheap.Sealed.WooCommerce do
          image_url: image_url(shop, product["images"]),
          ean: Ean.normalize(product["sku"]),
          price: price,
-         in_stock: in_stock?(product)
+         in_stock: in_stock?(product) and not preorder,
+         preorder: preorder
        }}
     end
   end
@@ -239,6 +246,9 @@ defmodule TcgCheap.Sealed.WooCommerce do
   end
 
   defp single_category(_product), do: nil
+
+  defp sealed?(%Shop{mixed_listing: true}, _categories, title),
+    do: ShopFeed.sealed_pokemon?(title, nil)
 
   defp sealed?(%Shop{sealed_categories: nil}, _categories, title),
     do: Matcher.sealed_title?(title)

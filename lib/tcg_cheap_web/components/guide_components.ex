@@ -1027,6 +1027,8 @@ defmodule TcgCheapWeb.GuideComponents do
   defp delivered_from("SE"), do: gettext("z wysyłką ze Szwecji")
   defp delivered_from("DK"), do: gettext("z wysyłką z Danii")
   defp delivered_from("CZ"), do: gettext("z wysyłką z Czech")
+  defp delivered_from("PT"), do: gettext("z wysyłką z Portugalii")
+  defp delivered_from("HU"), do: gettext("z wysyłką z Węgier")
 
   @doc """
   A Cardmarket price in złoty behind the Cardmarket logo, the one mark for a
@@ -1403,6 +1405,8 @@ defmodule TcgCheapWeb.GuideComponents do
   defp abroad_term("SE"), do: gettext("wysyłka ze Szwecji")
   defp abroad_term("DK"), do: gettext("wysyłka z Danii")
   defp abroad_term("CZ"), do: gettext("wysyłka z Czech")
+  defp abroad_term("PT"), do: gettext("wysyłka z Portugalii")
+  defp abroad_term("HU"), do: gettext("wysyłka z Węgier")
 
   # Pickup within the radius is shown on its own line instead.
   defp pickup_term(nil, _km, _near?), do: nil

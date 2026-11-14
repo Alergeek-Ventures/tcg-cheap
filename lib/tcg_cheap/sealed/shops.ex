@@ -30,7 +30,7 @@ defmodule TcgCheap.Sealed.Shops do
   Morion's header image is a banner and Hearts Pub sits behind a bot check.
   The logos of the shops added for singles, and of those that had none, were
   taken on 2026-11-07, the same way; Smyk's, Empik's and Bangerpack's on
-  2026-11-10.
+  2026-11-10; Hungarian shops and the additional Shopify shops on 2026-11-14.
   """
 
   alias TcgCheap.Pricing.ExchangeRate
@@ -67,6 +67,8 @@ defmodule TcgCheap.Sealed.Shops do
     WooCommerce
   }
 
+  @termek ~r|\A/termek/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
+  @bolt ~r|\A/bolt/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
   @produkt ~r|\A/produkt/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
   @produkt_no_slash ~r|\A/produkt/[a-z0-9]+(?:-[a-z0-9]+)*\z|
   @product ~r|\A/product/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
@@ -79,6 +81,338 @@ defmodule TcgCheap.Sealed.Shops do
   @shoper_ceneo "/console/integration/execute/name/CeneoV2"
 
   @shops [
+    # Hungarian listings and delivery terms checked on the shops' public
+    # pages and anonymous carts on 2026-11-14. Unknown terms stay nil.
+    %Shop{
+      key: "cardempire",
+      name: "Card Empire",
+      host: "www.cardempire.hu",
+      source: Shoptet,
+      listing_paths: [
+        "/pokemon-booster-box/",
+        "/pokemon-booster-pack/",
+        "/pokemon-elite-trainer-box/",
+        "/pokemon-blister/",
+        "/pokemon-tin/",
+        "/pokemon-premium-box/",
+        "/pokemon-booster-bundle/",
+        "/pokemon-build-and-battle-box/",
+        "/pokemon-build-and-battle-stadium/",
+        "/pokemon-sleeved-booster-pack/",
+        "/pokemon-sealed-case/"
+      ],
+      currency: "HUF",
+      country: "HU",
+      max_pages: 20,
+      shipping_from: Decimal.new("1690"),
+      free_shipping_from: Decimal.new("80000"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "rjmods",
+      name: "RJ Mods",
+      host: "www.rjmods.hu",
+      source: Shoptet,
+      listing_paths: ["/pokemon-tcg/"],
+      currency: "HUF",
+      country: "HU",
+      max_pages: 5,
+      # Foxpost rate in the product's schema.org shippingDetails.
+      shipping_from: Decimal.new("1200"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgbolt",
+      name: "TCGbolt",
+      host: "tcgbolt.hu",
+      source: WooCommerce,
+      category: "19",
+      product_path: @bolt,
+      sealed_categories: [
+        "booster-pokemon",
+        "booster-display",
+        "elite-trainer-box",
+        "ex-box",
+        "premium-collection",
+        "battle-deck",
+        "tin"
+      ],
+      currency: "HUF",
+      country: "HU",
+      max_pages: 5,
+      shipping_from: Decimal.new("1400"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "cobracard",
+      name: "CobraCard",
+      host: "cobracard.hu",
+      source: WooCommerce,
+      category: "69",
+      product_path: @termek,
+      mixed_listing: true,
+      currency: "HUF",
+      country: "HU",
+      max_pages: 5,
+      shipping_from: Decimal.new("1650"),
+      free_shipping_from: nil,
+      pickup_city: "Halásztelek"
+    },
+    %Shop{
+      key: "tcgwebshop",
+      name: "TCG Webshop",
+      host: "tcgwebshop.hu",
+      source: WooCommerce,
+      category: "5564",
+      product_path: @termek,
+      currency: "HUF",
+      country: "HU",
+      max_pages: 5,
+      shipping_from: Decimal.new("1350"),
+      free_shipping_from: Decimal.new("30000"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "cardverse",
+      name: "Cardverse",
+      host: "www.cardverse.hu",
+      source: WooCommerce,
+      category: "131",
+      product_path: @termek,
+      mixed_listing: true,
+      currency: "HUF",
+      country: "HU",
+      max_pages: 10,
+      # The parcel-point plugin quotes its price only after selecting a point.
+      shipping_from: Decimal.new("2000"),
+      free_shipping_from: nil,
+      pickup_city: "Szombathely"
+    },
+    %Shop{
+      key: "geekempire",
+      name: "Geek Empire",
+      host: "geekempire.hu",
+      source: WooCommerce,
+      category: "1512",
+      product_path: @termek,
+      currency: "HUF",
+      country: "HU",
+      max_pages: 5,
+      shipping_from: Decimal.new("1200"),
+      free_shipping_from: nil,
+      pickup_city: "Nyíregyháza"
+    },
+    %Shop{
+      key: "holozone",
+      name: "Holo Zone",
+      host: "holozone.hu",
+      source: Shopify,
+      collection: "minden-pokemon-termek",
+      currency: "HUF",
+      country: "HU",
+      max_pages: 5,
+      shipping_from: Decimal.new("2500"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "mythgames",
+      name: "Myth Games",
+      host: "mythgames.eu",
+      source: Shopify,
+      collection: "pokemon-kartyak-booster-boxok-es-gyujtoi-termekek",
+      currency: "HUF",
+      country: "HU",
+      max_pages: 5,
+      shipping_from: Decimal.new("1990"),
+      free_shipping_from: nil,
+      pickup_city: "Budapest"
+    },
+    %Shop{
+      key: "godofcards",
+      name: "God of Cards",
+      host: "godofcards.com",
+      source: Shopify,
+      collection: "pokemon-tcg",
+      currency: "EUR",
+      country: "DE",
+      max_pages: 10,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("11.44"),
+          free_shipping_from: nil,
+          currency: "EUR"
+        },
+        "PL" => %{
+          # €8.38, converted to PLN and rounded up.
+          shipping_from: Decimal.new("36.94"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
+    },
+    %Shop{
+      key: "psydeck",
+      name: "Psydeck",
+      host: "psydeck.com",
+      source: Shopify,
+      collection: "pokemon",
+      currency: "EUR",
+      country: "PT",
+      max_pages: 10,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("15"),
+          free_shipping_from: nil,
+          currency: "EUR"
+        },
+        "PL" => %{
+          # €15, converted to PLN and rounded up.
+          shipping_from: Decimal.new("66.11"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
+    },
+    %Shop{
+      key: "pokefamily",
+      name: "PokeFamily",
+      host: "pokefamily.nl",
+      source: Shopify,
+      collection: "pokemon",
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("12.95"),
+          free_shipping_from: nil,
+          currency: "EUR"
+        },
+        "PL" => %{
+          # €12.95, converted to PLN and rounded up.
+          shipping_from: Decimal.new("57.08"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
+    },
+    %Shop{
+      key: "pkmwinkel",
+      name: "PKMWinkel",
+      host: "www.pkmwinkel.nl",
+      source: Shopify,
+      collection: "all",
+      mixed_listing: true,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("20"),
+          free_shipping_from: nil,
+          currency: "EUR"
+        },
+        "PL" => %{
+          # €20, converted to PLN and rounded up.
+          shipping_from: Decimal.new("88.14"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
+    },
+    %Shop{
+      key: "cardcosmos",
+      name: "CardCosmos",
+      host: "cardcosmos.de",
+      source: Shopify,
+      collection: "pokemon-karten-kaufen",
+      currency: "EUR",
+      country: "DE",
+      max_pages: 10,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("24.99"),
+          free_shipping_from: nil,
+          currency: "EUR"
+        },
+        "PL" => %{
+          # €24.99, converted to PLN and rounded up.
+          shipping_from: Decimal.new("110.14"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
+    },
+    %Shop{
+      key: "bescards",
+      name: "Bescards",
+      host: "www.bescards.com",
+      source: Shopify,
+      collection: "pokemon-sealed",
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("8.38"),
+          free_shipping_from: nil,
+          currency: "EUR"
+        },
+        "PL" => %{
+          # €8.38, converted to PLN and rounded up.
+          shipping_from: Decimal.new("36.94"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
+    },
+    %Shop{
+      key: "beamcardshop",
+      name: "Beam Card Shop",
+      host: "beamcardshop.com",
+      source: Shopify,
+      collection: "all-pokemon",
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("29.95"),
+          free_shipping_from: nil,
+          currency: "EUR"
+        },
+        "PL" => %{
+          # €29.95, converted to PLN and rounded up.
+          shipping_from: Decimal.new("131.99"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
+    },
     %Shop{
       key: "cardgallery",
       name: "Card Gallery",
@@ -1753,6 +2087,11 @@ defmodule TcgCheap.Sealed.Shops do
       free_shipping_from: nil,
       pickup_city: nil,
       deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("8.95"),
+          free_shipping_from: Decimal.new("300"),
+          currency: "EUR"
+        },
         "PL" => %{
           # €7.95, free from €250.
           shipping_from: Decimal.new("34.92"),
@@ -1777,6 +2116,11 @@ defmodule TcgCheap.Sealed.Shops do
       free_shipping_from: nil,
       pickup_city: nil,
       deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("10.95"),
+          free_shipping_from: nil,
+          currency: "EUR"
+        },
         "PL" => %{
           # €10.95, free from €100.
           shipping_from: Decimal.new("48.10"),
@@ -1799,6 +2143,11 @@ defmodule TcgCheap.Sealed.Shops do
       free_shipping_from: nil,
       pickup_city: nil,
       deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("229"),
+          free_shipping_from: nil,
+          currency: "DKK"
+        },
         "PL" => %{
           # 109 DKK standard to Poland in its cart, also for 699 DKK (2026-11-10).
           shipping_from: Decimal.new("64.31"),
@@ -1852,6 +2201,11 @@ defmodule TcgCheap.Sealed.Shops do
       free_shipping_from: nil,
       pickup_city: nil,
       deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("99"),
+          free_shipping_from: Decimal.new("799"),
+          currency: "SEK"
+        },
         "PL" => %{
           # 99 SEK tracked letter to the EU, free from 799 SEK (319.60 zł, rounded
           # up so no order is shown with free delivery it does not get).
@@ -1875,6 +2229,11 @@ defmodule TcgCheap.Sealed.Shops do
       free_shipping_from: nil,
       pickup_city: nil,
       deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("5.90"),
+          free_shipping_from: Decimal.new("100"),
+          currency: "GBP"
+        },
         "PL" => %{
           # £5.90 for any number of singles, duties paid (IOSS), free from £100.
           shipping_from: Decimal.new("31.05"),
@@ -1897,6 +2256,11 @@ defmodule TcgCheap.Sealed.Shops do
       free_shipping_from: nil,
       pickup_city: nil,
       deliveries: %{
+        "HU" => %{
+          shipping_from: Decimal.new("149"),
+          free_shipping_from: nil,
+          currency: "CZK"
+        },
         "PL" => %{
           # Zásilkovna (Packeta) to Poland 149 Kč.
           shipping_from: Decimal.new("26.89"),
@@ -1913,7 +2277,7 @@ defmodule TcgCheap.Sealed.Shops do
   # prices, in a currency with a daily NBP rate, from a country the offer list
   # can name (`GuideComponents`).
   @abroad_sources [Shopify, WooCommerce, Chasedex, NopCommerce, Shoptet, GoogleFeed]
-  @countries ~w(NL DE BE GB SE DK CZ)
+  @countries ~w(NL DE BE GB SE DK CZ HU PT)
 
   for shop <- @shops, shop.currency != "PLN" or shop.country != "PL" do
     unless shop.source in @abroad_sources and
