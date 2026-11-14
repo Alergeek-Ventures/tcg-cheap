@@ -245,8 +245,7 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
     |> Enum.group_by(& &1.card_id)
   end
 
-  # Shops abroad are the ones with a country.
-  defp polish?(shop), do: match?({:ok, %{country: nil}}, Shops.fetch(shop))
+  defp polish?(shop), do: match?({:ok, %{country: "PL"}}, Shops.fetch(shop))
 
   # This far under the card's value, an offer is more often matched to the
   # wrong card than a bargain: shown, but not judged, as the card list ranks

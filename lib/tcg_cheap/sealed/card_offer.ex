@@ -39,6 +39,8 @@ defmodule TcgCheap.Sealed.CardOffer do
         :url,
         :image_url,
         :price,
+        :shop_price,
+        :currency,
         :in_stock,
         :last_seen_at,
         :language,
@@ -55,6 +57,8 @@ defmodule TcgCheap.Sealed.CardOffer do
         :url,
         :image_url,
         :price,
+        :shop_price,
+        :currency,
         :in_stock,
         :last_seen_at,
         :language,
@@ -163,6 +167,7 @@ defmodule TcgCheap.Sealed.CardOffer do
 
   validations do
     validate compare(:price, greater_than: 0)
+    validate compare(:shop_price, greater_than: 0)
   end
 
   attributes do
@@ -180,6 +185,18 @@ defmodule TcgCheap.Sealed.CardOffer do
     attribute :url, :string, allow_nil?: false, public?: true, constraints: [max_length: 2_000]
     attribute :image_url, :string, public?: true, constraints: [max_length: 2_000]
     attribute :price, :decimal, allow_nil?: false, public?: true
+
+    attribute :shop_price, :decimal do
+      description "The shop's own price, in `currency`; `price` is it in PLN as of the fetch. Nil until the shop's first fetch that records it."
+      public? true
+    end
+
+    attribute :currency, :string do
+      description "The ISO code of `shop_price`'s currency, the shop's."
+      public? true
+      constraints max_length: 3
+    end
+
     attribute :in_stock, :boolean, allow_nil?: false, public?: true
     attribute :last_seen_at, :utc_datetime_usec, allow_nil?: false, public?: true
 

@@ -171,11 +171,15 @@ defmodule TcgCheap.Sealed.Product do
     end
 
     read :browse do
-      description "Products for the public list: in stock in Poland first, then pre-orders, then the best matches of a search, then newest."
+      description "Products for the public list: in stock in the market first, then pre-orders, then the best matches of a search, then newest."
       argument :query, :string, default: ""
       argument :kind, :atom, constraints: [one_of: Kinds.choices()]
       argument :region, :atom, constraints: [one_of: Regions.all()]
       argument :expansion, :integer, description: "A Cardmarket expansion id."
+
+      argument :stock, :map,
+        description:
+          "For a market other than Poland: the ids of its products in stock (`in_stock`) and on pre-order (`preorder`), which order the list instead of the Polish availability."
 
       pagination offset?: true, default_limit: 30, max_page_size: 100, countable: true
       prepare Browse

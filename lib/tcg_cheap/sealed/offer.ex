@@ -37,6 +37,8 @@ defmodule TcgCheap.Sealed.Offer do
         :image_url,
         :ean,
         :price,
+        :shop_price,
+        :currency,
         :in_stock,
         :preorder,
         :last_seen_at
@@ -51,6 +53,8 @@ defmodule TcgCheap.Sealed.Offer do
         :image_url,
         :ean,
         :price,
+        :shop_price,
+        :currency,
         :in_stock,
         :preorder,
         :last_seen_at,
@@ -108,6 +112,7 @@ defmodule TcgCheap.Sealed.Offer do
 
   validations do
     validate compare(:price, greater_than: 0)
+    validate compare(:shop_price, greater_than: 0)
   end
 
   attributes do
@@ -148,6 +153,18 @@ defmodule TcgCheap.Sealed.Offer do
     end
 
     attribute :price, :decimal, allow_nil?: false, public?: true
+
+    attribute :shop_price, :decimal do
+      description "The shop's own price, in `currency`; `price` is it in PLN as of the fetch. Nil until the shop's first fetch that records it."
+      public? true
+    end
+
+    attribute :currency, :string do
+      description "The ISO code of `shop_price`'s currency, the shop's."
+      public? true
+      constraints max_length: 3
+    end
+
     attribute :in_stock, :boolean, allow_nil?: false, public?: true
 
     attribute :preorder, :boolean do

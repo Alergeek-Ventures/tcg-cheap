@@ -15,7 +15,20 @@ defmodule TcgCheap.Sealed.Refresh do
 
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{CardRefresh, DailyPrice, FetchFailure, Matcher, Offer, Shop, Shops}
+
+  alias TcgCheap.Sealed.{
+    CardRefresh,
+    DailyPrice,
+    FetchFailure,
+    Market,
+    MarketDailyPrice,
+    Matcher,
+    Offer,
+    Shop,
+    Shops
+  }
+
+  require Logger
 
   # Matching reads names and set names; availability compares and updates
   # the rest. Kind and region stay for the product's validations.
@@ -68,23 +81,22 @@ defmodule TcgCheap.Sealed.Refresh do
     end
   end
 
-  # Prices of a shop abroad are stored in PLN at the latest NBP rate, so they
-  # compare with Polish shops and Cardmarket like any other offer. NBP skips
-  # weekends and holidays; a rate over a week old means its job stopped.
-  defp in_pln(%Shop{currency: "PLN"}, offers, _now), do: {:ok, offers}
+  # Every offer keeps the shop's own price (`shop_price`, which other markets
+  # convert), and a shop abroad's `price` is stored in PLN at the latest NBP
+  # rate, so it compares with Polish shops and Cardmarket like any other
+  # offer (`Market.pln_rate/2`: a rate over a week old fails the fetch).
+  defp in_pln(%Shop{currency: currency} = shop, offers, now) do
+    offers = Enum.map(offers, &Map.merge(&1, %{shop_price: &1.price, currency: currency}))
 
-  defp in_pln(%Shop{currency: currency}, offers, now) do
-    today = DateTime.to_date(now)
-
-    case TcgCheap.Core.get_latest_exchange_rate(today, currency) do
-      {:ok, %{rate: rate, effective_date: date}} ->
-        if Date.diff(today, date) <= 7,
-          do: {:ok, Enum.map(offers, &%{&1 | price: to_pln(&1.price, rate)})},
-          else: {:error, {:stale_exchange_rate, currency, date}}
-
-      _missing ->
-        {:error, {:no_exchange_rate, currency}}
+    case shop.currency do
+      "PLN" -> {:ok, offers}
+      _abroad -> convert_to_pln(offers, currency, DateTime.to_date(now))
     end
+  end
+
+  defp convert_to_pln(offers, currency, today) do
+    with {:ok, %{rate: rate}} <- Market.pln_rate(currency, today),
+         do: {:ok, Enum.map(offers, &%{&1 | price: to_pln(&1.price, rate)})}
   end
 
   defp to_pln(price, rate), do: price |> Decimal.mult(rate) |> Decimal.round(2)
@@ -119,18 +131,21 @@ defmodule TcgCheap.Sealed.Refresh do
     products = Sealed.list_products!(query: [select: @product_fields])
     rematch_offers(products)
 
-    # A shop abroad counts at its price with delivery to Poland; one with an
-    # unknown delivery price is only listed.
-    current =
+    matched =
       now
       |> Sealed.current_offers(:all,
-        select: [:product_id, :price, :in_stock, :preorder, :image_url]
+        select: [:product_id, :price, :shop_price, :currency, :in_stock, :preorder, :image_url]
       )
       |> Enum.filter(& &1.product_id)
-      |> Shops.compared()
 
-    record_shop_prices(current, DateTime.to_date(now))
+    # A shop abroad counts at its price with delivery to Poland; one with an
+    # unknown delivery price is only listed.
+    current = Shops.compared(matched)
+    today = DateTime.to_date(now)
+
+    record_shop_prices(current, today)
     update_products(products, current)
+    Enum.each(Market.all() -- [Market.poland()], &record_market_prices(&1, matched, today))
     :ok
   end
 
@@ -202,28 +217,59 @@ defmodule TcgCheap.Sealed.Refresh do
   end
 
   defp record_shop_prices(current, today) do
-    by_product = current |> Enum.filter(& &1.in_stock) |> Enum.group_by(& &1.product_id)
-
     previously_priced =
       for %{lowest_price: %Decimal{}, product_id: id} <-
             Sealed.list_daily_prices_on!(today, query: [select: [:product_id, :lowest_price]]),
           do: id
 
+    current
+    |> daily_prices(previously_priced, today)
+    |> bulk_record(:record_shop_price)
+  end
+
+  # Poland's history stays in `DailyPrice` (it predates markets, and holds the
+  # Cardmarket trend); every other market's goes to `MarketDailyPrice`, by the
+  # same rules. Without a recent rate for a currency some offer needs, the
+  # market's day is not recorded: a lowest price missing a shop would be wrong.
+  defp record_market_prices(market, matched, today) do
+    case Market.missing_rates(matched, market, today) do
+      [] ->
+        previously_priced =
+          for %{lowest_price: %Decimal{}, product_id: id} <-
+                Sealed.list_market_daily_prices_on!(market.code, today,
+                  query: [select: [:product_id, :lowest_price]]
+                ),
+              do: id
+
+        matched
+        |> Market.compared(market, today)
+        |> daily_prices(previously_priced, today)
+        |> Enum.map(&Map.put(&1, :market, market.code))
+        |> bulk_record(:record, MarketDailyPrice)
+
+      missing ->
+        Logger.warning(
+          "#{market.code} prices not recorded on #{today}: no recent rate for #{inspect(missing)}"
+        )
+    end
+  end
+
+  # Today's lowest in-stock compared price and shop count of every product
+  # with an offer, and of each one priced earlier today (now out of stock).
+  defp daily_prices(current, previously_priced, today) do
+    by_product = current |> Enum.filter(& &1.in_stock) |> Enum.group_by(& &1.product_id)
     ids = Enum.uniq(Enum.map(current, & &1.product_id) ++ previously_priced)
 
-    inputs =
-      Enum.map(ids, fn id ->
-        offers = Map.get(by_product, id, [])
+    Enum.map(ids, fn id ->
+      offers = Map.get(by_product, id, [])
 
-        %{
-          product_id: id,
-          date: today,
-          lowest_price: offers |> Enum.map(& &1.price) |> Enum.min(Decimal, fn -> nil end),
-          shops_in_stock: offers |> Enum.map(& &1.shop) |> Enum.uniq() |> length()
-        }
-      end)
-
-    bulk_record(inputs, :record_shop_price)
+      %{
+        product_id: id,
+        date: today,
+        lowest_price: offers |> Enum.map(& &1.price) |> Enum.min(Decimal, fn -> nil end),
+        shops_in_stock: offers |> Enum.map(& &1.shop) |> Enum.uniq() |> length()
+      }
+    end)
   end
 
   defp update_products(products, current) do
@@ -262,11 +308,12 @@ defmodule TcgCheap.Sealed.Refresh do
   end
 
   @doc false
-  def bulk_record([], _action), do: :ok
+  def bulk_record(inputs, action, resource \\ DailyPrice)
+  def bulk_record([], _action, _resource), do: :ok
 
-  def bulk_record(inputs, action) do
+  def bulk_record(inputs, action, resource) do
     %Ash.BulkResult{status: :success} =
-      Ash.bulk_create!(inputs, DailyPrice, action,
+      Ash.bulk_create!(inputs, resource, action,
         domain: Sealed,
         return_errors?: true,
         stop_on_error?: true

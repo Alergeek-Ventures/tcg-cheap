@@ -403,7 +403,7 @@ defmodule TcgCheapWeb.ProductLive do
         # A shop abroad's compared price already includes its delivery.
         delivery =
           case Shops.fetch(cheapest.shop) do
-            {:ok, %{country: nil} = shop} -> shipping(shop, cheapest.price)
+            {:ok, %{country: "PL"} = shop} -> shipping(shop, cheapest.price)
             {:ok, _abroad} -> :included
             :error -> :unknown
           end

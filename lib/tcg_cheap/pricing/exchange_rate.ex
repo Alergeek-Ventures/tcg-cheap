@@ -1,12 +1,13 @@
 defmodule TcgCheap.Pricing.ExchangeRate do
   @moduledoc """
   The canonical NBP table A mid rate to PLN for each currency and effective
-  date: EUR for Cardmarket, the others for shops abroad.
+  date: EUR for Cardmarket, HUF for prices in Hungary (`TcgCheap.Sealed.Market`),
+  the others for shops abroad.
   """
 
   use Ash.Resource, domain: TcgCheap.Core, data_layer: AshPostgres.DataLayer
 
-  @currencies ~w(EUR GBP SEK CZK DKK)
+  @currencies ~w(EUR GBP SEK CZK DKK HUF)
 
   @doc "The currencies whose PLN rate is recorded daily."
   def currencies, do: @currencies

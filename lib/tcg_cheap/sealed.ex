@@ -194,7 +194,8 @@ defmodule TcgCheap.Sealed do
           {:optional, :query},
           {:optional, :kind},
           {:optional, :region},
-          {:optional, :expansion}
+          {:optional, :expansion},
+          {:optional, :stock}
         ]
 
       define :list_product_facets,
@@ -321,6 +322,25 @@ defmodule TcgCheap.Sealed do
       define :get_last_stocked_day,
         action: :last_stocked,
         args: [:product_id],
+        get?: true,
+        not_found_error?: false
+    end
+
+    resource TcgCheap.Sealed.MarketDailyPrice do
+      define :record_market_daily_price, action: :record
+      define :list_market_daily_prices_on, action: :on, args: [:market, :date]
+
+      define :list_market_price_history,
+        action: :history,
+        args: [:product_id, :market, :since]
+
+      define :list_market_price_histories,
+        action: :histories,
+        args: [:product_ids, :market, :since]
+
+      define :get_market_last_stocked_day,
+        action: :last_stocked,
+        args: [:product_id, :market],
         get?: true,
         not_found_error?: false
     end
