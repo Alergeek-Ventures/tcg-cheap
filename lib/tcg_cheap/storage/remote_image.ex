@@ -46,7 +46,7 @@ defmodule TcgCheap.Storage.RemoteImage do
     end
 
     # An image with variants but no attempt is due again (see :trim_margins).
-    # A failing source backs off: n failures wait min(2^(n-1), 16) days, so a
+    # A failing source backs off: n failures wait min(2^(n-1), 8) days, so a
     # missing scan is not fetched every day forever. RemoteImageMirror.run/2
     # applies the same rule.
     read :pending do
@@ -57,7 +57,7 @@ defmodule TcgCheap.Storage.RemoteImage do
       filter expr(
                is_nil(attempted_at) or
                  fragment(
-                   "? < now() AT TIME ZONE 'UTC' - make_interval(days => power(2, least(greatest(? - 1, 0), 4))::integer)",
+                   "? < now() AT TIME ZONE 'UTC' - make_interval(days => power(2, least(greatest(? - 1, 0), 3))::integer)",
                    attempted_at,
                    failed_attempts
                  )
