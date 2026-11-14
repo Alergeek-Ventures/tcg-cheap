@@ -136,7 +136,8 @@ defmodule TcgCheapWeb.Polish do
   @doc """
   A sentence ending in a date, with one period: a Hungarian date ends with
   its own ("2026. november 13."), so a sentence that adds one after it would
-  end in two.
+  end in two. `GuideComponents.euro_rate_note/1` and the product's "on
+  Cardmarket since" line rely on it.
   """
   @spec sentence(String.t()) :: String.t()
   def sentence(text), do: String.replace(text, ~r/(?<!\.)\.\.$/, ".")
