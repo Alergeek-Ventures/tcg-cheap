@@ -7,7 +7,7 @@ defmodule TcgCheapWeb.VerdictComponents do
 
   import TcgCheapWeb.OfferComponents
 
-  alias TcgCheapWeb.Format
+  alias TcgCheapWeb.{Format, Region}
 
   @doc """
   The verdict as a labelled badge; shape and text carry the meaning, not color
@@ -199,6 +199,8 @@ defmodule TcgCheapWeb.VerdictComponents do
   attr :reverse_pln, :any, default: nil
 
   def cardmarket_reference(assigns) do
+    assigns = assign(assigns, :converted?, !euro_region?())
+
     ~H"""
     <section
       id={@id}
@@ -218,17 +220,17 @@ defmodule TcgCheapWeb.VerdictComponents do
       <%= if @product.cardmarket_trend || @reverse do %>
         <p :if={@product.cardmarket_trend} id="cardmarket-trend" class="cardmarket-trend">
           {gettext("Trend:")} <strong>{Format.eur(@product.cardmarket_trend)}</strong>
-          <span :if={@cardmarket_price}>≈ {Format.rough_price(@cardmarket_price)}</span>
+          <span :if={@converted? && @cardmarket_price}>≈ {Format.rough_price(@cardmarket_price)}</span>
         </p>
         <p :if={@reverse} class="cardmarket-trend">
           {gettext("Reverse holo:")}
-          <strong>{Format.eur(@reverse)}</strong><span :if={@reverse_pln}>≈ {Format.rough_price(
+          <strong>{Format.eur(@reverse)}</strong><span :if={@converted? && @reverse_pln}>≈ {Format.rough_price(
             @reverse_pln
           )}</span>
         </p>
         <p class="guide-note">
           {gettext("Europejska giełda.")}
-          <span :if={@eur_rate}>
+          <span :if={@converted? && @eur_rate}>
             {euro_rate_note(@eur_rate)}
           </span>
           <span :if={@product.cardmarket_added_on} id="product-added">
@@ -249,6 +251,13 @@ defmodule TcgCheapWeb.VerdictComponents do
     </section>
     """
   end
+
+  @doc """
+  Whether the current region prices in euro, as Cardmarket does: its
+  Cardmarket prices need no conversion, nor a note on the euro's rate.
+  """
+  @spec euro_region?() :: boolean()
+  def euro_region?, do: Region.current().market.currency == "EUR"
 
   @doc """
   The euro's rate behind a Cardmarket price in the region's currency: NBP's
