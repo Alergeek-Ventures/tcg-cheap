@@ -13,9 +13,26 @@ defmodule TcgCheapWeb.CSPNonce do
 
     conn
     |> assign(:csp_nonce, nonce)
-    |> put_resp_header(
-      "content-security-policy",
-      "default-src 'self'; script-src 'self' 'nonce-#{nonce}'; connect-src 'self' ws: wss:; img-src #{ExternalImage.csp_sources() |> Enum.join(" ")}; style-src 'self' 'unsafe-inline'; font-src 'self' data:"
+    |> put_resp_header("content-security-policy", policy(nonce))
+  end
+
+  # base-uri, form-action and frame-ancestors do not fall back to default-src,
+  # so they are listed explicitly.
+  defp policy(nonce) do
+    Enum.join(
+      [
+        "default-src 'self'",
+        "script-src 'self' 'nonce-#{nonce}'",
+        "connect-src 'self' ws: wss:",
+        "img-src #{Enum.join(ExternalImage.csp_sources(), " ")}",
+        "style-src 'self' 'unsafe-inline'",
+        "font-src 'self' data:",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'self'",
+        "object-src 'none'"
+      ],
+      "; "
     )
   end
 end
