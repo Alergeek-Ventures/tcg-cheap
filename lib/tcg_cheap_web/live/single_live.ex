@@ -276,7 +276,9 @@ defmodule TcgCheapWeb.SingleLive do
                   href={cardmarket_url(@page.card.cardmarket_id)}
                 /><span>{gettext("trend na Cardmarket, bez wysyłki")}</span>
               </p>
-              <p :if={@trend} id="single-rate" class="guide-note">{euro_rate_note(@euro_rate)}</p>
+              <p :if={@trend && !euro_region?()} id="single-rate" class="guide-note">
+                {euro_rate_note(@euro_rate)}
+              </p>
               <p :if={!@trend} id="single-empty" class="guide-note">
                 {gettext("Brak ceny Cardmarket")}
               </p>
@@ -338,7 +340,7 @@ defmodule TcgCheapWeb.SingleLive do
                     )}
                   </p>
                   <p>{gettext("Porównujemy karty bez oceny. Sprawdź wariant i stan w sklepie.")}</p>
-                  <p :if={@euro_rate}>
+                  <p :if={@euro_rate && !euro_region?()}>
                     {euro_rate_note(@euro_rate)}
                   </p>
                 </.verdict_method>
