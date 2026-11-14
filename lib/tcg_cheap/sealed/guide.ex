@@ -30,6 +30,10 @@ defmodule TcgCheap.Sealed.Guide do
 
   @history_days 90
   @cached_for_ms :timer.minutes(10)
+  # How soon after the expansion names were read an unknown expansion id may
+  # read them again: ids come from URLs, so crawlers ask for ones that do not
+  # exist, and each replaced entry makes the VM scan every process.
+  @names_refresh_gap_ms :timer.minutes(1)
   @page_size 30
   # The most products an expansion has is about 55: its page lists them all,
   # so its pull rates and cards follow right after.
@@ -112,22 +116,26 @@ defmodule TcgCheap.Sealed.Guide do
 
   # The products a market's shops have in stock, and those they sell as a
   # pre-order, from their current offers at the market's compared prices: what
-  # `available` and `lowest_preorder_price` store for Poland.
+  # `available` and `lowest_preorder_price` store for Poland. Shared like the
+  # other whole-site reads: offers change with the shop fetches, so `now` only
+  # matters to the reader that computes it.
   defp market_stock(market, now) do
-    offers =
-      now
-      |> Sealed.current_offers(:all,
-        select: [:product_id, :price, :shop_price, :currency, :in_stock, :preorder]
-      )
-      |> Enum.filter(&(&1.product_id && (&1.in_stock or &1.preorder)))
-      |> Market.compared(market, DateTime.to_date(now))
+    cached({:market_stock, market.code}, fn ->
+      offers =
+        now
+        |> Sealed.current_offers(:all,
+          select: [:product_id, :price, :shop_price, :currency, :in_stock, :preorder]
+        )
+        |> Enum.filter(&(&1.product_id && (&1.in_stock or &1.preorder)))
+        |> Market.compared(market, DateTime.to_date(now))
 
-    {in_stock, preorders} = Enum.split_with(offers, & &1.in_stock)
+      {in_stock, preorders} = Enum.split_with(offers, & &1.in_stock)
 
-    %{
-      in_stock: MapSet.new(in_stock, & &1.product_id),
-      preorder: MapSet.new(preorders, & &1.product_id)
-    }
+      %{
+        in_stock: MapSet.new(in_stock, & &1.product_id),
+        preorder: MapSet.new(preorders, & &1.product_id)
+      }
+    end)
   end
 
   @doc """
@@ -269,8 +277,10 @@ defmodule TcgCheap.Sealed.Guide do
   end
 
   @doc """
-  A read shared by every render for #{div(@cached_for_ms, 60_000)} minutes; the
-  reader that finds it stale reads it again.
+  A read shared by every render for #{div(@cached_for_ms, 60_000)} minutes.
+  One reader at a time reads it again once it expires: the others get the
+  expired value meanwhile, or, when there is none yet, wait for that reader's
+  result.
   """
   def cached(key, read) do
     now = System.monotonic_time(:millisecond)
@@ -279,10 +289,50 @@ defmodule TcgCheap.Sealed.Guide do
       {expires_at, value} when expires_at > now ->
         value
 
-      _missing_or_stale ->
-        value = read.()
-        :persistent_term.put({__MODULE__, key}, {now + @cached_for_ms, value})
+      nil ->
+        :global.trans(refresh_lock(key), fn -> refresh(key, read) end, [node()])
+
+      {_expired_at, stale} ->
+        refresh_or_stale(key, read, stale)
+    end
+  end
+
+  # Retries 0: a reader that finds the lock taken does not wait.
+  defp refresh_or_stale(key, read, stale) do
+    case :global.trans(refresh_lock(key), fn -> refresh(key, read) end, [node()], 0) do
+      :aborted -> stale
+      value -> value
+    end
+  end
+
+  defp refresh_lock(key), do: {{__MODULE__, key}, self()}
+
+  # Under the lock: the reader that held it before may have read it already.
+  defp refresh(key, read) do
+    now = System.monotonic_time(:millisecond)
+
+    case :persistent_term.get({__MODULE__, key}, nil) do
+      {expires_at, value} when expires_at > now ->
         value
+
+      _missing_or_expired ->
+        value = read.()
+        store(key, value, now)
+        value
+    end
+  end
+
+  defp store(key, value, now),
+    do: :persistent_term.put({__MODULE__, key}, {now + @cached_for_ms, value})
+
+  # Whether the entry was read less than `ms` milliseconds ago.
+  defp read_within?(key, ms) do
+    case :persistent_term.get({__MODULE__, key}, nil) do
+      {expires_at, _value} ->
+        expires_at - System.monotonic_time(:millisecond) > @cached_for_ms - ms
+
+      nil ->
+        false
     end
   end
 
@@ -314,12 +364,27 @@ defmodule TcgCheap.Sealed.Guide do
   def expansion_names(required_ids \\ []) do
     names = cached(:expansion_names, &read_expansion_names/0)
 
-    if Enum.all?(required_ids, &Map.has_key?(names, &1)) do
+    if Enum.all?(required_ids, &Map.has_key?(names, &1)) or
+         read_within?(:expansion_names, @names_refresh_gap_ms) do
       names
     else
       # A catalogue sync can add an expansion while the names are still cached.
-      :persistent_term.erase({__MODULE__, :expansion_names})
+      # One reader reads them again; the others keep the names they have.
+      case :global.trans(refresh_lock(:expansion_names), &reread_expansion_names/0, [node()], 0) do
+        :aborted -> names
+        reread -> reread
+      end
+    end
+  end
+
+  # Under the lock: the reader that held it before may have read them already.
+  defp reread_expansion_names do
+    if read_within?(:expansion_names, @names_refresh_gap_ms) do
       cached(:expansion_names, &read_expansion_names/0)
+    else
+      names = read_expansion_names()
+      store(:expansion_names, names, System.monotonic_time(:millisecond))
+      names
     end
   end
 
