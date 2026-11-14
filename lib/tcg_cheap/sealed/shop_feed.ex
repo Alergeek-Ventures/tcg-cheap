@@ -38,14 +38,13 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @max_title_length 300
   @max_url_length 2_000
   @product_id ~r/\A[A-Za-z0-9_-]{1,40}\z/
-  @decimal_price ~r/\A[0-9]{1,7}(?:\.[0-9]{1,2})?\z/
+  @decimal_price ~r/\A[0-9]{1,9}(?:\.[0-9]{1,2})?\z/
   @spaces ~r/\s+/u
   @entity ~r/&(#x[0-9a-f]{1,6}|#[0-9]{1,7}|[a-z]{2,8});/i
   @https_url ~r/\Ahttps:\/\/[^\s]+\z/
   # Shops list products they cannot price yet (pre-orders) at a token 0.01 zł;
   # no sealed product costs under 1 zł, so a lower price is no price.
   @min_price Decimal.new(1)
-  @max_price Decimal.new(1_000_000)
 
   # A pre-order is never in stock; feeds that cannot tell leave `preorder` out.
   @type offer :: %{
@@ -370,7 +369,10 @@ defmodule TcgCheap.Sealed.ShopFeed do
     end
   end
 
-  @doc "A price from 1 zł to 1 000 000 zł."
+  @doc """
+  A price above the token-price minimum, in the shop's currency. Refresh
+  checks the upper limit after conversion to PLN, for every feed client.
+  """
   @spec price(Decimal.t()) :: {:ok, Decimal.t()} | :error
   def price(price, kind \\ :sealed)
 
@@ -378,8 +380,6 @@ defmodule TcgCheap.Sealed.ShopFeed do
     # Bulk commons legitimately cost 0.50 zł; 0.01 zł remains a token price.
     minimum = if kind == :single, do: Decimal.new("0.10"), else: @min_price
 
-    if not Decimal.lt?(price, minimum) and not Decimal.gt?(price, @max_price),
-      do: {:ok, price},
-      else: :error
+    if Decimal.lt?(price, minimum), do: :error, else: {:ok, price}
   end
 end
