@@ -6,7 +6,6 @@ defmodule TcgCheap.MixProject do
       app: :tcg_cheap,
       version: "0.1.0",
       elixir: "~> 1.20",
-      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
@@ -18,9 +17,6 @@ defmodule TcgCheap.MixProject do
     ]
   end
 
-  # Configuration for the OTP application.
-  #
-  # Type `mix help compile.app` for more information.
   def application do
     [
       mod: {TcgCheap.Application, []},
@@ -34,12 +30,6 @@ defmodule TcgCheap.MixProject do
     ]
   end
 
-  # Specifies which paths to compile per environment.
-  defp elixirc_paths(_), do: ["lib"]
-
-  # Specifies your project dependencies.
-  #
-  # Type `mix help deps` for examples and options.
   defp deps do
     [
       {:picosat_elixir, "~> 0.2"},
@@ -111,12 +101,6 @@ defmodule TcgCheap.MixProject do
     ]
   end
 
-  # Aliases are shortcuts or tasks specific to the current project.
-  # For example, to install project dependencies and perform other setup tasks, run:
-  #
-  #     $ mix setup
-  #
-  # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
       setup: [
@@ -124,11 +108,8 @@ defmodule TcgCheap.MixProject do
         "usage_rules.sync",
         "ash.setup",
         "assets.setup",
-        "assets.build",
-        "run priv/repo/seeds.exs"
+        "assets.build"
       ],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": [
         "compile",
@@ -141,8 +122,7 @@ defmodule TcgCheap.MixProject do
         "tailwind tcg_cheap_admin --minify",
         "esbuild tcg_cheap --minify",
         "phx.digest"
-      ],
-      precommit: ["check"]
+      ]
     ]
   end
 

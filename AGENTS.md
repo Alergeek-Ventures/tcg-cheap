@@ -17,7 +17,6 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
 - In development, Tidewave is available at
   `http://localhost:{PORT}/tidewave/mcp` and the buying-guide MCP tools
   (offer matching, barcodes, fetch jobs) at `http://localhost:{PORT}/mcp`.
-  Caddy integration is explicitly deferred.
 - Every coding agent gets the same MCP servers. Each harness reads its own
   file: `.mcp.json` (Claude Code), `.codex/config.toml` (Codex) and
   `opencode.json` (OpenCode); add, change or remove a server in all three.
@@ -59,7 +58,7 @@ constraints, unless the product owner explicitly supersedes it.
 ## Repository boundaries and hygiene
 
 - Keep credentials, uploads, generated runtime data, and dependency caches out
-  of git. Use `/tmp/opencode` for scratch files outside the repository.
+  of git. Keep scratch files outside the repository.
 - Before committing, inspect status, diff, and recent history; stage only
   intended files. Use Conventional Commit messages. Never auto-commit unless
   explicitly requested.
