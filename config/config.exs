@@ -73,6 +73,36 @@ config :tcg_cheap, :storage,
     ]
   ]
 
+# Jobs every environment runs: exchange rates and image mirroring.
+always_scheduled = [
+  # NBP rates to PLN of every currency the guide needs
+  # (TcgCheap.Sealed.Market.currencies/0), one job each.
+  {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker, args: %{}},
+  # Product photos copied into our storage, a batch at a time.
+  {"*/10 * * * *", TcgCheap.Sealed.PhotoMirrorWorker, args: %{}},
+  {"*/10 * * * *", TcgCheap.Storage.RemoteImageWorker, args: %{}}
+]
+
+# The nightly reads of Cardmarket, the shops, TCGdex and REBEL. A development
+# server runs them only on request (the enqueue_* MCP tools), so worktrees do
+# not multiply the traffic shops see; SCHEDULED_FETCHES=1 opts a checkout in.
+nightly_fetches = [
+  # Buying guide: the Cardmarket sealed catalogue,
+  # then one fetch job per shop; the sealed and shopify queues run them
+  # one at a time each.
+  # Times are UTC: the import starts at 3:00 Polish winter time (4:00 in
+  # summer), so the data is fresh for the morning.
+  {"0 2 * * *", TcgCheap.Sealed.CatalogueImportWorker, args: %{}},
+  {"30 2 * * *", TcgCheap.Sealed.FetchWorker, args: %{}},
+  # The cards of new TCGdex sets, for the single booster pages.
+  {"0 3 * * *", TcgCheap.Sealed.CardSyncWorker, args: %{}},
+  # Suggested retail prices from the REBEL wholesaler, for the product pages.
+  {"15 3 * * *", TcgCheap.Sealed.SuggestedPriceWorker, args: %{}}
+]
+
+scheduled_fetches? =
+  config_env() != :dev or System.get_env("SCHEDULED_FETCHES") in ["1", "true"]
+
 config :tcg_cheap, Oban,
   repo: TcgCheap.Repo,
   queues: [
@@ -88,25 +118,7 @@ config :tcg_cheap, Oban,
   plugins: [
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,
-     crontab: [
-       # NBP rates to PLN of every currency the guide needs
-       # (TcgCheap.Sealed.Market.currencies/0), one job each.
-       {"0 15 * * *", TcgCheap.Pricing.ExchangeRateWorker, args: %{}},
-       # Buying guide: the Cardmarket sealed catalogue,
-       # then one fetch job per shop; the sealed and shopify queues run them
-       # one at a time each.
-       # Times are UTC: the import starts at 3:00 Polish winter time (4:00 in
-       # summer), so the data is fresh for the morning.
-       {"0 2 * * *", TcgCheap.Sealed.CatalogueImportWorker, args: %{}},
-       {"30 2 * * *", TcgCheap.Sealed.FetchWorker, args: %{}},
-       # The cards of new TCGdex sets, for the single booster pages.
-       {"0 3 * * *", TcgCheap.Sealed.CardSyncWorker, args: %{}},
-       # Suggested retail prices from the REBEL wholesaler, for the product pages.
-       {"15 3 * * *", TcgCheap.Sealed.SuggestedPriceWorker, args: %{}},
-       # Product photos copied into our storage, a batch at a time.
-       {"*/10 * * * *", TcgCheap.Sealed.PhotoMirrorWorker, args: %{}},
-       {"*/10 * * * *", TcgCheap.Storage.RemoteImageWorker, args: %{}}
-     ]}
+     crontab: always_scheduled ++ if(scheduled_fetches?, do: nightly_fetches, else: [])}
   ]
 
 # Requests to Shopify shops are signed as this site (TcgCheap.WebBotAuth),
