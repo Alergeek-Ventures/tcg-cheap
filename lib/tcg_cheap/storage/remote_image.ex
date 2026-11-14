@@ -57,7 +57,7 @@ defmodule TcgCheap.Storage.RemoteImage do
       filter expr(
                is_nil(attempted_at) or
                  fragment(
-                   "? < now() AT TIME ZONE 'UTC' - make_interval(days => least(power(2, greatest(? - 1, 0))::integer, 16))",
+                   "? < now() AT TIME ZONE 'UTC' - make_interval(days => power(2, least(greatest(? - 1, 0), 4))::integer)",
                    attempted_at,
                    failed_attempts
                  )
