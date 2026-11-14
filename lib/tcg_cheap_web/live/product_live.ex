@@ -1127,12 +1127,26 @@ defmodule TcgCheapWeb.ProductLive do
             )}
           </p>
           <p>
-            {RegionText.shop_prices_note(Polish.eur(Guide.cardmarket_shipping_eur()))}
+            {RegionText.shop_prices_note(cardmarket_shipping(@page))}
+          </p>
+          <p :if={RegionText.foreign_shops_note()} id="verdict-method-currency">
+            {RegionText.foreign_shops_note()}
           </p>
         </.verdict_method>
       </div>
     </.verdict_panel>
     """
+  end
+
+  # The parcel added to Cardmarket, among the page's prices: in euro in
+  # Poland; elsewhere in the market's currency at its Cardmarket rate.
+  defp cardmarket_shipping(%{market: market, eur_pln: rate}) do
+    eur = Guide.cardmarket_shipping_eur()
+
+    case market != Market.poland() && Guide.in_market(eur, rate, market) do
+      %Decimal{} = converted -> Polish.price(converted)
+      _euro -> Polish.eur(eur)
+    end
   end
 
   # Where the bar's limits and today's price sit, in % of the bar: every

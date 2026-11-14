@@ -1601,6 +1601,13 @@ defmodule TcgCheapWeb.HomeLive do
                   {result_label(@result_count, @filters.mode)}
                 </p>
               </div>
+              <p
+                :if={@filters.mode == :products && RegionText.list_prices_note()}
+                id="guide-prices-note"
+                class="guide-note guide-prices-note"
+              >
+                {RegionText.list_prices_note()}
+              </p>
               <ul
                 id="guide-products"
                 class="guide-products"
@@ -1653,8 +1660,11 @@ defmodule TcgCheapWeb.HomeLive do
                 </button>
                 <p>
                   {gettext("Pokazano %{loaded} z %{count}.",
-                    loaded: @loaded,
-                    count: if(@filters.mode == :cards, do: @cards_main_count, else: @result_count)
+                    loaded: Polish.number(@loaded),
+                    count:
+                      Polish.number(
+                        if(@filters.mode == :cards, do: @cards_main_count, else: @result_count)
+                      )
                   )}
                 </p>
               </div>
@@ -1676,8 +1686,8 @@ defmodule TcgCheapWeb.HomeLive do
                   >{gettext("Pokaż więcej")}</button>
                   <p>
                     {gettext("Pokazano %{loaded} z %{count}.",
-                      loaded: @cards_out_loaded,
-                      count: @cards_out_count
+                      loaded: Polish.number(@cards_out_loaded),
+                      count: Polish.number(@cards_out_count)
                     )}
                   </p>
                 </div>
