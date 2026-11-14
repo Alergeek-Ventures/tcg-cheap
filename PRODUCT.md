@@ -10,9 +10,9 @@ web
 
 ## Users
 
-- Polish Pokémon TCG fans (players, collectors, parents buying gifts) who want
-  to buy sealed products (boosters, bundles, booster boxes, Elite Trainer
-  Boxes, tins, collections) without overpaying.
+- Pokémon TCG fans in Poland and Hungary (players, collectors, parents buying
+  gifts) who want to buy sealed products (boosters, bundles, booster boxes,
+  Elite Trainer Boxes, tins, collections) without overpaying.
 - The same fans when trading single cards with friends or in a local shop.
 
 ## Product Purpose
@@ -20,34 +20,53 @@ web
 A deliberately simple guide with two parts:
 
 1. **Zakupy (buying guide, live):** for any sealed Pokémon product, show where
-   it is cheapest in shops delivering to Poland right now and whether that
-   price is good, normal or expensive compared with what other shops ask
-   today, with the product's recent prices as context.
+   it is cheapest in shops delivering to the buyer's country right now and
+   whether that price is good, normal or expensive compared with what other
+   shops ask today, with the product's recent prices as context.
 2. **Wymiany (trading guide, next phase):** check whether a trade of single
    cards is fair.
 
 ## Positioning
 
-An honest, independent price check in Polish. Verdicts are based only on
-prices you can actually buy at (in-stock offers in Polish shops, and in shops
-abroad with their delivery to Poland, falling back to the Cardmarket trend),
-never on MSRP. Missing data is shown as missing.
+An honest, independent price check in the buyer's language. Verdicts are
+based only on prices you can actually buy at (in-stock offers in the
+country's shops, and in shops abroad with their delivery to that country,
+falling back to the Cardmarket trend), never on MSRP. Missing data is shown
+as missing.
 
 ## Operating Context
 
 - On a phone in a shop or at a fair: "is this price OK?" in seconds.
 - On desktop before buying online: compare shops and see the price history.
-- No accounts. Polish shops' prices exclude shipping; shops abroad count with
-  their cheapest delivery to Poland (owner decision, 2026-11-10: "liczyć jak
-  polskie, ale z przesyłką"), and their price says so. A shop abroad whose
-  delivery price is unknown is only listed.
+- No accounts. Domestic shops' prices exclude shipping; shops abroad count with
+  their cheapest delivery to the buyer's country (owner decision, 2026-11-10:
+  "liczyć jak polskie, ale z przesyłką"), and their price says so. A shop
+  abroad whose delivery price is unknown is only listed.
+
+## Regions
+
+- A region is a country: its shops (domestic ones, and shops abroad with a
+  delivery there), its currency and its own URLs – Poland under `/pl/` in
+  złoty, Hungary under `/hu/` in forints. The root redirects to the visitor's
+  region (their choice, else their location); Polish URLs from before regions
+  redirect permanently in one hop.
+- Language is separate from region: Polish, Hungarian or English, by default
+  the region's own, switchable on every page.
+- Every region applies the same rules: the same verdicts and limits in its own
+  currency, prices of shops abroad converted at the NBP rate with their
+  delivery, the Cardmarket trend converted the same way.
+- Not every part exists everywhere yet: articles, retail chain deals and
+  singles from shops are Polish only; in Hungary a card's price is its
+  Cardmarket trend in forints.
+- Text in each language reads as written for its buyers, never as a
+  word-for-word translation.
 
 ## Capabilities and Constraints
 
 - Catalogue: every sealed Pokémon product listed on Cardmarket (≈4,400),
   imported daily; images come from matched Polish shop offers.
-- Offers: 122 Polish shops with public product feeds (WooCommerce, Shopify,
-  Shoper and IdoSell XML), fetched once a day and matched to products
+- Offers: shops of every region with public product lists (feeds, store APIs
+  or listing pages), fetched once a day and matched to products
   automatically; an administrator can assign the rest by hand. Each offer shows the shop's cheapest delivery,
   free-delivery threshold and pickup city where the shop publishes them.
 - Verdict: the cheapest in-stock price against today's market. Typical
@@ -55,10 +74,10 @@ never on MSRP. Missing data is shown as missing.
   at least 3 shops). Good ≤ 95%, normal ≤ 110%, expensive above; a good
   price must also be ≤ 95% of the 30-day usual price and of the Cardmarket
   trend in PLN plus a tracked parcel from Germany, when they are known (the
-  page says which one lowered the limit). The limits are shown in whole
-  złoty so a price seen in a physical shop can be judged too. With fewer
-  shops there is no verdict: the list row shows only the price, the
-  product page says "Za mało sklepów" and gives the Cardmarket trend in PLN
+  page says which one lowered the limit). The limits are shown in whole units
+  of the region's currency so a price seen in a physical shop can be judged
+  too. With fewer shops there is no verdict: the list row shows only the
+  price, the product page says "Za mało sklepów" and gives the Cardmarket trend in PLN
   as context.
 - History bounds a good price only: the same price against the median
   daily lowest price of the last 30 days (≥ 7 days with stock), shown as one
@@ -70,9 +89,9 @@ never on MSRP. Missing data is shown as missing.
   the expansion's premiere (the same street date for every shop) when it is
   known; otherwise pre-orders are listed in their own group.
 - Set pages (owner decision, 2026-11-03, banner revised 2026-11-04): every
-  named expansion has a page (`/rozszerzenia/<name>-<id>`) that answers first
-  with a banner under the set's logo: its most valuable card and what pulling
-  it from packs costs on average against buying it, then the next three cards
+  named expansion has a page (`/pl/rozszerzenia/<name>-<id>`, `/hu/szettek/…`)
+  that answers first with a banner under the set's logo: its most valuable
+  card and what pulling it from packs costs on average against buying it, then the next three cards
   the same way (a set without card prices shows its single booster instead).
   The page then lists the set's products with their verdicts, its pull rates
   and its cards. One card price is used everywhere: the lower of the cheapest
@@ -80,8 +99,8 @@ never on MSRP. Missing data is shown as missing.
   without delivery.
   Pages state the answer in their first sentence and search metadata, so
   search engines and AI assistants can quote it.
-- The card list (`?widok=karty`) filters by expansion like the product list;
-  a chosen expansion opens with a singles banner in the same style: the set's
+- The card list (`/pl/karty`, `/hu/kartyak`) filters by expansion like the
+  product list; a chosen expansion opens with a singles banner in the same style: the set's
   best deal (a Polish shop price furthest under the Cardmarket price with
   delivery), its cards in stock in Poland, the whole set at the lowest prices
   and its most valuable card. Only a normal print's offer is compared with
@@ -107,7 +126,8 @@ never on MSRP. Missing data is shown as missing.
   by background jobs.
 - The legacy singles catalogue, valuation and trade pages have been removed.
   Singles and trades will be rebuilt on the buying-guide domain; the former
-  `/cards/:tcgdex_id` and `/trade` URLs redirect permanently to `/`.
+  `/cards/:tcgdex_id` and `/trade` URLs redirect permanently to the Polish
+  home page.
 
 ## Evidence on Hand
 
@@ -122,11 +142,11 @@ never on MSRP. Missing data is shown as missing.
 - Simple over complete: every screen and feature must earn its place.
 - Realistic over official: what you can buy it for, not the catalogue price.
 - Honest gaps over invented numbers.
-- Polish first: copy, number and date formats for Polish users.
+- Local first: copy, number and date formats for each region's buyers.
 
 ## Accessibility & Inclusion
 
-- Polish interface for the buying guide; mobile-first and responsive.
+- Interface in Polish, Hungarian and English; mobile-first and responsive.
 - Semantic markup, keyboard access, visible focus, sufficient contrast,
   48px touch targets, no horizontal overflow at 390px.
 - Verdicts never rely on colour alone (text label plus icon).
