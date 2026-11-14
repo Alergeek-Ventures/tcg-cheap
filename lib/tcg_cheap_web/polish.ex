@@ -51,10 +51,10 @@ defmodule TcgCheapWeb.Polish do
     group(whole) <> "," <> fraction <> @nbsp <> "€"
   end
 
-  @doc ~S'Formats an exchange rate: "4,2563".'
-  @spec rate(Decimal.t()) :: String.t()
-  def rate(%Decimal{} = value),
-    do: value |> Decimal.round(4) |> Decimal.to_string(:normal) |> String.replace(".", ",")
+  @doc ~S'Formats an exchange rate, to four places unless given: "4,2563", "365,64".'
+  @spec rate(Decimal.t(), non_neg_integer()) :: String.t()
+  def rate(%Decimal{} = value, places \\ 4),
+    do: value |> Decimal.round(places) |> Decimal.to_string(:normal) |> String.replace(".", ",")
 
   @doc ~S(Formats a whole amount of the region's currency: "1 299 zł", "22 999 Ft".)
   @spec zloty(integer() | Decimal.t()) :: String.t()

@@ -154,6 +154,36 @@ defmodule TcgCheapWeb.RegionText do
     end
   end
 
+  @doc """
+  The line above a product list where shops abroad are compared with their
+  delivery and the rows name only the shop; nil in Poland, whose rows say
+  it beside each shop abroad.
+  """
+  @spec list_prices_note() :: String.t() | nil
+  def list_prices_note do
+    case region() do
+      "hu" -> gettext("Ceny ze sklepów z zagranicy są z wysyłką na Węgry.")
+      "pl" -> nil
+    end
+  end
+
+  @doc """
+  How prices abroad reach the region's currency, under a product's verdict;
+  nil in Poland.
+  """
+  @spec foreign_shops_note() :: String.t() | nil
+  def foreign_shops_note do
+    case region() do
+      "hu" ->
+        gettext(
+          "Sklepy z zagranicy sprzedają w swojej walucie, polskie w złotych. Ich ceny przeliczamy na forinty po dziennych kursach NBP. Strona sklepu może być po polsku albo w innym języku."
+        )
+
+      "pl" ->
+        nil
+    end
+  end
+
   @doc "Which shop prices include delivery, under a product's verdict."
   @spec shop_prices_note(String.t()) :: String.t()
   def shop_prices_note(shipping) do

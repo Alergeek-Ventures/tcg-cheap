@@ -118,6 +118,7 @@
 .guide-world .site-footer-links li { break-inside: avoid; }
 /* Plain links in a list: lighter than the credit's, and long set names wrap. */
 .guide-world .site-footer .site-footer-links a { font-weight: 400; text-decoration-color: color-mix(in oklch, currentColor 40%, transparent); white-space: normal; }
+.guide-world .site-footer .site-footer-about { display: block; margin-block-end: .5rem; text-wrap: balance; }
 .guide-world .site-footer-ball { block-size: 1.1em; color: var(--ink); flex: none; inline-size: 1.1em; }
 .guide-world .site-footer a { align-items: center; color: var(--ink); display: inline-flex; font-weight: 700; margin-inline: -.25rem; min-block-size: 3rem; padding-inline: .25rem; text-decoration: underline; text-underline-offset: .15em; }
 .guide-world .site-footer a:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
@@ -254,6 +255,7 @@
 .guide-world .guide-empty { background: var(--paper); padding: 1rem; }
 .guide-world .guide-empty a { display: block; font-weight: 600; margin-top: .5rem; text-decoration: underline; }
 .guide-world .guide-note { color: var(--muted); font-size: .875rem; }
+.guide-world .guide-prices-note { margin-block: 0 .5rem; }
 
 /* Filters: a side panel on wide screens, folded behind "Filtry" on narrow ones. */
 .guide-world .guide-browse { align-items: start; display: grid; gap: 1.5rem; }

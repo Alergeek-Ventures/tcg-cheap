@@ -7,7 +7,7 @@ defmodule TcgCheapWeb.SingleLive do
   use TcgCheapWeb, :live_view
   use Gettext, backend: TcgCheapWeb.Gettext
   import TcgCheapWeb.GuideComponents
-  alias TcgCheap.Sealed.{CardGuide, CardImage, CardReference, Guide, Matcher}
+  alias TcgCheap.Sealed.{CardGuide, CardImage, CardReference, Guide, Matcher, Rarities}
   alias TcgCheapWeb.{Analytics, Paths, Polish, Region, SEO, VisitorLocation}
 
   defmodule NotFound do
@@ -246,9 +246,10 @@ defmodule TcgCheapWeb.SingleLive do
             <section class="product-identity single-identity" aria-labelledby="single-name">
               <h1 id="single-name">{@page.card.name}</h1>
               <p class="product-facts">
-                {@page.card.rarity || gettext("Rzadkość nieznana")} · {CardGuide.printed_number(
-                  @page.card
-                )} ·
+                {if(@page.card.rarity,
+                  do: Rarities.label(@page.card.rarity),
+                  else: gettext("Rzadkość nieznana")
+                )} · {CardGuide.printed_number(@page.card)} ·
                 <.link navigate={
                   SEO.expansion_path(
                     @page.card.tcgdex_set.cardmarket_expansion_id,

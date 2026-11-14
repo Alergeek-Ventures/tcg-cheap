@@ -5,8 +5,8 @@ defmodule TcgCheapWeb.GuideComponents do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{CardGuide, Kinds, Market, Regions, RetailDeal, Shops}
-  alias TcgCheapWeb.{Paths, Polish, Region, SEO, VisitorLocation}
+  alias TcgCheap.Sealed.{CardGuide, Kinds, Market, Rarities, Regions, RetailDeal, Shops}
+  alias TcgCheapWeb.{Paths, Polish, Region, RegionText, SEO, VisitorLocation}
 
   def card_variant_label(:normal), do: gettext("Zwykła / holo")
   def card_variant_label(:reverse), do: gettext("Reverse holo")
@@ -254,6 +254,10 @@ defmodule TcgCheapWeb.GuideComponents do
           </ul>
         </nav>
       </div>
+      <%!-- Visitors abroad buy from shops in another country: say once we are none of them. --%>
+      <p :if={!Region.poland?(Region.current())} id="site-footer-about" class="site-footer-about">
+        {gettext("Niezależna porównywarka cen, nie sklep.")}
+      </p>
       <p>
         built with
         <svg class="site-footer-ball" viewBox="0 0 16 16" role="img" aria-label="Poké Ball">
@@ -791,13 +795,13 @@ defmodule TcgCheapWeb.GuideComponents do
         <div class="guide-product-copy">
           <h3 class="guide-product-name">{@row.card.name}</h3>
           <p class="guide-product-meta">
-            <span :if={@rarity? && @row.card.rarity}>{@row.card.rarity} ·</span>
+            <span :if={@rarity? && @row.card.rarity}>{Rarities.label(@row.card.rarity)} ·</span>
             {@row.card.number} · {@row.expansion_name}
           </p>
         </div>
         <div class="guide-product-deal">
           <%= if @offer do %>
-            <span class="guide-product-shop">{priced_shop_name(@offer)}</span>
+            <span class="guide-product-shop">{row_shop_name(@offer)}</span>
             <%!-- Without a Cardmarket price there is nothing to judge; the card's page says why. --%>
             <.verdict_badge
               :if={@verdict? and @status != :insufficient_data}
@@ -864,7 +868,7 @@ defmodule TcgCheapWeb.GuideComponents do
       </div>
       <div class="guide-product-deal">
         <span :if={@summary.verdict.cheapest} class="guide-product-shop">
-          {priced_shop_name(@summary.verdict.cheapest)}
+          {row_shop_name(@summary.verdict.cheapest)}
         </span>
         <%!-- Too few shops for a verdict: the row shows only the price; the product page says why. --%>
         <.verdict_badge
@@ -918,6 +922,15 @@ defmodule TcgCheapWeb.GuideComponents do
       term -> shop_name(offer) <> ", " <> term
     end
   end
+
+  @doc """
+  The shop of a list row's price. Outside Poland a note above the list
+  (`RegionText.list_prices_note/0`) says once which prices include delivery,
+  so the row names only the shop.
+  """
+  @spec row_shop_name(map()) :: String.t()
+  def row_shop_name(offer),
+    do: if(RegionText.list_prices_note(), do: shop_name(offer), else: priced_shop_name(offer))
 
   @doc """
   "z wysyłką ze Szwecji" for a compared price from a shop abroad (its
@@ -1557,9 +1570,10 @@ defmodule TcgCheapWeb.GuideComponents do
             date: Polish.date(rate.date)
           )
 
+        # A rate tens or hundreds of units to the euro reads in hundredths.
         currency ->
           gettext("Kurs %{rate} %{currency} za euro z kursów NBP z %{date}.",
-            rate: Polish.rate(rate.rate),
+            rate: Polish.rate(rate.rate, 2),
             currency: currency,
             date: Polish.date(rate.date)
           )
