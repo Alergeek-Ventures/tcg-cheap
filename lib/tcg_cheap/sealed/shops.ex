@@ -52,7 +52,6 @@ defmodule TcgCheap.Sealed.Shops do
     Planszomania,
     Pokemonki,
     PrestaShop,
-    Sellingo,
     Selly,
     Shop,
     ShoperListing,
@@ -1717,17 +1716,6 @@ defmodule TcgCheap.Sealed.Shops do
       max_pages: 20,
       shipping_from: Decimal.new("13"),
       free_shipping_from: Decimal.new("300"),
-      pickup_city: nil
-    },
-    %Shop{
-      key: "nora",
-      name: "Nora",
-      host: "nora.sklep.pl",
-      source: Sellingo,
-      listing_paths: ["/pokemon-tcg"],
-      max_pages: 1,
-      shipping_from: Decimal.new("11.90"),
-      free_shipping_from: Decimal.new("399"),
       pickup_city: nil
     },
     %Shop{
