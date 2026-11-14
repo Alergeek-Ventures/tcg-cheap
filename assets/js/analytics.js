@@ -47,8 +47,10 @@ const pageContext = () => ({
   $pathname: window.location.pathname,
   page_type: pageType(window.location.pathname),
   locale: document.documentElement.lang,
-  // Region (which shops and currency) and language (the text) are separate.
-  region: document.documentElement.dataset.region || null,
+  // The site region (which shops and currency) and language (the text) are
+  // separate. `market`, not `region`: events already use `region` for a
+  // product's edition (en, ja, …).
+  market: document.documentElement.dataset.region || null,
   language: document.documentElement.lang,
   has_location: hasLocation(),
 })
