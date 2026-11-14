@@ -8,7 +8,8 @@ defmodule TcgCheapWeb.RegionController do
 
   alias TcgCheapWeb.{LegacyPaths, Locale, Paths, Region}
 
-  # The products list's filters (`TcgCheapWeb.HomeLive`) and its old cards view.
+  # The products list's filters (`TcgCheapWeb.BrowseLive`) and `widok`, the
+  # card list's former view parameter.
   @list_params ~w(q rodzaj wersja rozszerzenie widok)
 
   @doc """
@@ -18,9 +19,9 @@ defmodule TcgCheapWeb.RegionController do
   visitor; no other page redirects by country. Other query params (a
   campaign's) go along.
 
-  The home page before regions with the list's filters is an old Polish URL
-  like the others: it moves permanently, in one hop, to its Polish page
-  (`TcgCheapWeb.LegacyPaths.home/1`).
+  The root with the list's filters is a URL from before the region prefixes
+  that search engines still hold: it moves permanently, in one hop, to its
+  Polish page (`TcgCheapWeb.LegacyPaths.home/1`).
   """
   def root(conn, _params) do
     conn = conn |> fetch_cookies() |> fetch_query_params()

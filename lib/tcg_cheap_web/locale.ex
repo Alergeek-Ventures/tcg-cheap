@@ -56,17 +56,17 @@ defmodule TcgCheapWeb.Locale do
     |> Plug.Conn.assign(:region_hint, region_hint(conn, region))
   end
 
-  # The language chosen before it moved to a cookie lived in the session:
-  # carried over once.
+  # Without a language cookie, a language kept in the session (`:locale`)
+  # becomes the cookie and leaves the session.
   defp language(conn, region) do
     case {Region.language(conn.cookies[@language_cookie]), get_session(conn, :locale)} do
-      {nil, legacy} when legacy in ["pl", "en"] ->
-        {legacy, conn |> delete_session(:locale) |> put_language_cookie(legacy)}
+      {nil, kept} when kept in ["pl", "en"] ->
+        {kept, conn |> delete_session(:locale) |> put_language_cookie(kept)}
 
-      {nil, _legacy} ->
+      {nil, _kept} ->
         {region.language, conn}
 
-      {language, _legacy} ->
+      {language, _kept} ->
         {language, conn}
     end
   end

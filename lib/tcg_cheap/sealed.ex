@@ -183,7 +183,6 @@ defmodule TcgCheap.Sealed do
 
   resources do
     resource TcgCheap.Sealed.Product do
-      define :import_product, action: :import
       define :list_products, action: :read
       define :get_product_by_slug, action: :by_slug, args: [:slug], not_found_error?: false
       define :list_boosters_by_name, action: :boosters_by_name, args: [:names, :region]
@@ -222,7 +221,6 @@ defmodule TcgCheap.Sealed do
     end
 
     resource TcgCheap.Sealed.Offer do
-      define :upsert_offer, action: :upsert
       define :match_offer, action: :match, args: [:product_id]
       define :assign_offer_manually, action: :assign_manually, args: [:product_id]
       define :exclude_offer_manually, action: :exclude_manually
@@ -268,16 +266,13 @@ defmodule TcgCheap.Sealed do
     end
 
     resource TcgCheap.Sealed.CardOffer do
-      define :upsert_card_offer, action: :upsert
       define :list_card_offers, action: :read
       define :get_card_offer, action: :read, get_by: [:id]
       define :match_card_offer, action: :match
       define :assign_card_offer_manually, action: :assign_manually
       define :exclude_card_offer_manually, action: :exclude_manually
       define :clear_manual_card_offer, action: :clear_manual
-      define :list_card_offers_seen_since, action: :seen_since, args: [:since]
       define :latest_card_fetches, action: :latest_fetches, args: [:since]
-      define :list_manual_card_offers, action: :manual
     end
 
     resource TcgCheap.Sealed.CardPrice
@@ -327,7 +322,6 @@ defmodule TcgCheap.Sealed do
     end
 
     resource TcgCheap.Sealed.MarketDailyPrice do
-      define :record_market_daily_price, action: :record
       define :list_market_daily_prices_on, action: :on, args: [:market, :date]
 
       define :list_market_price_history,

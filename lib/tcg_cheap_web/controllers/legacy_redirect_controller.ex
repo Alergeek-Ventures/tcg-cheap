@@ -3,8 +3,8 @@ defmodule TcgCheapWeb.LegacyRedirectController do
 
   alias TcgCheapWeb.LegacyPaths
 
-  # Old entry points keep their query and land on its final page in one hop,
-  # like any other old home URL.
+  # These region-less entry points keep their query and land on their final
+  # page in one hop, like the root with filters.
   def home(conn, _params) do
     {path, query} = LegacyPaths.home(conn.query_params)
 

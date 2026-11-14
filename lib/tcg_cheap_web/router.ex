@@ -82,19 +82,19 @@ defmodule TcgCheapWeb.Router do
         :signatures_directory
   end
 
-  # Markdown versions of the guide's pages for AI agents, reached through
-  # TcgCheapWeb.MarkdownNegotiation: no session, cookies or HTML. Each in its
-  # region's default language.
-  pipeline :markdown_pl do
+  # Machine-readable pages (Markdown for AI agents, reached through
+  # TcgCheapWeb.MarkdownNegotiation, and link-preview cards): no session,
+  # cookies or HTML. Each in its region's default language.
+  pipeline :default_language_pl do
     plug TcgCheapWeb.Locale, {"pl", :default_language}
   end
 
-  pipeline :markdown_hu do
+  pipeline :default_language_hu do
     plug TcgCheapWeb.Locale, {"hu", :default_language}
   end
 
   scope "/md/pl", TcgCheapWeb do
-    pipe_through :markdown_pl
+    pipe_through :default_language_pl
 
     get "/", MarkdownController, :home
     get "/karty", MarkdownController, :cards
@@ -107,7 +107,7 @@ defmodule TcgCheapWeb.Router do
   end
 
   scope "/md/hu", TcgCheapWeb do
-    pipe_through :markdown_hu
+    pipe_through :default_language_hu
 
     get "/", MarkdownController, :home
     get "/kartyak", MarkdownController, :cards
@@ -119,7 +119,7 @@ defmodule TcgCheapWeb.Router do
   # Link-preview cards for crawlers: no session, cookies or HTML. A region's
   # other pages share its home page's card.
   scope "/og/pl", TcgCheapWeb do
-    pipe_through :markdown_pl
+    pipe_through :default_language_pl
 
     get "/", SocialImageController, :home
     get "/produkty/:slug", SocialImageController, :product
@@ -132,7 +132,7 @@ defmodule TcgCheapWeb.Router do
   end
 
   scope "/og/hu", TcgCheapWeb do
-    pipe_through :markdown_hu
+    pipe_through :default_language_hu
 
     get "/", SocialImageController, :home
     get "/termekek/:slug", SocialImageController, :product
@@ -231,7 +231,7 @@ defmodule TcgCheapWeb.Router do
 
       live "/produkty/:slug", ProductLive
       # The card list, the products list's equal; its expansion stays a filter.
-      live "/karty", HomeLive, :cards
+      live "/karty", BrowseLive, :cards
       live "/ile-kosztuje-booster-pokemon", BoosterPriceLive
       live "/najdrozsze-karty-pokemon", ExpensiveCardsLive
       live "/jak-sprawdzic-wartosc-karty-pokemon", CardValueLive
@@ -241,8 +241,8 @@ defmodule TcgCheapWeb.Router do
     scope "/pl", TcgCheapWeb do
       pipe_through [:browser, :region_pl, :set_canonical]
 
-      live "/", HomeLive, :index
-      live "/rozszerzenia/:slug", HomeLive, :expansion
+      live "/", BrowseLive, :index
+      live "/rozszerzenia/:slug", BrowseLive, :expansion
     end
 
     scope "/pl", TcgCheapWeb do
@@ -259,14 +259,14 @@ defmodule TcgCheapWeb.Router do
       pipe_through [:browser, :region_hu]
 
       live "/termekek/:slug", ProductLive
-      live "/kartyak", HomeLive, :cards
+      live "/kartyak", BrowseLive, :cards
     end
 
     scope "/hu", TcgCheapWeb do
       pipe_through [:browser, :region_hu, :set_canonical]
 
-      live "/", HomeLive, :index
-      live "/szettek/:slug", HomeLive, :expansion
+      live "/", BrowseLive, :index
+      live "/szettek/:slug", BrowseLive, :expansion
     end
 
     scope "/hu", TcgCheapWeb do
@@ -317,9 +317,4 @@ defmodule TcgCheapWeb.Router do
       live "/buying-guide", BuyingGuideLive
     end
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", TcgCheapWeb do
-  #   pipe_through :api
-  # end
 end

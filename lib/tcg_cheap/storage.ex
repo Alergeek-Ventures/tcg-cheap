@@ -30,7 +30,6 @@ defmodule TcgCheap.Storage do
       define :get_remote_image, action: :by_hash, args: [:hash]
       define :list_registered_remote_images, action: :registered, args: [:hashes]
       define :list_mirrored_remote_images, action: :mirrored, args: [:hashes]
-      define :list_pending_remote_images, action: :pending, args: [:limit]
       define :record_remote_image_attempt, action: :record_attempt
       define :record_remote_image_failure, action: :record_failure
       define :trim_remote_image_margins, action: :trim_margins
@@ -69,8 +68,8 @@ defmodule TcgCheap.Storage do
 
   @doc """
   The origins pages load public objects from, for the CSP image sources: where
-  pages link them, and the bucket itself, which redirects cached before pages
-  linked our own `/img` route (`TcgCheapWeb.RemoteImageController`) still reach.
+  pages link them, and the bucket itself, which the redirects of our own `/img`
+  route (`TcgCheapWeb.RemoteImageController`) point to, cached ones included.
   """
   @spec image_origins() :: [String.t()]
   def image_origins do

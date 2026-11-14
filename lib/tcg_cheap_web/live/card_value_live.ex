@@ -11,10 +11,12 @@ defmodule TcgCheapWeb.CardValueLive do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  import TcgCheapWeb.GuideComponents
+  import TcgCheapWeb.ListingComponents
+  import TcgCheapWeb.OfferComponents
+  import TcgCheapWeb.SiteComponents
 
   alias TcgCheap.Sealed.{CardGuide, CardValue}
-  alias TcgCheapWeb.{Paths, Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Format, Paths, SEO, VisitorLocation}
 
   # The guide answers with the first few cards; the card list has the rest.
   @shown 5
@@ -95,7 +97,7 @@ defmodule TcgCheapWeb.CardValueLive do
               </.link>
               <p class="expensive-kicker">
                 {if(@spread,
-                  do: gettext("Poradnik · ceny z %{date}", date: Polish.date(@spread.on)),
+                  do: gettext("Poradnik · ceny z %{date}", date: Format.date(@spread.on)),
                   else: gettext("Poradnik")
                 )}
               </p>
@@ -183,9 +185,9 @@ defmodule TcgCheapWeb.CardValueLive do
               <p>
                 {gettext(
                   "Większość kart jest warta niewiele. Połowa z %{count} kart na stanie w polskich sklepach kosztuje najwyżej %{median}, a 9 na 10 – najwyżej %{ninetieth}.",
-                  count: Polish.number(@spread.count),
-                  median: Polish.zloty_ceiling(@spread.median),
-                  ninetieth: Polish.zloty_ceiling(@spread.ninetieth)
+                  count: Format.number(@spread.count),
+                  median: Format.whole_price_ceiling(@spread.median),
+                  ninetieth: Format.whole_price_ceiling(@spread.ninetieth)
                 )
                 |> glue_short_words()}
                 {if(@spread.over_100 > 0,
@@ -543,7 +545,7 @@ defmodule TcgCheapWeb.CardValueLive do
             {percent(bin.count, @total)}
           </span>
           <span class="value-chart-tip">
-            <strong>{Polish.plural(bin.count, "karta", "karty", "kart")}</strong>
+            <strong>{Format.cards(bin.count)}</strong>
             <span>{range_label(bin)}</span>
             <span>{gettext("%{percent} wszystkich", percent: percent(bin.count, @total))}</span>
           </span>
@@ -557,11 +559,14 @@ defmodule TcgCheapWeb.CardValueLive do
     """
   end
 
-  defp range_label(%{from: 0, to: to}), do: gettext("poniżej %{price}", price: Polish.zloty(to))
-  defp range_label(%{from: from, to: nil}), do: gettext("od %{price}", price: Polish.zloty(from))
+  defp range_label(%{from: 0, to: to}),
+    do: gettext("poniżej %{price}", price: Format.whole_price(to))
+
+  defp range_label(%{from: from, to: nil}),
+    do: gettext("od %{price}", price: Format.whole_price(from))
 
   defp range_label(%{from: from, to: to}),
-    do: gettext("od %{from} do %{to}", from: Polish.number(from), to: Polish.zloty(to))
+    do: gettext("od %{from} do %{to}", from: Format.number(from), to: Format.whole_price(to))
 
   defp percent(0, _total), do: "0%"
 
@@ -595,7 +600,7 @@ defmodule TcgCheapWeb.CardValueLive do
         |> Enum.reject(&is_nil/1)
         |> Enum.join(" · ")}
       </span>
-      <strong class="expensive-tile-value">{Polish.price(@row.offer.price)}</strong>
+      <strong class="expensive-tile-value">{Format.price(@row.offer.price)}</strong>
       <span class="expensive-stock">{shop_name(@row.offer)}</span>
     </.link>
     """

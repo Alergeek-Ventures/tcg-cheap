@@ -10,10 +10,10 @@ defmodule TcgCheapWeb.BotLive do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  import TcgCheapWeb.GuideComponents
+  import TcgCheapWeb.SiteComponents
 
   alias TcgCheap.Sealed.Shops
-  alias TcgCheapWeb.{Paths, Polish, SEO}
+  alias TcgCheapWeb.{Format, Paths, SEO}
 
   @contact "franek@alergeek.ventures"
 
@@ -67,7 +67,7 @@ defmodule TcgCheapWeb.BotLive do
             </p>
             <ul id="bot-numbers" class="set-chase-facts">
               <li>
-                <strong>{Polish.number(@shop_count)}</strong>
+                <strong>{Format.number(@shop_count)}</strong>
                 <span>{ngettext("sklep", "sklepy", @shop_count)}</span>
               </li>
               <li>

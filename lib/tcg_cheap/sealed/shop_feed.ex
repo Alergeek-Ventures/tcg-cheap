@@ -3,10 +3,10 @@ defmodule TcgCheap.Sealed.ShopFeed do
   The contract of a shop feed client and the hardening every client shares.
 
   A shop's `source` is the client module that reads its feed
-  (`TcgCheap.Sealed.WooCommerce`, `TcgCheap.Sealed.Shopify`,
-  `TcgCheap.Sealed.GoogleFeed`, `TcgCheap.Sealed.CeneoFeed`,
-  `TcgCheap.Sealed.IdoSell`, `TcgCheap.Sealed.PrestaShop`, and the readers of
-  HTML listings, mostly built on `TcgCheap.Sealed.HtmlListing`); a new kind
+  (`TcgCheap.Sealed.ShopFeed.WooCommerce`, `TcgCheap.Sealed.ShopFeed.Shopify`,
+  `TcgCheap.Sealed.ShopFeed.GoogleFeed`, `TcgCheap.Sealed.ShopFeed.CeneoFeed`,
+  `TcgCheap.Sealed.ShopFeed.IdoSell`, `TcgCheap.Sealed.ShopFeed.PrestaShop`, and the readers of
+  HTML listings, mostly built on `TcgCheap.Sealed.ShopFeed.HtmlListing`); a new kind
   of feed is one more module implementing this behaviour.
 
   Requests go only to the shop's fixed HTTPS host (its `feed_host`, when

@@ -1,20 +1,13 @@
 defmodule TcgCheapWeb do
   @moduledoc """
-  The entrypoint for defining your web interface, such
-  as controllers, components, channels, and so on.
-
-  This can be used in your application as:
+  The shared setup of the web layer's modules, chosen by the atom given to
+  `use`: `:router`, `:controller`, `:live_view`, `:html` or `:verified_routes`.
 
       use TcgCheapWeb, :controller
       use TcgCheapWeb, :html
 
-  The definitions below will be executed for every controller,
-  component, etc, so keep them short and clean, focused
-  on imports, uses and aliases.
-
-  Do NOT define functions inside the quoted expressions
-  below. Instead, define additional modules and import
-  those modules here.
+  The quoted blocks hold imports, uses and aliases only; functions belong in
+  modules imported here.
   """
 
   # The IndexNow key file proves to Bing and others that our URL submissions
@@ -27,16 +20,10 @@ defmodule TcgCheapWeb do
     quote do
       use Phoenix.Router, helpers: false
 
-      # Import common connection and controller functions to use in pipelines
+      # Connection and controller functions for pipelines
       import Plug.Conn
       import Phoenix.Controller
       import Phoenix.LiveView.Router
-    end
-  end
-
-  def channel do
-    quote do
-      use Phoenix.Channel
     end
   end
 
@@ -60,23 +47,15 @@ defmodule TcgCheapWeb do
     end
   end
 
-  def live_component do
-    quote do
-      use Phoenix.LiveComponent
-
-      unquote(html_helpers())
-    end
-  end
-
   def html do
     quote do
       use Phoenix.Component
 
-      # Import convenience functions from controllers
+      # Convenience functions from controllers
       import Phoenix.Controller,
         only: [get_csrf_token: 0, view_module: 1, view_template: 1]
 
-      # Include general helpers for rendering HTML
+      # Helpers for rendering HTML
       unquote(html_helpers())
     end
   end

@@ -52,9 +52,9 @@ defmodule TcgCheap.Sealed.AgentTools.ProductDetail do
       preorder: detail.preorder?,
       premiere: detail.premiere,
       past: detail.past,
-      cardmarket_trend_pln: detail.cardmarket_pln,
-      cardmarket_trend_with_shipping_pln: detail.cardmarket_delivered_pln,
-      eur_pln: detail.eur_pln,
+      cardmarket_trend_pln: detail.cardmarket_price,
+      cardmarket_trend_with_shipping_pln: detail.cardmarket_delivered_price,
+      eur_pln: detail.eur_rate,
       suggested_price: Json.suggested_price(detail.suggested_price),
       contents: Json.contents(product.contents),
       offers: Enum.map(detail.offers, &Json.offer/1)

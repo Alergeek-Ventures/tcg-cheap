@@ -20,7 +20,16 @@ defmodule TcgCheapWeb.SocialImage do
   alias TcgCheap.Sealed.{CardImage, Guide, Shops}
   alias TcgCheap.Storage
   alias TcgCheap.Storage.ImageDownload
-  alias TcgCheapWeb.{CardRecords, GuideComponents, Polish, RegionText}
+
+  alias TcgCheapWeb.{
+    CardRecords,
+    Format,
+    ListingComponents,
+    OfferComponents,
+    RegionText,
+    VerdictComponents
+  }
+
   alias Vix.Vips.Operation
 
   # Bump when the layout changes, so stored and cached cards are replaced.
@@ -81,12 +90,12 @@ defmodule TcgCheapWeb.SocialImage do
 
     price =
       if cheapest,
-        do: {Polish.price(cheapest.price), cheapest.shop},
-        else: (value = cardmarket_pln(page)) && Polish.zloty(value)
+        do: {Format.price(cheapest.price), cheapest.shop},
+        else: (value = cardmarket_pln(page)) && Format.whole_price(value)
 
     version(
       {page.card.name, page.card.number, page.expansion_name, page.image,
-       GuideComponents.single_verdict_status(verdict), price}
+       VerdictComponents.single_verdict_status(verdict), price}
     )
   end
 
@@ -97,8 +106,8 @@ defmodule TcgCheapWeb.SocialImage do
 
     version(
       {name, Enum.map(expansion_scans(set_page), &{&1.card.id, &1.image}),
-       top && {top.card.name, Polish.zloty(top.price), top.source},
-       (booster = booster_price(set_page)) && Polish.price(booster)}
+       top && {top.card.name, Format.whole_price(top.price), top.source},
+       (booster = booster_price(set_page)) && Format.price(booster)}
     )
   end
 
@@ -109,7 +118,7 @@ defmodule TcgCheapWeb.SocialImage do
 
     version(
       {market.in_stock, market.shops,
-       deal && {deal.card.name, Polish.price(deal.price), deal.shop, deal.image}}
+       deal && {deal.card.name, Format.price(deal.price), deal.shop, deal.image}}
     )
   end
 
@@ -123,7 +132,7 @@ defmodule TcgCheapWeb.SocialImage do
         |> Enum.uniq_by(& &1.product.id),
         fn booster ->
           {booster.product.id, booster.product.set_name, booster.product.stored_photo_card_url,
-           Polish.price(booster.verdict.cheapest.price), booster.verdict.cheapest.shop}
+           Format.price(booster.verdict.cheapest.price), booster.verdict.cheapest.shop}
         end
       )
     )
@@ -138,7 +147,7 @@ defmodule TcgCheapWeb.SocialImage do
       {{record.id, record.name, record.usd, record.image},
        Enum.map(
          Enum.take(overview.highlights, 2),
-         &{&1.card.name, Polish.zloty(&1.value), &1.image_large}
+         &{&1.card.name, Format.whole_price(&1.value), &1.image_large}
        )}
     )
   end
@@ -221,7 +230,9 @@ defmodule TcgCheapWeb.SocialImage do
 
       # The facts line gives way when the name would not fit in one line.
       {facts, room} =
-        case GuideComponents.product_meta(product) |> normalize() |> wrap(22, :mono, width, 1) do
+        case ListingComponents.product_meta(product)
+             |> normalize()
+             |> wrap(22, :mono, width, 1) do
           facts when room - 44 >= @min_title * 0.96 -> {facts, room - 44}
           _facts -> {[], room}
         end
@@ -296,7 +307,7 @@ defmodule TcgCheapWeb.SocialImage do
 
   defp card_answer(page, x, width) do
     %{cheapest: cheapest, verdict: verdict} = card_answer_row(page)
-    status = GuideComponents.single_verdict_status(verdict)
+    status = VerdictComponents.single_verdict_status(verdict)
     # Only a judged price or a missing one has a badge; "too few shops" means
     # nothing on a card.
     badge = if status in [:good, :normal, :expensive, :out_of_stock], do: %{status: status}
@@ -304,11 +315,11 @@ defmodule TcgCheapWeb.SocialImage do
     {price, line} =
       case {cheapest, cardmarket_pln(page)} do
         {%{price: price}, _cardmarket} ->
-          {{Polish.price(price), 104, @ink},
-           gettext("najtaniej teraz w %{shop}", shop: GuideComponents.priced_shop_name(cheapest))}
+          {{Format.price(price), 104, @ink},
+           gettext("najtaniej teraz w %{shop}", shop: OfferComponents.priced_shop_name(cheapest))}
 
         {nil, %Decimal{} = value} ->
-          {{Polish.zloty(value), 68, @muted}, gettext("cena na Cardmarket")}
+          {{Format.whole_price(value), 68, @muted}, gettext("cena na Cardmarket")}
 
         {nil, nil} ->
           {nil, gettext("Teraz żaden sklep nie ma tej karty na stanie.")}
@@ -336,10 +347,10 @@ defmodule TcgCheapWeb.SocialImage do
         Enum.filter(
           [
             (booster = booster_price(set_page)) &&
-              %{text: gettext("Booster od %{price}", price: Polish.price(booster)), size: 64},
+              %{text: gettext("Booster od %{price}", price: Format.price(booster)), size: 64},
             (top = top_card(set_page)) &&
               %{
-                text: "#{top.card.name} ≈ #{Polish.zloty(top.price)}",
+                text: "#{top.card.name} ≈ #{Format.whole_price(top.price)}",
                 size: 48,
                 caption: top_card_caption(top)
               }
@@ -417,7 +428,7 @@ defmodule TcgCheapWeb.SocialImage do
             },
             today != [] &&
               %{
-                text: "#{hd(today).card.name} ≈ #{Polish.zloty(hd(today).value)}",
+                text: "#{hd(today).card.name} ≈ #{Format.whole_price(hd(today).value)}",
                 size: 48,
                 caption: gettext("najdroższa z ostatnich lat")
               }
@@ -487,7 +498,7 @@ defmodule TcgCheapWeb.SocialImage do
     Enum.filter(
       [
         %{
-          text: gettext("do %{price}", price: Polish.zloty_ceiling(spread.median)),
+          text: gettext("do %{price}", price: Format.whole_price_ceiling(spread.median)),
           size: 64,
           caption: gettext("kosztuje połowa kart w sklepach")
         },
@@ -519,12 +530,12 @@ defmodule TcgCheapWeb.SocialImage do
             %{
               text:
                 gettext("%{cards} na stanie",
-                  cards: Polish.plural(market.in_stock, "karta", "karty", "kart")
+                  cards: Format.cards(market.in_stock)
                 ),
               size: 64,
               caption:
                 gettext("w %{shops}",
-                  shops: Polish.plural(market.shops, "sklepie", "sklepach", "sklepach")
+                  shops: Format.in_shops(market.shops)
                 )
             },
             deal &&
@@ -532,7 +543,7 @@ defmodule TcgCheapWeb.SocialImage do
                 text:
                   gettext("%{card} za %{price}",
                     card: deal.card.name,
-                    price: Polish.price(deal.price)
+                    price: Format.price(deal.price)
                   ),
                 size: 48,
                 caption:
@@ -582,18 +593,18 @@ defmodule TcgCheapWeb.SocialImage do
             cheapest &&
               %{
                 text:
-                  gettext("od %{price}", price: Polish.price(cheapest.verdict.cheapest.price)),
+                  gettext("od %{price}", price: Format.price(cheapest.verdict.cheapest.price)),
                 size: 64,
                 caption: gettext("najtańszy: %{set}", set: cheapest.product.set_name)
               },
             newest && (is_nil(cheapest) or newest.product.id != cheapest.product.id) &&
               %{
                 text:
-                  "#{newest.product.set_name}: #{Polish.price(newest.verdict.cheapest.price)}",
+                  "#{newest.product.set_name}: #{Format.price(newest.verdict.cheapest.price)}",
                 size: 48,
                 caption:
                   gettext("najnowszy set · %{shop}",
-                    shop: GuideComponents.priced_shop_name(newest.verdict.cheapest)
+                    shop: OfferComponents.priced_shop_name(newest.verdict.cheapest)
                   )
               }
           ],
@@ -807,11 +818,11 @@ defmodule TcgCheapWeb.SocialImage do
     {price, shop_line} =
       case {verdict, past} do
         {%{cheapest: %{price: price} = cheapest}, _past} ->
-          {{Polish.price(price), 104, @ink},
-           gettext("najtaniej teraz w %{shop}", shop: GuideComponents.priced_shop_name(cheapest))}
+          {{Format.price(price), 104, @ink},
+           gettext("najtaniej teraz w %{shop}", shop: OfferComponents.priced_shop_name(cheapest))}
 
         {_verdict, %{last_known: %{price: price, date: date}}} ->
-          {{Polish.price(price), 68, @muted},
+          {{Format.price(price), 68, @muted},
            gettext("ostatnio najtaniej · %{date}", date: Calendar.strftime(date, "%d.%m.%Y"))}
 
         _none ->
@@ -824,7 +835,7 @@ defmodule TcgCheapWeb.SocialImage do
           typical_note(verdict),
           page.suggested_price &&
             gettext("Cena sugerowana (REBEL): %{price}",
-              price: Polish.price(page.suggested_price.price)
+              price: Format.price(page.suggested_price.price)
             )
         ],
         &is_binary/1
@@ -868,8 +879,8 @@ defmodule TcgCheapWeb.SocialImage do
   defp typical_note(%{typical: %Decimal{} = typical, typical_source: :shops} = verdict),
     do:
       gettext("Typowa cena dziś w %{shops}: %{price}",
-        shops: Polish.plural(length(verdict.shop_prices), "sklepie", "sklepach", "sklepach"),
-        price: Polish.zloty(typical)
+        shops: Format.in_shops(length(verdict.shop_prices)),
+        price: Format.whole_price(typical)
       )
 
   defp typical_note(_verdict), do: nil
@@ -879,7 +890,7 @@ defmodule TcgCheapWeb.SocialImage do
   # meaning, never colour alone.
   defp badge(verdict, x, y, height, size, width \\ nil) do
     {fill, color, edge} = badge_colors(verdict)
-    label = verdict |> GuideComponents.verdict_label() |> String.upcase()
+    label = verdict |> VerdictComponents.verdict_label() |> String.upcase()
     mark = round(size * 0.7)
     text_x = x + 24 + mark + 14
     width = width || text_x - x + text_width(label, size, :display, 1.6) + 24
@@ -888,7 +899,7 @@ defmodule TcgCheapWeb.SocialImage do
       ~s(<rect x="#{x}" y="#{y}" width="#{round(width)}" height="#{height}" fill="#{fill}"/>),
       edge && edge_line(edge, x, y + height - 2, width),
       ~s|<g transform="translate(#{x + 24} #{y + (height - mark) / 2}) scale(#{mark / 16})" fill="none" stroke="#{color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">| <>
-        Enum.map_join(GuideComponents.verdict_paths(verdict.status), &~s(<path d="#{&1}"/>)) <>
+        Enum.map_join(VerdictComponents.verdict_paths(verdict.status), &~s(<path d="#{&1}"/>)) <>
         "</g>",
       ~s(<text x="#{text_x}" y="#{y + height / 2 + size * 0.36}" font-family="#{@display}" font-weight="700" font-size="#{size}" letter-spacing="1.6" fill="#{color}">#{escape(label)}</text>)
     ]

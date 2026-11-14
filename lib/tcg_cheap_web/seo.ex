@@ -13,13 +13,14 @@ defmodule TcgCheapWeb.SEO do
   alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Guide, Kinds, Shops}
 
   alias TcgCheapWeb.{
-    GuideComponents,
+    Format,
+    OfferComponents,
     PageMarkdown,
     Paths,
-    Polish,
     Region,
     RegionText,
-    SocialImage
+    SocialImage,
+    VerdictComponents
   }
 
   def home(params) do
@@ -94,11 +95,11 @@ defmodule TcgCheapWeb.SEO do
     [
       gettext(
         "Angielskie karty Pokémon TCG w sklepach wysyłających do Polski: %{cards} na stanie.",
-        cards: Polish.plural(market.in_stock, "karta", "karty", "kart")
+        cards: Format.cards(market.in_stock)
       ),
       market.cheaper > 0 &&
         gettext("%{count} z nich taniej niż na Cardmarket z przesyłką.",
-          count: Polish.number(market.cheaper)
+          count: Format.number(market.cheaper)
         ),
       gettext("Najniższa cena i ocena każdej karty.")
     ]
@@ -227,7 +228,7 @@ defmodule TcgCheapWeb.SEO do
         [top | _] ->
           gettext("Najdroższa karta dziś na Cardmarket: %{card}, %{value}.",
             card: top.card.name,
-            value: Polish.zloty(top.value)
+            value: Format.whole_price(top.value)
           )
 
         [] ->
@@ -251,7 +252,7 @@ defmodule TcgCheapWeb.SEO do
           ),
           spread &&
             gettext("Połowa kart kosztuje do %{median} – sprawdź, czy twoja jest wyjątkiem.",
-              median: Polish.zloty_ceiling(spread.median)
+              median: Format.whole_price_ceiling(spread.median)
             ),
           gettext("Do tego grading: kiedy się opłaca.")
         ]
@@ -345,13 +346,13 @@ defmodule TcgCheapWeb.SEO do
     [
       gettext(
         "Booster z ostatnich angielskich setów kosztuje dziś od %{price} (%{product}, %{shop}).",
-        price: Polish.price(cheapest.verdict.cheapest.price),
+        price: Format.price(cheapest.verdict.cheapest.price),
         product: cheapest.product.name,
-        shop: GuideComponents.priced_shop_name(cheapest.verdict.cheapest)
+        shop: OfferComponents.priced_shop_name(cheapest.verdict.cheapest)
       ),
       gettext("Najnowszy set w sklepach, %{set}: od %{price}.",
         set: newest.product.set_name,
-        price: Polish.price(newest.verdict.cheapest.price)
+        price: Format.price(newest.verdict.cheapest.price)
       )
     ]
   end
@@ -492,22 +493,22 @@ defmodule TcgCheapWeb.SEO do
     do:
       gettext("Booster %{expansion}: przedsprzedaż od %{price} w %{shop}.",
         expansion: name,
-        price: Polish.price(cheapest.price),
-        shop: GuideComponents.priced_shop_name(cheapest)
+        price: Format.price(cheapest.price),
+        shop: OfferComponents.priced_shop_name(cheapest)
       )
 
   defp booster_answer(name, %{verdict: %{cheapest: cheapest}}),
     do:
       gettext("Booster %{expansion}: najtaniej teraz %{price} w %{shop}.",
         expansion: name,
-        price: Polish.price(cheapest.price),
-        shop: GuideComponents.priced_shop_name(cheapest)
+        price: Format.price(cheapest.price),
+        shop: OfferComponents.priced_shop_name(cheapest)
       )
 
   defp cards_answer(%{card_count: 0}), do: nil
 
   defp cards_answer(%{card_count: count, top_cards: []}),
-    do: gettext("Set liczy %{cards}.", cards: Polish.plural(count, "karta", "karty", "kart"))
+    do: gettext("Set liczy %{cards}.", cards: Format.cards(count))
 
   # The dearest card's price is a Polish shop's or Cardmarket's in złoty.
   defp cards_answer(%{card_count: count, top_cards: [top | _]}) when top != nil do
@@ -519,9 +520,9 @@ defmodule TcgCheapWeb.SEO do
   defp dearest_card_answer(count, top),
     do:
       gettext("Set liczy %{cards}, najdroższa to %{card} (%{price}, bez dostawy).",
-        cards: Polish.plural(count, "karta", "karty", "kart"),
+        cards: Format.cards(count),
         card: top.card.name,
-        price: Polish.price(top.price)
+        price: Format.price(top.price)
       )
 
   defp home_image, do: social_image(Paths.home(), SocialImage.home_version())
@@ -682,15 +683,15 @@ defmodule TcgCheapWeb.SEO do
         {cheapest, true} ->
           gettext("%{name}: przedsprzedaż od %{price} w %{shop}.",
             name: product.name,
-            price: Polish.price(cheapest.price),
-            shop: GuideComponents.priced_shop_name(cheapest)
+            price: Format.price(cheapest.price),
+            shop: OfferComponents.priced_shop_name(cheapest)
           )
 
         {cheapest, false} ->
           gettext("%{name}: najtaniej teraz %{price} w %{shop}.",
             name: product.name,
-            price: Polish.price(cheapest.price),
-            shop: GuideComponents.priced_shop_name(cheapest)
+            price: Format.price(cheapest.price),
+            shop: OfferComponents.priced_shop_name(cheapest)
           )
       end
 
@@ -728,7 +729,7 @@ defmodule TcgCheapWeb.SEO do
     [
       pull_rates_summary(set.pull_rates),
       # "Lista 22 kart": the genitive after "lista", whatever the count.
-      gettext("Lista %{count} kart z cenami.", count: Polish.number(cards))
+      gettext("Lista %{count} kart z cenami.", count: Format.number(cards))
     ]
   end
 
@@ -736,7 +737,7 @@ defmodule TcgCheapWeb.SEO do
 
   # The two rarest rates, as the page's table states them.
   defp pull_rates_summary(%{rates: [_ | _] = rates}) do
-    odds = Enum.map_join(Enum.take(rates, 2), ", ", &"#{&1.rarity} #{Polish.odds(&1.rate)}")
+    odds = Enum.map_join(Enum.take(rates, 2), ", ", &"#{&1.rarity} #{Format.odds(&1.rate)}")
     gettext("Szansa na drop (pull rates): %{odds}.", odds: odds)
   end
 
@@ -746,8 +747,8 @@ defmodule TcgCheapWeb.SEO do
        when status in [:good, :normal, :expensive],
        do:
          gettext("%{verdict} – typowa cena w %{shops} sklepach to %{typical}.",
-           verdict: GuideComponents.verdict_label(verdict),
-           typical: Polish.zloty(typical),
+           verdict: VerdictComponents.verdict_label(verdict),
+           typical: Format.whole_price(typical),
            shops: length(verdict.shop_prices)
          )
 
@@ -757,9 +758,9 @@ defmodule TcgCheapWeb.SEO do
   defp answer(%{cheapest: %{price: price} = cheapest} = verdict),
     do:
       gettext("%{verdict}: najtaniej teraz %{price} w %{shop}.",
-        verdict: GuideComponents.verdict_label(verdict),
-        price: Polish.price(price),
-        shop: GuideComponents.priced_shop_name(cheapest)
+        verdict: VerdictComponents.verdict_label(verdict),
+        price: Format.price(price),
+        shop: OfferComponents.priced_shop_name(cheapest)
       )
 
   defp answer(_verdict), do: gettext("Teraz żaden sklep nie ma tego produktu na stanie.")
@@ -787,9 +788,9 @@ defmodule TcgCheapWeb.SEO do
             gettext("%{name} %{number}: od %{price} w sklepach wysyłających do Polski.",
               name: card.name,
               number: number,
-              price: Polish.price(answer.cheapest.price)
+              price: Format.price(answer.cheapest.price)
             ),
-            GuideComponents.single_verdict_label(answer.verdict) <> ".",
+            VerdictComponents.single_verdict_label(answer.verdict) <> ".",
             gettext("Ceny, stan i warianty karty.")
           ])
 

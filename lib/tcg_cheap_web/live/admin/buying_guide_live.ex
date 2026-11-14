@@ -12,7 +12,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.ShopStatus
   alias TcgCheap.Sealed.{Kinds, Matcher, Refresh, Shops}
-  alias TcgCheapWeb.{Paths, Polish}
+  alias TcgCheapWeb.{Format, Paths}
 
   @result_limit 10
   @matched_limit 50
@@ -290,7 +290,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
                       <td>
                         <a href={offer.url} target="_blank" rel="noopener nofollow">{offer.title}</a>
                       </td>
-                      <td class="admin-nowrap">{Polish.price(offer.price)}</td>
+                      <td class="admin-nowrap">{Format.price(offer.price)}</td>
                       <td class="admin-nowrap">
                         {if offer.in_stock, do: "in stock", else: "out of stock"}
                       </td>
@@ -356,7 +356,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
                       <td>
                         <.link navigate={Paths.product(offer.product.slug)}>{offer.product.name}</.link>
                       </td>
-                      <td class="admin-nowrap">{Polish.price(offer.price)}</td>
+                      <td class="admin-nowrap">{Format.price(offer.price)}</td>
                       <td class="admin-nowrap">
                         <button
                           type="button"

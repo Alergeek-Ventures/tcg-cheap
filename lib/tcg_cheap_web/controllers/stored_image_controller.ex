@@ -6,7 +6,7 @@ defmodule TcgCheapWeb.StoredImageController do
   own: on a slow network that delayed the guide's largest image.
 
   Reads the bucket anonymously, so it serves only what is public anyway, and
-  passes on raster images only, since they now come from our origin. Keys are
+  passes on raster images only, since they are served from our origin. Keys are
   never overwritten (`TcgCheap.Storage.Service.PublicS3`), so browsers may
   keep them for good.
   """

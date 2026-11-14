@@ -6,7 +6,7 @@ defmodule TcgCheapWeb.CrawlController do
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{CardGuide, Catalogue, Guide, Shops, Sitemap}
   alias TcgCheap.WebBotAuth
-  alias TcgCheapWeb.{PageMarkdown, Paths, Polish, Region, SEO}
+  alias TcgCheapWeb.{Format, PageMarkdown, Paths, Region, SEO}
 
   # Every region's pages: each indexes its home page, card list, set and card
   # pages alike; a product page where its region's shops have it in stock now
@@ -19,7 +19,7 @@ defmodule TcgCheapWeb.CrawlController do
     # date: the only daily card price we keep, the Cardmarket trend, moves a
     # little for most cards every day, and a date that is always today
     # teaches search engines to ignore the sitemap's dates altogether.
-    # Another region's product pages have no date yet.
+    # Another region's product pages carry no date.
     product_dates = products |> Enum.map(& &1.id) |> Sitemap.product_dates()
 
     # The guides read today's prices, so they change every day; the date
@@ -181,13 +181,13 @@ defmodule TcgCheapWeb.CrawlController do
   defp in_stock_products(count),
     do:
       ngettext("%{number} produkt na stanie", "%{number} produkty na stanie", count,
-        number: Polish.number(count)
+        number: Format.number(count)
       )
 
   defp in_stock_cards(count),
     do:
       ngettext("%{number} karta na stanie", "%{number} karty na stanie", count,
-        number: Polish.number(count)
+        number: Format.number(count)
       )
 
   def robots(conn, _params) do

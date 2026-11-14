@@ -1,16 +1,6 @@
-# This file is responsible for configuring your application
-# and its dependencies with the aid of the Config module.
-#
-# This configuration file is loaded before any dependency and
-# is restricted to this project.
-
-# General application configuration
 import Config
 
-# These enable behaviors that will become the default in the next major
-# version of Ash. Setting them now opts your application into the new
-# behavior and ensures a seamless upgrade. See the backwards compatibility
-# guide for an explanation of each setting:
+# Ash behaviours that become the default in its next major version; see
 # https://hexdocs.pm/ash/backwards-compatibility-config.html
 config :ash,
   allow_forbidden_field_for_relationships_by_default?: true,
@@ -57,7 +47,7 @@ config :tcg_cheap,
   ecto_repos: [TcgCheap.Repo],
   generators: [timestamp_type: :utc_datetime],
   ash_domains: [
-    TcgCheap.Core,
+    TcgCheap.Pricing,
     TcgCheap.Accounts,
     TcgCheap.Sealed,
     TcgCheap.Storage
@@ -144,7 +134,7 @@ config :tcg_cheap, :exchange_rate_provider,
   adapter: TcgCheap.Pricing.NbpExchangeRate,
   options: []
 
-# Configure the endpoint
+# Endpoint
 config :tcg_cheap, TcgCheapWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
@@ -155,13 +145,13 @@ config :tcg_cheap, TcgCheapWeb.Endpoint,
   pubsub_server: TcgCheap.PubSub,
   live_view: [signing_salt: "kshhPnxQ"]
 
-# Configure LiveView
+# LiveView
 config :phoenix_live_view,
   # the attribute set on all root tags. Used for Phoenix.LiveView.ColocatedCSS.
   root_tag_attribute: "phx-r"
 
 # Configure esbuild. Nix provides a stable external path in devenv; outside
-# devenv, the configured version is downloaded by the Mix task as before.
+# devenv, the Mix task downloads the configured version.
 esbuild_options =
   case System.get_env("MIX_ESBUILD_PATH") do
     path when is_binary(path) and path != "" -> [path: path, version_check: false]
@@ -181,7 +171,7 @@ config :esbuild,
          ]
 
 # Configure tailwind. Nix provides a stable external path in devenv; outside
-# devenv, the configured version is downloaded by the Mix task as before.
+# devenv, the Mix task downloads the configured version.
 tailwind_options =
   case System.get_env("MIX_TAILWIND_PATH") do
     path when is_binary(path) and path != "" -> [path: path, version_check: false]
@@ -210,12 +200,12 @@ config :tailwind,
            ]
          ]
 
-# Configure Elixir's Logger
+# Logger
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-# Use Jason for JSON parsing in Phoenix
+# JSON library
 config :phoenix, :json_library, Jason
 
 # The visitor's location (connect params and the location control's events)

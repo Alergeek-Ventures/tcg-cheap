@@ -1,23 +1,17 @@
 defmodule TcgCheapWeb.Layouts do
   @moduledoc """
-  This module holds layouts and related functionality
-  used by your application.
+  The public pages' layout (toasts around the page content), the admin shell,
+  and the root and stylesheet templates.
   """
   use TcgCheapWeb, :html
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  # Embed all files in layouts/* within this module.
-  # The default root.html.heex file contains the HTML
-  # skeleton of your application, namely HTML headers
-  # and other static content.
+  # The root HTML skeleton (`root.html.heex`) and the other layouts/* templates.
   embed_templates "layouts/*"
 
   @doc """
-  Renders your app layout.
-
-  This function is typically invoked from every template,
-  and it often contains your application menu, sidebar,
-  or similar.
+  Renders a public page's content with the toast group that shows flashes and
+  connection notices.
 
   ## Examples
 
@@ -28,10 +22,6 @@ defmodule TcgCheapWeb.Layouts do
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
 
-  attr :current_scope, :map,
-    default: nil,
-    doc: "the current [scope](https://phoenix.hexdocs.pm/scopes.html)"
-
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -40,7 +30,7 @@ defmodule TcgCheapWeb.Layouts do
     <LiveToast.toast_group
       flash={@flash}
       connected={assigns[:socket] != nil}
-      toasts_sync={assigns[:toasts_sync]}
+      toasts_sync={[]}
       corner={:top_right}
       toast_class_fn={&toast_class/1}
       connection_notifications={
@@ -189,41 +179,4 @@ defmodule TcgCheapWeb.Layouts do
   @spec stylesheet(Plug.Conn.t()) :: String.t()
   def stylesheet(%Plug.Conn{path_info: ["admin" | _]}), do: ~p"/assets/css/admin.css"
   def stylesheet(_conn), do: ~p"/assets/css/app.css"
-
-  @doc """
-  Provides dark vs light theme toggle based on themes defined in admin.css.
-
-  See <head> in root.html.heex which applies the theme before page load.
-  """
-  def theme_toggle(assigns) do
-    ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 [[data-theme-source=system]_&]:!left-0 transition-[left]" />
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="system"
-      >
-        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="light"
-      >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="dark"
-      >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-    </div>
-    """
-  end
 end

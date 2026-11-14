@@ -5,8 +5,8 @@ defmodule TcgCheap.Sealed.MarketDailyPrice do
   compared price of its shops (`Market.compared/3`); nil, with
   `shops_in_stock` zero, when no shop there had it.
 
-  Poland keeps its history in `TcgCheap.Sealed.DailyPrice`: it predates
-  markets, and the Cardmarket trend every market converts lives there.
+  Poland keeps its history in `TcgCheap.Sealed.DailyPrice`, where the
+  Cardmarket trend every market converts also lives.
   """
 
   use Ash.Resource,

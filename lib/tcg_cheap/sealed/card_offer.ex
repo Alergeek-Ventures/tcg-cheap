@@ -148,17 +148,6 @@ defmodule TcgCheap.Sealed.CardOffer do
       change set_attribute(:match_note, nil)
     end
 
-    read :seen_since do
-      argument :since, :utc_datetime_usec, allow_nil?: false
-      filter expr(last_seen_at >= ^arg(:since))
-      prepare build(sort: [shop: :asc, title: :asc, id: :asc])
-    end
-
-    read :manual do
-      filter expr(manual? == true)
-      prepare build(sort: [shop: :asc, title: :asc, id: :asc])
-    end
-
     action :latest_fetches, :map do
       argument :since, :utc_datetime_usec, allow_nil?: false
       run {TcgCheap.Sealed.Offer.LatestFetches, resource: __MODULE__}

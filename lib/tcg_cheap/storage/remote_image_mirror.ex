@@ -193,8 +193,9 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
         on: image.source_url == s.source_url,
         where:
           is_nil(image.thumbnail_key) or is_nil(image.detail_key) or is_nil(image.attempted_at),
-        # The :pending read action's backoff: n failures wait min(2^(n-1), 8)
-        # days; rows that failed before failures were counted wait a day.
+        # A failing source backs off: n failures wait min(2^(n-1), 8) days, so a
+        # missing scan is not fetched every day forever. Rows with no counted
+        # failures wait a day.
         where:
           is_nil(image.attempted_at) or
             fragment(

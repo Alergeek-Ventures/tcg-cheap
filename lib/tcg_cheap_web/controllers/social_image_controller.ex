@@ -7,15 +7,15 @@ defmodule TcgCheapWeb.SocialImageController do
   version is computed here from the current data, so the `v` parameter
   (which `TcgCheapWeb.SEO` puts in the URL for platforms that cache by URL)
   cannot force a new render. Crawlers send no session: cards are in the
-  region's language and currency (`TcgCheapWeb.Locale` puts them), and the
-  Polish region's keep their keys from before regions.
+  region's language and currency (`TcgCheapWeb.Locale` puts them); the Polish
+  region's keys carry no region prefix.
   """
 
   use TcgCheapWeb, :controller
 
   alias AshStorage.Service.Context
   alias TcgCheap.Sealed.{CardGuide, CardValue, Catalogue, ExpensiveCards, Guide}
-  alias TcgCheapWeb.SocialImage
+  alias TcgCheapWeb.{Paths, SocialImage}
 
   require Logger
 
@@ -112,8 +112,7 @@ defmodule TcgCheapWeb.SocialImageController do
   # An expansion id the cached names know, read without refreshing them: an
   # unknown id in a crawler's URL must not clear the cache for everyone.
   defp known_expansion(slug) do
-    with [_, id] <- Regex.run(~r/-(\d+)\z/, slug),
-         {id, ""} <- Integer.parse(id),
+    with {:ok, id} <- Paths.expansion_id(slug),
          {:ok, name} <- Map.fetch(Guide.expansion_names(), id) do
       {:ok, id, name}
     else

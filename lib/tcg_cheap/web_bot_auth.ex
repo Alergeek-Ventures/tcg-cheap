@@ -8,8 +8,7 @@ defmodule TcgCheap.WebBotAuth do
   Shopify gives bots that do not sign their requests its strictest rate
   limits, and signed requests from a bot registered with Shopify higher ones
   (shopify.dev changelog, "Bots and agents should identify themselves via Web
-  Bot Auth", May 2026). In November 2026 our unsigned listing requests got 429
-  `local_rate_limited` (`Retry-After: 60`), still after waiting it out.
+  Bot Auth"). Unsigned listing requests get 429 `local_rate_limited`.
 
   A request signs its `@authority` and its `Signature-Agent` for one minute;
   the directory signs the `@authority` it was requested from. Both follow

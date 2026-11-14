@@ -200,8 +200,9 @@ defmodule TcgCheap.Sealed.CardImage do
   @spec source_hash(String.t()) :: String.t()
   def source_hash(url), do: :crypto.hash(:sha256, url) |> Base.encode16(case: :lower)
 
-  # Logos are mirrored again with their margins trimmed and the old files are
-  # deleted; a new URL keeps browsers off redirects cached for the old ones.
+  # Logos are mirrored with their transparent margins trimmed; the `?v=trimmed`
+  # suffix gives them a URL of their own, so browsers never reuse a redirect
+  # cached for an untrimmed file.
   defp logo_version(nil), do: nil
   defp logo_version(url), do: url <> "?v=trimmed"
 

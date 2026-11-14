@@ -12,10 +12,12 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  import TcgCheapWeb.GuideComponents
+  import TcgCheapWeb.OfferComponents
+  import TcgCheapWeb.SiteComponents
+  import TcgCheapWeb.VerdictComponents
 
   alias TcgCheap.Sealed.ExpensiveCards
-  alias TcgCheapWeb.{CardRecords, Paths, Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{CardRecords, Format, Paths, SEO, VisitorLocation}
 
   @page 30
   # The movers chart's fixed scale: a change past it draws a full bar and
@@ -158,7 +160,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
               </.link>
               <p class="expensive-kicker">
                 {if(@overview.priced_on,
-                  do: gettext("Poradnik · ceny z %{date}", date: Polish.date(@overview.priced_on)),
+                  do: gettext("Poradnik · ceny z %{date}", date: Format.date(@overview.priced_on)),
                   else: gettext("Poradnik")
                 )}
               </p>
@@ -201,8 +203,8 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                 label={gettext("Najdroższa karta dziś")}
                 to={Decimal.to_float(@top.value)}
                 decimals={0}
-                suffix={" " <> Polish.currency_symbol()}
-                value={Polish.zloty(@top.value)}
+                suffix={" " <> Format.currency_symbol()}
+                value={Format.whole_price(@top.value)}
                 caption={"#{@top.card.name} #{@top.card.number}"}
                 detail={@top.card.expansion_name}
               />
@@ -213,8 +215,8 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                 to={Decimal.to_float(@top_in_stock.offer.price)}
                 decimals={0}
                 prefix={gettext("od ")}
-                suffix={" " <> Polish.currency_symbol()}
-                value={gettext("od %{price}", price: Polish.zloty(@top_in_stock.offer.price))}
+                suffix={" " <> Format.currency_symbol()}
+                value={gettext("od %{price}", price: Format.whole_price(@top_in_stock.offer.price))}
                 caption={@top_in_stock.card.name}
                 detail={shop_name(@top_in_stock.offer)}
               />
@@ -376,10 +378,10 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                     <span class="expensive-mew-name">{gettext("Mew %{letter}",
                       letter: row.card.number
                     )}</span>
-                    <strong :if={row.value}>{Polish.zloty(row.value)}</strong>
+                    <strong :if={row.value}>{Format.whole_price(row.value)}</strong>
                     <span class={["expensive-stock", !row.offer && "expensive-stock-none"]}>
                       <%= if row.offer do %>
-                        {gettext("W sklepach od %{price}", price: Polish.zloty(row.offer.price))}
+                        {gettext("W sklepach od %{price}", price: Format.whole_price(row.offer.price))}
                       <% else %>
                         {gettext("Brak w polskich sklepach")}
                       <% end %>
@@ -466,7 +468,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                         {row.card.number} · {row.card.expansion_name}
                       </span>
                       <span class="expensive-shop-meta">
-                        {gettext("cena rynkowa %{value}", value: Polish.zloty(row.value))}
+                        {gettext("cena rynkowa %{value}", value: Format.whole_price(row.value))}
                       </span>
                     </span>
                     <span class="expensive-shop-deal">
@@ -476,7 +478,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                         class="expensive-verdict"
                       />
                       <span class="expensive-shop-price">
-                        <strong>{Polish.zloty(row.offer.price)}</strong>
+                        <strong>{Format.whole_price(row.offer.price)}</strong>
                         <span>{priced_shop_name(row.offer)}</span>
                       </span>
                     </span>
@@ -605,7 +607,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                     card: @top_in_stock.card.name,
                     number: @top_in_stock.card.number,
                     set: @top_in_stock.card.expansion_name,
-                    price: Polish.zloty(@top_in_stock.offer.price),
+                    price: Format.whole_price(@top_in_stock.offer.price),
                     shop: priced_shop_name(@top_in_stock.offer)
                   )
                   |> glue_short_words()}
@@ -623,14 +625,14 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                 <li>
                   {gettext(
                     "Rekordy to wyniki publicznych aukcji z prowizją kupującego, potwierdzone przez dom aukcyjny, Księgę rekordów Guinnessa albo duże media. Przy każdej karcie jest link do źródła. Stan na %{date}.",
-                    date: Polish.date(CardRecords.checked_on())
+                    date: Format.date(CardRecords.checked_on())
                   )}
                 </li>
                 <li :if={@overview.priced_on && @overview.rate}>
                   {gettext(
                     "Cena rynkowa to trend ceny angielskiej karty bez oceny na Cardmarket z %{date}, przeliczony po kursie NBP %{rate} zł za euro. Aktualizujemy ją codziennie.",
-                    date: Polish.date(@overview.priced_on),
-                    rate: Polish.rate(@overview.rate.rate)
+                    date: Format.date(@overview.priced_on),
+                    rate: Format.rate(@overview.rate.rate)
                   )}
                 </li>
                 <li>
@@ -691,7 +693,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
           teaser:
             gettext("%{card} za %{value}",
               card: assigns.top.card.name,
-              value: Polish.zloty(assigns.top.value)
+              value: Format.whole_price(assigns.top.value)
             ),
           image: image.(Enum.at(overview.highlights, 1))
         },
@@ -892,7 +894,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
         )}</span>
       </label>
       <p id="expensive-count" class="expensive-count" aria-live="polite">
-        {Polish.plural(@total, "karta", "karty", "kart")}
+        {Format.cards(@total)}
       </p>
     </form>
     <div :if={@total > 0} class="expensive-columns" aria-hidden="true">
@@ -920,7 +922,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
           </span>
           <span class="expensive-row-meta">{row.card.number} · {row.card.expansion_name}</span>
           <span class="expensive-row-market-label">{gettext("Na Cardmarket")}</span>
-          <span class="expensive-row-market">{Polish.zloty(row.value)}</span>
+          <span class="expensive-row-market">{Format.whole_price(row.value)}</span>
           <%= if row.offer do %>
             <span
               :if={single_verdict_status(row.verdict) != :insufficient_data}
@@ -928,7 +930,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
             >
               <.verdict_badge verdict={%{status: single_verdict_status(row.verdict)}} />
             </span>
-            <span class="expensive-row-shop">{Polish.price(row.offer.price)}</span>
+            <span class="expensive-row-shop">{Format.price(row.offer.price)}</span>
           <% else %>
             <span class="expensive-row-none">{gettext("Nie ma w polskich sklepach")}</span>
           <% end %>
@@ -940,7 +942,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
         {gettext("Pokaż kolejne %{count}", count: min(@page, @total - @shown))}
       </button>
       <span>
-        {gettext("%{shown} z %{total}", shown: @shown, total: Polish.number(@total))}
+        {gettext("%{shown} z %{total}", shown: @shown, total: Format.number(@total))}
       </span>
     </div>
     """
@@ -995,7 +997,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
         class={["expensive-stock", !@row.offer && "expensive-stock-none"]}
       >
         <%= if @row.offer do %>
-          {gettext("W sklepach od %{price}", price: Polish.zloty(@row.offer.price))}
+          {gettext("W sklepach od %{price}", price: Format.whole_price(@row.offer.price))}
         <% else %>
           {gettext("Brak w sklepach")}
         <% end %>
@@ -1023,10 +1025,13 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
     # One line on a tile: "9 570–12 228 zł".
     low = low |> Decimal.round(0) |> Decimal.to_integer()
     high = high |> Decimal.round(0) |> Decimal.to_integer()
-    if low == high, do: Polish.zloty(high), else: "#{Polish.number(low)}–#{Polish.zloty(high)}"
+
+    if low == high,
+      do: Format.whole_price(high),
+      else: "#{Format.number(low)}–#{Format.whole_price(high)}"
   end
 
-  defp tile_value(row), do: Polish.zloty(row.value)
+  defp tile_value(row), do: Format.whole_price(row.value)
 
   attr :rising, :list, required: true
   attr :falling, :list, required: true
@@ -1058,7 +1063,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
             <span class="expensive-mover-name">
               {row.card.name} <span>{row.card.expansion_name}</span>
             </span>
-            <span class="expensive-mover-price">{Polish.zloty(row.value)}</span>
+            <span class="expensive-mover-price">{Format.whole_price(row.value)}</span>
             <span class="expensive-mover-track">
               <span class="expensive-mover-bar" aria-hidden="true"></span>
               <span class="expensive-mover-value">{percent(row.change)}</span>

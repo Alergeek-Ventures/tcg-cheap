@@ -4,12 +4,10 @@ defmodule TcgCheap.Repo do
 
   @impl true
   def installed_extensions do
-    # Add extensions here, and the migration generator will install them.
     ["ash-functions", "citext", "pg_trgm", "pg_search"]
   end
 
-  # Don't open unnecessary transactions
-  # will default to `false` in 4.0
+  # Reads and single writes do not need a wrapping transaction.
   @impl true
   def prefer_transaction? do
     false
