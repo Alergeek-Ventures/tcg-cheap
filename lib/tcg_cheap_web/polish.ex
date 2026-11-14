@@ -133,6 +133,14 @@ defmodule TcgCheapWeb.Polish do
     end
   end
 
+  @doc """
+  A sentence ending in a date, with one period: a Hungarian date ends with
+  its own ("2026. november 13."), so a sentence that adds one after it would
+  end in two.
+  """
+  @spec sentence(String.t()) :: String.t()
+  def sentence(text), do: String.replace(text, ~r/(?<!\.)\.\.$/, ".")
+
   @doc ~S'A day and month: "6 listopada", "6 November", "november 6.".'
   @spec day_month(Date.t()) :: String.t()
   def day_month(%Date{} = date) do

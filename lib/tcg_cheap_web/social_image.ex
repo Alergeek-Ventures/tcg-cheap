@@ -20,7 +20,7 @@ defmodule TcgCheapWeb.SocialImage do
   alias TcgCheap.Sealed.{CardImage, Guide, Shops}
   alias TcgCheap.Storage
   alias TcgCheap.Storage.ImageDownload
-  alias TcgCheapWeb.{CardRecords, GuideComponents, Polish}
+  alias TcgCheapWeb.{CardRecords, GuideComponents, Polish, RegionText}
   alias Vix.Vips.Operation
 
   # Bump when the layout changes, so stored and cached cards are replaced.
@@ -157,8 +157,7 @@ defmodule TcgCheapWeb.SocialImage do
 
   @doc "The promise under the home card's headline."
   @spec home_promise() :: String.t()
-  def home_promise,
-    do: gettext("Ceny Pokémon TCG ze sklepów wysyłających do Polski, sprawdzane codziennie.")
+  def home_promise, do: RegionText.social_promise()
 
   @doc "The home card: the promise and the verdict scale."
   @spec home() :: {:ok, binary()} | {:error, term()}

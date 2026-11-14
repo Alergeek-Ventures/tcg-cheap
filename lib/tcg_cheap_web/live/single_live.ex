@@ -326,10 +326,7 @@ defmodule TcgCheapWeb.SingleLive do
                   </p>
                   <p>{gettext("Porównujemy karty bez oceny. Sprawdź wariant i stan w sklepie.")}</p>
                   <p :if={@page.rate}>
-                    {gettext("Kurs NBP %{rate} zł z %{date}.",
-                      rate: Polish.rate(@page.rate.rate),
-                      date: Polish.date(@page.rate.date)
-                    )}
+                    {euro_rate_note(@page.rate)}
                   </p>
                 </.verdict_method>
               </div>
