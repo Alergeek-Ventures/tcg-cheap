@@ -40,11 +40,30 @@ jobs:
 
   check:
     name: Mix check
+    needs: [database-image]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       MIX_ENV: test
       MIX_HOME: ${{ github.workspace }}/.mix
+
+    # A throwaway database for the migration step, with the host, port, user,
+    # password and name that config/test.exs expects. The health check connects
+    # over TCP: the image's init server listens on its socket only.
+    services:
+      postgres:
+        image: ${{ needs.database-image.outputs.image }}
+        env:
+          POSTGRES_DB: tcg_cheap_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5436:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d tcg_cheap_test"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
 
     steps:
       - name: Checkout repository
@@ -89,6 +108,11 @@ jobs:
 
       - name: Fetch dependencies
         run: mix deps.get
+
+      # Production applies migrations as the container starts; applying them
+      # to an empty ParadeDB here finds SQL that does not run before a deploy.
+      - name: Apply migrations to a fresh database
+        run: mix ecto.migrate
 
       - name: Restore core PLT cache
         id: core-plt-cache
