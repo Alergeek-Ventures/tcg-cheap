@@ -11,12 +11,92 @@ msgstr ""
 "Language: pl\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
 
-#: lib/tcg_cheap/countries/sweden.ex:12
+#: lib/tcg_cheap/countries/sweden.ex:17
 #, elixir-autogen, elixir-format
 msgid "wysyłka ze Szwecji"
 msgstr "wysyłka ze Szwecji"
 
-#: lib/tcg_cheap/countries/sweden.ex:15
+#: lib/tcg_cheap/countries/sweden.ex:20
 #, elixir-autogen, elixir-format
 msgid "z wysyłką ze Szwecji"
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:89
+#, elixir-autogen, elixir-format
+msgid "%{card} – cena karty Pokémon w koronach"
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:94
+#, elixir-autogen, elixir-format
+msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w szwedzkich sklepach i w sklepach wysyłających do Szwecji."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:112
+#, elixir-autogen, elixir-format
+msgid "%{name}: teraz żaden szwedzki sklep ani sklep wysyłający do Szwecji nie ma tego produktu na stanie."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:82
+#, elixir-autogen, elixir-format
+msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w koronach."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:103
+#, elixir-autogen, elixir-format
+msgid "Boostera %{expansion} żaden szwedzki sklep ani sklep wysyłający do Szwecji nie ma teraz na stanie."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:62
+#, elixir-autogen, elixir-format
+msgid "Ceny Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji, sprawdzane codziennie."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:85
+#, elixir-autogen, elixir-format
+msgid "Ceny kart Pokémon TCG w koronach"
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:147
+#, elixir-autogen, elixir-format
+msgid "Ceny szwedzkich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Szwecji. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:123
+#, elixir-autogen, elixir-format
+msgid "Ceny ze sklepów z zagranicy są z wysyłką do Szwecji."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:70
+#, elixir-autogen, elixir-format
+msgid "Najtańsze oferty Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:54
+#, elixir-autogen, elixir-format
+msgid "Porównaj ceny Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:49
+#, elixir-autogen, elixir-format
+msgid "Przejdź do wersji szwedzkiej"
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:128
+#, elixir-autogen, elixir-format
+msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ich ceny przeliczamy na korony po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:43
+#, elixir-autogen, elixir-format
+msgid "Szwecja"
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:46
+#, elixir-autogen, elixir-format
+msgid "Wygląda na to, że jesteś w Szwecji."
+msgstr ""
+
+#: lib/tcg_cheap/countries/sweden.ex:119
+#, elixir-autogen, elixir-format
+msgid "z wysyłką z Niemiec"
 msgstr ""

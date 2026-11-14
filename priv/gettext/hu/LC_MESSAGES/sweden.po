@@ -11,12 +11,92 @@ msgstr ""
 "Language: hu\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/tcg_cheap/countries/sweden.ex:12
+#: lib/tcg_cheap/countries/sweden.ex:17
 #, elixir-autogen, elixir-format
 msgid "wysyłka ze Szwecji"
 msgstr "Svédországból"
 
-#: lib/tcg_cheap/countries/sweden.ex:15
+#: lib/tcg_cheap/countries/sweden.ex:20
 #, elixir-autogen, elixir-format
 msgid "z wysyłką ze Szwecji"
 msgstr "Svédországból, szállítással együtt"
+
+#: lib/tcg_cheap/countries/sweden.ex:89
+#, elixir-autogen, elixir-format
+msgid "%{card} – cena karty Pokémon w koronach"
+msgstr "%{card}: Pokémon-kártya ára koronában"
+
+#: lib/tcg_cheap/countries/sweden.ex:94
+#, elixir-autogen, elixir-format
+msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w szwedzkich sklepach i w sklepach wysyłających do Szwecji."
+msgstr "%{expansion}: hasonlítsd össze a boosterek, ETB-k, boxok és gyűjtői dobozok árait a svéd boltokban és a Svédországba szállító boltokban."
+
+#: lib/tcg_cheap/countries/sweden.ex:112
+#, elixir-autogen, elixir-format
+msgid "%{name}: teraz żaden szwedzki sklep ani sklep wysyłający do Szwecji nie ma tego produktu na stanie."
+msgstr "%{name}: most se svéd, se Svédországba szállító boltban nincs raktáron."
+
+#: lib/tcg_cheap/countries/sweden.ex:82
+#, elixir-autogen, elixir-format
+msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w koronach."
+msgstr "Angol Pokémon TCG kártyák Cardmarket‑árral, svéd koronában."
+
+#: lib/tcg_cheap/countries/sweden.ex:103
+#, elixir-autogen, elixir-format
+msgid "Boostera %{expansion} żaden szwedzki sklep ani sklep wysyłający do Szwecji nie ma teraz na stanie."
+msgstr "%{expansion} boostert most se svéd, se Svédországba szállító bolt nem tart raktáron."
+
+#: lib/tcg_cheap/countries/sweden.ex:62
+#, elixir-autogen, elixir-format
+msgid "Ceny Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji, sprawdzane codziennie."
+msgstr "Pokémon TCG árak svéd és Svédországba szállító boltokból, naponta ellenőrizve."
+
+#: lib/tcg_cheap/countries/sweden.ex:85
+#, elixir-autogen, elixir-format
+msgid "Ceny kart Pokémon TCG w koronach"
+msgstr "Pokémon TCG kártyaárak svéd koronában"
+
+#: lib/tcg_cheap/countries/sweden.ex:147
+#, elixir-autogen, elixir-format
+msgid "Ceny szwedzkich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Szwecji. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
+msgstr "A svéd boltok árait szállítási díj nélkül, a külföldiekét svédországi szállítással mutatjuk. A Cardmarket-árhoz egy Németországból küldött csomag szállítási díját adjuk hozzá: %{shipping}."
+
+#: lib/tcg_cheap/countries/sweden.ex:123
+#, elixir-autogen, elixir-format
+msgid "Ceny ze sklepów z zagranicy są z wysyłką do Szwecji."
+msgstr "A külföldi boltok árai a svédországi szállítást is tartalmazzák."
+
+#: lib/tcg_cheap/countries/sweden.ex:70
+#, elixir-autogen, elixir-format
+msgid "Najtańsze oferty Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji."
+msgstr "A legolcsóbb Pokémon TCG ajánlatok a svéd és a Svédországba szállító boltokban."
+
+#: lib/tcg_cheap/countries/sweden.ex:54
+#, elixir-autogen, elixir-format
+msgid "Porównaj ceny Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
+msgstr "Hasonlítsd össze a Pokémon TCG árakat a svéd és a Svédországba szállító boltokban. Nézd meg a boosterek, ETB-k és boxok ajánlatait, az ár alakulását, és hogy megéri-e most venni."
+
+#: lib/tcg_cheap/countries/sweden.ex:49
+#, elixir-autogen, elixir-format
+msgid "Przejdź do wersji szwedzkiej"
+msgstr "Váltás a svéd oldalra"
+
+#: lib/tcg_cheap/countries/sweden.ex:128
+#, elixir-autogen, elixir-format
+msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ich ceny przeliczamy na korony po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr "A külföldi boltok a saját pénznemükben árulnak. Az áraikat a napi NBP-árfolyamokon számoljuk át svéd koronára. A bolt oldala lehet más nyelvű."
+
+#: lib/tcg_cheap/countries/sweden.ex:43
+#, elixir-autogen, elixir-format
+msgid "Szwecja"
+msgstr "Svédország"
+
+#: lib/tcg_cheap/countries/sweden.ex:46
+#, elixir-autogen, elixir-format
+msgid "Wygląda na to, że jesteś w Szwecji."
+msgstr "Úgy tűnik, Svédországban vagy."
+
+#: lib/tcg_cheap/countries/sweden.ex:119
+#, elixir-autogen, elixir-format
+msgid "z wysyłką z Niemiec"
+msgstr "Németországból, szállítással együtt"

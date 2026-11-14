@@ -10,7 +10,7 @@ web
 
 ## Users
 
-- Pokémon TCG fans in Poland and Hungary (players, collectors, parents buying
+- Pokémon TCG fans in Poland, Hungary and Sweden (players, collectors, parents buying
   gifts) who want to buy sealed products (boosters, bundles, booster boxes,
   Elite Trainer Boxes, tins, collections) without overpaying.
 - The same fans when trading single cards with friends or in a local shop.
@@ -47,19 +47,19 @@ as missing.
 
 - A region is a country: its shops (domestic ones, and shops abroad with a
   delivery there), its currency and its own URLs – Poland under `/pl/` in
-  złoty, Hungary under `/hu/` in forints. The root redirects to the visitor's
+  złoty, Hungary under `/hu/` in forints, Sweden under `/se/` in kronor. The root redirects to the visitor's
   region (their choice, else their location; Poland for any other country).
   Polish URLs from before regions, including old home links with list filters,
   redirect permanently to their Polish page in one hop.
-- Language is separate from region: Polish, Hungarian or English, by default
+- Language is separate from region: Polish, Hungarian, Swedish or English, by default
   the region's own, switchable on every page.
 - Every region applies the same rules: the same verdicts and limits in its own
   currency, prices of shops abroad converted at the NBP rate with their
   delivery, the Cardmarket trend converted the same way.
 - Not every part exists everywhere yet. Polish only: articles, retail chain
   deals, singles from shops, the banners above the lists and a set's most
-  valuable cards. In Hungary a card's price is its Cardmarket trend in
-  forints, and a set page opens with its single booster.
+  valuable cards. In Hungary and Sweden a card's price is its Cardmarket trend
+  in the region's currency, and a set page opens with its single booster.
 - Text in each language reads as written for its buyers, never as a
   word-for-word translation.
 
@@ -91,17 +91,17 @@ as missing.
   the expansion's premiere (the same street date for every shop) when it is
   known; otherwise pre-orders are listed in their own group.
 - Set pages (owner decision, 2026-11-03, banner revised 2026-11-04): every named
-  expansion has a page (`/pl/rozszerzenia/<name>-<id>`, `/hu/szettek/…`) that
+  expansion has a page (`/pl/rozszerzenia/<name>-<id>`, `/hu/szettek/…`, `/se/set/…`) that
   answers first with a banner under the set's logo: in Poland its most valuable
   card and what pulling it from packs costs on average against buying it, then
   the next three cards the same way (a set without card prices, and every set in
-  Hungary, shows its single booster instead). The page then lists the set's
+  Hungary and Sweden, shows its single booster instead). The page then lists the set's
   products with their verdicts, its pull rates and its cards. In Poland one card
   price is used everywhere: the lower of the cheapest shop offer (abroad with
-  delivery) and the Cardmarket trend, without delivery; in Hungary it is the
-  Cardmarket trend in forints. Pages state the answer in their first sentence
+  delivery) and the Cardmarket trend, without delivery; in Hungary and Sweden it
+  is the Cardmarket trend in the region's currency. Pages state the answer in their first sentence
   and search metadata, so search engines and AI assistants can quote it.
-- The card list (`/pl/karty`, `/hu/kartyak`) filters by expansion like the
+- The card list (`/pl/karty`, `/hu/kartyak`, `/se/kort`) filters by expansion like the
   product list; in Poland a chosen expansion opens with a singles banner in the
   same style: the set's best deal (a Polish shop price furthest under the
   Cardmarket price with delivery), its cards in stock in Poland, the whole set
@@ -148,7 +148,7 @@ as missing.
 
 ## Accessibility & Inclusion
 
-- Interface in Polish, Hungarian and English; mobile-first and responsive.
+- Interface in Polish, Hungarian, Swedish and English; mobile-first and responsive.
 - Semantic markup, keyboard access, visible focus, sufficient contrast,
   48px touch targets, no horizontal overflow at 390px.
 - Verdicts never rely on colour alone (text label plus icon).
