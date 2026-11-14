@@ -1645,6 +1645,7 @@ defmodule TcgCheapWeb.HomeLive do
                   <.product_row
                     summary={summary}
                     priority={summary.product.id == @priority_product_id}
+                    delivery_noted?={RegionText.list_prices_note() != nil}
                   />
                 </li>
                 <.card_row :for={{dom_id, row} <- @streams.cards} id={dom_id} row={row} />

@@ -1141,7 +1141,7 @@ defmodule TcgCheapWeb.ProductLive do
   # The parcel added to Cardmarket, among the page's prices: in euro in
   # Poland; elsewhere in the market's currency at its Cardmarket rate.
   defp cardmarket_shipping(%{market: market, eur_pln: rate}) do
-    eur = Guide.cardmarket_shipping_eur()
+    eur = Guide.cardmarket_shipping_eur(market)
 
     case market != Market.poland() && Guide.in_market(eur, rate, market) do
       %Decimal{} = converted -> Polish.price(converted)

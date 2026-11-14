@@ -6,7 +6,7 @@ defmodule TcgCheapWeb.GuideComponents do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.{CardGuide, Kinds, Market, Rarities, Regions, RetailDeal, Shops}
-  alias TcgCheapWeb.{Paths, Polish, Region, RegionText, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Paths, Polish, Region, SEO, VisitorLocation}
 
   def card_variant_label(:normal), do: gettext("Zwykła / holo")
   def card_variant_label(:reverse), do: gettext("Reverse holo")
@@ -801,7 +801,7 @@ defmodule TcgCheapWeb.GuideComponents do
         </div>
         <div class="guide-product-deal">
           <%= if @offer do %>
-            <span class="guide-product-shop">{row_shop_name(@offer)}</span>
+            <span class="guide-product-shop">{priced_shop_name(@offer)}</span>
             <%!-- Without a Cardmarket price there is nothing to judge; the card's page says why. --%>
             <.verdict_badge
               :if={@verdict? and @status != :insufficient_data}
@@ -838,6 +838,11 @@ defmodule TcgCheapWeb.GuideComponents do
   attr :summary, :map, required: true
   attr :priority, :boolean, default: false, doc: "the list's first photo, loaded eagerly"
 
+  attr :delivery_noted?, :boolean,
+    default: false,
+    doc:
+      "a note above the list says which prices include delivery (`RegionText.list_prices_note/0`), so the row names only the shop"
+
   def product_row(assigns) do
     ~H"""
     <.link
@@ -868,7 +873,10 @@ defmodule TcgCheapWeb.GuideComponents do
       </div>
       <div class="guide-product-deal">
         <span :if={@summary.verdict.cheapest} class="guide-product-shop">
-          {row_shop_name(@summary.verdict.cheapest)}
+          {if(@delivery_noted?,
+            do: shop_name(@summary.verdict.cheapest),
+            else: priced_shop_name(@summary.verdict.cheapest)
+          )}
         </span>
         <%!-- Too few shops for a verdict: the row shows only the price; the product page says why. --%>
         <.verdict_badge
@@ -922,15 +930,6 @@ defmodule TcgCheapWeb.GuideComponents do
       term -> shop_name(offer) <> ", " <> term
     end
   end
-
-  @doc """
-  The shop of a list row's price. Outside Poland a note above the list
-  (`RegionText.list_prices_note/0`) says once which prices include delivery,
-  so the row names only the shop.
-  """
-  @spec row_shop_name(map()) :: String.t()
-  def row_shop_name(offer),
-    do: if(RegionText.list_prices_note(), do: shop_name(offer), else: priced_shop_name(offer))
 
   @doc """
   "z wysyłką ze Szwecji" for a compared price from a shop abroad (its
