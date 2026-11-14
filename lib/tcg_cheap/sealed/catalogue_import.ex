@@ -60,6 +60,8 @@ defmodule TcgCheap.Sealed.CatalogueImport do
 
       Repo.transaction(
         fn ->
+          # Before the first write, in the order shop fetches take their locks.
+          Refresh.lock_recompute()
           ids = upsert_products(rows)
           record_trends(rows, ids, DateTime.to_date(now))
           record_card_prices(singles, priced_on)
