@@ -106,6 +106,15 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
 
   @logo_kinds ["logo", "expansion_logo"]
 
+  # Hosts of the card scans and set logos the mirror derives itself
+  # (`CardImage`), many of which do not exist. A missing image elsewhere was
+  # chosen by hand (product photos, expansion logos), so it stays a warning.
+  @scan_hosts [
+    "assets.tcgdex.net",
+    "images.pokemontcg.io",
+    "limitlesstcg.nyc3.cdn.digitaloceanspaces.com"
+  ]
+
   # Limitless's object storage answers 403, not 404, for a scan it does not
   # have; elsewhere a 403 is a block (hotlinking, bots) and stays a warning.
   @missing_as_403 ["limitlesstcg.nyc3.cdn.digitaloceanspaces.com"]
@@ -308,13 +317,13 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
     end
   end
 
-  # A missing source (many card scans do not exist: a 404, or Limitless's 403)
-  # is remembered by the backoff and counted per host in the run's summary.
-  # Any other failure needs a look, so it is logged on its own.
+  # A missing card scan or set logo (a 404 from a scan host, or Limitless's
+  # 403) is remembered by the backoff and counted per host in the run's
+  # summary. Any other failure needs a look, so it is logged on its own.
   defp log_failure({:error, {:http_status, status}} = error, image) when status in [403, 404] do
     host = URI.parse(image.source_url).host
 
-    if status == 404 or host in @missing_as_403 do
+    if (status == 404 and host in @scan_hosts) or (status == 403 and host in @missing_as_403) do
       Logger.debug("Remote image source missing: http #{status} (#{image.id})")
       "http #{status} #{host}"
     else
