@@ -140,10 +140,16 @@ defmodule Mix.Tasks.Dev.Up do
   defp create_tmux_session(session, env) do
     tmux_env = Enum.flat_map(runtime_env(env), fn {key, value} -> ["-e", "#{key}=#{value}"] end)
 
+    # The tmux server is shared by every worktree and keeps the directory it
+    # was started in. Once that worktree is removed, a new session starts in a
+    # directory that no longer exists, even with `-c` (tmux 3.8), so the
+    # command changes into this worktree itself.
     {_output, status} =
       System.cmd(
         "tmux",
-        ["new-session", "-d", "-s", session] ++ tmux_env ++ ["mix", "phx.server"],
+        ["new-session", "-d", "-s", session] ++
+          tmux_env ++
+          ["sh", "-c", ~S(cd "$1" && exec mix phx.server), "sh", File.cwd!()],
         stderr_to_stdout: true
       )
 
