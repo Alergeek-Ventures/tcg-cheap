@@ -1,11 +1,20 @@
 defmodule TcgCheap.Sealed.Shops.Sweden do
   @moduledoc """
-  Shops in Sweden, priced in their own currency and compared by their delivery
-  to the guide's markets (`TcgCheap.Sealed.Shops`).
+  Shops in Sweden, and the deliveries to Sweden of shops abroad
+  (`TcgCheap.Sealed.Shops`), in the shops' own currencies.
+
+  The Shopify shops' Pokémon collections were read from their public
+  `/collections.json` on 2026-11-14; a shop without a collection that holds
+  all its Pokémon products is read whole (its titles must say Pokémon).
+  Their singles are not read: singles have no market in Sweden yet.
+
+  Delivery within Sweden and to Sweden from abroad: the shops' delivery
+  pages, or their anonymous cart's shipping estimate (Shopify), on
+  2026-11-14; nil where neither states a price. Unknown terms stay nil.
   """
 
   alias TcgCheap.Sealed.Shop
-  alias TcgCheap.Sealed.ShopFeed.{Chasedex, GoogleFeed}
+  alias TcgCheap.Sealed.ShopFeed.{Chasedex, GoogleFeed, Shopify}
 
   @shops [
     # Bangerpack (White Tree AB, Helsingborg) publishes a Google Shopping
@@ -37,8 +46,185 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       singles_only: true,
       country: "SE",
       max_pages: 80,
+      shipping_from: Decimal.new("29"),
+      free_shipping_from: Decimal.new("499"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "hobbykort",
+      name: "Hobbykort",
+      host: "hobbykort.se",
+      source: Shopify,
+      currency: "SEK",
+      country: "SE",
+      max_pages: 5,
+      shipping_from: Decimal.new("69"),
+      free_shipping_from: Decimal.new("2000"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgstore",
+      name: "TCGstore",
+      host: "tcgstore.se",
+      source: Shopify,
+      collection: "pokemon-kort",
+      currency: "SEK",
+      country: "SE",
+      max_pages: 6,
+      shipping_from: Decimal.new("39"),
+      free_shipping_from: Decimal.new("2999"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "samlarhobby",
+      name: "Samlarhobby",
+      host: "www.samlarhobby.se",
+      source: Shopify,
+      collection: "pokemon",
+      currency: "SEK",
+      country: "SE",
+      max_pages: 8,
+      shipping_from: Decimal.new("89"),
+      free_shipping_from: Decimal.new("2000"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "poketalk",
+      name: "PokeTalk",
+      host: "www.poketalk.se",
+      source: Shopify,
+      collection: "pokemon-tcg-alla-produkter",
+      currency: "SEK",
+      country: "SE",
+      max_pages: 5,
       shipping_from: nil,
       free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "speltrollet",
+      name: "Speltrollet",
+      host: "speltrollet.se",
+      source: Shopify,
+      currency: "SEK",
+      country: "SE",
+      max_pages: 25,
+      shipping_from: Decimal.new("59"),
+      free_shipping_from: Decimal.new("2000"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "dragonslair",
+      name: "Dragon's Lair",
+      host: "dragonslair.se",
+      source: Shopify,
+      collection: "pokemon-the-trading-card-game",
+      currency: "SEK",
+      country: "SE",
+      max_pages: 5,
+      shipping_from: Decimal.new("49"),
+      free_shipping_from: nil,
+      pickup_city: "Stockholm"
+    },
+    %Shop{
+      key: "kortarkivet",
+      name: "Kortarkivet",
+      host: "kortarkivet.se",
+      source: Shopify,
+      collection: "pokemon-tcg",
+      currency: "SEK",
+      country: "SE",
+      max_pages: 2,
+      shipping_from: Decimal.new("59"),
+      free_shipping_from: Decimal.new("1500"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "auroradex",
+      name: "Auroradex",
+      host: "auroradex.se",
+      source: Shopify,
+      collection: "allt-inom-pokemon",
+      currency: "SEK",
+      country: "SE",
+      max_pages: 2,
+      shipping_from: Decimal.new("59"),
+      free_shipping_from: Decimal.new("2499"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "kantovault",
+      name: "Kantovault",
+      host: "kantovault.se",
+      source: Shopify,
+      currency: "SEK",
+      country: "SE",
+      max_pages: 3,
+      shipping_from: Decimal.new("49"),
+      free_shipping_from: Decimal.new("2999"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "rahtech",
+      name: "Rahtech",
+      host: "rahtech.se",
+      source: Shopify,
+      collection: "pokemon",
+      currency: "SEK",
+      country: "SE",
+      max_pages: 2,
+      shipping_from: Decimal.new("69"),
+      free_shipping_from: nil,
+      pickup_city: "Malmö"
+    },
+    %Shop{
+      key: "cardshopsweden",
+      name: "Cardshop Sweden",
+      host: "cardshopsweden.se",
+      source: Shopify,
+      collection: "alla-produkter",
+      currency: "SEK",
+      country: "SE",
+      max_pages: 1,
+      shipping_from: Decimal.new("65"),
+      free_shipping_from: Decimal.new("2999"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgvault",
+      name: "TCGVAULT",
+      host: "tcgvault.se",
+      source: Shopify,
+      currency: "SEK",
+      country: "SE",
+      max_pages: 2,
+      shipping_from: Decimal.new("49"),
+      free_shipping_from: Decimal.new("1500"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "cardvalley",
+      name: "CardValley",
+      host: "cardvalley.se",
+      source: Shopify,
+      currency: "SEK",
+      country: "SE",
+      max_pages: 2,
+      shipping_from: Decimal.new("69"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "cardclub",
+      name: "Card Club",
+      host: "cardclub.se",
+      source: Shopify,
+      collection: "pokemon-sealed",
+      currency: "SEK",
+      country: "SE",
+      max_pages: 2,
+      shipping_from: Decimal.new("89"),
+      free_shipping_from: Decimal.new("3000"),
       pickup_city: nil
     }
   ]
@@ -50,6 +236,64 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
   @spec all() :: [Shop.t()]
   def all, do: @shops
 
-  @doc "Deliveries to Sweden of shops abroad, by shop key: none recorded."
-  def deliveries, do: %{}
+  @doc """
+  Deliveries to Sweden of shops abroad, by shop key; one with no published
+  price is only listed.
+  """
+  def deliveries do
+    %{
+      "beamcardshop" => %{
+        shipping_from: Decimal.new("29.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "bescards" => %{
+        shipping_from: Decimal.new("8.38"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      # Its delivery page says €19.99 to Sweden; the cart asked €29.99.
+      "cardcosmos" => %{
+        shipping_from: Decimal.new("29.99"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      # Delivers to Sweden; the price is shown only in the checkout.
+      "gemipulls" => %{shipping_from: nil, free_shipping_from: nil, currency: "DKK"},
+      "godofcards" => %{
+        shipping_from: Decimal.new("8.55"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "pkmwinkel" => %{
+        shipping_from: Decimal.new("20"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "pokefamily" => %{
+        shipping_from: Decimal.new("12.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      # No published delivery price for Sweden.
+      "pokemagic" => %{shipping_from: nil, free_shipping_from: nil, currency: "EUR"},
+      "psydeck" => %{
+        shipping_from: Decimal.new("15"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "rarecards" => %{
+        shipping_from: Decimal.new("11.95"),
+        free_shipping_from: Decimal.new("350"),
+        currency: "EUR"
+      },
+      "tcgking" => %{
+        shipping_from: Decimal.new("10.95"),
+        free_shipping_from: Decimal.new("100"),
+        currency: "EUR"
+      },
+      # Its EU delivery page prices singles only; sealed parcels are priced in the checkout.
+      "unicorncards" => %{shipping_from: nil, free_shipping_from: nil, currency: "GBP"}
+    }
+  end
 end
