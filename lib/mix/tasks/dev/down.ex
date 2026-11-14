@@ -47,13 +47,9 @@ defmodule Mix.Tasks.Dev.Down do
     end
   end
 
-  @doc false
-  def safe_to_signal?(command, process_cwd, current_worktree)
-      when is_binary(command) and is_binary(process_cwd) and is_binary(current_worktree) do
+  defp safe_to_signal?(command, process_cwd, current_worktree) do
     Regex.match?(@phx_server, command) and process_cwd == current_worktree
   end
-
-  def safe_to_signal?(_, _, _), do: false
 
   defp signal_if_phoenix(pid, command, process_cwd, current_worktree) do
     if safe_to_signal?(command, process_cwd, current_worktree) do

@@ -5,11 +5,8 @@
 # Mix and Phoenix build artifacts
 /_build/
 /deps/
-/cover/
-/doc/
 /priv/static/assets/
 /priv/static/cache_manifest.json
-/priv/static/uploads/
 erl_crash.dump
 *.ez
 *.tar
@@ -28,16 +25,11 @@ devenv.local.nix
 /.env.*
 !/.env.example
 
-# Local Elixir and JavaScript caches
+# Local Elixir caches, and what the vendored design tooling installs
 /.elixir_ls/
 /.mix/
 /priv/plts/
 /node_modules/
-/assets/node_modules/
-
-# Browser test artifacts
-/playwright-report/
-/test-results/
 
 # OS junk
 .DS_Store

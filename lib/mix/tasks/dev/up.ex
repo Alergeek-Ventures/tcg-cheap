@@ -180,8 +180,7 @@ defmodule Mix.Tasks.Dev.Up do
     end
   end
 
-  @doc false
-  def compose_container_ids(output) when is_binary(output) do
+  defp compose_container_ids(output) do
     output = Regex.replace(@ansi_sgr_regex, output, "")
 
     output
@@ -189,8 +188,6 @@ defmodule Mix.Tasks.Dev.Up do
     |> Enum.map(&String.trim/1)
     |> Enum.filter(&Regex.match?(@container_id_regex, &1))
   end
-
-  def compose_container_ids(_output), do: []
 
   defp compose_env(env), do: Map.to_list(runtime_env(env))
 

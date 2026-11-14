@@ -20,7 +20,7 @@ defmodule Mix.Tasks.Dev.Shared do
 
   def sanitize_branch(_), do: "main"
 
-  def worktree_id(branch) when is_binary(branch) do
+  defp worktree_id(branch) do
     branch = String.trim(branch)
 
     if branch == "main" do
@@ -32,15 +32,11 @@ defmodule Mix.Tasks.Dev.Shared do
     end
   end
 
-  def worktree_id(_), do: "main"
-
-  def parse_dotenv(content) when is_binary(content) do
+  defp parse_dotenv(content) do
     content
     |> String.split("\n")
     |> Enum.reduce(%{}, &parse_dotenv_line/2)
   end
-
-  def parse_dotenv(_), do: %{}
 
   defp parse_dotenv_line(line, acc) do
     line = String.trim(line)
@@ -90,7 +86,7 @@ defmodule Mix.Tasks.Dev.Shared do
     values
   end
 
-  def defaults do
+  defp defaults do
     branch = System.get_env("BRANCH", "main")
     db_port = System.get_env("DB_PORT", "5436")
     port = System.get_env("PORT", "4004")
@@ -108,7 +104,7 @@ defmodule Mix.Tasks.Dev.Shared do
     }
   end
 
-  def compose_runtime do
+  defp compose_runtime do
     cond do
       executable?("distrobox-host-exec") and executable?("podman") ->
         {"distrobox-host-exec", ["podman"]}
@@ -182,8 +178,6 @@ defmodule Mix.Tasks.Dev.Shared do
         Mix.raise(message)
     end
   end
-
-  def compose_file, do: @compose_file
 
   def ensure_req_started do
     case Application.ensure_all_started(:req) do

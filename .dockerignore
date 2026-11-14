@@ -16,21 +16,15 @@ devenv.yaml
 # Build and dependency caches (the Containerfile copies source explicitly)
 _build
 deps
-node_modules
-assets/node_modules
 .elixir_ls
 priv/plts
 
-# Tests, documentation, and project knowledge base
-test
-tests
-docs
+# Documentation
 *.md
 
-# Logs, uploads, and local runtime data
+# Logs and local runtime data
 *.log
 erl_crash.dump
 .server.port
-uploads
 tmp
 local
