@@ -44,7 +44,11 @@ defmodule TcgCheap.Sealed.Shops do
   @dir Path.expand("shops", __DIR__)
   @files ModuleDir.files(@dir)
   for file <- @files, do: @external_resource(Path.join(@dir, file))
-  @countries Enum.map(@files, &ModuleDir.module(__MODULE__, &1))
+  # Fetch jobs are queued in this order and each queue runs one at a time:
+  # Polish shops first, then Hungarian, then the rest by country file.
+  @countries @files
+             |> Enum.map(&ModuleDir.module(__MODULE__, &1))
+             |> Enum.sort_by(&{&1.country() != "PL", &1.country() != "HU"})
 
   # Each delivery is listed by the country it goes to.
   @deliveries (for country <- @countries,
