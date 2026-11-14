@@ -1,10 +1,14 @@
 defmodule TcgCheapWeb.SingleLive do
-  @moduledoc "A single English card, its delivered reference and current Polish shop offers."
+  @moduledoc """
+  A single English card, its delivered reference and current Polish shop
+  offers. Singles are priced only in Poland so far: in another region the
+  page shows the card's Cardmarket trend in its currency instead.
+  """
   use TcgCheapWeb, :live_view
   use Gettext, backend: TcgCheapWeb.Gettext
   import TcgCheapWeb.GuideComponents
   alias TcgCheap.Sealed.{CardGuide, CardImage, CardReference, Guide, Matcher}
-  alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Paths, Polish, Region, SEO, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -15,23 +19,32 @@ defmodule TcgCheapWeb.SingleLive do
   def mount(%{"slug" => set, "card_slug" => slug}, _session, socket) do
     case CardGuide.find(set, slug) do
       {:ok, card, name, path} ->
-        page = CardGuide.page(card, name, path)
+        page = CardGuide.page(card, name, Paths.localize(path))
         seo = SEO.single(page)
         groups = Enum.group_by(page.offers, &group/1)
         primary = Enum.find(page.answers, & &1.cheapest) || hd(page.answers)
+
+        polish? = Region.poland?(socket.assigns.region)
 
         {:ok,
          socket
          |> assign(
            primary: primary,
            page: page,
+           polish?: polish?,
+           trend: if(!polish?, do: regional_trend(page, primary.variant)),
            booster:
              Guide.set_booster(
                card.tcgdex_set.cardmarket_expansion_id,
                name,
-               DateTime.utc_now()
+               DateTime.utc_now(),
+               socket.assigns.region.market
              ),
-           versions: if(primary.cheapest, do: [], else: CardGuide.in_stock_versions(card)),
+           versions:
+             if(primary.cheapest || !polish?,
+               do: [],
+               else: CardGuide.in_stock_versions(card)
+             ),
            seo: seo,
            page_title: seo.page_title,
            counts: Map.new(groups, fn {k, v} -> {k, length(v)} end)
@@ -79,6 +92,12 @@ defmodule TcgCheapWeb.SingleLive do
       offer_count: length(page.offers),
       in_stock_count: Enum.count(page.offers, & &1.in_stock)
     }
+  end
+
+  # The variant's Cardmarket trend in the region's currency, without delivery.
+  defp regional_trend(%{price: price, rate: rate}, variant) do
+    trend = if variant == :reverse, do: price && price.trend_holo, else: price && price.trend
+    trend |> Guide.to_pln(rate) |> Region.from_pln()
   end
 
   defp group(%{grading: grade, in_stock: false}) when is_binary(grade), do: :graded_out
@@ -167,8 +186,14 @@ defmodule TcgCheapWeb.SingleLive do
     <Layouts.app flash={@flash}>
       <SEO.sync seo={@seo} />
       <div class="guide-world">
-        <.site_header locale={@locale} return_to={@locale_return_to}>
+        <.site_header
+          region={@region}
+          locale={@locale}
+          current_path={@current_path}
+          region_hint={@region_hint}
+        >
           <VisitorLocation.location_control
+            :if={Region.poland?(@region)}
             location={@location}
             ready={@location_ready?}
             form={@town_form}
@@ -179,7 +204,7 @@ defmodule TcgCheapWeb.SingleLive do
         <main
           id="single-page"
           class="guide-main product-page single-page"
-          data-guide-url={@locale_return_to}
+          data-guide-url={@current_path}
         >
           <.link
             id="single-back"
@@ -224,7 +249,30 @@ defmodule TcgCheapWeb.SingleLive do
                 }>{@page.expansion_name}</.link>
               </p>
             </section>
-            <.verdict_panel id="single-verdict" status={single_verdict_status(@primary.verdict)}>
+            <.verdict_panel :if={!@polish?} id="single-verdict" status={:insufficient_data}>
+              <:header>
+                <span class="verdict-badge verdict-badge-large verdict-insufficient_data">
+                  {gettext("Cena na Cardmarket")}<.verdict_icon status={:insufficient_data} />
+                </span>
+              </:header>
+              <p :if={@primary.variant != :normal} class="guide-note">
+                {card_variant_label(@primary.variant)}
+              </p>
+              <p :if={@trend} class="verdict-cardmarket">
+                <.cardmarket_price
+                  price={@trend}
+                  href={cardmarket_url(@page.card.cardmarket_id)}
+                /><span>{gettext("trend na Cardmarket, bez wysyłki")}</span>
+              </p>
+              <p :if={!@trend} id="single-empty" class="guide-note">
+                {gettext("Brak ceny Cardmarket")}
+              </p>
+            </.verdict_panel>
+            <.verdict_panel
+              :if={@polish?}
+              id="single-verdict"
+              status={single_verdict_status(@primary.verdict)}
+            >
               <:header>
                 <span class={[
                   "verdict-badge",
@@ -287,7 +335,12 @@ defmodule TcgCheapWeb.SingleLive do
               </div>
             </.verdict_panel>
           </div>
-          <section id="single-offers" class="product-section" aria-labelledby="single-offers-title">
+          <section
+            :if={@polish?}
+            id="single-offers"
+            class="product-section"
+            aria-labelledby="single-offers-title"
+          >
             <.offers_heading id="single-offers-title" count={@counts[:raw] || 0} />
             <ul
               id="single-raw-offers"

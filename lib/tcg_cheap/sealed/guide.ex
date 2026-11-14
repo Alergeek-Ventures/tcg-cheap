@@ -133,6 +133,25 @@ defmodule TcgCheap.Sealed.Guide do
     }
   end
 
+  @doc """
+  The products some shop of the market has in stock now at a compared price
+  (one that counts in its verdicts), as the market's lists order them.
+  """
+  @spec in_stock_ids(Market.t(), DateTime.t()) :: MapSet.t(Ecto.UUID.t())
+  def in_stock_ids(%Market{} = market, %DateTime{} = now), do: market_stock(market, now).in_stock
+
+  @doc "Whether some shop of the market has the product in stock now at a compared price."
+  @spec in_stock?(Ecto.UUID.t(), Market.t(), DateTime.t()) :: boolean()
+  def in_stock?(product_id, %Market{} = market, %DateTime{} = now) do
+    now
+    |> Sealed.current_offers([product_id],
+      select: [:product_id, :price, :shop_price, :currency, :in_stock]
+    )
+    |> Enum.filter(& &1.in_stock)
+    |> Market.compared(market, DateTime.to_date(now))
+    |> Enum.any?()
+  end
+
   # The filter for products in stock in the market: the stored availability
   # for Poland, else the ids in stock now (`market_stock/2`).
   defp in_stock_filter(market, now) do
@@ -474,19 +493,27 @@ defmodule TcgCheap.Sealed.Guide do
          Map.merge(summary, %{
            past: PriceGuide.past(past_history, summary.verdict.cheapest, today),
            offers: offers,
+           compared: Map.new(priced, fn {offer, _item, compared} -> {offer.id, compared} end),
            history: history,
            today: today,
            eur_pln: rate,
            market: market,
-           suggested_price: Sealed.get_suggested_price_for_product!(product.id),
+           suggested_price:
+             polish_only(market, fn -> Sealed.get_suggested_price_for_product!(product.id) end),
            retail_deals:
-             Sealed.list_current_retail_deals!(today, query: [filter: [product_id: product.id]]),
+             polish_only(market, [], fn ->
+               Sealed.list_current_retail_deals!(today, query: [filter: [product_id: product.id]])
+             end),
            boosters: boosters,
            booster_odds: booster_odds(product, boosters),
            booster_set: booster_set(product)
          })}
     end
   end
+
+  # REBEL's suggested prices and the retail chains' deals are Polish, in PLN.
+  defp polish_only(market, none \\ nil, read),
+    do: if(market == Market.poland(), do: read.(), else: none)
 
   defp boosters(%Product{contents: nil}), do: %{}
 
@@ -557,16 +584,18 @@ defmodule TcgCheap.Sealed.Guide do
   booster (`booster`, a summary, nil when there is none) and the set's pull
   rates and cards as on that booster's page with the card count and the most
   valuable card (`set`, nil when we have neither).
-  `name` is the expansion's name.
+  `name` is the expansion's name. The booster and the Cardmarket boxes are
+  in the market's currency; the cards' prices stay Polish (singles have no
+  other market yet).
   """
-  @spec expansion(integer(), String.t(), DateTime.t()) :: %{
+  @spec expansion(integer(), String.t(), DateTime.t(), Market.t()) :: %{
           set: map() | nil,
           booster: summary() | nil,
           cardmarket: [%{kind: atom(), price: Decimal.t()}]
         }
-  def expansion(id, name, %DateTime{} = now) do
+  def expansion(id, name, %DateTime{} = now, %Market{} = market \\ Market.poland()) do
     set = expansion_set(id)
-    booster = set_booster(id, name, now)
+    booster = set_booster(id, name, now, market)
 
     cards = Enum.flat_map(set.rarities, & &1.cards)
 
@@ -605,7 +634,7 @@ defmodule TcgCheap.Sealed.Guide do
     %{
       set: if(set.pull_rates || cards != [], do: set),
       booster: booster,
-      cardmarket: cardmarket_boxes(id, name, now)
+      cardmarket: cardmarket_boxes(id, name, now, market)
     }
   end
 
@@ -613,8 +642,8 @@ defmodule TcgCheap.Sealed.Guide do
   An expansion's English single booster as a summary with its list row's
   photos, nil when there is none. `name` is the expansion's name.
   """
-  @spec set_booster(integer(), String.t(), DateTime.t()) :: summary() | nil
-  def set_booster(id, name, %DateTime{} = now) do
+  @spec set_booster(integer(), String.t(), DateTime.t(), Market.t()) :: summary() | nil
+  def set_booster(id, name, %DateTime{} = now, %Market{} = market \\ Market.poland()) do
     [
       query: [
         filter: [kind: :booster, region: :en, cardmarket_expansion_id: id],
@@ -630,7 +659,7 @@ defmodule TcgCheap.Sealed.Guide do
     |> Sealed.list_products!()
     |> single_booster(name)
     |> List.wrap()
-    |> summaries(now)
+    |> summaries(now, market)
     |> List.first()
   end
 
@@ -681,7 +710,8 @@ defmodule TcgCheap.Sealed.Guide do
       |> Enum.sort_by(&best_offer_first/1)
       |> Enum.take(@in_stock_from_set)
 
-    %{products: products, cards: CardGuide.in_stock_count(id)}
+    # Singles are priced only in Poland so far.
+    %{products: products, cards: polish_only(market, 0, fn -> CardGuide.in_stock_count(id) end)}
   end
 
   # Unrated offers (too few shops, or a Cardmarket comparison) rank between
@@ -703,8 +733,8 @@ defmodule TcgCheap.Sealed.Guide do
 
   # The set's own Booster Box and Elite Trainer Box on Cardmarket (trend in
   # PLN, without delivery), for a banner that has no card prices to show.
-  defp cardmarket_boxes(id, name, now) do
-    rate = eur_pln(DateTime.to_date(now))
+  defp cardmarket_boxes(id, name, now, market) do
+    rate = cardmarket_rate(market, DateTime.to_date(now))
 
     names = %{
       "#{name} Booster Box" => :booster_box,
@@ -718,7 +748,9 @@ defmodule TcgCheap.Sealed.Guide do
       ]
     ]
     |> Sealed.list_products!()
-    |> Enum.map(&%{kind: Map.fetch!(names, &1.name), price: to_pln(&1.cardmarket_trend, rate)})
+    |> Enum.map(
+      &%{kind: Map.fetch!(names, &1.name), price: in_market(&1.cardmarket_trend, rate, market)}
+    )
     # No trend, or no exchange rate yet, leaves a box without a price.
     |> Enum.filter(& &1.price)
     |> Enum.sort_by(&(&1.kind != :booster_box))

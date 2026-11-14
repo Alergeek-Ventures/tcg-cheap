@@ -14,6 +14,7 @@ defmodule TcgCheapWeb.HomeLive do
   """
 
   use TcgCheapWeb, :live_view
+
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.GuideComponents
@@ -23,7 +24,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Guide, Kinds, Rarities, Regions}
 
-  alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Paths, Polish, Region, SEO, VisitorLocation}
 
   @max_query_length 100
   @kind_params Map.new(Kinds.choices(), &{Atom.to_string(&1), &1})
@@ -73,7 +74,7 @@ defmodule TcgCheapWeb.HomeLive do
 
     case {socket.assigns.live_action, expansion, at_set_page?} do
       {:cards, expansion, _at_set_page?} ->
-        market = singles_market(expansion)
+        market = singles_market(socket.assigns.region, expansion)
         seo = SEO.cards(params, market)
 
         # A chosen expansion's cards open with the same banner as its set page.
@@ -114,8 +115,8 @@ defmodule TcgCheapWeb.HomeLive do
          socket
          |> assign(
            set_page: nil,
-           market: Guide.sealed_market(),
-           retail_deals: newest_retail_deals(Date.utc_today()),
+           market: polish_only(socket, &Guide.sealed_market/0),
+           retail_deals: polish_only(socket, [], fn -> newest_retail_deals(Date.utc_today()) end),
            seo: seo,
            page_title: seo.page_title
          )
@@ -144,15 +145,26 @@ defmodule TcgCheapWeb.HomeLive do
       do: %{id: id, name: name, count: 0, logo_url: nil}
   end
 
-  # Without a chosen expansion, the card list opens with the whole guide's singles.
-  defp singles_market(nil), do: Guide.singles_market()
-  defp singles_market(_expansion), do: nil
+  # Without a chosen expansion, the card list opens with the whole guide's
+  # singles, which are Polish so far.
+  defp singles_market(region, nil),
+    do: if(Region.poland?(region), do: Guide.singles_market())
+
+  defp singles_market(_region, _expansion), do: nil
+
+  # The banners read Polish shops' singles and sealed deals and the Polish
+  # chains' leaflets, in złoty: elsewhere there are none yet.
+  defp polish_only(socket, none \\ nil, read),
+    do: if(Region.poland?(socket.assigns.region), do: read.(), else: none)
 
   # The set's booster, pull rates and cards change only with the expansion.
   defp set_page(%{assigns: %{set_page: %{id: id} = page}}, %{id: id}), do: page
 
-  defp set_page(_socket, %{id: id, name: name}),
-    do: id |> Guide.expansion(name, DateTime.utc_now()) |> Map.put(:id, id)
+  defp set_page(socket, %{id: id, name: name}),
+    do:
+      id
+      |> Guide.expansion(name, DateTime.utc_now(), socket.assigns.region.market)
+      |> Map.put(:id, id)
 
   defp query_param(%{"q" => query}) when is_binary(query), do: query
   defp query_param(_params), do: ""
@@ -224,7 +236,9 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   defp list(socket, filters) do
-    {summaries, more?, count} = Guide.browse(sealed_filters(filters), 0, DateTime.utc_now())
+    {summaries, more?, count} =
+      Guide.browse(sealed_filters(filters), 0, DateTime.utc_now(), socket.assigns.region.market)
+
     first_summary = List.first(summaries)
 
     socket
@@ -396,7 +410,13 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   defp load_more(%{assigns: %{filters: filters, loaded: loaded}} = socket) do
-    {rows, more?, _count} = Guide.browse(sealed_filters(filters), loaded, DateTime.utc_now())
+    {rows, more?, _count} =
+      Guide.browse(
+        sealed_filters(filters),
+        loaded,
+        DateTime.utc_now(),
+        socket.assigns.region.market
+      )
 
     socket
     |> assign(loaded: loaded + length(rows), more?: more?)
@@ -459,12 +479,12 @@ defmodule TcgCheapWeb.HomeLive do
     base_path(filters) <> if(params == [], do: "", else: "?" <> URI.encode_query(params))
   end
 
-  defp base_path(%{mode: :cards}), do: ~p"/karty"
+  defp base_path(%{mode: :cards}), do: Paths.cards()
 
   defp base_path(%{expansion: id, expansion_name: name}) when is_integer(id) and is_binary(name),
     do: SEO.expansion_path(id, name)
 
-  defp base_path(_filters), do: ~p"/"
+  defp base_path(_filters), do: Paths.home()
 
   defp filtered?(filters), do: filters.kind || region_value(filters) || filters.expansion
 
@@ -749,9 +769,10 @@ defmodule TcgCheapWeb.HomeLive do
 
   attr :name, :string, required: true
   attr :page, :map, required: true
-  attr :close, :string, default: "/"
+  attr :close, :string, required: true
   attr :cards_href, :string, default: "#product-cards"
   attr :singles?, :boolean, default: false
+  attr :polish?, :boolean, required: true
 
   # A set page's top: the set's most valuable card, what pulling it from packs
   # costs on average against buying it, and the next three cards the same way;
@@ -762,7 +783,8 @@ defmodule TcgCheapWeb.HomeLive do
     assigns =
       assign(assigns,
         logo_url: set && set.logo_url,
-        top_cards: if(set, do: set.top_cards, else: []),
+        # The cards' prices are Polish shops' and Cardmarket's in złoty.
+        top_cards: if(set && assigns.polish?, do: set.top_cards, else: []),
         card_count: if(set, do: set.card_count, else: 0)
       )
 
@@ -770,7 +792,7 @@ defmodule TcgCheapWeb.HomeLive do
     <section id="set-intro" class="guide-intro set-intro" aria-labelledby="guide-title">
       <.set_title name={@name} logo_url={@logo_url} close={@close} />
       <%= cond do %>
-        <% @singles? -> %>
+        <% @singles? and @polish? -> %>
           <.set_singles
             singles={@page.set && @page.set.singles}
             top={List.first(@top_cards)}
@@ -806,7 +828,7 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   attr :filters, :map, required: true
-  attr :market, :map, required: true
+  attr :market, :map, default: nil, doc: "the banner's figures, nil where there are none"
 
   # The list without an expansion opens like a set page: our title and promise
   # where the set's logo goes, then the whole guide's numbers for singles or
@@ -831,15 +853,17 @@ defmodule TcgCheapWeb.HomeLive do
           </p>
         </div>
       </div>
-      <%= if @filters.mode == :cards do %>
-        <.set_singles
-          singles={@market}
-          top={@market.top}
-          cards_href="#guide-results-title"
-          all?={true}
-        />
-      <% else %>
-        <.sealed_market market={@market} />
+      <%= cond do %>
+        <% !@market -> %>
+        <% @filters.mode == :cards -> %>
+          <.set_singles
+            singles={@market}
+            top={@market.top}
+            cards_href="#guide-results-title"
+            all?={true}
+          />
+        <% true -> %>
+          <.sealed_market market={@market} />
       <% end %>
     </section>
     """
@@ -860,9 +884,7 @@ defmodule TcgCheapWeb.HomeLive do
   defp retail_news(%{deals: []} = assigns) do
     ~H"""
     <p id="home-booster-prices" class="reference-link">
-      <.link navigate={~p"/ile-kosztuje-booster-pokemon"}>{gettext(
-        "Ile kosztuje booster? Ceny boosterów"
-      )}&nbsp;→</.link>
+      <.link navigate={Paths.page(:booster_prices)}>{gettext("Ile kosztuje booster? Ceny boosterów")}&nbsp;→</.link>
     </p>
     """
   end
@@ -872,7 +894,7 @@ defmodule TcgCheapWeb.HomeLive do
     <section id="home-booster-prices" aria-labelledby="home-retail-news-title">
       <div class="retail-news-head">
         <h2 id="home-retail-news-title">{gettext("Okazje w sieciówkach")}</h2>
-        <.link navigate={~p"/ile-kosztuje-booster-pokemon"}>{gettext("Wszystkie ceny boosterów")}&nbsp;→</.link>
+        <.link navigate={Paths.page(:booster_prices)}>{gettext("Wszystkie ceny boosterów")}&nbsp;→</.link>
       </div>
       <.retail_clips id="home-retail-deal" deals={@deals} products? />
     </section>
@@ -890,7 +912,7 @@ defmodule TcgCheapWeb.HomeLive do
         <%!-- One product: what it holds above, the box itself below, in a card's shape. --%>
         <.link
           class="set-chase-art set-chase-products"
-          navigate={~p"/produkty/#{deal.product.slug}"}
+          navigate={Paths.product(deal.product.slug)}
           tabindex="-1"
           aria-hidden="true"
         >
@@ -909,7 +931,7 @@ defmodule TcgCheapWeb.HomeLive do
         <div class="set-chase-head">
           <p class="set-chase-kicker">{gettext("Najlepsza okazja teraz")}</p>
           <h2 class="set-chase-name">
-            <.link navigate={~p"/produkty/#{deal.product.slug}"}>{deal.product.name}</.link>
+            <.link navigate={Paths.product(deal.product.slug)}>{deal.product.name}</.link>
           </h2>
           <p class="set-chase-meta">{Kinds.label(deal.product.kind)}</p>
         </div>
@@ -927,7 +949,7 @@ defmodule TcgCheapWeb.HomeLive do
           <.link
             id="set-chase-buy"
             class="set-chase-side set-chase-buy"
-            navigate={~p"/produkty/#{deal.product.slug}"}
+            navigate={Paths.product(deal.product.slug)}
           >
             <span class="set-chase-label">{gettext("Kupisz za")}</span>
             <strong>{Polish.price(deal.price)}</strong>
@@ -990,7 +1012,7 @@ defmodule TcgCheapWeb.HomeLive do
       <%= if deal = @singles.deal do %>
         <.link
           class="set-chase-art"
-          navigate={deal.path}
+          navigate={Paths.localize(deal.path)}
           data-track="card_clicked"
           tabindex="-1"
           aria-hidden="true"
@@ -1006,7 +1028,7 @@ defmodule TcgCheapWeb.HomeLive do
           </p>
           <h2 class="set-chase-name">
             <.link
-              navigate={deal.path}
+              navigate={Paths.localize(deal.path)}
               data-track="card_clicked"
             >{deal.card.name}</.link>
           </h2>
@@ -1031,7 +1053,7 @@ defmodule TcgCheapWeb.HomeLive do
           <.link
             id="set-chase-buy"
             class="set-chase-side set-chase-buy"
-            navigate={deal.path}
+            navigate={Paths.localize(deal.path)}
             data-track="card_clicked"
           >
             <span class="set-chase-label">{gettext("Kupisz ją za")}</span>
@@ -1105,7 +1127,7 @@ defmodule TcgCheapWeb.HomeLive do
     <div id="set-chase" class="set-chase">
       <.link
         class={["set-chase-art", @booster.product.stored_photo_card_url && "set-chase-products"]}
-        navigate={~p"/produkty/#{@booster.product.slug}"}
+        navigate={Paths.product(@booster.product.slug)}
         tabindex="-1"
         aria-hidden="true"
       >
@@ -1129,7 +1151,7 @@ defmodule TcgCheapWeb.HomeLive do
           )}
         </p>
         <h2 class="set-chase-name">
-          <.link id="set-booster" navigate={~p"/produkty/#{@booster.product.slug}"}>
+          <.link id="set-booster" navigate={Paths.product(@booster.product.slug)}>
             {@booster.product.name}
           </.link>
         </h2>
@@ -1156,7 +1178,7 @@ defmodule TcgCheapWeb.HomeLive do
         <.link
           id="set-chase-buy"
           class="set-chase-side set-chase-buy"
-          navigate={~p"/produkty/#{@booster.product.slug}"}
+          navigate={Paths.product(@booster.product.slug)}
         >
           <%= if @cheapest do %>
             <span class="set-chase-label">{gettext("Kupisz za")}</span>
@@ -1254,7 +1276,7 @@ defmodule TcgCheapWeb.HomeLive do
     >
       <.link
         class="set-chase-art"
-        navigate={@top.path}
+        navigate={Paths.localize(@top.path)}
         data-track="card_clicked"
         tabindex="-1"
         aria-hidden="true"
@@ -1265,7 +1287,7 @@ defmodule TcgCheapWeb.HomeLive do
         <p class="set-chase-kicker">{gettext("Najcenniejsza karta w secie")}</p>
         <h2 class="set-chase-name">
           <.link
-            navigate={@top.path}
+            navigate={Paths.localize(@top.path)}
             data-track="card_clicked"
           >{@top.card.name}</.link>
         </h2>
@@ -1276,7 +1298,7 @@ defmodule TcgCheapWeb.HomeLive do
           :if={@top.packs && @booster}
           id="set-chase-pull"
           class="set-chase-side set-chase-pull"
-          navigate={~p"/produkty/#{@booster.product.slug}"}
+          navigate={Paths.product(@booster.product.slug)}
         >
           <.chase_pull_copy top={@top} booster={@booster} />
         </.link>
@@ -1287,7 +1309,7 @@ defmodule TcgCheapWeb.HomeLive do
         <.link
           id="set-chase-buy"
           class="set-chase-side set-chase-buy"
-          navigate={@top.path}
+          navigate={Paths.localize(@top.path)}
           data-track="card_clicked"
         >
           <span class="set-chase-label">{gettext("Kupisz ją za")}</span>
@@ -1310,7 +1332,7 @@ defmodule TcgCheapWeb.HomeLive do
             <div class="set-chase-mini">
               <.link
                 class="set-chase-mini-thumb"
-                navigate={top.path}
+                navigate={Paths.localize(top.path)}
                 data-track="card_clicked"
                 tabindex="-1"
                 aria-hidden="true"
@@ -1319,7 +1341,7 @@ defmodule TcgCheapWeb.HomeLive do
               </.link>
               <.link
                 class="set-chase-mini-name"
-                navigate={top.path}
+                navigate={Paths.localize(top.path)}
                 data-track="card_clicked"
               >{top.card.name}</.link>
               <span class="set-chase-mini-meta">{chase_identity(top.card)}</span>
@@ -1327,7 +1349,7 @@ defmodule TcgCheapWeb.HomeLive do
                 <.link
                   :if={top.packs && @booster}
                   class="set-chase-chip set-chase-chip-pull"
-                  navigate={~p"/produkty/#{@booster.product.slug}"}
+                  navigate={Paths.product(@booster.product.slug)}
                 >
                   <span class="sr-only">{gettext("wylosujesz średnio: ")}</span>{chase_pull_short(top)}
                 </.link>
@@ -1342,7 +1364,7 @@ defmodule TcgCheapWeb.HomeLive do
                 </span>
                 <.link
                   class="set-chase-chip set-chase-chip-buy"
-                  navigate={top.path}
+                  navigate={Paths.localize(top.path)}
                   data-track="card_clicked"
                 >
                   <span class="sr-only">{gettext("kupisz za ")}</span>{Polish.price(top.price)}
@@ -1457,8 +1479,14 @@ defmodule TcgCheapWeb.HomeLive do
     <Layouts.app flash={@flash}>
       <SEO.sync seo={@seo} />
       <div class="guide-world">
-        <.site_header locale={@locale} return_to={@locale_return_to}>
+        <.site_header
+          region={@region}
+          locale={@locale}
+          current_path={@current_path}
+          region_hint={@region_hint}
+        >
           <VisitorLocation.location_control
+            :if={Region.poland?(@region)}
             location={@location}
             ready={@location_ready?}
             form={@town_form}
@@ -1466,7 +1494,7 @@ defmodule TcgCheapWeb.HomeLive do
             error={@location_error}
           />
         </.site_header>
-        <main id="guide-main" class="guide-main" data-guide-url={@locale_return_to}>
+        <main id="guide-main" class="guide-main" data-guide-url={@current_path}>
           <%= cond do %>
             <% @set_page && @filters.mode == :cards -> %>
               <.set_intro
@@ -1475,12 +1503,21 @@ defmodule TcgCheapWeb.HomeLive do
                 close={list_path(@filters, expansion: nil, expansion_name: nil)}
                 cards_href="#guide-results-title"
                 singles?={true}
+                polish?={Region.poland?(@region)}
               />
             <% @set_page -> %>
-              <.set_intro name={@filters.expansion_name} page={@set_page} />
+              <.set_intro
+                name={@filters.expansion_name}
+                page={@set_page}
+                close={Paths.home()}
+                polish?={Region.poland?(@region)}
+              />
             <% true -> %>
               <.site_intro filters={@filters} market={@market} />
-              <.retail_news :if={@filters.mode == :products} deals={@retail_deals} />
+              <.retail_news
+                :if={@filters.mode == :products and Region.poland?(@region)}
+                deals={@retail_deals}
+              />
           <% end %>
           <section class="guide-search" aria-labelledby="guide-search-title">
             <h2 id="guide-search-title" class="sr-only">

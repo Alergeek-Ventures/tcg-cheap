@@ -1,11 +1,17 @@
 defmodule TcgCheapWeb.SEO do
-  @moduledoc "Search metadata for the buying guide, derived from the same data as its visible pages."
+  @moduledoc """
+  Search metadata for the buying guide, derived from the same data as its
+  visible pages, in the current region (`TcgCheapWeb.Region`): its URLs, its
+  currency and, for a page the other regions index too, `hreflang`
+  alternates to them.
+  """
 
   use TcgCheapWeb, :html
+
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Kinds, Shops}
-  alias TcgCheapWeb.{GuideComponents, PageMarkdown, Polish, SocialImage}
+  alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Guide, Kinds, Shops}
+  alias TcgCheapWeb.{GuideComponents, PageMarkdown, Paths, Polish, Region, SocialImage}
 
   def home(params) do
     metadata(
@@ -13,9 +19,11 @@ defmodule TcgCheapWeb.SEO do
       gettext(
         "Porównaj ceny Pokémon TCG w sklepach wysyłających do Polski. Sprawdź oferty boosterów, ETB, boxów i angielskich kart, historię cen i czy warto kupić teraz."
       ),
-      url(~p"/"),
+      Paths.url(Paths.home()),
       social_image: home_image(),
       social_image_alt: home_image_alt(),
+      # The root sends each visitor to their region's home page.
+      alternates: alternates(:home) ++ [%{hreflang: "x-default", href: url(~p"/")}],
       robots:
         if(Enum.any?(~w(q rodzaj wersja rozszerzenie), &Map.has_key?(params, &1)),
           do: "noindex, follow",
@@ -24,11 +32,11 @@ defmodule TcgCheapWeb.SEO do
       structured_data: %{
         "@context" => "https://schema.org",
         "@graph" => [
-          %{"@type" => "WebSite", "name" => "TCG Cheap", "url" => url(~p"/")},
+          %{"@type" => "WebSite", "name" => "TCG Cheap", "url" => Paths.url(Paths.home())},
           %{
             "@type" => "Organization",
             "name" => "TCG Cheap",
-            "url" => url(~p"/"),
+            "url" => Paths.url(Paths.home()),
             "logo" => static_url(TcgCheapWeb.Endpoint, ~p"/apple-touch-icon.png")
           }
         ]
@@ -40,19 +48,23 @@ defmodule TcgCheapWeb.SEO do
   # for card prices as much as for boosters. Narrowed by a search or an
   # expansion it stays out of search, as the products list does.
   def cards(params, market) do
-    canonical = url(~p"/karty")
+    canonical = Paths.url(Paths.cards())
 
     metadata(
       gettext("Ceny kart Pokémon TCG w Polsce"),
       fit_description(card_list_answer(market)),
       canonical,
       social_image:
-        if(market,
-          do: url(~p"/og/karty?#{[v: SocialImage.cards_version(market)]}"),
+        if(market && polish?(),
+          do: social_image(Paths.cards(), SocialImage.cards_version(market)),
           else: home_image()
         ),
       social_image_alt:
-        if(market, do: gettext("Ceny kart Pokémon w polskich sklepach"), else: home_image_alt()),
+        if(market && polish?(),
+          do: gettext("Ceny kart Pokémon w polskich sklepach"),
+          else: home_image_alt()
+        ),
+      alternates: alternates(:cards),
       robots:
         if(Enum.any?(~w(q rozszerzenie), &Map.has_key?(params, &1)),
           do: "noindex, follow",
@@ -89,7 +101,7 @@ defmodule TcgCheapWeb.SEO do
   # People ask what a booster costs, also in the chains ("ile kosztuje booster
   # pokemon w żabce"): the answer is today's cheapest English booster.
   def booster_prices(page) do
-    canonical = url(~p"/ile-kosztuje-booster-pokemon")
+    canonical = Paths.url(Paths.page(:booster_prices))
 
     metadata(
       gettext("Ile kosztuje booster Pokémon? Ceny w Polsce"),
@@ -101,8 +113,7 @@ defmodule TcgCheapWeb.SEO do
         )
       ),
       canonical,
-      social_image:
-        url(~p"/og/ile-kosztuje-booster-pokemon?#{[v: SocialImage.boosters_version(page)]}"),
+      social_image: social_image(Paths.page(:booster_prices), SocialImage.boosters_version(page)),
       social_image_alt: gettext("Ile kosztuje booster Pokémon: najtańsze boostery w sklepach"),
       structured_data: %{
         "@context" => "https://schema.org",
@@ -112,7 +123,11 @@ defmodule TcgCheapWeb.SEO do
             "headline" => gettext("Ile kosztuje booster Pokémon?"),
             "inLanguage" => Gettext.get_locale(TcgCheapWeb.Gettext),
             "dateModified" => Date.to_iso8601(page.today),
-            "author" => %{"@type" => "Organization", "name" => "TCG Cheap", "url" => url(~p"/")},
+            "author" => %{
+              "@type" => "Organization",
+              "name" => "TCG Cheap",
+              "url" => Paths.url(Paths.home())
+            },
             "mainEntityOfPage" => canonical
           },
           %{
@@ -122,7 +137,7 @@ defmodule TcgCheapWeb.SEO do
                 "@type" => "ListItem",
                 "position" => 1,
                 "name" => gettext("Wszystkie produkty"),
-                "item" => url(~p"/")
+                "item" => Paths.url(Paths.home())
               },
               %{
                 "@type" => "ListItem",
@@ -141,7 +156,7 @@ defmodule TcgCheapWeb.SEO do
   # costs most today: the description answers both. A filtered ranking is
   # the same article: canonical to it and not indexed on its own.
   def expensive_cards(overview, records, filters) do
-    canonical = url(~p"/najdrozsze-karty-pokemon")
+    canonical = Paths.url(Paths.page(:expensive_cards))
     filtered? = filters != %{set: nil, stock: :all}
     title = gettext("Najdroższe karty Pokémon – rekordy i ceny dziś")
 
@@ -151,8 +166,9 @@ defmodule TcgCheapWeb.SEO do
       canonical,
       robots: if(filtered?, do: "noindex, follow", else: "index, follow"),
       social_image:
-        url(
-          ~p"/og/najdrozsze-karty-pokemon?#{[v: SocialImage.expensive_cards_version(overview)]}"
+        social_image(
+          Paths.page(:expensive_cards),
+          SocialImage.expensive_cards_version(overview)
         ),
       social_image_alt: gettext("Najdroższe karty Pokémon: rekordy aukcji i ceny dziś"),
       structured_data: %{
@@ -163,7 +179,11 @@ defmodule TcgCheapWeb.SEO do
             "headline" => gettext("Najdroższe karty Pokémon"),
             "inLanguage" => Gettext.get_locale(TcgCheapWeb.Gettext),
             "dateModified" => overview.priced_on && Date.to_iso8601(overview.priced_on),
-            "author" => %{"@type" => "Organization", "name" => "TCG Cheap", "url" => url(~p"/")},
+            "author" => %{
+              "@type" => "Organization",
+              "name" => "TCG Cheap",
+              "url" => Paths.url(Paths.home())
+            },
             "mainEntityOfPage" => canonical
           },
           %{
@@ -173,7 +193,7 @@ defmodule TcgCheapWeb.SEO do
                 "@type" => "ListItem",
                 "position" => 1,
                 "name" => gettext("Karty"),
-                "item" => url(~p"/karty")
+                "item" => Paths.url(Paths.cards())
               },
               %{
                 "@type" => "ListItem",
@@ -212,7 +232,7 @@ defmodule TcgCheapWeb.SEO do
   end
 
   def card_value(%{spread: spread} = guide) do
-    canonical = url(~p"/jak-sprawdzic-wartosc-karty-pokemon")
+    canonical = Paths.url(Paths.page(:card_value))
     title = gettext("Jak sprawdzić wartość karty Pokémon")
 
     metadata(
@@ -231,10 +251,7 @@ defmodule TcgCheapWeb.SEO do
         |> Enum.filter(&is_binary/1)
       ),
       canonical,
-      social_image:
-        url(
-          ~p"/og/jak-sprawdzic-wartosc-karty-pokemon?#{[v: SocialImage.card_value_version(guide)]}"
-        ),
+      social_image: social_image(Paths.page(:card_value), SocialImage.card_value_version(guide)),
       social_image_alt:
         gettext("Ile jest warta twoja karta Pokémon: ceny kart w polskich sklepach"),
       structured_data: %{
@@ -245,7 +262,11 @@ defmodule TcgCheapWeb.SEO do
             "headline" => title,
             "inLanguage" => Gettext.get_locale(TcgCheapWeb.Gettext),
             "dateModified" => spread && Date.to_iso8601(spread.on),
-            "author" => %{"@type" => "Organization", "name" => "TCG Cheap", "url" => url(~p"/")},
+            "author" => %{
+              "@type" => "Organization",
+              "name" => "TCG Cheap",
+              "url" => Paths.url(Paths.home())
+            },
             "mainEntityOfPage" => canonical
           },
           %{
@@ -255,7 +276,7 @@ defmodule TcgCheapWeb.SEO do
                 "@type" => "ListItem",
                 "position" => 1,
                 "name" => gettext("Karty"),
-                "item" => url(~p"/karty")
+                "item" => Paths.url(Paths.cards())
               },
               %{"@type" => "ListItem", "position" => 2, "name" => title, "item" => canonical}
             ]
@@ -268,7 +289,7 @@ defmodule TcgCheapWeb.SEO do
   # For shop owners and the bot registries that link to it; it has no
   # markdown version.
   def bot do
-    canonical = url(~p"/bot")
+    canonical = Paths.url(Paths.page(:bot))
 
     metadata(
       gettext("Bot TCG Cheap – informacje dla sklepów"),
@@ -287,7 +308,7 @@ defmodule TcgCheapWeb.SEO do
             "@type" => "ListItem",
             "position" => 1,
             "name" => gettext("Wszystkie produkty"),
-            "item" => url(~p"/")
+            "item" => Paths.url(Paths.home())
           },
           %{
             "@type" => "ListItem",
@@ -330,11 +351,11 @@ defmodule TcgCheapWeb.SEO do
 
   @doc "The set page's path: the expansion's name plus its Cardmarket id, like a product's."
   @spec expansion_path(integer(), String.t()) :: String.t()
-  def expansion_path(id, name), do: ~p"/rozszerzenia/#{Catalogue.slug(name, id)}"
+  def expansion_path(id, name), do: Paths.expansion(Catalogue.slug(name, id))
 
   @doc "The set page's full URL."
   @spec expansion_url(integer(), String.t()) :: String.t()
-  def expansion_url(id, name), do: url(~p"/rozszerzenia/#{Catalogue.slug(name, id)}")
+  def expansion_url(id, name), do: Paths.url(expansion_path(id, name))
 
   # A set's page is what people search for by name: "<set> cena", "<set>
   # drop rate", "<set> lista kart". Its list narrowed by a search or a
@@ -347,10 +368,16 @@ defmodule TcgCheapWeb.SEO do
       fit_description(expansion_answer(name, page)),
       canonical,
       social_image:
-        unverified_url(TcgCheapWeb.Endpoint, "/og" <> expansion_path(id, name),
-          v: SocialImage.expansion_version(name, page)
+        if(polish?(),
+          do: social_image(expansion_path(id, name), SocialImage.expansion_version(name, page)),
+          else: home_image()
         ),
-      social_image_alt: gettext("%{expansion}: najcenniejsze karty i ceny", expansion: name),
+      social_image_alt:
+        if(polish?(),
+          do: gettext("%{expansion}: najcenniejsze karty i ceny", expansion: name),
+          else: home_image_alt()
+        ),
+      alternates: alternates({:expansion, Catalogue.slug(name, id)}),
       robots:
         if(Enum.any?(~w(q rodzaj wersja), &Map.has_key?(params, &1)),
           do: "noindex, follow",
@@ -364,7 +391,7 @@ defmodule TcgCheapWeb.SEO do
             "@type" => "ListItem",
             "position" => 1,
             "name" => gettext("Wszystkie produkty"),
-            "item" => url(~p"/")
+            "item" => Paths.url(Paths.home())
           },
           %{"@type" => "ListItem", "position" => 2, "name" => name, "item" => canonical}
         ]
@@ -483,7 +510,14 @@ defmodule TcgCheapWeb.SEO do
   defp cards_answer(%{card_count: count, top_cards: []}),
     do: gettext("Set liczy %{cards}.", cards: Polish.plural(count, "karta", "karty", "kart"))
 
-  defp cards_answer(%{card_count: count, top_cards: [top | _]}),
+  # The dearest card's price is a Polish shop's or Cardmarket's in złoty.
+  defp cards_answer(%{card_count: count, top_cards: [top | _]}) when top != nil do
+    if polish?(),
+      do: dearest_card_answer(count, top),
+      else: cards_answer(%{card_count: count, top_cards: []})
+  end
+
+  defp dearest_card_answer(count, top),
     do:
       gettext("Set liczy %{cards}, najdroższa to %{card} (%{price}, bez dostawy).",
         cards: Polish.plural(count, "karta", "karty", "kart"),
@@ -491,16 +525,45 @@ defmodule TcgCheapWeb.SEO do
         price: Polish.price(top.price)
       )
 
-  defp home_image, do: url(~p"/og?#{[v: SocialImage.home_version()]}")
+  defp home_image, do: social_image(Paths.home(), SocialImage.home_version())
+
+  # A page's link-preview card: under /og at the page's own path.
+  defp social_image(path, version),
+    do: unverified_url(TcgCheapWeb.Endpoint, "/og" <> path, v: version)
+
+  defp polish?, do: Region.poland?(Region.current())
+
+  defp page_of(path) do
+    {:ok, _region, page} = Paths.parse(path)
+    page
+  end
+
+  # The page's URL in each region that has it, for hreflang; none when only
+  # one region does. A region that keeps its page out of the index is left
+  # out by the caller (`indexed`).
+  defp alternates(page, indexed \\ Region.all()) do
+    links =
+      for region <- indexed,
+          path = Paths.page_path(region, page),
+          do: %{hreflang: region.hreflang, href: Paths.url(path)}
+
+    if length(links) > 1, do: links, else: []
+  end
 
   defp home_image_alt,
     do:
       "TCG Cheap. " <>
         gettext("Sprawdź, czy cena jest dobra") <> ". " <> SocialImage.home_promise()
 
+  @doc """
+  A product page's metadata. Poland indexes every product page; another
+  region only a product its shops have in stock now (a page without an
+  offer there would be thin), and only then are the two alternates.
+  """
   def product(page) do
     product = page.product
-    canonical = url(~p"/produkty/#{product.slug}")
+    canonical = Paths.url(Paths.product(product.slug))
+    indexed = Enum.filter(Region.all(), &product_indexed?(&1, page))
 
     description = product_description(page)
 
@@ -521,7 +584,7 @@ defmodule TcgCheapWeb.SEO do
     # with delivery), never MSRP, Cardmarket or a last-known price. Google requires
     # offers on a Product, so without one there's no Product block.
     product_data =
-      case page.offers |> Enum.filter(& &1.in_stock) |> Shops.compared() do
+      case in_stock_compared(page) do
         [] ->
           nil
 
@@ -531,7 +594,7 @@ defmodule TcgCheapWeb.SEO do
           Map.put(product_data, "offers", %{
             "@type" => "AggregateOffer",
             "url" => canonical,
-            "priceCurrency" => "PLN",
+            "priceCurrency" => page.market.currency,
             "lowPrice" => Decimal.to_string(low.price, :normal),
             "highPrice" => Decimal.to_string(high.price, :normal),
             "offerCount" => length(offers)
@@ -542,9 +605,10 @@ defmodule TcgCheapWeb.SEO do
       fit_title(product_titles(page)),
       description,
       canonical,
-      social_image:
-        url(~p"/og/produkty/#{product.slug}?#{[v: SocialImage.product_version(page)]}"),
+      social_image: social_image(Paths.product(product.slug), SocialImage.product_version(page)),
       social_image_alt: product.name <> ". " <> answer(page.verdict),
+      robots: if(Region.current() in indexed, do: "index, follow", else: "noindex, follow"),
+      alternates: alternates({:product, product.slug}, indexed),
       structured_data: %{
         "@context" => "https://schema.org",
         "@graph" =>
@@ -558,7 +622,7 @@ defmodule TcgCheapWeb.SEO do
                       "@type" => "ListItem",
                       "position" => 1,
                       "name" => gettext("Wszystkie produkty"),
-                      "item" => url(~p"/")
+                      "item" => Paths.url(Paths.home())
                     },
                     %{
                       "@type" => "ListItem",
@@ -572,6 +636,23 @@ defmodule TcgCheapWeb.SEO do
             ]
       }
     )
+  end
+
+  # The page's in-stock offers at the prices its verdict compares (with
+  # delivery from abroad); a shop only listed has none.
+  defp in_stock_compared(page) do
+    for offer <- page.offers,
+        offer.in_stock,
+        %Decimal{} = price <- [page.compared[offer.id]],
+        do: %{offer | price: price}
+  end
+
+  defp product_indexed?(%Region{} = region, page) do
+    cond do
+      Region.poland?(region) -> true
+      region.market == page.market -> in_stock_compared(page) != []
+      true -> Guide.in_stock?(page.product.id, region.market, DateTime.utc_now())
+    end
   end
 
   # The expansion's list sits between all products and the product.
@@ -691,26 +772,36 @@ defmodule TcgCheapWeb.SEO do
   def single(page) do
     card = page.card
     number = CardGuide.printed_number(card)
-    canonical = unverified_url(TcgCheapWeb.Endpoint, page.path)
+    canonical = Paths.url(page.path)
     answer = Enum.find(page.answers, & &1.cheapest)
 
     description =
-      if answer do
-        fit_description([
-          gettext("%{name} %{number}: od %{price} w sklepach wysyłających do Polski.",
+      cond do
+        not polish?() ->
+          # Singles have shop prices only in Poland: elsewhere the page shows
+          # Cardmarket's.
+          gettext("%{name} %{number}: cena na Cardmarket i warianty karty.",
             name: card.name,
-            number: number,
-            price: Polish.price(answer.cheapest.price)
-          ),
-          GuideComponents.single_verdict_label(answer.verdict) <> ".",
-          gettext("Ceny, stan i warianty karty.")
-        ])
-      else
-        gettext(
-          "%{name} %{number}: brak ofert bez gradingu na stanie w sklepach. Sprawdź referencję Cardmarket i pozostałe oferty.",
-          name: card.name,
-          number: number
-        )
+            number: number
+          )
+
+        answer ->
+          fit_description([
+            gettext("%{name} %{number}: od %{price} w sklepach wysyłających do Polski.",
+              name: card.name,
+              number: number,
+              price: Polish.price(answer.cheapest.price)
+            ),
+            GuideComponents.single_verdict_label(answer.verdict) <> ".",
+            gettext("Ceny, stan i warianty karty.")
+          ])
+
+        true ->
+          gettext(
+            "%{name} %{number}: brak ofert bez gradingu na stanie w sklepach. Sprawdź referencję Cardmarket i pozostałe oferty.",
+            name: card.name,
+            number: number
+          )
       end
 
     card_name = "#{card.name} #{number} #{page.expansion_name}"
@@ -730,14 +821,19 @@ defmodule TcgCheapWeb.SEO do
       # Matches CardGuide.sitemap_cards/0: a card without an offer leaves the index until one returns.
       robots: if(answer, do: "index, follow", else: "noindex, follow"),
       social_image:
-        unverified_url(TcgCheapWeb.Endpoint, "/og" <> page.path,
-          v: SocialImage.card_version(page)
+        if(polish?(),
+          do: social_image(page.path, SocialImage.card_version(page)),
+          else: home_image()
         ),
-      social_image_alt: card_name,
+      social_image_alt: if(polish?(), do: card_name, else: home_image_alt()),
+      alternates: alternates(page_of(page.path)),
       structured_data: %{
         "@context" => "https://schema.org",
         "@graph" =>
-          List.wrap(single_product(page, answer, description, canonical)) ++
+          if(polish?(),
+            do: List.wrap(single_product(page, answer, description, canonical)),
+            else: []
+          ) ++
             [
               %{
                 "@type" => "BreadcrumbList",
@@ -746,7 +842,7 @@ defmodule TcgCheapWeb.SEO do
                     "@type" => "ListItem",
                     "position" => 1,
                     "name" => gettext("Wszystkie produkty"),
-                    "item" => url(~p"/")
+                    "item" => Paths.url(Paths.home())
                   },
                   %{
                     "@type" => "ListItem",
@@ -837,6 +933,8 @@ defmodule TcgCheapWeb.SEO do
   end
 
   defp metadata(title, description, canonical, opts) do
+    robots = Keyword.get(opts, :robots, "index, follow")
+
     %{
       title: title,
       page_title: page_title(title),
@@ -844,7 +942,9 @@ defmodule TcgCheapWeb.SEO do
       canonical: canonical,
       # nil leaves the alternate link without an href.
       markdown: Keyword.get_lazy(opts, :markdown, fn -> PageMarkdown.url_for(canonical) end),
-      robots: Keyword.get(opts, :robots, "index, follow"),
+      robots: robots,
+      # An unindexed page names no alternates.
+      alternates: if(robots == "index, follow", do: Keyword.get(opts, :alternates, []), else: []),
       social_image: Keyword.fetch!(opts, :social_image),
       social_image_alt: Keyword.fetch!(opts, :social_image_alt),
       structured_data: Keyword.fetch!(opts, :structured_data)
@@ -859,6 +959,13 @@ defmodule TcgCheapWeb.SEO do
     <meta id="seo-robots" name="robots" content={@seo.robots} />
     <link id="seo-canonical" rel="canonical" href={@seo.canonical} />
     <link id="seo-markdown" rel="alternate" type="text/markdown" href={@seo.markdown} />
+    <link
+      :for={alternate <- @seo.alternates}
+      rel="alternate"
+      hreflang={alternate.hreflang}
+      href={alternate.href}
+      data-seo-alternate
+    />
     <meta id="seo-og-title" property="og:title" content={@seo.title <> " · TCG Cheap"} />
     <meta id="seo-og-description" property="og:description" content={@seo.description} />
     <meta id="seo-og-url" property="og:url" content={@seo.canonical} />
@@ -915,6 +1022,14 @@ defmodule TcgCheapWeb.SEO do
           if (seo.markdown) markdown.setAttribute("href", seo.markdown)
           else markdown.removeAttribute("href")
           document.getElementById("seo-structured-data").textContent = JSON.stringify(seo.structured_data)
+          document.querySelectorAll("link[data-seo-alternate]").forEach(link => link.remove())
+          const markdownLink = document.getElementById("seo-markdown")
+          for (const {hreflang, href} of seo.alternates) {
+            const link = document.createElement("link")
+            Object.assign(link, {rel: "alternate", hreflang, href})
+            link.setAttribute("data-seo-alternate", "")
+            markdownLink.after(link)
+          }
         },
       }
     </script>

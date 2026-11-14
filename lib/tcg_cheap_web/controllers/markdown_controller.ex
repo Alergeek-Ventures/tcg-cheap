@@ -2,22 +2,28 @@ defmodule TcgCheapWeb.MarkdownController do
   @moduledoc """
   Markdown versions of the guide's pages (`TcgCheapWeb.PageMarkdown`), routed
   here by `TcgCheapWeb.MarkdownNegotiation`. They are alternates of the HTML
-  pages: kept out of the index and pointing to the HTML as canonical. Always
-  in Polish, the guide's default language.
+  pages: kept out of the index and pointing to the HTML as canonical. Each
+  in its region's default language (`TcgCheapWeb.Locale` puts the region).
   """
 
   use TcgCheapWeb, :controller
 
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{BoosterGuide, CardGuide, CardValue, Catalogue, ExpensiveCards, Guide}
-  alias TcgCheapWeb.{CardRecords, PageMarkdown, SEO}
+  alias TcgCheapWeb.{CardRecords, PageMarkdown, Paths, Region, SEO}
 
   # The home page's default list: English editions, as the HTML opens with.
   def home(conn, _params) do
     now = DateTime.utc_now()
     today = DateTime.to_date(now)
-    {summaries, _more?, _count} = Guide.browse(list_filters(nil, :en), 0, now)
-    retail_deal = List.first(Sealed.list_current_retail_deals!(today))
+    market = conn.assigns.region.market
+    {summaries, _more?, _count} = Guide.browse(list_filters(nil, :en), 0, now, market)
+
+    # The retail chains' deals are Polish.
+    retail_deal =
+      if Region.poland?(conn.assigns.region),
+        do: List.first(Sealed.list_current_retail_deals!(today))
+
     seo = SEO.home(%{})
 
     send_markdown(conn, seo, PageMarkdown.home(seo, summaries, retail_deal, today))
@@ -25,7 +31,7 @@ defmodule TcgCheapWeb.MarkdownController do
 
   # The card list's first page, as the HTML opens without a search.
   def cards(conn, _params) do
-    market = Guide.singles_market()
+    market = if Region.poland?(conn.assigns.region), do: Guide.singles_market()
     %{available: {cards, _more?, _count}} = Guide.card_discovery()
     seo = SEO.cards(%{}, market)
 
@@ -59,7 +65,7 @@ defmodule TcgCheapWeb.MarkdownController do
   end
 
   def product(conn, %{"slug" => slug}) do
-    case Guide.product(slug, DateTime.utc_now()) do
+    case Guide.product(slug, DateTime.utc_now(), conn.assigns.region.market) do
       {:ok, page} ->
         seo = SEO.product(page)
         send_markdown(conn, seo, PageMarkdown.product(seo, page))
@@ -77,8 +83,9 @@ defmodule TcgCheapWeb.MarkdownController do
          name when is_binary(name) <- Map.get(Guide.expansion_names([id]), id) do
       if slug == Catalogue.slug(name, id) do
         now = DateTime.utc_now()
-        set_page = Guide.expansion(id, name, now)
-        {summaries, _more?, _count} = Guide.browse(list_filters(id, nil), 0, now)
+        market = conn.assigns.region.market
+        set_page = Guide.expansion(id, name, now, market)
+        {summaries, _more?, _count} = Guide.browse(list_filters(id, nil), 0, now, market)
         seo = SEO.expansion(%{}, %{id: id, name: name}, set_page)
 
         send_markdown(
@@ -97,7 +104,9 @@ defmodule TcgCheapWeb.MarkdownController do
   def single(conn, %{"slug" => set, "card_slug" => slug}) do
     case CardGuide.find(set, slug) do
       {:ok, card, name, path} ->
-        if path == "/rozszerzenia/#{set}/karty/#{slug}" do
+        path = Paths.localize(path)
+
+        if path == Paths.page_path(conn.assigns.region, {:card, set, slug}) do
           page = CardGuide.page(card, name, path)
           seo = SEO.single(page)
           send_markdown(conn, seo, PageMarkdown.single(seo, page))

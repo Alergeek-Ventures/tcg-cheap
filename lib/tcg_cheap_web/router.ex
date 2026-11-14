@@ -21,10 +21,6 @@ defmodule TcgCheapWeb.Router do
     plug :load_from_session
   end
 
-  pipeline :guide_locale do
-    plug TcgCheapWeb.Locale
-  end
-
   pipeline :admin do
     plug TcgCheapWeb.AdminAuth
   end
@@ -74,6 +70,7 @@ defmodule TcgCheapWeb.Router do
   end
 
   scope "/", TcgCheapWeb do
+    get "/", RegionController, :root
     get "/media/tcgdex/:hash/:size", RemoteImageController, :show
     get "/img/*path", StoredImageController, :show
     get "/sitemap.xml", CrawlController, :sitemap
@@ -86,8 +83,19 @@ defmodule TcgCheapWeb.Router do
   end
 
   # Markdown versions of the guide's pages for AI agents, reached through
-  # TcgCheapWeb.MarkdownNegotiation: no session, cookies or HTML.
-  scope "/md", TcgCheapWeb do
+  # TcgCheapWeb.MarkdownNegotiation: no session, cookies or HTML. Each in its
+  # region's default language.
+  pipeline :markdown_pl do
+    plug TcgCheapWeb.Locale, {"pl", :default_language}
+  end
+
+  pipeline :markdown_hu do
+    plug TcgCheapWeb.Locale, {"hu", :default_language}
+  end
+
+  scope "/md/pl", TcgCheapWeb do
+    pipe_through :markdown_pl
+
     get "/", MarkdownController, :home
     get "/karty", MarkdownController, :cards
     get "/ile-kosztuje-booster-pokemon", MarkdownController, :booster_prices
@@ -98,8 +106,21 @@ defmodule TcgCheapWeb.Router do
     get "/rozszerzenia/:slug/karty/:card_slug", MarkdownController, :single
   end
 
-  # Link-preview cards for crawlers: no session, cookies or HTML.
-  scope "/og", TcgCheapWeb do
+  scope "/md/hu", TcgCheapWeb do
+    pipe_through :markdown_hu
+
+    get "/", MarkdownController, :home
+    get "/kartyak", MarkdownController, :cards
+    get "/termekek/:slug", MarkdownController, :product
+    get "/szettek/:slug", MarkdownController, :expansion
+    get "/szettek/:slug/kartyak/:card_slug", MarkdownController, :single
+  end
+
+  # Link-preview cards for crawlers: no session, cookies or HTML. A region's
+  # other pages share its home page's card.
+  scope "/og/pl", TcgCheapWeb do
+    pipe_through :markdown_pl
+
     get "/", SocialImageController, :home
     get "/produkty/:slug", SocialImageController, :product
     get "/najdrozsze-karty-pokemon", SocialImageController, :expensive_cards
@@ -108,6 +129,13 @@ defmodule TcgCheapWeb.Router do
     get "/ile-kosztuje-booster-pokemon", SocialImageController, :boosters
     get "/rozszerzenia/:slug", SocialImageController, :expansion
     get "/rozszerzenia/:slug/karty/:card_slug", SocialImageController, :card
+  end
+
+  scope "/og/hu", TcgCheapWeb do
+    pipe_through :markdown_hu
+
+    get "/", SocialImageController, :home
+    get "/termekek/:slug", SocialImageController, :product
   end
 
   scope "/", TcgCheapWeb do
@@ -170,9 +198,18 @@ defmodule TcgCheapWeb.Router do
   end
 
   scope "/", TcgCheapWeb do
-    pipe_through [:browser, :guide_locale]
+    pipe_through :browser
 
     get "/lang/:locale", LocaleController, :update
+    get "/region/:code", RegionController, :switch
+  end
+
+  pipeline :region_pl do
+    plug TcgCheapWeb.Locale, "pl"
+  end
+
+  pipeline :region_hu do
+    plug TcgCheapWeb.Locale, "hu"
   end
 
   pipeline :single_canonical do
@@ -183,11 +220,14 @@ defmodule TcgCheapWeb.Router do
     plug TcgCheapWeb.SetCanonical
   end
 
-  # All public guide pages share history and LiveView navigation. Crossing a
-  # live_session boundary forces a full document reload, including on Safari.
-  live_session :guide, on_mount: [TcgCheapWeb.Locale, TcgCheapWeb.SiteFooter] do
-    scope "/", TcgCheapWeb do
-      pipe_through [:browser, :guide_locale]
+  # A region's public pages share history and LiveView navigation. Crossing a
+  # live_session boundary forces a full document reload, including on Safari:
+  # switching regions reloads anyway.
+  live_session :guide_pl,
+    on_mount: [{TcgCheapWeb.Locale, "pl"}, TcgCheapWeb.SiteFooter],
+    session: {TcgCheapWeb.Locale, :session, []} do
+    scope "/pl", TcgCheapWeb do
+      pipe_through [:browser, :region_pl]
 
       live "/produkty/:slug", ProductLive
       # The card list, the products list's equal; its expansion stays a filter.
@@ -198,17 +238,41 @@ defmodule TcgCheapWeb.Router do
       live "/bot", BotLive
     end
 
-    scope "/", TcgCheapWeb do
-      pipe_through [:browser, :guide_locale, :set_canonical]
+    scope "/pl", TcgCheapWeb do
+      pipe_through [:browser, :region_pl, :set_canonical]
 
       live "/", HomeLive, :index
       live "/rozszerzenia/:slug", HomeLive, :expansion
     end
 
-    scope "/", TcgCheapWeb do
-      pipe_through [:browser, :guide_locale, :single_canonical]
+    scope "/pl", TcgCheapWeb do
+      pipe_through [:browser, :region_pl, :single_canonical]
 
       live "/rozszerzenia/:slug/karty/:card_slug", SingleLive
+    end
+  end
+
+  live_session :guide_hu,
+    on_mount: [{TcgCheapWeb.Locale, "hu"}, TcgCheapWeb.SiteFooter],
+    session: {TcgCheapWeb.Locale, :session, []} do
+    scope "/hu", TcgCheapWeb do
+      pipe_through [:browser, :region_hu]
+
+      live "/termekek/:slug", ProductLive
+      live "/kartyak", HomeLive, :cards
+    end
+
+    scope "/hu", TcgCheapWeb do
+      pipe_through [:browser, :region_hu, :set_canonical]
+
+      live "/", HomeLive, :index
+      live "/szettek/:slug", HomeLive, :expansion
+    end
+
+    scope "/hu", TcgCheapWeb do
+      pipe_through [:browser, :region_hu, :single_canonical]
+
+      live "/szettek/:slug/kartyak/:card_slug", SingleLive
     end
   end
 

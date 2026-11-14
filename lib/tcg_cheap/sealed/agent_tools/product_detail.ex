@@ -47,7 +47,7 @@ defmodule TcgCheap.Sealed.AgentTools.ProductDetail do
           :image_url
         ])
         |> Map.merge(Json.product(product))
-        |> Map.put(:path, "/produkty/#{product.slug}"),
+        |> Map.put(:path, "/pl/produkty/#{product.slug}"),
       verdict: %{verdict | cheapest: verdict.cheapest && Json.offer(verdict.cheapest)},
       preorder: detail.preorder?,
       premiere: detail.premiere,

@@ -241,4 +241,4 @@ config :sentry,
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
 
-config :tcg_cheap, TcgCheapWeb.Gettext, default_locale: "pl", locales: ~w(pl en)
+config :tcg_cheap, TcgCheapWeb.Gettext, default_locale: "pl", locales: ~w(pl en hu)

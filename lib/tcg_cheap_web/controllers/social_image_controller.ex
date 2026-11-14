@@ -6,7 +6,9 @@ defmodule TcgCheapWeb.SocialImageController do
   public bucket (`social/…`); later requests are redirected there. The
   version is computed here from the current data, so the `v` parameter
   (which `TcgCheapWeb.SEO` puts in the URL for platforms that cache by URL)
-  cannot force a new render. Crawlers send no session: cards are Polish.
+  cannot force a new render. Crawlers send no session: cards are in the
+  region's language and currency (`TcgCheapWeb.Locale` puts them), and the
+  Polish region's keep their keys from before regions.
   """
 
   use TcgCheapWeb, :controller
@@ -18,16 +20,19 @@ defmodule TcgCheapWeb.SocialImageController do
   require Logger
 
   def home(conn, _params) do
-    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
-    serve(conn, "social/home-#{SocialImage.home_version()}.jpg", &SocialImage.home/0)
+    serve(
+      conn,
+      "social/#{region_prefix(conn)}home-#{SocialImage.home_version()}.jpg",
+      &SocialImage.home/0
+    )
   end
 
   def product(conn, %{"slug" => slug}) do
-    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
-
-    case Guide.product(slug, DateTime.utc_now()) do
+    case Guide.product(slug, DateTime.utc_now(), conn.assigns.region.market) do
       {:ok, page} ->
-        key = "social/products/#{page.product.slug}-#{SocialImage.product_version(page)}.jpg"
+        key =
+          "social/#{region_prefix(conn)}products/#{page.product.slug}-#{SocialImage.product_version(page)}.jpg"
+
         serve(conn, key, fn -> SocialImage.product(page) end)
 
       :error ->
@@ -36,7 +41,6 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def expensive_cards(conn, _params) do
-    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
     overview = ExpensiveCards.overview()
     version = SocialImage.expensive_cards_version(overview)
 
@@ -46,7 +50,6 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def card_value(conn, _params) do
-    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
     guide = CardValue.guide()
     version = SocialImage.card_value_version(guide)
 
@@ -56,8 +59,6 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def cards(conn, _params) do
-    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
-
     case Guide.singles_market() do
       nil ->
         not_found(conn)
@@ -70,7 +71,6 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def boosters(conn, _params) do
-    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
     page = Guide.booster_prices(DateTime.utc_now())
 
     serve(conn, "social/boosters-#{SocialImage.boosters_version(page)}.jpg", fn ->
@@ -80,8 +80,6 @@ defmodule TcgCheapWeb.SocialImageController do
 
   # As the set page: the expansion under its current name only.
   def expansion(conn, %{"slug" => slug}) do
-    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
-
     with {:ok, id, name} <- known_expansion(slug),
          true <- slug == Catalogue.slug(name, id) do
       set_page = Guide.expansion(id, name, DateTime.utc_now())
@@ -97,7 +95,6 @@ defmodule TcgCheapWeb.SocialImageController do
 
   # As the card page: the card under its current path only.
   def card(conn, %{"slug" => set, "card_slug" => slug}) do
-    Gettext.put_locale(TcgCheapWeb.Gettext, "pl")
     path = "/rozszerzenia/#{set}/karty/#{slug}"
 
     with {:ok, _id, _name} <- known_expansion(set),
@@ -123,6 +120,9 @@ defmodule TcgCheapWeb.SocialImageController do
       _unknown -> :error
     end
   end
+
+  defp region_prefix(%{assigns: %{region: %{code: "pl"}}}), do: ""
+  defp region_prefix(%{assigns: %{region: %{code: code}}}), do: code <> "/"
 
   defp not_found(conn),
     do: conn |> put_resp_header("cache-control", "no-store") |> send_resp(404, "")

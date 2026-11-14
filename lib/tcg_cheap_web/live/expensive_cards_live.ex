@@ -9,12 +9,13 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
   """
 
   use TcgCheapWeb, :live_view
+
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.GuideComponents
 
   alias TcgCheap.Sealed.ExpensiveCards
-  alias TcgCheapWeb.{CardRecords, Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{CardRecords, Paths, Polish, SEO, VisitorLocation}
 
   @page 30
   # The movers chart's fixed scale: a change past it draws a full bar and
@@ -114,8 +115,8 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
       |> Map.new()
 
     if query == %{},
-      do: ~p"/najdrozsze-karty-pokemon",
-      else: ~p"/najdrozsze-karty-pokemon?#{query}"
+      do: Paths.page(:expensive_cards),
+      else: ~p"/pl/najdrozsze-karty-pokemon?#{query}"
   end
 
   @impl true
@@ -135,7 +136,12 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
     <Layouts.app flash={@flash}>
       <SEO.sync seo={@seo} />
       <div class="guide-world">
-        <.site_header locale={@locale} return_to={@locale_return_to}>
+        <.site_header
+          region={@region}
+          locale={@locale}
+          current_path={@current_path}
+          region_hint={@region_hint}
+        >
           <VisitorLocation.location_control
             location={@location}
             ready={@location_ready?}
@@ -147,7 +153,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
         <main id="expensive-cards" class="guide-main expensive-cards">
           <article class="expensive-article">
             <header class="expensive-intro expensive-column">
-              <.link id="expensive-cards-back" navigate={~p"/karty"} class="guide-back">
+              <.link id="expensive-cards-back" navigate={Paths.cards()} class="guide-back">
                 <.fluent_icon name={:arrow_left} />{gettext("Wszystkie karty")}
               </.link>
               <p class="expensive-kicker">
@@ -195,7 +201,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                 label={gettext("Najdroższa karta dziś")}
                 to={Decimal.to_float(@top.value)}
                 decimals={0}
-                suffix=" zł"
+                suffix={" " <> Polish.currency_symbol()}
                 value={Polish.zloty(@top.value)}
                 caption={"#{@top.card.name} #{@top.card.number}"}
                 detail={@top.card.expansion_name}
@@ -207,7 +213,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                 to={Decimal.to_float(@top_in_stock.offer.price)}
                 decimals={0}
                 prefix={gettext("od ")}
-                suffix=" zł"
+                suffix={" " <> Polish.currency_symbol()}
                 value={gettext("od %{price}", price: Polish.zloty(@top_in_stock.offer.price))}
                 caption={@top_in_stock.card.name}
                 detail={shop_name(@top_in_stock.offer)}
@@ -316,7 +322,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                   "Firmy takie jak PSA i CGC oceniają stan karty w skali od 1 do 10 i zamykają ją w plastikowym etui z etykietą. Dziesiątka zdarza się rzadko i to ona robi różnicę: Torchic ☆ z oceną 10 kosztował 2,7 mln dolarów, a ten sam Torchic z oceną 9 – siedemnaście razy mniej."
                 )
                 |> glue_short_words()}
-                <.link navigate={~p"/jak-sprawdzic-wartosc-karty-pokemon#grading"}>
+                <.link navigate={~p"/pl/jak-sprawdzic-wartosc-karty-pokemon#grading"}>
                   {gettext("Jak działa ocena i kiedy się opłaca")}&nbsp;→
                 </.link>
               </p>
@@ -353,7 +359,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
               <ul class="expensive-mews expensive-wide">
                 <li :for={row <- @mews} id={"mew-#{row.card.number}"}>
                   <.link
-                    navigate={row.card.public_path}
+                    navigate={Paths.localize(row.card.public_path)}
                     class="expensive-mew"
                     data-track="card_clicked"
                     data-track-placement="expensive_mew"
@@ -447,7 +453,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
               <ol class="expensive-shop-list expensive-wide">
                 <li :for={row <- @overview.in_stock} id={"w-polsce-#{row.card.id}"}>
                   <.link
-                    navigate={row.card.public_path}
+                    navigate={Paths.localize(row.card.public_path)}
                     class="expensive-shop-row"
                     data-track="card_clicked"
                     data-track-placement="expensive_shops"
@@ -563,7 +569,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                   "Masz w szufladzie stare karty albo właśnie wyciągnąłeś coś błyszczącego? Numer z dołu karty, wersja i stan mówią, ile jest warta – a większość kart kosztuje niewiele."
                 )
                 |> glue_short_words()}
-                <.link navigate={~p"/jak-sprawdzic-wartosc-karty-pokemon"}>
+                <.link navigate={Paths.page(:card_value)}>
                   {gettext("Jak sprawdzić wartość karty Pokémon")}&nbsp;→
                 </.link>
               </p>
@@ -899,7 +905,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
       </li>
       <li :for={{id, row} <- @rows} id={id}>
         <.link
-          navigate={row.card.public_path}
+          navigate={Paths.localize(row.card.public_path)}
           class="expensive-row"
           data-track="card_clicked"
           data-track-placement="expensive_list"
@@ -952,7 +958,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
   defp card_tile(assigns) do
     ~H"""
     <.link
-      navigate={@row.card.public_path}
+      navigate={Paths.localize(@row.card.public_path)}
       class="expensive-tile"
       data-track="card_clicked"
       data-track-placement={@placement}
@@ -1044,7 +1050,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
           style={"--size: #{bar_size(row.change, @scale)}"}
         >
           <.link
-            navigate={row.card.public_path}
+            navigate={Paths.localize(row.card.public_path)}
             class="expensive-mover"
             data-track="card_clicked"
             data-track-placement="expensive_movers"

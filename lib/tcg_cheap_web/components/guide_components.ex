@@ -2,10 +2,11 @@ defmodule TcgCheapWeb.GuideComponents do
   @moduledoc "Shared pieces of the public buying-guide pages."
 
   use TcgCheapWeb, :html
+
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{CardGuide, Kinds, Regions, RetailDeal, Shops}
-  alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
+  alias TcgCheap.Sealed.{CardGuide, Kinds, Market, Regions, RetailDeal, Shops}
+  alias TcgCheapWeb.{Paths, Polish, Region, SEO, VisitorLocation}
 
   def card_variant_label(:normal), do: gettext("Zwykła / holo")
   def card_variant_label(:reverse), do: gettext("Reverse holo")
@@ -24,42 +25,166 @@ defmodule TcgCheapWeb.GuideComponents do
   def single_verdict_label(verdict),
     do: verdict_label(%{status: single_verdict_status(verdict)})
 
-  @doc "The public masthead: the wordmark, linking to the buying guide, and optional controls."
+  @doc """
+  The public masthead: the wordmark, linking to the region's guide, the
+  region and language control and optional controls; under it, the region
+  hint (`TcgCheapWeb.Locale`) when there is one.
+  """
   attr :id, :string, default: "site-header"
+  attr :region, Region, default: nil
   attr :locale, :string, default: nil
-  attr :return_to, :string, default: "/"
+  attr :current_path, :string, default: "/"
+  attr :region_hint, :string, default: nil
   slot :inner_block
 
   def site_header(assigns) do
     ~H"""
     <header id={@id} class="site-header">
-      <.link id="site-wordmark" class="site-wordmark" navigate={~p"/"}>
+      <.link id="site-wordmark" class="site-wordmark" navigate={Paths.home()}>
         <img src={~p"/images/tcg-cheap.webp"} alt="TCG Cheap" width="135" height="32" />
       </.link>
-      <nav
-        :if={@locale}
-        id="guide-language"
-        class="guide-language"
-        aria-label={gettext("Język strony")}
-      >
-        <a
-          :for={{locale, name, flag} <- languages()}
-          id={"language-#{locale}"}
-          href={~p"/lang/#{locale}?#{[return_to: @return_to]}"}
-          lang={locale}
-          hreflang={locale}
-          aria-label={"#{String.upcase(locale)} – #{name}"}
-          aria-current={if(locale == @locale, do: "true")}
-          data-track="language_changed"
-          data-track-to={locale}
-        >
-          <img src={flag} alt="" width="21" height="14" />{String.upcase(locale)}
-        </a>
-      </nav>
+      <.locale_control
+        :if={@region && @locale}
+        region={@region}
+        locale={@locale}
+        current_path={@current_path}
+      />
       {render_slot(@inner_block)}
     </header>
+    <.region_hint
+      :if={@region && @region_hint}
+      region={@region}
+      suggested={Region.fetch!(@region_hint)}
+      current_path={@current_path}
+    />
     """
   end
+
+  attr :region, Region, required: true
+  attr :locale, :string, required: true
+  attr :current_path, :string, required: true
+
+  # The region (which shops, prices and delivery) and the language (only the
+  # text) are chosen apart. Each option is a link, so both work without
+  # JavaScript; preferences.js also keeps the language in localStorage.
+  defp locale_control(assigns) do
+    ~H"""
+    <details
+      id="guide-locale"
+      class="guide-locale"
+      phx-mounted={JS.ignore_attributes(["open"])}
+    >
+      <summary
+        id="guide-locale-summary"
+        class="guide-locale-summary"
+        aria-label={
+          gettext("Kraj i język: %{region}, %{language}",
+            region: @region.name,
+            language: language_name(@locale)
+          )
+        }
+      >
+        <img src={flag(@region.code)} alt="" width="21" height="14" />{String.upcase(@locale)}
+      </summary>
+      <div class="guide-locale-panel">
+        <nav id="guide-region" aria-labelledby="guide-region-title">
+          <h2 id="guide-region-title">{gettext("Kraj")}</h2>
+          <p class="guide-note">{gettext("Sklepy, ceny i dostawa")}</p>
+          <ul>
+            <li :for={region <- Region.all()}>
+              <a
+                id={"region-#{region.code}"}
+                href={~p"/region/#{region.code}?#{[path: @current_path]}"}
+                rel="nofollow"
+                lang={region.language}
+                aria-current={if(region.code == @region.code, do: "true")}
+                data-track="region_changed"
+                data-track-to={region.code}
+              >
+                <img src={flag(region.code)} alt="" width="21" height="14" />{region.name}
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <nav id="guide-language" aria-labelledby="guide-language-title">
+          <h2 id="guide-language-title">{gettext("Język strony")}</h2>
+          <ul>
+            <li :for={language <- Region.languages()}>
+              <a
+                id={"language-#{language}"}
+                href={~p"/lang/#{language}?#{[return_to: @current_path]}"}
+                rel="nofollow"
+                lang={language}
+                hreflang={language}
+                aria-current={if(language == @locale, do: "true")}
+                data-language={language}
+                data-track="language_changed"
+                data-track-to={language}
+              >
+                {language_name(language)}
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </details>
+    """
+  end
+
+  attr :region, Region, required: true
+  attr :suggested, Region, required: true
+  attr :current_path, :string, required: true
+
+  # In the suggested region's language: the visitor may not read this one.
+  # Staying chooses the current region, which ends the hint.
+  defp region_hint(assigns) do
+    assigns =
+      Gettext.with_locale(TcgCheapWeb.Gettext, assigns.suggested.language, fn ->
+        assign(assigns,
+          text: region_hint_text(assigns.suggested.code),
+          switch: region_hint_switch(assigns.suggested.code),
+          stay: gettext("Zostań tutaj")
+        )
+      end)
+
+    ~H"""
+    <aside
+      id="region-hint"
+      class="region-hint"
+      lang={@suggested.language}
+      aria-label={@suggested.name}
+    >
+      <p>
+        <img src={flag(@suggested.code)} alt="" width="21" height="14" />{@text}
+      </p>
+      <a
+        id="region-hint-switch"
+        href={~p"/region/#{@suggested.code}?#{[path: @current_path]}"}
+        rel="nofollow"
+        data-track="region_hint_followed"
+        data-track-to={@suggested.code}
+      >{@switch}</a>
+      <a
+        id="region-hint-stay"
+        href={~p"/region/#{@region.code}?#{[path: @current_path]}"}
+        rel="nofollow"
+        data-track="region_hint_dismissed"
+      >{@stay}</a>
+    </aside>
+    """
+  end
+
+  defp region_hint_text("hu"), do: gettext("Wygląda na to, że jesteś na Węgrzech.")
+  defp region_hint_text("pl"), do: gettext("Wygląda na to, że jesteś w Polsce.")
+  defp region_hint_switch("hu"), do: gettext("Przejdź do wersji węgierskiej")
+  defp region_hint_switch("pl"), do: gettext("Przejdź do wersji polskiej")
+
+  # Each language under its own name.
+  defp language_name("pl"), do: "Polski"
+  defp language_name("en"), do: "English"
+  defp language_name("hu"), do: "Magyar"
+
+  defp flag(code), do: ~p"/images/flags/#{code <> ".svg"}"
 
   attr :sets, :list, required: true, doc: "the newest sets (`TcgCheapWeb.SiteFooter`)"
 
@@ -82,24 +207,27 @@ defmodule TcgCheapWeb.GuideComponents do
         <nav id="site-footer-pages" aria-labelledby="site-footer-pages-title">
           <h2 id="site-footer-pages-title">{gettext("Ważne linki")}</h2>
           <ul class="site-footer-links">
-            <li><.link navigate={~p"/"}>{gettext("Ceny produktów")}</.link></li>
-            <li><.link navigate={~p"/karty"}>{gettext("Ceny kart")}</.link></li>
-            <li>
-              <.link navigate={~p"/ile-kosztuje-booster-pokemon"}>
+            <li><.link navigate={Paths.home()}>{gettext("Ceny produktów")}</.link></li>
+            <li><.link navigate={Paths.cards()}>{gettext("Ceny kart")}</.link></li>
+            <%!-- The articles and the bot page are Polish only. --%>
+            <li :if={Paths.page(:booster_prices)}>
+              <.link navigate={Paths.page(:booster_prices)}>
                 {gettext("Ile kosztuje booster Pokémon?")}
               </.link>
             </li>
-            <li>
-              <.link navigate={~p"/najdrozsze-karty-pokemon"}>
+            <li :if={Paths.page(:expensive_cards)}>
+              <.link navigate={Paths.page(:expensive_cards)}>
                 {gettext("Najdroższe karty Pokémon")}
               </.link>
             </li>
-            <li>
-              <.link navigate={~p"/jak-sprawdzic-wartosc-karty-pokemon"}>
+            <li :if={Paths.page(:card_value)}>
+              <.link navigate={Paths.page(:card_value)}>
                 {gettext("Ile jest warta twoja karta?")}
               </.link>
             </li>
-            <li><.link navigate={~p"/bot"}>{gettext("Dla sklepów: nasz bot")}</.link></li>
+            <li :if={Paths.page(:bot)}>
+              <.link navigate={Paths.page(:bot)}>{gettext("Dla sklepów: nasz bot")}</.link>
+            </li>
           </ul>
         </nav>
       </div>
@@ -171,13 +299,6 @@ defmodule TcgCheapWeb.GuideComponents do
       </form>
     </div>
     """
-  end
-
-  defp languages do
-    [
-      {"pl", "Polski", ~p"/images/flags/pl.svg"},
-      {"en", "English", ~p"/images/flags/en.svg"}
-    ]
   end
 
   @doc """
@@ -605,11 +726,15 @@ defmodule TcgCheapWeb.GuideComponents do
     # With an offer in stock, the row answers as the card's page does: its
     # cheapest shop, the verdict and that shop's price. Without one, the
     # lower known price.
+    polish? = Region.poland?(Region.current())
+
     assigns =
       assign(assigns,
         status: single_verdict_status(assigns.row.verdict),
+        # Elsewhere than in Poland, only Cardmarket's price: no shop there sells singles yet.
+        offer: if(polish?, do: assigns.row.offer),
         price:
-          CardGuide.price(%{
+          card_price(%{
             polish_price: assigns.row.price,
             cardmarket_trend_pln: assigns.row.cardmarket_trend_pln
           })
@@ -621,7 +746,7 @@ defmodule TcgCheapWeb.GuideComponents do
       class="guide-product guide-card"
     >
       <.link
-        navigate={@row.path}
+        navigate={Paths.localize(@row.path)}
         class="guide-product-link"
         data-track="card_clicked"
         data-track-placement={@placement}
@@ -648,8 +773,8 @@ defmodule TcgCheapWeb.GuideComponents do
           </p>
         </div>
         <div class="guide-product-deal">
-          <%= if @row.offer do %>
-            <span class="guide-product-shop">{priced_shop_name(@row.offer)}</span>
+          <%= if @offer do %>
+            <span class="guide-product-shop">{priced_shop_name(@offer)}</span>
             <%!-- Without a Cardmarket price there is nothing to judge; the card's page says why. --%>
             <.verdict_badge
               :if={@verdict? and @status != :insufficient_data}
@@ -657,7 +782,7 @@ defmodule TcgCheapWeb.GuideComponents do
               id={"card-verdict-#{@row.card.id}"}
               class="guide-product-verdict"
             />
-            <p class="guide-product-price"><strong>{Polish.price(@row.offer.price)}</strong></p>
+            <p class="guide-product-price"><strong>{Polish.price(@offer.price)}</strong></p>
           <% else %>
             <p class="guide-product-price">
               <strong :if={@price}>{Polish.price(@price)}</strong>
@@ -670,6 +795,18 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
+  @doc """
+  A card's price in the current region: in Poland the lower of its Polish
+  shop price and its Cardmarket trend (`CardGuide.price/1`); elsewhere its
+  Cardmarket trend in the region's currency, as singles have no shops there.
+  """
+  @spec card_price(map()) :: Decimal.t() | nil
+  def card_price(card) do
+    if Region.poland?(Region.current()),
+      do: CardGuide.price(card),
+      else: card |> Map.get(:cardmarket_trend_pln) |> Region.from_pln()
+  end
+
   @doc "A product's row in a list: photo, name, kind, cheapest shop, verdict and price."
   attr :summary, :map, required: true
   attr :priority, :boolean, default: false, doc: "the list's first photo, loaded eagerly"
@@ -677,7 +814,7 @@ defmodule TcgCheapWeb.GuideComponents do
   def product_row(assigns) do
     ~H"""
     <.link
-      navigate={~p"/produkty/#{@summary.product.slug}"}
+      navigate={Paths.product(@summary.product.slug)}
       class="guide-product-link"
       data-track="product_clicked"
       data-track-product-slug={@summary.product.slug}
@@ -765,12 +902,14 @@ defmodule TcgCheapWeb.GuideComponents do
   """
   @spec delivered_term(map()) :: String.t() | nil
   def delivered_term(%{shop: key}) do
-    case Shops.fetch(key) do
-      {:ok, %{country: country, deliveries: %{"PL" => %{shipping_from: %Decimal{}}}}}
-      when country != "PL" ->
+    market = Region.current().market
+    shop = Shops.fetch(key)
+
+    case {shop, Market.terms(shop, market)} do
+      {{:ok, %{country: country}}, {:delivered, _delivery}} ->
         country |> delivered_from() |> glue_short_words()
 
-      _polish_or_listed ->
+      _domestic_or_listed ->
         nil
     end
   end
@@ -857,6 +996,7 @@ defmodule TcgCheapWeb.GuideComponents do
   @spec row_price(map()) :: Decimal.t()
   def row_price(offer), do: Shops.compared_price(offer.shop, offer.price) || offer.price
 
+  defp delivered_from("PL"), do: gettext("z wysyłką z Polski")
   defp delivered_from("NL"), do: gettext("z wysyłką z Holandii")
   defp delivered_from("DE"), do: gettext("z wysyłką z Niemiec")
   defp delivered_from("BE"), do: gettext("z wysyłką z Belgii")
@@ -992,7 +1132,7 @@ defmodule TcgCheapWeb.GuideComponents do
         />
         <strong class="retail-clip-sticker">{Polish.price(deal.price)}</strong>
         <p :if={@products?} class="retail-clip-name">
-          <.link :if={deal.product} navigate={~p"/produkty/#{deal.product.slug}"}>{deal.product.name}</.link>
+          <.link :if={deal.product} navigate={Paths.product(deal.product.slug)}>{deal.product.name}</.link>
           <span :if={!deal.product}>{deal.title}</span>
         </p>
         <p class="retail-clip-when">{deal_days(deal)}</p>
@@ -1031,11 +1171,20 @@ defmodule TcgCheapWeb.GuideComponents do
   attr :today, Date, required: true
   attr :tags, :list, default: []
 
+  attr :compared, :any,
+    default: :polish,
+    doc:
+      "the offer's compared price in the region's market (`Guide.product/3`'s `compared`), nil when its shop is only listed; Polish by default"
+
   # One shop's offer. In stock is the default, so a row only says when it is
   # not (or that it is a pre-order), and when it was checked if that was not
   # today.
   def offer(assigns) do
-    assigns = assign(assigns, :checked_on, DateTime.to_date(assigns.offer.last_seen_at))
+    assigns =
+      assigns
+      |> assign(:checked_on, DateTime.to_date(assigns.offer.last_seen_at))
+      |> assign(:compared, compared_price(assigns.compared, assigns.offer))
+      |> then(&assign(&1, :price, &1.compared || &1.offer.price))
 
     ~H"""
     <li
@@ -1046,13 +1195,13 @@ defmodule TcgCheapWeb.GuideComponents do
       <div class="offer-shop">
         <strong>{shop_name(@offer)}</strong>
         <span :if={@tags != []} class="offer-delivery single-offer-tags">{Enum.join(@tags, " · ")}</span>
-        <.offer_delivery offer={@offer} location={@location} />
+        <.offer_delivery offer={@offer} compared={@compared} location={@location} />
       </div>
       <p class="offer-price">
         <span :if={Map.get(@offer, :preorder, false)} class="offer-preorder-label">{gettext(
           "przedsprzedaż"
         )}</span>
-        <strong>{Polish.price(row_price(@offer))}</strong>
+        <strong>{Polish.price(@price)}</strong>
         <span
           :if={(!@offer.in_stock and !Map.get(@offer, :preorder, false)) or @checked_on != @today}
           class="offer-checked"
@@ -1068,7 +1217,7 @@ defmodule TcgCheapWeb.GuideComponents do
         data-track="shop_link_clicked"
         data-track-placement="offers"
         data-track-shop={@offer.shop}
-        data-track-price={row_price(@offer)}
+        data-track-price={@price}
         data-track-in-stock={to_string(@offer.in_stock)}
         data-track-preorder={to_string(Map.get(@offer, :preorder, false))}
         data-track-card={Map.get(@offer, :card_id)}
@@ -1080,6 +1229,9 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
+  defp compared_price(:polish, offer), do: Shops.compared_price(offer.shop, offer.price)
+  defp compared_price(compared, _offer), do: compared
+
   defp offer_note(true, checked_on, today),
     do: gettext("sprawdzono %{when}", when: Polish.days_ago(checked_on, today))
 
@@ -1089,6 +1241,7 @@ defmodule TcgCheapWeb.GuideComponents do
     do: gettext("brak na stanie, sprawdzono %{when}", when: Polish.days_ago(checked_on, today))
 
   attr :offer, :map, required: true
+  attr :compared, :any, default: nil, doc: "the offer's compared price, nil when only listed"
   attr :location, :map, default: nil
 
   # What delivery adds to an offer, from the shop's published terms:
@@ -1108,7 +1261,11 @@ defmodule TcgCheapWeb.GuideComponents do
         shop: shop,
         km: km,
         near?: near?,
-        terms: if(shop, do: delivery_terms(shop, assigns.offer.price, km, near?), else: [])
+        terms:
+          if(shop,
+            do: delivery_terms(shop, assigns.offer.price, assigns.compared, km, near?),
+            else: []
+          )
       )
 
     # A no-break space keeps each "·" at the end of a line, never at the start.
@@ -1125,8 +1282,47 @@ defmodule TcgCheapWeb.GuideComponents do
     """
   end
 
+  # Poland's terms come from the shops' published delivery to Poland; another
+  # market's from how its prices were compared (`Market.terms/2`).
+  defp delivery_terms(shop, price, compared, km, near?) do
+    market = Region.current().market
+
+    if market == Market.poland(),
+      do: polish_delivery_terms(shop, price, km, near?),
+      else:
+        market_delivery_terms(Market.terms({:ok, shop}, market), shop, price, compared, km, near?)
+  end
+
+  # Delivered from abroad: the row's price includes it; say how much.
+  defp market_delivery_terms(
+         {:delivered, _delivery},
+         shop,
+         price,
+         %Decimal{} = compared,
+         _km,
+         _near?
+       ) do
+    included =
+      case Decimal.sub(compared, price) do
+        %Decimal{coef: 0} -> gettext("w tym darmowa dostawa")
+        shipping -> gettext("w tym dostawa %{amount}", amount: amount(shipping))
+      end
+
+    [origin_term(shop.country), included]
+  end
+
+  defp market_delivery_terms(:domestic, shop, price, _compared, km, near?),
+    do: domestic_delivery_terms(shop, nil, price, km, near?, shop)
+
+  # Only listed: its delivery here has no known price.
+  defp market_delivery_terms(_listed, shop, _price, _compared, _km, _near?),
+    do: [origin_term(shop.country), gettext("koszt dostawy w koszyku")]
+
+  defp origin_term("PL"), do: gettext("wysyłka z Polski")
+  defp origin_term(country), do: abroad_term(country)
+
   # A shop abroad's row shows its price with delivery: say what that includes.
-  defp delivery_terms(
+  defp polish_delivery_terms(
          %{country: country, deliveries: %{"PL" => %{shipping_from: %Decimal{}} = delivery}},
          price,
          _km,
@@ -1142,8 +1338,12 @@ defmodule TcgCheapWeb.GuideComponents do
     [abroad_term(country), included]
   end
 
-  defp delivery_terms(shop, price, km, near?) do
-    delivery = to_poland(shop)
+  defp polish_delivery_terms(shop, price, km, near?),
+    do:
+      domestic_delivery_terms(to_poland(shop), abroad_term(shop.country), price, km, near?, shop)
+
+  # The shop's own delivery terms (a shop abroad only listed: none known).
+  defp domestic_delivery_terms(delivery, origin, price, km, near?, shop) do
     threshold = delivery.free_shipping_from
     shipping = shipping(delivery, price)
 
@@ -1156,7 +1356,7 @@ defmodule TcgCheapWeb.GuideComponents do
       end
 
     [
-      abroad_term(shop.country),
+      origin,
       cost,
       threshold && shipping != :free && gettext("darmowa od %{amount}", amount: amount(threshold)),
       pickup_term(shop.pickup_city, km, near?)
@@ -1295,10 +1495,7 @@ defmodule TcgCheapWeb.GuideComponents do
         <p class="guide-note">
           {gettext("Europejska giełda.")}
           <span :if={@eur_pln}>
-            {gettext("Kurs NBP %{rate} zł z %{date}.",
-              rate: Polish.rate(@eur_pln.rate),
-              date: Polish.date(@eur_pln.date)
-            )}
+            {euro_rate_note(@eur_pln)}
           </span>
           <span :if={@product.cardmarket_added_on} id="product-added">
             {gettext("Na Cardmarket od %{date}.", date: Polish.date(@product.cardmarket_added_on))}
@@ -1316,6 +1513,28 @@ defmodule TcgCheapWeb.GuideComponents do
       <% end %>
     </section>
     """
+  end
+
+  @doc """
+  The euro's rate behind a Cardmarket price in the region's currency: NBP's
+  own for złoty; another currency's goes through złoty at NBP's rates.
+  """
+  @spec euro_rate_note(%{rate: Decimal.t(), date: Date.t()}) :: String.t()
+  def euro_rate_note(rate) do
+    case Polish.currency_symbol() do
+      "zł" ->
+        gettext("Kurs NBP %{rate} zł z %{date}.",
+          rate: Polish.rate(rate.rate),
+          date: Polish.date(rate.date)
+        )
+
+      currency ->
+        gettext("Kurs %{rate} %{currency} za euro z kursów NBP z %{date}.",
+          rate: Polish.rate(rate.rate),
+          currency: currency,
+          date: Polish.date(rate.date)
+        )
+    end
   end
 
   attr :id, :string, required: true

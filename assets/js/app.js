@@ -27,6 +27,7 @@ import {Hooks as BackpexHooks, backpexParams} from "backpex"
 import {createLiveToastHook} from "live_toast"
 import VisitorLocation from "./hooks/visitor_location"
 import initAnalytics from "./analytics"
+import initPreferences from "./preferences"
 import topbar from "../vendor/topbar"
 
 (() => {
@@ -246,6 +247,7 @@ const searchCrawler = /Googlebot|Google-InspectionTool|AdsBot-Google|Storebot-Go
 
 // connect if there are any LiveViews on the page
 initAnalytics()
+initPreferences()
 if (!searchCrawler) liveSocket.connect()
 
 // expose liveSocket on window for web console debug logs and latency simulation:
