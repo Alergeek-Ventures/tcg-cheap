@@ -48,16 +48,18 @@ as missing.
 - A region is a country: its shops (domestic ones, and shops abroad with a
   delivery there), its currency and its own URLs – Poland under `/pl/` in
   złoty, Hungary under `/hu/` in forints. The root redirects to the visitor's
-  region (their choice, else their location); Polish URLs from before regions
-  redirect permanently in one hop.
+  region (their choice, else their location; Poland for any other country).
+  Polish URLs from before regions, including old home links with list filters,
+  redirect permanently to their Polish page in one hop.
 - Language is separate from region: Polish, Hungarian or English, by default
   the region's own, switchable on every page.
 - Every region applies the same rules: the same verdicts and limits in its own
   currency, prices of shops abroad converted at the NBP rate with their
   delivery, the Cardmarket trend converted the same way.
-- Not every part exists everywhere yet: articles, retail chain deals and
-  singles from shops are Polish only; in Hungary a card's price is its
-  Cardmarket trend in forints.
+- Not every part exists everywhere yet. Polish only: articles, retail chain
+  deals, singles from shops, the banners above the lists and a set's most
+  valuable cards. In Hungary a card's price is its Cardmarket trend in
+  forints, and a set page opens with its single booster.
 - Text in each language reads as written for its buyers, never as a
   word-for-word translation.
 
@@ -69,15 +71,15 @@ as missing.
   or listing pages), fetched once a day and matched to products
   automatically; an administrator can assign the rest by hand. Each offer shows the shop's cheapest delivery,
   free-delivery threshold and pickup city where the shop publishes them.
-- Verdict: the cheapest in-stock price against today's market. Typical
-  price = median of the shops' lowest in-stock prices (one per shop,
-  at least 3 shops). Good ≤ 95%, normal ≤ 110%, expensive above; a good
-  price must also be ≤ 95% of the 30-day usual price and of the Cardmarket
-  trend in PLN plus a tracked parcel from Germany, when they are known (the
-  page says which one lowered the limit). The limits are shown in whole units
-  of the region's currency so a price seen in a physical shop can be judged
-  too. With fewer shops there is no verdict: the list row shows only the
-  price, the product page says "Za mało sklepów" and gives the Cardmarket trend in PLN
+- Verdict: the cheapest in-stock price against today's market. Typical price =
+  median of the shops' lowest in-stock prices (one per shop, at least 3 shops).
+  Good ≤ 95%, normal ≤ 110%, expensive above; a good price must also be ≤ 95% of
+  the 30-day usual price and of the Cardmarket trend in the region's currency
+  plus a tracked parcel from Germany, when they are known (the page says which
+  one lowered the limit). The limits are shown in whole units of the region's
+  currency so a price seen in a physical shop can be judged too. With fewer
+  shops there is no verdict: the list row shows only the price, the product page
+  says "Za mało sklepów" and gives the Cardmarket trend in the region's currency
   as context.
 - History bounds a good price only: the same price against the median
   daily lowest price of the last 30 days (≥ 7 days with stock), shown as one
@@ -88,31 +90,31 @@ as missing.
   pre-order offers and clearly marked as a pre-order, with the days until
   the expansion's premiere (the same street date for every shop) when it is
   known; otherwise pre-orders are listed in their own group.
-- Set pages (owner decision, 2026-11-03, banner revised 2026-11-04): every
-  named expansion has a page (`/pl/rozszerzenia/<name>-<id>`, `/hu/szettek/…`)
-  that answers first with a banner under the set's logo: its most valuable
-  card and what pulling it from packs costs on average against buying it, then the next three cards
-  the same way (a set without card prices shows its single booster instead).
-  The page then lists the set's products with their verdicts, its pull rates
-  and its cards. One card price is used everywhere: the lower of the cheapest
-  shop offer (abroad with delivery) and the Cardmarket trend in złoty,
-  without delivery.
-  Pages state the answer in their first sentence and search metadata, so
-  search engines and AI assistants can quote it.
+- Set pages (owner decision, 2026-11-03, banner revised 2026-11-04): every named
+  expansion has a page (`/pl/rozszerzenia/<name>-<id>`, `/hu/szettek/…`) that
+  answers first with a banner under the set's logo: in Poland its most valuable
+  card and what pulling it from packs costs on average against buying it, then
+  the next three cards the same way (a set without card prices, and every set in
+  Hungary, shows its single booster instead). The page then lists the set's
+  products with their verdicts, its pull rates and its cards. In Poland one card
+  price is used everywhere: the lower of the cheapest shop offer (abroad with
+  delivery) and the Cardmarket trend, without delivery; in Hungary it is the
+  Cardmarket trend in forints. Pages state the answer in their first sentence
+  and search metadata, so search engines and AI assistants can quote it.
 - The card list (`/pl/karty`, `/hu/kartyak`) filters by expansion like the
-  product list; a chosen expansion opens with a singles banner in the same style: the set's
-  best deal (a Polish shop price furthest under the Cardmarket price with
-  delivery), its cards in stock in Poland, the whole set at the lowest prices
-  and its most valuable card. Only a normal print's offer is compared with
-  the Cardmarket price, as on the card's page.
-- The lists without an expansion (owner decision, 2026-11-04) open the same
-  way, so choosing a set swaps content, not layout: our title and promise
+  product list; in Poland a chosen expansion opens with a singles banner in the
+  same style: the set's best deal (a Polish shop price furthest under the
+  Cardmarket price with delivery), its cards in stock in Poland, the whole set
+  at the lowest prices and its most valuable card. Only a normal print's offer
+  is compared with the Cardmarket price, as on the card's page.
+- In Poland the lists without an expansion (owner decision, 2026-11-04) open the
+  same way, so choosing a set swaps content, not layout: our title and promise
   where a set's logo goes, then a banner for the whole guide. Cards show the
   best deal of any set, cards in stock, how many undercut Cardmarket and the
   most valuable one in stock; products show the product furthest under its
-  typical shop price with the next deals' photos, products in stock, how
-  many are at a good price and in how many shops. A deal more than 40% under
-  its reference is skipped as a likely wrong match.
+  typical shop price with the next deals' photos, products in stock, how many
+  are at a good price and in how many shops. A deal more than 40% under its
+  reference is skipped as a likely wrong match.
 - The search bar holds the query and Produkty/Karty, two tabs of equal width
   that keep a chosen set (owner decision, 2026-11-04, set dropped from the bar
   2026-11-05). Sets are chosen in one place: a column beside the list on a
@@ -127,7 +129,7 @@ as missing.
 - The legacy singles catalogue, valuation and trade pages have been removed.
   Singles and trades will be rebuilt on the buying-guide domain; the former
   `/cards/:tcgdex_id` and `/trade` URLs redirect permanently to the Polish
-  home page.
+  home page, or with their old filters to the Polish list they named.
 
 ## Evidence on Hand
 
