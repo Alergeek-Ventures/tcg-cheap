@@ -46,7 +46,8 @@ defmodule TcgCheap.Sealed.Matcher do
   alias TcgCheap.Sealed.Regions
 
   @stopwords ~w(pokemon tcg ptcg the and of s a z na i w edycja karty kart karta oryginal oryginalne
-                oryginalny angielski angielska angielskie english en eng wersja nowy nowa prerelease)
+                oryginalny angielski angielska angielskie english en eng wersja nowy nowa prerelease
+                engelsk engelska engelskt forboka forbokning forhandsboka forhandsbokning)
 
   @plurals %{
     "boosters" => "booster",
@@ -97,6 +98,27 @@ defmodule TcgCheap.Sealed.Matcher do
     {"japonska", "jp"},
     {"japonskie", "jp"},
     {"japonskich", "jp"},
+    # Swedish shops name the edition in Swedish ("Booster Box (Japansk)").
+    {"japansk", "jp"},
+    {"japanska", "jp"},
+    {"japanskt", "jp"},
+    {"kinesisk", "chinese"},
+    {"kinesiska", "chinese"},
+    {"kinesiskt", "chinese"},
+    {"koreansk", "korean"},
+    {"koreanskt", "korean"},
+    {"tysk", "german"},
+    {"tyska", "german"},
+    {"tyskt", "german"},
+    {"fransk", "french"},
+    {"franska", "french"},
+    {"franskt", "french"},
+    {"spansk", "spanish"},
+    {"spanska", "spanish"},
+    {"spanskt", "spanish"},
+    {"italiensk", "italian"},
+    {"italienska", "italian"},
+    {"italienskt", "italian"},
     {"japonia", "jp"},
     {"koreanski", "korean"},
     {"koreanska", "korean"},
@@ -160,8 +182,9 @@ defmodule TcgCheap.Sealed.Matcher do
                    kit toolkit chest wcd academy showcase calendar classic stadium sticker
                    checklane portfolio album)
 
-  # Words of a title that sells a pre-order ("Przedsprzedaż", "przedpremierowy"…).
-  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order)/
+  # Words of a title that sells a pre-order ("Przedsprzedaż", "przedpremierowy",
+  # Swedish "Förboka", "Förhandsbokning", "Förhandsbeställning"…).
+  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|forbok|forhandsbok|forhandsbest|forbest)/
 
   @exclusions [
     "zestaw",
@@ -176,10 +199,16 @@ defmodule TcgCheap.Sealed.Matcher do
     "used",
     "bez folii",
     "bez boosterow",
+    # Swedish: "(Boosters ingår ej)", boosters not included.
+    "ingar ej",
+    "utan booster",
+    "utan boosters",
     "z zestawu",
     "repack",
     # A pack opened live on stream for the buyer, not a sealed product.
     "booster break",
+    "rip and ship",
+    "rip n ship",
     "poke break",
     "single",
     "singles",
@@ -196,11 +225,17 @@ defmodule TcgCheap.Sealed.Matcher do
     "kod"
   ]
 
-  # Polish word stems for damaged, opened or used items ("uszkodzone", "otwarty", "używany"…).
-  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan)/
+  # Polish and Swedish word stems for damaged, opened or used items ("uszkodzone",
+  # "otwarty", "używany", "Förpackningsskada", "kartongskadad", "skadad", "öppnad", "begagnad"…).
+  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad)/
 
   # Two or more pieces ("x3", "10x", "36 szt", "3 sztuki"); "1 szt" is still one item.
+  # Not Swedish "st": shops write it for a bundle's contents ("6 st boosters")
+  # and purchase limits ("Max 2 st per kund").
   @multiples ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuki|sztuk|szt|pcs))(?: |\z)/
+
+  # A shop's purchase limit in a title ("MAX 2 PER KUND", "Max 2 st per kund") names no product.
+  @purchase_limit ~r/ max \d+ (?:st )?per kund /
 
   # Pack counts such as "(36)" or "(10 boosterów)" say nothing about identity
   # (but for 18, see `half_display/1`).
@@ -746,8 +781,10 @@ defmodule TcgCheap.Sealed.Matcher do
       |> String.replace(@digit_letter, "\\1 \\2")
       |> String.replace(@letter_digit, "\\1 \\2")
 
+    padded = String.replace(" " <> normalized <> " ", @purchase_limit, " ")
+
     @synonyms
-    |> Enum.reduce(" " <> normalized <> " ", fn {from, to}, acc ->
+    |> Enum.reduce(padded, fn {from, to}, acc ->
       String.replace(acc, " " <> from <> " ", " " <> to <> " ")
     end)
     |> String.split(" ", trim: true)
