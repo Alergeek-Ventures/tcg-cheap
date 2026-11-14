@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Checks that production runs the given revision and serves its pages: the
-# home page, the booster price guide, the Markdown home, and the first
-# product, expansion and single card the sitemap lists. Coolify's own health
+# regions' home pages, the booster price guide, the Markdown home, and the
+# first Polish product, expansion and single card the sitemap lists. Coolify's own health
 # check only covers /health, which renders no page.
 #
 #   check-production.sh <revision> [base URL]
@@ -36,13 +36,16 @@ fi
 
 first_loc() { grep -o "<loc>$base/$1</loc>" <<<"$sitemap" | sed -n '1s/<[^>]*>//gp' || true; }
 
+# The root only redirects to a region (TcgCheapWeb.RegionController), so the
+# pages checked are the regions' own.
 urls=(
-  "$base/"
-  "$base/ile-kosztuje-booster-pokemon"
-  "$base/md/"
-  "$(first_loc 'produkty/[^<]*')"
-  "$(first_loc 'rozszerzenia/[^/<]*')"
-  "$(first_loc 'rozszerzenia/[^/<]*/karty/[^<]*')"
+  "$base/pl/"
+  "$base/hu/"
+  "$base/pl/ile-kosztuje-booster-pokemon"
+  "$base/pl/index.md"
+  "$(first_loc 'pl/produkty/[^<]*')"
+  "$(first_loc 'pl/rozszerzenia/[^/<]*')"
+  "$(first_loc 'pl/rozszerzenia/[^/<]*/karty/[^<]*')"
 )
 
 result=0
