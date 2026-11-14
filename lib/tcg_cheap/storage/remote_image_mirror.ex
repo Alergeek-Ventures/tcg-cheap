@@ -145,7 +145,10 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
     {List.last(rows) || cursor, length(rows)}
   end
 
-  @doc "Mirrors due images; failures wait a day while fresh images continue."
+  @doc """
+  Mirrors due images and returns how many were attempted. A failing source
+  backs off (1, 2, 4, 8, then every 16 days) while fresh images continue.
+  """
   @spec run(pos_integer(), keyword()) :: non_neg_integer()
   def run(limit, req_options \\ []) do
     # Register offered cards before the catalogue keyset scan reaches them.
@@ -167,15 +170,21 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       end
     end)
 
-    yesterday = DateTime.add(DateTime.utc_now(), -86_400, :second)
-
     images =
       from(image in Storage.RemoteImage,
         left_join: s in subquery(sources),
         on: image.source_url == s.source_url,
         where:
           is_nil(image.thumbnail_key) or is_nil(image.detail_key) or is_nil(image.attempted_at),
-        where: is_nil(image.attempted_at) or image.attempted_at < ^yesterday,
+        # The :pending read action's backoff: n failures wait min(2^(n-1), 16)
+        # days; rows that failed before failures were counted wait a day.
+        where:
+          is_nil(image.attempted_at) or
+            fragment(
+              "? < now() AT TIME ZONE 'UTC' - make_interval(days => least(power(2, greatest(? - 1, 0))::integer, 16))",
+              image.attempted_at,
+              image.failed_attempts
+            ),
         order_by: [
           desc: not is_nil(s.source_url),
           asc_nulls_first: image.attempted_at,
@@ -186,8 +195,23 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       )
       |> Repo.all()
 
-    Enum.each(images, &mirror(&1, req_options))
+    images |> Enum.map(&mirror(&1, req_options)) |> log_summary()
     length(images)
+  end
+
+  defp log_summary([]), do: :ok
+
+  defp log_summary(results) do
+    {mirrored, failures} = Enum.split_with(results, &(&1 == :mirrored))
+
+    reasons =
+      failures
+      |> Enum.frequencies_by(fn {:failed, reason} -> reason end)
+      |> Enum.sort_by(fn {reason, count} -> {reason == "other", -count, reason} end)
+      |> Enum.map_join(", ", fn {reason, count} -> "#{reason}: #{count}" end)
+
+    summary = "Remote images: #{length(mirrored)} mirrored, #{length(failures)} failed"
+    Logger.info(if reasons == "", do: summary, else: "#{summary} (#{reasons})")
   end
 
   # All current offers count, including out-of-stock cards people search for.
@@ -257,11 +281,32 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
         thumbnail_key: thumbnail.key,
         detail_key: detail.key
       })
+
+      :mirrored
     else
       error ->
-        Logger.warning("Remote image #{image.id} mirror failed: #{inspect(error)}")
-        Storage.record_remote_image_attempt!(image, %{})
+        Storage.record_remote_image_failure!(image)
+        {:failed, log_failure(error, image)}
     end
+  end
+
+  # A missing source (many card scans do not exist; Limitless's storage answers
+  # 403 for a missing object) is remembered by the backoff and counted in the
+  # run's summary. Any other failure needs a look, so it is logged on its own.
+  defp log_failure({:error, {:http_status, status}}, image) when status in [403, 404] do
+    Logger.debug("Remote image source missing: http #{status} (#{image.id})")
+    "http #{status}"
+  end
+
+  defp log_failure(error, image) do
+    reason =
+      case error do
+        {:error, reason} -> reason
+        nil -> :missing_variant
+      end
+
+    Logger.warning("Remote image mirror failed: #{inspect(reason)} (#{image.id})")
+    "other"
   end
 
   # Logos are trimmed so they show as large as a tight logo on the expansion tiles.
