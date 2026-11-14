@@ -5,6 +5,17 @@ defmodule TcgCheap.Sealed.CardRefresh do
   ever read by the sealed recompute. Manual writes acquire this lock before
   reading the offer, so an automatic update cannot overwrite a decision.
   Decisions share the five-minute transaction budget with fetches and rematches.
+
+  Each entry point re-matches only the non-manual offers its trigger can have
+  changed:
+
+    * `run/3` re-matches the offers of the fetch it just stored (`last_seen_at`
+      equal to the fetch time). The catalogue and the matcher do not change
+      during a fetch, and offers the shop no longer lists are not shown, so
+      older rows keep their identity until one of the entry points below runs.
+    * `rematch_unmatched/0` re-matches every offer without a card, after new
+      cards are synced.
+    * `rematch_all/0` re-matches every offer, after matcher changes.
   """
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
@@ -52,7 +63,7 @@ defmodule TcgCheap.Sealed.CardRefresh do
         end)
 
         Sealed.record_shop_fetch!(%{shop: shop.key, kind: :single, fetched_at: now})
-        rematch(Ash.Query.filter(CardOffer, shop == ^shop.key), index())
+        rematch(Ash.Query.filter(CardOffer, shop == ^shop.key and last_seen_at == ^now), index())
         %{singles: length(offers)}
       end,
       timeout: :timer.minutes(5)
