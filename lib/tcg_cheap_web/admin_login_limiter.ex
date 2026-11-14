@@ -9,7 +9,7 @@ defmodule TcgCheapWeb.AdminLoginLimiter do
 
   use GenServer
 
-  @type address :: :inet.ip_address()
+  @type address :: String.t()
   @type server :: GenServer.server()
   @max_identity_bytes 320
 

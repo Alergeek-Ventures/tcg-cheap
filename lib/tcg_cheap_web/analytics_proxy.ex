@@ -10,6 +10,7 @@ defmodule TcgCheapWeb.AnalyticsProxy do
 
   alias Plug.Conn
   alias TcgCheapWeb.Analytics
+  alias TcgCheapWeb.ClientAddress
 
   @methods ~w(GET HEAD POST)
   @request_headers ~w(accept content-type content-encoding user-agent x-conversations-token)
@@ -104,23 +105,13 @@ defmodule TcgCheapWeb.AnalyticsProxy do
     host <> path
   end
 
+  # PostHog geolocates the first X-Forwarded-For address; behind Cloudflare that
+  # would be the edge, so the visitor's own address is sent instead.
   defp request_headers(conn) do
     [
-      {"x-forwarded-for", client_ip(conn)}
+      {"x-forwarded-for", ClientAddress.get(conn)}
       | Enum.filter(conn.req_headers, fn {name, _value} -> name in @request_headers end)
     ]
-  end
-
-  # PostHog geolocates the first X-Forwarded-For address. In production the
-  # reverse proxy behind Cloudflare sets that header to Cloudflare's edge, so
-  # every visitor would land in a Cloudflare data centre; Cloudflare passes the
-  # visitor's own address in CF-Connecting-IP. Only analytics trusts it.
-  defp client_ip(conn) do
-    case Conn.get_req_header(conn, "cf-connecting-ip") ++
-           Conn.get_req_header(conn, "x-forwarded-for") do
-      [ip | _] -> ip
-      [] -> conn.remote_ip |> :inet.ntoa() |> to_string()
-    end
   end
 
   defp response_headers(conn, headers) do
