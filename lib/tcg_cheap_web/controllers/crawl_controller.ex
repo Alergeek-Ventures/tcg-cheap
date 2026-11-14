@@ -11,7 +11,15 @@ defmodule TcgCheapWeb.CrawlController do
   # Every region's pages: each indexes its home page, card list, set and card
   # pages alike; a product page where its region's shops have it in stock now
   # (`TcgCheapWeb.SEO.product/1`), and the Polish articles.
+  # The body is a whole-site read that changes with the nightly fetches and
+  # crawlers request it often, so it is shared like the other whole-site reads.
   def sitemap(conn, _params) do
+    conn
+    |> put_resp_content_type("application/xml")
+    |> send_resp(200, Guide.cached(:sitemap, &sitemap_body/0))
+  end
+
+  defp sitemap_body do
     %{expansions: expansions, products: products, cards: cards} = listed_pages()
     now = DateTime.utc_now()
 
@@ -42,16 +50,11 @@ defmodule TcgCheapWeb.CrawlController do
         {"url", [], [{"loc", [], [location]} | List.wrap(lastmod)]}
       end
 
-    body =
-      Saxy.encode!(
-        {"urlset", [{"xmlns", "http://www.sitemaps.org/schemas/sitemap/0.9"}], entries},
-        version: "1.0",
-        encoding: "UTF-8"
-      )
-
-    conn
-    |> put_resp_content_type("application/xml")
-    |> send_resp(200, body)
+    Saxy.encode!(
+      {"urlset", [{"xmlns", "http://www.sitemaps.org/schemas/sitemap/0.9"}], entries},
+      version: "1.0",
+      encoding: "UTF-8"
+    )
   end
 
   defp region_locations(region, expansions, products, cards, today) do
@@ -128,6 +131,12 @@ defmodule TcgCheapWeb.CrawlController do
   # a price, and the set pages of the sitemap, newest first, as markdown.
   # Keep in sync with robots.txt and the sitemap.
   def llms(conn, _params) do
+    conn
+    |> put_resp_content_type("text/plain")
+    |> send_resp(200, Guide.cached(:llms_txt, &llms_body/0))
+  end
+
+  defp llms_body do
     %{expansions: expansions, products: products, cards: cards} = listed_pages()
     products = Enum.frequencies_by(products, & &1.cardmarket_expansion_id)
     cards = Enum.frequencies_by(cards, &elem(&1, 0))
@@ -147,7 +156,7 @@ defmodule TcgCheapWeb.CrawlController do
         "- #{PageMarkdown.link(name, PageMarkdown.url_for(SEO.expansion_url(id, name)))}: #{counts}"
       end)
 
-    body = """
+    """
     # TCG Cheap
 
     > Niezależna porównywarka cen Pokémon TCG w sklepach wysyłających do Polski: dla każdego produktu zamkniętego (boostery, booster boxy, Elite Trainer Boxy, puszki, kolekcje) i angielskiej karty pokazuje, gdzie jest teraz najtaniej i czy to dobra cena.
@@ -172,10 +181,6 @@ defmodule TcgCheapWeb.CrawlController do
 
     - [Sitemap](#{url(~p"/sitemap.xml")}): wszystkie strony produktów, rozszerzeń i kart z ofertą na stanie
     """
-
-    conn
-    |> put_resp_content_type("text/plain")
-    |> send_resp(200, body)
   end
 
   defp in_stock_products(count),
