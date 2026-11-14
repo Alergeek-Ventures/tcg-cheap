@@ -39,7 +39,7 @@ msgstr "%{expansion} booster trenutačno nema na stanju nijedna trgovina koja do
 #: lib/tcg_cheap/countries/croatia.ex:63
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Chorwacji, sprawdzane codziennie."
-msgstr "Cijene Pokémon TCG proizvoda iz trgovina koje dostavljaju u Hrvatsku. Provjeravamo ih svaki dan."
+msgstr "Cijene Pokémon TCG iz trgovina koje dostavljaju u Hrvatsku, provjerene svaki dan."
 
 #: lib/tcg_cheap/countries/croatia.ex:144
 #, elixir-autogen, elixir-format
@@ -64,7 +64,7 @@ msgstr "Hrvatska"
 #: lib/tcg_cheap/countries/croatia.ex:70
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Chorwacji."
-msgstr "Najjeftinije Pokémon TCG ponude u trgovinama koje dostavljaju u Hrvatsku."
+msgstr "Najjeftinije Pokémon TCG ponude u trgovinama koje šalju u Hrvatsku."
 
 #: lib/tcg_cheap/countries/croatia.ex:55
 #, elixir-autogen, elixir-format
@@ -79,7 +79,7 @@ msgstr "Prijeđi na hrvatsku verziju"
 #: lib/tcg_cheap/countries/croatia.ex:125
 #, elixir-autogen, elixir-format
 msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "Trgovine iz inozemstva prodaju u svojoj valuti. Cijene u valuti koja nije euro preračunavamo po dnevnom tečaju NBP-a. Stranica trgovine može biti na drugom jeziku."
+msgstr "Trgovine iz inozemstva prodaju u svojoj valuti. Cijene u valuti koja nije euro preračunavamo po dnevnom tečaju Poljske narodne banke (NBP). Stranica trgovine može biti na drugom jeziku."
 
 #: lib/tcg_cheap/countries/croatia.ex:47
 #, elixir-autogen, elixir-format
