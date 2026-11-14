@@ -26,7 +26,8 @@ defmodule TcgCheap.Sealed.Rebel do
   require Logger
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Ean, HtmlListing, Matcher, ShopFeed, SuggestedPrice}
+  alias TcgCheap.Sealed.{Ean, Matcher, ShopFeed, SuggestedPrice}
+  alias TcgCheap.Sealed.ShopFeed.HtmlListing
 
   @base "https://hurt.rebel.pl"
   @listing "/search/pokemon-tcg.html"

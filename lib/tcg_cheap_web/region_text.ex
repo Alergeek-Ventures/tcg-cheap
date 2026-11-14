@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.RegionText do
   Languages inflect a country's name ("do Polski", "na Węgry",
   "Magyarországra"), so a country is never a placeholder in a sentence.
 
-  Singles have no market outside Poland yet (`TcgCheapWeb.Region.from_pln/1`):
+  Singles have no market outside Poland (`TcgCheapWeb.Region.from_pln/1`):
   there the card sentences speak of Cardmarket prices in the region's
   currency, not of its shops. Pages only Poland has (the articles, the bot
   page) keep their Polish sentences in place.

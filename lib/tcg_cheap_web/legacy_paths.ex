@@ -1,8 +1,8 @@
 defmodule TcgCheapWeb.LegacyPaths do
   @moduledoc """
-  Permanent redirects, in one hop, from the guide's paths before regions to
-  the Polish region's current URL: `/produkty/<slug>` to
-  `/pl/produkty/<slug>`, a set or card under an old name straight to its
+  Permanent redirects, in one hop, from the guide's URL forms without a region
+  prefix, which search engines still hold, to the Polish region's URL: `/produkty/<slug>` to
+  `/pl/produkty/<slug>`, a set or card under a name it no longer has straight to its
   current one, the markdown versions (`/index.md` included) to theirs and
   the link-preview cards (`/og/…`) to `/og/pl/…`. The query is kept, but
   for the parameters a set page absorbs (`TcgCheapWeb.SetCanonical`); a
@@ -10,7 +10,7 @@ defmodule TcgCheapWeb.LegacyPaths do
 
   It runs before `TcgCheapWeb.MarkdownNegotiation`, which knows only the
   regions' paths. The root `/` is `TcgCheapWeb.RegionController.root/2`'s,
-  which resolves the old home page's filters with `home/1`.
+  which resolves the root's filter parameters with `home/1`.
   """
 
   import Plug.Conn
@@ -89,9 +89,9 @@ defmodule TcgCheapWeb.LegacyPaths do
   defp current(page, conn), do: {Paths.page_path(Region.poland(), page), conn.query_string}
 
   @doc """
-  The Polish URL of the home page before regions with these query params:
-  the card list or a set page for the filters that moved there, else the
-  Polish home page; `{path, query}`.
+  The Polish URL for the root with these query params: the card list or a
+  set page for the filters that belong there, else the Polish home page;
+  `{path, query}`.
   """
   @spec home(%{String.t() => term()}) :: {String.t(), String.t()}
   def home(params) do

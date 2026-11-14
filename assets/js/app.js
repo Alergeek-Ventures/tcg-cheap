@@ -1,25 +1,5 @@
-// If you want to use Phoenix channels, run `mix help phx.gen.channel`
-// to get started and then uncomment the line below.
-// import "./user_socket.js"
-
-// You can include dependencies in two ways.
-//
-// The simplest option is to put them in assets/vendor and
-// import them using relative paths:
-//
-//     import "../vendor/some-package.js"
-//
-// Alternatively, you can `npm install some-package --prefix assets` and import
-// them using a path starting with the package name:
-//
-//     import "some-package"
-//
-// If you have dependencies that try to import CSS, esbuild will generate a separate `app.css` file.
-// To load it, simply add a second `<link>` to your `root.html.heex` file.
-
-// Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
+// phoenix_html handles method=PUT/DELETE in forms and links.
 import "phoenix_html"
-// Establish Phoenix Socket and LiveView configuration.
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/tcg_cheap"
@@ -105,7 +85,7 @@ window.addEventListener("phx:navigate", ({detail}) => {
     history.replaceState({...history.state, guideReturnTo: returnTo}, "")
   }
   returnTo = null
-  // Set pages share HomeLive. Entering or closing a set is a page change,
+  // Set pages share BrowseLive. Entering or closing a set is a page change,
   // whereas filters retain scroll; history traversal uses LiveView's scroll.
   if (!detail.pop && detail.patch && shownPath !== location.pathname) {
     window.scrollTo({top: 0, behavior: "instant"})
@@ -176,9 +156,6 @@ window.addEventListener("scroll", markCardLifted, {passive: true})
 window.addEventListener("phx:page-loading-stop", e => e.detail?.kind === "patch" || resetCardLifted())
 resetCardLifted()
 
-// Bring an element to the top once the layout above it has changed, e.g. the
-// results after the filter panel folds away on a phone.
-window.addEventListener("guide:reveal", e => e.target.scrollIntoView({block: "start"}))
 // Links to a section of the same page glide to it instead of jumping, opening
 // the folded group they point into (a jump where motion is reduced). Focus
 // moves along, so the keyboard carries on from the section as after a jump.
@@ -240,38 +217,25 @@ window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
 // Search engines read the server-rendered page, which already holds all of it.
 // Their renderers keep no WebSocket, so a live connection falls back to
-// long-polling, and those polls were 73 % of Googlebot's requests to the site
-// (Search Console crawl stats, week to 2026-11-07), crawl budget the pages
-// themselves did not get.
+// long-polling, and those polls would take up crawl budget the pages
+// themselves should get.
 const searchCrawler = /Googlebot|Google-InspectionTool|AdsBot-Google|Storebot-Google|bingbot|Applebot|YandexBot|DuckDuckBot|Baiduspider|PetalBot|SeznamBot/i.test(navigator.userAgent)
 
-// connect if there are any LiveViews on the page
 initAnalytics()
 initPreferences()
 if (!searchCrawler) liveSocket.connect()
 
-// expose liveSocket on window for web console debug logs and latency simulation:
-// >> liveSocket.enableDebug()
-// >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
-// >> liveSocket.disableLatencySim()
+// The LiveSocket on window for console debugging:
+// liveSocket.enableDebug(), liveSocket.enableLatencySim(1000).
 window.liveSocket = liveSocket
 
-// The lines below enable quality of life phoenix_live_reload
-// development features:
-//
-//     1. stream server logs to the browser console
-//     2. click on elements to jump to their definitions in your code editor
-//
+// Development with phoenix_live_reload: server logs stream to the browser
+// console, and clicking a component with "c" (caller) or "d" (definition)
+// pressed opens PLUG_EDITOR at its source.
 if (process.env.NODE_ENV === "development") {
   window.addEventListener("phx:live_reload:attached", ({detail: reloader}) => {
-    // Enable server log streaming to client.
-    // Disable with reloader.disableServerLogs()
     reloader.enableServerLogs()
 
-    // Open configured PLUG_EDITOR at file:line of the clicked element's HEEx component
-    //
-    //   * click with "c" key pressed to open at caller location
-    //   * click with "d" key pressed to open at function component definition location
     let keyDown
     window.addEventListener("keydown", e => keyDown = e.key)
     window.addEventListener("keyup", _e => keyDown = null)

@@ -10,7 +10,7 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
       fields: [:worker, :args]
     ]
 
-  alias TcgCheap.Core
+  alias TcgCheap.Pricing
   alias TcgCheap.Pricing.ExchangeRate
 
   @doc "Queues the acquisition of one currency's latest NBP rate to PLN."
@@ -149,7 +149,7 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
   defp validate_result(_result, _args), do: {:cancel, :malformed_provider_result}
 
   defp persist(result) do
-    case Core.record_exchange_rate(result) do
+    case Pricing.record_exchange_rate(result) do
       {:ok, rate} -> {:ok, rate}
       {:error, %Ash.Error.Invalid{}} -> {:cancel, :persistence_invalid}
       {:error, _} -> {:retry, :persistence_failed}

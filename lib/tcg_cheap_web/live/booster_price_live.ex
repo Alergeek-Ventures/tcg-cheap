@@ -17,10 +17,14 @@ defmodule TcgCheapWeb.BoosterPriceLive do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  import TcgCheapWeb.GuideComponents
+  import TcgCheapWeb.ContentsComponents
+  import TcgCheapWeb.ListingComponents
+  import TcgCheapWeb.OfferComponents
+  import TcgCheapWeb.RetailComponents
+  import TcgCheapWeb.SiteComponents
 
   alias TcgCheap.Sealed.{BoosterGuide, CardImage}
-  alias TcgCheapWeb.{Paths, Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Format, Paths, SEO, VisitorLocation}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -98,7 +102,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
                 <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
               </.link>
               <p class="expensive-kicker">
-                {gettext("Poradnik · ceny z %{date}", date: Polish.date(@page.today))}
+                {gettext("Poradnik · ceny z %{date}", date: Format.date(@page.today))}
               </p>
               <h1 id="booster-prices-title">{gettext("Ile kosztuje booster Pokémon?")}</h1>
               <p id="booster-prices-answer" class="expensive-lead">
@@ -323,14 +327,14 @@ defmodule TcgCheapWeb.BoosterPriceLive do
        do:
          gettext("Krótka odpowiedź: booster najnowszego setu, %{set}, kosztuje dziś od %{low}.",
            set: booster.product.set_name,
-           low: amount(low)
+           low: Format.shop_price(low)
          )
          |> glue_short_words(),
        else:
          gettext(
            "Krótka odpowiedź: booster najnowszego setu, %{set}, kosztuje dziś od %{low}, a zwykle %{typical}.",
            set: booster.product.set_name,
-           low: amount(low),
+           low: Format.shop_price(low),
            typical: whole(booster.price)
          )
          |> glue_short_words()
@@ -359,7 +363,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
               set: box.product.set_name,
               box: shelf_price(box),
               special: special_etb.name,
-              etb: amount(special_etb.etb.verdict.cheapest.price)
+              etb: Format.shop_price(special_etb.etb.verdict.cheapest.price)
             ),
         else: ""
 
@@ -398,8 +402,8 @@ defmodule TcgCheapWeb.BoosterPriceLive do
         "Sety specjalne na liście to %{names}. W naszym katalogu %{set} ma %{tins} i %{collections}.",
         names: join(Enum.map(special, & &1.name)),
         set: richest.name,
-        tins: Polish.plural(richest.tins, "puszkę", "puszki", "puszek"),
-        collections: Polish.plural(richest.collections, "kolekcję", "kolekcje", "kolekcji")
+        tins: Format.tins(richest.tins),
+        collections: Format.collections(richest.collections)
       )
 
     {year_special, year_main} = Enum.split_with(year, &(not &1.booster_box?))
@@ -423,16 +427,13 @@ defmodule TcgCheapWeb.BoosterPriceLive do
     {low, high} = {Enum.min(prices, Decimal), Enum.max(prices, Decimal)}
 
     if Decimal.equal?(low, high),
-      do: amount(low),
-      else: gettext("%{low} do %{high}", low: amount(low), high: amount(high))
+      do: Format.shop_price(low),
+      else:
+        gettext("%{low} do %{high}", low: Format.shop_price(low), high: Format.shop_price(high))
   end
 
-  # A shop's price as it is, without ",00" on a whole one.
-  defp amount(value),
-    do: if(Decimal.integer?(value), do: Polish.zloty(value), else: Polish.price(value))
-
   # A price we work out (a median, a sum, a difference) in whole złoty.
-  defp whole(value), do: Polish.zloty(value)
+  defp whole(value), do: Format.whole_price(value)
 
   # "A, B i C".
   defp join([one]), do: one
@@ -454,7 +455,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
     <div class="boosters-today-head">
       <img :if={@logo} src={@logo} alt="" class="boosters-today-logo" loading="lazy" />
       <strong id={@id}>{@title}</strong>
-      <span>{gettext("ceny z %{date}", date: Polish.short_date(@date))}</span>
+      <span>{gettext("ceny z %{date}", date: Format.short_date(@date))}</span>
     </div>
     """
   end
@@ -477,7 +478,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
       <li :for={set <- @sets} id={"set-#{set.booster.product.slug}"}>
         <div class="boosters-set-name">
           <time :if={set.released_on} datetime={Date.to_iso8601(set.released_on)}>
-            {Polish.date(set.released_on)}
+            {Format.date(set.released_on)}
           </time>
           <strong>{set.name}</strong>
           <span :if={not set.booster_box?} class="boosters-set-tag">
@@ -490,12 +491,12 @@ defmodule TcgCheapWeb.BoosterPriceLive do
           style={"--share: #{Float.round(Decimal.to_float(set.booster.verdict.cheapest.price) / @top, 4)}"}
         >
           <span class="boosters-set-bar"></span>
-          <strong>{amount(set.booster.verdict.cheapest.price)}</strong>
+          <strong>{Format.shop_price(set.booster.verdict.cheapest.price)}</strong>
         </.link>
         <span class="boosters-set-etb">
           <%= if set.etb do %>
             <.link navigate={Paths.product(set.etb.product.slug)}>
-              {gettext("ETB od %{price}", price: amount(set.etb.verdict.cheapest.price))}
+              {gettext("ETB od %{price}", price: Format.shop_price(set.etb.verdict.cheapest.price))}
             </.link>
           <% else %>
             {gettext("ETB: brak na stanie")}
@@ -729,7 +730,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
         />
         <span class="boosters-card-name">{card.item.name}</span>
         <span :if={card_note(card)} class="boosters-card-set">{card_note(card)}</span>
-        <strong :if={card.value}>{amount(card.value)}</strong>
+        <strong :if={card.value}>{Format.shop_price(card.value)}</strong>
         <span :if={!card.value} class="boosters-card-missing">{gettext("brak ceny")}</span>
       </li>
     </ul>
@@ -752,14 +753,17 @@ defmodule TcgCheapWeb.BoosterPriceLive do
     cheapest = box.verdict.cheapest.price
 
     if box.few_shops? or Decimal.equal?(cheapest, box.price),
-      do: gettext("od %{price}", price: amount(cheapest)),
+      do: gettext("od %{price}", price: Format.shop_price(cheapest)),
       else:
-        gettext("od %{low}, zwykle %{typical}", low: amount(cheapest), typical: whole(box.price))
+        gettext("od %{low}, zwykle %{typical}",
+          low: Format.shop_price(cheapest),
+          typical: whole(box.price)
+        )
   end
 
   defp shelf_price(box) do
     if box.few_shops?,
-      do: gettext("od %{price}", price: amount(box.verdict.cheapest.price)),
+      do: gettext("od %{price}", price: Format.shop_price(box.verdict.cheapest.price)),
       else: gettext("zwykle %{price}", price: whole(box.price))
   end
 
@@ -790,8 +794,8 @@ defmodule TcgCheapWeb.BoosterPriceLive do
         <span :if={@spread} class="boosters-advice-today">
           {gettext("Dziś Elite Trainer Box %{set} kosztuje od %{low} do %{high}.",
             set: @set,
-            low: amount(elem(@spread, 0)),
-            high: amount(elem(@spread, 1))
+            low: Format.shop_price(elem(@spread, 0)),
+            high: Format.shop_price(elem(@spread, 1))
           )
           |> glue_short_words()}
         </span>
@@ -976,7 +980,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
           sleeved &&
             gettext(
               "Sleeved Booster to ten sam booster w kartonowej osłonce, od %{price}. Za osłonkę nie warto dopłacać.",
-              price: amount(sleeved.verdict.cheapest.price)
+              price: Format.shop_price(sleeved.verdict.cheapest.price)
             )
         ),
       yes: gettext("chcesz otworzyć kilka boosterów albo szukasz drobnego prezentu."),
@@ -1027,13 +1031,13 @@ defmodule TcgCheapWeb.BoosterPriceLive do
 
   # Typical against typical; with few shops, cheapest against cheapest.
   defp box_per_booster(box) do
-    per = Polish.price(box.price |> Decimal.div(box.boosters) |> Decimal.round(2))
+    per = Format.price(box.price |> Decimal.div(box.boosters) |> Decimal.round(2))
 
     if box.few_shops?,
       do:
         gettext("Jeden booster z kartonu wychodzi po %{per}, a osobno kosztuje od %{single}.",
           per: per,
-          single: amount(box.single)
+          single: Format.shop_price(box.single)
         ),
       else:
         gettext(
@@ -1070,12 +1074,13 @@ defmodule TcgCheapWeb.BoosterPriceLive do
         do:
           " " <>
             gettext("Trzy karty z niego są warte na Cardmarkecie razem %{sum}.",
-              sum: amount(Enum.reduce(cards, Decimal.new(0), &Decimal.add(&1.value, &2)))
+              sum:
+                Format.shop_price(Enum.reduce(cards, Decimal.new(0), &Decimal.add(&1.value, &2)))
             ),
         else: ""
 
     gettext("Premium Checklane Blister kosztuje od %{price}.",
-      price: amount(premium.verdict.cheapest.price)
+      price: Format.shop_price(premium.verdict.cheapest.price)
     ) <> sum
   end
 
@@ -1159,7 +1164,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
             mini &&
               gettext("Mini puszka (Mini Tin) jest mniejsza: %{contents}. Kosztuje od %{price}.",
                 contents: contents_words(mini),
-                price: amount(mini.verdict.cheapest.price)
+                price: Format.shop_price(mini.verdict.cheapest.price)
               )
           ],
           & &1
@@ -1283,8 +1288,12 @@ defmodule TcgCheapWeb.BoosterPriceLive do
     {low, high} = {Enum.min(values, Decimal), Enum.max(values, Decimal)}
 
     if Decimal.equal?(low, high),
-      do: amount(low),
-      else: gettext("od %{low} do %{high}", low: amount(low), high: amount(high))
+      do: Format.shop_price(low),
+      else:
+        gettext("od %{low} do %{high}",
+          low: Format.shop_price(low),
+          high: Format.shop_price(high)
+        )
   end
 
   # What a box holds, in words: "2 boostery, naklejki, karta z ilustracją".
@@ -1298,5 +1307,5 @@ defmodule TcgCheapWeb.BoosterPriceLive do
   defp item_label(item), do: "#{contents_item_label(item)} (#{item.quantity})"
 
   defp booster_count_label(count),
-    do: Polish.plural(count, "booster", "boostery", "boosterów")
+    do: Format.boosters(count)
 end

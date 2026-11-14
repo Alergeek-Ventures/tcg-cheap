@@ -3,7 +3,7 @@ defmodule TcgCheap.Sealed.FetchWorker do
   Oban job that refreshes one shop's offers. The daily cron runs it without a
   shop, which queues one job per configured shop; the `sealed` queue then
   fetches them one after another. Shopify shops have the `shopify` queue,
-  also one at a time: their requests wait far longer (`TcgCheap.Sealed.Shopify`)
+  also one at a time: their requests wait far longer (`TcgCheap.Sealed.ShopFeed.Shopify`)
   and would hold up every other shop, and one at a time keeps a single pace
   towards Shopify, which may count the bot across all its shops.
 
@@ -33,7 +33,9 @@ defmodule TcgCheap.Sealed.FetchWorker do
 
   require Logger
 
-  alias TcgCheap.Sealed.{FetchFailure, Refresh, Shopify, Shops}
+  alias TcgCheap.Sealed.{FetchFailure, Refresh, Shops}
+
+  alias TcgCheap.Sealed.ShopFeed.Shopify
 
   @worker inspect(__MODULE__)
   @failure_handler "sealed-fetch-failures"

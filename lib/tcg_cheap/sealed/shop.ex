@@ -16,7 +16,7 @@ defmodule TcgCheap.Sealed.Shop do
       WooCommerce: category ids (subcategories included); Shopify:
       collection handles; Shoper listings and PrestaShop: the paths of the
       singles listings, each read to its last page (at most 40 pages each,
-      `TcgCheap.Sealed.HtmlListing.read_singles/2`); nopCommerce:
+      `TcgCheap.Sealed.ShopFeed.HtmlListing.read_singles/2`); nopCommerce:
       `"<category id>:<option id>"`, a singles category and the shop's
       specification option meaning "In Stock"; Shoptet: category listing
       paths; Chasedex, Pokemonki and SingleTcg: not read (the shop's own index

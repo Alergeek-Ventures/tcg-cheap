@@ -1,14 +1,17 @@
 defmodule TcgCheapWeb.SingleLive do
   @moduledoc """
   A single English card, its delivered reference and current Polish shop
-  offers. Singles are priced only in Poland so far: in another region the
+  offers. Only the Polish market prices singles: in another region the
   page shows the card's Cardmarket trend in its currency instead.
   """
   use TcgCheapWeb, :live_view
   use Gettext, backend: TcgCheapWeb.Gettext
-  import TcgCheapWeb.GuideComponents
+  import TcgCheapWeb.ListingComponents
+  import TcgCheapWeb.OfferComponents
+  import TcgCheapWeb.SiteComponents
+  import TcgCheapWeb.VerdictComponents
   alias TcgCheap.Sealed.{CardGuide, CardImage, CardReference, Guide, Matcher, Rarities}
-  alias TcgCheapWeb.{Analytics, Paths, Polish, Region, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Format, Paths, Region, SEO, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -126,8 +129,8 @@ defmodule TcgCheapWeb.SingleLive do
           else: gettext("list z Niemiec")
 
       gettext("trend Cardmarket %{trend} + wysyłka %{shipping} (%{source})",
-        trend: Polish.eur(trend),
-        shipping: Polish.eur(shipping),
+        trend: Format.eur(trend),
+        shipping: Format.eur(shipping),
         source: source
       )
     end
@@ -317,7 +320,7 @@ defmodule TcgCheapWeb.SingleLive do
                     )}
                   </p>
                   <p :if={@primary.reference}>
-                    {reference_line(@page.price, @primary.variant)} = {Polish.zloty(
+                    {reference_line(@page.price, @primary.variant)} = {Format.whole_price(
                       @primary.reference
                     )}.
                   </p>
@@ -372,7 +375,7 @@ defmodule TcgCheapWeb.SingleLive do
               id="single-unavailable"
               label={
                 gettext("Bez towaru: %{offers}",
-                  offers: Polish.plural(@counts.unavailable, "oferta", "oferty", "ofert")
+                  offers: Format.offers(@counts.unavailable)
                 )
               }
             >

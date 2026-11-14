@@ -22,8 +22,8 @@ defmodule TcgCheap.Sealed.Kinds do
     case: "Karton zbiorczy"
   ]
 
-  # What a buyer picks first: a handful of shelves, each one or more kinds
-  # (owner decision, 2026-11-04). The list filter takes a shelf or an exact kind.
+  # What a buyer picks first: a handful of shelves, each one or more kinds.
+  # The list filter takes a shelf or an exact kind.
   @shelves [
     boosters: [:booster, :booster_bundle, :blister],
     boxes: [:booster_box, :case],

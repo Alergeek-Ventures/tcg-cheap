@@ -1,8 +1,7 @@
 defmodule TcgCheap.Sealed.Market do
   @moduledoc """
   A country the buying guide prices sealed products for, in its currency:
-  Poland, the original market, and Hungary, the first one abroad (a pilot
-  without pages yet).
+  Poland and Hungary (`/hu`).
 
   A shop takes part in a market when its home `country` is the market's
   (domestic: its price counts without delivery, as Polish shops' always has)
@@ -61,7 +60,7 @@ defmodule TcgCheap.Sealed.Market do
     end
   end
 
-  # A shop no longer configured: its old offers were all Polish.
+  # A shop no longer configured has only Polish offers left.
   def terms(:error, %__MODULE__{code: "pl"}), do: :domestic
   def terms(:error, _market), do: :absent
 
@@ -126,7 +125,7 @@ defmodule TcgCheap.Sealed.Market do
   def pln_rate("PLN", today), do: {:ok, %{rate: Decimal.new(1), date: today}}
 
   def pln_rate(currency, %Date{} = today) do
-    case TcgCheap.Core.get_latest_exchange_rate(today, currency) do
+    case TcgCheap.Pricing.get_latest_exchange_rate(today, currency) do
       {:ok, %{rate: rate, effective_date: date}} ->
         if Date.diff(today, date) <= @max_rate_age_days,
           do: {:ok, %{rate: rate, date: date}},

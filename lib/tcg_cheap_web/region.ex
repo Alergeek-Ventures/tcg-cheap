@@ -8,22 +8,21 @@ defmodule TcgCheapWeb.Region do
 
   The region a request or LiveView renders is set once with `put/1` and read
   with `current/0`, as Gettext keeps the language: formatting
-  (`TcgCheapWeb.Polish`) and links (`TcgCheapWeb.Paths`) deep in shared
+  (`TcgCheapWeb.Format`) and links (`TcgCheapWeb.Paths`) deep in shared
   components follow it without every caller passing it. Like the Gettext
   locale it is process state: spawned work must be given it explicitly.
   """
 
   alias TcgCheap.Sealed.Market
 
-  @enforce_keys [:code, :market, :language, :hreflang, :name]
+  @enforce_keys [:code, :market, :language, :hreflang]
   defstruct @enforce_keys
 
   @type t :: %__MODULE__{
           code: String.t(),
           market: Market.t(),
           language: String.t(),
-          hreflang: String.t(),
-          name: String.t()
+          hreflang: String.t()
         }
 
   @languages ~w(pl en hu)
@@ -38,8 +37,7 @@ defmodule TcgCheapWeb.Region do
       code: "pl",
       market: Market.poland(),
       language: "pl",
-      hreflang: "pl-PL",
-      name: "Polska"
+      hreflang: "pl-PL"
     }
 
   defp hungary do
@@ -49,8 +47,7 @@ defmodule TcgCheapWeb.Region do
       code: "hu",
       market: market,
       language: "hu",
-      hreflang: "hu-HU",
-      name: "Magyarország"
+      hreflang: "hu-HU"
     }
   end
 
@@ -102,7 +99,7 @@ defmodule TcgCheapWeb.Region do
   A PLN amount in the current region's currency, at the latest NBP rate no
   older than a week (`Market.pln_rate/2`), rounded as that currency is; nil
   when that rate is unknown. Only for references with no market of their
-  own yet, such as Cardmarket trends of single cards: a Polish shop's price
+  own, such as Cardmarket trends of single cards: a Polish shop's price
   converted would be a price no shop in the region asks.
   """
   @spec from_pln(Decimal.t() | nil) :: Decimal.t() | nil

@@ -5,7 +5,7 @@ defmodule TcgCheap.Pricing.ExchangeRate do
   the others for shops abroad.
   """
 
-  use Ash.Resource, domain: TcgCheap.Core, data_layer: AshPostgres.DataLayer
+  use Ash.Resource, domain: TcgCheap.Pricing, data_layer: AshPostgres.DataLayer
 
   @currencies ~w(EUR GBP SEK CZK DKK HUF)
 
@@ -52,22 +52,6 @@ defmodule TcgCheap.Pricing.ExchangeRate do
              )
 
       prepare build(sort: [effective_date: :desc, fetched_at: :desc, id: :desc], limit: 1)
-    end
-
-    read :history do
-      argument :as_of, :date, allow_nil?: false
-      argument :limit, :integer, allow_nil?: false, default: 90, constraints: [min: 1, max: 366]
-      argument :base_currency, :string, allow_nil?: false, default: "EUR"
-
-      filter expr(
-               source == "nbp" and table == "A" and base_currency == ^arg(:base_currency) and
-                 quote_currency == "PLN" and effective_date <= ^arg(:as_of)
-             )
-
-      prepare build(
-                sort: [effective_date: :desc, fetched_at: :desc, id: :desc],
-                limit: arg(:limit)
-              )
     end
   end
 

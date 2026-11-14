@@ -80,7 +80,7 @@ defmodule TcgCheap.Sealed.PriceGuide do
   each nil when unknown.
   """
   @spec verdict([offer()], Decimal.t() | nil, [{:past | :cardmarket, Decimal.t() | nil}]) :: t()
-  def verdict(in_stock_offers, cardmarket_pln, references) do
+  def verdict(in_stock_offers, cardmarket_price, references) do
     shop_prices =
       in_stock_offers
       |> Enum.group_by(& &1.shop, & &1.price)
@@ -90,7 +90,7 @@ defmodule TcgCheap.Sealed.PriceGuide do
     {typical, source} =
       cond do
         length(shop_prices) >= @min_shops -> {median(Enum.map(shop_prices, & &1.price)), :shops}
-        match?(%Decimal{}, cardmarket_pln) -> {cardmarket_pln, :cardmarket}
+        match?(%Decimal{}, cardmarket_price) -> {cardmarket_price, :cardmarket}
         true -> {nil, nil}
       end
 

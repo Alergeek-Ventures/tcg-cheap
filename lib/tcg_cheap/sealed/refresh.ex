@@ -243,8 +243,8 @@ defmodule TcgCheap.Sealed.Refresh do
     |> bulk_record(:record_shop_price)
   end
 
-  # Poland's history stays in `DailyPrice` (it predates markets, and holds the
-  # Cardmarket trend); every other market's goes to `MarketDailyPrice`, by the
+  # Poland's history is in `DailyPrice` (which also holds the Cardmarket
+  # trend); every other market's goes to `MarketDailyPrice`, by the
   # same rules. Without a recent rate for a currency some offer needs, the
   # market's day is not recorded: a lowest price missing a shop would be wrong.
   defp record_market_prices(market, matched, today) do

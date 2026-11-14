@@ -1,33 +1,10 @@
 defmodule TcgCheapWeb.CoreComponents do
-  alias Phoenix.HTML.Form
-
   @moduledoc """
-  Provides core UI components.
-
-  At first glance, this module may seem daunting, but its goal is to provide
-  core building blocks for your application, such as tables, forms, and
-  inputs. The components consist mostly of markup and are well-documented
-  with doc strings and declarative assigns. You may customize and style
-  them in any way you want, based on your application growth and needs.
-
-  The foundation for styling is Tailwind CSS, a utility-first CSS framework,
-  augmented with daisyUI, a Tailwind CSS plugin that provides UI components
-  and themes. Here are useful references:
-
-    * [daisyUI](https://daisyui.com/docs/intro/) - a good place to get
-      started and see the available components.
-
-    * [Tailwind CSS](https://tailwindcss.com) - the foundational framework
-      we build on. You will use it for layout, sizing, flexbox, grid, and
-      spacing.
-
-    * [Heroicons](https://heroicons.com) - see `icon/1` for usage.
-
-    * [Phoenix.Component](https://phoenix-live-view.hexdocs.pm/Phoenix.Component.html) -
-      the component system used by Phoenix. Some components, such as `<.link>`
-      and `<.form>`, are defined there.
-
+  Components shared by every page: flash notices, text inputs, Heroicons and
+  the decorative Fluent icons, styled with daisyUI on Tailwind. Backpex also
+  calls `translate_error/1` for its form errors.
   """
+
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
@@ -88,62 +65,14 @@ defmodule TcgCheapWeb.CoreComponents do
   end
 
   @doc """
-  Renders a button with navigation support.
-
-  ## Examples
-
-      <.button>Send!</.button>
-      <.button phx-click="go" variant="primary">Send!</.button>
-      <.button navigate={~p"/"}>Home</.button>
-  """
-  attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
-  attr :class, :any
-  attr :variant, :string, values: ~w(primary)
-  slot :inner_block, required: true
-
-  def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
-
-    assigns =
-      assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
-      end)
-
-    if rest[:href] || rest[:navigate] || rest[:patch] do
-      ~H"""
-      <.link class={@class} {@rest}>
-        {render_slot(@inner_block)}
-      </.link>
-      """
-    else
-      ~H"""
-      <button class={@class} {@rest}>
-        {render_slot(@inner_block)}
-      </button>
-      """
-    end
-  end
-
-  @doc """
   Renders an input with label and error messages.
 
   A `Phoenix.HTML.FormField` may be passed as argument,
   which is used to retrieve the input name, id, and values.
   Otherwise all attributes may be passed explicitly.
 
-  ## Types
-
-  This function accepts all HTML input types, considering that:
-
-    * You may also set `type="select"` to render a `<select>` tag
-
-    * `type="checkbox"` is used exclusively to render boolean values
-
-    * For live file uploads, see `Phoenix.Component.live_file_input/1`
-
-  See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
-  for more information. Unsupported types, such as radio, are best
-  written directly in your templates.
+  Renders the text-like input types (`text`, `search`, `email`, `password`, …);
+  checkboxes, selects and textareas are written directly in templates.
 
   ## Examples
 
@@ -151,18 +80,6 @@ defmodule TcgCheapWeb.CoreComponents do
   <.input field={@form[:email]} type="email" />
   <.input name="my-input" errors={["oh no!"]} />
   ```
-
-  ## Select type
-
-  When using `type="select"`, you must pass the `options` and optionally
-  a `value` to mark which option should be preselected.
-
-  ```heex
-  <.input field={@form[:user_type]} type="select" options={["Admin": "admin", "User": "user"]} />
-  ```
-
-  For more information on what kind of data can be passed to `options` see
-  [`options_for_select`](https://phoenix-html.hexdocs.pm/Phoenix.HTML.Form.html#options_for_select/2).
   """
   attr :id, :any, default: nil
   attr :name, :any
@@ -171,23 +88,19 @@ defmodule TcgCheapWeb.CoreComponents do
 
   attr :type, :string,
     default: "text",
-    values: ~w(checkbox color date datetime-local email file month number password
-               search select tel text textarea time url week hidden)
+    values: ~w(color date datetime-local email file month number password
+               search tel text time url week)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
 
   attr :errors, :list, default: []
-  attr :checked, :boolean, doc: "the checked flag for checkbox inputs"
-  attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
-  attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
-  attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :class, :any, default: nil, doc: "the input class to use over defaults"
   attr :error_class, :any, default: nil, doc: "the input error class to use over defaults"
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
-                multiple pattern placeholder readonly required rows size step)
+                pattern placeholder readonly required rows size step)
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
@@ -195,92 +108,11 @@ defmodule TcgCheapWeb.CoreComponents do
     assigns
     |> assign(field: nil, id: assigns.id || field.id)
     |> assign(:errors, Enum.map(errors, &translate_error(&1)))
-    |> assign_new(:name, fn -> if assigns.multiple, do: field.name <> "[]", else: field.name end)
+    |> assign_new(:name, fn -> field.name end)
     |> assign_new(:value, fn -> field.value end)
     |> input()
   end
 
-  def input(%{type: "hidden"} = assigns) do
-    ~H"""
-    <input type="hidden" id={@id} name={@name} value={@value} {@rest} />
-    """
-  end
-
-  def input(%{type: "checkbox"} = assigns) do
-    assigns =
-      assign_new(assigns, :checked, fn ->
-        Form.normalize_value("checkbox", assigns[:value])
-      end)
-
-    ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
-        <input
-          type="hidden"
-          name={@name}
-          value="false"
-          disabled={@rest[:disabled]}
-          form={@rest[:form]}
-        />
-        <span class="label">
-          <input
-            type="checkbox"
-            id={@id}
-            name={@name}
-            value="true"
-            checked={@checked}
-            class={@class || "checkbox checkbox-sm"}
-            {@rest}
-          />{@label}
-        </span>
-      </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
-    """
-  end
-
-  def input(%{type: "select"} = assigns) do
-    ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
-        <select
-          id={@id}
-          name={@name}
-          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
-          multiple={@multiple}
-          {@rest}
-        >
-          <option :if={@prompt} value="">{@prompt}</option>
-          {Phoenix.HTML.Form.options_for_select(@options, @value)}
-        </select>
-      </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
-    """
-  end
-
-  def input(%{type: "textarea"} = assigns) do
-    ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
-        <textarea
-          id={@id}
-          name={@name}
-          class={[
-            @class || "w-full textarea",
-            @errors != [] && (@error_class || "textarea-error")
-          ]}
-          {@rest}
-        >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
-      </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
-    </div>
-    """
-  end
-
-  # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
     <div class="fieldset mb-2">
@@ -303,126 +135,13 @@ defmodule TcgCheapWeb.CoreComponents do
     """
   end
 
-  # Helper used by inputs to generate form errors
+  # An input's error line.
   defp error(assigns) do
     ~H"""
     <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
       <.icon name="hero-exclamation-circle" class="size-5" />
       {render_slot(@inner_block)}
     </p>
-    """
-  end
-
-  @doc """
-  Renders a header with title.
-  """
-  slot :inner_block, required: true
-  slot :subtitle
-  slot :actions
-
-  def header(assigns) do
-    ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4"]}>
-      <div>
-        <h1 class="text-lg font-semibold leading-8">
-          {render_slot(@inner_block)}
-        </h1>
-        <p :if={@subtitle != []} class="text-sm text-base-content/70">
-          {render_slot(@subtitle)}
-        </p>
-      </div>
-      <div class="flex-none">{render_slot(@actions)}</div>
-    </header>
-    """
-  end
-
-  @doc """
-  Renders a table with generic styling.
-
-  ## Examples
-
-      <.table id="users" rows={@users}>
-        <:col :let={user} label="id">{user.id}</:col>
-        <:col :let={user} label="username">{user.username}</:col>
-      </.table>
-  """
-  attr :id, :string, required: true
-  attr :rows, :list, required: true
-  attr :row_id, :any, default: nil, doc: "the function for generating the row id"
-  attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
-
-  attr :row_item, :any,
-    default: &Function.identity/1,
-    doc: "the function for mapping each row before calling the :col and :action slots"
-
-  slot :col, required: true do
-    attr :label, :string
-  end
-
-  slot :action, doc: "the slot for showing user actions in the last table column"
-
-  def table(assigns) do
-    assigns =
-      with %{rows: %Phoenix.LiveView.LiveStream{}} <- assigns do
-        assign(assigns, row_id: assigns.row_id || fn {id, _item} -> id end)
-      end
-
-    ~H"""
-    <table class="table table-zebra">
-      <thead>
-        <tr>
-          <th :for={col <- @col}>{col[:label]}</th>
-          <th :if={@action != []}>
-            <span class="sr-only">Actions</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
-        <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
-          <td
-            :for={col <- @col}
-            phx-click={@row_click && @row_click.(row)}
-            class={@row_click && "hover:cursor-pointer"}
-          >
-            {render_slot(col, @row_item.(row))}
-          </td>
-          <td :if={@action != []} class="w-0 font-semibold">
-            <div class="flex gap-4">
-              <%= for action <- @action do %>
-                {render_slot(action, @row_item.(row))}
-              <% end %>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    """
-  end
-
-  @doc """
-  Renders a data list.
-
-  ## Examples
-
-      <.list>
-        <:item title="Title">{@post.title}</:item>
-        <:item title="Views">{@post.views}</:item>
-      </.list>
-  """
-  slot :item, required: true do
-    attr :title, :string, required: true
-  end
-
-  def list(assigns) do
-    ~H"""
-    <ul class="list">
-      <li :for={item <- @item} class="list-row">
-        <div class="list-col-grow">
-          <div class="font-bold">{item.title}</div>
-          <div>{render_slot(item)}</div>
-        </div>
-      </li>
-    </ul>
     """
   end
 
@@ -471,16 +190,11 @@ defmodule TcgCheapWeb.CoreComponents do
       :arrow_left,
       :info,
       :clock,
-      :arrow_trending,
-      :arrow_swap,
       :chevron_down,
       :search,
-      :filter,
       :dismiss,
       :checkmark_circle,
       :dismiss_circle,
-      :card_ui,
-      :stack,
       :ribbon,
       :box,
       :data_pie,
@@ -531,16 +245,6 @@ defmodule TcgCheapWeb.CoreComponents do
      "M2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8ZM8 1C4.13401 1 1 4.13401 1 8C1 11.866 4.13401 15 8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1ZM8 4.5C8 4.22386 7.77614 4 7.5 4C7.22386 4 7 4.22386 7 4.5V8.5C7 8.77614 7.22386 9 7.5 9H10.5C10.7761 9 11 8.77614 11 8.5C11 8.22386 10.7761 8 10.5 8H8V4.5Z"}
   end
 
-  defp fluent_icon_path(:arrow_trending) do
-    {"0 0 20 20",
-     "M17.9621 5.30861C17.9377 5.24964 17.9015 5.19439 17.8536 5.14645C17.8056 5.09851 17.7504 5.06234 17.6914 5.03794C17.6324 5.01349 17.5678 5 17.5 5H11.5C11.2239 5 11 5.22386 11 5.5C11 5.77614 11.2239 6 11.5 6H16.2929L10.5 11.7929L8.35355 9.64645C8.15829 9.45118 7.84171 9.45118 7.64645 9.64645L2.14645 15.1464C1.95118 15.3417 1.95118 15.6583 2.14645 15.8536C2.34171 16.0488 2.65829 16.0488 2.85355 15.8536L8 10.7071L10.1464 12.8536C10.3417 13.0488 10.6583 13.0488 10.8536 12.8536L17 6.70711V11.5C17 11.7761 17.2239 12 17.5 12C17.7761 12 18 11.7761 18 11.5V5.5C18 5.43221 17.9865 5.36756 17.9621 5.30861Z"}
-  end
-
-  defp fluent_icon_path(:arrow_swap) do
-    {"0 0 20 20",
-     "M12.1464 3.14645C12.3417 2.95118 12.6583 2.95118 12.8536 3.14645L15.8536 6.14645C16.0488 6.34171 16.0488 6.65829 15.8536 6.85355L12.8536 9.85355C12.6583 10.0488 12.3417 10.0488 12.1464 9.85355C11.9512 9.65829 11.9512 9.34171 12.1464 9.14645L14.2929 7H4.5C4.22386 7 4 6.77614 4 6.5C4 6.22386 4.22386 6 4.5 6H14.2929L12.1464 3.85355C11.9512 3.65829 11.9512 3.34171 12.1464 3.14645ZM7.85355 10.1464C8.04882 10.3417 8.04882 10.6583 7.85355 10.8536L5.70711 13H15.5C15.7761 13 16 13.2239 16 13.5C16 13.7761 15.7761 14 15.5 14H5.70711L7.85355 16.1464C8.04882 16.3417 8.04882 16.6583 7.85355 16.8536C7.65829 17.0488 7.34171 17.0488 7.14645 16.8536L4.14645 13.8536C3.95118 13.6583 3.95118 13.3417 4.14645 13.1464L7.14645 10.1464C7.34171 9.95118 7.65829 9.95118 7.85355 10.1464Z"}
-  end
-
   defp fluent_icon_path(:location) do
     {"0 0 20 20",
      "M5.05043 4.05139C7.7841 1.31653 12.2162 1.31653 14.9498 4.05139C17.6833 6.78621 17.6833 11.2199 14.9498 13.9547L13.8219 15.069L11.3864 17.4391C10.6565 18.1455 9.52149 18.1843 8.74672 17.5563L8.61391 17.4391L6.57094 15.4537L5.05043 13.9547C2.31681 11.2199 2.3168 6.78625 5.05043 4.05139ZM14.2448 4.75647C11.9003 2.41099 8.09899 2.41099 5.75454 4.75647C3.47055 7.04183 3.41265 10.7109 5.57973 13.067L5.75454 13.2496L6.32582 13.817L9.30727 16.7223L9.40004 16.8024C9.7542 17.0701 10.2461 17.07 10.6002 16.8024L10.693 16.7223L12.9235 14.5543L14.2448 13.2496L14.4206 13.067C16.5877 10.7107 16.5291 7.04181 14.2448 4.75647ZM9.99965 6.24963C11.5183 6.24963 12.7495 7.48102 12.7497 8.99963C12.7497 10.5184 11.5184 11.7496 9.99965 11.7496C8.48103 11.7494 7.24965 10.5183 7.24965 8.99963C7.24985 7.48113 8.48115 6.24982 9.99965 6.24963ZM9.99965 7.24963C9.03343 7.24982 8.24985 8.03342 8.24965 8.99963C8.24965 9.96602 9.03331 10.7494 9.99965 10.7496C10.9662 10.7496 11.7497 9.96613 11.7497 8.99963C11.7495 8.0333 10.966 7.24963 9.99965 7.24963Z"}
@@ -561,11 +265,6 @@ defmodule TcgCheapWeb.CoreComponents do
      "M13.7291 14.4362C12.5924 15.411 11.115 16 9.5 16C5.91015 16 3 13.0899 3 9.5C3 5.91015 5.91015 3 9.5 3C13.0899 3 16 5.91015 16 9.5C16 11.115 15.411 12.5924 14.4361 13.7292L17.8535 17.1465C18.0487 17.3417 18.0487 17.6583 17.8535 17.8536C17.6799 18.0271 17.4105 18.0464 17.2156 17.9114L17.1464 17.8536L13.7291 14.4362ZM13.0196 13.7266C13.276 13.5128 13.5127 13.2761 13.7265 13.0197C14.5216 12.0659 15 10.8388 15 9.5C15 6.46243 12.5376 4 9.5 4C6.46243 4 4 6.46243 4 9.5C4 12.5376 6.46243 15 9.5 15C10.8388 15 12.0658 14.5217 13.0196 13.7266Z"}
   end
 
-  defp fluent_icon_path(:filter) do
-    {"0 0 20 20",
-     "M3 5.5A.5.5 0 0 1 3.5 5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5Zm2 4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5Zm2 4a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Z"}
-  end
-
   defp fluent_icon_path(:checkmark_circle) do
     {"0 0 20 20",
      "M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm3.36 5.65a.5.5 0 0 0-.64-.06l-.07.06L9 11.3 7.35 9.65l-.07-.06a.5.5 0 0 0-.7.7l.07.07 2 2 .07.06c.17.11.4.11.56 0l.07-.06 4-4 .07-.08a.5.5 0 0 0-.06-.63Z"}
@@ -579,16 +278,6 @@ defmodule TcgCheapWeb.CoreComponents do
   defp fluent_icon_path(:dismiss) do
     {"0 0 20 20",
      "M4.08859 4.21569L4.14645 4.14645C4.32001 3.97288 4.58944 3.9536 4.78431 4.08859L4.85355 4.14645L10 9.293L15.1464 4.14645C15.32 3.97288 15.5894 3.9536 15.7843 4.08859L15.8536 4.14645C16.0271 4.32001 16.0464 4.58944 15.9114 4.78431L15.8536 4.85355L10.707 10L15.8536 15.1464C16.0271 15.32 16.0464 15.5894 15.9114 15.7843L15.8536 15.8536C15.68 16.0271 15.4106 16.0464 15.2157 15.9114L15.1464 15.8536L10 10.707L4.85355 15.8536C4.67999 16.0271 4.41056 16.0464 4.21569 15.9114L4.14645 15.8536C3.97288 15.68 3.9536 15.4106 4.08859 15.2157L4.14645 15.1464L9.293 10L4.14645 4.85355C3.97288 4.67999 3.9536 4.41056 4.08859 4.21569L4.14645 4.14645L4.08859 4.21569Z"}
-  end
-
-  defp fluent_icon_path(:card_ui) do
-    {"0 0 20 20",
-     "M4.5 4C3.11929 4 2 5.11929 2 6.5V13.5C2 14.8807 3.11929 16 4.5 16H15.5C16.8807 16 18 14.8807 18 13.5V6.5C18 5.11929 16.8807 4 15.5 4H4.5ZM3 6.5C3 5.67157 3.67157 5 4.5 5H15.5C16.3284 5 17 5.67157 17 6.5V13.5C17 14.3284 16.3284 15 15.5 15H4.5C3.67157 15 3 14.3284 3 13.5V6.5ZM4.5 6C4.22386 6 4 6.22386 4 6.5C4 6.77614 4.22386 7 4.5 7H9.5C9.77614 7 10 6.77614 10 6.5C10 6.22386 9.77614 6 9.5 6H4.5ZM4.5 8C4.22386 8 4 8.22386 4 8.5C4 8.77614 4.22386 9 4.5 9H12.5C12.7761 9 13 8.77614 13 8.5C13 8.22386 12.7761 8 12.5 8H4.5ZM5 11C4.44772 11 4 11.4477 4 12V13C4 13.5523 4.44772 14 5 14H9C9.55228 14 10 13.5523 10 13V12C10 11.4477 9.55228 11 9 11H5Z"}
-  end
-
-  defp fluent_icon_path(:stack) do
-    {"0 0 20 20",
-     "M2 5C2 3.89543 2.89543 3 4 3H12C13.1046 3 14 3.89543 14 5V11C14 12.1046 13.1046 13 12 13H4C2.89543 13 2 12.1046 2 11V5ZM4 4C3.44772 4 3 4.44772 3 5V11C3 11.5523 3.44772 12 4 12H12C12.5523 12 13 11.5523 13 11V5C13 4.44772 12.5523 4 12 4H4ZM6.00001 15C5.25973 15 4.61339 14.5978 4.26758 14H12C13.6569 14 15 12.6569 15 11V5.26758C15.5978 5.61339 16 6.25973 16 7.00001V11C16 13.2092 14.2092 15 12 15H6.00001ZM8.00001 17C7.25973 17 6.61339 16.5978 6.26758 16H12C14.7614 16 17 13.7614 17 11V7.26758C17.5978 7.61339 18 8.25973 18 9.00001V11C18 14.3137 15.3137 17 12 17H8.00001Z"}
   end
 
   defp fluent_icon_path(:ribbon) do
@@ -670,27 +359,11 @@ defmodule TcgCheapWeb.CoreComponents do
   end
 
   @doc """
-  Translates an error message using gettext.
+  Fills an error message's `%{key}` placeholders from its options.
   """
   def translate_error({msg, opts}) do
-    # You can make use of gettext to translate error messages by
-    # uncommenting and adjusting the following code:
-
-    # if count = opts[:count] do
-    #   Gettext.dngettext(TcgCheapWeb.Gettext, "errors", msg, msg, count, opts)
-    # else
-    #   Gettext.dgettext(TcgCheapWeb.Gettext, "errors", msg, opts)
-    # end
-
     Enum.reduce(opts, msg, fn {key, value}, acc ->
       String.replace(acc, "%{#{key}}", fn _ -> to_string(value) end)
     end)
-  end
-
-  @doc """
-  Translates the errors for a field from a keyword list of errors.
-  """
-  def translate_errors(errors, field) when is_list(errors) do
-    for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
 end

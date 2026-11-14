@@ -7,8 +7,8 @@ defmodule TcgCheap.Sealed.Guide do
   shops' offers at their compared prices, its own price history, and the
   Cardmarket references converted to its currency. Poland reads the
   availability stored on each product; another market derives it from its
-  shops' current offers. The `*_pln` and `eur_pln` names predate markets:
-  elsewhere they hold the market's currency.
+  shops' current offers. `cardmarket_price`, `cardmarket_delivered_price` and
+  `eur_rate` are in the market's currency.
   """
 
   alias TcgCheap.Sealed
@@ -63,8 +63,8 @@ defmodule TcgCheap.Sealed.Guide do
           preorder?: boolean(),
           premiere_in: non_neg_integer() | nil,
           premiere: Date.t() | nil,
-          cardmarket_pln: Decimal.t() | nil,
-          cardmarket_delivered_pln: Decimal.t() | nil
+          cardmarket_price: Decimal.t() | nil,
+          cardmarket_delivered_price: Decimal.t() | nil
         }
 
   def history_days, do: @history_days
@@ -454,7 +454,7 @@ defmodule TcgCheap.Sealed.Guide do
 
   In the market's currency: `offers` are its shops' offers, each `price` the
   item price without delivery; `history` is the market's (only Poland's
-  carries the Cardmarket trend) and `eur_pln` the euro's rate in its
+  carries the Cardmarket trend) and `eur_rate` the euro's rate in its
   currency.
   """
   @spec product(String.t(), DateTime.t(), Market.t()) :: {:ok, map()} | :error
@@ -501,7 +501,7 @@ defmodule TcgCheap.Sealed.Guide do
            compared: Map.new(priced, fn {offer, _item, compared} -> {offer.id, compared} end),
            history: history,
            today: today,
-           eur_pln: rate,
+           eur_rate: rate,
            market: market,
            suggested_price:
              polish_only(market, fn -> Sealed.get_suggested_price_for_product!(product.id) end),
@@ -590,8 +590,8 @@ defmodule TcgCheap.Sealed.Guide do
   rates and cards as on that booster's page with the card count and the most
   valuable card (`set`, nil when we have neither).
   `name` is the expansion's name. The booster and the Cardmarket boxes are
-  in the market's currency; the cards' prices stay Polish (singles have no
-  other market yet).
+  in the market's currency; the cards' prices stay Polish (singles are
+  priced only in Poland).
   """
   @spec expansion(integer(), String.t(), DateTime.t(), Market.t()) :: %{
           set: map() | nil,
@@ -715,7 +715,7 @@ defmodule TcgCheap.Sealed.Guide do
       |> Enum.sort_by(&best_offer_first/1)
       |> Enum.take(@in_stock_from_set)
 
-    # Singles are priced only in Poland so far.
+    # Singles are priced only in Poland.
     %{products: products, cards: polish_only(market, 0, fn -> CardGuide.in_stock_count(id) end)}
   end
 
@@ -1159,7 +1159,7 @@ defmodule TcgCheap.Sealed.Guide do
   @doc "The latest stored NBP EUR/PLN mid rate on or before `date`, if any."
   @spec eur_pln(Date.t()) :: %{rate: Decimal.t(), date: Date.t()} | nil
   def eur_pln(%Date{} = date) do
-    case TcgCheap.Core.get_latest_exchange_rate(date) do
+    case TcgCheap.Pricing.get_latest_exchange_rate(date) do
       {:ok, %{rate: rate, effective_date: effective}} -> %{rate: rate, date: effective}
       _ -> nil
     end
@@ -1202,9 +1202,9 @@ defmodule TcgCheap.Sealed.Guide do
     preorders = Enum.filter(offers, & &1.preorder)
     # With nothing in stock, pre-orders are rated the same way.
     preorder? = in_stock == [] and preorders != []
-    cardmarket_pln = in_market(product.cardmarket_trend, rate, market)
+    cardmarket_price = in_market(product.cardmarket_trend, rate, market)
 
-    cardmarket_delivered_pln =
+    cardmarket_delivered_price =
       product.cardmarket_trend |> with_shipping(market) |> in_market(rate, market)
 
     {premiere, premiere_in} =
@@ -1215,15 +1215,15 @@ defmodule TcgCheap.Sealed.Guide do
     %{
       product: product,
       verdict:
-        PriceGuide.verdict(if(preorder?, do: preorders, else: in_stock), cardmarket_pln,
+        PriceGuide.verdict(if(preorder?, do: preorders, else: in_stock), cardmarket_price,
           past: usual,
-          cardmarket: cardmarket_delivered_pln
+          cardmarket: cardmarket_delivered_price
         ),
       preorder?: preorder?,
       premiere: premiere,
       premiere_in: premiere_in,
-      cardmarket_pln: cardmarket_pln,
-      cardmarket_delivered_pln: cardmarket_delivered_pln
+      cardmarket_price: cardmarket_price,
+      cardmarket_delivered_price: cardmarket_delivered_price
     }
   end
 

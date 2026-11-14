@@ -6,7 +6,7 @@ defmodule TcgCheapWeb.SetComponents do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.PullRates.Rate
-  alias TcgCheapWeb.{GuideComponents, Paths, Polish, Region}
+  alias TcgCheapWeb.{Format, ListingComponents, Paths, Region}
 
   @doc "A set's pull rates per rarity, with their sources, or a note that none are known yet."
   attr :pull_rates, :map, required: true
@@ -40,7 +40,7 @@ defmodule TcgCheapWeb.SetComponents do
     >
       <div class="product-section-heading">
         <h2 id="product-pull-rates-title">{gettext("Szansa na drop")}</h2>
-        <p>{gettext("sprawdzono %{date}", date: Polish.date(@pull_rates.checked_on))}</p>
+        <p>{gettext("sprawdzono %{date}", date: Format.date(@pull_rates.checked_on))}</p>
       </div>
       <.standard_pack_note count={@standard_pack_size} smaller?={@smaller_pack?} />
       <.borrowed_note from={@pull_rates.borrowed_from} />
@@ -65,7 +65,7 @@ defmodule TcgCheapWeb.SetComponents do
               <% else %>
                 {row.rarity}
               <% end %>
-              <span class="pull-rate-detail">{Polish.odds(row.rate)}</span>
+              <span class="pull-rate-detail">{Format.odds(row.rate)}</span>
               <span :if={row.rate.card} class="pull-rate-detail">
                 {gettext("konkretna karta: %{name}", name: row.rate.card)}
               </span>
@@ -144,7 +144,7 @@ defmodule TcgCheapWeb.SetComponents do
       source.data_from && gettext("dane %{source}", source: source.data_from),
       source.sample_packs &&
         ngettext("%{number} otwarta paczka", "%{number} otwarte paczki", source.sample_packs,
-          number: Polish.number(source.sample_packs)
+          number: Format.number(source.sample_packs)
         )
     ]
     |> Enum.filter(& &1)
@@ -168,7 +168,7 @@ defmodule TcgCheapWeb.SetComponents do
     end
   end
 
-  defp percent(percent, places), do: Polish.decimal(Decimal.round(percent, places)) <> "%"
+  defp percent(percent, places), do: Format.decimal(Decimal.round(percent, places)) <> "%"
 
   @doc "A set's cards by rarity, or a note that its card list is not known yet."
   attr :rarities, :list, required: true
@@ -214,7 +214,7 @@ defmodule TcgCheapWeb.SetComponents do
     count = rarities |> Enum.map(&length(&1.cards)) |> Enum.sum()
 
     ngettext("%{number} karta w secie", "%{number} karty w secie", count,
-      number: Polish.number(count)
+      number: Format.number(count)
     )
   end
 
@@ -280,10 +280,10 @@ defmodule TcgCheapWeb.SetComponents do
   attr :card, :map, required: true
 
   defp card_price(assigns) do
-    assigns = assign(assigns, :price, GuideComponents.card_price(assigns.card))
+    assigns = assign(assigns, :price, ListingComponents.card_price(assigns.card))
 
     ~H"""
-    <span :if={@price} class="set-cards-price">{Polish.price(@price)}</span>
+    <span :if={@price} class="set-cards-price">{Format.price(@price)}</span>
     """
   end
 end

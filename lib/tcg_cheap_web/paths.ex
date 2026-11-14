@@ -2,7 +2,7 @@ defmodule TcgCheapWeb.Paths do
   @moduledoc """
   The guide's public paths. Each region has its own path segments in its
   language (`/pl/produkty/…`, `/hu/termekek/…`) under the same product, set
-  and card slugs; the articles and the bot page are only Polish for now.
+  and card slugs; the articles and the bot page exist only in the Polish region.
 
   A page is named by `parse/1` and built by `page_path/2`, which give the same
   page in another region (`switch/2`). The one-argument helpers build in the
@@ -87,9 +87,9 @@ defmodule TcgCheapWeb.Paths do
   end
 
   @doc """
-  A path the domain gives in the region-less Polish form it predates regions
-  with (`/rozszerzenia/<set>/karty/<card>`, `/produkty/<slug>`), in the
-  current region.
+  A path the domain gives in the Polish form without a region prefix
+  (`/rozszerzenia/<set>/karty/<card>`, `/produkty/<slug>`), in the given
+  region (by default the current one).
   """
   @spec localize(Region.t(), String.t()) :: String.t()
   def localize(region \\ Region.current(), "/" <> _rest = path) do
@@ -118,6 +118,27 @@ defmodule TcgCheapWeb.Paths do
 
   @spec expansion(String.t(), Enumerable.t()) :: String.t()
   def expansion(slug, params), do: with_query(expansion(slug), params)
+
+  @doc """
+  The Cardmarket expansion id a set page's slug ends in (`"obsidian-flames-5234"`),
+  or `:error` for a slug without one.
+  """
+  @spec expansion_id(String.t()) :: {:ok, pos_integer()} | :error
+  def expansion_id(slug) do
+    case Regex.run(~r/-(\d+)\z/, slug) do
+      [_, id] -> expansion_id_param(id)
+      nil -> :error
+    end
+  end
+
+  @doc "An expansion id written as a bare number, as the list's `rozszerzenie` filter has it."
+  @spec expansion_id_param(String.t()) :: {:ok, pos_integer()} | :error
+  def expansion_id_param(value) do
+    case Integer.parse(value) do
+      {id, ""} when id in 1..9_999_999 -> {:ok, id}
+      _ -> :error
+    end
+  end
 
   @doc "An article's or the bot page's path in the current region, nil where it has none."
   @spec page(page()) :: String.t() | nil

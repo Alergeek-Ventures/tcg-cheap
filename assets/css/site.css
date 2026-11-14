@@ -48,7 +48,7 @@
 
 @media (max-width: 40rem) { .admin-queue { margin-top: var(--space-6); } }
 
-/* Buying guide: the calm warm-paper valuation bench, in Polish. */
+/* Buying guide: the calm warm-paper valuation bench. */
 .guide-world { --bench: #f1eadc; --bench-light: #fffaf0; --paper: #fffdf8; --ink: #201d19; --rule: rgb(32 29 25 / 18%); --orange: #b54125; --muted: #6d6256; --rise: #27714b; --fall: #a6402f; background: var(--bench); color: var(--ink); color-scheme: light; font-family: "Azeret Mono", ui-monospace, monospace; font-size: 1rem; line-height: 1.6; min-height: 100svh; overflow-x: clip; }
 .guide-world h1, .guide-world h2, .guide-world h3 { font-family: "Barlow Condensed", sans-serif; font-weight: 700; margin: 0; text-wrap: balance; }
 .site-header { align-items: center; border-bottom: 1px solid var(--rule, rgb(32 29 25 / 18%)); display: flex; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; padding: .5rem max(1rem, 4vw); }
@@ -673,7 +673,6 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .set-cards-heading { align-items: center; }
 .guide-world .set-cards-logo { block-size: 3.5rem; inline-size: auto; max-inline-size: min(10rem, 40vw); object-fit: contain; }
 @media (hover: hover) and (pointer: fine) { .guide-world a.set-cards-price:hover { color: var(--orange); } }
-.guide-world .set-cards-price.set-cards-no-price { color: var(--muted); font-size: .875rem; }
 .guide-world .cardmarket-trend { margin: 0 0 .5rem; }
 .guide-world .cardmarket-trend strong { font: 700 1.5rem/1.1 "Barlow Condensed", sans-serif; white-space: nowrap; }
 .guide-world .cardmarket-trend span { color: var(--muted); white-space: nowrap; }

@@ -1,6 +1,6 @@
 defmodule TcgCheapWeb.LocaleController do
   @moduledoc """
-  Language links without JavaScript, and the old `/lang/:locale` links:
+  The `/lang/:locale` links (the language control works without JavaScript):
   remembers the language in its cookie (`TcgCheapWeb.Locale`) and returns to
   the page. An unknown language leaves the choice as it was.
   """

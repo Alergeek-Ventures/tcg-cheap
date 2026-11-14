@@ -78,8 +78,7 @@ defmodule TcgCheapWeb.MarkdownController do
   # As the HTML set page: every edition of the expansion's products, under
   # the expansion's current name.
   def expansion(conn, %{"slug" => slug}) do
-    with [_, id] <- Regex.run(~r/-(\d+)\z/, slug),
-         {id, ""} <- Integer.parse(id),
+    with {:ok, id} <- Paths.expansion_id(slug),
          name when is_binary(name) <- Map.get(Guide.expansion_names([id]), id) do
       if slug == Catalogue.slug(name, id) do
         now = DateTime.utc_now()
