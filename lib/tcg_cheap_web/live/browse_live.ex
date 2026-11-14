@@ -31,6 +31,9 @@ defmodule TcgCheapWeb.BrowseLive do
   alias TcgCheapWeb.{Analytics, Format, Paths, Region, RegionText, SEO, VisitorLocation}
 
   @max_query_length 100
+  # The most rows a returning visitor gets back at once: ten pages. The count
+  # comes from the browser, so it is bounded here; further rows load on request.
+  @max_restored_rows 300
   @kind_params Map.new(Kinds.choices(), &{Atom.to_string(&1), &1})
 
   defmodule NotFound do
@@ -274,7 +277,9 @@ defmodule TcgCheapWeb.BrowseLive do
   defp restore_list(socket, _uri), do: socket
 
   defp restore_rows(socket, count, loaded, more?, load) when is_integer(count) and count > 0 do
-    if socket.assigns[more?] && socket.assigns[loaded] < count,
+    limit = min(count, @max_restored_rows)
+
+    if socket.assigns[more?] && socket.assigns[loaded] < limit,
       do: restore_rows(load.(socket), count, loaded, more?, load),
       else: socket
   end
