@@ -30,6 +30,8 @@ defmodule TcgCheap.Sealed.Refresh do
 
   require Logger
 
+  @max_price_pln Decimal.new(1_000_000)
+
   # Matching reads names and set names; availability compares and updates
   # the rest. Kind and region stay for the product's validations.
   @product_fields [
@@ -65,19 +67,20 @@ defmodule TcgCheap.Sealed.Refresh do
              do: store_sealed(shop, Enum.map(sealed, &Map.drop(&1, [:kind, :category])), now)
 
       {:ok, fetched} ->
-        {singles, sealed} = Enum.split_with(fetched, &(Map.get(&1, :kind) == :single))
-
-        sealed = Enum.map(sealed, &Map.drop(&1, [:kind, :category]))
-
-        with {:ok, singles} <- in_pln(shop, singles, now),
-             {:ok, sealed} <- in_pln(shop, sealed, now),
-             {:ok, counts} <- store_sealed(shop, sealed, now),
-             {:ok, card_counts} <- CardRefresh.run(shop, singles, now) do
-          {:ok, Map.merge(counts, card_counts)}
-        end
+        with {:ok, fetched} <- in_pln(shop, fetched, now), do: store_offers(shop, fetched, now)
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  defp store_offers(shop, fetched, now) do
+    {singles, sealed} = Enum.split_with(fetched, &(Map.get(&1, :kind) == :single))
+    sealed = Enum.map(sealed, &Map.drop(&1, [:kind, :category]))
+
+    with {:ok, counts} <- store_sealed(shop, sealed, now),
+         {:ok, card_counts} <- CardRefresh.run(shop, singles, now) do
+      {:ok, Map.merge(counts, card_counts)}
     end
   end
 
@@ -88,9 +91,22 @@ defmodule TcgCheap.Sealed.Refresh do
   defp in_pln(%Shop{currency: currency} = shop, offers, now) do
     offers = Enum.map(offers, &Map.merge(&1, %{shop_price: &1.price, currency: currency}))
 
-    case shop.currency do
-      "PLN" -> {:ok, offers}
-      _abroad -> convert_to_pln(offers, currency, DateTime.to_date(now))
+    converted =
+      case shop.currency do
+        "PLN" -> {:ok, offers}
+        _abroad -> convert_to_pln(offers, currency, DateTime.to_date(now))
+      end
+
+    with {:ok, offers} <- converted do
+      # The sanity ceiling is in PLN, not in the shop's currency: sealed
+      # cases can legitimately cost over a million forints.
+      {valid, invalid} = Enum.split_with(offers, &(not Decimal.gt?(&1.price, @max_price_pln)))
+
+      if invalid != [],
+        do:
+          Logger.warning("sealed fetch #{shop.key}: skipped #{length(invalid)} over-limit prices")
+
+      if valid == [] and invalid != [], do: {:error, :empty_feed}, else: {:ok, valid}
     end
   end
 
