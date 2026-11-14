@@ -79,7 +79,7 @@ defmodule TcgCheapWeb.GuideComponents do
         class="guide-locale-summary"
         aria-label={
           gettext("Kraj i język: %{region}, %{language}",
-            region: @region.name,
+            region: country_name(@region.code),
             language: language_name(@locale)
           )
         }
@@ -96,12 +96,22 @@ defmodule TcgCheapWeb.GuideComponents do
                 id={"region-#{region.code}"}
                 href={~p"/region/#{region.code}?#{[path: @current_path]}"}
                 rel="nofollow"
-                lang={region.language}
                 aria-current={if(region.code == @region.code, do: "true")}
                 data-track="region_changed"
                 data-track-to={region.code}
               >
-                <img src={flag(region.code)} alt="" width="21" height="14" />{region.name}
+                <img src={flag(region.code)} alt="" width="21" height="14" />
+                <span class="guide-locale-name">
+                  {country_name(region.code)}
+                  <span class="guide-locale-currency">
+                    · {Polish.currency_symbol(region.market.currency)}
+                  </span>
+                </span>
+                <.fluent_icon
+                  :if={region.code == @region.code}
+                  name={:checkmark_circle}
+                  class="guide-locale-check"
+                />
               </a>
             </li>
           </ul>
@@ -121,7 +131,12 @@ defmodule TcgCheapWeb.GuideComponents do
                 data-track="language_changed"
                 data-track-to={language}
               >
-                {language_name(language)}
+                <span class="guide-locale-name">{language_name(language)}</span>
+                <.fluent_icon
+                  :if={language == @locale}
+                  name={:checkmark_circle}
+                  class="guide-locale-check"
+                />
               </a>
             </li>
           </ul>
@@ -143,7 +158,8 @@ defmodule TcgCheapWeb.GuideComponents do
         assign(assigns,
           text: region_hint_text(assigns.suggested.code),
           switch: region_hint_switch(assigns.suggested.code),
-          stay: gettext("Zostań tutaj")
+          stay: gettext("Zostań tutaj"),
+          country: country_name(assigns.suggested.code)
         )
       end)
 
@@ -152,13 +168,14 @@ defmodule TcgCheapWeb.GuideComponents do
       id="region-hint"
       class="region-hint"
       lang={@suggested.language}
-      aria-label={@suggested.name}
+      aria-label={@country}
     >
       <p>
         <img src={flag(@suggested.code)} alt="" width="21" height="14" />{@text}
       </p>
       <a
         id="region-hint-switch"
+        class="region-hint-switch"
         href={~p"/region/#{@suggested.code}?#{[path: @current_path]}"}
         rel="nofollow"
         data-track="region_hint_followed"
@@ -166,6 +183,7 @@ defmodule TcgCheapWeb.GuideComponents do
       >{@switch}</a>
       <a
         id="region-hint-stay"
+        class="region-hint-stay"
         href={~p"/region/#{@region.code}?#{[path: @current_path]}"}
         rel="nofollow"
         data-track="region_hint_dismissed"
@@ -178,6 +196,11 @@ defmodule TcgCheapWeb.GuideComponents do
   defp region_hint_text("pl"), do: gettext("Wygląda na to, że jesteś w Polsce.")
   defp region_hint_switch("hu"), do: gettext("Przejdź do wersji węgierskiej")
   defp region_hint_switch("pl"), do: gettext("Przejdź do wersji polskiej")
+
+  # Countries in the page language ("Węgry", "Hungary"); languages under
+  # their own names.
+  defp country_name("pl"), do: gettext("Polska")
+  defp country_name("hu"), do: gettext("Węgry")
 
   # Each language under its own name.
   defp language_name("pl"), do: "Polski"

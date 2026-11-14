@@ -21,6 +21,10 @@ defmodule TcgCheapWeb.Polish do
   @spec currency_symbol() :: String.t()
   def currency_symbol, do: symbol(currency())
 
+  @doc ~S(A currency as prices write it: "zł" for "PLN", "Ft" for "HUF".)
+  @spec currency_symbol(String.t()) :: String.t()
+  def currency_symbol(currency), do: symbol(currency)
+
   defp currency, do: Region.current().market.currency
 
   defp symbol("PLN"), do: "zł"
