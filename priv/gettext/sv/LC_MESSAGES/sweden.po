@@ -39,7 +39,7 @@ msgstr "%{name}: just nu har ingen svensk butik eller butik som skickar till Sve
 #: lib/tcg_cheap/countries/sweden.ex:82
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w koronach."
-msgstr "Engelska Pokémon TCG-kort med pris från Cardmarket i kronor."
+msgstr "Engelska Pokémonkort med pris från Cardmarket i kronor."
 
 #: lib/tcg_cheap/countries/sweden.ex:103
 #, elixir-autogen, elixir-format
@@ -49,7 +49,7 @@ msgstr "Ingen svensk butik eller butik som skickar till Sverige har %{expansion}
 #: lib/tcg_cheap/countries/sweden.ex:62
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji, sprawdzane codziennie."
-msgstr "Priser på Pokémon TCG i svenska butiker och i butiker som skickar till Sverige, kontrollerade varje dag."
+msgstr "Priser på Pokémon TCG i svenska butiker och butiker som skickar hit. Kollas varje dag."
 
 #: lib/tcg_cheap/countries/sweden.ex:85
 #, elixir-autogen, elixir-format
@@ -69,7 +69,7 @@ msgstr "Priser från butiker utomlands inkluderar frakt till Sverige."
 #: lib/tcg_cheap/countries/sweden.ex:70
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji."
-msgstr "De billigaste erbjudandena på Pokémon TCG i svenska butiker och i butiker som skickar till Sverige."
+msgstr "Lägsta priserna på Pokémon TCG i svenska butiker och butiker som skickar till Sverige."
 
 #: lib/tcg_cheap/countries/sweden.ex:54
 #, elixir-autogen, elixir-format
@@ -79,7 +79,7 @@ msgstr "Jämför priser på Pokémon TCG i svenska butiker och i butiker som ski
 #: lib/tcg_cheap/countries/sweden.ex:49
 #, elixir-autogen, elixir-format
 msgid "Przejdź do wersji szwedzkiej"
-msgstr "Byt till svensk version"
+msgstr "Byt till den svenska versionen"
 
 #: lib/tcg_cheap/countries/sweden.ex:128
 #, elixir-autogen, elixir-format
