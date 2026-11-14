@@ -25,6 +25,12 @@ defmodule TcgCheapWeb.SingleLive do
         primary = Enum.find(page.answers, & &1.cheapest) || hd(page.answers)
 
         polish? = Region.poland?(socket.assigns.region)
+        market = socket.assigns.region.market
+
+        # The euro's rate in the region's currency, behind its Cardmarket
+        # prices and their rate note: the card's own EUR/PLN rate in Poland.
+        euro_rate =
+          if polish?, do: page.rate, else: Guide.cardmarket_rate(market, Date.utc_today())
 
         {:ok,
          socket
@@ -32,13 +38,15 @@ defmodule TcgCheapWeb.SingleLive do
            primary: primary,
            page: page,
            polish?: polish?,
-           trend: if(!polish?, do: regional_trend(page, primary.variant)),
+           euro_rate: euro_rate,
+           trend:
+             if(!polish?, do: regional_trend(page.price, primary.variant, euro_rate, market)),
            booster:
              Guide.set_booster(
                card.tcgdex_set.cardmarket_expansion_id,
                name,
                DateTime.utc_now(),
-               socket.assigns.region.market
+               market
              ),
            versions:
              if(primary.cheapest || !polish?,
@@ -95,9 +103,9 @@ defmodule TcgCheapWeb.SingleLive do
   end
 
   # The variant's Cardmarket trend in the region's currency, without delivery.
-  defp regional_trend(%{price: price, rate: rate}, variant) do
+  defp regional_trend(price, variant, euro_rate, market) do
     trend = if variant == :reverse, do: price && price.trend_holo, else: price && price.trend
-    trend |> Guide.to_pln(rate) |> Region.from_pln()
+    Guide.in_market(trend, euro_rate, market)
   end
 
   defp group(%{grading: grade, in_stock: false}) when is_binary(grade), do: :graded_out
@@ -264,6 +272,7 @@ defmodule TcgCheapWeb.SingleLive do
                   href={cardmarket_url(@page.card.cardmarket_id)}
                 /><span>{gettext("trend na Cardmarket, bez wysyłki")}</span>
               </p>
+              <p :if={@trend} id="single-rate" class="guide-note">{euro_rate_note(@euro_rate)}</p>
               <p :if={!@trend} id="single-empty" class="guide-note">
                 {gettext("Brak ceny Cardmarket")}
               </p>
@@ -325,8 +334,8 @@ defmodule TcgCheapWeb.SingleLive do
                     )}
                   </p>
                   <p>{gettext("Porównujemy karty bez oceny. Sprawdź wariant i stan w sklepie.")}</p>
-                  <p :if={@page.rate}>
-                    {euro_rate_note(@page.rate)}
+                  <p :if={@euro_rate}>
+                    {euro_rate_note(@euro_rate)}
                   </p>
                 </.verdict_method>
               </div>
