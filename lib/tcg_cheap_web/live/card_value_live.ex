@@ -8,12 +8,13 @@ defmodule TcgCheapWeb.CardValueLive do
   """
 
   use TcgCheapWeb, :live_view
+
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.GuideComponents
 
   alias TcgCheap.Sealed.{CardGuide, CardValue}
-  alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Paths, Polish, SEO, VisitorLocation}
 
   # The guide answers with the first few cards; the card list has the rest.
   @shown 5
@@ -72,7 +73,12 @@ defmodule TcgCheapWeb.CardValueLive do
     <Layouts.app flash={@flash}>
       <SEO.sync seo={@seo} />
       <div class="guide-world">
-        <.site_header locale={@locale} return_to={@locale_return_to}>
+        <.site_header
+          region={@region}
+          locale={@locale}
+          current_path={@current_path}
+          region_hint={@region_hint}
+        >
           <VisitorLocation.location_control
             location={@location}
             ready={@location_ready?}
@@ -84,7 +90,7 @@ defmodule TcgCheapWeb.CardValueLive do
         <main id="card-value" class="guide-main expensive-cards">
           <article class="expensive-article">
             <header class="expensive-intro expensive-column">
-              <.link id="card-value-back" navigate={~p"/karty"} class="guide-back">
+              <.link id="card-value-back" navigate={Paths.cards()} class="guide-back">
                 <.fluent_icon name={:arrow_left} />{gettext("Wszystkie karty")}
               </.link>
               <p class="expensive-kicker">
@@ -110,7 +116,7 @@ defmodule TcgCheapWeb.CardValueLive do
               <.form
                 for={@form}
                 id="value-search-form"
-                action={~p"/karty"}
+                action={Paths.cards()}
                 method="get"
                 phx-change="search"
                 phx-submit="search"
@@ -148,7 +154,7 @@ defmodule TcgCheapWeb.CardValueLive do
                 <.link
                   :if={@result_count > length(@results)}
                   id="value-all-results"
-                  navigate={~p"/karty?#{[q: @query]}"}
+                  navigate={Paths.cards(q: @query)}
                   class="value-all-results"
                 >
                   {gettext("Wszystkie wyniki: %{count}", count: @result_count)}&nbsp;→
@@ -204,7 +210,7 @@ defmodule TcgCheapWeb.CardValueLive do
                   "Drogie są karty rzadkie: sekretne, z ilustracją na całą kartę, złote, a ze starych – pierwsze wydania w idealnym stanie. Które karty są najdroższe i dlaczego, opowiadamy w artykule"
                 )
                 |> glue_short_words()}
-                <.link navigate={~p"/najdrozsze-karty-pokemon"}>{gettext("Najdroższe karty Pokémon")}</.link>.
+                <.link navigate={Paths.page(:expensive_cards)}>{gettext("Najdroższe karty Pokémon")}</.link>.
               </p>
             </section>
 
@@ -389,7 +395,7 @@ defmodule TcgCheapWeb.CardValueLive do
                   "Jeden punkt oceny potrafi zmienić cenę kilkunastokrotnie – widać to na rekordach z aukcji, które opisujemy w artykule"
                 )
                 |> glue_short_words()}
-                <.link navigate={~p"/najdrozsze-karty-pokemon#rekordy"}>{gettext("Najdroższe karty Pokémon")}</.link>. {gettext(
+                <.link navigate={~p"/pl/najdrozsze-karty-pokemon#rekordy"}>{gettext("Najdroższe karty Pokémon")}</.link>. {gettext(
                   "Ale to wyjątki: ocena kosztuje, a dziesiątki nikt nie gwarantuje."
                 )
                 |> glue_short_words()}
@@ -470,7 +476,7 @@ defmodule TcgCheapWeb.CardValueLive do
                   "Niektóre tak. Najrzadsze karty z lat 90. w idealnym stanie sprzedają się na aukcjach za tysiące dolarów –"
                 )
                 |> glue_short_words()}
-                <.link navigate={~p"/najdrozsze-karty-pokemon#rekordy"}>{gettext("rekordy opisujemy tutaj")}</.link>. {gettext(
+                <.link navigate={~p"/pl/najdrozsze-karty-pokemon#rekordy"}>{gettext("rekordy opisujemy tutaj")}</.link>. {gettext(
                   "Zwykłe, zagrane karty z tamtych lat zwykle kosztują niewiele. Ceny starych kart mocno zależą od stanu, więc traktuj je jako orientacyjne."
                 )
                 |> glue_short_words()}
@@ -574,7 +580,7 @@ defmodule TcgCheapWeb.CardValueLive do
   defp example_tile(assigns) do
     ~H"""
     <.link
-      navigate={@row.card.public_path}
+      navigate={Paths.localize(@row.card.public_path)}
       class="expensive-tile"
       data-track="card_clicked"
       data-track-placement="card_value_example"

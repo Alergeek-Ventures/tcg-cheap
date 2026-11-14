@@ -8,8 +8,8 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   use TcgCheapWeb, :verified_routes
 
-  alias TcgCheap.Sealed.{CardGuide, Kinds, PriceGuide, Rarities, Regions, RetailDeal}
-  alias TcgCheapWeb.{CardRecords, GuideComponents, Polish, SEO}
+  alias TcgCheap.Sealed.{CardGuide, Guide, Kinds, PriceGuide, Rarities, Regions, RetailDeal}
+  alias TcgCheapWeb.{CardRecords, GuideComponents, Paths, Polish, Region, SEO}
 
   @doc "The markdown version's URL of a page's canonical URL."
   @spec url_for(String.t()) :: String.t()
@@ -17,11 +17,16 @@ defmodule TcgCheapWeb.PageMarkdown do
     if String.ends_with?(canonical, "/"), do: canonical <> "index.md", else: canonical <> ".md"
   end
 
-  @doc "How the guide rates a price, for the home page and llms.txt."
+  @doc "How the guide rates a price, for the home page and llms.txt, in the current region."
   @spec method() :: [String.t()]
   def method do
     [
-      "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie. Ceny polskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Polski.",
+      if(polish?(),
+        do:
+          "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie. Ceny polskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Polski.",
+        else:
+          "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, w #{Polish.currency_symbol()}. Ceny sklepów z kraju nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do tego kraju."
+      ),
       "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej #{PriceGuide.min_shops()} sklepy).",
       "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich #{PriceGuide.window_days()} dni i trendu Cardmarket w złotych z przesyłką z Niemiec, gdy są znane.",
       "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w złotych.",
@@ -32,15 +37,16 @@ defmodule TcgCheapWeb.PageMarkdown do
   def home(seo, summaries, retail_deal, today) do
     page(seo, today, [
       section("Jak oceniamy cenę", list(method())),
-      section(
-        "Ile kosztuje booster",
-        [
-          retail_deal &&
-            "W sieciówkach: #{if retail_deal.product, do: retail_deal.product.name, else: retail_deal.title} #{Polish.price(retail_deal.price)}, #{RetailDeal.chain_name(retail_deal.chain)} #{Polish.days(retail_deal.starts_on, retail_deal.ends_on)}.",
-          "Ceny boosterów i wszystkie okazje w sieciówkach: #{url_for(url(~p"/ile-kosztuje-booster-pokemon"))}"
-        ]
-        |> Enum.filter(&is_binary/1)
-      ),
+      polish?() &&
+        section(
+          "Ile kosztuje booster",
+          [
+            retail_deal &&
+              "W sieciówkach: #{if retail_deal.product, do: retail_deal.product.name, else: retail_deal.title} #{Polish.price(retail_deal.price)}, #{RetailDeal.chain_name(retail_deal.chain)} #{Polish.days(retail_deal.starts_on, retail_deal.ends_on)}.",
+            "Ceny boosterów i wszystkie okazje w sieciówkach: #{url_for(Paths.url(Paths.page(:booster_prices)))}"
+          ]
+          |> Enum.filter(&is_binary/1)
+        ),
       section(
         "Produkty",
         [
@@ -54,7 +60,11 @@ defmodule TcgCheapWeb.PageMarkdown do
   def cards(seo, cards, today) do
     page(seo, today, [
       section("Karty", [
-        "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepów za granicą z wysyłką) i ocena wobec Cardmarket z przesyłką. Pełna lista rozszerzeń: #{url(~p"/llms.txt")}",
+        if(polish?(),
+          do:
+            "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepów za granicą z wysyłką) i ocena wobec Cardmarket z przesyłką. Pełna lista rozszerzeń: #{url(~p"/llms.txt")}",
+          else: "Angielskie karty z trendem Cardmarket, bez dostawy."
+        ),
         cards_table(cards)
       ])
     ])
@@ -67,7 +77,7 @@ defmodule TcgCheapWeb.PageMarkdown do
         list([
           "Emocji z otwierania: same boostery – pojedynczo, w Booster Bundle (6) albo w Booster Boxie (36).",
           "Jednej konkretnej karty: kup ją osobno, booster to loteria – " <>
-            link("ceny kart w sklepach", url(~p"/karty")) <> ".",
+            link("ceny kart w sklepach", Paths.url(Paths.cards())) <> ".",
           "Prezentu: Elite Trainer Box, puszka albo kolekcja – płacisz też za opakowanie i dodatki.",
           "Grania: Build & Battle Box (talia 40 kart i cztery boostery) albo gotowa talia 60 kart."
         ])
@@ -93,7 +103,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       ["Set", "Premiera", "Rodzaj", "Booster od", "Elite Trainer Box od"],
       Enum.map(sets, fn set ->
         [
-          link(set.name, url(~p"/produkty/#{set.booster.product.slug}")),
+          link(set.name, Paths.url(Paths.product(set.booster.product.slug))),
           if(set.released_on, do: Date.to_iso8601(set.released_on), else: "–"),
           if(set.booster_box?, do: "zwykły", else: "specjalny (bez Booster Boxa)"),
           Polish.price(set.booster.verdict.cheapest.price),
@@ -111,7 +121,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     rows =
       for box <- products, box.extra do
         [
-          link(box.product.name, url(~p"/produkty/#{box.product.slug}")),
+          link(box.product.name, Paths.url(Paths.product(box.product.slug))),
           Polish.zloty(box.price) <>
             if(box.few_shops?, do: " (najniższa, mało sklepów)", else: ""),
           "#{Polish.plural(box.boosters, "booster", "boostery", "boosterów")} po #{Polish.zloty(box.single)}: #{Polish.zloty(box.loose)}",
@@ -195,7 +205,7 @@ defmodule TcgCheapWeb.PageMarkdown do
           "Numer: na dole karty, np. 161/131 – karta 161 z rozszerzenia, które ma 131 kart; obok kod rozszerzenia i język. Numer większy niż liczba kart oznacza kartę sekretną. Na starych kartach numer jest w prawym dolnym rogu.",
           "Wersja: zwykła, reverse holo albo pierwsze wydanie (znaczek „Edition 1” na starych kartach) mają osobne ceny.",
           "Stan: zagięcia, rysy i obite rogi wyraźnie obniżają cenę.",
-          "Cena: wyszukaj kartę po nazwie albo numerze (także 161/131) na #{url(~p"/karty")}; strona karty ma ceny w sklepach i cenę na Cardmarket.",
+          "Cena: wyszukaj kartę po nazwie albo numerze (także 161/131) na #{Paths.url(Paths.cards())}; strona karty ma ceny w sklepach i cenę na Cardmarket.",
           "Ocena (grading): tylko przy kartach wartych setki złotych i w idealnym stanie."
         ])
       ),
@@ -261,7 +271,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     page(seo, page.today, [
       section("Werdykt", list(verdict_facts(page))),
       section("Produkt", list(product_facts(product))),
-      section("Oferty", offers_table(page.offers, page.today)),
+      section("Oferty", offers_table(page.offers, page.compared, page.today)),
       retail_deals("W sieciówkach", page.retail_deals),
       page.booster_set && pull_rates(page.booster_set)
     ])
@@ -280,7 +290,10 @@ defmodule TcgCheapWeb.PageMarkdown do
     today = Date.utc_today()
 
     page(seo, today, [
-      section("Ceny", list(Enum.map(page.answers, &single_answer/1))),
+      if(polish?(),
+        do: section("Ceny", list(Enum.map(page.answers, &single_answer/1))),
+        else: section("Cardmarket", cardmarket_trend(page))
+      ),
       section(
         "Karta",
         list([
@@ -293,9 +306,20 @@ defmodule TcgCheapWeb.PageMarkdown do
           card.rarity && "Rzadkość: #{Rarities.label(card.rarity)}"
         ])
       ),
-      section("Oferty", card_offers_table(page.offers, today))
+      polish?() && section("Oferty", card_offers_table(page.offers, today))
     ])
   end
+
+  defp cardmarket_trend(%{price: price, rate: rate}) do
+    trend = price && price.trend
+
+    case trend |> Guide.to_pln(rate) |> Region.from_pln() do
+      nil -> "Brak ceny Cardmarket."
+      value -> "Trend Cardmarket: #{Polish.price(value)} (#{Polish.eur(trend)}), bez dostawy."
+    end
+  end
+
+  defp polish?, do: Region.poland?(Region.current())
 
   def not_found do
     """
@@ -379,7 +403,7 @@ defmodule TcgCheapWeb.PageMarkdown do
           [
             RetailDeal.chain_name(deal.chain),
             if(deal.product,
-              do: link(deal.title, url(~p"/produkty/#{deal.product.slug}")),
+              do: link(deal.title, Paths.url(Paths.product(deal.product.slug))),
               else: deal.title
             ),
             Polish.price(deal.price),
@@ -394,15 +418,16 @@ defmodule TcgCheapWeb.PageMarkdown do
     ])
   end
 
-  defp offers_table([], _today), do: "Żaden sklep nie ma teraz tej oferty."
+  defp offers_table([], _compared, _today), do: "Żaden sklep nie ma teraz tej oferty."
 
-  defp offers_table(offers, today) do
+  # At the compared price, as the HTML rows: a shop abroad's with delivery.
+  defp offers_table(offers, compared, today) do
     table(
       ["Sklep", "Cena", "Dostępność"],
       Enum.map(offers, fn offer ->
         [
           link(offer_shop(offer), offer.url),
-          Polish.price(GuideComponents.row_price(offer)),
+          Polish.price(compared[offer.id] || offer.price),
           availability(offer, today)
         ]
       end)
@@ -434,6 +459,26 @@ defmodule TcgCheapWeb.PageMarkdown do
   defp cards_table([]), do: "Brak kart na stanie."
 
   defp cards_table(cards) do
+    if polish?(), do: polish_cards_table(cards), else: cardmarket_cards_table(cards)
+  end
+
+  # Singles have shop prices only in Poland: elsewhere Cardmarket's trend.
+  defp cardmarket_cards_table(cards) do
+    table(
+      ["Karta", "Rozszerzenie", "Trend Cardmarket"],
+      Enum.map(cards, fn row ->
+        price = GuideComponents.card_price(%{cardmarket_trend_pln: row.cardmarket_trend_pln})
+
+        [
+          link("#{row.card.name} #{row.card.number}", url_from_path(row.path)),
+          row.expansion_name,
+          if(price, do: Polish.price(price), else: "brak ceny")
+        ]
+      end)
+    )
+  end
+
+  defp polish_cards_table(cards) do
     table(
       ["Karta", "Rozszerzenie", "Najtaniej", "Ocena"],
       Enum.map(cards, fn row ->
@@ -458,7 +503,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       ["Produkt", "Rodzaj", "Najtaniej", "Ocena"],
       Enum.map(summaries, fn %{product: product, verdict: verdict} = summary ->
         [
-          link(product.name, url(~p"/produkty/#{product.slug}")),
+          link(product.name, Paths.url(Paths.product(product.slug))),
           Kinds.label(product.kind),
           cheapest(summary),
           GuideComponents.verdict_label(verdict)
@@ -528,7 +573,9 @@ defmodule TcgCheapWeb.PageMarkdown do
     name = "#{card.name} #{card.number}"
     title = if card.public_path, do: link(name, url_from_path(card.public_path)), else: name
 
-    case {CardGuide.price(card), CardGuide.price_source(card)} do
+    source = if polish?(), do: CardGuide.price_source(card), else: :cardmarket
+
+    case {GuideComponents.card_price(card), source} do
       {nil, _source} ->
         title
 
@@ -581,5 +628,6 @@ defmodule TcgCheapWeb.PageMarkdown do
       |> String.split("_")
       |> Enum.map_join(" ", &String.capitalize/1)
 
-  defp url_from_path(path), do: unverified_url(TcgCheapWeb.Endpoint, path)
+  # A card path from the domain, in the region's form.
+  defp url_from_path(path), do: path |> Paths.localize() |> Paths.url()
 end

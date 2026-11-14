@@ -2,7 +2,7 @@ defmodule TcgCheapWeb.MarkdownNegotiation do
   @moduledoc """
   Routes the markdown versions of the guide's pages to
   `TcgCheapWeb.MarkdownController` under `/md`: a page's path with `.md`
-  (`/index.md` for the home page), or the page itself requested with
+  (`/pl/index.md` for a region's home page), or the page itself requested with
   `Accept: text/markdown` preferred over HTML. Browsers, link previews and
   `*/*` keep getting HTML.
   """
@@ -46,18 +46,17 @@ defmodule TcgCheapWeb.MarkdownNegotiation do
     end
   end
 
-  defp home(["index"]), do: []
+  defp home([region, "index"]), do: [region]
   defp home(path_info), do: path_info
 
-  defp guide_page?([]), do: true
-  defp guide_page?(["karty"]), do: true
-  defp guide_page?(["ile-kosztuje-booster-pokemon"]), do: true
-  defp guide_page?(["najdrozsze-karty-pokemon"]), do: true
-  defp guide_page?(["jak-sprawdzic-wartosc-karty-pokemon"]), do: true
-  defp guide_page?(["produkty", _slug]), do: true
-  defp guide_page?(["rozszerzenia", _slug]), do: true
-  defp guide_page?(["rozszerzenia", _slug, "karty", _card_slug]), do: true
-  defp guide_page?(_path_info), do: false
+  # Every page of a region (`TcgCheapWeb.Paths`) but the bot page.
+  defp guide_page?(path_info) do
+    case TcgCheapWeb.Paths.parse("/" <> Enum.join(path_info, "/")) do
+      {:ok, _region, :bot} -> false
+      {:ok, _region, _page} -> true
+      :error -> false
+    end
+  end
 
   # Markdown only when the client names it and rates it at least as high as
   # HTML: agents that ask for markdown first, never a plain `*/*`.

@@ -7,12 +7,13 @@ defmodule TcgCheapWeb.BotLive do
   """
 
   use TcgCheapWeb, :live_view
+
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.GuideComponents
 
   alias TcgCheap.Sealed.Shops
-  alias TcgCheapWeb.{Polish, SEO}
+  alias TcgCheapWeb.{Paths, Polish, SEO}
 
   @contact "franek@alergeek.ventures"
 
@@ -35,9 +36,14 @@ defmodule TcgCheapWeb.BotLive do
     <Layouts.app flash={@flash}>
       <SEO.sync seo={@seo} />
       <div class="guide-world">
-        <.site_header locale={@locale} return_to={@locale_return_to} />
-        <main id="bot" class="guide-main bot-page" data-guide-url={@locale_return_to}>
-          <.link id="bot-back" data-guide-back navigate={~p"/"} class="guide-back">
+        <.site_header
+          region={@region}
+          locale={@locale}
+          current_path={@current_path}
+          region_hint={@region_hint}
+        />
+        <main id="bot" class="guide-main bot-page" data-guide-url={@current_path}>
+          <.link id="bot-back" data-guide-back navigate={Paths.home()} class="guide-back">
             <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
           </.link>
 

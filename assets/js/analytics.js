@@ -18,13 +18,16 @@ let pendingSearch = null
 // Whether this page sent a search since the field was last cleared.
 let searchSent = false
 
+// Pages by kind, whatever their region (TcgCheapWeb.Paths): /pl/produkty/… and
+// /hu/termekek/… are both products.
 const pageType = path => {
-  if (path === "/") return "home"
-  if (path === "/karty") return "cards"
-  if (path.startsWith("/produkty/")) return "product"
-  if (path === "/ile-kosztuje-booster-pokemon") return "booster_prices"
-  if (/^\/rozszerzenia\/[^/]+\/karty\//.test(path)) return "card"
-  if (path.startsWith("/rozszerzenia/")) return "set"
+  const page = path.replace(/^\/(pl|hu)(?=\/|$)/, "")
+  if (page === "" || page === "/") return "home"
+  if (page === "/karty" || page === "/kartyak") return "cards"
+  if (/^\/(produkty|termekek)\//.test(page)) return "product"
+  if (page === "/ile-kosztuje-booster-pokemon") return "booster_prices"
+  if (/^\/(rozszerzenia\/[^/]+\/karty|szettek\/[^/]+\/kartyak)\//.test(page)) return "card"
+  if (/^\/(rozszerzenia|szettek)\//.test(page)) return "set"
   return "other"
 }
 
@@ -44,6 +47,9 @@ const pageContext = () => ({
   $pathname: window.location.pathname,
   page_type: pageType(window.location.pathname),
   locale: document.documentElement.lang,
+  // Region (which shops and currency) and language (the text) are separate.
+  region: document.documentElement.dataset.region || null,
+  language: document.documentElement.lang,
   has_location: hasLocation(),
 })
 

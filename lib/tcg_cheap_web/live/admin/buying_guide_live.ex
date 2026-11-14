@@ -12,7 +12,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.ShopStatus
   alias TcgCheap.Sealed.{Kinds, Matcher, Refresh, Shops}
-  alias TcgCheapWeb.Polish
+  alias TcgCheapWeb.{Paths, Polish}
 
   @result_limit 10
   @matched_limit 50
@@ -354,7 +354,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
                         <a href={offer.url} target="_blank" rel="noopener nofollow">{offer.title}</a>
                       </td>
                       <td>
-                        <.link navigate={~p"/produkty/#{offer.product.slug}"}>{offer.product.name}</.link>
+                        <.link navigate={Paths.product(offer.product.slug)}>{offer.product.name}</.link>
                       </td>
                       <td class="admin-nowrap">{Polish.price(offer.price)}</td>
                       <td class="admin-nowrap">
@@ -405,7 +405,7 @@ defmodule TcgCheapWeb.Admin.BuyingGuideLive do
                       <td class="admin-nowrap">{Shops.name(offer.shop)}</td>
                       <td>{offer.title}</td>
                       <td>
-                        <.link :if={offer.product} navigate={~p"/produkty/#{offer.product.slug}"}>
+                        <.link :if={offer.product} navigate={Paths.product(offer.product.slug)}>
                           {offer.product.name}
                         </.link>
                         <span :if={is_nil(offer.product)}>Never matched</span>

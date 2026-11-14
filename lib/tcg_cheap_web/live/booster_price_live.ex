@@ -14,12 +14,13 @@ defmodule TcgCheapWeb.BoosterPriceLive do
   """
 
   use TcgCheapWeb, :live_view
+
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.GuideComponents
 
   alias TcgCheap.Sealed.{BoosterGuide, CardImage}
-  alias TcgCheapWeb.{Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Paths, Polish, SEO, VisitorLocation}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -71,7 +72,12 @@ defmodule TcgCheapWeb.BoosterPriceLive do
     <Layouts.app flash={@flash}>
       <SEO.sync seo={@seo} />
       <div class="guide-world">
-        <.site_header locale={@locale} return_to={@locale_return_to}>
+        <.site_header
+          region={@region}
+          locale={@locale}
+          current_path={@current_path}
+          region_hint={@region_hint}
+        >
           <VisitorLocation.location_control
             location={@location}
             ready={@location_ready?}
@@ -83,7 +89,12 @@ defmodule TcgCheapWeb.BoosterPriceLive do
         <main id="booster-prices" class="guide-main expensive-cards">
           <article class="expensive-article">
             <header class="expensive-intro expensive-column">
-              <.link id="booster-prices-back" data-guide-back navigate={~p"/"} class="guide-back">
+              <.link
+                id="booster-prices-back"
+                data-guide-back
+                navigate={Paths.home()}
+                class="guide-back"
+              >
                 <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
               </.link>
               <p class="expensive-kicker">
@@ -474,7 +485,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
           </span>
         </div>
         <.link
-          navigate={~p"/produkty/#{set.booster.product.slug}"}
+          navigate={Paths.product(set.booster.product.slug)}
           class="boosters-set-price"
           style={"--share: #{Float.round(Decimal.to_float(set.booster.verdict.cheapest.price) / @top, 4)}"}
         >
@@ -483,7 +494,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
         </.link>
         <span class="boosters-set-etb">
           <%= if set.etb do %>
-            <.link navigate={~p"/produkty/#{set.etb.product.slug}"}>
+            <.link navigate={Paths.product(set.etb.product.slug)}>
               {gettext("ETB od %{price}", price: amount(set.etb.verdict.cheapest.price))}
             </.link>
           <% else %>
@@ -625,7 +636,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
           <div class="boosters-today-main">
             <.contents_strip box={@entry.box} sets={@sets} />
             <p class="boosters-today-price">
-              <.link navigate={~p"/produkty/#{@entry.box.product.slug}"}>{@entry.box.product.name}</.link>: {price_line(
+              <.link navigate={Paths.product(@entry.box.product.slug)}>{@entry.box.product.name}</.link>: {price_line(
                 @entry.box
               )}
             </p>
@@ -819,7 +830,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
     card = %{
       title: gettext("Chcę jedną konkretną kartę"),
       teaser: gettext("Kup ją osobno. Booster to loteria"),
-      href: ~p"/karty",
+      href: Paths.cards(),
       image: ~p"/images/guides/umbreon-ex-161.webp"
     }
 

@@ -2,11 +2,11 @@ defmodule TcgCheapWeb.SetComponents do
   @moduledoc "A set's pull rates and cards, shown on its single booster's page and on the set's page."
 
   use TcgCheapWeb, :html
+
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.CardGuide
   alias TcgCheap.Sealed.PullRates.Rate
-  alias TcgCheapWeb.Polish
+  alias TcgCheapWeb.{GuideComponents, Paths, Polish, Region}
 
   @doc "A set's pull rates per rarity, with their sources, or a note that none are known yet."
   attr :pull_rates, :map, required: true
@@ -256,7 +256,7 @@ defmodule TcgCheapWeb.SetComponents do
             <span class="set-cards-number">{card.number}</span>
             <.link
               :if={Map.get(card, :public_path)}
-              navigate={card.public_path}
+              navigate={Paths.localize(card.public_path)}
               class="single-card-name"
             >{card.name}</.link>
             <span :if={!Map.get(card, :public_path)}>{card.name}</span>
@@ -266,7 +266,13 @@ defmodule TcgCheapWeb.SetComponents do
       </details>
     </div>
     <p class="guide-note table-note">
-      {gettext("Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w złotych, co tańsze.")}
+      {if(Region.poland?(Region.current()),
+        do:
+          gettext(
+            "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w złotych, co tańsze."
+          ),
+        else: gettext("Trend Cardmarket, bez dostawy.")
+      )}
     </p>
     """
   end
@@ -274,12 +280,7 @@ defmodule TcgCheapWeb.SetComponents do
   attr :card, :map, required: true
 
   defp card_price(assigns) do
-    assigns =
-      assign(
-        assigns,
-        :price,
-        CardGuide.price(assigns.card)
-      )
+    assigns = assign(assigns, :price, GuideComponents.card_price(assigns.card))
 
     ~H"""
     <span :if={@price} class="set-cards-price">{Polish.price(@price)}</span>

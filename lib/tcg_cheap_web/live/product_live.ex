@@ -5,15 +5,16 @@ defmodule TcgCheapWeb.ProductLive do
   """
 
   use TcgCheapWeb, :live_view
+
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.GuideComponents
   import TcgCheapWeb.SetComponents
 
   alias TcgCheap.Sealed.CardImage
-  alias TcgCheap.Sealed.{Guide, Kinds, PriceGuide, Regions, RetailDeal, Shops}
+  alias TcgCheap.Sealed.{Guide, Kinds, Market, PriceGuide, Regions, RetailDeal, Shops}
   alias TcgCheap.Sealed.PullRates.Rate
-  alias TcgCheapWeb.{Analytics, Polish, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Paths, Polish, Region, SEO, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -22,7 +23,9 @@ defmodule TcgCheapWeb.ProductLive do
 
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
-    case Guide.product(slug, DateTime.utc_now()) do
+    market = socket.assigns.region.market
+
+    case Guide.product(slug, DateTime.utc_now(), market) do
       {:ok, page} ->
         seo = SEO.product(page)
 
@@ -36,7 +39,7 @@ defmodule TcgCheapWeb.ProductLive do
          |> assign(:in_stock_count, length(in_stock))
          |> assign(:preorder_count, length(preorder))
          |> assign(:out_of_stock_count, length(out_of_stock))
-         |> assign(:from_set, from_set(page.product, in_stock))
+         |> assign(:from_set, from_set(page.product, in_stock, market))
          |> VisitorLocation.assign_location()
          |> stream_offers()
          |> track_view(page)}
@@ -48,14 +51,14 @@ defmodule TcgCheapWeb.ProductLive do
 
   # A product nobody has in stock sends the visitor to what its set has
   # instead, nil when it has nothing or the product names no set.
-  defp from_set(%{set_name: name} = product, []) when is_binary(name) do
-    case Guide.in_stock_from_set(product, DateTime.utc_now()) do
+  defp from_set(%{set_name: name} = product, [], market) when is_binary(name) do
+    case Guide.in_stock_from_set(product, DateTime.utc_now(), market) do
       %{products: [], cards: 0} -> nil
       from_set -> from_set
     end
   end
 
-  defp from_set(_product, _in_stock), do: nil
+  defp from_set(_product, _in_stock, _market), do: nil
 
   # Once per visit to the page: a reconnect mounts it again.
   defp track_view(socket, page) do
@@ -118,8 +121,14 @@ defmodule TcgCheapWeb.ProductLive do
     <Layouts.app flash={@flash}>
       <SEO.sync seo={@seo} />
       <div class="guide-world">
-        <.site_header locale={@locale} return_to={@locale_return_to}>
+        <.site_header
+          region={@region}
+          locale={@locale}
+          current_path={@current_path}
+          region_hint={@region_hint}
+        >
           <VisitorLocation.location_control
+            :if={Region.poland?(@region)}
             location={@location}
             ready={@location_ready?}
             form={@town_form}
@@ -130,11 +139,11 @@ defmodule TcgCheapWeb.ProductLive do
         <main
           id="product-main"
           class="guide-main product-page"
-          data-guide-url={@locale_return_to}
+          data-guide-url={@current_path}
           data-track-context
           data-track-product-slug={@page.product.slug}
         >
-          <.link id="product-back" data-guide-back navigate={~p"/"} class="guide-back">
+          <.link id="product-back" data-guide-back navigate={Paths.home()} class="guide-back">
             <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
           </.link>
 
@@ -160,10 +169,11 @@ defmodule TcgCheapWeb.ProductLive do
                   }
                 >{@page.product.set_name}</.link><span :if={!@page.product.cardmarket_expansion_id}>{@page.product.set_name}</span></span><span id="product-region">
                   {gettext("· wersja %{edition}",
+                    # English capitalises a language's name mid-sentence; Polish and Hungarian do not.
                     edition:
-                      if(@locale == "pl",
-                        do: String.downcase(Regions.label(@page.product.region)),
-                        else: Regions.label(@page.product.region)
+                      if(@locale == "en",
+                        do: Regions.label(@page.product.region),
+                        else: String.downcase(Regions.label(@page.product.region))
                       )
                   )}
                 </span>
@@ -227,6 +237,7 @@ defmodule TcgCheapWeb.ProductLive do
                 :for={{dom_id, offer} <- @streams.offers}
                 id={dom_id}
                 offer={offer}
+                compared={@page.compared[offer.id]}
                 location={@location}
                 today={@page.today}
               />
@@ -252,6 +263,7 @@ defmodule TcgCheapWeb.ProductLive do
                   :for={{dom_id, offer} <- @streams.offers_preorder}
                   id={dom_id}
                   offer={offer}
+                  compared={@page.compared[offer.id]}
                   location={@location}
                   today={@page.today}
                 />
@@ -276,6 +288,7 @@ defmodule TcgCheapWeb.ProductLive do
                   :for={{dom_id, offer} <- @streams.offers_out_of_stock}
                   id={dom_id}
                   offer={offer}
+                  compared={@page.compared[offer.id]}
                   location={@location}
                   today={@page.today}
                 />
@@ -375,7 +388,10 @@ defmodule TcgCheapWeb.ProductLive do
   defp retail_deal_line(deals),
     do:
       gettext("W sieciówkach: %{prices}",
-        prices: Polish.plural(length(deals), "cena z gazetki", "ceny z gazetek", "cen z gazetek")
+        prices:
+          ngettext("%{number} cena z gazetki", "%{number} ceny z gazetek", length(deals),
+            number: Polish.number(length(deals))
+          )
       )
 
   defp shipping(shop, price) do
@@ -459,7 +475,7 @@ defmodule TcgCheapWeb.ProductLive do
             <span class="contents-label">
               <%= cond do %>
                 <% booster = booster(item, @boosters) -> %>
-                  <.link navigate={~p"/produkty/#{booster.slug}"}>{label}</.link>
+                  <.link navigate={Paths.product(booster.slug)}>{label}</.link>
                 <% @odds? and item.type == :other -> %>
                   <%!-- A single booster holds only its random cards besides energy and a code: their chances are below. --%>
                   <a href="#product-pull-rates">{label}</a>
@@ -511,7 +527,7 @@ defmodule TcgCheapWeb.ProductLive do
             <% booster_photo = booster_photo(item, @boosters) -> %>
               <%!-- The name beside it is the link people and screen readers use. --%>
               <.link
-                navigate={~p"/produkty/#{booster(item, @boosters).slug}"}
+                navigate={Paths.product(booster(item, @boosters).slug)}
                 class="contents-photo contents-photo-page"
                 tabindex="-1"
                 aria-hidden="true"
@@ -913,22 +929,25 @@ defmodule TcgCheapWeb.ProductLive do
     """
   end
 
+  # Only Poland's history keeps the Cardmarket trend.
   defp chart_series(page) do
-    [
-      %{
-        key: "shops",
-        label: gettext("Najniższa cena w sklepach"),
-        class: "shops",
-        points: Enum.map(page.history, &{&1.date, &1.lowest_price})
-      },
-      %{
-        key: "cardmarket",
-        label: gettext("Cardmarket (w zł)"),
-        class: "cardmarket",
-        points:
-          Enum.map(page.history, &{&1.date, Guide.to_pln(&1.cardmarket_trend, page.eur_pln)})
-      }
-    ]
+    shops = %{
+      key: "shops",
+      label: gettext("Najniższa cena w sklepach"),
+      class: "shops",
+      points: Enum.map(page.history, &{&1.date, &1.lowest_price})
+    }
+
+    if page.market == Market.poland(), do: [shops, cardmarket_series(page)], else: [shops]
+  end
+
+  defp cardmarket_series(page) do
+    %{
+      key: "cardmarket",
+      label: gettext("Cardmarket (w zł)"),
+      class: "cardmarket",
+      points: Enum.map(page.history, &{&1.date, Guide.to_pln(&1.cardmarket_trend, page.eur_pln)})
+    }
   end
 
   attr :nearby, :any, required: true

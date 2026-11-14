@@ -63,6 +63,8 @@ defmodule TcgCheapWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+  plug :reset_locale
+  plug TcgCheapWeb.LegacyPaths
   plug TcgCheapWeb.MarkdownNegotiation
   plug TcgCheapWeb.Router
 
@@ -71,4 +73,12 @@ defmodule TcgCheapWeb.Endpoint do
   # A page loads dozens of images; StoredImageController logs its failures.
   def log_level(%Plug.Conn{path_info: ["img" | _]}), do: false
   def log_level(_conn), do: :info
+
+  # A connection's process serves its requests one after another: one must
+  # not inherit the region or language the previous one rendered in. Guide
+  # pages set their own (TcgCheapWeb.Locale); the rest are Polish.
+  defp reset_locale(conn, _opts) do
+    TcgCheapWeb.Locale.put(TcgCheapWeb.Region.poland(), "pl")
+    conn
+  end
 end

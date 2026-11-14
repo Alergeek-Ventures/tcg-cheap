@@ -8,6 +8,9 @@ defmodule TcgCheapWeb.SetCanonical do
   redirected URL in its results instead of the set page.
 
   The card list moved from `/?widok=karty` to `/karty`, keeping its filters.
+
+  Paths are the current region's; `TcgCheapWeb.LegacyPaths` and the root
+  resolve the paths before regions with `resolve/2` in one hop.
   """
 
   use TcgCheapWeb, :verified_routes
@@ -15,7 +18,7 @@ defmodule TcgCheapWeb.SetCanonical do
   import Plug.Conn
 
   alias TcgCheap.Sealed.Guide
-  alias TcgCheapWeb.SEO
+  alias TcgCheapWeb.{Paths, SEO}
 
   def init(opts), do: opts
 
@@ -24,7 +27,7 @@ defmodule TcgCheapWeb.SetCanonical do
 
     # Nested params cannot be carried over; HomeLive ignores them anyway.
     with true <- Enum.all?(conn.query_params, fn {_key, value} -> is_binary(value) end),
-         {:ok, path, params} <- canonical(conn.path_params, conn.query_params),
+         {:ok, path, params} <- resolve(conn.path_params, conn.query_params),
          true <- path != conn.request_path do
       location = if params == %{}, do: path, else: path <> "?" <> URI.encode_query(params)
       conn |> put_resp_header("location", location) |> send_resp(301, "") |> halt()
@@ -33,14 +36,23 @@ defmodule TcgCheapWeb.SetCanonical do
     end
   end
 
+  @doc """
+  The current URL of the list or set page with these path params (a set's
+  `slug`, none for the home page) and query params, without the params it
+  absorbed; :error when the page has no other URL.
+  """
+  @spec resolve(map(), %{String.t() => String.t()}) ::
+          {:ok, String.t(), %{String.t() => String.t()}} | :error
   # Only the home page had the cards view.
-  defp canonical(path_params, %{"widok" => "karty"} = params) when map_size(path_params) == 0,
-    do: {:ok, ~p"/karty", Map.delete(params, "widok")}
+  def resolve(path_params, %{"widok" => "karty"} = params) when map_size(path_params) == 0,
+    do: {:ok, Paths.cards(), Map.delete(params, "widok")}
 
-  defp canonical(path_params, params) do
+  def resolve(path_params, params) do
     with {:ok, id, params} <- expansion(path_params, params),
          name when is_binary(name) <- Map.get(Guide.expansion_names([id]), id) do
       {:ok, SEO.expansion_path(id, name), params}
+    else
+      _unknown -> :error
     end
   end
 
