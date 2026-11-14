@@ -63,6 +63,14 @@ constraints, unless the product owner explicitly supersedes it.
 - Before committing, inspect status, diff, and recent history; stage only
   intended files. Use Conventional Commit messages. Never auto-commit unless
   explicitly requested.
+- This repository is public: anyone can read its commits, pull requests,
+  issues, review comments and their edit history. Write them about the code
+  only: what changed, why in technical terms, and how it was verified in
+  general terms. Never put in them business plans or roadmaps, market or
+  competitor research, the owner's decisions or quotes, analytics or Search
+  Console figures, production data volumes or prices pulled from the
+  database, local paths or host names, or personal details. Keep such notes
+  outside the repository.
 
 <!-- usage-rules-start -->
 <!-- phoenix:ecto-start -->
