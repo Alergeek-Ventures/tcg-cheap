@@ -216,6 +216,8 @@ defmodule TcgCheap.Sealed.WooCommerce do
     with {:ok, id} <- product_id(product["id"]),
          {:ok, url} <- product_url(shop, product["permalink"]),
          {:ok, price} <- price(product["prices"], shop.currency, kind) do
+      preorder = Matcher.preorder_title?(title)
+
       {:ok,
        %{
          shop_product_id: id,
@@ -224,7 +226,8 @@ defmodule TcgCheap.Sealed.WooCommerce do
          image_url: image_url(shop, product["images"]),
          ean: Ean.normalize(product["sku"]),
          price: price,
-         in_stock: in_stock?(product)
+         in_stock: in_stock?(product) and not preorder,
+         preorder: preorder
        }}
     end
   end
