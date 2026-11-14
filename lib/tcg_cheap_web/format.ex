@@ -1,45 +1,42 @@
 defmodule TcgCheapWeb.Format do
   @moduledoc """
   Guide formatting: prices in the current region's currency
-  (`TcgCheapWeb.Region.current/0`) and dates, numbers and counted phrases in
-  the page language. Złoty are written to the grosz ("1 299,99 zł"); forints
-  are whole ("22 999 Ft").
+  (`TcgCheapWeb.Region.current/0`, its symbol and decimals) and dates,
+  numbers and counted phrases in the page language (`TcgCheapWeb.Language`).
+  Złoty are written to the grosz ("1 299,99 zł"); forints are whole
+  ("22 999 Ft").
   """
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.PullRates.Rate
-  alias TcgCheapWeb.Region
+  alias TcgCheapWeb.{Languages, Region}
 
   # A no-break space keeps "1 299,99 zł" on one line.
   @nbsp "\u00A0"
 
-  @months ~w(stycznia lutego marca kwietnia maja czerwca lipca sierpnia września października listopada grudnia)
-  @hungarian_months ~w(január február március április május június július augusztus szeptember október november december)
-  @hungarian_short_months ~w(jan. febr. márc. ápr. máj. jún. júl. aug. szept. okt. nov. dec.)
-
   @doc ~S(The current region's currency as its prices write it: "zł", "Ft".)
   @spec currency_symbol() :: String.t()
-  def currency_symbol, do: symbol(currency())
+  def currency_symbol, do: Region.current().currency_symbol
 
-  @doc ~S(A currency as prices write it: "zł" for "PLN", "Ft" for "HUF".)
+  @doc ~S(A region's currency as prices write it: "zł" for "PLN", "Ft" for "HUF".)
   @spec currency_symbol(String.t()) :: String.t()
   def currency_symbol(currency), do: symbol(currency)
 
   defp currency, do: Region.current().market.currency
 
-  defp symbol("PLN"), do: "zł"
-  defp symbol("HUF"), do: "Ft"
+  defp symbol(currency),
+    do: Enum.find(Region.all(), &(&1.market.currency == currency)).currency_symbol
 
   @doc ~S(Formats a price in the region's currency: "1 299,99 zł" with grosze, "22 999 Ft" in whole forints.)
   @spec price(Decimal.t()) :: String.t()
-  def price(%Decimal{} = value), do: price(value, currency())
+  def price(%Decimal{} = value), do: price(value, Region.current())
 
-  defp price(value, "HUF"), do: whole_price(value)
+  defp price(value, %Region{market: %{decimals: 0}}), do: whole_price(value)
 
-  defp price(value, currency) do
-    rounded = Decimal.round(value, 2)
+  defp price(value, region) do
+    rounded = Decimal.round(value, region.market.decimals)
     [whole, fraction] = rounded |> Decimal.to_string(:normal) |> String.split(".")
-    group(whole) <> "," <> fraction <> @nbsp <> symbol(currency)
+    group(whole) <> "," <> fraction <> @nbsp <> region.currency_symbol
   end
 
   @doc ~S'Formats a Cardmarket price in euro: "1 299,99 €".'
@@ -134,13 +131,7 @@ defmodule TcgCheapWeb.Format do
 
   @doc ~S'Formats a date in the page language: "17 lipca 2026", "17 July 2026", "2026. július 17.".'
   @spec date(Date.t()) :: String.t()
-  def date(%Date{} = date) do
-    case language() do
-      "en" -> Calendar.strftime(date, "%d %B %Y") |> String.trim_leading("0")
-      "hu" -> "#{date.year}. #{day_month(date)}"
-      _pl -> "#{date.day} #{Enum.at(@months, date.month - 1)} #{date.year}"
-    end
-  end
+  def date(%Date{} = date), do: language().date(date)
 
   @doc """
   A sentence ending in a date, with one period: a Hungarian date ends with
@@ -153,41 +144,23 @@ defmodule TcgCheapWeb.Format do
 
   @doc ~S'A day and month: "6 listopada", "6 November", "november 6.".'
   @spec day_month(Date.t()) :: String.t()
-  def day_month(%Date{} = date) do
-    case language() do
-      "en" -> Calendar.strftime(date, "%d %B") |> String.trim_leading("0")
-      "hu" -> "#{Enum.at(@hungarian_months, date.month - 1)} #{date.day}."
-      _pl -> "#{date.day} #{Enum.at(@months, date.month - 1)}"
-    end
-  end
+  def day_month(%Date{} = date), do: language().day_month(date)
 
   @doc ~S'The days a deal runs: "2–8 listopada", "30 października – 5 listopada", "od 17 sierpnia".'
   @spec days(Date.t(), Date.t() | nil) :: String.t()
   def days(%Date{} = from, nil), do: gettext("od %{day}", day: day_month(from))
   def days(%Date{} = day, day), do: day_month(day)
 
-  def days(%Date{month: month, year: year} = from, %Date{month: month, year: year} = to) do
-    # Hungarian puts the month first: "november 2–8."
-    if language() == "hu",
-      do: "#{Enum.at(@hungarian_months, month - 1)} #{from.day}–#{to.day}.",
-      else: "#{from.day}–#{day_month(to)}"
-  end
+  def days(%Date{month: month, year: year} = from, %Date{month: month, year: year} = to),
+    do: language().days_in_month(from, to)
 
   def days(%Date{} = from, %Date{} = to), do: "#{day_month(from)} – #{day_month(to)}"
 
-  @short_months ~w(sty lut mar kwi maj cze lip sie wrz paź lis gru)
-
   @doc ~S'A short date for chart axes: "17 lip", "17 Jul", "júl. 17.".'
   @spec short_date(Date.t()) :: String.t()
-  def short_date(%Date{} = date) do
-    case language() do
-      "en" -> "#{date.day}#{@nbsp}#{Calendar.strftime(date, "%b")}"
-      "hu" -> "#{Enum.at(@hungarian_short_months, date.month - 1)}#{@nbsp}#{date.day}."
-      _pl -> "#{date.day}#{@nbsp}#{Enum.at(@short_months, date.month - 1)}"
-    end
-  end
+  def short_date(%Date{} = date), do: language().short_date(date)
 
-  defp language, do: Gettext.get_locale(TcgCheapWeb.Gettext)
+  defp language, do: Languages.get(Gettext.get_locale(TcgCheapWeb.Gettext))
 
   @doc ~S'How long ago a day was: "dziś", "wczoraj", "3 dni temu".'
   @spec days_ago(Date.t(), Date.t()) :: String.t()
@@ -287,7 +260,7 @@ defmodule TcgCheapWeb.Format do
     end
   end
 
-  defp decimal_separator, do: if(language() == "en", do: ".", else: ",")
+  defp decimal_separator, do: language().decimal_separator()
 
   defp group(digits) do
     {sign, digits} =

@@ -36,14 +36,6 @@ defmodule TcgCheap.Sealed.Guide do
   @expansion_page_size 60
   # Sets on the booster price page: about a year of releases.
   @booster_sets 12
-  # The cheapest tracked parcel to Poland from Germany, Cardmarket's largest
-  # seller country (DHL Paket up to 2 kg, Cardmarket's shipping calculator,
-  # 2026-11-02); orders above 25 € must be tracked, which covers most sealed
-  # products. Hungary uses the same EU tariff: DHL Paket 2 kg (€14.49)
-  # plus Cardmarket's €1 parcel packaging fee, checked 2026-11-14:
-  # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/ungarn.html
-  # https://help.cardmarket.com/en/ShippingCosts
-  @cardmarket_shipping_eur %{"pl" => Decimal.new("15.49"), "hu" => Decimal.new("15.49")}
   # The product fields a summary and its list row read.
   @summary_fields [
     :slug,
@@ -69,8 +61,8 @@ defmodule TcgCheap.Sealed.Guide do
 
   def history_days, do: @history_days
 
-  def cardmarket_shipping_eur(market \\ Market.poland()),
-    do: Map.fetch!(@cardmarket_shipping_eur, market.code)
+  @doc "The tracked parcel added to a Cardmarket trend in the market (`TcgCheap.Country`), in euro."
+  def cardmarket_shipping_eur(market \\ Market.poland()), do: market.cardmarket_shipping_eur
 
   @type filters :: %{
           query: String.t(),

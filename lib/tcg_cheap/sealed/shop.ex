@@ -24,7 +24,7 @@ defmodule TcgCheap.Sealed.Shop do
     * `currency` – the ISO code of the shop's prices, PLN unless the shop is
       abroad; each offer keeps the shop's price in it (`shop_price`), and other
       prices are also converted to PLN at the latest NBP rate
-      (`TcgCheap.Pricing.ExchangeRate.currencies/0`) when fetched;
+      (`TcgCheap.Sealed.Market.currencies/0`) when fetched;
     * `singles_only` – true for a shop read only for its singles; its sealed
       products are ignored;
     * `country` – the ISO code of the shop's home country, "PL" for a Polish
@@ -36,8 +36,9 @@ defmodule TcgCheap.Sealed.Shop do
       part in a market (`TcgCheap.Sealed.Market`) in its home country at its
       own price, and abroad at its price with this delivery; with no known
       delivery price it is only listed there, and without an entry it is not
-      in that market at all. A delivery to Poland is stated in PLN: the
-      Polish pages show it in złoty;
+      in that market at all. Deliveries are listed in the file of the
+      country they go to (`TcgCheap.Sealed.Shops`); one to Poland is stated
+      in PLN: the Polish pages show it in złoty;
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
       cover the whole shop) and `feed_host` (the shop's own host serving the
       export, such as its CDN, when it is not `host`); WooCommerce:

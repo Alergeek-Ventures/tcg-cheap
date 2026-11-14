@@ -1,13 +1,22 @@
 defmodule TcgCheap.Sealed.Shops do
   @moduledoc """
-  The shops whose product feeds the buying guide reads, fixed in code: Polish
-  shops, Hungarian shops and shops in other countries that are compared by
-  their delivery to Poland. Each is a `TcgCheap.Sealed.Shop`, which says where
-  and how its feed is read and holds the delivery facts shown next to its
-  offers; `nil` means the shop does not publish a fact. The entries live in
-  `TcgCheap.Sealed.Shops.Poland`, `TcgCheap.Sealed.Shops.Hungary` and
-  `TcgCheap.Sealed.Shops.OtherCountries`; this module validates them together
-  and answers lookups.
+  The shops whose product feeds the buying guide reads, fixed in code, one
+  file per country in `lib/tcg_cheap/sealed/shops/` (`TcgCheap.ModuleDir`).
+  Each is a `TcgCheap.Sealed.Shop`, which says where and how its feed is read
+  and holds the delivery facts shown next to its offers; `nil` means the shop
+  does not publish a fact. This module validates them together and answers
+  lookups.
+
+  Each country's file holds its shops (`all/0`, every one from its
+  `country/0`) and the deliveries to that country of shops abroad
+  (`deliveries/0`, by shop key), which become those shops' `deliveries`: a
+  new country's shops and deliveries are all in its own file.
+
+  Shops abroad are priced in their own currency, mostly for their singles,
+  and compared at their price with their delivery to the market's country; a
+  shop without a known delivery price there is only listed
+  (`TcgCheap.Sealed.Market`). A shop's delivery within its own country is
+  recorded only where the guide has a market.
 
   singleTCG and PokeKarty ask crawlers in their robots.txt not to read the
   endpoints used here (`/api`, and the Store API with its `per_page` and
@@ -20,7 +29,7 @@ defmodule TcgCheap.Sealed.Shops do
   banner and Hearts Pub sits behind a bot check.
   """
 
-  alias TcgCheap.Pricing.ExchangeRate
+  alias TcgCheap.{Countries, ModuleDir}
   alias TcgCheap.Sealed.{Market, Shop}
 
   alias TcgCheap.Sealed.ShopFeed.{
@@ -32,31 +41,48 @@ defmodule TcgCheap.Sealed.Shops do
     WooCommerce
   }
 
-  alias TcgCheap.Sealed.Shops.{Hungary, OtherCountries, Poland}
+  @dir Path.expand("shops", __DIR__)
+  @files ModuleDir.files(@dir)
+  for file <- @files, do: @external_resource(Path.join(@dir, file))
+  @countries Enum.map(@files, &ModuleDir.module(__MODULE__, &1))
 
-  @shops Poland.all() ++ Hungary.all() ++ OtherCountries.all()
+  # Each delivery is listed by the country it goes to.
+  @deliveries (for country <- @countries,
+                   {key, delivery} <- country.deliveries(),
+                   reduce: %{} do
+                 deliveries ->
+                   Map.update(deliveries, key, %{country.country() => delivery}, fn by_country ->
+                     Map.put(by_country, country.country(), delivery)
+                   end)
+               end)
+
+  @shops (for country <- @countries, shop <- country.all() do
+            unless shop.country == country.country(),
+              do: raise(ArgumentError, "shop #{shop.key} is not from #{country.country()}")
+
+            %{shop | deliveries: Map.get(@deliveries, shop.key, %{})}
+          end)
 
   @keys Enum.map(@shops, & &1.key)
 
+  for key <- Map.keys(@deliveries),
+      key not in @keys,
+      do: raise(ArgumentError, "delivery of unknown shop #{key}")
+
   # A shop abroad is read through a client that checks the currency of its
-  # prices, in a currency with a daily NBP rate, from a country the offer list
-  # can name (`OfferComponents`).
+  # prices, from a country whose words the offer list has (`TcgCheap.Countries`).
   @abroad_sources [Shopify, WooCommerce, Chasedex, NopCommerce, Shoptet, GoogleFeed]
-  @countries ~w(NL DE BE GB SE DK CZ HU PT)
 
   for shop <- @shops, shop.currency != "PLN" or shop.country != "PL" do
-    unless shop.source in @abroad_sources and
-             shop.currency in ExchangeRate.currencies() and
-             shop.country in @countries,
-           do: raise(ArgumentError, "shop abroad #{shop.key} is misconfigured")
+    unless shop.source in @abroad_sources and Countries.fetch(shop.country) != :error,
+      do: raise(ArgumentError, "shop abroad #{shop.key} is misconfigured")
   end
 
-  # Each delivery is in a currency with an NBP rate; one to Poland in PLN, as
-  # the Polish pages show it in złoty.
+  # A delivery to Poland is in PLN, as the Polish pages show it in złoty, and
+  # never to the shop's own country.
   for shop <- @shops, {country, delivery} <- shop.deliveries do
-    unless delivery.currency in ["PLN" | ExchangeRate.currencies()] and
-             (country != "PL" or delivery.currency == "PLN"),
-           do: raise(ArgumentError, "delivery of #{shop.key} to #{country} is misconfigured")
+    unless country != shop.country and (country != "PL" or delivery.currency == "PLN"),
+      do: raise(ArgumentError, "delivery of #{shop.key} to #{country} is misconfigured")
   end
 
   @doc """
@@ -130,13 +156,14 @@ defmodule TcgCheap.Sealed.Shops do
   @logos for file <- File.ls!(@logo_dir), Path.extname(file) == ".webp", do: Path.rootname(file)
   for logo <- @logos, do: @external_resource(Path.join(@logo_dir, logo <> ".webp"))
 
-  # A newly added logo file is not an external resource yet; recompile when the set changes.
+  # A newly added country or logo file is not an external resource yet;
+  # recompile when either set changes.
   @doc false
   def __mix_recompile__? do
     logos =
       for file <- File.ls!(@logo_dir), Path.extname(file) == ".webp", do: Path.rootname(file)
 
-    MapSet.new(logos) != MapSet.new(@logos)
+    ModuleDir.files(@dir) != @files or MapSet.new(logos) != MapSet.new(@logos)
   end
 
   @doc "Whether the shop has a logo in `priv/static/images/shops`."

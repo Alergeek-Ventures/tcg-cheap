@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.SiteComponents do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheapWeb.{Format, Paths, Region, SEO}
+  alias TcgCheapWeb.{Format, Languages, Paths, Region, SEO}
 
   @doc """
   The public masthead: the wordmark, linking to the region's guide, the
@@ -61,8 +61,8 @@ defmodule TcgCheapWeb.SiteComponents do
         class="guide-locale-summary"
         aria-label={
           gettext("Kraj i język: %{region}, %{language}",
-            region: country_name(@region.code),
-            language: language_name(@locale)
+            region: @region.country.name(),
+            language: Languages.get(@locale).name()
           )
         }
       >
@@ -84,7 +84,7 @@ defmodule TcgCheapWeb.SiteComponents do
               >
                 <img src={flag(region.code)} alt="" width="21" height="14" />
                 <span class="guide-locale-name">
-                  {country_name(region.code)}
+                  {region.country.name()}
                   <span class="guide-locale-currency">
                     · {Format.currency_symbol(region.market.currency)}
                   </span>
@@ -113,7 +113,7 @@ defmodule TcgCheapWeb.SiteComponents do
                 data-track="language_changed"
                 data-track-to={language}
               >
-                <span class="guide-locale-name">{language_name(language)}</span>
+                <span class="guide-locale-name">{Languages.get(language).name()}</span>
                 <.fluent_icon
                   :if={language == @locale}
                   name={:checkmark_circle}
@@ -138,10 +138,10 @@ defmodule TcgCheapWeb.SiteComponents do
     assigns =
       Gettext.with_locale(TcgCheapWeb.Gettext, assigns.suggested.language, fn ->
         assign(assigns,
-          text: region_hint_text(assigns.suggested.code),
-          switch: region_hint_switch(assigns.suggested.code),
+          text: assigns.suggested.country.hint(),
+          switch: assigns.suggested.country.hint_switch(),
           stay: gettext("Zostań tutaj"),
-          country: country_name(assigns.suggested.code)
+          country: assigns.suggested.country.name()
         )
       end)
 
@@ -173,21 +173,6 @@ defmodule TcgCheapWeb.SiteComponents do
     </aside>
     """
   end
-
-  defp region_hint_text("hu"), do: gettext("Wygląda na to, że jesteś na Węgrzech.")
-  defp region_hint_text("pl"), do: gettext("Wygląda na to, że jesteś w Polsce.")
-  defp region_hint_switch("hu"), do: gettext("Przejdź do wersji węgierskiej")
-  defp region_hint_switch("pl"), do: gettext("Przejdź do wersji polskiej")
-
-  # Countries in the page language ("Węgry", "Hungary"); languages under
-  # their own names.
-  defp country_name("pl"), do: gettext("Polska")
-  defp country_name("hu"), do: gettext("Węgry")
-
-  # Each language under its own name.
-  defp language_name("pl"), do: "Polski"
-  defp language_name("en"), do: "English"
-  defp language_name("hu"), do: "Magyar"
 
   defp flag(code), do: ~p"/images/flags/#{code <> ".svg"}"
 

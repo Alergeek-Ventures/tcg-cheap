@@ -8,12 +8,13 @@ defmodule TcgCheap.Sealed.AgentTools.Enqueue do
   use Ash.Resource.Actions.Implementation
 
   alias Ash.Error.Action.InvalidArgument
-  alias TcgCheap.Pricing.{ExchangeRate, ExchangeRateWorker}
+  alias TcgCheap.Pricing.ExchangeRateWorker
 
   alias TcgCheap.Sealed.{
     CardSyncWorker,
     CatalogueImportWorker,
     FetchWorker,
+    Market,
     Shops,
     SuggestedPriceWorker
   }
@@ -37,13 +38,13 @@ defmodule TcgCheap.Sealed.AgentTools.Enqueue do
   defp enqueue(:card_sync, _args), do: CardSyncWorker.enqueue()
 
   defp enqueue(:exchange_rate, %{currency: currency}) do
-    if currency in ExchangeRate.currencies() do
+    if currency in Market.currencies() do
       ExchangeRateWorker.enqueue(currency)
     else
       {:error,
        InvalidArgument.exception(
          field: :currency,
-         message: "unknown currency; use one of #{Enum.join(ExchangeRate.currencies(), ", ")}"
+         message: "unknown currency; use one of #{Enum.join(Market.currencies(), ", ")}"
        )}
     end
   end

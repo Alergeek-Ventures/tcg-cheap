@@ -5,6 +5,7 @@ defmodule TcgCheapWeb.OfferComponents do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
+  alias TcgCheap.Countries
   alias TcgCheap.Sealed.{Market, Shops}
   alias TcgCheapWeb.{Format, Region, VisitorLocation}
 
@@ -41,16 +42,8 @@ defmodule TcgCheapWeb.OfferComponents do
     end
   end
 
-  defp delivered_from("PL"), do: gettext("z wysyłką z Polski")
-  defp delivered_from("NL"), do: gettext("z wysyłką z Holandii")
-  defp delivered_from("DE"), do: gettext("z wysyłką z Niemiec")
-  defp delivered_from("BE"), do: gettext("z wysyłką z Belgii")
-  defp delivered_from("GB"), do: gettext("z wysyłką z Wielkiej Brytanii")
-  defp delivered_from("SE"), do: gettext("z wysyłką ze Szwecji")
-  defp delivered_from("DK"), do: gettext("z wysyłką z Danii")
-  defp delivered_from("CZ"), do: gettext("z wysyłką z Czech")
-  defp delivered_from("PT"), do: gettext("z wysyłką z Portugalii")
-  defp delivered_from("HU"), do: gettext("z wysyłką z Węgier")
+  # Where a shop ships from, in its country's words (`TcgCheap.Country`).
+  defp delivered_from(country), do: Countries.fetch!(country).delivered_from()
 
   @doc """
   Binds one- and two-letter prepositions ("z", "ze", "w", "we") to the next
@@ -274,8 +267,7 @@ defmodule TcgCheapWeb.OfferComponents do
   defp market_delivery_terms(_listed, shop, _price, _compared, _km, _near?),
     do: [origin_term(shop.country), gettext("koszt dostawy w koszyku")]
 
-  defp origin_term("PL"), do: gettext("wysyłka z Polski")
-  defp origin_term(country), do: abroad_term(country)
+  defp origin_term(country), do: Countries.fetch!(country).shipped_from()
 
   # A shop abroad's row shows its price with delivery: say what that includes.
   defp polish_delivery_terms(
@@ -330,15 +322,7 @@ defmodule TcgCheapWeb.OfferComponents do
 
   # Shops abroad (`Shop.country`): their prices are converted to złoty.
   defp abroad_term("PL"), do: nil
-  defp abroad_term("NL"), do: gettext("wysyłka z Holandii")
-  defp abroad_term("DE"), do: gettext("wysyłka z Niemiec")
-  defp abroad_term("BE"), do: gettext("wysyłka z Belgii")
-  defp abroad_term("GB"), do: gettext("wysyłka z Wielkiej Brytanii")
-  defp abroad_term("SE"), do: gettext("wysyłka ze Szwecji")
-  defp abroad_term("DK"), do: gettext("wysyłka z Danii")
-  defp abroad_term("CZ"), do: gettext("wysyłka z Czech")
-  defp abroad_term("PT"), do: gettext("wysyłka z Portugalii")
-  defp abroad_term("HU"), do: gettext("wysyłka z Węgier")
+  defp abroad_term(country), do: origin_term(country)
 
   # Pickup within the radius is shown on its own line instead.
   defp pickup_term(nil, _km, _near?), do: nil

@@ -19,9 +19,6 @@ defmodule TcgCheapWeb.LegacyPaths do
   alias TcgCheap.Sealed.CardGuide
   alias TcgCheapWeb.{PageMarkdown, Paths, Region, SetCanonical}
 
-  @pages ~w(produkty rozszerzenia karty ile-kosztuje-booster-pokemon najdrozsze-karty-pokemon
-            jak-sprawdzic-wartosc-karty-pokemon bot)
-
   def init(opts), do: opts
 
   # Plug.Head has already turned HEAD into GET.
@@ -41,10 +38,18 @@ defmodule TcgCheapWeb.LegacyPaths do
 
   defp legacy?(["index.md"]), do: true
   defp legacy?(["og"]), do: true
-  defp legacy?(["og", region | _rest]) when region in ["pl", "hu"], do: false
-  defp legacy?(["og" | rest]), do: legacy?(rest)
-  defp legacy?([first | _rest]), do: String.replace_suffix(first, ".md", "") in @pages
+  defp legacy?(["og" | rest]), do: not region?(rest) and legacy?(rest)
+  defp legacy?([first | _rest]), do: String.replace_suffix(first, ".md", "") in polish_segments()
   defp legacy?([]), do: false
+
+  defp region?([code | _rest]), do: Region.fetch(code) != :error
+  defp region?([]), do: false
+
+  # The first segments of Poland's pages: the guide's paths before regions.
+  defp polish_segments do
+    %Region{slugs: slugs, pages: pages} = Region.poland()
+    Map.values(slugs) ++ Map.values(pages)
+  end
 
   # Link-preview cards keep their path: a renamed set's card was gone before.
   defp target(["og" | rest], conn), do: {"/og/pl" <> encode(rest), conn.query_string}

@@ -17,6 +17,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     OfferComponents,
     Paths,
     Region,
+    RegionText,
     SEO,
     VerdictComponents
   }
@@ -30,26 +31,14 @@ defmodule TcgCheapWeb.PageMarkdown do
   @doc "How the guide rates a price, for the home page and llms.txt, in the current region."
   @spec method() :: [String.t()]
   def method do
+    %{prices: prices, good_price: good_price, few_shops: few_shops} =
+      RegionText.markdown_method(PriceGuide.window_days())
+
     [
-      if(polish?(),
-        do:
-          "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie. Ceny polskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Polski.",
-        else:
-          "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w forintach. Ceny węgierskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę na Węgry."
-      ),
+      prices,
       "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej #{PriceGuide.min_shops()} sklepy).",
-      if(polish?(),
-        do:
-          "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich #{PriceGuide.window_days()} dni i trendu Cardmarket w złotych z przesyłką z Niemiec, gdy są znane.",
-        else:
-          "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich #{PriceGuide.window_days()} dni i trendu Cardmarket w forintach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
-      ),
-      if(polish?(),
-        do:
-          "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w złotych.",
-        else:
-          "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w forintach."
-      ),
+      good_price,
+      few_shops,
       "Ocena nigdy nie opiera się na cenie sugerowanej producenta. Brakujące dane pokazujemy jako brakujące."
     ]
   end

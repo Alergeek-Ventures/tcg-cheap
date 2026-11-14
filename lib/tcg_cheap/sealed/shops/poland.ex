@@ -1667,7 +1667,112 @@ defmodule TcgCheap.Sealed.Shops.Poland do
     }
   ]
 
+  @doc "The ISO code of the country these shops are in."
+  def country, do: "PL"
+
   @doc "The shops, in the order they are fetched and listed."
   @spec all() :: [Shop.t()]
   def all, do: @shops
+
+  @doc """
+  Deliveries to Poland of shops abroad, by shop key (`TcgCheap.Sealed.Shops`):
+  in PLN, as the Polish pages show them in złoty, converted at the NBP rates
+  of 6 November 2026 (EUR 4.39, GBP 5.26, SEK 0.40, CZK 0.18, DKK 0.59).
+  """
+  def deliveries do
+    %{
+      "bangerpack" => %{
+        # €10.99 to Poland in its checkout for a €1.99 cart (2026-11-10): a lower
+        # bound, a heavier parcel (a booster box) may cost more.
+        shipping_from: Decimal.new("48.25"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "beamcardshop" => %{
+        # €29.95, converted to PLN and rounded up.
+        shipping_from: Decimal.new("131.99"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "bescards" => %{
+        # €8.38, converted to PLN and rounded up.
+        shipping_from: Decimal.new("36.94"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "bulbazard" => %{
+        # Zásilkovna (Packeta) to Poland 149 Kč.
+        shipping_from: Decimal.new("26.89"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "cardcosmos" => %{
+        # €24.99, converted to PLN and rounded up.
+        shipping_from: Decimal.new("110.14"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "chasedex" => %{
+        # 99 SEK tracked letter to the EU, free from 799 SEK (319.60 zł, rounded
+        # up so no order is shown with free delivery it does not get).
+        shipping_from: Decimal.new("39.40"),
+        free_shipping_from: Decimal.new("320"),
+        currency: "PLN"
+      },
+      "gemipulls" => %{
+        # 109 DKK standard to Poland in its cart, also for 699 DKK (2026-11-10).
+        shipping_from: Decimal.new("64.31"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "godofcards" => %{
+        # €8.38, converted to PLN and rounded up.
+        shipping_from: Decimal.new("36.94"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "pkmwinkel" => %{
+        # €20, converted to PLN and rounded up.
+        shipping_from: Decimal.new("88.14"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "pokefamily" => %{
+        # €12.95, converted to PLN and rounded up.
+        shipping_from: Decimal.new("57.08"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "pokemagic" => %{
+        # €13.95 to Poland, also for an order of €270.
+        shipping_from: Decimal.new("61.28"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "psydeck" => %{
+        # €15, converted to PLN and rounded up.
+        shipping_from: Decimal.new("66.11"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "rarecards" => %{
+        # €7.95, free from €250.
+        shipping_from: Decimal.new("34.92"),
+        free_shipping_from: Decimal.new("1098"),
+        currency: "PLN"
+      },
+      "tcgking" => %{
+        # €10.95, free from €100.
+        shipping_from: Decimal.new("48.10"),
+        free_shipping_from: Decimal.new("439"),
+        currency: "PLN"
+      },
+      "unicorncards" => %{
+        # £5.90 for any number of singles, duties paid (IOSS), free from £100.
+        shipping_from: Decimal.new("31.05"),
+        free_shipping_from: Decimal.new("526.30"),
+        currency: "PLN"
+      }
+    }
+  end
 end
