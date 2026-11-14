@@ -4,13 +4,15 @@ defmodule TcgCheap.Sealed.Refresh do
   first; singles are then stored and matched in a separate transaction under
   their own lock, so they never hold up sealed price recomputations.
 
-  The sealed transaction upserts every sealed offer seen and `recompute/1`s: all
-  stored offers are re-matched (the catalogue may have changed; manual
-  assignments are kept), today's lowest shop price is recorded per product,
-  and each product's availability, lowest price (or, with nothing in stock,
-  lowest pre-order price) and image are refreshed. A
-  failed fetch writes nothing; a shop listing no products at all counts as
-  failed, so its last offers simply age out instead of staying current.
+  The sealed transaction upserts every sealed offer seen and `recompute/2`s: the
+  offers just read are re-matched (manual assignments are kept), today's lowest
+  shop price is recorded per product, and each product's availability, lowest
+  price (or, with nothing in stock, lowest pre-order price) and image are
+  refreshed. A failed fetch writes nothing; a shop listing no products at all
+  counts as failed, so its last offers simply age out instead of staying
+  current. A shop that lists singles but no sealed products, while its previous
+  fetch left current sealed offers, has a failed sealed side: its sealed
+  offers stay current, and its singles are stored.
   """
 
   alias TcgCheap.Repo
@@ -25,9 +27,11 @@ defmodule TcgCheap.Sealed.Refresh do
     Matcher,
     Offer,
     Shop,
+    ShopFetch,
     Shops
   }
 
+  require Ash.Query
   require Logger
 
   @max_price_pln Decimal.new(1_000_000)
@@ -78,9 +82,41 @@ defmodule TcgCheap.Sealed.Refresh do
     {singles, sealed} = Enum.split_with(fetched, &(Map.get(&1, :kind) == :single))
     sealed = Enum.map(sealed, &Map.drop(&1, [:kind, :category]))
 
-    with {:ok, counts} <- store_sealed(shop, sealed, now),
+    with {:ok, counts} <- store_sealed_side(shop, sealed, now),
          {:ok, card_counts} <- CardRefresh.run(shop, singles, now) do
       {:ok, Map.merge(counts, card_counts)}
+    end
+  end
+
+  # No sealed products next to singles, from a shop whose last fetch left
+  # current sealed offers, is a renamed or emptied sealed category rather than
+  # a shop that sells nothing: storing it would end every sealed offer at once.
+  # The sealed side is reported failed and left as it was; the singles still
+  # get stored.
+  defp store_sealed_side(%Shop{singles_only: false} = shop, [], now) do
+    if sealed_offers_current?(shop) do
+      FetchFailure.report(:sealed, shop.key, :empty_sealed_listing)
+      {:ok, %{offers: 0}}
+    else
+      store_sealed(shop, [], now)
+    end
+  end
+
+  defp store_sealed_side(shop, sealed, now), do: store_sealed(shop, sealed, now)
+
+  # The shop's latest sealed fetch left offers seen at that time, the same
+  # condition `Sealed.current_offers/3` applies to every offer.
+  defp sealed_offers_current?(shop) do
+    case ShopFetch
+         |> Ash.Query.filter(shop == ^shop.key and kind == :sealed)
+         |> Ash.read_one!(domain: Sealed) do
+      nil ->
+        false
+
+      %ShopFetch{fetched_at: fetched_at} ->
+        Ash.exists?(Ash.Query.filter(Offer, shop == ^shop.key and last_seen_at == ^fetched_at),
+          domain: Sealed
+        )
     end
   end
 
@@ -125,27 +161,46 @@ defmodule TcgCheap.Sealed.Refresh do
     Repo.transaction(
       fn ->
         lock_recompute()
+        eans = Sealed.known_eans()
         upsert_offers(shop, offers, now)
         Sealed.record_shop_fetch!(%{shop: shop.key, fetched_at: now}, return_notifications?: true)
-        recompute(now)
+        recompute(now, rematch_after_fetch(shop, now, eans))
         %{offers: length(offers)}
       end,
       timeout: transaction_timeout()
     )
   end
 
+  # A fetch also rewrites the barcode of the shop's manually assigned offers,
+  # and those teach barcodes to every shop's matching (`Sealed.known_eans/0`):
+  # when the known barcodes changed, any offer may match differently.
+  defp rematch_after_fetch(shop, now, eans_before) do
+    if Sealed.known_eans() == eans_before, do: {:fetched, shop.key, now}, else: :all
+  end
+
   @doc "How long a transaction that recomputes prices may take."
   def transaction_timeout, do: :timer.minutes(5)
+
+  @typedoc """
+  The offers whose match may have changed: all of them, or those one fetch of a
+  shop read.
+  """
+  @type rematch :: :all | {:fetched, shop_key :: String.t(), at :: DateTime.t()}
 
   @doc """
   Re-matches offers and refreshes daily shop prices and product availability.
   Must run inside a transaction; concurrent recomputations are serialized.
+
+  `rematch` names the offers to re-match. A fetch changes only the offers it
+  read, so it passes `{:fetched, shop_key, at}`. `:all` is required whenever
+  the catalogue, a barcode, a manual decision or the matcher itself changed.
+  Prices, availability and history always read every current offer.
   """
-  @spec recompute(DateTime.t()) :: :ok
-  def recompute(%DateTime{} = now) do
+  @spec recompute(DateTime.t(), rematch()) :: :ok
+  def recompute(%DateTime{} = now, rematch \\ :all) do
     lock_recompute()
     products = Sealed.list_products!(query: [select: @product_fields])
-    rematch_offers(products)
+    rematch_offers(products, rematch)
 
     matched =
       now
@@ -214,12 +269,24 @@ defmodule TcgCheap.Sealed.Refresh do
     )
   end
 
-  defp lock_recompute do
+  @doc """
+  Takes the transaction-level advisory lock that serializes sealed recomputations.
+  Must be called inside a transaction, before any write that `recompute/2` also
+  touches (offers, products), so that transactions take their locks in one
+  order and cannot deadlock. Taking it again in the same transaction is harmless.
+  """
+  @spec lock_recompute() :: :ok
+  def lock_recompute do
     Repo.query!("SELECT pg_advisory_xact_lock(hashtext('tcg_cheap:sealed_recompute'))")
+    :ok
   end
 
-  defp rematch_offers(products) do
-    offers = Sealed.list_offers!(query: [select: [:title, :ean, :manual?, :product_id]])
+  defp rematch_offers(products, rematch) do
+    offers =
+      Sealed.list_offers!(
+        query: [select: [:title, :ean, :manual?, :product_id]] ++ rematch_filter(rematch)
+      )
+
     index = Matcher.index(products, Sealed.known_eans())
 
     # An offer that no longer matches (nil) is unmatched again: a wrong match
@@ -231,6 +298,10 @@ defmodule TcgCheap.Sealed.Refresh do
       Sealed.match_offer!(offer, id, return_notifications?: true)
     end
   end
+
+  # `upsert_offers/3` stamps every offer a fetch read with that fetch's time.
+  defp rematch_filter(:all), do: []
+  defp rematch_filter({:fetched, shop_key, at}), do: [filter: [shop: shop_key, last_seen_at: at]]
 
   defp record_shop_prices(current, today) do
     previously_priced =
