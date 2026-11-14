@@ -220,8 +220,12 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
               minimum: PriceGuide.min_shops()
             )}
             <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
-              {gettext(
-                "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
+              {if(euro_region?(),
+                do: gettext("Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket."),
+                else:
+                  gettext(
+                    "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket przeliczonym po kursie NBP."
+                  )
               )}
             </span>
             <span :if={@page.preorder?} id="verdict-method-preorder">
