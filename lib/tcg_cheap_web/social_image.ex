@@ -887,12 +887,14 @@ defmodule TcgCheapWeb.SocialImage do
 
   # The guide's large verdict badge: filled for good, normal and expensive,
   # a paper slip with a drawn bottom edge otherwise; text and mark carry the
-  # meaning, never colour alone.
+  # meaning, never colour alone. A badge of a given width shrinks its label
+  # to fit (a longer verdict label, such as Croatian "Uobičajena cijena").
   defp badge(verdict, x, y, height, size, width \\ nil) do
     {fill, color, edge} = badge_colors(verdict)
     label = verdict |> VerdictComponents.verdict_label() |> String.upcase()
     mark = round(size * 0.7)
     text_x = x + 24 + mark + 14
+    size = if width, do: fit_label(label, size, width - (text_x - x) - 24), else: size
     width = width || text_x - x + text_width(label, size, :display, 1.6) + 24
 
     [
@@ -904,6 +906,9 @@ defmodule TcgCheapWeb.SocialImage do
       ~s(<text x="#{text_x}" y="#{y + height / 2 + size * 0.36}" font-family="#{@display}" font-weight="700" font-size="#{size}" letter-spacing="1.6" fill="#{color}">#{escape(label)}</text>)
     ]
   end
+
+  defp fit_label(label, size, room),
+    do: Enum.find(size..20//-2, 20, &(text_width(label, &1, :display, 1.6) <= room))
 
   defp badge_colors(%{status: :good}), do: {@rise, @paper, nil}
   defp badge_colors(%{status: :expensive}), do: {@fall, @paper, nil}
