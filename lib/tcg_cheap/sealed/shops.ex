@@ -1548,7 +1548,7 @@ defmodule TcgCheap.Sealed.Shops do
       name: "Chaos Games",
       host: "chaos-games.pl",
       source: SkyShop,
-      feed_path: "/Pokemon-c212",
+      feed_path: "/gry-karciane-kolekcjonerskie-tcg-pokemon",
       max_pages: 4,
       shipping_from: Decimal.new("9.99"),
       free_shipping_from: Decimal.new("450"),
