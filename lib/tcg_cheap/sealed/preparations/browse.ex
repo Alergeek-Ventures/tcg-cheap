@@ -2,8 +2,9 @@ defmodule TcgCheap.Sealed.Preparations.Browse do
   @moduledoc """
   Filters products by every word of the query (against the normalized search
   text, through its ParadeDB index) and an optional kind (or shelf of kinds),
-  language edition and Cardmarket expansion, and orders them: available in a
-  Polish shop first, then those available as a pre-order, then the best
+  language edition and Cardmarket expansion, and orders them: available in
+  the market first (a Polish shop, unless the `stock` argument gives another
+  market's products), then those available as a pre-order, then the best
   matches of a search, then the newest Cardmarket additions.
   """
 
@@ -37,10 +38,7 @@ defmodule TcgCheap.Sealed.Preparations.Browse do
     |> filter_by(:region, Ash.Query.get_argument(query, :region))
     |> filter_by(:cardmarket_expansion_id, Ash.Query.get_argument(query, :expansion))
     |> Ash.Query.sort(
-      [
-        {:available, :desc},
-        {Ash.Sort.expr_sort(is_nil(lowest_preorder_price), :boolean), :asc}
-      ] ++
+      stock_order(Ash.Query.get_argument(query, :stock)) ++
         relevance(words) ++
         [{:cardmarket_added_on, :desc_nils_last}, {:name, :asc}, {:id, :asc}]
     )
@@ -100,6 +98,22 @@ defmodule TcgCheap.Sealed.Preparations.Browse do
 
   defp typo_candidate?(word),
     do: String.length(word) >= @min_typo_length and Regex.match?(~r/\A[a-z]+\z/, word)
+
+  # Poland's availability is stored on each product; another market's comes
+  # as the ids of its products in stock and on pre-order.
+  defp stock_order(nil) do
+    [
+      {:available, :desc},
+      {Ash.Sort.expr_sort(is_nil(lowest_preorder_price), :boolean), :asc}
+    ]
+  end
+
+  defp stock_order(%{in_stock: in_stock, preorder: preorder}) do
+    [
+      {Ash.Sort.expr_sort(id in ^in_stock, :boolean), :desc},
+      {Ash.Sort.expr_sort(id in ^preorder, :boolean), :desc}
+    ]
+  end
 
   defp relevance([]), do: []
   defp relevance(_words), do: [{Ash.Sort.expr_sort(fragment("pdb.score(?)", id), :float), :desc}]

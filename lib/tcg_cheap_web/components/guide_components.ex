@@ -766,7 +766,8 @@ defmodule TcgCheapWeb.GuideComponents do
   @spec delivered_term(map()) :: String.t() | nil
   def delivered_term(%{shop: key}) do
     case Shops.fetch(key) do
-      {:ok, %{country: country, shipping_from: %Decimal{}}} ->
+      {:ok, %{country: country, deliveries: %{"PL" => %{shipping_from: %Decimal{}}}}}
+      when country != "PL" ->
         country |> delivered_from() |> glue_short_words()
 
       _polish_or_listed ->
@@ -856,7 +857,6 @@ defmodule TcgCheapWeb.GuideComponents do
   @spec row_price(map()) :: Decimal.t()
   def row_price(offer), do: Shops.compared_price(offer.shop, offer.price) || offer.price
 
-  defp delivered_from(nil), do: nil
   defp delivered_from("NL"), do: gettext("z wysyłką z Holandii")
   defp delivered_from("DE"), do: gettext("z wysyłką z Niemiec")
   defp delivered_from("BE"), do: gettext("z wysyłką z Belgii")
@@ -1126,10 +1126,15 @@ defmodule TcgCheapWeb.GuideComponents do
   end
 
   # A shop abroad's row shows its price with delivery: say what that includes.
-  defp delivery_terms(%{country: country, shipping_from: %Decimal{}} = shop, price, _km, _near?)
-       when country != nil do
+  defp delivery_terms(
+         %{country: country, deliveries: %{"PL" => %{shipping_from: %Decimal{}} = delivery}},
+         price,
+         _km,
+         _near?
+       )
+       when country != "PL" do
     included =
-      case shipping(shop, price) do
+      case shipping(delivery, price) do
         :free -> gettext("w tym darmowa dostawa")
         {:from, from} -> gettext("w tym dostawa %{amount}", amount: amount(from))
       end
@@ -1138,8 +1143,9 @@ defmodule TcgCheapWeb.GuideComponents do
   end
 
   defp delivery_terms(shop, price, km, near?) do
-    threshold = shop.free_shipping_from
-    shipping = shipping(shop, price)
+    delivery = to_poland(shop)
+    threshold = delivery.free_shipping_from
+    shipping = shipping(delivery, price)
 
     # The threshold stays visible: shops often grant it for some carriers only.
     cost =
@@ -1158,8 +1164,15 @@ defmodule TcgCheapWeb.GuideComponents do
     |> Enum.filter(&is_binary/1)
   end
 
+  # A Polish shop's own delivery, or a shop abroad's to Poland (none known
+  # when it has no entry).
+  defp to_poland(%{country: "PL"} = shop), do: shop
+
+  defp to_poland(shop),
+    do: Map.get(shop.deliveries, "PL", %{shipping_from: nil, free_shipping_from: nil})
+
   # Shops abroad (`Shop.country`): their prices are converted to złoty.
-  defp abroad_term(nil), do: nil
+  defp abroad_term("PL"), do: nil
   defp abroad_term("NL"), do: gettext("wysyłka z Holandii")
   defp abroad_term("DE"), do: gettext("wysyłka z Niemiec")
   defp abroad_term("BE"), do: gettext("wysyłka z Belgii")

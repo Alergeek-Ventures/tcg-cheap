@@ -1,5 +1,15 @@
 defmodule TcgCheap.Sealed.Guide do
-  @moduledoc "Read models for the public buying-guide pages."
+  @moduledoc """
+  Read models for the public buying-guide pages.
+
+  Product summaries and pages, and the lists that put products in stock
+  first, take a market (`TcgCheap.Sealed.Market`, Poland by default): its
+  shops' offers at their compared prices, its own price history, and the
+  Cardmarket references converted to its currency. Poland reads the
+  availability stored on each product; another market derives it from its
+  shops' current offers. The `*_pln` and `eur_pln` names predate markets:
+  elsewhere they hold the market's currency.
+  """
 
   alias TcgCheap.Sealed
 
@@ -7,6 +17,7 @@ defmodule TcgCheap.Sealed.Guide do
     CardGuide,
     CardImage,
     Kinds,
+    Market,
     PriceGuide,
     Product,
     Rarities,
@@ -28,7 +39,7 @@ defmodule TcgCheap.Sealed.Guide do
   # The cheapest tracked parcel to Poland from Germany, Cardmarket's largest
   # seller country (DHL Paket up to 2 kg, Cardmarket's shipping calculator,
   # 2026-11-02); orders above 25 € must be tracked, which covers most sealed
-  # products.
+  # products. Other markets use it too until their own parcel is checked.
   @cardmarket_shipping_eur Decimal.new("15.49")
   # The product fields a summary and its list row read.
   @summary_fields [
@@ -65,14 +76,19 @@ defmodule TcgCheap.Sealed.Guide do
 
   @doc """
   One page of the public list: products matching the filters, in stock in
-  Poland first, then newest. Returns the summaries, whether more pages follow
-  and the total count.
+  the market first, then newest. Returns the summaries, whether more pages
+  follow and the total count.
   """
-  @spec browse(filters(), non_neg_integer(), DateTime.t()) ::
+  @spec browse(filters(), non_neg_integer(), DateTime.t(), Market.t()) ::
           {[summary()], boolean(), non_neg_integer()}
-  def browse(filters, offset, %DateTime{} = now) do
+  def browse(filters, offset, %DateTime{} = now, market \\ Market.poland()) do
     page =
-      Sealed.browse_products!(filters.query, filters.kind, filters.region, filters.expansion,
+      Sealed.browse_products!(
+        filters.query,
+        filters.kind,
+        filters.region,
+        filters.expansion,
+        stock_order(market, now),
         page: [limit: page_size(filters), offset: offset, count: true],
         query: [select: @summary_fields],
         load: [
@@ -83,7 +99,46 @@ defmodule TcgCheap.Sealed.Guide do
         ]
       )
 
-    {summaries(page.results, now), page.more?, page.count || 0}
+    {summaries(page.results, now, market), page.more?, page.count || 0}
+  end
+
+  # Poland orders the list by the availability stored on each product (nil);
+  # another market by its products in stock and on pre-order now.
+  defp stock_order(market, now) do
+    if market == Market.poland() do
+      nil
+    else
+      stock = market_stock(market, now)
+      %{in_stock: MapSet.to_list(stock.in_stock), preorder: MapSet.to_list(stock.preorder)}
+    end
+  end
+
+  # The products a market's shops have in stock, and those they sell as a
+  # pre-order, from their current offers at the market's compared prices: what
+  # `available` and `lowest_preorder_price` store for Poland.
+  defp market_stock(market, now) do
+    offers =
+      now
+      |> Sealed.current_offers(:all,
+        select: [:product_id, :price, :shop_price, :currency, :in_stock, :preorder]
+      )
+      |> Enum.filter(&(&1.product_id && (&1.in_stock or &1.preorder)))
+      |> Market.compared(market, DateTime.to_date(now))
+
+    {in_stock, preorders} = Enum.split_with(offers, & &1.in_stock)
+
+    %{
+      in_stock: MapSet.new(in_stock, & &1.product_id),
+      preorder: MapSet.new(preorders, & &1.product_id)
+    }
+  end
+
+  # The filter for products in stock in the market: the stored availability
+  # for Poland, else the ids in stock now (`market_stock/2`).
+  defp in_stock_filter(market, now) do
+    if market == Market.poland(),
+      do: [available: true],
+      else: [id: [in: MapSet.to_list(market_stock(market, now).in_stock)]]
   end
 
   defp page_size(%{expansion: id}) when is_integer(id), do: @expansion_page_size
@@ -307,34 +362,62 @@ defmodule TcgCheap.Sealed.Guide do
   stock but pre-orders is rated on its pre-orders (`preorder?`), with the
   days until its expansion's premiere when that is still to come.
   """
-  @spec summaries([Product.t()], DateTime.t()) :: [summary()]
-  def summaries([], _now), do: []
+  @spec summaries([Product.t()], DateTime.t(), Market.t()) :: [summary()]
+  def summaries(products, now, market \\ Market.poland())
+  def summaries([], _now, _market), do: []
 
-  def summaries(products, %DateTime{} = now) do
+  def summaries(products, %DateTime{} = now, %Market{} = market) do
     today = DateTime.to_date(now)
-    rate = eur_pln(today)
+    rate = cardmarket_rate(market, today)
     ids = Enum.map(products, & &1.id)
 
     offers =
       now
-      |> Sealed.current_offers(ids, select: [:product_id, :price, :in_stock, :preorder])
+      |> Sealed.current_offers(ids,
+        select: [:product_id, :price, :in_stock, :preorder | shop_price_fields(market)]
+      )
+      |> Market.compared(market, today)
       |> Enum.group_by(& &1.product_id)
 
     since = Date.add(today, -(PriceGuide.window_days() - 1))
 
     histories =
       ids
-      |> Sealed.list_price_histories!(since,
-        query: [select: [:product_id, :date, :lowest_price]]
-      )
+      |> price_histories(market, since)
       |> Enum.group_by(& &1.product_id)
 
     premieres = premieres(products)
 
     Enum.map(products, fn product ->
       usual = PriceGuide.usual(Map.get(histories, product.id, []), today)
-      summary(product, Map.get(offers, product.id, []), rate, usual, {premieres, now})
+
+      summary(
+        product,
+        Map.get(offers, product.id, []),
+        {rate, market},
+        usual,
+        {premieres, now}
+      )
     end)
+  end
+
+  # Poland compares the PLN price stored at fetch; another market converts
+  # the shop's own price.
+  defp shop_price_fields(market),
+    do: if(market == Market.poland(), do: [], else: [:shop_price, :currency])
+
+  defp price_histories(ids, market, since) do
+    select = [query: [select: [:product_id, :date, :lowest_price]]]
+
+    if market == Market.poland(),
+      do: Sealed.list_price_histories!(ids, since, select),
+      else: Sealed.list_market_price_histories!(ids, market.code, since, select)
+  end
+
+  defp price_history(product_id, market, since) do
+    if market == Market.poland(),
+      do: Sealed.list_price_history!(product_id, since),
+      else: Sealed.list_market_price_history!(product_id, market.code, since)
   end
 
   @doc """
@@ -344,36 +427,47 @@ defmodule TcgCheap.Sealed.Guide do
   edition for each set the contents name (`boosters`, by set name), their combined odds
   and cards (`booster_odds`) and, for any English single booster, its set's pull rates
   and cards (`booster_set`, nil for other products).
+
+  In the market's currency: `offers` are its shops' offers, each `price` the
+  item price without delivery; `history` is the market's (only Poland's
+  carries the Cardmarket trend) and `eur_pln` the euro's rate in its
+  currency.
   """
-  @spec product(String.t(), DateTime.t()) :: {:ok, map()} | :error
-  def product(slug, %DateTime{} = now) do
+  @spec product(String.t(), DateTime.t(), Market.t()) :: {:ok, map()} | :error
+  def product(slug, %DateTime{} = now, %Market{} = market \\ Market.poland()) do
     case Sealed.get_product_by_slug!(slug, load: [:stored_photo_page_url, :photo_placeholder]) do
       nil ->
         :error
 
       product ->
         today = DateTime.to_date(now)
-        rate = eur_pln(today)
+        rate = cardmarket_rate(market, today)
 
-        offers =
+        priced =
           now
           |> Sealed.current_offers([product.id])
+          |> Market.priced(market, today)
           # By the price compared in the verdict: a shop abroad's with delivery.
-          |> Enum.sort_by(&{not &1.in_stock, Shops.listing_price(&1), &1.shop})
+          |> Enum.sort_by(fn {offer, item, compared} ->
+            {not offer.in_stock, Decimal.to_float(compared || item), offer.shop}
+          end)
+
+        offers = for {offer, item, _compared} <- priced, do: %{offer | price: item}
+        compared = for {offer, _item, %Decimal{} = price} <- priced, do: %{offer | price: price}
 
         since = Date.add(today, -(@history_days - 1))
-        history = Sealed.list_price_history!(product.id, since)
+        history = price_history(product.id, market, since)
 
         summary =
           summary(
             product,
-            offers,
-            rate,
+            compared,
+            {rate, market},
             PriceGuide.usual(history, today),
             {premieres([product]), now}
           )
 
-        past_history = with_last_stocked_day(history, product.id, since)
+        past_history = with_last_stocked_day(history, product.id, since, market)
         boosters = boosters(product)
 
         {:ok,
@@ -383,6 +477,7 @@ defmodule TcgCheap.Sealed.Guide do
            history: history,
            today: today,
            eur_pln: rate,
+           market: market,
            suggested_price: Sealed.get_suggested_price_for_product!(product.id),
            retail_deals:
              Sealed.list_current_retail_deals!(today, query: [filter: [product_id: product.id]]),
@@ -423,19 +518,19 @@ defmodule TcgCheap.Sealed.Guide do
   the cheapest of them (`cheapest`, nil when none) and the retail chains'
   deals running today (`retail_deals`).
   """
-  @spec booster_prices(DateTime.t()) :: %{
+  @spec booster_prices(DateTime.t(), Market.t()) :: %{
           boosters: [summary()],
           cheapest: summary() | nil,
           retail_deals: list(),
           today: Date.t()
         }
-  def booster_prices(%DateTime{} = now) do
+  def booster_prices(%DateTime{} = now, %Market{} = market \\ Market.poland()) do
     today = DateTime.to_date(now)
 
     boosters =
       [
         query: [
-          filter: [available: true, kind: :booster, region: :en],
+          filter: in_stock_filter(market, now) ++ [kind: :booster, region: :en],
           select: @summary_fields,
           sort: [cardmarket_expansion_id: :desc]
         ],
@@ -444,7 +539,7 @@ defmodule TcgCheap.Sealed.Guide do
       |> Sealed.list_products!()
       # The set's own pack, not its sleeved or smaller ones.
       |> Enum.filter(&(&1.set_name && &1.name == &1.set_name <> " Booster"))
-      |> summaries(now)
+      |> summaries(now, market)
       # `available` is as of the last refresh: keep the ones in stock now.
       |> Enum.filter(&(&1.verdict.cheapest && not &1.preorder?))
       |> Enum.take(@booster_sets)
@@ -555,26 +650,32 @@ defmodule TcgCheap.Sealed.Guide do
   `best_offer_first/1`) and how many of the set's English cards are
   (`cards`). Nil for a product without an expansion.
   """
-  @spec in_stock_from_set(Product.t(), DateTime.t()) ::
+  @spec in_stock_from_set(Product.t(), DateTime.t(), Market.t()) ::
           %{products: [summary()], cards: non_neg_integer()} | nil
-  def in_stock_from_set(%Product{cardmarket_expansion_id: nil}, _now), do: nil
+  def in_stock_from_set(product, now, market \\ Market.poland())
+  def in_stock_from_set(%Product{cardmarket_expansion_id: nil}, _now, _market), do: nil
 
-  def in_stock_from_set(%Product{cardmarket_expansion_id: id} = product, %DateTime{} = now) do
+  def in_stock_from_set(
+        %Product{cardmarket_expansion_id: id} = product,
+        %DateTime{} = now,
+        %Market{} = market
+      ) do
     products =
       [
         query: [
-          filter: [
-            available: true,
-            cardmarket_expansion_id: id,
-            region: product.region,
-            id: [not_eq: product.id]
-          ],
+          filter:
+            in_stock_filter(market, now) ++
+              [
+                cardmarket_expansion_id: id,
+                region: product.region,
+                id: [not_eq: product.id]
+              ],
           select: @summary_fields
         ],
         load: [:stored_photo_small_url, :stored_photo_card_url, :photo_placeholder]
       ]
       |> Sealed.list_products!()
-      |> summaries(now)
+      |> summaries(now, market)
       # `available` is as of the last refresh: keep the ones in stock now.
       |> Enum.filter(&(&1.verdict.cheapest && not &1.preorder?))
       |> Enum.sort_by(&best_offer_first/1)
@@ -1006,8 +1107,13 @@ defmodule TcgCheap.Sealed.Guide do
   end
 
   # The last known price shown when out of stock may predate the chart.
-  defp with_last_stocked_day(history, product_id, since) do
-    case Sealed.get_last_stocked_day!(product_id) do
+  defp with_last_stocked_day(history, product_id, since, market) do
+    last_stocked =
+      if market == Market.poland(),
+        do: Sealed.get_last_stocked_day!(product_id),
+        else: Sealed.get_market_last_stocked_day!(product_id, market.code)
+
+    case last_stocked do
       %{date: date} = day -> if Date.before?(date, since), do: [day | history], else: history
       nil -> history
     end
@@ -1024,19 +1130,45 @@ defmodule TcgCheap.Sealed.Guide do
 
   @doc "A Cardmarket EUR amount in PLN at the given rate."
   @spec to_pln(Decimal.t() | nil, map() | nil) :: Decimal.t() | nil
-  def to_pln(%Decimal{} = eur, %{rate: rate}), do: eur |> Decimal.mult(rate) |> Decimal.round(2)
-  def to_pln(_eur, _rate), do: nil
+  def to_pln(eur, rate), do: in_market(eur, rate, Market.poland())
 
-  # The verdict judges each shop at its compared price: a shop abroad's
-  # includes delivery to Poland.
-  defp summary(product, offers, rate, usual, {premieres, now}) do
-    offers = Shops.compared(offers)
+  @doc """
+  The euro's rate in the market's currency on `today` (`eur_pln/1` for
+  Poland), nil when unknown. Elsewhere it goes through PLN, at NBP rates no
+  older than a week (`Market.pln_rate/2`), and is as old as the older one.
+  """
+  @spec cardmarket_rate(Market.t(), Date.t()) :: %{rate: Decimal.t(), date: Date.t()} | nil
+  def cardmarket_rate(%Market{} = market, %Date{} = today) do
+    if market == Market.poland() do
+      eur_pln(today)
+    else
+      with {:ok, eur} <- Market.pln_rate("EUR", today),
+           {:ok, local} <- Market.pln_rate(market.currency, today) do
+        %{rate: Decimal.div(eur.rate, local.rate), date: Enum.min([eur.date, local.date], Date)}
+      else
+        {:error, _reason} -> nil
+      end
+    end
+  end
+
+  @doc "A Cardmarket EUR amount in the market's currency at its `cardmarket_rate/2`."
+  @spec in_market(Decimal.t() | nil, map() | nil, Market.t()) :: Decimal.t() | nil
+  def in_market(%Decimal{} = eur, %{rate: rate}, market),
+    do: eur |> Decimal.mult(rate) |> Market.rounded(market)
+
+  def in_market(_eur, _rate, _market), do: nil
+
+  # The verdict judges each shop at its compared price (`Market.compared/3`):
+  # a shop abroad's includes delivery to the market.
+  defp summary(product, offers, {rate, market}, usual, {premieres, now}) do
     in_stock = Enum.filter(offers, & &1.in_stock)
     preorders = Enum.filter(offers, & &1.preorder)
     # With nothing in stock, pre-orders are rated the same way.
     preorder? = in_stock == [] and preorders != []
-    cardmarket_pln = to_pln(product.cardmarket_trend, rate)
-    cardmarket_delivered_pln = product.cardmarket_trend |> with_shipping() |> to_pln(rate)
+    cardmarket_pln = in_market(product.cardmarket_trend, rate, market)
+
+    cardmarket_delivered_pln =
+      product.cardmarket_trend |> with_shipping() |> in_market(rate, market)
 
     {premiere, premiere_in} =
       if preorder?,

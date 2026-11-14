@@ -22,15 +22,22 @@ defmodule TcgCheap.Sealed.Shop do
       paths; Chasedex, Pokemonki and SingleTcg: not read (the shop's own index
       decides), any list enables singles;
     * `currency` – the ISO code of the shop's prices, PLN unless the shop is
-      abroad; other prices are converted to PLN at the latest NBP rate
+      abroad; each offer keeps the shop's price in it (`shop_price`), and other
+      prices are also converted to PLN at the latest NBP rate
       (`TcgCheap.Pricing.ExchangeRate.currencies/0`) when fetched;
     * `singles_only` – true for a shop read only for its singles; its sealed
       products are ignored;
-    * `country` – the ISO code of a shop abroad, shown with its delivery; nil
-      for a Polish shop. A shop abroad counts in every price (verdicts, lowest
-      prices, history) like a Polish shop, at its price with delivery to
-      Poland (`TcgCheap.Sealed.Shops.compared_price/2`); without a known
-      `shipping_from` it is only listed;
+    * `country` – the ISO code of the shop's home country, "PL" for a Polish
+      shop; a shop abroad shows it with its delivery;
+    * `deliveries` – the shop's known deliveries abroad, by the ISO code of
+      the country delivered to: `shipping_from` (the cheapest delivery price,
+      nil when unknown), `free_shipping_from` (the order value from which it
+      is free, nil for none) and the `currency` both are in. A shop takes
+      part in a market (`TcgCheap.Sealed.Market`) in its home country at its
+      own price, and abroad at its price with this delivery; with no known
+      delivery price it is only listed there, and without an entry it is not
+      in that market at all. A delivery to Poland is stated in PLN: the
+      Polish pages show it in złoty;
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
       cover the whole shop) and `feed_host` (the shop's own host serving the
       export, such as its CDN, when it is not `host`); WooCommerce:
@@ -43,11 +50,11 @@ defmodule TcgCheap.Sealed.Shop do
       listings: `mixed_listing` (true when the category also lists other
       games, so a title must say Pokémon) and `preorder_path` (the shop's
       own listing of pre-orders, which never count as in stock);
-    * `shipping_from` – the cheapest delivery price in PLN (for a shop abroad,
-      its price to Poland converted when configured), `free_shipping_from`
-      – the order value from which delivery is free, `pickup_city` – the city
-      of the shop's own store where orders can be picked up in person; each nil
-      when the shop does not publish it;
+    * `shipping_from` – the cheapest delivery price within the shop's home
+      country, in its `currency`, `free_shipping_from` – the order value from
+      which that delivery is free, `pickup_city` – the city of the shop's own
+      store where orders can be picked up in person; each nil when the shop
+      does not publish it (deliveries abroad are in `deliveries`);
     * `images` – false when the shop's images cannot be shown elsewhere
       (its bot check answers them with a page; PrestaShop);
     * `pickup_location` – `{latitude, longitude}` of that store, for distances
@@ -77,11 +84,18 @@ defmodule TcgCheap.Sealed.Shop do
                 :mixed_listing,
                 :preorder_path,
                 :pickup_location,
-                :country,
+                country: "PL",
+                deliveries: %{},
                 currency: "PLN",
                 singles_only: false,
                 images: true
               ]
+
+  @type delivery :: %{
+          shipping_from: Decimal.t() | nil,
+          free_shipping_from: Decimal.t() | nil,
+          currency: String.t()
+        }
 
   @type t :: %__MODULE__{
           key: String.t(),
@@ -102,7 +116,8 @@ defmodule TcgCheap.Sealed.Shop do
           preorder_path: String.t() | nil,
           currency: String.t(),
           singles_only: boolean(),
-          country: String.t() | nil,
+          country: String.t(),
+          deliveries: %{String.t() => delivery()},
           images: boolean(),
           shipping_from: Decimal.t() | nil,
           free_shipping_from: Decimal.t() | nil,

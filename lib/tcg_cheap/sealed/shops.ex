@@ -46,6 +46,7 @@ defmodule TcgCheap.Sealed.Shops do
     Guildmage,
     IdoSell,
     MagicznyRynek,
+    Market,
     NopCommerce,
     Pasaz24,
     Planszomania,
@@ -1705,9 +1706,11 @@ defmodule TcgCheap.Sealed.Shops do
       pickup_location: {50.1423, 19.4082}
     },
     # Shops abroad: priced in their currency, mostly for their singles, and
-    # compared at their price with delivery to Poland converted to PLN (NBP,
-    # 6 November 2026: EUR 4.39, GBP 5.26, SEK 0.40, CZK 0.18, DKK 0.59); one
-    # without a known delivery price is only listed (`compared_price/2`).
+    # compared at their price with delivery to Poland (`deliveries`), given in
+    # PLN converted at NBP rates of 6 November 2026 (EUR 4.39, GBP 5.26,
+    # SEK 0.40, CZK 0.18, DKK 0.59); one without a known delivery price is
+    # only listed (`TcgCheap.Sealed.Market`). Their delivery within their own
+    # country is not recorded: no market of ours is there yet.
     #
     # Bangerpack (White Tree AB, Helsingborg) asked to be listed and gave its
     # Google Shopping export, served from its CDN in euros; it holds sealed
@@ -1723,11 +1726,18 @@ defmodule TcgCheap.Sealed.Shops do
       currency: "EUR",
       country: "SE",
       max_pages: 1,
-      # €10.99 to Poland in its checkout for a €1.99 cart (2026-11-10): a lower
-      # bound, a heavier parcel (a booster box) may cost more.
-      shipping_from: Decimal.new("48.25"),
+      shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: nil
+      pickup_city: nil,
+      deliveries: %{
+        "PL" => %{
+          # €10.99 to Poland in its checkout for a €1.99 cart (2026-11-10): a lower
+          # bound, a heavier parcel (a booster box) may cost more.
+          shipping_from: Decimal.new("48.25"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
     },
     %Shop{
       key: "rarecards",
@@ -1739,10 +1749,17 @@ defmodule TcgCheap.Sealed.Shops do
       singles_only: true,
       country: "NL",
       max_pages: 30,
-      # €7.95, free from €250.
-      shipping_from: Decimal.new("34.92"),
-      free_shipping_from: Decimal.new("1098"),
-      pickup_city: nil
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "PL" => %{
+          # €7.95, free from €250.
+          shipping_from: Decimal.new("34.92"),
+          free_shipping_from: Decimal.new("1098"),
+          currency: "PLN"
+        }
+      }
     },
     %Shop{
       key: "tcgking",
@@ -1756,10 +1773,17 @@ defmodule TcgCheap.Sealed.Shops do
       singles_only: true,
       country: "NL",
       max_pages: 20,
-      # €10.95, free from €100.
-      shipping_from: Decimal.new("48.10"),
-      free_shipping_from: Decimal.new("439"),
-      pickup_city: nil
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "PL" => %{
+          # €10.95, free from €100.
+          shipping_from: Decimal.new("48.10"),
+          free_shipping_from: Decimal.new("439"),
+          currency: "PLN"
+        }
+      }
     },
     %Shop{
       key: "gemipulls",
@@ -1771,10 +1795,17 @@ defmodule TcgCheap.Sealed.Shops do
       singles_only: true,
       country: "DK",
       max_pages: 5,
-      # 109 DKK standard to Poland in its cart, also for 699 DKK (2026-11-10).
-      shipping_from: Decimal.new("64.31"),
+      shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: nil
+      pickup_city: nil,
+      deliveries: %{
+        "PL" => %{
+          # 109 DKK standard to Poland in its cart, also for 699 DKK (2026-11-10).
+          shipping_from: Decimal.new("64.31"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
     },
     %Shop{
       key: "pokemagic",
@@ -1794,10 +1825,17 @@ defmodule TcgCheap.Sealed.Shops do
       singles_only: true,
       country: "NL",
       max_pages: 1,
-      # €13.95 to Poland, also for an order of €270.
-      shipping_from: Decimal.new("61.28"),
+      shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: nil
+      pickup_city: nil,
+      deliveries: %{
+        "PL" => %{
+          # €13.95 to Poland, also for an order of €270.
+          shipping_from: Decimal.new("61.28"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
     },
     %Shop{
       key: "chasedex",
@@ -1810,11 +1848,18 @@ defmodule TcgCheap.Sealed.Shops do
       singles_only: true,
       country: "SE",
       max_pages: 80,
-      # 99 SEK tracked letter to the EU, free from 799 SEK (319.60 zł, rounded
-      # up so no order is shown with free delivery it does not get).
-      shipping_from: Decimal.new("39.40"),
-      free_shipping_from: Decimal.new("320"),
-      pickup_city: nil
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "PL" => %{
+          # 99 SEK tracked letter to the EU, free from 799 SEK (319.60 zł, rounded
+          # up so no order is shown with free delivery it does not get).
+          shipping_from: Decimal.new("39.40"),
+          free_shipping_from: Decimal.new("320"),
+          currency: "PLN"
+        }
+      }
     },
     %Shop{
       key: "unicorncards",
@@ -1826,10 +1871,17 @@ defmodule TcgCheap.Sealed.Shops do
       singles_only: true,
       country: "GB",
       max_pages: 40,
-      # £5.90 for any number of singles, duties paid (IOSS), free from £100.
-      shipping_from: Decimal.new("31.05"),
-      free_shipping_from: Decimal.new("526.30"),
-      pickup_city: nil
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil,
+      deliveries: %{
+        "PL" => %{
+          # £5.90 for any number of singles, duties paid (IOSS), free from £100.
+          shipping_from: Decimal.new("31.05"),
+          free_shipping_from: Decimal.new("526.30"),
+          currency: "PLN"
+        }
+      }
     },
     %Shop{
       key: "bulbazard",
@@ -1841,10 +1893,17 @@ defmodule TcgCheap.Sealed.Shops do
       singles_only: true,
       country: "CZ",
       max_pages: 40,
-      # Zásilkovna (Packeta) to Poland 149 Kč.
-      shipping_from: Decimal.new("26.89"),
+      shipping_from: nil,
       free_shipping_from: nil,
-      pickup_city: nil
+      pickup_city: nil,
+      deliveries: %{
+        "PL" => %{
+          # Zásilkovna (Packeta) to Poland 149 Kč.
+          shipping_from: Decimal.new("26.89"),
+          free_shipping_from: nil,
+          currency: "PLN"
+        }
+      }
     }
   ]
 
@@ -1856,49 +1915,39 @@ defmodule TcgCheap.Sealed.Shops do
   @abroad_sources [Shopify, WooCommerce, Chasedex, NopCommerce, Shoptet, GoogleFeed]
   @countries ~w(NL DE BE GB SE DK CZ)
 
-  for shop <- @shops, shop.currency != "PLN" or shop.country != nil do
+  for shop <- @shops, shop.currency != "PLN" or shop.country != "PL" do
     unless shop.source in @abroad_sources and
              shop.currency in ExchangeRate.currencies() and
              shop.country in @countries,
            do: raise(ArgumentError, "shop abroad #{shop.key} is misconfigured")
   end
 
+  # Each delivery is in a currency with an NBP rate; one to Poland in PLN, as
+  # the Polish pages show it in złoty.
+  for shop <- @shops, {country, delivery} <- shop.deliveries do
+    unless delivery.currency in ["PLN" | ExchangeRate.currencies()] and
+             (country != "PL" or delivery.currency == "PLN"),
+           do: raise(ArgumentError, "delivery of #{shop.key} to #{country} is misconfigured")
+  end
+
   @doc """
-  The price an offer is compared at with other shops' offers (verdicts,
-  lowest prices, history): a Polish shop's item price; a shop abroad's with
-  its cheapest delivery to Poland, none from its free-delivery threshold.
-  Nil for a shop abroad whose delivery price is unknown: it is only listed.
+  The price an offer is compared at with other shops' offers in Poland
+  (verdicts, lowest prices, history), `Market.compared/3` for one offer: a
+  Polish shop's item price; a shop abroad's with its cheapest delivery to
+  Poland, none from its free-delivery threshold. Nil for a shop abroad whose
+  delivery price is unknown: it is only listed.
   """
   @spec compared_price(String.t(), Decimal.t()) :: Decimal.t() | nil
-  def compared_price(key, price), do: shop_price(fetch(key), price)
-
-  defp shop_price(
-         {:ok, %Shop{country: country, shipping_from: shipping, free_shipping_from: free_from}},
-         price
-       )
-       when country != nil do
-    cond do
-      shipping == nil -> nil
-      free_from && not Decimal.lt?(price, free_from) -> price
-      true -> Decimal.add(price, shipping)
+  def compared_price(key, price) do
+    case compared([%{shop: key, price: price}]) do
+      [%{price: compared}] -> compared
+      [] -> nil
     end
   end
 
-  # A Polish shop, or one no longer configured.
-  defp shop_price(_polish, price), do: price
-
-  @doc "The offers that count in prices, each at its `compared_price/2`."
+  @doc "The offers that count in Polish prices, each at its `compared_price/2`."
   @spec compared([offer]) :: [offer] when offer: %{shop: String.t(), price: Decimal.t()}
-  def compared(offers) do
-    # Each shop is looked up once, not once per offer: the singles banner
-    # prices every card offer in stock.
-    shops = offers |> Enum.map(& &1.shop) |> Enum.uniq() |> Map.new(&{&1, fetch(&1)})
-
-    for offer <- offers,
-        price = shop_price(Map.fetch!(shops, offer.shop), offer.price),
-        price != nil,
-        do: %{offer | price: price}
-  end
+  def compared(offers), do: Market.compared(offers, Market.poland(), Date.utc_today())
 
   @doc """
   An offer's place in an offer list, as a float: its `compared_price/2`, or
@@ -1908,19 +1957,21 @@ defmodule TcgCheap.Sealed.Shops do
   def listing_price(offer),
     do: Decimal.to_float(compared_price(offer.shop, offer.price) || offer.price)
 
-  @doc "Shops abroad compared with their delivery: `{shipping, free from}` by key."
+  @doc "Shops abroad compared with their delivery to Poland: `{shipping, free from}` in PLN by key."
   @spec delivered() :: %{String.t() => {Decimal.t(), Decimal.t() | nil}}
   def delivered do
-    for %Shop{country: country, shipping_from: shipping} = shop <- @shops,
-        country != nil and shipping != nil,
+    for shop <- @shops,
+        {:delivered, delivery} <- [Market.terms({:ok, shop}, Market.poland())],
         into: %{},
-        do: {shop.key, {shipping, shop.free_shipping_from}}
+        do: {shop.key, {delivery.shipping_from, delivery.free_shipping_from}}
   end
 
-  @doc "Shops abroad without a known delivery price: listed, never compared."
+  @doc "Shops whose offers never count in Polish prices: abroad without a known delivery price."
   @spec listed_only_keys() :: [String.t()]
   def listed_only_keys do
-    for %Shop{country: country, shipping_from: nil} = shop <- @shops, country != nil, do: shop.key
+    for shop <- @shops,
+        Market.terms({:ok, shop}, Market.poland()) in [:listed, :absent],
+        do: shop.key
   end
 
   @spec all() :: [Shop.t()]

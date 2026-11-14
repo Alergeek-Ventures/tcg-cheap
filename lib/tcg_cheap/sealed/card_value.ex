@@ -42,7 +42,7 @@ defmodule TcgCheap.Sealed.CardValue do
   # ungraded offer there, with its Cardmarket price in złoty when it has one.
   # Shops abroad are left out: their prices include delivery.
   defp polish_stock do
-    polish = for %{key: key, country: nil} <- Shops.all(), do: key
+    polish = for %{key: key, country: "PL"} <- Shops.all(), do: key
     rate = Guide.eur_pln(Date.utc_today())
 
     from(o in CardGuide.current_query(),

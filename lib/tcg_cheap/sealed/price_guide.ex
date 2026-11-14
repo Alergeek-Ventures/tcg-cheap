@@ -15,6 +15,10 @@ defmodule TcgCheap.Sealed.PriceGuide do
   directly and no price above 95%/110% of the typical one is rated better
   than it is.
 
+  Prices and references are in one market's currency (`TcgCheap.Sealed.Market`;
+  złoty and PLN above are Poland's): the limits are whole units of it, whole
+  forints in Hungary.
+
   With fewer shops the price is only compared with the Cardmarket trend
   converted to PLN with the latest NBP rate (`:cardmarket`, no limits): a
   European price without shipping would make almost every Polish price look

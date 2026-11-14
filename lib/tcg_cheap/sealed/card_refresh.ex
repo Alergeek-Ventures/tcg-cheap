@@ -34,6 +34,8 @@ defmodule TcgCheap.Sealed.CardRefresh do
               :url,
               :image_url,
               :price,
+              :shop_price,
+              :currency,
               :in_stock
             ])
             |> Map.merge(Map.take(CardMatcher.parse(&1), [:language, :condition, :grading]))
