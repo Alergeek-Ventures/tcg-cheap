@@ -39,8 +39,11 @@ defmodule TcgCheap.Sealed.Guide do
   # The cheapest tracked parcel to Poland from Germany, Cardmarket's largest
   # seller country (DHL Paket up to 2 kg, Cardmarket's shipping calculator,
   # 2026-11-02); orders above 25 € must be tracked, which covers most sealed
-  # products. Other markets use it too until their own parcel is checked.
-  @cardmarket_shipping_eur Decimal.new("15.49")
+  # products. Hungary uses the same EU tariff: DHL Paket 2 kg (€14.49)
+  # plus Cardmarket's €1 parcel packaging fee, checked 2026-11-14:
+  # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/ungarn.html
+  # https://help.cardmarket.com/en/ShippingCosts
+  @cardmarket_shipping_eur %{"pl" => Decimal.new("15.49"), "hu" => Decimal.new("15.49")}
   # The product fields a summary and its list row read.
   @summary_fields [
     :slug,
@@ -65,7 +68,9 @@ defmodule TcgCheap.Sealed.Guide do
         }
 
   def history_days, do: @history_days
-  def cardmarket_shipping_eur, do: @cardmarket_shipping_eur
+
+  def cardmarket_shipping_eur(market \\ Market.poland()),
+    do: Map.fetch!(@cardmarket_shipping_eur, market.code)
 
   @type filters :: %{
           query: String.t(),
@@ -1200,7 +1205,7 @@ defmodule TcgCheap.Sealed.Guide do
     cardmarket_pln = in_market(product.cardmarket_trend, rate, market)
 
     cardmarket_delivered_pln =
-      product.cardmarket_trend |> with_shipping() |> in_market(rate, market)
+      product.cardmarket_trend |> with_shipping(market) |> in_market(rate, market)
 
     {premiere, premiere_in} =
       if preorder?,
@@ -1269,6 +1274,8 @@ defmodule TcgCheap.Sealed.Guide do
     Date.add(last, -rem(Date.day_of_week(last), 7))
   end
 
-  defp with_shipping(%Decimal{} = eur), do: Decimal.add(eur, @cardmarket_shipping_eur)
-  defp with_shipping(nil), do: nil
+  defp with_shipping(%Decimal{} = eur, market),
+    do: Decimal.add(eur, cardmarket_shipping_eur(market))
+
+  defp with_shipping(nil, _market), do: nil
 end

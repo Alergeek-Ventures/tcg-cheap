@@ -145,6 +145,8 @@ defmodule TcgCheap.Sealed.Shopify do
   # card matcher would take for a conflicting set, so singles have no category.
   defp with_kind(offer, :single), do: Map.merge(offer, %{kind: :single, category: nil})
 
+  defp sealed?(%Shop{mixed_listing: true}, title), do: ShopFeed.sealed_pokemon?(title, nil)
+
   defp sealed?(%Shop{collection: nil}, title), do: ShopFeed.sealed_pokemon?(title, nil)
   defp sealed?(_shop, title), do: Matcher.sealed_title?(title)
 

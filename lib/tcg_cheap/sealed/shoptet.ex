@@ -1,16 +1,17 @@
 defmodule TcgCheap.Sealed.Shoptet do
   @moduledoc """
-  Reads the singles of a Shoptet shop from its category listings: each of the
-  shop's `singles_categories` (category paths such as
-  `"/kusove-karty-pokemon/"`) is read page by page (`<path>strana-<n>/`) to
-  the last page its pager names, at most `max_pages` pages a category.
+  Reads sealed products from a Shoptet shop's `listing_paths` and singles
+  from its `singles_categories`. Each category is read to the last page its
+  pager names, at most `max_pages` pages. The pagination path is taken from
+  the listing's links, supporting localized pagers without language rules.
 
   Shoptet marks every product of a listing with microdata
   (`data-micro="product"`): its id (`data-micro-product-id`), name and link,
   and an offer with the price (`data-micro-price`, a plain decimal), its
   currency, which must be the shop's `currency`, and its schema.org
-  availability; only `InStock` is in stock. Every product read is a single,
-  priced with a 0.10 minimum, without a category (the title names the set).
+  availability; only `InStock` is in stock. Sealed products must name a
+  sealed product; singles have a 0.10 minimum and no category (the title
+  names the set).
   Images (`data-micro-image`) come from the shop's host or Shoptet's CDN
   (`cdn.myshoptet.com`);
   listings carry no EAN. The pages must form a complete listing, the total
@@ -21,7 +22,7 @@ defmodule TcgCheap.Sealed.Shoptet do
 
   @behaviour TcgCheap.Sealed.ShopFeed
 
-  alias TcgCheap.Sealed.{HtmlListing, Shop, ShopFeed}
+  alias TcgCheap.Sealed.{HtmlListing, Matcher, Shop, ShopFeed}
 
   @path ~r/\A\/[a-z0-9-]+\/\z/
   @in_stock "https://schema.org/InStock"
@@ -30,33 +31,66 @@ defmodule TcgCheap.Sealed.Shoptet do
   def image_hosts(%Shop{host: host}), do: [host, "cdn.myshoptet.com"]
 
   @impl true
-  def fetch(%Shop{singles_categories: [_ | _] = paths} = shop, req_options) do
-    paths
-    |> Enum.reduce_while({:ok, []}, fn path, {:ok, acc} ->
-      case read_category(shop, path, req_options) do
-        {:ok, products} -> {:cont, {:ok, acc ++ products}}
-        {:error, reason} -> {:halt, {:error, reason}}
-      end
-    end)
-    |> case do
-      {:ok, products} -> {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
+  def fetch(%Shop{} = shop, req_options) do
+    with {:ok, sealed} <- sealed_products(shop, req_options) do
+      singles =
+        HtmlListing.read_singles(shop, fn path, _max_pages ->
+          read_category(shop, path, req_options)
+        end)
+
+      sealed
+      |> Enum.map(&{:sealed, &1})
+      |> ShopFeed.with_singles(
+        singles,
+        &ShopFeed.offers(shop, &1, fn product -> normalize(shop, product) end)
+      )
+    end
+  end
+
+  defp sealed_products(%Shop{singles_only: true}, _req_options), do: {:ok, []}
+
+  defp sealed_products(shop, req_options),
+    do: HtmlListing.read_listings(shop, &read_category(shop, &1, req_options))
+
+  defp read_category(shop, path, req_options) do
+    with true <- Regex.match?(@path, path),
+         {:ok, document} <- HtmlListing.page(shop, path, req_options),
+         {:ok, first} <- page(document),
+         {:ok, prefix} <- pagination_prefix(document, path, first.last) do
+      HtmlListing.read(
+        fn
+          1 -> {:ok, first}
+          number -> request(shop, "#{prefix}#{number}/", req_options)
+        end,
+        shop.max_pages
+      )
+    else
+      false -> {:error, :invalid_category}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  def fetch(%Shop{}, _req_options), do: {:error, :no_singles_categories}
+  defp pagination_prefix(_document, _path, 1), do: {:ok, nil}
 
-  defp read_category(shop, path, req_options) do
-    if Regex.match?(@path, path),
-      do: HtmlListing.read(&request(shop, path, req_options, &1), shop.max_pages),
-      else: {:error, :invalid_category}
+  defp pagination_prefix(document, path, _last) do
+    pattern = Regex.compile!("\\A(" <> Regex.escape(path) <> "[a-z-]+-)[0-9]+/\\z")
+
+    prefix =
+      document
+      |> Floki.find(".pagination a[href]")
+      |> Floki.attribute("href")
+      |> Enum.find_value(fn href ->
+        case Regex.run(pattern, URI.parse(href).path || "") do
+          [_, prefix] -> prefix
+          nil -> nil
+        end
+      end)
+
+    if prefix, do: {:ok, prefix}, else: {:error, :malformed_pagination}
   end
 
-  defp request(shop, path, req_options, number) do
-    page_path = if number == 1, do: path, else: "#{path}strana-#{number}/"
-
-    with {:ok, document} <- HtmlListing.page(shop, page_path, req_options),
-         do: page(document)
+  defp request(shop, path, req_options) do
+    with {:ok, document} <- HtmlListing.page(shop, path, req_options), do: page(document)
   end
 
   defp page(document) do
@@ -123,12 +157,13 @@ defmodule TcgCheap.Sealed.Shoptet do
     }
   end
 
-  defp normalize(shop, product) do
+  defp normalize(shop, {kind, product}) do
     with {:ok, title} <- ShopFeed.title(product.title),
+         true <- (kind == :single or Matcher.sealed_title?(title)) || :ignore,
          {:ok, id} <- ShopFeed.product_id(product.id),
          {:ok, url} <- product_url(shop, product.path),
          true <- product.currency == shop.currency,
-         {:ok, price} <- ShopFeed.decimal_price(product.price, :single),
+         {:ok, price} <- ShopFeed.decimal_price(product.price, kind),
          in_stock when is_boolean(in_stock) <- product.in_stock do
       {:ok,
        [
@@ -140,11 +175,12 @@ defmodule TcgCheap.Sealed.Shoptet do
            ean: nil,
            price: price,
            in_stock: in_stock,
-           kind: :single,
+           kind: kind,
            category: nil
          }
        ]}
     else
+      :ignore -> :ignore
       _ -> :invalid
     end
   end
