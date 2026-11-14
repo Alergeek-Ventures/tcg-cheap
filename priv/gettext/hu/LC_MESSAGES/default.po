@@ -191,7 +191,7 @@ msgstr "Települések:"
 #: lib/tcg_cheap_web/components/guide_components.ex:1541
 #, elixir-autogen, elixir-format
 msgid "Na Cardmarket od %{date}."
-msgstr "A Cardmarketen %{date} óta kapható."
+msgstr "A Cardmarketen %{date} óta szerepel."
 
 #: lib/tcg_cheap_web/live/product_live.ex:959
 #, elixir-autogen, elixir-format
@@ -4257,7 +4257,7 @@ msgstr "Ország és nyelv: %{region}, %{language}"
 #: lib/tcg_cheap_web/components/guide_components.ex:1575
 #, elixir-autogen, elixir-format
 msgid "Kurs %{rate} %{currency} za euro z kursów NBP z %{date}."
-msgstr "Árfolyam: 1 euró = %{rate} %{currency} (a lengyel jegybank, az NBP árfolyamaiból, %{date})."
+msgstr "Árfolyam: 1 euró = %{rate} %{currency} (a lengyel jegybank, az NBP árfolyamai alapján; %{date})."
 
 #: lib/tcg_cheap_web/components/guide_components.ex:198
 #, elixir-autogen, elixir-format
@@ -4292,7 +4292,7 @@ msgstr "Úgy tűnik, Lengyelországban vagy."
 #: lib/tcg_cheap_web/components/guide_components.ex:161
 #, elixir-autogen, elixir-format
 msgid "Zostań tutaj"
-msgstr "Maradok itt"
+msgstr "Itt maradok"
 
 #: lib/tcg_cheap_web/polish.ex:79
 #, elixir-autogen, elixir-format
@@ -4357,7 +4357,7 @@ msgstr "Pokémon TCG kártyaárak forintban"
 #: lib/tcg_cheap_web/region_text.ex:192
 #, elixir-autogen, elixir-format
 msgid "Ceny węgierskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką na Węgry. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
-msgstr "A magyar boltok árai szállítási díj nélkül, a külföldieké Magyarországra szállítással értendők. A Cardmarket-árhoz egy Németországból küldött csomag szállítási díját adjuk hozzá: %{shipping}."
+msgstr "A magyar boltok árait szállítási díj nélkül, a külföldiekét magyarországi szállítással mutatjuk. A Cardmarket-árhoz egy Németországból küldött csomag szállítási díját adjuk hozzá: %{shipping}."
 
 #: lib/tcg_cheap_web/region_text.ex:52
 #, elixir-autogen, elixir-format
@@ -4372,7 +4372,7 @@ msgstr "Hasonlítsd össze a Pokémon TCG árakat a Magyarországra szállító 
 #: lib/tcg_cheap_web/region_text.ex:165
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką na Węgry."
-msgstr "Az árak a külföldi boltoknál szállítási díjjal együtt értendők."
+msgstr "A külföldi boltok árai a magyarországi szállítást is tartalmazzák."
 
 #: lib/tcg_cheap_web/components/guide_components.ex:259
 #, elixir-autogen, elixir-format
