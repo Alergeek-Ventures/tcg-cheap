@@ -181,7 +181,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
         where:
           is_nil(image.attempted_at) or
             fragment(
-              "? < now() AT TIME ZONE 'UTC' - make_interval(days => least(power(2, greatest(? - 1, 0))::integer, 16))",
+              "? < now() AT TIME ZONE 'UTC' - make_interval(days => power(2, least(greatest(? - 1, 0), 4))::integer)",
               image.attempted_at,
               image.failed_attempts
             ),
@@ -299,15 +299,14 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   end
 
   defp log_failure(error, image) do
-    reason =
-      case error do
-        {:error, reason} -> reason
-        nil -> :missing_variant
-      end
-
-    Logger.warning("Remote image mirror failed: #{inspect(reason)} (#{image.id})")
+    Logger.warning("Remote image mirror failed: #{inspect(failure_reason(error))} (#{image.id})")
     "other"
   end
+
+  defp failure_reason({:error, reason}), do: reason
+  defp failure_reason(nil), do: :missing_variant
+  # Any other shape (e.g. a replace_image result without a blob) is logged as is.
+  defp failure_reason(other), do: other
 
   # Logos are trimmed so they show as large as a tight logo on the expansion tiles.
   defp trim_margins(body, type, false), do: {:ok, body, type}
