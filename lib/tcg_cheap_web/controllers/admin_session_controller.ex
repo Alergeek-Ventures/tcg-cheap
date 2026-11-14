@@ -6,6 +6,7 @@ defmodule TcgCheapWeb.AdminSessionController do
   alias TcgCheap.Accounts
   alias TcgCheap.Accounts.Admin
   alias TcgCheapWeb.AdminLoginLimiter
+  alias TcgCheapWeb.ClientAddress
 
   def new(%{assigns: %{current_admin: %Admin{}}} = conn, _params) do
     redirect(conn, to: ~p"/admin/buying-guide")
@@ -19,12 +20,14 @@ defmodule TcgCheapWeb.AdminSessionController do
   end
 
   def create(conn, %{"admin" => %{"email" => email, "password" => password}}) do
-    with :ok <- AdminLoginLimiter.reserve(conn.remote_ip, email),
+    address = ClientAddress.get(conn)
+
+    with :ok <- AdminLoginLimiter.reserve(address, email),
          {:ok, admin} <-
            Accounts.sign_in_admin(%{email: email, password: password},
              context: %{private: %{ash_authentication?: true}}
            ) do
-      AdminLoginLimiter.clear(conn.remote_ip, email)
+      AdminLoginLimiter.clear(address, email)
       return_to = get_session(conn, :admin_return_to) || ~p"/admin/buying-guide"
 
       conn
