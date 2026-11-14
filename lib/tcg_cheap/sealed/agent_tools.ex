@@ -26,8 +26,7 @@ defmodule TcgCheap.Sealed.AgentTools do
     SuggestedPrices
   }
 
-  alias TcgCheap.Pricing.ExchangeRate
-  alias TcgCheap.Sealed.Shops
+  alias TcgCheap.Sealed.{Market, Shops}
 
   @shops Enum.join(Shops.keys(), ", ")
   @current "An offer is current while it was in its shop's latest fetch and that fetch is at most 3 days old."
@@ -512,13 +511,13 @@ defmodule TcgCheap.Sealed.AgentTools do
       description """
       Queues a background fetch of one currency's latest NBP rate to PLN (also run daily at
       15:00 UTC). Shops abroad are priced with it; their fetch fails while the currency has no
-      rate from the last week. Returns the job; `already_queued` is true when one was already
+      recent rate (a week past its next NBP publication). Returns the job; `already_queued` is true when one was already
       waiting or running.
       """
 
       argument :currency, :string,
         allow_nil?: false,
-        description: "The ISO code (#{Enum.join(ExchangeRate.currencies(), ", ")})."
+        description: "The ISO code (#{Enum.join(Market.currencies(), ", ")})."
 
       run {Enqueue, job: :exchange_rate}
     end

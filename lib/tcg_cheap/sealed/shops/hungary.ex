@@ -161,7 +161,84 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
     }
   ]
 
+  @doc "The ISO code of the country these shops are in."
+  def country, do: "HU"
+
   @doc "The shops, in the order they are fetched and listed."
   @spec all() :: [Shop.t()]
   def all, do: @shops
+
+  @doc """
+  Deliveries to Hungary of shops abroad, by shop key (`TcgCheap.Sealed.Shops`),
+  in the shops' own currencies.
+  """
+  def deliveries do
+    %{
+      "beamcardshop" => %{
+        shipping_from: Decimal.new("29.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "bescards" => %{
+        shipping_from: Decimal.new("8.38"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "bulbazard" => %{
+        shipping_from: Decimal.new("149"),
+        free_shipping_from: nil,
+        currency: "CZK"
+      },
+      "cardcosmos" => %{
+        shipping_from: Decimal.new("24.99"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "chasedex" => %{
+        shipping_from: Decimal.new("99"),
+        free_shipping_from: Decimal.new("799"),
+        currency: "SEK"
+      },
+      "gemipulls" => %{
+        shipping_from: Decimal.new("229"),
+        free_shipping_from: nil,
+        currency: "DKK"
+      },
+      "godofcards" => %{
+        shipping_from: Decimal.new("11.44"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "pkmwinkel" => %{
+        shipping_from: Decimal.new("20"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "pokefamily" => %{
+        shipping_from: Decimal.new("12.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "psydeck" => %{
+        shipping_from: Decimal.new("15"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "rarecards" => %{
+        shipping_from: Decimal.new("8.95"),
+        free_shipping_from: Decimal.new("300"),
+        currency: "EUR"
+      },
+      "tcgking" => %{
+        shipping_from: Decimal.new("10.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "unicorncards" => %{
+        shipping_from: Decimal.new("5.90"),
+        free_shipping_from: Decimal.new("100"),
+        currency: "GBP"
+      }
+    }
+  end
 end

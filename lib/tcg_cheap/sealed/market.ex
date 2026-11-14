@@ -1,7 +1,8 @@
 defmodule TcgCheap.Sealed.Market do
   @moduledoc """
   A country the buying guide prices sealed products for, in its currency:
-  Poland and Hungary (`/hu`).
+  one per region (`TcgCheap.Countries.regions/0`). Poland is the original
+  market; the others record their own daily prices.
 
   A shop takes part in a market when its home `country` is the market's
   (domestic: its price counts without delivery, as Polish shops' always has)
@@ -14,25 +15,41 @@ defmodule TcgCheap.Sealed.Market do
   `currency`) converted at the latest NBP rates, through PLN both ways.
   Poland keeps the offer's `price`, converted to PLN when it was fetched
   (`TcgCheap.Sealed.Refresh`), so Polish prices stay what they were before
-  markets. A rate over a week old means its job stopped: an amount that
-  needs it has no price in the market rather than a silently wrong one.
+  markets. A rate a week older than its next publication means its job
+  stopped: an amount that needs it has no price in the market rather than a
+  silently wrong one.
   """
 
+  alias TcgCheap.Countries
+  alias TcgCheap.Pricing.ExchangeRate
   alias TcgCheap.Sealed.{Shop, Shops}
 
-  @enforce_keys [:code, :country, :currency]
+  @enforce_keys [:code, :country, :currency, :decimals, :cardmarket_shipping_eur]
   defstruct @enforce_keys
 
-  @type t :: %__MODULE__{code: String.t(), country: String.t(), currency: String.t()}
+  @type t :: %__MODULE__{
+          code: String.t(),
+          country: String.t(),
+          currency: String.t(),
+          decimals: non_neg_integer(),
+          cardmarket_shipping_eur: Decimal.t()
+        }
 
-  # NBP skips weekends and holidays; a rate over a week old means its job stopped.
-  @max_rate_age_days 7
-
+  @doc "Every region's market, Poland's first."
   @spec all() :: [t()]
-  def all, do: [poland(), %__MODULE__{code: "hu", country: "HU", currency: "HUF"}]
+  def all, do: Enum.map(Countries.regions(), &market/1)
+
+  defp market(region),
+    do: %__MODULE__{
+      code: region.code,
+      country: region.country,
+      currency: region.currency,
+      decimals: region.decimals,
+      cardmarket_shipping_eur: region.cardmarket_shipping_eur
+    }
 
   @spec poland() :: t()
-  def poland, do: %__MODULE__{code: "pl", country: "PL", currency: "PLN"}
+  def poland, do: hd(all())
 
   @spec fetch(String.t()) :: {:ok, t()} | :error
   def fetch(code) do
@@ -40,6 +57,23 @@ defmodule TcgCheap.Sealed.Market do
       nil -> :error
       market -> {:ok, market}
     end
+  end
+
+  @doc """
+  The currencies whose NBP rate the guide needs, but the złoty: the euro
+  for Cardmarket, every market's and every shop's prices and deliveries.
+  """
+  @spec currencies() :: [String.t()]
+  def currencies do
+    shops =
+      Enum.flat_map(Shops.all(), fn shop ->
+        [shop.currency | Enum.map(Map.values(shop.deliveries), & &1.currency)]
+      end)
+
+    (["EUR" | Enum.map(all(), & &1.currency)] ++ shops)
+    |> Enum.uniq()
+    |> List.delete("PLN")
+    |> Enum.sort()
   end
 
   @typedoc """
@@ -115,8 +149,9 @@ defmodule TcgCheap.Sealed.Market do
 
   @doc """
   The PLN value of one unit of the currency at the latest NBP rate on or
-  before `today`, with the rate's date; refused when that rate is over
-  #{@max_rate_age_days} days old.
+  before `today`, with the rate's date; refused when that rate is too old:
+  over 7 days for NBP's daily table A, over 14 for its weekly table B
+  (`ExchangeRate.table/1`), a week after its next publication.
   """
   @spec pln_rate(String.t(), Date.t()) ::
           {:ok, %{rate: Decimal.t(), date: Date.t()}}
@@ -127,7 +162,7 @@ defmodule TcgCheap.Sealed.Market do
   def pln_rate(currency, %Date{} = today) do
     case TcgCheap.Pricing.get_latest_exchange_rate(today, currency) do
       {:ok, %{rate: rate, effective_date: date}} ->
-        if Date.diff(today, date) <= @max_rate_age_days,
+        if Date.diff(today, date) <= max_rate_age_days(currency),
           do: {:ok, %{rate: rate, date: date}},
           else: {:error, {:stale_exchange_rate, currency, date}}
 
@@ -136,10 +171,13 @@ defmodule TcgCheap.Sealed.Market do
     end
   end
 
+  # NBP skips weekends and holidays.
+  defp max_rate_age_days(currency),
+    do: if(ExchangeRate.table(currency) == "A", do: 7, else: 14)
+
   @doc "An amount rounded as the market's currency is: whole forints, złoty to grosze."
   @spec rounded(Decimal.t(), t()) :: Decimal.t()
-  def rounded(amount, %__MODULE__{currency: "HUF"}), do: Decimal.round(amount, 0)
-  def rounded(amount, %__MODULE__{}), do: Decimal.round(amount, 2)
+  def rounded(amount, %__MODULE__{decimals: decimals}), do: Decimal.round(amount, decimals)
 
   # Each shop is looked up once, not once per offer: the singles banner
   # prices every card offer in stock.

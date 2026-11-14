@@ -1,12 +1,14 @@
 defmodule TcgCheapWeb.Paths do
   @moduledoc """
   The guide's public paths. Each region has its own path segments in its
-  language (`/pl/produkty/…`, `/hu/termekek/…`) under the same product, set
-  and card slugs; the articles and the bot page exist only in the Polish region.
+  language (`/pl/produkty/…`, `/hu/termekek/…`, `TcgCheap.Country.region/0`)
+  under the same product, set and card slugs; the articles and the bot page
+  exist only in the regions that list them (`pages`), Poland so far.
 
   A page is named by `parse/1` and built by `page_path/2`, which give the same
   page in another region (`switch/2`). The one-argument helpers build in the
-  current region (`TcgCheapWeb.Region.current/0`).
+  current region (`TcgCheapWeb.Region.current/0`). The router declares the
+  same paths from the same regions.
   """
 
   use TcgCheapWeb, :verified_routes
@@ -26,53 +28,72 @@ defmodule TcgCheapWeb.Paths do
 
   @doc "A page's path in a region, nil when the region does not have it."
   @spec page_path(Region.t(), page()) :: String.t() | nil
-  def page_path(%Region{code: "pl"}, page), do: polish(page)
-  def page_path(%Region{code: "hu"}, page), do: hungarian(page)
-
   # The home page ends with a slash, like the region's directory.
-  defp polish(:home), do: ~p"/pl" <> "/"
-  defp polish(:cards), do: ~p"/pl/karty"
-  defp polish({:product, slug}), do: ~p"/pl/produkty/#{slug}"
-  defp polish({:expansion, slug}), do: ~p"/pl/rozszerzenia/#{slug}"
-  defp polish({:card, set, card}), do: ~p"/pl/rozszerzenia/#{set}/karty/#{card}"
-  defp polish(:booster_prices), do: ~p"/pl/ile-kosztuje-booster-pokemon"
-  defp polish(:expensive_cards), do: ~p"/pl/najdrozsze-karty-pokemon"
-  defp polish(:card_value), do: ~p"/pl/jak-sprawdzic-wartosc-karty-pokemon"
-  defp polish(:bot), do: ~p"/pl/bot"
+  def page_path(%Region{code: code}, :home), do: "/" <> code <> "/"
+  def page_path(%Region{} = region, :cards), do: join(region, [region.slugs.cards])
 
-  defp hungarian(:home), do: ~p"/hu" <> "/"
-  defp hungarian(:cards), do: ~p"/hu/kartyak"
-  defp hungarian({:product, slug}), do: ~p"/hu/termekek/#{slug}"
-  defp hungarian({:expansion, slug}), do: ~p"/hu/szettek/#{slug}"
-  defp hungarian({:card, set, card}), do: ~p"/hu/szettek/#{set}/kartyak/#{card}"
-  defp hungarian(_polish_only), do: nil
+  def page_path(%Region{} = region, {:product, slug}),
+    do: join(region, [region.slugs.products, slug])
+
+  def page_path(%Region{} = region, {:expansion, slug}),
+    do: join(region, [region.slugs.expansions, slug])
+
+  def page_path(%Region{slugs: slugs} = region, {:card, set, card}),
+    do: join(region, [slugs.expansions, set, slugs.cards, card])
+
+  def page_path(%Region{pages: pages} = region, page) when is_atom(page) do
+    case pages do
+      %{^page => slug} -> join(region, [slug])
+      %{} -> nil
+    end
+  end
+
+  # Each segment encoded as a verified route encodes an interpolated one.
+  defp join(%Region{code: code}, segments),
+    do: "/" <> Enum.map_join([code | segments], "/", &encode/1)
+
+  defp encode(segment), do: URI.encode(segment, &URI.char_unreserved?/1)
 
   @doc "The region and page of a guide path, :error for any other path."
   @spec parse(String.t()) :: {:ok, Region.t(), page()} | :error
   def parse(path) do
     with [code | segments] <- String.split(path, "/", trim: true),
          {:ok, region} <- Region.fetch(code),
-         {:ok, page} <- parse_page(code, segments) do
+         {:ok, page} <- parse_page(region, segments) do
       {:ok, region, page}
     else
       _other -> :error
     end
   end
 
-  defp parse_page(_code, []), do: {:ok, :home}
-  defp parse_page("pl", ["karty"]), do: {:ok, :cards}
-  defp parse_page("pl", ["produkty", slug]), do: {:ok, {:product, slug}}
-  defp parse_page("pl", ["rozszerzenia", slug]), do: {:ok, {:expansion, slug}}
-  defp parse_page("pl", ["rozszerzenia", set, "karty", card]), do: {:ok, {:card, set, card}}
-  defp parse_page("pl", ["ile-kosztuje-booster-pokemon"]), do: {:ok, :booster_prices}
-  defp parse_page("pl", ["najdrozsze-karty-pokemon"]), do: {:ok, :expensive_cards}
-  defp parse_page("pl", ["jak-sprawdzic-wartosc-karty-pokemon"]), do: {:ok, :card_value}
-  defp parse_page("pl", ["bot"]), do: {:ok, :bot}
-  defp parse_page("hu", ["kartyak"]), do: {:ok, :cards}
-  defp parse_page("hu", ["termekek", slug]), do: {:ok, {:product, slug}}
-  defp parse_page("hu", ["szettek", slug]), do: {:ok, {:expansion, slug}}
-  defp parse_page("hu", ["szettek", set, "kartyak", card]), do: {:ok, {:card, set, card}}
-  defp parse_page(_code, _segments), do: :error
+  defp parse_page(_region, []), do: {:ok, :home}
+
+  defp parse_page(%Region{slugs: slugs, pages: pages}, segments) do
+    %{products: products, expansions: expansions, cards: cards} = slugs
+
+    case segments do
+      [^cards] ->
+        {:ok, :cards}
+
+      [^products, slug] ->
+        {:ok, {:product, slug}}
+
+      [^expansions, slug] ->
+        {:ok, {:expansion, slug}}
+
+      [^expansions, set, ^cards, card] ->
+        {:ok, {:card, set, card}}
+
+      [slug] ->
+        Enum.find_value(pages, :error, fn
+          {page, ^slug} -> {:ok, page}
+          _other -> nil
+        end)
+
+      _other ->
+        :error
+    end
+  end
 
   @doc """
   The same page in another region, without its query (filters are the

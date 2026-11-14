@@ -4,7 +4,8 @@ defmodule TcgCheapWeb.Region do
   `/hu/…`), the market whose shops and currency it prices with
   (`TcgCheap.Sealed.Market`) and the language it renders in unless the
   visitor chose another (`TcgCheapWeb.Locale`). Region and language are
-  separate: a Polish page can render in English.
+  separate: a Polish page can render in English. Each region is defined
+  in its country's file (`TcgCheap.Country.region/0`).
 
   The region a request or LiveView renders is set once with `put/1` and read
   with `current/0`, as Gettext keeps the language: formatting
@@ -13,43 +14,57 @@ defmodule TcgCheapWeb.Region do
   locale it is process state: spawned work must be given it explicitly.
   """
 
+  alias TcgCheap.Countries
   alias TcgCheap.Sealed.Market
+  alias TcgCheapWeb.Languages
 
-  @enforce_keys [:code, :market, :language, :hreflang]
+  @enforce_keys [
+    :code,
+    :market,
+    :currency_symbol,
+    :language,
+    :hreflang,
+    :slugs,
+    :pages,
+    :country
+  ]
   defstruct @enforce_keys
 
+  @typedoc """
+  A region as `TcgCheap.Country.region/0` defines it, with its market and
+  `country`, the module of its words and sentences (`TcgCheapWeb.RegionText`).
+  """
   @type t :: %__MODULE__{
           code: String.t(),
           market: Market.t(),
+          currency_symbol: String.t(),
           language: String.t(),
-          hreflang: String.t()
+          hreflang: String.t(),
+          slugs: %{products: String.t(), expansions: String.t(), cards: String.t()},
+          pages: %{optional(atom()) => String.t()},
+          country: module()
         }
-
-  @languages ~w(pl en hu)
 
   @doc "Every region, Poland first."
   @spec all() :: [t()]
-  def all, do: [poland(), hungary()]
+  def all do
+    # Market.all/0 lists the same regions in the same order.
+    for {region, market} <- Enum.zip(Countries.regions(), Market.all()) do
+      %__MODULE__{
+        code: region.code,
+        market: market,
+        currency_symbol: region.currency_symbol,
+        language: region.language,
+        hreflang: region.hreflang,
+        slugs: region.slugs,
+        pages: region.pages,
+        country: region.module
+      }
+    end
+  end
 
   @spec poland() :: t()
-  def poland,
-    do: %__MODULE__{
-      code: "pl",
-      market: Market.poland(),
-      language: "pl",
-      hreflang: "pl-PL"
-    }
-
-  defp hungary do
-    {:ok, market} = Market.fetch("hu")
-
-    %__MODULE__{
-      code: "hu",
-      market: market,
-      language: "hu",
-      hreflang: "hu-HU"
-    }
-  end
+  def poland, do: hd(all())
 
   @spec fetch(String.t() | nil) :: {:ok, t()} | :error
   def fetch(code) do
@@ -65,19 +80,18 @@ defmodule TcgCheapWeb.Region do
     region
   end
 
-  @doc "The region for a visitor in a country (Cloudflare's `cf-ipcountry`): Hungary's, else Poland's."
+  @doc "The region for a visitor in a country (Cloudflare's `cf-ipcountry`): its own, else Poland's."
   @spec for_country(String.t() | nil) :: t()
-  def for_country("HU"), do: hungary()
-  def for_country(_country), do: poland()
+  def for_country(country),
+    do: Enum.find(all(), &(&1.market.country == country)) || poland()
 
-  @doc "The languages the guide renders in."
+  @doc "The languages the guide renders in (`TcgCheapWeb.Languages`)."
   @spec languages() :: [String.t()]
-  def languages, do: @languages
+  def languages, do: Languages.codes()
 
   @doc "The language a visitor chose, if it is one of the guide's."
   @spec language(String.t() | nil) :: String.t() | nil
-  def language(code) when code in @languages, do: code
-  def language(_code), do: nil
+  def language(code), do: if(code in Languages.codes(), do: code)
 
   @doc "Whether the region prices with Poland's market, which every other part of the guide assumes."
   @spec poland?(t()) :: boolean()

@@ -1,16 +1,23 @@
 defmodule TcgCheap.Pricing.ExchangeRate do
   @moduledoc """
-  The canonical NBP table A mid rate to PLN for each currency and effective
-  date: EUR for Cardmarket, HUF for prices in Hungary (`TcgCheap.Sealed.Market`),
-  the others for shops abroad.
+  The canonical NBP mid rate to PLN for each currency and effective date:
+  EUR for Cardmarket, the others for the markets' and the shops' currencies
+  (`TcgCheap.Sealed.Market.currencies/0`). NBP publishes the most traded
+  currencies every working day in table A and the rest every Wednesday in
+  table B (RSD, MKD, BAM, ALL, MDL and others).
   """
 
   use Ash.Resource, domain: TcgCheap.Pricing, data_layer: AshPostgres.DataLayer
 
-  @currencies ~w(EUR GBP SEK CZK DKK HUF)
+  # NBP's table A, as https://api.nbp.pl/api/exchangerates/tables/a/ listed
+  # it on 2026-11-14; every other currency NBP prices is in table B.
+  @table_a ~w(THB USD AUD HKD CAD NZD SGD EUR HUF CHF GBP UAH JPY CZK DKK ISK NOK SEK RON TRY
+              ILS CLP PHP MXN ZAR BRL MYR IDR INR KRW CNY XDR)
 
-  @doc "The currencies whose PLN rate is recorded daily."
-  def currencies, do: @currencies
+  @doc ~S(The NBP table a currency's rate is published in: "A" daily, "B" weekly.)
+  @spec table(String.t()) :: String.t()
+  def table(currency) when currency in @table_a, do: "A"
+  def table(_currency), do: "B"
 
   postgres do
     table "exchange_rates"
@@ -47,7 +54,7 @@ defmodule TcgCheap.Pricing.ExchangeRate do
       get? true
 
       filter expr(
-               source == "nbp" and table == "A" and base_currency == ^arg(:base_currency) and
+               source == "nbp" and base_currency == ^arg(:base_currency) and
                  quote_currency == "PLN" and effective_date <= ^arg(:as_of)
              )
 
@@ -57,8 +64,8 @@ defmodule TcgCheap.Pricing.ExchangeRate do
 
   validations do
     validate one_of(:source, ["nbp"])
-    validate one_of(:table, ["A"])
-    validate one_of(:base_currency, @currencies)
+    validate one_of(:table, ["A", "B"])
+    validate match(:base_currency, ~r/\A[A-Z]{3}\z/)
     validate one_of(:quote_currency, ["PLN"])
     validate compare(:rate, greater_than: 0)
   end

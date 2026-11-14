@@ -45,6 +45,14 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
   verify changes in the running app (and through the MCP tools) instead.
 - Fix real Sobelow findings; use narrow, explained skips only for intentional
   findings.
+- A country is its own files, found by directory (`TcgCheap.ModuleDir`); no
+  shared list names it. A new region adds `lib/tcg_cheap/countries/<country>.ex`
+  (its region definition, words and `TcgCheapWeb.RegionText` sentences),
+  `lib/tcg_cheap/sealed/shops/<country>.ex` (its shops and the deliveries to it
+  of shops abroad), its Gettext domain (`priv/gettext/<country>.pot` and
+  `priv/gettext/*/LC_MESSAGES/<country>.po`) and
+  `priv/static/images/flags/<code>.svg`. A new language adds
+  `lib/tcg_cheap_web/languages/<language>.ex` and `priv/gettext/<code>/`.
 - When you test production (https://tcg.cheap) in a browser, type a search
   phrase starting with `zzz` in the search bar once, so PostHog can find your
   browser and exclude it from analytics as internal traffic.

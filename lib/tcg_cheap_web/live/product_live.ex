@@ -18,7 +18,7 @@ defmodule TcgCheapWeb.ProductLive do
   import TcgCheapWeb.VerdictComponents
 
   alias TcgCheap.Sealed.{Guide, Kinds, Regions, RetailDeal}
-  alias TcgCheapWeb.{Analytics, Format, Paths, Region, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Format, Languages, Paths, Region, SEO, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -173,12 +173,7 @@ defmodule TcgCheapWeb.ProductLive do
                   }
                 >{@page.product.set_name}</.link><span :if={!@page.product.cardmarket_expansion_id}>{@page.product.set_name}</span></span><span id="product-region">
                   {gettext("· wersja %{edition}",
-                    # English capitalises a language's name mid-sentence; Polish and Hungarian do not.
-                    edition:
-                      if(@locale == "en",
-                        do: Regions.label(@page.product.region),
-                        else: String.downcase(Regions.label(@page.product.region))
-                      )
+                    edition: Languages.get(@locale).mid_sentence(Regions.label(@page.product.region))
                   )}
                 </span>
               </p>

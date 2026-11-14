@@ -4,7 +4,8 @@
 // works without JavaScript; this keeps localStorage in step and restores the
 // cookie from it when the browser dropped only the cookie.
 const KEY = "tcg:language"
-const LANGUAGES = ["pl", "en", "hu"]
+// A language code; the server ignores one it does not render in.
+const LANGUAGE = /^[a-z]{2}$/
 const YEAR = 365 * 24 * 60 * 60
 
 const stored = () => {
@@ -27,11 +28,11 @@ const cookie = () => document.cookie.match(/(?:^|;\s*)lang=([^;]*)/)?.[1]
 
 export default function initPreferences() {
   const language = stored()
-  if (LANGUAGES.includes(language) && !cookie())
+  if (LANGUAGE.test(language ?? "") && !cookie())
     document.cookie = `lang=${language}; Path=/; Max-Age=${YEAR}; SameSite=Lax`
 
   document.addEventListener("click", event => {
     const link = event.target.closest?.("a[data-language]")
-    if (link && LANGUAGES.includes(link.dataset.language)) store(link.dataset.language)
+    if (link && LANGUAGE.test(link.dataset.language)) store(link.dataset.language)
   })
 }

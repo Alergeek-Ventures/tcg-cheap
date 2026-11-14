@@ -1,5 +1,10 @@
 defmodule TcgCheap.Pricing.ExchangeRateWorker do
-  @moduledoc "Oban acquisition job for one currency's NBP rate to PLN."
+  @moduledoc """
+  Oban acquisition job for one currency's NBP rate to PLN, from the table NBP
+  publishes it in (`TcgCheap.Pricing.ExchangeRate.table/1`). The daily job
+  without args queues one for every currency the guide needs
+  (`TcgCheap.Sealed.Market.currencies/0`).
+  """
   use Oban.Worker,
     queue: :exchange_rates,
     max_attempts: 5,
@@ -12,10 +17,16 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
 
   alias TcgCheap.Pricing
   alias TcgCheap.Pricing.ExchangeRate
+  alias TcgCheap.Sealed.Market
 
   @doc "Queues the acquisition of one currency's latest NBP rate to PLN."
   def enqueue(currency) do
-    %{source: "nbp", table: "A", base_currency: currency, quote_currency: "PLN"}
+    %{
+      source: "nbp",
+      table: ExchangeRate.table(currency),
+      base_currency: currency,
+      quote_currency: "PLN"
+    }
     |> new()
     |> Oban.insert()
   end
@@ -24,6 +35,10 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
   def timeout(_job), do: :timer.seconds(60)
 
   @impl Oban.Worker
+  def perform(%Oban.Job{args: args}) when map_size(args) == 0 do
+    Enum.each(Market.currencies(), fn currency -> {:ok, _job} = enqueue(currency) end)
+  end
+
   def perform(%Oban.Job{args: args}) do
     with {:ok, args} <- validate_args(args),
          {:ok, result} <- acquire(args),
@@ -40,13 +55,13 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
   defp validate_args(
          %{
            "source" => "nbp",
-           "table" => "A",
+           "table" => table,
            "base_currency" => currency,
            "quote_currency" => "PLN"
          } = args
        )
        when map_size(args) == 4 do
-    if currency in ExchangeRate.currencies(),
+    if currency in Market.currencies() and table == ExchangeRate.table(currency),
       do: {:ok, args},
       else: {:cancel, :malformed_job_args}
   end
@@ -118,11 +133,11 @@ defmodule TcgCheap.Pricing.ExchangeRateWorker do
            publication_number: no,
            fetched_at: %DateTime{} = fetched_at,
            source: "nbp",
-           table: "A",
+           table: table,
            base_currency: currency,
            quote_currency: "PLN"
          } = result,
-         %{"base_currency" => currency}
+         %{"base_currency" => currency, "table" => table}
        )
        when is_binary(no) and no != "" do
     if String.trim(no) == "" do
