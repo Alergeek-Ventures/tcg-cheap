@@ -14,7 +14,7 @@ defmodule TcgCheapWeb.ProductLive do
   alias TcgCheap.Sealed.CardImage
   alias TcgCheap.Sealed.{Guide, Kinds, Market, PriceGuide, Regions, RetailDeal, Shops}
   alias TcgCheap.Sealed.PullRates.Rate
-  alias TcgCheapWeb.{Analytics, Paths, Polish, Region, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Paths, Polish, Region, RegionText, SEO, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -1127,10 +1127,7 @@ defmodule TcgCheapWeb.ProductLive do
             )}
           </p>
           <p>
-            {gettext(
-              "Ceny w sklepach są bez wysyłki. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec.",
-              shipping: Polish.eur(Guide.cardmarket_shipping_eur())
-            )}
+            {RegionText.shop_prices_note(Polish.eur(Guide.cardmarket_shipping_eur()))}
           </p>
         </.verdict_method>
       </div>

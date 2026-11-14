@@ -11,14 +11,21 @@ defmodule TcgCheapWeb.SEO do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Guide, Kinds, Shops}
-  alias TcgCheapWeb.{GuideComponents, PageMarkdown, Paths, Polish, Region, SocialImage}
+
+  alias TcgCheapWeb.{
+    GuideComponents,
+    PageMarkdown,
+    Paths,
+    Polish,
+    Region,
+    RegionText,
+    SocialImage
+  }
 
   def home(params) do
     metadata(
       gettext("Pokémon TCG – ceny kart, boosterów i boxów"),
-      gettext(
-        "Porównaj ceny Pokémon TCG w sklepach wysyłających do Polski. Sprawdź oferty boosterów, ETB, boxów i angielskich kart, historię cen i czy warto kupić teraz."
-      ),
+      RegionText.home_description(),
       Paths.url(Paths.home()),
       social_image: home_image(),
       social_image_alt: home_image_alt(),
@@ -51,7 +58,7 @@ defmodule TcgCheapWeb.SEO do
     canonical = Paths.url(Paths.cards())
 
     metadata(
-      gettext("Ceny kart Pokémon TCG w Polsce"),
+      RegionText.cards_title(),
       fit_description(card_list_answer(market)),
       canonical,
       social_image:
@@ -73,7 +80,7 @@ defmodule TcgCheapWeb.SEO do
       structured_data: %{
         "@context" => "https://schema.org",
         "@type" => "CollectionPage",
-        "name" => gettext("Ceny kart Pokémon TCG w Polsce"),
+        "name" => RegionText.cards_title(),
         "url" => canonical
       }
     )
@@ -81,7 +88,7 @@ defmodule TcgCheapWeb.SEO do
 
   # A chosen expansion's list has no market of its own; it is not indexed.
   defp card_list_answer(nil),
-    do: [gettext("Angielskie karty Pokémon TCG w sklepach wysyłających do Polski.")]
+    do: [RegionText.cards_answer()]
 
   defp card_list_answer(market) do
     [
@@ -469,12 +476,7 @@ defmodule TcgCheapWeb.SEO do
     |> Enum.reject(&is_nil/1)
     |> case do
       [] ->
-        [
-          gettext(
-            "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Polski.",
-            expansion: name
-          )
-        ]
+        [RegionText.expansion_fallback(name)]
 
       sentences ->
         sentences
@@ -484,10 +486,7 @@ defmodule TcgCheapWeb.SEO do
   defp booster_answer(_name, nil), do: nil
 
   defp booster_answer(name, %{verdict: %{cheapest: nil}}),
-    do:
-      gettext("Boostera %{expansion} żaden polski sklep nie ma teraz na stanie.",
-        expansion: name
-      )
+    do: RegionText.booster_out_of_stock(name)
 
   defp booster_answer(name, %{verdict: %{cheapest: cheapest}, preorder?: true}),
     do:
@@ -678,9 +677,7 @@ defmodule TcgCheapWeb.SEO do
     lead =
       case {verdict.cheapest, page.preorder?} do
         {nil, _preorder?} ->
-          gettext("%{name}: teraz żaden polski sklep nie ma tego produktu na stanie.",
-            name: product.name
-          )
+          RegionText.product_out_of_stock(product.name)
 
         {cheapest, true} ->
           gettext("%{name}: przedsprzedaż od %{price} w %{shop}.",
@@ -811,7 +808,7 @@ defmodule TcgCheapWeb.SEO do
       # A long name drops the set total ("014/159" → "014") before it drops
       # "cena karty Pokémon".
       fit_title([
-        gettext("%{card} – cena karty Pokémon w Polsce", card: card_name),
+        RegionText.card_title(card_name),
         gettext("%{card} – cena karty Pokémon", card: card_name),
         gettext("%{card} – cena karty Pokémon", card: short_name),
         card_name

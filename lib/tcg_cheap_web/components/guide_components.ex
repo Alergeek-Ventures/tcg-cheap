@@ -1525,7 +1525,8 @@ defmodule TcgCheapWeb.GuideComponents do
             {euro_rate_note(@eur_pln)}
           </span>
           <span :if={@product.cardmarket_added_on} id="product-added">
-            {gettext("Na Cardmarket od %{date}.", date: Polish.date(@product.cardmarket_added_on))}
+            {gettext("Na Cardmarket od %{date}.", date: Polish.date(@product.cardmarket_added_on))
+            |> Polish.sentence()}
           </span>
         </p>
         <p class="reference-link">
@@ -1548,20 +1549,23 @@ defmodule TcgCheapWeb.GuideComponents do
   """
   @spec euro_rate_note(%{rate: Decimal.t(), date: Date.t()}) :: String.t()
   def euro_rate_note(rate) do
-    case Polish.currency_symbol() do
-      "zł" ->
-        gettext("Kurs NBP %{rate} zł z %{date}.",
-          rate: Polish.rate(rate.rate),
-          date: Polish.date(rate.date)
-        )
+    note =
+      case Polish.currency_symbol() do
+        "zł" ->
+          gettext("Kurs NBP %{rate} zł z %{date}.",
+            rate: Polish.rate(rate.rate),
+            date: Polish.date(rate.date)
+          )
 
-      currency ->
-        gettext("Kurs %{rate} %{currency} za euro z kursów NBP z %{date}.",
-          rate: Polish.rate(rate.rate),
-          currency: currency,
-          date: Polish.date(rate.date)
-        )
-    end
+        currency ->
+          gettext("Kurs %{rate} %{currency} za euro z kursów NBP z %{date}.",
+            rate: Polish.rate(rate.rate),
+            currency: currency,
+            date: Polish.date(rate.date)
+          )
+      end
+
+    Polish.sentence(note)
   end
 
   attr :id, :string, required: true

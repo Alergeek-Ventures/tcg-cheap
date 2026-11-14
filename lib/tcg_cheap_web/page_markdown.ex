@@ -25,11 +25,21 @@ defmodule TcgCheapWeb.PageMarkdown do
         do:
           "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie. Ceny polskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Polski.",
         else:
-          "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, w #{Polish.currency_symbol()}. Ceny sklepów z kraju nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do tego kraju."
+          "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w forintach. Ceny węgierskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę na Węgry."
       ),
       "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej #{PriceGuide.min_shops()} sklepy).",
-      "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich #{PriceGuide.window_days()} dni i trendu Cardmarket w złotych z przesyłką z Niemiec, gdy są znane.",
-      "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w złotych.",
+      if(polish?(),
+        do:
+          "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich #{PriceGuide.window_days()} dni i trendu Cardmarket w złotych z przesyłką z Niemiec, gdy są znane.",
+        else:
+          "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich #{PriceGuide.window_days()} dni i trendu Cardmarket w forintach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
+      ),
+      if(polish?(),
+        do:
+          "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w złotych.",
+        else:
+          "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w forintach."
+      ),
       "Ocena nigdy nie opiera się na cenie sugerowanej producenta. Brakujące dane pokazujemy jako brakujące."
     ]
   end

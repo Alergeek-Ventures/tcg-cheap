@@ -24,7 +24,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   alias TcgCheap.Sealed.{CardGuide, CardImage, Catalogue, Guide, Kinds, Rarities, Regions}
 
-  alias TcgCheapWeb.{Analytics, Paths, Polish, Region, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Paths, Polish, Region, RegionText, SEO, VisitorLocation}
 
   @max_query_length 100
   @kind_params Map.new(Kinds.choices(), &{Atom.to_string(&1), &1})
@@ -847,8 +847,8 @@ defmodule TcgCheapWeb.HomeLive do
           </h1>
           <p id="guide-promise">
             {if(@filters.mode == :cards,
-              do: gettext("Najtańsze karty Pokémon TCG w sklepach wysyłających do Polski."),
-              else: gettext("Najtańsze oferty Pokémon TCG w sklepach wysyłających do Polski.")
+              do: RegionText.cards_promise(),
+              else: RegionText.products_promise()
             )}
           </p>
         </div>
@@ -1171,7 +1171,7 @@ defmodule TcgCheapWeb.HomeLive do
             <% {:cardmarket, price, _shops} -> %>
               <span class="set-chase-label">{gettext("Na Cardmarket")}</span>
               <strong>{Polish.price(price)}</strong>
-              <span class="set-chase-detail">{gettext("z wysyłką do Polski")}</span>
+              <span class="set-chase-detail">{RegionText.cardmarket_delivery()}</span>
           <% end %>
         </p>
         <span :if={@percent} class="set-chase-or">{"−#{@percent}%"}</span>
