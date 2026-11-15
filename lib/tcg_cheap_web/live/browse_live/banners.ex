@@ -209,7 +209,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
               deal.shops
             )}</span>
           </p>
-          <span class="set-chase-or">{"−#{deal.percent}%"}</span>
+          <span :if={deal.percent} class="set-chase-or">{"−#{deal.percent}%"}</span>
           <.link
             id="set-chase-buy"
             class="set-chase-side set-chase-buy"
@@ -313,7 +313,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
             <strong>{Format.price(deal.trend)}</strong>
             <span class="set-chase-detail">{gettext("z wysyłką do Polski")}</span>
           </p>
-          <span class="set-chase-or">{"−#{deal.percent}%"}</span>
+          <span :if={deal.percent} class="set-chase-or">{"−#{deal.percent}%"}</span>
           <.link
             id="set-chase-buy"
             class="set-chase-side set-chase-buy"
