@@ -4573,5 +4573,4 @@ msgstr ""
 #: lib/tcg_cheap_web/live/home_live.ex:506
 #, elixir-autogen, elixir-format
 msgid "zwykle %{price} w sklepach"
-
 msgstr ""

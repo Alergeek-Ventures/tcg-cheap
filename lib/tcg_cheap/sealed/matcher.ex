@@ -49,7 +49,9 @@ defmodule TcgCheap.Sealed.Matcher do
                 oryginalny angielski angielska angielskie english en eng wersja nowy nowa prerelease
                 engelsk engelska engelskt forboka forbokning forhandsboka forhandsbokning
                 angol kiadas foliazott elorendeles elorendelheto em ingles inglesa versao engels engelse
-                anglicky anglicka anglicke anglictina jazyk verze)
+                anglicky anglicka anglicke anglictina jazyk verze
+                karte originalni originalna angleski angleska prednarocilo prednarocila
+                paketek paketki paketov)
 
   @plurals %{
     "boosters" => "booster",
@@ -80,6 +82,11 @@ defmodule TcgCheap.Sealed.Matcher do
     # A blister "bundle" is the blister itself (REBEL's "3-Pack Blister Bundle"
     # carries the 3-Pack Blister's EAN), unlike a Booster Bundle.
     {"blister bundle", "blister"},
+    {"checkline", "checklane"},
+    # The product names are split the same way ("30th" is "30 th").
+    {"30 obletnica", "30 th celebration"},
+    {"zbirka plakatov", "poster collection"},
+    {"bojni krov", "battle deck"},
     {"slim pack", "slim"},
     {"world championships deck", "wcd"},
     {"etb", "elite trainer box"},
@@ -243,7 +250,7 @@ defmodule TcgCheap.Sealed.Matcher do
   # Swedish "Förboka", "Förhandsbokning", "Förhandsbeställning", Hungarian
   # "Előrendelés", "Előrendelhető", Dutch "Voorbestellen", "Voorverkoop",
   # Czech "Předobjednávka"…).
-  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|pre venda|pre reserva|prevenda|prereserva|forbok|forhandsbok|forhandsbest|forbest|elorendel|voorbestel|voorverkoop|predobjednav)/
+  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|pre venda|pre reserva|prevenda|prereserva|forbok|forhandsbok|forhandsbest|forbest|elorendel|voorbestel|voorverkoop|predobjednav|prednarocil)/
 
   @exclusions [
     "zestaw",
@@ -319,7 +326,7 @@ defmodule TcgCheap.Sealed.Matcher do
   # "Apróbb szépséghibák", "sérült", Slovak "Malé Imperfekcie", Dutch "beschadigde box",
   # "gebruikt", "geopend", Portuguese "Embalagem danificada", Czech "poškozený",
   # "rozbalený", "použitý"…).
-  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult|imperfekci|beschadigd|danificad|gebruikt|geopend|poskozen|rozbalen|otevren|pouziv|prazdn|nahodn)/
+  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult|imperfekci|beschadigd|danificad|gebruikt|geopend|poskozen|rozbalen|otevren|pouziv|prazdn|nahodn|poskodovan|odprt|rabljen)/
 
   # Two or more pieces ("x3", "10x", "36 szt", "3 sztuki"); "1 szt" is still one item.
   # Swedish "st" counts pieces only where a title starts with it ("3st Pokemon
@@ -872,6 +879,10 @@ defmodule TcgCheap.Sealed.Matcher do
   # Dutch or Portuguese word.
   @terminal_german ~r/(?:\s[-–]\s*|\s\()DE\)?\s*\z/u
 
+  # Slovenian titles repeat the series and set number ("ME - Mega Evolution 6:
+  # Delta Reign"); the leading ME and number name no product variant.
+  @series_number ~r/(?:\A| )me \d+ /
+
   @doc "The significant word tokens of a title or product name."
   @spec tokens(String.t()) :: [String.t()]
   def tokens(text) do
@@ -881,6 +892,7 @@ defmodule TcgCheap.Sealed.Matcher do
       |> normalize()
       |> String.replace(@digit_letter, "\\1 \\2")
       |> String.replace(@letter_digit, "\\1 \\2")
+      |> String.replace(@series_number, " ")
 
     padded = String.replace(" " <> normalized <> " ", @purchase_limit, " ")
 
