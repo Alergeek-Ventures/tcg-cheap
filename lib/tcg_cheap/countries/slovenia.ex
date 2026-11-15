@@ -1,0 +1,156 @@
+defmodule TcgCheap.Countries.Slovenia do
+  @moduledoc """
+  Slovenia: the guide's region `/si/` in euro, and the words that name it
+  (`TcgCheap.Country`). Singles have no shops here yet: card prices are
+  Cardmarket trends in euro.
+  """
+
+  @behaviour TcgCheap.Country
+  @behaviour TcgCheapWeb.RegionText
+
+  use Gettext, backend: TcgCheapWeb.Gettext
+
+  @impl TcgCheap.Country
+  def code, do: "SI"
+
+  @impl TcgCheap.Country
+  def shipped_from, do: dgettext("slovenia", "wysyłka ze Słowenii")
+
+  @impl TcgCheap.Country
+  def delivered_from, do: dgettext("slovenia", "z wysyłką ze Słowenii")
+
+  @impl TcgCheap.Country
+  def region do
+    %{
+      code: "si",
+      currency: "EUR",
+      currency_symbol: "€",
+      decimals: 2,
+      language: "sl",
+      hreflang: "sl-SI",
+      popular_languages: [],
+      # DHL Paket 2 kg, the same EU tariff as Hungary and Croatia, plus
+      # Cardmarket's €1 packaging: https://help.cardmarket.com/en/ShippingCosts
+      cardmarket_shipping_eur: Decimal.new("15.49"),
+      slugs: %{products: "izdelki", expansions: "seti", cards: "karte"},
+      pages: %{}
+    }
+  end
+
+  @impl TcgCheapWeb.RegionText
+  def name, do: dgettext("slovenia", "Słowenia")
+
+  @impl TcgCheapWeb.RegionText
+  def hint, do: dgettext("slovenia", "Wygląda na to, że jesteś w Słowenii.")
+
+  @impl TcgCheapWeb.RegionText
+  def hint_switch, do: dgettext("slovenia", "Przejdź do wersji słoweńskiej")
+
+  @impl TcgCheapWeb.RegionText
+  def home_description,
+    do:
+      dgettext(
+        "slovenia",
+        "Porównaj ceny Pokémon TCG w sklepach wysyłających do Słowenii. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def social_promise,
+    do:
+      dgettext(
+        "slovenia",
+        "Ceny Pokémon TCG ze sklepów wysyłających do Słowenii, sprawdzane codziennie."
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def products_promise,
+    do: dgettext("slovenia", "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Słowenii.")
+
+  @impl TcgCheapWeb.RegionText
+  def cards_promise, do: cardmarket_cards()
+
+  @impl TcgCheapWeb.RegionText
+  def cards_answer, do: cardmarket_cards()
+
+  defp cardmarket_cards,
+    do: dgettext("slovenia", "Angielskie karty Pokémon TCG z ceną z Cardmarket w euro.")
+
+  @impl TcgCheapWeb.RegionText
+  def cards_title, do: dgettext("slovenia", "Ceny kart Pokémon TCG w euro")
+
+  @impl TcgCheapWeb.RegionText
+  def card_title(card),
+    do: dgettext("slovenia", "%{card} – cena karty Pokémon w euro", card: card)
+
+  @impl TcgCheapWeb.RegionText
+  def expansion_fallback(expansion),
+    do:
+      dgettext(
+        "slovenia",
+        "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Słowenii.",
+        expansion: expansion
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def booster_out_of_stock(expansion),
+    do:
+      dgettext(
+        "slovenia",
+        "Boostera %{expansion} żaden sklep wysyłający do Słowenii nie ma teraz na stanie.",
+        expansion: expansion
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def product_out_of_stock(name),
+    do:
+      dgettext(
+        "slovenia",
+        "%{name}: teraz żaden sklep wysyłający do Słowenii nie ma tego produktu na stanie.",
+        name: name
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def cardmarket_delivery, do: dgettext("slovenia", "z wysyłką z Niemiec")
+
+  @impl TcgCheapWeb.RegionText
+  def list_prices_note,
+    do: dgettext("slovenia", "Ceny ze sklepów z zagranicy są z wysyłką do Słowenii.")
+
+  @impl TcgCheapWeb.RegionText
+  def foreign_shops_note,
+    do:
+      dgettext(
+        "slovenia",
+        "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym ze Słowenii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def markdown_method(window),
+    do: %{
+      prices:
+        dgettext(
+          "slovenia",
+          "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w euro. Ceny słoweńskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Słowenii."
+        ),
+      good_price:
+        dgettext(
+          "slovenia",
+          "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane.",
+          window: window
+        ),
+      few_shops:
+        dgettext(
+          "slovenia",
+          "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
+        )
+    }
+
+  @impl TcgCheapWeb.RegionText
+  def shop_prices_note(shipping),
+    do:
+      dgettext(
+        "slovenia",
+        "Ceny słoweńskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Słowenii. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec.",
+        shipping: shipping
+      )
+end

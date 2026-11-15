@@ -1,0 +1,117 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:83
+#, elixir-autogen, elixir-format
+msgid "%{card} – cena karty Pokémon w euro"
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:88
+#, elixir-autogen, elixir-format
+msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Słowenii."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:106
+#, elixir-autogen, elixir-format
+msgid "%{name}: teraz żaden sklep wysyłający do Słowenii nie ma tego produktu na stanie."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:76
+#, elixir-autogen, elixir-format
+msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w euro."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:97
+#, elixir-autogen, elixir-format
+msgid "Boostera %{expansion} żaden sklep wysyłający do Słowenii nie ma teraz na stanie."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:60
+#, elixir-autogen, elixir-format
+msgid "Ceny Pokémon TCG ze sklepów wysyłających do Słowenii, sprawdzane codziennie."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:79
+#, elixir-autogen, elixir-format
+msgid "Ceny kart Pokémon TCG w euro"
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:151
+#, elixir-autogen, elixir-format
+msgid "Ceny słoweńskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Słowenii. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:117
+#, elixir-autogen, elixir-format
+msgid "Ceny ze sklepów z zagranicy są z wysyłką do Słowenii."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:67
+#, elixir-autogen, elixir-format
+msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Słowenii."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:52
+#, elixir-autogen, elixir-format
+msgid "Porównaj ceny Pokémon TCG w sklepach wysyłających do Słowenii. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:47
+#, elixir-autogen, elixir-format
+msgid "Przejdź do wersji słoweńskiej"
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:41
+#, elixir-autogen, elixir-format
+msgid "Słowenia"
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:44
+#, elixir-autogen, elixir-format
+msgid "Wygląda na to, że jesteś w Słowenii."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:17
+#, elixir-autogen, elixir-format
+msgid "wysyłka ze Słowenii"
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:113
+#, elixir-autogen, elixir-format
+msgid "z wysyłką z Niemiec"
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:20
+#, elixir-autogen, elixir-format
+msgid "z wysyłką ze Słowenii"
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:122
+#, elixir-autogen, elixir-format
+msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym ze Słowenii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:131
+#, elixir-autogen, elixir-format
+msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w euro. Ceny słoweńskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Słowenii."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:136
+#, elixir-autogen, elixir-format
+msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane."
+msgstr ""
+
+#: lib/tcg_cheap/countries/slovenia.ex:142
+#, elixir-autogen, elixir-format
+msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
+msgstr ""

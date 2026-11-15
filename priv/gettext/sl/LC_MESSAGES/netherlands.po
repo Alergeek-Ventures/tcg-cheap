@@ -1,0 +1,118 @@
+# Use Gettext’s built-in sl plural rules: other=0, one=1, two=2, few=3.
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: sl\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+#: lib/tcg_cheap/countries/netherlands.ex:17
+#, elixir-autogen, elixir-format
+msgid "wysyłka z Holandii"
+msgstr "iz Nizozemske"
+
+#: lib/tcg_cheap/countries/netherlands.ex:20
+#, elixir-autogen, elixir-format
+msgid "z wysyłką z Holandii"
+msgstr "iz Nizozemske, z dostavo"
+
+#: lib/tcg_cheap/countries/netherlands.ex:89
+#, elixir-autogen, elixir-format
+msgid "%{card} – cena karty Pokémon w euro"
+msgstr "%{card} – cena karte Pokémon v evrih"
+
+#: lib/tcg_cheap/countries/netherlands.ex:94
+#, elixir-autogen, elixir-format
+msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w holenderskich sklepach i w sklepach wysyłających do Holandii."
+msgstr "%{expansion}: primerjaj cene boosterjev, ETB, boxov in zbirk v nizozemskih trgovinah in v trgovinah z dostavo na Nizozemsko."
+
+#: lib/tcg_cheap/countries/netherlands.ex:112
+#, elixir-autogen, elixir-format
+msgid "%{name}: teraz żaden holenderski sklep ani sklep wysyłający do Holandii nie ma tego produktu na stanie."
+msgstr "%{name}: tega izdelka trenutno nima na zalogi nobena nizozemska trgovina in nobena trgovina z dostavo na Nizozemsko."
+
+#: lib/tcg_cheap/countries/netherlands.ex:82
+#, elixir-autogen, elixir-format
+msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w euro."
+msgstr "Angleške karte Pokémon TCG s ceno na Cardmarketu v evrih."
+
+#: lib/tcg_cheap/countries/netherlands.ex:103
+#, elixir-autogen, elixir-format
+msgid "Boostera %{expansion} żaden holenderski sklep ani sklep wysyłający do Holandii nie ma teraz na stanie."
+msgstr "Boosterja %{expansion} trenutno nima na zalogi nobena nizozemska trgovina in nobena trgovina z dostavo na Nizozemsko."
+
+#: lib/tcg_cheap/countries/netherlands.ex:62
+#, elixir-autogen, elixir-format
+msgid "Ceny Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii, sprawdzane codziennie."
+msgstr "Cene Pokémon TCG v nizozemskih trgovinah in v trgovinah z dostavo na Nizozemsko, preverjene vsak dan."
+
+#: lib/tcg_cheap/countries/netherlands.ex:157
+#, elixir-autogen, elixir-format
+msgid "Ceny holenderskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Holandii. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
+msgstr "Cene nizozemskih trgovin ne vključujejo dostave, cene tujih trgovin pa vključujejo dostavo na Nizozemsko. Ceni s Cardmarketa prištejemo %{shipping} za paket iz Nemčije."
+
+#: lib/tcg_cheap/countries/netherlands.ex:85
+#, elixir-autogen, elixir-format
+msgid "Ceny kart Pokémon TCG w euro"
+msgstr "Cene kart Pokémon TCG v evrih"
+
+#: lib/tcg_cheap/countries/netherlands.ex:137
+#, elixir-autogen, elixir-format
+msgid "Ceny pochodzą z publicznych list produktów sklepów, pobieranych raz dziennie, i są w euro. Ceny holenderskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Holandii."
+msgstr "Cene so iz javnih seznamov izdelkov trgovin, ki jih preberemo enkrat na dan, in so v evrih. Cene nizozemskih trgovin ne vključujejo dostave, cene trgovin v tujini pa vključujejo dostavo na Nizozemsko."
+
+#: lib/tcg_cheap/countries/netherlands.ex:123
+#, elixir-autogen, elixir-format
+msgid "Ceny ze sklepów z zagranicy są z wysyłką do Holandii."
+msgstr "Cene tujih trgovin vključujejo dostavo na Nizozemsko."
+
+#: lib/tcg_cheap/countries/netherlands.ex:142
+#, elixir-autogen, elixir-format
+msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane."
+msgstr "Dobra cena je največ 95 % tipične, običajna največ 110 %, nad tem je draga. Dobra cena mora biti tudi največ 95 % običajne cene izdelka v zadnjih %{window} dneh in trenda Cardmarket v evrih s pošiljko iz Nemčije, kadar so podatki znani."
+
+#: lib/tcg_cheap/countries/netherlands.ex:43
+#, elixir-autogen, elixir-format
+msgid "Holandia"
+msgstr "Nizozemska"
+
+#: lib/tcg_cheap/countries/netherlands.ex:70
+#, elixir-autogen, elixir-format
+msgid "Najtańsze oferty Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii."
+msgstr "Najnižje cene Pokémon TCG v nizozemskih trgovinah in v trgovinah z dostavo na Nizozemsko."
+
+#: lib/tcg_cheap/countries/netherlands.ex:54
+#, elixir-autogen, elixir-format
+msgid "Porównaj ceny Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
+msgstr "Primerjaj cene Pokémon TCG v nizozemskih trgovinah in v trgovinah z dostavo na Nizozemsko. Preveri ponudbo boosterjev, ETB in boxov, zgodovino cen ter ali se nakup trenutno izplača."
+
+#: lib/tcg_cheap/countries/netherlands.ex:49
+#, elixir-autogen, elixir-format
+msgid "Przejdź do wersji holenderskiej"
+msgstr "Pojdi na nizozemsko različico"
+
+#: lib/tcg_cheap/countries/netherlands.ex:148
+#, elixir-autogen, elixir-format
+msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
+msgstr "Pri manj trgovinah ocene ni, kot kontekst pa navedemo trend Cardmarket v evrih."
+
+#: lib/tcg_cheap/countries/netherlands.ex:46
+#, elixir-autogen, elixir-format
+msgid "Wygląda na to, że jesteś w Holandii."
+msgstr "Videti je, da si na Nizozemskem."
+
+#: lib/tcg_cheap/countries/netherlands.ex:119
+#, elixir-autogen, elixir-format
+msgid "z wysyłką z Niemiec"
+msgstr "z dostavo iz Nemčije"
+
+#: lib/tcg_cheap/countries/netherlands.ex:128
+#, elixir-autogen, elixir-format
+msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Holandii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr "Ceno tuje trgovine navajamo tako, kot jo trgovina objavi kupcem z Nizozemske. Cene v drugih valutah kot v evrih preračunamo po dnevnih tečajih NBP. Stran trgovine je lahko v drugem jeziku."
