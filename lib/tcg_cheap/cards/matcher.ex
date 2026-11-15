@@ -10,15 +10,15 @@ defmodule TcgCheap.Cards.Matcher do
 
   @languages [
     {"ja", ~r/\b(jp|jap|jpn|japanese|japonsk\w*|japonia)\b/u},
-    {"zh", ~r/\b(cn|chn|chinese|chinsk\w*)\b/u},
-    {"ko", ~r/\b(kr|kor|korean|koreansk\w*)\b/u},
+    {"zh", ~r/\b(cn|chn|chinese|chinsk\w*|cinsk\w*)\b/u},
+    {"ko", ~r/\b(kr|kor|korean|koreansk\w*|korejsk\w*)\b/u},
     {"pl", ~r/\b(polska|polski|polskie|polskiej|polska wersja)\b|\bpl\s*$/u},
     {"de", ~r/\b(ger|german|niemieck\w*)\b/u},
     {"fr", ~r/\b(french|francusk\w*)\b/u},
     {"it", ~r/\b(italian|wlosk\w*)\b/u},
     {"es", ~r/\b(spanish|hiszpansk\w*)\b/u},
     {"pt", ~r/\b(portuguese|portugalsk\w*)\b/u},
-    {"en", ~r/\b(eng|english|angielsk\w*)\b/u}
+    {"en", ~r/\b(eng|english|angielsk\w*|anglick\w*)\b/u}
   ]
   @conditions [
     {:near_mint, ~r/\b(nm|near mint)\b/},
@@ -31,7 +31,7 @@ defmodule TcgCheap.Cards.Matcher do
   ]
   # A grade may follow its label: "CGC Pristine 10", "PSA Gem Mint 10".
   @grading ~r/\b(PSA|CGC|BGS|Beckett|ACE|TAG)\s*(?:(?:pristine|gem\s*mint|mint|perfect|black\s*label)\s*)?(10|[1-9](?:[.,]5)?)\b/i
-  @not_card ~r/\b(deck|talia|lot|bundle|zestaw|koszulki|sleeves|booster|box|display|jumbo|oversize|proxy|replika|random|losow\w*|portfolio|binder|album|toploader|playmat|komplet|pakiet)\b/u
+  @not_card ~r/\b(deck|talia|lot|bundle|zestaw|koszulki|sleeves|booster|box|display|jumbo|oversize|proxy|replika|random|losow\w*|nahodn\w*|poskozen\w*|damaged|rip (?:and )?ship|portfolio|binder|album|toploader|playmat|komplet|pakiet)\b/u
   # Patterned and stamped printings, including the stamped promos of Play!
   # Pokémon prize packs ("PPS7"), Pokémon Day, holiday calendars
   # ("Snowflake"), store events ("GameStop", "Thank you"), tournament
@@ -350,7 +350,7 @@ defmodule TcgCheap.Cards.Matcher do
 
     # A condition must be explicitly labelled or form a separated suffix.
     case Regex.run(
-           ~r/(?:\b(?:stan|condition)\s*:?\s*|\s+-\s+|[\[(])((?:NM|Near Mint|LP|Light(?:ly)? Played|EX|Excellent|Exc|GD|Good|HP|Heavily Played|Played|PO|Poor|Damaged|Mint)(?:\s*\/\s*(?:EX|NM|GD))?)(?:[\])]|\s*$)/i,
+           ~r/(?:\b(?:stan|stav|condition)\s*:?\s*|\s+-\s+|[\[(])((?:NM|Near Mint|LP|Light(?:ly)? Played|EX|Excellent|Exc|GD|Good|HP|Heavily Played|Played|PO|Poor|Damaged|Mint)(?:\s*\/\s*(?:EX|NM|GD))?)(?:[\])]|\s*$)/i,
            title
          ) do
       [_, value] ->
@@ -709,6 +709,8 @@ defmodule TcgCheap.Cards.Matcher do
 
   defp result(%{language: lang}, _sets, _cards) when lang not in [nil, "en"],
     do: {:excluded, {:language, lang}}
+
+  defp result(%{condition: :poor}, _sets, _cards), do: {:excluded, :damaged}
 
   defp result(%{number_conflict: true}, _sets, _cards), do: {:unmatched, :number_conflict}
   defp result(%{set_conflict: true}, _sets, _cards), do: {:unmatched, :set_conflict}
