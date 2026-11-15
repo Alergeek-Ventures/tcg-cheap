@@ -78,6 +78,8 @@ defmodule Mix.Tasks.Dev.Up do
     end
   end
 
+  # A fresh ParadeDB volume initializes before PostgreSQL listens on TCP;
+  # allow two minutes of attempts for that first boot on a busy host.
   defp wait_for_database(port) do
     pg_isready =
       System.find_executable("pg_isready") ||
@@ -92,7 +94,8 @@ defmodule Mix.Tasks.Dev.Up do
           )
         )
       end,
-      "PostgreSQL"
+      "PostgreSQL",
+      120
     )
   end
 
