@@ -179,7 +179,7 @@ defmodule TcgCheapWeb.VerdictComponents do
         )
       }
     >
-      <img src={~p"/images/cardmarket.png"} alt="Cardmarket" width="16" height="16" />{Format.whole_price(
+      <img src={~p"/images/cardmarket.png"} alt="Cardmarket" width="16" height="16" />{Format.limit_price(
         @price
       )}
     </a>
