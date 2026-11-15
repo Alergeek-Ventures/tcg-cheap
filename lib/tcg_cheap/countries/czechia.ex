@@ -1,19 +1,148 @@
 defmodule TcgCheap.Countries.Czechia do
-  @moduledoc "Czechia: shops there sell to the guide's regions (`TcgCheap.Country`)."
+  @moduledoc """
+  Czechia: the guide's region `/cz/` in Czech koruna, and the words that name it
+  (`TcgCheap.Country`). Singles have no shops here yet: card prices are
+  Cardmarket trends in Czech koruna.
+  """
 
   @behaviour TcgCheap.Country
+  @behaviour TcgCheapWeb.RegionText
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  @impl true
+  @impl TcgCheap.Country
   def code, do: "CZ"
 
-  @impl true
+  @impl TcgCheap.Country
   def shipped_from, do: dgettext("czechia", "wysyłka z Czech")
 
-  @impl true
+  @impl TcgCheap.Country
   def delivered_from, do: dgettext("czechia", "z wysyłką z Czech")
 
-  @impl true
-  def region, do: nil
+  @impl TcgCheap.Country
+  def region do
+    %{
+      code: "cz",
+      currency: "CZK",
+      currency_symbol: "Kč",
+      decimals: 0,
+      language: "cs",
+      hreflang: "cs-CZ",
+      # The same EU tariff as Poland's: DHL Paket 2 kg (€14.49) plus
+      # Cardmarket's €1 parcel packaging fee, checked 2026-11-14:
+      # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/tschechische-republik.html
+      # https://help.cardmarket.com/en/ShippingCosts
+      cardmarket_shipping_eur: Decimal.new("15.49"),
+      slugs: %{products: "produkty", expansions: "sety", cards: "karty"},
+      pages: %{}
+    }
+  end
+
+  @impl TcgCheapWeb.RegionText
+  def name, do: dgettext("czechia", "Czechy")
+
+  @impl TcgCheapWeb.RegionText
+  def hint, do: dgettext("czechia", "Wygląda na to, że jesteś w Czechach.")
+
+  @impl TcgCheapWeb.RegionText
+  def hint_switch, do: dgettext("czechia", "Przejdź do wersji czeskiej")
+
+  @impl TcgCheapWeb.RegionText
+  def home_description,
+    do:
+      dgettext(
+        "czechia",
+        "Porównaj ceny Pokémon TCG w sklepach wysyłających do Czech. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def social_promise,
+    do:
+      dgettext(
+        "czechia",
+        "Ceny Pokémon TCG ze sklepów wysyłających do Czech, sprawdzane codziennie."
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def products_promise,
+    do: dgettext("czechia", "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Czech.")
+
+  @impl TcgCheapWeb.RegionText
+  def cards_promise, do: cardmarket_cards()
+
+  @impl TcgCheapWeb.RegionText
+  def cards_answer, do: cardmarket_cards()
+
+  defp cardmarket_cards,
+    do:
+      dgettext("czechia", "Angielskie karty Pokémon TCG z ceną z Cardmarket w koronach czeskich.")
+
+  @impl TcgCheapWeb.RegionText
+  def cards_title, do: dgettext("czechia", "Ceny kart Pokémon TCG w koronach czeskich")
+
+  @impl TcgCheapWeb.RegionText
+  def card_title(card),
+    do: dgettext("czechia", "%{card} – cena karty Pokémon w koronach czeskich", card: card)
+
+  @impl TcgCheapWeb.RegionText
+  def expansion_fallback(expansion),
+    do:
+      dgettext(
+        "czechia",
+        "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Czech.",
+        expansion: expansion
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def booster_out_of_stock(expansion),
+    do:
+      dgettext(
+        "czechia",
+        "Boostera %{expansion} żaden sklep wysyłający do Czech nie ma teraz na stanie.",
+        expansion: expansion
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def product_out_of_stock(name),
+    do:
+      dgettext(
+        "czechia",
+        "%{name}: teraz żaden sklep wysyłający do Czech nie ma tego produktu na stanie.",
+        name: name
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def cardmarket_delivery, do: dgettext("czechia", "z wysyłką z Niemiec")
+
+  @impl TcgCheapWeb.RegionText
+  def list_prices_note,
+    do: dgettext("czechia", "Ceny ze sklepów z zagranicy są z wysyłką do Czech.")
+
+  @impl TcgCheapWeb.RegionText
+  def foreign_shops_note,
+    do:
+      dgettext(
+        "czechia",
+        "Sklepy z zagranicy sprzedają w swojej walucie, polskie w złotych. Ich ceny przeliczamy na korony czeskie po dziennych kursach NBP. Strona sklepu może być po polsku albo w innym języku."
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def markdown_method(window),
+    do: %{
+      prices:
+        "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w koronach czeskich. Ceny czeskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Czech.",
+      good_price:
+        "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich #{window} dni i trendu Cardmarket w koronach czeskich (po kursach NBP) z przesyłką z Niemiec, gdy są znane.",
+      few_shops:
+        "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w koronach czeskich."
+    }
+
+  @impl TcgCheapWeb.RegionText
+  def shop_prices_note(shipping),
+    do:
+      dgettext(
+        "czechia",
+        "Ceny czeskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Czech. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec.",
+        shipping: shipping
+      )
 end

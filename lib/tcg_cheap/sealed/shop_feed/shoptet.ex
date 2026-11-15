@@ -28,6 +28,8 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
 
   @path ~r/\A\/[a-z0-9-]+\/\z/
   @in_stock "https://schema.org/InStock"
+  # Some shops put the damage or live-opening warning only on a badge.
+  @unsafe_flags ~r/\b(?:rip ?(?:and )?ship|poskozen\w*|kosmeticke vady|rozbalen\w*|otevir\w*|damaged|2 jakost|druha jakost)\b/
 
   @impl true
   def image_hosts(%Shop{host: host}), do: [host, "cdn.myshoptet.com"]
@@ -97,7 +99,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
 
   defp page(document) do
     products =
-      document |> Floki.find(~s([data-micro="product"])) |> Enum.map(&product/1)
+      document |> Floki.find(~s(#products [data-micro="product"])) |> Enum.map(&product/1)
 
     with {:ok, number} <- page_number(document),
          {:ok, total} <- total(document) do
@@ -145,28 +147,35 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
 
   defp product(node) do
     offer = HtmlListing.first(node, ~s([data-micro="offer"]))
+    availability = offer && offer |> Floki.attribute("data-micro-availability") |> List.first()
 
     %{
       id: node |> Floki.attribute("data-micro-product-id") |> List.first(),
       title: node |> HtmlListing.first(~s([data-micro="name"])) |> HtmlListing.text(),
+      flags: node |> Floki.find(".flags") |> Floki.text(sep: " ") |> Matcher.normalize(),
       path: HtmlListing.attr(node, ~s(a[data-micro="url"]), "href"),
       # Thumbnails load lazily; the microdata names the full image.
       image: HtmlListing.attr(node, "img[data-micro-image]", "data-micro-image"),
       price: offer && offer |> Floki.attribute("data-micro-price") |> List.first(),
       currency: offer && offer |> Floki.attribute("data-micro-price-currency") |> List.first(),
-      in_stock:
-        offer && offer |> Floki.attribute("data-micro-availability") |> List.first() == @in_stock
+      availability: availability,
+      in_stock: availability == @in_stock
     }
   end
 
   defp normalize(shop, {kind, product}) do
     with {:ok, title} <- ShopFeed.title(product.title),
+         true <- not Regex.match?(@unsafe_flags, product.flags) || :ignore,
          true <- (kind == :single or Matcher.sealed_title?(title)) || :ignore,
          {:ok, id} <- ShopFeed.product_id(product.id),
          {:ok, url} <- product_url(shop, product.path),
          true <- product.currency == shop.currency,
          {:ok, price} <- ShopFeed.decimal_price(product.price, kind),
-         in_stock when is_boolean(in_stock) <- product.in_stock do
+         availability when is_binary(availability) <- product.availability do
+      preorder =
+        Matcher.preorder_title?(title <> " " <> product.flags) or
+          availability == "https://schema.org/PreOrder"
+
       {:ok,
        [
          %{
@@ -176,7 +185,8 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
            image_url: image_url(shop, product.image),
            ean: nil,
            price: price,
-           in_stock: in_stock,
+           in_stock: availability == @in_stock and not preorder,
+           preorder: preorder,
            kind: kind,
            category: nil
          }
