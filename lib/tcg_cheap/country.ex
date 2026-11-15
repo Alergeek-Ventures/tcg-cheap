@@ -20,6 +20,9 @@ defmodule TcgCheap.Country do
       they show (0 for whole units, as forints are);
     * `language` – the page language unless the visitor chose another, and
       `hreflang`, the language and country search engines are told;
+    * `popular_languages` – at most two other languages many people there
+      read, which its language menu lists after its own and English (the
+      rest of the guide's languages wait behind "more");
     * `cardmarket_shipping_eur` – the tracked parcel added to a Cardmarket
       trend, in euro, for verdicts and "with delivery" prices;
     * `slugs` – its path segments for the product, set and card pages and
@@ -35,6 +38,7 @@ defmodule TcgCheap.Country do
           decimals: non_neg_integer(),
           language: String.t(),
           hreflang: String.t(),
+          popular_languages: [String.t()],
           cardmarket_shipping_eur: Decimal.t(),
           slugs: %{products: String.t(), expansions: String.t(), cards: String.t()},
           pages: %{optional(atom()) => String.t()}

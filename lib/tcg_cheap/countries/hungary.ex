@@ -28,6 +28,7 @@ defmodule TcgCheap.Countries.Hungary do
       decimals: 0,
       language: "hu",
       hreflang: "hu-HU",
+      popular_languages: [],
       # The same EU tariff as Poland's: DHL Paket 2 kg (€14.49) plus
       # Cardmarket's €1 parcel packaging fee, checked 2026-11-14:
       # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/ungarn.html
