@@ -158,8 +158,8 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
           <span class="verdict-range-now" style={"--at: #{@range.cheapest_at}%"}></span>
         </div>
         <div class="verdict-range-limits">
-          <span style={"--at: #{@range.good_at}%"}>{Format.whole_price(@verdict.good_max)}</span>
-          <span style={"--at: #{@range.normal_at}%"}>{Format.whole_price(@verdict.normal_max)}</span>
+          <span style={"--at: #{@range.good_at}%"}>{Format.limit_price(@verdict.good_max)}</span>
+          <span style={"--at: #{@range.normal_at}%"}>{Format.limit_price(@verdict.normal_max)}</span>
         </div>
       </div>
       <p :if={@reason} id="verdict-reason" class="verdict-reason">{@reason}</p>
@@ -266,21 +266,27 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
   # Where the bar's limits and today's price sit, in % of the bar: every
   # range stays wide enough to read.
   defp price_range(%{typical_source: :shops, cheapest: %{price: cheapest}} = verdict) do
-    margin = (verdict.normal_max - verdict.good_max) / 2
-    low = min(Decimal.to_float(cheapest), verdict.good_max - margin)
-    high = max(verdict.normal_max + margin, low + 1)
+    good_max = to_float(verdict.good_max)
+    normal_max = to_float(verdict.normal_max)
+    cheapest = Decimal.to_float(cheapest)
+    margin = (normal_max - good_max) / 2
+    low = min(cheapest, good_max - margin)
+    high = max(normal_max + margin, low + 1)
     pad = (high - low) * 0.06
     {low, high} = {low - pad, high + pad}
     at = &Float.round((&1 - low) / (high - low) * 100, 2)
 
     %{
-      good_at: at.(verdict.good_max),
-      normal_at: at.(verdict.normal_max),
-      cheapest_at: at.(Decimal.to_float(cheapest))
+      good_at: at.(good_max),
+      normal_at: at.(normal_max),
+      cheapest_at: at.(cheapest)
     }
   end
 
   defp price_range(_verdict), do: nil
+
+  defp to_float(%Decimal{} = value), do: Decimal.to_float(value)
+  defp to_float(value) when is_integer(value), do: value / 1
 
   defp today_missing(%{shop_prices: []}),
     do: gettext("Teraz żaden sklep nie ma tego produktu na stanie.")
@@ -354,24 +360,29 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
 
   # Why the good limit is below the shops' one, when the history or
   # Cardmarket lowers it.
-  defp good_bound(%{good_limits: %{shops: shops} = limits, good_max: good_max}, cardmarket)
-       when good_max < shops do
-    case Enum.find([:past, :cardmarket], &(limits[&1] == good_max)) do
-      :past ->
-        gettext("Dobra cena: do %{price}, bo w ostatnich %{days} dniach bywało taniej.",
-          price: Format.whole_price(good_max),
-          days: PriceGuide.window_days()
-        )
+  defp good_bound(%{good_limits: %{shops: shops} = limits, good_max: good_max}, cardmarket) do
+    if Decimal.compare(good_max, shops) == :lt do
+      case Enum.find([:past, :cardmarket], &same_limit?(limits[&1], good_max)) do
+        :past ->
+          gettext("Dobra cena: do %{price}, bo w ostatnich %{days} dniach bywało taniej.",
+            price: Format.limit_price(good_max),
+            days: PriceGuide.window_days()
+          )
 
-      :cardmarket ->
-        gettext("Dobra cena: do %{price}, bo na Cardmarket z wysyłką wychodzi ok. %{cardmarket}.",
-          price: Format.whole_price(good_max),
-          cardmarket: Format.whole_price(cardmarket)
-        )
+        :cardmarket ->
+          gettext(
+            "Dobra cena: do %{price}, bo na Cardmarket z wysyłką wychodzi ok. %{cardmarket}.",
+            price: Format.limit_price(good_max),
+            cardmarket: Format.whole_price(cardmarket)
+          )
+      end
     end
   end
 
   defp good_bound(_verdict, _cardmarket), do: nil
+
+  defp same_limit?(nil, _good_max), do: false
+  defp same_limit?(limit, good_max), do: Decimal.compare(limit, good_max) == :eq
 
   defp last_known(%{last_known: %{price: price, date: date}}),
     do:

@@ -553,7 +553,7 @@ defmodule TcgCheap.Sealed.Guide do
 
         {:ok,
          Map.merge(summary, %{
-           past: PriceGuide.past(past_history, summary.verdict.cheapest, today),
+           past: PriceGuide.past(past_history, summary.verdict.cheapest, today, market),
            offers: offers,
            compared: Map.new(priced, fn {offer, _item, compared} -> {offer.id, compared} end),
            history: history,
@@ -1284,9 +1284,11 @@ defmodule TcgCheap.Sealed.Guide do
     %{
       product: product,
       verdict:
-        PriceGuide.verdict(if(preorder?, do: preorders, else: in_stock), cardmarket_price,
-          past: usual,
-          cardmarket: cardmarket_delivered_price
+        PriceGuide.verdict(
+          if(preorder?, do: preorders, else: in_stock),
+          cardmarket_price,
+          [past: usual, cardmarket: cardmarket_delivered_price],
+          market
         ),
       preorder?: preorder?,
       premiere: premiere,
