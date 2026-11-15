@@ -29,6 +29,8 @@ defmodule TcgCheap.Countries.Poland do
       decimals: 2,
       language: "pl",
       hreflang: "pl-PL",
+      # Ukrainian, once the guide renders it: Poland's largest minority.
+      popular_languages: ["uk"],
       # The cheapest tracked parcel to Poland from Germany, Cardmarket's largest
       # seller country (DHL Paket up to 2 kg, Cardmarket's shipping calculator,
       # 2026-11-02); orders above 25 € must be tracked, which covers most sealed

@@ -49,7 +49,18 @@ defmodule TcgCheapWeb.SiteComponents do
   # The region (which shops, prices and delivery) and the language (only the
   # text) are chosen apart. Each option is a link, so both work without
   # JavaScript; preferences.js also keeps the language in localStorage.
-  defp locale_control(assigns) do
+  # At most four languages show: the region's own (`Region`), with the chosen
+  # one in the last place when it is not among them; the others wait behind
+  # "more".
+  defp locale_control(%{region: region, locale: locale} = assigns) do
+    languages =
+      if locale in region.languages,
+        do: region.languages,
+        else: Enum.take(region.languages, 3) ++ [locale]
+
+    assigns =
+      assign(assigns, languages: languages, more_languages: Region.languages() -- languages)
+
     ~H"""
     <details
       id="guide-locale"
@@ -100,31 +111,63 @@ defmodule TcgCheapWeb.SiteComponents do
         </nav>
         <nav id="guide-language" aria-labelledby="guide-language-title">
           <h2 id="guide-language-title">{gettext("Język strony")}</h2>
-          <ul>
-            <li :for={language <- Region.languages()}>
-              <a
-                id={"language-#{language}"}
-                href={~p"/lang/#{language}?#{[return_to: @current_path]}"}
-                rel="nofollow"
-                lang={language}
-                hreflang={language}
-                aria-current={if(language == @locale, do: "true")}
-                data-language={language}
-                data-track="language_changed"
-                data-track-to={language}
-              >
-                <span class="guide-locale-name">{Languages.get(language).name()}</span>
-                <.fluent_icon
-                  :if={language == @locale}
-                  name={:checkmark_circle}
-                  class="guide-locale-check"
-                />
-              </a>
-            </li>
-          </ul>
+          <.language_links
+            languages={@languages}
+            locale={@locale}
+            current_path={@current_path}
+          />
+          <details
+            :if={@more_languages != []}
+            id="guide-language-more"
+            class="guide-language-more"
+            phx-mounted={JS.ignore_attributes(["open"])}
+          >
+            <summary id="guide-language-more-summary">
+              {gettext("Więcej języków")}<.fluent_icon
+                name={:chevron_down}
+                class="guide-language-more-chevron"
+              />
+            </summary>
+            <.language_links
+              languages={@more_languages}
+              locale={@locale}
+              current_path={@current_path}
+            />
+          </details>
         </nav>
       </div>
     </details>
+    """
+  end
+
+  attr :languages, :list, required: true
+  attr :locale, :string, required: true
+  attr :current_path, :string, required: true
+
+  defp language_links(assigns) do
+    ~H"""
+    <ul>
+      <li :for={language <- @languages}>
+        <a
+          id={"language-#{language}"}
+          href={~p"/lang/#{language}?#{[return_to: @current_path]}"}
+          rel="nofollow"
+          lang={language}
+          hreflang={language}
+          aria-current={if(language == @locale, do: "true")}
+          data-language={language}
+          data-track="language_changed"
+          data-track-to={language}
+        >
+          <span class="guide-locale-name">{Languages.get(language).name()}</span>
+          <.fluent_icon
+            :if={language == @locale}
+            name={:checkmark_circle}
+            class="guide-locale-check"
+          />
+        </a>
+      </li>
+    </ul>
     """
   end
 

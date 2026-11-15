@@ -20,6 +20,18 @@ defmodule TcgCheap.Countries do
             end)
            |> Enum.sort_by(&{&1.code != "pl", &1.code})
 
+  # A region's language menu lists its own language, English and its
+  # popular ones first, at most four (TcgCheapWeb.Region).
+  for region <- @regions do
+    case region do
+      %{popular_languages: popular} when length(popular) <= 2 ->
+        :ok
+
+      %{code: code} ->
+        raise ArgumentError, "region #{code} needs popular_languages, at most two"
+    end
+  end
+
   @doc false
   def __mix_recompile__?, do: ModuleDir.files(@dir) != @files
 

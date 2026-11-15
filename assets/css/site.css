@@ -70,7 +70,7 @@
 .guide-world .guide-locale-summary { align-items: center; cursor: pointer; display: flex; font-size: .75rem; font-weight: 700; gap: .375rem; list-style: none; min-block-size: 3rem; min-inline-size: 3rem; justify-content: center; }
 .guide-world .guide-locale-summary::-webkit-details-marker { display: none; }
 .guide-world .guide-locale img { border-radius: 2px; box-shadow: 0 0 0 1px var(--rule); display: block; flex: none; }
-.guide-world .guide-locale-panel { background: var(--paper); border: 1px solid var(--ink); display: grid; gap: 1rem; inline-size: min(17rem, calc(100vw - 2rem)); inset-block-start: 100%; inset-inline-end: 0; padding: 1rem; position: absolute; z-index: 10; }
+.guide-world .guide-locale-panel { background: var(--paper); border: 1px solid var(--ink); display: grid; gap: 1rem; inline-size: min(17rem, calc(100vw - 2rem)); inset-block-start: 100%; inset-inline-end: 0; max-block-size: calc(100svh - var(--guide-header-size) - 1rem); overflow-y: auto; overscroll-behavior: contain; padding: 1rem; position: absolute; z-index: 10; }
 .guide-world .guide-locale-panel h2 { font-size: 1.15rem; }
 .guide-world .guide-locale-panel .guide-note { margin: 0; }
 .guide-world .guide-locale-panel ul { display: grid; list-style: none; margin: .25rem 0 0; padding: 0; }
@@ -78,12 +78,18 @@
 /* Options stay aligned; the chosen one ends in a check. */
 .guide-world .guide-locale-name { flex: 1 1 auto; min-inline-size: 0; }
 .guide-world .guide-locale-currency { color: var(--muted); font-weight: 400; }
+/* The other languages: one more row in the list's style that opens below itself. */
+.guide-world .guide-language-more summary { align-items: center; border-block-end: 1px solid var(--rule); color: var(--muted); cursor: pointer; display: flex; font: 700 1.1rem "Barlow Condensed", sans-serif; justify-content: space-between; list-style: none; min-block-size: 3rem; padding-inline: .25rem; }
+.guide-world .guide-language-more summary::-webkit-details-marker { display: none; }
+.guide-world .guide-language-more ul { margin: 0; }
+.guide-world .guide-language-more-chevron { block-size: 1.25rem; flex: none; inline-size: 1.25rem; transition: transform .2s ease-out; }
+.guide-world .guide-language-more[open] .guide-language-more-chevron { transform: rotate(180deg); }
 .guide-world .guide-locale-check { block-size: 1.25rem; color: var(--rise); flex: none; inline-size: 1.25rem; }
-.guide-world :is(.guide-locale-summary, .guide-locale-panel a):focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.guide-world :is(.guide-locale-summary, .guide-locale-panel a, .guide-language-more summary):focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 .guide-world .guide-locale-panel a:active { background: var(--bench); }
 @media (hover: hover) and (pointer: fine) {
   .guide-world .guide-locale-summary:hover { color: var(--orange); }
-  .guide-world .guide-locale-panel a:not([aria-current]):hover { background: var(--bench-light); }
+  .guide-world :is(.guide-locale-panel a:not([aria-current]), .guide-language-more summary):hover { background: var(--bench-light); }
 }
 /* Phones: the control sits mid-row, so its panel hangs from the masthead's end instead, on screen. */
 @media (max-width: 47.99rem) {
@@ -846,7 +852,7 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
   .guide-world .visitor-location-label { block-size: 1px; clip-path: inset(50%); inline-size: 1px; overflow: clip; position: absolute; white-space: nowrap; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .guide-world .verdict-method-chevron { transition: none; }
+  .guide-world :is(.verdict-method-chevron, .guide-language-more-chevron) { transition: none; }
   .guide-world .product-image img { transition: none !important; }
 }
 

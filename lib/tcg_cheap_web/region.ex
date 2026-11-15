@@ -23,6 +23,7 @@ defmodule TcgCheapWeb.Region do
     :market,
     :currency_symbol,
     :language,
+    :languages,
     :hreflang,
     :slugs,
     :pages,
@@ -33,12 +34,15 @@ defmodule TcgCheapWeb.Region do
   @typedoc """
   A region as `TcgCheap.Country.region/0` defines it, with its market and
   `country`, the module of its words and sentences (`TcgCheapWeb.RegionText`).
+  `languages` are the ones its language menu lists first: its own, English,
+  then those popular there that the guide renders.
   """
   @type t :: %__MODULE__{
           code: String.t(),
           market: Market.t(),
           currency_symbol: String.t(),
           language: String.t(),
+          languages: [String.t()],
           hreflang: String.t(),
           slugs: %{products: String.t(), expansions: String.t(), cards: String.t()},
           pages: %{optional(atom()) => String.t()},
@@ -55,6 +59,10 @@ defmodule TcgCheapWeb.Region do
         market: market,
         currency_symbol: region.currency_symbol,
         language: region.language,
+        languages:
+          [region.language, "en" | region.popular_languages]
+          |> Enum.uniq()
+          |> Enum.filter(&(&1 in Languages.codes())),
         hreflang: region.hreflang,
         slugs: region.slugs,
         pages: region.pages,

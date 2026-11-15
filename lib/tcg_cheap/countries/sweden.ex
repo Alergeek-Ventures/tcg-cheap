@@ -30,6 +30,7 @@ defmodule TcgCheap.Countries.Sweden do
       decimals: 2,
       language: "sv",
       hreflang: "sv-SE",
+      popular_languages: [],
       # DHL Paket 2 kg from Germany to Sweden (€14.49 online) plus
       # Cardmarket's €1 parcel packaging fee, checked 2026-11-14:
       # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/schweden.html
