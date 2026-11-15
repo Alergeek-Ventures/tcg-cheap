@@ -4270,7 +4270,7 @@ msgstr "Nema proizvoda."
 #: lib/tcg_cheap_web/page_markdown.ex:456
 #, elixir-autogen, elixir-format
 msgid "Ceny z gazetek sieci i zgłoszeń z konkretnych sklepów. Dostępność bywa różna, więc nie wliczamy ich do oceny."
-msgstr "Cijene iz letaka trgovačkih lanaca i prijava iz pojedinih trgovina. Dostupnost varira pa ih ne uračunavamo u ocjenu."
+msgstr "Cijene iz letaka trgovačkih lanaca i prijava iz pojedinih trgovina. Dostupnost varira pa ih ne uračunavamo u ocjenu cijene."
 
 #: lib/tcg_cheap_web/page_markdown.ex:400
 #, elixir-autogen, elixir-format
@@ -4331,7 +4331,7 @@ msgstr "Ocjena cijene"
 #: lib/tcg_cheap_web/page_markdown.ex:46
 #, elixir-autogen, elixir-format
 msgid "Ocena nigdy nie opiera się na cenie sugerowanej producenta. Brakujące dane pokazujemy jako brakujące."
-msgstr "Ocjena cijene nikad ne ovisi o preporučenoj cijeni proizvođača. Ako neki podatak nedostaje, to i prikazujemo."
+msgstr "Ocjena cijene nikad ne ovisi o preporučenoj cijeni proizvođača. Podatke koji nedostaju prikazujemo kao nedostajuće."
 
 #: lib/tcg_cheap_web/page_markdown.ex:392
 #, elixir-autogen, elixir-format

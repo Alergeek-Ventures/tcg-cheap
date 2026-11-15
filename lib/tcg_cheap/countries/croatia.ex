@@ -132,11 +132,21 @@ defmodule TcgCheap.Countries.Croatia do
   def markdown_method(window),
     do: %{
       prices:
-        "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w euro. Ceny chorwackich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Chorwacji.",
+        dgettext(
+          "croatia",
+          "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w euro. Ceny chorwackich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Chorwacji."
+        ),
       good_price:
-        "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich #{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane.",
+        dgettext(
+          "croatia",
+          "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane.",
+          window: window
+        ),
       few_shops:
-        "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
+        dgettext(
+          "croatia",
+          "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
+        )
     }
 
   @impl TcgCheapWeb.RegionText
