@@ -12,7 +12,8 @@ defmodule TcgCheap.Sealed.Refresh do
   counts as failed, so its last offers simply age out instead of staying
   current. A shop that lists singles but no sealed products, while its previous
   fetch left current sealed offers, has a failed sealed side: its sealed
-  offers stay current, and its singles are stored.
+  offers stay current, and its singles are stored. A fetch that keeps fewer
+  than 30% of a large shop's previous sealed offers is stored but reported.
   """
 
   alias TcgCheap.Repo
@@ -35,6 +36,13 @@ defmodule TcgCheap.Sealed.Refresh do
   require Logger
 
   @max_price_pln Decimal.new(1_000_000)
+
+  # A stored fetch is reported as dropped offers when the shop's previous fetch
+  # left at least `@dropped_min_previous` current sealed offers and this one has
+  # fewer than `@dropped_below_percent` percent of them. Small shops are left
+  # out: a shop with a handful of offers halves and doubles all the time.
+  @dropped_min_previous 30
+  @dropped_below_percent 30
 
   # Matching reads names and set names; availability compares and updates
   # the rest. Kind and region stay for the product's validations.
@@ -104,21 +112,34 @@ defmodule TcgCheap.Sealed.Refresh do
 
   defp store_sealed_side(shop, sealed, now), do: store_sealed(shop, sealed, now)
 
-  # The shop's latest sealed fetch left offers seen at that time, the same
-  # condition `Sealed.current_offers/3` applies to every offer.
-  defp sealed_offers_current?(shop) do
+  defp sealed_offers_current?(shop), do: current_sealed_offer_count(shop) > 0
+
+  # The shop's offers seen at its latest sealed fetch, the same condition
+  # `Sealed.current_offers/3` applies to every offer.
+  defp current_sealed_offer_count(shop) do
     case ShopFetch
          |> Ash.Query.filter(shop == ^shop.key and kind == :sealed)
          |> Ash.read_one!(domain: Sealed) do
       nil ->
-        false
+        0
 
       %ShopFetch{fetched_at: fetched_at} ->
-        Ash.exists?(Ash.Query.filter(Offer, shop == ^shop.key and last_seen_at == ^fetched_at),
+        Ash.count!(Ash.Query.filter(Offer, shop == ^shop.key and last_seen_at == ^fetched_at),
           domain: Sealed
         )
     end
   end
+
+  # A fetch stored with far fewer offers than the previous one is stored as it
+  # is, since a real clearance looks the same, but reported: a changed
+  # pagination or a split category would otherwise silently shrink the shop's
+  # prices. Called once the transaction has committed.
+  defp report_dropped_offers(shop, previous, fetched)
+       when previous >= @dropped_min_previous and
+              fetched * 100 < previous * @dropped_below_percent,
+       do: FetchFailure.report(:sealed, shop.key, {:offers_dropped, previous, fetched})
+
+  defp report_dropped_offers(_shop, _previous, _fetched), do: :ok
 
   # Every offer keeps the shop's own price (`shop_price`, which other markets
   # convert), and a shop abroad's `price` is stored in PLN at the latest NBP
@@ -158,17 +179,27 @@ defmodule TcgCheap.Sealed.Refresh do
   defp store_sealed(%Shop{singles_only: true}, _offers, _now), do: {:ok, %{offers: 0}}
 
   defp store_sealed(shop, offers, now) do
-    Repo.transaction(
-      fn ->
-        lock_recompute()
-        eans = Sealed.known_eans()
-        upsert_offers(shop, offers, now)
-        Sealed.record_shop_fetch!(%{shop: shop.key, fetched_at: now}, return_notifications?: true)
-        recompute(now, rematch_after_fetch(shop, now, eans))
-        %{offers: length(offers)}
-      end,
-      timeout: transaction_timeout()
-    )
+    previous = current_sealed_offer_count(shop)
+
+    with {:ok, %{offers: fetched} = counts} <-
+           Repo.transaction(
+             fn ->
+               lock_recompute()
+               eans = Sealed.known_eans()
+               upsert_offers(shop, offers, now)
+
+               Sealed.record_shop_fetch!(%{shop: shop.key, fetched_at: now},
+                 return_notifications?: true
+               )
+
+               recompute(now, rematch_after_fetch(shop, now, eans))
+               %{offers: length(offers)}
+             end,
+             timeout: transaction_timeout()
+           ) do
+      report_dropped_offers(shop, previous, fetched)
+      {:ok, counts}
+    end
   end
 
   # A fetch also rewrites the barcode of the shop's manually assigned offers,
