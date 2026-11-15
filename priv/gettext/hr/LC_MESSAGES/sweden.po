@@ -104,14 +104,14 @@ msgstr "s dostavom iz Njemačke"
 #: lib/tcg_cheap/countries/sweden.ex:138
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych list produktów i feedów sklepów, pobieranych raz dziennie, i są w koronach szwedzkich. Ceny szwedzkich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Szwecji."
-msgstr ""
+msgstr "Cijene preuzimamo jednom dnevno s javnih popisa proizvoda i iz feedova trgovina te su izražene u švedskim krunama. Cijene švedskih trgovina ne uključuju dostavu, a cijene trgovina iz inozemstva uključuju dostavu u Švedsku."
 
 #: lib/tcg_cheap/countries/sweden.ex:143
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w koronach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
-msgstr ""
+msgstr "Dobra cijena iznosi najviše 95 % tipične, uobičajena najviše 110 %, a sve iznad toga je skupo. Dobra cijena mora također iznositi najviše 95 % cijene proizvoda koja je u zadnjih %{window} dana obično bila najjeftinija i Cardmarket trenda u krunama (prema tečajevima NBP-a) s dostavom iz Njemačke, ako su ti podaci poznati."
 
 #: lib/tcg_cheap/countries/sweden.ex:149
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w koronach."
-msgstr ""
+msgstr "Ako je trgovina manje, ne dajemo ocjenu cijene, već kao kontekst navodimo Cardmarket trend u krunama."

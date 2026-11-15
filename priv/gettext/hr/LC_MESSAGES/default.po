@@ -4218,258 +4218,258 @@ msgid "Niezależna porównywarka cen, nie sklep."
 msgstr "Neovisna usporedba cijena, ne trgovina."
 
 #: lib/tcg_cheap_web/page_markdown.ex:605
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "%{offer} (przedsprzedaż)"
-msgstr "Booster u prednarudžbi"
+msgstr "%{offer} (prednarudžba)"
 
 #: lib/tcg_cheap_web/page_markdown.ex:599
 #, elixir-autogen, elixir-format
 msgid "%{offer} (przedsprzedaż, premiera %{date})"
-msgstr ""
+msgstr "%{offer} (prednarudžba, izlazi %{date})"
 
 #: lib/tcg_cheap_web/page_markdown.ex:613
 #, elixir-autogen, elixir-format
 msgid "%{price} w %{shop}"
-msgstr ""
+msgstr "%{price} u trgovini %{shop}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:520
 #, elixir-autogen, elixir-format
 msgid "%{stock}, sprawdzono %{when}"
-msgstr ""
+msgstr "%{stock}, provjereno %{when}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:689
 #, elixir-autogen, elixir-format
 msgid "%{title}: %{price} (trend Cardmarket, bez dostawy)"
-msgstr ""
+msgstr "%{title}: %{price} (Cardmarket trend, bez dostave)"
 
 #: lib/tcg_cheap_web/page_markdown.ex:84
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty z trendem Cardmarket, bez dostawy."
-msgstr ""
+msgstr "Engleske karte s trendom cijena na Cardmarketu, bez dostave."
 
 #: lib/tcg_cheap_web/page_markdown.ex:670
 #, elixir-autogen, elixir-format
 msgid "Bez rzadkości"
-msgstr ""
+msgstr "Bez rijetkosti"
 
 #: lib/tcg_cheap_web/page_markdown.ex:337
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Brak ceny Cardmarket."
-msgstr "Nema cijene s Cardmarketa"
+msgstr "Nema cijene s Cardmarketa."
 
 #: lib/tcg_cheap_web/page_markdown.ex:531
 #, elixir-autogen, elixir-format
 msgid "Brak kart na stanie."
-msgstr ""
+msgstr "Nema karata na stanju."
 
 #: lib/tcg_cheap_web/page_markdown.ex:571
 #, elixir-autogen, elixir-format
 msgid "Brak produktów."
-msgstr ""
+msgstr "Nema proizvoda."
 
 #: lib/tcg_cheap_web/page_markdown.ex:456
 #, elixir-autogen, elixir-format
 msgid "Ceny z gazetek sieci i zgłoszeń z konkretnych sklepów. Dostępność bywa różna, więc nie wliczamy ich do oceny."
-msgstr ""
+msgstr "Cijene iz letaka trgovačkih lanaca i prijava iz pojedinih trgovina. Dostupnost varira pa ih ne uračunavamo u ocjenu."
 
 #: lib/tcg_cheap_web/page_markdown.ex:400
 #, elixir-autogen, elixir-format
 msgid "Dobra cena do %{good}, normalna do %{normal}"
-msgstr ""
+msgstr "Dobra cijena do %{good}, uobičajena do %{normal}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:492
 #, elixir-autogen, elixir-format
 msgid "Dostępność"
-msgstr ""
+msgstr "Dostupnost"
 
 #: lib/tcg_cheap_web/page_markdown.ex:54
 #, elixir-autogen, elixir-format
 msgid "Jak oceniamy cenę"
-msgstr ""
+msgstr "Kako ocjenjujemo cijenu"
 
 #: lib/tcg_cheap_web/page_markdown.ex:316
 #: lib/tcg_cheap_web/page_markdown.ex:540
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Karta"
-msgstr "Karte"
+msgstr "Karta"
 
 #: lib/tcg_cheap_web/page_markdown.ex:668
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Lista kart (%{cards})"
-msgstr "Sve karte (%{cards})"
+msgstr "Popis karata (%{cards})"
 
 #: lib/tcg_cheap_web/page_markdown.ex:68
 #, elixir-autogen, elixir-format
 msgid "Najpierw produkty na stanie w sklepach, potem najnowsze; angielskie wydania. Pełna lista rozszerzeń: %{url}"
-msgstr ""
+msgstr "Najprije proizvodi na stanju u trgovinama, zatim najnoviji; engleska izdanja. Potpuni popis setova: %{url}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:420
 #, elixir-autogen, elixir-format
 msgid "Najtańsza oferta (przedsprzedaż): %{price} w %{shop}"
-msgstr ""
+msgstr "Najjeftinija ponuda (prednarudžba): %{price} u trgovini %{shop}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:421
 #, elixir-autogen, elixir-format
 msgid "Najtańsza oferta: %{price} w %{shop}"
-msgstr ""
+msgstr "Najjeftinija ponuda: %{price} u trgovini %{shop}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:354
 #, elixir-autogen, elixir-format
 msgid "Nie znaleziono"
-msgstr ""
+msgstr "Nije pronađeno"
 
 #: lib/tcg_cheap_web/page_markdown.ex:318
 #, elixir-autogen, elixir-format
 msgid "Numer: %{number}"
-msgstr ""
+msgstr "Broj: %{number}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:579
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Ocena"
 msgstr "Ocjena cijene"
 
 #: lib/tcg_cheap_web/page_markdown.ex:46
 #, elixir-autogen, elixir-format
 msgid "Ocena nigdy nie opiera się na cenie sugerowanej producenta. Brakujące dane pokazujemy jako brakujące."
-msgstr ""
+msgstr "Ocjena cijene nikad ne ovisi o preporučenoj cijeni proizvođača. Ako neki podatak nedostaje, to i prikazujemo."
 
 #: lib/tcg_cheap_web/page_markdown.ex:392
 #, elixir-autogen, elixir-format
 msgid "Ocena: %{verdict}"
-msgstr ""
+msgstr "Ocjena cijene: %{verdict}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:292
 #, elixir-autogen, elixir-format
 msgid "Oferty"
-msgstr ""
+msgstr "Ponude"
 
 #: lib/tcg_cheap_web/page_markdown.ex:291
 #: lib/tcg_cheap_web/page_markdown.ex:462
 #: lib/tcg_cheap_web/page_markdown.ex:576
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Produkt"
-msgstr "Proizvodi"
+msgstr "Proizvod"
 
 #: lib/tcg_cheap_web/page_markdown.ex:492
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Sklep"
-msgstr "trgovina"
+msgstr "Trgovina"
 
 #: lib/tcg_cheap_web/page_markdown.ex:365
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Stan na: %{date}"
-msgstr "na dan %{date}"
+msgstr "Na dan %{date}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:364
 #, elixir-autogen, elixir-format
 msgid "Strona: %{url}"
-msgstr ""
+msgstr "Stranica: %{url}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:643
 #, elixir-autogen, elixir-format
 msgid "Szanse na drop (pull rates)"
-msgstr ""
+msgstr "Šanse za izvlačenje (pull rate)"
 
 #: lib/tcg_cheap_web/page_markdown.ex:356
 #, elixir-autogen, elixir-format
 msgid "Tej strony nie ma w TCG Cheap. Spis stron: %{url}"
-msgstr ""
+msgstr "TCG Cheap nema ovu stranicu. Popis stranica: %{url}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:626
 #, elixir-autogen, elixir-format
 msgid "To szacunki społeczności, sprawdzone %{date}. Źródła: %{sources}"
-msgstr ""
+msgstr "Ovo su procjene zajednice, provjerene %{date}. Izvori: %{sources}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:343
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price} (%{eur}), bez dostawy."
-msgstr "Cardmarket trend, bez dostave."
+msgstr "Cardmarket trend: %{price} (%{eur}), bez dostave."
 
 #: lib/tcg_cheap_web/page_markdown.ex:426
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price} bez dostawy"
-msgstr "Cardmarket trend, bez dostave."
+msgstr "Cardmarket trend: %{price} bez dostave"
 
 #: lib/tcg_cheap_web/page_markdown.ex:431
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price} bez dostawy, %{delivered} z przesyłką z Niemiec"
-msgstr ""
+msgstr "Cardmarket trend: %{price} bez dostave, %{delivered} s dostavom iz Njemačke"
 
 #: lib/tcg_cheap_web/page_markdown.ex:40
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej %{minimum} sklepy)."
-msgstr ""
+msgstr "Tipična cijena je medijan najnižih cijena u trgovinama koje imaju proizvod na stanju (jedna cijena po trgovini, barem %{minimum} trgovine)."
 
 #: lib/tcg_cheap_web/page_markdown.ex:395
 #, elixir-autogen, elixir-format
 msgid "Typowa cena w sklepach: %{typical} (mediana z %{count} sklepów)"
-msgstr ""
+msgstr "Tipična cijena u trgovinama: %{typical} (medijan cijena; broj trgovina: %{count})"
 
 #: lib/tcg_cheap_web/page_markdown.ex:290
 #, elixir-autogen, elixir-format
 msgid "Werdykt"
-msgstr ""
+msgstr "Ocjena cijene"
 
 #: lib/tcg_cheap_web/page_markdown.ex:440
 #, elixir-autogen, elixir-format
 msgid "Wydanie"
-msgstr ""
+msgstr "Izdanje"
 
 #: lib/tcg_cheap_web/page_markdown.ex:405
 #, elixir-autogen, elixir-format
 msgid "Zwykła cena z ostatnich %{days} dni: %{price}"
-msgstr ""
+msgstr "Obično najjeftinija cijena u zadnjih %{days} dana: %{price}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:527
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "na stanie"
-msgstr "Samo na stanju"
+msgstr "na stanju"
 
 #: lib/tcg_cheap_web/page_markdown.ex:465
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Źródło"
-msgstr "Izvor:"
+msgstr "Izvor"
 
 #: lib/tcg_cheap_web/page_markdown.ex:487
 #, elixir-autogen, elixir-format
 msgid "Żaden sklep nie ma teraz tej oferty."
-msgstr ""
+msgstr "Nijedna trgovina trenutačno nema ovu ponudu."
 
 #: lib/tcg_cheap_web/page_markdown.ex:540
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Trend Cardmarket"
-msgstr "Cardmarket trend, bez dostave."
+msgstr "Cardmarket trend"
 
 #: lib/tcg_cheap_web/page_markdown.ex:463
 #: lib/tcg_cheap_web/page_markdown.ex:492
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Cena"
-msgstr "Cijene karata"
+msgstr "Cijena"
 
 #: lib/tcg_cheap_web/page_markdown.ex:464
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Kiedy"
-msgstr ""
+msgstr "Kada"
 
 #: lib/tcg_cheap_web/page_markdown.ex:578
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Najtaniej"
-msgstr ""
+msgstr "Najjeftinije"
 
 #: lib/tcg_cheap_web/page_markdown.ex:461
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Sieć"
-msgstr ""
+msgstr "Lanac"
 
 #: lib/tcg_cheap_web/page_markdown.ex:529
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "brak"
-msgstr "nema cijene"
+msgstr "nema na stanju"
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:224
 #, elixir-autogen, elixir-format
@@ -4477,6 +4477,6 @@ msgid "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket."
 msgstr "Toliko ih još nema pa uspoređujemo s trendom na Cardmarketu."
 
 #: lib/tcg_cheap_web/page_markdown.ex:341
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price}, bez dostawy."
-msgstr "Cardmarket trend, bez dostave."
+msgstr "Cardmarket trend: %{price}, bez dostave."
