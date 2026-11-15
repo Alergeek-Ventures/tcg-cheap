@@ -29,6 +29,7 @@ defmodule TcgCheap.Countries.Croatia do
       decimals: 2,
       language: "hr",
       hreflang: "hr-HR",
+      popular_languages: [],
       # DHL's tariff from Germany is the same for Croatia as for Hungary
       # (checked 2026-11-14), so the same parcel as Hungary's:
       # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/kroatien.html
