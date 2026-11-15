@@ -11,77 +11,77 @@ msgstr ""
 "Language: pl\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
 
-#: lib/tcg_cheap/countries/croatia.ex:86
+#: lib/tcg_cheap/countries/croatia.ex:87
 #, elixir-autogen, elixir-format
 msgid "%{card} – cena karty Pokémon w euro"
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:91
+#: lib/tcg_cheap/countries/croatia.ex:92
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Chorwacji."
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:109
+#: lib/tcg_cheap/countries/croatia.ex:110
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden sklep wysyłający do Chorwacji nie ma tego produktu na stanie."
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:79
+#: lib/tcg_cheap/countries/croatia.ex:80
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w euro."
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:100
+#: lib/tcg_cheap/countries/croatia.ex:101
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden sklep wysyłający do Chorwacji nie ma teraz na stanie."
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:63
+#: lib/tcg_cheap/countries/croatia.ex:64
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Chorwacji, sprawdzane codziennie."
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:144
+#: lib/tcg_cheap/countries/croatia.ex:145
 #, elixir-autogen, elixir-format
 msgid "Ceny chorwackich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Chorwacji. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:82
+#: lib/tcg_cheap/countries/croatia.ex:83
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w euro"
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:120
+#: lib/tcg_cheap/countries/croatia.ex:121
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Chorwacji."
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:44
+#: lib/tcg_cheap/countries/croatia.ex:45
 #, elixir-autogen, elixir-format
 msgid "Chorwacja"
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:70
+#: lib/tcg_cheap/countries/croatia.ex:71
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Chorwacji."
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:55
+#: lib/tcg_cheap/countries/croatia.ex:56
 #, elixir-autogen, elixir-format
 msgid "Porównaj ceny Pokémon TCG w sklepach wysyłających do Chorwacji. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:50
+#: lib/tcg_cheap/countries/croatia.ex:51
 #, elixir-autogen, elixir-format
 msgid "Przejdź do wersji chorwackiej"
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:125
+#: lib/tcg_cheap/countries/croatia.ex:126
 #, elixir-autogen, elixir-format
 msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:47
+#: lib/tcg_cheap/countries/croatia.ex:48
 #, elixir-autogen, elixir-format
 msgid "Wygląda na to, że jesteś w Chorwacji."
 msgstr ""
@@ -96,7 +96,7 @@ msgstr ""
 msgid "z wysyłką z Chorwacji"
 msgstr ""
 
-#: lib/tcg_cheap/countries/croatia.ex:116
+#: lib/tcg_cheap/countries/croatia.ex:117
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr ""
