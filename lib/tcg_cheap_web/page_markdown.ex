@@ -393,7 +393,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       verdict.cheapest && cheapest_offer(verdict.cheapest, page.preorder?),
       verdict.typical_source == :shops &&
         gettext("Typowa cena w sklepach: %{typical} (mediana z %{count} sklepów)",
-          typical: Format.whole_price(verdict.typical),
+          typical: Format.limit_price(verdict.typical),
           count: length(verdict.shop_prices)
         ),
       verdict.good_max &&
@@ -404,7 +404,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       past.typical &&
         gettext("Zwykła cena z ostatnich %{days} dni: %{price}",
           days: PriceGuide.window_days(),
-          price: Format.whole_price(past.typical)
+          price: Format.limit_price(past.typical)
         ),
       page.cardmarket_price && cardmarket_trend_fact(page)
     ]

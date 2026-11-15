@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.Format do
   """
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.PullRates.Rate
+  alias TcgCheap.Sealed.{Market, PullRates.Rate}
   alias TcgCheapWeb.{Languages, Region}
 
   # A no-break space keeps "1 299,99 zł" on one line.
@@ -61,10 +61,14 @@ defmodule TcgCheapWeb.Format do
   def whole_price(value) when is_integer(value),
     do: number(value) <> @nbsp <> currency_symbol()
 
-  @doc ~S'A verdict limit: whole currency units, or decimals for a market with a fractional step.'
+  @doc ~S'A verdict limit or reference: whole currency units, or decimals for a market with a fractional step.'
   @spec limit_price(integer() | Decimal.t()) :: String.t()
-  def limit_price(value) when is_integer(value), do: whole_price(value)
-  def limit_price(%Decimal{} = value), do: price(value)
+  def limit_price(value) do
+    case Market.limit_step(Region.current().market) do
+      1 -> whole_price(value)
+      %Decimal{} -> price(value)
+    end
+  end
 
   @doc ~S'Whole units rounded up, for an upper bound: "do 4 zł" still holds for 3,40 zł.'
   @spec whole_price_ceiling(Decimal.t()) :: String.t()

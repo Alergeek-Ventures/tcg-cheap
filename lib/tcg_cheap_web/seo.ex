@@ -748,7 +748,7 @@ defmodule TcgCheapWeb.SEO do
        do:
          gettext("%{verdict} – typowa cena w %{shops} sklepach to %{typical}.",
            verdict: VerdictComponents.verdict_label(verdict),
-           typical: Format.whole_price(typical),
+           typical: Format.limit_price(typical),
            shops: length(verdict.shop_prices)
          )
 
