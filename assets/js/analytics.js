@@ -18,16 +18,24 @@ let pendingSearch = null
 // Whether this page sent a search since the field was last cleared.
 let searchSent = false
 
-// Pages by kind, whatever their region (TcgCheapWeb.Paths): /pl/produkty/… and
-// /hu/termekek/… are both products.
+// Pages by kind, whatever their region: the root layout gives the region's
+// slugs (TcgCheapWeb.Paths), so /pl/produkty/… and /se/produkter/… are both
+// products.
 const pageType = path => {
-  const page = path.replace(/^\/(pl|hu)(?=\/|$)/, "")
-  if (page === "" || page === "/") return "home"
-  if (page === "/karty" || page === "/kartyak") return "cards"
-  if (/^\/(produkty|termekek)\//.test(page)) return "product"
-  if (page === "/ile-kosztuje-booster-pokemon") return "booster_prices"
-  if (/^\/(rozszerzenia\/[^/]+\/karty|szettek\/[^/]+\/kartyak)\//.test(page)) return "card"
-  if (/^\/(rozszerzenia|szettek)\//.test(page)) return "set"
+  const root = document.documentElement
+  let slugs = {}
+  try {
+    slugs = JSON.parse(root.dataset.slugs || "{}")
+  } catch {}
+  const region = root.dataset.region
+  const page = region ? path.replace(new RegExp(`^/${region}(?=/|$)`), "") : path
+  const [first, second, third] = page.split("/").filter(Boolean)
+  if (!first) return "home"
+  if (first === slugs.cards && !second) return "cards"
+  if (slugs.booster_prices && first === slugs.booster_prices && !second) return "booster_prices"
+  if (first === slugs.products && second) return "product"
+  if (first === slugs.expansions && third === slugs.cards) return "card"
+  if (first === slugs.expansions && second) return "set"
   return "other"
 }
 

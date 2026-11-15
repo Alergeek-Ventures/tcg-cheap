@@ -25,8 +25,9 @@ defmodule TcgCheap.Countries.Sweden do
       code: "se",
       currency: "SEK",
       currency_symbol: "kr",
-      # Swedish shops price in whole kronor ("1 099 kr").
-      decimals: 0,
+      # Shops price in whole kronor ("1 099 kr"), which prices show without
+      # öre; cheap cards' converted trends keep them.
+      decimals: 2,
       language: "sv",
       hreflang: "sv-SE",
       # DHL Paket 2 kg from Germany to Sweden (€14.49 online) plus
