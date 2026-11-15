@@ -114,4 +114,4 @@ msgstr "Bra pris är högst 95% av det typiska priset, normalt pris högst 110%,
 #: lib/tcg_cheap/countries/sweden.ex:149
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w koronach."
-msgstr "Med färre butiker ges ingen bedömning; som sammanhang visar vi Cardmarket-trenden i kronor."
+msgstr "Med färre butiker ger vi ingen bedömning och visar i stället Cardmarket-trenden i kronor."

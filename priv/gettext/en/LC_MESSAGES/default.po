@@ -4237,12 +4237,6 @@ msgstr "No cards in stock."
 msgid "Brak produktów."
 msgstr "No products."
 
-#: lib/tcg_cheap_web/page_markdown.ex:460
-#: lib/tcg_cheap_web/page_markdown.ex:489
-#, elixir-autogen, elixir-format
-msgid "Cena"
-msgstr "Price"
-
 #: lib/tcg_cheap_web/page_markdown.ex:453
 #, elixir-autogen, elixir-format
 msgid "Ceny z gazetek sieci i zgłoszeń z konkretnych sklepów. Dostępność bywa różna, więc nie wliczamy ich do oceny."
@@ -4269,11 +4263,6 @@ msgstr "How we rate a price"
 msgid "Karta"
 msgstr "Card"
 
-#: lib/tcg_cheap_web/page_markdown.ex:461
-#, elixir-autogen, elixir-format
-msgid "Kiedy"
-msgstr "When"
-
 #: lib/tcg_cheap_web/page_markdown.ex:660
 #, elixir-autogen, elixir-format
 msgid "Lista kart (%{cards})"
@@ -4283,11 +4272,6 @@ msgstr "Card list (%{cards})"
 #, elixir-autogen, elixir-format
 msgid "Najpierw produkty na stanie w sklepach, potem najnowsze; angielskie wydania. Pełna lista rozszerzeń: %{url}"
 msgstr "Products in stock in shops first, then the newest; English editions. Full list of sets: %{url}"
-
-#: lib/tcg_cheap_web/page_markdown.ex:572
-#, elixir-autogen, elixir-format
-msgid "Najtaniej"
-msgstr "Cheapest"
 
 #: lib/tcg_cheap_web/page_markdown.ex:417
 #, elixir-autogen, elixir-format
@@ -4335,11 +4319,6 @@ msgstr "Shop offers"
 #, elixir-autogen, elixir-format
 msgid "Produkt"
 msgstr "Product"
-
-#: lib/tcg_cheap_web/page_markdown.ex:458
-#, elixir-autogen, elixir-format
-msgid "Sieć"
-msgstr "Chain"
 
 #: lib/tcg_cheap_web/page_markdown.ex:489
 #, elixir-autogen, elixir-format
@@ -4411,11 +4390,6 @@ msgstr "Edition"
 msgid "Zwykła cena z ostatnich %{days} dni: %{price}"
 msgstr "Usual price over the last %{days} days: %{price}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:526
-#, elixir-autogen, elixir-format
-msgid "brak"
-msgstr "out of stock"
-
 #: lib/tcg_cheap_web/page_markdown.ex:524
 #, elixir-autogen, elixir-format
 msgid "na stanie"
@@ -4435,3 +4409,34 @@ msgstr "No shop has this right now."
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket"
 msgstr "Cardmarket trend"
+
+#: lib/tcg_cheap_web/page_markdown.ex:460
+#: lib/tcg_cheap_web/page_markdown.ex:489
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Cena"
+msgstr "Price"
+
+#: lib/tcg_cheap_web/page_markdown.ex:461
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Kiedy"
+msgstr "When"
+
+#: lib/tcg_cheap_web/page_markdown.ex:572
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Najtaniej"
+msgstr "Cheapest"
+
+#: lib/tcg_cheap_web/page_markdown.ex:458
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Sieć"
+msgstr "Chain"
+
+#: lib/tcg_cheap_web/page_markdown.ex:526
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "brak"
+msgstr "out of stock"

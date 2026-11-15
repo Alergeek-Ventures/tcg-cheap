@@ -4203,7 +4203,7 @@ msgstr "%{offer} (förbokning)"
 #: lib/tcg_cheap_web/page_markdown.ex:591
 #, elixir-autogen, elixir-format
 msgid "%{offer} (przedsprzedaż, premiera %{date})"
-msgstr "%{offer} (förbokning, släpp %{date})"
+msgstr "%{offer} (förbokning, släpps %{date})"
 
 #: lib/tcg_cheap_web/page_markdown.ex:605
 #, elixir-autogen, elixir-format
@@ -4245,16 +4245,10 @@ msgstr "Inga kort i lager."
 msgid "Brak produktów."
 msgstr "Inga produkter."
 
-#: lib/tcg_cheap_web/page_markdown.ex:460
-#: lib/tcg_cheap_web/page_markdown.ex:489
-#, elixir-autogen, elixir-format
-msgid "Cena"
-msgstr "Pris"
-
 #: lib/tcg_cheap_web/page_markdown.ex:453
 #, elixir-autogen, elixir-format
 msgid "Ceny z gazetek sieci i zgłoszeń z konkretnych sklepów. Dostępność bywa różna, więc nie wliczamy ich do oceny."
-msgstr "Priser från butikskedjornas reklamblad och tips om enskilda butiker. Lagerstatus varierar, så vi räknar inte med dem i bedömningen."
+msgstr "Priser från butikskedjornas reklamblad och tips om enskilda butiker. Tillgången varierar, så vi räknar inte in dem i bedömningen."
 
 #: lib/tcg_cheap_web/page_markdown.ex:397
 #, elixir-autogen, elixir-format
@@ -4264,7 +4258,7 @@ msgstr "Bra pris: högst %{good}, normalt pris: högst %{normal}"
 #: lib/tcg_cheap_web/page_markdown.ex:489
 #, elixir-autogen, elixir-format
 msgid "Dostępność"
-msgstr "Lager"
+msgstr "Lagerstatus"
 
 #: lib/tcg_cheap_web/page_markdown.ex:54
 #, elixir-autogen, elixir-format
@@ -4277,11 +4271,6 @@ msgstr "Så bedömer vi priset"
 msgid "Karta"
 msgstr "Kort"
 
-#: lib/tcg_cheap_web/page_markdown.ex:461
-#, elixir-autogen, elixir-format
-msgid "Kiedy"
-msgstr "När"
-
 #: lib/tcg_cheap_web/page_markdown.ex:660
 #, elixir-autogen, elixir-format
 msgid "Lista kart (%{cards})"
@@ -4291,11 +4280,6 @@ msgstr "Kortlista (%{cards})"
 #, elixir-autogen, elixir-format
 msgid "Najpierw produkty na stanie w sklepach, potem najnowsze; angielskie wydania. Pełna lista rozszerzeń: %{url}"
 msgstr "Först produkter som finns i lager i butikerna, sedan de nyaste; engelska utgåvor. Hela listan över set: %{url}"
-
-#: lib/tcg_cheap_web/page_markdown.ex:572
-#, elixir-autogen, elixir-format
-msgid "Najtaniej"
-msgstr "Billigast"
 
 #: lib/tcg_cheap_web/page_markdown.ex:417
 #, elixir-autogen, elixir-format
@@ -4344,11 +4328,6 @@ msgstr "Priser i butikerna"
 msgid "Produkt"
 msgstr "Produkt"
 
-#: lib/tcg_cheap_web/page_markdown.ex:458
-#, elixir-autogen, elixir-format
-msgid "Sieć"
-msgstr "Kedja"
-
 #: lib/tcg_cheap_web/page_markdown.ex:489
 #, elixir-autogen, elixir-format
 msgid "Sklep"
@@ -4357,7 +4336,7 @@ msgstr "Butik"
 #: lib/tcg_cheap_web/page_markdown.ex:362
 #, elixir-autogen, elixir-format
 msgid "Stan na: %{date}"
-msgstr "Uppdaterad: %{date}"
+msgstr "Uppdaterat: %{date}"
 
 #: lib/tcg_cheap_web/page_markdown.ex:361
 #, elixir-autogen, elixir-format
@@ -4397,12 +4376,12 @@ msgstr "Cardmarket-trend: %{price} utan frakt, %{delivered} med frakt från Tysk
 #: lib/tcg_cheap_web/page_markdown.ex:40
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej %{minimum} sklepy)."
-msgstr "Typiskt pris är medianen av de lägsta priserna i lager i butikerna (ett pris per butik, minst %{minimum} butiker)."
+msgstr "Typiskt pris är medianen av de lägsta priserna i butiker som har produkten i lager (ett pris per butik, minst %{minimum} butiker)."
 
 #: lib/tcg_cheap_web/page_markdown.ex:392
 #, elixir-autogen, elixir-format
 msgid "Typowa cena w sklepach: %{typical} (mediana z %{count} sklepów)"
-msgstr "Typiskt pris i butikerna: %{typical} (median från %{count} butiker)"
+msgstr "Typiskt pris i butikerna: %{typical} (median i %{count} butiker)"
 
 #: lib/tcg_cheap_web/page_markdown.ex:290
 #, elixir-autogen, elixir-format
@@ -4418,11 +4397,6 @@ msgstr "Utgåva"
 #, elixir-autogen, elixir-format
 msgid "Zwykła cena z ostatnich %{days} dni: %{price}"
 msgstr "Vanligt pris de senaste %{days} dagarna: %{price}"
-
-#: lib/tcg_cheap_web/page_markdown.ex:526
-#, elixir-autogen, elixir-format
-msgid "brak"
-msgstr "inte i lager"
 
 #: lib/tcg_cheap_web/page_markdown.ex:524
 #, elixir-autogen, elixir-format
@@ -4443,3 +4417,34 @@ msgstr "Ingen butik har den just nu."
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket"
 msgstr "Cardmarket-trend"
+
+#: lib/tcg_cheap_web/page_markdown.ex:460
+#: lib/tcg_cheap_web/page_markdown.ex:489
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Cena"
+msgstr "Pris"
+
+#: lib/tcg_cheap_web/page_markdown.ex:461
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Kiedy"
+msgstr "När"
+
+#: lib/tcg_cheap_web/page_markdown.ex:572
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Najtaniej"
+msgstr "Billigast"
+
+#: lib/tcg_cheap_web/page_markdown.ex:458
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Sieć"
+msgstr "Kedja"
+
+#: lib/tcg_cheap_web/page_markdown.ex:526
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "brak"
+msgstr "inte i lager"

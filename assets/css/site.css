@@ -602,7 +602,7 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .contents-items .contents-photo-generic img { block-size: 100%; inline-size: 100%; max-inline-size: none; object-fit: contain; opacity: .8; }
 .guide-world .contents-photo-note { background: color-mix(in srgb, var(--paper) 92%, transparent); box-shadow: 0 -1px 0 var(--rule), 0 1px 0 var(--rule); color: var(--ink); font-size: .4375rem; font-weight: 600; inset-inline: 0; letter-spacing: -.03em; line-height: 1; padding-block: .0625rem; position: absolute; text-align: center; top: 50%; translate: 0 -50%; }
 /* The note's one word in other languages is wider than the thumbnail at the Polish size. */
-.guide-world .contents-photo-note:lang(pl) { font-size: .5625rem; letter-spacing: -.02em; }
+.guide-world .contents-photo-note:is(:lang(pl), :lang(en)) { font-size: .5625rem; letter-spacing: -.02em; }
 /* The larger copy opens over the page; a click anywhere closes it. */
 .guide-world .photo-preview { background: var(--paper); border: 0; cursor: zoom-out; margin: auto; max-block-size: calc(100dvh - 2rem); max-inline-size: calc(100vw - 2rem); padding: 1rem; }
 .guide-world .photo-preview[open] { display: flex; flex-direction: column; gap: .75rem; }
