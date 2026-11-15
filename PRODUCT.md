@@ -10,7 +10,7 @@ web
 
 ## Users
 
-- Pokémon TCG fans in Poland, Hungary and Sweden (players, collectors, parents buying
+- Pokémon TCG fans in Poland, Hungary, Sweden and Croatia (players, collectors, parents buying
   gifts) who want to buy sealed products (boosters, bundles, booster boxes,
   Elite Trainer Boxes, tins, collections) without overpaying.
 - The same fans when trading single cards with friends or in a local shop.
@@ -80,10 +80,10 @@ as missing.
   Good ≤ 95%, normal ≤ 110%, expensive above; a good price must also be ≤ 95% of
   the 30-day usual price and of the Cardmarket trend in the region's currency
   plus a tracked parcel from Germany, when they are known (the page says which
-  one lowered the limit). The limits are shown in whole units of the region's
-  currency (in 0.10 euro steps in a euro region) so a price seen in a physical
-  shop can be judged too. With fewer
-  shops there is no verdict: the list row shows only the price, the product page
+  one lowered the limit). The limits are rounded down to whole units of the
+  region's currency, or 0.10 euro in a euro region, so a price seen in a
+  physical shop can be judged too. With fewer shops there is no verdict: the
+  list row shows only the price, the product page
   says "Za mało sklepów" and gives the Cardmarket trend in the region's currency
   as context.
 - History bounds a good price only: the same price against the median
@@ -96,17 +96,18 @@ as missing.
   the expansion's premiere (the same street date for every shop) when it is
   known; otherwise pre-orders are listed in their own group.
 - Set pages (owner decision, 2026-11-03, banner revised 2026-11-04): every named
-  expansion has a page (`/pl/rozszerzenia/<name>-<id>`, `/hu/szettek/…`, `/se/set/…`) that
-  answers first with a banner under the set's logo: in Poland its most valuable
-  card and what pulling it from packs costs on average against buying it, then
-  the next three cards the same way (a set without card prices, and every set in
-  Hungary and Sweden, shows its single booster instead). The page then lists the set's
-  products with their verdicts, its pull rates and its cards. In Poland one card
-  price is used everywhere: the lower of the cheapest shop offer (abroad with
-  delivery) and the Cardmarket trend, without delivery; in Hungary and Sweden it
-  is the Cardmarket trend in the region's currency. Pages state the answer in their first sentence
-  and search metadata, so search engines and AI assistants can quote it.
-- The card list (`/pl/karty`, `/hu/kartyak`, `/se/kort`) filters by expansion like the
+  expansion has a page (`/pl/rozszerzenia/<name>-<id>`, `/hu/szettek/…`, `/se/set/…`,
+  `/hr/setovi/…`) that answers first with a banner under the set's logo: in
+  Poland its most valuable card and what pulling it from packs costs on average
+  against buying it, then the next three cards the same way (a set without card
+  prices, and every set in Hungary, Sweden and Croatia, shows its single booster
+  instead). The page then lists the set's products with their verdicts, its pull
+  rates and its cards. In Poland one card price is used everywhere: the lower of
+  the cheapest shop offer (abroad with delivery) and the Cardmarket trend,
+  without delivery; in Hungary, Sweden and Croatia it is the Cardmarket trend in
+  the region's currency. Pages state the answer in their first sentence and
+  search metadata, so search engines and AI assistants can quote it.
+- The card list (`/pl/karty`, `/hu/kartyak`, `/se/kort`, `/hr/karte`) filters by expansion like the
   product list; in Poland a chosen expansion opens with a singles banner in the
   same style: the set's best deal (a Polish shop price furthest under the
   Cardmarket price with delivery), its cards in stock in Poland, the whole set
