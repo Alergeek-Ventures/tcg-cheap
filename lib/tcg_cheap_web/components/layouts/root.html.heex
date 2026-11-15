@@ -1,5 +1,12 @@
 <!DOCTYPE html>
-<html lang={assigns[:html_lang] || "en"} data-region={assigns[:region] && @region.code}>
+<html
+  lang={assigns[:html_lang] || "en"}
+  data-region={assigns[:region] && @region.code}
+  data-slugs={
+    assigns[:region] &&
+      Jason.encode!(Map.put(@region.slugs, :booster_prices, @region.pages[:booster_prices]))
+  }
+>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
