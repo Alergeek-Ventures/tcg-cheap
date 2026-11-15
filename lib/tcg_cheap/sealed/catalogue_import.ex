@@ -36,7 +36,6 @@ defmodule TcgCheap.Sealed.CatalogueImport do
   require Logger
 
   @chunk 500
-  @singles_category 51
 
   @spec run(keyword()) :: {:ok, %{products: non_neg_integer()}} | {:error, term()}
   def run(opts \\ []) do
@@ -48,7 +47,9 @@ defmodule TcgCheap.Sealed.CatalogueImport do
     with {:ok, products} <- Adapter.fetch_sealed_products(adapter_opts),
          {:ok, prices} <- Adapter.fetch_all_prices(adapter_opts) do
       priced_on = DateTime.to_date(prices.created_at)
-      {singles, sealed} = Enum.split_with(prices.rows, &(&1.category_id == @singles_category))
+
+      {singles, sealed} =
+        Enum.split_with(prices.rows, &(&1.category_id == Adapter.singles_category()))
 
       rows =
         Catalogue.rows(
