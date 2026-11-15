@@ -1,11 +1,25 @@
 defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
-  @moduledoc "A bounded, read-only adapter for Cardmarket's Pokémon bulk files."
+  @moduledoc """
+  Downloads and validates Cardmarket's public Pokémon files: the singles
+  product list, the sealed (non-singles) product list and the price guide.
+
+  Every download has a body size limit, short timeouts and no redirects or
+  retries. A file is accepted only when its JSON, version, creation time and
+  every row are valid and no product id repeats; otherwise the result is an
+  `{:error, reason}` tuple. An accepted file is a `t:t/0`: its creation time
+  and its rows (`Product` or `Price` structs).
+
+  The only option is `:request_options`, a keyword list limited to the `Req`
+  options `:plug`, `:headers`, `:connect_options`, `:receive_timeout` and
+  `:request_timeout`.
+  """
 
   @products_url "https://downloads.s3.cardmarket.com/productCatalog/productList/products_singles_6.json"
   @sealed_products_url "https://downloads.s3.cardmarket.com/productCatalog/productList/products_nonsingles_6.json"
   @prices_url "https://downloads.s3.cardmarket.com/productCatalog/priceGuide/price_guide_6.json"
   @max_response_bytes 32 * 1024 * 1024
   @max_source_rows 100_000
+  # Cardmarket's category id of Pokémon single cards.
   @singles_category 51
   @metrics ~w(avg low trend avg1 avg7 avg30 avg-holo low-holo trend-holo avg1-holo avg7-holo avg30-holo)
   @malformed_provider_response {:error, {:malformed, :invalid_content_type}}
@@ -13,17 +27,12 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
   @compact_utc_offset ~r/([+-]\d{2})(\d{2})\z/
   @decimal_string ~r/\A\d+(?:\.\d+)?\z/
 
-  defstruct [
-    :raw_body,
-    :sha256,
-    :byte_size,
-    :fetched_at,
-    :created_at,
-    :total_rows,
-    :source_rows,
-    :priceable_count,
-    :rows
-  ]
+  defstruct [:created_at, :rows]
+
+  @type t :: %__MODULE__{
+          created_at: DateTime.t(),
+          rows: [__MODULE__.Product.t()] | [__MODULE__.Price.t()]
+        }
 
   defmodule Product do
     @moduledoc "A validated Cardmarket product row."
@@ -41,14 +50,12 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
   end
 
   defmodule Price do
-    @moduledoc "A validated Cardmarket price row and its selected metric."
+    @moduledoc "A validated Cardmarket price guide row; a metric Cardmarket lists as 0 is nil."
     @type t :: %__MODULE__{}
 
     defstruct [
       :id_product,
       :category_id,
-      :selected_metric,
-      :selected_value,
       avg: nil,
       low: nil,
       trend: nil,
@@ -64,29 +71,23 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
     ]
   end
 
-  @doc "Fetch and parse the allowlisted Cardmarket product file."
+  @doc "The category id of Pokémon single cards in Cardmarket's files."
+  def singles_category, do: @singles_category
+
+  @doc "Fetch and parse the Cardmarket singles product file."
   def fetch_products(opts \\ []), do: fetch(@products_url, :products, opts)
 
-  @doc "Fetch and parse the allowlisted Cardmarket price guide."
-  def fetch_prices(opts \\ []), do: fetch(@prices_url, :prices, opts)
-
-  @doc "Fetch and parse the allowlisted Cardmarket sealed (non-singles) product file."
+  @doc "Fetch and parse the Cardmarket sealed (non-singles) product file."
   def fetch_sealed_products(opts \\ []), do: fetch(@sealed_products_url, :sealed_products, opts)
 
-  @doc "Fetch the price guide with every row, singles and sealed products alike."
-  def fetch_all_prices(opts \\ []), do: fetch(@prices_url, :all_prices, opts)
+  @doc "Fetch and parse the Cardmarket price guide with every row, singles and sealed products alike."
+  def fetch_all_prices(opts \\ []), do: fetch(@prices_url, :prices, opts)
 
-  def parse_products(body, opts \\ []), do: parse(body, :products, opts)
-  def parse_prices(body, opts \\ []), do: parse(body, :prices, opts)
-  def parse_sealed_products(body, opts \\ []), do: parse(body, :sealed_products, opts)
-  def parse_all_prices(body, opts \\ []), do: parse(body, :all_prices, opts)
-
-  defp fetch(url, kind, opts) when is_list(opts) and is_map(opts) == false do
-    if Keyword.keyword?(opts) and valid_options?(opts) do
-      with :ok <- admit(opts),
-           {:ok, response} <- request(url, opts),
+  defp fetch(url, kind, opts) when is_list(opts) do
+    if valid_options?(opts) do
+      with {:ok, response} <- request(url, opts),
            {:ok, body} <- response_body(response) do
-        parse(body, kind, opts)
+        parse(body, kind)
       end
     else
       {:error, :invalid_options}
@@ -144,57 +145,27 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
     end
   end
 
-  defp parse(body, kind, opts) when is_binary(body) do
-    cond do
-      byte_size(body) > @max_response_bytes -> {:error, {:oversized, @max_response_bytes}}
-      not valid_options?(opts) -> {:error, :invalid_options}
-      true -> parse_decoded(body, kind, opts)
-    end
-  end
+  defp parse(body, _kind) when byte_size(body) > @max_response_bytes,
+    do: {:error, {:oversized, @max_response_bytes}}
 
-  defp parse(_, _, _), do: {:error, {:malformed, :expected_binary}}
-
-  defp parse_decoded(body, kind, opts) do
+  defp parse(body, kind) do
     case decode_json(body) do
-      {:error, reason} ->
-        {:error, reason}
-
-      {:ok, decoded} ->
-        parse_decoded_rows(body, kind, opts, decoded)
+      {:error, reason} -> {:error, reason}
+      {:ok, decoded} -> parse_decoded(decoded, kind)
     end
   rescue
     _ -> {:error, {:malformed, :invalid_body}}
   end
 
-  defp parse_decoded_rows(body, kind, opts, decoded) do
+  defp parse_decoded(decoded, kind) do
     with {:ok, created_at} <- created_at(decoded),
          {:ok, source} <- source_rows(decoded, kind),
-         {:ok, rows} <- validate_rows(source, kind),
-         {:ok, now} <- clock(opts) do
-      priceable = priceable_count(rows, kind)
-
-      {:ok,
-       %__MODULE__{
-         raw_body: body,
-         sha256: :crypto.hash(:sha256, body) |> Base.encode16(case: :lower),
-         byte_size: byte_size(body),
-         fetched_at: now,
-         created_at: created_at,
-         total_rows: length(source),
-         source_rows: length(rows),
-         priceable_count: priceable,
-         rows: rows
-       }}
+         {:ok, rows} <- validate_rows(source, kind) do
+      {:ok, %__MODULE__{created_at: created_at, rows: rows}}
     else
-      {:error, :invalid_clock} -> {:error, :invalid_clock}
       {:error, reason} -> {:error, {:malformed, reason}}
     end
   end
-
-  defp priceable_count(_rows, kind) when kind in [:products, :sealed_products], do: 0
-
-  defp priceable_count(rows, kind) when kind in [:prices, :all_prices],
-    do: Enum.count(rows, &(!is_nil(&1.selected_value)))
 
   defp created_at(%{"version" => 1, "createdAt" => value}) when is_binary(value) do
     normalized = Regex.replace(@compact_utc_offset, value, "\\1:\\2")
@@ -215,7 +186,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
        do: bounded_rows(rows)
 
   defp source_rows(%{"priceGuides" => rows}, kind)
-       when is_list(rows) and kind in [:prices, :all_prices],
+       when is_list(rows) and kind == :prices,
        do: bounded_rows(rows)
 
   defp source_rows(_, _), do: {:error, :expected_rows_array}
@@ -234,8 +205,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
     with {:ok, id} <- positive_integer(row, "idProduct"),
          false <- Map.has_key?(ids, id),
          {:ok, parsed} <- validate_row(row, kind) do
-      next_acc = if is_nil(parsed), do: acc, else: [parsed | acc]
-      validate_rows(rest, kind, Map.put(ids, id, true), next_acc)
+      validate_rows(rest, kind, Map.put(ids, id, true), [parsed | acc])
     else
       true -> {:error, {:duplicate_id_product, Map.get(row, "idProduct")}}
       {:error, reason} -> {:error, reason}
@@ -246,7 +216,7 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
 
   defp validate_row(row, :products) do
     with {:ok, category_id} <- category_id(row),
-         true <- category_id == 51,
+         true <- category_id == @singles_category,
          {:ok, name} <- nonblank(row, "name"),
          {:ok, expansion} <- positive_integer(row, "idExpansion"),
          {:ok, metacard} <- nonnegative_integer(row, "idMetacard"),
@@ -292,51 +262,12 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
     end
   end
 
-  defp validate_row(row, :all_prices) do
-    with {:ok, category_id} <- category_id(row),
-         {:ok, values} <- metrics(row) do
-      {metric, value} = selected_metric(values)
-
-      {:ok,
-       struct(
-         Price,
-         Map.merge(values, %{
-           id_product: row["idProduct"],
-           category_id: category_id,
-           selected_metric: metric,
-           selected_value: value
-         })
-       )}
-    end
-  end
-
   defp validate_row(row, :prices) do
     with {:ok, category_id} <- category_id(row),
-         true <- category_id == 51,
          {:ok, values} <- metrics(row) do
-      {metric, value} = selected_metric(values)
-
       {:ok,
-       struct(
-         Price,
-         Map.merge(values, %{
-           id_product: row["idProduct"],
-           category_id: category_id,
-           selected_metric: metric,
-           selected_value: value
-         })
-       )}
-    else
-      false -> {:ok, nil}
-      {:error, reason} -> {:error, reason}
+       struct(Price, Map.merge(values, %{id_product: row["idProduct"], category_id: category_id}))}
     end
-  end
-
-  defp selected_metric(values) do
-    Enum.find_value([:avg7, :avg30, :trend, :avg, :low], {nil, nil}, fn key ->
-      value = Map.get(values, key)
-      value && {key, value}
-    end)
   end
 
   defp decode_json(body) do
@@ -429,33 +360,9 @@ defmodule TcgCheap.Pricing.CardmarketBulk.Adapter do
     end
   end
 
-  defp admit(opts) do
-    case Keyword.get(opts, :request_admitter, fn -> :ok end).() do
-      :ok -> :ok
-      {:error, _} = error -> error
-      _ -> {:error, :invalid_admission_result}
-    end
-  rescue
-    _ -> {:error, :admission_failed}
-  catch
-    _, _ -> {:error, :admission_failed}
-  end
-
-  defp clock(opts) do
-    case Keyword.get(opts, :clock, &DateTime.utc_now/0).() do
-      %DateTime{} = value -> {:ok, value}
-      _ -> {:error, :invalid_clock}
-    end
-  catch
-    _, _ -> {:error, :invalid_clock}
-  end
-
   defp valid_options?(opts) do
-    Keyword.keyword?(opts) and
-      Enum.all?(Keyword.keys(opts), &(&1 in [:request_options, :request_admitter, :clock])) and
-      valid_request_options?(Keyword.get(opts, :request_options, [])) and
-      is_function(Keyword.get(opts, :clock, &DateTime.utc_now/0), 0) and
-      is_function(Keyword.get(opts, :request_admitter, fn -> :ok end), 0)
+    Keyword.keyword?(opts) and Enum.all?(Keyword.keys(opts), &(&1 == :request_options)) and
+      valid_request_options?(Keyword.get(opts, :request_options, []))
   end
 
   defp valid_request_options?(options) when is_list(options) do
