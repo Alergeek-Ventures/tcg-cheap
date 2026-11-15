@@ -146,17 +146,11 @@ defmodule TcgCheapWeb.CoreComponents do
   end
 
   @doc """
-  Renders a [Heroicon](https://heroicons.com).
+  Renders a [Heroicon](https://heroicons.com) as a CSS mask element.
 
-  Heroicons come in three styles – outline, solid, and mini.
-  By default, the outline style is used, but solid and mini may
-  be applied by using the `-solid` and `-mini` suffix.
-
-  You can customize the size and colors of the icons by setting
-  width, height, and background color classes.
-
-  Icons are extracted from the `deps/heroicons` directory and bundled within
-  your compiled app.css by the plugin in `assets/vendor/heroicons.js`.
+  `name` is `hero-` plus the icon's name, with an optional `-solid`, `-mini` or `-micro`
+  suffix for the other styles; the classes come from `assets/vendor/heroicons.js`.
+  Size and color are set with width, height and background color classes.
 
   ## Examples
 
