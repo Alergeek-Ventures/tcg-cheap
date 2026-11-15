@@ -109,9 +109,9 @@ msgstr "Cijene preuzimamo jednom dnevno iz javnih feedova s proizvodima trgovina
 #: lib/tcg_cheap/countries/hungary.ex:138
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w forintach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
-msgstr "Dobra cijena iznosi najviše 95 % tipične, uobičajena najviše 110 %, a sve iznad toga je skupo. Dobra cijena mora također iznositi najviše 95 % cijene proizvoda koja je u zadnjih %{window} dana obično bila najjeftinija i Cardmarket trenda u forintama (prema tečajevima NBP-a) s dostavom iz Njemačke, ako su ti podaci poznati."
+msgstr "Dobra cijena je barem 5 % niža od tipične, od one koja je u zadnjih %{window} dana obično najjeftinija te od Cardmarket trenda u forintama (prema tečajevima NBP-a) s dostavom iz Njemačke, ako su ti podaci poznati. Uobičajena cijena je najviše 10 % viša od tipične. Sve više od toga je skupo."
 
 #: lib/tcg_cheap/countries/hungary.ex:144
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w forintach."
-msgstr "Ako je trgovina manje, ne dajemo ocjenu cijene, već kao kontekst navodimo Cardmarket trend u forintama."
+msgstr "Kad je trgovina premalo, ne ocjenjujemo cijenu, a kao kontekst navodimo Cardmarket trend u forintama."
