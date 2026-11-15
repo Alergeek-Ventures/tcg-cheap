@@ -127,6 +127,7 @@ defmodule TcgCheap.Sealed.Matcher do
     {"egyszerusitett kinai", "chinese"},
     {"kinai", "chinese"},
     {"nemet", "german"},
+    {"spanyol", "spanish"},
     {"japonia", "jp"},
     {"koreanski", "korean"},
     {"koreanska", "korean"},
@@ -238,8 +239,9 @@ defmodule TcgCheap.Sealed.Matcher do
 
   # Polish, Swedish and Hungarian word stems for damaged, opened or used items ("uszkodzone",
   # "otwarty", "używany", "Förpackningsskada", "kartongskadad", "skadad", "öppnad",
-  # "begagnad", "Enyhén szakadt", "Kisebb esztétikai hiba", "Apróbb szépséghibák", "sérült"…).
-  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult)/
+  # "begagnad", "Enyhén szakadt", "Kisebb esztétikai hiba", "Apróbb szépséghibák", "sérült",
+  # Slovak "Malé Imperfekcie"…).
+  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult|imperfekci)/
 
   # Two or more pieces ("x3", "10x", "36 szt", "3 sztuki"); "1 szt" is still one item.
   # Not Swedish "st": shops write it for a bundle's contents ("6 st boosters")
