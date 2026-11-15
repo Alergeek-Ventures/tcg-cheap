@@ -158,7 +158,8 @@ defmodule Mix.Tasks.Dev.Up do
   end
 
   # A new worktree compiles everything before Phoenix answers, which on a
-  # busy shared host takes minutes, so Phoenix gets up to ten.
+  # busy shared host takes minutes, so Phoenix gets 600 attempts, a second
+  # apart (more when a request waits for its 5 s timeout).
   defp wait_for_http(port),
     do:
       wait_until(
