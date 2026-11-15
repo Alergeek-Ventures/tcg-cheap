@@ -4267,12 +4267,6 @@ msgstr ""
 msgid "Brak produktów."
 msgstr ""
 
-#: lib/tcg_cheap_web/page_markdown.ex:460
-#: lib/tcg_cheap_web/page_markdown.ex:489
-#, elixir-autogen, elixir-format
-msgid "Cena"
-msgstr ""
-
 #: lib/tcg_cheap_web/page_markdown.ex:453
 #, elixir-autogen, elixir-format
 msgid "Ceny z gazetek sieci i zgłoszeń z konkretnych sklepów. Dostępność bywa różna, więc nie wliczamy ich do oceny."
@@ -4299,11 +4293,6 @@ msgstr ""
 msgid "Karta"
 msgstr ""
 
-#: lib/tcg_cheap_web/page_markdown.ex:461
-#, elixir-autogen, elixir-format
-msgid "Kiedy"
-msgstr ""
-
 #: lib/tcg_cheap_web/page_markdown.ex:660
 #, elixir-autogen, elixir-format
 msgid "Lista kart (%{cards})"
@@ -4312,11 +4301,6 @@ msgstr ""
 #: lib/tcg_cheap_web/page_markdown.ex:68
 #, elixir-autogen, elixir-format
 msgid "Najpierw produkty na stanie w sklepach, potem najnowsze; angielskie wydania. Pełna lista rozszerzeń: %{url}"
-msgstr ""
-
-#: lib/tcg_cheap_web/page_markdown.ex:572
-#, elixir-autogen, elixir-format
-msgid "Najtaniej"
 msgstr ""
 
 #: lib/tcg_cheap_web/page_markdown.ex:417
@@ -4364,11 +4348,6 @@ msgstr ""
 #: lib/tcg_cheap_web/page_markdown.ex:572
 #, elixir-autogen, elixir-format
 msgid "Produkt"
-msgstr ""
-
-#: lib/tcg_cheap_web/page_markdown.ex:458
-#, elixir-autogen, elixir-format
-msgid "Sieć"
 msgstr ""
 
 #: lib/tcg_cheap_web/page_markdown.ex:489
@@ -4441,11 +4420,6 @@ msgstr ""
 msgid "Zwykła cena z ostatnich %{days} dni: %{price}"
 msgstr ""
 
-#: lib/tcg_cheap_web/page_markdown.ex:526
-#, elixir-autogen, elixir-format
-msgid "brak"
-msgstr ""
-
 #: lib/tcg_cheap_web/page_markdown.ex:524
 #, elixir-autogen, elixir-format
 msgid "na stanie"
@@ -4464,4 +4438,35 @@ msgstr ""
 #: lib/tcg_cheap_web/page_markdown.ex:537
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket"
+msgstr ""
+
+#: lib/tcg_cheap_web/page_markdown.ex:460
+#: lib/tcg_cheap_web/page_markdown.ex:489
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Cena"
+msgstr ""
+
+#: lib/tcg_cheap_web/page_markdown.ex:461
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Kiedy"
+msgstr ""
+
+#: lib/tcg_cheap_web/page_markdown.ex:572
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Najtaniej"
+msgstr ""
+
+#: lib/tcg_cheap_web/page_markdown.ex:458
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "Sieć"
+msgstr ""
+
+#: lib/tcg_cheap_web/page_markdown.ex:526
+#, elixir-autogen, elixir-format
+msgctxt "markdown"
+msgid "brak"
 msgstr ""

@@ -455,10 +455,10 @@ defmodule TcgCheapWeb.PageMarkdown do
       ),
       table(
         [
-          gettext("Sieć"),
+          pgettext("markdown", "Sieć"),
           gettext("Produkt"),
-          gettext("Cena"),
-          gettext("Kiedy"),
+          pgettext("markdown", "Cena"),
+          pgettext("markdown", "Kiedy"),
           gettext("Źródło")
         ],
         Enum.map(deals, fn deal ->
@@ -486,7 +486,7 @@ defmodule TcgCheapWeb.PageMarkdown do
   # At the compared price, as the HTML rows: a shop abroad's with delivery.
   defp offers_table(offers, compared, today) do
     table(
-      [gettext("Sklep"), gettext("Cena"), gettext("Dostępność")],
+      [gettext("Sklep"), pgettext("markdown", "Cena"), gettext("Dostępność")],
       Enum.map(offers, fn offer ->
         [
           link(offer_shop(offer), offer.url),
@@ -523,7 +523,7 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   defp stock(%{in_stock: true}), do: gettext("na stanie")
   defp stock(%{preorder: true}), do: gettext("przedsprzedaż")
-  defp stock(_offer), do: gettext("brak")
+  defp stock(_offer), do: pgettext("markdown", "brak")
 
   defp cards_table([]), do: gettext("Brak kart na stanie.")
 
@@ -569,7 +569,12 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   defp products_table(summaries) do
     table(
-      [gettext("Produkt"), gettext("Rodzaj"), gettext("Najtaniej"), gettext("Ocena")],
+      [
+        gettext("Produkt"),
+        gettext("Rodzaj"),
+        pgettext("markdown", "Najtaniej"),
+        gettext("Ocena")
+      ],
       Enum.map(summaries, fn %{product: product, verdict: verdict} = summary ->
         [
           link(product.name, Paths.url(Paths.product(product.slug))),

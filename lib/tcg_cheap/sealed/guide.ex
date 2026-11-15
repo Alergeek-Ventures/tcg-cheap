@@ -966,14 +966,16 @@ defmodule TcgCheap.Sealed.Guide do
   """
   @spec discount_percent(Decimal.t(), Decimal.t()) :: pos_integer() | nil
   def discount_percent(price, reference) do
-    percent =
-      Decimal.new(1)
-      |> Decimal.sub(Decimal.div(price, reference))
-      |> Decimal.mult(100)
-      |> Decimal.round(0)
-      |> Decimal.to_integer()
+    if Decimal.lt?(price, reference) do
+      percent =
+        Decimal.new(1)
+        |> Decimal.sub(Decimal.div(price, reference))
+        |> Decimal.mult(100)
+        |> Decimal.round(0)
+        |> Decimal.to_integer()
 
-    if percent > 0, do: percent
+      if percent > 0, do: percent
+    end
   end
 
   @doc "Average packs for this printing, using only the set's own observed rates."
