@@ -55,16 +55,20 @@ defmodule TcgCheap.Sealed.CardGuide do
     with [_, id] <- Regex.run(~r/-(\d+)\z/, expansion_slug),
          id = String.to_integer(id),
          name when is_binary(name) <- Map.get(expansion_names([id]), id) do
+      # Every slug form starts with "<number>-", so only cards whose number
+      # prefixes the slug can match, and only they can collide with it. The
+      # slug is the prefix-tested argument, so the number needs no escaping.
       cards =
         from(c in TcgdexCard,
           join: s in TcgdexSet,
           on: c.tcgdex_set_id == s.id,
-          where: s.language == "en" and s.cardmarket_expansion_id == ^id
+          where: s.language == "en" and s.cardmarket_expansion_id == ^id,
+          where: fragment("starts_with(?, ? || '-')", ^card_slug, c.number)
         )
         |> Repo.all()
         |> Ash.load!([:tcgdex_set, :cardmarket_price])
 
-      collisions = collision_ids([id])
+      collisions = collision_ids([id], Enum.map(cards, & &1.number))
       exact = Enum.find(cards, &(slug(&1, collisions) == card_slug))
 
       identified =
