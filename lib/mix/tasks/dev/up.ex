@@ -157,16 +157,19 @@ defmodule Mix.Tasks.Dev.Up do
     Mix.shell().info("Started Phoenix tmux session #{session}")
   end
 
+  # A new worktree compiles everything before Phoenix answers, which on a
+  # busy shared host takes minutes, so Phoenix gets up to ten.
   defp wait_for_http(port),
     do:
       wait_until(
         fn ->
           match?(
             {:ok, %{status: status}} when status in 200..299,
-            Req.get("http://localhost:#{port}/")
+            Req.get("http://localhost:#{port}/", retry: false, receive_timeout: 5_000)
           )
         end,
-        "Phoenix"
+        "Phoenix",
+        600
       )
 
   defp verify_compose_service(project, env, service) do
