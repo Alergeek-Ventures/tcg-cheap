@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.BrowseLive.ChaseBanners do
   import TcgCheapWeb.OfferComponents
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.{CardImage, Kinds, Rarities}
+  alias TcgCheap.Sealed.{CardImage, Guide, Kinds, Rarities}
   alias TcgCheapWeb.{Format, Paths, RegionText}
 
   attr :booster, :map, required: true
@@ -153,15 +153,8 @@ defmodule TcgCheapWeb.BrowseLive.ChaseBanners do
     do: ngettext("sklep ma go na stanie", "sklepy mają go na stanie", count)
 
   # How far the cheapest offer is under the reference, when it is.
-  defp booster_discount(%{price: price}, {_source, reference, _shops}) do
-    if Decimal.lt?(price, reference),
-      do:
-        Decimal.new(1)
-        |> Decimal.sub(Decimal.div(price, reference))
-        |> Decimal.mult(100)
-        |> Decimal.round(0)
-        |> Decimal.to_integer()
-  end
+  defp booster_discount(%{price: price}, {_source, reference, _shops}),
+    do: Guide.discount_percent(price, reference)
 
   defp booster_discount(_cheapest, _reference), do: nil
 

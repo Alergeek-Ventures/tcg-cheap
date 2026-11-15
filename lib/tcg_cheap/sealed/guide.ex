@@ -918,12 +918,7 @@ defmodule TcgCheap.Sealed.Guide do
       shop: verdict.cheapest.shop,
       typical: verdict.typical,
       shops: length(verdict.shop_prices),
-      percent:
-        Decimal.new(1)
-        |> Decimal.sub(Decimal.div(verdict.cheapest.price, verdict.typical))
-        |> Decimal.mult(100)
-        |> Decimal.round(0)
-        |> Decimal.to_integer()
+      percent: discount_percent(verdict.cheapest.price, verdict.typical)
     }
   end
 
@@ -962,12 +957,23 @@ defmodule TcgCheap.Sealed.Guide do
     |> elem(0)
   end
 
-  defp discount(card) do
-    Decimal.new(1)
-    |> Decimal.sub(Decimal.div(card.normal_offer.price, card.cardmarket_delivered_pln))
-    |> Decimal.mult(100)
-    |> Decimal.round(0)
-    |> Decimal.to_integer()
+  defp discount(card),
+    do: discount_percent(card.normal_offer.price, card.cardmarket_delivered_pln)
+
+  @doc """
+  How many whole percent `price` is under `reference`; `nil` when it is not
+  under it or rounds to 0 %, so that no "-0%" is shown.
+  """
+  @spec discount_percent(Decimal.t(), Decimal.t()) :: pos_integer() | nil
+  def discount_percent(price, reference) do
+    percent =
+      Decimal.new(1)
+      |> Decimal.sub(Decimal.div(price, reference))
+      |> Decimal.mult(100)
+      |> Decimal.round(0)
+      |> Decimal.to_integer()
+
+    if percent > 0, do: percent
   end
 
   @doc "Average packs for this printing, using only the set's own observed rates."
