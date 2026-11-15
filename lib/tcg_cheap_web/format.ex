@@ -61,6 +61,11 @@ defmodule TcgCheapWeb.Format do
   def whole_price(value) when is_integer(value),
     do: number(value) <> @nbsp <> currency_symbol()
 
+  @doc ~S'A verdict limit: whole currency units, or decimals for a market with a fractional step.'
+  @spec limit_price(integer() | Decimal.t()) :: String.t()
+  def limit_price(value) when is_integer(value), do: whole_price(value)
+  def limit_price(%Decimal{} = value), do: price(value)
+
   @doc ~S'Whole units rounded up, for an upper bound: "do 4 zł" still holds for 3,40 zł.'
   @spec whole_price_ceiling(Decimal.t()) :: String.t()
   def whole_price_ceiling(%Decimal{} = value),

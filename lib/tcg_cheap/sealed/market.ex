@@ -179,6 +179,11 @@ defmodule TcgCheap.Sealed.Market do
   @spec rounded(Decimal.t(), t()) :: Decimal.t()
   def rounded(amount, %__MODULE__{decimals: decimals}), do: Decimal.round(amount, decimals)
 
+  @doc "The step of a market's verdict limits: 0.10 euro, else a whole currency unit."
+  @spec limit_step(t()) :: Decimal.t() | 1
+  def limit_step(%__MODULE__{currency: "EUR"}), do: Decimal.new("0.1")
+  def limit_step(%__MODULE__{}), do: 1
+
   # Each shop is looked up once, not once per offer: the singles banner
   # prices every card offer in stock.
   defp shop_terms(offers, market) do

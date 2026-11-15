@@ -1,4 +1,6 @@
 defmodule TcgCheap.Sealed.PriceGuide do
+  alias TcgCheap.Sealed.Market
+
   @moduledoc """
   Judges the cheapest price you can buy a product at right now, twice.
 
@@ -10,14 +12,14 @@ defmodule TcgCheap.Sealed.PriceGuide do
   A good price must also be at most 95% of each known reference: the usual
   price of the last 30 days (see `past/3`) and the Cardmarket trend with
   shipping to Poland, in PLN. The good limit is the lowest of these
-  (`good_limits` has each). Both limits are rounded down to whole złoty, so
-  a price seen in a physical shop can be judged against the shown limits
-  directly and no price above 95%/110% of the typical one is rated better
-  than it is.
+  (`good_limits` has each). Both limits are rounded down to the market's
+  step, so a price seen in a physical shop can be judged against the shown
+  limits directly and no price above 95%/110% of the typical one is rated
+  better than it is.
 
   Prices and references are in one market's currency (`TcgCheap.Sealed.Market`;
-  złoty and PLN above are Poland's): the limits are whole units of it, whole
-  forints in Hungary.
+  złoty and PLN above are Poland's): the limits are whole units where a unit
+  is small (złoty, forints, kronor), and 0.10 euro in a euro market.
 
   With fewer shops the price is only compared with the Cardmarket trend
   converted to PLN with the latest NBP rate (`:cardmarket`, no limits): a
@@ -55,16 +57,16 @@ defmodule TcgCheap.Sealed.PriceGuide do
           shop_prices: [%{shop: String.t(), price: Decimal.t()}],
           typical: Decimal.t() | nil,
           typical_source: :shops | :cardmarket | nil,
-          good_max: integer() | nil,
-          good_limits: %{optional(:shops | :past | :cardmarket) => integer()},
-          normal_max: integer() | nil
+          good_max: integer() | Decimal.t() | nil,
+          good_limits: %{optional(:shops | :past | :cardmarket) => integer() | Decimal.t()},
+          normal_max: integer() | Decimal.t() | nil
         }
   @type past :: %{
           status: past_status(),
           typical: Decimal.t() | nil,
           days_with_stock: non_neg_integer(),
-          good_max: integer() | nil,
-          normal_max: integer() | nil,
+          good_max: integer() | Decimal.t() | nil,
+          normal_max: integer() | Decimal.t() | nil,
           last_known: %{price: Decimal.t(), date: Date.t()} | nil
         }
 
@@ -79,8 +81,14 @@ defmodule TcgCheap.Sealed.PriceGuide do
   (`usual/2`) and `cardmarket:` the Cardmarket trend with shipping in PLN,
   each nil when unknown.
   """
-  @spec verdict([offer()], Decimal.t() | nil, [{:past | :cardmarket, Decimal.t() | nil}]) :: t()
-  def verdict(in_stock_offers, cardmarket_price, references) do
+  @spec verdict(
+          [offer()],
+          Decimal.t() | nil,
+          [{:past | :cardmarket, Decimal.t() | nil}],
+          Market.t()
+        ) ::
+          t()
+  def verdict(in_stock_offers, cardmarket_price, references, market \\ Market.poland()) do
     shop_prices =
       in_stock_offers
       |> Enum.group_by(& &1.shop, & &1.price)
@@ -98,8 +106,8 @@ defmodule TcgCheap.Sealed.PriceGuide do
 
     limits =
       if source == :shops,
-        do: typical |> limits() |> with_good_limits(references),
-        else: Map.put(limits(nil), :good_limits, %{})
+        do: typical |> limits(market) |> with_good_limits(references, market),
+        else: Map.put(limits(nil, market), :good_limits, %{})
 
     status =
       cond do
@@ -122,11 +130,11 @@ defmodule TcgCheap.Sealed.PriceGuide do
   How the cheapest current offer (nil when out of stock) compares with the
   product's daily history up to `today`.
   """
-  @spec past([day()], offer() | nil, Date.t()) :: past()
-  def past(history, cheapest, %Date{} = today) do
+  @spec past([day()], offer() | nil, Date.t(), Market.t()) :: past()
+  def past(history, cheapest, %Date{} = today, market \\ Market.poland()) do
     prices = window_prices(history, today)
     typical = usual_of(prices)
-    limits = limits(typical)
+    limits = limits(typical, market)
 
     status =
       cond do
@@ -161,11 +169,11 @@ defmodule TcgCheap.Sealed.PriceGuide do
   defp usual_of(prices), do: if(length(prices) >= @min_days_with_stock, do: median(prices))
 
   # A good price is good against every known reference.
-  defp with_good_limits(limits, references) do
+  defp with_good_limits(limits, references, market) do
     good_limits =
       for {source, %Decimal{} = price} <- references,
           into: %{shops: limits.good_max},
-          do: {source, good_max(price)}
+          do: {source, good_max(price, market)}
 
     Map.merge(limits, %{
       good_max: good_limits |> Map.values() |> Enum.min(),
@@ -173,15 +181,25 @@ defmodule TcgCheap.Sealed.PriceGuide do
     })
   end
 
-  defp limits(nil), do: %{good_max: nil, normal_max: nil}
+  defp limits(nil, _market), do: %{good_max: nil, normal_max: nil}
 
-  defp limits(typical),
+  defp limits(typical, market),
     do: %{
-      good_max: good_max(typical),
-      normal_max: whole_zloty(Decimal.mult(typical, @normal_factor))
+      good_max: good_max(typical, market),
+      normal_max: floor_limit(Decimal.mult(typical, @normal_factor), market)
     }
 
-  defp good_max(typical), do: whole_zloty(Decimal.mult(typical, @good_factor))
+  defp good_max(typical, market), do: floor_limit(Decimal.mult(typical, @good_factor), market)
+
+  defp floor_limit(value, market) do
+    case Market.limit_step(market) do
+      1 ->
+        whole_zloty(value)
+
+      %Decimal{} = step ->
+        value |> Decimal.div(step) |> Decimal.round(0, :floor) |> Decimal.mult(step)
+    end
+  end
 
   defp rate(price, %{good_max: good_max, normal_max: normal_max}, {good, normal, expensive}) do
     cond do

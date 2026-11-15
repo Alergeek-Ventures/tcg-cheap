@@ -337,10 +337,13 @@ defmodule TcgCheapWeb.PageMarkdown do
         gettext("Brak ceny Cardmarket.")
 
       value ->
-        gettext("Trend Cardmarket: %{price} (%{eur}), bez dostawy.",
-          price: Format.price(value),
-          eur: Format.eur(trend)
-        )
+        if Region.current().market.currency == "EUR",
+          do: gettext("Trend Cardmarket: %{price}, bez dostawy.", price: Format.price(value)),
+          else:
+            gettext("Trend Cardmarket: %{price} (%{eur}), bez dostawy.",
+              price: Format.price(value),
+              eur: Format.eur(trend)
+            )
     end
   end
 
@@ -395,8 +398,8 @@ defmodule TcgCheapWeb.PageMarkdown do
         ),
       verdict.good_max &&
         gettext("Dobra cena do %{good}, normalna do %{normal}",
-          good: Format.whole_price(verdict.good_max),
-          normal: Format.whole_price(verdict.normal_max)
+          good: Format.limit_price(verdict.good_max),
+          normal: Format.limit_price(verdict.normal_max)
         ),
       past.typical &&
         gettext("Zwykła cena z ostatnich %{days} dni: %{price}",
