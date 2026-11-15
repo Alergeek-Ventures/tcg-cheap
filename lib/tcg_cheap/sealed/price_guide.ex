@@ -176,7 +176,7 @@ defmodule TcgCheap.Sealed.PriceGuide do
           do: {source, good_max(price, market)}
 
     Map.merge(limits, %{
-      good_max: good_limits |> Map.values() |> Enum.min(),
+      good_max: good_limits |> Map.values() |> Enum.min(Decimal),
       good_limits: good_limits
     })
   end

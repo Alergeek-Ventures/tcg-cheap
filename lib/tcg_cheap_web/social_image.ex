@@ -880,7 +880,7 @@ defmodule TcgCheapWeb.SocialImage do
     do:
       gettext("Typowa cena dziś w %{shops}: %{price}",
         shops: Format.in_shops(length(verdict.shop_prices)),
-        price: Format.whole_price(typical)
+        price: Format.limit_price(typical)
       )
 
   defp typical_note(_verdict), do: nil

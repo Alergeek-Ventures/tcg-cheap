@@ -10,7 +10,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
   import TcgCheapWeb.VerdictComponents
 
   alias TcgCheap.Sealed.{Guide, Market, PriceGuide, Shops}
-  alias TcgCheapWeb.{Format, RegionText, VisitorLocation}
+  alias TcgCheapWeb.{Format, Region, RegionText, VisitorLocation}
 
   # Pickup next to the verdict once the visitor has set a location in the
   # header: the cheapest in-stock pickup within the radius, or else that
@@ -82,7 +82,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
         <strong>{VisitorLocation.km(@nearby.km)}</strong>
         · <strong>{Format.price(@nearby.offer.price)}</strong>
         <%= if Decimal.gt?(@nearby.extra, 0) do %>
-          (+{extra_zloty(@nearby.extra)})
+          (+{extra_price(@nearby.extra)})
         <% else %>
           {gettext("– najtaniej")}
         <% end %>
@@ -114,9 +114,9 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
   defp delivery_note(:free), do: gettext("dostawa gratis")
   defp delivery_note(:included), do: gettext("cena z wysyłką")
 
-  # Whole złoty, at least 1: "+110 zł".
-  defp extra_zloty(extra),
-    do: extra |> Decimal.round(0) |> Decimal.to_integer() |> max(1) |> Format.whole_price()
+  # At least the market's limit step: "+110 zł", "+0,30 €".
+  defp extra_price(extra),
+    do: extra |> Decimal.max(Market.limit_step(Region.current().market)) |> Format.limit_price()
 
   attr :page, :map, required: true
   attr :nearby, :any, default: nil
@@ -179,7 +179,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
         <.verdict_icon status={past_tone(@past.status)} />
         <span>
           <strong>{past_label(@past.status)}</strong>
-          {gettext("(zwykle %{price})", price: Format.whole_price(@past.typical))}
+          {gettext("(zwykle %{price})", price: Format.limit_price(@past.typical))}
         </span>
       </p>
       <p :if={@verdict.status == :cardmarket} id="verdict-pending" class="guide-note">
@@ -326,7 +326,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
        do:
          gettext("Typowa cena dziś w %{shops}: %{price}",
            shops: Format.in_shops(length(verdict.shop_prices)),
-           price: Format.whole_price(verdict.typical)
+           price: Format.limit_price(verdict.typical)
          )
 
   # Shown as the Cardmarket price with its logo instead.
@@ -373,7 +373,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
           gettext(
             "Dobra cena: do %{price}, bo na Cardmarket z wysyłką wychodzi ok. %{cardmarket}.",
             price: Format.limit_price(good_max),
-            cardmarket: Format.whole_price(cardmarket)
+            cardmarket: Format.limit_price(cardmarket)
           )
       end
     end
@@ -396,7 +396,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
   defp usual(_verdict, %{typical: %Decimal{} = typical}),
     do:
       gettext("Zwykle najtaniej %{price} w ostatnich %{days} dniach.",
-        price: Format.whole_price(typical),
+        price: Format.limit_price(typical),
         days: PriceGuide.window_days()
       )
 
@@ -409,6 +409,6 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
   defp cardmarket_typical(typical),
     do:
       gettext("Na Cardmarket %{price} (bez wysyłki).",
-        price: Format.whole_price(typical)
+        price: Format.limit_price(typical)
       )
 end

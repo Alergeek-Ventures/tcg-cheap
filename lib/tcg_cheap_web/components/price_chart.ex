@@ -103,7 +103,7 @@ defmodule TcgCheapWeb.PriceChart do
                 style={"--at: #{@chart.typical_at}%"}
                 aria-hidden="true"
               >
-                {gettext("zwykle %{price}", price: Format.whole_price(@typical))}
+                {gettext("zwykle %{price}", price: Format.limit_price(@typical))}
               </span>
             </div>
             <div class="price-chart-axis" aria-hidden="true">
@@ -123,7 +123,7 @@ defmodule TcgCheapWeb.PriceChart do
               )} – {Format.short_date(line.last_date)}).
             </span>
             <span :if={@typical}>{gettext("Linia przerywana: zwykle najtaniej %{price}.",
-              price: Format.whole_price(@typical)
+              price: Format.limit_price(@typical)
             )}</span>
           </figcaption>
       <% end %>
