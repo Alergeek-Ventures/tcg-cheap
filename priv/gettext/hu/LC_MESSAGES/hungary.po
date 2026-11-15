@@ -46,7 +46,7 @@ msgstr "Pokémon TCG árak a Magyarországra szállító boltokból, naponta ell
 msgid "Ceny kart Pokémon TCG w forintach"
 msgstr "Pokémon TCG kártyaárak forintban"
 
-#: lib/tcg_cheap/countries/hungary.ex:142
+#: lib/tcg_cheap/countries/hungary.ex:152
 #, elixir-autogen, elixir-format
 msgid "Ceny węgierskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką na Węgry. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "A magyar boltok árait szállítási díj nélkül, a külföldiekét magyarországi szállítással mutatjuk. A Cardmarket-árhoz egy Németországból küldött csomag szállítási díját adjuk hozzá: %{shipping}."
@@ -100,3 +100,18 @@ msgstr "Németországból, szállítással együtt"
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Węgier"
 msgstr "Magyarországról, szállítással együtt"
+
+#: lib/tcg_cheap/countries/hungary.ex:132
+#, elixir-autogen, elixir-format
+msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w forintach. Ceny węgierskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę na Węgry."
+msgstr "Az árak a boltok nyilvános termékfeedjeiből származnak, naponta egyszer töltjük le őket, és forintban vannak. A magyar boltok árai nem tartalmazzák a szállítást, a külföldi boltok árai a Magyarországra szállítást is."
+
+#: lib/tcg_cheap/countries/hungary.ex:137
+#, elixir-autogen, elixir-format
+msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w forintach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
+msgstr "Jó ár: legfeljebb a jellemző ár 95%-a, normál ár: legfeljebb 110%-a, afölött drága. A jó árnak emellett legfeljebb a termék elmúlt %{window} napban szokásos árának 95%-a, és – ha ismert – a Cardmarket-trend forintban (NBP-árfolyamon), Németországból szállítással számolt értékének 95%-a lehet."
+
+#: lib/tcg_cheap/countries/hungary.ex:143
+#, elixir-autogen, elixir-format
+msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w forintach."
+msgstr "Ha kevesebb bolt árulja, nincs értékelés; kontextusként a Cardmarket-trendet mutatjuk forintban."

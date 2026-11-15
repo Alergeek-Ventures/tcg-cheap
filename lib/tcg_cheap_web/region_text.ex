@@ -76,8 +76,8 @@ defmodule TcgCheapWeb.RegionText do
 
   @doc """
   The region's sentences in the Markdown pages' method (`TcgCheapWeb.PageMarkdown`,
-  in Polish like the rest of it): where prices come from, what bounds a good
-  price over the history `window` (days) and what stands in with fewer shops.
+  in the region's language like the rest of it): where prices come from, what
+  bounds a good price over the history `window` (days) and what stands in with fewer shops.
   """
   @callback markdown_method(window :: pos_integer()) :: %{
               prices: String.t(),
