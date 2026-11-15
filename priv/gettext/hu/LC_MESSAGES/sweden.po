@@ -57,8 +57,6 @@ msgid "Ceny kart Pokémon TCG w koronach"
 msgstr "Pokémon TCG kártyaárak svéd koronában"
 
 #: lib/tcg_cheap/countries/sweden.ex:158
-
-#: lib/tcg_cheap/countries/sweden.ex:148
 #, elixir-autogen, elixir-format
 msgid "Ceny szwedzkich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Szwecji. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "A svéd boltok árait szállítási díj nélkül, a külföldiekét svédországi szállítással mutatjuk. A Cardmarket-árhoz egy Németországból küldött csomag szállítási díját adjuk hozzá: %{shipping}."

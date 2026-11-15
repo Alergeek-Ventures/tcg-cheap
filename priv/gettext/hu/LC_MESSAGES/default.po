@@ -4,28 +4,28 @@ msgstr ""
 "Language: hu\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
-#: lib/tcg_cheap_web/format.ex:201
+#: lib/tcg_cheap_web/format.ex:205
 #, elixir-autogen, elixir-format
 msgid "%{number} dnia"
 msgid_plural "%{number} dni"
 msgstr[0] "%{number} napról"
 msgstr[1] "%{number} napról"
 
-#: lib/tcg_cheap_web/format.ex:176
+#: lib/tcg_cheap_web/format.ex:180
 #, elixir-autogen, elixir-format
 msgid "%{count} dzień temu"
 msgid_plural "%{count} dni temu"
 msgstr[0] "%{count} napja"
 msgstr[1] "%{count} napja"
 
-#: lib/tcg_cheap_web/format.ex:196
+#: lib/tcg_cheap_web/format.ex:200
 #, elixir-autogen, elixir-format
 msgid "%{number} oferta"
 msgid_plural "%{number} oferty"
 msgstr[0] "%{number} ajánlat"
 msgstr[1] "%{number} ajánlat"
 
-#: lib/tcg_cheap_web/format.ex:191
+#: lib/tcg_cheap_web/format.ex:195
 #, elixir-autogen, elixir-format
 msgid "%{number} produkt"
 msgid_plural "%{number} produkty"
@@ -271,8 +271,8 @@ msgid "Puszka"
 msgstr "Tin"
 
 #: lib/tcg_cheap_web/live/browse_live/filters.ex:119
-#: lib/tcg_cheap_web/page_markdown.ex:436
-#: lib/tcg_cheap_web/page_markdown.ex:572
+#: lib/tcg_cheap_web/page_markdown.ex:439
+#: lib/tcg_cheap_web/page_markdown.ex:577
 #, elixir-autogen, elixir-format
 msgid "Rodzaj"
 msgstr "Termékfajta"
@@ -439,8 +439,8 @@ msgstr "ingyenes szállítás"
 msgid "dostawa od %{amount}"
 msgstr "szállítás %{amount}-tól"
 
-#: lib/tcg_cheap_web/format.ex:174
-#: lib/tcg_cheap_web/format.ex:182
+#: lib/tcg_cheap_web/format.ex:178
+#: lib/tcg_cheap_web/format.ex:186
 #, elixir-autogen, elixir-format
 msgid "dziś"
 msgstr "ma"
@@ -486,7 +486,7 @@ msgstr "boltok helye: ©"
 msgid "sprawdzono %{when}"
 msgstr "ellenőrizve: %{when}"
 
-#: lib/tcg_cheap_web/format.ex:175
+#: lib/tcg_cheap_web/format.ex:179
 #, elixir-autogen, elixir-format
 msgid "wczoraj"
 msgstr "tegnap"
@@ -734,7 +734,7 @@ msgstr "Még nem tudjuk, mi van ebben a termékben."
 msgid "brak zdjęcia"
 msgstr "nincs kép"
 
-#: lib/tcg_cheap_web/format.ex:211
+#: lib/tcg_cheap_web/format.ex:215
 #, elixir-autogen, elixir-format
 msgid "%{number} sklepie"
 msgid_plural "%{number} sklepach"
@@ -831,7 +831,7 @@ msgstr "Nincs raktáron: %{offers}"
 
 #: lib/tcg_cheap_web/components/offer_components.ex:187
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:97
-#: lib/tcg_cheap_web/page_markdown.ex:584
+#: lib/tcg_cheap_web/page_markdown.ex:592
 #, elixir-autogen, elixir-format
 msgid "brak na stanie"
 msgstr "nincs raktáron"
@@ -875,24 +875,24 @@ msgid_plural "%{number} otwarte paczki"
 msgstr[0] "%{number} kibontott booster"
 msgstr[1] "%{number} kibontott booster"
 
-#: lib/tcg_cheap_web/format.ex:236
+#: lib/tcg_cheap_web/format.ex:240
 #, elixir-autogen, elixir-format
 msgid "%{count} w każdej paczce"
 msgstr "minden boosterben %{count}"
 
-#: lib/tcg_cheap_web/format.ex:239
+#: lib/tcg_cheap_web/format.ex:243
 #, elixir-autogen, elixir-format
 msgid "%{hits} z %{packs} paczek"
 msgstr "%{packs} boosterből %{hits}"
 
-#: lib/tcg_cheap_web/format.ex:250
+#: lib/tcg_cheap_web/format.ex:254
 #, elixir-autogen, elixir-format
 msgid "1 na %{number} paczkę"
 msgid_plural "1 na %{number} paczki"
 msgstr[0] "%{number} boosterből 1"
 msgstr[1] "%{number} boosterből 1"
 
-#: lib/tcg_cheap_web/format.ex:252
+#: lib/tcg_cheap_web/format.ex:256
 #, elixir-autogen, elixir-format
 msgid "1 na %{packs} paczki"
 msgstr "%{packs} boosterből 1"
@@ -948,7 +948,7 @@ msgstr "Elutasítom"
 #: lib/tcg_cheap_web/components/contents_components.ex:471
 #: lib/tcg_cheap_web/components/set_components.ex:50
 #: lib/tcg_cheap_web/page_markdown.ex:325
-#: lib/tcg_cheap_web/page_markdown.ex:637
+#: lib/tcg_cheap_web/page_markdown.ex:645
 #, elixir-autogen, elixir-format
 msgid "Rzadkość"
 msgstr "Ritkaság"
@@ -969,7 +969,7 @@ msgid "Szansa na drop"
 msgstr "Kihúzási esély"
 
 #: lib/tcg_cheap_web/components/set_components.ex:55
-#: lib/tcg_cheap_web/page_markdown.ex:637
+#: lib/tcg_cheap_web/page_markdown.ex:645
 #, elixir-autogen, elixir-format
 msgid "Szansa w paczce"
 msgstr "Esély boosterenként"
@@ -1017,7 +1017,7 @@ msgstr "adatok: %{source}"
 
 #: lib/tcg_cheap_web/components/contents_components.ex:486
 #: lib/tcg_cheap_web/components/set_components.ex:70
-#: lib/tcg_cheap_web/page_markdown.ex:628
+#: lib/tcg_cheap_web/page_markdown.ex:636
 #, elixir-autogen, elixir-format
 msgid "konkretna karta: %{name}"
 msgstr "egy konkrét kártya: %{name}"
@@ -1057,18 +1057,18 @@ msgid "Szansa w paczce %{count} kart"
 msgstr "Esély egy %{count} lapos boosterben"
 
 #: lib/tcg_cheap_web/components/set_components.ex:122
-#: lib/tcg_cheap_web/page_markdown.ex:651
+#: lib/tcg_cheap_web/page_markdown.ex:659
 #, elixir-autogen, elixir-format
 msgid "Te szanse dotyczą zwykłej paczki %{count} kart. W tej paczce jest mniej kart, więc szanse są niższe – o ile, nie wiadomo."
 msgstr "Ezek az esélyek egy szokásos, %{count} lapos boosterre vonatkoznak. Ebben kevesebb kártya van, ezért kisebbek az esélyek – hogy mennyivel, nem tudni."
 
 #: lib/tcg_cheap_web/components/set_components.ex:127
-#: lib/tcg_cheap_web/page_markdown.ex:645
+#: lib/tcg_cheap_web/page_markdown.ex:653
 #, elixir-autogen, elixir-format
 msgid "Te szanse dotyczą zwykłej paczki. W tej paczce jest mniej kart, więc szanse są niższe – o ile, nie wiadomo."
 msgstr "Ezek az esélyek egy szokásos boosterre vonatkoznak. Ebben kevesebb kártya van, ezért kisebbek az esélyek – hogy mennyivel, nem tudni."
 
-#: lib/tcg_cheap_web/format.ex:206
+#: lib/tcg_cheap_web/format.ex:210
 #, elixir-autogen, elixir-format
 msgid "%{number} karta"
 msgid_plural "%{number} karty"
@@ -1141,7 +1141,7 @@ msgid "Zwykle najtaniej %{price} w ostatnich %{days} dniach."
 msgstr "Az elmúlt %{days} napban a szokásos legalacsonyabb ár %{price} volt."
 
 #: lib/tcg_cheap_web/components/set_components.ex:106
-#: lib/tcg_cheap_web/page_markdown.ex:614
+#: lib/tcg_cheap_web/page_markdown.ex:622
 #, elixir-autogen, elixir-format
 msgid "Tego setu nikt jeszcze nie policzył: to szanse z wcześniejszego setu (%{set}), niezweryfikowane dla tego."
 msgstr "Ennél a szettnél még senki sem számolta ki a kihúzási esélyeket. Ezek egy korábbi szett adatai (%{set}), ennél a szettnél még nem ellenőrizték őket."
@@ -1173,7 +1173,7 @@ msgstr "legolcsóbb előrendelés:"
 
 #: lib/tcg_cheap_web/components/listing_components.ex:281
 #: lib/tcg_cheap_web/components/offer_components.ex:150
-#: lib/tcg_cheap_web/page_markdown.ex:525
+#: lib/tcg_cheap_web/page_markdown.ex:528
 #, elixir-autogen, elixir-format
 msgid "przedsprzedaż"
 msgstr "előrendelés"
@@ -1193,7 +1193,7 @@ msgstr "Előrendelés: megjelenés %{when} (%{date}), ekkor küldik ki a boltok 
 msgid "To przedsprzedaż: sklep wyśle produkt po premierze."
 msgstr "Ez előrendelés: a bolt a megjelenés után küldi a terméket."
 
-#: lib/tcg_cheap_web/format.ex:183
+#: lib/tcg_cheap_web/format.ex:187
 #, elixir-autogen, elixir-format
 msgid "jutro"
 msgstr "holnap"
@@ -1203,7 +1203,7 @@ msgstr "holnap"
 msgid "przedsprzedaż · %{when}"
 msgstr "előrendelés · %{when}"
 
-#: lib/tcg_cheap_web/format.ex:184
+#: lib/tcg_cheap_web/format.ex:188
 #, elixir-autogen, elixir-format
 msgid "za %{count} dzień"
 msgid_plural "za %{count} dni"
@@ -1608,17 +1608,17 @@ msgstr "Cardmarketen, szállítással"
 msgid "nr %{number} · %{rarity}"
 msgstr "sorszám: %{number} · %{rarity}"
 
-#: lib/tcg_cheap_web/format.ex:126
+#: lib/tcg_cheap_web/format.ex:130
 #, elixir-autogen, elixir-format
 msgid "ok. %{amount}"
 msgstr "kb. %{amount}"
 
-#: lib/tcg_cheap_web/format.ex:109
+#: lib/tcg_cheap_web/format.ex:113
 #, elixir-autogen, elixir-format
 msgid "ok. %{amount} mln zł"
 msgstr "kb. %{amount} millió zloty"
 
-#: lib/tcg_cheap_web/format.ex:114
+#: lib/tcg_cheap_web/format.ex:118
 #, elixir-autogen, elixir-format
 msgid "ok. %{amount} tys. zł"
 msgstr "kb. %{amount} ezer zloty"
@@ -1649,7 +1649,7 @@ msgstr "bontásból átlagosan: "
 msgid "wylosujesz: "
 msgstr "bontásból: "
 
-#: lib/tcg_cheap_web/format.ex:131
+#: lib/tcg_cheap_web/format.ex:135
 #, elixir-autogen, elixir-format
 msgid "%{packs} paczka"
 msgid_plural "%{packs} paczki"
@@ -1893,7 +1893,7 @@ msgstr "Most egyik lengyel boltban sincs raktáron angol booster."
 msgid "W sieciówkach"
 msgstr "Áruházláncokban"
 
-#: lib/tcg_cheap_web/format.ex:156
+#: lib/tcg_cheap_web/format.ex:160
 #, elixir-autogen, elixir-format
 msgid "od %{day}"
 msgstr "%{day} napjától"
@@ -1939,7 +1939,7 @@ msgstr "%{price}-tól"
 
 #: lib/tcg_cheap_web/components/retail_components.ex:83
 #: lib/tcg_cheap_web/live/expensive_cards_live.ex:273
-#: lib/tcg_cheap_web/page_markdown.ex:476
+#: lib/tcg_cheap_web/page_markdown.ex:479
 #, elixir-autogen, elixir-format
 msgid "źródło"
 msgstr "forrás"
@@ -2676,8 +2676,8 @@ msgstr "Minden idők rekordjai"
 
 #: lib/tcg_cheap_web/live/expensive_cards_live.ex:875
 #: lib/tcg_cheap_web/page_markdown.ex:319
-#: lib/tcg_cheap_web/page_markdown.ex:439
-#: lib/tcg_cheap_web/page_markdown.ex:537
+#: lib/tcg_cheap_web/page_markdown.ex:442
+#: lib/tcg_cheap_web/page_markdown.ex:540
 #, elixir-autogen, elixir-format
 msgid "Rozszerzenie"
 msgstr "Szett"
@@ -3875,7 +3875,7 @@ msgid "boostery kupione osobno"
 msgstr "külön vett boosterek"
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:734
-#: lib/tcg_cheap_web/page_markdown.ex:544
+#: lib/tcg_cheap_web/page_markdown.ex:547
 #, elixir-autogen, elixir-format
 msgid "brak ceny"
 msgstr "nincs ár"
@@ -4050,21 +4050,21 @@ msgstr "drágábban jön ki. Akkor vegyél egyesével."
 msgid "wychodzi taniej niż sześć boosterów osobno."
 msgstr "olcsóbban jön ki, mint hat booster külön."
 
-#: lib/tcg_cheap_web/format.ex:216
+#: lib/tcg_cheap_web/format.ex:220
 #, elixir-autogen, elixir-format
 msgid "%{number} booster"
 msgid_plural "%{number} boostery"
 msgstr[0] "%{number} booster"
 msgstr[1] "%{number} booster"
 
-#: lib/tcg_cheap_web/format.ex:226
+#: lib/tcg_cheap_web/format.ex:230
 #, elixir-autogen, elixir-format
 msgid "%{number} kolekcję"
 msgid_plural "%{number} kolekcje"
 msgstr[0] "%{number} gyűjtői doboz"
 msgstr[1] "%{number} gyűjtői doboz"
 
-#: lib/tcg_cheap_web/format.ex:221
+#: lib/tcg_cheap_web/format.ex:225
 #, elixir-autogen, elixir-format
 msgid "%{number} puszkę"
 msgid_plural "%{number} puszki"
@@ -4167,12 +4167,12 @@ msgstr "Cardmarket-trend, szállítási díj nélkül."
 msgid "Zostań tutaj"
 msgstr "Itt maradok"
 
-#: lib/tcg_cheap_web/format.ex:90
+#: lib/tcg_cheap_web/format.ex:94
 #, elixir-autogen, elixir-format
 msgid "ok. %{amount} mln %{currency}"
 msgstr "kb. %{amount} millió %{currency}"
 
-#: lib/tcg_cheap_web/format.ex:96
+#: lib/tcg_cheap_web/format.ex:100
 #, elixir-autogen, elixir-format
 msgid "ok. %{amount} tys. %{currency}"
 msgstr "kb. %{amount} ezer %{currency}"
@@ -4187,27 +4187,27 @@ msgstr "Cardmarket-trend, szállítási díj nélkül"
 msgid "Niezależna porównywarka cen, nie sklep."
 msgstr "Független árösszehasonlító, nem bolt."
 
-#: lib/tcg_cheap_web/page_markdown.ex:597
+#: lib/tcg_cheap_web/page_markdown.ex:605
 #, elixir-autogen, elixir-format
 msgid "%{offer} (przedsprzedaż)"
 msgstr "%{offer}, előrendelés"
 
-#: lib/tcg_cheap_web/page_markdown.ex:591
+#: lib/tcg_cheap_web/page_markdown.ex:599
 #, elixir-autogen, elixir-format
 msgid "%{offer} (przedsprzedaż, premiera %{date})"
 msgstr "%{offer}, előrendelés, megjelenés: %{date}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:605
+#: lib/tcg_cheap_web/page_markdown.ex:613
 #, elixir-autogen, elixir-format
 msgid "%{price} w %{shop}"
 msgstr "%{price} (%{shop})"
 
-#: lib/tcg_cheap_web/page_markdown.ex:517
+#: lib/tcg_cheap_web/page_markdown.ex:520
 #, elixir-autogen, elixir-format
 msgid "%{stock}, sprawdzono %{when}"
 msgstr "%{stock}, ellenőrizve: %{when}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:681
+#: lib/tcg_cheap_web/page_markdown.ex:689
 #, elixir-autogen, elixir-format
 msgid "%{title}: %{price} (trend Cardmarket, bez dostawy)"
 msgstr "%{title}: %{price} (Cardmarket-trend, szállítási díj nélkül)"
@@ -4217,7 +4217,7 @@ msgstr "%{title}: %{price} (Cardmarket-trend, szállítási díj nélkül)"
 msgid "Angielskie karty z trendem Cardmarket, bez dostawy."
 msgstr "Angol kártyák a Cardmarket-trenddel, szállítási díj nélkül."
 
-#: lib/tcg_cheap_web/page_markdown.ex:662
+#: lib/tcg_cheap_web/page_markdown.ex:670
 #, elixir-autogen, elixir-format
 msgid "Bez rzadkości"
 msgstr "Ritkaság nélkül"
@@ -4227,27 +4227,27 @@ msgstr "Ritkaság nélkül"
 msgid "Brak ceny Cardmarket."
 msgstr "Nincs Cardmarket-ár."
 
-#: lib/tcg_cheap_web/page_markdown.ex:528
+#: lib/tcg_cheap_web/page_markdown.ex:531
 #, elixir-autogen, elixir-format
 msgid "Brak kart na stanie."
 msgstr "Nincs raktáron lévő kártya."
 
-#: lib/tcg_cheap_web/page_markdown.ex:568
+#: lib/tcg_cheap_web/page_markdown.ex:571
 #, elixir-autogen, elixir-format
 msgid "Brak produktów."
 msgstr "Nincs termék."
 
-#: lib/tcg_cheap_web/page_markdown.ex:453
+#: lib/tcg_cheap_web/page_markdown.ex:456
 #, elixir-autogen, elixir-format
 msgid "Ceny z gazetek sieci i zgłoszeń z konkretnych sklepów. Dostępność bywa różna, więc nie wliczamy ich do oceny."
 msgstr "Az árak a láncok akciós újságaiból és egyes boltok bejelentéseiből származnak. A készlet változó, ezért nem számítjuk bele őket az értékelésbe."
 
-#: lib/tcg_cheap_web/page_markdown.ex:397
+#: lib/tcg_cheap_web/page_markdown.ex:400
 #, elixir-autogen, elixir-format
 msgid "Dobra cena do %{good}, normalna do %{normal}"
 msgstr "Jó ár: %{good}-ig, átlagos ár: %{normal}-ig"
 
-#: lib/tcg_cheap_web/page_markdown.ex:489
+#: lib/tcg_cheap_web/page_markdown.ex:492
 #, elixir-autogen, elixir-format
 msgid "Dostępność"
 msgstr "Elérhetőség"
@@ -4258,12 +4258,12 @@ msgid "Jak oceniamy cenę"
 msgstr "Hogyan értékeljük az árat"
 
 #: lib/tcg_cheap_web/page_markdown.ex:316
-#: lib/tcg_cheap_web/page_markdown.ex:537
+#: lib/tcg_cheap_web/page_markdown.ex:540
 #, elixir-autogen, elixir-format
 msgid "Karta"
 msgstr "Kártya"
 
-#: lib/tcg_cheap_web/page_markdown.ex:660
+#: lib/tcg_cheap_web/page_markdown.ex:668
 #, elixir-autogen, elixir-format
 msgid "Lista kart (%{cards})"
 msgstr "Kártyalista (%{cards})"
@@ -4273,17 +4273,17 @@ msgstr "Kártyalista (%{cards})"
 msgid "Najpierw produkty na stanie w sklepach, potem najnowsze; angielskie wydania. Pełna lista rozszerzeń: %{url}"
 msgstr "Először a boltokban raktáron lévő termékek, utána a legújabbak; angol kiadások. A szettek teljes listája: %{url}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:417
+#: lib/tcg_cheap_web/page_markdown.ex:420
 #, elixir-autogen, elixir-format
 msgid "Najtańsza oferta (przedsprzedaż): %{price} w %{shop}"
 msgstr "Legolcsóbb most (előrendelés): %{price} (%{shop})"
 
-#: lib/tcg_cheap_web/page_markdown.ex:418
+#: lib/tcg_cheap_web/page_markdown.ex:421
 #, elixir-autogen, elixir-format
 msgid "Najtańsza oferta: %{price} w %{shop}"
 msgstr "Legolcsóbb most: %{price} (%{shop})"
 
-#: lib/tcg_cheap_web/page_markdown.ex:351
+#: lib/tcg_cheap_web/page_markdown.ex:354
 #, elixir-autogen, elixir-format
 msgid "Nie znaleziono"
 msgstr "Nem található"
@@ -4293,7 +4293,7 @@ msgstr "Nem található"
 msgid "Numer: %{number}"
 msgstr "Sorszám: %{number}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:572
+#: lib/tcg_cheap_web/page_markdown.ex:579
 #, elixir-autogen, elixir-format
 msgid "Ocena"
 msgstr "Értékelés"
@@ -4303,7 +4303,7 @@ msgstr "Értékelés"
 msgid "Ocena nigdy nie opiera się na cenie sugerowanej producenta. Brakujące dane pokazujemy jako brakujące."
 msgstr "Az értékelés soha nem a gyártó ajánlott árán alapul. A hiányzó adatot hiányzóként mutatjuk."
 
-#: lib/tcg_cheap_web/page_markdown.ex:389
+#: lib/tcg_cheap_web/page_markdown.ex:392
 #, elixir-autogen, elixir-format
 msgid "Ocena: %{verdict}"
 msgstr "Értékelés: %{verdict}"
@@ -4314,53 +4314,53 @@ msgid "Oferty"
 msgstr "Ajánlatok a boltokban"
 
 #: lib/tcg_cheap_web/page_markdown.ex:291
-#: lib/tcg_cheap_web/page_markdown.ex:459
-#: lib/tcg_cheap_web/page_markdown.ex:572
+#: lib/tcg_cheap_web/page_markdown.ex:462
+#: lib/tcg_cheap_web/page_markdown.ex:576
 #, elixir-autogen, elixir-format
 msgid "Produkt"
 msgstr "Termék"
 
-#: lib/tcg_cheap_web/page_markdown.ex:489
+#: lib/tcg_cheap_web/page_markdown.ex:492
 #, elixir-autogen, elixir-format
 msgid "Sklep"
 msgstr "Bolt"
 
-#: lib/tcg_cheap_web/page_markdown.ex:362
+#: lib/tcg_cheap_web/page_markdown.ex:365
 #, elixir-autogen, elixir-format
 msgid "Stan na: %{date}"
 msgstr "Frissítve: %{date}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:361
+#: lib/tcg_cheap_web/page_markdown.ex:364
 #, elixir-autogen, elixir-format
 msgid "Strona: %{url}"
 msgstr "Oldal: %{url}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:635
+#: lib/tcg_cheap_web/page_markdown.ex:643
 #, elixir-autogen, elixir-format
 msgid "Szanse na drop (pull rates)"
 msgstr "Kihúzási esélyek"
 
-#: lib/tcg_cheap_web/page_markdown.ex:353
+#: lib/tcg_cheap_web/page_markdown.ex:356
 #, elixir-autogen, elixir-format
 msgid "Tej strony nie ma w TCG Cheap. Spis stron: %{url}"
 msgstr "Ilyen oldal nincs a TCG Cheapen. Az oldalak listája: %{url}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:618
+#: lib/tcg_cheap_web/page_markdown.ex:626
 #, elixir-autogen, elixir-format
 msgid "To szacunki społeczności, sprawdzone %{date}. Źródła: %{sources}"
 msgstr "Ezek a közösség becslései, ellenőrizve: %{date}. Források: %{sources}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:340
+#: lib/tcg_cheap_web/page_markdown.ex:343
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price} (%{eur}), bez dostawy."
 msgstr "Cardmarket-trend: %{price} (%{eur}), szállítási díj nélkül."
 
-#: lib/tcg_cheap_web/page_markdown.ex:423
+#: lib/tcg_cheap_web/page_markdown.ex:426
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price} bez dostawy"
 msgstr "Cardmarket-trend: %{price}, szállítási díj nélkül"
 
-#: lib/tcg_cheap_web/page_markdown.ex:428
+#: lib/tcg_cheap_web/page_markdown.ex:431
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price} bez dostawy, %{delivered} z przesyłką z Niemiec"
 msgstr "Cardmarket-trend: %{price} szállítási díj nélkül, %{delivered} németországi szállítással"
@@ -4370,7 +4370,7 @@ msgstr "Cardmarket-trend: %{price} szállítási díj nélkül, %{delivered} né
 msgid "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej %{minimum} sklepy)."
 msgstr "A jellemző ár a boltokban raktáron lévő legalacsonyabb árak mediánja (boltonként egy ár, legalább %{minimum} bolt)."
 
-#: lib/tcg_cheap_web/page_markdown.ex:392
+#: lib/tcg_cheap_web/page_markdown.ex:395
 #, elixir-autogen, elixir-format
 msgid "Typowa cena w sklepach: %{typical} (mediana z %{count} sklepów)"
 msgstr "Jellemző ár a boltokban: %{typical} (%{count} bolt ára alapján)"
@@ -4380,62 +4380,62 @@ msgstr "Jellemző ár a boltokban: %{typical} (%{count} bolt ára alapján)"
 msgid "Werdykt"
 msgstr "Az ár értékelése"
 
-#: lib/tcg_cheap_web/page_markdown.ex:437
+#: lib/tcg_cheap_web/page_markdown.ex:440
 #, elixir-autogen, elixir-format
 msgid "Wydanie"
 msgstr "Kiadás"
 
-#: lib/tcg_cheap_web/page_markdown.ex:402
+#: lib/tcg_cheap_web/page_markdown.ex:405
 #, elixir-autogen, elixir-format
 msgid "Zwykła cena z ostatnich %{days} dni: %{price}"
 msgstr "Szokásos ár az elmúlt %{days} napban: %{price}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:524
+#: lib/tcg_cheap_web/page_markdown.ex:527
 #, elixir-autogen, elixir-format
 msgid "na stanie"
 msgstr "raktáron"
 
-#: lib/tcg_cheap_web/page_markdown.ex:462
+#: lib/tcg_cheap_web/page_markdown.ex:465
 #, elixir-autogen, elixir-format
 msgid "Źródło"
 msgstr "Forrás"
 
-#: lib/tcg_cheap_web/page_markdown.ex:484
+#: lib/tcg_cheap_web/page_markdown.ex:487
 #, elixir-autogen, elixir-format
 msgid "Żaden sklep nie ma teraz tej oferty."
 msgstr "Jelenleg egyik bolt sem kínálja ezt."
 
-#: lib/tcg_cheap_web/page_markdown.ex:537
+#: lib/tcg_cheap_web/page_markdown.ex:540
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket"
 msgstr "Cardmarket-trend"
 
-#: lib/tcg_cheap_web/page_markdown.ex:460
-#: lib/tcg_cheap_web/page_markdown.ex:489
+#: lib/tcg_cheap_web/page_markdown.ex:463
+#: lib/tcg_cheap_web/page_markdown.ex:492
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Cena"
 msgstr "Ár"
 
-#: lib/tcg_cheap_web/page_markdown.ex:461
+#: lib/tcg_cheap_web/page_markdown.ex:464
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Kiedy"
 msgstr "Mikor"
 
-#: lib/tcg_cheap_web/page_markdown.ex:572
+#: lib/tcg_cheap_web/page_markdown.ex:578
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Najtaniej"
 msgstr "Legolcsóbb"
 
-#: lib/tcg_cheap_web/page_markdown.ex:458
+#: lib/tcg_cheap_web/page_markdown.ex:461
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Sieć"
 msgstr "Lánc"
 
-#: lib/tcg_cheap_web/page_markdown.ex:526
+#: lib/tcg_cheap_web/page_markdown.ex:529
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "brak"
@@ -4445,3 +4445,8 @@ msgstr "nincs raktáron"
 #, elixir-autogen, elixir-format
 msgid "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket."
 msgstr "Ennyi bolt még nem árulja, ezért a Cardmarket trendjével vetjük össze."
+
+#: lib/tcg_cheap_web/page_markdown.ex:341
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Trend Cardmarket: %{price}, bez dostawy."
+msgstr "Cardmarket-trend: %{price}, szállítási díj nélkül"

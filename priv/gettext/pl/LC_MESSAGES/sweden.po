@@ -57,8 +57,6 @@ msgid "Ceny kart Pokémon TCG w koronach"
 msgstr ""
 
 #: lib/tcg_cheap/countries/sweden.ex:158
-
-#: lib/tcg_cheap/countries/sweden.ex:148
 #, elixir-autogen, elixir-format
 msgid "Ceny szwedzkich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Szwecji. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr ""
