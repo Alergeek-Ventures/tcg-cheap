@@ -46,7 +46,7 @@ msgstr "Pokémon TCG prices from shops delivering to Hungary, checked daily."
 msgid "Ceny kart Pokémon TCG w forintach"
 msgstr "Pokémon TCG card prices in forints"
 
-#: lib/tcg_cheap/countries/hungary.ex:142
+#: lib/tcg_cheap/countries/hungary.ex:152
 #, elixir-autogen, elixir-format
 msgid "Ceny węgierskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką na Węgry. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Hungarian shops' prices exclude shipping; shops abroad include shipping to Hungary. For Cardmarket we add %{shipping} for a parcel from Germany."
@@ -100,3 +100,18 @@ msgstr "with delivery from Germany"
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Węgier"
 msgstr "with delivery from Hungary"
+
+#: lib/tcg_cheap/countries/hungary.ex:132
+#, elixir-autogen, elixir-format
+msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w forintach. Ceny węgierskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę na Węgry."
+msgstr "Prices come from the shops' public product feeds, fetched once a day, and are in forints. Hungarian shops' prices exclude delivery; shops abroad include delivery to Hungary."
+
+#: lib/tcg_cheap/countries/hungary.ex:137
+#, elixir-autogen, elixir-format
+msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w forintach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
+msgstr "A good price is at most 95% of the typical price, a normal one at most 110%, above that it is expensive. A good price must also be at most 95% of the product's usual price over the last %{window} days and of the Cardmarket trend in forints (at NBP rates) with delivery from Germany, when known."
+
+#: lib/tcg_cheap/countries/hungary.ex:143
+#, elixir-autogen, elixir-format
+msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w forintach."
+msgstr "With fewer shops there is no verdict; as context we give the Cardmarket trend in forints."
