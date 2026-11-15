@@ -47,7 +47,8 @@ defmodule TcgCheap.Sealed.Matcher do
 
   @stopwords ~w(pokemon tcg ptcg the and of s a z na i w edycja karty kart karta oryginal oryginalne
                 oryginalny angielski angielska angielskie english en eng wersja nowy nowa prerelease
-                engelsk engelska engelskt forboka forbokning forhandsboka forhandsbokning)
+                engelsk engelska engelskt forboka forbokning forhandsboka forhandsbokning
+                angol kiadas foliazott elorendeles elorendelheto)
 
   @plurals %{
     "boosters" => "booster",
@@ -119,6 +120,13 @@ defmodule TcgCheap.Sealed.Matcher do
     {"italiensk", "italian"},
     {"italienska", "italian"},
     {"italienskt", "italian"},
+    # Hungarian shops do the same ("Booster Box - (Koreai)", "(Japán kiadás)");
+    # "angol", "kiadás" (edition) and "Fóliázott" (shrink-wrapped) are noise.
+    {"koreai", "korean"},
+    # Not "sch": that marker needs a product named "S-Ch", and a set's only Chinese product rarely is.
+    {"egyszerusitett kinai", "chinese"},
+    {"kinai", "chinese"},
+    {"nemet", "german"},
     {"japonia", "jp"},
     {"koreanski", "korean"},
     {"koreanska", "korean"},
@@ -183,8 +191,9 @@ defmodule TcgCheap.Sealed.Matcher do
                    checklane portfolio album)
 
   # Words of a title that sells a pre-order ("Przedsprzedaż", "przedpremierowy",
-  # Swedish "Förboka", "Förhandsbokning", "Förhandsbeställning"…).
-  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|forbok|forhandsbok|forhandsbest|forbest)/
+  # Swedish "Förboka", "Förhandsbokning", "Förhandsbeställning", Hungarian
+  # "Előrendelés", "Előrendelhető"…).
+  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|forbok|forhandsbok|forhandsbest|forbest|elorendel)/
 
   @exclusions [
     "zestaw",
@@ -200,6 +209,8 @@ defmodule TcgCheap.Sealed.Matcher do
     "bez folii",
     "bez boosterow",
     # Swedish: "(Boosters ingår ej)", boosters not included.
+    # Hungarian: "(Fólia nélkül)", without the shrink wrap, like "bez folii".
+    "folia nelkul",
     "ingar ej",
     "utan booster",
     "utan boosters",
@@ -225,9 +236,10 @@ defmodule TcgCheap.Sealed.Matcher do
     "kod"
   ]
 
-  # Polish and Swedish word stems for damaged, opened or used items ("uszkodzone",
-  # "otwarty", "używany", "Förpackningsskada", "kartongskadad", "skadad", "öppnad", "begagnad"…).
-  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad)/
+  # Polish, Swedish and Hungarian word stems for damaged, opened or used items ("uszkodzone",
+  # "otwarty", "używany", "Förpackningsskada", "kartongskadad", "skadad", "öppnad",
+  # "begagnad", "Enyhén szakadt", "Kisebb esztétikai hiba", "Apróbb szépséghibák", "sérült"…).
+  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult)/
 
   # Two or more pieces ("x3", "10x", "36 szt", "3 sztuki"); "1 szt" is still one item.
   # Not Swedish "st": shops write it for a bundle's contents ("6 st boosters")
