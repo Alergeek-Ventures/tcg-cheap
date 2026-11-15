@@ -1236,10 +1236,14 @@ defmodule TcgCheap.Sealed.Guide do
 
   @doc """
   The euro's rate in the market's currency on `today` (`eur_pln/1` for
-  Poland), nil when unknown. Elsewhere it goes through PLN, at NBP rates no
-  older than a week (`Market.pln_rate/2`), and is as old as the older one.
+  Poland, 1 for a market in euro), nil when unknown. Elsewhere it goes
+  through PLN, at NBP rates no older than a week (`Market.pln_rate/2`), and
+  is as old as the older one.
   """
   @spec cardmarket_rate(Market.t(), Date.t()) :: %{rate: Decimal.t(), date: Date.t()} | nil
+  def cardmarket_rate(%Market{currency: "EUR"}, %Date{} = today),
+    do: %{rate: Decimal.new(1), date: today}
+
   def cardmarket_rate(%Market{} = market, %Date{} = today) do
     if market == Market.poland() do
       eur_pln(today)
