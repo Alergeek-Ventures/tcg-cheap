@@ -4455,6 +4455,6 @@ msgid "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket."
 msgstr "Så många butiker har den inte än, så vi jämför med Cardmarkets trend."
 
 #: lib/tcg_cheap_web/page_markdown.ex:341
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price}, bez dostawy."
-msgstr "Cardmarket-trend: %{price} utan frakt"
+msgstr "Cardmarket-trend: %{price}, utan frakt."
