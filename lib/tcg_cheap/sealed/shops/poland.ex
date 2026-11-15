@@ -322,8 +322,7 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       name: "Gry u Janusza",
       host: "gryujanusza.pl",
       source: Shopify,
-      collection: "tcg-pokemon",
-      max_pages: 3,
+      max_pages: 6,
       shipping_from: Decimal.new("18"),
       free_shipping_from: nil,
       pickup_city: nil
@@ -775,8 +774,7 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       name: "Skład Gier",
       host: "skladgier.pl",
       source: Shopify,
-      collection: "pokemon-tcg",
-      max_pages: 3,
+      max_pages: 6,
       shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil

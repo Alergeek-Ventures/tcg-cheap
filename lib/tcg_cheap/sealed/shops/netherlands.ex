@@ -28,8 +28,6 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       name: "PKMWinkel",
       host: "www.pkmwinkel.nl",
       source: Shopify,
-      collection: "all",
-      mixed_listing: true,
       currency: "EUR",
       country: "NL",
       max_pages: 10,

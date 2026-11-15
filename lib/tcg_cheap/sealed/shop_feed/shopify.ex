@@ -24,6 +24,12 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
   must also be registered with Shopify), go over HTTP/2 15 s apart and wait
   out a `Retry-After` of up to a minute; Shopify shops are fetched one at a
   time in a queue of their own (`TcgCheap.Sealed.FetchWorker`).
+
+  With the signature, `/products.json` answers, while
+  `/collections/<handle>/products.json` still gets 429 (production,
+  2026-11-15). A shop whose whole list holds the same sealed Pokémon products
+  as its collection is therefore configured without a `collection`; its
+  products then count only while their titles say Pokémon.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
