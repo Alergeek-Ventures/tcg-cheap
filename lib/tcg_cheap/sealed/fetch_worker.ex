@@ -99,12 +99,13 @@ defmodule TcgCheap.Sealed.FetchWorker do
   defp failure_reason(exception), do: exception
 
   # One step: its two minutes of reading, a request that was still to finish
-  # (a pause, a wait out of a `Retry-After`), and the last step's storing,
-  # which may take 5 minutes (`Refresh.transaction_timeout/0`). Well within
-  # the Lifeline's time (config.exs), after which a job still executing
-  # counts as orphaned and is run again.
+  # (a pause, a wait out of a `Retry-After`), and, in the last step, the two
+  # transactions that store sealed offers and singles, 5 minutes each
+  # (`Refresh.transaction_timeout/0`, `TcgCheap.Cards.Refresh`). Within the
+  # Lifeline's time (config.exs), after which a job still executing counts as
+  # orphaned and is run again.
   @impl Oban.Worker
-  def timeout(_job), do: :timer.minutes(10)
+  def timeout(_job), do: :timer.minutes(15)
 
   @impl Oban.Worker
   def backoff(%Oban.Job{
