@@ -945,12 +945,12 @@ defmodule TcgCheap.Sealed.Guide do
     now = DateTime.utc_now()
 
     offers =
-      Sealed.current_offers(now, :all, select: [:product_id, :in_stock])
+      Sealed.current_offers(now, :all, select: [:product_id, :price, :market_prices, :in_stock])
       # Unmatched offers (accessories, other games) are no product of ours.
-      |> Enum.filter(
-        &(&1.in_stock and not is_nil(&1.product_id) and
-            &1.shop not in Shops.listed_only_keys())
-      )
+      |> Enum.filter(&(&1.in_stock and not is_nil(&1.product_id)))
+      # Only offers that count in Polish prices: not a shop only listed, nor
+      # a product its shop does not sell to Poland.
+      |> Shops.compared()
 
     summaries =
       [

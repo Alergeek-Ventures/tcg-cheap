@@ -90,10 +90,9 @@ defmodule TcgCheapWeb.CrawlController do
   defp listed_pages do
     ids =
       DateTime.utc_now()
-      |> Sealed.current_offers(:all, select: [:product_id, :in_stock])
-      |> Enum.filter(
-        &(&1.in_stock and &1.product_id != nil and &1.shop not in Shops.listed_only_keys())
-      )
+      |> Sealed.current_offers(:all, select: [:product_id, :price, :market_prices, :in_stock])
+      |> Enum.filter(&(&1.in_stock and &1.product_id != nil))
+      |> Shops.compared()
       |> Enum.map(& &1.product_id)
       |> Enum.uniq()
 
