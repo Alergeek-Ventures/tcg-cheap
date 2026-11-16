@@ -1,0 +1,1644 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: hu\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. booster
+msgid "30th Celebration (6 kart)"
+msgstr "30th Celebration (6 lapos)"
+
+#. booster
+msgid "Azure Shadow (25 kart; Roar lub Pursuit)"
+msgstr "Azure Shadow (25 lapos; Roar vagy Pursuit)"
+
+#. booster
+msgid "Battle Partners (5 kart)"
+msgstr "Battle Partners (5 lapos)"
+
+#. booster
+msgid "Blade Awakening (5 kart)"
+msgstr "Blade Awakening (5 lapos)"
+
+#. booster
+msgid "Bonus Round (5 kart)"
+msgstr "Bonus Round (5 lapos)"
+
+#. booster
+msgid "Brave Stars (25 kart; Charm lub Brave)"
+msgstr "Brave Stars (25 lapos; Charm vagy Brave)"
+
+#. booster
+msgid "Brilliant Fantasy (5 kart)"
+msgstr "Brilliant Fantasy (5 lapos)"
+
+#. booster
+msgid "Brilliant Fantasy (jumbo, 20 kart)"
+msgstr "Brilliant Fantasy (jumbo, 20 lapos)"
+
+#. booster
+msgid "Chasing Glory Together (20 kart)"
+msgstr "Chasing Glory Together (20 lapos)"
+
+#. booster
+msgid "Chasing Glory Together (5 kart)"
+msgstr "Chasing Glory Together (5 lapos)"
+
+#. booster
+msgid "Collect 151 Gathering (20 kart)"
+msgstr "Collect 151 Gathering (20 lapos)"
+
+#. booster
+msgid "Collect 151 Hope (20 kart)"
+msgstr "Collect 151 Hope (20 lapos)"
+
+#. booster
+msgid "Collect 151 Hope (5 kart)"
+msgstr "Collect 151 Hope (5 lapos)"
+
+#. booster
+msgid "Collect 151 Journey (20 kart)"
+msgstr "Collect 151 Journey (20 lapos)"
+
+#. booster
+msgid "Collect 151 Journey (5 kart)"
+msgstr "Collect 151 Journey (5 lapos)"
+
+#. booster
+msgid "Collect 151 Surprise (20 kart)"
+msgstr "Collect 151 Surprise (20 lapos)"
+
+#. booster
+msgid "Collect 151 Surprise (5 kart)"
+msgstr "Collect 151 Surprise (5 lapos)"
+
+#. booster
+msgid "Dark Crystal Blaze (20 kart)"
+msgstr "Dark Crystal Blaze (20 lapos)"
+
+#. booster
+msgid "Dark Crystal Blaze (5 kart)"
+msgstr "Dark Crystal Blaze (5 lapos)"
+
+#. booster
+msgid "Fearless Terastal (5 kart)"
+msgstr "Fearless Terastal (5 lapos)"
+
+#. booster
+msgid "Flame Dance of the End (6 kart)"
+msgstr "Flame Dance of the End (6 lapos)"
+
+#. booster
+msgid "Gem Pack Vol. 1 (4 karty holo)"
+msgstr "Gem Pack Vol. 1 (4 holo lappal)"
+
+#. booster
+msgid "Gem Pack Vol. 7 (4 karty holo)"
+msgstr "Gem Pack Vol. 7 (4 holo lappal)"
+
+#. booster
+msgid "losowe Brave Stars (5 kart, co najmniej 10 z każdej podserii)"
+msgstr "véletlenszerű Brave Stars (5 lapos, minden alsorozatból legalább 10)"
+
+#. booster
+msgid "losowe Brave Stars (jumbo, 25 kart)"
+msgstr "véletlenszerű Brave Stars (jumbo, 25 lapos)"
+
+#. booster
+msgid "losowy Primordial Arts (jumbo, 25 kart)"
+msgstr "véletlenszerű Primordial Arts (jumbo, 25 lapos)"
+
+#. booster
+msgid "Mega Brave (2 booster boxy)"
+msgstr "Mega Brave (2 booster box)"
+
+#. booster
+msgid "Mega Brave (5 kart)"
+msgstr "Mega Brave (5 lapos)"
+
+#. booster
+msgid "Mega Symphonia (5 kart)"
+msgstr "Mega Symphonia (5 lapos)"
+
+#. booster
+msgid "Nine Colors Gathering (25 kart; Friends lub Origin)"
+msgstr "Nine Colors Gathering (25 lapos; Friends vagy Origin)"
+
+#. booster
+msgid "Polychromatic Gathering Friend (25 kart)"
+msgstr "Polychromatic Gathering Friend (25 lapos)"
+
+#. booster
+msgid "Polychromatic Gathering Origin (25 kart)"
+msgstr "Polychromatic Gathering Origin (25 lapos)"
+
+#. booster
+msgid "Radiant Energy Vol. 2 (2 losowe karty)"
+msgstr "Radiant Energy Vol. 2 (2 véletlenszerű lappal)"
+
+#. booster
+msgid "Stellar Crystal (20 kart)"
+msgstr "Stellar Crystal (20 lapos)"
+
+#. booster
+msgid "Stellar Crystal (5 kart)"
+msgstr "Stellar Crystal (5 lapos)"
+
+#. booster
+msgid "Terastal Gathering (10 kart)"
+msgstr "Terastal Gathering (10 lapos)"
+
+#. booster
+msgid "Trick or Trade"
+msgstr ""
+
+#. booster
+msgid "True Mystery (5 kart)"
+msgstr "True Mystery (5 lapos)"
+
+#. card
+msgid "Matching reverse holo card (random, matches the figure)"
+msgstr "a figurához illő véletlenszerű reverse holo"
+
+#. card
+msgid "over 50 cards"
+msgstr "vegyes (több mint 50 lap)"
+
+#. card
+msgid "Reference cards"
+msgstr "szabályösszefoglaló"
+
+#. card
+msgid "reference cards"
+msgstr "szabályösszefoglaló"
+
+#. card
+msgid "Trainer cards"
+msgstr "Edző"
+
+#. contents item
+msgid "151 mini tin"
+msgstr "151 Mini Tin"
+
+#. contents item
+msgid "3-card fun pack"
+msgstr "3 lapos fun pack"
+
+#. contents item
+msgid "accessory box"
+msgstr "kiegészítőtartó doboz"
+
+#. contents item
+msgid "akrylowa magnetyczna ramka na kartę"
+msgstr "mágneses akril kártyakeret"
+
+#. contents item
+msgid "akrylowy ekspozytor na kartę"
+msgstr "akril kártyatartó állvány"
+
+#. contents item
+msgid "akrylowy znacznik TAG TEAM GX"
+msgstr "akril TAG TEAM GX-jelölő"
+
+#. contents item
+msgid "akrylowy znacznik VSTAR"
+msgstr "akril VSTAR-jelölő"
+
+#. contents item
+msgid "album na karty z Lillie (10 stron, 80 kart)"
+msgstr "Lillie mintás gyűjtőmappa (10 oldal, 80 kártyához)"
+
+#. contents item
+msgid "album na karty z N (10 stron, 80 kart)"
+msgstr "N mintás gyűjtőmappa (10 oldal, 80 kártyához)"
+
+#. contents item
+msgid "arkusz akrylowych figurek na podstawkach"
+msgstr "akrilfigura-ív talpakkal"
+
+#. contents item
+msgid "arkusz informacyjny"
+msgstr "tájékoztató lap"
+
+#. contents item
+msgid "arkusz papierowych żetonów obrażeń"
+msgstr "papír sebzésszámláló-ív"
+
+#. contents item
+msgid "arkusz żetonów obrażeń i znaczników"
+msgstr "sebzésszámláló- és jelölőív"
+
+#. contents item
+msgid "arkusz żetonów obrażeń i znaczników stanów"
+msgstr "sebzésszámláló- és állapotjelölő-ív"
+
+#. contents item
+msgid "booster Pokémon TCG (różne dodatki)"
+msgstr "Pokémon TCG booster (vegyes szettekből)"
+
+#. contents item
+msgid "booster z serii Sword & Shield (różne dodatki)"
+msgstr "Sword & Shield sorozatú booster (vegyes szettekből)"
+
+#. contents item
+msgid "broszura World Championships 2022"
+msgstr "World Championships 2022 füzet"
+
+#. contents item
+msgid "broszura World Championships 2024"
+msgstr "World Championships 2024 füzet"
+
+#. contents item
+msgid "broszura World Championships 2025"
+msgstr "World Championships 2025 füzet"
+
+#. contents item
+msgid "czerwona koperta (hongbao)"
+msgstr "piros boríték (hongbao)"
+
+#. contents item
+msgid "display 36 boosterów Pitch Black"
+msgstr "Pitch Black display (36 booster)"
+
+#. contents item
+msgid "dodatkowe karty Trenera"
+msgstr "extra Edzőkártyák"
+
+#. contents item
+msgid "dwustronne tekturowe tło do ekspozycji"
+msgstr "kétoldalas karton háttér a bemutatáshoz"
+
+#. contents item
+msgid "dwustronne tło do ekspozycji"
+msgstr "kétoldalas háttér a bemutatáshoz"
+
+#. contents item
+msgid "dwustronny plakat"
+msgstr "kétoldalas poszter"
+
+#. contents item
+msgid "dwustronny plakat (ok. 68 × 99 cm)"
+msgstr "kétoldalas poszter (kb. 68 × 99 cm)"
+
+#. contents item
+msgid "dwustronny plakat 151"
+msgstr "kétoldalas 151 poszter"
+
+#. contents item
+msgid "dwustronny plakat, około 68 × 99 cm"
+msgstr "kétoldalas poszter, kb. 68 × 99 cm"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Ascended Heroes"
+msgstr "Ascended Heroes Elite Trainer Box"
+
+#. contents item
+msgid "etui na kartę z motywem Greninja"
+msgstr "Greninja mintás kártyatok"
+
+#. contents item
+msgid "etui na kartę z motywem Sylveon"
+msgstr "Sylveon mintás kártyatok"
+
+#. contents item
+msgid "etui na matę"
+msgstr "játékszőnyeg-tartó"
+
+#. contents item
+msgid "Full-art foil promo card featuring Scream Tail or Iron Bundle"
+msgstr "full art foil promo kártya (Scream Tail vagy Iron Bundle)"
+
+#. contents item
+msgid "gumka do ścierania z Bellibolt"
+msgstr "Bellibolt mintás radír"
+
+#. contents item
+msgid "gumka do ścierania z Gengar"
+msgstr "Gengar mintás radír"
+
+#. contents item
+msgid "gumka do ścierania z Lechonk"
+msgstr "Lechonk mintás radír"
+
+#. contents item
+msgid "gumka do ścierania z Smoliv"
+msgstr "Smoliv mintás radír"
+
+#. contents item
+msgid "Journey Together Enhanced Booster Box"
+msgstr ""
+
+#. contents item
+msgid "karta holo pasującego Pokémona ze wzorem Poké Balla (Master Ball 1:99)"
+msgstr "a hozzá illő Pokémon holo kártyája Poké Ball mintával (Master Ball 1:99)"
+
+#. contents item
+msgid "karta Lisia's Appeal (Special Illustration holo)"
+msgstr "Lisia's Appeal kártya (Special Illustration holo)"
+
+#. contents item
+msgid "karta Pikachu pasująca do figurki"
+msgstr "a figurához illő Pikachu kártya"
+
+#. contents item
+msgid "karta Pokémon pasująca do figurki"
+msgstr "a figurához illő Pokémon-kártya"
+
+#. contents item
+msgid "karta Pokémon Tool (foil)"
+msgstr "Pokémon Tool kártya (foil)"
+
+#. contents item
+msgid "karta pomocnicza"
+msgstr "segédkártya"
+
+#. contents item
+msgid "karta pomocnicza z zasadami"
+msgstr "szabályösszefoglaló kártya"
+
+#. contents item
+msgid "karta promo z talii (Miraidon, Dhelmise, Slowbro lub Bastiodon)"
+msgstr "promo kártya a pakliból (Miraidon, Dhelmise, Slowbro vagy Bastiodon)"
+
+#. contents item
+msgid "karta z ilustracją z minipuszki"
+msgstr "illusztrációs kártya a Mini Tinből"
+
+#. contents item
+msgid "karta z ilustracją z puszki"
+msgstr "illusztrációs kártya a tinből"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Alomomola)"
+msgstr "illusztrációs kártya a tinből (Alomomola)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Arcanine i Omanyte)"
+msgstr "illusztrációs kártya a tinből (Arcanine és Omanyte)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Blissey)"
+msgstr "illusztrációs kártya a tinből (Blissey)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Clefairy i Chikorita)"
+msgstr "illusztrációs kártya a tinből (Clefairy és Chikorita)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Electabuzz i Magnemite)"
+msgstr "illusztrációs kártya a tinből (Electabuzz és Magnemite)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Emboar i Inkay)"
+msgstr "illusztrációs kártya a tinből (Emboar és Inkay)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Espeon i Meowth)"
+msgstr "illusztrációs kártya a tinből (Espeon és Meowth)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Espeon)"
+msgstr "illusztrációs kártya a tinből (Espeon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Feraligatr i Budew)"
+msgstr "illusztrációs kártya a tinből (Feraligatr és Budew)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Flareon)"
+msgstr "illusztrációs kártya a tinből (Flareon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Gallade i Goomy)"
+msgstr "illusztrációs kártya a tinből (Gallade és Goomy)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Garbodor)"
+msgstr "illusztrációs kártya a tinből (Garbodor)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Glaceon)"
+msgstr "illusztrációs kártya a tinből (Glaceon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Greninja i Volbeat)"
+msgstr "illusztrációs kártya a tinből (Greninja és Volbeat)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Jolteon)"
+msgstr "illusztrációs kártya a tinből (Jolteon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Kadabra)"
+msgstr "illusztrációs kártya a tinből (Kadabra)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Krookodile)"
+msgstr "illusztrációs kártya a tinből (Krookodile)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Lapras i Drifloon)"
+msgstr "illusztrációs kártya a tinből (Lapras és Drifloon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Leafeon)"
+msgstr "illusztrációs kártya a tinből (Leafeon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Lilligant)"
+msgstr "illusztrációs kártya a tinből (Lilligant)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Magikarp)"
+msgstr "illusztrációs kártya a tinből (Magikarp)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Meganium i samica Meowstic)"
+msgstr "illusztrációs kártya a tinből (Meganium és nőstény Meowstic)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Mew i Alolan Exeggutor)"
+msgstr "illusztrációs kártya a tinből (Mew és Alolan Exeggutor)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Mewtwo i Scraggy)"
+msgstr "illusztrációs kártya a tinből (Mewtwo és Scraggy)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Mienshao)"
+msgstr "illusztrációs kártya a tinből (Mienshao)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Moltres i Articuno)"
+msgstr "illusztrációs kártya a tinből (Moltres és Articuno)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Munchlax)"
+msgstr "illusztrációs kártya a tinből (Munchlax)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Pikachu i Tepig)"
+msgstr "illusztrációs kártya a tinből (Pikachu és Tepig)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Pikachu i Toxtricity)"
+msgstr "illusztrációs kártya a tinből (Pikachu és Toxtricity)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Pikachu i Vivillon)"
+msgstr "illusztrációs kártya a tinből (Pikachu és Vivillon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Pikachu)"
+msgstr "illusztrációs kártya a tinből (Pikachu)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Piplup)"
+msgstr "illusztrációs kártya a tinből (Piplup)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Riolu i Darumaka)"
+msgstr "illusztrációs kártya a tinből (Riolu és Darumaka)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Salamence i Litleo)"
+msgstr "illusztrációs kártya a tinből (Salamence és Litleo)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Scyther i Weezing)"
+msgstr "illusztrációs kártya a tinből (Scyther és Weezing)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Slowpoke i Sandshrew)"
+msgstr "illusztrációs kártya a tinből (Slowpoke és Sandshrew)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Snorlax)"
+msgstr "illusztrációs kártya a tinből (Snorlax)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (startery z Aloli)"
+msgstr "illusztrációs kártya a tinből (alolai kezdő Pokémonok)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (startery z Galaru)"
+msgstr "illusztrációs kártya a tinből (galari kezdő Pokémonok)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (startery z Hoenn)"
+msgstr "illusztrációs kártya a tinből (hoenni kezdő Pokémonok)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (startery z Sinnoh)"
+msgstr "illusztrációs kártya a tinből (sinnoh-i kezdő Pokémonok)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (startery z Unovy)"
+msgstr "illusztrációs kártya a tinből (unovai kezdő Pokémonok)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Sylveon)"
+msgstr "illusztrációs kártya a tinből (Sylveon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Togepi i Totodile)"
+msgstr "illusztrációs kártya a tinből (Togepi és Totodile)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Umbreon i Alolan Meowth)"
+msgstr "illusztrációs kártya a tinből (Umbreon és Alolan Meowth)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Umbreon)"
+msgstr "illusztrációs kártya a tinből (Umbreon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Vaporeon)"
+msgstr "illusztrációs kártya a tinből (Vaporeon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Volcarona)"
+msgstr "illusztrációs kártya a tinből (Volcarona)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Zapdos i Hisuian Zorua)"
+msgstr "illusztrációs kártya a tinből (Zapdos és Hisuian Zorua)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Zorua i Chandelure)"
+msgstr "illusztrációs kártya a tinből (Zorua és Chandelure)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Zorua i Cramorant)"
+msgstr "illusztrációs kártya a tinből (Zorua és Cramorant)"
+
+#. contents item
+msgid "karta z ilustracją z puszki Finizen"
+msgstr "Finizen illusztrációs kártya a tinből"
+
+#. contents item
+msgid "karta z ilustracją z puszki Flamigo"
+msgstr "Flamigo illusztrációs kártya a tinből"
+
+#. contents item
+msgid "karta z ilustracją z puszki Kangaskhan"
+msgstr "Kangaskhan illusztrációs kártya a tinből"
+
+#. contents item
+msgid "karta z ilustracją z puszki Mega Gardevoir"
+msgstr "Mega Gardevoir illusztrációs kártya a tinből"
+
+#. contents item
+msgid "karta z ilustracją z puszki Mega Lucario"
+msgstr "Mega Lucario illusztrációs kártya a tinből"
+
+#. contents item
+msgid "karta z ilustracją z puszki Smoliv"
+msgstr "Smoliv illusztrációs kártya a tinből"
+
+#. contents item
+msgid "karta z ilustracją z puszki Tinkatink"
+msgstr "Tinkatink illusztrációs kártya a tinből"
+
+#. contents item
+msgid "karta z ilustracją z puszki Venusaur"
+msgstr "Venusaur illusztrációs kártya a tinből"
+
+#. contents item
+msgid "karty pomocnicze z zasadami"
+msgstr "szabályösszefoglaló kártyák"
+
+#. contents item
+msgid "koszulka ochronna na kartę"
+msgstr "kártyavédő fólia"
+
+#. contents item
+msgid "lista kontrolna kart"
+msgstr "ellenőrzőlista a kártyákhoz"
+
+#. contents item
+msgid "losowa figurka Eevee lub jego ewolucji (1 z 10, w tym 1 ukryta)"
+msgstr "véletlenszerű figura: Eevee vagy egyik evolúciója (10 közül 1, köztük 1 titkos)"
+
+#. contents item
+msgid "losowa figurka Pikachu (1 z 13, w tym 1 ukryta)"
+msgstr "véletlenszerű Pikachu figura (13 közül 1, köztük 1 titkos)"
+
+#. contents item
+msgid "losowa karta holo z dodatku 30th Celebration"
+msgstr "véletlenszerű holo kártya a 30th Celebration szettből"
+
+#. contents item
+msgid "losowa karta holo z dodatku Blade Awakening (1 z 30)"
+msgstr "véletlenszerű holo kártya a Blade Awakening szettből (30 közül 1)"
+
+#. contents item
+msgid "losowa karta holo z dodatku Brilliant Fantasy (1 z 30)"
+msgstr "véletlenszerű holo kártya a Brilliant Fantasy szettből (30 közül 1)"
+
+#. contents item
+msgid "losowa karta holo z dodatku Chasing Glory Together (1 z 30)"
+msgstr "véletlenszerű holo kártya a Chasing Glory Together szettből (30 közül 1)"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 1"
+msgstr "véletlenszerű holo kártya a Gem Pack Vol. 1 szettből"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 2"
+msgstr "véletlenszerű holo kártya a Gem Pack Vol. 2 szettből"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 3"
+msgstr "véletlenszerű holo kártya a Gem Pack Vol. 3 szettből"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 4"
+msgstr "véletlenszerű holo kártya a Gem Pack Vol. 4 szettből"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 5"
+msgstr "véletlenszerű holo kártya a Gem Pack Vol. 5 szettből"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 6"
+msgstr "véletlenszerű holo kártya a Gem Pack Vol. 6 szettből"
+
+#. contents item
+msgid "losowa karta Pikachu (jedna z 30 wersji)"
+msgstr "véletlenszerű Pikachu kártya (30 változat egyike)"
+
+#. contents item
+msgid "losowa karta Special Illustration holo (1 z 13 lub ukryty Pikachu)"
+msgstr "véletlenszerű Special Illustration holo kártya (13 közül 1 vagy a titkos Pikachu)"
+
+#. contents item
+msgid "losowa karta Special Illustration holo (1 z 13, w tym ukryty Flareon)"
+msgstr "véletlenszerű Special Illustration holo kártya (13 közül 1, köztük a titkos Flareon)"
+
+#. contents item
+msgid "losowa karta Special Illustration holo (1 z 8)"
+msgstr "véletlenszerű Special Illustration holo kártya (8 közül 1)"
+
+#. contents item
+msgid "losowa karta z dodatku 151"
+msgstr "véletlenszerű kártya a 151 szettből"
+
+#. contents item
+msgid "losowa karta z dodatku 30th Celebration"
+msgstr "véletlenszerű kártya a 30th Celebration szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Abyss Eye"
+msgstr "véletlenszerű kártya az Abyss Eye szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Ancient Roar"
+msgstr "véletlenszerű kártya az Ancient Roar szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Ascended Heroes"
+msgstr "véletlenszerű kártya az Ascended Heroes szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Astral Radiance"
+msgstr "véletlenszerű kártya az Astral Radiance szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Battle Partners"
+msgstr "véletlenszerű kártya a Battle Partners szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Battle Region"
+msgstr "véletlenszerű kártya a Battle Region szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Battle Styles"
+msgstr "véletlenszerű kártya a Battle Styles szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Black Bolt"
+msgstr "véletlenszerű kártya a Black Bolt szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Blade Awakening (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Blade Awakening szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Bonus Round (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Bonus Round szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Brilliant Counterattack (w tym 2 holo)"
+msgstr "véletlenszerű kártya a Brilliant Counterattack szettből (köztük 2 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Brilliant Fantasy (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Brilliant Fantasy szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Brilliant Fantasy (w tym 6 holo)"
+msgstr "véletlenszerű kártya a Brilliant Fantasy szettből (köztük 6 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Brilliant Stars"
+msgstr "véletlenszerű kártya a Brilliant Stars szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Celebrations"
+msgstr "véletlenszerű kártya a Celebrations szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Chaos Rising"
+msgstr "véletlenszerű kártya a Chaos Rising szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Chasing Glory Together (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Chasing Glory Together szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Chasing Glory Together (w tym 6 holo)"
+msgstr "véletlenszerű kártya a Chasing Glory Together szettből (köztük 6 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Chilling Reign"
+msgstr "véletlenszerű kártya a Chilling Reign szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Clay Burst"
+msgstr "véletlenszerű kártya a Clay Burst szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Collect 151 Gathering (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Collect 151 Gathering szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Collect 151 Journey (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Collect 151 Journey szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Collect 151 Journey (w tym 7 holo)"
+msgstr "véletlenszerű kártya a Collect 151 Journey szettből (köztük 7 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Crimson Haze"
+msgstr "véletlenszerű kártya a Crimson Haze szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Crown Zenith"
+msgstr "véletlenszerű kártya a Crown Zenith szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Cyber Judge"
+msgstr "véletlenszerű kártya a Cyber Judge szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Dark Crystal Blaze (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Dark Crystal Blaze szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Dark Crystal Blaze (w tym 6 holo)"
+msgstr "véletlenszerű kártya a Dark Crystal Blaze szettből (köztük 6 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Dark Phantasma"
+msgstr "véletlenszerű kártya a Dark Phantasma szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Darkness Ablaze"
+msgstr "véletlenszerű kártya a Darkness Ablaze szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Delta Reign"
+msgstr "véletlenszerű kártya a Delta Reign szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Destined Rivals"
+msgstr "véletlenszerű kártya a Destined Rivals szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Eternal Birth (w tym 1 holo)"
+msgstr "véletlenszerű kártya az Eternal Birth szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Evolving Skies"
+msgstr "véletlenszerű kártya az Evolving Skies szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Fearless Terastal (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Fearless Terastal szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Fusion Arts"
+msgstr "véletlenszerű kártya a Fusion Arts szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Fusion Strike"
+msgstr "véletlenszerű kártya a Fusion Strike szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Future Flash"
+msgstr "véletlenszerű kártya a Future Flash szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Heat Wave Arena"
+msgstr "véletlenszerű kártya a Heat Wave Arena szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Hidden Fates"
+msgstr "véletlenszerű kártya a Hidden Fates szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Incandescent Arcana"
+msgstr "véletlenszerű kártya az Incandescent Arcana szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Inferno X"
+msgstr "véletlenszerű kártya az Inferno X szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Journey Together"
+msgstr "véletlenszerű kártya a Journey Together szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Lost Abyss"
+msgstr "véletlenszerű kártya a Lost Abyss szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Lost Origin"
+msgstr "véletlenszerű kártya a Lost Origin szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Mask of Change"
+msgstr "véletlenszerű kártya a Mask of Change szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Mega Brave"
+msgstr "véletlenszerű kártya a Mega Brave szettből"
+
+#. contents item
+msgid "losowa karta z dodatku MEGA Dream ex"
+msgstr "véletlenszerű kártya a MEGA Dream ex szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Mega Evolution"
+msgstr "véletlenszerű kártya a Mega Evolution szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Mega Symphonia"
+msgstr "véletlenszerű kártya a Mega Symphonia szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Miracle Journey (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Miracle Journey szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Night Wanderer"
+msgstr "véletlenszerű kártya a Night Wanderer szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Nihil Zero"
+msgstr "véletlenszerű kártya a Nihil Zero szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Ninja Spinner"
+msgstr "véletlenszerű kártya a Ninja Spinner szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Obsidian Flames"
+msgstr "véletlenszerű kártya az Obsidian Flames szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Paldea Evolved"
+msgstr "véletlenszerű kártya a Paldea Evolved szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Paldean Fates"
+msgstr "véletlenszerű kártya a Paldean Fates szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Paradigm Trigger"
+msgstr "véletlenszerű kártya a Paradigm Trigger szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Paradise Dragona"
+msgstr "véletlenszerű kártya a Paradise Dragona szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Paradox Rift"
+msgstr "véletlenszerű kártya a Paradox Rift szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Perfect Order"
+msgstr "véletlenszerű kártya a Perfect Order szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Phantasmal Flames"
+msgstr "véletlenszerű kártya a Phantasmal Flames szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Pitch Black"
+msgstr "véletlenszerű kártya a Pitch Black szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Pokémon Card 151"
+msgstr "véletlenszerű kártya a Pokémon Card 151 szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Pokémon GO"
+msgstr "véletlenszerű kártya a Pokémon GO szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Prismatic Evolutions"
+msgstr "véletlenszerű kártya a Prismatic Evolutions szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Raging Surf"
+msgstr "véletlenszerű kártya a Raging Surf szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Ruler of the Black Flame"
+msgstr "véletlenszerű kártya a Ruler of the Black Flame szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Scarlet & Violet"
+msgstr "véletlenszerű kártya a Scarlet & Violet szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Scarlet ex"
+msgstr "véletlenszerű kártya a Scarlet ex szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Scorching Skies"
+msgstr "véletlenszerű kártya a Scorching Skies szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Shadow of Glory (w tym 2 holo)"
+msgstr "véletlenszerű kártya a Shadow of Glory szettből (köztük 2 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Shining Fates"
+msgstr "véletlenszerű kártya a Shining Fates szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Shiny Treasure ex"
+msgstr "véletlenszerű kártya a Shiny Treasure ex szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Shrouded Fable"
+msgstr "véletlenszerű kártya a Shrouded Fable szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Silver Lance"
+msgstr "véletlenszerű kártya a Silver Lance szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Silver Tempest"
+msgstr "véletlenszerű kártya a Silver Tempest szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Snow Hazard"
+msgstr "véletlenszerű kártya a Snow Hazard szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Star Birth"
+msgstr "véletlenszerű kártya a Star Birth szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Stellar Crown"
+msgstr "véletlenszerű kártya a Stellar Crown szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Stellar Crystal (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Stellar Crystal szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Stellar Crystal (w tym 6 holo)"
+msgstr "véletlenszerű kártya a Stellar Crystal szettből (köztük 6 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Stellar Miracle"
+msgstr "véletlenszerű kártya a Stellar Miracle szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Storm Emeralda"
+msgstr "véletlenszerű kártya a Storm Emeralda szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Super Electric Breaker"
+msgstr "véletlenszerű kártya a Super Electric Breaker szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Surging Sparks"
+msgstr "véletlenszerű kártya a Surging Sparks szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Temporal Forces"
+msgstr "véletlenszerű kártya a Temporal Forces szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Terastal Festival ex"
+msgstr "véletlenszerű kártya a Terastal Festival ex szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Terastal Gathering (3 lub 4 holo)"
+msgstr "véletlenszerű kártya a Terastal Gathering (3 lub 4 holo) szettből"
+
+#. contents item
+msgid "losowa karta z dodatku The Glory of Team Rocket"
+msgstr "véletlenszerű kártya a The Glory of Team Rocket szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Trick or Trade 2023"
+msgstr "véletlenszerű kártya a Trick or Trade 2023 szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Trick or Trade 2024"
+msgstr "véletlenszerű kártya a Trick or Trade 2024 szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Triplet Beat"
+msgstr "véletlenszerű kártya a Triplet Beat szettből"
+
+#. contents item
+msgid "losowa karta z dodatku True Mystery (w tym 1 holo)"
+msgstr "véletlenszerű kártya a True Mystery szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Twilight Masquerade"
+msgstr "véletlenszerű kártya a Twilight Masquerade szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Victory Star Guide (w tym 2 holo)"
+msgstr "véletlenszerű kártya a Victory Star Guide szettből (köztük 2 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Violet ex"
+msgstr "véletlenszerű kártya a Violet ex szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Vivid Portrayals (Indigo) (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Vivid Portrayals (Indigo) szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Vivid Portrayals (Obsidian) (w tym 1 holo)"
+msgstr "véletlenszerű kártya a Vivid Portrayals (Obsidian) szettből (köztük 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Vivid Voltage"
+msgstr "véletlenszerű kártya a Vivid Voltage szettből"
+
+#. contents item
+msgid "losowa karta z dodatku VMAX Climax"
+msgstr "véletlenszerű kártya a VMAX Climax szettből"
+
+#. contents item
+msgid "losowa karta z dodatku VSTAR Universe"
+msgstr "véletlenszerű kártya a VSTAR Universe szettből"
+
+#. contents item
+msgid "losowa karta z dodatku White Flare"
+msgstr "véletlenszerű kártya a White Flare szettből"
+
+#. contents item
+msgid "losowa karta z dodatku Wild Force"
+msgstr "véletlenszerű kártya a Wild Force szettből"
+
+#. contents item
+msgid "magnes Day Celebration"
+msgstr "Day Celebration mágnes"
+
+#. contents item
+msgid "magnes Night Celebration"
+msgstr "Night Celebration mágnes"
+
+#. contents item
+msgid "magnetyczna ramka na kartę z podstawką"
+msgstr "mágneses kártyakeret talppal"
+
+#. contents item
+msgid "magnetyczna ramka na trzy karty"
+msgstr "mágneses keret három kártyához"
+
+#. contents item
+msgid "magnetyczny stojak na trzy karty"
+msgstr "mágneses állvány három kártyához"
+
+#. contents item
+msgid "matching Poké Ball reverse holo card"
+msgstr "hozzá illő reverse holo kártya Poké Ball mintával"
+
+#. contents item
+msgid "Mega Heroes Mini Tin - Gardevoir"
+msgstr ""
+
+#. contents item
+msgid "Mega Heroes Mini Tin - Kangaskhan"
+msgstr ""
+
+#. contents item
+msgid "Mega Heroes Mini Tin - Latias"
+msgstr ""
+
+#. contents item
+msgid "Mega Heroes Mini Tin - Lucario"
+msgstr ""
+
+#. contents item
+msgid "Mega Heroes Mini Tin - Venusaur"
+msgstr ""
+
+#. contents item
+msgid "metalowe znaczniki (trucizna, poparzenie)"
+msgstr "fém jelölők (mérgezés, égés)"
+
+#. contents item
+msgid "metalowy magnes"
+msgstr "fém mágnes"
+
+#. contents item
+msgid "metalowy magnes z motywem Eevee (pasuje do puszki)"
+msgstr "Eevee mintás fém mágnes (illik a tinhez)"
+
+#. contents item
+msgid "metalowy magnes z motywem Espeon (pasuje do puszki)"
+msgstr "Espeon mintás fém mágnes (illik a tinhez)"
+
+#. contents item
+msgid "metalowy magnes z motywem Flareon (pasuje do puszki)"
+msgstr "Flareon mintás fém mágnes (illik a tinhez)"
+
+#. contents item
+msgid "metalowy magnes z motywem Glaceon (pasuje do puszki)"
+msgstr "Glaceon mintás fém mágnes (illik a tinhez)"
+
+#. contents item
+msgid "metalowy magnes z motywem Jolteon (pasuje do puszki)"
+msgstr "Jolteon mintás fém mágnes (illik a tinhez)"
+
+#. contents item
+msgid "metalowy magnes z motywem Leafeon (pasuje do puszki)"
+msgstr "Leafeon mintás fém mágnes (illik a tinhez)"
+
+#. contents item
+msgid "metalowy magnes z motywem Umbreon (pasuje do puszki)"
+msgstr "Umbreon mintás fém mágnes (illik a tinhez)"
+
+#. contents item
+msgid "metalowy magnes z motywem Vaporeon (pasuje do puszki)"
+msgstr "Vaporeon mintás fém mágnes (illik a tinhez)"
+
+#. contents item
+msgid "metalowy piórnik"
+msgstr "fém tolltartó"
+
+#. contents item
+msgid "Mid-Autumn compact mirror featuring Umbreon"
+msgstr "Umbreon mintás Mid-Autumn zsebtükör"
+
+#. contents item
+msgid "Mid-Autumn fridge magnet featuring Pikachu, Eevee, Clefairy, and Jirachi"
+msgstr "Mid-Autumn hűtőmágnes (Pikachu, Eevee, Clefairy és Jirachi)"
+
+#. contents item
+msgid "miniportfolio"
+msgstr "mini portfólió"
+
+#. contents item
+msgid "minipuszka 30th Celebration"
+msgstr "30th Celebration Mini Tin"
+
+#. contents item
+msgid "minipuszka Lumiose City (5 wzorów)"
+msgstr "Lumiose City Mini Tin (5 féle minta)"
+
+#. contents item
+msgid "Minipuszka Paldean Fates"
+msgstr "Paldean Fates Mini Tin"
+
+#. contents item
+msgid "notes"
+msgstr "jegyzetfüzet"
+
+#. contents item
+msgid "notes Pokémon"
+msgstr "Pokémon jegyzetfüzet"
+
+#. contents item
+msgid "noworoczna pieczątka"
+msgstr "újévi bélyegző"
+
+#. contents item
+msgid "noworoczny magnes na lodówkę"
+msgstr "újévi hűtőmágnes"
+
+#. contents item
+msgid "pakiet ulepszający talię (15 kart)"
+msgstr "paklifejlesztő csomag (15 lap)"
+
+#. contents item
+msgid "papierowa ramka na kartę (czerwona)"
+msgstr "papír kártyakeret (piros)"
+
+#. contents item
+msgid "papierowa ramka na kartę (niebieska)"
+msgstr "papír kártyakeret (kék)"
+
+#. contents item
+msgid "papierowa ramka na kartę (zielona)"
+msgstr "papír kártyakeret (zöld)"
+
+#. contents item
+msgid "papierowy stojak na 3 karty"
+msgstr "papír állvány 3 kártyához"
+
+#. contents item
+msgid "Pikachu eraser"
+msgstr "Pikachu mintás radír"
+
+#. contents item
+msgid "plakat"
+msgstr "poszter"
+
+#. contents item
+msgid "plakat z ewolucjami Eevee"
+msgstr "poszter Eevee evolúcióival"
+
+#. contents item
+msgid "Plush Eevee accessory pouch"
+msgstr "plüss Eevee kiegészítőtartó"
+
+#. contents item
+msgid "pluszowy Altaria"
+msgstr "plüss Altaria"
+
+#. contents item
+msgid "pluszowy Pikachu"
+msgstr "plüss Pikachu"
+
+#. contents item
+msgid "podstawka ekspozycyjna z uchwytem na kartę"
+msgstr "bemutatóállvány kártyatartóval"
+
+#. contents item
+msgid "podświetlana lampka w formie ramki"
+msgstr "világító lámpa keret formájában"
+
+#. contents item
+msgid "Pokémon GO mini tin"
+msgstr "Pokémon GO Mini Tin"
+
+#. contents item
+msgid "Pokémon keychain card holder"
+msgstr "Pokémon kulcstartós kártyatartó"
+
+#. contents item
+msgid "poradnik dla początkujących"
+msgstr "útmutató kezdőknek"
+
+#. contents item
+msgid "porcelanowy talerz z metalowym stojakiem"
+msgstr "porcelántányér fém állvánnyal"
+
+#. contents item
+msgid "Prismatic Evolutions mini tin"
+msgstr "Prismatic Evolutions Mini Tin"
+
+#. contents item
+msgid "przewodnik ulepszania talii"
+msgstr "paklifejlesztési útmutató"
+
+#. contents item
+msgid "przezroczysta folia na kartę"
+msgstr "átlátszó kártyavédő fólia"
+
+#. contents item
+msgid "pudełko na akcesoria"
+msgstr "kiegészítőtartó doboz"
+
+#. contents item
+msgid "pudełko na znaczniki obrażeń"
+msgstr "sebzésszámláló-tartó doboz"
+
+#. contents item
+msgid "ramka do ekspozycji (zestaw)"
+msgstr "bemutatókeret (készlet)"
+
+#. contents item
+msgid "ramka do ekspozycji karty"
+msgstr "kártya-bemutatókeret"
+
+#. contents item
+msgid "ramka ekspozycyjna Adaman"
+msgstr "Adaman bemutatókeret"
+
+#. contents item
+msgid "ramka ekspozycyjna Irida"
+msgstr "Irida bemutatókeret"
+
+#. contents item
+msgid "ramka na dwie karty"
+msgstr "keret két kártyához"
+
+#. contents item
+msgid "sidekick dangler featuring Chien-Pao"
+msgstr "Chien-Pao függődísz (sidekick dangler)"
+
+#. contents item
+msgid "silikonowe etui na kartę z motywem Pokémon"
+msgstr "Pokémon mintás szilikon kártyatok"
+
+#. contents item
+msgid "skrócona instrukcja gry"
+msgstr "rövidített játékszabály"
+
+#. contents item
+msgid "stały zestaw 172 kart (51 rodzajów: 13 Pokémon, 59 trenerów, 4 energie specjalne, 96 energii podstawowych)"
+msgstr "fix, 172 lapos készlet (51 féle: 13 Pokémon, 59 Edző, 4 speciális energia, 96 alapenergia)"
+
+#. contents item
+msgid "Unova mini tin"
+msgstr "Unova Mini Tin"
+
+#. contents item
+msgid "White Flare card list"
+msgstr "White Flare kártyalista"
+
+#. contents item
+msgid "zawieszka z ramką na kartę wypełnioną płynem"
+msgstr "függő folyadékkal töltött kártyakerettel"
+
+#. contents item
+msgid "znacznik oparzenia"
+msgstr "égésjelölő"
+
+#. contents item
+msgid "znacznik VSTAR"
+msgstr "VSTAR-jelölő"
+
+#. contents item
+msgid "znacznik zatrucia"
+msgstr "mérgezésjelölő"
+
+#. contents item
+msgid "znaczniki"
+msgstr "jelölők"
+
+#. contents item
+msgid "znaczniki premium (trucizna, poparzenie)"
+msgstr "prémium jelölők (mérgezés, égés)"
+
+#. contents item
+msgid "ściągawka strategii talii"
+msgstr "paklistratégiai lap"
+
+#. contents item
+msgid "żetony obrażeń"
+msgstr "sebzésszámlálók"
+
+#. deck
+msgid "40 kart (1 z 4 wersji)"
+msgstr "40 lapos (4 változat közül 1)"
+
+#. deck
+msgid "40 kart (2 z 4 losowych grup kart)"
+msgstr "40 lapos (4 véletlenszerű kártyacsoportból 2)"
+
+#. deck
+msgid "Build & Battle (40 kart)"
+msgstr "Build & Battle (40 lapos)"
+
+#. deck
+msgid "Build & Battle 40-card deck"
+msgstr "Build & Battle 40 lapos"
+
+#. deck
+msgid "Destined Rivals prerelease deck"
+msgstr "Destined Rivals prerelease"
+
+#. deck
+msgid "Journey Together Build & Battle deck"
+msgstr "Journey Together Build & Battle"
+
+#. deck
+msgid "losowa talia (60 kart, co najmniej 2 karty Pokémon ex)"
+msgstr "véletlenszerű (60 lapos, legalább 2 Pokémon ex kártyával)"
+
+#. deck
+msgid "Ondřej Škubal — ADP (60 kart)"
+msgstr "Ondřej Škubal — ADP (60 lapos)"
+
+#. energy slot of a booster
+msgid "Basic Energy (foil)"
+msgstr "alapenergia (foil)"
+
+#. energy slot of a booster
+msgid "Basic Energy lub znacznik VSTAR"
+msgstr "alapenergia vagy VSTAR-jelölő"
+
+#. oversize card
+msgid "Koraidon ex lub Miraidon ex (losowo)"
+msgstr "Koraidon ex vagy Miraidon ex (véletlenszerű)"
+
+#. promo card
+msgid "1 z 4 losowych w każdej talii: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
+msgstr "paklinként 1 véletlenszerű a 4 közül: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
+
+#. promo card
+msgid "1 z 4 losowych w każdej talii: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
+msgstr "paklinként 1 véletlenszerű a 4 közül: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
+
+#. promo card
+msgid "1 z 4 losowych w każdej talii: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
+msgstr "paklinként 1 véletlenszerű a 4 közül: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
+
+#. promo card
+msgid "1 z 4 losowych w każdej talii: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
+msgstr "paklinként 1 véletlenszerű a 4 közül: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
+
+#. promo card
+msgid "1 z 4 losowych w każdej talii: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
+msgstr "paklinként 1 véletlenszerű a 4 közül: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
+
+#. promo card
+msgid "Bulbasaur (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
+msgstr "Bulbasaur (holo, Poké Ball minta; 99-ből 1 Master Ball mintás)"
+
+#. promo card
+msgid "Charmander (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
+msgstr "Charmander (holo, Poké Ball minta; 99-ből 1 Master Ball mintás)"
+
+#. promo card
+msgid "Eevee (karta holo)"
+msgstr "Eevee (holo)"
+
+#. promo card
+msgid "Espeon (karta holo)"
+msgstr "Espeon (holo)"
+
+#. promo card
+msgid "First Partner promo card (3 of 9, random)"
+msgstr "First Partner (9 közül 3, véletlenszerű)"
+
+#. promo card
+msgid "Flareon (karta holo)"
+msgstr "Flareon (holo)"
+
+#. promo card
+msgid "Foil promo, one of four: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
+msgstr "foil, négy közül egy: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
+
+#. promo card
+msgid "Glaceon (karta holo)"
+msgstr "Glaceon (holo)"
+
+#. promo card
+msgid "Jolteon (karta holo)"
+msgstr "Jolteon (holo)"
+
+#. promo card
+msgid "Leafeon (karta holo)"
+msgstr "Leafeon (holo)"
+
+#. promo card
+msgid "losowa (1 z 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
+msgstr "véletlenszerű (4 közül 1: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
+
+#. promo card
+msgid "losowa (1 z 4: Delphox, Ampharos, Crobat, Goodra – MEP 074–077)"
+msgstr "véletlenszerű (4 közül 1: Delphox, Ampharos, Crobat, Goodra – MEP 074–077)"
+
+#. promo card
+msgid "losowa (1 z 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
+msgstr "véletlenszerű (4 közül 1: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
+
+#. promo card
+msgid "losowa First Partner (3 z 9: MEP 046–054)"
+msgstr "véletlenszerű First Partner (9 közül 3: MEP 046–054)"
+
+#. promo card
+msgid "losowa First Partner (3 z 9: MEP 055–063)"
+msgstr "véletlenszerű First Partner (9 közül 3: MEP 055–063)"
+
+#. promo card
+msgid "losowa karta First Partner (1 z 9: startery z Hoenn, Kalos i Paldei)"
+msgstr "véletlenszerű First Partner (9 közül 1: hoenni, kalosi és paldeai kezdő Pokémonok)"
+
+#. promo card
+msgid "losowa karta First Partner (1 z 9: startery z Johto, Unovy i Galaru)"
+msgstr "véletlenszerű First Partner (9 közül 1: johtói, unovai és galari kezdő Pokémonok)"
+
+#. promo card
+msgid "losowa karta First Partner (1 z 9: startery z Kanto, Sinnoh i Aloli)"
+msgstr "véletlenszerű First Partner (9 közül 1: kantói, sinnoh-i és alolai kezdő Pokémonok)"
+
+#. promo card
+msgid "losowa karta holo z dodatku Stellar Crystal (1 z 30)"
+msgstr "véletlenszerű Stellar Crystal holo (30 közül 1)"
+
+#. promo card
+msgid "losowa karta legendarnego lub mitycznego Pokémona (holo)"
+msgstr "véletlenszerű legendás vagy mitikus Pokémon (holo)"
+
+#. promo card
+msgid "losowa karta Pikachu (holo)"
+msgstr "véletlenszerű Pikachu (holo)"
+
+#. promo card
+msgid "losowa: Sprigatito, Fuecoco, Quaxly, Ralts lub Riolu"
+msgstr "véletlenszerű: Sprigatito, Fuecoco, Quaxly, Ralts vagy Riolu"
+
+#. promo card
+msgid "Mega Charizard X ex or Mega Charizard Y ex"
+msgstr "Mega Charizard X ex vagy Mega Charizard Y ex"
+
+#. promo card
+msgid "one of four foil promos: Chien-Pao, Gouging Fire, Indeedee or Magneton"
+msgstr "foil, négy közül egy: Chien-Pao, Gouging Fire, Indeedee vagy Magneton"
+
+#. promo card
+msgid "one of four unique foil promos: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
+msgstr "egyedi foil, négy közül egy: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
+
+#. promo card
+msgid "Pikachu ex (2 różne, po 1)"
+msgstr "Pikachu ex (2 különböző, mindegyikből 1)"
+
+#. promo card
+msgid "promo cards"
+msgstr "különféle"
+
+#. promo card
+msgid "Squirtle (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
+msgstr "Squirtle (holo, Poké Ball minta; 99-ből 1 Master Ball mintás)"
+
+#. promo card
+msgid "Stamped promo card (Sprigatito, Fuecoco or Quaxly, one at random)"
+msgstr "pecsétes (Sprigatito, Fuecoco vagy Quaxly, egy véletlenszerűen)"
+
+#. promo card
+msgid "Stellar Tera foil promo (random: Eevee or an Eeveelution ex, 1 of 9)"
+msgstr "Stellar Tera foil (véletlenszerű: Eevee vagy egy Eevee-evolúció ex, 9 közül 1)"
+
+#. promo card
+msgid "Sylveon (karta holo)"
+msgstr "Sylveon (holo)"
+
+#. promo card
+msgid "Umbreon (karta holo)"
+msgstr "Umbreon (holo)"
+
+#. promo card
+msgid "Vaporeon (karta holo)"
+msgstr "Vaporeon (holo)"
+
+#. retail deal note
+msgid "do wyczerpania zapasów"
+msgstr "a készlet erejéig"
+
+#. retail deal note
+msgid "gazetka Smyka"
+msgstr "Smyk akciós újság"
+
+#. retail deal note
+msgid "gazetka Smyka; wariant zestawu niepodany"
+msgstr "Smyk akciós újság; a készlet változata nincs megadva"
+
+#. retail deal note
+msgid "online, taniej w aplikacji; wybrane wzory puszek"
+msgstr "online, az appban olcsóbb; egyes tinmintákra"
+
+#. retail deal note
+msgid "różne zestawy do wyboru; do wyczerpania zapasów"
+msgstr "többféle csomag közül lehet választani; a készlet erejéig"
+
+#. retail deal note
+msgid "salony stacjonarne; z Empik Premium -15%: 297,49 zł"
+msgstr "Empik üzletekben; Empik Premiummal -15%: 297,49 zł"
+
+#. retail deal note
+msgid "tylko online"
+msgstr "csak online"
+
+#. retail deal note
+msgid "tylko stacjonarnie"
+msgstr "csak üzletben"
+
+#. retail deal note
+msgid "tylko stacjonarnie; do wyczerpania zapasów"
+msgstr "csak üzletben; a készlet erejéig"
+
+#. retail deal note
+msgid "tylko stacjonarnie; online 199,99 zł"
+msgstr "csak üzletben; online 199,99 zł"
+
+#. retail deal note
+msgid "wybrane sklepy"
+msgstr "egyes üzletekben"

@@ -27,31 +27,42 @@ defmodule TcgCheapWeb.ContentsComponents do
 
   def generic_contents_photo(_item), do: nil
 
-  @doc "What a sealed product's contents item is called, in a sentence."
+  @doc """
+  What a sealed product's contents item is called, in a sentence. A recorded
+  name is shown in the page language (`TcgCheapWeb.Format.recorded/1`).
+  """
   def contents_item_label(%{type: :booster, name: nil}), do: gettext("booster")
-  def contents_item_label(%{type: :booster, name: set}), do: gettext("booster %{set}", set: set)
+
+  def contents_item_label(%{type: :booster, name: set}),
+    do: gettext("booster %{set}", set: Format.recorded(set))
+
   def contents_item_label(%{type: :promo_card, name: nil}), do: gettext("karta promo")
 
   def contents_item_label(%{type: :promo_card, name: card}),
-    do: gettext("karta promo %{card}", card: card)
+    do: gettext("karta promo %{card}", card: Format.recorded(card))
 
   def contents_item_label(%{type: :oversize_card, name: nil}), do: gettext("duża karta")
 
   def contents_item_label(%{type: :oversize_card, name: card}),
-    do: gettext("duża karta %{card}", card: card)
+    do: gettext("duża karta %{card}", card: Format.recorded(card))
 
   def contents_item_label(%{type: :card, name: nil}), do: gettext("karta")
-  def contents_item_label(%{type: :card, name: card}), do: gettext("karta %{card}", card: card)
+
+  def contents_item_label(%{type: :card, name: card}),
+    do: gettext("karta %{card}", card: Format.recorded(card))
 
   def contents_item_label(%{type: :deck, variants: [_ | _] = variants}),
     do: gettext("talia losowa (1 z %{count})", count: length(variants))
 
   def contents_item_label(%{type: :deck, name: nil}), do: gettext("talia gotowa do gry")
-  def contents_item_label(%{type: :deck, name: deck}), do: gettext("talia %{deck}", deck: deck)
+
+  def contents_item_label(%{type: :deck, name: deck}),
+    do: gettext("talia %{deck}", deck: Format.recorded(deck))
+
   def contents_item_label(%{type: :sleeves}), do: gettext("koszulki na karty")
   # A booster's single energy slot can hold something else, as its name says.
   def contents_item_label(%{type: :energy_cards, quantity: 1, name: name}) when is_binary(name),
-    do: name
+    do: Format.recorded(name)
 
   def contents_item_label(%{type: :energy_cards, quantity: 1}), do: gettext("karta energii")
   def contents_item_label(%{type: :energy_cards}), do: gettext("karty energii")
@@ -71,7 +82,7 @@ defmodule TcgCheapWeb.ContentsComponents do
   def contents_item_label(%{type: :figure}), do: gettext("figurka")
   def contents_item_label(%{type: :binder}), do: gettext("album")
   def contents_item_label(%{type: :playmat}), do: gettext("mata do gry")
-  def contents_item_label(%{type: :other, name: name}), do: name
+  def contents_item_label(%{type: :other, name: name}), do: Format.recorded(name)
 
   attr :contents, :map, required: true
   attr :boosters, :map, required: true

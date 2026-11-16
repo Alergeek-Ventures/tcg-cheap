@@ -473,7 +473,13 @@ defmodule TcgCheapWeb.PageMarkdown do
             ),
             Format.price(deal.price),
             Enum.join(
-              Enum.reject([Format.days(deal.starts_on, deal.ends_on), deal.note], &is_nil/1),
+              Enum.reject(
+                [
+                  Format.days(deal.starts_on, deal.ends_on),
+                  deal.note && Format.recorded(deal.note)
+                ],
+                &is_nil/1
+              ),
               ", "
             ),
             link(gettext("źródło"), deal.source_url)

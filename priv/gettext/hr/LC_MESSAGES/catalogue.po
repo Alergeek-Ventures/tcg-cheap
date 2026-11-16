@@ -1,0 +1,1644 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: hr\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100 != 11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
+
+#. booster
+msgid "30th Celebration (6 kart)"
+msgstr "30th Celebration (6 karata)"
+
+#. booster
+msgid "Azure Shadow (25 kart; Roar lub Pursuit)"
+msgstr "Azure Shadow (25 karata; Roar ili Pursuit)"
+
+#. booster
+msgid "Battle Partners (5 kart)"
+msgstr "Battle Partners (5 karata)"
+
+#. booster
+msgid "Blade Awakening (5 kart)"
+msgstr "Blade Awakening (5 karata)"
+
+#. booster
+msgid "Bonus Round (5 kart)"
+msgstr "Bonus Round (5 karata)"
+
+#. booster
+msgid "Brave Stars (25 kart; Charm lub Brave)"
+msgstr "Brave Stars (25 karata; Charm ili Brave)"
+
+#. booster
+msgid "Brilliant Fantasy (5 kart)"
+msgstr "Brilliant Fantasy (5 karata)"
+
+#. booster
+msgid "Brilliant Fantasy (jumbo, 20 kart)"
+msgstr "Brilliant Fantasy (jumbo, 20 karata)"
+
+#. booster
+msgid "Chasing Glory Together (20 kart)"
+msgstr "Chasing Glory Together (20 karata)"
+
+#. booster
+msgid "Chasing Glory Together (5 kart)"
+msgstr "Chasing Glory Together (5 karata)"
+
+#. booster
+msgid "Collect 151 Gathering (20 kart)"
+msgstr "Collect 151 Gathering (20 karata)"
+
+#. booster
+msgid "Collect 151 Hope (20 kart)"
+msgstr "Collect 151 Hope (20 karata)"
+
+#. booster
+msgid "Collect 151 Hope (5 kart)"
+msgstr "Collect 151 Hope (5 karata)"
+
+#. booster
+msgid "Collect 151 Journey (20 kart)"
+msgstr "Collect 151 Journey (20 karata)"
+
+#. booster
+msgid "Collect 151 Journey (5 kart)"
+msgstr "Collect 151 Journey (5 karata)"
+
+#. booster
+msgid "Collect 151 Surprise (20 kart)"
+msgstr "Collect 151 Surprise (20 karata)"
+
+#. booster
+msgid "Collect 151 Surprise (5 kart)"
+msgstr "Collect 151 Surprise (5 karata)"
+
+#. booster
+msgid "Dark Crystal Blaze (20 kart)"
+msgstr "Dark Crystal Blaze (20 karata)"
+
+#. booster
+msgid "Dark Crystal Blaze (5 kart)"
+msgstr "Dark Crystal Blaze (5 karata)"
+
+#. booster
+msgid "Fearless Terastal (5 kart)"
+msgstr "Fearless Terastal (5 karata)"
+
+#. booster
+msgid "Flame Dance of the End (6 kart)"
+msgstr "Flame Dance of the End (6 karata)"
+
+#. booster
+msgid "Gem Pack Vol. 1 (4 karty holo)"
+msgstr "Gem Pack Vol. 1 (4 holo karte)"
+
+#. booster
+msgid "Gem Pack Vol. 7 (4 karty holo)"
+msgstr "Gem Pack Vol. 7 (4 holo karte)"
+
+#. booster
+msgid "losowe Brave Stars (5 kart, co najmniej 10 z każdej podserii)"
+msgstr "nasumični Brave Stars (5 karata, najmanje 10 iz svake podserije)"
+
+#. booster
+msgid "losowe Brave Stars (jumbo, 25 kart)"
+msgstr "nasumični Brave Stars (jumbo, 25 karata)"
+
+#. booster
+msgid "losowy Primordial Arts (jumbo, 25 kart)"
+msgstr "nasumični Primordial Arts (jumbo, 25 karata)"
+
+#. booster
+msgid "Mega Brave (2 booster boxy)"
+msgstr "Mega Brave (2 booster boxa)"
+
+#. booster
+msgid "Mega Brave (5 kart)"
+msgstr "Mega Brave (5 karata)"
+
+#. booster
+msgid "Mega Symphonia (5 kart)"
+msgstr "Mega Symphonia (5 karata)"
+
+#. booster
+msgid "Nine Colors Gathering (25 kart; Friends lub Origin)"
+msgstr "Nine Colors Gathering (25 karata; Friends ili Origin)"
+
+#. booster
+msgid "Polychromatic Gathering Friend (25 kart)"
+msgstr "Polychromatic Gathering Friend (25 karata)"
+
+#. booster
+msgid "Polychromatic Gathering Origin (25 kart)"
+msgstr "Polychromatic Gathering Origin (25 karata)"
+
+#. booster
+msgid "Radiant Energy Vol. 2 (2 losowe karty)"
+msgstr "Radiant Energy Vol. 2 (2 nasumične karte)"
+
+#. booster
+msgid "Stellar Crystal (20 kart)"
+msgstr "Stellar Crystal (20 karata)"
+
+#. booster
+msgid "Stellar Crystal (5 kart)"
+msgstr "Stellar Crystal (5 karata)"
+
+#. booster
+msgid "Terastal Gathering (10 kart)"
+msgstr "Terastal Gathering (10 karata)"
+
+#. booster
+msgid "Trick or Trade"
+msgstr ""
+
+#. booster
+msgid "True Mystery (5 kart)"
+msgstr "True Mystery (5 karata)"
+
+#. card
+msgid "Matching reverse holo card (random, matches the figure)"
+msgstr "reverse holo koja odgovara figurici (nasumična)"
+
+#. card
+msgid "over 50 cards"
+msgstr "(više od 50 karata)"
+
+#. card
+msgid "Reference cards"
+msgstr "(pomoćna)"
+
+#. card
+msgid "reference cards"
+msgstr "(pomoćna)"
+
+#. card
+msgid "Trainer cards"
+msgstr "tipa Trainer"
+
+#. contents item
+msgid "151 mini tin"
+msgstr "151 Mini Tin"
+
+#. contents item
+msgid "3-card fun pack"
+msgstr "fun pack s 3 karte"
+
+#. contents item
+msgid "accessory box"
+msgstr "kutija za dodatke"
+
+#. contents item
+msgid "akrylowa magnetyczna ramka na kartę"
+msgstr "magnetski akrilni okvir za kartu"
+
+#. contents item
+msgid "akrylowy ekspozytor na kartę"
+msgstr "akrilni stalak za kartu"
+
+#. contents item
+msgid "akrylowy znacznik TAG TEAM GX"
+msgstr "akrilna oznaka TAG TEAM GX"
+
+#. contents item
+msgid "akrylowy znacznik VSTAR"
+msgstr "akrilna oznaka VSTAR"
+
+#. contents item
+msgid "album na karty z Lillie (10 stron, 80 kart)"
+msgstr "album za karte s motivom Lillie (10 stranica, 80 karata)"
+
+#. contents item
+msgid "album na karty z N (10 stron, 80 kart)"
+msgstr "album za karte s motivom N (10 stranica, 80 karata)"
+
+#. contents item
+msgid "arkusz akrylowych figurek na podstawkach"
+msgstr "list s akrilnim figuricama na postoljima"
+
+#. contents item
+msgid "arkusz informacyjny"
+msgstr "informativni list"
+
+#. contents item
+msgid "arkusz papierowych żetonów obrażeń"
+msgstr "list papirnatih brojača štete"
+
+#. contents item
+msgid "arkusz żetonów obrażeń i znaczników"
+msgstr "list brojača štete i oznaka"
+
+#. contents item
+msgid "arkusz żetonów obrażeń i znaczników stanów"
+msgstr "list brojača štete i oznaka stanja"
+
+#. contents item
+msgid "booster Pokémon TCG (różne dodatki)"
+msgstr "Pokémon TCG booster (razni setovi)"
+
+#. contents item
+msgid "booster z serii Sword & Shield (różne dodatki)"
+msgstr "booster iz serije Sword & Shield (razni setovi)"
+
+#. contents item
+msgid "broszura World Championships 2022"
+msgstr "brošura World Championships 2022"
+
+#. contents item
+msgid "broszura World Championships 2024"
+msgstr "brošura World Championships 2024"
+
+#. contents item
+msgid "broszura World Championships 2025"
+msgstr "brošura World Championships 2025"
+
+#. contents item
+msgid "czerwona koperta (hongbao)"
+msgstr "crvena omotnica (hongbao)"
+
+#. contents item
+msgid "display 36 boosterów Pitch Black"
+msgstr "Pitch Black display s 36 boostera"
+
+#. contents item
+msgid "dodatkowe karty Trenera"
+msgstr "dodatne Trainer karte"
+
+#. contents item
+msgid "dwustronne tekturowe tło do ekspozycji"
+msgstr "dvostrana kartonska pozadina za izlaganje"
+
+#. contents item
+msgid "dwustronne tło do ekspozycji"
+msgstr "dvostrana pozadina za izlaganje"
+
+#. contents item
+msgid "dwustronny plakat"
+msgstr "dvostrani poster"
+
+#. contents item
+msgid "dwustronny plakat (ok. 68 × 99 cm)"
+msgstr "dvostrani poster (oko 68 × 99 cm)"
+
+#. contents item
+msgid "dwustronny plakat 151"
+msgstr "dvostrani poster 151"
+
+#. contents item
+msgid "dwustronny plakat, około 68 × 99 cm"
+msgstr "dvostrani poster, oko 68 × 99 cm"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Ascended Heroes"
+msgstr "Ascended Heroes Elite Trainer Box"
+
+#. contents item
+msgid "etui na kartę z motywem Greninja"
+msgstr "futrola za kartu s motivom Greninje"
+
+#. contents item
+msgid "etui na kartę z motywem Sylveon"
+msgstr "futrola za kartu s motivom Sylveona"
+
+#. contents item
+msgid "etui na matę"
+msgstr "futrola za podlogu za igru"
+
+#. contents item
+msgid "Full-art foil promo card featuring Scream Tail or Iron Bundle"
+msgstr "full art foil promo karta (Scream Tail ili Iron Bundle)"
+
+#. contents item
+msgid "gumka do ścierania z Bellibolt"
+msgstr "gumica za brisanje s motivom Bellibolta"
+
+#. contents item
+msgid "gumka do ścierania z Gengar"
+msgstr "gumica za brisanje s motivom Gengara"
+
+#. contents item
+msgid "gumka do ścierania z Lechonk"
+msgstr "gumica za brisanje s motivom Lechonka"
+
+#. contents item
+msgid "gumka do ścierania z Smoliv"
+msgstr "gumica za brisanje s motivom Smoliva"
+
+#. contents item
+msgid "Journey Together Enhanced Booster Box"
+msgstr ""
+
+#. contents item
+msgid "karta holo pasującego Pokémona ze wzorem Poké Balla (Master Ball 1:99)"
+msgstr "holo karta odgovarajućeg Pokémona s uzorkom Poké Balla (Master Ball 1:99)"
+
+#. contents item
+msgid "karta Lisia's Appeal (Special Illustration holo)"
+msgstr ""
+
+#. contents item
+msgid "karta Pikachu pasująca do figurki"
+msgstr "karta Pikachu koja odgovara figurici"
+
+#. contents item
+msgid "karta Pokémon pasująca do figurki"
+msgstr "Pokémon karta koja odgovara figurici"
+
+#. contents item
+msgid "karta Pokémon Tool (foil)"
+msgstr "Pokémon Tool karta (foil)"
+
+#. contents item
+msgid "karta pomocnicza"
+msgstr "pomoćna karta"
+
+#. contents item
+msgid "karta pomocnicza z zasadami"
+msgstr "pomoćna karta s pravilima"
+
+#. contents item
+msgid "karta promo z talii (Miraidon, Dhelmise, Slowbro lub Bastiodon)"
+msgstr "promo karta iz špila (Miraidon, Dhelmise, Slowbro ili Bastiodon)"
+
+#. contents item
+msgid "karta z ilustracją z minipuszki"
+msgstr "ilustracijska karta iz Mini Tina"
+
+#. contents item
+msgid "karta z ilustracją z puszki"
+msgstr "ilustracijska karta iz tina"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Alomomola)"
+msgstr "ilustracijska karta iz tina (Alomomola)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Arcanine i Omanyte)"
+msgstr "ilustracijska karta iz tina (Arcanine i Omanyte)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Blissey)"
+msgstr "ilustracijska karta iz tina (Blissey)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Clefairy i Chikorita)"
+msgstr "ilustracijska karta iz tina (Clefairy i Chikorita)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Electabuzz i Magnemite)"
+msgstr "ilustracijska karta iz tina (Electabuzz i Magnemite)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Emboar i Inkay)"
+msgstr "ilustracijska karta iz tina (Emboar i Inkay)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Espeon i Meowth)"
+msgstr "ilustracijska karta iz tina (Espeon i Meowth)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Espeon)"
+msgstr "ilustracijska karta iz tina (Espeon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Feraligatr i Budew)"
+msgstr "ilustracijska karta iz tina (Feraligatr i Budew)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Flareon)"
+msgstr "ilustracijska karta iz tina (Flareon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Gallade i Goomy)"
+msgstr "ilustracijska karta iz tina (Gallade i Goomy)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Garbodor)"
+msgstr "ilustracijska karta iz tina (Garbodor)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Glaceon)"
+msgstr "ilustracijska karta iz tina (Glaceon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Greninja i Volbeat)"
+msgstr "ilustracijska karta iz tina (Greninja i Volbeat)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Jolteon)"
+msgstr "ilustracijska karta iz tina (Jolteon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Kadabra)"
+msgstr "ilustracijska karta iz tina (Kadabra)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Krookodile)"
+msgstr "ilustracijska karta iz tina (Krookodile)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Lapras i Drifloon)"
+msgstr "ilustracijska karta iz tina (Lapras i Drifloon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Leafeon)"
+msgstr "ilustracijska karta iz tina (Leafeon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Lilligant)"
+msgstr "ilustracijska karta iz tina (Lilligant)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Magikarp)"
+msgstr "ilustracijska karta iz tina (Magikarp)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Meganium i samica Meowstic)"
+msgstr "ilustracijska karta iz tina (Meganium i Meowstic (ženka))"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Mew i Alolan Exeggutor)"
+msgstr "ilustracijska karta iz tina (Mew i Alolan Exeggutor)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Mewtwo i Scraggy)"
+msgstr "ilustracijska karta iz tina (Mewtwo i Scraggy)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Mienshao)"
+msgstr "ilustracijska karta iz tina (Mienshao)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Moltres i Articuno)"
+msgstr "ilustracijska karta iz tina (Moltres i Articuno)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Munchlax)"
+msgstr "ilustracijska karta iz tina (Munchlax)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Pikachu i Tepig)"
+msgstr "ilustracijska karta iz tina (Pikachu i Tepig)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Pikachu i Toxtricity)"
+msgstr "ilustracijska karta iz tina (Pikachu i Toxtricity)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Pikachu i Vivillon)"
+msgstr "ilustracijska karta iz tina (Pikachu i Vivillon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Pikachu)"
+msgstr "ilustracijska karta iz tina (Pikachu)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Piplup)"
+msgstr "ilustracijska karta iz tina (Piplup)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Riolu i Darumaka)"
+msgstr "ilustracijska karta iz tina (Riolu i Darumaka)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Salamence i Litleo)"
+msgstr "ilustracijska karta iz tina (Salamence i Litleo)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Scyther i Weezing)"
+msgstr "ilustracijska karta iz tina (Scyther i Weezing)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Slowpoke i Sandshrew)"
+msgstr "ilustracijska karta iz tina (Slowpoke i Sandshrew)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Snorlax)"
+msgstr "ilustracijska karta iz tina (Snorlax)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (startery z Aloli)"
+msgstr "ilustracijska karta iz tina (starteri iz regije Alola)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (startery z Galaru)"
+msgstr "ilustracijska karta iz tina (starteri iz regije Galar)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (startery z Hoenn)"
+msgstr "ilustracijska karta iz tina (starteri iz regije Hoenn)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (startery z Sinnoh)"
+msgstr "ilustracijska karta iz tina (starteri iz regije Sinnoh)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (startery z Unovy)"
+msgstr "ilustracijska karta iz tina (starteri iz regije Unova)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Sylveon)"
+msgstr "ilustracijska karta iz tina (Sylveon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Togepi i Totodile)"
+msgstr "ilustracijska karta iz tina (Togepi i Totodile)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Umbreon i Alolan Meowth)"
+msgstr "ilustracijska karta iz tina (Umbreon i Alolan Meowth)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Umbreon)"
+msgstr "ilustracijska karta iz tina (Umbreon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Vaporeon)"
+msgstr "ilustracijska karta iz tina (Vaporeon)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Volcarona)"
+msgstr "ilustracijska karta iz tina (Volcarona)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Zapdos i Hisuian Zorua)"
+msgstr "ilustracijska karta iz tina (Zapdos i Hisuian Zorua)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Zorua i Chandelure)"
+msgstr "ilustracijska karta iz tina (Zorua i Chandelure)"
+
+#. contents item
+msgid "karta z ilustracją z puszki (Zorua i Cramorant)"
+msgstr "ilustracijska karta iz tina (Zorua i Cramorant)"
+
+#. contents item
+msgid "karta z ilustracją z puszki Finizen"
+msgstr "ilustracijska karta Finizen iz tina"
+
+#. contents item
+msgid "karta z ilustracją z puszki Flamigo"
+msgstr "ilustracijska karta Flamigo iz tina"
+
+#. contents item
+msgid "karta z ilustracją z puszki Kangaskhan"
+msgstr "ilustracijska karta Kangaskhan iz tina"
+
+#. contents item
+msgid "karta z ilustracją z puszki Mega Gardevoir"
+msgstr "ilustracijska karta Mega Gardevoir iz tina"
+
+#. contents item
+msgid "karta z ilustracją z puszki Mega Lucario"
+msgstr "ilustracijska karta Mega Lucario iz tina"
+
+#. contents item
+msgid "karta z ilustracją z puszki Smoliv"
+msgstr "ilustracijska karta Smoliv iz tina"
+
+#. contents item
+msgid "karta z ilustracją z puszki Tinkatink"
+msgstr "ilustracijska karta Tinkatink iz tina"
+
+#. contents item
+msgid "karta z ilustracją z puszki Venusaur"
+msgstr "ilustracijska karta Venusaur iz tina"
+
+#. contents item
+msgid "karty pomocnicze z zasadami"
+msgstr "pomoćne karte s pravilima"
+
+#. contents item
+msgid "koszulka ochronna na kartę"
+msgstr "košuljica za kartu"
+
+#. contents item
+msgid "lista kontrolna kart"
+msgstr "kontrolni popis karata"
+
+#. contents item
+msgid "losowa figurka Eevee lub jego ewolucji (1 z 10, w tym 1 ukryta)"
+msgstr "nasumična figurica Eeveeja ili jedne od njegovih evolucija (1 od 10, uključujući 1 tajnu)"
+
+#. contents item
+msgid "losowa figurka Pikachu (1 z 13, w tym 1 ukryta)"
+msgstr "nasumična figurica Pikachua (1 od 13, uključujući 1 tajnu)"
+
+#. contents item
+msgid "losowa karta holo z dodatku 30th Celebration"
+msgstr "nasumična holo karta iz seta 30th Celebration"
+
+#. contents item
+msgid "losowa karta holo z dodatku Blade Awakening (1 z 30)"
+msgstr "nasumična holo karta iz seta Blade Awakening (1 od 30)"
+
+#. contents item
+msgid "losowa karta holo z dodatku Brilliant Fantasy (1 z 30)"
+msgstr "nasumična holo karta iz seta Brilliant Fantasy (1 od 30)"
+
+#. contents item
+msgid "losowa karta holo z dodatku Chasing Glory Together (1 z 30)"
+msgstr "nasumična holo karta iz seta Chasing Glory Together (1 od 30)"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 1"
+msgstr "nasumična holo karta iz seta Gem Pack Vol. 1"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 2"
+msgstr "nasumična holo karta iz seta Gem Pack Vol. 2"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 3"
+msgstr "nasumična holo karta iz seta Gem Pack Vol. 3"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 4"
+msgstr "nasumična holo karta iz seta Gem Pack Vol. 4"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 5"
+msgstr "nasumična holo karta iz seta Gem Pack Vol. 5"
+
+#. contents item
+msgid "losowa karta holo z dodatku Gem Pack Vol. 6"
+msgstr "nasumična holo karta iz seta Gem Pack Vol. 6"
+
+#. contents item
+msgid "losowa karta Pikachu (jedna z 30 wersji)"
+msgstr "nasumična karta Pikachu (jedna od 30 verzija)"
+
+#. contents item
+msgid "losowa karta Special Illustration holo (1 z 13 lub ukryty Pikachu)"
+msgstr "nasumična Special Illustration holo karta (1 od 13 ili tajni Pikachu)"
+
+#. contents item
+msgid "losowa karta Special Illustration holo (1 z 13, w tym ukryty Flareon)"
+msgstr "nasumična Special Illustration holo karta (1 od 13, uključujući tajni Flareon)"
+
+#. contents item
+msgid "losowa karta Special Illustration holo (1 z 8)"
+msgstr "nasumična Special Illustration holo karta (1 od 8)"
+
+#. contents item
+msgid "losowa karta z dodatku 151"
+msgstr "nasumična karta iz seta 151"
+
+#. contents item
+msgid "losowa karta z dodatku 30th Celebration"
+msgstr "nasumična karta iz seta 30th Celebration"
+
+#. contents item
+msgid "losowa karta z dodatku Abyss Eye"
+msgstr "nasumična karta iz seta Abyss Eye"
+
+#. contents item
+msgid "losowa karta z dodatku Ancient Roar"
+msgstr "nasumična karta iz seta Ancient Roar"
+
+#. contents item
+msgid "losowa karta z dodatku Ascended Heroes"
+msgstr "nasumična karta iz seta Ascended Heroes"
+
+#. contents item
+msgid "losowa karta z dodatku Astral Radiance"
+msgstr "nasumična karta iz seta Astral Radiance"
+
+#. contents item
+msgid "losowa karta z dodatku Battle Partners"
+msgstr "nasumična karta iz seta Battle Partners"
+
+#. contents item
+msgid "losowa karta z dodatku Battle Region"
+msgstr "nasumična karta iz seta Battle Region"
+
+#. contents item
+msgid "losowa karta z dodatku Battle Styles"
+msgstr "nasumična karta iz seta Battle Styles"
+
+#. contents item
+msgid "losowa karta z dodatku Black Bolt"
+msgstr "nasumična karta iz seta Black Bolt"
+
+#. contents item
+msgid "losowa karta z dodatku Blade Awakening (w tym 1 holo)"
+msgstr "nasumična karta iz seta Blade Awakening (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Bonus Round (w tym 1 holo)"
+msgstr "nasumična karta iz seta Bonus Round (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Brilliant Counterattack (w tym 2 holo)"
+msgstr "nasumična karta iz seta Brilliant Counterattack (od toga 2 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Brilliant Fantasy (w tym 1 holo)"
+msgstr "nasumična karta iz seta Brilliant Fantasy (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Brilliant Fantasy (w tym 6 holo)"
+msgstr "nasumična karta iz seta Brilliant Fantasy (od toga 6 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Brilliant Stars"
+msgstr "nasumična karta iz seta Brilliant Stars"
+
+#. contents item
+msgid "losowa karta z dodatku Celebrations"
+msgstr "nasumična karta iz seta Celebrations"
+
+#. contents item
+msgid "losowa karta z dodatku Chaos Rising"
+msgstr "nasumična karta iz seta Chaos Rising"
+
+#. contents item
+msgid "losowa karta z dodatku Chasing Glory Together (w tym 1 holo)"
+msgstr "nasumična karta iz seta Chasing Glory Together (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Chasing Glory Together (w tym 6 holo)"
+msgstr "nasumična karta iz seta Chasing Glory Together (od toga 6 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Chilling Reign"
+msgstr "nasumična karta iz seta Chilling Reign"
+
+#. contents item
+msgid "losowa karta z dodatku Clay Burst"
+msgstr "nasumična karta iz seta Clay Burst"
+
+#. contents item
+msgid "losowa karta z dodatku Collect 151 Gathering (w tym 1 holo)"
+msgstr "nasumična karta iz seta Collect 151 Gathering (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Collect 151 Journey (w tym 1 holo)"
+msgstr "nasumična karta iz seta Collect 151 Journey (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Collect 151 Journey (w tym 7 holo)"
+msgstr "nasumična karta iz seta Collect 151 Journey (od toga 7 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Crimson Haze"
+msgstr "nasumična karta iz seta Crimson Haze"
+
+#. contents item
+msgid "losowa karta z dodatku Crown Zenith"
+msgstr "nasumična karta iz seta Crown Zenith"
+
+#. contents item
+msgid "losowa karta z dodatku Cyber Judge"
+msgstr "nasumična karta iz seta Cyber Judge"
+
+#. contents item
+msgid "losowa karta z dodatku Dark Crystal Blaze (w tym 1 holo)"
+msgstr "nasumična karta iz seta Dark Crystal Blaze (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Dark Crystal Blaze (w tym 6 holo)"
+msgstr "nasumična karta iz seta Dark Crystal Blaze (od toga 6 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Dark Phantasma"
+msgstr "nasumična karta iz seta Dark Phantasma"
+
+#. contents item
+msgid "losowa karta z dodatku Darkness Ablaze"
+msgstr "nasumična karta iz seta Darkness Ablaze"
+
+#. contents item
+msgid "losowa karta z dodatku Delta Reign"
+msgstr "nasumična karta iz seta Delta Reign"
+
+#. contents item
+msgid "losowa karta z dodatku Destined Rivals"
+msgstr "nasumična karta iz seta Destined Rivals"
+
+#. contents item
+msgid "losowa karta z dodatku Eternal Birth (w tym 1 holo)"
+msgstr "nasumična karta iz seta Eternal Birth (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Evolving Skies"
+msgstr "nasumična karta iz seta Evolving Skies"
+
+#. contents item
+msgid "losowa karta z dodatku Fearless Terastal (w tym 1 holo)"
+msgstr "nasumična karta iz seta Fearless Terastal (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Fusion Arts"
+msgstr "nasumična karta iz seta Fusion Arts"
+
+#. contents item
+msgid "losowa karta z dodatku Fusion Strike"
+msgstr "nasumična karta iz seta Fusion Strike"
+
+#. contents item
+msgid "losowa karta z dodatku Future Flash"
+msgstr "nasumična karta iz seta Future Flash"
+
+#. contents item
+msgid "losowa karta z dodatku Heat Wave Arena"
+msgstr "nasumična karta iz seta Heat Wave Arena"
+
+#. contents item
+msgid "losowa karta z dodatku Hidden Fates"
+msgstr "nasumična karta iz seta Hidden Fates"
+
+#. contents item
+msgid "losowa karta z dodatku Incandescent Arcana"
+msgstr "nasumična karta iz seta Incandescent Arcana"
+
+#. contents item
+msgid "losowa karta z dodatku Inferno X"
+msgstr "nasumična karta iz seta Inferno X"
+
+#. contents item
+msgid "losowa karta z dodatku Journey Together"
+msgstr "nasumična karta iz seta Journey Together"
+
+#. contents item
+msgid "losowa karta z dodatku Lost Abyss"
+msgstr "nasumična karta iz seta Lost Abyss"
+
+#. contents item
+msgid "losowa karta z dodatku Lost Origin"
+msgstr "nasumična karta iz seta Lost Origin"
+
+#. contents item
+msgid "losowa karta z dodatku Mask of Change"
+msgstr "nasumična karta iz seta Mask of Change"
+
+#. contents item
+msgid "losowa karta z dodatku Mega Brave"
+msgstr "nasumična karta iz seta Mega Brave"
+
+#. contents item
+msgid "losowa karta z dodatku MEGA Dream ex"
+msgstr "nasumična karta iz seta MEGA Dream ex"
+
+#. contents item
+msgid "losowa karta z dodatku Mega Evolution"
+msgstr "nasumična karta iz seta Mega Evolution"
+
+#. contents item
+msgid "losowa karta z dodatku Mega Symphonia"
+msgstr "nasumična karta iz seta Mega Symphonia"
+
+#. contents item
+msgid "losowa karta z dodatku Miracle Journey (w tym 1 holo)"
+msgstr "nasumična karta iz seta Miracle Journey (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Night Wanderer"
+msgstr "nasumična karta iz seta Night Wanderer"
+
+#. contents item
+msgid "losowa karta z dodatku Nihil Zero"
+msgstr "nasumična karta iz seta Nihil Zero"
+
+#. contents item
+msgid "losowa karta z dodatku Ninja Spinner"
+msgstr "nasumična karta iz seta Ninja Spinner"
+
+#. contents item
+msgid "losowa karta z dodatku Obsidian Flames"
+msgstr "nasumična karta iz seta Obsidian Flames"
+
+#. contents item
+msgid "losowa karta z dodatku Paldea Evolved"
+msgstr "nasumična karta iz seta Paldea Evolved"
+
+#. contents item
+msgid "losowa karta z dodatku Paldean Fates"
+msgstr "nasumična karta iz seta Paldean Fates"
+
+#. contents item
+msgid "losowa karta z dodatku Paradigm Trigger"
+msgstr "nasumična karta iz seta Paradigm Trigger"
+
+#. contents item
+msgid "losowa karta z dodatku Paradise Dragona"
+msgstr "nasumična karta iz seta Paradise Dragona"
+
+#. contents item
+msgid "losowa karta z dodatku Paradox Rift"
+msgstr "nasumična karta iz seta Paradox Rift"
+
+#. contents item
+msgid "losowa karta z dodatku Perfect Order"
+msgstr "nasumična karta iz seta Perfect Order"
+
+#. contents item
+msgid "losowa karta z dodatku Phantasmal Flames"
+msgstr "nasumična karta iz seta Phantasmal Flames"
+
+#. contents item
+msgid "losowa karta z dodatku Pitch Black"
+msgstr "nasumična karta iz seta Pitch Black"
+
+#. contents item
+msgid "losowa karta z dodatku Pokémon Card 151"
+msgstr "nasumična karta iz seta Pokémon Card 151"
+
+#. contents item
+msgid "losowa karta z dodatku Pokémon GO"
+msgstr "nasumična karta iz seta Pokémon GO"
+
+#. contents item
+msgid "losowa karta z dodatku Prismatic Evolutions"
+msgstr "nasumična karta iz seta Prismatic Evolutions"
+
+#. contents item
+msgid "losowa karta z dodatku Raging Surf"
+msgstr "nasumična karta iz seta Raging Surf"
+
+#. contents item
+msgid "losowa karta z dodatku Ruler of the Black Flame"
+msgstr "nasumična karta iz seta Ruler of the Black Flame"
+
+#. contents item
+msgid "losowa karta z dodatku Scarlet & Violet"
+msgstr "nasumična karta iz seta Scarlet & Violet"
+
+#. contents item
+msgid "losowa karta z dodatku Scarlet ex"
+msgstr "nasumična karta iz seta Scarlet ex"
+
+#. contents item
+msgid "losowa karta z dodatku Scorching Skies"
+msgstr "nasumična karta iz seta Scorching Skies"
+
+#. contents item
+msgid "losowa karta z dodatku Shadow of Glory (w tym 2 holo)"
+msgstr "nasumična karta iz seta Shadow of Glory (od toga 2 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Shining Fates"
+msgstr "nasumična karta iz seta Shining Fates"
+
+#. contents item
+msgid "losowa karta z dodatku Shiny Treasure ex"
+msgstr "nasumična karta iz seta Shiny Treasure ex"
+
+#. contents item
+msgid "losowa karta z dodatku Shrouded Fable"
+msgstr "nasumična karta iz seta Shrouded Fable"
+
+#. contents item
+msgid "losowa karta z dodatku Silver Lance"
+msgstr "nasumična karta iz seta Silver Lance"
+
+#. contents item
+msgid "losowa karta z dodatku Silver Tempest"
+msgstr "nasumična karta iz seta Silver Tempest"
+
+#. contents item
+msgid "losowa karta z dodatku Snow Hazard"
+msgstr "nasumična karta iz seta Snow Hazard"
+
+#. contents item
+msgid "losowa karta z dodatku Star Birth"
+msgstr "nasumična karta iz seta Star Birth"
+
+#. contents item
+msgid "losowa karta z dodatku Stellar Crown"
+msgstr "nasumična karta iz seta Stellar Crown"
+
+#. contents item
+msgid "losowa karta z dodatku Stellar Crystal (w tym 1 holo)"
+msgstr "nasumična karta iz seta Stellar Crystal (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Stellar Crystal (w tym 6 holo)"
+msgstr "nasumična karta iz seta Stellar Crystal (od toga 6 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Stellar Miracle"
+msgstr "nasumična karta iz seta Stellar Miracle"
+
+#. contents item
+msgid "losowa karta z dodatku Storm Emeralda"
+msgstr "nasumična karta iz seta Storm Emeralda"
+
+#. contents item
+msgid "losowa karta z dodatku Super Electric Breaker"
+msgstr "nasumična karta iz seta Super Electric Breaker"
+
+#. contents item
+msgid "losowa karta z dodatku Surging Sparks"
+msgstr "nasumična karta iz seta Surging Sparks"
+
+#. contents item
+msgid "losowa karta z dodatku Temporal Forces"
+msgstr "nasumična karta iz seta Temporal Forces"
+
+#. contents item
+msgid "losowa karta z dodatku Terastal Festival ex"
+msgstr "nasumična karta iz seta Terastal Festival ex"
+
+#. contents item
+msgid "losowa karta z dodatku Terastal Gathering (3 lub 4 holo)"
+msgstr "nasumična karta iz seta Terastal Gathering (3 lub 4 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku The Glory of Team Rocket"
+msgstr "nasumična karta iz seta The Glory of Team Rocket"
+
+#. contents item
+msgid "losowa karta z dodatku Trick or Trade 2023"
+msgstr "nasumična karta iz seta Trick or Trade 2023"
+
+#. contents item
+msgid "losowa karta z dodatku Trick or Trade 2024"
+msgstr "nasumična karta iz seta Trick or Trade 2024"
+
+#. contents item
+msgid "losowa karta z dodatku Triplet Beat"
+msgstr "nasumična karta iz seta Triplet Beat"
+
+#. contents item
+msgid "losowa karta z dodatku True Mystery (w tym 1 holo)"
+msgstr "nasumična karta iz seta True Mystery (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Twilight Masquerade"
+msgstr "nasumična karta iz seta Twilight Masquerade"
+
+#. contents item
+msgid "losowa karta z dodatku Victory Star Guide (w tym 2 holo)"
+msgstr "nasumična karta iz seta Victory Star Guide (od toga 2 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Violet ex"
+msgstr "nasumična karta iz seta Violet ex"
+
+#. contents item
+msgid "losowa karta z dodatku Vivid Portrayals (Indigo) (w tym 1 holo)"
+msgstr "nasumična karta iz seta Vivid Portrayals (Indigo) (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Vivid Portrayals (Obsidian) (w tym 1 holo)"
+msgstr "nasumična karta iz seta Vivid Portrayals (Obsidian) (od toga 1 holo)"
+
+#. contents item
+msgid "losowa karta z dodatku Vivid Voltage"
+msgstr "nasumična karta iz seta Vivid Voltage"
+
+#. contents item
+msgid "losowa karta z dodatku VMAX Climax"
+msgstr "nasumična karta iz seta VMAX Climax"
+
+#. contents item
+msgid "losowa karta z dodatku VSTAR Universe"
+msgstr "nasumična karta iz seta VSTAR Universe"
+
+#. contents item
+msgid "losowa karta z dodatku White Flare"
+msgstr "nasumična karta iz seta White Flare"
+
+#. contents item
+msgid "losowa karta z dodatku Wild Force"
+msgstr "nasumična karta iz seta Wild Force"
+
+#. contents item
+msgid "magnes Day Celebration"
+msgstr "magnet Day Celebration"
+
+#. contents item
+msgid "magnes Night Celebration"
+msgstr "magnet Night Celebration"
+
+#. contents item
+msgid "magnetyczna ramka na kartę z podstawką"
+msgstr "magnetski okvir za kartu s postoljem"
+
+#. contents item
+msgid "magnetyczna ramka na trzy karty"
+msgstr "magnetski okvir za tri karte"
+
+#. contents item
+msgid "magnetyczny stojak na trzy karty"
+msgstr "magnetski stalak za tri karte"
+
+#. contents item
+msgid "matching Poké Ball reverse holo card"
+msgstr "odgovarajuća reverse holo karta s uzorkom Poké Balla"
+
+#. contents item
+msgid "Mega Heroes Mini Tin - Gardevoir"
+msgstr ""
+
+#. contents item
+msgid "Mega Heroes Mini Tin - Kangaskhan"
+msgstr ""
+
+#. contents item
+msgid "Mega Heroes Mini Tin - Latias"
+msgstr ""
+
+#. contents item
+msgid "Mega Heroes Mini Tin - Lucario"
+msgstr ""
+
+#. contents item
+msgid "Mega Heroes Mini Tin - Venusaur"
+msgstr ""
+
+#. contents item
+msgid "metalowe znaczniki (trucizna, poparzenie)"
+msgstr "metalne oznake (otrov, opeklina)"
+
+#. contents item
+msgid "metalowy magnes"
+msgstr "metalni magnet"
+
+#. contents item
+msgid "metalowy magnes z motywem Eevee (pasuje do puszki)"
+msgstr "metalni magnet s motivom Eeveeja (pristaje uz tin)"
+
+#. contents item
+msgid "metalowy magnes z motywem Espeon (pasuje do puszki)"
+msgstr "metalni magnet s motivom Espeona (pristaje uz tin)"
+
+#. contents item
+msgid "metalowy magnes z motywem Flareon (pasuje do puszki)"
+msgstr "metalni magnet s motivom Flareona (pristaje uz tin)"
+
+#. contents item
+msgid "metalowy magnes z motywem Glaceon (pasuje do puszki)"
+msgstr "metalni magnet s motivom Glaceona (pristaje uz tin)"
+
+#. contents item
+msgid "metalowy magnes z motywem Jolteon (pasuje do puszki)"
+msgstr "metalni magnet s motivom Jolteona (pristaje uz tin)"
+
+#. contents item
+msgid "metalowy magnes z motywem Leafeon (pasuje do puszki)"
+msgstr "metalni magnet s motivom Leafeona (pristaje uz tin)"
+
+#. contents item
+msgid "metalowy magnes z motywem Umbreon (pasuje do puszki)"
+msgstr "metalni magnet s motivom Umbreona (pristaje uz tin)"
+
+#. contents item
+msgid "metalowy magnes z motywem Vaporeon (pasuje do puszki)"
+msgstr "metalni magnet s motivom Vaporeona (pristaje uz tin)"
+
+#. contents item
+msgid "metalowy piórnik"
+msgstr "metalna pernica"
+
+#. contents item
+msgid "Mid-Autumn compact mirror featuring Umbreon"
+msgstr "Mid-Autumn džepno ogledalce s motivom Umbreona"
+
+#. contents item
+msgid "Mid-Autumn fridge magnet featuring Pikachu, Eevee, Clefairy, and Jirachi"
+msgstr "Mid-Autumn magnet za hladnjak (Pikachu, Eevee, Clefairy i Jirachi)"
+
+#. contents item
+msgid "miniportfolio"
+msgstr "mini portfolio"
+
+#. contents item
+msgid "minipuszka 30th Celebration"
+msgstr "30th Celebration Mini Tin"
+
+#. contents item
+msgid "minipuszka Lumiose City (5 wzorów)"
+msgstr "Lumiose City Mini Tin (5 dizajna)"
+
+#. contents item
+msgid "Minipuszka Paldean Fates"
+msgstr "Paldean Fates Mini Tin"
+
+#. contents item
+msgid "notes"
+msgstr "bilježnica"
+
+#. contents item
+msgid "notes Pokémon"
+msgstr "Pokémon bilježnica"
+
+#. contents item
+msgid "noworoczna pieczątka"
+msgstr "novogodišnji pečat"
+
+#. contents item
+msgid "noworoczny magnes na lodówkę"
+msgstr "novogodišnji magnet za hladnjak"
+
+#. contents item
+msgid "pakiet ulepszający talię (15 kart)"
+msgstr "paket za nadogradnju špila (15 karata)"
+
+#. contents item
+msgid "papierowa ramka na kartę (czerwona)"
+msgstr "papirnati okvir za kartu (crveni)"
+
+#. contents item
+msgid "papierowa ramka na kartę (niebieska)"
+msgstr "papirnati okvir za kartu (plavi)"
+
+#. contents item
+msgid "papierowa ramka na kartę (zielona)"
+msgstr "papirnati okvir za kartu (zeleni)"
+
+#. contents item
+msgid "papierowy stojak na 3 karty"
+msgstr "papirnati stalak za 3 karte"
+
+#. contents item
+msgid "Pikachu eraser"
+msgstr "gumica za brisanje s motivom Pikachua"
+
+#. contents item
+msgid "plakat"
+msgstr "poster"
+
+#. contents item
+msgid "plakat z ewolucjami Eevee"
+msgstr "poster s Eeveejevim evolucijama"
+
+#. contents item
+msgid "Plush Eevee accessory pouch"
+msgstr "plišana Eevee torbica za dodatke"
+
+#. contents item
+msgid "pluszowy Altaria"
+msgstr "plišani Altaria"
+
+#. contents item
+msgid "pluszowy Pikachu"
+msgstr "plišani Pikachu"
+
+#. contents item
+msgid "podstawka ekspozycyjna z uchwytem na kartę"
+msgstr "stalak za izlaganje s držačem za kartu"
+
+#. contents item
+msgid "podświetlana lampka w formie ramki"
+msgstr "svjetiljka u obliku okvira"
+
+#. contents item
+msgid "Pokémon GO mini tin"
+msgstr "Pokémon GO Mini Tin"
+
+#. contents item
+msgid "Pokémon keychain card holder"
+msgstr "Pokémon privjesak za ključeve s držačem za kartu"
+
+#. contents item
+msgid "poradnik dla początkujących"
+msgstr "vodič za početnike"
+
+#. contents item
+msgid "porcelanowy talerz z metalowym stojakiem"
+msgstr "porculanski tanjur s metalnim stalkom"
+
+#. contents item
+msgid "Prismatic Evolutions mini tin"
+msgstr "Prismatic Evolutions Mini Tin"
+
+#. contents item
+msgid "przewodnik ulepszania talii"
+msgstr "vodič za nadogradnju špila"
+
+#. contents item
+msgid "przezroczysta folia na kartę"
+msgstr "prozirna košuljica za kartu"
+
+#. contents item
+msgid "pudełko na akcesoria"
+msgstr "kutija za dodatke"
+
+#. contents item
+msgid "pudełko na znaczniki obrażeń"
+msgstr "kutija za brojače štete"
+
+#. contents item
+msgid "ramka do ekspozycji (zestaw)"
+msgstr "okvir za izlaganje (komplet)"
+
+#. contents item
+msgid "ramka do ekspozycji karty"
+msgstr "okvir za izlaganje karte"
+
+#. contents item
+msgid "ramka ekspozycyjna Adaman"
+msgstr "okvir za izlaganje Adaman"
+
+#. contents item
+msgid "ramka ekspozycyjna Irida"
+msgstr "okvir za izlaganje Irida"
+
+#. contents item
+msgid "ramka na dwie karty"
+msgstr "okvir za dvije karte"
+
+#. contents item
+msgid "sidekick dangler featuring Chien-Pao"
+msgstr "privjesak Chien-Pao (sidekick dangler)"
+
+#. contents item
+msgid "silikonowe etui na kartę z motywem Pokémon"
+msgstr "silikonska futrola za kartu s Pokémon motivom"
+
+#. contents item
+msgid "skrócona instrukcja gry"
+msgstr "skraćena pravila igre"
+
+#. contents item
+msgid "stały zestaw 172 kart (51 rodzajów: 13 Pokémon, 59 trenerów, 4 energie specjalne, 96 energii podstawowych)"
+msgstr "fiksni komplet od 172 karte (51 vrsta: 13 Pokémon, 59 Trainer, 4 Special Energy, 96 Basic Energy)"
+
+#. contents item
+msgid "Unova mini tin"
+msgstr "Unova Mini Tin"
+
+#. contents item
+msgid "White Flare card list"
+msgstr "popis karata White Flare"
+
+#. contents item
+msgid "zawieszka z ramką na kartę wypełnioną płynem"
+msgstr "privjesak s okvirom za kartu ispunjenim tekućinom"
+
+#. contents item
+msgid "znacznik oparzenia"
+msgstr "oznaka opekline"
+
+#. contents item
+msgid "znacznik VSTAR"
+msgstr "oznaka VSTAR"
+
+#. contents item
+msgid "znacznik zatrucia"
+msgstr "oznaka otrova"
+
+#. contents item
+msgid "znaczniki"
+msgstr "oznake"
+
+#. contents item
+msgid "znaczniki premium (trucizna, poparzenie)"
+msgstr "premium oznake (otrov, opeklina)"
+
+#. contents item
+msgid "ściągawka strategii talii"
+msgstr "podsjetnik za strategiju špila"
+
+#. contents item
+msgid "żetony obrażeń"
+msgstr "brojači štete"
+
+#. deck
+msgid "40 kart (1 z 4 wersji)"
+msgstr "od 40 karata (1 od 4 verzije)"
+
+#. deck
+msgid "40 kart (2 z 4 losowych grup kart)"
+msgstr "od 40 karata (2 od 4 nasumične grupe karata)"
+
+#. deck
+msgid "Build & Battle (40 kart)"
+msgstr "Build & Battle (40 karata)"
+
+#. deck
+msgid "Build & Battle 40-card deck"
+msgstr "Build & Battle od 40 karata"
+
+#. deck
+msgid "Destined Rivals prerelease deck"
+msgstr "za prerelease Destined Rivals"
+
+#. deck
+msgid "Journey Together Build & Battle deck"
+msgstr "Journey Together Build & Battle"
+
+#. deck
+msgid "losowa talia (60 kart, co najmniej 2 karty Pokémon ex)"
+msgstr "(nasumični, 60 karata, najmanje 2 Pokémon ex karte)"
+
+#. deck
+msgid "Ondřej Škubal — ADP (60 kart)"
+msgstr "Ondřej Škubal — ADP (60 karata)"
+
+#. energy slot of a booster
+msgid "Basic Energy (foil)"
+msgstr ""
+
+#. energy slot of a booster
+msgid "Basic Energy lub znacznik VSTAR"
+msgstr "Basic Energy ili oznaka VSTAR"
+
+#. oversize card
+msgid "Koraidon ex lub Miraidon ex (losowo)"
+msgstr "Koraidon ex ili Miraidon ex (nasumično)"
+
+#. promo card
+msgid "1 z 4 losowych w każdej talii: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
+msgstr "1 od 4 nasumično u svakom špilu: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
+
+#. promo card
+msgid "1 z 4 losowych w każdej talii: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
+msgstr "1 od 4 nasumično u svakom špilu: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
+
+#. promo card
+msgid "1 z 4 losowych w każdej talii: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
+msgstr "1 od 4 nasumično u svakom špilu: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
+
+#. promo card
+msgid "1 z 4 losowych w każdej talii: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
+msgstr "1 od 4 nasumično u svakom špilu: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
+
+#. promo card
+msgid "1 z 4 losowych w każdej talii: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
+msgstr "1 od 4 nasumično u svakom špilu: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
+
+#. promo card
+msgid "Bulbasaur (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
+msgstr "Bulbasaur (holo, uzorak Poké Ball; 1 od 99 s uzorkom Master Ball)"
+
+#. promo card
+msgid "Charmander (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
+msgstr "Charmander (holo, uzorak Poké Ball; 1 od 99 s uzorkom Master Ball)"
+
+#. promo card
+msgid "Eevee (karta holo)"
+msgstr "Eevee (holo)"
+
+#. promo card
+msgid "Espeon (karta holo)"
+msgstr "Espeon (holo)"
+
+#. promo card
+msgid "First Partner promo card (3 of 9, random)"
+msgstr "First Partner (3 od 9, nasumično)"
+
+#. promo card
+msgid "Flareon (karta holo)"
+msgstr "Flareon (holo)"
+
+#. promo card
+msgid "Foil promo, one of four: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
+msgstr "foil, jedna od četiri: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
+
+#. promo card
+msgid "Glaceon (karta holo)"
+msgstr "Glaceon (holo)"
+
+#. promo card
+msgid "Jolteon (karta holo)"
+msgstr "Jolteon (holo)"
+
+#. promo card
+msgid "Leafeon (karta holo)"
+msgstr "Leafeon (holo)"
+
+#. promo card
+msgid "losowa (1 z 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
+msgstr "nasumična (1 od 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
+
+#. promo card
+msgid "losowa (1 z 4: Delphox, Ampharos, Crobat, Goodra – MEP 074–077)"
+msgstr "nasumična (1 od 4: Delphox, Ampharos, Crobat, Goodra – MEP 074–077)"
+
+#. promo card
+msgid "losowa (1 z 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
+msgstr "nasumična (1 od 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
+
+#. promo card
+msgid "losowa First Partner (3 z 9: MEP 046–054)"
+msgstr "nasumična First Partner (3 od 9: MEP 046–054)"
+
+#. promo card
+msgid "losowa First Partner (3 z 9: MEP 055–063)"
+msgstr "nasumična First Partner (3 od 9: MEP 055–063)"
+
+#. promo card
+msgid "losowa karta First Partner (1 z 9: startery z Hoenn, Kalos i Paldei)"
+msgstr "nasumična First Partner (1 od 9: starteri iz regija Hoenn, Kalos i Paldea)"
+
+#. promo card
+msgid "losowa karta First Partner (1 z 9: startery z Johto, Unovy i Galaru)"
+msgstr "nasumična First Partner (1 od 9: starteri iz regija Johto, Unova i Galar)"
+
+#. promo card
+msgid "losowa karta First Partner (1 z 9: startery z Kanto, Sinnoh i Aloli)"
+msgstr "nasumična First Partner (1 od 9: starteri iz regija Kanto, Sinnoh i Alola)"
+
+#. promo card
+msgid "losowa karta holo z dodatku Stellar Crystal (1 z 30)"
+msgstr "nasumična holo iz seta Stellar Crystal (1 od 30)"
+
+#. promo card
+msgid "losowa karta legendarnego lub mitycznego Pokémona (holo)"
+msgstr "nasumični legendarni ili mitski Pokémon (holo)"
+
+#. promo card
+msgid "losowa karta Pikachu (holo)"
+msgstr "nasumični Pikachu (holo)"
+
+#. promo card
+msgid "losowa: Sprigatito, Fuecoco, Quaxly, Ralts lub Riolu"
+msgstr "nasumična: Sprigatito, Fuecoco, Quaxly, Ralts ili Riolu"
+
+#. promo card
+msgid "Mega Charizard X ex or Mega Charizard Y ex"
+msgstr "Mega Charizard X ex ili Mega Charizard Y ex"
+
+#. promo card
+msgid "one of four foil promos: Chien-Pao, Gouging Fire, Indeedee or Magneton"
+msgstr "foil, jedna od četiri: Chien-Pao, Gouging Fire, Indeedee ili Magneton"
+
+#. promo card
+msgid "one of four unique foil promos: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
+msgstr "foil, jedna od četiri jedinstvene: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
+
+#. promo card
+msgid "Pikachu ex (2 różne, po 1)"
+msgstr "Pikachu ex (2 različite, po 1)"
+
+#. promo card
+msgid "promo cards"
+msgstr "(razne)"
+
+#. promo card
+msgid "Squirtle (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
+msgstr "Squirtle (holo, uzorak Poké Ball; 1 od 99 s uzorkom Master Ball)"
+
+#. promo card
+msgid "Stamped promo card (Sprigatito, Fuecoco or Quaxly, one at random)"
+msgstr "sa žigom (Sprigatito, Fuecoco ili Quaxly, jedna nasumično)"
+
+#. promo card
+msgid "Stellar Tera foil promo (random: Eevee or an Eeveelution ex, 1 of 9)"
+msgstr "Stellar Tera foil (nasumično: Eevee ili jedna od Eeveejevih evolucija ex, 1 od 9)"
+
+#. promo card
+msgid "Sylveon (karta holo)"
+msgstr "Sylveon (holo)"
+
+#. promo card
+msgid "Umbreon (karta holo)"
+msgstr "Umbreon (holo)"
+
+#. promo card
+msgid "Vaporeon (karta holo)"
+msgstr "Vaporeon (holo)"
+
+#. retail deal note
+msgid "do wyczerpania zapasów"
+msgstr "do isteka zaliha"
+
+#. retail deal note
+msgid "gazetka Smyka"
+msgstr "Smykov letak"
+
+#. retail deal note
+msgid "gazetka Smyka; wariant zestawu niepodany"
+msgstr "Smykov letak; varijanta kompleta nije navedena"
+
+#. retail deal note
+msgid "online, taniej w aplikacji; wybrane wzory puszek"
+msgstr "online, jeftinije u aplikaciji; odabrani dizajni tinova"
+
+#. retail deal note
+msgid "różne zestawy do wyboru; do wyczerpania zapasów"
+msgstr "razni kompleti po izboru; do isteka zaliha"
+
+#. retail deal note
+msgid "salony stacjonarne; z Empik Premium -15%: 297,49 zł"
+msgstr "u Empikovim poslovnicama; s Empik Premium -15 %: 297,49 zł"
+
+#. retail deal note
+msgid "tylko online"
+msgstr "samo online"
+
+#. retail deal note
+msgid "tylko stacjonarnie"
+msgstr "samo u poslovnicama"
+
+#. retail deal note
+msgid "tylko stacjonarnie; do wyczerpania zapasów"
+msgstr "samo u poslovnicama; do isteka zaliha"
+
+#. retail deal note
+msgid "tylko stacjonarnie; online 199,99 zł"
+msgstr "samo u poslovnicama; online 199,99 zł"
+
+#. retail deal note
+msgid "wybrane sklepy"
+msgstr "odabrane trgovine"

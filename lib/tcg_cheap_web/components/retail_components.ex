@@ -92,7 +92,7 @@ defmodule TcgCheapWeb.RetailComponents do
   @doc ~S(A retail deal's days and caveat: "2–8 listopada · wybrane sklepy".)
   def deal_days(deal) do
     # A no-break space keeps each "·" at the end of a line, never at the start.
-    [Format.days(deal.starts_on, deal.ends_on), deal.note]
+    [Format.days(deal.starts_on, deal.ends_on), deal.note && Format.recorded(deal.note)]
     |> Enum.reject(&is_nil/1)
     |> Enum.join("\u00A0· ")
   end
