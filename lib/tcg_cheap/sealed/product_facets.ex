@@ -5,7 +5,7 @@ defmodule TcgCheap.Sealed.ProductFacets do
   """
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{ExpansionLogo, Kinds, ProductList, Regions}
+  alias TcgCheap.Sealed.{Editions, ExpansionLogo, Kinds, ProductList}
 
   @doc """
   Product counts per language edition and per kind (the chosen kind stays,
@@ -15,13 +15,13 @@ defmodule TcgCheap.Sealed.ProductFacets do
   mirrored: the English TCGdex logo, else the one set for the expansion.
   """
   @spec read(ProductList.filters()) :: %{
-          regions: [{atom(), pos_integer()}],
+          editions: [{atom(), pos_integer()}],
           kinds: [{atom(), non_neg_integer()}],
           expansions: [
             %{
               id: integer(),
               name: String.t(),
-              region: atom(),
+              edition: atom(),
               logo_url: String.t() | nil,
               count: non_neg_integer()
             }
@@ -31,19 +31,19 @@ defmodule TcgCheap.Sealed.ProductFacets do
     # One grouped read for all three: each count leaves out its own filter.
     groups = Sealed.count_product_facets!(filters.query)
 
-    regions =
+    editions =
       groups
       |> on_shelf(filters.kind)
       |> matching(cardmarket_expansion_id: filters.expansion)
-      |> sum_by(& &1.region)
+      |> sum_by(& &1.edition)
 
     kinds =
       groups
-      |> matching(region: filters.region, cardmarket_expansion_id: filters.expansion)
+      |> matching(edition: filters.edition, cardmarket_expansion_id: filters.expansion)
       |> sum_by(& &1.kind)
 
     %{
-      regions: for(region <- Regions.all(), count = regions[region], do: {region, count}),
+      editions: for(edition <- Editions.all(), count = editions[edition], do: {edition, count}),
       kinds:
         for(
           kind <- Kinds.all(),
@@ -53,7 +53,7 @@ defmodule TcgCheap.Sealed.ProductFacets do
       expansions:
         groups
         |> on_shelf(filters.kind)
-        |> matching(region: filters.region)
+        |> matching(edition: filters.edition)
         |> expansions(filters)
     }
   end
@@ -86,7 +86,7 @@ defmodule TcgCheap.Sealed.ProductFacets do
       |> named_expansions(logos)
       |> Enum.sort_by(&(&1.newest || ~D[1990-01-01]), {:desc, Date})
       |> Enum.sort_by(&(!&1.available?))
-      |> Enum.sort_by(&Enum.find_index(Regions.all(), fn region -> region == &1.region end))
+      |> Enum.sort_by(&Enum.find_index(Editions.all(), fn edition -> edition == &1.edition end))
       |> Enum.map(&Map.drop(&1, [:available?, :newest]))
 
     expansions ++ chosen_elsewhere(filters.expansion, expansions, logos)
@@ -115,7 +115,7 @@ defmodule TcgCheap.Sealed.ProductFacets do
       %{
         id: id,
         name: most_common(groups, & &1.set_name),
-        region: most_common(groups, & &1.region),
+        edition: most_common(groups, & &1.edition),
         logo_url: Map.get(logos, id),
         count: Enum.sum_by(groups, & &1.count),
         available?: Enum.any?(groups, & &1.available?),

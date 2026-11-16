@@ -185,14 +185,14 @@ defmodule TcgCheap.Sealed do
     resource TcgCheap.Sealed.Product do
       define :list_products, action: :read
       define :get_product_by_slug, action: :by_slug, args: [:slug], not_found_error?: false
-      define :list_boosters_by_name, action: :boosters_by_name, args: [:names, :region]
+      define :list_boosters_by_name, action: :boosters_by_name, args: [:names, :edition]
 
       define :browse_products,
         action: :browse,
         args: [
           {:optional, :query},
           {:optional, :kind},
-          {:optional, :region},
+          {:optional, :edition},
           {:optional, :expansion},
           {:optional, :stock}
         ]
@@ -202,7 +202,7 @@ defmodule TcgCheap.Sealed do
         args: [
           {:optional, :query},
           {:optional, :kind},
-          {:optional, :region},
+          {:optional, :edition},
           {:optional, :expansion}
         ]
 

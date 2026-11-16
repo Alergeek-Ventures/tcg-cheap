@@ -9,7 +9,7 @@ defmodule TcgCheapWeb.PageMarkdown do
   use TcgCheapWeb, :verified_routes
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{CardGuide, Kinds, Market, PriceGuide, Rarities, Regions, RetailDeal}
+  alias TcgCheap.Sealed.{CardGuide, Editions, Kinds, Market, PriceGuide, Rarities, RetailDeal}
 
   alias TcgCheapWeb.{
     CardRecords,
@@ -437,7 +437,7 @@ defmodule TcgCheapWeb.PageMarkdown do
   defp product_facts(product) do
     [
       gettext("Rodzaj") <> ": " <> Kinds.label(product.kind),
-      product.region && gettext("Wydanie") <> ": " <> Regions.label(product.region),
+      product.edition && gettext("Wydanie") <> ": " <> Editions.label(product.edition),
       product.set_name && product.cardmarket_expansion_id &&
         gettext("Rozszerzenie") <>
           ": " <>

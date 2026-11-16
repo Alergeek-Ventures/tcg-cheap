@@ -67,7 +67,7 @@ defmodule TcgCheap.Sealed.BoosterGuide do
     boosters =
       [
         query: [
-          filter: Stock.in_stock_filter(market, now) ++ [kind: :booster, region: :en],
+          filter: Stock.in_stock_filter(market, now) ++ [kind: :booster, edition: :en],
           select: Summary.fields(),
           sort: [cardmarket_expansion_id: :desc]
         ],
@@ -125,7 +125,7 @@ defmodule TcgCheap.Sealed.BoosterGuide do
 
   defp set_products(names, now) do
     [
-      query: [filter: [available: true, region: :en, set_name: [in: names], kind: [in: @kinds]]],
+      query: [filter: [available: true, edition: :en, set_name: [in: names], kind: [in: @kinds]]],
       load: [:stored_photo_small_url, :stored_photo_card_url, :photo_placeholder]
     ]
     |> Sealed.list_products!()
@@ -254,7 +254,7 @@ defmodule TcgCheap.Sealed.BoosterGuide do
 
     kinds =
       Product
-      |> where([p], p.region == :en and p.set_name in ^names)
+      |> where([p], p.edition == :en and p.set_name in ^names)
       |> where([p], p.kind in [:booster_box, :tin, :collection])
       |> group_by([p], [p.set_name, p.kind])
       |> select([p], {{p.set_name, p.kind}, count(p.id)})

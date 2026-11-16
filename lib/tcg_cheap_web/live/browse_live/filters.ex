@@ -5,35 +5,35 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{Kinds, Regions}
+  alias TcgCheap.Sealed.{Editions, Kinds}
   alias TcgCheapWeb.{Format, Paths, SEO}
 
-  @region_params Map.new(Regions.all(), &{Atom.to_string(&1), &1})
-  @all_regions "wszystkie"
+  @edition_params Map.new(Editions.all(), &{Atom.to_string(&1), &1})
+  @all_editions "wszystkie"
   # Sets shown before "Pozostałe sety".
   @first_expansions 14
 
-  @doc "The `wersja` param as a region filter; `wszystkie` is every edition."
-  def region_param(@all_regions, _expansion), do: nil
+  @doc "The `wersja` param as an edition filter; `wszystkie` is every edition."
+  def edition_param(@all_editions, _expansion), do: nil
 
-  def region_param(param, expansion),
-    do: Map.get(@region_params, param, default_region(expansion))
+  def edition_param(param, expansion),
+    do: Map.get(@edition_params, param, default_edition(expansion))
 
   # Most buyers want English products; an expansion has its own language, so
   # a link to one (e.g. a Japanese set) shows it whatever the edition.
   @doc "The edition a list shows unless another is chosen."
-  def default_region(nil), do: :en
-  def default_region(_expansion), do: nil
+  def default_edition(nil), do: :en
+  def default_edition(_expansion), do: nil
 
   # The `wersja` of a list: none for the default edition.
   @doc "The list's `wersja` param: none for the default edition."
-  def region_value(%{mode: :cards}), do: nil
+  def edition_value(%{mode: :cards}), do: nil
 
-  def region_value(%{region: region, expansion: expansion}) do
+  def edition_value(%{edition: edition, expansion: expansion}) do
     cond do
-      region == default_region(expansion) -> nil
-      is_nil(region) -> @all_regions
-      true -> region
+      edition == default_edition(expansion) -> nil
+      is_nil(edition) -> @all_editions
+      true -> edition
     end
   end
 
@@ -48,7 +48,7 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
       [
         q: filters.query,
         rodzaj: filters.kind,
-        wersja: region_value(filters),
+        wersja: edition_value(filters),
         rozszerzenie: if(filters.mode == :cards, do: filters.expansion)
       ]
       |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
@@ -66,7 +66,7 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
   def base_path(_filters), do: Paths.home()
 
   @doc "Whether a kind, an edition or an expansion is chosen."
-  def filtered?(filters), do: filters.kind || region_value(filters) || filters.expansion
+  def filtered?(filters), do: filters.kind || edition_value(filters) || filters.expansion
 
   attr :filters, :map, required: true
   attr :facets, :map, required: true
@@ -92,7 +92,7 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
             else: []
           ),
         total: counts |> Map.values() |> Enum.sum(),
-        chosen: Enum.count([assigns.filters.kind, region_value(assigns.filters)], & &1)
+        chosen: Enum.count([assigns.filters.kind, edition_value(assigns.filters)], & &1)
       )
 
     ~H"""
@@ -158,19 +158,19 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
             <li>
               <.link
                 id="region-all"
-                patch={list_path(@filters, region: nil)}
+                patch={list_path(@filters, edition: nil)}
                 phx-click={close_menus()}
-                aria-current={if(is_nil(@filters.region), do: "true")}
+                aria-current={if(is_nil(@filters.edition), do: "true")}
               >{gettext("Wszystkie")}</.link>
             </li>
-            <li :for={{region, _count} <- @facets.regions}>
+            <li :for={{edition, _count} <- @facets.editions}>
               <.link
-                id={"region-#{region}"}
-                patch={list_path(@filters, region: region)}
+                id={"region-#{edition}"}
+                patch={list_path(@filters, edition: edition)}
                 phx-click={close_menus()}
-                aria-current={if(@filters.region == region, do: "true")}
+                aria-current={if(@filters.edition == edition, do: "true")}
               >
-                {Regions.label(region)}
+                {Editions.label(edition)}
               </.link>
             </li>
           </ul>
@@ -234,10 +234,10 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
         list_path(@filters,
           expansion: nil,
           expansion_name: nil,
-          region:
+          edition:
             if(@filters.expansion,
-              do: @filters.region || default_region(nil),
-              else: @filters.region
+              do: @filters.edition || default_edition(nil),
+              else: @filters.edition
             )
         )
       }
@@ -288,7 +288,7 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
           list_path(@filters,
             expansion: @expansion.id,
             expansion_name: @expansion.name,
-            region: default_region(@expansion.id)
+            edition: default_edition(@expansion.id)
           )
         }
         phx-click={close_menus()}
@@ -302,10 +302,10 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
         </span>
         <span class="guide-filter-count">
           <span
-            :if={is_nil(@filters.region) and @expansion.region != :en}
+            :if={is_nil(@filters.edition) and @expansion.edition != :en}
             class="guide-expansion-region"
           >
-            {Regions.tag(@expansion.region)}
+            {Editions.tag(@expansion.edition)}
           </span>
           {Format.number(@expansion.count)}
         </span>

@@ -23,13 +23,13 @@ defmodule TcgCheap.Sealed.Product.FacetCounts do
        |> exclude(:order_by)
        |> exclude(:select)
        |> group_by([product], [
-         product.region,
+         product.edition,
          product.kind,
          product.cardmarket_expansion_id,
          product.set_name
        ])
        |> select([product], %{
-         region: product.region,
+         edition: product.edition,
          kind: product.kind,
          cardmarket_expansion_id: product.cardmarket_expansion_id,
          set_name: product.set_name,
