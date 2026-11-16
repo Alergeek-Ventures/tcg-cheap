@@ -27,9 +27,6 @@ defmodule TcgCheap.Sealed.ShopFeed.GildiaGrodzisk do
   @thousands_space ~r/(?<=\d) (?=\d)/
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, pages} <- fetch_pages(shop, req_options, 1, nil, []) do
       {:ok, ShopFeed.offers(shop, pages, &normalize(shop, &1))}
@@ -163,6 +160,6 @@ defmodule TcgCheap.Sealed.ShopFeed.GildiaGrodzisk do
     |> Floki.find(".front-product-card__image img")
     |> Floki.attribute("src")
     |> List.first()
-    |> ShopFeed.image_url(image_hosts(shop))
+    |> ShopFeed.image_url(ShopFeed.image_hosts(shop))
   end
 end

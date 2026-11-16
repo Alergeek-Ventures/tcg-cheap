@@ -22,30 +22,17 @@ defmodule TcgCheap.Sealed.ShopFeed.Smajk do
   @behaviour TcgCheap.Sealed.ShopFeed
 
   alias TcgCheap.Sealed.{Shop, ShopFeed}
+  alias TcgCheap.Sealed.ShopFeed.Pages
 
   @price ~r/\A([0-9]{1,7})\.([0-9]{2}) PLN\z/
   @spaces ~r/\s+/u
   @thousands_space ~r/(?<=\d) (?=\d)/
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
-    with {:ok, pages} <- fetch_pages(shop, req_options, 1, []) do
-      {:ok, ShopFeed.offers(shop, pages, &normalize(shop, &1))}
-    end
-  end
-
-  defp fetch_pages(shop, req_options, number, acc) do
-    with {:ok, page} <- request(shop, req_options, number) do
-      cond do
-        page.number != number -> {:error, :pagination_changed}
-        page.pages > shop.max_pages -> {:error, :too_many_pages}
-        page.products == [] -> {:error, :malformed_listing}
-        number < page.pages -> fetch_pages(shop, req_options, number + 1, [page | acc])
-        true -> complete(Enum.reverse([page | acc]))
-      end
+    with {:ok, pages} <- Pages.read(&request(shop, req_options, &1), shop.max_pages),
+         {:ok, products} <- complete(pages) do
+      {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
     end
   end
 
@@ -152,7 +139,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Smajk do
     case product |> Floki.find("img") |> Floki.attribute("src") |> List.first() do
       "/upload/" <> name ->
         src = "/upload/" <> String.replace_prefix(name, "min-", "")
-        ShopFeed.image_url("https://#{shop.host}#{URI.encode(src)}", image_hosts(shop))
+        ShopFeed.image_url("https://#{shop.host}#{URI.encode(src)}", ShopFeed.image_hosts(shop))
 
       _ ->
         nil

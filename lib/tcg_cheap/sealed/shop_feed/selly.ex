@@ -29,9 +29,6 @@ defmodule TcgCheap.Sealed.ShopFeed.Selly do
   @medium_image ~r{(/[0-9]+)_med(\.[a-z]+)(?=\?|\z)}
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, products} <-
            HtmlListing.read_listings(shop, &read_pages(shop, req_options, &1, 1, nil, [])) do
@@ -165,6 +162,6 @@ defmodule TcgCheap.Sealed.ShopFeed.Selly do
 
   defp image_url(shop, path) do
     path = Regex.replace(@medium_image, path, "\\1_max\\2")
-    ShopFeed.image_url("https://#{shop.host}#{path}", image_hosts(shop))
+    ShopFeed.image_url("https://#{shop.host}#{path}", ShopFeed.image_hosts(shop))
   end
 end

@@ -30,9 +30,6 @@ defmodule TcgCheap.Sealed.ShopFeed.Planszomania do
   @thumbnail ~r|\Athumbs/image/([A-Za-z0-9_-][A-Za-z0-9_.-]*)\.120x120\.([a-z]+)\z|
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, response} <- ShopFeed.get(shop, shop.feed_path, [], req_options),
          {:ok, document} <- ShopFeed.html(scrub(response)),
@@ -120,7 +117,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Planszomania do
       [_, name, extension] ->
         ShopFeed.image_url(
           "https://#{shop.host}/phpThumb.php?src=/image/#{name}.#{extension}&w=1200&h=1200",
-          image_hosts(shop)
+          ShopFeed.image_hosts(shop)
         )
 
       nil ->

@@ -38,9 +38,6 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
   @sold_out "Ej i lager"
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, sets} <- sitemap_slugs(shop, "/sitemap-sets.xml", "set", [], req_options),
          {:ok, cards} <-

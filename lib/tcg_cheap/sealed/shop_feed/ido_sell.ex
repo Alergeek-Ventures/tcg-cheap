@@ -47,9 +47,6 @@ defmodule TcgCheap.Sealed.ShopFeed.IdoSell do
   }
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, products} <- fetch_pages(shop, req_options, 0, nil, []) do
       {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
@@ -185,6 +182,6 @@ defmodule TcgCheap.Sealed.ShopFeed.IdoSell do
         do: icon,
         else: "https://#{shop.host}/#{String.trim_leading(icon, "/")}"
 
-    ShopFeed.image_url(url, image_hosts(shop))
+    ShopFeed.image_url(url, ShopFeed.image_hosts(shop))
   end
 end

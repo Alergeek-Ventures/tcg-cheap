@@ -37,9 +37,6 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
   @fields "id,name,permalink,prices,categories,images,sku,is_purchasable,is_in_stock,is_on_backorder"
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, sealed} <- products(shop, sealed_category(shop), shop.max_pages, req_options) do
       singles =
@@ -162,7 +159,7 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
       {:ok,
        for(
          %{"id" => id, "source_url" => url} when is_integer(id) <- media,
-         url = ShopFeed.image_url(url, image_hosts(shop)),
+         url = ShopFeed.image_url(url, ShopFeed.image_hosts(shop)),
          url != nil,
          into: %{},
          do: {id, url}
@@ -270,7 +267,9 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
     end
   end
 
-  defp image_url(shop, [%{"src" => src} | _]), do: ShopFeed.image_url(src, image_hosts(shop))
+  defp image_url(shop, [%{"src" => src} | _]),
+    do: ShopFeed.image_url(src, ShopFeed.image_hosts(shop))
+
   defp image_url(_shop, _images), do: nil
 
   defp price(

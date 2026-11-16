@@ -75,8 +75,23 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @callback fetch(Shop.t(), req_options :: keyword()) ::
               {:ok, [offer()]} | {:partial, [offer()], term()} | {:error, term()}
 
-  @doc "The hosts the shop's product images may be shown from."
+  @doc """
+  The hosts the shop's product images may be shown from; a client states them
+  only when they are not just the shop's own host (see `image_hosts/1`).
+  """
   @callback image_hosts(Shop.t()) :: [String.t()]
+
+  @optional_callbacks image_hosts: 1
+
+  @doc """
+  The hosts the shop's product images may be shown from: those its client
+  states, else the shop's own host.
+  """
+  @spec image_hosts(Shop.t()) :: [String.t()]
+  def image_hosts(%Shop{source: source, host: host} = shop) do
+    Code.ensure_loaded(source)
+    if function_exported?(source, :image_hosts, 1), do: source.image_hosts(shop), else: [host]
+  end
 
   @doc """
   GETs `path` on the shop's host (or `feed_host`), after a pause

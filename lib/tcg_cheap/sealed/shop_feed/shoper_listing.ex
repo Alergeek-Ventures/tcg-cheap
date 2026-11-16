@@ -58,9 +58,6 @@ defmodule TcgCheap.Sealed.ShopFeed.ShoperListing do
   @space ~r/\s/u
   @price ~r/\A(\d{1,7}),(\d{2}) zł\z/
 
-  @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
   @doc """
   The full-size copy of a Shoper product photo, given any of the thumbnails
   the shop's image cache serves (an absolute URL or a path on the shop).

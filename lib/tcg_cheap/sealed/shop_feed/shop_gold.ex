@@ -49,9 +49,6 @@ defmodule TcgCheap.Sealed.ShopFeed.ShopGold do
   }
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, products} <-
            HtmlListing.read_listings(shop, &read_listing(shop, req_options, &1)) do
