@@ -565,14 +565,104 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
   def all, do: @shops
 
   @doc """
-  Deliveries to the Netherlands of shops abroad, by shop key. CardCosmos
-  lists the Netherlands among the countries it delivers to, at a price its
-  policy gives for all other EU countries (19.99 €, 2026-11-15) but its cart
-  has quoted higher for other countries, so the price stays unknown and the
-  shop is only listed. Other shops abroad are left out until their delivery to
-  the Netherlands is confirmed.
+  Deliveries to the Netherlands of shops abroad, by shop key: the cheapest
+  delivery of a small parcel to an Amsterdam address, in the currency the shop
+  quoted it, read from the shops' carts or delivery pages on 2026-11-16. No
+  shop publishes a free-delivery threshold for the Netherlands. Shops abroad
+  without a known price for the Netherlands are left out.
   """
   def deliveries do
-    %{"cardcosmos" => %{shipping_from: nil, free_shipping_from: nil, currency: "EUR"}}
+    %{
+      "cardcosmos" => %{
+        shipping_from: Decimal.new("24.99"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "cardverse" => %{
+        shipping_from: Decimal.new("3000"),
+        free_shipping_from: nil,
+        currency: "HUF"
+      },
+      "carddojo" => %{
+        shipping_from: Decimal.new("80"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "godofcards" => %{
+        shipping_from: Decimal.new("6.90"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "hobbykort" => %{
+        shipping_from: Decimal.new("12.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "kartonada" => %{
+        shipping_from: Decimal.new("36.36"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "paladynat" => %{
+        shipping_from: Decimal.new("32.52"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "pokebros" => %{
+        shipping_from: Decimal.new("36"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "pokespot" => %{
+        shipping_from: Decimal.new("150"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "poketalk" => %{
+        shipping_from: Decimal.new("14.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "psydeck" => %{
+        shipping_from: Decimal.new("15"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "rahtech" => %{
+        shipping_from: Decimal.new("18.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "rgfk" => %{
+        shipping_from: Decimal.new("34"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "samlarhobby" => %{
+        shipping_from: Decimal.new("299"),
+        free_shipping_from: nil,
+        currency: "SEK"
+      },
+      "skarbieckart" => %{
+        shipping_from: Decimal.new("5.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "skladgier" => %{
+        shipping_from: Decimal.new("16.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      "tcgwebshop" => %{
+        shipping_from: Decimal.new("8000"),
+        free_shipping_from: nil,
+        currency: "HUF"
+      },
+      "vanaheim" => %{
+        shipping_from: Decimal.new("90"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      }
+    }
   end
 end
