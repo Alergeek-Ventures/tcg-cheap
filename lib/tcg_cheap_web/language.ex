@@ -27,6 +27,12 @@ defmodule TcgCheapWeb.Language do
   @doc ~S(The decimal separator of numbers in text: "," or ".".)
   @callback decimal_separator() :: String.t()
 
+  @doc ~S(Whether a price writes its currency before the amount: "€ 69,95" in Dutch, "69,95 €" elsewhere.)
+  @callback currency_first?() :: boolean()
+
+  @doc ~S(The separator between groups of three digits: a no-break space, "." in Dutch.)
+  @callback thousands_separator() :: String.t()
+
   @doc ~S(A language's name as it reads mid-sentence: "angielska" in Polish, "English" in English.)
   @callback mid_sentence(String.t()) :: String.t()
 end

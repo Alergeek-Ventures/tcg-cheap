@@ -1,0 +1,117 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: nl\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/tcg_cheap/countries/croatia.ex:87
+#, elixir-autogen, elixir-format
+msgid "%{card} – cena karty Pokémon w euro"
+msgstr "%{card} – prijs van de Pokémon-kaart in euro"
+
+#: lib/tcg_cheap/countries/croatia.ex:92
+#, elixir-autogen, elixir-format
+msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Chorwacji."
+msgstr "%{expansion}: vergelijk prijzen van boosters, ETB's, boxen en collecties bij winkels die naar Kroatië verzenden."
+
+#: lib/tcg_cheap/countries/croatia.ex:110
+#, elixir-autogen, elixir-format
+msgid "%{name}: teraz żaden sklep wysyłający do Chorwacji nie ma tego produktu na stanie."
+msgstr "%{name}: geen enkele winkel die naar Kroatië verzendt heeft dit product nu op voorraad."
+
+#: lib/tcg_cheap/countries/croatia.ex:80
+#, elixir-autogen, elixir-format
+msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w euro."
+msgstr "Engelse Pokémon TCG-kaarten met hun prijs op Cardmarket in euro."
+
+#: lib/tcg_cheap/countries/croatia.ex:101
+#, elixir-autogen, elixir-format
+msgid "Boostera %{expansion} żaden sklep wysyłający do Chorwacji nie ma teraz na stanie."
+msgstr "Geen enkele winkel die naar Kroatië verzendt heeft de %{expansion} booster nu op voorraad."
+
+#: lib/tcg_cheap/countries/croatia.ex:64
+#, elixir-autogen, elixir-format
+msgid "Ceny Pokémon TCG ze sklepów wysyłających do Chorwacji, sprawdzane codziennie."
+msgstr "Pokémon TCG-prijzen bij winkels die naar Kroatië verzenden, elke dag gecheckt."
+
+#: lib/tcg_cheap/countries/croatia.ex:155
+#, elixir-autogen, elixir-format
+msgid "Ceny chorwackich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Chorwacji. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
+msgstr "Prijzen van Kroatische winkels zijn zonder verzending, die van winkels in het buitenland incl. verzending naar Kroatië. Bij Cardmarket tellen we %{shipping} op voor een pakket uit Duitsland."
+
+#: lib/tcg_cheap/countries/croatia.ex:83
+#, elixir-autogen, elixir-format
+msgid "Ceny kart Pokémon TCG w euro"
+msgstr "Prijzen van Pokémon TCG-kaarten in euro"
+
+#: lib/tcg_cheap/countries/croatia.ex:121
+#, elixir-autogen, elixir-format
+msgid "Ceny ze sklepów z zagranicy są z wysyłką do Chorwacji."
+msgstr "Prijzen van winkels in het buitenland zijn incl. verzending naar Kroatië."
+
+#: lib/tcg_cheap/countries/croatia.ex:45
+#, elixir-autogen, elixir-format
+msgid "Chorwacja"
+msgstr "Kroatië"
+
+#: lib/tcg_cheap/countries/croatia.ex:71
+#, elixir-autogen, elixir-format
+msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Chorwacji."
+msgstr "De goedkoopste Pokémon TCG-aanbiedingen bij winkels die naar Kroatië verzenden."
+
+#: lib/tcg_cheap/countries/croatia.ex:56
+#, elixir-autogen, elixir-format
+msgid "Porównaj ceny Pokémon TCG w sklepach wysyłających do Chorwacji. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
+msgstr "Vergelijk Pokémon TCG-prijzen bij winkels die naar Kroatië verzenden. Bekijk aanbiedingen van boosters, ETB's en boxen, de prijsgeschiedenis en of kopen nu de moeite waard is."
+
+#: lib/tcg_cheap/countries/croatia.ex:51
+#, elixir-autogen, elixir-format
+msgid "Przejdź do wersji chorwackiej"
+msgstr "Ga naar de Kroatische versie"
+
+#: lib/tcg_cheap/countries/croatia.ex:126
+#, elixir-autogen, elixir-format
+msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr "Winkels in het buitenland verkopen in hun eigen valuta. Prijzen in een andere valuta dan de euro rekenen we om tegen de dagkoersen van de NBP, de Poolse centrale bank. De winkelpagina kan in een andere taal zijn."
+
+#: lib/tcg_cheap/countries/croatia.ex:48
+#, elixir-autogen, elixir-format
+msgid "Wygląda na to, że jesteś w Chorwacji."
+msgstr "Het lijkt erop dat je in Kroatië bent."
+
+#: lib/tcg_cheap/countries/croatia.ex:18
+#, elixir-autogen, elixir-format
+msgid "wysyłka z Chorwacji"
+msgstr "verzending uit Kroatië"
+
+#: lib/tcg_cheap/countries/croatia.ex:21
+#, elixir-autogen, elixir-format
+msgid "z wysyłką z Chorwacji"
+msgstr "incl. verzending uit Kroatië"
+
+#: lib/tcg_cheap/countries/croatia.ex:117
+#, elixir-autogen, elixir-format
+msgid "z wysyłką z Niemiec"
+msgstr "incl. verzending uit Duitsland"
+
+#: lib/tcg_cheap/countries/croatia.ex:135
+#, elixir-autogen, elixir-format
+msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w euro. Ceny chorwackich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Chorwacji."
+msgstr "Prijzen komen uit de openbare productfeeds van winkels, één keer per dag opgehaald, en staan in euro. Prijzen van Kroatische winkels zijn zonder verzending, die van winkels in het buitenland incl. verzending naar Kroatië."
+
+#: lib/tcg_cheap/countries/croatia.ex:140
+#, elixir-autogen, elixir-format
+msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane."
+msgstr "Een goede prijs is hooguit 95% van de gebruikelijke prijs, normaal hooguit 110%, daarboven is het duur. Een goede prijs moet ook hooguit 95% zijn van wat het product de afgelopen %{window} dagen meestal kostte en van de Cardmarket-trend in euro incl. verzending uit Duitsland, als die bekend zijn."
+
+#: lib/tcg_cheap/countries/croatia.ex:146
+#, elixir-autogen, elixir-format
+msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
+msgstr "Bij minder winkels is er geen beoordeling en geven we als context de Cardmarket-trend in euro."

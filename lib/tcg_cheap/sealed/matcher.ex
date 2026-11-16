@@ -48,7 +48,7 @@ defmodule TcgCheap.Sealed.Matcher do
   @stopwords ~w(pokemon tcg ptcg the and of s a z na i w edycja karty kart karta oryginal oryginalne
                 oryginalny angielski angielska angielskie english en eng wersja nowy nowa prerelease
                 engelsk engelska engelskt forboka forbokning forhandsboka forhandsbokning
-                angol kiadas foliazott elorendeles elorendelheto em ingles inglesa versao)
+                angol kiadas foliazott elorendeles elorendelheto em ingles inglesa versao engels engelse)
 
   @plurals %{
     "boosters" => "booster",
@@ -129,6 +129,17 @@ defmodule TcgCheap.Sealed.Matcher do
     {"chinesisch", "chinese"},
     {"japanse", "jp"},
     {"koreaanse", "korean"},
+    {"japans", "jp"},
+    {"chinees", "chinese"},
+    {"koreaans", "korean"},
+    {"duits", "german"},
+    {"duitse", "german"},
+    {"frans", "french"},
+    {"franse", "french"},
+    {"spaans", "spanish"},
+    {"spaanse", "spanish"},
+    {"italiaans", "italian"},
+    {"italiaanse", "italian"},
     # Portuguese shops name edition languages in Portuguese and use "saqueta"
     # for an individual booster.
     {"saqueta de cartas", "booster"},
@@ -218,8 +229,8 @@ defmodule TcgCheap.Sealed.Matcher do
 
   # Words of a title that sells a pre-order ("Przedsprzedaż", "przedpremierowy",
   # Swedish "Förboka", "Förhandsbokning", "Förhandsbeställning", Hungarian
-  # "Előrendelés", "Előrendelhető"…).
-  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|pre venda|pre reserva|prevenda|prereserva|forbok|forhandsbok|forhandsbest|forbest|elorendel)/
+  # "Előrendelés", "Előrendelhető", Dutch "Voorbestellen", "Voorverkoop"…).
+  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|pre venda|pre reserva|prevenda|prereserva|forbok|forhandsbok|forhandsbest|forbest|elorendel|voorbestel|voorverkoop)/
 
   @exclusions [
     "zestaw",
@@ -275,8 +286,8 @@ defmodule TcgCheap.Sealed.Matcher do
   # Polish, Swedish and Hungarian word stems for damaged, opened or used items ("uszkodzone",
   # "otwarty", "używany", "Förpackningsskada", "kartongskadad", "skadad", "öppnad",
   # "begagnad", "Enyhén szakadt", "Kisebb esztétikai hiba", "Apróbb szépséghibák", "sérült",
-  # Slovak "Malé Imperfekcie", Dutch "beschadigde box", Portuguese "Embalagem danificada"…).
-  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult|imperfekci|beschadigd|danificad)/
+  # Slovak "Malé Imperfekcie", Dutch "beschadigde box", "gebruikt", "geopend", Portuguese "Embalagem danificada"…).
+  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult|imperfekci|beschadigd|danificad|gebruikt|geopend)/
 
   # Two or more pieces ("x3", "10x", "36 szt", "3 sztuki"); "1 szt" is still one item.
   # Swedish "st" counts pieces only where a title starts with it ("3st Pokemon
@@ -285,8 +296,9 @@ defmodule TcgCheap.Sealed.Matcher do
   # limits ("Max 2 st per kund").
   @multiples ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuki|sztuk|szt|pcs))(?: |\z)|\A(?:[2-9]|[1-9]\d{1,2}) ?st /
 
-  # A shop's purchase limit in a title ("MAX 2 PER KUND", "Max 2 st per kund") names no product.
-  @purchase_limit ~r/ max \d+ (?:st )?per kund /
+  # A shop's purchase limit in a title ("MAX 2 PER KUND", "Max 2 st per kund", Dutch "(Max 1)")
+  # names no product.
+  @purchase_limit ~r/ max \d+ (?:st )?(?:per kund )?/
 
   # Pack counts such as "(36)" or "(10 boosterów)" say nothing about identity
   # (but for 18, see `half_display/1`).

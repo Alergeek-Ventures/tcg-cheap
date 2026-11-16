@@ -1,13 +1,24 @@
 defmodule TcgCheap.Sealed.Shops.Netherlands do
   @moduledoc """
-  Shops in the Netherlands, priced in their own currency and compared by their delivery
-  to the guide's markets (`TcgCheap.Sealed.Shops`).
+  Shops in the Netherlands, the guide's region `/nl/` in euro, and the
+  deliveries to the Netherlands of shops abroad (`TcgCheap.Sealed.Shops`).
+
+  The Shopify shops are read whole, as their collections answer only
+  signed requests with 429 (`TcgCheap.Sealed.ShopFeed.Shopify`); a product
+  counts when its title says Pokémon. The WooCommerce shops are read through
+  their Store API categories, checked on 2026-11-15 (`wp-json` is allowed in
+  their robots.txt; a shop that disallows it is left out). Delivery within
+  the Netherlands is each shop's cheapest standard parcel and its free-delivery
+  threshold as the shop states them in November 2026; nil where it states
+  none. Singles have no market here yet: RareCards, TCG King and PokeMagic
+  are read for the Polish singles prices.
   """
 
   alias TcgCheap.Sealed.Shop
   alias TcgCheap.Sealed.ShopFeed.{Shopify, WooCommerce}
 
   @product ~r|\A/product/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
+  @root_product ~r|\A/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
 
   @shops [
     %Shop{
@@ -21,7 +32,7 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       country: "NL",
       # 4 pages in November 2026.
       max_pages: 6,
-      shipping_from: nil,
+      shipping_from: Decimal.new("7.95"),
       free_shipping_from: nil,
       pickup_city: nil
     },
@@ -33,8 +44,8 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       currency: "EUR",
       country: "NL",
       max_pages: 10,
-      shipping_from: nil,
-      free_shipping_from: nil,
+      shipping_from: Decimal.new("4.95"),
+      free_shipping_from: Decimal.new("75"),
       pickup_city: nil
     },
     %Shop{
@@ -47,8 +58,8 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       country: "NL",
       # 14 pages in November 2026.
       max_pages: 18,
-      shipping_from: nil,
-      free_shipping_from: nil,
+      shipping_from: Decimal.new("4.99"),
+      free_shipping_from: Decimal.new("250"),
       pickup_city: nil
     },
     %Shop{
@@ -60,8 +71,435 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       country: "NL",
       # 3 pages in November 2026.
       max_pages: 5,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgreus",
+      name: "TcgReus",
+      host: "tcgreus.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("7.25"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "embertcg",
+      name: "Ember TCG",
+      host: "embertcg.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: Decimal.new("275"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "brothersincards",
+      name: "Brothers in Cards",
+      host: "brothersincards.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("7.95"),
+      free_shipping_from: Decimal.new("250"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "thetcgplug",
+      name: "The TCG Plug",
+      host: "www.thetcgplug.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("7.19"),
+      free_shipping_from: Decimal.new("299"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgworld",
+      name: "TCG World",
+      host: "tcgworld.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("7.99"),
+      free_shipping_from: Decimal.new("200"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "debroergrot",
+      name: "De Broergrot",
+      host: "debroergrot.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: Decimal.new("150"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "nosticcards",
+      name: "Nostic Cards",
+      host: "www.nostic-cards.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("7.95"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "collectorsgarden",
+      name: "Collectors Garden",
+      host: "collectorsgarden.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
       shipping_from: nil,
       free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "vividnerd",
+      name: "VividNerd",
+      host: "vividnerd.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      # A whole list of other games too: more than 10 pages in November 2026.
+      max_pages: 20,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: Decimal.new("150"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "kingcards",
+      name: "King Cards",
+      host: "www.kingcards.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: Decimal.new("250"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "collectibleshop",
+      name: "Collectible Shop",
+      host: "collectibleshop.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "cardbinder",
+      name: "Card-Binder.com",
+      host: "card-binder.com",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: Decimal.new("250"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "pokeyume",
+      name: "PokéYume",
+      host: "www.pokeyume.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("5.95"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "gamerzparadize",
+      name: "GamerzParadize",
+      host: "gamerzparadize.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("7.99"),
+      free_shipping_from: Decimal.new("80"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "mistcards",
+      name: "MIST Cards",
+      host: "mistcards.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("5.95"),
+      free_shipping_from: Decimal.new("150"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgmaniacs",
+      name: "TCG Maniacs",
+      host: "tcgmaniacs.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: Decimal.new("175"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "elveecollectibles",
+      name: "Elvee Collectibles",
+      host: "elveecollectibles.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "collgamers",
+      name: "CollGamers",
+      host: "collgamers.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.49"),
+      free_shipping_from: Decimal.new("150"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "deckkingdom",
+      name: "Deck Kingdom",
+      host: "deckkingdom.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("4.95"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgtogether",
+      name: "TCG Together",
+      host: "tcgtogether.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: Decimal.new("275"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "miraicards",
+      name: "Mirai Cards",
+      host: "www.miraicards.com",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.45"),
+      free_shipping_from: Decimal.new("150"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "evocollects",
+      name: "Evocollects",
+      host: "evocollects.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("5.95"),
+      free_shipping_from: Decimal.new("250"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "pokeca",
+      name: "Pokeca",
+      host: "pokeca.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: Decimal.new("175"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "bkcards",
+      name: "BK Cards",
+      host: "bkcards.nl",
+      source: Shopify,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("7.95"),
+      free_shipping_from: Decimal.new("250"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "oppacards",
+      name: "Oppa Cards",
+      host: "oppacards.com",
+      source: WooCommerce,
+      category: "46,47,63,48,104",
+      sealed_categories: [
+        "pokemon-booster-box",
+        "pokemon-booster-pack",
+        "pokemon-collection-box",
+        "pokemon-elite-trainer-boxen",
+        "pokemon-tin"
+      ],
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: Decimal.new("250"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgcompany",
+      name: "TCG Company",
+      host: "tcgcompany.nl",
+      source: WooCommerce,
+      category: "72,71,70,38,36,37,40,35",
+      sealed_categories: [
+        "1-pack-blister-pokemon",
+        "2-pack-blister-pokemon",
+        "3-pack-blister-pokemon",
+        "pokemon-blisters",
+        "pokemon-booster-box",
+        "pokemon-booster-packs",
+        "pokemon-collection-box",
+        "pokemon-elite-trainer-box"
+      ],
+      product_path: @root_product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 10,
+      shipping_from: Decimal.new("7.95"),
+      free_shipping_from: Decimal.new("175"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgtriarch",
+      name: "TCGTriarch",
+      host: "www.tcgtriarch.com",
+      source: WooCommerce,
+      category: "35",
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 6,
+      shipping_from: Decimal.new("6.96"),
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "monkeltcg",
+      name: "MonkelTCG",
+      host: "monkeltcg.nl",
+      source: WooCommerce,
+      category: "107,53,54,66,56,55,57",
+      sealed_categories: [
+        "pokemon_blisters",
+        "pokemon_boosterboxen",
+        "pokemon_boosterpacks",
+        "pokemon_elite-trainer-box",
+        "pokemon_tins",
+        "pokemon_v-boxen",
+        "pokemon_thema-decks"
+      ],
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 9,
+      shipping_from: Decimal.new("5.95"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "gamecardscentral",
+      name: "GameCardsCentral",
+      host: "gamecardscentral.nl",
+      source: WooCommerce,
+      category: "76",
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 2,
+      shipping_from: Decimal.new("9.99"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "braadscardshop",
+      name: "Braad's Card Shop",
+      host: "braadscardshop.nl",
+      source: WooCommerce,
+      category: "82",
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 3,
+      shipping_from: Decimal.new("5.00"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "zaptoys",
+      name: "Zaptoys",
+      host: "zaptoys.nl",
+      source: WooCommerce,
+      category: "1881",
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 3,
+      shipping_from: Decimal.new("6.95"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "collecthors",
+      name: "Collecthors",
+      host: "www.collecthors.eu",
+      source: WooCommerce,
+      category: "21965",
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 9,
+      shipping_from: Decimal.new("8.40"),
+      free_shipping_from: Decimal.new("150"),
       pickup_city: nil
     },
     %Shop{
@@ -74,8 +512,8 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       singles_only: true,
       country: "NL",
       max_pages: 30,
-      shipping_from: nil,
-      free_shipping_from: nil,
+      shipping_from: Decimal.new("5.95"),
+      free_shipping_from: Decimal.new("200"),
       pickup_city: nil
     },
     %Shop{
@@ -113,7 +551,7 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       singles_only: true,
       country: "NL",
       max_pages: 1,
-      shipping_from: nil,
+      shipping_from: Decimal.new("5.95"),
       free_shipping_from: nil,
       pickup_city: nil
     }
@@ -126,6 +564,15 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
   @spec all() :: [Shop.t()]
   def all, do: @shops
 
-  @doc "Deliveries to the Netherlands of shops abroad, by shop key: none recorded."
-  def deliveries, do: %{}
+  @doc """
+  Deliveries to the Netherlands of shops abroad, by shop key. CardCosmos
+  lists the Netherlands among the countries it delivers to, at a price its
+  policy gives for all other EU countries (19.99 €, 2026-11-15) but its cart
+  has quoted higher for other countries, so the price stays unknown and the
+  shop is only listed. Other shops abroad are left out until their delivery to
+  the Netherlands is confirmed.
+  """
+  def deliveries do
+    %{"cardcosmos" => %{shipping_from: nil, free_shipping_from: nil, currency: "EUR"}}
+  end
 end

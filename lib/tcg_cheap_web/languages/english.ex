@@ -28,4 +28,10 @@ defmodule TcgCheapWeb.Languages.English do
 
   @impl true
   def decimal_separator, do: "."
+
+  @impl true
+  def currency_first?, do: false
+
+  @impl true
+  def thousands_separator, do: @nbsp
 end
