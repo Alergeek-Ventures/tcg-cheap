@@ -195,8 +195,6 @@ defmodule TcgCheap.Sealed.Matcher do
     {"indonezyjski", "indonesian"},
     {"tajski", "thai"},
     {"niemiecki", "german"},
-    # German shops use a terminal edition label, e.g. "Stacking Tin - DE".
-    {"de", "german"},
     {"deutsch", "german"},
     {"francuski", "french"}
   ]
@@ -869,11 +867,17 @@ defmodule TcgCheap.Sealed.Matcher do
       else: tokens
   end
 
+  # German shops end a title with an edition label ("Stacking Tin - DE",
+  # "Booster (DE)"). Only that upper-case ending counts: a lower-case "de" is a
+  # Dutch or Portuguese word.
+  @terminal_german ~r/(?:\s[-–]\s*|\s\()DE\)?\s*\z/u
+
   @doc "The significant word tokens of a title or product name."
   @spec tokens(String.t()) :: [String.t()]
   def tokens(text) do
     normalized =
       text
+      |> String.replace(@terminal_german, " deutsch")
       |> normalize()
       |> String.replace(@digit_letter, "\\1 \\2")
       |> String.replace(@letter_digit, "\\1 \\2")
