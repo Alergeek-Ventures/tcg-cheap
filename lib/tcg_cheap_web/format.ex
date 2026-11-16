@@ -45,7 +45,7 @@ defmodule TcgCheapWeb.Format do
   defp fractional_price(value, region) do
     rounded = Decimal.round(value, region.market.decimals)
     [whole, fraction] = rounded |> Decimal.to_string(:normal) |> String.split(".")
-    group(whole) <> "," <> fraction <> @nbsp <> region.currency_symbol
+    with_currency(group(whole) <> "," <> fraction, region.currency_symbol)
   end
 
   @doc """
@@ -65,7 +65,7 @@ defmodule TcgCheapWeb.Format do
     [whole, fraction] =
       value |> Decimal.round(2) |> Decimal.to_string(:normal) |> String.split(".")
 
-    group(whole) <> "," <> fraction <> @nbsp <> "€"
+    with_currency(group(whole) <> "," <> fraction, "€")
   end
 
   @doc ~S'Formats an exchange rate, to four places unless given: "4,2563", "365,64".'
@@ -79,7 +79,7 @@ defmodule TcgCheapWeb.Format do
     do: value |> Decimal.round(0) |> Decimal.to_integer() |> whole_price()
 
   def whole_price(value) when is_integer(value),
-    do: number(value) <> @nbsp <> currency_symbol()
+    do: with_currency(number(value), currency_symbol())
 
   @doc ~S'A verdict limit or reference: whole currency units, or decimals for a market with a fractional step.'
   @spec limit_price(integer() | Decimal.t()) :: String.t()
@@ -291,6 +291,13 @@ defmodule TcgCheapWeb.Format do
 
   defp decimal_separator, do: language().decimal_separator()
 
+  # The currency after the amount ("1 299,99 zł") or, as Dutch writes it, before it ("€ 1.299,99").
+  defp with_currency(amount, symbol) do
+    if language().currency_first?(),
+      do: symbol <> @nbsp <> amount,
+      else: amount <> @nbsp <> symbol
+  end
+
   defp group(digits) do
     {sign, digits} =
       case digits do
@@ -303,7 +310,7 @@ defmodule TcgCheapWeb.Format do
       |> String.reverse()
       |> String.graphemes()
       |> Enum.chunk_every(3)
-      |> Enum.map_join(@nbsp, &Enum.join/1)
+      |> Enum.map_join(language().thousands_separator(), &Enum.join/1)
       |> String.reverse()
 
     sign <> grouped

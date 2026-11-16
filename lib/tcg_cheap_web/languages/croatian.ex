@@ -34,5 +34,11 @@ defmodule TcgCheapWeb.Languages.Croatian do
   @impl true
   def decimal_separator, do: ","
 
+  @impl true
+  def currency_first?, do: false
+
+  @impl true
+  def thousands_separator, do: @nbsp
+
   defp month(date), do: Enum.at(@months, date.month - 1)
 end
