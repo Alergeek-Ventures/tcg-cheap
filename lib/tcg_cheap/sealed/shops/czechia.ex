@@ -1,7 +1,11 @@
 defmodule TcgCheap.Sealed.Shops.Czechia do
   @moduledoc """
-  Czech shops read from public Pokémon listings. Delivery terms were checked
-  on the shops' own pages; unpublished terms remain nil.
+  Shops in Czechia, the guide's region `/cz/` in koruna, and the deliveries to
+  Czechia of shops abroad (`TcgCheap.Sealed.Shops`). The Shoptet and
+  WooCommerce shops are read from their public Pokémon listings. Delivery
+  within Czechia is each shop's cheapest standard parcel and its free-delivery
+  threshold as the shop states them in November 2026; nil where it states none.
+  Singles have no market here yet.
   """
 
   alias TcgCheap.Sealed.Shop
@@ -590,13 +594,90 @@ defmodule TcgCheap.Sealed.Shops.Czechia do
   @spec all() :: [Shop.t()]
   def all, do: @shops
 
-  @doc "Deliveries to Czechia of shops abroad, by shop key."
+  @doc """
+  Deliveries to Czechia of shops abroad, by shop key: the cheapest rate each
+  shop's own anonymous cart quoted for one sealed product to a Prague address
+  on 2026-11-16 with Czechia chosen in the shop's country selector, in the
+  currency the cart quoted, VAT included. A shop with a `price_currency` charges
+  Czech buyers prices of its own in koruna. A shop whose cart quoted no
+  delivery to Czechia is not here.
+  """
   def deliveries do
     %{
-      # https://cardcosmos.de/policies/shipping-policy checked 2026-11-15:
-      # Czechia is a supported destination in the other-EU tariff.
+      "beamcardshop" => %{
+        shipping_from: Decimal.new("747"),
+        free_shipping_from: nil,
+        currency: "CZK",
+        price_currency: "CZK"
+      },
+      "bescards" => %{
+        shipping_from: Decimal.new("209"),
+        free_shipping_from: nil,
+        currency: "CZK",
+        price_currency: "CZK"
+      },
       "cardcosmos" => %{
-        shipping_from: Decimal.new("19.99"),
+        shipping_from: Decimal.new("24.99"),
+        free_shipping_from: nil,
+        currency: "EUR",
+        price_currency: "CZK"
+      },
+      "godofcards" => %{
+        shipping_from: Decimal.new("11.68"),
+        free_shipping_from: nil,
+        currency: "EUR",
+        price_currency: "CZK"
+      },
+      "hobbykort" => %{
+        shipping_from: Decimal.new("139"),
+        free_shipping_from: nil,
+        currency: "SEK",
+        price_currency: "CZK"
+      },
+      "pkmwinkel" => %{
+        shipping_from: Decimal.new("499"),
+        free_shipping_from: nil,
+        currency: "CZK",
+        price_currency: "CZK"
+      },
+      "pokefamily" => %{
+        shipping_from: Decimal.new("323"),
+        free_shipping_from: nil,
+        currency: "CZK",
+        price_currency: "CZK"
+      },
+      "poketalk" => %{
+        shipping_from: Decimal.new("358"),
+        free_shipping_from: nil,
+        currency: "CZK",
+        price_currency: "CZK"
+      },
+      "psydeck" => %{
+        shipping_from: Decimal.new("15"),
+        free_shipping_from: nil,
+        currency: "EUR",
+        price_currency: "CZK"
+      },
+      "rahtech" => %{
+        shipping_from: Decimal.new("447"),
+        free_shipping_from: nil,
+        currency: "CZK",
+        price_currency: "CZK"
+      },
+      "samlarhobby" => %{
+        shipping_from: Decimal.new("299"),
+        free_shipping_from: nil,
+        currency: "SEK",
+        price_currency: "CZK"
+      },
+      "skarbieckart" => %{
+        shipping_from: Decimal.new("142"),
+        free_shipping_from: nil,
+        currency: "CZK",
+        price_currency: "CZK"
+      },
+      "skladgier" => %{
+        shipping_from: Decimal.new("11.95"),
         free_shipping_from: nil,
         currency: "EUR"
       }
