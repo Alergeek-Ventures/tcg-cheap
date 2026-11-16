@@ -3,10 +3,10 @@ defmodule TcgCheapWeb.SiteFooter do
 
   import Phoenix.Component, only: [assign: 3]
 
-  alias TcgCheap.Sealed.Guide
+  alias TcgCheap.Sealed.Expansions
 
   @sets 12
 
   def on_mount(:default, _params, _session, socket),
-    do: {:cont, assign(socket, :footer_sets, Guide.newest_expansions(@sets))}
+    do: {:cont, assign(socket, :footer_sets, Expansions.newest(@sets))}
 end

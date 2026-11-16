@@ -4,7 +4,7 @@ defmodule TcgCheapWeb.CrawlController do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{CardGuide, Catalogue, Guide, Shops, Sitemap}
+  alias TcgCheap.Sealed.{Cache, CardGuide, Catalogue, ProductFacets, Shops, Sitemap, Stock}
   alias TcgCheap.WebBotAuth
   alias TcgCheapWeb.{Format, PageMarkdown, Paths, Region, SEO}
 
@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.CrawlController do
   def sitemap(conn, _params) do
     conn
     |> put_resp_content_type("application/xml")
-    |> send_resp(200, Guide.cached(:sitemap, &sitemap_body/0))
+    |> send_resp(200, Cache.fetch(:sitemap, &sitemap_body/0))
   end
 
   defp sitemap_body do
@@ -77,7 +77,7 @@ defmodule TcgCheapWeb.CrawlController do
   end
 
   defp regional_products(region, now) do
-    ids = region.market |> Guide.in_stock_ids(now) |> MapSet.to_list()
+    ids = region.market |> Stock.in_stock_ids(now) |> MapSet.to_list()
 
     [query: [filter: [id: [in: ids]], select: [:slug], sort: [:slug]]]
     |> Sealed.list_products!()
@@ -110,7 +110,7 @@ defmodule TcgCheapWeb.CrawlController do
 
     sealed_sets =
       %{query: "", kind: nil, region: nil, expansion: nil}
-      |> Guide.facets()
+      |> ProductFacets.read()
       |> Map.fetch!(:expansions)
       |> Enum.filter(&MapSet.member?(in_stock, &1.id))
       |> Map.new(&{&1.id, &1.name})
@@ -134,7 +134,7 @@ defmodule TcgCheapWeb.CrawlController do
   def llms(conn, _params) do
     conn
     |> put_resp_content_type("text/plain")
-    |> send_resp(200, Guide.cached(:llms_txt, &llms_body/0))
+    |> send_resp(200, Cache.fetch(:llms_txt, &llms_body/0))
   end
 
   defp llms_body do

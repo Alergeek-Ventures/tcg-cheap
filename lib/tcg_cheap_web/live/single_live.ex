@@ -15,10 +15,11 @@ defmodule TcgCheapWeb.SingleLive do
     CardGuide,
     CardImage,
     CardReference,
-    Guide,
+    Market,
     Matcher,
     PriceGuide,
-    Rarities
+    Rarities,
+    SetPage
   }
 
   alias TcgCheapWeb.{Analytics, Format, Paths, Region, SEO, VisitorLocation}
@@ -43,7 +44,7 @@ defmodule TcgCheapWeb.SingleLive do
         # The euro's rate in the region's currency, behind its Cardmarket
         # prices and their rate note: the card's own EUR/PLN rate in Poland.
         euro_rate =
-          if polish?, do: page.rate, else: Guide.cardmarket_rate(market, Date.utc_today())
+          if polish?, do: page.rate, else: Market.cardmarket_rate(market, Date.utc_today())
 
         {:ok,
          socket
@@ -55,7 +56,7 @@ defmodule TcgCheapWeb.SingleLive do
            trend:
              if(!polish?, do: regional_trend(page.price, primary.variant, euro_rate, market)),
            booster:
-             Guide.set_booster(
+             SetPage.booster(
                card.tcgdex_set.cardmarket_expansion_id,
                name,
                DateTime.utc_now(),
@@ -118,7 +119,7 @@ defmodule TcgCheapWeb.SingleLive do
   # The variant's Cardmarket trend in the region's currency, without delivery.
   defp regional_trend(price, variant, euro_rate, market) do
     trend = if variant == :reverse, do: price && price.trend_holo, else: price && price.trend
-    Guide.in_market(trend, euro_rate, market)
+    Market.in_market(trend, euro_rate, market)
   end
 
   defp group(%{grading: grade, in_stock: false}) when is_binary(grade), do: :graded_out

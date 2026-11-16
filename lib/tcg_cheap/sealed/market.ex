@@ -209,6 +209,49 @@ defmodule TcgCheap.Sealed.Market do
   defp max_rate_age_days(currency),
     do: if(ExchangeRate.table(currency) == "A", do: 7, else: 14)
 
+  @doc "The latest stored NBP EUR/PLN mid rate on or before `date`, if any."
+  @spec eur_pln(Date.t()) :: %{rate: Decimal.t(), date: Date.t()} | nil
+  def eur_pln(%Date{} = date) do
+    case TcgCheap.Pricing.get_latest_exchange_rate(date) do
+      {:ok, %{rate: rate, effective_date: effective}} -> %{rate: rate, date: effective}
+      _ -> nil
+    end
+  end
+
+  @doc "A Cardmarket EUR amount in PLN at the given rate."
+  @spec to_pln(Decimal.t() | nil, map() | nil) :: Decimal.t() | nil
+  def to_pln(eur, rate), do: in_market(eur, rate, poland())
+
+  @doc """
+  The euro's rate in the market's currency on `today` (`eur_pln/1` for
+  Poland, 1 for a market in euro), nil when unknown. Elsewhere it goes
+  through PLN, at NBP rates no older than a week (`pln_rate/2`), and
+  is as old as the older one.
+  """
+  @spec cardmarket_rate(t(), Date.t()) :: %{rate: Decimal.t(), date: Date.t()} | nil
+  def cardmarket_rate(%__MODULE__{currency: "EUR"}, %Date{} = today),
+    do: %{rate: Decimal.new(1), date: today}
+
+  def cardmarket_rate(%__MODULE__{} = market, %Date{} = today) do
+    if market == poland() do
+      eur_pln(today)
+    else
+      with {:ok, eur} <- pln_rate("EUR", today),
+           {:ok, local} <- pln_rate(market.currency, today) do
+        %{rate: Decimal.div(eur.rate, local.rate), date: Enum.min([eur.date, local.date], Date)}
+      else
+        {:error, _reason} -> nil
+      end
+    end
+  end
+
+  @doc "A Cardmarket EUR amount in the market's currency at its `cardmarket_rate/2`."
+  @spec in_market(Decimal.t() | nil, map() | nil, t()) :: Decimal.t() | nil
+  def in_market(%Decimal{} = eur, %{rate: rate}, market),
+    do: eur |> Decimal.mult(rate) |> rounded(market)
+
+  def in_market(_eur, _rate, _market), do: nil
+
   @doc "An amount rounded as the market's currency is: whole forints, złoty to grosze."
   @spec rounded(Decimal.t(), t()) :: Decimal.t()
   def rounded(amount, %__MODULE__{decimals: decimals}), do: Decimal.round(amount, decimals)

@@ -2,7 +2,7 @@ defmodule TcgCheap.Sealed.BoosterGuide do
   @moduledoc """
   What the guide "Ile kosztuje booster Pokémon?" reads, shared by every
   render for the cache's lifetime: the booster price page's facts
-  (`Guide.booster_prices/1`), each of those recent sets with its release
+  (`prices/2`), each of those recent sets with its release
   day, booster, Elite Trainer Box and whether it has a Booster Box (`sets`),
   the newest set's products in stock (`latest`) and every recent set's
   products in stock by type (`by_type`, newest set first).
@@ -20,7 +20,17 @@ defmodule TcgCheap.Sealed.BoosterGuide do
   import Ecto.Query
 
   alias TcgCheap.{Repo, Sealed}
-  alias TcgCheap.Sealed.{CardPrice, Guide, Product, TcgdexSet}
+
+  alias TcgCheap.Sealed.{
+    Cache,
+    CardPrice,
+    ExpansionLogo,
+    Market,
+    Product,
+    Stock,
+    Summary,
+    TcgdexSet
+  }
 
   # What a set comes out in, without the cases shops order by, decks or
   # loose card sets.
@@ -34,12 +44,54 @@ defmodule TcgCheap.Sealed.BoosterGuide do
     :tin
   ]
   @card_types [:promo_card, :oversize_card, :card]
+  # Sets on the booster price page: about a year of releases.
+  @booster_sets 12
 
-  def guide, do: Guide.cached(:booster_guide, &read/0)
+  def guide, do: Cache.fetch(:booster_guide, &read/0)
+
+  @doc """
+  The booster price page: each English single booster a shop of the market has in
+  stock (`boosters`, summaries, newest expansion first, at most #{@booster_sets}),
+  the cheapest of them (`cheapest`, nil when none) and the retail chains'
+  deals running today (`retail_deals`).
+  """
+  @spec prices(DateTime.t(), Market.t()) :: %{
+          boosters: [Summary.t()],
+          cheapest: Summary.t() | nil,
+          retail_deals: list(),
+          today: Date.t()
+        }
+  def prices(%DateTime{} = now, %Market{} = market \\ Market.poland()) do
+    today = DateTime.to_date(now)
+
+    boosters =
+      [
+        query: [
+          filter: Stock.in_stock_filter(market, now) ++ [kind: :booster, region: :en],
+          select: Summary.fields(),
+          sort: [cardmarket_expansion_id: :desc]
+        ],
+        load: [:stored_photo_small_url, :stored_photo_card_url, :photo_placeholder]
+      ]
+      |> Sealed.list_products!()
+      # The set's own pack, not its sleeved or smaller ones.
+      |> Enum.filter(&(&1.set_name && &1.name == &1.set_name <> " Booster"))
+      |> Summary.list(now, market)
+      # `available` is as of the last refresh: keep the ones in stock now.
+      |> Enum.filter(&(&1.verdict.cheapest && not &1.preorder?))
+      |> Enum.take(@booster_sets)
+
+    %{
+      boosters: boosters,
+      cheapest: Enum.min_by(boosters, & &1.verdict.cheapest.price, Decimal, fn -> nil end),
+      retail_deals: Sealed.list_current_retail_deals!(today),
+      today: today
+    }
+  end
 
   defp read do
     now = DateTime.utc_now()
-    page = Guide.booster_prices(now)
+    page = prices(now)
     names = Enum.map(page.boosters, & &1.product.set_name)
     order = names |> Enum.with_index() |> Map.new()
 
@@ -49,7 +101,7 @@ defmodule TcgCheap.Sealed.BoosterGuide do
         &{&1.product.set_name, %{typical: price(&1.verdict), cheapest: &1.verdict.cheapest.price}}
       )
 
-    rate = Guide.eur_pln(page.today)
+    rate = Market.eur_pln(page.today)
 
     products =
       names
@@ -77,7 +129,7 @@ defmodule TcgCheap.Sealed.BoosterGuide do
       load: [:stored_photo_small_url, :stored_photo_card_url, :photo_placeholder]
     ]
     |> Sealed.list_products!()
-    |> Guide.summaries(now)
+    |> Summary.list(now)
   end
 
   @doc """
@@ -180,7 +232,7 @@ defmodule TcgCheap.Sealed.BoosterGuide do
     Enum.map(boxes, fn box ->
       cards =
         for item <- box.items, item.type in @card_types do
-          %{item: item, value: Guide.to_pln(Map.get(trends, item.cardmarket_id), rate)}
+          %{item: item, value: Market.to_pln(Map.get(trends, item.cardmarket_id), rate)}
         end
 
       Map.put(box, :cards, cards)
@@ -209,7 +261,7 @@ defmodule TcgCheap.Sealed.BoosterGuide do
       |> Repo.all()
       |> Map.new()
 
-    logos = Guide.expansion_logos()
+    logos = ExpansionLogo.mirrored_urls()
 
     Enum.map(boosters, fn booster ->
       set = booster.product.set_name

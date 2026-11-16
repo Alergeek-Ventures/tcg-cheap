@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.SocialImage.Single do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.Guide
+  alias TcgCheap.Sealed.Market
   alias TcgCheapWeb.{Format, OfferComponents, SocialImage, VerdictComponents}
   alias TcgCheapWeb.SocialImage.{Answer, Picture, Text}
 
@@ -105,6 +105,6 @@ defmodule TcgCheapWeb.SocialImage.Single do
     Answer.stack(badge, price, line, [], x, width)
   end
 
-  defp cardmarket_pln(%{price: %{trend: trend}, rate: rate}), do: Guide.to_pln(trend, rate)
+  defp cardmarket_pln(%{price: %{trend: trend}, rate: rate}), do: Market.to_pln(trend, rate)
   defp cardmarket_pln(_page), do: nil
 end

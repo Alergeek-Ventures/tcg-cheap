@@ -11,7 +11,7 @@ defmodule TcgCheapWeb.SEO.Cards do
   alias TcgCheapWeb.{Format, Paths, RegionText, SEO, SocialImage}
 
   @doc """
-  `market` is the singles market (`TcgCheap.Sealed.Guide.singles_market/0`);
+  `market` is the singles market (`TcgCheap.Sealed.SinglesBanner.market/0`);
   nil for a chosen expansion's list, which has no market of its own.
   """
   @spec metadata(map(), map() | nil) :: SEO.t()

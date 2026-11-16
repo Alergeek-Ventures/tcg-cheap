@@ -18,7 +18,7 @@ defmodule TcgCheapWeb.SEO.Expansion do
   @spec url(integer(), String.t()) :: String.t()
   def url(id, name), do: Paths.url(path(id, name))
 
-  @doc "`page` is `TcgCheap.Sealed.Guide.expansion/3`."
+  @doc "`page` is `TcgCheap.Sealed.SetPage.read/3`."
   @spec metadata(
           map(),
           %{:id => integer(), :name => String.t(), optional(atom()) => any()},

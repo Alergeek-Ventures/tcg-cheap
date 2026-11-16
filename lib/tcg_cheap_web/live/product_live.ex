@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.ProductLive do
   import TcgCheapWeb.SiteComponents
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.{Guide, Kinds, Regions, RetailDeal}
+  alias TcgCheap.Sealed.{Kinds, ProductPage, Regions, RetailDeal}
   alias TcgCheapWeb.{Analytics, Format, Languages, Paths, Region, SEO, VisitorLocation}
 
   defmodule NotFound do
@@ -29,7 +29,7 @@ defmodule TcgCheapWeb.ProductLive do
   def mount(%{"slug" => slug}, _session, socket) do
     market = socket.assigns.region.market
 
-    case Guide.product(slug, DateTime.utc_now(), market) do
+    case ProductPage.read(slug, DateTime.utc_now(), market) do
       {:ok, page} ->
         seo = SEO.Product.metadata(page)
 
@@ -56,7 +56,7 @@ defmodule TcgCheapWeb.ProductLive do
   # A product nobody has in stock sends the visitor to what its set has
   # instead, nil when it has nothing or the product names no set.
   defp from_set(%{set_name: name} = product, [], market) when is_binary(name) do
-    case Guide.in_stock_from_set(product, DateTime.utc_now(), market) do
+    case ProductPage.in_stock_from_set(product, DateTime.utc_now(), market) do
       %{products: [], cards: 0} -> nil
       from_set -> from_set
     end

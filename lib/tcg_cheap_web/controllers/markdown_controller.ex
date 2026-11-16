@@ -9,7 +9,20 @@ defmodule TcgCheapWeb.MarkdownController do
   use TcgCheapWeb, :controller
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{BoosterGuide, CardGuide, CardValue, Catalogue, ExpensiveCards, Guide}
+
+  alias TcgCheap.Sealed.{
+    BoosterGuide,
+    CardGuide,
+    CardValue,
+    Catalogue,
+    Expansions,
+    ExpensiveCards,
+    ProductList,
+    ProductPage,
+    SetPage,
+    SinglesBanner
+  }
+
   alias TcgCheapWeb.{CardRecords, PageMarkdown, Paths, Region, SEO}
 
   # The home page's default list: English editions, as the HTML opens with.
@@ -17,7 +30,7 @@ defmodule TcgCheapWeb.MarkdownController do
     now = DateTime.utc_now()
     today = DateTime.to_date(now)
     market = conn.assigns.region.market
-    {summaries, _more?, _count} = Guide.browse(list_filters(nil, :en), 0, now, market)
+    {summaries, _more?, _count} = ProductList.browse(list_filters(nil, :en), 0, now, market)
 
     # The retail chains' deals are Polish.
     retail_deal =
@@ -31,8 +44,8 @@ defmodule TcgCheapWeb.MarkdownController do
 
   # The card list's first page, as the HTML opens without a search.
   def cards(conn, _params) do
-    market = if Region.poland?(conn.assigns.region), do: Guide.singles_market()
-    %{available: {cards, _more?, _count}} = Guide.card_discovery()
+    market = if Region.poland?(conn.assigns.region), do: SinglesBanner.market()
+    %{available: {cards, _more?, _count}} = CardGuide.discovery()
     seo = SEO.Cards.metadata(%{}, market)
 
     send_markdown(conn, seo, PageMarkdown.cards(seo, cards, Date.utc_today()))
@@ -65,7 +78,7 @@ defmodule TcgCheapWeb.MarkdownController do
   end
 
   def product(conn, %{"slug" => slug}) do
-    case Guide.product(slug, DateTime.utc_now(), conn.assigns.region.market) do
+    case ProductPage.read(slug, DateTime.utc_now(), conn.assigns.region.market) do
       {:ok, page} ->
         seo = SEO.Product.metadata(page)
         send_markdown(conn, seo, PageMarkdown.product(seo, page))
@@ -79,12 +92,12 @@ defmodule TcgCheapWeb.MarkdownController do
   # the expansion's current name.
   def expansion(conn, %{"slug" => slug}) do
     with {:ok, id} <- Paths.expansion_id(slug),
-         name when is_binary(name) <- Map.get(Guide.expansion_names([id]), id) do
+         name when is_binary(name) <- Map.get(Expansions.names([id]), id) do
       if slug == Catalogue.slug(name, id) do
         now = DateTime.utc_now()
         market = conn.assigns.region.market
-        set_page = Guide.expansion(id, name, now, market)
-        {summaries, _more?, _count} = Guide.browse(list_filters(id, nil), 0, now, market)
+        set_page = SetPage.read(id, name, now, market)
+        {summaries, _more?, _count} = ProductList.browse(list_filters(id, nil), 0, now, market)
         seo = SEO.Expansion.metadata(%{}, %{id: id, name: name}, set_page)
 
         send_markdown(

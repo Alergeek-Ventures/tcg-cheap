@@ -11,7 +11,7 @@ defmodule TcgCheapWeb.SEO.Product do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{Guide, Kinds}
+  alias TcgCheap.Sealed.{Kinds, Stock}
 
   alias TcgCheapWeb.{
     Format,
@@ -24,7 +24,7 @@ defmodule TcgCheapWeb.SEO.Product do
     VerdictComponents
   }
 
-  @doc "`page` is `TcgCheap.Sealed.Guide.product/3`."
+  @doc "`page` is `TcgCheap.Sealed.ProductPage.read/3`."
   @spec metadata(map()) :: SEO.t()
   def metadata(page) do
     product = page.product
@@ -91,7 +91,7 @@ defmodule TcgCheapWeb.SEO.Product do
     cond do
       Region.poland?(region) -> true
       region.market == page.market -> in_stock_compared(page) != []
-      true -> Guide.in_stock?(page.product.id, region.market, DateTime.utc_now())
+      true -> Stock.in_stock?(page.product.id, region.market, DateTime.utc_now())
     end
   end
 

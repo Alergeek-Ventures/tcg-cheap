@@ -9,7 +9,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
   import TcgCheapWeb.PriceChart
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.{Guide, Market, PriceGuide, Shops}
+  alias TcgCheap.Sealed.{Market, PriceGuide, ProductPage, Shops}
   alias TcgCheapWeb.{Format, Region, RegionText, VisitorLocation}
 
   # Pickup next to the verdict once the visitor has set a location in the
@@ -54,7 +54,8 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
       key: "cardmarket",
       label: gettext("Cardmarket (w zł)"),
       class: "cardmarket",
-      points: Enum.map(page.history, &{&1.date, Guide.to_pln(&1.cardmarket_trend, page.eur_rate)})
+      points:
+        Enum.map(page.history, &{&1.date, Market.to_pln(&1.cardmarket_trend, page.eur_rate)})
     }
   end
 
@@ -210,7 +211,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
           <.price_chart
             id="price-history"
             series={chart_series(@page)}
-            from={Date.add(@page.today, -(Guide.history_days() - 1))}
+            from={Date.add(@page.today, -(ProductPage.history_days() - 1))}
             to={@page.today}
             typical={@past.typical}
           />
@@ -257,9 +258,9 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
   # The parcel added to Cardmarket, among the page's prices: in euro in
   # Poland; elsewhere in the market's currency at its Cardmarket rate.
   defp cardmarket_shipping(%{market: market, eur_rate: rate}) do
-    eur = Guide.cardmarket_shipping_eur(market)
+    eur = market.cardmarket_shipping_eur
 
-    case market != Market.poland() && Guide.in_market(eur, rate, market) do
+    case market != Market.poland() && Market.in_market(eur, rate, market) do
       %Decimal{} = converted -> Format.price(converted)
       _euro -> Format.eur(eur)
     end

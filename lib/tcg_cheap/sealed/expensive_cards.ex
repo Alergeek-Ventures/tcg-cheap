@@ -20,11 +20,13 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
   alias TcgCheap.{Repo, Storage}
 
   alias TcgCheap.Sealed.{
+    Cache,
     CardGuide,
     CardImage,
     CardPrice,
     CardReference,
-    Guide,
+    Expansions,
+    Market,
     Shops,
     TcgdexCard,
     TcgdexSet
@@ -49,10 +51,10 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
 
   @doc "The article's figures, from the whole ranking, shared by every render a while."
   @spec overview() :: map()
-  def overview, do: Guide.cached(:expensive_cards_overview, &read_overview/0)
+  def overview, do: Cache.fetch(:expensive_cards_overview, &read_overview/0)
 
   defp read_overview do
-    rate = Guide.eur_pln(Date.utc_today())
+    rate = Market.eur_pln(Date.utc_today())
     rows = ranked(%{set: nil})
     top = Enum.take(rows, @top)
     movable = movable(top)
@@ -99,7 +101,7 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
   """
   @spec cards([String.t()]) :: [map()]
   def cards(tcgdex_ids) do
-    rate = Guide.eur_pln(Date.utc_today())
+    rate = Market.eur_pln(Date.utc_today())
     shared = shared_ids() |> Repo.all() |> MapSet.new()
 
     rows =
@@ -156,7 +158,7 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
       )
       |> Repo.all()
 
-    names = Guide.expansion_names(Enum.map(sets, &elem(&1, 0)))
+    names = Expansions.names(Enum.map(sets, &elem(&1, 0)))
 
     for {id, _released_on} <- Enum.sort_by(sets, &elem(&1, 1), {:desc, Date}),
         name = Map.get(names, id),
@@ -166,11 +168,11 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
 
   # The slice priced. The whole ranking, which the article and every first
   # visit start with, is shared by every render a while.
-  defp ranked(%{set: nil}), do: Guide.cached(:expensive_cards, fn -> read_ranked(nil) end)
+  defp ranked(%{set: nil}), do: Cache.fetch(:expensive_cards, fn -> read_ranked(nil) end)
   defp ranked(%{set: set}), do: read_ranked(set)
 
   defp read_ranked(set) do
-    rate = Guide.eur_pln(Date.utc_today())
+    rate = Market.eur_pln(Date.utc_today())
     %{set: set} |> slice(rate) |> priced(rate)
   end
 
@@ -224,7 +226,7 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
       %{
         card: card,
         set: set,
-        value: price && Guide.to_pln(price.trend, rate),
+        value: price && Market.to_pln(price.trend, rate),
         change: change(price),
         offer: offer,
         shops: card_offers |> Enum.uniq_by(& &1.shop) |> length(),

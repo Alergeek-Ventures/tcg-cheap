@@ -143,7 +143,7 @@ defmodule TcgCheapWeb.OfferComponents do
   attr :compared, :any,
     default: :polish,
     doc:
-      "the offer's compared price in the region's market (`Guide.product/3`'s `compared`), nil when its shop is only listed; Polish by default"
+      "the offer's compared price in the region's market (`TcgCheap.Sealed.ProductPage.read/3`'s `compared`), nil when its shop is only listed; Polish by default"
 
   # One shop's offer. In stock is the default, so a row only says when it is
   # not (or that it is a pre-order), and when it was checked if that was not

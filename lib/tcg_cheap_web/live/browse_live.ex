@@ -26,7 +26,17 @@ defmodule TcgCheapWeb.BrowseLive do
 
   alias TcgCheap.Sealed
 
-  alias TcgCheap.Sealed.{CardGuide, Catalogue, Guide, Kinds}
+  alias TcgCheap.Sealed.{
+    CardGuide,
+    Catalogue,
+    Expansions,
+    Kinds,
+    ProductFacets,
+    ProductList,
+    SealedBanner,
+    SetPage,
+    SinglesBanner
+  }
 
   alias TcgCheapWeb.{Analytics, Format, Paths, Region, RegionText, SEO, VisitorLocation}
 
@@ -118,7 +128,7 @@ defmodule TcgCheapWeb.BrowseLive do
          socket
          |> assign(
            set_page: nil,
-           market: polish_only(socket, &Guide.sealed_market/0),
+           market: polish_only(socket, &SealedBanner.market/0),
            retail_deals: polish_only(socket, [], fn -> newest_retail_deals(Date.utc_today()) end),
            seo: seo,
            page_title: seo.page_title
@@ -144,14 +154,14 @@ defmodule TcgCheapWeb.BrowseLive do
     do: id && (Enum.find(facets.expansions, &(&1.id == id)) || catalogue_expansion(id))
 
   defp catalogue_expansion(id) do
-    if name = Map.get(Guide.expansion_names([id]), id),
+    if name = Map.get(Expansions.names([id]), id),
       do: %{id: id, name: name, count: 0, logo_url: nil}
   end
 
   # Without a chosen expansion, the card list opens with the whole guide's
   # singles, which only the Polish market has.
   defp singles_market(region, nil),
-    do: if(Region.poland?(region), do: Guide.singles_market())
+    do: if(Region.poland?(region), do: SinglesBanner.market())
 
   defp singles_market(_region, _expansion), do: nil
 
@@ -166,7 +176,7 @@ defmodule TcgCheapWeb.BrowseLive do
   defp set_page(socket, %{id: id, name: name}),
     do:
       id
-      |> Guide.expansion(name, DateTime.utc_now(), socket.assigns.region.market)
+      |> SetPage.read(name, DateTime.utc_now(), socket.assigns.region.market)
       |> Map.put(:id, id)
 
   defp query_param(%{"q" => query}) when is_binary(query), do: query
@@ -194,7 +204,7 @@ defmodule TcgCheapWeb.BrowseLive do
   defp card_matches(_filters), do: 0
 
   # Without a search or an expansion, every visitor sees the same list.
-  defp card_list(%{query: "", expansion: nil}), do: Guide.card_discovery()
+  defp card_list(%{query: "", expansion: nil}), do: CardGuide.discovery()
 
   defp card_list(filters) do
     %{
@@ -205,6 +215,7 @@ defmodule TcgCheapWeb.BrowseLive do
 
   defp list(socket, %{mode: :cards} = filters) do
     %{available: {available, more?, count}, expansions: expansions} = card_list(filters)
+
     {unavailable, out_more?, out_count} = CardGuide.browse(Map.put(filters, :stock, :out), 0)
     only_out? = count == 0
     rows = if only_out?, do: unavailable, else: available
@@ -233,13 +244,18 @@ defmodule TcgCheapWeb.BrowseLive do
 
   defp list(socket, filters) do
     {summaries, more?, count} =
-      Guide.browse(sealed_filters(filters), 0, DateTime.utc_now(), socket.assigns.region.market)
+      ProductList.browse(
+        sealed_filters(filters),
+        0,
+        DateTime.utc_now(),
+        socket.assigns.region.market
+      )
 
     first_summary = List.first(summaries)
 
     socket
     |> assign(:filters, filters)
-    |> assign(:facets, Guide.facets(sealed_filters(filters)))
+    |> assign(:facets, ProductFacets.read(sealed_filters(filters)))
     |> assign(:form, to_form(%{"q" => filters.query}))
     |> assign(:cards_out_count, 0)
     |> assign(:result_count, count)
@@ -409,7 +425,7 @@ defmodule TcgCheapWeb.BrowseLive do
 
   defp load_more(%{assigns: %{filters: filters, loaded: loaded}} = socket) do
     {rows, more?, _count} =
-      Guide.browse(
+      ProductList.browse(
         sealed_filters(filters),
         loaded,
         DateTime.utc_now(),

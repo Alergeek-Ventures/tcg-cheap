@@ -10,12 +10,12 @@ defmodule TcgCheap.Sealed.AgentTools.ProductDetail do
   alias Ash.Error.Action.InvalidArgument
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.Json
-  alias TcgCheap.Sealed.Guide
+  alias TcgCheap.Sealed.ProductPage
 
   @impl true
   def run(input, _opts, _context) do
     with {:ok, slug} <- slug(input.arguments),
-         {:ok, detail} <- Guide.product(slug, DateTime.utc_now()) do
+         {:ok, detail} <- ProductPage.read(slug, DateTime.utc_now()) do
       {:ok, present(detail)}
     else
       _ -> {:error, InvalidArgument.exception(field: :slug, message: "no such product")}

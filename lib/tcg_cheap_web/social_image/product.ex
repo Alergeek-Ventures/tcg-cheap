@@ -25,7 +25,7 @@ defmodule TcgCheapWeb.SocialImage.Product do
   end
 
   @doc """
-  The card from its guide page (`TcgCheap.Sealed.Guide.product/3`).
+  The card from its guide page (`TcgCheap.Sealed.ProductPage.read/3`).
   `{:partial, jpeg}` is a card drawn without a photo the product has but
   that could not be fetched: worth serving, not worth keeping.
   """

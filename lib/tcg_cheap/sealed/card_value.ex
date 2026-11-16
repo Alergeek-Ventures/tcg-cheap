@@ -11,10 +11,11 @@ defmodule TcgCheap.Sealed.CardValue do
   alias TcgCheap.Repo
 
   alias TcgCheap.Sealed.{
+    Cache,
     CardGuide,
     CardPrice,
     ExpensiveCards,
-    Guide,
+    Market,
     Shops,
     TcgdexCard,
     TcgdexSet
@@ -31,7 +32,7 @@ defmodule TcgCheap.Sealed.CardValue do
   The spread (nil without stock) and the examples, shared by every reader
   for the cache's lifetime: the stock is a scan of every current offer.
   """
-  def guide, do: Guide.cached(:card_value, &read/0)
+  def guide, do: Cache.fetch(:card_value, &read/0)
 
   defp read do
     stock = polish_stock()
@@ -43,7 +44,7 @@ defmodule TcgCheap.Sealed.CardValue do
   # Shops abroad are left out: their prices include delivery.
   defp polish_stock do
     polish = for %{key: key, country: "PL"} <- Shops.all(), do: key
-    rate = Guide.eur_pln(Date.utc_today())
+    rate = Market.eur_pln(Date.utc_today())
 
     from(o in CardGuide.current_query(),
       join: c in TcgdexCard,
@@ -60,7 +61,7 @@ defmodule TcgCheap.Sealed.CardValue do
     )
     |> Repo.all()
     |> Enum.map(fn {tcgdex_id, price, trend} ->
-      %{tcgdex_id: tcgdex_id, price: price, cardmarket: Guide.to_pln(trend, rate)}
+      %{tcgdex_id: tcgdex_id, price: price, cardmarket: Market.to_pln(trend, rate)}
     end)
   end
 

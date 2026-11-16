@@ -9,7 +9,7 @@ defmodule TcgCheapWeb.SEO.BoosterPrices do
 
   alias TcgCheapWeb.{Format, OfferComponents, Paths, SEO, SocialImage}
 
-  @doc "`page` is `TcgCheap.Sealed.Guide.booster_prices/1`."
+  @doc "`page` is `TcgCheap.Sealed.BoosterGuide.prices/1`."
   @spec metadata(map()) :: SEO.t()
   def metadata(page) do
     canonical = Paths.url(Paths.page(:booster_prices))
