@@ -267,13 +267,14 @@ defmodule TcgCheap.Sealed.ShopFeed do
   def single?(_shop, _category), do: false
 
   defp pokemon?(nil), do: false
-  # "Pokemony", "Pokemonów" in Polish category names count too.
+  # "Pokemony", "Pokemonów" in Polish category names count too, and "PKM", the
+  # abbreviation some Portuguese shops put in front of their titles.
   defp pokemon?(text),
     do:
       text
       |> Matcher.normalize()
       |> String.split()
-      |> Enum.any?(&String.starts_with?(&1, "pokemon"))
+      |> Enum.any?(&(&1 == "pkm" or String.starts_with?(&1, "pokemon")))
 
   @doc "A shop's own product id: 1–40 letters, digits, `_` or `-`."
   @spec product_id(term()) :: {:ok, String.t()} | :error
