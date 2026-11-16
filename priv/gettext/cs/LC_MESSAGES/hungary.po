@@ -22,7 +22,7 @@ msgstr "%{name}: tento produkt teď nemá skladem žádný obchod s dopravou do 
 #: lib/tcg_cheap/countries/hungary.ex:78
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w forintach."
-msgstr "Anglické karty Pokémon TCG s cenou z Cardmarket ve forintech."
+msgstr "Anglické karty Pokémon TCG s cenou z Cardmarketu ve forintech."
 
 #: lib/tcg_cheap/countries/hungary.ex:99
 #, elixir-autogen, elixir-format
@@ -42,12 +42,12 @@ msgstr "Ceny karet Pokémon TCG ve forintech"
 #: lib/tcg_cheap/countries/hungary.ex:153
 #, elixir-autogen, elixir-format
 msgid "Ceny węgierskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką na Węgry. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
-msgstr "Ceny maďarských obchodů jsou bez dopravy, ceny zahraničních obchodů zahrnují dopravu do Maďarska. K ceně Cardmarket připočítáváme %{shipping} za balík z Německa."
+msgstr "V maďarských obchodech jsou ceny bez dopravy, u zahraničních obchodů je v ceně doprava do Maďarska. K ceně z Cardmarketu připočítáváme %{shipping} za balík z Německa."
 
 #: lib/tcg_cheap/countries/hungary.ex:119
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką na Węgry."
-msgstr "Ceny zahraničních obchodů zahrnují dopravu do Maďarska."
+msgstr "U zahraničních obchodů je v ceně doprava do Maďarska."
 
 #: lib/tcg_cheap/countries/hungary.ex:69
 #, elixir-autogen, elixir-format
@@ -67,7 +67,7 @@ msgstr "Přejít na maďarskou verzi"
 #: lib/tcg_cheap/countries/hungary.ex:124
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Węgier. Gdy podaje ją tylko w swojej walucie (polskie sklepy w złotych), przeliczamy ją na forinty po dziennych kursach NBP. Strona sklepu może być po polsku albo w innym języku."
-msgstr "Cena zahraničního obchodu je ta, kterou obchod uvádí kupujícím z Maďarska. Pokud ji uvádí jen ve své měně (polské obchody ve zlotých), přepočítáváme ji na forinty podle denních kurzů NBP. Stránka obchodu může být polsky nebo v jiném jazyce."
+msgstr "U zahraničních obchodů uvádíme cenu, kterou nabízejí zákazníkům z Maďarska. Pokud ji obchod uvádí jen ve své měně (polské obchody ve zlotých), přepočítáváme ji na forinty podle denních kurzů Polské národní banky (NBP). Stránka obchodu může být polsky nebo v jiném jazyce."
 
 #: lib/tcg_cheap/countries/hungary.ex:46
 #, elixir-autogen, elixir-format
@@ -97,12 +97,12 @@ msgstr "s dopravou z Maďarska"
 #: lib/tcg_cheap/countries/hungary.ex:133
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w forintach. Ceny węgierskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę na Węgry."
-msgstr "Ceny pocházejí z veřejných produktových feedů obchodů, které stahujeme jednou denně, a jsou ve forintech. Ceny maďarských obchodů nezahrnují dopravu, ceny obchodů v zahraničí zahrnují dopravu do Maďarska."
+msgstr "Ceny pocházejí z veřejných produktových feedů obchodů, které stahujeme jednou denně, a jsou ve forintech. Ceny v maďarských obchodech nezahrnují dopravu, u obchodů v zahraničí je v ceně doprava do Maďarska."
 
 #: lib/tcg_cheap/countries/hungary.ex:138
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w forintach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
-msgstr "Dobrá cena je nejvýše 95 % typické, běžná nejvýše 110 %, nad tím je draho. Dobrá cena musí být zároveň nejvýše 95 % obvyklé ceny produktu za posledních %{window} dnů a trendu Cardmarket ve forintech (podle kurzů NBP) s dopravou z Německa, pokud jsou známé."
+msgstr "Dobrá cena je nejvýše 95 % typické, běžná nejvýše 110 %, nad tím je draho. Dobrá cena musí být zároveň nejvýše 95 % obvyklé ceny produktu za posledních %{window} dnů a trendu Cardmarket ve forintech (podle kurzů Polské národní banky (NBP)) s dopravou z Německa, pokud jsou známé."
 
 #: lib/tcg_cheap/countries/hungary.ex:144
 #, elixir-autogen, elixir-format

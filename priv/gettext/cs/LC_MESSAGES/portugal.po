@@ -32,7 +32,7 @@ msgstr "%{name}: tento produkt teď nemá skladem žádný obchod s dopravou do 
 #: lib/tcg_cheap/countries/portugal.ex:77
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w euro."
-msgstr "Anglické karty Pokémon TCG s cenou z Cardmarket v eurech."
+msgstr "Anglické karty Pokémon TCG s cenou z Cardmarketu v eurech."
 
 #: lib/tcg_cheap/countries/portugal.ex:98
 #, elixir-autogen, elixir-format
@@ -52,17 +52,17 @@ msgstr "Ceny karet Pokémon TCG v eurech"
 #: lib/tcg_cheap/countries/portugal.ex:132
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w euro. Ceny portugalskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Portugalii."
-msgstr "Ceny pocházejí z veřejných produktových feedů obchodů, které stahujeme jednou denně, a jsou v eurech. Ceny portugalských obchodů nezahrnují dopravu, ceny obchodů v zahraničí zahrnují dopravu do Portugalska."
+msgstr "Ceny pocházejí z veřejných produktových feedů obchodů, které stahujeme jednou denně, a jsou v eurech. Ceny v portugalských obchodech nezahrnují dopravu, u obchodů v zahraničí je v ceně doprava do Portugalska."
 
 #: lib/tcg_cheap/countries/portugal.ex:152
 #, elixir-autogen, elixir-format
 msgid "Ceny portugalskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Portugalii. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
-msgstr "Ceny portugalských obchodů jsou bez dopravy, ceny zahraničních obchodů zahrnují dopravu do Portugalska. K ceně Cardmarket připočítáváme %{shipping} za balík z Německa."
+msgstr "V portugalských obchodech jsou ceny bez dopravy, u zahraničních obchodů je v ceně doprava do Portugalska. K ceně z Cardmarketu připočítáváme %{shipping} za balík z Německa."
 
 #: lib/tcg_cheap/countries/portugal.ex:118
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Portugalii."
-msgstr "Ceny zahraničních obchodů zahrnují dopravu do Portugalska."
+msgstr "U zahraničních obchodů je v ceně doprava do Portugalska."
 
 #: lib/tcg_cheap/countries/portugal.ex:137
 #, elixir-autogen, elixir-format
@@ -97,7 +97,7 @@ msgstr "Při menším počtu obchodů hodnocení nevydáváme a jako kontext uv�
 #: lib/tcg_cheap/countries/portugal.ex:123
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Portugalii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "Cena zahraničního obchodu je ta, kterou obchod uvádí kupujícím z Portugalska. Ceny v jiné měně než euro přepočítáváme podle denních kurzů NBP. Stránka obchodu může být v jiném jazyce."
+msgstr "U zahraničních obchodů uvádíme cenu, kterou nabízejí zákazníkům z Portugalska. Ceny v jiné měně než v eurech přepočítáváme podle denních kurzů Polské národní banky (NBP). Stránka obchodu může být v jiném jazyce."
 
 #: lib/tcg_cheap/countries/portugal.ex:44
 #, elixir-autogen, elixir-format

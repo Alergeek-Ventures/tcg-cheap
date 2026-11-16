@@ -32,7 +32,7 @@ msgstr "%{name}: tento produkt teď nemá skladem žádný obchod s dopravou do 
 #: lib/tcg_cheap/countries/czechia.ex:80
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w koronach czeskich."
-msgstr "Anglické karty Pokémon TCG s cenou z Cardmarket v korunách."
+msgstr "Anglické karty Pokémon TCG s cenou z Cardmarketu v korunách."
 
 #: lib/tcg_cheap/countries/czechia.ex:101
 #, elixir-autogen, elixir-format
@@ -47,7 +47,7 @@ msgstr "Ceny Pokémon TCG z obchodů s dopravou do Česka, ověřované každý 
 #: lib/tcg_cheap/countries/czechia.ex:155
 #, elixir-autogen, elixir-format
 msgid "Ceny czeskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Czech. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
-msgstr "Ceny českých obchodů jsou bez dopravy, ceny zahraničních obchodů zahrnují dopravu do Česka. K ceně Cardmarket připočítáváme %{shipping} za balík z Německa."
+msgstr "V českých obchodech jsou ceny bez dopravy, u zahraničních obchodů je v ceně doprava do Česka. K ceně z Cardmarketu připočítáváme %{shipping} za balík z Německa."
 
 #: lib/tcg_cheap/countries/czechia.ex:83
 #, elixir-autogen, elixir-format
@@ -57,7 +57,7 @@ msgstr "Ceny karet Pokémon TCG v korunách"
 #: lib/tcg_cheap/countries/czechia.ex:121
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Czech."
-msgstr "Ceny zahraničních obchodů zahrnují dopravu do Česka."
+msgstr "U zahraničních obchodů je v ceně doprava do Česka."
 
 #: lib/tcg_cheap/countries/czechia.ex:44
 #, elixir-autogen, elixir-format
@@ -92,17 +92,17 @@ msgstr "s dopravou z Německa"
 #: lib/tcg_cheap/countries/czechia.ex:126
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Czech. Ceny w innej walucie niż korona czeska przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "Cena zahraničního obchodu je ta, kterou obchod uvádí kupujícím z Česka. Ceny v jiné měně než česká koruna přepočítáváme podle denních kurzů NBP. Stránka obchodu může být v jiném jazyce."
+msgstr "U zahraničních obchodů uvádíme cenu, kterou nabízejí zákazníkům z Česka. Ceny v jiné měně než v korunách přepočítáváme podle denních kurzů Polské národní banky (NBP). Stránka obchodu může být v jiném jazyce."
 
 #: lib/tcg_cheap/countries/czechia.ex:135
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych list produktów sklepów, pobieranych raz dziennie, i są w koronach czeskich. Ceny czeskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Czech."
-msgstr "Ceny pocházejí z veřejných seznamů produktů obchodů, které stahujeme jednou denně, a jsou v českých korunách. Ceny českých obchodů nezahrnují dopravu, ceny obchodů v zahraničí zahrnují dopravu do Česka."
+msgstr "Ceny pocházejí z veřejných seznamů produktů obchodů, které stahujeme jednou denně, a jsou v českých korunách. Ceny v českých obchodech nezahrnují dopravu, u obchodů v zahraničí je v ceně doprava do Česka."
 
 #: lib/tcg_cheap/countries/czechia.ex:140
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w koronach czeskich (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
-msgstr "Dobrá cena je nejvýše 95 % typické, běžná nejvýše 110 %, nad tím je draho. Dobrá cena musí být zároveň nejvýše 95 % obvyklé ceny produktu za posledních %{window} dnů a trendu Cardmarket v českých korunách (podle kurzů NBP) s dopravou z Německa, pokud jsou známé."
+msgstr "Dobrá cena je nejvýše 95 % typické, běžná nejvýše 110 %, nad tím je draho. Dobrá cena musí být zároveň nejvýše 95 % obvyklé ceny produktu za posledních %{window} dnů a trendu Cardmarket v českých korunách (podle kurzů Polské národní banky (NBP)) s dopravou z Německa, pokud jsou známé."
 
 #: lib/tcg_cheap/countries/czechia.ex:146
 #, elixir-autogen, elixir-format

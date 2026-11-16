@@ -105,15 +105,15 @@ msgstr "Gem Pack Vol. 7 (4 holo karty)"
 
 #. booster
 msgid "losowe Brave Stars (5 kart, co najmniej 10 z każdej podserii)"
-msgstr "náhodný booster Brave Stars (5 karet, alespoň 10 z každé podsérie)"
+msgstr "Brave Stars (náhodný, 5 karet, alespoň 10 z každé podsérie)"
 
 #. booster
 msgid "losowe Brave Stars (jumbo, 25 kart)"
-msgstr "náhodný booster Brave Stars (jumbo, 25 karet)"
+msgstr "Brave Stars (náhodný, jumbo, 25 karet)"
 
 #. booster
 msgid "losowy Primordial Arts (jumbo, 25 kart)"
-msgstr "náhodný booster Primordial Arts (jumbo, 25 karet)"
+msgstr "Primordial Arts (náhodný, jumbo, 25 karet)"
 
 #. booster
 msgid "Mega Brave (2 booster boxy)"
@@ -165,23 +165,23 @@ msgstr "True Mystery (5 karet)"
 
 #. card
 msgid "Matching reverse holo card (random, matches the figure)"
-msgstr "odpovídající reverse holo karta (náhodná, odpovídá figurce)"
+msgstr "reverse holo odpovídající figurce (náhodná)"
 
 #. card
 msgid "over 50 cards"
-msgstr "různé (přes 50 karet)"
+msgstr "(přes 50 různých karet)"
 
 #. card
 msgid "Reference cards"
-msgstr "Přehledové karty"
+msgstr "(přehledová)"
 
 #. card
 msgid "reference cards"
-msgstr "přehledové karty"
+msgstr "(přehledová)"
 
 #. card
 msgid "Trainer cards"
-msgstr "karty Trenérů"
+msgstr "typu Trainer"
 
 #. contents item
 msgid "151 mini tin"
@@ -189,7 +189,7 @@ msgstr "mini plechovka 151"
 
 #. contents item
 msgid "3-card fun pack"
-msgstr "zábavné balení se 3 kartami"
+msgstr "fun pack se 3 kartami"
 
 #. contents item
 msgid "accessory box"
@@ -225,7 +225,7 @@ msgstr "arch akrylových figurek na podstavcích"
 
 #. contents item
 msgid "arkusz informacyjny"
-msgstr "informační arch"
+msgstr "informační list"
 
 #. contents item
 msgid "arkusz papierowych żetonów obrażeń"
@@ -269,7 +269,7 @@ msgstr "display 36 boosterů Pitch Black"
 
 #. contents item
 msgid "dodatkowe karty Trenera"
-msgstr "doplňkové karty Trenérů"
+msgstr "další trenérské karty"
 
 #. contents item
 msgid "dwustronne tekturowe tło do ekspozycji"
@@ -317,19 +317,19 @@ msgstr "full-art foil promo karta se Scream Tail nebo Iron Bundle"
 
 #. contents item
 msgid "gumka do ścierania z Bellibolt"
-msgstr "guma s Bellibolt"
+msgstr "guma s motivem Bellibolt"
 
 #. contents item
 msgid "gumka do ścierania z Gengar"
-msgstr "guma s Gengar"
+msgstr "guma s motivem Gengar"
 
 #. contents item
 msgid "gumka do ścierania z Lechonk"
-msgstr "guma s Lechonk"
+msgstr "guma s motivem Lechonk"
 
 #. contents item
 msgid "gumka do ścierania z Smoliv"
-msgstr "guma se Smoliv"
+msgstr "guma s motivem Smoliv"
 
 #. contents item
 msgid "Journey Together Enhanced Booster Box"
@@ -525,7 +525,7 @@ msgstr "karta s ilustrací z plechovky (Snorlax)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Aloli)"
-msgstr "karta s ilustrací z plechovky (starteři z Alolu)"
+msgstr "karta s ilustrací z plechovky (starteři z Aloly)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Galaru)"
@@ -621,7 +621,7 @@ msgstr "ochranný obal na kartu"
 
 #. contents item
 msgid "lista kontrolna kart"
-msgstr "seznam karet ke zaškrtávání"
+msgstr "checklist karet"
 
 #. contents item
 msgid "losowa figurka Eevee lub jego ewolucji (1 z 10, w tym 1 ukryta)"
@@ -1277,11 +1277,11 @@ msgstr "plyšové pouzdro na doplňky s Eevee"
 
 #. contents item
 msgid "pluszowy Altaria"
-msgstr "plyšový Altaria"
+msgstr "plyšák Altaria"
 
 #. contents item
 msgid "pluszowy Pikachu"
-msgstr "plyšový Pikachu"
+msgstr "plyšák Pikachu"
 
 #. contents item
 msgid "podstawka ekspozycyjna z uchwytem na kartę"
@@ -1317,7 +1317,7 @@ msgstr "průvodce vylepšením balíčku"
 
 #. contents item
 msgid "przezroczysta folia na kartę"
-msgstr "průhledná fólie na kartu"
+msgstr "průhledný obal na kartu"
 
 #. contents item
 msgid "pudełko na akcesoria"
@@ -1337,11 +1337,11 @@ msgstr "rámeček k vystavení karty"
 
 #. contents item
 msgid "ramka ekspozycyjna Adaman"
-msgstr "rámeček k vystavení Adaman"
+msgstr "vystavovací rámeček Adaman"
 
 #. contents item
 msgid "ramka ekspozycyjna Irida"
-msgstr "rámeček k vystavení Irida"
+msgstr "vystavovací rámeček Irida"
 
 #. contents item
 msgid "ramka na dwie karty"
@@ -1361,7 +1361,7 @@ msgstr "stručný návod ke hře"
 
 #. contents item
 msgid "stały zestaw 172 kart (51 rodzajów: 13 Pokémon, 59 trenerów, 4 energie specjalne, 96 energii podstawowych)"
-msgstr "pevná sada 172 karet (51 druhů: 13 Pokémonů, 59 Trenérů, 4 speciální energie, 96 základních energií)"
+msgstr "pevná sada 172 karet (51 druhů: 13 Pokémonů, 59 trenérských karet, 4 speciální energie, 96 základních energií)"
 
 #. contents item
 msgid "Unova mini tin"
@@ -1397,7 +1397,7 @@ msgstr "prémiové žetony (otrava, popálení)"
 
 #. contents item
 msgid "ściągawka strategii talii"
-msgstr "taháček ke strategii balíčku"
+msgstr "list se strategií balíčku"
 
 #. contents item
 msgid "żetony obrażeń"
@@ -1417,19 +1417,19 @@ msgstr "Build & Battle (40 karet)"
 
 #. deck
 msgid "Build & Battle 40-card deck"
-msgstr "balíček Build & Battle (40 karet)"
+msgstr "Build & Battle (40 karet)"
 
 #. deck
 msgid "Destined Rivals prerelease deck"
-msgstr "prerelease balíček Destined Rivals"
+msgstr "na prerelease Destined Rivals"
 
 #. deck
 msgid "Journey Together Build & Battle deck"
-msgstr "balíček Journey Together Build & Battle"
+msgstr "Journey Together Build & Battle"
 
 #. deck
 msgid "losowa talia (60 kart, co najmniej 2 karty Pokémon ex)"
-msgstr "náhodný balíček (60 karet, alespoň 2 karty Pokémon ex)"
+msgstr "(náhodný, 60 karet, alespoň 2 karty Pokémon ex)"
 
 #. deck
 msgid "Ondřej Škubal — ADP (60 kart)"
@@ -1449,23 +1449,23 @@ msgstr "Koraidon ex nebo Miraidon ex (náhodně)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
-msgstr "v každém balíčku 1 ze 4 náhodných: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
+msgstr "v každém balíčku náhodně 1 ze 4: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
-msgstr "v každém balíčku 1 ze 4 náhodných: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
+msgstr "v každém balíčku náhodně 1 ze 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
-msgstr "v každém balíčku 1 ze 4 náhodných: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
+msgstr "v každém balíčku náhodně 1 ze 4: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
-msgstr "v každém balíčku 1 ze 4 náhodných: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
+msgstr "v každém balíčku náhodně 1 ze 4: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
-msgstr "v každém balíčku 1 ze 4 náhodných: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
+msgstr "v každém balíčku náhodně 1 ze 4: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
 
 #. promo card
 msgid "Bulbasaur (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
@@ -1477,35 +1477,35 @@ msgstr "Charmander (holo, vzor Poké Ball; 1 z 99 se vzorem Master Ball)"
 
 #. promo card
 msgid "Eevee (karta holo)"
-msgstr "Eevee (holo karta)"
+msgstr "Eevee (holo)"
 
 #. promo card
 msgid "Espeon (karta holo)"
-msgstr "Espeon (holo karta)"
+msgstr "Espeon (holo)"
 
 #. promo card
 msgid "First Partner promo card (3 of 9, random)"
-msgstr "promo karta First Partner (3 z 9, náhodně)"
+msgstr "First Partner (náhodně 3 z 9)"
 
 #. promo card
 msgid "Flareon (karta holo)"
-msgstr "Flareon (holo karta)"
+msgstr "Flareon (holo)"
 
 #. promo card
 msgid "Foil promo, one of four: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
-msgstr "foil promo, jedna ze čtyř: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
+msgstr "foil, jedna ze čtyř: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
 
 #. promo card
 msgid "Glaceon (karta holo)"
-msgstr "Glaceon (holo karta)"
+msgstr "Glaceon (holo)"
 
 #. promo card
 msgid "Jolteon (karta holo)"
-msgstr "Jolteon (holo karta)"
+msgstr "Jolteon (holo)"
 
 #. promo card
 msgid "Leafeon (karta holo)"
-msgstr "Leafeon (holo karta)"
+msgstr "Leafeon (holo)"
 
 #. promo card
 msgid "losowa (1 z 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
@@ -1521,39 +1521,39 @@ msgstr "náhodná (1 ze 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magne
 
 #. promo card
 msgid "losowa First Partner (3 z 9: MEP 046–054)"
-msgstr "náhodná First Partner (3 z 9: MEP 046–054)"
+msgstr "First Partner (náhodně 3 z 9: MEP 046–054)"
 
 #. promo card
 msgid "losowa First Partner (3 z 9: MEP 055–063)"
-msgstr "náhodná First Partner (3 z 9: MEP 055–063)"
+msgstr "First Partner (náhodně 3 z 9: MEP 055–063)"
 
 #. promo card
 msgid "losowa karta First Partner (1 z 9: startery z Hoenn, Kalos i Paldei)"
-msgstr "náhodná karta First Partner (1 z 9: starteři z Hoennu, Kalosu a Paldey)"
+msgstr "First Partner (náhodně 1 z 9: starteři z Hoennu, Kalosu a Paldey)"
 
 #. promo card
 msgid "losowa karta First Partner (1 z 9: startery z Johto, Unovy i Galaru)"
-msgstr "náhodná karta First Partner (1 z 9: starteři z Johta, Unovy a Galaru)"
+msgstr "First Partner (náhodně 1 z 9: starteři z Johta, Unovy a Galaru)"
 
 #. promo card
 msgid "losowa karta First Partner (1 z 9: startery z Kanto, Sinnoh i Aloli)"
-msgstr "náhodná karta First Partner (1 z 9: starteři z Kanta, Sinnohu a Alolu)"
+msgstr "First Partner (náhodně 1 z 9: starteři z Kanta, Sinnohu a Aloly)"
 
 #. promo card
 msgid "losowa karta holo z dodatku Stellar Crystal (1 z 30)"
-msgstr "náhodná holo karta ze setu Stellar Crystal (1 z 30)"
+msgstr "holo ze setu Stellar Crystal (náhodně 1 z 30)"
 
 #. promo card
 msgid "losowa karta legendarnego lub mitycznego Pokémona (holo)"
-msgstr "náhodná holo karta legendárního nebo mýtického Pokémona"
+msgstr "legendárního nebo mýtického Pokémona (holo, náhodná)"
 
 #. promo card
 msgid "losowa karta Pikachu (holo)"
-msgstr "náhodná holo karta Pikachu"
+msgstr "Pikachu (holo, náhodná)"
 
 #. promo card
 msgid "losowa: Sprigatito, Fuecoco, Quaxly, Ralts lub Riolu"
-msgstr "náhodná: Sprigatito, Fuecoco, Quaxly, Ralts nebo Riolu"
+msgstr "Sprigatito, Fuecoco, Quaxly, Ralts nebo Riolu (náhodně)"
 
 #. promo card
 msgid "Mega Charizard X ex or Mega Charizard Y ex"
@@ -1561,11 +1561,11 @@ msgstr "Mega Charizard X ex nebo Mega Charizard Y ex"
 
 #. promo card
 msgid "one of four foil promos: Chien-Pao, Gouging Fire, Indeedee or Magneton"
-msgstr "jedna ze čtyř foil promo karet: Chien-Pao, Gouging Fire, Indeedee nebo Magneton"
+msgstr "foil, jedna ze čtyř: Chien-Pao, Gouging Fire, Indeedee nebo Magneton"
 
 #. promo card
 msgid "one of four unique foil promos: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
-msgstr "jedna ze čtyř jedinečných foil promo karet: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
+msgstr "jedinečná foil, jedna ze čtyř: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
 
 #. promo card
 msgid "Pikachu ex (2 różne, po 1)"
@@ -1573,7 +1573,7 @@ msgstr "Pikachu ex (2 různé, po 1)"
 
 #. promo card
 msgid "promo cards"
-msgstr "promo karty"
+msgstr "(různé druhy)"
 
 #. promo card
 msgid "Squirtle (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
@@ -1581,23 +1581,23 @@ msgstr "Squirtle (holo, vzor Poké Ball; 1 z 99 se vzorem Master Ball)"
 
 #. promo card
 msgid "Stamped promo card (Sprigatito, Fuecoco or Quaxly, one at random)"
-msgstr "promo karta s razítkem (Sprigatito, Fuecoco nebo Quaxly, jedna náhodně)"
+msgstr "s razítkem (Sprigatito, Fuecoco nebo Quaxly, jedna náhodně)"
 
 #. promo card
 msgid "Stellar Tera foil promo (random: Eevee or an Eeveelution ex, 1 of 9)"
-msgstr "Stellar Tera foil promo karta (náhodně: Eevee nebo ex evoluce Eevee, 1 z 9)"
+msgstr "Stellar Tera foil (náhodně Eevee nebo jeho evoluce ex, 1 z 9)"
 
 #. promo card
 msgid "Sylveon (karta holo)"
-msgstr "Sylveon (holo karta)"
+msgstr "Sylveon (holo)"
 
 #. promo card
 msgid "Umbreon (karta holo)"
-msgstr "Umbreon (holo karta)"
+msgstr "Umbreon (holo)"
 
 #. promo card
 msgid "Vaporeon (karta holo)"
-msgstr "Vaporeon (holo karta)"
+msgstr "Vaporeon (holo)"
 
 #. retail deal note
 msgid "do wyczerpania zapasów"
