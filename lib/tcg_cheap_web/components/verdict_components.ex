@@ -32,6 +32,43 @@ defmodule TcgCheapWeb.VerdictComponents do
   defp badge_status(:cardmarket), do: :insufficient_data
   defp badge_status(status), do: status
 
+  @doc """
+  "Za mało sklepów" as a badge that opens a short note on why there is no
+  verdict yet and how many shops have the product now. A disclosure, so it
+  opens by touch and keyboard too; it closes on a click outside or Escape
+  (app.js). In a list row it sits above the row's link.
+  """
+  attr :verdict, :map, required: true, doc: "a verdict of too few shops"
+  attr :id, :string, required: true
+  attr :class, :any, default: nil
+  attr :badge_class, :any, default: nil, doc: "the badge's own class, e.g. its large form"
+
+  def few_shops_badge(assigns) do
+    ~H"""
+    <details
+      id={@id}
+      class={["verdict-tip", @class]}
+      phx-mounted={JS.ignore_attributes(["open"])}
+    >
+      <summary class={["verdict-badge verdict-insufficient_data", @badge_class]}>
+        <.verdict_icon status={:insufficient_data} />{verdict_label(@verdict)}
+      </summary>
+      <p class="verdict-tip-body">
+        {gettext(
+          "Cenę oceniamy, gdy produkt jest na stanie w co najmniej %{minimum} sklepach: dopiero wtedy wiadomo, ile zwykle kosztuje.",
+          minimum: TcgCheap.Sealed.PriceGuide.min_shops()
+        )}
+        {few_shops_now(length(@verdict.shop_prices))}
+      </p>
+    </details>
+    """
+  end
+
+  defp few_shops_now(0), do: gettext("Teraz nie ma go w żadnym sklepie.")
+
+  defp few_shops_now(count),
+    do: gettext("Teraz jest w %{shops}.", shops: Format.in_shops(count))
+
   @doc "The drawn mark of a verdict: down for good, equals for normal, up for expensive."
   attr :status, :atom, required: true
 

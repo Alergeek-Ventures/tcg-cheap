@@ -9,27 +9,35 @@ defmodule TcgCheapWeb.MarkdownController do
   use TcgCheapWeb, :controller
 
   alias TcgCheap.Cards
-  alias TcgCheap.Sealed
 
-  alias TcgCheap.Sealed.{BoosterGuide, Catalogue, Expansions, ProductList, ProductPage, SetPage}
+  alias TcgCheap.Sealed.{
+    BoosterGuide,
+    Catalogue,
+    Deals,
+    Expansions,
+    ProductList,
+    ProductPage,
+    SetPage
+  }
 
   alias TcgCheapWeb.{CardRecords, PageMarkdown, Paths, Region, SEO}
 
-  # The home page's default list: English editions, as the HTML opens with.
+  # The home page: today's deals are Polish shops' and chains'.
   def home(conn, _params) do
-    now = DateTime.utc_now()
-    today = DateTime.to_date(now)
-    market = conn.assigns.region.market
-    {summaries, _more?, _count} = ProductList.browse(list_filters(nil, :en), 0, now, market)
-
-    # The retail chains' deals are Polish.
-    retail_deal =
-      if Region.poland?(conn.assigns.region),
-        do: List.first(Sealed.list_current_retail_deals!(today))
-
+    deals = if Region.poland?(conn.assigns.region), do: Deals.current(), else: []
     seo = SEO.Home.metadata(%{})
 
-    send_markdown(conn, seo, PageMarkdown.home(seo, summaries, retail_deal, today))
+    send_markdown(conn, seo, PageMarkdown.home(seo, deals, Date.utc_today()))
+  end
+
+  # The products list's first page: English editions, as the HTML opens with.
+  def products(conn, _params) do
+    now = DateTime.utc_now()
+    market = conn.assigns.region.market
+    {summaries, _more?, _count} = ProductList.browse(list_filters(nil, :en), 0, now, market)
+    seo = SEO.Products.metadata(%{})
+
+    send_markdown(conn, seo, PageMarkdown.products(seo, summaries, DateTime.to_date(now)))
   end
 
   # The card list's first page, as the HTML opens without a search.

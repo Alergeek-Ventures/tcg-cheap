@@ -53,9 +53,20 @@ defmodule TcgCheapWeb.SetCanonical do
          name when is_binary(name) <- Map.get(Expansions.names([id]), id) do
       {:ok, SEO.Expansion.path(id, name), params}
     else
-      _unknown -> :error
+      _unknown -> products_list(path_params, params)
     end
   end
+
+  # The products list left the home page for its own path: a link with the
+  # list's filters on the home page (or on the list itself) belongs there.
+  # A query alone stays: the home page searches products and cards together.
+  defp products_list(path_params, params) when map_size(path_params) == 0 do
+    if Enum.any?(~w(rodzaj wersja), &Map.has_key?(params, &1)),
+      do: {:ok, Paths.products(), params},
+      else: :error
+  end
+
+  defp products_list(_path_params, _params), do: :error
 
   defp expansion(%{"slug" => slug}, params) do
     with {:ok, id} <- Paths.expansion_id(slug), do: {:ok, id, params}

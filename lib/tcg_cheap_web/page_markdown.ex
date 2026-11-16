@@ -50,19 +50,61 @@ defmodule TcgCheapWeb.PageMarkdown do
     ]
   end
 
-  def home(seo, summaries, retail_deal, today) do
+  @doc "The home page: how a price is rated, today's deals (Polish) and where to go next."
+  def home(seo, deals, today) do
     page(seo, today, [
       section(gettext("Jak oceniamy cenę"), list(method())),
-      polish?() &&
-        section(
-          "Ile kosztuje booster",
-          [
-            retail_deal &&
-              "W sieciówkach: #{if retail_deal.product, do: retail_deal.product.name, else: retail_deal.title} #{Format.price(retail_deal.price)}, #{RetailDeal.chain_name(retail_deal.chain)} #{Format.days(retail_deal.starts_on, retail_deal.ends_on)}.",
-            "Ceny boosterów i wszystkie okazje w sieciówkach: #{url_for(Paths.url(Paths.page(:booster_prices)))}"
-          ]
-          |> Enum.filter(&is_binary/1)
-        ),
+      deals != [] && section(gettext("Okazje dziś"), list(Enum.map(deals, &deal_line/1))),
+      section(
+        gettext("Gdzie dalej"),
+        list([
+          link(gettext("Ceny produktów"), url_for(Paths.url(Paths.products()))),
+          link(gettext("Ceny kart"), url_for(Paths.url(Paths.cards()))),
+          Paths.page(:booster_prices) &&
+            link(
+              gettext("Ile kosztuje booster Pokémon?"),
+              url_for(Paths.url(Paths.page(:booster_prices)))
+            ),
+          Paths.page(:expensive_cards) &&
+            link(
+              gettext("Najdroższe karty Pokémon"),
+              url_for(Paths.url(Paths.page(:expensive_cards)))
+            ),
+          Paths.page(:card_value) &&
+            link(
+              gettext("Ile jest warta twoja karta?"),
+              url_for(Paths.url(Paths.page(:card_value)))
+            )
+        ])
+      )
+    ])
+  end
+
+  # "Delta Reign ETB: 699,00 zł w Gralnia, zwykle 899,90 zł (−22%)", a chain's
+  # deal with its days.
+  defp deal_line(deal) do
+    where =
+      case deal.source do
+        {:shop, shop} ->
+          gettext("w %{shop}", shop: OfferComponents.shop_name(%{shop: shop}))
+
+        {:retail, retail} ->
+          "#{RetailDeal.chain_name(retail.chain)}, #{Format.days(retail.starts_on, retail.ends_on)}"
+      end
+
+    gettext("%{product}: %{price} %{where}, zwykle %{typical} w sklepach%{percent}",
+      product: link(deal.product.name, Paths.url(Paths.product(deal.product.slug))),
+      price: Format.price(deal.price),
+      where: where,
+      typical: Format.price(deal.typical),
+      percent: if(deal.percent, do: " (−#{deal.percent}%)", else: "")
+    )
+  end
+
+  @doc "The products list's first page: how a price is rated, then the products."
+  def products(seo, summaries, today) do
+    page(seo, today, [
+      section(gettext("Jak oceniamy cenę"), list(method())),
       section(
         gettext("Produkty"),
         [

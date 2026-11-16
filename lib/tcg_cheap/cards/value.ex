@@ -82,6 +82,7 @@ defmodule TcgCheap.Cards.Value do
       count: count,
       median: at.(0.5),
       ninetieth: at.(0.9),
+      max: List.last(prices),
       over_100: Enum.count(prices, &Decimal.gt?(&1, 100)),
       bins: bins
     }

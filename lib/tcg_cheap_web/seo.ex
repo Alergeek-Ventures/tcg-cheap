@@ -152,7 +152,7 @@ defmodule TcgCheapWeb.SEO do
 
   @doc "The breadcrumb for the list of all products, the top of most trails."
   @spec all_products_crumb() :: {String.t(), String.t()}
-  def all_products_crumb, do: {gettext("Wszystkie produkty"), Paths.url(Paths.home())}
+  def all_products_crumb, do: {gettext("Wszystkie produkty"), Paths.url(Paths.products())}
 
   @doc "The breadcrumb for the card list."
   @spec cards_crumb() :: {String.t(), String.t()}

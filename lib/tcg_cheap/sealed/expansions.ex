@@ -30,9 +30,9 @@ defmodule TcgCheap.Sealed.Expansions do
   end
 
   @doc """
-  The English sets with products in stock, newest first, as the home page's
-  set list leads with them (`ProductFacets.read/1`): the sets every page's
-  footer links. Shared for a few minutes.
+  The English sets with products in stock, newest first, as the products
+  list's set column leads with them (`ProductFacets.read/1`): the sets every
+  page's footer links. Shared for a few minutes.
   """
   @spec newest(pos_integer()) :: [%{id: integer(), name: String.t()}]
   def newest(count) do
@@ -42,6 +42,48 @@ defmodule TcgCheap.Sealed.Expansions do
       |> ProductFacets.read()
       |> Map.fetch!(:expansions)
       |> Enum.map(&Map.take(&1, [:id, :name]))
+    end)
+    |> Enum.take(count)
+  end
+
+  @doc """
+  The English sets with products in stock, latest release first (the
+  TCGdex set's `released_on`; sets without one last), with their logo, as
+  the home page announces them. Shared for a few minutes.
+  """
+  @spec latest(pos_integer()) :: [
+          %{
+            id: integer(),
+            name: String.t(),
+            logo_url: String.t() | nil,
+            released_on: Date.t() | nil
+          }
+        ]
+  def latest(count) do
+    :latest_expansions
+    |> Cache.fetch(fn ->
+      expansions =
+        %{query: "", kind: nil, edition: :en, expansion: nil}
+        |> ProductFacets.read()
+        |> Map.fetch!(:expansions)
+
+      released =
+        Cards.list_sets!(
+          query: [
+            filter: [cardmarket_expansion_id: [in: Enum.map(expansions, & &1.id)]],
+            select: [:cardmarket_expansion_id, :language, :name, :released_on]
+          ]
+        )
+        |> Cards.Set.by_expansion()
+
+      expansions
+      |> Enum.map(fn expansion ->
+        expansion
+        |> Map.take([:id, :name, :logo_url])
+        |> Map.put(:released_on, get_in(released, [expansion.id, Access.key(:released_on)]))
+      end)
+      # The list's own order follows its newest product; news follow the release day.
+      |> Enum.sort_by(&(&1.released_on || ~D[0000-01-01]), {:desc, Date})
     end)
     |> Enum.take(count)
   end

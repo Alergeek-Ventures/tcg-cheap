@@ -68,7 +68,7 @@ defmodule TcgCheapWeb.CrawlController do
           Paths.page_path(region, page),
           do: {at.(page), today}
 
-    [{at.(:home), nil}, {at.(:cards), nil}] ++
+    [{at.(:home), nil}, {at.(:products), nil}, {at.(:cards), nil}] ++
       guides ++
       Enum.map(expansions, fn {id, name} -> {at.({:expansion, Catalogue.slug(name, id)}), nil} end) ++
       Enum.map(products, fn {product, lastmod} -> {at.({:product, product.slug}), lastmod} end) ++
@@ -169,7 +169,8 @@ defmodule TcgCheapWeb.CrawlController do
 
     ## Strony
 
-    - [Strona główna](#{PageMarkdown.url_for(Paths.url(Paths.home()))}): produkty na stanie w sklepach z najniższą ceną i oceną
+    - [Strona główna](#{PageMarkdown.url_for(Paths.url(Paths.home()))}): dzisiejsze okazje w sklepach i sieciówkach, wyszukiwarka produktów i kart, poradniki
+    - [Ceny produktów](#{PageMarkdown.url_for(Paths.url(Paths.products()))}): produkty na stanie w sklepach z najniższą ceną i oceną
     - [Ceny kart](#{PageMarkdown.url_for(Paths.url(Paths.cards()))}): angielskie karty na stanie w sklepach z najniższą ceną i oceną
     - [Ile kosztuje booster Pokémon](#{PageMarkdown.url_for(Paths.url(Paths.page(:booster_prices)))}): poradnik zakupowy – co jest w blistrach, Booster Bundle, Elite Trainer Boxach, Booster Boxach, puszkach i kolekcjach, ile dopłacasz za dodatki ponad cenę boosterów (na przykładzie najnowszego setu) i kiedy co kupić; najtańszy booster każdego z ostatnich setów i okazje w sieciówkach
     - [Najdroższe karty Pokémon](#{PageMarkdown.url_for(Paths.url(Paths.page(:expensive_cards)))}): rekordy aukcji ze źródłami i najdroższe angielskie karty dziś z cenami w polskich sklepach

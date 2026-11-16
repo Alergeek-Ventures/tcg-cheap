@@ -17,6 +17,7 @@ defmodule TcgCheapWeb.Paths do
 
   @type page ::
           :home
+          | :products
           | :cards
           | {:product, String.t()}
           | {:expansion, String.t()}
@@ -30,6 +31,7 @@ defmodule TcgCheapWeb.Paths do
   @spec page_path(Region.t(), page()) :: String.t() | nil
   # The home page ends with a slash, like the region's directory.
   def page_path(%Region{code: code}, :home), do: "/" <> code <> "/"
+  def page_path(%Region{} = region, :products), do: join(region, [region.slugs.products])
   def page_path(%Region{} = region, :cards), do: join(region, [region.slugs.cards])
 
   def page_path(%Region{} = region, {:product, slug}),
@@ -72,6 +74,9 @@ defmodule TcgCheapWeb.Paths do
     %{products: products, expansions: expansions, cards: cards} = slugs
 
     case segments do
+      [^products] ->
+        {:ok, :products}
+
       [^cards] ->
         {:ok, :cards}
 
@@ -121,9 +126,17 @@ defmodule TcgCheapWeb.Paths do
   @spec home() :: String.t()
   def home, do: page_path(Region.current(), :home)
 
-  @doc "The home page with a query, as the products list's filters write it."
+  @doc "The home page with its search (`q`, `w`)."
   @spec home(Enumerable.t()) :: String.t()
   def home(params), do: with_query(home(), params)
+
+  @doc "The products list, the cards list's equal."
+  @spec products() :: String.t()
+  def products, do: page_path(Region.current(), :products)
+
+  @doc "The products list with a query, as its filters write it."
+  @spec products(Enumerable.t()) :: String.t()
+  def products(params), do: with_query(products(), params)
 
   @spec cards() :: String.t()
   def cards, do: page_path(Region.current(), :cards)

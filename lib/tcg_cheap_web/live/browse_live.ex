@@ -25,7 +25,6 @@ defmodule TcgCheapWeb.BrowseLive do
   import TcgCheapWeb.SiteComponents
 
   alias TcgCheap.Cards
-  alias TcgCheap.Sealed
 
   alias TcgCheap.Sealed.{
     Catalogue,
@@ -33,7 +32,6 @@ defmodule TcgCheapWeb.BrowseLive do
     Kinds,
     ProductFacets,
     ProductList,
-    SealedBanner,
     SetPage
   }
 
@@ -58,8 +56,6 @@ defmodule TcgCheapWeb.BrowseLive do
      |> assign(
        all_expansions?: false,
        set_page: nil,
-       market: nil,
-       retail_deals: [],
        # A reconnect mounts the page again; its view was already counted.
        remount?: connected?(socket) and get_connect_params(socket)["_mounts"] != 0,
        list_restore: if(connected?(socket), do: get_connect_params(socket)["_guide_list"])
@@ -94,7 +90,6 @@ defmodule TcgCheapWeb.BrowseLive do
          socket
          |> assign(
            set_page: expansion && set_page(socket, expansion),
-           market: market,
            seo: seo,
            page_title: seo.page_title
          )
@@ -116,19 +111,17 @@ defmodule TcgCheapWeb.BrowseLive do
 
         {:noreply,
          socket
-         |> assign(set_page: set_page, market: nil, seo: seo, page_title: seo.page_title)
+         |> assign(set_page: set_page, seo: seo, page_title: seo.page_title)
          |> track_set_view(expansion, previous)
          |> track_changes(previous)}
 
       {:index, nil, _at_set_page?} ->
-        seo = SEO.Home.metadata(params)
+        seo = SEO.Products.metadata(params)
 
         {:noreply,
          socket
          |> assign(
            set_page: nil,
-           market: polish_only(socket, &SealedBanner.market/0),
-           retail_deals: polish_only(socket, [], fn -> newest_retail_deals(Date.utc_today()) end),
            seo: seo,
            page_title: seo.page_title
          )
@@ -157,17 +150,12 @@ defmodule TcgCheapWeb.BrowseLive do
       do: %{id: id, name: name, count: 0, logo_url: nil}
   end
 
-  # Without a chosen expansion, the card list opens with the whole guide's
-  # singles, which only the Polish market has.
+  # Without a chosen expansion, the card list's search metadata and link
+  # preview tell the whole guide's singles, which only the Polish market has.
   defp singles_market(region, nil),
     do: if(Region.poland?(region), do: Cards.SinglesBanner.market())
 
   defp singles_market(_region, _expansion), do: nil
-
-  # The banners read Polish shops' singles and sealed deals and the Polish
-  # chains' leaflets, in złoty: other regions have none.
-  defp polish_only(socket, none \\ nil, read),
-    do: if(Region.poland?(socket.assigns.region), do: read.(), else: none)
 
   # The set's booster, pull rates and cards change only with the expansion.
   defp set_page(%{assigns: %{set_page: %{id: id} = page}}, %{id: id}), do: page
@@ -467,14 +455,6 @@ defmodule TcgCheapWeb.BrowseLive do
   defp result_label(count, :products),
     do: Format.products(count)
 
-  # The newest chain deals first: the home page reports them as news.
-  defp newest_retail_deals(today) do
-    today
-    |> Sealed.list_current_retail_deals!()
-    |> Enum.sort_by(& &1.starts_on, {:desc, Date})
-    |> Enum.take(3)
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -511,15 +491,11 @@ defmodule TcgCheapWeb.BrowseLive do
               <.set_intro
                 name={@filters.expansion_name}
                 page={@set_page}
-                close={Paths.home()}
+                close={Paths.products()}
                 polish?={Region.poland?(@region)}
               />
             <% true -> %>
-              <.site_intro filters={@filters} market={@market} />
-              <.retail_news
-                :if={@filters.mode == :products and Region.poland?(@region)}
-                deals={@retail_deals}
-              />
+              <.site_intro filters={@filters} />
           <% end %>
           <section class="guide-search" aria-labelledby="guide-search-title">
             <h2 id="guide-search-title" class="sr-only">

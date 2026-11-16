@@ -61,7 +61,7 @@ as missing.
   delivery there, the Cardmarket trend converted at the NBP rate. In a euro region the
   trend is taken as is, without conversion.
 - Not every part exists everywhere yet. Polish only: articles, retail chain
-  deals, singles from shops, the banners above the lists and a set's most
+  deals, today's deals on the home page, singles from shops and a set's most
   valuable cards. In Hungary, Sweden, Czechia, Croatia, Portugal and the Netherlands a card's price is its
   Cardmarket trend in the region's currency, and a set page opens with its
   single booster.
@@ -84,9 +84,10 @@ as missing.
   one lowered the limit). The limits are rounded down to whole units of the
   region's currency, or 0.10 euro in a euro region, so a price seen in a
   physical shop can be judged too. With fewer shops there is no verdict: the
-  list row shows only the price, the product page
-  says "Za mało sklepów" and gives the Cardmarket trend in the region's currency
-  as context.
+  list row and the product page say "Za mało sklepów", which opens a short note
+  on why and how many shops have the product now (owner decision,
+  2026-11-16), and the product page gives the Cardmarket trend in the region's
+  currency as context.
 - History bounds a good price only: the same price against the median
   daily lowest price of the last 30 days (≥ 7 days with stock), shown as one
   line ("Taniej / Tyle co / Drożej niż w ostatnich 30 dniach") and a chart
@@ -114,14 +115,20 @@ as missing.
   Cardmarket price with delivery), its cards in stock in Poland, the whole set
   at the lowest prices and its most valuable card. Only a normal print's offer
   is compared with the Cardmarket price, as on the card's page.
-- In Poland the lists without an expansion (owner decision, 2026-11-04) open the
-  same way, so choosing a set swaps content, not layout: our title and promise
-  where a set's logo goes, then a banner for the whole guide. Cards show the
-  best deal of any set, cards in stock, how many undercut Cardmarket and the
-  most valuable one in stock; products show the product furthest under its
-  typical shop price with the next deals' photos, products in stock, how many
-  are at a good price and in how many shops. A deal more than 40% under its
-  reference is skipped as a likely wrong match.
+- The home page (`/pl/`, owner decision, 2026-11-16) leads to the two lists
+  rather than being one: first one search across products and cards, their
+  first results right under it, narrowed to one kind only when the visitor
+  chooses it; then, in Poland, today's deals in one row, shops' and retail
+  chains' alike (a product furthest under its typical shop price; a chain's
+  price only when it is a good price against the same typical price, which
+  needs its exact product and enough shops); then the articles, each with a
+  cover drawn from what it tells; then the two lists and the newest sets. A
+  deal more than 40% under its reference is skipped as a likely wrong match.
+- The products list lives at `/pl/produkty` (`/hu/termekek`, …), the card
+  list's equal; old home links with the list's filters redirect there. The
+  lists without an expansion open with our title and promise, then the search
+  (owner decision, 2026-11-16): the home page carries the deals and numbers. A
+  chosen expansion's list keeps its set banner.
 - The search bar holds the query and Produkty/Karty, two tabs of equal width
   that keep a chosen set (owner decision, 2026-11-04, set dropped from the bar
   2026-11-05). Sets are chosen in one place: a column beside the list on a
