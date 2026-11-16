@@ -131,10 +131,6 @@ config :tcg_cheap, :admin_login_limiter,
   max_entries: 10_000,
   prune_interval_ms: 60_000
 
-config :tcg_cheap, :exchange_rate_provider,
-  adapter: TcgCheap.Pricing.NbpExchangeRate,
-  options: []
-
 # Endpoint
 config :tcg_cheap, TcgCheapWeb.Endpoint,
   url: [host: "localhost"],
