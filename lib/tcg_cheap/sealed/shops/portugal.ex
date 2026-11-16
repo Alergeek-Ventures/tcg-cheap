@@ -112,7 +112,27 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       name: "Duo Collectibles",
       host: "duocollectibles.com",
       source: Shopify,
-      collection: "pokemon",
+      mixed_listing: false,
+      excluded_markers: [
+        "LEGO",
+        "funko",
+        "Lorcana",
+        "One Piece",
+        "One Piece Inglês",
+        "One Piece Japonês",
+        "MTG",
+        "Magic The Gathering",
+        "Dragon Ball",
+        "Dragon Ball Inglês",
+        "riftbound",
+        "riftbound inglês",
+        "riftbound chinês",
+        "Radiance riftbound",
+        "acessórios",
+        "proteção",
+        "proteções",
+        "singles"
+      ],
       currency: "EUR",
       country: "PT",
       max_pages: 10,
@@ -125,10 +145,23 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       name: "Templars Arena",
       host: "templarsarena.com",
       source: Shopify,
-      collection: "pokemon",
+      excluded_markers: [
+        "Funko",
+        "Ultra PRO",
+        "Ultra Pro",
+        "Sleeves",
+        "Playmat",
+        "Vinyl Figure",
+        "Plush",
+        "Plush Blindbox",
+        "Acrylic Display Case",
+        "The Acrylic Box",
+        "Jazwares",
+        "Ravensburger"
+      ],
       currency: "EUR",
       country: "PT",
-      max_pages: 10,
+      max_pages: 15,
       shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil
@@ -138,7 +171,22 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       name: "Pokelotas",
       host: "pokelotas.com",
       source: Shopify,
-      collection: "pokemon",
+      excluded_markers: [
+        "Singles",
+        "Slab",
+        "Acessórios",
+        "Funko",
+        "One Piece",
+        "Magic",
+        "Lorcana",
+        "Sleeves",
+        "TopLoaders",
+        "Palworld",
+        "gundam",
+        "naruto",
+        "merch",
+        "Suporte"
+      ],
       currency: "EUR",
       country: "PT",
       max_pages: 10,
@@ -151,7 +199,6 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       name: "Brokards",
       host: "brokards.com",
       source: Shopify,
-      collection: "pokemon",
       currency: "EUR",
       country: "PT",
       max_pages: 10,
@@ -164,7 +211,6 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       name: "Geek Haven",
       host: "geekhaven.pt",
       source: Shopify,
-      collection: "pokemon",
       currency: "EUR",
       country: "PT",
       max_pages: 10,
@@ -177,8 +223,8 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       name: "Psydeck",
       host: "psydeck.com",
       source: Shopify,
-      # PSA is the vendor of its graded cards.
-      excluded_markers: ["PSA"],
+      # PSA is the vendor of its graded cards; "danificado" marks damaged products.
+      excluded_markers: ["PSA", "danificado"],
       currency: "EUR",
       country: "PT",
       max_pages: 10,
@@ -199,21 +245,21 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
   @doc """
   Deliveries to Portugal of shops abroad, by shop key: the cheapest rate each
   shop's own anonymous cart quoted for one sealed product to a Lisbon address
-  on 2026-11-16, VAT included. Pokefamily, Bescards, Beam Card Shop and
-  TCGking quoted in złoty. A shop whose cart offers no delivery to Portugal is
+  on 2026-11-16 with the shop's Portugal market selected, VAT included, all in
+  euro. A shop whose cart offers no delivery to Portugal is
   not here.
   """
   def deliveries do
     %{
       "beamcardshop" => %{
-        shipping_from: Decimal.new("135"),
+        shipping_from: Decimal.new("29.95"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "EUR"
       },
       "bescards" => %{
-        shipping_from: Decimal.new("38"),
+        shipping_from: Decimal.new("8.38"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "EUR"
       },
       "cardcosmos" => %{
         shipping_from: Decimal.new("24.99"),
@@ -231,9 +277,9 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
         currency: "EUR"
       },
       "pokefamily" => %{
-        shipping_from: Decimal.new("59"),
+        shipping_from: Decimal.new("12.95"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "EUR"
       },
       "rarecards" => %{
         shipping_from: Decimal.new("9.95"),
@@ -241,9 +287,9 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
         currency: "EUR"
       },
       "tcgking" => %{
-        shipping_from: Decimal.new("50"),
-        free_shipping_from: nil,
-        currency: "PLN"
+        shipping_from: Decimal.new("10.95"),
+        free_shipping_from: Decimal.new("100"),
+        currency: "EUR"
       }
     }
   end
