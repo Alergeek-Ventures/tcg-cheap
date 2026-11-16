@@ -33,12 +33,10 @@ defmodule TcgCheap.Sealed.CardSync do
   """
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.CheckedCardmarketIds
+  alias TcgCheap.Sealed.{CheckedCardmarketIds, Tcgdex}
 
   require Logger
 
-  @url "https://api.tcgdex.net/v2/graphql"
-  @card_url "https://api.tcgdex.net/v2/en/cards/"
   @query "query($id: ID!) { cards(filters: {id: $id}) { id localId name rarity variants { normal reverse holo firstEdition } set { id } } }"
   @recent_days 183
   @retry_after_hours 20
@@ -46,7 +44,8 @@ defmodule TcgCheap.Sealed.CardSync do
   @max_lookups 2_000
   @max_failures_in_row 3
   @max_cards 1_000
-  @pause_ms 100
+  @card_timeout 15_000
+  @set_timeout 30_000
   @budget_ms :timer.minutes(5)
   @unofficial_days 14
 
@@ -62,7 +61,6 @@ defmodule TcgCheap.Sealed.CardSync do
            }}
   def run(opts \\ []) do
     now = Keyword.get_lazy(opts, :now, &DateTime.utc_now/0)
-    request_options = Keyword.get(opts, :request_options, [])
     deadline = System.monotonic_time(:millisecond) + Keyword.get(opts, :budget_ms, @budget_ms)
 
     due =
@@ -71,15 +69,14 @@ defmodule TcgCheap.Sealed.CardSync do
         DateTime.add(now, -@retry_after_hours, :hour)
       )
 
-    counts = sync_until(due, deadline, {request_options, now}, %{synced: 0, failed: 0})
+    counts = sync_until(due, deadline, now, %{synced: 0, failed: 0})
 
     cards =
       Sealed.list_cards_due_for_cardmarket!(DateTime.add(now, -@cardmarket_retry_days, :day),
         query: [limit: @max_lookups]
       )
 
-    lookups =
-      look_up_until(cards, deadline, request_options, %{looked_up: 0, lookups_failed: 0}, 0)
+    lookups = look_up_until(cards, deadline, %{looked_up: 0, lookups_failed: 0}, 0)
 
     fixes = %{checked: apply_checked_ids(), unlinked: unlink_shared_ids()}
 
@@ -130,12 +127,12 @@ defmodule TcgCheap.Sealed.CardSync do
     length(unlinked)
   end
 
-  defp sync_until([], _deadline, _context, counts), do: counts
+  defp sync_until([], _deadline, _now, counts), do: counts
 
-  defp sync_until([set | rest], deadline, context, counts) do
+  defp sync_until([set | rest], deadline, now, counts) do
     if System.monotonic_time(:millisecond) < deadline do
-      key = if sync(set, context) == :ok, do: :synced, else: :failed
-      sync_until(rest, deadline, context, Map.update!(counts, key, &(&1 + 1)))
+      key = if sync(set, now) == :ok, do: :synced, else: :failed
+      sync_until(rest, deadline, now, Map.update!(counts, key, &(&1 + 1)))
     else
       counts
     end
@@ -143,35 +140,27 @@ defmodule TcgCheap.Sealed.CardSync do
 
   # Failures in a row mean TCGdex is struggling (it answers 503 when busy),
   # so the rest waits for the next run.
-  defp look_up_until([], _deadline, _request_options, counts, _failures), do: counts
+  defp look_up_until([], _deadline, counts, _failures), do: counts
+  defp look_up_until(_cards, _deadline, counts, @max_failures_in_row), do: counts
 
-  defp look_up_until(_cards, _deadline, _request_options, counts, @max_failures_in_row),
-    do: counts
-
-  defp look_up_until([card | rest], deadline, request_options, counts, failures) do
+  defp look_up_until([card | rest], deadline, counts, failures) do
     cond do
       System.monotonic_time(:millisecond) >= deadline ->
         counts
 
-      look_up(card, request_options) == :ok ->
-        look_up_until(
-          rest,
-          deadline,
-          request_options,
-          Map.update!(counts, :looked_up, &(&1 + 1)),
-          0
-        )
+      look_up(card) == :ok ->
+        look_up_until(rest, deadline, Map.update!(counts, :looked_up, &(&1 + 1)), 0)
 
       true ->
         counts = Map.update!(counts, :lookups_failed, &(&1 + 1))
-        look_up_until(rest, deadline, request_options, counts, failures + 1)
+        look_up_until(rest, deadline, counts, failures + 1)
     end
   end
 
   # A failed request leaves the card to be asked again in the next run; a
   # card TCGdex has no document for counts as one without an id.
-  defp look_up(card, request_options) do
-    with {:ok, cardmarket_id} <- checked_or_fetched(card, request_options),
+  defp look_up(card) do
+    with {:ok, cardmarket_id} <- checked_or_fetched(card),
          {:ok, _card} <- Sealed.record_card_cardmarket_id(card, cardmarket_id) do
       :ok
     else
@@ -182,28 +171,15 @@ defmodule TcgCheap.Sealed.CardSync do
   end
 
   # A checked id needs no request.
-  defp checked_or_fetched(card, request_options) do
+  defp checked_or_fetched(card) do
     case CheckedCardmarketIds.fetch(card.tcgdex_id) do
       {:ok, cardmarket_id} -> {:ok, cardmarket_id}
-      :error -> fetch_cardmarket_id(card.tcgdex_id, request_options)
+      :error -> fetch_cardmarket_id(card.tcgdex_id)
     end
   end
 
-  defp fetch_cardmarket_id(card_id, request_options) do
-    Process.sleep(@pause_ms)
-
-    options =
-      Keyword.merge(
-        [
-          url: @card_url <> URI.encode(card_id, &URI.char_unreserved?/1),
-          redirect: false,
-          retry: false,
-          receive_timeout: 15_000
-        ],
-        request_options
-      )
-
-    case Req.get(options) do
+  defp fetch_cardmarket_id(card_id) do
+    case Tcgdex.get("en/cards/" <> Tcgdex.segment(card_id), @card_timeout) do
       {:ok, %{status: 200, body: %{"id" => ^card_id} = body}} ->
         {:ok, cardmarket_id(body)}
 
@@ -227,9 +203,9 @@ defmodule TcgCheap.Sealed.CardSync do
 
   defp cardmarket_id(_none), do: nil
 
-  defp sync(set, {request_options, now}) do
-    with {:ok, metadata} <- fetch_set(set.tcgdex_id, request_options),
-         {:ok, cards} <- fetch_cards(set.tcgdex_id, request_options),
+  defp sync(set, now) do
+    with {:ok, metadata} <- fetch_set(set.tcgdex_id),
+         {:ok, cards} <- fetch_cards(set.tcgdex_id),
          cards = Enum.map(cards, &subset_rarity(&1, set)),
          :ok <- replaces_unofficial(set, cards, now),
          {:ok, _set} <- Sealed.record_tcgdex_set_cards(set, cards, metadata) do
@@ -265,22 +241,8 @@ defmodule TcgCheap.Sealed.CardSync do
   # TCGdex filters ids by substring, so cards of other sets are dropped. A
   # response with errors or an incomplete card of the set may lack cards, so
   # it is refused rather than replacing the set's cards.
-  defp fetch_cards(set_id, request_options) do
-    Process.sleep(@pause_ms)
-
-    options =
-      Keyword.merge(
-        [
-          url: @url,
-          json: %{query: @query, variables: %{id: "#{set_id}-"}},
-          redirect: false,
-          retry: false,
-          receive_timeout: 30_000
-        ],
-        request_options
-      )
-
-    case Req.post(options) do
+  defp fetch_cards(set_id) do
+    case Tcgdex.graphql(@query, %{id: "#{set_id}-"}, @set_timeout) do
       {:ok, %{status: 200, body: %{"errors" => [_ | _] = errors}}} ->
         {:error, {:graphql_errors, errors |> inspect() |> String.slice(0, 200)}}
 
@@ -299,21 +261,8 @@ defmodule TcgCheap.Sealed.CardSync do
     end
   end
 
-  defp fetch_set(id, request_options) do
-    Process.sleep(@pause_ms)
-
-    options =
-      Keyword.merge(
-        [
-          url: "https://api.tcgdex.net/v2/en/sets/" <> URI.encode(id, &URI.char_unreserved?/1),
-          redirect: false,
-          retry: false,
-          receive_timeout: 30_000
-        ],
-        request_options
-      )
-
-    case Req.get(options) do
+  defp fetch_set(id) do
+    case Tcgdex.get("en/sets/" <> Tcgdex.segment(id), @set_timeout) do
       {:ok, %{status: 200, body: %{"id" => ^id, "cardCount" => %{"official" => count}} = body}}
       when is_integer(count) and count >= 0 ->
         {:ok,
