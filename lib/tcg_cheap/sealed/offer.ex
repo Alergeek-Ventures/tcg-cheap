@@ -39,6 +39,7 @@ defmodule TcgCheap.Sealed.Offer do
         :price,
         :shop_price,
         :currency,
+        :market_prices,
         :in_stock,
         :preorder,
         :last_seen_at
@@ -55,6 +56,7 @@ defmodule TcgCheap.Sealed.Offer do
         :price,
         :shop_price,
         :currency,
+        :market_prices,
         :in_stock,
         :preorder,
         :last_seen_at,
@@ -163,6 +165,11 @@ defmodule TcgCheap.Sealed.Offer do
       description "The ISO code of `shop_price`'s currency, the shop's."
       public? true
       constraints max_length: 3
+    end
+
+    attribute :market_prices, :map do
+      description "What the offer costs buyers of the countries its shop prices apart: by ISO country code, a map of `price` (a decimal string) and `currency`, as of the fetch. A country missing there is one the shop does not sell the product to. Poland's is `price`. Nil for a shop that prices no country apart."
+      public? true
     end
 
     attribute :in_stock, :boolean, allow_nil?: false, public?: true

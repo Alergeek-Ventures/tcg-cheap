@@ -254,7 +254,8 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       "beamcardshop" => %{
         shipping_from: Decimal.new("29.95"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "bescards" => %{
         shipping_from: Decimal.new("8.38"),
@@ -264,12 +265,14 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       "cardcosmos" => %{
         shipping_from: Decimal.new("24.99"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "godofcards" => %{
         shipping_from: Decimal.new("11.90"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "pkmwinkel" => %{
         shipping_from: Decimal.new("20"),

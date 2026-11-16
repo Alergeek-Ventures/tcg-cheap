@@ -47,10 +47,15 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @min_price Decimal.new(1)
 
   # A pre-order is never in stock; feeds that cannot tell leave `preorder` out.
+  # `market_prices`: what the offer costs buyers of other countries, by
+  # country, where the shop prices them apart (`Shop.deliveries`).
   @type offer :: %{
           optional(:preorder) => boolean(),
           optional(:kind) => :single | :sealed,
           optional(:category) => String.t() | nil,
+          optional(:market_prices) => %{
+            String.t() => %{price: Decimal.t(), currency: String.t()}
+          },
           shop_product_id: String.t(),
           title: String.t(),
           url: String.t(),

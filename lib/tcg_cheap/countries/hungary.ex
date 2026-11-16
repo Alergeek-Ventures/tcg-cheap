@@ -123,7 +123,7 @@ defmodule TcgCheap.Countries.Hungary do
     do:
       dgettext(
         "hungary",
-        "Sklepy z zagranicy sprzedają w swojej walucie, polskie w złotych. Ich ceny przeliczamy na forinty po dziennych kursach NBP. Strona sklepu może być po polsku albo w innym języku."
+        "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Węgier. Gdy podaje ją tylko w swojej walucie (polskie sklepy w złotych), przeliczamy ją na forinty po dziennych kursach NBP. Strona sklepu może być po polsku albo w innym języku."
       )
 
   @impl TcgCheapWeb.RegionText

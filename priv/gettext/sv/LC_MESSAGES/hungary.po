@@ -73,8 +73,8 @@ msgstr "Byt till ungersk version"
 
 #: lib/tcg_cheap/countries/hungary.ex:124
 #, elixir-autogen, elixir-format
-msgid "Sklepy z zagranicy sprzedają w swojej walucie, polskie w złotych. Ich ceny przeliczamy na forinty po dziennych kursach NBP. Strona sklepu może być po polsku albo w innym języku."
-msgstr "Butiker utomlands säljer i sin egen valuta, polska butiker i zloty. Vi räknar om deras priser till forint med dagliga växelkurser från polska centralbanken (NBP). Butikens sida kan vara på polska eller ett annat språk."
+msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Węgier. Gdy podaje ją tylko w swojej walucie (polskie sklepy w złotych), przeliczamy ją na forinty po dziennych kursach NBP. Strona sklepu może być po polsku albo w innym języku."
+msgstr "Priset från en butik utomlands är det som butiken anger för köpare i Ungern. Anger den det bara i sin egen valuta (polska butiker i zloty) räknar vi om det till forint med dagliga växelkurser från polska centralbanken (NBP). Butikens sida kan vara på polska eller ett annat språk."
 
 #: lib/tcg_cheap/countries/hungary.ex:46
 #, elixir-autogen, elixir-format

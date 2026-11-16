@@ -125,7 +125,7 @@ defmodule TcgCheap.Countries.Croatia do
     do:
       dgettext(
         "croatia",
-        "Sklepy z zagranicy sprzedają w swojej walucie. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+        "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Chorwacji. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
       )
 
   @impl TcgCheapWeb.RegionText

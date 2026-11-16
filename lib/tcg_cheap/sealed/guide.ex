@@ -124,7 +124,15 @@ defmodule TcgCheap.Sealed.Guide do
       offers =
         now
         |> Sealed.current_offers(:all,
-          select: [:product_id, :price, :shop_price, :currency, :in_stock, :preorder]
+          select: [
+            :product_id,
+            :price,
+            :shop_price,
+            :currency,
+            :market_prices,
+            :in_stock,
+            :preorder
+          ]
         )
         |> Enum.filter(&(&1.product_id && (&1.in_stock or &1.preorder)))
         |> Market.compared(market, DateTime.to_date(now))
@@ -150,7 +158,7 @@ defmodule TcgCheap.Sealed.Guide do
   def in_stock?(product_id, %Market{} = market, %DateTime{} = now) do
     now
     |> Sealed.current_offers([product_id],
-      select: [:product_id, :price, :shop_price, :currency, :in_stock]
+      select: [:product_id, :price, :shop_price, :currency, :market_prices, :in_stock]
     )
     |> Enum.filter(& &1.in_stock)
     |> Market.compared(market, DateTime.to_date(now))
@@ -482,10 +490,10 @@ defmodule TcgCheap.Sealed.Guide do
     end)
   end
 
-  # Poland compares the PLN price stored at fetch; another market converts
-  # the shop's own price.
+  # Poland compares the PLN price stored at fetch; another market reads what
+  # the shop charges there, or converts the shop's own price.
   defp shop_price_fields(market),
-    do: if(market == Market.poland(), do: [], else: [:shop_price, :currency])
+    do: if(market == Market.poland(), do: [], else: [:shop_price, :currency, :market_prices])
 
   defp price_histories(ids, market, since) do
     select = [query: [select: [:product_id, :date, :lowest_price]]]

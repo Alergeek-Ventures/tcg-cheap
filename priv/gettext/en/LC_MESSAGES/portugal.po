@@ -103,8 +103,8 @@ msgstr "With fewer shops there is no verdict; as context we give the Cardmarket 
 
 #: lib/tcg_cheap/countries/portugal.ex:122
 #, elixir-autogen, elixir-format
-msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "Shops abroad sell in their own currency. We convert prices in currencies other than the euro at daily NBP rates. The shop's page may be in another language."
+msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Portugalii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr "A shop abroad's price is the one the shop gives buyers in Portugal. We convert prices in currencies other than the euro at daily NBP rates. The shop's page may be in another language."
 
 #: lib/tcg_cheap/countries/portugal.ex:44
 #, elixir-autogen, elixir-format

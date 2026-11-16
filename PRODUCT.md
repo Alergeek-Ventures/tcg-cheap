@@ -56,8 +56,9 @@ as missing.
 - Language is separate from region: Polish, Hungarian, Swedish, Croatian,
   European Portuguese or English, by default the region's own, switchable on every page.
 - Every region applies the same rules: the same verdicts and limits in its own
-  currency, prices of shops abroad converted at the NBP rate with their
-  delivery, the Cardmarket trend converted the same way. In a euro region the
+  currency, the price a shop abroad charges buyers in that country (converted
+  at the NBP rate only when the shop states it in another currency) with its
+  delivery there, the Cardmarket trend converted at the NBP rate. In a euro region the
   trend is taken as is, without conversion.
 - Not every part exists everywhere yet. Polish only: articles, retail chain
   deals, singles from shops, the banners above the lists and a set's most

@@ -131,7 +131,7 @@ defmodule TcgCheap.Countries.Sweden do
     do:
       dgettext(
         "sweden",
-        "Sklepy z zagranicy sprzedają w swojej walucie. Ich ceny przeliczamy na korony po dziennych kursach NBP. Strona sklepu może być w innym języku."
+        "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym ze Szwecji. Gdy podaje ją tylko w swojej walucie, przeliczamy ją na korony po dziennych kursach NBP. Strona sklepu może być w innym języku."
       )
 
   @impl TcgCheapWeb.RegionText

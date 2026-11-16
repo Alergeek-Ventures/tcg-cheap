@@ -86,10 +86,13 @@ defmodule TcgCheap.Sealed.FetchWorker do
   defp failure_reason(%Oban.TimeoutError{}), do: :timeout
   defp failure_reason(exception), do: exception
 
-  # Within the Lifeline's 30 minutes (config.exs), after which a job still
-  # executing counts as orphaned and is run again.
+  # Within the Lifeline's 60 minutes (config.exs), after which a job still
+  # executing counts as orphaned and is run again. A Shopify shop that prices
+  # several countries apart reads its whole list once for each
+  # (`TcgCheap.Sealed.ShopFeed.Shopify`): about 100 requests 15 s apart for
+  # the largest in November 2026.
   @impl Oban.Worker
-  def timeout(%Oban.Job{queue: "shopify"}), do: :timer.minutes(25)
+  def timeout(%Oban.Job{queue: "shopify"}), do: :timer.minutes(55)
   def timeout(_job), do: :timer.minutes(5)
 
   @impl Oban.Worker

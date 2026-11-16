@@ -267,15 +267,19 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
   """
   def deliveries do
     %{
+      # Its cart for buyers in Sweden, in their currency (2026-11-16).
       "beamcardshop" => %{
-        shipping_from: Decimal.new("29.95"),
+        shipping_from: Decimal.new("340"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "SEK",
+        price_currency: "SEK"
       },
+      # Its cart for buyers in Sweden, in their currency (2026-11-16).
       "bescards" => %{
-        shipping_from: Decimal.new("8.38"),
+        shipping_from: Decimal.new("95"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "SEK",
+        price_currency: "SEK"
       },
       # Its cart to Stockholm, VAT included (2026-11-16).
       "cardverse" => %{
@@ -287,24 +291,30 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       "cardcosmos" => %{
         shipping_from: Decimal.new("29.99"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "SEK"
       },
       # Delivers to Sweden; the price is shown only in the checkout.
       "gemipulls" => %{shipping_from: nil, free_shipping_from: nil, currency: "DKK"},
       "godofcards" => %{
         shipping_from: Decimal.new("8.55"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "SEK"
       },
+      # Its cart for buyers in Sweden, in their currency (2026-11-16).
       "pkmwinkel" => %{
-        shipping_from: Decimal.new("20"),
+        shipping_from: Decimal.new("227"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "SEK",
+        price_currency: "SEK"
       },
+      # Its cart for buyers in Sweden, in their currency (2026-11-16).
       "pokefamily" => %{
-        shipping_from: Decimal.new("12.95"),
+        shipping_from: Decimal.new("147"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "SEK",
+        price_currency: "SEK"
       },
       # Its cart to Stockholm (2026-11-16).
       "pokemagic" => %{
@@ -315,7 +325,8 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       "psydeck" => %{
         shipping_from: Decimal.new("15"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "SEK"
       },
       "rarecards" => %{
         shipping_from: Decimal.new("11.95"),

@@ -142,11 +142,23 @@ defmodule TcgCheap.Sealed.Refresh do
   defp report_dropped_offers(_shop, _previous, _fetched), do: :ok
 
   # Every offer keeps the shop's own price (`shop_price`, which other markets
-  # convert), and a shop abroad's `price` is stored in PLN at the latest NBP
-  # rate, so it compares with Polish shops and Cardmarket like any other
-  # offer (`Market.pln_rate/2`: a rate over a week old fails the fetch).
+  # convert) and what it costs in the countries the shop prices apart
+  # (`market_prices`). A shop abroad's `price` is stored in PLN, so it
+  # compares with Polish shops and Cardmarket like any other offer: the price
+  # the shop charges buyers in Poland where it was read, else the shop's own
+  # at the latest NBP rate (`Market.pln_rate/2`: a rate over a week old fails
+  # the fetch).
   defp in_pln(%Shop{currency: currency} = shop, offers, now) do
-    offers = Enum.map(offers, &Map.merge(&1, %{shop_price: &1.price, currency: currency}))
+    offers =
+      Enum.map(
+        offers,
+        &Map.merge(&1, %{
+          shop_price: &1.price,
+          currency: currency,
+          polish_price: get_in(&1, [:market_prices, "PL"]),
+          market_prices: stored_market_prices(shop, Map.get(&1, :market_prices, %{}))
+        })
+      )
 
     converted =
       case shop.currency do
@@ -155,6 +167,7 @@ defmodule TcgCheap.Sealed.Refresh do
       end
 
     with {:ok, offers} <- converted do
+      offers = Enum.map(offers, &Map.delete(&1, :polish_price))
       # The sanity ceiling is in PLN, not in the shop's currency: sealed
       # cases can legitimately cost over a million forints.
       {valid, invalid} = Enum.split_with(offers, &(not Decimal.gt?(&1.price, @max_price_pln)))
@@ -169,7 +182,26 @@ defmodule TcgCheap.Sealed.Refresh do
 
   defp convert_to_pln(offers, currency, today) do
     with {:ok, %{rate: rate}} <- Market.pln_rate(currency, today),
-         do: {:ok, Enum.map(offers, &%{&1 | price: to_pln(&1.price, rate)})}
+         do: {:ok, Enum.map(offers, &%{&1 | price: polish_price(&1, rate)})}
+  end
+
+  # `Shops` lets a shop state its Polish prices in złoty or in its own
+  # currency. A product it lists without a price for Poland keeps the
+  # converted one: `price` is never empty.
+  defp polish_price(%{polish_price: %{price: price, currency: "PLN"}}, _rate), do: price
+  defp polish_price(%{polish_price: %{price: price}}, rate), do: to_pln(price, rate)
+  defp polish_price(%{price: price}, rate), do: to_pln(price, rate)
+
+  # As `Offer.market_prices` stores them: nil for a shop that prices no
+  # country apart; Poland's is the offer's `price`.
+  defp stored_market_prices(shop, prices) do
+    if Shops.price_currencies(shop) == %{} do
+      nil
+    else
+      for {country, %{price: price, currency: currency}} <- prices, country != "PL", into: %{} do
+        {country, %{"price" => Decimal.to_string(price, :normal), "currency" => currency}}
+      end
+    end
   end
 
   defp to_pln(price, rate), do: price |> Decimal.mult(rate) |> Decimal.round(2)
@@ -236,7 +268,16 @@ defmodule TcgCheap.Sealed.Refresh do
     matched =
       now
       |> Sealed.current_offers(:all,
-        select: [:product_id, :price, :shop_price, :currency, :in_stock, :preorder, :image_url]
+        select: [
+          :product_id,
+          :price,
+          :shop_price,
+          :currency,
+          :market_prices,
+          :in_stock,
+          :preorder,
+          :image_url
+        ]
       )
       |> Enum.filter(& &1.product_id)
 

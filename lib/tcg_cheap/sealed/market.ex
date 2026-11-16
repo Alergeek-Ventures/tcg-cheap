@@ -12,11 +12,16 @@ defmodule TcgCheap.Sealed.Market do
   threshold. A shop whose delivery there has no known price is only listed,
   never compared. See `priced/3`.
 
-  An offer's price in a market is its shop's own price (`shop_price`, in
-  `currency`) converted at the latest NBP rates, through PLN both ways.
-  Poland keeps the offer's `price`, converted to PLN when it was fetched
-  (`TcgCheap.Sealed.Refresh`), so Polish prices stay what they were before
-  markets. A rate a week older than its next publication means its job
+  An offer's price in a market is what its shop charges a buyer there. A
+  shop that prices the market's country apart (`price_currency` of its
+  delivery there: another VAT, its own exchange rate) has that price read
+  with every fetch (`market_prices` of the offer, by country), and it is
+  taken as it is, converted only when the shop states it in another currency
+  than the market's; an offer the shop does not sell to that country has no
+  price there. Any other shop's own price (`shop_price`, in `currency`) is
+  converted at the latest NBP rates, through PLN both ways. Poland keeps the
+  offer's `price`, which a fetch stores in PLN by the same rule
+  (`TcgCheap.Sealed.Refresh`). A rate a week older than its next publication means its job
   stopped: an amount that needs it has no price in the market rather than a
   silently wrong one.
   """
@@ -100,12 +105,16 @@ defmodule TcgCheap.Sealed.Market do
   def terms(:error, %__MODULE__{code: "pl"}), do: :domestic
   def terms(:error, _market), do: :absent
 
-  @typedoc "An offer as `priced/3` reads it; a market abroad also needs its shop's own price."
+  @typedoc """
+  An offer as `priced/3` reads it; a market abroad also needs its shop's own
+  price and its prices by country.
+  """
   @type offer :: %{
           required(:shop) => String.t(),
           required(:price) => Decimal.t(),
           optional(:shop_price) => Decimal.t() | nil,
           optional(:currency) => String.t() | nil,
+          optional(:market_prices) => %{String.t() => map()} | nil,
           optional(atom()) => term()
         }
 
@@ -114,18 +123,20 @@ defmodule TcgCheap.Sealed.Market do
   as `{offer, item price, compared price}` in the market's currency: the
   compared price includes delivery for a shop abroad and is nil for a shop
   only listed there. An offer without a price in the market (no shop price
-  yet, or no recent rate for a currency it needs) is left out.
+  yet, not sold to its country by a shop that prices it apart, or no recent
+  rate for a currency it needs) is left out.
   """
   @spec priced([offer], t(), Date.t()) :: [{offer, Decimal.t(), Decimal.t() | nil}]
         when offer: offer()
   def priced(offers, %__MODULE__{} = market, %Date{} = today) do
     terms = shop_terms(offers, market)
-    rates = rates(offers, terms, market, today)
+    apart = priced_apart(terms, market)
+    rates = rates(offers, {terms, apart}, market, today)
 
     for offer <- offers,
         shop_terms = Map.fetch!(terms, offer.shop),
         shop_terms != :absent,
-        {:ok, item} <- [item_price(offer, market, rates)],
+        {:ok, item} <- [item_price(offer, market, apart, rates)],
         do: {offer, item, compared(item, shop_terms, market, rates)}
   end
 
@@ -165,7 +176,8 @@ defmodule TcgCheap.Sealed.Market do
   """
   @spec missing_rates([offer()], t(), Date.t()) :: [{String.t(), term()}]
   def missing_rates(offers, market, today) do
-    rates = rates(offers, shop_terms(offers, market), market, today)
+    terms = shop_terms(offers, market)
+    rates = rates(offers, {terms, priced_apart(terms, market)}, market, today)
     for {currency, {:error, reason}} <- rates, do: {currency, reason}
   end
 
@@ -217,11 +229,16 @@ defmodule TcgCheap.Sealed.Market do
 
   # The rates of every currency the offers' prices and deliveries are in,
   # besides the market's own; none for Polish prices with deliveries in PLN.
-  defp rates(offers, terms, market, today) do
+  defp rates(offers, {terms, apart}, market, today) do
     item_currencies =
-      if market.code == "pl",
-        do: [],
-        else: for(offer <- offers, terms[offer.shop] != :absent, do: offer.currency)
+      if market.code == "pl" do
+        []
+      else
+        for offer <- offers,
+            terms[offer.shop] != :absent,
+            {_price, currency} <- [shop_price(offer, market, apart)],
+            do: currency
+      end
 
     delivery_currencies =
       for {_shop, {:delivered, delivery}} <- terms, do: delivery.currency
@@ -234,11 +251,42 @@ defmodule TcgCheap.Sealed.Market do
     Map.new(Enum.uniq(currencies), &{&1, pln_rate(&1, today)})
   end
 
-  defp item_price(offer, %__MODULE__{code: "pl"}, _rates), do: {:ok, offer.price}
-  defp item_price(%{shop_price: nil}, _market, _rates), do: :error
+  # The shops among `terms` that price the market's country apart.
+  defp priced_apart(terms, %__MODULE__{country: country}) do
+    for {key, shop_terms} <- terms,
+        shop_terms != :absent,
+        {:ok, %Shop{deliveries: %{^country => %{price_currency: _currency}}}} <-
+          [Shops.fetch(key)],
+        into: MapSet.new(),
+        do: key
+  end
 
-  defp item_price(offer, market, rates),
-    do: convert(offer.shop_price, offer.currency, market, rates)
+  defp item_price(offer, %__MODULE__{code: "pl"}, _apart, _rates), do: {:ok, offer.price}
+
+  defp item_price(offer, market, apart, rates) do
+    case shop_price(offer, market, apart) do
+      {price, currency} -> convert(price, currency, market, rates)
+      nil -> :error
+    end
+  end
+
+  # What the shop charges a buyer in the market and in which currency, before
+  # any conversion; nil when it has no price there. An offer last stored
+  # before its shop's prices were read by country (no `market_prices` at all)
+  # keeps the shop's own price until its next fetch.
+  defp shop_price(offer, %__MODULE__{country: country}, apart) do
+    if MapSet.member?(apart, offer.shop) and offer.market_prices != nil do
+      case offer.market_prices do
+        %{^country => %{"price" => price, "currency" => currency}} ->
+          {Decimal.new(price), currency}
+
+        %{} ->
+          nil
+      end
+    else
+      offer.shop_price && {offer.shop_price, offer.currency}
+    end
+  end
 
   defp compared(item, :domestic, _market, _rates), do: item
   defp compared(_item, :listed, _market, _rates), do: nil
