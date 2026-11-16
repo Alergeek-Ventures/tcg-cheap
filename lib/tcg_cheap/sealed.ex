@@ -203,6 +203,11 @@ defmodule TcgCheap.Sealed do
       define :record_shop_fetch, action: :record
     end
 
+    resource TcgCheap.Sealed.FetchResponse do
+      define :list_fetch_responses, action: :for_run, args: [:run_id]
+      define :record_fetch_response, action: :record
+    end
+
     resource TcgCheap.Sealed.ExpansionLogo do
       define :list_expansion_logos, action: :read
       define :set_expansion_logo, action: :set
