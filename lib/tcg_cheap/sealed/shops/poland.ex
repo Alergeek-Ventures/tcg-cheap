@@ -1674,8 +1674,10 @@ defmodule TcgCheap.Sealed.Shops.Poland do
 
   @doc """
   Deliveries to Poland of shops abroad, by shop key (`TcgCheap.Sealed.Shops`):
-  in PLN, as the Polish pages show them in złoty, converted at the NBP rates
-  of 6 November 2026 (EUR 4.39, GBP 5.26, SEK 0.40, CZK 0.18, DKK 0.59).
+  in PLN, as the Polish pages show them in złoty: what the shop's cart asks
+  in złoty where it quotes buyers in Poland in them, else converted at the
+  NBP rates of 6 November 2026 (EUR 4.39, GBP 5.26, SEK 0.40, CZK 0.18, DKK
+  0.59).
   """
   def deliveries do
     %{
@@ -1687,17 +1689,19 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         free_shipping_from: nil,
         currency: "PLN"
       },
+      # Its cart for buyers in Poland, in złoty (2026-11-16).
       "beamcardshop" => %{
-        # €29.95, converted to PLN and rounded up.
-        shipping_from: Decimal.new("131.99"),
+        shipping_from: Decimal.new("135"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "PLN",
+        price_currency: "PLN"
       },
+      # Its cart for buyers in Poland, in złoty (2026-11-16).
       "bescards" => %{
-        # €8.38, converted to PLN and rounded up.
-        shipping_from: Decimal.new("36.94"),
+        shipping_from: Decimal.new("38"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "PLN",
+        price_currency: "PLN"
       },
       "bulbazard" => %{
         # Zásilkovna (Packeta) to Poland 149 Kč.
@@ -1709,7 +1713,8 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         # €24.99, converted to PLN and rounded up.
         shipping_from: Decimal.new("110.14"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "PLN",
+        price_currency: "PLN"
       },
       "cardverse" => %{
         # 3 690 Ft in its cart to Warsaw, VAT included (2026-11-16), at the NBP
@@ -1725,29 +1730,33 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         free_shipping_from: Decimal.new("320"),
         currency: "PLN"
       },
+      # Its cart for buyers in Poland, in złoty, for a single card (2026-11-16).
       "gemipulls" => %{
-        # 109 DKK standard to Poland in its cart, also for 699 DKK (2026-11-10).
-        shipping_from: Decimal.new("64.31"),
+        shipping_from: Decimal.new("42"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "PLN",
+        price_currency: "PLN"
       },
       "godofcards" => %{
         # €8.38, converted to PLN and rounded up.
         shipping_from: Decimal.new("36.94"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "PLN",
+        price_currency: "PLN"
       },
+      # Its cart for buyers in Poland, in złoty (2026-11-16).
       "pkmwinkel" => %{
-        # €20, converted to PLN and rounded up.
-        shipping_from: Decimal.new("88.14"),
+        shipping_from: Decimal.new("90"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "PLN",
+        price_currency: "PLN"
       },
+      # Its cart for buyers in Poland, in złoty (2026-11-16).
       "pokefamily" => %{
-        # €12.95, converted to PLN and rounded up.
-        shipping_from: Decimal.new("57.08"),
+        shipping_from: Decimal.new("59"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "PLN",
+        price_currency: "PLN"
       },
       "pokemagic" => %{
         # €13.95 to Poland, also for an order of €270.
@@ -1759,7 +1768,8 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         # €15, converted to PLN and rounded up.
         shipping_from: Decimal.new("66.11"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "PLN",
+        price_currency: "PLN"
       },
       "rarecards" => %{
         # €7.95, free from €250.
@@ -1771,7 +1781,8 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         # €10.95, free from €100.
         shipping_from: Decimal.new("48.10"),
         free_shipping_from: Decimal.new("439"),
-        currency: "PLN"
+        currency: "PLN",
+        price_currency: "PLN"
       },
       "tcgwebshop" => %{
         # 10 160 Ft in its cart to Warsaw, VAT included (2026-11-16), at the

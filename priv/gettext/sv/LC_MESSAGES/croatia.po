@@ -78,8 +78,8 @@ msgstr "Byt till kroatisk version"
 
 #: lib/tcg_cheap/countries/croatia.ex:126
 #, elixir-autogen, elixir-format
-msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "Butiker utomlands säljer i sin egen valuta. Priser i andra valutor än euro räknar vi om med dagliga växelkurser från polska centralbanken (NBP). Butikens sida kan vara på ett annat språk."
+msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Chorwacji. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr "Priset från en butik utomlands är det som butiken anger för köpare i Kroatien. Priser i andra valutor än euro räknar vi om med dagliga växelkurser från polska centralbanken (NBP). Butikens sida kan vara på ett annat språk."
 
 #: lib/tcg_cheap/countries/croatia.ex:48
 #, elixir-autogen, elixir-format

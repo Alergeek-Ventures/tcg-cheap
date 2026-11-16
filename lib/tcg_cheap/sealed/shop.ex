@@ -47,7 +47,14 @@ defmodule TcgCheap.Sealed.Shop do
       delivery price it is only listed there, and without an entry it is not
       in that market at all. Deliveries are listed in the file of the
       country they go to (`TcgCheap.Sealed.Shops`); one to Poland is stated
-      in PLN: the Polish pages show it in złoty;
+      in PLN: the Polish pages show it in złoty. A delivery with a
+      `price_currency` is to a country whose buyers the shop charges prices
+      of their own, in that currency (another VAT, its own exchange rate and
+      rounding): its client reads them for that country with every fetch
+      (`TcgCheap.Sealed.ShopFeed.Shopify`), and an offer counts there at that
+      price instead of a converted one. Each such country is one more read
+      of the shop's whole list, so only countries where the price was seen
+      to differ from the shop's own carry it;
     * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
       cover the whole shop) and `feed_host` (the shop's own host serving the
       export, such as its CDN, when it is not `host`); WooCommerce:
@@ -106,9 +113,10 @@ defmodule TcgCheap.Sealed.Shop do
               ]
 
   @type delivery :: %{
-          shipping_from: Decimal.t() | nil,
-          free_shipping_from: Decimal.t() | nil,
-          currency: String.t()
+          required(:shipping_from) => Decimal.t() | nil,
+          required(:free_shipping_from) => Decimal.t() | nil,
+          required(:currency) => String.t(),
+          optional(:price_currency) => String.t()
         }
 
   @type t :: %__MODULE__{

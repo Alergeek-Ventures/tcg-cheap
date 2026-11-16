@@ -34,11 +34,22 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
   2026-11-15). Shops are therefore configured without a `collection` and
   their own filter picks the Pokémon products out of the whole list (the
   whole list is paged to its end, so `max_pages` must cover it).
+
+  A shop with Shopify Markets charges buyers of another country prices of
+  their own: in their currency at the shop's exchange rate and rounding, or
+  with their country's VAT. `/products.json?country=SE` answers with those
+  prices and names their currency in its `cart_currency` cookie, which must
+  be the one recorded for the country (`price_currency` of
+  `TcgCheap.Sealed.Shop`'s `deliveries`). The whole list is read once more
+  for each such country, up to its first short page, and every offer
+  carries what it costs there (`market_prices`); a product that list lacks
+  has no price in that country. A failed read for one country fails the
+  fetch like any other page.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
 
-  alias TcgCheap.Sealed.{Ean, Matcher, Shop, ShopFeed}
+  alias TcgCheap.Sealed.{Ean, Matcher, Shop, ShopFeed, Shops}
 
   @per_page 250
   @request_opts [pause_ms: 15_000, protocols: [:http2], sign: true, max_retry_after_ms: 60_000]
@@ -50,7 +61,8 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
   @impl true
   def fetch(%Shop{} = shop, req_options) do
     with :ok <- check_currency(shop, req_options),
-         {:ok, sealed} <- sealed_products(shop, req_options) do
+         {:ok, sealed} <- sealed_products(shop, req_options),
+         {:ok, prices} <- market_prices(shop, req_options) do
       singles =
         with {:ok, singles} <- singles_products(shop, req_options),
              do: {:ok, Enum.map(singles, &{:single, &1})}
@@ -59,7 +71,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
       |> Enum.map(&{:sealed, &1})
       |> ShopFeed.with_singles(
         singles,
-        &ShopFeed.offers(shop, &1, fn p -> normalize(shop, p) end)
+        &ShopFeed.offers(shop, &1, fn p -> normalize(shop, p, prices) end)
       )
     end
   end
@@ -126,10 +138,71 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
     end
   end
 
+  # What each variant costs in the countries the shop prices apart, by
+  # variant id and country, as the shop wrote it.
+  defp market_prices(shop, req_options) do
+    shop
+    |> Shops.price_currencies()
+    |> Enum.sort()
+    |> Enum.reduce_while({:ok, %{}}, fn {country, currency}, {:ok, prices} ->
+      case market_pages(shop, {country, currency}, req_options, 1, prices) do
+        {:ok, prices} -> {:cont, {:ok, prices}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  # Pages are full up to the last one, so a short page ends the list without
+  # one more request; should a short page come earlier, the products after it
+  # only go without a price in this country.
+  defp market_pages(shop, {country, currency} = market, req_options, page, prices) do
+    params = [limit: @per_page, page: page, country: country]
+
+    with {:ok, response} <-
+           ShopFeed.get(shop, "/products.json", params, req_options, @request_opts),
+         :ok <- check_market_currency(response, currency),
+         {:ok, %{"products" => products}} when is_list(products) <- ShopFeed.decode(response) do
+      prices = Enum.reduce(products, prices, &put_market_prices(&1, market, &2))
+
+      cond do
+        length(products) < @per_page -> {:ok, prices}
+        page > shop.max_pages -> {:error, :too_many_pages}
+        true -> market_pages(shop, market, req_options, page + 1, prices)
+      end
+    else
+      {:ok, _other} -> {:error, :malformed_response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  # The response names the currency of its prices only in this cookie.
+  defp check_market_currency(response, currency) do
+    cookies = Req.Response.get_header(response, "set-cookie")
+
+    if Enum.any?(cookies, &String.starts_with?(&1, "cart_currency=#{currency};")),
+      do: :ok,
+      else: {:error, :unexpected_currency}
+  end
+
+  defp put_market_prices(%{"variants" => variants}, {country, currency}, prices)
+       when is_list(variants) do
+    for %{"id" => id, "price" => price} <- variants, reduce: prices do
+      prices ->
+        Map.update(
+          prices,
+          id,
+          %{country => %{price: price, currency: currency}},
+          &Map.put(&1, country, %{price: price, currency: currency})
+        )
+    end
+  end
+
+  defp put_market_prices(_product, _market, prices), do: prices
+
   defp products_path(%Shop{collection: nil}), do: "/products.json"
   defp products_path(%Shop{collection: handle}), do: "/collections/#{handle}/products.json"
 
-  defp normalize(shop, {kind, %{"variants" => [_ | _] = variants} = product}) do
+  defp normalize(shop, {kind, %{"variants" => [_ | _] = variants} = product}, prices) do
     with {:ok, title} <- ShopFeed.title(product["title"]),
          true <- (kind == :single or sealed?(shop, product, title)) || :ignore,
          {:ok, handle} <- handle(product["handle"]) do
@@ -142,7 +215,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
         single?: match?([_], variants)
       }
 
-      offers = Enum.map(variants, &variant_offer(product_offer, &1))
+      offers = Enum.map(variants, &variant_offer(product_offer, &1, prices))
 
       if Enum.all?(offers, &match?({:ok, _offer}, &1)),
         do: {:ok, Enum.map(offers, fn {:ok, offer} -> with_kind(offer, kind) end)},
@@ -153,7 +226,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
     end
   end
 
-  defp normalize(_shop, _product), do: :invalid
+  defp normalize(_shop, _product, _prices), do: :invalid
 
   defp with_kind(offer, :sealed), do: offer
 
@@ -198,7 +271,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
 
   defp handle(_handle), do: :error
 
-  defp variant_offer(product, %{"id" => id, "available" => available} = variant)
+  defp variant_offer(product, %{"id" => id, "available" => available} = variant, prices)
        when is_integer(id) and id > 0 and is_boolean(available) do
     with {:ok, price} <- ShopFeed.decimal_price(variant["price"], product.kind),
          {:ok, title} <- variant_title(product, variant["title"]) do
@@ -210,12 +283,21 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
          image_url: variant_image_url(product, variant["featured_image"]),
          ean: Ean.normalize(variant["sku"]),
          price: price,
+         market_prices: variant_market_prices(Map.get(prices, id, %{}), product.kind),
          in_stock: available
        }}
     end
   end
 
-  defp variant_offer(_product, _variant), do: :error
+  defp variant_offer(_product, _variant, _prices), do: :error
+
+  # A price the shop wrote wrongly for a country is no price there.
+  defp variant_market_prices(by_country, kind) do
+    for {country, %{price: raw, currency: currency}} <- by_country,
+        {:ok, price} <- [ShopFeed.decimal_price(raw, kind)],
+        into: %{},
+        do: {country, %{price: price, currency: currency}}
+  end
 
   # A product's only variant is called "Default Title"; other variants name
   # what differs (a Pokémon, a language), sometimes repeating the product title.

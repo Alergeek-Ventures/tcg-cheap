@@ -114,7 +114,7 @@ config :tcg_cheap, Oban,
   ],
   # Jobs orphaned by a restart return to the queue; shop fetches are unique
   # while executing, so a stuck one would otherwise block its shop for good.
-  lifeline: [rescue_after: {30, :minutes}],
+  lifeline: [rescue_after: {60, :minutes}],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,

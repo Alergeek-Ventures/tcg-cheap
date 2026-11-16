@@ -100,6 +100,22 @@ defmodule TcgCheap.Sealed.Shops do
       do: raise(ArgumentError, "delivery of #{shop.key} to #{country} is misconfigured")
   end
 
+  # Only a Shopify shop's prices are read per country, and Poland's are
+  # stored as `price` in PLN: in złoty, or converted from the shop's currency.
+  for shop <- @shops, {country, %{price_currency: currency}} <- shop.deliveries do
+    unless shop.source == Shopify and (country != "PL" or currency in ["PLN", shop.currency]),
+      do: raise(ArgumentError, "prices of #{shop.key} for #{country} are misconfigured")
+  end
+
+  @doc """
+  The countries whose buyers the shop charges prices of their own, with the
+  currency of each (`price_currency` of `Shop.deliveries`).
+  """
+  @spec price_currencies(Shop.t()) :: %{String.t() => String.t()}
+  def price_currencies(%Shop{deliveries: deliveries}) do
+    for {country, %{price_currency: currency}} <- deliveries, into: %{}, do: {country, currency}
+  end
+
   @doc """
   The price an offer is compared at with other shops' offers in Poland
   (verdicts, lowest prices, history), `Market.compared/3` for one offer: a

@@ -168,19 +168,24 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
 
   @doc """
   Deliveries to Hungary of shops abroad, by shop key (`TcgCheap.Sealed.Shops`),
-  in the shops' own currencies.
+  in the shops' own currencies, or in forints where a shop's cart quotes
+  buyers in Hungary in them.
   """
   def deliveries do
     %{
+      # Its cart for buyers in Hungary, in their currency (2026-11-16).
       "beamcardshop" => %{
-        shipping_from: Decimal.new("29.95"),
+        shipping_from: Decimal.new("11200"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "HUF",
+        price_currency: "HUF"
       },
+      # Its cart for buyers in Hungary, in their currency (2026-11-16).
       "bescards" => %{
-        shipping_from: Decimal.new("8.38"),
+        shipping_from: Decimal.new("3200"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "HUF",
+        price_currency: "HUF"
       },
       "bulbazard" => %{
         shipping_from: Decimal.new("149"),
@@ -190,7 +195,8 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
       "cardcosmos" => %{
         shipping_from: Decimal.new("24.99"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "HUF"
       },
       "chasedex" => %{
         shipping_from: Decimal.new("99"),
@@ -205,22 +211,28 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
       "godofcards" => %{
         shipping_from: Decimal.new("11.45"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "HUF"
       },
+      # Its cart for buyers in Hungary, in their currency (2026-11-16).
       "pkmwinkel" => %{
-        shipping_from: Decimal.new("20"),
+        shipping_from: Decimal.new("7500"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "HUF",
+        price_currency: "HUF"
       },
+      # Its cart for buyers in Hungary, in their currency (2026-11-16).
       "pokefamily" => %{
-        shipping_from: Decimal.new("12.95"),
+        shipping_from: Decimal.new("4900"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "HUF",
+        price_currency: "HUF"
       },
       "psydeck" => %{
         shipping_from: Decimal.new("15"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "HUF"
       },
       "rarecards" => %{
         shipping_from: Decimal.new("8.95"),

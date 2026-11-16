@@ -81,17 +81,19 @@ defmodule TcgCheap.Sealed.Shops.Croatia do
   @doc """
   Deliveries to Croatia of shops abroad, by shop key: the cheapest rate each
   shop's own anonymous cart quoted for one sealed product to Zagreb on
-  2026-11-14, VAT included. Bescards and Beam Card Shop quoted in złoty.
+  2026-11-14, VAT included. Bescards quoted in złoty.
   Shops whose carts offer no delivery to Croatia (TCGbolt, CobraCard, Geek
   Empire, Holo Zone, Myth Games) or quote no price (Bangerpack, Card
   Empire, RJ Mods) are not here.
   """
   def deliveries do
     %{
+      # Its cart for buyers in Croatia (2026-11-16).
       "beamcardshop" => %{
-        shipping_from: Decimal.new("135"),
+        shipping_from: Decimal.new("29.95"),
         free_shipping_from: nil,
-        currency: "PLN"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "bescards" => %{
         shipping_from: Decimal.new("38"),
@@ -101,7 +103,8 @@ defmodule TcgCheap.Sealed.Shops.Croatia do
       "cardcosmos" => %{
         shipping_from: Decimal.new("24.99"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "cardverse" => %{
         shipping_from: Decimal.new("3750"),
@@ -111,7 +114,8 @@ defmodule TcgCheap.Sealed.Shops.Croatia do
       "godofcards" => %{
         shipping_from: Decimal.new("11.90"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "pkmwinkel" => %{
         shipping_from: Decimal.new("20"),
@@ -126,7 +130,8 @@ defmodule TcgCheap.Sealed.Shops.Croatia do
       "psydeck" => %{
         shipping_from: Decimal.new("20"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       # Its delivery page's table of countries (2026-11-16): free from €300.
       "rarecards" => %{

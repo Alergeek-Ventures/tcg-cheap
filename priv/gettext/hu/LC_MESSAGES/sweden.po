@@ -83,8 +83,8 @@ msgstr "Váltás a svéd oldalra"
 
 #: lib/tcg_cheap/countries/sweden.ex:130
 #, elixir-autogen, elixir-format
-msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ich ceny przeliczamy na korony po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "A külföldi boltok a saját pénznemükben árulnak. Az áraikat a napi NBP-árfolyamokon számoljuk át svéd koronára. A bolt oldala lehet más nyelvű."
+msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym ze Szwecji. Gdy podaje ją tylko w swojej walucie, przeliczamy ją na korony po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr "A külföldi bolt ára az, amelyet a bolt a svédországi vásárlóknak ad meg. Ha csak a saját pénznemében adja meg, a napi NBP-árfolyamokon számoljuk át svéd koronára. A bolt oldala lehet más nyelvű."
 
 #: lib/tcg_cheap/countries/sweden.ex:45
 #, elixir-autogen, elixir-format

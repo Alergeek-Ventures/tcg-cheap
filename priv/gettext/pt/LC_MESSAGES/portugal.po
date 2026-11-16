@@ -102,8 +102,8 @@ msgstr "Com menos lojas, não atribuímos uma avaliação; mostramos a tendênci
 
 #: lib/tcg_cheap/countries/portugal.ex:122
 #, elixir-autogen, elixir-format
-msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "As lojas estrangeiras vendem na sua moeda. Convertemos os preços noutras moedas para euros com base nas taxas de câmbio diárias do NBP. A página da loja pode estar noutro idioma."
+msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Portugalii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr "O preço de uma loja estrangeira é o que a loja indica aos compradores de Portugal. Os preços numa moeda que não o euro são convertidos com base nas taxas de câmbio diárias do NBP. A página da loja pode estar noutro idioma."
 
 #: lib/tcg_cheap/countries/portugal.ex:44
 #, elixir-autogen, elixir-format
