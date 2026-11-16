@@ -257,7 +257,7 @@ defmodule TcgCheapWeb.PageMarkdown do
   # As the article: an offer it does not judge has no verdict, not "no
   # Cardmarket price".
   defp expensive_card_verdict(verdict) do
-    if verdict && VerdictComponents.single_verdict_status(verdict) != :insufficient_data,
+    if verdict && VerdictComponents.single_verdict_shown?(verdict),
       do: VerdictComponents.single_verdict_label(verdict),
       else: ""
   end

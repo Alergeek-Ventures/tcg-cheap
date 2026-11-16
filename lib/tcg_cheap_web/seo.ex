@@ -785,7 +785,7 @@ defmodule TcgCheapWeb.SEO do
               number: number,
               price: Format.price(answer.cheapest.price)
             ),
-            VerdictComponents.single_verdict_label(answer.verdict) <> ".",
+            verdict_sentence(answer.verdict),
             gettext("Ceny, stan i warianty karty.")
           ])
 
@@ -911,8 +911,14 @@ defmodule TcgCheapWeb.SEO do
   defp fit_title(titles),
     do: Enum.find(titles, List.last(titles), &(String.length(&1) <= @title_limit))
 
+  # "Za mało sklepów." would read as "not available" in a snippet.
+  defp verdict_sentence(:few_shops), do: nil
+  defp verdict_sentence(verdict), do: VerdictComponents.single_verdict_label(verdict) <> "."
+
   defp fit_description([first | rest]) do
-    Enum.reduce_while(rest, first, fn sentence, description ->
+    rest
+    |> Enum.filter(&is_binary/1)
+    |> Enum.reduce_while(first, fn sentence, description ->
       longer = description <> " " <> sentence
 
       if String.length(longer) <= @description_limit,

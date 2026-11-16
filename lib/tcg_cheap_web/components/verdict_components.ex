@@ -76,6 +76,10 @@ defmodule TcgCheapWeb.VerdictComponents do
   def single_verdict_status(:unavailable), do: :out_of_stock
   def single_verdict_status(_), do: :insufficient_data
 
+  @doc "Whether a list shows a single's verdict: \"Za mało sklepów\" yes, an offer it cannot judge no."
+  def single_verdict_shown?(:few_shops), do: true
+  def single_verdict_shown?(verdict), do: single_verdict_status(verdict) != :insufficient_data
+
   # The same short words as a sealed product's verdict; how the price was
   # judged is told under "Jak liczymy?".
   def single_verdict_label(:unknown), do: gettext("Brak ceny Cardmarket")
