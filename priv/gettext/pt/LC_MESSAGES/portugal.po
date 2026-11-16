@@ -38,7 +38,7 @@ msgstr "%{name}: neste momento, nenhuma loja que envia para Portugal tem este pr
 #: lib/tcg_cheap/countries/portugal.ex:76
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w euro."
-msgstr "Cartas Pokémon TCG em inglês com o preço do Cardmarket em euros."
+msgstr "Cartas Pokémon TCG em inglês com o preço do Cardmarket em euros."
 
 #: lib/tcg_cheap/countries/portugal.ex:97
 #, elixir-autogen, elixir-format
@@ -48,12 +48,12 @@ msgstr "Neste momento, nenhuma loja que envia para Portugal tem o booster %{expa
 #: lib/tcg_cheap/countries/portugal.ex:60
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Portugalii, sprawdzane codziennie."
-msgstr "Preços de Pokémon TCG em lojas que enviam para Portugal, verificados todos os dias."
+msgstr "Preços de Pokémon TCG em lojas que enviam para Portugal, verificados todos os dias."
 
 #: lib/tcg_cheap/countries/portugal.ex:79
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w euro"
-msgstr "Preços de cartas Pokémon TCG em euros"
+msgstr "Preços de cartas Pokémon TCG em euros"
 
 #: lib/tcg_cheap/countries/portugal.ex:131
 #, elixir-autogen, elixir-format
@@ -78,7 +78,7 @@ msgstr "Um bom preço é, no máximo, 95 % do preço típico; um preço normal, 
 #: lib/tcg_cheap/countries/portugal.ex:67
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Portugalii."
-msgstr "As ofertas mais baratas de Pokémon TCG em lojas que enviam para Portugal."
+msgstr "As ofertas mais baratas de Pokémon TCG em lojas que enviam para Portugal."
 
 #: lib/tcg_cheap/countries/portugal.ex:41
 #, elixir-autogen, elixir-format
@@ -88,7 +88,7 @@ msgstr "Portugal"
 #: lib/tcg_cheap/countries/portugal.ex:52
 #, elixir-autogen, elixir-format
 msgid "Porównaj ceny Pokémon TCG w sklepach wysyłających do Portugalii. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
-msgstr "Compara os preços de Pokémon TCG em lojas que enviam para Portugal. Vê as ofertas de boosters, ETB e displays, o histórico de preços e se vale a pena comprar agora."
+msgstr "Compara os preços de Pokémon TCG em lojas que enviam para Portugal. Vê as ofertas de boosters, ETB e displays, o histórico de preços e se vale a pena comprar agora."
 
 #: lib/tcg_cheap/countries/portugal.ex:47
 #, elixir-autogen, elixir-format

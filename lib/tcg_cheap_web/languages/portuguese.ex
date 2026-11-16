@@ -11,7 +11,7 @@ defmodule TcgCheapWeb.Languages.Portuguese do
   def code, do: "pt"
 
   @impl true
-  def name, do: "Português (Portugal)"
+  def name, do: "Português"
 
   @impl true
   def date(date), do: "#{day_month(date)} de #{date.year}"
