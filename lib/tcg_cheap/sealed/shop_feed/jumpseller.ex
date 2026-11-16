@@ -1,14 +1,14 @@
 defmodule TcgCheap.Sealed.ShopFeed.Jumpseller do
   @moduledoc """
   Reads a Jumpseller shop's public HTML category listings (`listing_paths`),
-  including the three storefront themes used by the Portuguese shops. A page's
-  pager announces the last page: every page is read with `?page=N`, at most
-  `max_pages`, and its links must stay on the listing.
+  including the three storefront themes used by the Portuguese shops. Some
+  themes' pagers link only the previous and the next page, so pages are read
+  with `?page=N` while a page links the next one on the same listing, at most
+  `max_pages`; an empty page or one without a readable product is an error.
 
   Tiles carry their title, link, euro price and an out-of-stock marker where
   the theme shows one. A product counts when its title names a sealed product.
-  Images come from the shop or Jumpseller's CDN; listings carry no EAN. See
-  `TcgCheap.Sealed.ShopFeed.HtmlListing.read/2` for the completeness checks.
+  Images come from the shop or Jumpseller's CDN; listings carry no EAN.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
@@ -18,7 +18,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Jumpseller do
 
   @tiles "figure.product, .product-slide-entry, article.product-block"
   @stock_labels ".product-out-of-stock, .product-block__label--status, .product-image-label"
-  @page_link ~r/[?&]page=(\d+)(?:&|\z)/
+  @page_link ~r/(?:\A|&)page=(\d+)(?:&|\z)/
   @price ~r/\A€?([0-9]+(?:[\s\x{a0}][0-9]{3})*),([0-9]{2})€?\z/u
 
   @impl true
@@ -35,37 +35,52 @@ defmodule TcgCheap.Sealed.ShopFeed.Jumpseller do
   defp sealed?(%Shop{mixed_listing: true}, title), do: ShopFeed.sealed_pokemon?(title, nil)
   defp sealed?(_shop, title), do: Matcher.sealed_title?(title)
 
-  defp read_listing(shop, path, req_options) do
-    HtmlListing.read(&request(shop, path, req_options, &1), shop.max_pages)
+  defp read_listing(shop, path, req_options), do: read_pages(shop, path, req_options, 1, [])
+
+  defp read_pages(shop, path, req_options, number, acc) do
+    with {:ok, page} <- request(shop, path, req_options, number),
+         :ok <- check_products(page.products) do
+      acc = [page.products | acc]
+
+      cond do
+        not page.next? -> {:ok, acc |> Enum.reverse() |> List.flatten()}
+        number >= shop.max_pages -> {:error, :too_many_pages}
+        true -> read_pages(shop, path, req_options, number + 1, acc)
+      end
+    end
   end
 
   defp request(shop, path, req_options, number) do
     params = if number == 1, do: [], else: [page: number]
 
     with {:ok, response} <- ShopFeed.get(shop, path, params, req_options),
-         {:ok, document} <- ShopFeed.html(response),
-         {:ok, last} <- last_page(document, path) do
+         {:ok, document} <- ShopFeed.html(response) do
       {:ok,
        %{
-         number: number,
-         last: last,
-         total: nil,
+         next?: links_page?(document, path, number + 1),
          products: document |> Floki.find(@tiles) |> Enum.map(&product/1)
        }}
     end
   end
 
-  # Every pagination link is a `?page=N` link to this listing: no arbitrary
-  # query-string-only path is fetched from the page.
-  defp last_page(document, path) do
-    last =
-      document
-      |> Floki.find("a[href]")
-      |> Floki.attribute("href")
-      |> Enum.map(&page_number(&1, path))
-      |> Enum.max(fn -> 1 end)
+  defp check_products([]), do: {:error, :empty_page}
 
-    {:ok, max(last, 1)}
+  defp check_products(products) do
+    if Enum.any?(products, &readable?/1), do: :ok, else: {:error, :unrecognised_listing}
+  end
+
+  defp readable?(product) do
+    Enum.all?([:id, :title, :path, :price], &is_binary(product[&1])) and
+      is_boolean(product.in_stock)
+  end
+
+  # Only a `?page=N` link to this same listing counts: no arbitrary
+  # query-string-only path is followed from the page.
+  defp links_page?(document, path, number) do
+    document
+    |> Floki.find("a[href]")
+    |> Floki.attribute("href")
+    |> Enum.any?(&(page_number(&1, path) == number))
   end
 
   defp page_number(href, path) do
