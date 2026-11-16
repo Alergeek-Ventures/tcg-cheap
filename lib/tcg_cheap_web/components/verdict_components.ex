@@ -136,7 +136,7 @@ defmodule TcgCheapWeb.VerdictComponents do
       </div>
       <a
         id={"#{@prefix}-go"}
-        href={@offer.url}
+        href={offer_url(@offer)}
         target="_blank"
         rel="noopener nofollow"
         class="verdict-go"

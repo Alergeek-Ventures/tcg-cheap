@@ -128,6 +128,18 @@ defmodule TcgCheap.Sealed.Shops.Croatia do
         free_shipping_from: nil,
         currency: "EUR"
       },
+      # Its delivery page's table of countries (2026-11-16): free from €300.
+      "rarecards" => %{
+        shipping_from: Decimal.new("9.95"),
+        free_shipping_from: Decimal.new("300"),
+        currency: "EUR"
+      },
+      # Its delivery page (2026-11-16): free from €100.
+      "tcgking" => %{
+        shipping_from: Decimal.new("10.95"),
+        free_shipping_from: Decimal.new("100"),
+        currency: "EUR"
+      },
       "tcgwebshop" => %{
         shipping_from: Decimal.new("10160"),
         free_shipping_from: nil,

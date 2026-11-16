@@ -492,7 +492,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       [gettext("Sklep"), pgettext("markdown", "Cena"), gettext("Dostępność")],
       Enum.map(offers, fn offer ->
         [
-          link(offer_shop(offer), offer.url),
+          link(offer_shop(offer), OfferComponents.offer_url(offer)),
           Format.price(compared[offer.id] || offer.price),
           availability(offer, today)
         ]
@@ -717,7 +717,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       ["Sklep", "Cena", "Wariant", "Stan / grading", "Dostępność"],
       Enum.map(offers, fn offer ->
         [
-          link(offer_shop(offer), offer.url),
+          link(offer_shop(offer), OfferComponents.offer_url(offer)),
           Format.price(OfferComponents.row_price(offer)),
           ListingComponents.card_variant_label(offer.variant),
           offer.grading || (offer.condition && condition(offer.condition)) || "",

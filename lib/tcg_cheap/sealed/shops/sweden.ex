@@ -14,13 +14,14 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
   """
 
   alias TcgCheap.Sealed.Shop
-  alias TcgCheap.Sealed.ShopFeed.{Chasedex, GoogleFeed, Shopify}
+  alias TcgCheap.Sealed.ShopFeed.{BangerpackSe, Chasedex, GoogleFeed, Shopify}
 
   @shops [
-    # Bangerpack (White Tree AB, Helsingborg) publishes a Google Shopping
-    # export, served from its CDN in euros; it holds sealed products only. Its
-    # FAQ (2026-11-10) says it ships to Poland at a price shown only in the
-    # checkout and has no free delivery.
+    # Bangerpack (White Tree AB, Helsingborg) runs two shops. bangerpack.com
+    # sells abroad in euros and does not ship to Sweden (its FAQ sends Swedish
+    # buyers to bangerpack.se), so it is outside the Swedish market. It
+    # publishes a Google Shopping export per language on its CDN, sealed
+    # products only; the Polish one links to its Polish pages.
     %Shop{
       key: "bangerpack",
       name: "Bangerpack",
@@ -30,8 +31,25 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       feed_path: "/shopping-pl.xml",
       currency: "EUR",
       country: "SE",
+      home_market: false,
       max_pages: 1,
       shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    # bangerpack.se sells in Sweden in kronor, at its own prices. Its FAQ
+    # (2026-11-16): 29 kr as a letter to the mailbox, 59 kr as a parcel to a
+    # pickup point, no free delivery and no pickup at the warehouse.
+    %Shop{
+      key: "bangerpackse",
+      name: "Bangerpack",
+      host: "bangerpack.se",
+      source: BangerpackSe,
+      feed_path: "/pokemon",
+      currency: "SEK",
+      country: "SE",
+      max_pages: 1,
+      shipping_from: Decimal.new("29"),
       free_shipping_from: nil,
       pickup_city: nil
     },
@@ -252,6 +270,12 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
         free_shipping_from: nil,
         currency: "EUR"
       },
+      # Its cart to Stockholm, VAT included (2026-11-16).
+      "cardverse" => %{
+        shipping_from: Decimal.new("3750"),
+        free_shipping_from: nil,
+        currency: "HUF"
+      },
       # Its delivery page says €19.99 to Sweden; the cart asked €29.99.
       "cardcosmos" => %{
         shipping_from: Decimal.new("29.99"),
@@ -275,8 +299,12 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
         free_shipping_from: nil,
         currency: "EUR"
       },
-      # No published delivery price for Sweden.
-      "pokemagic" => %{shipping_from: nil, free_shipping_from: nil, currency: "EUR"},
+      # Its cart to Stockholm (2026-11-16).
+      "pokemagic" => %{
+        shipping_from: Decimal.new("29.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
       "psydeck" => %{
         shipping_from: Decimal.new("15"),
         free_shipping_from: nil,
@@ -291,6 +319,12 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
         shipping_from: Decimal.new("10.95"),
         free_shipping_from: Decimal.new("100"),
         currency: "EUR"
+      },
+      # Its cart to Stockholm, VAT included (2026-11-16).
+      "tcgwebshop" => %{
+        shipping_from: Decimal.new("10160"),
+        free_shipping_from: nil,
+        currency: "HUF"
       },
       # Its EU delivery page prices singles only; sealed parcels are priced in the checkout.
       "unicorncards" => %{shipping_from: nil, free_shipping_from: nil, currency: "GBP"}

@@ -1680,8 +1680,9 @@ defmodule TcgCheap.Sealed.Shops.Poland do
   def deliveries do
     %{
       "bangerpack" => %{
-        # €10.99 to Poland in its checkout for a €1.99 cart (2026-11-10): a lower
-        # bound, a heavier parcel (a booster box) may cost more.
+        # €10.99 to Poland for a parcel of up to 19.7 kg, as its home page
+        # states (2026-11-16) and its checkout asked for a €1.99 cart; its FAQ
+        # names no free delivery.
         shipping_from: Decimal.new("48.25"),
         free_shipping_from: nil,
         currency: "PLN"
@@ -1707,6 +1708,13 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       "cardcosmos" => %{
         # €24.99, converted to PLN and rounded up.
         shipping_from: Decimal.new("110.14"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      "cardverse" => %{
+        # 3 690 Ft in its cart to Warsaw, VAT included (2026-11-16), at the NBP
+        # rate of 13 November 2026 (HUF 0.012053), rounded up.
+        shipping_from: Decimal.new("44.48"),
         free_shipping_from: nil,
         currency: "PLN"
       },
@@ -1763,6 +1771,13 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         # €10.95, free from €100.
         shipping_from: Decimal.new("48.10"),
         free_shipping_from: Decimal.new("439"),
+        currency: "PLN"
+      },
+      "tcgwebshop" => %{
+        # 10 160 Ft in its cart to Warsaw, VAT included (2026-11-16), at the
+        # NBP rate of 13 November 2026 (HUF 0.012053), rounded up.
+        shipping_from: Decimal.new("122.46"),
+        free_shipping_from: nil,
         currency: "PLN"
       },
       "unicorncards" => %{

@@ -203,7 +203,7 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
         currency: "DKK"
       },
       "godofcards" => %{
-        shipping_from: Decimal.new("11.44"),
+        shipping_from: Decimal.new("11.45"),
         free_shipping_from: nil,
         currency: "EUR"
       },
@@ -227,9 +227,10 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
         free_shipping_from: Decimal.new("300"),
         currency: "EUR"
       },
+      # Its delivery page: free from €100 to every country it lists (2026-11-16).
       "tcgking" => %{
         shipping_from: Decimal.new("10.95"),
-        free_shipping_from: nil,
+        free_shipping_from: Decimal.new("100"),
         currency: "EUR"
       },
       "unicorncards" => %{
