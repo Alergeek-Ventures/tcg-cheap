@@ -33,7 +33,7 @@ defmodule TcgCheapWeb.SingleLive do
     case CardGuide.find(set, slug) do
       {:ok, card, name, path} ->
         page = CardGuide.page(card, name, Paths.localize(path))
-        seo = SEO.single(page)
+        seo = SEO.Single.metadata(page)
         groups = Enum.group_by(page.offers, &group/1)
         primary = Enum.find(page.answers, & &1.cheapest) || hd(page.answers)
 
@@ -231,7 +231,7 @@ defmodule TcgCheapWeb.SingleLive do
             id="single-back"
             data-guide-back
             navigate={
-              SEO.expansion_path(@page.card.tcgdex_set.cardmarket_expansion_id, @page.expansion_name)
+              SEO.Expansion.path(@page.card.tcgdex_set.cardmarket_expansion_id, @page.expansion_name)
             }
             class="guide-back"
           ><.fluent_icon name={:arrow_left} />{gettext("Wróć")}</.link>
@@ -264,7 +264,7 @@ defmodule TcgCheapWeb.SingleLive do
                   else: gettext("Rzadkość nieznana")
                 )} · {CardGuide.printed_number(@page.card)} ·
                 <.link navigate={
-                  SEO.expansion_path(
+                  SEO.Expansion.path(
                     @page.card.tcgdex_set.cardmarket_expansion_id,
                     @page.expansion_name
                   )

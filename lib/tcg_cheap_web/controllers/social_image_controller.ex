@@ -22,8 +22,8 @@ defmodule TcgCheapWeb.SocialImageController do
   def home(conn, _params) do
     serve(
       conn,
-      "social/#{region_prefix(conn)}home-#{SocialImage.home_version()}.jpg",
-      &SocialImage.home/0
+      "social/#{region_prefix(conn)}home-#{SocialImage.Home.version()}.jpg",
+      &SocialImage.Home.draw/0
     )
   end
 
@@ -31,9 +31,9 @@ defmodule TcgCheapWeb.SocialImageController do
     case Guide.product(slug, DateTime.utc_now(), conn.assigns.region.market) do
       {:ok, page} ->
         key =
-          "social/#{region_prefix(conn)}products/#{page.product.slug}-#{SocialImage.product_version(page)}.jpg"
+          "social/#{region_prefix(conn)}products/#{page.product.slug}-#{SocialImage.Product.version(page)}.jpg"
 
-        serve(conn, key, fn -> SocialImage.product(page) end)
+        serve(conn, key, fn -> SocialImage.Product.draw(page) end)
 
       :error ->
         conn |> put_resp_header("cache-control", "no-store") |> send_resp(404, "")
@@ -42,19 +42,19 @@ defmodule TcgCheapWeb.SocialImageController do
 
   def expensive_cards(conn, _params) do
     overview = ExpensiveCards.overview()
-    version = SocialImage.expensive_cards_version(overview)
+    version = SocialImage.ExpensiveCards.version(overview)
 
     serve(conn, "social/articles/najdrozsze-karty-pokemon-#{version}.jpg", fn ->
-      SocialImage.expensive_cards(overview)
+      SocialImage.ExpensiveCards.draw(overview)
     end)
   end
 
   def card_value(conn, _params) do
     guide = CardValue.guide()
-    version = SocialImage.card_value_version(guide)
+    version = SocialImage.CardValue.version(guide)
 
     serve(conn, "social/articles/jak-sprawdzic-wartosc-karty-pokemon-#{version}.jpg", fn ->
-      SocialImage.card_value(guide)
+      SocialImage.CardValue.draw(guide)
     end)
   end
 
@@ -64,8 +64,8 @@ defmodule TcgCheapWeb.SocialImageController do
         not_found(conn)
 
       market ->
-        serve(conn, "social/cards-#{SocialImage.cards_version(market)}.jpg", fn ->
-          SocialImage.cards(market)
+        serve(conn, "social/cards-#{SocialImage.Cards.version(market)}.jpg", fn ->
+          SocialImage.Cards.draw(market)
         end)
     end
   end
@@ -73,8 +73,8 @@ defmodule TcgCheapWeb.SocialImageController do
   def boosters(conn, _params) do
     page = Guide.booster_prices(DateTime.utc_now())
 
-    serve(conn, "social/boosters-#{SocialImage.boosters_version(page)}.jpg", fn ->
-      SocialImage.boosters(page)
+    serve(conn, "social/boosters-#{SocialImage.BoosterPrices.version(page)}.jpg", fn ->
+      SocialImage.BoosterPrices.draw(page)
     end)
   end
 
@@ -83,10 +83,10 @@ defmodule TcgCheapWeb.SocialImageController do
     with {:ok, id, name} <- known_expansion(slug),
          true <- slug == Catalogue.slug(name, id) do
       set_page = Guide.expansion(id, name, DateTime.utc_now())
-      version = SocialImage.expansion_version(name, set_page)
+      version = SocialImage.Expansion.version(name, set_page)
 
       serve(conn, "social/expansions/#{slug}-#{version}.jpg", fn ->
-        SocialImage.expansion(name, set_page)
+        SocialImage.Expansion.draw(name, set_page)
       end)
     else
       _not_found -> not_found(conn)
@@ -101,8 +101,8 @@ defmodule TcgCheapWeb.SocialImageController do
          {:ok, card, name, ^path} <- CardGuide.find(set, slug) do
       page = CardGuide.page(card, name, path)
 
-      serve(conn, "social/cards/#{set}/#{slug}-#{SocialImage.card_version(page)}.jpg", fn ->
-        SocialImage.card(page)
+      serve(conn, "social/cards/#{set}/#{slug}-#{SocialImage.Single.version(page)}.jpg", fn ->
+        SocialImage.Single.draw(page)
       end)
     else
       _moved_or_missing -> not_found(conn)

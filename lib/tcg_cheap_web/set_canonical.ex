@@ -51,7 +51,7 @@ defmodule TcgCheapWeb.SetCanonical do
   def resolve(path_params, params) do
     with {:ok, id, params} <- expansion(path_params, params),
          name when is_binary(name) <- Map.get(Guide.expansion_names([id]), id) do
-      {:ok, SEO.expansion_path(id, name), params}
+      {:ok, SEO.Expansion.path(id, name), params}
     else
       _unknown -> :error
     end

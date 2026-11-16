@@ -24,7 +24,7 @@ defmodule TcgCheapWeb.MarkdownController do
       if Region.poland?(conn.assigns.region),
         do: List.first(Sealed.list_current_retail_deals!(today))
 
-    seo = SEO.home(%{})
+    seo = SEO.Home.metadata(%{})
 
     send_markdown(conn, seo, PageMarkdown.home(seo, summaries, retail_deal, today))
   end
@@ -33,14 +33,14 @@ defmodule TcgCheapWeb.MarkdownController do
   def cards(conn, _params) do
     market = if Region.poland?(conn.assigns.region), do: Guide.singles_market()
     %{available: {cards, _more?, _count}} = Guide.card_discovery()
-    seo = SEO.cards(%{}, market)
+    seo = SEO.Cards.metadata(%{}, market)
 
     send_markdown(conn, seo, PageMarkdown.cards(seo, cards, Date.utc_today()))
   end
 
   def booster_prices(conn, _params) do
     page = BoosterGuide.guide()
-    seo = SEO.booster_prices(page)
+    seo = SEO.BoosterPrices.metadata(page)
 
     send_markdown(conn, seo, PageMarkdown.booster_prices(seo, page))
   end
@@ -52,14 +52,14 @@ defmodule TcgCheapWeb.MarkdownController do
     overview = ExpensiveCards.overview()
     records = CardRecords.all()
     %{cards: ranking} = ExpensiveCards.ranking(filters, 0, 30)
-    seo = SEO.expensive_cards(overview, records, filters)
+    seo = SEO.ExpensiveCards.metadata(overview, records, filters)
 
     send_markdown(conn, seo, PageMarkdown.expensive_cards(seo, overview, records, ranking))
   end
 
   def card_value(conn, _params) do
     guide = CardValue.guide()
-    seo = SEO.card_value(guide)
+    seo = SEO.CardValue.metadata(guide)
 
     send_markdown(conn, seo, PageMarkdown.card_value(seo, guide))
   end
@@ -67,7 +67,7 @@ defmodule TcgCheapWeb.MarkdownController do
   def product(conn, %{"slug" => slug}) do
     case Guide.product(slug, DateTime.utc_now(), conn.assigns.region.market) do
       {:ok, page} ->
-        seo = SEO.product(page)
+        seo = SEO.Product.metadata(page)
         send_markdown(conn, seo, PageMarkdown.product(seo, page))
 
       :error ->
@@ -85,7 +85,7 @@ defmodule TcgCheapWeb.MarkdownController do
         market = conn.assigns.region.market
         set_page = Guide.expansion(id, name, now, market)
         {summaries, _more?, _count} = Guide.browse(list_filters(id, nil), 0, now, market)
-        seo = SEO.expansion(%{}, %{id: id, name: name}, set_page)
+        seo = SEO.Expansion.metadata(%{}, %{id: id, name: name}, set_page)
 
         send_markdown(
           conn,
@@ -93,7 +93,7 @@ defmodule TcgCheapWeb.MarkdownController do
           PageMarkdown.expansion(seo, DateTime.to_date(now), set_page, summaries)
         )
       else
-        moved(conn, SEO.expansion_path(id, name))
+        moved(conn, SEO.Expansion.path(id, name))
       end
     else
       _not_found -> not_found(conn)
@@ -107,7 +107,7 @@ defmodule TcgCheapWeb.MarkdownController do
 
         if path == Paths.page_path(conn.assigns.region, {:card, set, slug}) do
           page = CardGuide.page(card, name, path)
-          seo = SEO.single(page)
+          seo = SEO.Single.metadata(page)
           send_markdown(conn, seo, PageMarkdown.single(seo, page))
         else
           moved(conn, path)

@@ -31,7 +31,7 @@ defmodule TcgCheapWeb.ProductLive do
 
     case Guide.product(slug, DateTime.utc_now(), market) do
       {:ok, page} ->
-        seo = SEO.product(page)
+        seo = SEO.Product.metadata(page)
 
         %{in_stock: in_stock, preorder: preorder, out_of_stock: out_of_stock} =
           offer_groups(page.offers)
@@ -169,7 +169,7 @@ defmodule TcgCheapWeb.ProductLive do
                 > · <.link
                   :if={@page.product.cardmarket_expansion_id}
                   navigate={
-                    SEO.expansion_path(@page.product.cardmarket_expansion_id, @page.product.set_name)
+                    SEO.Expansion.path(@page.product.cardmarket_expansion_id, @page.product.set_name)
                   }
                 >{@page.product.set_name}</.link><span :if={!@page.product.cardmarket_expansion_id}>{@page.product.set_name}</span></span><span id="product-region">
                   {gettext("· wersja %{edition}",
@@ -314,7 +314,7 @@ defmodule TcgCheapWeb.ProductLive do
             </ul>
             <p :if={@from_set.cards > 0} id="product-from-set-cards" class="product-facts">
               <.link navigate={
-                SEO.expansion_path(@page.product.cardmarket_expansion_id, @page.product.set_name)
+                SEO.Expansion.path(@page.product.cardmarket_expansion_id, @page.product.set_name)
               }>
                 {gettext("Pojedyncze karty: %{cards}",
                   cards: Format.cards(@from_set.cards)

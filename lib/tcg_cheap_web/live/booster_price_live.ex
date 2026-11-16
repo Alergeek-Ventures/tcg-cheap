@@ -29,7 +29,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
   @impl true
   def mount(_params, _session, socket) do
     page = BoosterGuide.guide()
-    seo = SEO.booster_prices(page)
+    seo = SEO.BoosterPrices.metadata(page)
 
     {:ok,
      socket
@@ -109,7 +109,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
                 <%= if @latest_booster do %>
                   {lead(@latest_booster)}
                 <% else %>
-                  {Enum.join(SEO.booster_answer(@page), " ")}
+                  {Enum.join(SEO.BoosterPrices.answer(@page), " ")}
                 <% end %>
               </p>
               <p class="expensive-lead">{better_question(@page)}</p>
