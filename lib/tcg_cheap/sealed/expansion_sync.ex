@@ -22,14 +22,13 @@ defmodule TcgCheap.Sealed.ExpansionSync do
 
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Matcher, Regions}
+  alias TcgCheap.Sealed.{Matcher, Regions, Tcgdex}
 
-  @base "https://api.tcgdex.net/v2"
   @languages ~w(en ja)
   @recent_days 183
   @retry_after_hours 20
   @sample_cards 3
-  @pause_ms 100
+  @receive_timeout 15_000
   @budget_ms :timer.minutes(5)
   @logo_host "https://assets.tcgdex.net/"
   @ex_era_id ~r/\Aex\d+\z/
@@ -43,11 +42,11 @@ defmodule TcgCheap.Sealed.ExpansionSync do
 
     deadline = System.monotonic_time(:millisecond) + Keyword.get(opts, :budget_ms, @budget_ms)
 
-    with {:ok, listed} <- list_sets(request_options),
+    with {:ok, listed} <- list_sets(),
          # TCGdex lists sets oldest first.
          due = listed |> Enum.filter(&due?(Map.get(known, &1), now)) |> Enum.reverse(),
          {:ok, expansions} <- expansions(due, request_options) do
-      checked = resolve_until(due, deadline, expansions, request_options)
+      checked = resolve_until(due, deadline, expansions)
 
       with {:ok, remapped} <- reconcile_sealed(request_options) do
         {:ok, %{checked: checked, remapped: remapped}}
@@ -109,20 +108,20 @@ defmodule TcgCheap.Sealed.ExpansionSync do
   defp booster_name(_set), do: nil
 
   # How many due sets were checked before the deadline.
-  defp resolve_until([], _deadline, _expansions, _request_options), do: 0
+  defp resolve_until([], _deadline, _expansions), do: 0
 
-  defp resolve_until([set | rest], deadline, expansions, request_options) do
+  defp resolve_until([set | rest], deadline, expansions) do
     if System.monotonic_time(:millisecond) < deadline do
-      resolve(set, expansions, request_options)
-      1 + resolve_until(rest, deadline, expansions, request_options)
+      resolve(set, expansions)
+      1 + resolve_until(rest, deadline, expansions)
     else
       0
     end
   end
 
-  defp list_sets(request_options) do
+  defp list_sets do
     Enum.reduce_while(@languages, {:ok, []}, fn language, {:ok, acc} ->
-      case get("#{language}/sets", request_options) do
+      case get("#{language}/sets") do
         {:ok, sets} when is_list(sets) ->
           {:cont, {:ok, acc ++ for(%{"id" => "" <> id} <- sets, do: {language, id})}}
 
@@ -154,10 +153,10 @@ defmodule TcgCheap.Sealed.ExpansionSync do
   end
 
   # A set TCGdex fails to return, or that does not save, is left for the next run.
-  defp resolve({language, id}, expansions, request_options) do
+  defp resolve({language, id}, expansions) do
     with {:ok, %{"cards" => cards} = set} when is_list(cards) <-
-           get("#{language}/sets/#{segment(id)}", request_options),
-         {:ok, expansion} <- expansion(cards, language, expansions, request_options) do
+           get("#{language}/sets/#{Tcgdex.segment(id)}"),
+         {:ok, expansion} <- expansion(cards, language, expansions) do
       Sealed.record_tcgdex_set(%{
         language: language,
         tcgdex_id: id,
@@ -171,11 +170,11 @@ defmodule TcgCheap.Sealed.ExpansionSync do
 
   # The expansion of the first sampled card Cardmarket knows; :error when
   # TCGdex fails to return a card, so the set is tried again later.
-  defp expansion(cards, language, expansions, request_options) do
+  defp expansion(cards, language, expansions) do
     cards
     |> Enum.take(@sample_cards)
     |> Enum.reduce_while({:ok, nil}, fn card, acc ->
-      case card_expansion(card, language, expansions, request_options) do
+      case card_expansion(card, language, expansions) do
         {:ok, nil} -> {:cont, acc}
         {:ok, expansion} -> {:halt, {:ok, expansion}}
         :error -> {:halt, :error}
@@ -183,8 +182,8 @@ defmodule TcgCheap.Sealed.ExpansionSync do
     end)
   end
 
-  defp card_expansion(%{"id" => "" <> card}, language, expansions, request_options) do
-    case get("#{language}/cards/#{segment(card)}", request_options) do
+  defp card_expansion(%{"id" => "" <> card}, language, expansions) do
+    case get("#{language}/cards/#{Tcgdex.segment(card)}") do
       {:ok, %{"pricing" => %{"cardmarket" => %{"idProduct" => product}}}} ->
         {:ok, Map.get(expansions, product)}
 
@@ -196,27 +195,15 @@ defmodule TcgCheap.Sealed.ExpansionSync do
     end
   end
 
-  defp card_expansion(_card, _language, _expansions, _request_options), do: {:ok, nil}
+  defp card_expansion(_card, _language, _expansions), do: {:ok, nil}
 
-  defp get(path, request_options) do
-    Process.sleep(@pause_ms)
-
-    options =
-      Keyword.merge(
-        # No retries: they could outlast the budget, and a set that fails is
-        # simply tried again on the next run.
-        [url: "#{@base}/#{path}", redirect: false, retry: false, receive_timeout: 15_000],
-        request_options
-      )
-
-    case Req.get(options) do
+  defp get(path) do
+    case Tcgdex.get(path, @receive_timeout) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, %{status: status}} -> {:error, {:http_status, status, path}}
       {:error, reason} -> {:error, reason}
     end
   end
-
-  defp segment(id), do: URI.encode(id, &URI.char_unreserved?/1)
 
   defp string(value) when is_binary(value), do: value
   defp string(_value), do: nil

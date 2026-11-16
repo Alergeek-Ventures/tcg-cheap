@@ -1,7 +1,17 @@
 defmodule TcgCheap.Sealed.Tcgdex do
-  @moduledoc "Strict, read-only adapter for the official TCGdex API."
+  @moduledoc """
+  Read-only client of the official TCGdex API (REST documents and GraphQL).
 
-  @base "https://api.tcgdex.net/v2/en"
+  `fetch_card/1` is the strict lookup of one card for a request that waits for
+  the answer: bounded body, retries, a document that must be the asked card.
+  `get/2` and `graphql/3` are for the sync runs (`TcgCheap.Sealed.ExpansionSync`,
+  `TcgCheap.Sealed.CardSync`), which call TCGdex often and leave a failed
+  request to the next run: they return the `Req` result, pause between
+  requests, and neither retry nor follow redirects.
+  """
+
+  @base "https://api.tcgdex.net/v2"
+  @pause_ms 100
   @max_response_bytes 2 * 1024 * 1024
   @request_options [
     decode_body: false,
@@ -25,9 +35,44 @@ defmodule TcgCheap.Sealed.Tcgdex do
 
   def fetch_card(id) do
     if valid_card_id?(id),
-      do: execute_request("#{@base}/cards/#{URI.encode(id)}", @request_options, "cards", id),
+      do: execute_request("#{@base}/en/cards/#{URI.encode(id)}", @request_options, "cards", id),
       else: {:error, :invalid_id}
   end
+
+  @doc """
+  Gets the REST document at `path` below the API root, such as `en/sets/sv05`,
+  with ids in it escaped by `segment/1`.
+  """
+  @spec get(String.t(), pos_integer()) :: {:ok, Req.Response.t()} | {:error, Exception.t()}
+  def get(path, receive_timeout) do
+    Process.sleep(@pause_ms)
+
+    Req.get(
+      url: "#{@base}/#{path}",
+      redirect: false,
+      retry: false,
+      receive_timeout: receive_timeout
+    )
+  end
+
+  @doc "Posts a GraphQL `query` with its `variables`."
+  @spec graphql(String.t(), map(), pos_integer()) ::
+          {:ok, Req.Response.t()} | {:error, Exception.t()}
+  def graphql(query, variables, receive_timeout) do
+    Process.sleep(@pause_ms)
+
+    Req.post(
+      url: "#{@base}/graphql",
+      json: %{query: query, variables: variables},
+      redirect: false,
+      retry: false,
+      receive_timeout: receive_timeout
+    )
+  end
+
+  @doc "Escapes an id for use as one segment of a `get/2` path."
+  @spec segment(String.t()) :: String.t()
+  def segment(id), do: URI.encode(id, &URI.char_unreserved?/1)
 
   defp execute_request(path, options, kind, id) do
     case Req.get(path, options) do
