@@ -1600,8 +1600,8 @@ msgstr "Cardmarketen"
 
 #: lib/tcg_cheap_web/live/single_live.ex:315
 #, elixir-autogen, elixir-format
-msgid "na Cardmarket z wysyłką"
-msgstr "Cardmarketen, szállítással"
+msgid "na Cardmarket z wysyłką · wszystkie języki i stany"
+msgstr "Cardmarketen, szállítással · minden nyelv és állapot"
 
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:348
 #, elixir-autogen, elixir-format
@@ -2048,8 +2048,13 @@ msgstr "az ár szállítással"
 
 #: lib/tcg_cheap_web/live/single_live.ex:320
 #, elixir-autogen, elixir-format
-msgid "Cenę w sklepach porównujemy z trendem Cardmarket i wysyłką jednej karty, z tolerancją ±15%. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
-msgstr "A bolti árat a Cardmarket-trenddel és egy kártya szállítási díjával vetjük össze, ±15% tűréssel. A lengyel boltok árai szállítás nélkül, a külföldieké szállítással értendők."
+msgid "Typowa cena to środek stawki: z każdego polskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
+msgstr "A jellemző ár a bolti árak középértéke. Minden lengyel boltból, ahol raktáron van a kártya, a legolcsóbb ajánlatot vesszük figyelembe (legalább %{minimum} bolt kell). A jó ár legalább 5%-kal alacsonyabb a jellemző árnál és a szállítási díjjal együtt számolt Cardmarket-árnál. Az átlagos ár legfeljebb 10%-kal magasabb a jellemző árnál. Efölött már drága. A lengyel boltok árai szállítás nélkül, a külföldieké szállítással értendők."
+
+#: lib/tcg_cheap_web/live/single_live.ex
+#, elixir-autogen, elixir-format
+msgid "Cardmarket podaje jedną cenę dla wszystkich języków i stanów, więc karta angielska w stanie NM bywa droższa."
+msgstr "A Cardmarket minden nyelvre és állapotra egyetlen árat ad meg, ezért egy angol, near mint állapotú kártya drágább lehet."
 
 #: lib/tcg_cheap_web/live/browse_live/banners.ex:227
 #, elixir-autogen, elixir-format
@@ -4179,8 +4184,8 @@ msgstr "kb. %{amount} ezer %{currency}"
 
 #: lib/tcg_cheap_web/live/single_live.ex:277
 #, elixir-autogen, elixir-format
-msgid "trend na Cardmarket, bez wysyłki"
-msgstr "Cardmarket-trend, szállítási díj nélkül"
+msgid "trend na Cardmarket, bez wysyłki · wszystkie języki i stany"
+msgstr "Cardmarket-trend, szállítási díj nélkül · minden nyelv és állapot"
 
 #: lib/tcg_cheap_web/components/site_components.ex:269
 #, elixir-autogen, elixir-format

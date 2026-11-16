@@ -1607,7 +1607,7 @@ msgstr ""
 
 #: lib/tcg_cheap_web/live/single_live.ex:315
 #, elixir-autogen, elixir-format
-msgid "na Cardmarket z wysyłką"
+msgid "na Cardmarket z wysyłką · wszystkie języki i stany"
 msgstr ""
 
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:348
@@ -2055,7 +2055,12 @@ msgstr ""
 
 #: lib/tcg_cheap_web/live/single_live.ex:320
 #, elixir-autogen, elixir-format
-msgid "Cenę w sklepach porównujemy z trendem Cardmarket i wysyłką jednej karty, z tolerancją ±15%. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
+msgid "Typowa cena to środek stawki: z każdego polskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
+msgstr ""
+
+#: lib/tcg_cheap_web/live/single_live.ex
+#, elixir-autogen, elixir-format
+msgid "Cardmarket podaje jedną cenę dla wszystkich języków i stanów, więc karta angielska w stanie NM bywa droższa."
 msgstr ""
 
 #: lib/tcg_cheap_web/live/browse_live/banners.ex:227
@@ -4186,7 +4191,7 @@ msgstr ""
 
 #: lib/tcg_cheap_web/live/single_live.ex:277
 #, elixir-autogen, elixir-format
-msgid "trend na Cardmarket, bez wysyłki"
+msgid "trend na Cardmarket, bez wysyłki · wszystkie języki i stany"
 msgstr ""
 
 #: lib/tcg_cheap_web/components/site_components.ex:269

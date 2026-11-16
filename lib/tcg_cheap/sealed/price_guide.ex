@@ -201,7 +201,8 @@ defmodule TcgCheap.Sealed.PriceGuide do
     end
   end
 
-  defp rate(price, %{good_max: good_max, normal_max: normal_max}, {good, normal, expensive}) do
+  @doc "Rates a price against a verdict's (or past's) limits, naming the three outcomes."
+  def rate(price, %{good_max: good_max, normal_max: normal_max}, {good, normal, expensive}) do
     cond do
       Decimal.compare(price, good_max) != :gt -> good
       Decimal.compare(price, normal_max) != :gt -> normal

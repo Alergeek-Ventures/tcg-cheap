@@ -1608,8 +1608,8 @@ msgstr "på Cardmarket"
 
 #: lib/tcg_cheap_web/live/single_live.ex:315
 #, elixir-autogen, elixir-format
-msgid "na Cardmarket z wysyłką"
-msgstr "på Cardmarket inkl. frakt"
+msgid "na Cardmarket z wysyłką · wszystkie języki i stany"
+msgstr "på Cardmarket inkl. frakt · alla språk och skick"
 
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:348
 #, elixir-autogen, elixir-format
@@ -2056,8 +2056,13 @@ msgstr "pris inkl. frakt"
 
 #: lib/tcg_cheap_web/live/single_live.ex:320
 #, elixir-autogen, elixir-format
-msgid "Cenę w sklepach porównujemy z trendem Cardmarket i wysyłką jednej karty, z tolerancją ±15%. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
-msgstr "Vi jämför butikernas priser med Cardmarket-trenden plus frakt för ett kort, med ±15% marginal. Polska butikers priser är utan frakt, butiker utomlands har frakten inräknad."
+msgid "Typowa cena to środek stawki: z każdego polskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
+msgstr "Typiskt pris är medianen: från varje polsk butik som har kortet i lager tar vi det billigaste erbjudandet (minst %{minimum} butiker krävs). Ett bra pris ligger minst 5% under det typiska priset och under Cardmarket med frakt. Normalt är högst 10% över det typiska. Högre än så är dyrt. Polska butikers priser är utan frakt, butiker utomlands har frakten inräknad."
+
+#: lib/tcg_cheap_web/live/single_live.ex
+#, elixir-autogen, elixir-format
+msgid "Cardmarket podaje jedną cenę dla wszystkich języków i stanów, więc karta angielska w stanie NM bywa droższa."
+msgstr "Cardmarket anger ett enda pris för alla språk och skick, så ett engelskt kort i skick NM kan kosta mer."
 
 #: lib/tcg_cheap_web/live/browse_live/banners.ex:227
 #, elixir-autogen, elixir-format
@@ -4187,8 +4192,8 @@ msgstr "ca %{amount} tusen %{currency}"
 
 #: lib/tcg_cheap_web/live/single_live.ex:277
 #, elixir-autogen, elixir-format
-msgid "trend na Cardmarket, bez wysyłki"
-msgstr "Cardmarket-trend, utan frakt"
+msgid "trend na Cardmarket, bez wysyłki · wszystkie języki i stany"
+msgstr "Cardmarket-trend, utan frakt · alla språk och skick"
 
 #: lib/tcg_cheap_web/components/site_components.ex:269
 #, elixir-autogen, elixir-format

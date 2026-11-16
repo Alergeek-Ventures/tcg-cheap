@@ -1606,8 +1606,8 @@ msgstr "no Cardmarket"
 
 #: lib/tcg_cheap_web/live/single_live.ex:315
 #, elixir-autogen, elixir-format
-msgid "na Cardmarket z wysyłką"
-msgstr "no Cardmarket, com portes"
+msgid "na Cardmarket z wysyłką · wszystkie języki i stany"
+msgstr "no Cardmarket, com portes · todas as línguas e estados"
 
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:348
 #, elixir-autogen, elixir-format
@@ -2054,8 +2054,13 @@ msgstr "preço com portes"
 
 #: lib/tcg_cheap_web/live/single_live.ex:320
 #, elixir-autogen, elixir-format
-msgid "Cenę w sklepach porównujemy z trendem Cardmarket i wysyłką jednej karty, z tolerancją ±15%. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
-msgstr "Comparamos o preço nas lojas com a tendência do Cardmarket e os portes de uma carta, com tolerância de ±15 %. Os preços das lojas polacas não incluem portes; os das lojas estrangeiras incluem-nos."
+msgid "Typowa cena to środek stawki: z każdego polskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
+msgstr "O preço típico é a mediana: tomamos a oferta mais barata de cada loja polaca que tem a carta em stock e escolhemos o valor do meio (precisamos de pelo menos %{minimum} lojas). Um bom preço é, pelo menos, 5 % mais baixo do que o preço típico e do que o Cardmarket com portes. O preço normal fica, no máximo, 10 % acima do típico; acima disso, é caro. Os preços das lojas polacas não incluem portes; os das lojas estrangeiras incluem-nos."
+
+#: lib/tcg_cheap_web/live/single_live.ex
+#, elixir-autogen, elixir-format
+msgid "Cardmarket podaje jedną cenę dla wszystkich języków i stanów, więc karta angielska w stanie NM bywa droższa."
+msgstr "O Cardmarket dá um único preço para todas as línguas e estados, por isso uma carta inglesa em estado NM pode custar mais."
 
 #: lib/tcg_cheap_web/live/browse_live/banners.ex:227
 #, elixir-autogen, elixir-format
@@ -4185,8 +4190,8 @@ msgstr "cerca de %{amount} mil %{currency}"
 
 #: lib/tcg_cheap_web/live/single_live.ex:277
 #, elixir-autogen, elixir-format
-msgid "trend na Cardmarket, bez wysyłki"
-msgstr "tendência no Cardmarket, sem portes"
+msgid "trend na Cardmarket, bez wysyłki · wszystkie języki i stany"
+msgstr "tendência no Cardmarket, sem portes · todas as línguas e estados"
 
 #: lib/tcg_cheap_web/components/site_components.ex:269
 #, elixir-autogen, elixir-format

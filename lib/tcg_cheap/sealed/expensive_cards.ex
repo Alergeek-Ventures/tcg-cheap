@@ -228,7 +228,7 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
         change: change(price),
         offer: offer,
         shops: card_offers |> Enum.uniq_by(& &1.shop) |> length(),
-        verdict: verdict(offer, card, rate)
+        verdict: verdict(card_offers, card, rate)
       }
     end)
   end
@@ -240,27 +240,25 @@ defmodule TcgCheap.Sealed.ExpensiveCards do
     card_ids
     |> CardGuide.current_offers()
     |> Enum.filter(
-      &(&1.in_stock and is_nil(&1.grading) and &1.variant == :normal and polish?(&1.shop))
+      &(&1.in_stock and is_nil(&1.grading) and &1.variant == :normal and Shops.polish?(&1.shop))
     )
     |> Enum.group_by(& &1.card_id)
   end
-
-  defp polish?(shop), do: match?({:ok, %{country: "PL"}}, Shops.fetch(shop))
 
   # This far under the card's value, an offer is more often matched to the
   # wrong card than a bargain: shown, but not judged, as the card list ranks
   # such an offer.
   @suspect_ratio Decimal.new("0.6")
 
-  defp verdict(nil, _card, _rate), do: nil
+  defp verdict([], _card, _rate), do: nil
 
-  defp verdict(offer, card, rate) do
+  defp verdict([offer | _] = offers, card, rate) do
     reference = CardReference.pln(card.cardmarket_price, :normal, rate)
 
     if reference && Decimal.positive?(reference) &&
          Decimal.lt?(Decimal.div(offer.price, reference), @suspect_ratio),
        do: :unknown,
-       else: CardGuide.card_verdict(offer, card, :normal, rate)
+       else: CardGuide.card_verdict(offers, card, :normal, rate)
   end
 
   # The last 7 days' average sale against the last 30 days': two averages of

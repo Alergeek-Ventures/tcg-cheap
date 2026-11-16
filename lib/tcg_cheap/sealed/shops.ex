@@ -152,6 +152,10 @@ defmodule TcgCheap.Sealed.Shops do
         do: {shop.key, {delivery.shipping_from, delivery.free_shipping_from}}
   end
 
+  @doc "Whether the shop is in Poland."
+  @spec polish?(String.t()) :: boolean()
+  def polish?(key), do: match?({:ok, %{country: "PL"}}, fetch(key))
+
   @doc "Shops whose offers never count in Polish prices: abroad without a known delivery price."
   @spec listed_only_keys() :: [String.t()]
   def listed_only_keys do
