@@ -1049,7 +1049,7 @@ msgstr "nasumična karta iz seta Terastal Festival ex"
 
 #. contents item
 msgid "losowa karta z dodatku Terastal Gathering (3 lub 4 holo)"
-msgstr "nasumična karta iz seta Terastal Gathering (3 lub 4 holo)"
+msgstr "nasumična karta iz seta Terastal Gathering (3 ili 4 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku The Glory of Team Rocket"
