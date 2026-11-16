@@ -413,7 +413,13 @@ defmodule TcgCheapWeb.HomeLive do
               id="home-cards"
               title={gettext("Karty")}
               href={Paths.cards()}
-              text={gettext("Angielskie karty: ceny w sklepach i na Cardmarket.")}
+              text={
+                # Shops' prices only where the region has singles shops.
+                if(@singles,
+                  do: gettext("Angielskie karty: ceny w sklepach i na Cardmarket."),
+                  else: gettext("Angielskie karty: ceny na Cardmarket.")
+                )
+              }
             >
               <:fact :if={@singles}>
                 {ngettext(

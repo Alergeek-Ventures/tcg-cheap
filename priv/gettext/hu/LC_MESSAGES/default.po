@@ -1437,7 +1437,7 @@ msgstr "A kártya a boltokban legfeljebb 3 zloty, a Cardmarketen pedig a száll�
 #: lib/tcg_cheap_web/live/browse_live.ex:567
 #: lib/tcg_cheap_web/live/home_live.ex:323
 #: lib/tcg_cheap_web/live/home_live.ex:414
-#: lib/tcg_cheap_web/live/home_live.ex:461
+#: lib/tcg_cheap_web/live/home_live.ex:467
 #: lib/tcg_cheap_web/page_markdown.ex:123
 #: lib/tcg_cheap_web/seo.ex:159
 #, elixir-autogen, elixir-format
@@ -1491,7 +1491,7 @@ msgstr "Nem gradelt kártyákat hasonlítunk össze. A változatot és az állap
 #: lib/tcg_cheap_web/live/browse_live/filters.ex:111
 #: lib/tcg_cheap_web/live/home_live.ex:293
 #: lib/tcg_cheap_web/live/home_live.ex:396
-#: lib/tcg_cheap_web/live/home_live.ex:460
+#: lib/tcg_cheap_web/live/home_live.ex:466
 #: lib/tcg_cheap_web/page_markdown.ex:109
 #: lib/tcg_cheap_web/page_markdown.ex:343
 #, elixir-autogen, elixir-format
@@ -1811,7 +1811,7 @@ msgstr[0] " szűrő"
 msgstr[1] " szűrő"
 
 #: lib/tcg_cheap_web/components/retail_components.ex:79
-#: lib/tcg_cheap_web/live/home_live.ex:517
+#: lib/tcg_cheap_web/live/home_live.ex:523
 #, elixir-autogen, elixir-format
 msgid "%{chain}: źródło ceny (otwiera się w nowej karcie)"
 msgstr "%{chain}: az ár forrása (új lapon nyílik meg)"
@@ -1888,7 +1888,7 @@ msgstr "%{price}-tól"
 
 #: lib/tcg_cheap_web/components/retail_components.ex:83
 #: lib/tcg_cheap_web/live/expensive_cards_live.ex:273
-#: lib/tcg_cheap_web/live/home_live.ex:521
+#: lib/tcg_cheap_web/live/home_live.ex:527
 #: lib/tcg_cheap_web/page_markdown.ex:528
 #, elixir-autogen, elixir-format
 msgid "źródło"
@@ -4077,7 +4077,7 @@ msgstr[0] "%{number} ár akciós újságból"
 msgstr[1] "%{number} ár akciós újságokból"
 
 #: lib/tcg_cheap_web/controllers/crawl_controller.ex:197
-#: lib/tcg_cheap_web/live/home_live.ex:419
+#: lib/tcg_cheap_web/live/home_live.ex:425
 #, elixir-autogen, elixir-format
 msgid "%{number} karta na stanie"
 msgid_plural "%{number} karty na stanie"
@@ -4422,7 +4422,7 @@ msgstr "%{count} jó áron ma"
 msgid "%{product}: %{price} %{where}, zwykle %{typical} w sklepach%{percent}"
 msgstr "%{product}: %{price} – %{where}, a boltokban általában %{typical}%{percent}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:416
+#: lib/tcg_cheap_web/live/home_live.ex:419
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty: ceny w sklepach i na Cardmarket."
 msgstr "Angol nyelvű kártyák: árak a boltokban és a Cardmarketen."
@@ -4462,7 +4462,7 @@ msgstr "Minden termék legalacsonyabb ára és értékelése, árelőzménnyel."
 msgid "Najtańszy booster każdego setu w sklepach i w sieciówkach."
 msgstr "Minden szett legolcsóbb boostere a boltokban és az áruházláncokban."
 
-#: lib/tcg_cheap_web/live/home_live.ex:436
+#: lib/tcg_cheap_web/live/home_live.ex:442
 #, elixir-autogen, elixir-format
 msgid "Nowe sety"
 msgstr "Új szettek"
@@ -4509,12 +4509,12 @@ msgstr "Most egyik boltban sem kapható."
 msgid "Wszystkie: %{count}"
 msgstr "Összes: %{count}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:459
+#: lib/tcg_cheap_web/live/home_live.ex:465
 #, elixir-autogen, elixir-format
 msgid "Wszystko"
 msgstr "Mind"
 
-#: lib/tcg_cheap_web/live/home_live.ex:574
+#: lib/tcg_cheap_web/live/home_live.ex:580
 #, elixir-autogen, elixir-format
 msgid "nawet %{price}"
 msgstr "akár %{price}"
@@ -4524,27 +4524,32 @@ msgstr "akár %{price}"
 msgid "np. ETB albo Pikachu"
 msgstr "pl. ETB vagy Pikachu"
 
-#: lib/tcg_cheap_web/live/home_live.ex:537
+#: lib/tcg_cheap_web/live/home_live.ex:543
 #, elixir-autogen, elixir-format
 msgid "od"
 msgstr "már"
 
-#: lib/tcg_cheap_web/live/home_live.ex:652
+#: lib/tcg_cheap_web/live/home_live.ex:658
 #, elixir-autogen, elixir-format
 msgid "premiera %{when}"
 msgstr "megjelenés: %{when}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:575
+#: lib/tcg_cheap_web/live/home_live.ex:581
 #, elixir-autogen, elixir-format
 msgid "tyle kosztuje najdroższa karta w sklepach"
 msgstr "ennyibe kerül a legdrágább kártya a boltokban"
 
-#: lib/tcg_cheap_web/live/home_live.ex:653
+#: lib/tcg_cheap_web/live/home_live.ex:659
 #, elixir-autogen, elixir-format
 msgid "wydany %{date}"
 msgstr "megjelent: %{date}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:506
+#: lib/tcg_cheap_web/live/home_live.ex:512
 #, elixir-autogen, elixir-format
 msgid "zwykle %{price} w sklepach"
 msgstr "a boltokban általában %{price}"
+
+#: lib/tcg_cheap_web/live/home_live.ex:420
+#, elixir-autogen, elixir-format
+msgid "Angielskie karty: ceny na Cardmarket."
+msgstr "Angol kártyák: Cardmarket-árak."

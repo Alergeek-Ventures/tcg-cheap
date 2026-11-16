@@ -20,4 +20,4 @@ msgstr "iz Nemčije"
 #: lib/tcg_cheap/countries/germany.ex:15
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
-msgstr "iz Nemčije, z dostavo"
+msgstr "z dostavo iz Nemčije"

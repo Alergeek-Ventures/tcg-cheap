@@ -165,7 +165,7 @@ msgstr "True Mystery (5 kart)"
 
 #. card
 msgid "Matching reverse holo card (random, matches the figure)"
-msgstr "ujemajoča se karta reverse holo (naključna, ustreza figurici)"
+msgstr "karta reverse holo, ki ustreza figurici (naključna)"
 
 #. card
 msgid "over 50 cards"
@@ -181,7 +181,7 @@ msgstr "referenčne karte"
 
 #. card
 msgid "Trainer cards"
-msgstr "karte Trainer"
+msgstr "Trainer karte"
 
 #. contents item
 msgid "151 mini tin"
@@ -189,7 +189,7 @@ msgstr "151 Mini Tin"
 
 #. contents item
 msgid "3-card fun pack"
-msgstr "paket zabave s 3 kartami"
+msgstr "fun pack s 3 kartami"
 
 #. contents item
 msgid "accessory box"
@@ -221,7 +221,7 @@ msgstr "album za karte z N (10 strani, 80 kart)"
 
 #. contents item
 msgid "arkusz akrylowych figurek na podstawkach"
-msgstr "list akrilnih figuric na stojalih"
+msgstr "pola akrilnih figuric s stojali"
 
 #. contents item
 msgid "arkusz informacyjny"
@@ -229,15 +229,15 @@ msgstr "informativni list"
 
 #. contents item
 msgid "arkusz papierowych żetonów obrażeń"
-msgstr "list papirnatih žetonov poškodb"
+msgstr "pola papirnatih žetonov poškodb"
 
 #. contents item
 msgid "arkusz żetonów obrażeń i znaczników"
-msgstr "list žetonov poškodb in oznak"
+msgstr "pola žetonov poškodb in oznak"
 
 #. contents item
 msgid "arkusz żetonów obrażeń i znaczników stanów"
-msgstr "list žetonov poškodb in oznak stanj"
+msgstr "pola žetonov poškodb in oznak stanj"
 
 #. contents item
 msgid "booster Pokémon TCG (różne dodatki)"
@@ -265,11 +265,11 @@ msgstr "rdeča kuverta (hongbao)"
 
 #. contents item
 msgid "display 36 boosterów Pitch Black"
-msgstr "display Pitch Black (36 boosterjev)"
+msgstr "booster box Pitch Black (36 boosterjev)"
 
 #. contents item
 msgid "dodatkowe karty Trenera"
-msgstr "dodatne karte Trainer"
+msgstr "dodatne Trainer karte"
 
 #. contents item
 msgid "dwustronne tekturowe tło do ekspozycji"
@@ -309,11 +309,11 @@ msgstr "etui za karto z motivom Sylveon"
 
 #. contents item
 msgid "etui na matę"
-msgstr "etui za playmat"
+msgstr "etui za igralno podlogo"
 
 #. contents item
 msgid "Full-art foil promo card featuring Scream Tail or Iron Bundle"
-msgstr "promo karta full art s folijo z Scream Tail ali Iron Bundle"
+msgstr "full art foil promo karta (Scream Tail ali Iron Bundle)"
 
 #. contents item
 msgid "gumka do ścierania z Bellibolt"
@@ -337,7 +337,7 @@ msgstr "Journey Together Enhanced Booster Box"
 
 #. contents item
 msgid "karta holo pasującego Pokémona ze wzorem Poké Balla (Master Ball 1:99)"
-msgstr "karta holo ujemajočega se Pokémona z vzorcem Poké Ball (Master Ball 1:99)"
+msgstr "karta holo ustreznega Pokémona z vzorcem Poké Ball (Master Ball 1:99)"
 
 #. contents item
 msgid "karta Lisia's Appeal (Special Illustration holo)"
@@ -1049,7 +1049,7 @@ msgstr "naključna karta iz seta Terastal Festival ex"
 
 #. contents item
 msgid "losowa karta z dodatku Terastal Gathering (3 lub 4 holo)"
-msgstr "naključna karta iz seta Terastal Gathering (3 lub 4 holo)"
+msgstr "naključna karta iz seta Terastal Gathering (3 ali 4 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku The Glory of Team Rocket"
@@ -1133,7 +1133,7 @@ msgstr "magnetno stojalo za tri karte"
 
 #. contents item
 msgid "matching Poké Ball reverse holo card"
-msgstr "ujemajoča se karta reverse holo z vzorcem Poké Ball"
+msgstr "ustrezna karta reverse holo z vzorcem Poké Ball"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Gardevoir"
@@ -1233,7 +1233,7 @@ msgstr "beležka Pokémon"
 
 #. contents item
 msgid "noworoczna pieczątka"
-msgstr "novoletni pečat"
+msgstr "novoletni žig"
 
 #. contents item
 msgid "noworoczny magnes na lodówkę"
@@ -1353,7 +1353,7 @@ msgstr "obesek sidekick s Chien-Paom"
 
 #. contents item
 msgid "silikonowe etui na kartę z motywem Pokémon"
-msgstr "silikonsko etui za karto z motivom Pokémon"
+msgstr "silikonski etui za karto z motivom Pokémon"
 
 #. contents item
 msgid "skrócona instrukcja gry"
@@ -1361,7 +1361,7 @@ msgstr "skrajšana navodila za igro"
 
 #. contents item
 msgid "stały zestaw 172 kart (51 rodzajów: 13 Pokémon, 59 trenerów, 4 energie specjalne, 96 energii podstawowych)"
-msgstr "stalni komplet 172 kart (51 vrst: 13 Pokémonov, 59 kart Trainer, 4 Special Energy, 96 Basic Energy)"
+msgstr "stalni komplet 172 kart (51 vrst: 13 Pokémonov, 59 Trainer kart, 4 Special Energy, 96 Basic Energy)"
 
 #. contents item
 msgid "Unova mini tin"
@@ -1397,7 +1397,7 @@ msgstr "premium oznake (zastrupitev, opeklina)"
 
 #. contents item
 msgid "ściągawka strategii talii"
-msgstr "pomoček za strategijo decka"
+msgstr "kratek pregled strategije decka"
 
 #. contents item
 msgid "żetony obrażeń"
@@ -1493,7 +1493,7 @@ msgstr "Flareon (karta holo)"
 
 #. promo card
 msgid "Foil promo, one of four: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
-msgstr "promo karta s folijo, ena od štirih: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
+msgstr "foil promo karta, ena od štirih: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
 
 #. promo card
 msgid "Glaceon (karta holo)"
@@ -1561,11 +1561,11 @@ msgstr "Mega Charizard X ex ali Mega Charizard Y ex"
 
 #. promo card
 msgid "one of four foil promos: Chien-Pao, Gouging Fire, Indeedee or Magneton"
-msgstr "ena od štirih promo kart s folijo: Chien-Pao, Gouging Fire, Indeedee ali Magneton"
+msgstr "ena od štirih foil promo kart: Chien-Pao, Gouging Fire, Indeedee ali Magneton"
 
 #. promo card
 msgid "one of four unique foil promos: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
-msgstr "ena od štirih edinstvenih promo kart s folijo: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
+msgstr "ena od štirih edinstvenih foil promo kart: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
 
 #. promo card
 msgid "Pikachu ex (2 różne, po 1)"
@@ -1585,7 +1585,7 @@ msgstr "promo karta z žigom (Sprigatito, Fuecoco ali Quaxly, ena naključno)"
 
 #. promo card
 msgid "Stellar Tera foil promo (random: Eevee or an Eeveelution ex, 1 of 9)"
-msgstr "promo karta Stellar Tera s folijo (naključna: Eevee ali ex evolucija Eeveeja, 1 od 9)"
+msgstr "Stellar Tera foil promo karta (naključna: Eevee ali ex evolucija Eeveeja, 1 od 9)"
 
 #. promo card
 msgid "Sylveon (karta holo)"
@@ -1629,15 +1629,15 @@ msgstr "samo na spletu"
 
 #. retail deal note
 msgid "tylko stacjonarnie"
-msgstr "samo v trgovinah"
+msgstr "samo v fizičnih trgovinah"
 
 #. retail deal note
 msgid "tylko stacjonarnie; do wyczerpania zapasów"
-msgstr "samo v trgovinah; dokler traja zaloga"
+msgstr "samo v fizičnih trgovinah; dokler traja zaloga"
 
 #. retail deal note
 msgid "tylko stacjonarnie; online 199,99 zł"
-msgstr "samo v trgovinah; na spletu 199,99 zł"
+msgstr "samo v fizičnih trgovinah; na spletu 199,99 zł"
 
 #. retail deal note
 msgid "wybrane sklepy"
