@@ -261,7 +261,10 @@ defmodule TcgCheap.Sealed.Market do
         do: key
   end
 
-  defp item_price(offer, %__MODULE__{code: "pl"}, _apart, _rates), do: {:ok, offer.price}
+  # Poland's price is the offer's `price`, stored in PLN by the same rule.
+  defp item_price(offer, %__MODULE__{code: "pl"} = market, apart, _rates) do
+    if shop_price(offer, market, apart), do: {:ok, offer.price}, else: :error
+  end
 
   defp item_price(offer, market, apart, rates) do
     case shop_price(offer, market, apart) do
@@ -275,16 +278,19 @@ defmodule TcgCheap.Sealed.Market do
   # before its shop's prices were read by country (no `market_prices` at all)
   # keeps the shop's own price until its next fetch.
   defp shop_price(offer, %__MODULE__{country: country}, apart) do
-    if MapSet.member?(apart, offer.shop) and offer.market_prices != nil do
-      case offer.market_prices do
-        %{^country => %{"price" => price, "currency" => currency}} ->
-          {Decimal.new(price), currency}
+    case {MapSet.member?(apart, offer.shop), Map.get(offer, :market_prices)} do
+      {true, %{^country => %{"price" => price, "currency" => currency}}} ->
+        {Decimal.new(price), currency}
 
-        %{} ->
-          nil
-      end
-    else
-      offer.shop_price && {offer.shop_price, offer.currency}
+      {true, %{}} ->
+        nil
+
+      # Polish prices are also read from offers that carry only `price`.
+      {_shops_own, _prices} when country == "PL" ->
+        {offer.price, "PLN"}
+
+      {_shops_own, _prices} ->
+        offer.shop_price && {offer.shop_price, offer.currency}
     end
   end
 
