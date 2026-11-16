@@ -13,1632 +13,1632 @@ msgstr ""
 
 #. booster
 msgid "30th Celebration (6 kart)"
-msgstr ""
+msgstr "30th Celebration (6 cartas)"
 
 #. booster
 msgid "Azure Shadow (25 kart; Roar lub Pursuit)"
-msgstr ""
+msgstr "Azure Shadow (25 cartas; Roar ou Pursuit)"
 
 #. booster
 msgid "Battle Partners (5 kart)"
-msgstr ""
+msgstr "Battle Partners (5 cartas)"
 
 #. booster
 msgid "Blade Awakening (5 kart)"
-msgstr ""
+msgstr "Blade Awakening (5 cartas)"
 
 #. booster
 msgid "Bonus Round (5 kart)"
-msgstr ""
+msgstr "Bonus Round (5 cartas)"
 
 #. booster
 msgid "Brave Stars (25 kart; Charm lub Brave)"
-msgstr ""
+msgstr "Brave Stars (25 cartas; Charm ou Brave)"
 
 #. booster
 msgid "Brilliant Fantasy (5 kart)"
-msgstr ""
+msgstr "Brilliant Fantasy (5 cartas)"
 
 #. booster
 msgid "Brilliant Fantasy (jumbo, 20 kart)"
-msgstr ""
+msgstr "Brilliant Fantasy (jumbo, 20 cartas)"
 
 #. booster
 msgid "Chasing Glory Together (20 kart)"
-msgstr ""
+msgstr "Chasing Glory Together (20 cartas)"
 
 #. booster
 msgid "Chasing Glory Together (5 kart)"
-msgstr ""
+msgstr "Chasing Glory Together (5 cartas)"
 
 #. booster
 msgid "Collect 151 Gathering (20 kart)"
-msgstr ""
+msgstr "Collect 151 Gathering (20 cartas)"
 
 #. booster
 msgid "Collect 151 Hope (20 kart)"
-msgstr ""
+msgstr "Collect 151 Hope (20 cartas)"
 
 #. booster
 msgid "Collect 151 Hope (5 kart)"
-msgstr ""
+msgstr "Collect 151 Hope (5 cartas)"
 
 #. booster
 msgid "Collect 151 Journey (20 kart)"
-msgstr ""
+msgstr "Collect 151 Journey (20 cartas)"
 
 #. booster
 msgid "Collect 151 Journey (5 kart)"
-msgstr ""
+msgstr "Collect 151 Journey (5 cartas)"
 
 #. booster
 msgid "Collect 151 Surprise (20 kart)"
-msgstr ""
+msgstr "Collect 151 Surprise (20 cartas)"
 
 #. booster
 msgid "Collect 151 Surprise (5 kart)"
-msgstr ""
+msgstr "Collect 151 Surprise (5 cartas)"
 
 #. booster
 msgid "Dark Crystal Blaze (20 kart)"
-msgstr ""
+msgstr "Dark Crystal Blaze (20 cartas)"
 
 #. booster
 msgid "Dark Crystal Blaze (5 kart)"
-msgstr ""
+msgstr "Dark Crystal Blaze (5 cartas)"
 
 #. booster
 msgid "Fearless Terastal (5 kart)"
-msgstr ""
+msgstr "Fearless Terastal (5 cartas)"
 
 #. booster
 msgid "Flame Dance of the End (6 kart)"
-msgstr ""
+msgstr "Flame Dance of the End (6 cartas)"
 
 #. booster
 msgid "Gem Pack Vol. 1 (4 karty holo)"
-msgstr ""
+msgstr "Gem Pack Vol. 1 (4 cartas holo)"
 
 #. booster
 msgid "Gem Pack Vol. 7 (4 karty holo)"
-msgstr ""
+msgstr "Gem Pack Vol. 7 (4 cartas holo)"
 
 #. booster
 msgid "losowe Brave Stars (5 kart, co najmniej 10 z każdej podserii)"
-msgstr ""
+msgstr "Brave Stars aleatório (5 cartas, pelo menos 10 de cada subsérie)"
 
 #. booster
 msgid "losowe Brave Stars (jumbo, 25 kart)"
-msgstr ""
+msgstr "Brave Stars aleatório (jumbo, 25 cartas)"
 
 #. booster
 msgid "losowy Primordial Arts (jumbo, 25 kart)"
-msgstr ""
+msgstr "Primordial Arts aleatório (jumbo, 25 cartas)"
 
 #. booster
 msgid "Mega Brave (2 booster boxy)"
-msgstr ""
+msgstr "Mega Brave (2 displays)"
 
 #. booster
 msgid "Mega Brave (5 kart)"
-msgstr ""
+msgstr "Mega Brave (5 cartas)"
 
 #. booster
 msgid "Mega Symphonia (5 kart)"
-msgstr ""
+msgstr "Mega Symphonia (5 cartas)"
 
 #. booster
 msgid "Nine Colors Gathering (25 kart; Friends lub Origin)"
-msgstr ""
+msgstr "Nine Colors Gathering (25 cartas; Friends ou Origin)"
 
 #. booster
 msgid "Polychromatic Gathering Friend (25 kart)"
-msgstr ""
+msgstr "Polychromatic Gathering Friend (25 cartas)"
 
 #. booster
 msgid "Polychromatic Gathering Origin (25 kart)"
-msgstr ""
+msgstr "Polychromatic Gathering Origin (25 cartas)"
 
 #. booster
 msgid "Radiant Energy Vol. 2 (2 losowe karty)"
-msgstr ""
+msgstr "Radiant Energy Vol. 2 (2 cartas aleatórias)"
 
 #. booster
 msgid "Stellar Crystal (20 kart)"
-msgstr ""
+msgstr "Stellar Crystal (20 cartas)"
 
 #. booster
 msgid "Stellar Crystal (5 kart)"
-msgstr ""
+msgstr "Stellar Crystal (5 cartas)"
 
 #. booster
 msgid "Terastal Gathering (10 kart)"
-msgstr ""
+msgstr "Terastal Gathering (10 cartas)"
 
 #. booster
 msgid "Trick or Trade"
-msgstr ""
+msgstr "Trick or Trade"
 
 #. booster
 msgid "True Mystery (5 kart)"
-msgstr ""
+msgstr "True Mystery (5 cartas)"
 
 #. card
 msgid "Matching reverse holo card (random, matches the figure)"
-msgstr ""
+msgstr "reverse holo a condizer com a figura (aleatória)"
 
 #. card
 msgid "over 50 cards"
-msgstr ""
+msgstr "(mais de 50 cartas)"
 
 #. card
 msgid "Reference cards"
-msgstr ""
+msgstr "de referência"
 
 #. card
 msgid "reference cards"
-msgstr ""
+msgstr "de referência"
 
 #. card
 msgid "Trainer cards"
-msgstr ""
+msgstr "de Treinador"
 
 #. contents item
 msgid "151 mini tin"
-msgstr ""
+msgstr "Mini Tin 151"
 
 #. contents item
 msgid "3-card fun pack"
-msgstr ""
+msgstr "fun pack de 3 cartas"
 
 #. contents item
 msgid "accessory box"
-msgstr ""
+msgstr "caixa para acessórios"
 
 #. contents item
 msgid "akrylowa magnetyczna ramka na kartę"
-msgstr ""
+msgstr "moldura magnética de acrílico para carta"
 
 #. contents item
 msgid "akrylowy ekspozytor na kartę"
-msgstr ""
+msgstr "expositor de acrílico para carta"
 
 #. contents item
 msgid "akrylowy znacznik TAG TEAM GX"
-msgstr ""
+msgstr "marcador TAG TEAM GX de acrílico"
 
 #. contents item
 msgid "akrylowy znacznik VSTAR"
-msgstr ""
+msgstr "marcador VSTAR de acrílico"
 
 #. contents item
 msgid "album na karty z Lillie (10 stron, 80 kart)"
-msgstr ""
+msgstr "arquivador de cartas com Lillie (10 páginas, 80 cartas)"
 
 #. contents item
 msgid "album na karty z N (10 stron, 80 kart)"
-msgstr ""
+msgstr "arquivador de cartas com N (10 páginas, 80 cartas)"
 
 #. contents item
 msgid "arkusz akrylowych figurek na podstawkach"
-msgstr ""
+msgstr "folha de figuras de acrílico com base"
 
 #. contents item
 msgid "arkusz informacyjny"
-msgstr ""
+msgstr "folha informativa"
 
 #. contents item
 msgid "arkusz papierowych żetonów obrażeń"
-msgstr ""
+msgstr "folha de marcadores de danos em papel"
 
 #. contents item
 msgid "arkusz żetonów obrażeń i znaczników"
-msgstr ""
+msgstr "folha de marcadores de danos e outros marcadores"
 
 #. contents item
 msgid "arkusz żetonów obrażeń i znaczników stanów"
-msgstr ""
+msgstr "folha de marcadores de danos e de estado"
 
 #. contents item
 msgid "booster Pokémon TCG (różne dodatki)"
-msgstr ""
+msgstr "booster Pokémon TCG (várias expansões)"
 
 #. contents item
 msgid "booster z serii Sword & Shield (różne dodatki)"
-msgstr ""
+msgstr "booster da série Sword & Shield (várias expansões)"
 
 #. contents item
 msgid "broszura World Championships 2022"
-msgstr ""
+msgstr "brochura do World Championships 2022"
 
 #. contents item
 msgid "broszura World Championships 2024"
-msgstr ""
+msgstr "brochura do World Championships 2024"
 
 #. contents item
 msgid "broszura World Championships 2025"
-msgstr ""
+msgstr "brochura do World Championships 2025"
 
 #. contents item
 msgid "czerwona koperta (hongbao)"
-msgstr ""
+msgstr "envelope vermelho (hongbao)"
 
 #. contents item
 msgid "display 36 boosterów Pitch Black"
-msgstr ""
+msgstr "display Pitch Black com 36 boosters"
 
 #. contents item
 msgid "dodatkowe karty Trenera"
-msgstr ""
+msgstr "cartas de Treinador extra"
 
 #. contents item
 msgid "dwustronne tekturowe tło do ekspozycji"
-msgstr ""
+msgstr "fundo de exposição em cartão, de dupla face"
 
 #. contents item
 msgid "dwustronne tło do ekspozycji"
-msgstr ""
+msgstr "fundo de exposição de dupla face"
 
 #. contents item
 msgid "dwustronny plakat"
-msgstr ""
+msgstr "póster de dupla face"
 
 #. contents item
 msgid "dwustronny plakat (ok. 68 × 99 cm)"
-msgstr ""
+msgstr "póster de dupla face (aprox. 68 × 99 cm)"
 
 #. contents item
 msgid "dwustronny plakat 151"
-msgstr ""
+msgstr "póster 151 de dupla face"
 
 #. contents item
 msgid "dwustronny plakat, około 68 × 99 cm"
-msgstr ""
+msgstr "póster de dupla face, aprox. 68 × 99 cm"
 
 #. contents item
 msgid "Elite Trainer Box z dodatku Ascended Heroes"
-msgstr ""
+msgstr "Elite Trainer Box de Ascended Heroes"
 
 #. contents item
 msgid "etui na kartę z motywem Greninja"
-msgstr ""
+msgstr "estojo para carta com Greninja"
 
 #. contents item
 msgid "etui na kartę z motywem Sylveon"
-msgstr ""
+msgstr "estojo para carta com Sylveon"
 
 #. contents item
 msgid "etui na matę"
-msgstr ""
+msgstr "estojo para tapete de jogo"
 
 #. contents item
 msgid "Full-art foil promo card featuring Scream Tail or Iron Bundle"
-msgstr ""
+msgstr "carta promo full art foil com Scream Tail ou Iron Bundle"
 
 #. contents item
 msgid "gumka do ścierania z Bellibolt"
-msgstr ""
+msgstr "borracha com Bellibolt"
 
 #. contents item
 msgid "gumka do ścierania z Gengar"
-msgstr ""
+msgstr "borracha com Gengar"
 
 #. contents item
 msgid "gumka do ścierania z Lechonk"
-msgstr ""
+msgstr "borracha com Lechonk"
 
 #. contents item
 msgid "gumka do ścierania z Smoliv"
-msgstr ""
+msgstr "borracha com Smoliv"
 
 #. contents item
 msgid "Journey Together Enhanced Booster Box"
-msgstr ""
+msgstr "Journey Together Enhanced Booster Box"
 
 #. contents item
 msgid "karta holo pasującego Pokémona ze wzorem Poké Balla (Master Ball 1:99)"
-msgstr ""
+msgstr "carta holo do Pokémon correspondente com padrão Poké Ball (Master Ball 1:99)"
 
 #. contents item
 msgid "karta Lisia's Appeal (Special Illustration holo)"
-msgstr ""
+msgstr "carta Lisia's Appeal (Special Illustration holo)"
 
 #. contents item
 msgid "karta Pikachu pasująca do figurki"
-msgstr ""
+msgstr "carta de Pikachu a condizer com a figura"
 
 #. contents item
 msgid "karta Pokémon pasująca do figurki"
-msgstr ""
+msgstr "carta Pokémon a condizer com a figura"
 
 #. contents item
 msgid "karta Pokémon Tool (foil)"
-msgstr ""
+msgstr "carta Pokémon Tool (foil)"
 
 #. contents item
 msgid "karta pomocnicza"
-msgstr ""
+msgstr "carta de referência"
 
 #. contents item
 msgid "karta pomocnicza z zasadami"
-msgstr ""
+msgstr "carta de referência com regras"
 
 #. contents item
 msgid "karta promo z talii (Miraidon, Dhelmise, Slowbro lub Bastiodon)"
-msgstr ""
+msgstr "carta promo do baralho (Miraidon, Dhelmise, Slowbro ou Bastiodon)"
 
 #. contents item
 msgid "karta z ilustracją z minipuszki"
-msgstr ""
+msgstr "carta ilustrada do Mini Tin"
 
 #. contents item
 msgid "karta z ilustracją z puszki"
-msgstr ""
+msgstr "carta ilustrada do Tin"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Alomomola)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Alomomola)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Arcanine i Omanyte)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Arcanine e Omanyte)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Blissey)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Blissey)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Clefairy i Chikorita)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Clefairy e Chikorita)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Electabuzz i Magnemite)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Electabuzz e Magnemite)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Emboar i Inkay)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Emboar e Inkay)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Espeon i Meowth)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Espeon e Meowth)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Espeon)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Espeon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Feraligatr i Budew)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Feraligatr e Budew)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Flareon)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Flareon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Gallade i Goomy)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Gallade e Goomy)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Garbodor)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Garbodor)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Glaceon)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Glaceon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Greninja i Volbeat)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Greninja e Volbeat)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Jolteon)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Jolteon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Kadabra)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Kadabra)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Krookodile)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Krookodile)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Lapras i Drifloon)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Lapras e Drifloon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Leafeon)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Leafeon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Lilligant)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Lilligant)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Magikarp)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Magikarp)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Meganium i samica Meowstic)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Meganium e Meowstic fêmea)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Mew i Alolan Exeggutor)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Mew e Alolan Exeggutor)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Mewtwo i Scraggy)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Mewtwo e Scraggy)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Mienshao)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Mienshao)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Moltres i Articuno)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Moltres e Articuno)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Munchlax)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Munchlax)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Pikachu i Tepig)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Pikachu e Tepig)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Pikachu i Toxtricity)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Pikachu e Toxtricity)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Pikachu i Vivillon)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Pikachu e Vivillon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Pikachu)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Pikachu)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Piplup)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Piplup)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Riolu i Darumaka)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Riolu e Darumaka)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Salamence i Litleo)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Salamence e Litleo)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Scyther i Weezing)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Scyther e Weezing)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Slowpoke i Sandshrew)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Slowpoke e Sandshrew)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Snorlax)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Snorlax)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Aloli)"
-msgstr ""
+msgstr "carta ilustrada do Tin (iniciais de Alola)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Galaru)"
-msgstr ""
+msgstr "carta ilustrada do Tin (iniciais de Galar)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Hoenn)"
-msgstr ""
+msgstr "carta ilustrada do Tin (iniciais de Hoenn)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Sinnoh)"
-msgstr ""
+msgstr "carta ilustrada do Tin (iniciais de Sinnoh)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Unovy)"
-msgstr ""
+msgstr "carta ilustrada do Tin (iniciais de Unova)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Sylveon)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Sylveon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Togepi i Totodile)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Togepi e Totodile)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Umbreon i Alolan Meowth)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Umbreon e Alolan Meowth)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Umbreon)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Umbreon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Vaporeon)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Vaporeon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Volcarona)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Volcarona)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Zapdos i Hisuian Zorua)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Zapdos e Hisuian Zorua)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Zorua i Chandelure)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Zorua e Chandelure)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Zorua i Cramorant)"
-msgstr ""
+msgstr "carta ilustrada do Tin (Zorua e Cramorant)"
 
 #. contents item
 msgid "karta z ilustracją z puszki Finizen"
-msgstr ""
+msgstr "carta ilustrada do Tin Finizen"
 
 #. contents item
 msgid "karta z ilustracją z puszki Flamigo"
-msgstr ""
+msgstr "carta ilustrada do Tin Flamigo"
 
 #. contents item
 msgid "karta z ilustracją z puszki Kangaskhan"
-msgstr ""
+msgstr "carta ilustrada do Tin Kangaskhan"
 
 #. contents item
 msgid "karta z ilustracją z puszki Mega Gardevoir"
-msgstr ""
+msgstr "carta ilustrada do Tin Mega Gardevoir"
 
 #. contents item
 msgid "karta z ilustracją z puszki Mega Lucario"
-msgstr ""
+msgstr "carta ilustrada do Tin Mega Lucario"
 
 #. contents item
 msgid "karta z ilustracją z puszki Smoliv"
-msgstr ""
+msgstr "carta ilustrada do Tin Smoliv"
 
 #. contents item
 msgid "karta z ilustracją z puszki Tinkatink"
-msgstr ""
+msgstr "carta ilustrada do Tin Tinkatink"
 
 #. contents item
 msgid "karta z ilustracją z puszki Venusaur"
-msgstr ""
+msgstr "carta ilustrada do Tin Venusaur"
 
 #. contents item
 msgid "karty pomocnicze z zasadami"
-msgstr ""
+msgstr "cartas de referência com regras"
 
 #. contents item
 msgid "koszulka ochronna na kartę"
-msgstr ""
+msgstr "protetor de carta"
 
 #. contents item
 msgid "lista kontrolna kart"
-msgstr ""
+msgstr "checklist das cartas"
 
 #. contents item
 msgid "losowa figurka Eevee lub jego ewolucji (1 z 10, w tym 1 ukryta)"
-msgstr ""
+msgstr "figura aleatória de Eevee ou de uma das suas evoluções (1 de 10, incluindo 1 secreta)"
 
 #. contents item
 msgid "losowa figurka Pikachu (1 z 13, w tym 1 ukryta)"
-msgstr ""
+msgstr "figura de Pikachu aleatória (1 de 13, incluindo 1 secreta)"
 
 #. contents item
 msgid "losowa karta holo z dodatku 30th Celebration"
-msgstr ""
+msgstr "carta holo aleatória da expansão 30th Celebration"
 
 #. contents item
 msgid "losowa karta holo z dodatku Blade Awakening (1 z 30)"
-msgstr ""
+msgstr "carta holo aleatória da expansão Blade Awakening (1 de 30)"
 
 #. contents item
 msgid "losowa karta holo z dodatku Brilliant Fantasy (1 z 30)"
-msgstr ""
+msgstr "carta holo aleatória da expansão Brilliant Fantasy (1 de 30)"
 
 #. contents item
 msgid "losowa karta holo z dodatku Chasing Glory Together (1 z 30)"
-msgstr ""
+msgstr "carta holo aleatória da expansão Chasing Glory Together (1 de 30)"
 
 #. contents item
 msgid "losowa karta holo z dodatku Gem Pack Vol. 1"
-msgstr ""
+msgstr "carta holo aleatória da expansão Gem Pack Vol. 1"
 
 #. contents item
 msgid "losowa karta holo z dodatku Gem Pack Vol. 2"
-msgstr ""
+msgstr "carta holo aleatória da expansão Gem Pack Vol. 2"
 
 #. contents item
 msgid "losowa karta holo z dodatku Gem Pack Vol. 3"
-msgstr ""
+msgstr "carta holo aleatória da expansão Gem Pack Vol. 3"
 
 #. contents item
 msgid "losowa karta holo z dodatku Gem Pack Vol. 4"
-msgstr ""
+msgstr "carta holo aleatória da expansão Gem Pack Vol. 4"
 
 #. contents item
 msgid "losowa karta holo z dodatku Gem Pack Vol. 5"
-msgstr ""
+msgstr "carta holo aleatória da expansão Gem Pack Vol. 5"
 
 #. contents item
 msgid "losowa karta holo z dodatku Gem Pack Vol. 6"
-msgstr ""
+msgstr "carta holo aleatória da expansão Gem Pack Vol. 6"
 
 #. contents item
 msgid "losowa karta Pikachu (jedna z 30 wersji)"
-msgstr ""
+msgstr "carta de Pikachu aleatória (uma de 30 versões)"
 
 #. contents item
 msgid "losowa karta Special Illustration holo (1 z 13 lub ukryty Pikachu)"
-msgstr ""
+msgstr "carta Special Illustration holo aleatória (1 de 13 ou o Pikachu secreto)"
 
 #. contents item
 msgid "losowa karta Special Illustration holo (1 z 13, w tym ukryty Flareon)"
-msgstr ""
+msgstr "carta Special Illustration holo aleatória (1 de 13, incluindo o Flareon secreto)"
 
 #. contents item
 msgid "losowa karta Special Illustration holo (1 z 8)"
-msgstr ""
+msgstr "carta Special Illustration holo aleatória (1 de 8)"
 
 #. contents item
 msgid "losowa karta z dodatku 151"
-msgstr ""
+msgstr "carta aleatória da expansão 151"
 
 #. contents item
 msgid "losowa karta z dodatku 30th Celebration"
-msgstr ""
+msgstr "carta aleatória da expansão 30th Celebration"
 
 #. contents item
 msgid "losowa karta z dodatku Abyss Eye"
-msgstr ""
+msgstr "carta aleatória da expansão Abyss Eye"
 
 #. contents item
 msgid "losowa karta z dodatku Ancient Roar"
-msgstr ""
+msgstr "carta aleatória da expansão Ancient Roar"
 
 #. contents item
 msgid "losowa karta z dodatku Ascended Heroes"
-msgstr ""
+msgstr "carta aleatória da expansão Ascended Heroes"
 
 #. contents item
 msgid "losowa karta z dodatku Astral Radiance"
-msgstr ""
+msgstr "carta aleatória da expansão Astral Radiance"
 
 #. contents item
 msgid "losowa karta z dodatku Battle Partners"
-msgstr ""
+msgstr "carta aleatória da expansão Battle Partners"
 
 #. contents item
 msgid "losowa karta z dodatku Battle Region"
-msgstr ""
+msgstr "carta aleatória da expansão Battle Region"
 
 #. contents item
 msgid "losowa karta z dodatku Battle Styles"
-msgstr ""
+msgstr "carta aleatória da expansão Battle Styles"
 
 #. contents item
 msgid "losowa karta z dodatku Black Bolt"
-msgstr ""
+msgstr "carta aleatória da expansão Black Bolt"
 
 #. contents item
 msgid "losowa karta z dodatku Blade Awakening (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Blade Awakening (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Bonus Round (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Bonus Round (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Brilliant Counterattack (w tym 2 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Brilliant Counterattack (incluindo 2 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Brilliant Fantasy (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Brilliant Fantasy (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Brilliant Fantasy (w tym 6 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Brilliant Fantasy (incluindo 6 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Brilliant Stars"
-msgstr ""
+msgstr "carta aleatória da expansão Brilliant Stars"
 
 #. contents item
 msgid "losowa karta z dodatku Celebrations"
-msgstr ""
+msgstr "carta aleatória da expansão Celebrations"
 
 #. contents item
 msgid "losowa karta z dodatku Chaos Rising"
-msgstr ""
+msgstr "carta aleatória da expansão Chaos Rising"
 
 #. contents item
 msgid "losowa karta z dodatku Chasing Glory Together (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Chasing Glory Together (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Chasing Glory Together (w tym 6 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Chasing Glory Together (incluindo 6 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Chilling Reign"
-msgstr ""
+msgstr "carta aleatória da expansão Chilling Reign"
 
 #. contents item
 msgid "losowa karta z dodatku Clay Burst"
-msgstr ""
+msgstr "carta aleatória da expansão Clay Burst"
 
 #. contents item
 msgid "losowa karta z dodatku Collect 151 Gathering (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Collect 151 Gathering (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Collect 151 Journey (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Collect 151 Journey (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Collect 151 Journey (w tym 7 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Collect 151 Journey (incluindo 7 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Crimson Haze"
-msgstr ""
+msgstr "carta aleatória da expansão Crimson Haze"
 
 #. contents item
 msgid "losowa karta z dodatku Crown Zenith"
-msgstr ""
+msgstr "carta aleatória da expansão Crown Zenith"
 
 #. contents item
 msgid "losowa karta z dodatku Cyber Judge"
-msgstr ""
+msgstr "carta aleatória da expansão Cyber Judge"
 
 #. contents item
 msgid "losowa karta z dodatku Dark Crystal Blaze (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Dark Crystal Blaze (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Dark Crystal Blaze (w tym 6 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Dark Crystal Blaze (incluindo 6 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Dark Phantasma"
-msgstr ""
+msgstr "carta aleatória da expansão Dark Phantasma"
 
 #. contents item
 msgid "losowa karta z dodatku Darkness Ablaze"
-msgstr ""
+msgstr "carta aleatória da expansão Darkness Ablaze"
 
 #. contents item
 msgid "losowa karta z dodatku Delta Reign"
-msgstr ""
+msgstr "carta aleatória da expansão Delta Reign"
 
 #. contents item
 msgid "losowa karta z dodatku Destined Rivals"
-msgstr ""
+msgstr "carta aleatória da expansão Destined Rivals"
 
 #. contents item
 msgid "losowa karta z dodatku Eternal Birth (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Eternal Birth (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Evolving Skies"
-msgstr ""
+msgstr "carta aleatória da expansão Evolving Skies"
 
 #. contents item
 msgid "losowa karta z dodatku Fearless Terastal (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Fearless Terastal (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Fusion Arts"
-msgstr ""
+msgstr "carta aleatória da expansão Fusion Arts"
 
 #. contents item
 msgid "losowa karta z dodatku Fusion Strike"
-msgstr ""
+msgstr "carta aleatória da expansão Fusion Strike"
 
 #. contents item
 msgid "losowa karta z dodatku Future Flash"
-msgstr ""
+msgstr "carta aleatória da expansão Future Flash"
 
 #. contents item
 msgid "losowa karta z dodatku Heat Wave Arena"
-msgstr ""
+msgstr "carta aleatória da expansão Heat Wave Arena"
 
 #. contents item
 msgid "losowa karta z dodatku Hidden Fates"
-msgstr ""
+msgstr "carta aleatória da expansão Hidden Fates"
 
 #. contents item
 msgid "losowa karta z dodatku Incandescent Arcana"
-msgstr ""
+msgstr "carta aleatória da expansão Incandescent Arcana"
 
 #. contents item
 msgid "losowa karta z dodatku Inferno X"
-msgstr ""
+msgstr "carta aleatória da expansão Inferno X"
 
 #. contents item
 msgid "losowa karta z dodatku Journey Together"
-msgstr ""
+msgstr "carta aleatória da expansão Journey Together"
 
 #. contents item
 msgid "losowa karta z dodatku Lost Abyss"
-msgstr ""
+msgstr "carta aleatória da expansão Lost Abyss"
 
 #. contents item
 msgid "losowa karta z dodatku Lost Origin"
-msgstr ""
+msgstr "carta aleatória da expansão Lost Origin"
 
 #. contents item
 msgid "losowa karta z dodatku Mask of Change"
-msgstr ""
+msgstr "carta aleatória da expansão Mask of Change"
 
 #. contents item
 msgid "losowa karta z dodatku Mega Brave"
-msgstr ""
+msgstr "carta aleatória da expansão Mega Brave"
 
 #. contents item
 msgid "losowa karta z dodatku MEGA Dream ex"
-msgstr ""
+msgstr "carta aleatória da expansão MEGA Dream ex"
 
 #. contents item
 msgid "losowa karta z dodatku Mega Evolution"
-msgstr ""
+msgstr "carta aleatória da expansão Mega Evolution"
 
 #. contents item
 msgid "losowa karta z dodatku Mega Symphonia"
-msgstr ""
+msgstr "carta aleatória da expansão Mega Symphonia"
 
 #. contents item
 msgid "losowa karta z dodatku Miracle Journey (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Miracle Journey (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Night Wanderer"
-msgstr ""
+msgstr "carta aleatória da expansão Night Wanderer"
 
 #. contents item
 msgid "losowa karta z dodatku Nihil Zero"
-msgstr ""
+msgstr "carta aleatória da expansão Nihil Zero"
 
 #. contents item
 msgid "losowa karta z dodatku Ninja Spinner"
-msgstr ""
+msgstr "carta aleatória da expansão Ninja Spinner"
 
 #. contents item
 msgid "losowa karta z dodatku Obsidian Flames"
-msgstr ""
+msgstr "carta aleatória da expansão Obsidian Flames"
 
 #. contents item
 msgid "losowa karta z dodatku Paldea Evolved"
-msgstr ""
+msgstr "carta aleatória da expansão Paldea Evolved"
 
 #. contents item
 msgid "losowa karta z dodatku Paldean Fates"
-msgstr ""
+msgstr "carta aleatória da expansão Paldean Fates"
 
 #. contents item
 msgid "losowa karta z dodatku Paradigm Trigger"
-msgstr ""
+msgstr "carta aleatória da expansão Paradigm Trigger"
 
 #. contents item
 msgid "losowa karta z dodatku Paradise Dragona"
-msgstr ""
+msgstr "carta aleatória da expansão Paradise Dragona"
 
 #. contents item
 msgid "losowa karta z dodatku Paradox Rift"
-msgstr ""
+msgstr "carta aleatória da expansão Paradox Rift"
 
 #. contents item
 msgid "losowa karta z dodatku Perfect Order"
-msgstr ""
+msgstr "carta aleatória da expansão Perfect Order"
 
 #. contents item
 msgid "losowa karta z dodatku Phantasmal Flames"
-msgstr ""
+msgstr "carta aleatória da expansão Phantasmal Flames"
 
 #. contents item
 msgid "losowa karta z dodatku Pitch Black"
-msgstr ""
+msgstr "carta aleatória da expansão Pitch Black"
 
 #. contents item
 msgid "losowa karta z dodatku Pokémon Card 151"
-msgstr ""
+msgstr "carta aleatória da expansão Pokémon Card 151"
 
 #. contents item
 msgid "losowa karta z dodatku Pokémon GO"
-msgstr ""
+msgstr "carta aleatória da expansão Pokémon GO"
 
 #. contents item
 msgid "losowa karta z dodatku Prismatic Evolutions"
-msgstr ""
+msgstr "carta aleatória da expansão Prismatic Evolutions"
 
 #. contents item
 msgid "losowa karta z dodatku Raging Surf"
-msgstr ""
+msgstr "carta aleatória da expansão Raging Surf"
 
 #. contents item
 msgid "losowa karta z dodatku Ruler of the Black Flame"
-msgstr ""
+msgstr "carta aleatória da expansão Ruler of the Black Flame"
 
 #. contents item
 msgid "losowa karta z dodatku Scarlet & Violet"
-msgstr ""
+msgstr "carta aleatória da expansão Scarlet & Violet"
 
 #. contents item
 msgid "losowa karta z dodatku Scarlet ex"
-msgstr ""
+msgstr "carta aleatória da expansão Scarlet ex"
 
 #. contents item
 msgid "losowa karta z dodatku Scorching Skies"
-msgstr ""
+msgstr "carta aleatória da expansão Scorching Skies"
 
 #. contents item
 msgid "losowa karta z dodatku Shadow of Glory (w tym 2 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Shadow of Glory (incluindo 2 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Shining Fates"
-msgstr ""
+msgstr "carta aleatória da expansão Shining Fates"
 
 #. contents item
 msgid "losowa karta z dodatku Shiny Treasure ex"
-msgstr ""
+msgstr "carta aleatória da expansão Shiny Treasure ex"
 
 #. contents item
 msgid "losowa karta z dodatku Shrouded Fable"
-msgstr ""
+msgstr "carta aleatória da expansão Shrouded Fable"
 
 #. contents item
 msgid "losowa karta z dodatku Silver Lance"
-msgstr ""
+msgstr "carta aleatória da expansão Silver Lance"
 
 #. contents item
 msgid "losowa karta z dodatku Silver Tempest"
-msgstr ""
+msgstr "carta aleatória da expansão Silver Tempest"
 
 #. contents item
 msgid "losowa karta z dodatku Snow Hazard"
-msgstr ""
+msgstr "carta aleatória da expansão Snow Hazard"
 
 #. contents item
 msgid "losowa karta z dodatku Star Birth"
-msgstr ""
+msgstr "carta aleatória da expansão Star Birth"
 
 #. contents item
 msgid "losowa karta z dodatku Stellar Crown"
-msgstr ""
+msgstr "carta aleatória da expansão Stellar Crown"
 
 #. contents item
 msgid "losowa karta z dodatku Stellar Crystal (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Stellar Crystal (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Stellar Crystal (w tym 6 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Stellar Crystal (incluindo 6 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Stellar Miracle"
-msgstr ""
+msgstr "carta aleatória da expansão Stellar Miracle"
 
 #. contents item
 msgid "losowa karta z dodatku Storm Emeralda"
-msgstr ""
+msgstr "carta aleatória da expansão Storm Emeralda"
 
 #. contents item
 msgid "losowa karta z dodatku Super Electric Breaker"
-msgstr ""
+msgstr "carta aleatória da expansão Super Electric Breaker"
 
 #. contents item
 msgid "losowa karta z dodatku Surging Sparks"
-msgstr ""
+msgstr "carta aleatória da expansão Surging Sparks"
 
 #. contents item
 msgid "losowa karta z dodatku Temporal Forces"
-msgstr ""
+msgstr "carta aleatória da expansão Temporal Forces"
 
 #. contents item
 msgid "losowa karta z dodatku Terastal Festival ex"
-msgstr ""
+msgstr "carta aleatória da expansão Terastal Festival ex"
 
 #. contents item
 msgid "losowa karta z dodatku Terastal Gathering (3 lub 4 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Terastal Gathering (3 ou 4 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku The Glory of Team Rocket"
-msgstr ""
+msgstr "carta aleatória da expansão The Glory of Team Rocket"
 
 #. contents item
 msgid "losowa karta z dodatku Trick or Trade 2023"
-msgstr ""
+msgstr "carta aleatória da expansão Trick or Trade 2023"
 
 #. contents item
 msgid "losowa karta z dodatku Trick or Trade 2024"
-msgstr ""
+msgstr "carta aleatória da expansão Trick or Trade 2024"
 
 #. contents item
 msgid "losowa karta z dodatku Triplet Beat"
-msgstr ""
+msgstr "carta aleatória da expansão Triplet Beat"
 
 #. contents item
 msgid "losowa karta z dodatku True Mystery (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão True Mystery (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Twilight Masquerade"
-msgstr ""
+msgstr "carta aleatória da expansão Twilight Masquerade"
 
 #. contents item
 msgid "losowa karta z dodatku Victory Star Guide (w tym 2 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Victory Star Guide (incluindo 2 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Violet ex"
-msgstr ""
+msgstr "carta aleatória da expansão Violet ex"
 
 #. contents item
 msgid "losowa karta z dodatku Vivid Portrayals (Indigo) (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Vivid Portrayals (Indigo) (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Vivid Portrayals (Obsidian) (w tym 1 holo)"
-msgstr ""
+msgstr "carta aleatória da expansão Vivid Portrayals (Obsidian) (incluindo 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Vivid Voltage"
-msgstr ""
+msgstr "carta aleatória da expansão Vivid Voltage"
 
 #. contents item
 msgid "losowa karta z dodatku VMAX Climax"
-msgstr ""
+msgstr "carta aleatória da expansão VMAX Climax"
 
 #. contents item
 msgid "losowa karta z dodatku VSTAR Universe"
-msgstr ""
+msgstr "carta aleatória da expansão VSTAR Universe"
 
 #. contents item
 msgid "losowa karta z dodatku White Flare"
-msgstr ""
+msgstr "carta aleatória da expansão White Flare"
 
 #. contents item
 msgid "losowa karta z dodatku Wild Force"
-msgstr ""
+msgstr "carta aleatória da expansão Wild Force"
 
 #. contents item
 msgid "magnes Day Celebration"
-msgstr ""
+msgstr "íman Day Celebration"
 
 #. contents item
 msgid "magnes Night Celebration"
-msgstr ""
+msgstr "íman Night Celebration"
 
 #. contents item
 msgid "magnetyczna ramka na kartę z podstawką"
-msgstr ""
+msgstr "moldura magnética para carta com suporte"
 
 #. contents item
 msgid "magnetyczna ramka na trzy karty"
-msgstr ""
+msgstr "moldura magnética para três cartas"
 
 #. contents item
 msgid "magnetyczny stojak na trzy karty"
-msgstr ""
+msgstr "suporte magnético para três cartas"
 
 #. contents item
 msgid "matching Poké Ball reverse holo card"
-msgstr ""
+msgstr "carta reverse holo correspondente com padrão Poké Ball"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Gardevoir"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Gardevoir"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Kangaskhan"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Kangaskhan"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Latias"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Latias"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Lucario"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Lucario"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Venusaur"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Venusaur"
 
 #. contents item
 msgid "metalowe znaczniki (trucizna, poparzenie)"
-msgstr ""
+msgstr "marcadores de metal (envenenamento, queimadura)"
 
 #. contents item
 msgid "metalowy magnes"
-msgstr ""
+msgstr "íman de metal"
 
 #. contents item
 msgid "metalowy magnes z motywem Eevee (pasuje do puszki)"
-msgstr ""
+msgstr "íman de metal com Eevee (a condizer com o Tin)"
 
 #. contents item
 msgid "metalowy magnes z motywem Espeon (pasuje do puszki)"
-msgstr ""
+msgstr "íman de metal com Espeon (a condizer com o Tin)"
 
 #. contents item
 msgid "metalowy magnes z motywem Flareon (pasuje do puszki)"
-msgstr ""
+msgstr "íman de metal com Flareon (a condizer com o Tin)"
 
 #. contents item
 msgid "metalowy magnes z motywem Glaceon (pasuje do puszki)"
-msgstr ""
+msgstr "íman de metal com Glaceon (a condizer com o Tin)"
 
 #. contents item
 msgid "metalowy magnes z motywem Jolteon (pasuje do puszki)"
-msgstr ""
+msgstr "íman de metal com Jolteon (a condizer com o Tin)"
 
 #. contents item
 msgid "metalowy magnes z motywem Leafeon (pasuje do puszki)"
-msgstr ""
+msgstr "íman de metal com Leafeon (a condizer com o Tin)"
 
 #. contents item
 msgid "metalowy magnes z motywem Umbreon (pasuje do puszki)"
-msgstr ""
+msgstr "íman de metal com Umbreon (a condizer com o Tin)"
 
 #. contents item
 msgid "metalowy magnes z motywem Vaporeon (pasuje do puszki)"
-msgstr ""
+msgstr "íman de metal com Vaporeon (a condizer com o Tin)"
 
 #. contents item
 msgid "metalowy piórnik"
-msgstr ""
+msgstr "estojo escolar de metal"
 
 #. contents item
 msgid "Mid-Autumn compact mirror featuring Umbreon"
-msgstr ""
+msgstr "espelho de bolso Mid-Autumn com Umbreon"
 
 #. contents item
 msgid "Mid-Autumn fridge magnet featuring Pikachu, Eevee, Clefairy, and Jirachi"
-msgstr ""
+msgstr "íman de frigorífico Mid-Autumn com Pikachu, Eevee, Clefairy e Jirachi"
 
 #. contents item
 msgid "miniportfolio"
-msgstr ""
+msgstr "mini arquivador"
 
 #. contents item
 msgid "minipuszka 30th Celebration"
-msgstr ""
+msgstr "Mini Tin 30th Celebration"
 
 #. contents item
 msgid "minipuszka Lumiose City (5 wzorów)"
-msgstr ""
+msgstr "Mini Tin Lumiose City (5 modelos)"
 
 #. contents item
 msgid "Minipuszka Paldean Fates"
-msgstr ""
+msgstr "Mini Tin Paldean Fates"
 
 #. contents item
 msgid "notes"
-msgstr ""
+msgstr "bloco de notas"
 
 #. contents item
 msgid "notes Pokémon"
-msgstr ""
+msgstr "bloco de notas Pokémon"
 
 #. contents item
 msgid "noworoczna pieczątka"
-msgstr ""
+msgstr "carimbo de Ano Novo"
 
 #. contents item
 msgid "noworoczny magnes na lodówkę"
-msgstr ""
+msgstr "íman de frigorífico de Ano Novo"
 
 #. contents item
 msgid "pakiet ulepszający talię (15 kart)"
-msgstr ""
+msgstr "conjunto de melhoria do baralho (15 cartas)"
 
 #. contents item
 msgid "papierowa ramka na kartę (czerwona)"
-msgstr ""
+msgstr "moldura de papel para carta (vermelha)"
 
 #. contents item
 msgid "papierowa ramka na kartę (niebieska)"
-msgstr ""
+msgstr "moldura de papel para carta (azul)"
 
 #. contents item
 msgid "papierowa ramka na kartę (zielona)"
-msgstr ""
+msgstr "moldura de papel para carta (verde)"
 
 #. contents item
 msgid "papierowy stojak na 3 karty"
-msgstr ""
+msgstr "suporte de papel para 3 cartas"
 
 #. contents item
 msgid "Pikachu eraser"
-msgstr ""
+msgstr "borracha com Pikachu"
 
 #. contents item
 msgid "plakat"
-msgstr ""
+msgstr "póster"
 
 #. contents item
 msgid "plakat z ewolucjami Eevee"
-msgstr ""
+msgstr "póster com as evoluções de Eevee"
 
 #. contents item
 msgid "Plush Eevee accessory pouch"
-msgstr ""
+msgstr "bolsa de peluche Eevee para acessórios"
 
 #. contents item
 msgid "pluszowy Altaria"
-msgstr ""
+msgstr "peluche de Altaria"
 
 #. contents item
 msgid "pluszowy Pikachu"
-msgstr ""
+msgstr "peluche de Pikachu"
 
 #. contents item
 msgid "podstawka ekspozycyjna z uchwytem na kartę"
-msgstr ""
+msgstr "suporte de exposição com porta-carta"
 
 #. contents item
 msgid "podświetlana lampka w formie ramki"
-msgstr ""
+msgstr "candeeiro luminoso em forma de moldura"
 
 #. contents item
 msgid "Pokémon GO mini tin"
-msgstr ""
+msgstr "Mini Tin Pokémon GO"
 
 #. contents item
 msgid "Pokémon keychain card holder"
-msgstr ""
+msgstr "porta-carta Pokémon com porta-chaves"
 
 #. contents item
 msgid "poradnik dla początkujących"
-msgstr ""
+msgstr "guia para principiantes"
 
 #. contents item
 msgid "porcelanowy talerz z metalowym stojakiem"
-msgstr ""
+msgstr "prato de porcelana com suporte de metal"
 
 #. contents item
 msgid "Prismatic Evolutions mini tin"
-msgstr ""
+msgstr "Mini Tin Prismatic Evolutions"
 
 #. contents item
 msgid "przewodnik ulepszania talii"
-msgstr ""
+msgstr "guia para melhorar o baralho"
 
 #. contents item
 msgid "przezroczysta folia na kartę"
-msgstr ""
+msgstr "protetor transparente para carta"
 
 #. contents item
 msgid "pudełko na akcesoria"
-msgstr ""
+msgstr "caixa para acessórios"
 
 #. contents item
 msgid "pudełko na znaczniki obrażeń"
-msgstr ""
+msgstr "caixa para marcadores de danos"
 
 #. contents item
 msgid "ramka do ekspozycji (zestaw)"
-msgstr ""
+msgstr "moldura de exposição (conjunto)"
 
 #. contents item
 msgid "ramka do ekspozycji karty"
-msgstr ""
+msgstr "moldura de exposição para carta"
 
 #. contents item
 msgid "ramka ekspozycyjna Adaman"
-msgstr ""
+msgstr "moldura de exposição Adaman"
 
 #. contents item
 msgid "ramka ekspozycyjna Irida"
-msgstr ""
+msgstr "moldura de exposição Irida"
 
 #. contents item
 msgid "ramka na dwie karty"
-msgstr ""
+msgstr "moldura para duas cartas"
 
 #. contents item
 msgid "sidekick dangler featuring Chien-Pao"
-msgstr ""
+msgstr "pendente Chien-Pao (sidekick dangler)"
 
 #. contents item
 msgid "silikonowe etui na kartę z motywem Pokémon"
-msgstr ""
+msgstr "estojo de silicone para carta com motivo Pokémon"
 
 #. contents item
 msgid "skrócona instrukcja gry"
-msgstr ""
+msgstr "regras rápidas do jogo"
 
 #. contents item
 msgid "stały zestaw 172 kart (51 rodzajów: 13 Pokémon, 59 trenerów, 4 energie specjalne, 96 energii podstawowych)"
-msgstr ""
+msgstr "conjunto fixo de 172 cartas (51 diferentes: 13 Pokémon, 59 de Treinador, 4 energias especiais, 96 energias básicas)"
 
 #. contents item
 msgid "Unova mini tin"
-msgstr ""
+msgstr "Mini Tin Unova"
 
 #. contents item
 msgid "White Flare card list"
-msgstr ""
+msgstr "lista de cartas de White Flare"
 
 #. contents item
 msgid "zawieszka z ramką na kartę wypełnioną płynem"
-msgstr ""
+msgstr "pendente com moldura de carta cheia de líquido"
 
 #. contents item
 msgid "znacznik oparzenia"
-msgstr ""
+msgstr "marcador de queimadura"
 
 #. contents item
 msgid "znacznik VSTAR"
-msgstr ""
+msgstr "marcador VSTAR"
 
 #. contents item
 msgid "znacznik zatrucia"
-msgstr ""
+msgstr "marcador de envenenamento"
 
 #. contents item
 msgid "znaczniki"
-msgstr ""
+msgstr "marcadores"
 
 #. contents item
 msgid "znaczniki premium (trucizna, poparzenie)"
-msgstr ""
+msgstr "marcadores premium (envenenamento, queimadura)"
 
 #. contents item
 msgid "ściągawka strategii talii"
-msgstr ""
+msgstr "folha de estratégia do baralho"
 
 #. contents item
 msgid "żetony obrażeń"
-msgstr ""
+msgstr "marcadores de danos"
 
 #. deck
 msgid "40 kart (1 z 4 wersji)"
-msgstr ""
+msgstr "de 40 cartas (1 de 4 versões)"
 
 #. deck
 msgid "40 kart (2 z 4 losowych grup kart)"
-msgstr ""
+msgstr "de 40 cartas (2 de 4 grupos de cartas aleatórios)"
 
 #. deck
 msgid "Build & Battle (40 kart)"
-msgstr ""
+msgstr "Build & Battle (40 cartas)"
 
 #. deck
 msgid "Build & Battle 40-card deck"
-msgstr ""
+msgstr "Build & Battle de 40 cartas"
 
 #. deck
 msgid "Destined Rivals prerelease deck"
-msgstr ""
+msgstr "do pré-lançamento de Destined Rivals"
 
 #. deck
 msgid "Journey Together Build & Battle deck"
-msgstr ""
+msgstr "Journey Together Build & Battle"
 
 #. deck
 msgid "losowa talia (60 kart, co najmniej 2 karty Pokémon ex)"
-msgstr ""
+msgstr "aleatório (60 cartas, pelo menos 2 Pokémon ex)"
 
 #. deck
 msgid "Ondřej Škubal — ADP (60 kart)"
-msgstr ""
+msgstr "Ondřej Škubal — ADP (60 cartas)"
 
 #. energy slot of a booster
 msgid "Basic Energy (foil)"
-msgstr ""
+msgstr "carta de energia básica (foil)"
 
 #. energy slot of a booster
 msgid "Basic Energy lub znacznik VSTAR"
-msgstr ""
+msgstr "carta de energia básica ou marcador VSTAR"
 
 #. oversize card
 msgid "Koraidon ex lub Miraidon ex (losowo)"
-msgstr ""
+msgstr "Koraidon ex ou Miraidon ex (aleatória)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
-msgstr ""
+msgstr "1 de 4, aleatória, em cada baralho: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
-msgstr ""
+msgstr "1 de 4, aleatória, em cada baralho: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
-msgstr ""
+msgstr "1 de 4, aleatória, em cada baralho: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
-msgstr ""
+msgstr "1 de 4, aleatória, em cada baralho: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
-msgstr ""
+msgstr "1 de 4, aleatória, em cada baralho: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
 
 #. promo card
 msgid "Bulbasaur (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
-msgstr ""
+msgstr "Bulbasaur (holo, padrão Poké Ball; 1 em 99 com padrão Master Ball)"
 
 #. promo card
 msgid "Charmander (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
-msgstr ""
+msgstr "Charmander (holo, padrão Poké Ball; 1 em 99 com padrão Master Ball)"
 
 #. promo card
 msgid "Eevee (karta holo)"
-msgstr ""
+msgstr "Eevee (holo)"
 
 #. promo card
 msgid "Espeon (karta holo)"
-msgstr ""
+msgstr "Espeon (holo)"
 
 #. promo card
 msgid "First Partner promo card (3 of 9, random)"
-msgstr ""
+msgstr "First Partner (3 de 9, aleatórias)"
 
 #. promo card
 msgid "Flareon (karta holo)"
-msgstr ""
+msgstr "Flareon (holo)"
 
 #. promo card
 msgid "Foil promo, one of four: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
-msgstr ""
+msgstr "foil, uma de quatro: N's Darmanitan, Iono's Kilowattrel, Lillie's Ribombee, Hop's Snorlax"
 
 #. promo card
 msgid "Glaceon (karta holo)"
-msgstr ""
+msgstr "Glaceon (holo)"
 
 #. promo card
 msgid "Jolteon (karta holo)"
-msgstr ""
+msgstr "Jolteon (holo)"
 
 #. promo card
 msgid "Leafeon (karta holo)"
-msgstr ""
+msgstr "Leafeon (holo)"
 
 #. promo card
 msgid "losowa (1 z 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
-msgstr ""
+msgstr "aleatória (1 de 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
 
 #. promo card
 msgid "losowa (1 z 4: Delphox, Ampharos, Crobat, Goodra – MEP 074–077)"
-msgstr ""
+msgstr "aleatória (1 de 4: Delphox, Ampharos, Crobat, Goodra – MEP 074–077)"
 
 #. promo card
 msgid "losowa (1 z 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
-msgstr ""
+msgstr "aleatória (1 de 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
 
 #. promo card
 msgid "losowa First Partner (3 z 9: MEP 046–054)"
-msgstr ""
+msgstr "First Partner aleatória (3 de 9: MEP 046–054)"
 
 #. promo card
 msgid "losowa First Partner (3 z 9: MEP 055–063)"
-msgstr ""
+msgstr "First Partner aleatória (3 de 9: MEP 055–063)"
 
 #. promo card
 msgid "losowa karta First Partner (1 z 9: startery z Hoenn, Kalos i Paldei)"
-msgstr ""
+msgstr "First Partner aleatória (1 de 9: iniciais de Hoenn, Kalos e Paldea)"
 
 #. promo card
 msgid "losowa karta First Partner (1 z 9: startery z Johto, Unovy i Galaru)"
-msgstr ""
+msgstr "First Partner aleatória (1 de 9: iniciais de Johto, Unova e Galar)"
 
 #. promo card
 msgid "losowa karta First Partner (1 z 9: startery z Kanto, Sinnoh i Aloli)"
-msgstr ""
+msgstr "First Partner aleatória (1 de 9: iniciais de Kanto, Sinnoh e Alola)"
 
 #. promo card
 msgid "losowa karta holo z dodatku Stellar Crystal (1 z 30)"
-msgstr ""
+msgstr "holo aleatória da expansão Stellar Crystal (1 de 30)"
 
 #. promo card
 msgid "losowa karta legendarnego lub mitycznego Pokémona (holo)"
-msgstr ""
+msgstr "de um Pokémon lendário ou mítico, aleatória (holo)"
 
 #. promo card
 msgid "losowa karta Pikachu (holo)"
-msgstr ""
+msgstr "Pikachu aleatória (holo)"
 
 #. promo card
 msgid "losowa: Sprigatito, Fuecoco, Quaxly, Ralts lub Riolu"
-msgstr ""
+msgstr "aleatória: Sprigatito, Fuecoco, Quaxly, Ralts ou Riolu"
 
 #. promo card
 msgid "Mega Charizard X ex or Mega Charizard Y ex"
-msgstr ""
+msgstr "Mega Charizard X ex ou Mega Charizard Y ex"
 
 #. promo card
 msgid "one of four foil promos: Chien-Pao, Gouging Fire, Indeedee or Magneton"
-msgstr ""
+msgstr "foil, uma de quatro: Chien-Pao, Gouging Fire, Indeedee ou Magneton"
 
 #. promo card
 msgid "one of four unique foil promos: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
-msgstr ""
+msgstr "foil exclusiva, uma de quatro: Ethan's Typhlosion, Misty's Gyarados, Team Rocket's Mimikyu, Team Rocket's Tyranitar"
 
 #. promo card
 msgid "Pikachu ex (2 różne, po 1)"
-msgstr ""
+msgstr "Pikachu ex (2 diferentes, 1 de cada)"
 
 #. promo card
 msgid "promo cards"
-msgstr ""
+msgstr "(variadas)"
 
 #. promo card
 msgid "Squirtle (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
-msgstr ""
+msgstr "Squirtle (holo, padrão Poké Ball; 1 em 99 com padrão Master Ball)"
 
 #. promo card
 msgid "Stamped promo card (Sprigatito, Fuecoco or Quaxly, one at random)"
-msgstr ""
+msgstr "com carimbo (Sprigatito, Fuecoco ou Quaxly, uma aleatória)"
 
 #. promo card
 msgid "Stellar Tera foil promo (random: Eevee or an Eeveelution ex, 1 of 9)"
-msgstr ""
+msgstr "Stellar Tera foil (aleatória: Eevee ou uma evolução de Eevee ex, 1 de 9)"
 
 #. promo card
 msgid "Sylveon (karta holo)"
-msgstr ""
+msgstr "Sylveon (holo)"
 
 #. promo card
 msgid "Umbreon (karta holo)"
-msgstr ""
+msgstr "Umbreon (holo)"
 
 #. promo card
 msgid "Vaporeon (karta holo)"
-msgstr ""
+msgstr "Vaporeon (holo)"
 
 #. retail deal note
 msgid "do wyczerpania zapasów"
-msgstr ""
+msgstr "até esgotar o stock"
 
 #. retail deal note
 msgid "gazetka Smyka"
-msgstr ""
+msgstr "folheto da Smyk"
 
 #. retail deal note
 msgid "gazetka Smyka; wariant zestawu niepodany"
-msgstr ""
+msgstr "folheto da Smyk; variante do conjunto não indicada"
 
 #. retail deal note
 msgid "online, taniej w aplikacji; wybrane wzory puszek"
-msgstr ""
+msgstr "online, mais barato na app; modelos de Tin selecionados"
 
 #. retail deal note
 msgid "różne zestawy do wyboru; do wyczerpania zapasów"
-msgstr ""
+msgstr "vários conjuntos à escolha; até esgotar o stock"
 
 #. retail deal note
 msgid "salony stacjonarne; z Empik Premium -15%: 297,49 zł"
-msgstr ""
+msgstr "lojas físicas Empik; com Empik Premium -15 %: 297,49 zł"
 
 #. retail deal note
 msgid "tylko online"
-msgstr ""
+msgstr "só online"
 
 #. retail deal note
 msgid "tylko stacjonarnie"
-msgstr ""
+msgstr "só em loja física"
 
 #. retail deal note
 msgid "tylko stacjonarnie; do wyczerpania zapasów"
-msgstr ""
+msgstr "só em loja física; até esgotar o stock"
 
 #. retail deal note
 msgid "tylko stacjonarnie; online 199,99 zł"
-msgstr ""
+msgstr "só em loja física; online 199,99 zł"
 
 #. retail deal note
 msgid "wybrane sklepy"
-msgstr ""
+msgstr "lojas selecionadas"
