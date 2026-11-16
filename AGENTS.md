@@ -53,6 +53,11 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
   `priv/gettext/*/LC_MESSAGES/<country>.po`) and
   `priv/static/images/flags/<code>.svg`. A new language adds
   `lib/tcg_cheap_web/languages/<language>.ex` and `priv/gettext/<code>/`.
+- Wording recorded with the data (a contents item's `name`, a retail deal's
+  `note`) is shown in the page language through the hand-kept `catalogue`
+  Gettext domain. When you record a new wording, add it to
+  `priv/gettext/catalogue.pot`, run `mix gettext.merge priv/gettext` and
+  translate it in every language; a proper name (a set, a card) needs no entry.
 - When you test production (https://tcg.cheap) in a browser, type a search
   phrase starting with `zzz` in the search bar once, so PostHog can find your
   browser and exclude it from analytics as internal traffic.

@@ -39,6 +39,17 @@ defmodule TcgCheapWeb.Format do
     group(whole) <> "," <> fraction <> @nbsp <> region.currency_symbol
   end
 
+  @doc """
+  A wording recorded with the catalogue's facts (a contents item's name, a
+  retail deal's note) in the page language. Such texts are data, so their
+  translations are the hand-kept `catalogue` Gettext domain
+  (`priv/gettext/catalogue.pot`); one without an entry, as a card's or a
+  set's name, is shown as recorded.
+  """
+  @spec recorded(String.t()) :: String.t()
+  def recorded(text) when is_binary(text),
+    do: Gettext.dgettext(TcgCheapWeb.Gettext, "catalogue", text)
+
   @doc ~S'Formats a Cardmarket price in euro: "1 299,99 €".'
   @spec eur(Decimal.t()) :: String.t()
   def eur(%Decimal{} = value) do
