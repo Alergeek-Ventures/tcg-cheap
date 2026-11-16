@@ -81,6 +81,16 @@ defmodule TcgCheapWeb.Format do
   def whole_price(value) when is_integer(value),
     do: with_currency(number(value), currency_symbol())
 
+  @doc ~S'Whole amounts from–to with one currency symbol: "9 570–12 228 zł", "€ 9.570–12.228".'
+  @spec whole_price_range(integer(), integer()) :: String.t()
+  def whole_price_range(low, high) when is_integer(low) and is_integer(high),
+    do: with_currency(number(low) <> "–" <> number(high), currency_symbol())
+
+  @doc ~S'The lower bound of a range whose upper bound is a whole price: bare where the symbol follows the amount ("od 10 do 20 zł"), priced where it leads ("van € 10 tot € 20").'
+  @spec range_start(integer()) :: String.t()
+  def range_start(value) when is_integer(value),
+    do: if(language().currency_first?(), do: whole_price(value), else: number(value))
+
   @doc ~S'A verdict limit or reference: whole currency units, or decimals for a market with a fractional step.'
   @spec limit_price(integer() | Decimal.t()) :: String.t()
   def limit_price(value) do
