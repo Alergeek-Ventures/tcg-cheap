@@ -15,17 +15,17 @@ msgstr ""
 #: lib/tcg_cheap/countries/sweden.ex:17
 #, elixir-autogen, elixir-format
 msgid "wysyłka ze Szwecji"
-msgstr "iz Švedske"
+msgstr "s Švedske"
 
 #: lib/tcg_cheap/countries/sweden.ex:20
 #, elixir-autogen, elixir-format
 msgid "z wysyłką ze Szwecji"
-msgstr "iz Švedske, z dostavo"
+msgstr "z dostavo s Švedske"
 
 #: lib/tcg_cheap/countries/sweden.ex:93
 #, elixir-autogen, elixir-format
 msgid "%{card} – cena karty Pokémon w koronach"
-msgstr "%{card} – cena karte Pokémon v kronah"
+msgstr "%{card} – cena Pokémon karte v kronah"
 
 #: lib/tcg_cheap/countries/sweden.ex:98
 #, elixir-autogen, elixir-format
@@ -40,7 +40,7 @@ msgstr "%{name}: tega izdelka trenutno nima na zalogi nobena švedska trgovina i
 #: lib/tcg_cheap/countries/sweden.ex:86
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w koronach."
-msgstr "Angleške karte Pokémon TCG s ceno na Cardmarketu v kronah."
+msgstr "Angleške Pokémon TCG karte s ceno na Cardmarketu v kronah."
 
 #: lib/tcg_cheap/countries/sweden.ex:107
 #, elixir-autogen, elixir-format
@@ -55,7 +55,7 @@ msgstr "Cene Pokémon TCG v švedskih trgovinah in v trgovinah z dostavo na Šve
 #: lib/tcg_cheap/countries/sweden.ex:89
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w koronach"
-msgstr "Cene kart Pokémon TCG v kronah"
+msgstr "Cene Pokémon TCG kart v kronah"
 
 #: lib/tcg_cheap/countries/sweden.ex:161
 #, elixir-autogen, elixir-format
@@ -85,7 +85,7 @@ msgstr "Pojdi na švedsko različico"
 #: lib/tcg_cheap/countries/sweden.ex:132
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym ze Szwecji. Gdy podaje ją tylko w swojej walucie, przeliczamy ją na korony po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "Ceno tuje trgovine navajamo tako, kot jo trgovina objavi kupcem s Švedske. Če jo objavi samo v svoji valuti, jo preračunamo v krone po dnevnih tečajih NBP. Stran trgovine je lahko v drugem jeziku."
+msgstr "Ceno tuje trgovine navajamo tako, kot jo trgovina prikaže kupcem na Švedskem. Če jo objavi samo v svoji valuti, jo preračunamo v krone po dnevnih tečajih Narodne banke Poljske (NBP). Stran trgovine je lahko v drugem jeziku."
 
 #: lib/tcg_cheap/countries/sweden.ex:47
 #, elixir-autogen, elixir-format
@@ -105,12 +105,12 @@ msgstr "z dostavo iz Nemčije"
 #: lib/tcg_cheap/countries/sweden.ex:141
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych list produktów i feedów sklepów, pobieranych raz dziennie, i są w koronach szwedzkich. Ceny szwedzkich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Szwecji."
-msgstr "Cene so iz javnih seznamov izdelkov in virov (feedov) trgovin, ki jih preberemo enkrat na dan, in so v kronah. Cene švedskih trgovin ne vključujejo dostave, cene trgovin v tujini pa vključujejo dostavo na Švedsko."
+msgstr "Cene so iz javnih seznamov izdelkov in produktnih feedov trgovin, ki jih preberemo enkrat na dan, in so v kronah. Cene švedskih trgovin ne vključujejo dostave, cene trgovin v tujini pa vključujejo dostavo na Švedsko."
 
 #: lib/tcg_cheap/countries/sweden.ex:146
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w koronach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
-msgstr "Dobra cena je največ 95 % tipične, običajna največ 110 %, nad tem je draga. Dobra cena mora biti tudi največ 95 % običajne cene izdelka v zadnjih %{window} dneh in trenda Cardmarket v kronah (po tečajih NBP) s pošiljko iz Nemčije, kadar so podatki znani."
+msgstr "Dobra cena je največ 95 % tipične, običajna največ 110 %, nad tem je draga. Dobra cena mora biti tudi največ 95 % običajne cene izdelka v zadnjih %{window} dneh in trenda Cardmarket v kronah (preračunanega po tečajih Narodne banke Poljske, NBP) z dostavo iz Nemčije, kadar so podatki znani."
 
 #: lib/tcg_cheap/countries/sweden.ex:152
 #, elixir-autogen, elixir-format
