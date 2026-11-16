@@ -32,7 +32,7 @@ msgstr "%{name}: tento produkt teď nemá skladem žádný nizozemský obchod an
 #: lib/tcg_cheap/countries/netherlands.ex:82
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w euro."
-msgstr "Anglické karty Pokémon TCG s cenou z Cardmarket v eurech."
+msgstr "Anglické karty Pokémon TCG s cenou z Cardmarketu v eurech."
 
 #: lib/tcg_cheap/countries/netherlands.ex:103
 #, elixir-autogen, elixir-format
@@ -47,7 +47,7 @@ msgstr "Ceny Pokémon TCG v nizozemských obchodech a v obchodech s dopravou do 
 #: lib/tcg_cheap/countries/netherlands.ex:157
 #, elixir-autogen, elixir-format
 msgid "Ceny holenderskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Holandii. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
-msgstr "Ceny nizozemských obchodů jsou bez dopravy, ceny zahraničních obchodů zahrnují dopravu do Nizozemska. K ceně Cardmarket připočítáváme %{shipping} za balík z Německa."
+msgstr "V nizozemských obchodech jsou ceny bez dopravy, u zahraničních obchodů je v ceně doprava do Nizozemska. K ceně z Cardmarketu připočítáváme %{shipping} za balík z Německa."
 
 #: lib/tcg_cheap/countries/netherlands.ex:85
 #, elixir-autogen, elixir-format
@@ -57,12 +57,12 @@ msgstr "Ceny karet Pokémon TCG v eurech"
 #: lib/tcg_cheap/countries/netherlands.ex:137
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych list produktów sklepów, pobieranych raz dziennie, i są w euro. Ceny holenderskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Holandii."
-msgstr "Ceny pocházejí z veřejných seznamů produktů obchodů, které stahujeme jednou denně, a jsou v eurech. Ceny nizozemských obchodů nezahrnují dopravu, ceny obchodů v zahraničí zahrnují dopravu do Nizozemska."
+msgstr "Ceny pocházejí z veřejných seznamů produktů obchodů, které stahujeme jednou denně, a jsou v eurech. Ceny v nizozemských obchodech nezahrnují dopravu, u obchodů v zahraničí je v ceně doprava do Nizozemska."
 
 #: lib/tcg_cheap/countries/netherlands.ex:123
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Holandii."
-msgstr "Ceny zahraničních obchodů zahrnují dopravu do Nizozemska."
+msgstr "U zahraničních obchodů je v ceně doprava do Nizozemska."
 
 #: lib/tcg_cheap/countries/netherlands.ex:142
 #, elixir-autogen, elixir-format
@@ -107,4 +107,4 @@ msgstr "s dopravou z Německa"
 #: lib/tcg_cheap/countries/netherlands.ex:128
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Holandii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "Cena zahraničního obchodu je ta, kterou obchod uvádí kupujícím z Nizozemska. Ceny v jiné měně než euro přepočítáváme podle denních kurzů NBP. Stránka obchodu může být v jiném jazyce."
+msgstr "U zahraničních obchodů uvádíme cenu, kterou nabízejí zákazníkům z Nizozemska. Ceny v jiné měně než v eurech přepočítáváme podle denních kurzů Polské národní banky (NBP). Stránka obchodu může být v jiném jazyce."
