@@ -120,6 +120,15 @@ defmodule TcgCheap.Sealed.Matcher do
     {"italiensk", "italian"},
     {"italienska", "italian"},
     {"italienskt", "italian"},
+    # German and Dutch shops too ("Booster Koreanisch", "Gift Box S-Chinesisch",
+    # "Japanse Booster Box").
+    {"japanisch", "jp"},
+    {"koreanisch", "korean"},
+    {"s chinesisch", "chinese"},
+    {"t chinesisch", "chinese"},
+    {"chinesisch", "chinese"},
+    {"japanse", "jp"},
+    {"koreaanse", "korean"},
     # Hungarian shops do the same ("Booster Box - (Koreai)", "(Japán kiadás)");
     # "angol", "kiadás" (edition) and "Fóliázott" (shrink-wrapped) are noise.
     {"koreai", "korean"},
@@ -240,8 +249,8 @@ defmodule TcgCheap.Sealed.Matcher do
   # Polish, Swedish and Hungarian word stems for damaged, opened or used items ("uszkodzone",
   # "otwarty", "używany", "Förpackningsskada", "kartongskadad", "skadad", "öppnad",
   # "begagnad", "Enyhén szakadt", "Kisebb esztétikai hiba", "Apróbb szépséghibák", "sérült",
-  # Slovak "Malé Imperfekcie"…).
-  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult|imperfekci)/
+  # Slovak "Malé Imperfekcie", Dutch "beschadigde box", Portuguese "Embalagem danificada"…).
+  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult|imperfekci|beschadigd|danificad)/
 
   # Two or more pieces ("x3", "10x", "36 szt", "3 sztuki"); "1 szt" is still one item.
   # Swedish "st" counts pieces only where a title starts with it ("3st Pokemon
