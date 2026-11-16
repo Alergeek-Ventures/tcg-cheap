@@ -1601,7 +1601,7 @@ msgstr "on Cardmarket"
 
 #: lib/tcg_cheap_web/live/single_live.ex:315
 #, elixir-autogen, elixir-format
-msgid "na Cardmarket z wysyłką · wszystkie języki i stany"
+msgid "na Cardmarket z wysyłką · wszystkie języki i stany kart"
 msgstr "on Cardmarket including delivery · all languages and conditions"
 
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:348
@@ -4185,7 +4185,7 @@ msgstr "about %{amount} thousand %{currency}"
 
 #: lib/tcg_cheap_web/live/single_live.ex:277
 #, elixir-autogen, elixir-format
-msgid "trend na Cardmarket, bez wysyłki · wszystkie języki i stany"
+msgid "trend na Cardmarket, bez wysyłki · wszystkie języki i stany kart"
 msgstr "Cardmarket trend, without shipping · all languages and conditions"
 
 #: lib/tcg_cheap_web/components/site_components.ex:269
