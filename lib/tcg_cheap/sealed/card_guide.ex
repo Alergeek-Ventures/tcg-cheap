@@ -10,15 +10,11 @@ defmodule TcgCheap.Sealed.CardGuide do
     CardReference,
     Catalogue,
     Guide,
+    PriceGuide,
     Shops,
     TcgdexCard,
     TcgdexSet
   }
-
-  # ±15% is effectively the same delivered price; graded and special prints
-  # never inherit a raw normal/reverse reference.
-  @similar_low Decimal.new("0.85")
-  @similar_high Decimal.new("1.15")
 
   def slug(card, collisions \\ MapSet.new()) do
     name = Catalogue.slug(card.name, 0) |> String.replace_suffix("-0", "")
@@ -180,7 +176,8 @@ defmodule TcgCheap.Sealed.CardGuide do
       Enum.map(page, fn %{cardmarket: price} = row ->
         name = Map.fetch!(names, row.set.cardmarket_expansion_id)
         card = %{row.card | cardmarket_price: price}
-        {variant, offer} = primary_offer(Map.get(offers, card.id, []))
+        {variant, variant_offers} = primary_offers(Map.get(offers, card.id, []))
+        offer = List.first(variant_offers)
 
         image =
           row.set
@@ -192,7 +189,7 @@ defmodule TcgCheap.Sealed.CardGuide do
         |> Map.merge(%{
           card: card,
           offer: offer,
-          verdict: card_verdict(offer, card, variant, rate),
+          verdict: card_verdict(variant_offers, card, variant, rate),
           cardmarket_trend_pln: Guide.to_pln(price && price.trend, rate),
           expansion_name: name,
           path: path(card, name, row.set.cardmarket_expansion_id, collisions),
@@ -203,19 +200,21 @@ defmodule TcgCheap.Sealed.CardGuide do
     {results, length(rows) > @page_size, count}
   end
 
-  # The offer the card's page answers with (`page/3`): the cheapest in-stock
-  # offer of its first variant in stock, normal before reverse before special.
-  defp primary_offer(offers) do
-    Enum.find_value([:normal, :reverse, :special], {nil, nil}, fn variant ->
-      offer = Enum.find(offers, &(&1.variant == variant))
-      offer && {variant, offer}
+  # The offers the card's page answers with (`page/3`): those of its first
+  # variant in stock, normal before reverse before special, cheapest first.
+  defp primary_offers(offers) do
+    Enum.find_value([:normal, :reverse, :special], {nil, []}, fn variant ->
+      case Enum.filter(offers, &(&1.variant == variant)) do
+        [] -> nil
+        in_variant -> {variant, in_variant}
+      end
     end)
   end
 
   # Other printings a card's page offers when nobody stocks it.
   @versions 4
   # The best offer first, as the card list judges it.
-  @verdict_ranks %{cheaper: 0, similar: 1, pennies: 1, unknown: 2, expensive: 3}
+  @verdict_ranks %{cheaper: 0, similar: 1, pennies: 1, unknown: 2, few_shops: 2, expensive: 3}
   # As for sealed deals: this far under its reference, an offer is more often
   # matched to the wrong card than a real bargain.
   @suspect_ratio Decimal.new("0.6")
@@ -473,25 +472,60 @@ defmodule TcgCheap.Sealed.CardGuide do
     !!(delivered && Decimal.lt?(trend, Decimal.sub(delivered, trend)))
   end
 
-  def card_verdict(nil, _, _, _), do: :unavailable
+  @doc """
+  A card's verdict from its in-stock, ungraded offers of one printing (each
+  `price` the compared one, `Shops.compared/1`), cheapest judged. As for sealed
+  products (`PriceGuide.verdict/4`): the typical price is the median of the
+  Polish shops' lowest prices, needing at least `PriceGuide.min_shops/0` shops,
+  and a good price must also be under the delivered Cardmarket reference. Shops
+  abroad, whose delivery is dear, stay out of the median. With fewer shops there
+  is no verdict (`:few_shops`).
+  """
+  def card_verdict(offers, card, variant, rate),
+    do: offers |> judge(card, variant, rate) |> elem(0)
 
-  def card_verdict(offer, card, variant, rate) do
+  @doc """
+  `card_verdict/4` with the `PriceGuide` answer it came from, nil unless the
+  Polish shops' typical price judged it.
+  """
+  def judge([], _card, _variant, _rate), do: {:unavailable, nil}
+
+  def judge(offers, card, variant, rate) do
+    cheapest = Enum.min_by(offers, & &1.price, Decimal)
     reference = CardReference.pln(card.cardmarket_price, variant, rate)
-    normal = verdict(offer, reference)
 
     cond do
-      "firstEdition" in card.variants ->
-        :unknown
+      # Special patterns and first editions have no reference of their own.
+      variant == :special or "firstEdition" in card.variants ->
+        {:unknown, nil}
 
       # "Pennies in both places" requires a cheap Polish price too: at most
       # 3 zł and no more than the delivered reference. Never mask an expensive offer.
-      normal in [:cheaper, :similar] and Decimal.lte?(offer.price, 3) and
-        Decimal.lte?(offer.price, reference) and
+      reference != nil and Decimal.lte?(cheapest.price, 3) and
+        Decimal.lte?(cheapest.price, reference) and
           shipping_dominates?(card.cardmarket_price, variant) ->
-        :pennies
+        {:pennies, nil}
 
       true ->
-        normal
+        guide =
+          offers
+          |> Enum.filter(&Shops.polish?(&1.shop))
+          |> PriceGuide.verdict(nil, cardmarket: reference)
+
+        if guide.typical_source == :shops,
+          do: {typical_verdict(cheapest, guide), guide},
+          else: {:few_shops, nil}
+    end
+  end
+
+  # The cheapest offer may be a shop abroad's, which the median leaves out.
+  # The limits are whole złoty, so under about 5 zł one can fall below the
+  # typical price itself: the cheapest offer is never dearer than the typical
+  # shop, so never expensive.
+  defp typical_verdict(cheapest, guide) do
+    case PriceGuide.rate(cheapest.price, guide, {:cheaper, :similar, :expensive}) do
+      :expensive -> if Decimal.lte?(cheapest.price, guide.typical), do: :similar, else: :expensive
+      verdict -> verdict
     end
   end
 
@@ -513,19 +547,21 @@ defmodule TcgCheap.Sealed.CardGuide do
       variants
       |> Enum.sort_by(&Enum.find_index([:normal, :reverse, :special], fn v -> v == &1 end))
       |> Enum.map(fn variant ->
-        cheapest =
+        in_stock =
           offers
           |> Enum.filter(&(&1.in_stock and is_nil(&1.grading) and &1.variant == variant))
           |> Shops.compared()
-          |> Enum.min_by(& &1.price, Decimal, fn -> nil end)
 
-        reference = CardReference.pln(card.cardmarket_price, variant, rate)
+        {verdict, guide} = judge(in_stock, card, variant, rate)
 
         %{
           variant: variant,
-          cheapest: cheapest,
-          reference: reference,
-          verdict: card_verdict(cheapest, card, variant, rate)
+          cheapest: Enum.min_by(in_stock, & &1.price, Decimal, fn -> nil end),
+          reference: CardReference.pln(card.cardmarket_price, variant, rate),
+          verdict: verdict,
+          # What the verdict compares with, when the Polish shops set it.
+          typical: guide && guide.typical,
+          shops: guide && length(guide.shop_prices)
         }
       end)
 
@@ -555,19 +591,6 @@ defmodule TcgCheap.Sealed.CardGuide do
 
   defp first_mirrored(sources, mirrored),
     do: Enum.find(sources, &MapSet.member?(mirrored, CardImage.source_hash(&1)))
-
-  def verdict(nil, _), do: :unavailable
-  def verdict(_, nil), do: :unknown
-
-  def verdict(offer, reference) do
-    ratio = Decimal.div(offer.price, reference)
-
-    cond do
-      Decimal.lt?(ratio, @similar_low) -> :cheaper
-      Decimal.gt?(ratio, @similar_high) -> :expensive
-      true -> :similar
-    end
-  end
 
   # Keep freshness (including successful empty fetches) owned by Sealed.
   # The OR predicate is bounded by shop count, and card_id remains in SQL.

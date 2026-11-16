@@ -10,7 +10,17 @@ defmodule TcgCheapWeb.SingleLive do
   import TcgCheapWeb.OfferComponents
   import TcgCheapWeb.SiteComponents
   import TcgCheapWeb.VerdictComponents
-  alias TcgCheap.Sealed.{CardGuide, CardImage, CardReference, Guide, Matcher, Rarities}
+
+  alias TcgCheap.Sealed.{
+    CardGuide,
+    CardImage,
+    CardReference,
+    Guide,
+    Matcher,
+    PriceGuide,
+    Rarities
+  }
+
   alias TcgCheapWeb.{Analytics, Format, Paths, Region, SEO, VisitorLocation}
 
   defmodule NotFound do
@@ -274,7 +284,7 @@ defmodule TcgCheapWeb.SingleLive do
                 <.cardmarket_price
                   price={@trend}
                   href={cardmarket_url(@page.card.cardmarket_id)}
-                /><span>{gettext("trend na Cardmarket, bez wysyłki")}</span>
+                /><span>{gettext("trend na Cardmarket, bez wysyłki · wszystkie języki i stany")}</span>
               </p>
               <p :if={@trend && !euro_region?()} id="single-rate" class="guide-note">
                 {euro_rate_note(@euro_rate)}
@@ -307,18 +317,30 @@ defmodule TcgCheapWeb.SingleLive do
               <p :if={!@primary.cheapest} id="single-empty" class="sr-only">
                 {gettext("Brak na stanie w polskich sklepach")}
               </p>
+              <p :if={@primary.typical} id="single-typical" class="verdict-reason">
+                {gettext("Typowa cena dziś w %{shops}: %{price}",
+                  shops: Format.in_shops(@primary.shops),
+                  price: Format.limit_price(@primary.typical)
+                )}
+              </p>
               <p :if={@primary.reference} class="verdict-cardmarket">
                 <.cardmarket_price
                   price={@primary.reference}
                   href={cardmarket_url(@page.card.cardmarket_id)}
                   shipping={true}
-                /><span>{gettext("na Cardmarket z wysyłką")}</span>
+                /><span>{gettext("na Cardmarket z wysyłką · wszystkie języki i stany")}</span>
               </p>
               <div class="verdict-more">
                 <.verdict_method id="single-method">
                   <p>
                     {gettext(
-                      "Cenę w sklepach porównujemy z trendem Cardmarket i wysyłką jednej karty, z tolerancją ±15%. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
+                      "Typowa cena to środek stawki: z każdego polskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką.",
+                      minimum: PriceGuide.min_shops()
+                    )}
+                  </p>
+                  <p>
+                    {gettext(
+                      "Cardmarket podaje jedną cenę dla wszystkich języków i stanów, więc karta angielska w stanie NM bywa droższa."
                     )}
                   </p>
                   <p :if={@primary.reference}>
