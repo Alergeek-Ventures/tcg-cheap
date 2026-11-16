@@ -10,7 +10,7 @@ web
 
 ## Users
 
-- Pokémon TCG fans in Poland, Hungary, Sweden, Croatia, Portugal, the Netherlands and Czechia (players, collectors,
+- Pokémon TCG fans in Poland, Hungary, Sweden, Croatia, Slovenia, Portugal, the Netherlands and Czechia (players, collectors,
   parents buying gifts) who want to buy sealed products (boosters, bundles, booster boxes,
   Elite Trainer Boxes, tins, collections) without overpaying.
 - The same fans when trading single cards with friends or in a local shop.
@@ -48,13 +48,13 @@ as missing.
 - A region is a country: its shops (domestic ones, and shops abroad with a
   delivery there), its currency and its own URLs – Poland under `/pl/` in
   złoty, Hungary under `/hu/` in forints, Sweden under `/se/` in kronor,
-  Czechia under `/cz/` in koruna, Croatia under `/hr/`, Portugal under `/pt/` and the Netherlands under `/nl/` in euro. The root redirects to the visitor's region
+  Czechia under `/cz/` in koruna, Croatia under `/hr/`, Slovenia under `/si/`, Portugal under `/pt/` and the Netherlands under `/nl/` in euro. The root redirects to the visitor's region
   (their choice, else their location; Bosnia and Herzegovina to Croatia's,
   Poland for any other country). Polish URLs from before regions, including
   old home links with list filters, redirect permanently to their Polish page
   in one hop.
 - Language is separate from region: Polish, Hungarian, Swedish, Croatian,
-  European Portuguese, Dutch, Czech or English, by default the region's own, switchable on every page.
+  Slovenian, European Portuguese, Dutch, Czech or English, by default the region's own, switchable on every page.
 - Every region applies the same rules: the same verdicts and limits in its own
   currency, the price a shop abroad charges buyers in that country (converted
   at the NBP rate only when the shop states it in another currency) with its
@@ -62,7 +62,7 @@ as missing.
   trend is taken as is, without conversion.
 - Not every part exists everywhere yet. Polish only: articles, retail chain
   deals, today's deals on the home page, singles from shops and a set's most
-  valuable cards. In Hungary, Sweden, Czechia, Croatia, Portugal and the Netherlands a card's price is its
+  valuable cards. In Hungary, Sweden, Czechia, Croatia, Slovenia, Portugal and the Netherlands a card's price is its
   Cardmarket trend in the region's currency, and a set page opens with its
   single booster.
 - Text in each language reads as written for its buyers, never as a
@@ -99,17 +99,17 @@ as missing.
   known; otherwise pre-orders are listed in their own group.
 - Set pages (owner decision, 2026-11-03, banner revised 2026-11-04): every named
   expansion has a page (`/pl/rozszerzenia/<name>-<id>`, `/hu/szettek/…`, `/se/set/…`,
-  `/hr/setovi/…`, `/pt/expansoes/…`, `/nl/sets/…`, `/cz/sety/…`) that answers first with a banner under the set's logo: in
+  `/hr/setovi/…`, `/si/seti/…`, `/pt/expansoes/…`, `/nl/sets/…`, `/cz/sety/…`) that answers first with a banner under the set's logo: in
   Poland its most valuable card and what pulling it from packs costs on average
   against buying it, then the next three cards the same way (a set without card
-  prices, and every set in Hungary, Sweden, Czechia, Croatia, Portugal and the Netherlands, shows its single booster
+  prices, and every set in Hungary, Sweden, Czechia, Croatia, Slovenia, Portugal and the Netherlands, shows its single booster
   instead). The page then lists the set's products with their verdicts, its pull
   rates and its cards. In Poland one card price is used everywhere: the lower of
   the cheapest shop offer (abroad with delivery) and the Cardmarket trend,
-  without delivery; in Hungary, Sweden, Czechia, Croatia, Portugal and the Netherlands it is the Cardmarket trend in
+  without delivery; in Hungary, Sweden, Czechia, Croatia, Slovenia, Portugal and the Netherlands it is the Cardmarket trend in
   the region's currency. Pages state the answer in their first sentence and
   search metadata, so search engines and AI assistants can quote it.
-- The card list (`/pl/karty`, `/hu/kartyak`, `/se/kort`, `/hr/karte`, `/pt/cartas`, `/nl/kaarten`, `/cz/karty`) filters by expansion like the
+- The card list (`/pl/karty`, `/hu/kartyak`, `/se/kort`, `/hr/karte`, `/si/karte`, `/pt/cartas`, `/nl/kaarten`, `/cz/karty`) filters by expansion like the
   product list; in Poland a chosen expansion opens with a singles banner in the
   same style: the set's best deal (a Polish shop price furthest under the
   Cardmarket price with delivery), its cards in stock in Poland, the whole set
