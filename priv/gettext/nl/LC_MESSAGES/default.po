@@ -12,28 +12,28 @@ msgstr ""
 "Language: nl\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
-#: lib/tcg_cheap_web/format.ex:225
+#: lib/tcg_cheap_web/format.ex:235
 #, elixir-autogen, elixir-format
 msgid "%{number} dnia"
 msgid_plural "%{number} dni"
 msgstr[0] "%{number} dag"
 msgstr[1] "%{number} dagen"
 
-#: lib/tcg_cheap_web/format.ex:200
+#: lib/tcg_cheap_web/format.ex:210
 #, elixir-autogen, elixir-format
 msgid "%{count} dzień temu"
 msgid_plural "%{count} dni temu"
 msgstr[0] "%{count} dag geleden"
 msgstr[1] "%{count} dagen geleden"
 
-#: lib/tcg_cheap_web/format.ex:220
+#: lib/tcg_cheap_web/format.ex:230
 #, elixir-autogen, elixir-format
 msgid "%{number} oferta"
 msgid_plural "%{number} oferty"
 msgstr[0] "%{number} aanbieding"
 msgstr[1] "%{number} aanbiedingen"
 
-#: lib/tcg_cheap_web/format.ex:215
+#: lib/tcg_cheap_web/format.ex:225
 #, elixir-autogen, elixir-format
 msgid "%{number} produkt"
 msgid_plural "%{number} produkty"
@@ -448,8 +448,8 @@ msgstr "gratis verzending"
 msgid "dostawa od %{amount}"
 msgstr "verzending vanaf %{amount}"
 
-#: lib/tcg_cheap_web/format.ex:198
-#: lib/tcg_cheap_web/format.ex:206
+#: lib/tcg_cheap_web/format.ex:208
+#: lib/tcg_cheap_web/format.ex:216
 #, elixir-autogen, elixir-format
 msgid "dziś"
 msgstr "vandaag"
@@ -495,7 +495,7 @@ msgstr "winkellocaties: ©"
 msgid "sprawdzono %{when}"
 msgstr "gecontroleerd %{when}"
 
-#: lib/tcg_cheap_web/format.ex:199
+#: lib/tcg_cheap_web/format.ex:209
 #, elixir-autogen, elixir-format
 msgid "wczoraj"
 msgstr "gisteren"
@@ -743,7 +743,7 @@ msgstr "We weten nog niet wat er in dit product zit."
 msgid "brak zdjęcia"
 msgstr "geen afbeelding"
 
-#: lib/tcg_cheap_web/format.ex:235
+#: lib/tcg_cheap_web/format.ex:245
 #, elixir-autogen, elixir-format
 msgid "%{number} sklepie"
 msgid_plural "%{number} sklepach"
@@ -884,24 +884,24 @@ msgid_plural "%{number} otwarte paczki"
 msgstr[0] "%{number} pakje geopend"
 msgstr[1] "%{number} pakjes geopend"
 
-#: lib/tcg_cheap_web/format.ex:260
+#: lib/tcg_cheap_web/format.ex:270
 #, elixir-autogen, elixir-format
 msgid "%{count} w każdej paczce"
 msgstr "%{count} in elk pakje"
 
-#: lib/tcg_cheap_web/format.ex:263
+#: lib/tcg_cheap_web/format.ex:273
 #, elixir-autogen, elixir-format
 msgid "%{hits} z %{packs} paczek"
 msgstr "%{hits} van %{packs} pakjes"
 
-#: lib/tcg_cheap_web/format.ex:274
+#: lib/tcg_cheap_web/format.ex:284
 #, elixir-autogen, elixir-format
 msgid "1 na %{number} paczkę"
 msgid_plural "1 na %{number} paczki"
 msgstr[0] "1 op de %{number} booster"
 msgstr[1] "1 op de %{number} boosters"
 
-#: lib/tcg_cheap_web/format.ex:276
+#: lib/tcg_cheap_web/format.ex:286
 #, elixir-autogen, elixir-format
 msgid "1 na %{packs} paczki"
 msgstr "1 op de %{packs} boosters"
@@ -1077,7 +1077,7 @@ msgstr "Deze kansen gelden voor een gewoon pakje van %{count} kaarten. In dit pa
 msgid "Te szanse dotyczą zwykłej paczki. W tej paczce jest mniej kart, więc szanse są niższe – o ile, nie wiadomo."
 msgstr "Deze kansen gelden voor een gewoon pakje. In dit pakje zitten minder kaarten, dus de kansen zijn lager – hoeveel lager weten we niet."
 
-#: lib/tcg_cheap_web/format.ex:230
+#: lib/tcg_cheap_web/format.ex:240
 #, elixir-autogen, elixir-format
 msgid "%{number} karta"
 msgid_plural "%{number} karty"
@@ -1202,7 +1202,7 @@ msgstr "Pre-order: verschijnt %{when} (%{date}), dan versturen de winkels de bes
 msgid "To przedsprzedaż: sklep wyśle produkt po premierze."
 msgstr "Dit is een pre-order: de winkel verstuurt het product na de release."
 
-#: lib/tcg_cheap_web/format.ex:207
+#: lib/tcg_cheap_web/format.ex:217
 #, elixir-autogen, elixir-format
 msgid "jutro"
 msgstr "morgen"
@@ -1212,7 +1212,7 @@ msgstr "morgen"
 msgid "przedsprzedaż · %{when}"
 msgstr "pre-order · %{when}"
 
-#: lib/tcg_cheap_web/format.ex:208
+#: lib/tcg_cheap_web/format.ex:218
 #, elixir-autogen, elixir-format
 msgid "za %{count} dzień"
 msgid_plural "za %{count} dni"
@@ -1617,17 +1617,17 @@ msgstr "op Cardmarket incl. verzending"
 msgid "nr %{number} · %{rarity}"
 msgstr "nr. %{number} · %{rarity}"
 
-#: lib/tcg_cheap_web/format.ex:150
+#: lib/tcg_cheap_web/format.ex:160
 #, elixir-autogen, elixir-format
 msgid "ok. %{amount}"
 msgstr "circa %{amount}"
 
-#: lib/tcg_cheap_web/format.ex:133
+#: lib/tcg_cheap_web/format.ex:143
 #, elixir-autogen, elixir-format
 msgid "ok. %{amount} mln zł"
 msgstr "circa %{amount} mln zł"
 
-#: lib/tcg_cheap_web/format.ex:138
+#: lib/tcg_cheap_web/format.ex:148
 #, elixir-autogen, elixir-format
 msgid "ok. %{amount} tys. zł"
 msgstr "circa %{amount} duizend zł"
@@ -1658,7 +1658,7 @@ msgstr "gemiddeld trek je: "
 msgid "wylosujesz: "
 msgstr "je trekt: "
 
-#: lib/tcg_cheap_web/format.ex:155
+#: lib/tcg_cheap_web/format.ex:165
 #, elixir-autogen, elixir-format
 msgid "%{packs} paczka"
 msgid_plural "%{packs} paczki"
@@ -1902,7 +1902,7 @@ msgstr "Op dit moment heeft geen enkele Poolse winkel een Engelse booster op voo
 msgid "W sieciówkach"
 msgstr "Bij winkelketens"
 
-#: lib/tcg_cheap_web/format.ex:180
+#: lib/tcg_cheap_web/format.ex:190
 #, elixir-autogen, elixir-format
 msgid "od %{day}"
 msgstr "vanaf %{day}"
@@ -4059,21 +4059,21 @@ msgstr "hij duurder uitkomt. Koop ze dan los."
 msgid "wychodzi taniej niż sześć boosterów osobno."
 msgstr "hij goedkoper uitkomt dan zes boosters los."
 
-#: lib/tcg_cheap_web/format.ex:240
+#: lib/tcg_cheap_web/format.ex:250
 #, elixir-autogen, elixir-format
 msgid "%{number} booster"
 msgid_plural "%{number} boostery"
 msgstr[0] "%{number} booster"
 msgstr[1] "%{number} boosters"
 
-#: lib/tcg_cheap_web/format.ex:250
+#: lib/tcg_cheap_web/format.ex:260
 #, elixir-autogen, elixir-format
 msgid "%{number} kolekcję"
 msgid_plural "%{number} kolekcje"
 msgstr[0] "%{number} collectie"
 msgstr[1] "%{number} collecties"
 
-#: lib/tcg_cheap_web/format.ex:245
+#: lib/tcg_cheap_web/format.ex:255
 #, elixir-autogen, elixir-format
 msgid "%{number} puszkę"
 msgid_plural "%{number} puszki"
@@ -4132,14 +4132,14 @@ msgid_plural "%{number} ceny z gazetek"
 msgstr[0] "%{number} folderprijs"
 msgstr[1] "%{number} folderprijzen"
 
-#: lib/tcg_cheap_web/controllers/crawl_controller.ex:196
+#: lib/tcg_cheap_web/controllers/crawl_controller.ex:195
 #, elixir-autogen, elixir-format
 msgid "%{number} karta na stanie"
 msgid_plural "%{number} karty na stanie"
 msgstr[0] "%{number} kaart op voorraad"
 msgstr[1] "%{number} kaarten op voorraad"
 
-#: lib/tcg_cheap_web/controllers/crawl_controller.ex:190
+#: lib/tcg_cheap_web/controllers/crawl_controller.ex:189
 #, elixir-autogen, elixir-format
 msgid "%{number} produkt na stanie"
 msgid_plural "%{number} produkty na stanie"
@@ -4176,12 +4176,12 @@ msgstr "Cardmarket-trend, zonder verzending."
 msgid "Zostań tutaj"
 msgstr "Blijf hier"
 
-#: lib/tcg_cheap_web/format.ex:114
+#: lib/tcg_cheap_web/format.ex:124
 #, elixir-autogen, elixir-format
 msgid "ok. %{amount} mln %{currency}"
 msgstr "circa %{amount} mln %{currency}"
 
-#: lib/tcg_cheap_web/format.ex:120
+#: lib/tcg_cheap_web/format.ex:130
 #, elixir-autogen, elixir-format
 msgid "ok. %{amount} tys. %{currency}"
 msgstr "circa %{amount} duizend %{currency}"

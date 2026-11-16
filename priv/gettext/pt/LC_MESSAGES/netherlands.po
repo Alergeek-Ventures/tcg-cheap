@@ -100,11 +100,6 @@ msgstr "Ir para a versão neerlandesa"
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
 msgstr "Com menos lojas não há avaliação e, como contexto, indicamos a tendência do Cardmarket em euros."
 
-#: lib/tcg_cheap/countries/netherlands.ex:128
-#, elixir-autogen, elixir-format
-msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "As lojas estrangeiras vendem na sua moeda. Os preços numa moeda que não o euro são convertidos com base nas taxas de câmbio diárias do NBP. A página da loja pode estar noutro idioma."
-
 #: lib/tcg_cheap/countries/netherlands.ex:46
 #, elixir-autogen, elixir-format
 msgid "Wygląda na to, że jesteś w Holandii."
@@ -114,3 +109,8 @@ msgstr "Parece que estás nos Países Baixos."
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr "com envio da Alemanha"
+
+#: lib/tcg_cheap/countries/netherlands.ex:128
+#, elixir-autogen, elixir-format
+msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Holandii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr "O preço de uma loja estrangeira é o que a loja indica aos compradores dos Países Baixos. Os preços numa moeda que não o euro são convertidos com base nas taxas de câmbio diárias do NBP. A página da loja pode estar noutro idioma."
