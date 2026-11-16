@@ -28,6 +28,8 @@ defmodule TcgCheap.Countries.Czechia do
       decimals: 0,
       language: "cs",
       hreflang: "cs-CZ",
+      # Slovak is read here too, but the guide has no Slovak interface yet.
+      popular_languages: [],
       # The same EU tariff as Poland's: DHL Paket 2 kg (€14.49) plus
       # Cardmarket's €1 parcel packaging fee, checked 2026-11-14:
       # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/tschechische-republik.html
@@ -123,18 +125,28 @@ defmodule TcgCheap.Countries.Czechia do
     do:
       dgettext(
         "czechia",
-        "Sklepy z zagranicy sprzedają w swojej walucie, polskie w złotych. Ich ceny przeliczamy na korony czeskie po dziennych kursach NBP. Strona sklepu może być po polsku albo w innym języku."
+        "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Czech. Ceny w innej walucie niż korona czeska przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
       )
 
   @impl TcgCheapWeb.RegionText
   def markdown_method(window),
     do: %{
       prices:
-        "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w koronach czeskich. Ceny czeskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Czech.",
+        dgettext(
+          "czechia",
+          "Ceny pochodzą z publicznych list produktów sklepów, pobieranych raz dziennie, i są w koronach czeskich. Ceny czeskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Czech."
+        ),
       good_price:
-        "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich #{window} dni i trendu Cardmarket w koronach czeskich (po kursach NBP) z przesyłką z Niemiec, gdy są znane.",
+        dgettext(
+          "czechia",
+          "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w koronach czeskich (po kursach NBP) z przesyłką z Niemiec, gdy są znane.",
+          window: window
+        ),
       few_shops:
-        "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w koronach czeskich."
+        dgettext(
+          "czechia",
+          "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w koronach czeskich."
+        )
     }
 
   @impl TcgCheapWeb.RegionText

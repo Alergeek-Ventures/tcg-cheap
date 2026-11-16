@@ -28,4 +28,11 @@ defmodule TcgCheapWeb.Languages.Czech do
 
   @impl true
   def decimal_separator, do: ","
+
+  @impl true
+  def currency_first?, do: false
+
+  @impl true
+  # Czech groups thousands with a no-break space: "1 299 Kč".
+  def thousands_separator, do: @nbsp
 end

@@ -157,7 +157,7 @@ msgstr "Terastal Gathering (10 cards)"
 
 #. booster
 msgid "Trick or Trade"
-msgstr ""
+msgstr "Trick or Trade"
 
 #. booster
 msgid "True Mystery (5 kart)"
@@ -185,15 +185,15 @@ msgstr "Trainer"
 
 #. contents item
 msgid "151 mini tin"
-msgstr ""
+msgstr "151 mini tin"
 
 #. contents item
 msgid "3-card fun pack"
-msgstr ""
+msgstr "3-card fun pack"
 
 #. contents item
 msgid "accessory box"
-msgstr ""
+msgstr "accessory box"
 
 #. contents item
 msgid "akrylowa magnetyczna ramka na kartę"
@@ -333,7 +333,7 @@ msgstr "Smoliv eraser"
 
 #. contents item
 msgid "Journey Together Enhanced Booster Box"
-msgstr ""
+msgstr "Journey Together Enhanced Booster Box"
 
 #. contents item
 msgid "karta holo pasującego Pokémona ze wzorem Poké Balla (Master Ball 1:99)"
@@ -1133,27 +1133,27 @@ msgstr "magnetic stand for three cards"
 
 #. contents item
 msgid "matching Poké Ball reverse holo card"
-msgstr ""
+msgstr "matching Poké Ball reverse holo card"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Gardevoir"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Gardevoir"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Kangaskhan"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Kangaskhan"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Latias"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Latias"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Lucario"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Lucario"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Venusaur"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Venusaur"
 
 #. contents item
 msgid "metalowe znaczniki (trucizna, poparzenie)"
@@ -1201,11 +1201,11 @@ msgstr "metal pencil case"
 
 #. contents item
 msgid "Mid-Autumn compact mirror featuring Umbreon"
-msgstr ""
+msgstr "Mid-Autumn compact mirror featuring Umbreon"
 
 #. contents item
 msgid "Mid-Autumn fridge magnet featuring Pikachu, Eevee, Clefairy, and Jirachi"
-msgstr ""
+msgstr "Mid-Autumn fridge magnet featuring Pikachu, Eevee, Clefairy, and Jirachi"
 
 #. contents item
 msgid "miniportfolio"
@@ -1261,7 +1261,7 @@ msgstr "paper stand for 3 cards"
 
 #. contents item
 msgid "Pikachu eraser"
-msgstr ""
+msgstr "Pikachu eraser"
 
 #. contents item
 msgid "plakat"
@@ -1293,11 +1293,11 @@ msgstr "light-up frame lamp"
 
 #. contents item
 msgid "Pokémon GO mini tin"
-msgstr ""
+msgstr "Pokémon GO mini tin"
 
 #. contents item
 msgid "Pokémon keychain card holder"
-msgstr ""
+msgstr "Pokémon keychain card holder"
 
 #. contents item
 msgid "poradnik dla początkujących"
@@ -1309,7 +1309,7 @@ msgstr "porcelain plate with metal stand"
 
 #. contents item
 msgid "Prismatic Evolutions mini tin"
-msgstr ""
+msgstr "Prismatic Evolutions mini tin"
 
 #. contents item
 msgid "przewodnik ulepszania talii"
@@ -1349,7 +1349,7 @@ msgstr "frame for two cards"
 
 #. contents item
 msgid "sidekick dangler featuring Chien-Pao"
-msgstr ""
+msgstr "sidekick dangler featuring Chien-Pao"
 
 #. contents item
 msgid "silikonowe etui na kartę z motywem Pokémon"
@@ -1365,11 +1365,11 @@ msgstr "fixed set of 172 cards (51 different: 13 Pokémon, 59 Trainer, 4 Special
 
 #. contents item
 msgid "Unova mini tin"
-msgstr ""
+msgstr "Unova mini tin"
 
 #. contents item
 msgid "White Flare card list"
-msgstr ""
+msgstr "White Flare card list"
 
 #. contents item
 msgid "zawieszka z ramką na kartę wypełnioną płynem"
@@ -1437,7 +1437,7 @@ msgstr "Ondřej Škubal — ADP (60 cards)"
 
 #. energy slot of a booster
 msgid "Basic Energy (foil)"
-msgstr ""
+msgstr "Basic Energy (foil)"
 
 #. energy slot of a booster
 msgid "Basic Energy lub znacznik VSTAR"
@@ -1557,7 +1557,7 @@ msgstr "random: Sprigatito, Fuecoco, Quaxly, Ralts or Riolu"
 
 #. promo card
 msgid "Mega Charizard X ex or Mega Charizard Y ex"
-msgstr ""
+msgstr "Mega Charizard X ex or Mega Charizard Y ex"
 
 #. promo card
 msgid "one of four foil promos: Chien-Pao, Gouging Fire, Indeedee or Magneton"
