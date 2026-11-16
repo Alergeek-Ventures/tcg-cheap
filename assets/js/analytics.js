@@ -48,18 +48,24 @@ const hasLocation = () => {
   }
 }
 
-// Read when the event happens: a queued or held one is captured later,
-// possibly after a navigation.
-const pageContext = () => ({
-  $current_url: window.location.href,
-  $pathname: window.location.pathname,
-  page_type: pageType(window.location.pathname),
+// What every event says about the site's own settings. The SDK's events
+// ($autocapture, $pageleave, $web_vitals, …) get it from `posthog.register`.
+const siteContext = () => ({
   locale: document.documentElement.lang,
   // The site region (which shops and currency) and language (the text) are
   // separate. `market`, not `region`: events already use `region` for a
   // product's edition (en, ja, …).
   market: document.documentElement.dataset.region || null,
   language: document.documentElement.lang,
+})
+
+// Read when the event happens: a queued or held one is captured later,
+// possibly after a navigation.
+const pageContext = () => ({
+  $current_url: window.location.href,
+  $pathname: window.location.pathname,
+  page_type: pageType(window.location.pathname),
+  ...siteContext(),
   has_location: hasLocation(),
 })
 
@@ -238,6 +244,9 @@ export default function initAnalytics() {
   // LiveView emits this for initial joins, patches and navigations.
   // Dedupe by pathname so filters, forms and reconnects aren't pageviews.
   window.addEventListener("phx:page-loading-stop", capturePageview)
+  // Region and language can change under a live navigation; the SDK's own
+  // events carry whatever was registered last.
+  window.addEventListener("phx:page-loading-stop", () => posthog?.register(siteContext()))
   window.addEventListener("phx:track", ({detail}) => track(detail.event, detail.properties))
   document.addEventListener("click", captureClick)
   document.addEventListener("auxclick", captureClick)
@@ -275,6 +284,7 @@ export default function initAnalytics() {
       respect_dnt: false,
       loaded: instance => {
         posthog = instance
+        posthog.register(siteContext())
         // Remote config enables conversations after init, so this still applies.
         // Capture is a no-op once the visitor has opted out.
         if (posthog.has_opted_out_capturing()) posthog.set_config({disable_conversations: true})
