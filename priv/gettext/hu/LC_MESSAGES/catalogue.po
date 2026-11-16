@@ -157,7 +157,7 @@ msgstr "Terastal Gathering (10 lapos)"
 
 #. booster
 msgid "Trick or Trade"
-msgstr ""
+msgstr "Trick or Trade"
 
 #. booster
 msgid "True Mystery (5 kart)"
@@ -333,7 +333,7 @@ msgstr "Smoliv mintás radír"
 
 #. contents item
 msgid "Journey Together Enhanced Booster Box"
-msgstr ""
+msgstr "Journey Together Enhanced Booster Box"
 
 #. contents item
 msgid "karta holo pasującego Pokémona ze wzorem Poké Balla (Master Ball 1:99)"
@@ -1137,23 +1137,23 @@ msgstr "hozzá illő reverse holo kártya Poké Ball mintával"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Gardevoir"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Gardevoir"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Kangaskhan"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Kangaskhan"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Latias"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Latias"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Lucario"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Lucario"
 
 #. contents item
 msgid "Mega Heroes Mini Tin - Venusaur"
-msgstr ""
+msgstr "Mega Heroes Mini Tin - Venusaur"
 
 #. contents item
 msgid "metalowe znaczniki (trucizna, poparzenie)"
