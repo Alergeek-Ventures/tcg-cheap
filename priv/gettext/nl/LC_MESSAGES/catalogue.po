@@ -17,7 +17,7 @@ msgstr "30th Celebration (6 kaarten)"
 
 #. booster
 msgid "Azure Shadow (25 kart; Roar lub Pursuit)"
-msgstr "Azure Shadow (25 kaarten; Roar of Pursuit)"
+msgstr "Azure Shadow (25 kaarten; Roar- of Pursuit-versie)"
 
 #. booster
 msgid "Battle Partners (5 kart)"
@@ -33,7 +33,7 @@ msgstr "Bonus Round (5 kaarten)"
 
 #. booster
 msgid "Brave Stars (25 kart; Charm lub Brave)"
-msgstr "Brave Stars (25 kaarten; Charm of Brave)"
+msgstr "Brave Stars (25 kaarten; Charm- of Brave-versie)"
 
 #. booster
 msgid "Brilliant Fantasy (5 kart)"
@@ -129,7 +129,7 @@ msgstr "Mega Symphonia (5 kaarten)"
 
 #. booster
 msgid "Nine Colors Gathering (25 kart; Friends lub Origin)"
-msgstr "Nine Colors Gathering (25 kaarten; Friends of Origin)"
+msgstr "Nine Colors Gathering (25 kaarten; Friends- of Origin-versie)"
 
 #. booster
 msgid "Polychromatic Gathering Friend (25 kart)"
@@ -201,7 +201,7 @@ msgstr "magnetisch acryllijstje voor een kaart"
 
 #. contents item
 msgid "akrylowy ekspozytor na kartę"
-msgstr "acryl standaard voor een kaart"
+msgstr "acrylstandaard voor een kaart"
 
 #. contents item
 msgid "akrylowy znacznik TAG TEAM GX"
@@ -221,7 +221,7 @@ msgstr "verzamelmap met N (10 pagina's, 80 kaarten)"
 
 #. contents item
 msgid "arkusz akrylowych figurek na podstawkach"
-msgstr "vel met acryl figuurtjes op voetjes"
+msgstr "vel met acrylfiguurtjes op voetjes"
 
 #. contents item
 msgid "arkusz informacyjny"
@@ -229,15 +229,15 @@ msgstr "infoblad"
 
 #. contents item
 msgid "arkusz papierowych żetonów obrażeń"
-msgstr "vel met papieren schademarkers"
+msgstr "vel met papieren damage counters"
 
 #. contents item
 msgid "arkusz żetonów obrażeń i znaczników"
-msgstr "vel met schademarkers en markers"
+msgstr "vel met damage counters en markers"
 
 #. contents item
 msgid "arkusz żetonów obrażeń i znaczników stanów"
-msgstr "vel met schademarkers en statusmarkers"
+msgstr "vel met damage counters en statusmarkers"
 
 #. contents item
 msgid "booster Pokémon TCG (różne dodatki)"
@@ -273,11 +273,11 @@ msgstr "extra Trainerkaarten"
 
 #. contents item
 msgid "dwustronne tekturowe tło do ekspozycji"
-msgstr "dubbelzijdige kartonnen achtergrond voor uitstalling"
+msgstr "dubbelzijdige kartonnen displayachtergrond"
 
 #. contents item
 msgid "dwustronne tło do ekspozycji"
-msgstr "dubbelzijdige achtergrond voor uitstalling"
+msgstr "dubbelzijdige displayachtergrond"
 
 #. contents item
 msgid "dwustronny plakat"
@@ -309,7 +309,7 @@ msgstr "kaarthoesje met Sylveon"
 
 #. contents item
 msgid "etui na matę"
-msgstr "etui voor een speelmat"
+msgstr "speelmathoes"
 
 #. contents item
 msgid "Full-art foil promo card featuring Scream Tail or Iron Bundle"
@@ -369,247 +369,247 @@ msgstr "promokaart uit het deck (Miraidon, Dhelmise, Slowbro of Bastiodon)"
 
 #. contents item
 msgid "karta z ilustracją z minipuszki"
-msgstr "kaart met illustratie van de mini tin"
+msgstr "art card van de mini tin"
 
 #. contents item
 msgid "karta z ilustracją z puszki"
-msgstr "kaart met illustratie van de tin"
+msgstr "art card van de tin"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Alomomola)"
-msgstr "kaart met illustratie van de tin (Alomomola)"
+msgstr "art card van de tin (Alomomola)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Arcanine i Omanyte)"
-msgstr "kaart met illustratie van de tin (Arcanine en Omanyte)"
+msgstr "art card van de tin (Arcanine en Omanyte)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Blissey)"
-msgstr "kaart met illustratie van de tin (Blissey)"
+msgstr "art card van de tin (Blissey)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Clefairy i Chikorita)"
-msgstr "kaart met illustratie van de tin (Clefairy en Chikorita)"
+msgstr "art card van de tin (Clefairy en Chikorita)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Electabuzz i Magnemite)"
-msgstr "kaart met illustratie van de tin (Electabuzz en Magnemite)"
+msgstr "art card van de tin (Electabuzz en Magnemite)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Emboar i Inkay)"
-msgstr "kaart met illustratie van de tin (Emboar en Inkay)"
+msgstr "art card van de tin (Emboar en Inkay)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Espeon i Meowth)"
-msgstr "kaart met illustratie van de tin (Espeon en Meowth)"
+msgstr "art card van de tin (Espeon en Meowth)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Espeon)"
-msgstr "kaart met illustratie van de tin (Espeon)"
+msgstr "art card van de tin (Espeon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Feraligatr i Budew)"
-msgstr "kaart met illustratie van de tin (Feraligatr en Budew)"
+msgstr "art card van de tin (Feraligatr en Budew)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Flareon)"
-msgstr "kaart met illustratie van de tin (Flareon)"
+msgstr "art card van de tin (Flareon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Gallade i Goomy)"
-msgstr "kaart met illustratie van de tin (Gallade en Goomy)"
+msgstr "art card van de tin (Gallade en Goomy)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Garbodor)"
-msgstr "kaart met illustratie van de tin (Garbodor)"
+msgstr "art card van de tin (Garbodor)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Glaceon)"
-msgstr "kaart met illustratie van de tin (Glaceon)"
+msgstr "art card van de tin (Glaceon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Greninja i Volbeat)"
-msgstr "kaart met illustratie van de tin (Greninja en Volbeat)"
+msgstr "art card van de tin (Greninja en Volbeat)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Jolteon)"
-msgstr "kaart met illustratie van de tin (Jolteon)"
+msgstr "art card van de tin (Jolteon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Kadabra)"
-msgstr "kaart met illustratie van de tin (Kadabra)"
+msgstr "art card van de tin (Kadabra)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Krookodile)"
-msgstr "kaart met illustratie van de tin (Krookodile)"
+msgstr "art card van de tin (Krookodile)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Lapras i Drifloon)"
-msgstr "kaart met illustratie van de tin (Lapras en Drifloon)"
+msgstr "art card van de tin (Lapras en Drifloon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Leafeon)"
-msgstr "kaart met illustratie van de tin (Leafeon)"
+msgstr "art card van de tin (Leafeon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Lilligant)"
-msgstr "kaart met illustratie van de tin (Lilligant)"
+msgstr "art card van de tin (Lilligant)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Magikarp)"
-msgstr "kaart met illustratie van de tin (Magikarp)"
+msgstr "art card van de tin (Magikarp)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Meganium i samica Meowstic)"
-msgstr "kaart met illustratie van de tin (Meganium en vrouwelijke Meowstic)"
+msgstr "art card van de tin (Meganium en vrouwelijke Meowstic)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Mew i Alolan Exeggutor)"
-msgstr "kaart met illustratie van de tin (Mew en Alolan Exeggutor)"
+msgstr "art card van de tin (Mew en Alolan Exeggutor)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Mewtwo i Scraggy)"
-msgstr "kaart met illustratie van de tin (Mewtwo en Scraggy)"
+msgstr "art card van de tin (Mewtwo en Scraggy)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Mienshao)"
-msgstr "kaart met illustratie van de tin (Mienshao)"
+msgstr "art card van de tin (Mienshao)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Moltres i Articuno)"
-msgstr "kaart met illustratie van de tin (Moltres en Articuno)"
+msgstr "art card van de tin (Moltres en Articuno)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Munchlax)"
-msgstr "kaart met illustratie van de tin (Munchlax)"
+msgstr "art card van de tin (Munchlax)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Pikachu i Tepig)"
-msgstr "kaart met illustratie van de tin (Pikachu en Tepig)"
+msgstr "art card van de tin (Pikachu en Tepig)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Pikachu i Toxtricity)"
-msgstr "kaart met illustratie van de tin (Pikachu en Toxtricity)"
+msgstr "art card van de tin (Pikachu en Toxtricity)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Pikachu i Vivillon)"
-msgstr "kaart met illustratie van de tin (Pikachu en Vivillon)"
+msgstr "art card van de tin (Pikachu en Vivillon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Pikachu)"
-msgstr "kaart met illustratie van de tin (Pikachu)"
+msgstr "art card van de tin (Pikachu)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Piplup)"
-msgstr "kaart met illustratie van de tin (Piplup)"
+msgstr "art card van de tin (Piplup)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Riolu i Darumaka)"
-msgstr "kaart met illustratie van de tin (Riolu en Darumaka)"
+msgstr "art card van de tin (Riolu en Darumaka)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Salamence i Litleo)"
-msgstr "kaart met illustratie van de tin (Salamence en Litleo)"
+msgstr "art card van de tin (Salamence en Litleo)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Scyther i Weezing)"
-msgstr "kaart met illustratie van de tin (Scyther en Weezing)"
+msgstr "art card van de tin (Scyther en Weezing)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Slowpoke i Sandshrew)"
-msgstr "kaart met illustratie van de tin (Slowpoke en Sandshrew)"
+msgstr "art card van de tin (Slowpoke en Sandshrew)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Snorlax)"
-msgstr "kaart met illustratie van de tin (Snorlax)"
+msgstr "art card van de tin (Snorlax)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Aloli)"
-msgstr "kaart met illustratie van de tin (Alola-starters)"
+msgstr "art card van de tin (Alola-starters)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Galaru)"
-msgstr "kaart met illustratie van de tin (Galar-starters)"
+msgstr "art card van de tin (Galar-starters)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Hoenn)"
-msgstr "kaart met illustratie van de tin (Hoenn-starters)"
+msgstr "art card van de tin (Hoenn-starters)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Sinnoh)"
-msgstr "kaart met illustratie van de tin (Sinnoh-starters)"
+msgstr "art card van de tin (Sinnoh-starters)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (startery z Unovy)"
-msgstr "kaart met illustratie van de tin (Unova-starters)"
+msgstr "art card van de tin (Unova-starters)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Sylveon)"
-msgstr "kaart met illustratie van de tin (Sylveon)"
+msgstr "art card van de tin (Sylveon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Togepi i Totodile)"
-msgstr "kaart met illustratie van de tin (Togepi en Totodile)"
+msgstr "art card van de tin (Togepi en Totodile)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Umbreon i Alolan Meowth)"
-msgstr "kaart met illustratie van de tin (Umbreon en Alolan Meowth)"
+msgstr "art card van de tin (Umbreon en Alolan Meowth)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Umbreon)"
-msgstr "kaart met illustratie van de tin (Umbreon)"
+msgstr "art card van de tin (Umbreon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Vaporeon)"
-msgstr "kaart met illustratie van de tin (Vaporeon)"
+msgstr "art card van de tin (Vaporeon)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Volcarona)"
-msgstr "kaart met illustratie van de tin (Volcarona)"
+msgstr "art card van de tin (Volcarona)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Zapdos i Hisuian Zorua)"
-msgstr "kaart met illustratie van de tin (Zapdos en Hisuian Zorua)"
+msgstr "art card van de tin (Zapdos en Hisuian Zorua)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Zorua i Chandelure)"
-msgstr "kaart met illustratie van de tin (Zorua en Chandelure)"
+msgstr "art card van de tin (Zorua en Chandelure)"
 
 #. contents item
 msgid "karta z ilustracją z puszki (Zorua i Cramorant)"
-msgstr "kaart met illustratie van de tin (Zorua en Cramorant)"
+msgstr "art card van de tin (Zorua en Cramorant)"
 
 #. contents item
 msgid "karta z ilustracją z puszki Finizen"
-msgstr "kaart met illustratie van de tin: Finizen"
+msgstr "art card van de tin (Finizen)"
 
 #. contents item
 msgid "karta z ilustracją z puszki Flamigo"
-msgstr "kaart met illustratie van de tin: Flamigo"
+msgstr "art card van de tin (Flamigo)"
 
 #. contents item
 msgid "karta z ilustracją z puszki Kangaskhan"
-msgstr "kaart met illustratie van de tin: Kangaskhan"
+msgstr "art card van de tin (Kangaskhan)"
 
 #. contents item
 msgid "karta z ilustracją z puszki Mega Gardevoir"
-msgstr "kaart met illustratie van de tin: Mega Gardevoir"
+msgstr "art card van de tin (Mega Gardevoir)"
 
 #. contents item
 msgid "karta z ilustracją z puszki Mega Lucario"
-msgstr "kaart met illustratie van de tin: Mega Lucario"
+msgstr "art card van de tin (Mega Lucario)"
 
 #. contents item
 msgid "karta z ilustracją z puszki Smoliv"
-msgstr "kaart met illustratie van de tin: Smoliv"
+msgstr "art card van de tin (Smoliv)"
 
 #. contents item
 msgid "karta z ilustracją z puszki Tinkatink"
-msgstr "kaart met illustratie van de tin: Tinkatink"
+msgstr "art card van de tin (Tinkatink)"
 
 #. contents item
 msgid "karta z ilustracją z puszki Venusaur"
-msgstr "kaart met illustratie van de tin: Venusaur"
+msgstr "art card van de tin (Venusaur)"
 
 #. contents item
 msgid "karty pomocnicze z zasadami"
@@ -737,7 +737,7 @@ msgstr "willekeurige kaart uit Bonus Round (waaronder 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Brilliant Counterattack (w tym 2 holo)"
-msgstr "willekeurige kaart uit Brilliant Counterattack (waaronder 2 holo)"
+msgstr "willekeurige kaart uit Brilliant Counterattack (waaronder 2 holo's)"
 
 #. contents item
 msgid "losowa karta z dodatku Brilliant Fantasy (w tym 1 holo)"
@@ -745,7 +745,7 @@ msgstr "willekeurige kaart uit Brilliant Fantasy (waaronder 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Brilliant Fantasy (w tym 6 holo)"
-msgstr "willekeurige kaart uit Brilliant Fantasy (waaronder 6 holo)"
+msgstr "willekeurige kaart uit Brilliant Fantasy (waaronder 6 holo's)"
 
 #. contents item
 msgid "losowa karta z dodatku Brilliant Stars"
@@ -765,7 +765,7 @@ msgstr "willekeurige kaart uit Chasing Glory Together (waaronder 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Chasing Glory Together (w tym 6 holo)"
-msgstr "willekeurige kaart uit Chasing Glory Together (waaronder 6 holo)"
+msgstr "willekeurige kaart uit Chasing Glory Together (waaronder 6 holo's)"
 
 #. contents item
 msgid "losowa karta z dodatku Chilling Reign"
@@ -785,7 +785,7 @@ msgstr "willekeurige kaart uit Collect 151 Journey (waaronder 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Collect 151 Journey (w tym 7 holo)"
-msgstr "willekeurige kaart uit Collect 151 Journey (waaronder 7 holo)"
+msgstr "willekeurige kaart uit Collect 151 Journey (waaronder 7 holo's)"
 
 #. contents item
 msgid "losowa karta z dodatku Crimson Haze"
@@ -805,7 +805,7 @@ msgstr "willekeurige kaart uit Dark Crystal Blaze (waaronder 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Dark Crystal Blaze (w tym 6 holo)"
-msgstr "willekeurige kaart uit Dark Crystal Blaze (waaronder 6 holo)"
+msgstr "willekeurige kaart uit Dark Crystal Blaze (waaronder 6 holo's)"
 
 #. contents item
 msgid "losowa karta z dodatku Dark Phantasma"
@@ -981,7 +981,7 @@ msgstr "willekeurige kaart uit Scorching Skies"
 
 #. contents item
 msgid "losowa karta z dodatku Shadow of Glory (w tym 2 holo)"
-msgstr "willekeurige kaart uit Shadow of Glory (waaronder 2 holo)"
+msgstr "willekeurige kaart uit Shadow of Glory (waaronder 2 holo's)"
 
 #. contents item
 msgid "losowa karta z dodatku Shining Fates"
@@ -1021,7 +1021,7 @@ msgstr "willekeurige kaart uit Stellar Crystal (waaronder 1 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku Stellar Crystal (w tym 6 holo)"
-msgstr "willekeurige kaart uit Stellar Crystal (waaronder 6 holo)"
+msgstr "willekeurige kaart uit Stellar Crystal (waaronder 6 holo's)"
 
 #. contents item
 msgid "losowa karta z dodatku Stellar Miracle"
@@ -1049,7 +1049,7 @@ msgstr "willekeurige kaart uit Terastal Festival ex"
 
 #. contents item
 msgid "losowa karta z dodatku Terastal Gathering (3 lub 4 holo)"
-msgstr "willekeurige kaart uit Terastal Gathering (3 lub 4 holo)"
+msgstr "willekeurige kaart uit Terastal Gathering (3 of 4 holo's)"
 
 #. contents item
 msgid "losowa karta z dodatku The Glory of Team Rocket"
@@ -1077,7 +1077,7 @@ msgstr "willekeurige kaart uit Twilight Masquerade"
 
 #. contents item
 msgid "losowa karta z dodatku Victory Star Guide (w tym 2 holo)"
-msgstr "willekeurige kaart uit Victory Star Guide (waaronder 2 holo)"
+msgstr "willekeurige kaart uit Victory Star Guide (waaronder 2 holo's)"
 
 #. contents item
 msgid "losowa karta z dodatku Violet ex"
@@ -1157,7 +1157,7 @@ msgstr "Mega Heroes Mini Tin – Venusaur"
 
 #. contents item
 msgid "metalowe znaczniki (trucizna, poparzenie)"
-msgstr "metalen markers (vergiftiging, brandwond)"
+msgstr "metalen markers (Poison, Burn)"
 
 #. contents item
 msgid "metalowy magnes"
@@ -1209,7 +1209,7 @@ msgstr "Mid-Autumn-koelkastmagneet met Pikachu, Eevee, Clefairy en Jirachi"
 
 #. contents item
 msgid "miniportfolio"
-msgstr "mini verzamelmap"
+msgstr "miniverzamelmap"
 
 #. contents item
 msgid "minipuszka 30th Celebration"
@@ -1241,7 +1241,7 @@ msgstr "nieuwjaarskoelkastmagneet"
 
 #. contents item
 msgid "pakiet ulepszający talię (15 kart)"
-msgstr "deckupgradepakket (15 kaarten)"
+msgstr "upgradepakket voor het deck (15 kaarten)"
 
 #. contents item
 msgid "papierowa ramka na kartę (czerwona)"
@@ -1277,11 +1277,11 @@ msgstr "pluchen Eevee-etui"
 
 #. contents item
 msgid "pluszowy Altaria"
-msgstr "pluchen Altaria"
+msgstr "Altaria-knuffel"
 
 #. contents item
 msgid "pluszowy Pikachu"
-msgstr "pluchen Pikachu"
+msgstr "Pikachu-knuffel"
 
 #. contents item
 msgid "podstawka ekspozycyjna z uchwytem na kartę"
@@ -1289,7 +1289,7 @@ msgstr "displaystandaard met kaarthouder"
 
 #. contents item
 msgid "podświetlana lampka w formie ramki"
-msgstr "lampje in de vorm van een lijstje met verlichting"
+msgstr "lampje in de vorm van een lijstje"
 
 #. contents item
 msgid "Pokémon GO mini tin"
@@ -1297,7 +1297,7 @@ msgstr "Pokémon GO mini tin"
 
 #. contents item
 msgid "Pokémon keychain card holder"
-msgstr "Pokémon-kaarthouder voor aan een sleutelhanger"
+msgstr "sleutelhanger met Pokémon-kaarthouder"
 
 #. contents item
 msgid "poradnik dla początkujących"
@@ -1313,7 +1313,7 @@ msgstr "Prismatic Evolutions mini tin"
 
 #. contents item
 msgid "przewodnik ulepszania talii"
-msgstr "gids voor het verbeteren van je deck"
+msgstr "upgradegids voor het deck"
 
 #. contents item
 msgid "przezroczysta folia na kartę"
@@ -1325,11 +1325,11 @@ msgstr "accessoiredoos"
 
 #. contents item
 msgid "pudełko na znaczniki obrażeń"
-msgstr "doosje voor schademarkers"
+msgstr "doosje voor damage counters"
 
 #. contents item
 msgid "ramka do ekspozycji (zestaw)"
-msgstr "displaylijstje (set)"
+msgstr "set displaylijstjes"
 
 #. contents item
 msgid "ramka do ekspozycji karty"
@@ -1357,7 +1357,7 @@ msgstr "siliconen kaarthoesje met Pokémon-motief"
 
 #. contents item
 msgid "skrócona instrukcja gry"
-msgstr "korte spelhandleiding"
+msgstr "beknopte spelregels"
 
 #. contents item
 msgid "stały zestaw 172 kart (51 rodzajów: 13 Pokémon, 59 trenerów, 4 energie specjalne, 96 energii podstawowych)"
@@ -1377,7 +1377,7 @@ msgstr "hanger met een kaartlijstje gevuld met vloeistof"
 
 #. contents item
 msgid "znacznik oparzenia"
-msgstr "brandwondmarker"
+msgstr "Burn-marker"
 
 #. contents item
 msgid "znacznik VSTAR"
@@ -1385,7 +1385,7 @@ msgstr "VSTAR-marker"
 
 #. contents item
 msgid "znacznik zatrucia"
-msgstr "vergiftigingsmarker"
+msgstr "Poison-marker"
 
 #. contents item
 msgid "znaczniki"
@@ -1393,15 +1393,15 @@ msgstr "markers"
 
 #. contents item
 msgid "znaczniki premium (trucizna, poparzenie)"
-msgstr "premiummarkers (vergiftiging, brandwond)"
+msgstr "premium markers (Poison, Burn)"
 
 #. contents item
 msgid "ściągawka strategii talii"
-msgstr "strategiekaart voor het deck"
+msgstr "strategieblad voor het deck"
 
 #. contents item
 msgid "żetony obrażeń"
-msgstr "schademarkers"
+msgstr "damage counters"
 
 #. deck
 msgid "40 kart (1 z 4 wersji)"
@@ -1421,7 +1421,7 @@ msgstr "Build & Battle-deck van 40 kaarten"
 
 #. deck
 msgid "Destined Rivals prerelease deck"
-msgstr "Destined Rivals prereleasedeck"
+msgstr "Destined Rivals-prereleasedeck"
 
 #. deck
 msgid "Journey Together Build & Battle deck"
@@ -1449,23 +1449,23 @@ msgstr "Koraidon ex of Miraidon ex (willekeurig)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
-msgstr "1 van 4 willekeurige in elk deck: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
+msgstr "per deck willekeurig 1 van 4: Chi-Yu, Iron Bundle, Xatu, Aegislash (SVP 057–060)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
-msgstr "1 van 4 willekeurige in elk deck: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
+msgstr "per deck willekeurig 1 van 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone (SWSH205–208)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
-msgstr "1 van 4 willekeurige in elk deck: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
+msgstr "per deck willekeurig 1 van 4: Moltres, Lucario, Liepard, Bibarel (SWSH185–188)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
-msgstr "1 van 4 willekeurige in elk deck: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
+msgstr "per deck willekeurig 1 van 4: Palafin, Cleffa, Togekiss, Mawile (SVP 036–039)"
 
 #. promo card
 msgid "1 z 4 losowych w każdej talii: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
-msgstr "1 van 4 willekeurige in elk deck: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
+msgstr "per deck willekeurig 1 van 4: Quaquaval, Pawmot, Hawlucha, Revavroom (SVP 005–008)"
 
 #. promo card
 msgid "Bulbasaur (holo, wzór Poké Ball; 1 na 99 wzór Master Ball)"
@@ -1585,7 +1585,7 @@ msgstr "gestempelde promokaart (Sprigatito, Fuecoco of Quaxly, een willekeurige)
 
 #. promo card
 msgid "Stellar Tera foil promo (random: Eevee or an Eeveelution ex, 1 of 9)"
-msgstr "Stellar Tera foil promo (willekeurig: Eevee of een Eevee-evolutie ex, 1 van 9)"
+msgstr "Stellar Tera foil promo (willekeurig: Eevee of een Eeveelution ex, 1 van 9)"
 
 #. promo card
 msgid "Sylveon (karta holo)"
@@ -1621,7 +1621,7 @@ msgstr "diverse sets om uit te kiezen; zolang de voorraad strekt"
 
 #. retail deal note
 msgid "salony stacjonarne; z Empik Premium -15%: 297,49 zł"
-msgstr "winkels; met Empik Premium -15%: 297,49 zł"
+msgstr "fysieke winkels; met Empik Premium -15%: 297,49 zł"
 
 #. retail deal note
 msgid "tylko online"
