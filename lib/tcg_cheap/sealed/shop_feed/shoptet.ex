@@ -102,7 +102,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
       document |> Floki.find(~s(#products [data-micro="product"])) |> Enum.map(&product/1)
 
     with {:ok, number} <- page_number(document),
-         {:ok, total} <- total(document) do
+         {:ok, total} <- total(document, products) do
       last =
         case HtmlListing.first(document, ".pagination__link--last") do
           nil -> number
@@ -129,8 +129,10 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
     end
   end
 
-  defp total(document) do
+  # An empty category states no total ("0 produktů").
+  defp total(document, products) do
     case document |> HtmlListing.first(".itemsTotal strong") |> HtmlListing.text() |> integer() do
+      nil when products == [] -> {:ok, 0}
       nil -> {:error, :malformed_pagination}
       total -> {:ok, total}
     end
