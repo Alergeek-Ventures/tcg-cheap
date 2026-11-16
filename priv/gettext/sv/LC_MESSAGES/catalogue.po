@@ -1049,7 +1049,7 @@ msgstr "slumpat kort från Terastal Festival ex"
 
 #. contents item
 msgid "losowa karta z dodatku Terastal Gathering (3 lub 4 holo)"
-msgstr "slumpat kort från Terastal Gathering (3 lub 4 holo)"
+msgstr "slumpat kort från Terastal Gathering (3 eller 4 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku The Glory of Team Rocket"

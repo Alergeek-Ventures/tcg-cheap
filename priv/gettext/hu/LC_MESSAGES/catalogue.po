@@ -1049,7 +1049,7 @@ msgstr "véletlenszerű kártya a Terastal Festival ex szettből"
 
 #. contents item
 msgid "losowa karta z dodatku Terastal Gathering (3 lub 4 holo)"
-msgstr "véletlenszerű kártya a Terastal Gathering (3 lub 4 holo) szettből"
+msgstr "véletlenszerű kártya a Terastal Gathering szettből (3 vagy 4 holo)"
 
 #. contents item
 msgid "losowa karta z dodatku The Glory of Team Rocket"
