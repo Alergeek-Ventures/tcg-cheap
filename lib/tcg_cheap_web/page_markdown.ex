@@ -320,7 +320,7 @@ defmodule TcgCheapWeb.PageMarkdown do
             ": " <>
             link(
               page.expansion_name,
-              SEO.expansion_url(card.tcgdex_set.cardmarket_expansion_id, page.expansion_name)
+              SEO.Expansion.url(card.tcgdex_set.cardmarket_expansion_id, page.expansion_name)
             ),
           card.rarity && gettext("Rzadkość") <> ": " <> Rarities.label(card.rarity)
         ])
@@ -443,7 +443,7 @@ defmodule TcgCheapWeb.PageMarkdown do
           ": " <>
           link(
             product.set_name,
-            SEO.expansion_url(product.cardmarket_expansion_id, product.set_name)
+            SEO.Expansion.url(product.cardmarket_expansion_id, product.set_name)
           )
     ]
   end

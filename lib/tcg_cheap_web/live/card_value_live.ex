@@ -26,7 +26,7 @@ defmodule TcgCheapWeb.CardValueLive do
   @impl true
   def mount(_params, _session, socket) do
     %{spread: spread, examples: examples} = guide = CardValue.guide()
-    seo = SEO.card_value(guide)
+    seo = SEO.CardValue.metadata(guide)
 
     {:ok,
      socket

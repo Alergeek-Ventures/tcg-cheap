@@ -53,7 +53,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
   @impl true
   def handle_params(params, _uri, socket) do
     filters = parse_filters(params, socket.assigns.sets)
-    seo = SEO.expensive_cards(socket.assigns.overview, socket.assigns.records, filters)
+    seo = SEO.ExpensiveCards.metadata(socket.assigns.overview, socket.assigns.records, filters)
 
     socket =
       if filters == socket.assigns.filters,

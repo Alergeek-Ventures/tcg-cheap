@@ -233,7 +233,7 @@ defmodule TcgCheapWeb.SiteComponents do
           <h2 id="site-footer-sets-title">{gettext("Najnowsze sety")}</h2>
           <ul class="site-footer-links site-footer-sets">
             <li :for={set <- @sets}>
-              <.link navigate={SEO.expansion_path(set.id, set.name)}>{set.name}</.link>
+              <.link navigate={SEO.Expansion.path(set.id, set.name)}>{set.name}</.link>
             </li>
           </ul>
         </nav>

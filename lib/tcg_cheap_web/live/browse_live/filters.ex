@@ -61,7 +61,7 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
   def base_path(%{mode: :cards}), do: Paths.cards()
 
   def base_path(%{expansion: id, expansion_name: name}) when is_integer(id) and is_binary(name),
-    do: SEO.expansion_path(id, name)
+    do: SEO.Expansion.path(id, name)
 
   def base_path(_filters), do: Paths.home()
 

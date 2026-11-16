@@ -78,7 +78,7 @@ defmodule TcgCheapWeb.BrowseLive do
     case {socket.assigns.live_action, expansion, at_set_page?} do
       {:cards, expansion, _at_set_page?} ->
         market = singles_market(socket.assigns.region, expansion)
-        seo = SEO.cards(params, market)
+        seo = SEO.Cards.metadata(params, market)
 
         # A chosen expansion's cards open with the same banner as its set page.
         {:noreply,
@@ -103,7 +103,7 @@ defmodule TcgCheapWeb.BrowseLive do
 
       {:expansion, expansion, true} ->
         set_page = set_page(socket, expansion)
-        seo = SEO.expansion(params, expansion, set_page)
+        seo = SEO.Expansion.metadata(params, expansion, set_page)
 
         {:noreply,
          socket
@@ -112,7 +112,7 @@ defmodule TcgCheapWeb.BrowseLive do
          |> track_changes(previous)}
 
       {:index, nil, _at_set_page?} ->
-        seo = SEO.home(params)
+        seo = SEO.Home.metadata(params)
 
         {:noreply,
          socket

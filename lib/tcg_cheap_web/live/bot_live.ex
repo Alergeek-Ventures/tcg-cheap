@@ -19,7 +19,7 @@ defmodule TcgCheapWeb.BotLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    seo = SEO.bot()
+    seo = SEO.Bot.metadata()
 
     {:ok,
      assign(socket,

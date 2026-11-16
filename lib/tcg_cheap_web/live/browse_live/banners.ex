@@ -92,7 +92,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
               <.chase_foot count={@card_count} priced?={false} href={@cards_href} />
             </div>
           <% else %>
-            <p id="guide-promise">{Enum.join(SEO.expansion_answer(@name, @page), " ")}</p>
+            <p id="guide-promise">{Enum.join(SEO.Expansion.answer(@name, @page), " ")}</p>
           <% end %>
       <% end %>
     </section>

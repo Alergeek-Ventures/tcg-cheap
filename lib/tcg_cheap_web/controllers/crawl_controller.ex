@@ -10,8 +10,8 @@ defmodule TcgCheapWeb.CrawlController do
 
   # Every region's pages: each indexes its home page, card list and set
   # pages alike; a product page where its region's shops have it in stock now
-  # (`TcgCheapWeb.SEO.product/1`); the card pages of Poland, the only region
-  # with offers of singles (`TcgCheapWeb.SEO.single/1`), and the Polish articles.
+  # (`TcgCheapWeb.SEO.Product.metadata/1`); the card pages of Poland, the only region
+  # with offers of singles (`TcgCheapWeb.SEO.Single.metadata/1`), and the Polish articles.
   # The body is a whole-site read that changes with the nightly fetches and
   # crawlers request it often, so it is shared like the other whole-site reads.
   def sitemap(conn, _params) do
@@ -154,7 +154,7 @@ defmodule TcgCheapWeb.CrawlController do
           |> Enum.reject(&is_nil/1)
           |> Enum.join(", ")
 
-        "- #{PageMarkdown.link(name, PageMarkdown.url_for(SEO.expansion_url(id, name)))}: #{counts}"
+        "- #{PageMarkdown.link(name, PageMarkdown.url_for(SEO.Expansion.url(id, name)))}: #{counts}"
       end)
 
     """
