@@ -533,11 +533,6 @@ defmodule TcgCheapWeb.SEO do
 
   defp polish?, do: Region.poland?(Region.current())
 
-  defp page_of(path) do
-    {:ok, _region, page} = Paths.parse(path)
-    page
-  end
-
   # The page's URL in each region that has it, for hreflang; none when only
   # one region does. A region that keeps its page out of the index is left
   # out by the caller (`indexed`).
@@ -816,15 +811,17 @@ defmodule TcgCheapWeb.SEO do
       ]),
       description,
       canonical,
-      # Matches CardGuide.sitemap_cards/0: a card without an offer leaves the index until one returns.
-      robots: if(answer, do: "index, follow", else: "noindex, follow"),
+      # Matches CardGuide.sitemap_cards/0: a card without an offer leaves the
+      # index until one returns. Only Poland has offers of singles: another
+      # region's page repeats the card with its Cardmarket trend alone, which
+      # would be thousands of thin pages, so it stays out of search.
+      robots: if(answer && polish?(), do: "index, follow", else: "noindex, follow"),
       social_image:
         if(polish?(),
           do: social_image(page.path, SocialImage.card_version(page)),
           else: home_image()
         ),
       social_image_alt: if(polish?(), do: card_name, else: home_image_alt()),
-      alternates: alternates(page_of(page.path)),
       structured_data: %{
         "@context" => "https://schema.org",
         "@graph" =>

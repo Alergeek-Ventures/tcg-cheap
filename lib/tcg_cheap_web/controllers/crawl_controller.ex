@@ -8,9 +8,10 @@ defmodule TcgCheapWeb.CrawlController do
   alias TcgCheap.WebBotAuth
   alias TcgCheapWeb.{Format, PageMarkdown, Paths, Region, SEO}
 
-  # Every region's pages: each indexes its home page, card list, set and card
+  # Every region's pages: each indexes its home page, card list and set
   # pages alike; a product page where its region's shops have it in stock now
-  # (`TcgCheapWeb.SEO.product/1`), and the Polish articles.
+  # (`TcgCheapWeb.SEO.product/1`); the card pages of Poland, the only region
+  # with offers of singles (`TcgCheapWeb.SEO.single/1`), and the Polish articles.
   # The body is a whole-site read that changes with the nightly fetches and
   # crawlers request it often, so it is shared like the other whole-site reads.
   def sitemap(conn, _params) do
@@ -41,6 +42,7 @@ defmodule TcgCheapWeb.CrawlController do
             do: Enum.map(products, &{&1, product_dates[&1.id]}),
             else: regional_products(region, now)
 
+        cards = if Region.poland?(region), do: cards, else: []
         region_locations(region, expansions, products, cards, today)
       end)
 
