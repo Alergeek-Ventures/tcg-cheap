@@ -1497,7 +1497,8 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 @media (hover: hover) and (pointer: fine) { .guide-world .home-search-scope input:not(:checked) + span:hover { color: var(--orange); } }
 @media (max-width: 39.99rem) { .guide-world .home-search-scope { border-block-start: 1px solid var(--rule); border-inline-start: 0; } }
 
-.guide-world .home-results { display: grid; gap: 1.5rem; inline-size: min(100%, 44rem); margin-block-start: 1.25rem; text-align: start; }
+/* The results take the page's width, as the lists do: the search above stays narrow to read as one field. */
+.guide-world .home-results { display: grid; gap: 1.5rem; inline-size: 100%; margin-block-start: 1.25rem; text-align: start; }
 .guide-world .home-results-head, .guide-world .home-section-head { align-items: baseline; border-block-end: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .25rem 1rem; justify-content: space-between; margin-block-end: .5rem; padding-block-end: .5rem; }
 .guide-world .home-results-head h2 { font-size: 1.5rem; line-height: 1; }
 .guide-world .home-section-head h2 { font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.1rem); line-height: 1; }
