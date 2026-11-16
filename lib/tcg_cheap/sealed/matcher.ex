@@ -125,7 +125,7 @@ defmodule TcgCheap.Sealed.Matcher do
     {"japanisch", "jp"},
     {"koreanisch", "korean"},
     {"s chinesisch", "chinese"},
-    {"t chinesisch", "chinese"},
+    {"t chinesisch", "tch"},
     {"chinesisch", "chinese"},
     {"japanse", "jp"},
     {"koreaanse", "korean"},
