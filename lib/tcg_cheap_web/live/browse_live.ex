@@ -24,18 +24,17 @@ defmodule TcgCheapWeb.BrowseLive do
   import TcgCheapWeb.SetComponents
   import TcgCheapWeb.SiteComponents
 
+  alias TcgCheap.Cards
   alias TcgCheap.Sealed
 
   alias TcgCheap.Sealed.{
-    CardGuide,
     Catalogue,
     Expansions,
     Kinds,
     ProductFacets,
     ProductList,
     SealedBanner,
-    SetPage,
-    SinglesBanner
+    SetPage
   }
 
   alias TcgCheapWeb.{Analytics, Format, Paths, Region, RegionText, SEO, VisitorLocation}
@@ -161,7 +160,7 @@ defmodule TcgCheapWeb.BrowseLive do
   # Without a chosen expansion, the card list opens with the whole guide's
   # singles, which only the Polish market has.
   defp singles_market(region, nil),
-    do: if(Region.poland?(region), do: SinglesBanner.market())
+    do: if(Region.poland?(region), do: Cards.SinglesBanner.market())
 
   defp singles_market(_region, _expansion), do: nil
 
@@ -199,24 +198,24 @@ defmodule TcgCheapWeb.BrowseLive do
   # The cards the same words find when products find none, often a Pokémon's
   # name typed into the products list. A chosen kind means a product was meant.
   defp card_matches(%{kind: nil, query: query, expansion: expansion}) when query != "",
-    do: CardGuide.count(query, expansion)
+    do: Cards.Guide.count(query, expansion)
 
   defp card_matches(_filters), do: 0
 
   # Without a search or an expansion, every visitor sees the same list.
-  defp card_list(%{query: "", expansion: nil}), do: CardGuide.discovery()
+  defp card_list(%{query: "", expansion: nil}), do: Cards.Guide.discovery()
 
   defp card_list(filters) do
     %{
-      available: CardGuide.browse(Map.put(filters, :stock, :in), 0),
-      expansions: CardGuide.expansion_facets(filters)
+      available: Cards.Guide.browse(Map.put(filters, :stock, :in), 0),
+      expansions: Cards.Guide.expansion_facets(filters)
     }
   end
 
   defp list(socket, %{mode: :cards} = filters) do
     %{available: {available, more?, count}, expansions: expansions} = card_list(filters)
 
-    {unavailable, out_more?, out_count} = CardGuide.browse(Map.put(filters, :stock, :out), 0)
+    {unavailable, out_more?, out_count} = Cards.Guide.browse(Map.put(filters, :stock, :out), 0)
     only_out? = count == 0
     rows = if only_out?, do: unavailable, else: available
 
@@ -423,7 +422,7 @@ defmodule TcgCheapWeb.BrowseLive do
 
   defp load_more(%{assigns: %{filters: %{mode: :cards} = filters}} = socket) do
     {rows, more?, _count} =
-      CardGuide.browse(
+      Cards.Guide.browse(
         Map.put(filters, :stock, socket.assigns.cards_stock),
         socket.assigns.loaded
       )
@@ -449,7 +448,7 @@ defmodule TcgCheapWeb.BrowseLive do
 
   defp load_more_out(socket) do
     {rows, more?, _count} =
-      CardGuide.browse(
+      Cards.Guide.browse(
         Map.put(socket.assigns.filters, :stock, :out),
         socket.assigns.cards_out_loaded
       )

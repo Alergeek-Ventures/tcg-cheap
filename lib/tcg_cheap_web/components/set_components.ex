@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.SetComponents do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.PullRates.Rate
+  alias TcgCheap.Cards.PullRates.Rate
   alias TcgCheapWeb.{Format, ListingComponents, Paths, Region}
 
   @doc "A set's pull rates per rarity, with their sources, or a note that none are known yet."

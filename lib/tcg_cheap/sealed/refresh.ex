@@ -16,11 +16,11 @@ defmodule TcgCheap.Sealed.Refresh do
   than 30% of a large shop's previous sealed offers is stored but reported.
   """
 
+  alias TcgCheap.Cards
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
 
   alias TcgCheap.Sealed.{
-    CardRefresh,
     DailyPrice,
     FetchFailure,
     Market,
@@ -91,7 +91,7 @@ defmodule TcgCheap.Sealed.Refresh do
     sealed = Enum.map(sealed, &Map.drop(&1, [:kind, :category]))
 
     with {:ok, counts} <- store_sealed_side(shop, sealed, now),
-         {:ok, card_counts} <- CardRefresh.run(shop, singles, now) do
+         {:ok, card_counts} <- Cards.Refresh.run(shop, singles, now) do
       {:ok, Map.merge(counts, card_counts)}
     end
   end

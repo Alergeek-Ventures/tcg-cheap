@@ -49,6 +49,7 @@ config :tcg_cheap,
   ash_domains: [
     TcgCheap.Pricing,
     TcgCheap.Accounts,
+    TcgCheap.Cards,
     TcgCheap.Sealed,
     TcgCheap.Storage
   ],
@@ -95,7 +96,7 @@ nightly_fetches = [
   {"0 2 * * *", TcgCheap.Sealed.CatalogueImportWorker, args: %{}},
   {"30 2 * * *", TcgCheap.Sealed.FetchWorker, args: %{}},
   # The cards of new TCGdex sets, for the single booster pages.
-  {"0 3 * * *", TcgCheap.Sealed.CardSyncWorker, args: %{}},
+  {"0 3 * * *", TcgCheap.Cards.SyncWorker, args: %{}},
   # Suggested retail prices from the REBEL wholesaler, for the product pages.
   {"15 3 * * *", TcgCheap.Sealed.SuggestedPriceWorker, args: %{}}
 ]

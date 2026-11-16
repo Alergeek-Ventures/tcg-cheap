@@ -5,7 +5,7 @@ defmodule TcgCheapWeb.SEO.CardValue do
 
   alias TcgCheapWeb.{Format, Paths, SEO, SocialImage}
 
-  @doc "`guide` is `TcgCheap.Sealed.CardValue.guide/0`."
+  @doc "`guide` is `TcgCheap.Cards.Value.guide/0`."
   @spec metadata(map()) :: SEO.t()
   def metadata(%{spread: spread} = guide) do
     canonical = Paths.url(Paths.page(:card_value))

@@ -16,7 +16,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
   import TcgCheapWeb.SiteComponents
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.ExpensiveCards
+  alias TcgCheap.Cards
   alias TcgCheapWeb.{CardRecords, Format, Paths, SEO, VisitorLocation}
 
   @page 30
@@ -34,16 +34,16 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
     {:ok,
      socket
      |> assign(
-       overview: ExpensiveCards.overview(),
+       overview: Cards.Expensive.overview(),
        records: records,
        record_cards:
          records
          |> Enum.map(& &1.tcgdex_id)
          |> Enum.reject(&is_nil/1)
-         |> ExpensiveCards.cards()
+         |> Cards.Expensive.cards()
          |> Map.new(&{&1.card.tcgdex_id, &1}),
-       mews: ExpensiveCards.cards(@mews),
-       sets: ExpensiveCards.sets(),
+       mews: Cards.Expensive.cards(@mews),
+       sets: Cards.Expensive.sets(),
        filters: nil
      )
      |> stream_configure(:ranking, dom_id: &"ranking-#{&1.card.id}")
@@ -65,7 +65,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
 
   # Other filters start the list again from its first page.
   defp show_ranking(socket, filters) do
-    %{total: total, cards: cards} = ExpensiveCards.ranking(filters, 0, @page)
+    %{total: total, cards: cards} = Cards.Expensive.ranking(filters, 0, @page)
 
     socket
     |> assign(ranking_total: total, ranking_shown: length(cards))
@@ -83,7 +83,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
 
   def handle_event("more", _params, socket) do
     %{filters: filters, ranking_shown: shown} = socket.assigns
-    %{total: total, cards: cards} = ExpensiveCards.ranking(filters, shown, @page)
+    %{total: total, cards: cards} = Cards.Expensive.ranking(filters, shown, @page)
 
     {:noreply,
      socket

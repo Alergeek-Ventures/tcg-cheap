@@ -7,29 +7,21 @@ defmodule TcgCheap.Sealed.CatalogueImport do
   Products are upserted by Cardmarket id (products that disappear from the
   file are kept), today's Cardmarket trend is recorded per product, and
   offers are re-matched against the updated catalogue. The price guide's
-  singles rows replace the card prices (`TcgCheap.Sealed.CardPrice`) shown
+  singles rows replace the card prices (`TcgCheap.Cards.Price`) shown
   on single booster pages. Everything is written in one transaction; a
   failed download writes nothing.
 
-  First `TcgCheap.Sealed.ExpansionSync` brings the TCGdex sets up to date
+  First `TcgCheap.Cards.SetSync` brings the TCGdex sets up to date
   for set names and language editions; when TCGdex fails, the sets already
   known are used.
   """
 
+  alias TcgCheap.Cards
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
 
-  alias TcgCheap.Sealed.{
-    CardDailyPrice,
-    CardGuide,
-    CardPrice,
-    Catalogue,
-    ExpansionSync,
-    Product,
-    Refresh,
-    TcgdexSet
-  }
+  alias TcgCheap.Sealed.{Catalogue, Product, Refresh}
 
   require Ash.Query
 
@@ -56,7 +48,7 @@ defmodule TcgCheap.Sealed.CatalogueImport do
           products.rows,
           sealed,
           priced_on,
-          TcgdexSet.by_expansion(Sealed.list_tcgdex_sets!())
+          Cards.Set.by_expansion(Cards.list_sets!())
         )
 
       Repo.transaction(
@@ -76,7 +68,7 @@ defmodule TcgCheap.Sealed.CatalogueImport do
 
   # Never in the way of the import: a failed or crashed sync is only logged.
   defp sync_expansions(adapter_opts) do
-    case ExpansionSync.run(adapter_opts) do
+    case Cards.SetSync.run(adapter_opts) do
       {:ok, %{checked: count}} -> Logger.info("TCGdex sets checked: #{count}")
       {:error, reason} -> Logger.warning("TCGdex set sync failed: #{inspect(reason)}")
     end
@@ -131,12 +123,12 @@ defmodule TcgCheap.Sealed.CatalogueImport do
         priced_on: priced_on
       }
     )
-    |> bulk_create(CardPrice)
+    |> bulk_create(Cards.Price)
 
     %Ash.BulkResult{status: :success} =
-      CardPrice
+      Cards.Price
       |> Ash.Query.filter(priced_on < ^priced_on)
-      |> Ash.bulk_destroy!(:prune, %{}, domain: Sealed, return_errors?: true)
+      |> Ash.bulk_destroy!(:prune, %{}, domain: Cards, return_errors?: true)
 
     record_card_history(singles, priced_on)
   end
@@ -144,7 +136,7 @@ defmodule TcgCheap.Sealed.CatalogueImport do
   # Only the cards of our catalogue: the guide prices every Pokémon single on
   # Cardmarket, most of which no page shows.
   defp record_card_history(singles, priced_on) do
-    catalogue = MapSet.new(CardGuide.cardmarket_ids())
+    catalogue = MapSet.new(Cards.Guide.cardmarket_ids())
 
     singles
     |> Enum.filter(&(MapSet.member?(catalogue, &1.id_product) and (&1.trend || &1.trend_holo)))
@@ -156,7 +148,7 @@ defmodule TcgCheap.Sealed.CatalogueImport do
         trend_holo: &1.trend_holo
       }
     )
-    |> bulk_create(CardDailyPrice)
+    |> bulk_create(Cards.DailyPrice)
   end
 
   defp bulk_create(rows, resource) do
@@ -165,7 +157,7 @@ defmodule TcgCheap.Sealed.CatalogueImport do
     |> Enum.each(fn chunk ->
       %Ash.BulkResult{status: :success} =
         Ash.bulk_create!(chunk, resource, :record,
-          domain: Sealed,
+          domain: Cards,
           return_errors?: true,
           stop_on_error?: true
         )

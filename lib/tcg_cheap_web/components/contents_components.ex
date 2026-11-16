@@ -8,8 +8,8 @@ defmodule TcgCheapWeb.ContentsComponents do
   import TcgCheapWeb.SetComponents
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.CardImage
-  alias TcgCheap.Sealed.PullRates.Rate
+  alias TcgCheap.Cards
+  alias TcgCheap.Cards.PullRates.Rate
   alias TcgCheapWeb.{Format, Paths}
 
   @generic_photos ~w(binder booster card_dividers code_card coin condition_markers damage_counters
@@ -162,18 +162,18 @@ defmodule TcgCheapWeb.ContentsComponents do
             </span>
           </span>
           <%= cond do %>
-            <% image_url = CardImage.thumbnail_url(item.image) -> %>
+            <% image_url = Cards.Image.thumbnail_url(item.image) -> %>
               <a
-                href={CardImage.detail_url(item.image)}
+                href={Cards.Image.detail_url(item.image)}
                 class="contents-photo"
                 data-photo-preview
                 aria-label={gettext("Zdjęcie: %{item}", item: label)}
               >
                 <img src={image_url} alt="" width="34" height="48" loading="lazy" />
               </a>
-            <% photo_url = CardImage.photo_url(item.photo, "thumbnail") -> %>
+            <% photo_url = Cards.Image.photo_url(item.photo, "thumbnail") -> %>
               <a
-                href={CardImage.photo_url(item.photo, "detail")}
+                href={Cards.Image.photo_url(item.photo, "detail")}
                 class="contents-photo"
                 data-photo-preview
                 aria-label={gettext("Zdjęcie: %{item}", item: label)}
@@ -370,18 +370,18 @@ defmodule TcgCheapWeb.ContentsComponents do
               </span>
             </span>
             <%= cond do %>
-              <% image_url = CardImage.thumbnail_url(card.image) -> %>
+              <% image_url = Cards.Image.thumbnail_url(card.image) -> %>
                 <a
-                  href={CardImage.detail_url(card.image)}
+                  href={Cards.Image.detail_url(card.image)}
                   class="contents-photo"
                   data-photo-preview
                   aria-label={gettext("Zdjęcie: %{item}", item: card.name)}
                 >
                   <img src={image_url} alt="" width="34" height="48" loading="lazy" />
                 </a>
-              <% photo_url = CardImage.photo_url(card.photo, "thumbnail") -> %>
+              <% photo_url = Cards.Image.photo_url(card.photo, "thumbnail") -> %>
                 <a
-                  href={CardImage.photo_url(card.photo, "detail")}
+                  href={Cards.Image.photo_url(card.photo, "detail")}
                   class="contents-photo"
                   data-photo-preview
                   aria-label={gettext("Zdjęcie: %{item}", item: card.name)}

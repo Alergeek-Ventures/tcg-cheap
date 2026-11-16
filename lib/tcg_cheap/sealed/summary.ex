@@ -7,8 +7,9 @@ defmodule TcgCheap.Sealed.Summary do
   are in the market's currency.
   """
 
+  alias TcgCheap.Cards
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Market, PriceGuide, Product, TcgdexSet}
+  alias TcgCheap.Sealed.{Market, PriceGuide, Product}
 
   @type t :: %{
           product: Product.t(),
@@ -153,13 +154,13 @@ defmodule TcgCheap.Sealed.Summary do
         %{}
 
       ids ->
-        Sealed.list_tcgdex_sets!(
+        Cards.list_sets!(
           query: [
             filter: [cardmarket_expansion_id: [in: Enum.uniq(ids)]],
             select: [:cardmarket_expansion_id, :language, :name, :released_on]
           ]
         )
-        |> TcgdexSet.by_expansion()
+        |> Cards.Set.by_expansion()
         |> Map.new(fn {id, set} -> {id, set.released_on} end)
     end
   end

@@ -4,8 +4,9 @@ defmodule TcgCheap.Sealed.SetPage do
   currency (`TcgCheap.Sealed.Market`).
   """
 
+  alias TcgCheap.Cards
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{ExpansionCards, Market, Product, Summary}
+  alias TcgCheap.Sealed.{Market, Product, Summary}
 
   @doc """
   What an expansion's page shows besides its products: its English single
@@ -22,11 +23,11 @@ defmodule TcgCheap.Sealed.SetPage do
           cardmarket: [%{kind: atom(), price: Decimal.t()}]
         }
   def read(id, name, %DateTime{} = now, %Market{} = market \\ Market.poland()) do
-    set = ExpansionCards.read(id)
+    set = Cards.SetCards.read(id)
     booster = booster(id, name, now, market)
 
     %{
-      set: ExpansionCards.with_singles(set, booster),
+      set: Cards.SetCards.with_singles(set, booster),
       booster: booster,
       cardmarket: cardmarket_boxes(id, name, now, market)
     }

@@ -8,20 +8,10 @@ defmodule TcgCheapWeb.MarkdownController do
 
   use TcgCheapWeb, :controller
 
+  alias TcgCheap.Cards
   alias TcgCheap.Sealed
 
-  alias TcgCheap.Sealed.{
-    BoosterGuide,
-    CardGuide,
-    CardValue,
-    Catalogue,
-    Expansions,
-    ExpensiveCards,
-    ProductList,
-    ProductPage,
-    SetPage,
-    SinglesBanner
-  }
+  alias TcgCheap.Sealed.{BoosterGuide, Catalogue, Expansions, ProductList, ProductPage, SetPage}
 
   alias TcgCheapWeb.{CardRecords, PageMarkdown, Paths, Region, SEO}
 
@@ -44,8 +34,8 @@ defmodule TcgCheapWeb.MarkdownController do
 
   # The card list's first page, as the HTML opens without a search.
   def cards(conn, _params) do
-    market = if Region.poland?(conn.assigns.region), do: SinglesBanner.market()
-    %{available: {cards, _more?, _count}} = CardGuide.discovery()
+    market = if Region.poland?(conn.assigns.region), do: Cards.SinglesBanner.market()
+    %{available: {cards, _more?, _count}} = Cards.Guide.discovery()
     seo = SEO.Cards.metadata(%{}, market)
 
     send_markdown(conn, seo, PageMarkdown.cards(seo, cards, Date.utc_today()))
@@ -62,16 +52,16 @@ defmodule TcgCheapWeb.MarkdownController do
   # first page.
   def expensive_cards(conn, _params) do
     filters = %{set: nil, stock: :all}
-    overview = ExpensiveCards.overview()
+    overview = Cards.Expensive.overview()
     records = CardRecords.all()
-    %{cards: ranking} = ExpensiveCards.ranking(filters, 0, 30)
+    %{cards: ranking} = Cards.Expensive.ranking(filters, 0, 30)
     seo = SEO.ExpensiveCards.metadata(overview, records, filters)
 
     send_markdown(conn, seo, PageMarkdown.expensive_cards(seo, overview, records, ranking))
   end
 
   def card_value(conn, _params) do
-    guide = CardValue.guide()
+    guide = Cards.Value.guide()
     seo = SEO.CardValue.metadata(guide)
 
     send_markdown(conn, seo, PageMarkdown.card_value(seo, guide))
@@ -114,12 +104,12 @@ defmodule TcgCheapWeb.MarkdownController do
   end
 
   def single(conn, %{"slug" => set, "card_slug" => slug}) do
-    case CardGuide.find(set, slug) do
+    case Cards.Guide.find(set, slug) do
       {:ok, card, name, path} ->
         path = Paths.localize(path)
 
         if path == Paths.page_path(conn.assigns.region, {:card, set, slug}) do
-          page = CardGuide.page(card, name, path)
+          page = Cards.Guide.page(card, name, path)
           seo = SEO.Single.metadata(page)
           send_markdown(conn, seo, PageMarkdown.single(seo, page))
         else

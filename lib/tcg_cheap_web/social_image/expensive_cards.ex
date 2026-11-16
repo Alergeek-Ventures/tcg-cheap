@@ -23,7 +23,7 @@ defmodule TcgCheapWeb.SocialImage.ExpensiveCards do
     )
   end
 
-  @doc "The preview from `TcgCheap.Sealed.ExpensiveCards.overview/0`."
+  @doc "The preview from `TcgCheap.Cards.Expensive.overview/0`."
   @spec draw(map()) :: SocialImage.result()
   def draw(overview) do
     record = hd(CardRecords.all())

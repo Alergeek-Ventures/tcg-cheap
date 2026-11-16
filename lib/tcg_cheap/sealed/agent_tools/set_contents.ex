@@ -13,9 +13,10 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   use Ash.Resource.Actions.Implementation
 
   alias Ash.Error.Action.InvalidArgument
+  alias TcgCheap.Cards
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.{Json, KnownKeys}
-  alias TcgCheap.Sealed.{ExternalImage, Tcgdex}
+  alias TcgCheap.Sealed.ExternalImage
   alias TcgCheap.Sealed.ProductContents.DeckCard
   alias TcgCheap.Storage.ImageDownload
 
@@ -123,7 +124,7 @@ defmodule TcgCheap.Sealed.AgentTools.SetContents do
   # A name the agent gives must be TCGdex's name of that card, so a wrong id
   # never shows another card.
   defp with_card(%{tcgdex_id: id} = item) do
-    case Tcgdex.fetch_card(id) do
+    case Cards.Tcgdex.fetch_card(id) do
       {:ok, %{"name" => name, "localId" => number} = card}
       when is_binary(name) and is_binary(number) ->
         if item.name == nil or same_name?(item.name, name),
