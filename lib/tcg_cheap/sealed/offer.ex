@@ -168,7 +168,7 @@ defmodule TcgCheap.Sealed.Offer do
     end
 
     attribute :market_prices, :map do
-      description "What the offer costs buyers of the countries its shop prices apart: by ISO country code, a map of `price` (a decimal string) and `currency`, as of the fetch. A country missing there is one the shop does not sell the product to. Poland's is `price`. Nil for a shop that prices no country apart."
+      description "What the offer costs buyers of the countries its shop prices apart: by ISO country code, a map of `price` (a decimal string) and `currency`, as of the fetch. A country missing there is one the shop does not sell the product to. Poland's is also `price`, in PLN. Nil for a shop that prices no country apart."
       public? true
     end
 

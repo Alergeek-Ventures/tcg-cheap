@@ -159,6 +159,7 @@ defmodule TcgCheap.Sealed.Refresh do
           market_prices: stored_market_prices(shop, Map.get(&1, :market_prices, %{}))
         })
       )
+      |> Enum.filter(&sold_to_poland?(shop, &1))
 
     converted =
       case shop.currency do
@@ -186,23 +187,31 @@ defmodule TcgCheap.Sealed.Refresh do
   end
 
   # `Shops` lets a shop state its Polish prices in złoty or in its own
-  # currency. A product it lists without a price for Poland keeps the
-  # converted one: `price` is never empty.
+  # currency. A sealed product it does not sell to Poland keeps a converted
+  # `price`, which is never empty; its `market_prices` lack Poland, so
+  # `Market` leaves it out of the Polish market.
   defp polish_price(%{polish_price: %{price: price, currency: "PLN"}}, _rate), do: price
   defp polish_price(%{polish_price: %{price: price}}, rate), do: to_pln(price, rate)
   defp polish_price(%{price: price}, rate), do: to_pln(price, rate)
 
   # As `Offer.market_prices` stores them: nil for a shop that prices no
-  # country apart; Poland's is the offer's `price`.
+  # country apart.
   defp stored_market_prices(shop, prices) do
     if Shops.price_currencies(shop) == %{} do
       nil
     else
-      for {country, %{price: price, currency: currency}} <- prices, country != "PL", into: %{} do
+      for {country, %{price: price, currency: currency}} <- prices, into: %{} do
         {country, %{"price" => Decimal.to_string(price, :normal), "currency" => currency}}
       end
     end
   end
+
+  # Singles have only the Polish market and no prices by country: one its
+  # shop prices for Poland apart and does not sell there is not stored.
+  defp sold_to_poland?(shop, %{kind: :single} = offer),
+    do: not is_map_key(Shops.price_currencies(shop), "PL") or offer.polish_price != nil
+
+  defp sold_to_poland?(_shop, _offer), do: true
 
   defp to_pln(price, rate), do: price |> Decimal.mult(rate) |> Decimal.round(2)
 

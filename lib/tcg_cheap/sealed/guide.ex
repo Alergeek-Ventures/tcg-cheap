@@ -492,8 +492,12 @@ defmodule TcgCheap.Sealed.Guide do
 
   # Poland compares the PLN price stored at fetch; another market reads what
   # the shop charges there, or converts the shop's own price.
-  defp shop_price_fields(market),
-    do: if(market == Market.poland(), do: [], else: [:shop_price, :currency, :market_prices])
+  # Both leave out an offer its shop does not sell to the country.
+  defp shop_price_fields(market) do
+    if market == Market.poland(),
+      do: [:market_prices],
+      else: [:shop_price, :currency, :market_prices]
+  end
 
   defp price_histories(ids, market, since) do
     select = [query: [select: [:product_id, :date, :lowest_price]]]
