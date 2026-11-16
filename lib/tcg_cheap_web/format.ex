@@ -4,7 +4,7 @@ defmodule TcgCheapWeb.Format do
   (`TcgCheapWeb.Region.current/0`, its symbol and decimals) and dates,
   numbers and counted phrases in the page language (`TcgCheapWeb.Language`).
   Złoty are written to the grosz ("1 299,99 zł"); forints are whole
-  ("22 999 Ft").
+  ("22 999 Ft"), and so are kronor from 10 kr ("999 kr", but "3,50 kr").
   """
   use Gettext, backend: TcgCheapWeb.Gettext
 
@@ -33,7 +33,16 @@ defmodule TcgCheapWeb.Format do
 
   defp price(value, %Region{market: %{decimals: 0}}), do: whole_price(value)
 
-  defp price(value, region) do
+  defp price(value, %Region{whole_prices_from: %Decimal{} = from} = region) do
+    # Rounded first: 9,996 is "10 kr", not "10,00 kr".
+    if value |> Decimal.round(region.market.decimals) |> Decimal.lt?(from),
+      do: fractional_price(value, region),
+      else: whole_price(value)
+  end
+
+  defp price(value, region), do: fractional_price(value, region)
+
+  defp fractional_price(value, region) do
     rounded = Decimal.round(value, region.market.decimals)
     [whole, fraction] = rounded |> Decimal.to_string(:normal) |> String.split(".")
     group(whole) <> "," <> fraction <> @nbsp <> region.currency_symbol

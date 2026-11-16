@@ -25,9 +25,11 @@ defmodule TcgCheap.Countries.Sweden do
       code: "se",
       currency: "SEK",
       currency_symbol: "kr",
-      # Shops price in whole kronor ("1 099 kr"), which prices show without
-      # öre; cheap cards' converted trends keep them.
+      # Shops price in whole kronor ("1 099 kr") and Sweden has no öre coins,
+      # so prices are written in whole kronor; only amounts under 10 kr, as
+      # cheap cards' converted trends, keep öre.
       decimals: 2,
+      whole_prices_from: Decimal.new(10),
       language: "sv",
       hreflang: "sv-SE",
       popular_languages: [],
