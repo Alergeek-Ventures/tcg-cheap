@@ -284,7 +284,7 @@ defmodule TcgCheapWeb.SingleLive do
                 <.cardmarket_price
                   price={@trend}
                   href={cardmarket_url(@page.card.cardmarket_id)}
-                /><span>{gettext("trend na Cardmarket, bez wysyłki · wszystkie języki i stany")}</span>
+                /><span>{gettext("trend na Cardmarket, bez wysyłki · wszystkie języki i stany kart")}</span>
               </p>
               <p :if={@trend && !euro_region?()} id="single-rate" class="guide-note">
                 {euro_rate_note(@euro_rate)}
@@ -320,7 +320,8 @@ defmodule TcgCheapWeb.SingleLive do
               <p :if={@primary.typical} id="single-typical" class="verdict-reason">
                 {gettext("Typowa cena dziś w %{shops}: %{price}",
                   shops: Format.in_shops(@primary.shops),
-                  price: Format.limit_price(@primary.typical)
+                  # Grosze below 10 zł: cheap cards' typical prices are fractions.
+                  price: Format.rough_price(@primary.typical)
                 )}
               </p>
               <p :if={@primary.reference} class="verdict-cardmarket">
@@ -328,7 +329,7 @@ defmodule TcgCheapWeb.SingleLive do
                   price={@primary.reference}
                   href={cardmarket_url(@page.card.cardmarket_id)}
                   shipping={true}
-                /><span>{gettext("na Cardmarket z wysyłką · wszystkie języki i stany")}</span>
+                /><span>{gettext("na Cardmarket z wysyłką · wszystkie języki i stany kart")}</span>
               </p>
               <div class="verdict-more">
                 <.verdict_method id="single-method">

@@ -485,8 +485,8 @@ defmodule TcgCheap.Sealed.CardGuide do
     do: offers |> judge(card, variant, rate) |> elem(0)
 
   @doc """
-  `card_verdict/4` with the `PriceGuide` answer it came from, nil unless the
-  Polish shops' typical price judged it.
+  `card_verdict/4` with the Polish shops' `PriceGuide` answer, nil when they
+  set no typical price (also for pennies, whose page still shows it).
   """
   def judge([], _card, _variant, _rate), do: {:unavailable, nil}
 
@@ -499,23 +499,35 @@ defmodule TcgCheap.Sealed.CardGuide do
       variant == :special or "firstEdition" in card.variants ->
         {:unknown, nil}
 
-      # "Pennies in both places" requires a cheap Polish price too: at most
-      # 3 zł and no more than the delivered reference. Never mask an expensive offer.
-      reference != nil and Decimal.lte?(cheapest.price, 3) and
-        Decimal.lte?(cheapest.price, reference) and
-          shipping_dominates?(card.cardmarket_price, variant) ->
-        {:pennies, nil}
+      pennies?(cheapest, reference, card.cardmarket_price, variant) ->
+        # Still with the shops' typical price, which the page shows.
+        {:pennies, shops_guide(offers, reference)}
 
       true ->
-        guide =
-          offers
-          |> Enum.filter(&Shops.polish?(&1.shop))
-          |> PriceGuide.verdict(nil, cardmarket: reference)
-
-        if guide.typical_source == :shops,
-          do: {typical_verdict(cheapest, guide), guide},
-          else: {:few_shops, nil}
+        case shops_guide(offers, reference) do
+          nil -> {:few_shops, nil}
+          guide -> {typical_verdict(cheapest, guide), guide}
+        end
     end
+  end
+
+  # "Pennies in both places" requires a cheap Polish price too: at most
+  # 3 zł and no more than the delivered reference. Never mask an expensive offer.
+  defp pennies?(_cheapest, nil, _price, _variant), do: false
+
+  defp pennies?(cheapest, reference, price, variant) do
+    Decimal.lte?(cheapest.price, 3) and Decimal.lte?(cheapest.price, reference) and
+      shipping_dominates?(price, variant)
+  end
+
+  # The Polish shops' `PriceGuide` answer, nil when too few shops set a typical price.
+  defp shops_guide(offers, reference) do
+    guide =
+      offers
+      |> Enum.filter(&Shops.polish?(&1.shop))
+      |> PriceGuide.verdict(nil, cardmarket: reference)
+
+    if guide.typical_source == :shops, do: guide
   end
 
   # The cheapest offer may be a shop abroad's, which the median leaves out.
