@@ -224,7 +224,7 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   defp image_url(shop, "/" <> _path = image),
     do: ShopFeed.image_url("https://#{shop.host}#{image}", [shop.host])
 
-  defp image_url(shop, image), do: ShopFeed.image_url(image, shop.source.image_hosts(shop))
+  defp image_url(shop, image), do: ShopFeed.image_url(image, ShopFeed.image_hosts(shop))
 
   @doc "The text of a node (or the first of a list), whitespace collapsed; nil when empty."
   @spec text(Floki.html_tree() | Floki.html_node() | nil) :: String.t() | nil

@@ -32,9 +32,6 @@ defmodule TcgCheap.Sealed.ShopFeed.NopCommerce do
   @spaces ~r/[\s\x{a0}]+/u
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{singles_categories: [_ | _] = categories} = shop, req_options) do
     categories
     |> Enum.reduce_while({:ok, []}, fn category, {:ok, acc} ->
@@ -122,7 +119,7 @@ defmodule TcgCheap.Sealed.ShopFeed.NopCommerce do
            shop_product_id: id,
            title: title,
            url: url,
-           image_url: ShopFeed.image_url(product.image, image_hosts(shop)),
+           image_url: ShopFeed.image_url(product.image, ShopFeed.image_hosts(shop)),
            ean: nil,
            price: price,
            in_stock: product.in_stock,

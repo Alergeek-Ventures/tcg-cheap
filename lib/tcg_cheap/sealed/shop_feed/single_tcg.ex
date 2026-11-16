@@ -28,9 +28,6 @@ defmodule TcgCheap.Sealed.ShopFeed.SingleTcg do
   @image_path ~r/\A\/skany\/[A-Za-z0-9_.\/-]{1,200}\.(?:webp|png|jpe?g)\z/
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, regular} <- listing(shop, [], req_options),
          {:ok, bulk} <- listing(shop, [bulk: 1], req_options) do

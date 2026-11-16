@@ -22,6 +22,7 @@ defmodule TcgCheap.Sealed.ShopFeed.MagicznyRynek do
   @behaviour TcgCheap.Sealed.ShopFeed
 
   alias TcgCheap.Sealed.{Shop, ShopFeed}
+  alias TcgCheap.Sealed.ShopFeed.Pages
 
   @images ["magicznyrynek.pl", "cards.magicznyrynek.aexol.work"]
   @next_data ~r|<script id="__NEXT_DATA__" type="application/json"[^>]*>(.*?)</script>|s
@@ -32,42 +33,10 @@ defmodule TcgCheap.Sealed.ShopFeed.MagicznyRynek do
 
   @impl true
   def fetch(%Shop{} = shop, req_options) do
-    with {:ok, products} <- fetch_pages(shop, req_options, 1, nil, []) do
+    with {:ok, pages} <- Pages.read(&request(shop, req_options, &1), shop.max_pages),
+         {:ok, products} <- Pages.products(pages, & &1["productId"]) do
       {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
     end
-  end
-
-  defp fetch_pages(shop, req_options, number, stated, acc) do
-    with {:ok, page} <- request(shop, req_options, number) do
-      cond do
-        stated not in [nil, {page.total, page.pages}] ->
-          {:error, :pagination_changed}
-
-        page.number != number ->
-          {:error, :pagination_changed}
-
-        page.pages > shop.max_pages ->
-          {:error, :too_many_pages}
-
-        page.products == [] ->
-          {:error, :malformed_listing}
-
-        number < page.pages ->
-          fetch_pages(shop, req_options, number + 1, {page.total, page.pages}, [page | acc])
-
-        true ->
-          complete(Enum.reverse([page | acc]), page.total)
-      end
-    end
-  end
-
-  defp complete(pages, total) do
-    products = Enum.flat_map(pages, & &1.products)
-    ids = Enum.map(products, & &1["productId"])
-
-    if length(products) == total and ids == Enum.uniq(ids),
-      do: {:ok, products},
-      else: {:error, :incomplete_listing}
   end
 
   defp request(shop, req_options, number) do
@@ -82,7 +51,14 @@ defmodule TcgCheap.Sealed.ShopFeed.MagicznyRynek do
          }
          when is_list(products) and is_integer(total) and is_integer(pages) and
                 is_integer(current) <- get_in(data, ["props", "pageProps"]) do
-      {:ok, %{products: products, total: total, pages: pages, number: current}}
+      {:ok,
+       %{
+         products: products,
+         total: total,
+         stated: {total, pages},
+         pages: pages,
+         number: current
+       }}
     else
       # The shop's answer ({:http_status, 503}, a transport error), not ours.
       {:error, reason} -> {:error, reason}

@@ -30,7 +30,7 @@ defmodule TcgCheap.Sealed.Shops do
   """
 
   alias TcgCheap.{Countries, ModuleDir}
-  alias TcgCheap.Sealed.{Market, Shop}
+  alias TcgCheap.Sealed.{Market, Shop, ShopFeed}
 
   alias TcgCheap.Sealed.ShopFeed.{
     BangerpackSe,
@@ -172,7 +172,7 @@ defmodule TcgCheap.Sealed.Shops do
 
   @doc "Every host a shop's product images may be shown from."
   @spec image_hosts() :: [String.t()]
-  def image_hosts, do: @shops |> Enum.flat_map(& &1.source.image_hosts(&1)) |> Enum.uniq()
+  def image_hosts, do: @shops |> Enum.flat_map(&ShopFeed.image_hosts/1) |> Enum.uniq()
 
   @spec fetch(term()) :: {:ok, Shop.t()} | :error
   def fetch(key) when key in @keys, do: {:ok, Enum.find(@shops, &(&1.key == key))}

@@ -45,9 +45,6 @@ defmodule TcgCheap.Sealed.ShopFeed.GoogleFeed do
   @rss_root ~r/\A\s*(?:<\?xml[^>]*\?>\s*)?<rss[\s>]/
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     opts = [max_body_bytes: @max_body_bytes]
 
@@ -111,7 +108,7 @@ defmodule TcgCheap.Sealed.ShopFeed.GoogleFeed do
            shop_product_id: id,
            title: title,
            url: text.("link"),
-           image_url: ShopFeed.image_url(text.("g:image_link"), image_hosts(shop)),
+           image_url: ShopFeed.image_url(text.("g:image_link"), ShopFeed.image_hosts(shop)),
            ean: Ean.normalize(text.("g:gtin")),
            price: lower(sale_price, price)
          }

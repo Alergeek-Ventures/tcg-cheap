@@ -19,6 +19,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Guildmage do
   @behaviour TcgCheap.Sealed.ShopFeed
 
   alias TcgCheap.Sealed.{Shop, ShopFeed}
+  alias TcgCheap.Sealed.ShopFeed.Pages
 
   @cdn "upload.cdn.baselinker.com"
   @pagination ~r/\\"pagination\\":\{\\"size\\":[0-9]+,\\"totalElements\\":([0-9]+),\\"totalPages\\":([0-9]+),\\"number\\":([0-9]+)\}/
@@ -32,42 +33,10 @@ defmodule TcgCheap.Sealed.ShopFeed.Guildmage do
 
   @impl true
   def fetch(%Shop{} = shop, req_options) do
-    with {:ok, products} <- fetch_pages(shop, req_options, 1, nil, []) do
+    with {:ok, pages} <- Pages.read(&request(shop, req_options, &1), shop.max_pages),
+         {:ok, products} <- Pages.products(pages, &link/1) do
       {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
     end
-  end
-
-  defp fetch_pages(shop, req_options, number, stated, acc) do
-    with {:ok, page} <- request(shop, req_options, number) do
-      cond do
-        stated not in [nil, {page.total, page.pages}] ->
-          {:error, :pagination_changed}
-
-        page.number != number ->
-          {:error, :pagination_changed}
-
-        page.pages > shop.max_pages ->
-          {:error, :too_many_pages}
-
-        page.products == [] ->
-          {:error, :malformed_listing}
-
-        number < page.pages ->
-          fetch_pages(shop, req_options, number + 1, {page.total, page.pages}, [page | acc])
-
-        true ->
-          complete(Enum.reverse([page | acc]), page.total)
-      end
-    end
-  end
-
-  defp complete(pages, total) do
-    products = Enum.flat_map(pages, & &1.products)
-    links = Enum.map(products, &link/1)
-
-    if length(products) == total and links == Enum.uniq(links),
-      do: {:ok, products},
-      else: {:error, :incomplete_listing}
   end
 
   defp request(shop, req_options, number) do
@@ -78,6 +47,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Guildmage do
        %{
          products: Floki.find(document, "article.MuiCard-root"),
          total: String.to_integer(total),
+         stated: {String.to_integer(total), String.to_integer(pages)},
          pages: String.to_integer(pages),
          number: String.to_integer(current)
        }}

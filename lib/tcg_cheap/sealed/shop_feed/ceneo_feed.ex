@@ -31,9 +31,6 @@ defmodule TcgCheap.Sealed.ShopFeed.CeneoFeed do
   @out_of_stock_avail ~w(90 110)
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     opts = [max_body_bytes: @max_body_bytes]
 
@@ -79,7 +76,7 @@ defmodule TcgCheap.Sealed.ShopFeed.CeneoFeed do
              offer
              |> XmlRecords.attr(["imgs", "main"], "url")
              |> ShoperListing.full_size_image()
-             |> ShopFeed.image_url(image_hosts(shop)),
+             |> ShopFeed.image_url(ShopFeed.image_hosts(shop)),
            ean: Ean.normalize(ean(offer)),
            price: price,
            in_stock: in_stock,

@@ -37,9 +37,6 @@ defmodule TcgCheap.Sealed.ShopFeed.Am76 do
   @link ~r/\Aprodukt,[^\s:]{1,200}:([0-9]{1,9})\z/
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, pages} <- fetch_pages(shop, req_options, 1, nil, []) do
       {:ok, ShopFeed.offers(shop, pages, &normalize(shop, &1))}
@@ -189,7 +186,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Am76 do
   defp image_url(shop, product) do
     case product |> Floki.find("div.panel-body img") |> Floki.attribute("src") |> List.first() do
       "/plik/" <> name ->
-        ShopFeed.image_url("https://#{shop.host}/plik/b_#{name}", image_hosts(shop))
+        ShopFeed.image_url("https://#{shop.host}/plik/b_#{name}", ShopFeed.image_hosts(shop))
 
       _ ->
         nil

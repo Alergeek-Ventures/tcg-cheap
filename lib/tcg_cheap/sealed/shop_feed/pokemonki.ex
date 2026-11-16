@@ -37,9 +37,6 @@ defmodule TcgCheap.Sealed.ShopFeed.Pokemonki do
   @stock ~r/\ADostępne: ([0-9]{1,5})\z/u
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, sets} <- sets(shop, req_options),
          {:ok, products} <- read_sets(shop, sets, req_options) do

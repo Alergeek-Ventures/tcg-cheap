@@ -40,9 +40,6 @@ defmodule TcgCheap.Sealed.ShopFeed.SkyShop do
   @page_label ~r/\AStrona (\d{1,3}) z (\d{1,3})\z/
 
   @impl true
-  def image_hosts(%Shop{host: host}), do: [host]
-
-  @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, products} <- HtmlListing.read(&request(shop, req_options, &1), shop.max_pages) do
       {:ok, HtmlListing.offers(shop, products, &Matcher.sealed_title?/1)}
