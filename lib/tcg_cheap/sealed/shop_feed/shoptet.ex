@@ -129,13 +129,20 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
     end
   end
 
-  # An empty category states no total ("0 produktů").
+  # An empty category states no total ("0 produktů") and marks its perex
+  # `empty-content-category`; any other page without a total is malformed.
   defp total(document, products) do
     case document |> HtmlListing.first(".itemsTotal strong") |> HtmlListing.text() |> integer() do
-      nil when products == [] -> {:ok, 0}
+      nil when products == [] -> empty_category(document)
       nil -> {:error, :malformed_pagination}
       total -> {:ok, total}
     end
+  end
+
+  defp empty_category(document) do
+    if HtmlListing.first(document, ".empty-content-category"),
+      do: {:ok, 0},
+      else: {:error, :malformed_pagination}
   end
 
   defp integer(nil), do: nil
