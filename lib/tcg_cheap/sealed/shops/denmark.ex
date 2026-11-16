@@ -13,7 +13,7 @@ defmodule TcgCheap.Sealed.Shops.Denmark do
       name: "GemiPulls",
       host: "gemipulls.com",
       source: Shopify,
-      singles_categories: ["singles"],
+      singles_markers: ["Pokemon singles"],
       currency: "DKK",
       singles_only: true,
       country: "DK",
