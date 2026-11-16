@@ -29,7 +29,7 @@ defmodule TcgCheapWeb.Region do
     :pages,
     :country
   ]
-  defstruct @enforce_keys ++ [visitors_from: []]
+  defstruct @enforce_keys ++ [visitors_from: [], whole_prices_from: nil]
 
   @typedoc """
   A region as `TcgCheap.Country.region/0` defines it, with its market and
@@ -47,7 +47,8 @@ defmodule TcgCheapWeb.Region do
           slugs: %{products: String.t(), expansions: String.t(), cards: String.t()},
           pages: %{optional(atom()) => String.t()},
           country: module(),
-          visitors_from: [String.t()]
+          visitors_from: [String.t()],
+          whole_prices_from: Decimal.t() | nil
         }
 
   @doc "Every region, Poland first."
@@ -68,7 +69,8 @@ defmodule TcgCheapWeb.Region do
         slugs: region.slugs,
         pages: region.pages,
         country: region.module,
-        visitors_from: Map.get(region, :visitors_from, [])
+        visitors_from: Map.get(region, :visitors_from, []),
+        whole_prices_from: Map.get(region, :whole_prices_from)
       }
     end
   end
