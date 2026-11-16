@@ -103,8 +103,8 @@ msgstr "Bij minder winkels is er geen beoordeling en geven we als context de Car
 
 #: lib/tcg_cheap/countries/portugal.ex:123
 #, elixir-autogen, elixir-format
-msgid "Sklepy z zagranicy sprzedają w swojej walucie. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
-msgstr "Winkels in het buitenland verkopen in hun eigen valuta. Prijzen in een andere valuta dan de euro rekenen we om tegen de dagkoersen van de NBP, de Poolse centrale bank. De winkelpagina kan in een andere taal zijn."
+msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Portugalii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
+msgstr "De prijs van een buitenlandse winkel is de prijs die de winkel aan kopers uit Portugal geeft. Prijzen in een andere valuta dan de euro rekenen we om tegen de dagkoersen van de NBP. De website van de winkel kan in een andere taal zijn."
 
 #: lib/tcg_cheap/countries/portugal.ex:44
 #, elixir-autogen, elixir-format
