@@ -8,7 +8,8 @@ defmodule TcgCheapWeb.ListingComponents do
   import TcgCheapWeb.OfferComponents
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.{CardGuide, Editions, Kinds, Rarities}
+  alias TcgCheap.Cards
+  alias TcgCheap.Sealed.{Editions, Kinds}
   alias TcgCheapWeb.{Format, Paths, Region}
 
   def card_variant_label(:normal), do: gettext("Zwykła / holo")
@@ -155,7 +156,7 @@ defmodule TcgCheapWeb.ListingComponents do
         <div class="guide-product-copy">
           <h3 class="guide-product-name">{@row.card.name}</h3>
           <p class="guide-product-meta">
-            <span :if={@rarity? && @row.card.rarity}>{Rarities.label(@row.card.rarity)} ·</span>
+            <span :if={@rarity? && @row.card.rarity}>{Cards.Rarities.label(@row.card.rarity)} ·</span>
             {@row.card.number} · {@row.expansion_name}
           </p>
         </div>
@@ -184,13 +185,13 @@ defmodule TcgCheapWeb.ListingComponents do
 
   @doc """
   A card's price in the current region: in Poland the lower of its Polish
-  shop price and its Cardmarket trend (`CardGuide.price/1`); elsewhere its
+  shop price and its Cardmarket trend (`Cards.Guide.price/1`); elsewhere its
   Cardmarket trend in the region's currency, as singles have no shops there.
   """
   @spec card_price(map()) :: Decimal.t() | nil
   def card_price(card) do
     if Region.poland?(Region.current()),
-      do: CardGuide.price(card),
+      do: Cards.Guide.price(card),
       else: card |> Map.get(:cardmarket_trend_pln) |> Region.from_pln()
   end
 

@@ -13,7 +13,7 @@ defmodule TcgCheapWeb.SocialImage.Single do
   # grosz it shows, not the day's exact conversion, so a preview is drawn
   # again only when it would look different.
 
-  @doc "A version of what the preview shows (`TcgCheap.Sealed.CardGuide.page/3`)."
+  @doc "A version of what the preview shows (`TcgCheap.Cards.Guide.page/3`)."
   @spec version(map()) :: String.t()
   def version(page) do
     %{cheapest: cheapest, verdict: verdict} = answer_row(page)
@@ -30,7 +30,7 @@ defmodule TcgCheapWeb.SocialImage.Single do
   end
 
   @doc """
-  The preview from its guide page (`TcgCheap.Sealed.CardGuide.page/3`).
+  The preview from its guide page (`TcgCheap.Cards.Guide.page/3`).
   `{:partial, jpeg}` is a preview drawn without a scan that could not be
   fetched.
   """

@@ -1,16 +1,8 @@
 defmodule TcgCheap.Sealed.AgentTools.Json do
   @moduledoc "Plain JSON-ready maps of offers, products, contents, suggested prices and sets for the agent tools."
 
-  alias TcgCheap.Sealed.{
-    CardReference,
-    Offer,
-    Product,
-    ProductContents,
-    PullRates,
-    Shops,
-    SuggestedPrice,
-    TcgdexSet
-  }
+  alias TcgCheap.Cards
+  alias TcgCheap.Sealed.{Offer, Product, ProductContents, Shops, SuggestedPrice}
 
   @product_fields [
     :id,
@@ -106,8 +98,8 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
     |> put_product(item.product)
   end
 
-  @spec tcgdex_set(TcgdexSet.t()) :: map()
-  def tcgdex_set(%TcgdexSet{} = set) do
+  @spec tcgdex_set(Cards.Set.t()) :: map()
+  def tcgdex_set(%Cards.Set{} = set) do
     set
     |> Map.take([
       :tcgdex_id,
@@ -122,7 +114,7 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
 
   defp pull_rates(nil), do: nil
 
-  defp pull_rates(%PullRates{} = pull_rates) do
+  defp pull_rates(%Cards.PullRates{} = pull_rates) do
     %{
       cards_per_pack: pull_rates.cards_per_pack,
       rates: Enum.map(pull_rates.rates, &Map.take(&1, [:rarity, :per_pack, :percent, :card])),
@@ -165,8 +157,8 @@ defmodule TcgCheap.Sealed.AgentTools.Json do
       set: Map.take(card.tcgdex_set, [:tcgdex_id, :name, :abbreviation]),
       trend_eur: price && price.trend,
       trend_holo_eur: price && price.trend_holo,
-      reference_pln: CardReference.pln(price, :normal, rate),
-      reverse_reference_pln: CardReference.pln(price, :reverse, rate)
+      reference_pln: Cards.Reference.pln(price, :normal, rate),
+      reverse_reference_pln: Cards.Reference.pln(price, :reverse, rate)
     })
   end
 

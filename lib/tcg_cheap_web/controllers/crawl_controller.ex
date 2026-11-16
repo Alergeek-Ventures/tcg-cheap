@@ -3,8 +3,9 @@ defmodule TcgCheapWeb.CrawlController do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
+  alias TcgCheap.Cards
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Cache, CardGuide, Catalogue, ProductFacets, Shops, Sitemap, Stock}
+  alias TcgCheap.Sealed.{Cache, Catalogue, ProductFacets, Shops, Sitemap, Stock}
   alias TcgCheap.WebBotAuth
   alias TcgCheapWeb.{Format, PageMarkdown, Paths, Region, SEO}
 
@@ -115,7 +116,7 @@ defmodule TcgCheapWeb.CrawlController do
       |> Enum.filter(&MapSet.member?(in_stock, &1.id))
       |> Map.new(&{&1.id, &1.name})
 
-    cards = CardGuide.sitemap_cards()
+    cards = Cards.Guide.sitemap_cards()
 
     # A set whose cards are in stock but whose sealed products are not still
     # lists those cards, under the name their paths use.

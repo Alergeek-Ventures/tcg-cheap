@@ -4,8 +4,9 @@ defmodule TcgCheap.Sealed.SealedBanner do
   in stock furthest under its typical shop price today.
   """
 
+  alias TcgCheap.Cards
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Cache, CardImage, PriceGuide, Shops, Summary}
+  alias TcgCheap.Sealed.{Cache, PriceGuide, Shops, Summary}
 
   @contents_photos 3
 
@@ -83,17 +84,17 @@ defmodule TcgCheap.Sealed.SealedBanner do
   defp contents_photos(contents) do
     sources =
       contents.items
-      |> Enum.map(&CardImage.photo_source_url(&1.photo))
+      |> Enum.map(&Cards.Image.photo_source_url(&1.photo))
       |> Enum.reject(&is_nil/1)
       |> Enum.uniq()
 
     mirrored =
       sources
-      |> Enum.map(&CardImage.source_hash/1)
+      |> Enum.map(&Cards.Image.source_hash/1)
       |> TcgCheap.Storage.mirrored_image_urls(:thumbnail)
 
     sources
-    |> Enum.map(&Map.get(mirrored, CardImage.source_hash(&1)))
+    |> Enum.map(&Map.get(mirrored, Cards.Image.source_hash(&1)))
     |> Enum.reject(&is_nil/1)
     |> Enum.take(@contents_photos)
   end

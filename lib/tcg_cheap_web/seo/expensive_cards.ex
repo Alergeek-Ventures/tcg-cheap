@@ -11,7 +11,7 @@ defmodule TcgCheapWeb.SEO.ExpensiveCards do
   alias TcgCheapWeb.{CardRecords, Format, Paths, SEO, SocialImage}
 
   @doc """
-  `overview` is `TcgCheap.Sealed.ExpensiveCards.overview/0`, `records` the
+  `overview` is `TcgCheap.Cards.Expensive.overview/0`, `records` the
   records ranking and `filters` the page's chosen set and stock filter.
   """
   @spec metadata(map(), [map(), ...], map()) :: SEO.t()

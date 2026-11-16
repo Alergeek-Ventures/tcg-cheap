@@ -11,16 +11,8 @@ defmodule TcgCheapWeb.SingleLive do
   import TcgCheapWeb.SiteComponents
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.{
-    CardGuide,
-    CardImage,
-    CardReference,
-    Market,
-    Matcher,
-    PriceGuide,
-    Rarities,
-    SetPage
-  }
+  alias TcgCheap.Cards
+  alias TcgCheap.Sealed.{Market, Matcher, PriceGuide, SetPage}
 
   alias TcgCheapWeb.{Analytics, Format, Paths, Region, SEO, VisitorLocation}
 
@@ -31,9 +23,9 @@ defmodule TcgCheapWeb.SingleLive do
 
   @impl true
   def mount(%{"slug" => set, "card_slug" => slug}, _session, socket) do
-    case CardGuide.find(set, slug) do
+    case Cards.Guide.find(set, slug) do
       {:ok, card, name, path} ->
-        page = CardGuide.page(card, name, Paths.localize(path))
+        page = Cards.Guide.page(card, name, Paths.localize(path))
         seo = SEO.Single.metadata(page)
         groups = Enum.group_by(page.offers, &group/1)
         primary = Enum.find(page.answers, & &1.cheapest) || hd(page.answers)
@@ -65,7 +57,7 @@ defmodule TcgCheapWeb.SingleLive do
            versions:
              if(primary.cheapest || !polish?,
                do: [],
-               else: CardGuide.in_stock_versions(card)
+               else: Cards.Guide.in_stock_versions(card)
              ),
            seo: seo,
            page_title: seo.page_title,
@@ -129,7 +121,7 @@ defmodule TcgCheapWeb.SingleLive do
 
   defp reference_line(price, variant) do
     trend = if variant == :reverse, do: price && price.trend_holo, else: price && price.trend
-    delivered = CardReference.delivered_eur(trend)
+    delivered = Cards.Reference.delivered_eur(trend)
 
     if delivered do
       shipping = Decimal.sub(delivered, trend)
@@ -240,7 +232,7 @@ defmodule TcgCheapWeb.SingleLive do
             <div class="product-image product-hero-image single-image">
               <img
                 :if={@page.image}
-                src={CardImage.detail_url(@page.image)}
+                src={Cards.Image.detail_url(@page.image)}
                 alt={@page.card.name}
                 width="300"
                 height="420"
@@ -261,9 +253,9 @@ defmodule TcgCheapWeb.SingleLive do
               <h1 id="single-name">{@page.card.name}</h1>
               <p class="product-facts">
                 {if(@page.card.rarity,
-                  do: Rarities.label(@page.card.rarity),
+                  do: Cards.Rarities.label(@page.card.rarity),
                   else: gettext("Rzadkość nieznana")
-                )} · {CardGuide.printed_number(@page.card)} ·
+                )} · {Cards.Guide.printed_number(@page.card)} ·
                 <.link navigate={
                   SEO.Expansion.path(
                     @page.card.tcgdex_set.cardmarket_expansion_id,

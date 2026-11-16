@@ -4,12 +4,13 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   require Logger
   import Ecto.Query
 
+  alias TcgCheap.Cards
   alias TcgCheap.Repo
-  alias TcgCheap.Sealed.{CardGuide, CardImage, TcgdexCard, TcgdexSet}
   alias TcgCheap.Storage
 
-  # Fixed by `CardImage.classic_collection/0`, never by a request.
-  @classic_collection_values Enum.map_join(CardImage.classic_collection(), ", ", fn {number, code} ->
+  # Fixed by `Cards.Image.classic_collection/0`, never by a request.
+  @classic_collection_values Enum.map_join(Cards.Image.classic_collection(), ", ", fn {number,
+                                                                                       code} ->
                                "('#{number}', '#{code}')"
                              end)
 
@@ -107,7 +108,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   @logo_kinds ["logo", "expansion_logo"]
 
   # Hosts of the card scans and set logos the mirror derives itself
-  # (`CardImage`), many of which do not exist. A missing image elsewhere was
+  # (`Cards.Image`), many of which do not exist. A missing image elsewhere was
   # chosen by hand (product photos, expansion logos), so it stays a warning.
   @scan_hosts [
     "assets.tcgdex.net",
@@ -134,7 +135,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
         sources ->
           trim? = kind in @logo_kinds
 
-          Map.update(sources, CardImage.source_hash(source), {source, trim?}, fn {source, other} ->
+          Map.update(sources, Cards.Image.source_hash(source), {source, trim?}, fn {source, other} ->
             {source, trim? or other}
           end)
       end
@@ -183,7 +184,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
     |> Repo.all()
     |> Enum.each(fn url ->
       if source = canonical_source(url, "card") do
-        Storage.register_remote_image!(%{id: CardImage.source_hash(source), source_url: source})
+        Storage.register_remote_image!(%{id: Cards.Image.source_hash(source), source_url: source})
       end
     end)
 
@@ -243,14 +244,14 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   end
 
   # All current offers count, including out-of-stock cards people search for.
-  # Source construction matches CardImage.single_sources/2, except
+  # Source construction matches Cards.Image.single_sources/2, except
   # pokemontcg.io's promo scans, which only the keyset scan registers; no
   # remote I/O.
   defp offered_sources do
-    from(c in TcgdexCard,
-      join: s in TcgdexSet,
+    from(c in Cards.Card,
+      join: s in Cards.Set,
       on: c.tcgdex_set_id == s.id,
-      join: o in subquery(CardGuide.current_query()),
+      join: o in subquery(Cards.Guide.current_query()),
       on: o.card_id == c.id,
       where: is_nil(o.grading) and s.language == "en",
       # Not 30C_001 (30th Celebration's) for the collection; @sources has its scans.
@@ -350,10 +351,10 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   defp trim_margins(body, type, true),
     do: Storage.ImageDownload.trim_transparent_margins(body, type)
 
-  defp canonical_source(url, "card"), do: CardImage.card_source_url(url)
-  defp canonical_source(url, "logo"), do: CardImage.logo_source_url(url)
-  defp canonical_source(url, "photo"), do: CardImage.photo_source_url(url)
-  defp canonical_source(url, "expansion_logo"), do: CardImage.expansion_logo_source_url(url)
+  defp canonical_source(url, "card"), do: Cards.Image.card_source_url(url)
+  defp canonical_source(url, "logo"), do: Cards.Image.logo_source_url(url)
+  defp canonical_source(url, "photo"), do: Cards.Image.photo_source_url(url)
+  defp canonical_source(url, "expansion_logo"), do: Cards.Image.expansion_logo_source_url(url)
 
   defp extension("image/jpeg"), do: "jpg"
   defp extension("image/png"), do: "png"

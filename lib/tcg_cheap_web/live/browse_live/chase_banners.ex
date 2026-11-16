@@ -8,7 +8,8 @@ defmodule TcgCheapWeb.BrowseLive.ChaseBanners do
   import TcgCheapWeb.OfferComponents
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.{CardImage, Kinds, PriceGuide, Rarities}
+  alias TcgCheap.Cards
+  alias TcgCheap.Sealed.{Kinds, PriceGuide}
   alias TcgCheapWeb.{Format, Paths, RegionText}
 
   attr :booster, :map, required: true
@@ -287,7 +288,10 @@ defmodule TcgCheapWeb.BrowseLive.ChaseBanners do
     <img
       :if={@top.image}
       src={
-        if(@hero?, do: CardImage.detail_url(@top.image), else: CardImage.thumbnail_url(@top.image))
+        if(@hero?,
+          do: Cards.Image.detail_url(@top.image),
+          else: Cards.Image.thumbnail_url(@top.image)
+        )
       }
       alt=""
       width="600"
@@ -348,7 +352,10 @@ defmodule TcgCheapWeb.BrowseLive.ChaseBanners do
       gettext("nr %{number} · %{rarity}",
         number: card.number,
         rarity:
-          if(card.rarity, do: Rarities.label(card.rarity), else: gettext("Rzadkość nieznana"))
+          if(card.rarity,
+            do: Cards.Rarities.label(card.rarity),
+            else: gettext("Rzadkość nieznana")
+          )
       )
 
   @doc false

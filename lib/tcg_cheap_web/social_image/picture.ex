@@ -7,7 +7,7 @@ defmodule TcgCheapWeb.SocialImage.Picture do
   `:error` (it could not be loaded).
   """
 
-  alias TcgCheap.Sealed.CardImage
+  alias TcgCheap.Cards
   alias TcgCheap.Storage
   alias TcgCheap.Storage.ImageDownload
   alias TcgCheapWeb.SocialImage
@@ -41,7 +41,7 @@ defmodule TcgCheapWeb.SocialImage.Picture do
   def scan(nil), do: :none
 
   def scan(source) do
-    hash = CardImage.source_hash(source)
+    hash = Cards.Image.source_hash(source)
 
     case Storage.mirrored_image_urls([hash], :detail) do
       %{^hash => url} -> stored_scan(url)

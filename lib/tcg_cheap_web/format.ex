@@ -8,7 +8,8 @@ defmodule TcgCheapWeb.Format do
   """
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{Market, PullRates.Rate}
+  alias TcgCheap.Cards.PullRates.Rate
+  alias TcgCheap.Sealed.Market
   alias TcgCheapWeb.{Languages, Region}
 
   # A no-break space keeps "1 299,99 zł" on one line.

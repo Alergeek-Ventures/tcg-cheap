@@ -12,8 +12,9 @@ defmodule TcgCheap.Sealed.ExpansionLogo do
     domain: TcgCheap.Sealed,
     data_layer: AshPostgres.DataLayer
 
+  alias TcgCheap.Cards
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Cache, CardImage, TcgdexSet}
+  alias TcgCheap.Sealed.Cache
   alias TcgCheap.Sealed.Validations.{HttpsUrls, ImageHost}
 
   postgres do
@@ -79,12 +80,12 @@ defmodule TcgCheap.Sealed.ExpansionLogo do
 
     mirrored =
       sources
-      |> Enum.map(&CardImage.source_hash(elem(&1, 1)))
+      |> Enum.map(&Cards.Image.source_hash(elem(&1, 1)))
       |> TcgCheap.Storage.mirrored_image_urls(:thumbnail)
 
     # TCGdex last, so its mirrored logo replaces a set one.
     for {id, source} <- sources,
-        url = Map.get(mirrored, CardImage.source_hash(source)),
+        url = Map.get(mirrored, Cards.Image.source_hash(source)),
         into: %{},
         do: {id, url}
   end
@@ -95,17 +96,17 @@ defmodule TcgCheap.Sealed.ExpansionLogo do
   defp read_sources do
     tcgdex =
       for {id, %{language: "en", logo_url: "" <> url}} <-
-            TcgdexSet.by_expansion(
-              Sealed.list_tcgdex_sets!(
+            Cards.Set.by_expansion(
+              Cards.list_sets!(
                 query: [select: [:cardmarket_expansion_id, :language, :name, :logo_url]]
               )
             ),
-          source = CardImage.logo_source_url(url),
+          source = Cards.Image.logo_source_url(url),
           do: {id, source}
 
     set =
       for logo <- Sealed.list_expansion_logos!(),
-          source = CardImage.expansion_logo_source_url(logo.url),
+          source = Cards.Image.expansion_logo_source_url(logo.url),
           do: {logo.cardmarket_expansion_id, source}
 
     set ++ tcgdex

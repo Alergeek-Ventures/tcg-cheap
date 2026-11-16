@@ -3,6 +3,7 @@ defmodule TcgCheap.Sealed.AgentTools.ShopStatus do
 
   use Ash.Resource.Actions.Implementation
 
+  alias TcgCheap.Cards
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.Shops
 
@@ -12,11 +13,11 @@ defmodule TcgCheap.Sealed.AgentTools.ShopStatus do
     current = Sealed.current_offers(DateTime.utc_now(), :all, select: rows_fields())
 
     singles =
-      Sealed.list_card_offers!(query: [select: [:shop, :last_seen_at, :card_id, :in_stock]])
+      Cards.list_offers!(query: [select: [:shop, :last_seen_at, :card_id, :in_stock]])
 
-    current_singles = Sealed.current_card_offers()
+    current_singles = Cards.current_offers()
     fetches = Sealed.latest_shop_fetches!(~U[1970-01-01 00:00:00Z])
-    single_fetches = Sealed.latest_card_fetches!(~U[1970-01-01 00:00:00Z])
+    single_fetches = Cards.latest_fetches!(~U[1970-01-01 00:00:00Z])
     by_shop = Enum.group_by(singles, & &1.shop)
     current_by_shop = Enum.group_by(current_singles, & &1.shop)
 

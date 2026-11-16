@@ -19,18 +19,10 @@ defmodule TcgCheap.Sealed.BoosterGuide do
 
   import Ecto.Query
 
+  alias TcgCheap.Cards
   alias TcgCheap.{Repo, Sealed}
 
-  alias TcgCheap.Sealed.{
-    Cache,
-    CardPrice,
-    ExpansionLogo,
-    Market,
-    Product,
-    Stock,
-    Summary,
-    TcgdexSet
-  }
+  alias TcgCheap.Sealed.{Cache, ExpansionLogo, Market, Product, Stock, Summary}
 
   # What a set comes out in, without the cases shops order by, decks or
   # loose card sets.
@@ -223,7 +215,7 @@ defmodule TcgCheap.Sealed.BoosterGuide do
           do: item.cardmarket_id
 
     trends =
-      CardPrice
+      Cards.Price
       |> where([price], price.cardmarket_id in ^ids)
       |> select([price], {price.cardmarket_id, price.trend})
       |> Repo.all()
@@ -246,7 +238,7 @@ defmodule TcgCheap.Sealed.BoosterGuide do
     names = Enum.map(boosters, & &1.product.set_name)
 
     released =
-      TcgdexSet
+      Cards.Set
       |> where([set], set.language == "en" and set.name in ^names)
       |> select([set], {set.name, set.released_on})
       |> Repo.all()

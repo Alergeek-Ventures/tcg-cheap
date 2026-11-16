@@ -9,7 +9,8 @@ defmodule TcgCheapWeb.PageMarkdown do
   use TcgCheapWeb, :verified_routes
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{CardGuide, Editions, Kinds, Market, PriceGuide, Rarities, RetailDeal}
+  alias TcgCheap.Cards
+  alias TcgCheap.Sealed.{Editions, Kinds, Market, PriceGuide, RetailDeal}
 
   alias TcgCheapWeb.{
     CardRecords,
@@ -315,14 +316,14 @@ defmodule TcgCheapWeb.PageMarkdown do
       section(
         gettext("Karta"),
         list([
-          gettext("Numer: %{number}", number: CardGuide.printed_number(card)),
+          gettext("Numer: %{number}", number: Cards.Guide.printed_number(card)),
           gettext("Rozszerzenie") <>
             ": " <>
             link(
               page.expansion_name,
               SEO.Expansion.url(card.tcgdex_set.cardmarket_expansion_id, page.expansion_name)
             ),
-          card.rarity && gettext("Rzadkość") <> ": " <> Rarities.label(card.rarity)
+          card.rarity && gettext("Rzadkość") <> ": " <> Cards.Rarities.label(card.rarity)
         ])
       ),
       polish?() && section("Oferty", card_offers_table(page.offers, today))
@@ -682,7 +683,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     name = "#{card.name} #{card.number}"
     title = if card.public_path, do: link(name, url_from_path(card.public_path)), else: name
 
-    source = if polish?(), do: CardGuide.price_source(card), else: :cardmarket
+    source = if polish?(), do: Cards.Guide.price_source(card), else: :cardmarket
 
     case {ListingComponents.card_price(card), source} do
       {nil, _source} ->

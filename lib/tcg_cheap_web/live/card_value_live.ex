@@ -15,7 +15,7 @@ defmodule TcgCheapWeb.CardValueLive do
   import TcgCheapWeb.OfferComponents
   import TcgCheapWeb.SiteComponents
 
-  alias TcgCheap.Sealed.{CardGuide, CardValue}
+  alias TcgCheap.Cards
   alias TcgCheapWeb.{Format, Paths, SEO, VisitorLocation}
 
   # The guide answers with the first few cards; the card list has the rest.
@@ -25,7 +25,7 @@ defmodule TcgCheapWeb.CardValueLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    %{spread: spread, examples: examples} = guide = CardValue.guide()
+    %{spread: spread, examples: examples} = guide = Cards.Value.guide()
     seo = SEO.CardValue.metadata(guide)
 
     {:ok,
@@ -51,7 +51,7 @@ defmodule TcgCheapWeb.CardValueLive do
       if query == "" do
         {[], 0}
       else
-        {rows, _more?, count} = CardGuide.browse(%{query: query, expansion: nil, stock: nil}, 0)
+        {rows, _more?, count} = Cards.Guide.browse(%{query: query, expansion: nil, stock: nil}, 0)
         {Enum.take(rows, @shown), count}
       end
 

@@ -8,14 +8,15 @@ defmodule TcgCheapWeb.SEO.Single do
   use TcgCheapWeb, :verified_routes
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{CardGuide, CardImage, Shops}
+  alias TcgCheap.Cards
+  alias TcgCheap.Sealed.Shops
   alias TcgCheapWeb.{Format, Paths, RegionText, SEO, SocialImage, VerdictComponents}
 
-  @doc "`page` is `TcgCheap.Sealed.CardGuide.page/3`."
+  @doc "`page` is `TcgCheap.Cards.Guide.page/3`."
   @spec metadata(map()) :: SEO.t()
   def metadata(page) do
     card = page.card
-    number = CardGuide.printed_number(card)
+    number = Cards.Guide.printed_number(card)
     canonical = Paths.url(page.path)
     answer = Enum.find(page.answers, & &1.cheapest)
     description = description(page, answer, number)
@@ -33,7 +34,7 @@ defmodule TcgCheapWeb.SEO.Single do
       ]),
       description,
       canonical,
-      # Matches CardGuide.sitemap_cards/0: a card without an offer leaves the
+      # Matches Cards.Guide.sitemap_cards/0: a card without an offer leaves the
       # index until one returns. Only Poland has offers of singles: another
       # region's page repeats the card with its Cardmarket trend alone, which
       # would be thousands of thin pages, so it stays out of search.
@@ -112,7 +113,8 @@ defmodule TcgCheapWeb.SEO.Single do
 
     product = %{
       "@type" => "Product",
-      "name" => "#{page.card.name} #{CardGuide.printed_number(page.card)} #{page.expansion_name}",
+      "name" =>
+        "#{page.card.name} #{Cards.Guide.printed_number(page.card)} #{page.expansion_name}",
       "description" => description,
       "url" => canonical,
       "category" => gettext("Karta Pokémon TCG"),
@@ -125,7 +127,7 @@ defmodule TcgCheapWeb.SEO.Single do
         Map.put(
           product,
           "image",
-          unverified_url(TcgCheapWeb.Endpoint, CardImage.detail_url(page.image))
+          unverified_url(TcgCheapWeb.Endpoint, Cards.Image.detail_url(page.image))
         ),
       else: product
   end

@@ -23,7 +23,8 @@ defmodule TcgCheapWeb.BoosterPriceLive do
   import TcgCheapWeb.RetailComponents
   import TcgCheapWeb.SiteComponents
 
-  alias TcgCheap.Sealed.{BoosterGuide, CardImage}
+  alias TcgCheap.Cards
+  alias TcgCheap.Sealed.BoosterGuide
   alias TcgCheapWeb.{Format, Paths, SEO, VisitorLocation}
 
   @impl true
@@ -741,10 +742,10 @@ defmodule TcgCheapWeb.BoosterPriceLive do
   defp card_note(%{item: %{type: :oversize_card}}), do: gettext("duża karta")
   defp card_note(_card), do: nil
 
-  defp card_picture(%{image: image}) when is_binary(image), do: CardImage.thumbnail_url(image)
+  defp card_picture(%{image: image}) when is_binary(image), do: Cards.Image.thumbnail_url(image)
 
   defp card_picture(%{photo: photo}) when is_binary(photo),
-    do: CardImage.photo_url(photo, "thumbnail")
+    do: Cards.Image.photo_url(photo, "thumbnail")
 
   defp card_picture(_item), do: nil
 

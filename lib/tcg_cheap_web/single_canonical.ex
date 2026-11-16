@@ -1,12 +1,12 @@
 defmodule TcgCheapWeb.SingleCanonical do
   @moduledoc "Permanent redirects for renamed cards and expansions before LiveView renders."
   import Plug.Conn
-  alias TcgCheap.Sealed.CardGuide
+  alias TcgCheap.Cards
   alias TcgCheapWeb.Paths
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    case CardGuide.find(conn.path_params["slug"], conn.path_params["card_slug"]) do
+    case Cards.Guide.find(conn.path_params["slug"], conn.path_params["card_slug"]) do
       {:ok, _card, _name, path} ->
         path = Paths.localize(path)
 

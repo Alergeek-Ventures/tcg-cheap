@@ -8,16 +8,10 @@ defmodule TcgCheap.Sealed.AgentTools.Enqueue do
   use Ash.Resource.Actions.Implementation
 
   alias Ash.Error.Action.InvalidArgument
+  alias TcgCheap.Cards
   alias TcgCheap.Pricing.ExchangeRateWorker
 
-  alias TcgCheap.Sealed.{
-    CardSyncWorker,
-    CatalogueImportWorker,
-    FetchWorker,
-    Market,
-    Shops,
-    SuggestedPriceWorker
-  }
+  alias TcgCheap.Sealed.{CatalogueImportWorker, FetchWorker, Market, Shops, SuggestedPriceWorker}
 
   @impl true
   def run(input, opts, _context) do
@@ -35,7 +29,7 @@ defmodule TcgCheap.Sealed.AgentTools.Enqueue do
 
   defp enqueue(:catalogue_import, _args), do: CatalogueImportWorker.enqueue()
   defp enqueue(:suggested_prices, _args), do: SuggestedPriceWorker.enqueue()
-  defp enqueue(:card_sync, _args), do: CardSyncWorker.enqueue()
+  defp enqueue(:card_sync, _args), do: Cards.SyncWorker.enqueue()
 
   defp enqueue(:exchange_rate, %{currency: currency}) do
     if currency in Market.currencies() do

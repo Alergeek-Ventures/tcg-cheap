@@ -5,8 +5,8 @@ defmodule TcgCheap.Sealed.Expansions do
   or a page, so they are shared (`TcgCheap.Sealed.Cache`).
   """
 
-  alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Cache, ProductFacets, TcgdexSet}
+  alias TcgCheap.Cards
+  alias TcgCheap.Sealed.{Cache, ProductFacets}
 
   # How soon after the expansion names were read an unknown expansion id may
   # read them again: ids come from URLs, so crawlers ask for ones that do not
@@ -48,8 +48,8 @@ defmodule TcgCheap.Sealed.Expansions do
 
   defp read_names do
     catalogue =
-      Sealed.list_tcgdex_sets!(query: [filter: [language: "en"]])
-      |> TcgdexSet.by_expansion()
+      Cards.list_sets!(query: [filter: [language: "en"]])
+      |> Cards.Set.by_expansion()
       |> Map.new(fn {id, set} -> {id, set.name} end)
 
     sealed =

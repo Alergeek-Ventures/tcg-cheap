@@ -14,18 +14,9 @@ defmodule TcgCheapWeb.SocialImageController do
   use TcgCheapWeb, :controller
 
   alias AshStorage.Service.Context
+  alias TcgCheap.Cards
 
-  alias TcgCheap.Sealed.{
-    BoosterGuide,
-    CardGuide,
-    CardValue,
-    Catalogue,
-    Expansions,
-    ExpensiveCards,
-    ProductPage,
-    SetPage,
-    SinglesBanner
-  }
+  alias TcgCheap.Sealed.{BoosterGuide, Catalogue, Expansions, ProductPage, SetPage}
 
   alias TcgCheapWeb.{Paths, SocialImage}
 
@@ -53,7 +44,7 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def expensive_cards(conn, _params) do
-    overview = ExpensiveCards.overview()
+    overview = Cards.Expensive.overview()
     version = SocialImage.ExpensiveCards.version(overview)
 
     serve(conn, "social/articles/najdrozsze-karty-pokemon-#{version}.jpg", fn ->
@@ -62,7 +53,7 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def card_value(conn, _params) do
-    guide = CardValue.guide()
+    guide = Cards.Value.guide()
     version = SocialImage.CardValue.version(guide)
 
     serve(conn, "social/articles/jak-sprawdzic-wartosc-karty-pokemon-#{version}.jpg", fn ->
@@ -71,7 +62,7 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def cards(conn, _params) do
-    market = SinglesBanner.market()
+    market = Cards.SinglesBanner.market()
 
     serve(conn, "social/cards-#{SocialImage.Cards.version(market)}.jpg", fn ->
       SocialImage.Cards.draw(market)
@@ -106,8 +97,8 @@ defmodule TcgCheapWeb.SocialImageController do
     path = "/rozszerzenia/#{set}/karty/#{slug}"
 
     with {:ok, _id, _name} <- known_expansion(set),
-         {:ok, card, name, ^path} <- CardGuide.find(set, slug) do
-      page = CardGuide.page(card, name, path)
+         {:ok, card, name, ^path} <- Cards.Guide.find(set, slug) do
+      page = Cards.Guide.page(card, name, path)
 
       serve(conn, "social/cards/#{set}/#{slug}-#{SocialImage.Single.version(page)}.jpg", fn ->
         SocialImage.Single.draw(page)

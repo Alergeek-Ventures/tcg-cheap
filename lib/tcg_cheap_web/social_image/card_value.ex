@@ -16,7 +16,7 @@ defmodule TcgCheapWeb.SocialImage.CardValue do
     SocialImage.version({figures(guide.spread), Enum.map(examples(guide), & &1.row.image_large)})
   end
 
-  @doc "The preview from `TcgCheap.Sealed.CardValue.guide/0`."
+  @doc "The preview from `TcgCheap.Cards.Value.guide/0`."
   @spec draw(map()) :: SocialImage.result()
   def draw(guide) do
     SocialImage.with_slot(fn ->

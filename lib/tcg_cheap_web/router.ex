@@ -63,7 +63,8 @@ defmodule TcgCheapWeb.Router do
   enqueue_exchange_rate_fetch gets one before such a shop's fetch.
   """
 
-  # AI agents (see TcgCheap.Sealed tools): a bearer token, no session or cookies.
+  # AI agents (see the tools of TcgCheap.Sealed and TcgCheap.Cards): a bearer
+  # token, no session or cookies.
   # The dev server, like Tidewave, listens only on localhost and needs none.
   pipeline :mcp do
     if Mix.env() != :dev, do: plug(TcgCheapWeb.McpAuth)

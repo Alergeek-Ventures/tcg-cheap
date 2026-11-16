@@ -12,7 +12,7 @@ defmodule TcgCheap.Sealed.Editions do
        expansion may hold a single "JP Raging Bolt" deck. Names come first
        because TCGdex sometimes points a Japanese set at a Chinese expansion.
     2. TCGdex: an expansion holding the cards of a Japanese TCGdex set is
-       Japanese, of an English one English (`TcgCheap.Sealed.TcgdexSet`).
+       Japanese, of an English one English (`TcgCheap.Cards.Set`).
        Asian editions other than Japanese point at the Japanese expansions
        there, so only English and Japanese sets are read.
     3. A few sealed-only Asian expansions TCGdex does not know, listed here.

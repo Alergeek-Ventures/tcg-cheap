@@ -16,7 +16,7 @@ defmodule TcgCheapWeb.LegacyPaths do
   import Plug.Conn
 
   alias Plug.Conn.Query
-  alias TcgCheap.Sealed.CardGuide
+  alias TcgCheap.Cards
   alias TcgCheapWeb.{PageMarkdown, Paths, Region, SetCanonical}
 
   def init(opts), do: opts
@@ -85,7 +85,7 @@ defmodule TcgCheapWeb.LegacyPaths do
   end
 
   defp current({:card, set, card} = page, conn) do
-    case CardGuide.find(set, card) do
+    case Cards.Guide.find(set, card) do
       {:ok, _card, _name, path} -> {Paths.localize(Region.poland(), path), conn.query_string}
       :error -> {Paths.page_path(Region.poland(), page), conn.query_string}
     end
