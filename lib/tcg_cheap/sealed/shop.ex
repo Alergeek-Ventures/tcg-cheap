@@ -18,7 +18,7 @@ defmodule TcgCheap.Sealed.Shop do
       in its title or vendor and carries one of them; nil to read
       `singles_categories`);
     * `singles_categories` – where the shop lists single cards; nil disables
-      singles. Google Merchant and Ceneo feeds: category path prefixes;
+      singles (unless a Shopify shop has `singles_markers`). Google Merchant and Ceneo feeds: category path prefixes;
       WooCommerce: category ids (subcategories included); Shopify:
       collection handles; Shoper listings and PrestaShop: the paths of the
       singles listings, each read to its last page (at most 40 pages each,

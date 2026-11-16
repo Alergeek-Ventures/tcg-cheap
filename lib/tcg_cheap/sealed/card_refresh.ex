@@ -29,7 +29,8 @@ defmodule TcgCheap.Sealed.CardRefresh do
     |> CardMatcher.index()
   end
 
-  def run(%{singles_categories: nil}, _offers, _now), do: {:ok, %{singles: 0}}
+  def run(%{singles_categories: nil, singles_markers: nil}, _offers, _now),
+    do: {:ok, %{singles: 0}}
 
   def run(shop, offers, now) do
     Repo.transaction(
