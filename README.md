@@ -44,7 +44,18 @@ S3 on `localhost:8333`. Parallel worktrees get their own ports, so read
 `http://localhost:{PORT}/tidewave/mcp` and the buying-guide agent tools at
 `http://localhost:{PORT}/mcp`.
 
-A fresh database is empty until the background jobs run.
+A fresh database is empty, and a development server does not run the nightly
+catalogue import and shop fetches on its own. To get data, either copy it from
+another local database or let this server fetch it:
+
+```sh
+mix dev.seed                 # copy the data of the main checkout's database
+mix dev.seed ecto://…        # or of any other local database
+```
+
+`SCHEDULED_FETCHES=1` in `.env.local` turns the nightly schedule on for one
+checkout; the agent tools at `/mcp` (`enqueue_catalogue_import`,
+`enqueue_shop_fetch`, …) run a single job on request.
 
 To create a local administrator:
 

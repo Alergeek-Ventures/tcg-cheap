@@ -17,6 +17,12 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
 - In development, Tidewave is available at
   `http://localhost:{PORT}/tidewave/mcp` and the buying-guide MCP tools
   (offer matching, barcodes, fetch jobs) at `http://localhost:{PORT}/mcp`.
+- A development server does not run the nightly catalogue import and shop
+  fetches by itself, so a new worktree's database has no products. Copy
+  another local database's data with `mix dev.seed` (it refuses a database
+  that already has products or another migration version), or run single jobs
+  with the `enqueue_*` MCP tools. `SCHEDULED_FETCHES=1` in `.env.local` turns
+  the nightly schedule on for one checkout.
 - Every coding agent gets the same MCP servers. Each harness reads its own
   file: `.mcp.json` (Claude Code), `.codex/config.toml` (Codex) and
   `opencode.json` (OpenCode); add, change or remove a server in all three.
