@@ -51,7 +51,7 @@ msgstr "(seleção;"
 #: lib/tcg_cheap/sealed/regions.ex:119
 #, elixir-autogen, elixir-format
 msgid "Angielska"
-msgstr "Inglesa"
+msgstr "inglesa"
 
 #: lib/tcg_cheap/sealed/kinds.ex:83
 #, elixir-autogen, elixir-format
@@ -114,7 +114,7 @@ msgstr "Preço no Cardmarket"
 #: lib/tcg_cheap/sealed/regions.ex:121
 #, elixir-autogen, elixir-format
 msgid "Chińska"
-msgstr "Chinesa"
+msgstr "chinesa"
 
 #: lib/tcg_cheap_web/components/offer_components.ex:176
 #: lib/tcg_cheap_web/components/verdict_components.ex:150
@@ -141,12 +141,12 @@ msgstr "Elite Trainer Box"
 #: lib/tcg_cheap/sealed/regions.ex:123
 #, elixir-autogen, elixir-format
 msgid "Indonezyjska"
-msgstr "Indonésia"
+msgstr "indonésia"
 
 #: lib/tcg_cheap/sealed/regions.ex:120
 #, elixir-autogen, elixir-format
 msgid "Japońska"
-msgstr "Japonesa"
+msgstr "japonesa"
 
 #: lib/tcg_cheap_web/components/site_components.ex:113
 #, elixir-autogen, elixir-format
@@ -167,7 +167,7 @@ msgstr "Caixa de coleção"
 #: lib/tcg_cheap/sealed/regions.ex:122
 #, elixir-autogen, elixir-format
 msgid "Koreańska"
-msgstr "Coreana"
+msgstr "coreana"
 
 #: lib/tcg_cheap_web/visitor_location.ex:216
 #, elixir-autogen, elixir-format
@@ -490,7 +490,7 @@ msgstr "localização das lojas: ©"
 #: lib/tcg_cheap_web/components/offer_components.ex:185
 #, elixir-autogen, elixir-format
 msgid "sprawdzono %{when}"
-msgstr "verificado %{when}"
+msgstr "%{when}"
 
 #: lib/tcg_cheap_web/format.ex:179
 #, elixir-autogen, elixir-format
@@ -833,7 +833,7 @@ msgstr "(abre num novo separador)"
 #: lib/tcg_cheap_web/live/single_live.ex:379
 #, elixir-autogen, elixir-format
 msgid "Bez towaru: %{offers}"
-msgstr "Esgotado: %{offers}"
+msgstr "Sem stock: %{offers}"
 
 #: lib/tcg_cheap_web/components/offer_components.ex:187
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:97
@@ -845,7 +845,7 @@ msgstr "sem stock"
 #: lib/tcg_cheap_web/components/offer_components.ex:190
 #, elixir-autogen, elixir-format
 msgid "brak na stanie, sprawdzono %{when}"
-msgstr "sem stock, verificado %{when}"
+msgstr "sem stock, %{when}"
 
 #: lib/tcg_cheap_web/components/verdict_components.ex:69
 #, elixir-autogen, elixir-format
@@ -928,7 +928,7 @@ msgstr "E-mail, se quiseres resposta"
 #: lib/tcg_cheap_web/components/set_components.ex:197
 #, elixir-autogen, elixir-format
 msgid "Karty do zdobycia"
-msgstr "Cartas que podem sair"
+msgstr "Cartas possíveis"
 
 #: lib/tcg_cheap_web/components/set_components.ex:186
 #, elixir-autogen, elixir-format
@@ -972,7 +972,7 @@ msgstr "Raridade desconhecida"
 #: lib/tcg_cheap_web/live/product_live.ex:205
 #, elixir-autogen, elixir-format
 msgid "Szansa na drop"
-msgstr "Probabilidade de sair"
+msgstr "Probabilidades"
 
 #: lib/tcg_cheap_web/components/set_components.ex:55
 #: lib/tcg_cheap_web/page_markdown.ex:645
@@ -1386,7 +1386,7 @@ msgstr "Booster em pré-venda"
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:57
 #, elixir-autogen, elixir-format
 msgid "Pojedynczy booster"
-msgstr "Saqueta individual"
+msgstr "Booster"
 
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:93
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:356
@@ -1402,7 +1402,7 @@ msgstr "%{packs} a %{price}"
 #: lib/tcg_cheap_web/live/browse_live.ex:653
 #, elixir-autogen, elixir-format
 msgid "Bez towaru: %{cards}"
-msgstr "Esgotado: %{cards}"
+msgstr "Sem stock: %{cards}"
 
 #: lib/tcg_cheap_web/components/verdict_components.ex:81
 #: lib/tcg_cheap_web/live/single_live.ex:283
