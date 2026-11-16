@@ -47,8 +47,10 @@ defmodule TcgCheapWeb.SiteComponents do
   attr :current_path, :string, required: true
 
   # The region (which shops, prices and delivery) and the language (only the
-  # text) are chosen apart. Each option is a link, so both work without
-  # JavaScript; preferences.js also keeps the language in localStorage.
+  # text) are chosen apart, but moving to another region resets the language
+  # to that region's own (`RegionController.switch/2`). Each option is a link,
+  # so both work without JavaScript; preferences.js also keeps the language in
+  # localStorage, from a region link's `data-language` too.
   # At most four languages show: the region's own (`Region`), with the chosen
   # one in the last place when it is not among them; the others wait behind
   # "more".
@@ -90,6 +92,7 @@ defmodule TcgCheapWeb.SiteComponents do
                 href={~p"/region/#{region.code}?#{[path: @current_path]}"}
                 rel="nofollow"
                 aria-current={if(region.code == @region.code, do: "true")}
+                data-language={if(region.code != @region.code, do: region.language)}
                 data-track="region_changed"
                 data-track-to={region.code}
               >
@@ -203,6 +206,7 @@ defmodule TcgCheapWeb.SiteComponents do
         class="region-hint-switch"
         href={~p"/region/#{@suggested.code}?#{[path: @current_path]}"}
         rel="nofollow"
+        data-language={@suggested.language}
         data-track="region_hint_followed"
         data-track-to={@suggested.code}
       >{@switch}</a>
