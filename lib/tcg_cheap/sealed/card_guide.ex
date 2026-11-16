@@ -469,7 +469,7 @@ defmodule TcgCheap.Sealed.CardGuide do
     for expansion <- counts ++ chosen,
         name = Map.get(names, expansion.id),
         do:
-          Map.merge(expansion, %{name: name, region: :en, logo_url: Map.get(logos, expansion.id)})
+          Map.merge(expansion, %{name: name, edition: :en, logo_url: Map.get(logos, expansion.id)})
   end
 
   defp stock_filter(query, :in), do: where(query, [_, _, o], not is_nil(o.price))

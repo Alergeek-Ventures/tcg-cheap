@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.ProductLive do
   import TcgCheapWeb.SiteComponents
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.{Kinds, ProductPage, Regions, RetailDeal}
+  alias TcgCheap.Sealed.{Editions, Kinds, ProductPage, RetailDeal}
   alias TcgCheapWeb.{Analytics, Format, Languages, Paths, Region, SEO, VisitorLocation}
 
   defmodule NotFound do
@@ -76,7 +76,8 @@ defmodule TcgCheapWeb.ProductLive do
       product_slug: product.slug,
       product_name: product.name,
       kind: product.kind,
-      region: product.region,
+      # Events name the edition `region`, as they always have.
+      region: product.edition,
       set_name: product.set_name,
       verdict: verdict.status,
       preorder: page.preorder?,
@@ -173,7 +174,8 @@ defmodule TcgCheapWeb.ProductLive do
                   }
                 >{@page.product.set_name}</.link><span :if={!@page.product.cardmarket_expansion_id}>{@page.product.set_name}</span></span><span id="product-region">
                   {gettext("· wersja %{edition}",
-                    edition: Languages.get(@locale).mid_sentence(Regions.label(@page.product.region))
+                    edition:
+                      Languages.get(@locale).mid_sentence(Editions.label(@page.product.edition))
                   )}
                 </span>
               </p>

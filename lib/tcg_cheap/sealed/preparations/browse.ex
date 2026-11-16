@@ -35,7 +35,7 @@ defmodule TcgCheap.Sealed.Preparations.Browse do
     query
     |> filter_words(words, typos(words))
     |> filter_kind(Ash.Query.get_argument(query, :kind))
-    |> filter_by(:region, Ash.Query.get_argument(query, :region))
+    |> filter_by(:edition, Ash.Query.get_argument(query, :edition))
     |> filter_by(:cardmarket_expansion_id, Ash.Query.get_argument(query, :expansion))
     |> Ash.Query.sort(
       stock_order(Ash.Query.get_argument(query, :stock)) ++

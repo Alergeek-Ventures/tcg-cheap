@@ -109,7 +109,7 @@ defmodule TcgCheap.Sealed.ProductPage do
             Stock.in_stock_filter(market, now) ++
               [
                 cardmarket_expansion_id: id,
-                region: product.region,
+                edition: product.edition,
                 id: [not_eq: product.id]
               ],
           select: Summary.fields()
@@ -165,14 +165,14 @@ defmodule TcgCheap.Sealed.ProductPage do
 
   defp boosters(%Product{contents: nil}), do: %{}
 
-  defp boosters(%Product{contents: contents, region: region}) do
+  defp boosters(%Product{contents: contents, edition: edition}) do
     case for(%{type: :booster, name: set} <- contents.items, set, do: set <> " Booster") do
       [] ->
         %{}
 
       names ->
         names
-        |> Sealed.list_boosters_by_name!(region,
+        |> Sealed.list_boosters_by_name!(edition,
           load: [:stored_photo_small_url, :stored_photo_card_url]
         )
         |> Map.new(&{String.replace_suffix(&1.name, " Booster", ""), &1})
@@ -180,7 +180,7 @@ defmodule TcgCheap.Sealed.ProductPage do
   end
 
   # Smaller English packs share the set's card pool, but not its standard-pack odds.
-  defp booster_set(%Product{kind: :booster, region: :en, cardmarket_expansion_id: id} = product) do
+  defp booster_set(%Product{kind: :booster, edition: :en, cardmarket_expansion_id: id} = product) do
     set = ExpansionCards.read(id)
     Map.put(set, :smaller_pack?, smaller_pack?(product, set.standard_pack_size))
   end
@@ -193,7 +193,7 @@ defmodule TcgCheap.Sealed.ProductPage do
   end
 
   # English odds fit English packs only.
-  defp booster_odds(%Product{region: :en, contents: %{items: items}}, boosters) do
+  defp booster_odds(%Product{edition: :en, contents: %{items: items}}, boosters) do
     items
     |> Enum.filter(&(&1.type == :booster and Map.has_key?(boosters, &1.name)))
     |> Enum.group_by(& &1.name)

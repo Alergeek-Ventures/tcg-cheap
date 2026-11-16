@@ -109,7 +109,7 @@ defmodule TcgCheapWeb.CrawlController do
     in_stock = MapSet.new(products, & &1.cardmarket_expansion_id)
 
     sealed_sets =
-      %{query: "", kind: nil, region: nil, expansion: nil}
+      %{query: "", kind: nil, edition: nil, expansion: nil}
       |> ProductFacets.read()
       |> Map.fetch!(:expansions)
       |> Enum.filter(&MapSet.member?(in_stock, &1.id))

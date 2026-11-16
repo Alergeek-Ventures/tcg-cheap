@@ -43,7 +43,7 @@ defmodule TcgCheap.Sealed.Matcher do
   their display's EAN and one Pokémon's tin under its sibling's.
   """
 
-  alias TcgCheap.Sealed.Regions
+  alias TcgCheap.Sealed.Editions
 
   @stopwords ~w(pokemon tcg ptcg the and of s a z na i w edycja karty kart karta oryginal oryginalne
                 oryginalny angielski angielska angielskie english en eng wersja nowy nowa prerelease
@@ -210,10 +210,10 @@ defmodule TcgCheap.Sealed.Matcher do
   @omissible MapSet.new(~w(blister collection))
 
   # Title qualifiers a product meets without naming them: its language edition
-  # (`TcgCheap.Sealed.Regions`), for a single booster, "pack", for a 1-Pack
+  # (`TcgCheap.Sealed.Editions`), for a single booster, "pack", for a 1-Pack
   # Blister, "checklane" (`checklane/1`) and, for a product sold in a Jumbo
   # version too, "slim" (`meet_slim/1`).
-  @region_words %{ja: "jp", zh: "chinese", ko: "korean", id: "indonesian", th: "thai"}
+  @edition_words %{ja: "jp", zh: "chinese", ko: "korean", id: "indonesian", th: "thai"}
   @kind_words %{booster: "pack"}
 
   # A count of two or more packs, as in "Booster Pack (36 boosterów)", "(36)",
@@ -323,7 +323,7 @@ defmodule TcgCheap.Sealed.Matcher do
           required(:id) => term(),
           required(:name) => String.t(),
           optional(:set_name) => String.t() | nil,
-          optional(:region) => atom(),
+          optional(:edition) => atom(),
           optional(:kind) => atom()
         }
   @type result :: {:matched, term()} | :unmatched | :ambiguous | {:excluded, String.t()}
@@ -336,7 +336,7 @@ defmodule TcgCheap.Sealed.Matcher do
   def index(products, eans \\ %{}) do
     entries =
       for product <- products,
-          {code, name} = Regions.chinese_code(product.name) || {"", product.name},
+          {code, name} = Editions.chinese_code(product.name) || {"", product.name},
           {sch, name_tokens} = name |> product_tokens() |> Enum.split_with(&(&1 == "sch")),
           tokens = MapSet.new(name_tokens),
           MapSet.size(tokens) >= 2,
@@ -764,7 +764,7 @@ defmodule TcgCheap.Sealed.Matcher do
   defp set_ex(product, name_tokens) do
     set = tokens(Map.get(product, :set_name) || "")
 
-    if Map.get(product, :region) == :ja and match?([_, _ | _], set) and List.last(set) == "ex" and
+    if Map.get(product, :edition) == :ja and match?([_, _ | _], set) and List.last(set) == "ex" and
          Enum.count(name_tokens, &(&1 == "ex")) == 1 and
          String.contains?(" #{Enum.join(name_tokens, " ")} ", " #{Enum.join(set, " ")} "),
        do: MapSet.new(["ex"]),
@@ -773,7 +773,7 @@ defmodule TcgCheap.Sealed.Matcher do
 
   defp meets(product, single_blister?, sch?) do
     [
-      Map.get(@region_words, Map.get(product, :region)),
+      Map.get(@edition_words, Map.get(product, :edition)),
       Map.get(@kind_words, Map.get(product, :kind)),
       if(single_blister?, do: "checklane"),
       if(sch?, do: "sch")

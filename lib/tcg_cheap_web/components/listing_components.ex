@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.ListingComponents do
   import TcgCheapWeb.OfferComponents
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.{CardGuide, Kinds, Rarities, Regions}
+  alias TcgCheap.Sealed.{CardGuide, Editions, Kinds, Rarities}
   alias TcgCheapWeb.{Format, Paths, Region}
 
   def card_variant_label(:normal), do: gettext("Zwykła / holo")
@@ -269,9 +269,9 @@ defmodule TcgCheapWeb.ListingComponents do
     set =
       if set && !String.contains?(String.downcase(product.name), String.downcase(set)), do: set
 
-    region = if product.region != :en, do: Regions.label(product.region)
+    edition = if product.edition != :en, do: Editions.label(product.edition)
 
-    [Kinds.label(product.kind), set, region]
+    [Kinds.label(product.kind), set, edition]
     |> Enum.reject(&is_nil/1)
     |> Enum.join(" · ")
   end

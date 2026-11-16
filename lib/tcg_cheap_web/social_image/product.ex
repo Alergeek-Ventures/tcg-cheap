@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.SocialImage.Product do
   def version(%{product: product, verdict: verdict} = page) do
     SocialImage.version(
       {product.name, product.stored_photo_page_url, product.kind, product.set_name,
-       product.region, verdict.status,
+       product.edition, verdict.status,
        verdict.cheapest && {verdict.cheapest.price, verdict.cheapest.shop}, verdict.typical,
        length(verdict.shop_prices), page.past.last_known,
        page.suggested_price && page.suggested_price.price}

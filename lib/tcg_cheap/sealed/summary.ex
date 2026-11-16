@@ -25,7 +25,7 @@ defmodule TcgCheap.Sealed.Summary do
     :slug,
     :name,
     :kind,
-    :region,
+    :edition,
     :set_name,
     :cardmarket_expansion_id,
     :cardmarket_trend

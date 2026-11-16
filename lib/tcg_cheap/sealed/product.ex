@@ -10,7 +10,7 @@ defmodule TcgCheap.Sealed.Product do
     data_layer: AshPostgres.DataLayer,
     extensions: [AshStorage]
 
-  alias TcgCheap.Sealed.{Kinds, Regions}
+  alias TcgCheap.Sealed.{Editions, Kinds}
   alias TcgCheap.Sealed.Preparations.{Browse, PhotosMissingVariant}
   alias TcgCheap.Storage.Calculations.StoredVariant
   alias TcgCheap.Storage.Variants.ResizedImage
@@ -19,6 +19,7 @@ defmodule TcgCheap.Sealed.Product do
     table "sealed_products"
     repo TcgCheap.Repo
 
+    # Custom indexes name database columns: the `edition` attribute is stored in `region`.
     custom_indexes do
       index [:available, :cardmarket_added_on]
       index [:kind]
@@ -58,7 +59,7 @@ defmodule TcgCheap.Sealed.Product do
         :cardmarket_id,
         :name,
         :kind,
-        :region,
+        :edition,
         :cardmarket_category_id,
         :cardmarket_expansion_id,
         :set_name,
@@ -78,7 +79,7 @@ defmodule TcgCheap.Sealed.Product do
       upsert_fields [
         :name,
         :kind,
-        :region,
+        :edition,
         :cardmarket_category_id,
         :cardmarket_expansion_id,
         :set_name,
@@ -166,15 +167,15 @@ defmodule TcgCheap.Sealed.Product do
     read :boosters_by_name do
       description "Single boosters of one edition with these exact names, e.g. \"Delta Reign Booster\"."
       argument :names, {:array, :string}, allow_nil?: false
-      argument :region, :atom, allow_nil?: false, constraints: [one_of: Regions.all()]
-      filter expr(kind == :booster and region == ^arg(:region) and name in ^arg(:names))
+      argument :edition, :atom, allow_nil?: false, constraints: [one_of: Editions.all()]
+      filter expr(kind == :booster and edition == ^arg(:edition) and name in ^arg(:names))
     end
 
     read :browse do
       description "Products for the public list: in stock in the market first, then pre-orders, then the best matches of a search, then newest."
       argument :query, :string, default: ""
       argument :kind, :atom, constraints: [one_of: Kinds.choices()]
-      argument :region, :atom, constraints: [one_of: Regions.all()]
+      argument :edition, :atom, constraints: [one_of: Editions.all()]
       argument :expansion, :integer, description: "A Cardmarket expansion id."
 
       argument :stock, :map,
@@ -189,13 +190,13 @@ defmodule TcgCheap.Sealed.Product do
       description "Every product the public list would show, unpaged, for its filter counts."
       argument :query, :string, default: ""
       argument :kind, :atom, constraints: [one_of: Kinds.choices()]
-      argument :region, :atom, constraints: [one_of: Regions.all()]
+      argument :edition, :atom, constraints: [one_of: Editions.all()]
       argument :expansion, :integer
       prepare Browse
 
       prepare build(
                 select: [
-                  :region,
+                  :edition,
                   :kind,
                   :cardmarket_expansion_id,
                   :set_name,
@@ -214,7 +215,7 @@ defmodule TcgCheap.Sealed.Product do
 
   validations do
     validate one_of(:kind, Kinds.all())
-    validate one_of(:region, Regions.all())
+    validate one_of(:edition, Editions.all())
   end
 
   attributes do
@@ -229,8 +230,9 @@ defmodule TcgCheap.Sealed.Product do
 
     attribute :kind, :atom, allow_nil?: false, public?: true
 
-    attribute :region, :atom do
-      description "Language edition, see `TcgCheap.Sealed.Regions`."
+    attribute :edition, :atom do
+      description "Language edition, see `TcgCheap.Sealed.Editions`."
+      source :region
       allow_nil? false
       default :en
       public? true

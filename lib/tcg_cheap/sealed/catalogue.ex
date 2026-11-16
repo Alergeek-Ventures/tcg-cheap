@@ -10,13 +10,13 @@ defmodule TcgCheap.Sealed.Catalogue do
   start with the most shared one. A colon bounds a variant when an unqualified
   product confirms that boundary. A lone product uses the text before a colon
   in its name. When nothing is convincing the set name stays empty. The
-  language edition comes from `TcgCheap.Sealed.Regions`. The few product and
+  language edition comes from `TcgCheap.Sealed.Editions`. The few product and
   set names Cardmarket's data gets wrong are corrected here; the slug keeps
   Cardmarket's name.
   """
 
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
-  alias TcgCheap.Sealed.{Kinds, Matcher, Regions}
+  alias TcgCheap.Sealed.{Editions, Kinds, Matcher}
 
   @kind_words ~w(booster boosters box boxes bundle elite trainer mini tin tins premium collection
                  display case sleeved jumbo blister pack checklane deck decks battle theme
@@ -89,7 +89,8 @@ defmodule TcgCheap.Sealed.Catalogue do
         end
       end)
 
-    regions = Regions.by_expansion(names, Map.new(tcgdex, fn {id, set} -> {id, set.language} end))
+    editions =
+      Editions.by_expansion(names, Map.new(tcgdex, fn {id, set} -> {id, set.language} end))
 
     Enum.map(products, fn product ->
       name = Map.get(@names, product.id_product, product.name)
@@ -101,8 +102,8 @@ defmodule TcgCheap.Sealed.Catalogue do
         cardmarket_id: product.id_product,
         name: name,
         kind: kind,
-        region:
-          Regions.for_product(product.id_product, Map.fetch!(regions, product.id_expansion)),
+        edition:
+          Editions.for_product(product.id_product, Map.fetch!(editions, product.id_expansion)),
         cardmarket_category_id: product.category_id,
         cardmarket_expansion_id: product.id_expansion,
         set_name: set_name,

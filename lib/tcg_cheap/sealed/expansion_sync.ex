@@ -22,7 +22,7 @@ defmodule TcgCheap.Sealed.ExpansionSync do
 
   alias TcgCheap.Pricing.CardmarketBulk.Adapter
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Matcher, Regions, Tcgdex}
+  alias TcgCheap.Sealed.{Editions, Matcher, Tcgdex}
 
   @languages ~w(en ja)
   @recent_days 183
@@ -84,11 +84,11 @@ defmodule TcgCheap.Sealed.ExpansionSync do
   # a deck, tin or regional variant. Ambiguous names never replace a mapping.
   defp booster_expansions(products) do
     names = Enum.group_by(products, & &1.id_expansion, & &1.name)
-    regions = Regions.by_expansion(names, %{})
+    editions = Editions.by_expansion(names, %{})
 
     products
     |> Enum.filter(fn product ->
-      product.category_id == 52 and regions[product.id_expansion] == :en and
+      product.category_id == 52 and editions[product.id_expansion] == :en and
         String.ends_with?(product.name, " Booster")
     end)
     |> Enum.group_by(

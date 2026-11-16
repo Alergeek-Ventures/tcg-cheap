@@ -131,8 +131,8 @@ defmodule TcgCheapWeb.MarkdownController do
     end
   end
 
-  defp list_filters(expansion, region),
-    do: %{query: "", kind: nil, region: region, expansion: expansion}
+  defp list_filters(expansion, edition),
+    do: %{query: "", kind: nil, edition: edition, expansion: expansion}
 
   defp send_markdown(conn, seo, body) do
     conn

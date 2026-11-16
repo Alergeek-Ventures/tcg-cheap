@@ -40,7 +40,7 @@ defmodule TcgCheap.Sealed.SetPage do
   def booster(id, name, %DateTime{} = now, %Market{} = market) do
     [
       query: [
-        filter: [kind: :booster, region: :en, cardmarket_expansion_id: id],
+        filter: [kind: :booster, edition: :en, cardmarket_expansion_id: id],
         select: Summary.fields()
       ],
       load: [
@@ -80,7 +80,7 @@ defmodule TcgCheap.Sealed.SetPage do
 
     [
       query: [
-        filter: [cardmarket_expansion_id: id, region: :en, name: [in: Map.keys(names)]],
+        filter: [cardmarket_expansion_id: id, edition: :en, name: [in: Map.keys(names)]],
         select: [:name, :cardmarket_trend]
       ]
     ]

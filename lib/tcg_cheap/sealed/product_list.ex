@@ -16,7 +16,7 @@ defmodule TcgCheap.Sealed.ProductList do
   @type filters :: %{
           query: String.t(),
           kind: atom() | nil,
-          region: atom() | nil,
+          edition: atom() | nil,
           expansion: integer() | nil
         }
 
@@ -32,7 +32,7 @@ defmodule TcgCheap.Sealed.ProductList do
       Sealed.browse_products!(
         filters.query,
         filters.kind,
-        filters.region,
+        filters.edition,
         filters.expansion,
         Stock.list_order(market, now),
         page: [limit: page_size(filters), offset: offset, count: true],

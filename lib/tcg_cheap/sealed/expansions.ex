@@ -38,7 +38,7 @@ defmodule TcgCheap.Sealed.Expansions do
   def newest(count) do
     :newest_expansions
     |> Cache.fetch(fn ->
-      %{query: "", kind: nil, region: :en, expansion: nil}
+      %{query: "", kind: nil, edition: :en, expansion: nil}
       |> ProductFacets.read()
       |> Map.fetch!(:expansions)
       |> Enum.map(&Map.take(&1, [:id, :name]))
@@ -53,7 +53,7 @@ defmodule TcgCheap.Sealed.Expansions do
       |> Map.new(fn {id, set} -> {id, set.name} end)
 
     sealed =
-      ProductFacets.read(%{query: "", kind: nil, region: nil, expansion: nil}).expansions
+      ProductFacets.read(%{query: "", kind: nil, edition: nil, expansion: nil}).expansions
       |> Map.new(&{&1.id, &1.name})
 
     Map.merge(catalogue, sealed)

@@ -1,4 +1,4 @@
-defmodule TcgCheap.Sealed.Regions do
+defmodule TcgCheap.Sealed.Editions do
   @moduledoc """
   The language edition of a product, decided per Cardmarket expansion (every
   product of an expansion shares it), except for the few products Cardmarket
@@ -21,7 +21,7 @@ defmodule TcgCheap.Sealed.Regions do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  @regions [
+  @editions [
     en: "Angielska",
     ja: "Japońska",
     zh: "Chińska",
@@ -108,13 +108,13 @@ defmodule TcgCheap.Sealed.Regions do
   @non_letter ~r/[^a-z]+/
 
   @spec all() :: [atom()]
-  def all, do: Keyword.keys(@regions)
+  def all, do: Keyword.keys(@editions)
 
   @spec label(atom()) :: String.t()
-  def label(region), do: translate_label(Keyword.fetch!(@regions, region))
+  def label(edition), do: translate_label(Keyword.fetch!(@editions, edition))
 
   @spec labels() :: keyword(String.t())
-  def labels, do: Enum.map(@regions, fn {key, label} -> {key, translate_label(label)} end)
+  def labels, do: Enum.map(@editions, fn {key, label} -> {key, translate_label(label)} end)
 
   defp translate_label("Angielska"), do: gettext("Angielska")
   defp translate_label("Japońska"), do: gettext("Japońska")
@@ -127,21 +127,21 @@ defmodule TcgCheap.Sealed.Regions do
   @spec tag(atom()) :: String.t()
   def tag(:ja), do: "JP"
   def tag(:zh), do: "CN"
-  def tag(region), do: region |> Atom.to_string() |> String.upcase()
+  def tag(edition), do: edition |> Atom.to_string() |> String.upcase()
 
   @doc """
-  The region of every expansion, given the product names per expansion and
+  The edition of every expansion, given the product names per expansion and
   the TCGdex languages found for expansions (`%{expansion_id => "ja"}`).
   """
   @spec by_expansion(%{integer() => [String.t()]}, %{integer() => String.t()}) ::
           %{integer() => atom()}
   def by_expansion(names, tcgdex) do
     Map.new(names, fn {expansion, names} ->
-      region =
+      edition =
         from_names(names) || from_tcgdex(Map.get(tcgdex, expansion)) ||
           Map.get(@known, expansion, :en)
 
-      {expansion, region}
+      {expansion, edition}
     end)
   end
 
@@ -158,10 +158,10 @@ defmodule TcgCheap.Sealed.Regions do
     end
   end
 
-  @doc "The region of a product, given its Cardmarket id and its expansion's region."
+  @doc "The edition of a product, given its Cardmarket id and its expansion's edition."
   @spec for_product(integer(), atom()) :: atom()
-  def for_product(cardmarket_id, expansion_region),
-    do: Map.get(@known_products, cardmarket_id, expansion_region)
+  def for_product(cardmarket_id, expansion_edition),
+    do: Map.get(@known_products, cardmarket_id, expansion_edition)
 
   defp from_names(names) do
     case names |> Enum.map(&from_name/1) |> Enum.reject(&is_nil/1) |> Enum.frequencies() do
@@ -169,8 +169,8 @@ defmodule TcgCheap.Sealed.Regions do
         nil
 
       counts ->
-        {region, count} = Enum.max_by(counts, &elem(&1, 1))
-        if count * 3 >= length(names), do: region
+        {edition, count} = Enum.max_by(counts, &elem(&1, 1))
+        if count * 3 >= length(names), do: edition
     end
   end
 
@@ -188,5 +188,5 @@ defmodule TcgCheap.Sealed.Regions do
     end
   end
 
-  defp from_words({tags, region}, words), do: Enum.any?(tags, &(&1 in words)) && region
+  defp from_words({tags, edition}, words), do: Enum.any?(tags, &(&1 in words)) && edition
 end

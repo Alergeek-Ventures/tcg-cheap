@@ -146,7 +146,7 @@ defmodule TcgCheapWeb.BrowseLive do
       query: params |> query_param() |> String.trim() |> String.slice(0, @max_query_length),
       kind: if(mode == :products, do: Map.get(@kind_params, params["rodzaj"])),
       expansion: expansion,
-      region: if(mode == :products, do: region_param(params["wersja"], expansion))
+      edition: if(mode == :products, do: edition_param(params["wersja"], expansion))
     }
   end
 
@@ -194,7 +194,7 @@ defmodule TcgCheapWeb.BrowseLive do
   defp ok_or_nil({:ok, id}), do: id
   defp ok_or_nil(:error), do: nil
 
-  defp sealed_filters(filters), do: Map.take(filters, [:query, :kind, :region, :expansion])
+  defp sealed_filters(filters), do: Map.take(filters, [:query, :kind, :edition, :expansion])
 
   # The cards the same words find when products find none, often a Pokémon's
   # name typed into the products list. A chosen kind means a product was meant.
@@ -223,7 +223,7 @@ defmodule TcgCheapWeb.BrowseLive do
     socket
     |> assign(
       filters: filters,
-      facets: %{expansions: expansions, regions: [], kinds: []},
+      facets: %{expansions: expansions, editions: [], kinds: []},
       card_matches: 0,
       form: to_form(%{"q" => filters.query}),
       result_count: count + out_count,
@@ -325,7 +325,7 @@ defmodule TcgCheapWeb.BrowseLive do
 
   defp track_changes(%{assigns: %{filters: filters}} = socket, previous) do
     changed =
-      Enum.filter([:kind, :region, :expansion], &(Map.get(previous, &1) != Map.get(filters, &1)))
+      Enum.filter([:kind, :edition, :expansion], &(Map.get(previous, &1) != Map.get(filters, &1)))
 
     socket
     |> track_search(previous.query, filters.query)
@@ -346,13 +346,22 @@ defmodule TcgCheapWeb.BrowseLive do
   defp track_filters(%{assigns: %{filters: filters}} = socket, changed) do
     if filtered?(filters) do
       Enum.reduce(changed, socket, fn filter, socket ->
-        properties = Map.merge(list_properties(socket), %{filter: filter, value: filters[filter]})
+        properties =
+          Map.merge(list_properties(socket), %{
+            filter: event_filter(filter),
+            value: filters[filter]
+          })
+
         Analytics.track(socket, "filter_changed", properties)
       end)
     else
       Analytics.track(socket, "filters_cleared", list_properties(socket))
     end
   end
+
+  # Events name the edition filter `region`.
+  defp event_filter(:edition), do: :region
+  defp event_filter(filter), do: filter
 
   defp list_properties(%{assigns: assigns}) do
     %{filters: filters, facets: facets} = assigns
@@ -361,7 +370,8 @@ defmodule TcgCheapWeb.BrowseLive do
       mode: filters.mode,
       query: filters.query,
       kind: filters.kind,
-      region: filters.region,
+      # Events name the edition `region`, as they always have.
+      region: filters.edition,
       expansion: filters.expansion,
       expansion_name:
         Enum.find_value(facets.expansions, &(&1.id == filters.expansion && &1.name)),
@@ -554,10 +564,10 @@ defmodule TcgCheapWeb.BrowseLive do
               />
               <input :if={@filters.kind} type="hidden" name="rodzaj" value={@filters.kind} />
               <input
-                :if={region_value(@filters)}
+                :if={edition_value(@filters)}
                 type="hidden"
                 name="wersja"
-                value={region_value(@filters)}
+                value={edition_value(@filters)}
               />
             </.form>
             <nav id="guide-mode" class="guide-mode" aria-label={gettext("Szukaj w katalogu")}>
@@ -570,14 +580,14 @@ defmodule TcgCheapWeb.BrowseLive do
                     list_path(@filters,
                       mode: :products,
                       kind: nil,
-                      region: default_region(@filters.expansion)
+                      edition: default_edition(@filters.expansion)
                     )
                   }
                 >{gettext("Produkty")}</.link>
               <% end %>
               <.link
                 id="mode-cards"
-                patch={list_path(@filters, mode: :cards, kind: nil, region: nil)}
+                patch={list_path(@filters, mode: :cards, kind: nil, edition: nil)}
                 aria-current={if(@filters.mode == :cards, do: "true")}
               >{gettext("Karty")}</.link>
             </nav>
@@ -615,7 +625,7 @@ defmodule TcgCheapWeb.BrowseLive do
                     <.link
                       :if={@card_matches > 0}
                       id="guide-empty-cards"
-                      patch={list_path(@filters, mode: :cards, kind: nil, region: nil)}
+                      patch={list_path(@filters, mode: :cards, kind: nil, edition: nil)}
                     >{gettext("Pokaż pasujące karty: %{count}", count: @card_matches)}</.link>
                   <% end %>
                   <.link
@@ -626,7 +636,7 @@ defmodule TcgCheapWeb.BrowseLive do
                         expansion: nil,
                         expansion_name: nil,
                         kind: nil,
-                        region: default_region(nil)
+                        edition: default_edition(nil)
                       )
                     }
                   >{if(@filters.mode == :cards,

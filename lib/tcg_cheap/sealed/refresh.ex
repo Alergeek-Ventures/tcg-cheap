@@ -45,12 +45,12 @@ defmodule TcgCheap.Sealed.Refresh do
   @dropped_below_percent 30
 
   # Matching reads names and set names; availability compares and updates
-  # the rest. Kind and region stay for the product's validations.
+  # the rest. Kind and edition stay for the product's validations.
   @product_fields [
     :name,
     :set_name,
     :kind,
-    :region,
+    :edition,
     :available,
     :lowest_price,
     :lowest_preorder_price,
