@@ -728,7 +728,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
           height="134"
           loading="lazy"
         />
-        <span class="boosters-card-name">{card.item.name}</span>
+        <span class="boosters-card-name">{card.item.name && Format.recorded(card.item.name)}</span>
         <span :if={card_note(card)} class="boosters-card-set">{card_note(card)}</span>
         <strong :if={card.value}>{Format.shop_price(card.value)}</strong>
         <span :if={!card.value} class="boosters-card-missing">{gettext("brak ceny")}</span>
@@ -1251,8 +1251,8 @@ defmodule TcgCheapWeb.BoosterPriceLive do
           do: card.item.cardmarket_id
 
     Enum.find_value(one.cards, fn card ->
-      card.item.type == :promo_card and MapSet.member?(ids, card.item.cardmarket_id) and
-        card.item.name
+      (card.item.type == :promo_card and MapSet.member?(ids, card.item.cardmarket_id) and
+         card.item.name) && Format.recorded(card.item.name)
     end)
   end
 

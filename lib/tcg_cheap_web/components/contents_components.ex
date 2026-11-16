@@ -398,7 +398,9 @@ defmodule TcgCheapWeb.ContentsComponents do
 
   defp deck_title(%{type: type}) when type != :deck, do: gettext("Karty w zestawie")
   defp deck_title(%{name: nil}), do: gettext("Karty w talii")
-  defp deck_title(%{name: deck}), do: gettext("Karty w talii %{deck}", deck: deck)
+
+  defp deck_title(%{name: deck}),
+    do: gettext("Karty w talii %{deck}", deck: Format.recorded(deck))
 
   @category_order ["Pokemon", "Trainer", "Energy"]
   defp category_rank(category),
