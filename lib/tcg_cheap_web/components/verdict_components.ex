@@ -167,6 +167,10 @@ defmodule TcgCheapWeb.VerdictComponents do
   attr :class, :any, default: nil
 
   attr :shipping, :boolean, default: false
+  # The click's analytics properties: where the link is, and what it opens.
+  attr :placement, :string, required: true
+  attr :cardmarket_id, :integer, required: true
+  attr :card, :any, default: nil
 
   def cardmarket_price(assigns) do
     ~H"""
@@ -176,6 +180,10 @@ defmodule TcgCheapWeb.VerdictComponents do
       target="_blank"
       rel="noopener nofollow"
       class={["cardmarket-price", @class]}
+      data-track="cardmarket_link_clicked"
+      data-track-placement={@placement}
+      data-track-cardmarket-id={@cardmarket_id}
+      data-track-card={@card}
       title={
         if(@shipping,
           do: gettext("Cena na Cardmarket z wysyłką"),
@@ -243,7 +251,14 @@ defmodule TcgCheapWeb.VerdictComponents do
           </span>
         </p>
         <p class="reference-link">
-          <a href={cardmarket_url(@product.cardmarket_id)} target="_blank" rel="noopener nofollow">
+          <a
+            href={cardmarket_url(@product.cardmarket_id)}
+            target="_blank"
+            rel="noopener nofollow"
+            data-track="cardmarket_link_clicked"
+            data-track-placement="product_reference"
+            data-track-cardmarket-id={@product.cardmarket_id}
+          >
             {gettext("Zobacz na Cardmarket")} →
           </a>
         </p>

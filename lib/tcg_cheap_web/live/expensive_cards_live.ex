@@ -416,6 +416,8 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                     target="_blank"
                     rel="noopener nofollow"
                     class="cardmarket-price"
+                    data-track="cardmarket_link_clicked"
+                    data-track-placement="expensive_intro"
                   ><img src={~p"/images/cardmarket.png"} alt="" width="16" height="16" />Cardmarket</a>{gettext(
                     ", największym takim serwisie w Europie. Najdroższe z nich kosztują dziś nie miliony dolarów, tylko tysiące złotych."
                   )

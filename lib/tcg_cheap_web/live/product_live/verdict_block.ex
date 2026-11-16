@@ -168,6 +168,8 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
         <.cardmarket_price
           price={@verdict.typical}
           href={cardmarket_url(@page.product.cardmarket_id)}
+          placement="verdict"
+          cardmarket_id={@page.product.cardmarket_id}
         />
         <span>{gettext("na Cardmarket, bez wysyłki")}</span>
       </p>

@@ -137,6 +137,9 @@ defmodule TcgCheapWeb.ContentsComponents do
                     href={cardmarket_url(item.cardmarket_id)}
                     target="_blank"
                     rel="noopener nofollow"
+                    data-track="cardmarket_link_clicked"
+                    data-track-placement="contents_item"
+                    data-track-cardmarket-id={item.cardmarket_id}
                   >{label}</a>
                 <% true -> %>
                   {label}
@@ -358,6 +361,9 @@ defmodule TcgCheapWeb.ContentsComponents do
                   href={cardmarket_url(card.cardmarket_id)}
                   target="_blank"
                   rel="noopener nofollow"
+                  data-track="cardmarket_link_clicked"
+                  data-track-placement="deck_list"
+                  data-track-cardmarket-id={card.cardmarket_id}
                 >{card.name}</a>
                 <span :if={!card.cardmarket_id}>{card.name}</span>
                 <span :if={card.set} class="contents-card-set">{card.set} {card.number}</span>
