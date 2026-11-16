@@ -566,7 +566,7 @@ defmodule TcgCheapWeb.CardValueLive do
     do: gettext("od %{price}", price: Format.whole_price(from))
 
   defp range_label(%{from: from, to: to}),
-    do: gettext("od %{from} do %{to}", from: Format.number(from), to: Format.whole_price(to))
+    do: gettext("od %{from} do %{to}", from: Format.range_start(from), to: Format.whole_price(to))
 
   defp percent(0, _total), do: "0%"
 

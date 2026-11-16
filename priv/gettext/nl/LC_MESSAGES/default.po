@@ -795,7 +795,7 @@ msgstr "Duurder dan in de afgelopen %{days} dagen"
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:203
 #, elixir-autogen, elixir-format
 msgid "Historia cen"
-msgstr "Prijsgeschiedenis"
+msgstr "Prijsverloop"
 
 #: lib/tcg_cheap_web/components/verdict_components.ex:112
 #, elixir-autogen, elixir-format
@@ -898,13 +898,13 @@ msgstr "%{hits} van %{packs} pakjes"
 #, elixir-autogen, elixir-format
 msgid "1 na %{number} paczkę"
 msgid_plural "1 na %{number} paczki"
-msgstr[0] "1 op %{number} pakje"
-msgstr[1] "1 op %{number} pakjes"
+msgstr[0] "1 op de %{number} booster"
+msgstr[1] "1 op de %{number} boosters"
 
 #: lib/tcg_cheap_web/format.ex:276
 #, elixir-autogen, elixir-format
 msgid "1 na %{packs} paczki"
-msgstr "1 op %{packs} pakjes"
+msgstr "1 op de %{packs} boosters"
 
 #: lib/tcg_cheap_web/components/site_components.ex:320
 #, elixir-autogen, elixir-format
@@ -2992,7 +2992,7 @@ msgstr "(prijslijst van november 2026). Daar komen verzending heen en terug en m
 #: lib/tcg_cheap_web/social_image.ex:507
 #, elixir-autogen, elixir-format
 msgid "1 na %{count}"
-msgstr "1 op %{count}"
+msgstr "1 op de %{count}"
 
 #: lib/tcg_cheap_web/live/card_value_live.ex:400
 #, elixir-autogen, elixir-format
@@ -4189,7 +4189,7 @@ msgstr "circa %{amount} duizend %{currency}"
 #: lib/tcg_cheap_web/live/single_live.ex:277
 #, elixir-autogen, elixir-format
 msgid "trend na Cardmarket, bez wysyłki"
-msgstr "Cardmarket-trend, zonder verzending"
+msgstr "Cardmarket-trend, excl. verzending"
 
 #: lib/tcg_cheap_web/components/site_components.ex:269
 #, elixir-autogen, elixir-format

@@ -1028,7 +1028,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
 
     if low == high,
       do: Format.whole_price(high),
-      else: "#{Format.number(low)}–#{Format.whole_price(high)}"
+      else: Format.whole_price_range(low, high)
   end
 
   defp tile_value(row), do: Format.whole_price(row.value)

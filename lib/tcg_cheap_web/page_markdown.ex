@@ -245,7 +245,7 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   defp spread_range(%{from: 0, to: to}), do: "poniżej #{Format.whole_price(to)}"
   defp spread_range(%{from: from, to: nil}), do: "od #{Format.whole_price(from)}"
-  defp spread_range(%{from: from, to: to}), do: "#{Format.number(from)}–#{Format.whole_price(to)}"
+  defp spread_range(%{from: from, to: to}), do: Format.whole_price_range(from, to)
 
   defp spread_share(count, total) do
     case round(count * 100 / total) do

@@ -29,7 +29,8 @@ defmodule TcgCheapWeb.Languages.Dutch do
   def short_date(date), do: "#{date.day}#{@nbsp}#{Enum.at(@short_months, date.month - 1)}"
 
   @impl true
-  def mid_sentence(name), do: String.downcase(name)
+  # Dutch writes language names with a capital letter mid-sentence too ("taal: Engels").
+  def mid_sentence(name), do: name
 
   @impl true
   def decimal_separator, do: ","
