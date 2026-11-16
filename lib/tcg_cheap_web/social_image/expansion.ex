@@ -11,7 +11,7 @@ defmodule TcgCheapWeb.SocialImage.Expansion do
   alias TcgCheapWeb.{Format, SocialImage}
   alias TcgCheapWeb.SocialImage.{Figures, Picture}
 
-  @doc "A version of what the preview shows (`TcgCheap.Sealed.Guide.expansion/3`)."
+  @doc "A version of what the preview shows (`TcgCheap.Sealed.SetPage.read/3`)."
   @spec version(String.t(), map()) :: String.t()
   def version(name, set_page) do
     top = top_card(set_page)
@@ -24,7 +24,7 @@ defmodule TcgCheapWeb.SocialImage.Expansion do
   end
 
   @doc """
-  The preview from the expansion's set page (`TcgCheap.Sealed.Guide.expansion/3`).
+  The preview from the expansion's set page (`TcgCheap.Sealed.SetPage.read/3`).
   """
   @spec draw(String.t(), map()) :: SocialImage.result()
   def draw(name, set_page) do

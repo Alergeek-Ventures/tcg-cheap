@@ -12,6 +12,8 @@ defmodule TcgCheap.Sealed.ExpansionLogo do
     domain: TcgCheap.Sealed,
     data_layer: AshPostgres.DataLayer
 
+  alias TcgCheap.Sealed
+  alias TcgCheap.Sealed.{Cache, CardImage, TcgdexSet}
   alias TcgCheap.Sealed.Validations.{HttpsUrls, ImageHost}
 
   postgres do
@@ -64,5 +66,48 @@ defmodule TcgCheap.Sealed.ExpansionLogo do
 
     create_timestamp :inserted_at
     update_timestamp :updated_at
+  end
+
+  @doc "The expansions' mirrored logos by Cardmarket expansion id."
+  @spec mirrored_urls() :: %{integer() => String.t()}
+  def mirrored_urls do
+    # Cache sources, not object keys: replacing a mirrored image deletes the
+    # previous objects, so each render resolves the currently stored variants.
+    # Logos show at most ~5.5rem tall, mostly as ~2rem expansion filter tiles:
+    # the thumbnail is sharp there, and half the bytes of a large logo's detail.
+    sources = Cache.fetch(:logo_sources, &read_sources/0)
+
+    mirrored =
+      sources
+      |> Enum.map(&CardImage.source_hash(elem(&1, 1)))
+      |> TcgCheap.Storage.mirrored_image_urls(:thumbnail)
+
+    # TCGdex last, so its mirrored logo replaces a set one.
+    for {id, source} <- sources,
+        url = Map.get(mirrored, CardImage.source_hash(source)),
+        into: %{},
+        do: {id, url}
+  end
+
+  # Per expansion, the mirrored English TCGdex logo, else the mirrored logo
+  # set for it (any edition). Only mirrored images are shown, so a tile never
+  # shows a broken image.
+  defp read_sources do
+    tcgdex =
+      for {id, %{language: "en", logo_url: "" <> url}} <-
+            TcgdexSet.by_expansion(
+              Sealed.list_tcgdex_sets!(
+                query: [select: [:cardmarket_expansion_id, :language, :name, :logo_url]]
+              )
+            ),
+          source = CardImage.logo_source_url(url),
+          do: {id, source}
+
+    set =
+      for logo <- Sealed.list_expansion_logos!(),
+          source = CardImage.expansion_logo_source_url(logo.url),
+          do: {logo.cardmarket_expansion_id, source}
+
+    set ++ tcgdex
   end
 end

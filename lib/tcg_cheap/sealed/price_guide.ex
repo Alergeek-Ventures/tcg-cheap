@@ -41,6 +41,7 @@ defmodule TcgCheap.Sealed.PriceGuide do
   @min_days_with_stock 7
   @good_factor Decimal.new("0.95")
   @normal_factor Decimal.new("1.10")
+  @deal_min_ratio Decimal.new("0.6")
 
   @type status ::
           :good | :normal | :expensive | :cardmarket | :insufficient_data | :out_of_stock
@@ -157,6 +158,32 @@ defmodule TcgCheap.Sealed.PriceGuide do
   """
   @spec usual([day()], Date.t()) :: Decimal.t() | nil
   def usual(history, %Date{} = today), do: history |> window_prices(today) |> usual_of()
+
+  @doc """
+  How many whole percent `price` is under `reference`; `nil` when it is not
+  under it or rounds to 0 %, so that no "-0%" is shown.
+  """
+  @spec discount_percent(Decimal.t(), Decimal.t()) :: pos_integer() | nil
+  def discount_percent(price, reference) do
+    if Decimal.lt?(price, reference) do
+      percent =
+        Decimal.new(1)
+        |> Decimal.sub(Decimal.div(price, reference))
+        |> Decimal.mult(100)
+        |> Decimal.round(0)
+        |> Decimal.to_integer()
+
+      if percent > 0, do: percent
+    end
+  end
+
+  @doc """
+  The least a deal's price may be of its reference: more than 40% under it, an
+  offer is more often matched to the wrong product (half a booster box, a
+  promo's other print) than a real deal.
+  """
+  @spec deal_min_ratio() :: Decimal.t()
+  def deal_min_ratio, do: @deal_min_ratio
 
   defp window_prices(history, today) do
     window_start = Date.add(today, -(@window_days - 1))

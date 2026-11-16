@@ -9,7 +9,7 @@ defmodule TcgCheapWeb.PageMarkdown do
   use TcgCheapWeb, :verified_routes
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheap.Sealed.{CardGuide, Guide, Kinds, PriceGuide, Rarities, Regions, RetailDeal}
+  alias TcgCheap.Sealed.{CardGuide, Kinds, Market, PriceGuide, Rarities, Regions, RetailDeal}
 
   alias TcgCheapWeb.{
     CardRecords,
@@ -332,7 +332,7 @@ defmodule TcgCheapWeb.PageMarkdown do
   defp cardmarket_trend(%{price: price, rate: rate}) do
     trend = price && price.trend
 
-    case trend |> Guide.to_pln(rate) |> Region.from_pln() do
+    case trend |> Market.to_pln(rate) |> Region.from_pln() do
       nil ->
         gettext("Brak ceny Cardmarket.")
 

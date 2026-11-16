@@ -19,7 +19,7 @@ defmodule TcgCheap.Sealed.AgentTools.CardTools do
     CardPrice,
     CardReference,
     CardRefresh,
-    Guide,
+    Market,
     Matcher,
     TcgdexCard,
     TcgdexSet
@@ -41,7 +41,7 @@ defmodule TcgCheap.Sealed.AgentTools.CardTools do
   end
 
   defp perform(:search, args) do
-    rate = Guide.eur_pln(Date.utc_today())
+    rate = Market.eur_pln(Date.utc_today())
 
     query =
       from(c in TcgdexCard,
@@ -127,7 +127,7 @@ defmodule TcgCheap.Sealed.AgentTools.CardTools do
       end
 
     query = offer_filters(query, args)
-    rate = Guide.eur_pln(Date.utc_today())
+    rate = Market.eur_pln(Date.utc_today())
     list_query(operation, query, args, %{rate: rate, latest: latest})
   end
 

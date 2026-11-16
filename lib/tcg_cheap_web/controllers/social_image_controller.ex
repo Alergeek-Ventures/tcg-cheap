@@ -14,7 +14,19 @@ defmodule TcgCheapWeb.SocialImageController do
   use TcgCheapWeb, :controller
 
   alias AshStorage.Service.Context
-  alias TcgCheap.Sealed.{CardGuide, CardValue, Catalogue, ExpensiveCards, Guide}
+
+  alias TcgCheap.Sealed.{
+    BoosterGuide,
+    CardGuide,
+    CardValue,
+    Catalogue,
+    Expansions,
+    ExpensiveCards,
+    ProductPage,
+    SetPage,
+    SinglesBanner
+  }
+
   alias TcgCheapWeb.{Paths, SocialImage}
 
   require Logger
@@ -28,7 +40,7 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def product(conn, %{"slug" => slug}) do
-    case Guide.product(slug, DateTime.utc_now(), conn.assigns.region.market) do
+    case ProductPage.read(slug, DateTime.utc_now(), conn.assigns.region.market) do
       {:ok, page} ->
         key =
           "social/#{region_prefix(conn)}products/#{page.product.slug}-#{SocialImage.Product.version(page)}.jpg"
@@ -59,19 +71,15 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def cards(conn, _params) do
-    case Guide.singles_market() do
-      nil ->
-        not_found(conn)
+    market = SinglesBanner.market()
 
-      market ->
-        serve(conn, "social/cards-#{SocialImage.Cards.version(market)}.jpg", fn ->
-          SocialImage.Cards.draw(market)
-        end)
-    end
+    serve(conn, "social/cards-#{SocialImage.Cards.version(market)}.jpg", fn ->
+      SocialImage.Cards.draw(market)
+    end)
   end
 
   def boosters(conn, _params) do
-    page = Guide.booster_prices(DateTime.utc_now())
+    page = BoosterGuide.prices(DateTime.utc_now())
 
     serve(conn, "social/boosters-#{SocialImage.BoosterPrices.version(page)}.jpg", fn ->
       SocialImage.BoosterPrices.draw(page)
@@ -82,7 +90,7 @@ defmodule TcgCheapWeb.SocialImageController do
   def expansion(conn, %{"slug" => slug}) do
     with {:ok, id, name} <- known_expansion(slug),
          true <- slug == Catalogue.slug(name, id) do
-      set_page = Guide.expansion(id, name, DateTime.utc_now())
+      set_page = SetPage.read(id, name, DateTime.utc_now())
       version = SocialImage.Expansion.version(name, set_page)
 
       serve(conn, "social/expansions/#{slug}-#{version}.jpg", fn ->
@@ -113,7 +121,7 @@ defmodule TcgCheapWeb.SocialImageController do
   # unknown id in a crawler's URL must not clear the cache for everyone.
   defp known_expansion(slug) do
     with {:ok, id} <- Paths.expansion_id(slug),
-         {:ok, name} <- Map.fetch(Guide.expansion_names(), id) do
+         {:ok, name} <- Map.fetch(Expansions.names(), id) do
       {:ok, id, name}
     else
       _unknown -> :error

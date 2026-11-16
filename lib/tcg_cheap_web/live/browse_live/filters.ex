@@ -191,7 +191,7 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
   attr :facets, :map, required: true
   attr :all_expansions?, :boolean, required: true
 
-  # The sets, English ones first (`TcgCheap.Sealed.Guide.facets/1`): beside
+  # The sets, English ones first (`TcgCheap.Sealed.ProductFacets.read/1`): beside
   # the list on a wide screen, a shelf above it on a narrow one.
   def set_column(assigns) do
     {first, rest} = split_expansions(assigns.facets.expansions, assigns.filters.expansion)

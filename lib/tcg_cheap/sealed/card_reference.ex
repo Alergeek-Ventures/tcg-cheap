@@ -5,7 +5,7 @@ defmodule TcgCheap.Sealed.CardReference do
   a registered letter from Poland costs €2.80. Special patterns are separate
   products without a reference here. Missing or zero prices stay unknown.
   """
-  alias TcgCheap.Sealed.Guide
+  alias TcgCheap.Sealed.Market
 
   @spec delivered_eur(Decimal.t() | nil) :: Decimal.t() | nil
   def delivered_eur(%Decimal{} = trend) do
@@ -23,6 +23,6 @@ defmodule TcgCheap.Sealed.CardReference do
 
   def pln(price, variant, rate) do
     trend = if variant == :reverse, do: price.trend_holo, else: price.trend
-    trend |> delivered_eur() |> Guide.to_pln(rate)
+    trend |> delivered_eur() |> Market.to_pln(rate)
   end
 end

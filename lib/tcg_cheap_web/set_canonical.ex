@@ -18,7 +18,7 @@ defmodule TcgCheapWeb.SetCanonical do
 
   import Plug.Conn
 
-  alias TcgCheap.Sealed.Guide
+  alias TcgCheap.Sealed.Expansions
   alias TcgCheapWeb.{Paths, SEO}
 
   def init(opts), do: opts
@@ -50,7 +50,7 @@ defmodule TcgCheapWeb.SetCanonical do
 
   def resolve(path_params, params) do
     with {:ok, id, params} <- expansion(path_params, params),
-         name when is_binary(name) <- Map.get(Guide.expansion_names([id]), id) do
+         name when is_binary(name) <- Map.get(Expansions.names([id]), id) do
       {:ok, SEO.Expansion.path(id, name), params}
     else
       _unknown -> :error

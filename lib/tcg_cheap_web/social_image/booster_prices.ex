@@ -25,7 +25,7 @@ defmodule TcgCheapWeb.SocialImage.BoosterPrices do
     )
   end
 
-  @doc "The preview from `TcgCheap.Sealed.Guide.booster_prices/1`."
+  @doc "The preview from `TcgCheap.Sealed.BoosterGuide.prices/1`."
   @spec draw(map()) :: SocialImage.result()
   def draw(page) do
     SocialImage.with_slot(fn ->

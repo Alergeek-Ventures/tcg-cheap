@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.BrowseLive.ChaseBanners do
   import TcgCheapWeb.OfferComponents
   import TcgCheapWeb.VerdictComponents
 
-  alias TcgCheap.Sealed.{CardImage, Guide, Kinds, Rarities}
+  alias TcgCheap.Sealed.{CardImage, Kinds, PriceGuide, Rarities}
   alias TcgCheapWeb.{Format, Paths, RegionText}
 
   attr :booster, :map, required: true
@@ -154,7 +154,7 @@ defmodule TcgCheapWeb.BrowseLive.ChaseBanners do
 
   # How far the cheapest offer is under the reference, when it is.
   defp booster_discount(%{price: price}, {_source, reference, _shops}),
-    do: Guide.discount_percent(price, reference)
+    do: PriceGuide.discount_percent(price, reference)
 
   defp booster_discount(_cheapest, _reference), do: nil
 

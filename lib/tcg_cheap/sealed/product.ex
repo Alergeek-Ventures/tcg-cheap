@@ -320,4 +320,15 @@ defmodule TcgCheap.Sealed.Product do
     identity :cardmarket_id, [:cardmarket_id]
     identity :slug, [:slug]
   end
+
+  @pack_size ~r/\((\d+) Cards?\)/i
+
+  @doc "The number of cards the product's name gives for a smaller pack, `(10 Cards)`, else nil."
+  @spec pack_size(t()) :: non_neg_integer() | nil
+  def pack_size(%__MODULE__{name: name}) do
+    case Regex.run(@pack_size, name) do
+      [_, count] -> String.to_integer(count)
+      nil -> nil
+    end
+  end
 end
