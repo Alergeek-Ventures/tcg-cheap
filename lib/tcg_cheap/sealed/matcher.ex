@@ -244,9 +244,11 @@ defmodule TcgCheap.Sealed.Matcher do
   @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult|imperfekci)/
 
   # Two or more pieces ("x3", "10x", "36 szt", "3 sztuki"); "1 szt" is still one item.
-  # Not Swedish "st": shops write it for a bundle's contents ("6 st boosters")
-  # and purchase limits ("Max 2 st per kund").
-  @multiples ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuki|sztuk|szt|pcs))(?: |\z)/
+  # Swedish "st" counts pieces only where a title starts with it ("3st Pokemon
+  # Lost Origin Boosters" is three boosters sold together): elsewhere shops
+  # write it for a bundle's contents ("6 st boosters", "(36st)") and purchase
+  # limits ("Max 2 st per kund").
+  @multiples ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuki|sztuk|szt|pcs))(?: |\z)|\A(?:[2-9]|[1-9]\d{1,2}) ?st /
 
   # A shop's purchase limit in a title ("MAX 2 PER KUND", "Max 2 st per kund") names no product.
   @purchase_limit ~r/ max \d+ (?:st )?per kund /
