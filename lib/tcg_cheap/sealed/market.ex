@@ -5,7 +5,8 @@ defmodule TcgCheap.Sealed.Market do
   market; the others record their own daily prices.
 
   A shop takes part in a market when its home `country` is the market's
-  (domestic: its price counts without delivery, as Polish shops' always has)
+  and it sells there (`Shop.home_market`; domestic: its price counts without
+  delivery, as Polish shops' always has)
   or it has a known delivery to the market's country (`Shop.deliveries`): its
   price then counts with that delivery, none from the free-delivery
   threshold. A shop whose delivery there has no known price is only listed,
@@ -84,7 +85,8 @@ defmodule TcgCheap.Sealed.Market do
 
   @doc "How a shop (`Shops.fetch/1`'s result) takes part in the market."
   @spec terms({:ok, Shop.t()} | :error, t()) :: terms()
-  def terms({:ok, %Shop{country: country}}, %__MODULE__{country: country}), do: :domestic
+  def terms({:ok, %Shop{country: country, home_market: true}}, %__MODULE__{country: country}),
+    do: :domestic
 
   def terms({:ok, %Shop{deliveries: deliveries}}, %__MODULE__{country: country}) do
     case deliveries do
@@ -136,6 +138,26 @@ defmodule TcgCheap.Sealed.Market do
     for {offer, _item, %Decimal{} = compared} <- priced(offers, market, today),
         do: %{offer | price: compared}
   end
+
+  @doc """
+  The order value from which a shop's delivery to the market is free, in the
+  market's currency; nil when it has none there or it cannot be converted.
+  """
+  @spec free_delivery_from(terms(), t(), Date.t()) :: Decimal.t() | nil
+  def free_delivery_from(
+        {:delivered, %{free_shipping_from: %Decimal{} = from} = delivery},
+        market,
+        today
+      ) do
+    rates = Map.new([delivery.currency, market.currency], &{&1, pln_rate(&1, today)})
+
+    case convert(from, delivery.currency, market, rates) do
+      {:ok, converted} -> converted
+      :error -> nil
+    end
+  end
+
+  def free_delivery_from(_terms, _market, _today), do: nil
 
   @doc """
   The rates `compared/3` needs for these offers that are missing or too old,

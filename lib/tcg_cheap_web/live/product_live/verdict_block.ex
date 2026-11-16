@@ -70,7 +70,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
       </p>
       <p class="verdict-nearby-value">
         <a
-          href={@nearby.offer.url}
+          href={offer_url(@nearby.offer)}
           target="_blank"
           rel="noopener nofollow"
           data-track="shop_link_clicked"

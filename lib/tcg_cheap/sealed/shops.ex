@@ -33,6 +33,7 @@ defmodule TcgCheap.Sealed.Shops do
   alias TcgCheap.Sealed.{Market, Shop}
 
   alias TcgCheap.Sealed.ShopFeed.{
+    BangerpackSe,
     Chasedex,
     GoogleFeed,
     NopCommerce,
@@ -75,7 +76,15 @@ defmodule TcgCheap.Sealed.Shops do
 
   # A shop abroad is read through a client that checks the currency of its
   # prices, from a country whose words the offer list has (`TcgCheap.Countries`).
-  @abroad_sources [Shopify, WooCommerce, Chasedex, NopCommerce, Shoptet, GoogleFeed]
+  @abroad_sources [
+    Shopify,
+    WooCommerce,
+    Chasedex,
+    NopCommerce,
+    Shoptet,
+    GoogleFeed,
+    BangerpackSe
+  ]
 
   for shop <- @shops, shop.currency != "PLN" or shop.country != "PL" do
     unless shop.source in @abroad_sources and Countries.fetch(shop.country) != :error,

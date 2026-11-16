@@ -29,6 +29,9 @@ defmodule TcgCheap.Sealed.Shop do
       products are ignored;
     * `country` – the ISO code of the shop's home country, "PL" for a Polish
       shop; a shop abroad shows it with its delivery;
+    * `home_market` – false for a shop that does not sell to its own country,
+      whose buyers there have another of its shops (Bangerpack's bangerpack.com
+      beside bangerpack.se): it takes part only in the markets it delivers to;
     * `deliveries` – the shop's known deliveries abroad, by the ISO code of
       the country delivered to: `shipping_from` (the cheapest delivery price,
       nil when unknown), `free_shipping_from` (the order value from which it
@@ -88,6 +91,7 @@ defmodule TcgCheap.Sealed.Shop do
                 :preorder_path,
                 :pickup_location,
                 country: "PL",
+                home_market: true,
                 deliveries: %{},
                 currency: "PLN",
                 singles_only: false,
@@ -120,6 +124,7 @@ defmodule TcgCheap.Sealed.Shop do
           currency: String.t(),
           singles_only: boolean(),
           country: String.t(),
+          home_market: boolean(),
           deliveries: %{String.t() => delivery()},
           images: boolean(),
           shipping_from: Decimal.t() | nil,

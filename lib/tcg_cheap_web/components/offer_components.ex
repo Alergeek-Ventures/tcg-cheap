@@ -6,7 +6,8 @@ defmodule TcgCheapWeb.OfferComponents do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Countries
-  alias TcgCheap.Sealed.{Market, Shops}
+  alias TcgCheap.Sealed.{Market, Shop, Shops}
+  alias TcgCheap.Sealed.ShopFeed.Shopify
   alias TcgCheapWeb.{Format, Region, VisitorLocation}
 
   @spec shop_name(map()) :: String.t()
@@ -57,6 +58,25 @@ defmodule TcgCheapWeb.OfferComponents do
     text
     |> then(&Regex.replace(~r/(?<![\p{L}\p{N}])([zwZW]|[zwZW]e) /u, &1, "\\1\u00A0"))
     |> String.replace(" –", "\u00A0–")
+  end
+
+  @doc """
+  The link to an offer for a buyer in the region's country. A Shopify shop
+  shows the prices, currency and delivery of the country its link names
+  (`?country=SE`), so the link to a shop abroad names the region's; other
+  shops' links stay as they were read.
+  """
+  @spec offer_url(map()) :: String.t()
+  def offer_url(%{shop: key, url: url}) do
+    country = Region.current().market.country
+
+    case Shops.fetch(key) do
+      {:ok, %Shop{source: Shopify, country: home}} when home != country ->
+        url |> URI.parse() |> URI.append_query("country=" <> country) |> URI.to_string()
+
+      _other ->
+        url
+    end
   end
 
   @doc """
@@ -159,7 +179,7 @@ defmodule TcgCheapWeb.OfferComponents do
         </span>
       </p>
       <a
-        href={@offer.url}
+        href={offer_url(@offer)}
         target="_blank"
         rel="noopener nofollow"
         class="offer-link"
@@ -251,13 +271,24 @@ defmodule TcgCheapWeb.OfferComponents do
          _km,
          _near?
        ) do
+    market = Region.current().market
+
     included =
       case Decimal.sub(compared, price) do
-        %Decimal{coef: 0} -> gettext("w tym darmowa dostawa")
-        shipping -> gettext("w tym dostawa %{amount}", amount: Format.shop_price(shipping))
+        %Decimal{coef: 0} ->
+          [gettext("w tym darmowa dostawa")]
+
+        shipping ->
+          threshold =
+            Market.free_delivery_from(Market.terms({:ok, shop}, market), market, Date.utc_today())
+
+          [
+            gettext("w tym dostawa %{amount}", amount: Format.shop_price(shipping)),
+            threshold && free_from_term(threshold)
+          ]
       end
 
-    [origin_term(shop.country), included]
+    Enum.filter([origin_term(shop.country) | included], &is_binary/1)
   end
 
   defp market_delivery_terms(:domestic, shop, price, _compared, km, near?),
@@ -279,16 +310,27 @@ defmodule TcgCheapWeb.OfferComponents do
        when country != "PL" do
     included =
       case shipping(delivery, price) do
-        :free -> gettext("w tym darmowa dostawa")
-        {:from, from} -> gettext("w tym dostawa %{amount}", amount: Format.shop_price(from))
+        :free ->
+          [gettext("w tym darmowa dostawa")]
+
+        {:from, from} ->
+          [
+            gettext("w tym dostawa %{amount}", amount: Format.shop_price(from)),
+            delivery.free_shipping_from && free_from_term(delivery.free_shipping_from)
+          ]
       end
 
-    [abroad_term(country), included]
+    Enum.filter([abroad_term(country) | included], &is_binary/1)
   end
 
   defp polish_delivery_terms(shop, price, km, near?),
     do:
       domestic_delivery_terms(to_poland(shop), abroad_term(shop.country), price, km, near?, shop)
+
+  # The order value from which delivery to the buyer's country is free: it
+  # tells whether adding to the basket there pays off.
+  defp free_from_term(threshold),
+    do: gettext("darmowa od %{amount}", amount: Format.shop_price(threshold))
 
   # The shop's own delivery terms (a shop abroad only listed: none known).
   defp domestic_delivery_terms(delivery, origin, price, km, near?, shop) do
