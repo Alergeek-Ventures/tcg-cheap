@@ -48,7 +48,7 @@ defmodule TcgCheap.Sealed.Matcher do
   @stopwords ~w(pokemon tcg ptcg the and of s a z na i w edycja karty kart karta oryginal oryginalne
                 oryginalny angielski angielska angielskie english en eng wersja nowy nowa prerelease
                 engelsk engelska engelskt forboka forbokning forhandsboka forhandsbokning
-                angol kiadas foliazott elorendeles elorendelheto)
+                angol kiadas foliazott elorendeles elorendelheto em ingles inglesa versao)
 
   @plurals %{
     "boosters" => "booster",
@@ -129,6 +129,22 @@ defmodule TcgCheap.Sealed.Matcher do
     {"chinesisch", "chinese"},
     {"japanse", "jp"},
     {"koreaanse", "korean"},
+    # Portuguese shops name edition languages in Portuguese and use "saqueta"
+    # for an individual booster.
+    {"saqueta de cartas", "booster"},
+    {"saqueta", "booster"},
+    {"japones", "jp"},
+    {"japonesa", "jp"},
+    {"coreano", "korean"},
+    {"coreana", "korean"},
+    {"chines", "chinese"},
+    {"chinesa", "chinese"},
+    {"espanhol", "spanish"},
+    {"espanhola", "spanish"},
+    {"frances", "french"},
+    {"francesa", "french"},
+    {"alemao", "german"},
+    {"alema", "german"},
     # Hungarian shops do the same ("Booster Box - (Koreai)", "(Japán kiadás)");
     # "angol", "kiadás" (edition) and "Fóliázott" (shrink-wrapped) are noise.
     {"koreai", "korean"},
@@ -203,7 +219,7 @@ defmodule TcgCheap.Sealed.Matcher do
   # Words of a title that sells a pre-order ("Przedsprzedaż", "przedpremierowy",
   # Swedish "Förboka", "Förhandsbokning", "Förhandsbeställning", Hungarian
   # "Előrendelés", "Előrendelhető"…).
-  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|forbok|forhandsbok|forhandsbest|forbest|elorendel)/
+  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|pre venda|pre reserva|prevenda|prereserva|forbok|forhandsbok|forhandsbest|forbest|elorendel)/
 
   @exclusions [
     "zestaw",
@@ -221,6 +237,16 @@ defmodule TcgCheap.Sealed.Matcher do
     # Swedish: "(Boosters ingår ej)", boosters not included.
     # Hungarian: "(Fólia nélkül)", without the shrink wrap, like "bez folii".
     "folia nelkul",
+    # Portuguese: without boosters, without seal, opened, used, and a tin or
+    # box of random design, which names no one product.
+    "sem booster",
+    "sem boosters",
+    "sem selo",
+    "aberto",
+    "aberta",
+    "usado",
+    "usada",
+    "design aleatorio",
     "ingar ej",
     "utan booster",
     "utan boosters",

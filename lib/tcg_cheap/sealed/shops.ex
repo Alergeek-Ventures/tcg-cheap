@@ -36,6 +36,7 @@ defmodule TcgCheap.Sealed.Shops do
     BangerpackSe,
     Chasedex,
     GoogleFeed,
+    Jumpseller,
     NopCommerce,
     Shopify,
     Shoptet,
@@ -83,7 +84,8 @@ defmodule TcgCheap.Sealed.Shops do
     NopCommerce,
     Shoptet,
     GoogleFeed,
-    BangerpackSe
+    BangerpackSe,
+    Jumpseller
   ]
 
   for shop <- @shops, shop.currency != "PLN" or shop.country != "PL" do

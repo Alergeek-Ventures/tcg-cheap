@@ -55,10 +55,9 @@ defmodule TcgCheap.Sealed.Shop do
       IdoSell: `feed_path` (a Pokémon category or search listing, query
       included);
     * shops read from their HTML listings: `feed_path` (the one listing) or,
-      for PrestaShop, shopGold, Selly, SOTE and Shoptet,
+      for PrestaShop, shopGold, Selly, SOTE, Shoptet and Jumpseller,
       `listing_paths` (the Pokémon category listings, each read to its last
-      page); Shoper
-      listings, WooCommerce and Shopify: `mixed_listing` (true when the
+      page); Shoper listings, Jumpseller, WooCommerce and Shopify: `mixed_listing` (true when the
       category also lists other games, so a title must say Pokémon); Shoper
       listings: `preorder_path` (the shop's own listing of pre-orders, which
       never count as in stock);

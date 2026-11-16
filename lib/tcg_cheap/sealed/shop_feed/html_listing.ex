@@ -162,8 +162,9 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   whether a title is a sealed Pokémon product; every product of a singles
   listing (`{:single, product}`, see `read_singles/2`) is a single, priced
   with the singles minimum, whose category is its listing's `category`. Links
-  and images, relative to the shop's host, are made absolute on it. Listings
-  carry no EAN.
+  and images, relative to the shop's host, are made absolute on it. Absolute
+  image URLs are accepted only from the source's declared image hosts.
+  Listings carry no EAN.
   """
   @spec offers(Shop.t(), [product() | {:single, product()}], (String.t() -> boolean())) ::
           [ShopFeed.offer()]
@@ -223,7 +224,7 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   defp image_url(shop, "/" <> _path = image),
     do: ShopFeed.image_url("https://#{shop.host}#{image}", [shop.host])
 
-  defp image_url(shop, image), do: ShopFeed.image_url(image, [shop.host])
+  defp image_url(shop, image), do: ShopFeed.image_url(image, shop.source.image_hosts(shop))
 
   @doc "The text of a node (or the first of a list), whitespace collapsed; nil when empty."
   @spec text(Floki.html_tree() | Floki.html_node() | nil) :: String.t() | nil
