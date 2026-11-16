@@ -10,7 +10,13 @@ defmodule TcgCheap.Sealed.Shop do
       `singles_attribute` (`{attribute taxonomy, term id}` every single must
       have, for a shop whose singles mix languages; nil for none);
     * Shopify: `collection` (the Pokémon collection handle; nil reads the
-      whole shop);
+      whole shop), `excluded_markers` (vendors, product types or tags, each
+      compared whole and case-insensitively, that take a product out of the
+      sealed ones: graded cards, discontinued products; nil for none) and
+      `singles_markers` (the same kind of values; a shop with them reads its
+      whole list for singles, and a product is a single when it says Pokémon
+      in its title or vendor and carries one of them; nil to read
+      `singles_categories`);
     * `singles_categories` – where the shop lists single cards; nil disables
       singles. Google Merchant and Ceneo feeds: category path prefixes;
       WooCommerce: category ids (subcategories included); Shopify:
@@ -84,6 +90,8 @@ defmodule TcgCheap.Sealed.Shop do
                 :singles_attribute,
                 :product_path,
                 :collection,
+                :excluded_markers,
+                :singles_markers,
                 :feed_path,
                 :feed_host,
                 :listing_paths,
@@ -116,6 +124,8 @@ defmodule TcgCheap.Sealed.Shop do
           singles_attribute: {String.t(), pos_integer()} | nil,
           product_path: Regex.t() | nil,
           collection: String.t() | nil,
+          excluded_markers: [String.t()] | nil,
+          singles_markers: [String.t()] | nil,
           feed_path: String.t() | nil,
           feed_host: String.t() | nil,
           listing_paths: [String.t()] | nil,

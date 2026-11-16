@@ -13,10 +13,12 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       name: "Psydeck",
       host: "psydeck.com",
       source: Shopify,
-      collection: "pokemon",
+      # PSA is the vendor of its graded cards.
+      excluded_markers: ["PSA"],
       currency: "EUR",
       country: "PT",
-      max_pages: 10,
+      # 2 pages in November 2026.
+      max_pages: 4,
       shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil

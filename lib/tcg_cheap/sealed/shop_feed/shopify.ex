@@ -6,15 +6,19 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
   `max_pages` pages. The shop's currency (`/meta.json`) must be its
   configured `currency`. Every product of the shop's `singles_categories`
   (collection handles, each read the same way) is a single, priced with a
-  0.10 minimum, without a category (see `with_kind/2`).
+  0.10 minimum, without a category (see `with_kind/2`). A shop with
+  `singles_markers` reads its whole list instead, and a product is a single
+  when its title or vendor says Pokémon and it carries one of the markers.
 
   Price and availability are per variant, so each variant is one offer. A
   product counts as sealed when its title names a sealed product
-  (`TcgCheap.Sealed.Matcher.sealed_title?/1`) and, when the whole shop is
-  read, also says Pokémon. Product URLs are built from the validated handle;
-  images (the variant's own, else the product's) may come from the shop's
-  host or Shopify's CDN; EANs come from
-  variant SKUs. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
+  (`TcgCheap.Sealed.Matcher.sealed_title?/1`), none of the shop's
+  `excluded_markers` is its vendor, product type or tag and, when the whole
+  shop is read, its title or vendor also says Pokémon (`mixed_listing: false`
+  declares a shop that sells only Pokémon, so nothing has to say it). Product
+  URLs are built from the validated handle; images (the variant's own, else
+  the product's) may come from the shop's host or Shopify's CDN; EANs come
+  from variant SKUs. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
 
   Shopify limits bots that do not sign their requests most strictly (its
   changelog, May 2026): in November 2026 every listing request from production
@@ -27,9 +31,9 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
 
   With the signature, `/products.json` answers, while
   `/collections/<handle>/products.json` still gets 429 (production,
-  2026-11-15). A shop whose whole list holds the same sealed Pokémon products
-  as its collection is therefore configured without a `collection`; its
-  products then count only while their titles say Pokémon.
+  2026-11-15). Shops are therefore configured without a `collection` and
+  their own filter picks the Pokémon products out of the whole list (the
+  whole list is paged to its end, so `max_pages` must cover it).
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
@@ -64,6 +68,12 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
 
   defp sealed_products(shop, req_options),
     do: fetch_pages(shop, products_path(shop), req_options, 1, [])
+
+  defp singles_products(%Shop{singles_markers: [_ | _] = markers} = shop, req_options) do
+    with {:ok, products} <- fetch_pages(shop, "/products.json", req_options, 1, []) do
+      {:ok, Enum.filter(products, &(pokemon?(&1) and marked?(&1, markers)))}
+    end
+  end
 
   defp singles_products(%Shop{singles_categories: nil}, _req_options), do: {:ok, []}
 
@@ -121,7 +131,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
 
   defp normalize(shop, {kind, %{"variants" => [_ | _] = variants} = product}) do
     with {:ok, title} <- ShopFeed.title(product["title"]),
-         true <- (kind == :single or sealed?(shop, title)) || :ignore,
+         true <- (kind == :single or sealed?(shop, product, title)) || :ignore,
          {:ok, handle} <- handle(product["handle"]) do
       product_offer = %{
         kind: kind,
@@ -151,10 +161,36 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
   # card matcher would take for a conflicting set, so singles have no category.
   defp with_kind(offer, :single), do: Map.merge(offer, %{kind: :single, category: nil})
 
-  defp sealed?(%Shop{mixed_listing: true}, title), do: ShopFeed.sealed_pokemon?(title, nil)
+  defp sealed?(shop, product, title) do
+    not marked?(product, shop.excluded_markers) and Matcher.sealed_title?(title) and
+      (pokemon_only?(shop) or pokemon?(product))
+  end
 
-  defp sealed?(%Shop{collection: nil}, title), do: ShopFeed.sealed_pokemon?(title, nil)
-  defp sealed?(_shop, title), do: Matcher.sealed_title?(title)
+  # A collection lists only Pokémon, and so does the whole list of a shop
+  # declared `mixed_listing: false`.
+  defp pokemon_only?(%Shop{mixed_listing: nil, collection: collection}), do: is_binary(collection)
+  defp pokemon_only?(%Shop{mixed_listing: mixed}), do: mixed == false
+
+  # The title or the vendor says Pokémon ("Pokemon", "Pokémon Company").
+  defp pokemon?(product), do: Enum.any?([product["title"], product["vendor"]], &pokemon_text?/1)
+
+  defp pokemon_text?(text) when is_binary(text),
+    do:
+      text
+      |> Matcher.normalize()
+      |> String.split()
+      |> Enum.any?(&String.starts_with?(&1, "pokemon"))
+
+  defp pokemon_text?(_text), do: false
+
+  defp marked?(_product, nil), do: false
+
+  defp marked?(product, markers) do
+    values = [product["vendor"], product["product_type"] | List.wrap(product["tags"])]
+    markers = Enum.map(markers, &String.downcase/1)
+
+    Enum.any?(values, &(is_binary(&1) and String.downcase(&1) in markers))
+  end
 
   defp handle(handle) when is_binary(handle) and byte_size(handle) <= 255 do
     if Regex.match?(@handle, handle), do: {:ok, handle}, else: :error

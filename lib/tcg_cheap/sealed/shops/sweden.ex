@@ -85,10 +85,12 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       name: "TCGstore",
       host: "tcgstore.se",
       source: Shopify,
-      collection: "pokemon-kort",
+      # Its vendor for discontinued products.
+      excluded_markers: ["Utgått ur sortiment"],
       currency: "SEK",
       country: "SE",
-      max_pages: 6,
+      # 13 pages in November 2026.
+      max_pages: 16,
       shipping_from: Decimal.new("39"),
       free_shipping_from: Decimal.new("2999"),
       pickup_city: nil
@@ -98,9 +100,9 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       name: "Samlarhobby",
       host: "www.samlarhobby.se",
       source: Shopify,
-      collection: "pokemon",
       currency: "SEK",
       country: "SE",
+      # 6 pages in November 2026.
       max_pages: 8,
       shipping_from: Decimal.new("89"),
       free_shipping_from: Decimal.new("2000"),
@@ -111,9 +113,11 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       name: "PokeTalk",
       host: "www.poketalk.se",
       source: Shopify,
-      collection: "pokemon-tcg-alla-produkter",
+      # Its RareFinds singles are tagged by format.
+      excluded_markers: ["format:raw", "format:graded"],
       currency: "SEK",
       country: "SE",
+      # 3 pages in November 2026.
       max_pages: 5,
       shipping_from: nil,
       free_shipping_from: nil,
@@ -136,10 +140,10 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       name: "Dragon's Lair",
       host: "dragonslair.se",
       source: Shopify,
-      collection: "pokemon-the-trading-card-game",
       currency: "SEK",
       country: "SE",
-      max_pages: 5,
+      # 38 pages in November 2026: the shop sells many board games.
+      max_pages: 45,
       shipping_from: Decimal.new("49"),
       free_shipping_from: nil,
       pickup_city: "Stockholm"
@@ -149,10 +153,10 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       name: "Kortarkivet",
       host: "kortarkivet.se",
       source: Shopify,
-      collection: "pokemon-tcg",
       currency: "SEK",
       country: "SE",
-      max_pages: 2,
+      # 3 pages in November 2026.
+      max_pages: 5,
       shipping_from: Decimal.new("59"),
       free_shipping_from: Decimal.new("1500"),
       pickup_city: nil
@@ -162,10 +166,10 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       name: "Auroradex",
       host: "auroradex.se",
       source: Shopify,
-      collection: "allt-inom-pokemon",
       currency: "SEK",
       country: "SE",
-      max_pages: 2,
+      # 3 pages in November 2026.
+      max_pages: 5,
       shipping_from: Decimal.new("59"),
       free_shipping_from: Decimal.new("2499"),
       pickup_city: nil
@@ -187,10 +191,13 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       name: "Rahtech",
       host: "rahtech.se",
       source: Shopify,
-      collection: "pokemon",
+      # It sells only Pokémon: its titles seldom say so.
+      mixed_listing: false,
+      excluded_markers: ["format:raw", "format:graded"],
       currency: "SEK",
       country: "SE",
-      max_pages: 2,
+      # 1 page in November 2026.
+      max_pages: 3,
       shipping_from: Decimal.new("69"),
       free_shipping_from: nil,
       pickup_city: "Malmö"
@@ -200,10 +207,10 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       name: "Cardshop Sweden",
       host: "cardshopsweden.se",
       source: Shopify,
-      collection: "alla-produkter",
       currency: "SEK",
       country: "SE",
-      max_pages: 1,
+      # 1 page in November 2026.
+      max_pages: 3,
       shipping_from: Decimal.new("65"),
       free_shipping_from: Decimal.new("2999"),
       pickup_city: nil
@@ -237,10 +244,10 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       name: "Card Club",
       host: "cardclub.se",
       source: Shopify,
-      collection: "pokemon-sealed",
       currency: "SEK",
       country: "SE",
-      max_pages: 2,
+      # 6 pages in November 2026.
+      max_pages: 8,
       shipping_from: Decimal.new("89"),
       free_shipping_from: Decimal.new("3000"),
       pickup_city: nil

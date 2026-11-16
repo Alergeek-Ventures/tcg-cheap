@@ -13,10 +13,10 @@ defmodule TcgCheap.Sealed.Shops.Germany do
       name: "God of Cards",
       host: "godofcards.com",
       source: Shopify,
-      collection: "pokemon-tcg",
       currency: "EUR",
       country: "DE",
-      max_pages: 10,
+      # 6 pages in November 2026.
+      max_pages: 8,
       shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil
@@ -26,10 +26,12 @@ defmodule TcgCheap.Sealed.Shops.Germany do
       name: "CardCosmos",
       host: "cardcosmos.de",
       source: Shopify,
-      collection: "pokemon-karten-kaufen",
+      # Graded cards, singles and accessories carry these tags.
+      excluded_markers: ["Graded", "Einzelkarten", "Zubehör"],
       currency: "EUR",
       country: "DE",
-      max_pages: 10,
+      # 16 pages in November 2026.
+      max_pages: 20,
       shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil

@@ -15,10 +15,12 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       name: "PokeFamily",
       host: "pokefamily.nl",
       source: Shopify,
-      collection: "pokemon",
+      # Its Rip & Ship products are packs opened live for the buyer.
+      excluded_markers: ["Pokémon R&S"],
       currency: "EUR",
       country: "NL",
-      max_pages: 10,
+      # 4 pages in November 2026.
+      max_pages: 6,
       shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil
@@ -40,10 +42,11 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       name: "Bescards",
       host: "www.bescards.com",
       source: Shopify,
-      collection: "pokemon-sealed",
+      excluded_markers: ["product:single"],
       currency: "EUR",
       country: "NL",
-      max_pages: 10,
+      # 14 pages in November 2026.
+      max_pages: 18,
       shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil
@@ -53,10 +56,10 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       name: "Beam Card Shop",
       host: "beamcardshop.com",
       source: Shopify,
-      collection: "all-pokemon",
       currency: "EUR",
       country: "NL",
-      max_pages: 10,
+      # 3 pages in November 2026.
+      max_pages: 5,
       shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil
@@ -80,12 +83,13 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       name: "TCG King",
       host: "tcgking.nl",
       source: Shopify,
-      # "all" also lists One Piece and Lorcana cards and sealed products;
-      # this collection holds exactly its Pokémon singles (November 2026).
-      singles_categories: ["pokemon-all-singles"],
+      # Its list also holds other games' cards and sealed products: a single
+      # here is a Pokémon product of the "Single Card" type.
+      singles_markers: ["Single Card"],
       currency: "EUR",
       singles_only: true,
       country: "NL",
+      # 16 pages in November 2026.
       max_pages: 20,
       shipping_from: nil,
       free_shipping_from: nil,
