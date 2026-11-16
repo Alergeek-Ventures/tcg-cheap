@@ -569,14 +569,18 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
   delivery of a small parcel to an Amsterdam address, in the currency the shop
   quoted it, read from the shops' carts or delivery pages on 2026-11-16. No
   shop publishes a free-delivery threshold for the Netherlands. Shops abroad
-  without a known price for the Netherlands are left out.
+  without a known price for the Netherlands are left out. The Shopify shops
+  whose cart answered Dutch buyers in euro charge them prices of their own
+  (`price_currency`): the German and Portuguese ones as for Croatia, the
+  Swedish and Polish ones in euro instead of their kronor or złoty.
   """
   def deliveries do
     %{
       "cardcosmos" => %{
         shipping_from: Decimal.new("24.99"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "cardverse" => %{
         shipping_from: Decimal.new("3000"),
@@ -591,12 +595,14 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       "godofcards" => %{
         shipping_from: Decimal.new("6.90"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "hobbykort" => %{
         shipping_from: Decimal.new("12.95"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "kartonada" => %{
         shipping_from: Decimal.new("36.36"),
@@ -621,17 +627,20 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       "poketalk" => %{
         shipping_from: Decimal.new("14.95"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "psydeck" => %{
         shipping_from: Decimal.new("15"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "rahtech" => %{
         shipping_from: Decimal.new("18.95"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "rgfk" => %{
         shipping_from: Decimal.new("34"),
@@ -646,12 +655,14 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       "skarbieckart" => %{
         shipping_from: Decimal.new("5.95"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "skladgier" => %{
         shipping_from: Decimal.new("16.95"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       "tcgwebshop" => %{
         shipping_from: Decimal.new("8000"),
