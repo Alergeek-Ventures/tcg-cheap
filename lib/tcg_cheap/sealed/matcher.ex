@@ -881,7 +881,7 @@ defmodule TcgCheap.Sealed.Matcher do
 
   # Slovenian titles repeat the series and set number ("ME - Mega Evolution 6:
   # Delta Reign"); the leading ME and number name no product variant.
-  @series_number ~r/(?:\A| )me \d+ /
+  @series_number ~r/(?:\A| )me (?:mega evolution )?\d+ /
 
   @doc "The significant word tokens of a title or product name."
   @spec tokens(String.t()) :: [String.t()]
