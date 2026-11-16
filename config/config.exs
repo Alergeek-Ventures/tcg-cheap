@@ -113,9 +113,17 @@ config :tcg_cheap, Oban,
     shopify: 1,
     media: 1
   ],
-  # Jobs orphaned by a restart return to the queue; shop fetches are unique
-  # while executing, so a stuck one would otherwise block its shop for good.
-  lifeline: [rescue_after: {60, :minutes}],
+  # A deploy stops the application a few seconds after it asks (container
+  # stop), so running jobs get only moments to finish: all of them can run
+  # again from their start or their saved progress, and a stopped one goes
+  # back to the queue at once (TcgCheap.JobShutdown).
+  shutdown_grace_period: :timer.seconds(5),
+  # What a kill leaves executing (nothing ran TcgCheap.JobShutdown) returns to
+  # the queue; shop fetches are unique while executing, so a stuck one would
+  # otherwise block its shop for good. The Lifeline cannot tell a dead job
+  # from a slow one, so this stays above the longest job timeout of any
+  # worker (20 minutes).
+  lifeline: [rescue_after: {25, :minutes}],
   plugins: [
     {Oban.Plugins.Pruner, max_age: 7 * 24 * 60 * 60},
     {Oban.Plugins.Cron,

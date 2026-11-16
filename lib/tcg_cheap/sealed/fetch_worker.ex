@@ -7,11 +7,20 @@ defmodule TcgCheap.Sealed.FetchWorker do
   and would hold up every other shop, and one at a time keeps a single pace
   towards Shopify, which may count the bot across all its shops.
 
-  A fetch the shop rate-limited (HTTP 429), or a Shopify fetch that ran out
-  of time (most likely waiting out `Retry-After`s), is retried 20 and then 40
+  A shop is read in steps, so that a restart (every deploy) costs at most the
+  request in flight: a step reads for two minutes, and when the shop is not
+  yet read to its end the job snoozes and runs again at once. The responses
+  already read are kept for the job (`TcgCheap.Sealed.FetchJournal`), and a
+  step replays them without asking the shop. A job a restart interrupted
+  returns to the queue when the application stops
+  (`TcgCheap.JobShutdown`), or else by the Lifeline (config.exs). The offers
+  are stored by the step that reads the last response, never before.
+
+  A fetch the shop rate-limited (HTTP 429) is retried 20 and then 40
   minutes later, plus up to 5 minutes of jitter so rate-limited shops do not
   return together; Oban's default backoff (seconds) would ask again while the
-  shop still refuses us. Other failures keep the default backoff.
+  shop still refuses us. The retry goes on from the responses already read.
+  Other failures keep the default backoff.
 
   A failure on the last attempt is reported with `TcgCheap.Sealed.FetchFailure`:
   an error the fetch returns by `perform/1`, and a raise, crash or Oban timeout,
@@ -33,9 +42,12 @@ defmodule TcgCheap.Sealed.FetchWorker do
 
   require Logger
 
-  alias TcgCheap.Sealed.{FetchFailure, Refresh, Shops}
+  alias TcgCheap.Sealed.{FetchFailure, FetchJournal, Refresh, Shops}
 
   alias TcgCheap.Sealed.ShopFeed.Shopify
+
+  # Seconds. The shop's own pause comes before each request anyway.
+  @next_step_in 1
 
   @worker inspect(__MODULE__)
   @failure_handler "sealed-fetch-failures"
@@ -86,26 +98,18 @@ defmodule TcgCheap.Sealed.FetchWorker do
   defp failure_reason(%Oban.TimeoutError{}), do: :timeout
   defp failure_reason(exception), do: exception
 
-  # Within the Lifeline's 60 minutes (config.exs), after which a job still
-  # executing counts as orphaned and is run again. A Shopify shop that prices
-  # several countries apart reads its whole list once for each
-  # (`TcgCheap.Sealed.ShopFeed.Shopify`): about 100 requests 15 s apart for
-  # the largest in November 2026.
+  # One step: its two minutes of reading, a request that was still to finish
+  # (a pause, a wait out of a `Retry-After`), and the last step's storing,
+  # which may take 5 minutes (`Refresh.transaction_timeout/0`). Well within
+  # the Lifeline's time (config.exs), after which a job still executing
+  # counts as orphaned and is run again.
   @impl Oban.Worker
-  def timeout(%Oban.Job{queue: "shopify"}), do: :timer.minutes(55)
-  def timeout(_job), do: :timer.minutes(5)
+  def timeout(_job), do: :timer.minutes(10)
 
   @impl Oban.Worker
   def backoff(%Oban.Job{
         attempt: attempt,
         unsaved_error: %{reason: %Oban.PerformError{reason: {:error, {:http_status, 429}}}}
-      }),
-      do: rate_limited_backoff(attempt)
-
-  def backoff(%Oban.Job{
-        attempt: attempt,
-        queue: "shopify",
-        unsaved_error: %{reason: %Oban.TimeoutError{}}
       }),
       do: rate_limited_backoff(attempt)
 
@@ -140,25 +144,45 @@ defmodule TcgCheap.Sealed.FetchWorker do
 
   defp refresh(shop, job) do
     options = Application.get_env(:tcg_cheap, __MODULE__, [])
+    journal = FetchJournal.open(job.id, shop.key, Keyword.take(options, [:budget_ms]))
+    req_options = [journal: journal] ++ Keyword.get(options, :req_options, [])
 
-    case Refresh.run(shop, req_options: Keyword.get(options, :req_options, [])) do
-      {:ok, %{offers: count}} ->
-        Logger.info("sealed fetch #{shop.key}: #{count} offers")
-        :ok
-
-      # Only the last attempt is a failed fetch: an earlier one is retried and
-      # may still read the shop the same night.
-      {:error, reason} when job.attempt < job.max_attempts ->
-        Logger.warning(
-          "sealed fetch #{shop.key} failed (attempt #{job.attempt} of #{job.max_attempts}), " <>
-            "retrying: #{inspect(reason)}"
-        )
-
-        {:error, reason}
-
-      {:error, reason} ->
-        FetchFailure.report(:sealed, shop.key, reason)
-        {:error, reason}
+    case Refresh.run(shop, req_options: req_options) do
+      # Read as far as the step's time allowed; the next step goes on.
+      :paused -> {:snooze, @next_step_in}
+      result -> finish(result, shop, job, journal)
     end
   end
+
+  defp finish({:ok, %{offers: count}}, shop, _job, journal) do
+    FetchJournal.close(journal)
+    Logger.info("sealed fetch #{shop.key}: #{count} offers")
+    :ok
+  end
+
+  # Only the last attempt is a failed fetch: an earlier one is retried and
+  # may still read the shop the same night.
+  defp finish({:error, reason}, shop, job, journal) when job.attempt < job.max_attempts do
+    if not transient?(reason), do: FetchJournal.close(journal)
+
+    Logger.warning(
+      "sealed fetch #{shop.key} failed (attempt #{job.attempt} of #{job.max_attempts}), " <>
+        "retrying: #{inspect(reason)}"
+    )
+
+    {:error, reason}
+  end
+
+  defp finish({:error, reason}, shop, _job, journal) do
+    FetchJournal.close(journal)
+    FetchFailure.report(:sealed, shop.key, reason)
+    {:error, reason}
+  end
+
+  # A shop that refused or dropped us once is asked again where it stopped;
+  # after any other failure the retry reads the shop afresh, since a response
+  # that did not parse may have been a bad one.
+  defp transient?({:http_status, 429}), do: true
+  defp transient?({:transport, _exception}), do: true
+  defp transient?(_reason), do: false
 end

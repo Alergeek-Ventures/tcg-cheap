@@ -17,7 +17,10 @@ defmodule TcgCheap.Sealed.ShopFeed do
   (`TcgCheap.WebBotAuth`). A rate-limited request (429) is repeated once
   after the shop's `Retry-After` when that is short (a client may allow a
   longer wait); otherwise the fetch fails and
-  `TcgCheap.Sealed.FetchWorker` retries it minutes later. Every product field
+  `TcgCheap.Sealed.FetchWorker` retries it minutes later. A fetch run by that
+  worker passes a `:journal` in its `req_options` (`TcgCheap.Sealed.FetchJournal`),
+  which keeps the responses already read so that a restarted fetch does not
+  read them again. Every product field
   is untrusted: products with an invalid id, title, URL, price or availability
   are skipped and counted in a warning. Any transport, status, pagination or
   shape problem fails the whole fetch so that
@@ -26,7 +29,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
   require Logger
 
-  alias TcgCheap.Sealed.{Matcher, Shop}
+  alias TcgCheap.Sealed.{FetchJournal, Matcher, Shop}
   alias TcgCheap.WebBotAuth
 
   @request_pause_ms 1_000
@@ -99,7 +102,8 @@ defmodule TcgCheap.Sealed.ShopFeed do
   most `max_body_bytes` long (default 5 MB), over the HTTP `protocols` given
   (default HTTP/1.1). With `sign: true` the request is signed with Web Bot
   Auth; a 429 is retried after a `Retry-After` of at most
-  `max_retry_after_ms` (default #{@max_retry_after_ms} ms).
+  `max_retry_after_ms` (default #{@max_retry_after_ms} ms). A response the fetch's
+  journal holds is returned without a request or a pause.
   """
   @spec get(Shop.t(), String.t(), keyword(), keyword(), [
           {:max_body_bytes, pos_integer()}
@@ -110,6 +114,17 @@ defmodule TcgCheap.Sealed.ShopFeed do
         ]) ::
           {:ok, Req.Response.t()} | {:error, term()}
   def get(%Shop{} = shop, path, params, req_options, opts \\ []) do
+    {journal, req_options} = Keyword.pop(req_options, :journal)
+
+    case FetchJournal.through(journal, path, params, fn ->
+           request(shop, path, params, req_options, opts)
+         end) do
+      {:ok, %Req.Response{} = response} -> {:ok, response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp request(shop, path, params, req_options, opts) do
     host = shop.feed_host || shop.host
     max_body_bytes = Keyword.get(opts, :max_body_bytes, @max_body_bytes)
     max_retry_after_ms = Keyword.get(opts, :max_retry_after_ms, @max_retry_after_ms)

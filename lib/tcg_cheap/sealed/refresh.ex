@@ -23,6 +23,7 @@ defmodule TcgCheap.Sealed.Refresh do
   alias TcgCheap.Sealed.{
     DailyPrice,
     FetchFailure,
+    FetchJournal,
     Market,
     MarketDailyPrice,
     Matcher,
@@ -57,11 +58,21 @@ defmodule TcgCheap.Sealed.Refresh do
     :image_url
   ]
 
-  @spec run(Shop.t(), keyword()) :: {:ok, %{offers: non_neg_integer()}} | {:error, term()}
+  @doc """
+  Fetches and stores the shop. `:paused` means a fetch with a journal in its
+  `req_options` (`TcgCheap.Sealed.FetchJournal`) stopped for its step before it
+  had read the whole shop; nothing was stored, and running it again goes on.
+  """
+  @spec run(Shop.t(), keyword()) ::
+          {:ok, %{offers: non_neg_integer()}} | {:error, term()} | :paused
   def run(%Shop{} = shop, opts \\ []) do
     now = Keyword.get_lazy(opts, :now, &DateTime.utc_now/0)
+    req_options = Keyword.get(opts, :req_options, [])
 
-    case shop.source.fetch(shop, Keyword.get(opts, :req_options, [])) do
+    case FetchJournal.catch_pause(fn -> shop.source.fetch(shop, req_options) end) do
+      :paused ->
+        :paused
+
       {:ok, []} ->
         {:error, :empty_feed}
 

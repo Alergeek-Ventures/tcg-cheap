@@ -10,6 +10,7 @@ defmodule TcgCheap.Application do
     # Before anything can crash with a visitor's location in its state.
     :ok = TcgCheapWeb.LocationLogFilter.install()
     FetchWorker.attach_failure_reports()
+    :ok = TcgCheap.JobShutdown.attach()
 
     children = [
       TcgCheapWeb.Telemetry,
