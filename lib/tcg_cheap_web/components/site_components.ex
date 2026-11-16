@@ -244,7 +244,7 @@ defmodule TcgCheapWeb.SiteComponents do
         <nav id="site-footer-pages" aria-labelledby="site-footer-pages-title">
           <h2 id="site-footer-pages-title">{gettext("Ważne linki")}</h2>
           <ul class="site-footer-links">
-            <li><.link navigate={Paths.home()}>{gettext("Ceny produktów")}</.link></li>
+            <li><.link navigate={Paths.products()}>{gettext("Ceny produktów")}</.link></li>
             <li><.link navigate={Paths.cards()}>{gettext("Ceny kart")}</.link></li>
             <%!-- The articles and the bot page are Polish only. --%>
             <li :if={Paths.page(:booster_prices)}>

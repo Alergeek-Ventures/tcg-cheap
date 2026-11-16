@@ -63,7 +63,7 @@ defmodule TcgCheapWeb.BrowseLive.Filters do
   def base_path(%{expansion: id, expansion_name: name}) when is_integer(id) and is_binary(name),
     do: SEO.Expansion.path(id, name)
 
-  def base_path(_filters), do: Paths.home()
+  def base_path(_filters), do: Paths.products()
 
   @doc "Whether a kind, an edition or an expansion is chosen."
   def filtered?(filters), do: filters.kind || edition_value(filters) || filters.expansion

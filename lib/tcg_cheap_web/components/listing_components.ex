@@ -204,16 +204,12 @@ defmodule TcgCheapWeb.ListingComponents do
     doc:
       "a note above the list says which prices include delivery (`RegionText.list_prices_note/0`), so the row names only the shop"
 
+  # The whole row leads to the product through its name's link, stretched over
+  # the row (CSS), so the "Za mało sklepów" note can open inside the row
+  # without nesting a control in a link.
   def product_row(assigns) do
     ~H"""
-    <.link
-      navigate={Paths.product(@summary.product.slug)}
-      class="guide-product-link"
-      data-track="product_clicked"
-      data-track-product-slug={@summary.product.slug}
-      data-track-verdict={@summary.verdict.status}
-      data-track-preorder={to_string(@summary.preorder?)}
-    >
+    <div class="guide-product-link">
       <.product_image
         small_photo={@summary.product.stored_photo_small_url}
         photo={@summary.product.stored_photo_card_url}
@@ -227,7 +223,16 @@ defmodule TcgCheapWeb.ListingComponents do
         class="guide-product-image"
       />
       <div class="guide-product-copy">
-        <h3 class="guide-product-name">{@summary.product.name}</h3>
+        <h3 class="guide-product-name">
+          <.link
+            navigate={Paths.product(@summary.product.slug)}
+            class="guide-product-target"
+            data-track="product_clicked"
+            data-track-product-slug={@summary.product.slug}
+            data-track-verdict={@summary.verdict.status}
+            data-track-preorder={to_string(@summary.preorder?)}
+          >{@summary.product.name}</.link>
+        </h3>
         <p class="guide-product-meta">
           {product_meta(@summary.product)}
         </p>
@@ -239,13 +244,19 @@ defmodule TcgCheapWeb.ListingComponents do
             else: priced_shop_name(@summary.verdict.cheapest)
           )}
         </span>
-        <%!-- Too few shops for a verdict: the row shows only the price; the product page says why. --%>
-        <.verdict_badge
-          :if={@summary.verdict.status not in [:cardmarket, :insufficient_data]}
-          verdict={@summary.verdict}
-          id={"verdict-#{@summary.product.slug}"}
-          class="guide-product-verdict"
-        />
+        <%= if @summary.verdict.status in [:cardmarket, :insufficient_data] do %>
+          <.few_shops_badge
+            verdict={@summary.verdict}
+            id={"verdict-#{@summary.product.slug}"}
+            class="guide-product-verdict"
+          />
+        <% else %>
+          <.verdict_badge
+            verdict={@summary.verdict}
+            id={"verdict-#{@summary.product.slug}"}
+            class="guide-product-verdict"
+          />
+        <% end %>
         <p :if={@summary.verdict.cheapest} class="guide-product-price">
           <span
             :if={@summary.preorder?}
@@ -257,7 +268,7 @@ defmodule TcgCheapWeb.ListingComponents do
           <strong>{Format.price(@summary.verdict.cheapest.price)}</strong>
         </p>
       </div>
-    </.link>
+    </div>
     """
   end
 

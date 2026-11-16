@@ -102,6 +102,7 @@ defmodule TcgCheapWeb.Router do
       pipe_through :"default_language_#{code}"
 
       get "/", MarkdownController, :home
+      get "/#{products}", MarkdownController, :products
       get "/#{cards}", MarkdownController, :cards
 
       for {page, slug} <- region.pages,
@@ -247,7 +248,8 @@ defmodule TcgCheapWeb.Router do
       scope "/#{code}", TcgCheapWeb do
         pipe_through [:browser, :"region_#{code}", :set_canonical]
 
-        live "/", BrowseLive, :index
+        live "/", HomeLive
+        live "/#{products}", BrowseLive, :index
         live "/#{expansions}/:slug", BrowseLive, :expansion
       end
 

@@ -52,7 +52,8 @@ const saveList = () => {
     url: location.pathname + location.search,
     loaded: list?.querySelectorAll(".guide-product").length || 0,
     outLoaded: document.querySelectorAll("#guide-cards-out-list .guide-card").length,
-    open: [...document.querySelectorAll("main details[open][id]")].map(el => el.id),
+    // A verdict's note is a passing look, not part of where the list was.
+    open: [...document.querySelectorAll("main details[open][id]:not(.verdict-tip)")].map(el => el.id),
   }}, "")
 }
 // While another page is on its way the old one stays on screen, but the
@@ -199,12 +200,14 @@ window.addEventListener("guide:pin-filters", () => {
   const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"
   if (lift > 0) window.scrollBy({top: lift, behavior})
 })
-// A menu closes on a click outside it, or on Escape (focus back on its button).
+// A menu or a verdict's note closes on a click outside it, or on Escape
+// (focus back on its button).
+const popups = ".guide-pop[open], .verdict-tip[open]"
 document.addEventListener("click", e => {
-  for (const menu of document.querySelectorAll(".guide-pop[open]")) if (!menu.contains(e.target)) menu.open = false
+  for (const menu of document.querySelectorAll(popups)) if (!menu.contains(e.target)) menu.open = false
 })
 document.addEventListener("keydown", e => {
-  const menu = e.key === "Escape" && document.querySelector(".guide-pop[open]")
+  const menu = e.key === "Escape" && document.querySelector(popups)
   if (!menu) return
   menu.open = false
   menu.querySelector("summary").focus()

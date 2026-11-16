@@ -32,6 +32,7 @@ const pageType = path => {
   const [first, second, third] = page.split("/").filter(Boolean)
   if (!first) return "home"
   if (first === slugs.cards && !second) return "cards"
+  if (first === slugs.products && !second) return "products"
   if (slugs.booster_prices && first === slugs.booster_prices && !second) return "booster_prices"
   if (first === slugs.products && second) return "product"
   if (first === slugs.expansions && third === slugs.cards) return "card"

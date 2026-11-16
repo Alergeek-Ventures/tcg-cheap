@@ -141,7 +141,11 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
     ~H"""
     <.verdict_panel id="product-verdict" status={@verdict.status}>
       <:header>
-        <.verdict_badge verdict={@verdict} id="verdict-badge" class="verdict-badge-large" />
+        <%= if @verdict.status in [:cardmarket, :insufficient_data] do %>
+          <.few_shops_badge verdict={@verdict} id="verdict-badge" badge_class="verdict-badge-large" />
+        <% else %>
+          <.verdict_badge verdict={@verdict} id="verdict-badge" class="verdict-badge-large" />
+        <% end %>
       </:header>
       <.verdict_now :if={@verdict.cheapest} offer={@verdict.cheapest} preorder?={@page.preorder?} />
       <p :if={@page.preorder?} id="verdict-preorder" class="verdict-preorder-note">

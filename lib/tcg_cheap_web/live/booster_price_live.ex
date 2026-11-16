@@ -97,7 +97,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
               <.link
                 id="booster-prices-back"
                 data-guide-back
-                navigate={Paths.home()}
+                navigate={Paths.products()}
                 class="guide-back"
               >
                 <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
