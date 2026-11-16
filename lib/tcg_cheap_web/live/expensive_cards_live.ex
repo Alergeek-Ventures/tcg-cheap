@@ -473,7 +473,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                     </span>
                     <span class="expensive-shop-deal">
                       <.verdict_badge
-                        :if={single_verdict_status(row.verdict) != :insufficient_data}
+                        :if={single_verdict_shown?(row.verdict)}
                         verdict={%{status: single_verdict_status(row.verdict)}}
                         class="expensive-verdict"
                       />
@@ -925,7 +925,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
           <span class="expensive-row-market">{Format.whole_price(row.value)}</span>
           <%= if row.offer do %>
             <span
-              :if={single_verdict_status(row.verdict) != :insufficient_data}
+              :if={single_verdict_shown?(row.verdict)}
               class="expensive-row-verdict"
             >
               <.verdict_badge verdict={%{status: single_verdict_status(row.verdict)}} />
