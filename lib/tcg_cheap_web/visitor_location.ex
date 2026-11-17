@@ -33,8 +33,6 @@ defmodule TcgCheapWeb.VisitorLocation do
 
   @radius_km 50
   @max_query_length 60
-  # A point counts as in the region's country when one of its towns is this close.
-  @max_town_km 30
 
   @doc "How far a pickup store still counts as near, in kilometres."
   def radius_km, do: @radius_km
@@ -59,13 +57,11 @@ defmodule TcgCheapWeb.VisitorLocation do
 
   defp from_browser(_location), do: nil
 
-  # The country's own town near the point. Distances only make sense to
-  # visitors who can reach a shop of the region's country, which keeps out
-  # Prague from Poland's pages, or Lviv and Kaliningrad.
-  defp town_near(coords) do
-    town = Towns.nearest(country(), coords)
-    if Geo.distance_km(coords, town.coords) <= @max_town_km, do: town
-  end
+  # The country's own town near the point (within its reach, which comes from
+  # the list: `Towns.near/2`). Distances only make sense to visitors who can
+  # reach a shop of the region's country, which keeps out Prague from
+  # Poland's pages, or Lviv and Kaliningrad.
+  defp town_near(coords), do: Towns.near(country(), coords)
 
   # The ISO code of the region's country: its towns and the shops it has pickup in.
   defp country, do: Region.current().country.code()
@@ -171,18 +167,9 @@ defmodule TcgCheapWeb.VisitorLocation do
     end
   end
 
-  # The shop's store, if it is in the region's country, where the visitor
-  # is: its own coordinates, else those of its pickup town.
-  defp pickup_coords(%{country: shop_country} = shop) do
-    country = country()
-
-    cond do
-      shop_country != country -> nil
-      shop.pickup_location -> shop.pickup_location
-      shop.pickup_city -> Towns.coords(country, shop.pickup_city)
-      true -> nil
-    end
-  end
+  # The shop's store, if it is in the region's country, where the visitor is.
+  defp pickup_coords(%{country: shop_country, pickup_location: location}),
+    do: if(shop_country == country(), do: location)
 
   @doc """
   The cheapest of the given in-stock offers whose shop has a pickup store

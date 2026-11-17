@@ -30,6 +30,7 @@ defmodule TcgCheap.Sealed.Shops do
   """
 
   alias TcgCheap.{Countries, ModuleDir}
+  alias TcgCheap.Geo.Towns
   alias TcgCheap.Sealed.{Market, Shop, ShopFeed}
 
   alias TcgCheap.Sealed.ShopFeed.{
@@ -69,7 +70,27 @@ defmodule TcgCheap.Sealed.Shops do
             unless shop.country == country.country(),
               do: raise(ArgumentError, "shop #{shop.key} is not from #{country.country()}")
 
-            %{shop | deliveries: Map.get(@deliveries, shop.key, %{})}
+            # The store of a shop with only a pickup town is that town's place,
+            # found now so that an unknown town does not compile.
+            pickup_location =
+              case shop do
+                %{pickup_location: nil, pickup_city: city} when is_binary(city) ->
+                  try do
+                    Towns.coords!(shop.country, city)
+                  rescue
+                    error in ArgumentError ->
+                      reraise ArgumentError, "shop #{shop.key}: " <> error.message, __STACKTRACE__
+                  end
+
+                %{pickup_location: location} ->
+                  location
+              end
+
+            %{
+              shop
+              | deliveries: Map.get(@deliveries, shop.key, %{}),
+                pickup_location: pickup_location
+            }
           end)
 
   @keys Enum.map(@shops, & &1.key)
