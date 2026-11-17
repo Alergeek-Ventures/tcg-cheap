@@ -2,9 +2,9 @@ defmodule TcgCheapWeb.HomeLive do
   @moduledoc """
   The region's home page, in the order a visitor needs it:
 
-    1. one search across products and cards (`?q=`), narrowed to one of them
-       only on request (`?w=produkty`, `?w=karty`), its first results right
-       here and the whole list one link away;
+    1. one search across products and cards (`?q=`), its first results right
+       here and the whole list one link away; narrowing it to products or
+       cards (`?w=produkty`, `?w=karty`) leads to that list, the query with it;
     2. today's deals in one row, the shops' and the retail chains' alike, the
        chains' prices rated against the shops' (`TcgCheap.Sealed.Deals`);
     3. our articles;
@@ -39,7 +39,8 @@ defmodule TcgCheapWeb.HomeLive do
   @results 4
   @sets 6
   @news_days 120
-  @scopes %{"produkty" => :products, "karty" => :cards}
+  # A search narrowed to one kind is its list's own search.
+  @lists ~w(produkty karty)
 
   @impl true
   def mount(_params, _session, socket) do
@@ -63,19 +64,22 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   @impl true
+  # Also a search sent without LiveView, or an old link: the history entry is
+  # replaced, so going back does not lead here again.
+  def handle_params(%{"w" => list} = params, _uri, socket) when list in @lists,
+    do: {:noreply, push_navigate(socket, to: list_path(list, query_param(params)), replace: true)}
+
   def handle_params(params, _uri, socket) do
     query = params |> query_param() |> String.trim() |> String.slice(0, @max_query_length)
-
-    scope = Map.get(@scopes, params["w"])
     seo = SEO.Home.metadata(params)
 
     previous = socket.assigns[:query]
 
     {:noreply,
      socket
-     |> assign(seo: seo, page_title: seo.page_title, query: query, scope: scope)
-     |> assign(:form, to_form(%{"q" => query, "w" => params["w"] || ""}))
-     |> search(query, scope)
+     |> assign(seo: seo, page_title: seo.page_title, query: query)
+     |> assign(:form, to_form(%{"q" => query, "w" => ""}))
+     |> search(query)
      |> track_search(previous)}
   end
 
@@ -90,22 +94,19 @@ defmodule TcgCheapWeb.HomeLive do
   defp track_search(%{assigns: assigns} = socket, _previous),
     do:
       Analytics.track(socket, "search_performed", %{
-        mode: assigns.scope || :all,
+        mode: :all,
         query: assigns.query,
         product_count: assigns.product_count,
         card_count: assigns.card_count
       })
 
   @impl true
+  def handle_event("search", %{"w" => list} = params, socket) when list in @lists,
+    do: {:noreply, push_navigate(socket, to: list_path(list, query_param(params)))}
+
   def handle_event("search", params, socket) do
     query = params |> query_param() |> String.trim()
-    scope = if Map.has_key?(@scopes, params["w"]), do: params["w"]
-
-    {:noreply,
-     push_patch(socket,
-       to: Paths.home(Enum.reject([q: query, w: scope], &(elem(&1, 1) in [nil, ""]))),
-       replace: true
-     )}
+    {:noreply, push_patch(socket, to: Paths.home(query_params(query)), replace: true)}
   end
 
   def handle_event("location-" <> _ = event, params, socket),
@@ -115,18 +116,26 @@ defmodule TcgCheapWeb.HomeLive do
   defp query_param(%{"q" => query}) when is_binary(query), do: query
   defp query_param(_params), do: ""
 
-  defp search(socket, "", _scope) do
+  defp list_path("produkty", query), do: Paths.products(query_params(query))
+  defp list_path("karty", query), do: Paths.cards(query_params(query))
+
+  defp query_params(query) do
+    case String.trim(query) do
+      "" -> []
+      query -> [q: String.slice(query, 0, @max_query_length)]
+    end
+  end
+
+  defp search(socket, "") do
     socket
     |> assign(product_count: 0, card_count: 0)
     |> stream(:found_products, [], reset: true)
     |> stream(:found_cards, [], reset: true)
   end
 
-  defp search(socket, query, scope) do
-    {products, product_count} =
-      if scope in [nil, :products], do: find_products(query, socket.assigns.region), else: {[], 0}
-
-    {cards, card_count} = if scope in [nil, :cards], do: find_cards(query), else: {[], 0}
+  defp search(socket, query) do
+    {products, product_count} = find_products(query, socket.assigns.region)
+    {cards, card_count} = find_cards(query)
 
     socket
     |> assign(product_count: product_count, card_count: card_count)
@@ -284,7 +293,6 @@ defmodule TcgCheapWeb.HomeLive do
 
             <div :if={@query != ""} id="home-results" class="home-results" aria-live="polite">
               <section
-                :if={@scope in [nil, :products]}
                 id="home-results-products"
                 class="home-results-kind"
                 aria-labelledby="home-results-products-title"
@@ -314,7 +322,6 @@ defmodule TcgCheapWeb.HomeLive do
                 </ul>
               </section>
               <section
-                :if={@scope in [nil, :cards]}
                 id="home-results-cards"
                 class="home-results-kind"
                 aria-labelledby="home-results-cards-title"

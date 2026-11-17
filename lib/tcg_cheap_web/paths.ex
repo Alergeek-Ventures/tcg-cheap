@@ -126,7 +126,7 @@ defmodule TcgCheapWeb.Paths do
   @spec home() :: String.t()
   def home, do: page_path(Region.current(), :home)
 
-  @doc "The home page with its search (`q`, `w`)."
+  @doc "The home page with its search (`q`)."
   @spec home(Enumerable.t()) :: String.t()
   def home(params), do: with_query(home(), params)
 

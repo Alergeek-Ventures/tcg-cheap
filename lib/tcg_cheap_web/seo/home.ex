@@ -18,7 +18,7 @@ defmodule TcgCheapWeb.SEO.Home do
       alternates: SEO.alternates(:home) ++ [%{hreflang: "x-default", href: url(~p"/")}],
       # A search on the home page is a results page, not the page itself.
       robots:
-        if(Enum.any?(~w(q w), &Map.has_key?(params, &1)),
+        if(Map.has_key?(params, "q"),
           do: "noindex, follow",
           else: "index, follow"
         ),
