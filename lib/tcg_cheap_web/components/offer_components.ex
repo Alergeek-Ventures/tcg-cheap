@@ -79,13 +79,6 @@ defmodule TcgCheapWeb.OfferComponents do
     end
   end
 
-  @doc """
-  The price an offer row shows: its compared price (`Shops.compared_price/2`),
-  so a shop abroad's includes its delivery to Poland like the headline.
-  """
-  @spec row_price(map()) :: Decimal.t()
-  def row_price(offer), do: Shops.compared_price(offer.shop, offer.price) || offer.price
-
   @doc "The shop's logo chip, when it has a logo."
   attr :shop, :string, required: true
 

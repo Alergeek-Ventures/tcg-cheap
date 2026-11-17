@@ -207,6 +207,7 @@ defmodule TcgCheap.Cards.Expensive do
 
   defp priced(rows, rate) do
     offers = rows |> Enum.map(fn {card, _set, _price} -> card.id end) |> polish_offers()
+    context = Guide.context(Market.poland())
 
     Enum.map(rows, fn {card, set, price} ->
       card = %{card | cardmarket_price: price, tcgdex_set: set}
@@ -220,7 +221,7 @@ defmodule TcgCheap.Cards.Expensive do
         change: change(price),
         offer: offer,
         shops: card_offers |> Enum.uniq_by(& &1.shop) |> length(),
-        verdict: verdict(card_offers, card, rate)
+        verdict: verdict(card_offers, card, context)
       }
     end)
   end
@@ -232,7 +233,8 @@ defmodule TcgCheap.Cards.Expensive do
     card_ids
     |> Guide.current_offers()
     |> Enum.filter(
-      &(&1.in_stock and is_nil(&1.grading) and &1.variant == :normal and Shops.polish?(&1.shop))
+      &(&1.in_stock and is_nil(&1.grading) and &1.variant == :normal and
+          Shops.domestic?(&1.shop, Market.poland()))
     )
     |> Enum.group_by(& &1.card_id)
   end
@@ -242,15 +244,15 @@ defmodule TcgCheap.Cards.Expensive do
   # such an offer.
   @suspect_ratio Decimal.new("0.6")
 
-  defp verdict([], _card, _rate), do: nil
+  defp verdict([], _card, _context), do: nil
 
-  defp verdict([offer | _] = offers, card, rate) do
-    reference = Reference.pln(card.cardmarket_price, :normal, rate)
+  defp verdict([offer | _] = offers, card, context) do
+    reference = Reference.pln(card.cardmarket_price, :normal, context.rate)
 
     if reference && Decimal.positive?(reference) &&
          Decimal.lt?(Decimal.div(offer.price, reference), @suspect_ratio),
        do: :unknown,
-       else: Guide.card_verdict(offers, card, :normal, rate)
+       else: Guide.card_verdict(offers, card, :normal, context)
   end
 
   # The last 7 days' average sale against the last 30 days': two averages of
@@ -344,7 +346,10 @@ defmodule TcgCheap.Cards.Expensive do
   defp presenter(rows) do
     all = Enum.flat_map(rows, &[&1 | Map.get(&1, :printings, [])])
     sets = all |> Enum.map(& &1.set) |> Enum.uniq_by(& &1.id)
-    cards = all |> Enum.map(& &1.card) |> Enum.uniq_by(& &1.id) |> Guide.enrich(sets)
+
+    cards =
+      all |> Enum.map(& &1.card) |> Enum.uniq_by(& &1.id) |> Guide.enrich(sets, Market.poland())
+
     cards = Map.new(cards, &{&1.id, &1})
 
     hashes =

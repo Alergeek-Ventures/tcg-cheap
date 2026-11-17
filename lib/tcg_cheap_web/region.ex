@@ -15,7 +15,7 @@ defmodule TcgCheapWeb.Region do
   """
 
   alias TcgCheap.Countries
-  alias TcgCheap.Sealed.Market
+  alias TcgCheap.Sealed.{Market, Shops}
   alias TcgCheapWeb.Languages
 
   @enforce_keys [
@@ -114,54 +114,22 @@ defmodule TcgCheapWeb.Region do
   @spec poland?(t()) :: boolean()
   def poland?(%__MODULE__{code: code}), do: code == "pl"
 
-  @doc "Sets the region this process renders, with its market's PLN rate for `from_pln/1`."
+  @doc """
+  Whether the region's card pages show shops' offers and verdicts: shops
+  sell singles in its market (`TcgCheap.Sealed.Shops.singles?/1`). Without
+  them its card pages list every card with its Cardmarket trend alone.
+  """
+  @spec singles?(t()) :: boolean()
+  def singles?(%__MODULE__{market: market}), do: Shops.singles?(market)
+
+  @doc "Sets the region this process renders."
   @spec put(t()) :: t()
   def put(%__MODULE__{} = region) do
     Process.put(__MODULE__, region)
-    Process.delete({__MODULE__, :pln_rate})
     region
   end
 
   @doc "The region this process renders; Poland's when none was set."
   @spec current() :: t()
   def current, do: Process.get(__MODULE__) || poland()
-
-  @doc """
-  A PLN amount in the current region's currency, at the latest NBP rate no
-  older than a week (`Market.pln_rate/2`), rounded as that currency is; nil
-  when that rate is unknown. Only for references with no market of their
-  own, such as Cardmarket trends of single cards: a Polish shop's price
-  converted would be a price no shop in the region asks.
-  """
-  @spec from_pln(Decimal.t() | nil) :: Decimal.t() | nil
-  def from_pln(nil), do: nil
-
-  def from_pln(%Decimal{} = amount) do
-    %{market: market} = current()
-
-    case pln_rate(market) do
-      nil -> nil
-      rate -> amount |> Decimal.div(rate) |> Market.rounded(market)
-    end
-  end
-
-  defp pln_rate(%Market{currency: "PLN"}), do: Decimal.new(1)
-
-  # Read once per process: a page converts many cards.
-  defp pln_rate(market) do
-    case Process.get({__MODULE__, :pln_rate}) do
-      {currency, rate} when currency == market.currency ->
-        rate
-
-      _unread ->
-        rate =
-          case Market.pln_rate(market.currency, Date.utc_today()) do
-            {:ok, %{rate: rate}} -> rate
-            {:error, _reason} -> nil
-          end
-
-        Process.put({__MODULE__, :pln_rate}, {market.currency, rate})
-        rate
-    end
-  end
 end

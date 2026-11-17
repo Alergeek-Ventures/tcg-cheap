@@ -9,11 +9,13 @@ defmodule TcgCheapWeb.RegionText do
   module (`TcgCheap.Country`) and Gettext domain; these functions read the
   current region's.
 
-  Singles have no market outside Poland (`TcgCheapWeb.Region.from_pln/1`):
-  there the card sentences speak of Cardmarket prices in the region's
-  currency, not of its shops. Pages only Poland has (the articles, the bot
-  page) keep their Polish sentences in place.
+  The card sentences speak of the region's shops where shops sell singles
+  there (`TcgCheapWeb.Region.singles?/1`); elsewhere the card list's speak of
+  Cardmarket prices alone, in sentences of every region. Pages only Poland
+  has (the articles, the bot page) keep their Polish sentences in place.
   """
+
+  use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheapWeb.Region
 
@@ -52,6 +54,31 @@ defmodule TcgCheapWeb.RegionText do
 
   @doc "A card page's full title, before the shorter ones without the country."
   @callback card_title(card :: String.t()) :: String.t()
+
+  @doc "A card page's search description with its cheapest offer."
+  @callback card_description(name :: String.t(), number :: String.t(), price :: String.t()) ::
+              String.t()
+
+  @doc "The card list's search answer with the number of cards in stock."
+  @callback cards_in_stock(cards :: String.t()) :: String.t()
+
+  @doc "A card page's verdict when no shop has the card in stock."
+  @callback card_unavailable() :: String.t()
+
+  @doc "The same for screen readers, under the verdict."
+  @callback card_unavailable_note() :: String.t()
+
+  @doc "How a card's verdict is reached, with the `minimum` number of shops."
+  @callback card_method(minimum :: pos_integer()) :: String.t()
+
+  @doc "Under a set's card list: which price each card shows."
+  @callback card_prices_note() :: String.t()
+
+  @doc "A Cardmarket card price with delivery to the country, in a set's singles banner."
+  @callback cardmarket_card_delivery() :: String.t()
+
+  @doc "The foot of a set's singles banner: which prices include delivery."
+  @callback singles_prices_note() :: String.t()
 
   @doc "A set page's search answer when it knows nothing else of the set."
   @callback expansion_fallback(expansion :: String.t()) :: String.t()
@@ -92,16 +119,50 @@ defmodule TcgCheapWeb.RegionText do
             }
 
   defp country, do: Region.current().country
+  defp singles?, do: Region.singles?(Region.current())
 
   def location_outside, do: country().location_outside()
   def town_example, do: country().town_example()
   def home_description, do: country().home_description()
   def social_promise, do: country().social_promise()
   def products_promise, do: country().products_promise()
-  def cards_promise, do: country().cards_promise()
-  def cards_answer, do: country().cards_answer()
-  def cards_title, do: country().cards_title()
-  def card_title(card), do: country().card_title(card)
+  # Without singles shops the card list has only Cardmarket's prices.
+  def cards_promise,
+    do:
+      if(singles?(),
+        do: country().cards_promise(),
+        else: gettext("Angielskie karty Pokémon TCG z ceną z Cardmarket.")
+      )
+
+  def cards_answer,
+    do:
+      if(singles?(),
+        do: country().cards_answer(),
+        else: gettext("Angielskie karty Pokémon TCG z ceną z Cardmarket.")
+      )
+
+  def cards_title,
+    do:
+      if(singles?(),
+        do: country().cards_title(),
+        else: gettext("Ceny kart Pokémon TCG na Cardmarket")
+      )
+
+  def card_title(card),
+    do:
+      if(singles?(),
+        do: country().card_title(card),
+        else: gettext("%{card} – cena karty Pokémon na Cardmarket", card: card)
+      )
+
+  def card_description(name, number, price), do: country().card_description(name, number, price)
+  def cards_in_stock(cards), do: country().cards_in_stock(cards)
+  def card_unavailable, do: country().card_unavailable()
+  def card_unavailable_note, do: country().card_unavailable_note()
+  def card_method(minimum), do: country().card_method(minimum)
+  def card_prices_note, do: country().card_prices_note()
+  def cardmarket_card_delivery, do: country().cardmarket_card_delivery()
+  def singles_prices_note, do: country().singles_prices_note()
   def expansion_fallback(expansion), do: country().expansion_fallback(expansion)
   def booster_out_of_stock(expansion), do: country().booster_out_of_stock(expansion)
   def product_out_of_stock(name), do: country().product_out_of_stock(name)

@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.SEO.Expansion do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.Catalogue
-  alias TcgCheapWeb.{Format, OfferComponents, Paths, RegionText, SEO, SocialImage}
+  alias TcgCheapWeb.{Format, OfferComponents, Paths, Region, RegionText, SEO, SocialImage}
 
   @doc "The set page's path: the expansion's name plus its Cardmarket id, like a product's."
   @spec path(integer(), String.t()) :: String.t()
@@ -164,9 +164,10 @@ defmodule TcgCheapWeb.SEO.Expansion do
   defp cards_sentence(%{card_count: count, top_cards: []}),
     do: gettext("Set liczy %{cards}.", cards: Format.cards(count))
 
-  # The dearest card's price is a Polish shop's or Cardmarket's in złoty.
+  # The dearest card's price is a shop's or Cardmarket's in the region's
+  # currency, where shops sell singles.
   defp cards_sentence(%{card_count: count, top_cards: [top | _]}) when top != nil do
-    if SEO.polish?(),
+    if Region.singles?(Region.current()),
       do: dearest_card_sentence(count, top),
       else: cards_sentence(%{card_count: count, top_cards: []})
   end

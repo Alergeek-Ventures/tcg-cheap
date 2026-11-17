@@ -16,6 +16,7 @@ defmodule TcgCheapWeb.CardValueLive do
   import TcgCheapWeb.SiteComponents
 
   alias TcgCheap.Cards
+  alias TcgCheap.Sealed.Market
   alias TcgCheapWeb.{Format, Paths, SEO, VisitorLocation}
 
   # The guide answers with the first few cards; the card list has the rest.
@@ -51,7 +52,10 @@ defmodule TcgCheapWeb.CardValueLive do
       if query == "" do
         {[], 0}
       else
-        {rows, _more?, count} = Cards.Guide.browse(%{query: query, expansion: nil, stock: nil}, 0)
+        # The article is Polish: Polish shops' cards.
+        {rows, _more?, count} =
+          Cards.Guide.browse(%{query: query, expansion: nil, stock: nil}, 0, Market.poland())
+
         {Enum.take(rows, @shown), count}
       end
 

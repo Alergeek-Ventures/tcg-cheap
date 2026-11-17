@@ -11,8 +11,9 @@ defmodule TcgCheapWeb.SEO.Cards do
   alias TcgCheapWeb.{Format, Paths, RegionText, SEO, SocialImage}
 
   @doc """
-  `market` is the singles market (`TcgCheap.Cards.SinglesBanner.market/0`);
-  nil for a chosen expansion's list, which has no market of its own.
+  `market` is the region's singles market (`TcgCheap.Cards.SinglesBanner.market/1`);
+  nil for a chosen expansion's list, which has no market of its own, and in
+  a region without singles shops.
   """
   @spec metadata(map(), map() | nil) :: SEO.t()
   def metadata(params, market) do
@@ -52,10 +53,7 @@ defmodule TcgCheapWeb.SEO.Cards do
 
   defp answer(market) do
     [
-      gettext(
-        "Angielskie karty Pokémon TCG w sklepach wysyłających do Polski: %{cards} na stanie.",
-        cards: Format.cards(market.in_stock)
-      ),
+      RegionText.cards_in_stock(Format.cards(market.in_stock)),
       market.cheaper > 0 &&
         gettext("%{count} z nich taniej niż na Cardmarket z przesyłką.",
           count: Format.number(market.cheaper)

@@ -121,9 +121,12 @@ defmodule TcgCheapWeb.PageMarkdown do
   def cards(seo, cards, today) do
     page(seo, today, [
       section(gettext("Karty"), [
-        if(polish?(),
+        if(singles?(),
           do:
-            "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepów za granicą z wysyłką) i ocena wobec Cardmarket z przesyłką. Pełna lista rozszerzeń: #{url(~p"/llms.txt")}",
+            gettext(
+              "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepów za granicą z wysyłką) i ocena wobec Cardmarket z przesyłką. Pełna lista rozszerzeń: %{url}",
+              url: url(~p"/llms.txt")
+            ),
           else: gettext("Angielskie karty z trendem Cardmarket, bez dostawy.")
         ),
         cards_table(cards)
@@ -351,8 +354,8 @@ defmodule TcgCheapWeb.PageMarkdown do
     today = Date.utc_today()
 
     page(seo, today, [
-      if(polish?(),
-        do: section("Ceny", list(Enum.map(page.answers, &single_answer/1))),
+      if(singles?(),
+        do: section(gettext("Ceny"), list(Enum.map(page.answers, &single_answer/1))),
         else: section("Cardmarket", cardmarket_trend(page))
       ),
       section(
@@ -368,14 +371,15 @@ defmodule TcgCheapWeb.PageMarkdown do
           card.rarity && gettext("Rzadkość") <> ": " <> Cards.Rarities.label(card.rarity)
         ])
       ),
-      polish?() && section("Oferty", card_offers_table(page.offers, today))
+      singles?() &&
+        section(gettext("Oferty"), card_offers_table(page.offers, page.compared, today))
     ])
   end
 
-  defp cardmarket_trend(%{price: price, rate: rate}) do
+  defp cardmarket_trend(%{price: price, rate: rate, market: market}) do
     trend = price && price.trend
 
-    case trend |> Market.to_pln(rate) |> Region.from_pln() do
+    case Market.in_market(trend, rate, market) do
       nil ->
         gettext("Brak ceny Cardmarket.")
 
@@ -390,7 +394,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     end
   end
 
-  defp polish?, do: Region.poland?(Region.current())
+  defp singles?, do: Region.singles?(Region.current())
 
   def not_found do
     """
@@ -581,15 +585,15 @@ defmodule TcgCheapWeb.PageMarkdown do
   defp cards_table([]), do: gettext("Brak kart na stanie.")
 
   defp cards_table(cards) do
-    if polish?(), do: polish_cards_table(cards), else: cardmarket_cards_table(cards)
+    if singles?(), do: shop_cards_table(cards), else: cardmarket_cards_table(cards)
   end
 
-  # Singles have shop prices only in Poland: elsewhere Cardmarket's trend.
+  # Without singles shops in the region, Cardmarket's trend alone.
   defp cardmarket_cards_table(cards) do
     table(
       [gettext("Karta"), gettext("Rozszerzenie"), gettext("Trend Cardmarket")],
       Enum.map(cards, fn row ->
-        price = ListingComponents.card_price(%{cardmarket_trend_pln: row.cardmarket_trend_pln})
+        price = row.cardmarket_trend
 
         [
           link("#{row.card.name} #{row.card.number}", url_from_path(row.path)),
@@ -600,17 +604,21 @@ defmodule TcgCheapWeb.PageMarkdown do
     )
   end
 
-  defp polish_cards_table(cards) do
+  defp shop_cards_table(cards) do
     table(
-      ["Karta", "Rozszerzenie", "Najtaniej", "Ocena"],
+      [
+        gettext("Karta"),
+        gettext("Rozszerzenie"),
+        pgettext("markdown", "Najtaniej"),
+        gettext("Ocena")
+      ],
       Enum.map(cards, fn row ->
         [
           link("#{row.card.name} #{row.card.number}", url_from_path(row.path)),
           row.expansion_name,
           if(row.offer,
-            do:
-              "#{Format.price(row.offer.price)} w #{OfferComponents.priced_shop_name(row.offer)}",
-            else: "brak na stanie"
+            do: price_in_shop(row.offer.price, OfferComponents.priced_shop_name(row.offer)),
+            else: gettext("brak na stanie")
           ),
           VerdictComponents.single_verdict_label(row.verdict)
         ]
@@ -711,8 +719,8 @@ defmodule TcgCheapWeb.PageMarkdown do
         count: count
       )
 
-  # Every card of the set by rarity, at the lower of its Polish shop price
-  # and its Cardmarket trend, as the set page lists them.
+  # Every card of the set by rarity, at the lower of its shop price and its
+  # Cardmarket trend, as the set page lists them.
   defp cards(set) do
     section(
       gettext("Lista kart (%{cards})", cards: Format.cards(set.card_count)),
@@ -726,9 +734,9 @@ defmodule TcgCheapWeb.PageMarkdown do
     name = "#{card.name} #{card.number}"
     title = if card.public_path, do: link(name, url_from_path(card.public_path)), else: name
 
-    source = if polish?(), do: Cards.Guide.price_source(card), else: :cardmarket
+    source = if singles?(), do: Cards.Guide.price_source(card), else: :cardmarket
 
-    case {ListingComponents.card_price(card), source} do
+    case {Cards.Guide.price(card), source} do
       {nil, _source} ->
         title
 
@@ -749,26 +757,37 @@ defmodule TcgCheapWeb.PageMarkdown do
     price =
       if answer.cheapest,
         do:
-          "od #{Format.price(answer.cheapest.price)} w #{OfferComponents.priced_shop_name(answer.cheapest)}",
-        else: "brak ofert bez gradingu na stanie"
+          gettext("od %{price} w %{shop}",
+            price: Format.price(answer.cheapest.price),
+            shop: OfferComponents.priced_shop_name(answer.cheapest)
+          ),
+        else: gettext("brak ofert bez gradingu na stanie")
 
     reference =
       if answer.reference,
-        do: "; Cardmarket z przesyłką: #{Format.price(answer.reference)}",
+        do: gettext("; Cardmarket z przesyłką: %{price}", price: Format.price(answer.reference)),
         else: ""
 
     "#{variant}: #{price}#{reference} (#{VerdictComponents.single_verdict_label(answer.verdict)})"
   end
 
-  defp card_offers_table([], _today), do: "Żaden sklep nie ma teraz tej karty."
+  defp card_offers_table([], _compared, _today),
+    do: gettext("Żaden sklep nie ma teraz tej karty.")
 
-  defp card_offers_table(offers, today) do
+  # At the compared price, as the HTML rows: a shop abroad's with delivery.
+  defp card_offers_table(offers, compared, today) do
     table(
-      ["Sklep", "Cena", "Wariant", "Stan / grading", "Dostępność"],
+      [
+        gettext("Sklep"),
+        pgettext("markdown", "Cena"),
+        gettext("Wariant"),
+        gettext("Stan / grading"),
+        gettext("Dostępność")
+      ],
       Enum.map(offers, fn offer ->
         [
           link(offer_shop(offer), OfferComponents.offer_url(offer)),
-          Format.price(OfferComponents.row_price(offer)),
+          Format.price(compared[offer.id] || offer.price),
           ListingComponents.card_variant_label(offer.variant),
           offer.grading || (offer.condition && condition(offer.condition)) || "",
           availability(offer, today)

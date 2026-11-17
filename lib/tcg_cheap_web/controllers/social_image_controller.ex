@@ -16,7 +16,7 @@ defmodule TcgCheapWeb.SocialImageController do
   alias AshStorage.Service.Context
   alias TcgCheap.Cards
 
-  alias TcgCheap.Sealed.{BoosterGuide, Catalogue, Expansions, ProductPage, SetPage}
+  alias TcgCheap.Sealed.{BoosterGuide, Catalogue, Expansions, Market, ProductPage, SetPage}
 
   alias TcgCheapWeb.{Paths, SocialImage}
 
@@ -62,7 +62,8 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def cards(conn, _params) do
-    market = Cards.SinglesBanner.market()
+    # Link previews of the card pages are Poland's only (`TcgCheapWeb.Router`).
+    market = Cards.SinglesBanner.market(Market.poland())
 
     serve(conn, "social/cards-#{SocialImage.Cards.version(market)}.jpg", fn ->
       SocialImage.Cards.draw(market)
@@ -98,7 +99,7 @@ defmodule TcgCheapWeb.SocialImageController do
 
     with {:ok, _id, _name} <- known_expansion(set),
          {:ok, card, name, ^path} <- Cards.Guide.find(set, slug) do
-      page = Cards.Guide.page(card, name, path)
+      page = Cards.Guide.page(card, name, path, Market.poland())
 
       serve(conn, "social/cards/#{set}/#{slug}-#{SocialImage.Single.version(page)}.jpg", fn ->
         SocialImage.Single.draw(page)

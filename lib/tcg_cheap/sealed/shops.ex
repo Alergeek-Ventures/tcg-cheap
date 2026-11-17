@@ -166,33 +166,31 @@ defmodule TcgCheap.Sealed.Shops do
   def compared(offers), do: Market.compared(offers, Market.poland(), Date.utc_today())
 
   @doc """
-  An offer's place in an offer list, as a float: its `compared_price/2`, or
-  its item price for a shop that is only listed.
+  Whether the shop sells in the market at home, its price counting without
+  delivery: one from the market's country that sells there (`Shop.home_market`).
   """
-  @spec listing_price(%{shop: String.t(), price: Decimal.t()}) :: float()
-  def listing_price(offer),
-    do: Decimal.to_float(compared_price(offer.shop, offer.price) || offer.price)
+  @spec domestic?(String.t(), Market.t()) :: boolean()
+  def domestic?(key, %Market{country: country}),
+    do: match?({:ok, %Shop{country: ^country, home_market: true}}, fetch(key))
 
-  @doc "Shops abroad compared with their delivery to Poland: `{shipping, free from}` in PLN by key."
-  @spec delivered() :: %{String.t() => {Decimal.t(), Decimal.t() | nil}}
-  def delivered do
-    for shop <- @shops,
-        {:delivered, delivery} <- [Market.terms({:ok, shop}, Market.poland())],
-        into: %{},
-        do: {shop.key, {delivery.shipping_from, delivery.free_shipping_from}}
+  @doc """
+  Whether the market has single cards from shops: a shop reading singles
+  (`singles_categories` or `singles_markers`) is at home there or has a
+  delivery with a known price to its country, so its offers count there
+  (`Market.terms/2`). Without one, the market's card pages give the
+  Cardmarket trend alone: a shop only listed there could not set a price.
+  """
+  @spec singles?(Market.t()) :: boolean()
+  def singles?(%Market{} = market) do
+    Enum.any?(@shops, fn shop ->
+      (shop.singles_categories != nil or shop.singles_markers != nil) and
+        counted?(Market.terms({:ok, shop}, market))
+    end)
   end
 
-  @doc "Whether the shop is in Poland."
-  @spec polish?(String.t()) :: boolean()
-  def polish?(key), do: match?({:ok, %{country: "PL"}}, fetch(key))
-
-  @doc "Shops whose offers never count in Polish prices: abroad without a known delivery price."
-  @spec listed_only_keys() :: [String.t()]
-  def listed_only_keys do
-    for shop <- @shops,
-        Market.terms({:ok, shop}, Market.poland()) in [:listed, :absent],
-        do: shop.key
-  end
+  defp counted?(:domestic), do: true
+  defp counted?({:delivered, _delivery}), do: true
+  defp counted?(_listed_or_absent), do: false
 
   @doc "Whether a shop of the country (its ISO code) has a pickup store, so that distances to it can be shown."
   @spec pickup?(String.t()) :: boolean()

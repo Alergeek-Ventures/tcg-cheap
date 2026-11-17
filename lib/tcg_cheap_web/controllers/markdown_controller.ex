@@ -42,8 +42,9 @@ defmodule TcgCheapWeb.MarkdownController do
 
   # The card list's first page, as the HTML opens without a search.
   def cards(conn, _params) do
-    market = if Region.poland?(conn.assigns.region), do: Cards.SinglesBanner.market()
-    %{available: {cards, _more?, _count}} = Cards.Guide.discovery()
+    region = conn.assigns.region
+    market = if Region.singles?(region), do: Cards.SinglesBanner.market(region.market)
+    %{available: {cards, _more?, _count}} = Cards.Guide.discovery(region.market)
     seo = SEO.Cards.metadata(%{}, market)
 
     send_markdown(conn, seo, PageMarkdown.cards(seo, cards, Date.utc_today()))
@@ -117,7 +118,7 @@ defmodule TcgCheapWeb.MarkdownController do
         path = Paths.localize(path)
 
         if path == Paths.page_path(conn.assigns.region, {:card, set, slug}) do
-          page = Cards.Guide.page(card, name, path)
+          page = Cards.Guide.page(card, name, path, conn.assigns.region.market)
           seo = SEO.Single.metadata(page)
           send_markdown(conn, seo, PageMarkdown.single(seo, page))
         else

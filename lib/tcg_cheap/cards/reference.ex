@@ -1,9 +1,10 @@
 defmodule TcgCheap.Cards.Reference do
   @moduledoc """
-  Single-card reference: Cardmarket trend (trend_holo for reverse), delivered
-  to Poland. Up to and including €25 a German letter costs €1.55; above it
-  a registered letter from Poland costs €2.80. Special patterns are separate
-  products without a reference here. Missing or zero prices stay unknown.
+  Single-card reference: Cardmarket trend (trend_holo for reverse) with
+  delivery, one rule for every market. Up to and including €25 a German
+  letter costs €1.55; above it a registered letter from Poland costs €2.80.
+  Special patterns are separate products without a reference here. Missing
+  or zero prices stay unknown.
   """
   alias TcgCheap.Sealed.Market
 
@@ -18,11 +19,15 @@ defmodule TcgCheap.Cards.Reference do
   def delivered_eur(nil), do: nil
 
   @spec pln(map() | nil, atom(), map() | nil) :: Decimal.t() | nil
-  def pln(_price, :special, _rate), do: nil
-  def pln(nil, _variant, _rate), do: nil
+  def pln(price, variant, rate), do: in_market(price, variant, rate, Market.poland())
 
-  def pln(price, variant, rate) do
+  @doc "The reference in the market's currency, at the euro's `rate` there (`Market.cardmarket_rate/2`)."
+  @spec in_market(map() | nil, atom(), map() | nil, Market.t()) :: Decimal.t() | nil
+  def in_market(_price, :special, _rate, _market), do: nil
+  def in_market(nil, _variant, _rate, _market), do: nil
+
+  def in_market(price, variant, rate, market) do
     trend = if variant == :reverse, do: price.trend_holo, else: price.trend
-    trend |> delivered_eur() |> Market.to_pln(rate)
+    trend |> delivered_eur() |> Market.in_market(rate, market)
   end
 end

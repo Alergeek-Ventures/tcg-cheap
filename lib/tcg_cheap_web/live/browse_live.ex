@@ -151,9 +151,9 @@ defmodule TcgCheapWeb.BrowseLive do
   end
 
   # Without a chosen expansion, the card list's search metadata and link
-  # preview tell the whole guide's singles, which only the Polish market has.
+  # preview tell the region's singles, where shops sell them.
   defp singles_market(region, nil),
-    do: if(Region.poland?(region), do: Cards.SinglesBanner.market())
+    do: if(Region.singles?(region), do: Cards.SinglesBanner.market(region.market))
 
   defp singles_market(_region, _expansion), do: nil
 
@@ -185,25 +185,30 @@ defmodule TcgCheapWeb.BrowseLive do
 
   # The cards the same words find when products find none, often a Pokémon's
   # name typed into the products list. A chosen kind means a product was meant.
-  defp card_matches(%{kind: nil, query: query, expansion: expansion}) when query != "",
-    do: Cards.Guide.count(query, expansion)
+  defp card_matches(%{kind: nil, query: query, expansion: expansion}, region) when query != "",
+    do: Cards.Guide.count(query, expansion, region.market)
 
-  defp card_matches(_filters), do: 0
+  defp card_matches(_filters, _region), do: 0
 
-  # Without a search or an expansion, every visitor sees the same list.
-  defp card_list(%{query: "", expansion: nil}), do: Cards.Guide.discovery()
+  # Without a search or an expansion, every visitor of the region sees the same list.
+  defp card_list(%{query: "", expansion: nil}, market), do: Cards.Guide.discovery(market)
 
-  defp card_list(filters) do
+  defp card_list(filters, market) do
     %{
-      available: Cards.Guide.browse(Map.put(filters, :stock, :in), 0),
-      expansions: Cards.Guide.expansion_facets(filters)
+      available: Cards.Guide.browse(Map.put(filters, :stock, :in), 0, market),
+      expansions: Cards.Guide.expansion_facets(filters, market)
     }
   end
 
   defp list(socket, %{mode: :cards} = filters) do
-    %{available: {available, more?, count}, expansions: expansions} = card_list(filters)
+    market = socket.assigns.region.market
 
-    {unavailable, out_more?, out_count} = Cards.Guide.browse(Map.put(filters, :stock, :out), 0)
+    %{available: {available, more?, count}, expansions: expansions} =
+      card_list(filters, market)
+
+    {unavailable, out_more?, out_count} =
+      Cards.Guide.browse(Map.put(filters, :stock, :out), 0, market)
+
     only_out? = count == 0
     rows = if only_out?, do: unavailable, else: available
 
@@ -246,7 +251,10 @@ defmodule TcgCheapWeb.BrowseLive do
     |> assign(:form, to_form(%{"q" => filters.query}))
     |> assign(:cards_out_count, 0)
     |> assign(:result_count, count)
-    |> assign(:card_matches, if(count == 0, do: card_matches(filters), else: 0))
+    |> assign(
+      :card_matches,
+      if(count == 0, do: card_matches(filters, socket.assigns.region), else: 0)
+    )
     |> assign(:loaded, length(summaries))
     |> assign(:more?, more?)
     |> assign(:priority_product_id, first_summary && first_summary.product.id)
@@ -412,7 +420,8 @@ defmodule TcgCheapWeb.BrowseLive do
     {rows, more?, _count} =
       Cards.Guide.browse(
         Map.put(filters, :stock, socket.assigns.cards_stock),
-        socket.assigns.loaded
+        socket.assigns.loaded,
+        socket.assigns.region.market
       )
 
     socket
@@ -438,7 +447,8 @@ defmodule TcgCheapWeb.BrowseLive do
     {rows, more?, _count} =
       Cards.Guide.browse(
         Map.put(socket.assigns.filters, :stock, :out),
-        socket.assigns.cards_out_loaded
+        socket.assigns.cards_out_loaded,
+        socket.assigns.region.market
       )
 
     socket
@@ -485,14 +495,14 @@ defmodule TcgCheapWeb.BrowseLive do
                 close={list_path(@filters, expansion: nil, expansion_name: nil)}
                 cards_href="#guide-results-title"
                 singles?={true}
-                polish?={Region.poland?(@region)}
+                shops?={Region.singles?(@region)}
               />
             <% @set_page -> %>
               <.set_intro
                 name={@filters.expansion_name}
                 page={@set_page}
                 close={Paths.products()}
-                polish?={Region.poland?(@region)}
+                shops?={Region.singles?(@region)}
               />
             <% true -> %>
               <.site_intro filters={@filters} />

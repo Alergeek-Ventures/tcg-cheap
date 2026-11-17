@@ -10,7 +10,7 @@ defmodule TcgCheapWeb.SocialImage.Cards do
   alias TcgCheapWeb.{Format, SocialImage}
   alias TcgCheapWeb.SocialImage.{Figures, Picture}
 
-  @doc "A version of what the preview shows (`TcgCheap.Cards.SinglesBanner.market/0`)."
+  @doc "A version of what the preview shows (`TcgCheap.Cards.SinglesBanner.market/1`)."
   @spec version(map()) :: String.t()
   def version(market) do
     deal = market.deal
@@ -21,7 +21,7 @@ defmodule TcgCheapWeb.SocialImage.Cards do
     )
   end
 
-  @doc "The preview from `TcgCheap.Cards.SinglesBanner.market/0`."
+  @doc "The preview from `TcgCheap.Cards.SinglesBanner.market/1`."
   @spec draw(map()) :: SocialImage.result()
   def draw(market) do
     SocialImage.with_slot(fn ->

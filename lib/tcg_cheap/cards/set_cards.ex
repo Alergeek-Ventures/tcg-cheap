@@ -1,25 +1,25 @@
 defmodule TcgCheap.Cards.SetCards do
   @moduledoc """
-  An expansion's English cards by rarity with its set's pull rates, as the
-  product page of a single booster, the odds of a box and the expansion's
-  page show them.
+  An expansion's English cards by rarity with its set's pull rates and their
+  prices in a market, as the product page of a single booster, the odds of a
+  box and the expansion's page show them.
   """
 
   alias TcgCheap.Cards
   alias TcgCheap.Cards.{Guide, Rarities, Set, SinglesBanner}
   alias TcgCheap.Cards.PullRates.Rate
-  alias TcgCheap.Sealed.ExpansionLogo
+  alias TcgCheap.Sealed.{ExpansionLogo, Market}
 
   @card_number ~r/\A(\D*)(\d+)(.*)\z/
 
   @doc """
   The expansion's pull rates and cards by rarity (`pull_rates` and `rarities`,
-  see `odds/1`), with the cards per standard pack, its logo and the day the
+  see `odds/2`), with the cards per standard pack, its logo and the day the
   newest card price is from.
   """
-  @spec read(integer() | nil) :: map()
-  def read(id) do
-    {pull_rates, set} = id |> sets_with_cards() |> read_sets()
+  @spec read(integer() | nil, Market.t()) :: map()
+  def read(id, %Market{} = market) do
+    {pull_rates, set} = id |> sets_with_cards() |> read_sets(market)
 
     Map.merge(set, %{
       standard_pack_size: pull_rates && pull_rates.cards_per_pack,
@@ -32,9 +32,9 @@ defmodule TcgCheap.Cards.SetCards do
   with their prices, the page the cards were listed on and the day the
   newest price is from.
   """
-  @spec odds(integer() | nil) :: map()
-  def odds(id) do
-    {_pull_rates, set} = id |> sets_with_cards() |> read_sets()
+  @spec odds(integer() | nil, Market.t()) :: map()
+  def odds(id, %Market{} = market) do
+    {_pull_rates, set} = id |> sets_with_cards() |> read_sets(market)
     set
   end
 
@@ -44,8 +44,8 @@ defmodule TcgCheap.Cards.SetCards do
   price to pull one) and the singles banner, `nil` when we have neither pull
   rates nor cards. `booster` is the expansion's single booster summary or nil.
   """
-  @spec with_singles(map(), map() | nil) :: map() | nil
-  def with_singles(set, booster) do
+  @spec with_singles(map(), map() | nil, Market.t()) :: map() | nil
+  def with_singles(set, booster, %Market{} = market) do
     cards = Enum.flat_map(set.rarities, & &1.cards)
 
     top_cards =
@@ -54,7 +54,7 @@ defmodule TcgCheap.Cards.SetCards do
       |> Enum.sort_by(&Guide.price/1, {:desc, Decimal})
       |> Enum.take(4)
 
-    deal = SinglesBanner.best_deal(cards)
+    deal = SinglesBanner.best_deal(cards, market)
     images = Guide.images(Enum.uniq_by(List.wrap(deal) ++ top_cards, & &1.id))
 
     top_cards =
@@ -115,9 +115,9 @@ defmodule TcgCheap.Cards.SetCards do
     end
   end
 
-  defp read_sets(sets) do
+  defp read_sets(sets, market) do
     pull_rates = set_pull_rates(sets)
-    cards = sets |> Enum.flat_map(& &1.cards) |> Guide.enrich(sets)
+    cards = sets |> Enum.flat_map(& &1.cards) |> Guide.enrich(sets, market)
     rarities = by_rarity(cards)
 
     {pull_rates,

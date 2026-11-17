@@ -114,17 +114,17 @@ defmodule TcgCheapWeb.ListingComponents do
     # With an offer in stock, the row answers as the card's page does: its
     # cheapest shop, the verdict and that shop's price. Without one, the
     # lower known price.
-    polish? = Region.poland?(Region.current())
+    singles? = Region.singles?(Region.current())
 
     assigns =
       assign(assigns,
         status: single_verdict_status(assigns.row.verdict),
-        # Elsewhere than in Poland, only Cardmarket's price: no shop there sells singles.
-        offer: if(polish?, do: assigns.row.offer),
+        # Without singles shops in the region, only Cardmarket's price.
+        offer: if(singles?, do: assigns.row.offer),
         price:
-          card_price(%{
-            polish_price: assigns.row.price,
-            cardmarket_trend_pln: assigns.row.cardmarket_trend_pln
+          Cards.Guide.price(%{
+            offer_price: assigns.row.price,
+            cardmarket_trend: assigns.row.cardmarket_trend
           })
       )
 
@@ -181,18 +181,6 @@ defmodule TcgCheapWeb.ListingComponents do
       </.link>
     </li>
     """
-  end
-
-  @doc """
-  A card's price in the current region: in Poland the lower of its Polish
-  shop price and its Cardmarket trend (`Cards.Guide.price/1`); elsewhere its
-  Cardmarket trend in the region's currency, as singles have no shops there.
-  """
-  @spec card_price(map()) :: Decimal.t() | nil
-  def card_price(card) do
-    if Region.poland?(Region.current()),
-      do: Cards.Guide.price(card),
-      else: card |> Map.get(:cardmarket_trend_pln) |> Region.from_pln()
   end
 
   @doc "A product's row in a list: photo, name, kind, cheapest shop, verdict and price."

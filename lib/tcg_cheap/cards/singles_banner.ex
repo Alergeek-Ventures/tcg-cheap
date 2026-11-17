@@ -1,29 +1,32 @@
 defmodule TcgCheap.Cards.SinglesBanner do
   @moduledoc """
-  The singles banner: the card a shop sells furthest under its Cardmarket
-  price with delivery to Poland (what a singles verdict compares), how many
-  cards are in stock in Poland and how many of them undercut Cardmarket.
+  The singles banner of a market, in its currency: the card a shop sells
+  furthest under its Cardmarket price with delivery (what a singles verdict
+  compares), how many cards are in stock in the market's shops and how many
+  of them undercut Cardmarket.
   """
 
   alias TcgCheap.Cards.Guide
-  alias TcgCheap.Sealed.{Cache, PriceGuide}
+  alias TcgCheap.Sealed.{Cache, Market, PriceGuide}
 
-  # Cards under this Cardmarket trend are too cheap for a "deal" to matter.
-  @deal_floor Decimal.new(20)
+  # Cards under this Cardmarket trend (20 zł, or as much in the market's
+  # currency) are too cheap for a "deal" to matter.
+  @deal_floor_pln Decimal.new(20)
 
   @doc """
   The banner across all expansions, for the card list without one: the best
-  deal among the cards in stock in Poland, how many there are of the
+  deal among the cards in stock in the market, how many there are of the
   catalogue's cards, how many undercut Cardmarket, the most valuable one and
   how many shops sell them. Shared for a few minutes.
   """
-  @spec market() :: map()
-  def market, do: Cache.fetch(:singles_market, &read_market/0)
+  @spec market(Market.t()) :: map()
+  def market(%Market{} = market),
+    do: Cache.fetch({:singles_market, market.code}, fn -> read_market(market) end)
 
   @doc """
   The banner of one expansion's `cards` with the `deal` among them
-  (`best_deal/1`) and the `images` of the cards it shows: how many of the
-  set's cards are in stock in Poland and what the whole set costs at the
+  (`best_deal/2`) and the `images` of the cards it shows: how many of the
+  set's cards are in stock in the market and what the whole set costs at the
   lower of the two prices.
   """
   @spec of_set([map()], map() | nil, map()) :: map()
@@ -32,7 +35,7 @@ defmodule TcgCheap.Cards.SinglesBanner do
 
     %{
       deal: deal && deal_view(deal, images),
-      in_stock: Enum.count(cards, & &1.polish_price),
+      in_stock: Enum.count(cards, & &1.offer_price),
       cheaper: cheaper(cards),
       total: length(cards),
       # A sum missing some cards' prices would understate the set.
@@ -48,22 +51,29 @@ defmodule TcgCheap.Cards.SinglesBanner do
   there is none. First editions have no reference of their own (see
   `Guide.card_verdict/4`).
   """
-  @spec best_deal([map()]) :: map() | nil
-  def best_deal(cards) do
+  @spec best_deal([map()], Market.t()) :: map() | nil
+  def best_deal(cards, %Market{} = market) do
+    case Market.pln_limit(@deal_floor_pln, market, Date.utc_today()) do
+      nil -> nil
+      floor -> best_deal_from(cards, floor)
+    end
+  end
+
+  defp best_deal_from(cards, floor) do
     cards
     |> Enum.filter(
       &(cheaper?(&1) and "firstEdition" not in &1.variants and
-          Decimal.gte?(&1.cardmarket_trend_pln, @deal_floor))
+          Decimal.gte?(&1.cardmarket_trend, floor))
     )
-    |> Enum.map(&{&1, Decimal.div(&1.normal_offer.price, &1.cardmarket_delivered_pln)})
+    |> Enum.map(&{&1, Decimal.div(&1.normal_offer.price, &1.cardmarket_delivered)})
     |> Enum.filter(fn {_card, ratio} -> Decimal.gte?(ratio, PriceGuide.deal_min_ratio()) end)
     |> Enum.min_by(&elem(&1, 1), Decimal, fn -> {nil, nil} end)
     |> elem(0)
   end
 
-  defp read_market do
-    cards = Guide.market_cards()
-    deal = best_deal(cards)
+  defp read_market(market) do
+    cards = Guide.market_cards(market)
+    deal = best_deal(cards, market)
     deal = deal && Guide.with_public_identity(deal)
     top = Enum.max_by(cards, &Guide.price/1, Decimal, fn -> nil end)
 
@@ -75,7 +85,7 @@ defmodule TcgCheap.Cards.SinglesBanner do
       # The whole catalogue has no price of its own, as a set does.
       set_price: nil,
       top: top && %{card: top, price: Guide.price(top)},
-      shops: Guide.shop_count()
+      shops: Guide.shop_count(market)
     }
   end
 
@@ -84,7 +94,7 @@ defmodule TcgCheap.Cards.SinglesBanner do
       card: deal,
       price: deal.normal_offer.price,
       shop: deal.normal_offer.shop,
-      trend: deal.cardmarket_delivered_pln,
+      trend: deal.cardmarket_delivered,
       image: Map.fetch!(images, deal.id),
       path: deal.public_path
     }
@@ -94,7 +104,7 @@ defmodule TcgCheap.Cards.SinglesBanner do
 
   defp cheaper?(%{
          normal_offer: %{price: price},
-         cardmarket_delivered_pln: %Decimal{} = delivered
+         cardmarket_delivered: %Decimal{} = delivered
        }),
        do: Decimal.lt?(price, delivered)
 
