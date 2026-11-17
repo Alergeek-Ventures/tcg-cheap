@@ -15,9 +15,9 @@ config :tcg_cheap, TcgCheap.Repo,
 
 # Code reloading and asset watchers.
 config :tcg_cheap, TcgCheapWeb.Endpoint,
-  # Binding to loopback ipv4 address prevents access from other machines.
-  # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4004],
+  # Listens on every IPv4 interface, so a preview link proxied from another
+  # host reaches this server. Tidewave still answers only loopback requests.
+  http: [ip: {0, 0, 0, 0}, port: 4004],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
