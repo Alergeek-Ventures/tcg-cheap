@@ -35,12 +35,13 @@ defmodule TcgCheap.Geo.Towns do
 
     # Search keys ignore case, accents, apostrophes and hyphens: "bielsko
     # biala" finds Bielsko-Biała, "malmo" Malmö, "s-hertogenbosch"
-    # 's-Hertogenbosch. Ł and Đ do not decompose.
+    # 's-Hertogenbosch. Ł and Đ do not decompose, nor does the Icelandic Ð
+    # that some sources and keyboards put in Đ's place.
     def normalize(text) do
       text
       |> String.downcase()
       |> String.replace("ł", "l")
-      |> String.replace("đ", "d")
+      |> String.replace(["đ", "ð"], "d")
       |> :unicode.characters_to_nfd_binary()
       |> String.replace(@combining_mark, "")
       |> String.replace(@apostrophes, "")
@@ -85,7 +86,8 @@ defmodule TcgCheap.Geo.Towns do
     end
 
     defp parse(line, id, path) do
-      with [name, area, lat, lon, city] when name != "" <- String.split(line, "\t"),
+      with false <- String.contains?(line, "\r"),
+           [name, area, lat, lon, city] when name != "" <- String.split(line, "\t"),
            {lat, ""} when lat >= -90 and lat <= 90 <- Float.parse(lat),
            {lon, ""} when lon >= -180 and lon <= 180 <- Float.parse(lon) do
         %{
@@ -100,7 +102,7 @@ defmodule TcgCheap.Geo.Towns do
         _malformed ->
           raise ArgumentError,
                 "#{Path.relative_to_cwd(path)}:#{id + 1}: expected name, area, latitude, " <>
-                  "longitude and city (may be empty), separated by tabs"
+                  "longitude and city (may be empty), separated by tabs, in a line ending with LF"
       end
     end
 
@@ -220,8 +222,9 @@ defmodule TcgCheap.Geo.Towns do
   The country's town closest to the point among those whose reach covers it,
   or nil: the point is then taken to be outside the country. A town's reach
   is read from the list (see `Loader`), so that sparse land, such as the
-  Swedish fells or an island, counts as inside, and a town just across a
-  strait or a border does not.
+  Swedish fells or an island, counts as inside, and Copenhagen across the
+  Øresund does not. It is a distance rule, not a border: a place a few
+  kilometres beyond a border town is still taken to be inside.
   """
   @spec near(String.t(), Geo.coords()) :: town() | nil
   def near(country, coords) do

@@ -107,7 +107,7 @@ Trofa	Distrito do Porto	41.337	-8.560
 Baião	Distrito do Porto	41.163	-8.035	
 Laranjeiro	Distrito de Faro	37.068	-7.808	
 Carcavelos	Distrito de Lisboa	38.691	-9.322	
-Alcântara	Distrito de Lisboa	38.701	-9.171	Almada
+Alcântara	Distrito de Lisboa	38.701	-9.171	Lisboa
 Camarate	Distrito de Lisboa	38.804	-9.128	
 Ponta Delgada	Região Autónoma dos Açores	37.740	-25.669	
 Entroncamento	Distrito de Santarém	39.467	-8.467	
@@ -166,14 +166,13 @@ Areosa	Distrito do Porto	41.181	-8.588
 Valbom	Distrito do Porto	41.129	-8.562	
 Lagoa	Região Autónoma dos Açores	37.745	-25.572	
 Arcozelo	Distrito do Porto	41.062	-8.632	
-Ajuda	Distrito de Lisboa	38.700	-9.208	Algés
+Ajuda	Distrito de Lisboa	38.700	-9.208	Lisboa
 Canelas	Distrito do Porto	41.083	-8.600	
 Costa de Caparica	Almada, Distrito de Setúbal	38.645	-9.236	
 Cadaval	Distrito de Lisboa	39.243	-9.103	
 Valença	Distrito de Viana do Castelo	42.024	-8.635	
 Samora Correia	Distrito de Santarém	38.937	-8.872	
 Santo Tirso	Distrito do Porto	41.343	-8.477	
-Costa de Caparica	Almada, Distrito de Setúbal	38.641	-9.232	
 Porto Salvo	Distrito de Lisboa	38.723	-9.305	
 Abrantes	Distrito de Santarém	39.467	-8.200	
 Esgueira	Distrito de Aveiro	40.649	-8.629	
@@ -189,7 +188,7 @@ Perafita	Distrito do Porto	41.183	-8.255
 Mirandela	Distrito de Bragança	41.487	-7.187	
 Azenha	Distrito do Porto	41.077	-8.625	
 Mafra	Distrito de Lisboa	38.938	-9.328	
-Bairro da Madre de Deus	Distrito de Lisboa	38.735	-9.118	Beato António
+Bairro da Madre de Deus	Distrito de Lisboa	38.735	-9.118	Lisboa
 Aldeia de Paio Pires	Distrito de Setúbal	38.617	-9.083	
 Tábua	Distrito de Coimbra	40.362	-8.029	
 Rio Maior	Distrito de Santarém	39.337	-8.939	
@@ -299,7 +298,7 @@ Tavarede	Distrito de Coimbra	40.167	-8.846
 Torre de Moncorvo	Distrito de Bragança	41.175	-7.054	
 Benedita	Distrito de Leiria	39.425	-8.970	
 Moncarapacho	Distrito de Faro	37.084	-7.788	
-Santa Maria de Belém	Distrito de Lisboa	38.700	-9.200	Torre de Belém
+Santa Maria de Belém	Distrito de Lisboa	38.700	-9.200	Lisboa
 Aves	Distrito do Porto	41.370	-8.410	
 Alpendurada	Distrito do Porto	41.089	-8.246	
 Soure	Distrito de Coimbra	40.060	-8.626	
@@ -386,7 +385,7 @@ Prior Velho	Distrito de Lisboa	38.792	-9.121
 Cacilhas	Distrito de Setúbal	38.686	-9.149	
 Sandim	Distrito do Porto	41.035	-8.507	
 Carrazeda de Anciães	Distrito de Bragança	41.242	-7.307	
-São Sebastião da Pedreira	Distrito de Lisboa	38.734	-9.154	Alvalade
+São Sebastião da Pedreira	Distrito de Lisboa	38.734	-9.154	Lisboa
 Sabrosa	Distrito de Vila Real	41.267	-7.576	
 Tabuaço	Distrito de Viseu	41.116	-7.568	
 Foz do Sousa	Distrito do Porto	41.097	-8.502	
@@ -476,7 +475,7 @@ Alvor	Distrito de Faro	37.130	-8.592
 Caranguejeira	Distrito de Leiria	39.746	-8.707	
 Ventosa	Distrito de Lisboa	39.127	-9.084	
 Mêda	Distrito da Guarda	40.966	-7.262	
-Ribeira Grande	Região Autónoma dos Açores	38.517	-28.700	
+Ribeira Grande	Região Autónoma dos Açores	37.822	-25.521	
 Árvore	Distrito do Porto	41.339	-8.718	
 Vila Nova de Paiva	Distrito de Viseu	40.853	-7.728	
 Salvaterra de Magos	Distrito de Santarém	39.028	-8.793	
@@ -594,7 +593,6 @@ Vila Frescainha	Distrito de Braga	41.538	-8.640
 Santos-o-Velho	Distrito de Lisboa	38.707	-9.156	Lisboa
 Tocha	Distrito de Coimbra	40.313	-8.753	
 Campanário	Região Autónoma da Madeira	32.666	-17.036	
-Ribeira Grande	Região Autónoma dos Açores	37.822	-25.521	
 Sardoal	Distrito de Santarém	39.534	-8.161	
 Mogadouro	Distrito de Bragança	41.340	-6.712	
 Alcoentre	Distrito de Lisboa	39.209	-8.960	
@@ -637,7 +635,7 @@ Riba de Ave	Distrito de Braga	41.396	-8.387
 Abrigada	Distrito de Lisboa	39.144	-9.019	
 Fronteira	Distrito de Portalegre	39.056	-7.649	
 Sobral de Monte Agraço	Distrito de Lisboa	39.020	-9.151	
-Bairro do Alto da Boavista	Distrito de Lisboa	38.735	-9.206	Benfica
+Bairro do Alto da Boavista	Distrito de Lisboa	38.735	-9.206	Lisboa
 Tarouca	Distrito de Viseu	41.018	-7.775	
 Cais do Pico	Região Autónoma dos Açores	38.525	-28.321	
 Rebordões	Distrito do Porto	41.355	-8.424	
