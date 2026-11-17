@@ -64,10 +64,10 @@ defmodule TcgCheapWeb.Router do
   """
 
   # AI agents (see the tools of TcgCheap.Sealed and TcgCheap.Cards): a bearer
-  # token, no session or cookies.
-  # The dev server, like Tidewave, listens only on localhost and needs none.
+  # token, no session or cookies. The dev server listens on every interface,
+  # so only its loopback requests go without one.
   pipeline :mcp do
-    if Mix.env() != :dev, do: plug(TcgCheapWeb.McpAuth)
+    plug TcgCheapWeb.McpAuth, admit_loopback: Mix.env() == :dev
   end
 
   scope "/", TcgCheapWeb do

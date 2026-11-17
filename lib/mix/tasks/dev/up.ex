@@ -213,7 +213,9 @@ defmodule Mix.Tasks.Dev.Up do
     Mix.shell().info("S3: http://localhost:#{s3_port}")
   end
 
-  defp wait_until(fun, label, attempts \\ 30)
+  # Services without their own limit get 90 attempts, a second apart: a
+  # container on a busy shared host can need more than half a minute to answer.
+  defp wait_until(fun, label, attempts \\ 90)
   defp wait_until(_fun, label, 0), do: Mix.raise("timed out waiting for #{label}")
 
   defp wait_until(fun, label, attempts) do

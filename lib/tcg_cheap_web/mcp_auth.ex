@@ -3,8 +3,10 @@ defmodule TcgCheapWeb.McpAuth do
   Admits MCP requests carrying `Authorization: Bearer <MCP_API_TOKEN>`.
 
   The token is compared in constant time. Without a configured token (the
-  `MCP_API_TOKEN` environment variable unset) every request is refused. The
-  router skips this plug in development.
+  `MCP_API_TOKEN` environment variable unset) every request is refused. With
+  `admit_loopback: true` (development) a request from this machine's loopback
+  address needs no token. That trusts the TCP peer: a proxy on the same machine
+  forwarding to the loopback address would pass its own clients through.
   """
 
   @behaviour Plug
@@ -12,10 +14,14 @@ defmodule TcgCheapWeb.McpAuth do
   import Plug.Conn
 
   @impl true
-  def init(opts), do: opts
+  def init(opts), do: Keyword.get(opts, :admit_loopback, false)
 
   @impl true
-  def call(conn, _opts) do
+  def call(conn, admit_loopback) do
+    if admit_loopback and loopback?(conn.remote_ip), do: conn, else: authorize(conn)
+  end
+
+  defp authorize(conn) do
     with expected when is_binary(expected) <- token(),
          ["Bearer " <> given] <- get_req_header(conn, "authorization"),
          true <- Plug.Crypto.secure_compare(digest(given), digest(expected)) do
@@ -29,6 +35,10 @@ defmodule TcgCheapWeb.McpAuth do
         |> halt()
     end
   end
+
+  defp loopback?({127, _, _, _}), do: true
+  defp loopback?({0, 0, 0, 0, 0, 0, 0, 1}), do: true
+  defp loopback?(_address), do: false
 
   # Equal-length digests keep the comparison from leaking the token length.
   defp digest(token), do: :crypto.hash(:sha256, token)
