@@ -4,52 +4,52 @@ msgstr ""
 "Language: cs\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
-#: lib/tcg_cheap/countries/poland.ex:91
+#: lib/tcg_cheap/countries/poland.ex:98
 #, elixir-autogen, elixir-format
 msgid "%{card} – cena karty Pokémon w Polsce"
 msgstr "%{card} – cena karty Pokémon v Polsku"
 
-#: lib/tcg_cheap/countries/poland.ex:96
+#: lib/tcg_cheap/countries/poland.ex:103
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Polski."
 msgstr "%{expansion}: porovnej ceny boosterů, ETB, boxů a kolekcí v obchodech s dopravou do Polska."
 
-#: lib/tcg_cheap/countries/poland.ex:112
+#: lib/tcg_cheap/countries/poland.ex:119
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden polski sklep nie ma tego produktu na stanie."
 msgstr "%{name}: tento produkt teď nemá skladem žádný polský obchod."
 
-#: lib/tcg_cheap/countries/poland.ex:84
+#: lib/tcg_cheap/countries/poland.ex:91
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających do Polski."
 msgstr "Anglické karty Pokémon TCG v obchodech s dopravou do Polska."
 
-#: lib/tcg_cheap/countries/poland.ex:105
+#: lib/tcg_cheap/countries/poland.ex:112
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden polski sklep nie ma teraz na stanie."
 msgstr "Booster %{expansion} teď nemá skladem žádný polský obchod."
 
-#: lib/tcg_cheap/countries/poland.ex:69
+#: lib/tcg_cheap/countries/poland.ex:76
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Polski, sprawdzane codziennie."
 msgstr "Ceny Pokémon TCG z obchodů s dopravou do Polska, ověřované každý den."
 
-#: lib/tcg_cheap/countries/poland.ex:87
+#: lib/tcg_cheap/countries/poland.ex:94
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w Polsce"
 msgstr "Ceny karet Pokémon TCG v Polsku"
 
-#: lib/tcg_cheap/countries/poland.ex:141
+#: lib/tcg_cheap/countries/poland.ex:148
 #, elixir-autogen, elixir-format
 msgid "Ceny w sklepach są bez wysyłki. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Ceny obchodů jsou bez dopravy. K ceně Cardmarket připočítáváme %{shipping} za balík z Německa."
 
-#: lib/tcg_cheap/countries/poland.ex:80
+#: lib/tcg_cheap/countries/poland.ex:87
 #, elixir-autogen, elixir-format
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Polski."
 msgstr "Nejlevnější karty Pokémon TCG v obchodech s dopravou do Polska."
 
-#: lib/tcg_cheap/countries/poland.ex:76
+#: lib/tcg_cheap/countries/poland.ex:83
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Polski."
 msgstr "Nejlevnější nabídky Pokémon TCG v obchodech s dopravou do Polska."
@@ -59,7 +59,7 @@ msgstr "Nejlevnější nabídky Pokémon TCG v obchodech s dopravou do Polska."
 msgid "Polska"
 msgstr "Polsko"
 
-#: lib/tcg_cheap/countries/poland.ex:61
+#: lib/tcg_cheap/countries/poland.ex:68
 #, elixir-autogen, elixir-format
 msgid "Porównaj ceny Pokémon TCG w sklepach wysyłających do Polski. Sprawdź oferty boosterów, ETB, boxów i angielskich kart, historię cen i czy warto kupić teraz."
 msgstr "Porovnej ceny Pokémon TCG v obchodech s dopravou do Polska. Podívej se na nabídky boosterů, ETB, boxů a anglických karet, vývoj cen a zjisti, jestli se vyplatí koupit teď."
@@ -79,7 +79,7 @@ msgstr "Vypadá to, že jsi v Polsku."
 msgid "wysyłka z Polski"
 msgstr "doprava z Polska"
 
-#: lib/tcg_cheap/countries/poland.ex:118
+#: lib/tcg_cheap/countries/poland.ex:125
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Polski"
 msgstr "s dopravou do Polska"
@@ -88,3 +88,13 @@ msgstr "s dopravou do Polska"
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Polski"
 msgstr "s dopravou z Polska"
+
+#: lib/tcg_cheap/countries/poland.ex:60
+#, elixir-autogen, elixir-format
+msgid "Ta lokalizacja jest poza Polską. Wpisz miejscowość."
+msgstr "Tato poloha je mimo Polsko. Zadej město."
+
+#: lib/tcg_cheap/countries/poland.ex:63
+#, elixir-autogen, elixir-format
+msgid "np. Gdańsk"
+msgstr "např. Gdańsk"
