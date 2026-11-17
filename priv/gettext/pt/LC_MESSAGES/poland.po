@@ -103,4 +103,4 @@ msgstr "Esta localização fica fora da Polónia. Escreve a localidade."
 #: lib/tcg_cheap/countries/poland.ex:63
 #, elixir-autogen, elixir-format
 msgid "np. Gdańsk"
-msgstr "ex.: Porto"
+msgstr "ex.: Gdańsk"
