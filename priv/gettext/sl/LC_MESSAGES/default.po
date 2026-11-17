@@ -293,7 +293,7 @@ msgstr "Tin"
 msgid "Rodzaj"
 msgstr "Vrsta"
 
-#: lib/tcg_cheap_web/seo.ex:130
+#: lib/tcg_cheap_web/seo.ex:126
 #: lib/tcg_cheap_web/social_image/home.ex:29
 #, elixir-autogen, elixir-format
 msgid "Sprawdź, czy cena jest dobra"
@@ -389,7 +389,7 @@ msgstr "Vse"
 #: lib/tcg_cheap_web/live/booster_price_live.ex:103
 #: lib/tcg_cheap_web/live/bot_live.ex:47
 #: lib/tcg_cheap_web/live/product_live.ex:152
-#: lib/tcg_cheap_web/seo.ex:155
+#: lib/tcg_cheap_web/seo.ex:151
 #, elixir-autogen, elixir-format
 msgid "Wszystkie produkty"
 msgstr "Vsi izdelki"
@@ -1450,7 +1450,7 @@ msgstr "Cene so brez dostave, verjetnosti so ocene."
 #: lib/tcg_cheap_web/live/home_live.ex:425
 #: lib/tcg_cheap_web/live/home_live.ex:478
 #: lib/tcg_cheap_web/page_markdown.ex:123
-#: lib/tcg_cheap_web/seo.ex:159
+#: lib/tcg_cheap_web/seo.ex:155
 #, elixir-autogen, elixir-format
 msgid "Karty"
 msgstr "Karte"
@@ -1723,7 +1723,7 @@ msgstr "najvrednejša: %{card}"
 msgid "taniej niż na Cardmarket z wysyłką"
 msgstr "ceneje kot na Cardmarketu z dostavo"
 
-#: lib/tcg_cheap_web/seo/single.ex:115
+#: lib/tcg_cheap_web/seo/single.ex:114
 #, elixir-autogen, elixir-format
 msgid "Karta Pokémon TCG"
 msgstr "Karta Pokémon TCG"
@@ -1991,7 +1991,7 @@ msgstr "oznake poškodb"
 msgid "Pokaż pasujące karty: %{count}"
 msgstr "Pokaži ustrezne karte: %{count}"
 
-#: lib/tcg_cheap_web/seo/single.ex:85
+#: lib/tcg_cheap_web/seo/single.ex:82
 #, elixir-autogen, elixir-format
 msgid "%{name} %{number}: brak ofert bez gradingu na stanie w sklepach. Sprawdź referencję Cardmarket i pozostałe oferty."
 msgstr "%{name} %{number}: v trgovinah ni na zalogi nobene neocenjene karte. Preveri referenčno ceno na Cardmarketu in druge ponudbe."
@@ -2190,7 +2190,7 @@ msgstr "%{name} – cena"
 msgid "%{name} – ceny i oferty"
 msgstr "%{name} – cene in ponudbe"
 
-#: lib/tcg_cheap_web/seo/single.ex:81
+#: lib/tcg_cheap_web/seo/single.ex:78
 #, elixir-autogen, elixir-format
 msgid "Ceny, stan i warianty karty."
 msgstr "Cene, stanje in različice karte."
@@ -2200,7 +2200,7 @@ msgstr "Cene, stanje in različice karte."
 msgid "Ile kosztuje booster Pokémon? Ceny w Polsce"
 msgstr "Koliko stane Pokémon booster? Cene na Poljskem"
 
-#: lib/tcg_cheap_web/seo/cards.ex:58
+#: lib/tcg_cheap_web/seo/cards.ex:54
 #, elixir-autogen, elixir-format
 msgid "%{count} z nich taniej niż na Cardmarket z przesyłką."
 msgstr "%{count} od njih ceneje kot na Cardmarketu z dostavo."
@@ -2226,7 +2226,7 @@ msgstr "%{expansion} – cene Pokémon TCG kart in boosterjev"
 msgid "%{expansion} – ceny kart i boosterów, drop rate"
 msgstr "%{expansion} – cene kart in boosterjev, pull rate"
 
-#: lib/tcg_cheap_web/seo/cards.ex:61
+#: lib/tcg_cheap_web/seo/cards.ex:57
 #, elixir-autogen, elixir-format
 msgid "Najniższa cena i ocena każdej karty."
 msgstr "Najnižja cena in ocena vsake karte."
@@ -2872,11 +2872,6 @@ msgstr "Booster od %{price}"
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon"
 msgstr "Cene Pokémon kart"
-
-#: lib/tcg_cheap_web/seo/cards.ex:33
-#, elixir-autogen, elixir-format
-msgid "Ceny kart Pokémon w polskich sklepach"
-msgstr "Cene Pokémon kart v poljskih trgovinah"
 
 #: lib/tcg_cheap_web/seo/booster_prices.ex:29
 #, elixir-autogen, elixir-format
@@ -4067,7 +4062,7 @@ msgstr "Stane enako kot %{boosters} posebej (po %{single})."
 msgid "Kosztuje tyle samo co sam booster (%{single})."
 msgstr "Stane enako kot sam booster (%{single})."
 
-#: lib/tcg_cheap_web/seo/single.ex:72
+#: lib/tcg_cheap_web/seo/single.ex:69
 #, elixir-autogen, elixir-format
 msgid "%{name} %{number}: cena na Cardmarket i warianty karty."
 msgstr "%{name} %{number}: cena na Cardmarketu in različice karte."
@@ -4081,7 +4076,7 @@ msgstr[1] "%{number} cena iz letaka"
 msgstr[2] "%{number} ceni iz letakov"
 msgstr[3] "%{number} cene iz letakov"
 
-#: lib/tcg_cheap_web/controllers/crawl_controller.ex:197
+#: lib/tcg_cheap_web/controllers/crawl_controller.ex:237
 #: lib/tcg_cheap_web/live/home_live.ex:436
 #, elixir-autogen, elixir-format
 msgid "%{number} karta na stanie"
@@ -4091,7 +4086,7 @@ msgstr[1] "%{number} karta na zalogi"
 msgstr[2] "%{number} karti na zalogi"
 msgstr[3] "%{number} karte na zalogi"
 
-#: lib/tcg_cheap_web/controllers/crawl_controller.ex:191
+#: lib/tcg_cheap_web/controllers/crawl_controller.ex:231
 #: lib/tcg_cheap_web/live/home_live.ex:415
 #, elixir-autogen, elixir-format
 msgid "%{number} produkt na stanie"

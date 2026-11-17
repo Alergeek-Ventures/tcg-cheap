@@ -16,7 +16,7 @@ defmodule TcgCheapWeb.SocialImageController do
   alias AshStorage.Service.Context
   alias TcgCheap.Cards
 
-  alias TcgCheap.Sealed.{BoosterGuide, Catalogue, Expansions, Market, ProductPage, SetPage}
+  alias TcgCheap.Sealed.{BoosterGuide, Catalogue, Expansions, ProductPage, SetPage}
 
   alias TcgCheapWeb.{Paths, SocialImage}
 
@@ -62,10 +62,11 @@ defmodule TcgCheapWeb.SocialImageController do
   end
 
   def cards(conn, _params) do
-    # Link previews of the card pages are Poland's only (`TcgCheapWeb.Router`).
-    market = Cards.SinglesBanner.market(Market.poland())
+    # Only where shops sell singles (`TcgCheapWeb.Router`).
+    market = Cards.SinglesBanner.market(conn.assigns.region.market)
+    key = "social/#{region_prefix(conn)}cards-#{SocialImage.Cards.version(market)}.jpg"
 
-    serve(conn, "social/cards-#{SocialImage.Cards.version(market)}.jpg", fn ->
+    serve(conn, key, fn ->
       SocialImage.Cards.draw(market)
     end)
   end
@@ -82,10 +83,10 @@ defmodule TcgCheapWeb.SocialImageController do
   def expansion(conn, %{"slug" => slug}) do
     with {:ok, id, name} <- known_expansion(slug),
          true <- slug == Catalogue.slug(name, id) do
-      set_page = SetPage.read(id, name, DateTime.utc_now())
+      set_page = SetPage.read(id, name, DateTime.utc_now(), conn.assigns.region.market)
       version = SocialImage.Expansion.version(name, set_page)
 
-      serve(conn, "social/expansions/#{slug}-#{version}.jpg", fn ->
+      serve(conn, "social/#{region_prefix(conn)}expansions/#{slug}-#{version}.jpg", fn ->
         SocialImage.Expansion.draw(name, set_page)
       end)
     else
@@ -99,9 +100,12 @@ defmodule TcgCheapWeb.SocialImageController do
 
     with {:ok, _id, _name} <- known_expansion(set),
          {:ok, card, name, ^path} <- Cards.Guide.find(set, slug) do
-      page = Cards.Guide.page(card, name, path, Market.poland())
+      page = Cards.Guide.page(card, name, path, conn.assigns.region.market)
 
-      serve(conn, "social/cards/#{set}/#{slug}-#{SocialImage.Single.version(page)}.jpg", fn ->
+      key =
+        "social/#{region_prefix(conn)}cards/#{set}/#{slug}-#{SocialImage.Single.version(page)}.jpg"
+
+      serve(conn, key, fn ->
         SocialImage.Single.draw(page)
       end)
     else

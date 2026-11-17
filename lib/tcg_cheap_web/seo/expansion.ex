@@ -33,12 +33,12 @@ defmodule TcgCheapWeb.SEO.Expansion do
       SEO.fit_description(answer(name, page)),
       canonical,
       social_image:
-        if(SEO.polish?(),
+        if(Region.singles?(Region.current()),
           do: SEO.social_image(path(id, name), SocialImage.Expansion.version(name, page)),
           else: SEO.home_image()
         ),
       social_image_alt:
-        if(SEO.polish?(),
+        if(Region.singles?(Region.current()),
           do: gettext("%{expansion}: najcenniejsze karty i ceny", expansion: name),
           else: SEO.home_image_alt()
         ),
