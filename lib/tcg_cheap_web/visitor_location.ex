@@ -313,7 +313,7 @@ defmodule TcgCheapWeb.VisitorLocation do
         <p id="visitor-location-sources" class="guide-note">
           {gettext("Miejscowości:")} <a href="https://www.geonames.org" rel="noopener">GeoNames</a>
           {gettext("(wybór;")} <a
-            href="https://creativecommons.org/licenses/by/4.0/deed.pl"
+            href="https://creativecommons.org/licenses/by/4.0/"
             rel="noopener"
           >CC BY 4.0</a>); {gettext("położenie sklepów: ©")} <a
             href="https://www.openstreetmap.org/copyright"
