@@ -1,0 +1,963 @@
+Budapest	Budapest	47.498	19.040	
+Debrecen	Hajdú-Bihar	47.532	21.624	
+Szeged	Csongrád	46.253	20.148	
+Miskolc	Borsod-Abaúj-Zemplén	48.103	20.778	
+Pécs	Baranya	46.076	18.228	
+Győr	Győr-Moson-Sopron	47.683	17.635	
+Nyíregyháza	Szabolcs-Szatmár-Bereg	47.955	21.717	
+Kecskemét	Bács-Kiskun	46.906	19.691	
+Székesfehérvár	Fejér megye	47.190	18.410	
+Szombathely	Vas megye	47.231	16.622	
+Szolnok	Jász-Nagykun-Szolnok	47.181	20.198	
+Tatabánya	Komárom-Esztergom	47.592	18.381	
+Kaposvár	Somogy County	46.367	17.800	
+Érd	Pest County	47.395	18.914	
+Sopron	Győr-Moson-Sopron	47.685	16.590	
+Zalaegerszeg	Zala megye	46.837	16.844	
+Békéscsaba	Bekes County	46.683	21.100	
+Veszprém	Veszprém	47.093	17.911	
+Eger	Heves County	47.903	20.373	
+Dunaújváros	Fejér megye	46.965	18.940	
+Nagykanizsa	Zala megye	46.453	16.991	
+Hódmezővásárhely	Csongrád	46.417	20.333	
+Cegléd	Pest County	47.173	19.800	
+Baja	Bács-Kiskun	46.183	18.953	
+Salgótarján	Nógrád	48.099	19.803	
+Szekszárd	Tolna County	46.347	18.712	
+Vác	Pest County	47.776	19.136	
+Pápa	Veszprém	47.330	17.467	
+Gyöngyös	Heves County	47.783	19.928	
+Kazincbarcika	Borsod-Abaúj-Zemplén	48.250	20.633	
+Gödöllő	Pest County	47.597	19.355	
+Gyula	Bekes County	46.650	21.283	
+Hajdúböszörmény	Hajdú-Bihar	47.667	21.517	
+Kiskunfélegyháza	Bács-Kiskun	46.712	19.845	
+Ajka	Veszprém	47.102	17.559	
+Orosháza	Bekes County	46.567	20.667	
+Mosonmagyaróvár	Győr-Moson-Sopron	47.868	17.270	
+Dunakeszi	Pest County	47.636	19.139	
+Ózd	Borsod-Abaúj-Zemplén	48.217	20.300	
+Kiskunhalas	Bács-Kiskun	46.434	19.485	
+Esztergom	Komárom-Esztergom	47.793	18.741	
+Szentes	Csongrád	46.658	20.261	
+Jászberény	Jász-Nagykun-Szolnok	47.500	19.917	
+Komló	Baranya	46.193	18.265	
+Makó	Csongrád	46.217	20.483	
+Budaörs	Pest County	47.462	18.958	
+Szigetszentmiklós	Pest County	47.344	19.043	
+Hajdúszoboszló	Hajdú-Bihar	47.450	21.400	
+Szentendre	Pest County	47.669	19.076	
+Nagykőrös	Pest County	47.034	19.779	
+Tata	Komárom-Esztergom	47.653	18.318	
+Siófok	Somogy County	46.904	18.058	
+Törökszentmiklós	Jász-Nagykun-Szolnok	47.183	20.417	
+Karcag	Jász-Nagykun-Szolnok	47.317	20.933	
+Gyál	Pest County	47.384	19.221	
+Monor	Pest County	47.351	19.447	
+Várpalota	Veszprém	47.199	18.140	
+Békés	Bekes County	46.767	21.133	
+Dombóvár	Tolna County	46.377	18.137	
+Paks	Tolna County	46.622	18.856	
+Oroszlány	Komárom-Esztergom	47.487	18.312	
+Hatvan	Heves County	47.667	19.683	
+Keszthely	Zala megye	46.768	17.243	
+Vecsés	Pest County	47.407	19.286	
+Mezőtúr	Jász-Nagykun-Szolnok	47.000	20.633	
+Komárom	Komárom-Esztergom	47.743	18.119	
+Mátészalka	Szabolcs-Szatmár-Bereg	47.955	22.323	
+Mohács	Baranya	45.990	18.686	
+Csongrád	Csongrád	46.713	20.142	
+Kalocsa	Bács-Kiskun	46.530	18.973	
+Kisvárda	Szabolcs-Szatmár-Bereg	48.217	22.083	
+Szarvas	Bekes County	46.867	20.550	
+Veresegyház	Pest County	47.646	19.295	
+Sátoraljaújhely	Borsod-Abaúj-Zemplén	48.395	21.659	
+Hajdúnánás	Hajdú-Bihar	47.850	21.433	
+Balmazújváros	Hajdú-Bihar	47.617	21.350	
+Mezőkövesd	Borsod-Abaúj-Zemplén	47.817	20.583	
+Tapolca	Veszprém	46.882	17.441	
+Százhalombatta	Pest County	47.329	18.939	
+Tiszaújváros	Borsod-Abaúj-Zemplén	47.933	21.083	
+Dunaharaszti	Pest County	47.355	19.098	
+Fót	Pest County	47.618	19.189	
+Dabas	Pest County	47.186	19.311	
+Abony	Pest County	47.190	20.005	
+Püspökladány	Hajdú-Bihar	47.317	21.117	
+Göd	Pest County	47.683	19.134	
+Sárvár	Vas megye	47.254	16.935	
+Gyomaendrőd	Bekes County	46.933	20.833	
+Kiskőrös	Bács-Kiskun	46.621	19.285	
+Pomáz	Pest County	47.642	19.028	
+Mór	Fejér megye	47.378	18.204	
+Berettyóújfalu	Hajdú-Bihar	47.224	21.537	
+Budakeszi	Pest County	47.511	18.927	
+Pilisvörösvár	Pest County	47.614	18.909	
+Bátonyterenye	Nógrád	47.970	19.841	
+Bonyhád	Tolna County	46.299	18.530	
+Gyömrő	Pest County	47.427	19.401	
+Balassagyarmat	Nógrád	48.073	19.296	
+Tiszavasvári	Szabolcs-Szatmár-Bereg	47.967	21.350	
+Újfehértó	Szabolcs-Szatmár-Bereg	47.800	21.683	
+Nyírbátor	Szabolcs-Szatmár-Bereg	47.833	22.133	
+Sárbogárd	Fejér megye	46.887	18.620	
+Nagykáta	Pest County	47.415	19.744	
+Pécel	Pest County	47.490	19.342	
+Balatonfüred	Veszprém	46.962	17.872	
+Szigethalom	Pest County	47.322	19.003	
+Hajdúhadház	Hajdú-Bihar	47.683	21.667	
+Kisújszállás	Jász-Nagykun-Szolnok	47.217	20.767	
+Dorog	Komárom-Esztergom	47.721	18.736	
+Kistarcsa	Pest County	47.548	19.262	
+Körmend	Vas megye	47.011	16.606	
+Üllő	Pest County	47.388	19.355	
+Barcs	Somogy County	45.960	17.459	
+Tolna	Tolna County	46.427	18.782	
+Kiskunmajsa	Bács-Kiskun	46.490	19.740	
+Sárospatak	Borsod-Abaúj-Zemplén	48.325	21.574	
+Tiszaföldvár	Jász-Nagykun-Szolnok	46.983	20.250	
+Albertirsa	Pest County	47.243	19.617	
+Tiszakécske	Bács-Kiskun	46.933	20.103	
+Sajószentpéter	Borsod-Abaúj-Zemplén	48.217	20.717	
+Törökbálint	Pest County	47.429	18.914	
+Kőszeg	Vas megye	47.389	16.541	
+Celldömölk	Vas megye	47.257	17.150	
+Isaszeg	Pest County	47.530	19.402	
+Heves	Heves County	47.600	20.283	
+Mezőberény	Bekes County	46.817	21.033	
+Szigetvár	Baranya	46.049	17.806	
+Marcali	Somogy County	46.585	17.412	
+Pilis	Pest County	47.289	19.548	
+Bicske	Fejér megye	47.484	18.644	
+Edelény	Borsod-Abaúj-Zemplén	48.300	20.733	
+Lajosmizse	Bács-Kiskun	47.021	19.562	
+Tiszafüred	Jász-Nagykun-Szolnok	47.617	20.767	
+Hajdúsámson	Hajdú-Bihar	47.600	21.767	
+Csorna	Győr-Moson-Sopron	47.612	17.250	
+Nagykálló	Szabolcs-Szatmár-Bereg	47.875	21.841	
+Sarkad	Bekes County	46.750	21.383	
+Kapuvár	Győr-Moson-Sopron	47.592	17.029	
+Nagyatád	Somogy County	46.230	17.358	
+Siklós	Baranya	45.855	18.298	
+Tököl	Pest County	47.322	18.962	
+Maglód	Pest County	47.443	19.364	
+Pásztó	Nógrád	47.920	19.698	
+Szerencs	Borsod-Abaúj-Zemplén	48.160	21.210	
+Túrkeve	Jász-Nagykun-Szolnok	47.100	20.750	
+Szeghalom	Bekes County	47.033	21.167	
+Kerepes	Pest County	47.560	19.283	
+Jászapáti	Jász-Nagykun-Szolnok	47.517	20.150	
+Jánoshalma	Bács-Kiskun	46.299	19.326	
+Tamási	Tolna County	46.633	18.283	
+Kunszentmárton	Jász-Nagykun-Szolnok	46.839	20.289	
+Hajdúdorog	Hajdú-Bihar	47.817	21.500	
+Vásárosnamény	Szabolcs-Szatmár-Bereg	48.125	22.313	
+Solymár	Pest County	47.592	18.932	
+Ráckeve	Pest County	47.161	18.945	
+Derecske	Hajdú-Bihar	47.350	21.567	
+Kecel	Bács-Kiskun	46.525	19.252	
+Nádudvar	Hajdú-Bihar	47.417	21.167	
+Ócsa	Pest County	47.300	19.231	
+Dunaföldvár	Tolna County	46.807	18.928	
+Fehérgyarmat	Szabolcs-Szatmár-Bereg	47.983	22.517	
+Kiskunlacháza	Pest County	47.188	19.009	
+Kunszentmiklós	Bács-Kiskun	47.027	19.126	
+Szentgotthárd	Vas megye	46.953	16.274	
+Dévaványa	Bekes County	47.033	20.967	
+Nagykovácsi	Pest County	47.581	18.885	
+Biatorbágy	Pest County	47.471	18.819	
+Kunhegyes	Jász-Nagykun-Szolnok	47.367	20.633	
+Lenti	Zala megye	46.624	16.539	
+Ercsi	Fejér megye	47.252	18.896	
+Balatonalmádi	Veszprém	47.035	18.021	
+Polgár	Hajdú-Bihar	47.867	21.117	
+Dunavarsány	Pest County	47.279	19.066	
+Tura	Pest County	47.609	19.603	
+Sülysáp	Pest County	47.452	19.534	
+Füzesabony	Heves County	47.750	20.417	
+Jászárokszállás	Jász-Nagykun-Szolnok	47.642	19.980	
+Gárdony	Fejér megye	47.209	18.636	
+Tárnok	Pest County	47.373	18.846	
+Nyíradony	Hajdú-Bihar	47.697	21.919	
+Zalaszentgrót	Zala megye	46.945	17.079	
+Sándorfalva	Csongrád	46.361	20.099	
+Soltvadkert	Bács-Kiskun	46.579	19.394	
+Nyergesújfalu	Komárom-Esztergom	47.760	18.557	
+Bácsalmás	Bács-Kiskun	46.126	19.333	
+Csömör	Pest County	47.550	19.233	
+Putnok	Borsod-Abaúj-Zemplén	48.300	20.433	
+Vésztő	Bekes County	46.917	21.267	
+Kistelek	Csongrád	46.472	19.980	
+Zirc	Veszprém	47.264	17.874	
+Halásztelek	Pest County	47.362	18.981	
+Mindszent	Csongrád	46.524	20.190	
+Ács	Komárom-Esztergom	47.712	18.011	
+Enying	Fejér megye	46.930	18.242	
+Létavértes	Hajdú-Bihar	47.383	21.900	
+Nyírtelek	Szabolcs-Szatmár-Bereg	48.017	21.633	
+Szentlőrinc	Baranya	46.040	17.987	
+Felsőzsolca	Borsod-Abaúj-Zemplén	48.100	20.867	
+Solt	Bács-Kiskun	46.801	19.001	
+Fegyvernek	Jász-Nagykun-Szolnok	47.267	20.533	
+Nagyecsed	Szabolcs-Szatmár-Bereg	47.865	22.392	
+Encs	Borsod-Abaúj-Zemplén	48.331	21.112	
+Ibrány	Szabolcs-Szatmár-Bereg	48.123	21.710	
+Mezőkovácsháza	Bekes County	46.400	20.917	
+Újszász	Jász-Nagykun-Szolnok	47.300	20.083	
+Bátaszék	Tolna County	46.194	18.723	
+Balkány	Szabolcs-Szatmár-Bereg	47.771	21.863	
+Sümeg	Veszprém	46.977	17.282	
+Tápiószecső	Pest County	47.450	19.609	
+Szabadszállás	Bács-Kiskun	46.876	19.223	
+Battonya	Bekes County	46.283	21.017	
+Polgárdi	Fejér megye	47.061	18.302	
+Mezőcsát	Borsod-Abaúj-Zemplén	47.817	20.917	
+Tótkomlós	Bekes County	46.417	20.733	
+Piliscsaba	Pest County	47.634	18.829	
+Szécsény	Nógrád	48.081	19.520	
+Füzesgyarmat	Bekes County	47.100	21.217	
+Kaba	Hajdú-Bihar	47.350	21.283	
+Pusztaszabolcs	Fejér megye	47.137	18.767	
+Téglás	Hajdú-Bihar	47.717	21.683	
+Jánossomorja	Győr-Moson-Sopron	47.786	17.136	
+Mezőhegyes	Bekes County	46.317	20.817	
+Jászladány	Jász-Nagykun-Szolnok	47.367	20.167	
+Tápiószele	Pest County	47.336	19.877	
+Aszód	Pest County	47.652	19.479	
+Diósd	Pest County	47.410	18.949	
+Taksony	Pest County	47.330	19.067	
+Tiszalök	Szabolcs-Szatmár-Bereg	48.017	21.383	
+Izsák	Bács-Kiskun	46.805	19.352	
+Komádi	Hajdú-Bihar	47.000	21.500	
+Lőrinci	Heves County	47.733	19.679	
+Martin Kertváros	Borsod-Abaúj-Zemplén	48.092	20.814	
+Alsózsolca	Borsod-Abaúj-Zemplén	48.070	20.880	
+Kartal	Pest County	47.671	19.542	
+Erdőkertes	Pest County	47.673	19.308	
+Kerekegyháza	Bács-Kiskun	46.937	19.478	
+Balatonboglár	Somogy County	46.775	17.644	
+Szikszó	Borsod-Abaúj-Zemplén	48.200	20.933	
+Dömsöd	Pest County	47.090	19.011	
+Nagyhalász	Szabolcs-Szatmár-Bereg	48.133	21.761	
+Kisbér	Komárom-Esztergom	47.503	18.037	
+Kunmadaras	Jász-Nagykun-Szolnok	47.433	20.800	
+Berhida	Veszprém	47.111	18.129	
+Kondoros	Bekes County	46.767	20.800	
+Mélykút	Bács-Kiskun	46.215	19.381	
+Jászkisér	Jász-Nagykun-Szolnok	47.450	20.217	
+Csurgó	Somogy County	46.253	17.101	
+Csorvás	Bekes County	46.633	20.833	
+Nagyszénás	Bekes County	46.683	20.667	
+Újkígyós	Bekes County	46.583	21.033	
+Tápiószentmárton	Pest County	47.340	19.746	
+Tát	Komárom-Esztergom	47.741	18.648	
+Egyek	Hajdú-Bihar	47.633	20.900	
+Tiszalúc	Borsod-Abaúj-Zemplén	48.038	21.073	
+Őrbottyán	Pest County	47.687	19.282	
+Rákóczifalva	Jász-Nagykun-Szolnok	47.083	20.233	
+Hosszúpályi	Hajdú-Bihar	47.393	21.733	
+Zsámbék	Pest County	47.548	18.720	
+Páty	Pest County	47.517	18.829	
+Elek	Bekes County	46.533	21.250	
+Vámospércs	Hajdú-Bihar	47.533	21.900	
+Mórahalom	Csongrád	46.218	19.885	
+Bugyi	Pest County	47.227	19.147	
+Emőd	Borsod-Abaúj-Zemplén	47.933	20.817	
+Lábatlan	Komárom-Esztergom	47.747	18.496	
+Csákvár	Fejér megye	47.392	18.465	
+Algyő	Csongrád	46.335	20.208	
+Kenderes	Jász-Nagykun-Szolnok	47.250	20.683	
+Csenger	Szabolcs-Szatmár-Bereg	47.836	22.681	
+Rajka	Győr-Moson-Sopron	47.996	17.198	
+Fonyód	Somogy County	46.743	17.558	
+Rakamaz	Szabolcs-Szatmár-Bereg	48.124	21.464	
+Martonvásár	Fejér megye	47.316	18.790	
+Devecser	Veszprém	47.103	17.438	
+Örkény	Pest County	47.130	19.433	
+Tiszaalpár	Bács-Kiskun	46.813	19.998	
+Átány	Heves County	47.616	20.362	
+Kemecse	Szabolcs-Szatmár-Bereg	48.075	21.806	
+Körösladány	Bekes County	46.967	21.083	
+Alsónémedi	Pest County	47.315	19.158	
+Tiszacsege	Hajdú-Bihar	47.700	21.000	
+Mogyoród	Pest County	47.597	19.241	
+Nyékládháza	Borsod-Abaúj-Zemplén	47.983	20.833	
+Mezőfalva	Fejér megye	46.932	18.772	
+Balatonlelle	Somogy County	46.783	17.695	
+Pétfürdő	Veszprém	47.167	18.117	
+Szentmártonkáta	Pest County	47.454	19.701	
+Tompa	Bács-Kiskun	46.206	19.539	
+Velence	Fejér megye	47.239	18.655	
+Tab	Somogy County	46.731	18.032	
+Záhony	Szabolcs-Szatmár-Bereg	48.409	22.176	
+Üröm	Pest County	47.597	19.016	
+Nyírmada	Szabolcs-Szatmár-Bereg	48.067	22.200	
+Törtel	Pest County	47.122	19.937	
+Ceglédbercel	Pest County	47.224	19.668	
+Szirmabesenyő	Borsod-Abaúj-Zemplén	48.150	20.800	
+Onga	Borsod-Abaúj-Zemplén	48.117	20.917	
+Miskolctapolca	Borsod-Abaúj-Zemplén	48.063	20.748	
+Tahitótfalu	Pest County	47.752	19.079	
+Nagymaros	Pest County	47.793	18.960	
+Tószeg	Jász-Nagykun-Szolnok	47.100	20.150	
+Vasvár	Vas megye	47.049	16.800	
+Győrújbarát	Győr-Moson-Sopron	47.606	17.649	
+Mándok	Szabolcs-Szatmár-Bereg	48.321	22.191	
+Cibakháza	Jász-Nagykun-Szolnok	46.960	20.198	
+Kótaj	Szabolcs-Szatmár-Bereg	48.050	21.717	
+Aba	Fejér megye	47.029	18.522	
+Seregélyes	Fejér megye	47.111	18.565	
+Simontornya	Tolna County	46.755	18.555	
+Letenye	Zala megye	46.433	16.726	
+Szabadbattyán	Fejér megye	47.119	18.368	
+Ebes	Hajdú-Bihar	47.467	21.500	
+Doboz	Bekes County	46.733	21.250	
+Fadd	Tolna County	46.465	18.819	
+Hévíz	Zala megye	46.790	17.184	
+Lakitelek	Bács-Kiskun	46.876	19.995	
+Agárd	Fejér megye	47.191	18.594	
+Csemő	Pest County	47.118	19.691	
+Szegvár	Csongrád	46.587	20.224	
+Dány	Pest County	47.520	19.544	
+Kóka	Pest County	47.486	19.579	
+Környe	Komárom-Esztergom	47.547	18.321	
+Sződliget	Pest County	47.733	19.147	
+Földes	Hajdú-Bihar	47.300	21.367	
+Kétegyháza	Bekes County	46.533	21.183	
+Kengyel	Jász-Nagykun-Szolnok	47.083	20.333	
+Szendrő	Borsod-Abaúj-Zemplén	48.400	20.733	
+Dombrád	Szabolcs-Szatmár-Bereg	48.233	21.933	
+Tokod	Komárom-Esztergom	47.723	18.659	
+Baktalórántháza	Szabolcs-Szatmár-Bereg	48.000	22.083	
+Inárcs	Pest County	47.262	19.327	
+Mende	Pest County	47.431	19.456	
+Domaszék	Csongrád	46.249	20.011	
+Biharkeresztes	Hajdú-Bihar	47.133	21.717	
+Pilisszentiván	Pest County	47.610	18.899	
+Decs	Tolna County	46.284	18.760	
+Demecser	Szabolcs-Szatmár-Bereg	48.116	21.926	
+Dunavecse	Bács-Kiskun	46.915	18.971	
+Szatymaz	Csongrád	46.343	20.040	
+Abádszalók	Jász-Nagykun-Szolnok	47.467	20.600	
+Perkáta	Fejér megye	47.047	18.787	
+Tokaj	Borsod-Abaúj-Zemplén	48.117	21.409	
+Rácalmás	Fejér megye	47.023	18.941	
+Ásotthalom	Csongrád	46.199	19.783	
+Kiszombor	Csongrád	46.183	20.433	
+Mályi	Borsod-Abaúj-Zemplén	48.017	20.833	
+Mezőkeresztes	Borsod-Abaúj-Zemplén	47.833	20.700	
+Tét	Győr-Moson-Sopron	47.519	17.508	
+Békésszentandrás	Bekes County	46.867	20.483	
+Kozármisleny	Baranya	46.030	18.292	
+Pannonhalma	Győr-Moson-Sopron	47.549	17.755	
+Taktaharkány	Borsod-Abaúj-Zemplén	48.083	21.133	
+Bag	Pest County	47.633	19.483	
+Bodajk	Fejér megye	47.324	18.233	
+Deszk	Csongrád	46.218	20.243	
+Nyíracsád	Hajdú-Bihar	47.603	21.972	
+Medgyesegyháza	Bekes County	46.500	21.033	
+Pécsvárad	Baranya	46.160	18.423	
+Verpelét	Heves County	47.850	20.233	
+Gádoros	Bekes County	46.667	20.600	
+Nagyvenyim	Fejér megye	46.958	18.864	
+Szajol	Jász-Nagykun-Szolnok	47.183	20.300	
+Sükösd	Bács-Kiskun	46.282	18.995	
+Ajak	Szabolcs-Szatmár-Bereg	48.177	22.063	
+Kállósemjén	Szabolcs-Szatmár-Bereg	47.861	21.939	
+Nyírábrány	Hajdú-Bihar	47.553	22.024	
+Helvécia	Bács-Kiskun	46.837	19.623	
+Bábolna	Komárom-Esztergom	47.644	17.978	
+Fertőszentmiklós	Győr-Moson-Sopron	47.590	16.875	
+Tápiógyörgye	Pest County	47.335	19.953	
+Nyúl	Győr-Moson-Sopron	47.590	17.689	
+Adony	Fejér megye	47.119	18.865	
+Hort	Heves County	47.691	19.789	
+Farmos	Pest County	47.361	19.846	
+Napkor	Szabolcs-Szatmár-Bereg	47.938	21.868	
+Jászalsószentgyörgy	Jász-Nagykun-Szolnok	47.367	20.100	
+Felsőpakony	Pest County	47.343	19.237	
+Vaja	Szabolcs-Szatmár-Bereg	48.006	22.168	
+Nyáregyháza	Pest County	47.262	19.501	
+Érsekvadkert	Nógrád	47.996	19.202	
+Hegyeshalom	Győr-Moson-Sopron	47.913	17.154	
+Öcsöd	Jász-Nagykun-Szolnok	46.900	20.400	
+Harta	Bács-Kiskun	46.698	19.031	
+Zagyvarékas	Jász-Nagykun-Szolnok	47.267	20.133	
+Dunapataj	Bács-Kiskun	46.644	18.996	
+Hernád	Pest County	47.162	19.433	
+Kál	Heves County	47.733	20.267	
+Bóly	Baranya	45.967	18.518	
+Etyek	Fejér megye	47.448	18.753	
+Vaskút	Bács-Kiskun	46.108	18.985	
+Nagybajom	Somogy County	46.392	17.511	
+Hajós	Bács-Kiskun	46.399	19.121	
+Tápióbicske	Pest County	47.361	19.686	
+Táborfalva	Pest County	47.099	19.478	
+Sásd	Baranya	46.255	18.108	
+Sajókaza	Borsod-Abaúj-Zemplén	48.283	20.583	
+Hodász	Szabolcs-Szatmár-Bereg	47.918	22.202	
+Akasztó	Bács-Kiskun	46.692	19.204	
+Sárosd	Fejér megye	47.043	18.644	
+Orgovány	Bács-Kiskun	46.751	19.473	
+Hernádnémeti	Borsod-Abaúj-Zemplén	48.067	20.983	
+Besenyszög	Jász-Nagykun-Szolnok	47.300	20.267	
+Vép	Vas megye	47.230	16.722	
+Ecséd	Heves County	47.733	19.767	
+Arló	Borsod-Abaúj-Zemplén	48.183	20.267	
+Harkány	Baranya	45.850	18.237	
+Balástya	Csongrád	46.423	20.008	
+Tóalmás	Pest County	47.508	19.667	
+Mikepércs	Hajdú-Bihar	47.450	21.633	
+Bélapátfalva	Heves County	48.050	20.367	
+Herend	Veszprém	47.133	17.750	
+Csolnok	Komárom-Esztergom	47.691	18.716	
+Lengyeltóti	Somogy County	46.670	17.644	
+Szada	Pest County	47.633	19.317	
+Fertőd	Győr-Moson-Sopron	47.622	16.871	
+Verőce	Pest County	47.825	19.035	
+Nyírbogát	Szabolcs-Szatmár-Bereg	47.803	22.066	
+Ecser	Pest County	47.444	19.325	
+Tuzsér	Szabolcs-Szatmár-Bereg	48.344	22.118	
+Balatonkenese	Veszprém	47.040	18.107	
+Tiszadob	Szabolcs-Szatmár-Bereg	48.017	21.167	
+Bököny	Szabolcs-Szatmár-Bereg	47.733	21.750	
+Nagyréde	Heves County	47.765	19.848	
+Hosszúhetény	Baranya	46.164	18.351	
+Baracs	Fejér megye	46.882	18.907	
+Dusnok	Bács-Kiskun	46.391	18.963	
+Tarcal	Borsod-Abaúj-Zemplén	48.133	21.350	
+Halászi	Győr-Moson-Sopron	47.889	17.326	
+Zsombó	Csongrád	46.326	19.975	
+Földeák	Csongrád	46.317	20.500	
+Madaras	Bács-Kiskun	46.059	19.261	
+Cigánd	Borsod-Abaúj-Zemplén	48.256	21.892	
+Röszke	Csongrád	46.188	20.034	
+Csepreg	Vas megye	47.401	16.709	
+Csanádpalota	Csongrád	46.250	20.733	
+Lepsény	Fejér megye	46.990	18.244	
+Kápolnásnyék	Fejér megye	47.240	18.676	
+Felsőtárkány	Heves County	47.967	20.417	
+Lébény	Győr-Moson-Sopron	47.736	17.391	
+Erdőtelek	Heves County	47.683	20.317	
+Zalalövő	Zala megye	46.848	16.587	
+Abasár	Heves County	47.797	20.003	
+Sellye	Baranya	45.872	17.847	
+Pilisborosjenő	Pest County	47.607	18.993	
+Bakonycsernye	Fejér megye	47.324	18.075	
+Bük	Vas megye	47.385	16.751	
+Hajdúszovát	Hajdú-Bihar	47.383	21.483	
+Nyírpazony	Szabolcs-Szatmár-Bereg	47.983	21.800	
+Gyöngyössolymos	Heves County	47.817	19.936	
+Tápiószőlős	Pest County	47.302	19.851	
+Abaújszántó	Borsod-Abaúj-Zemplén	48.283	21.200	
+Üllés	Csongrád	46.336	19.845	
+Karácsond	Heves County	47.730	20.031	
+Nagyigmánd	Komárom-Esztergom	47.641	18.081	
+Boldog	Heves County	47.603	19.688	
+Jászkarajenő	Pest County	47.050	20.067	
+Ráckeresztúr	Fejér megye	47.274	18.833	
+Sajóbábony	Borsod-Abaúj-Zemplén	48.167	20.733	
+Zalakomár	Zala megye	46.538	17.181	
+Hévízgyörk	Pest County	47.633	19.517	
+Bordány	Csongrád	46.318	19.923	
+Jászjákóhalma	Jász-Nagykun-Szolnok	47.520	19.991	
+Lakihegy	Pest County	47.378	19.010	
+Bácsbokod	Bács-Kiskun	46.125	19.156	
+Megyaszó	Borsod-Abaúj-Zemplén	48.183	21.050	
+Bugac	Bács-Kiskun	46.687	19.681	
+Szob	Pest County	47.819	18.870	
+Petőfibánya	Heves County	47.770	19.700	
+Sződ	Pest County	47.724	19.170	
+Dunabogdány	Pest County	47.791	19.041	
+Kocsord	Szabolcs-Szatmár-Bereg	47.939	22.383	
+Nyírbogdány	Szabolcs-Szatmár-Bereg	48.057	21.882	
+Kisköre	Heves County	47.500	20.500	
+Ópályi	Szabolcs-Szatmár-Bereg	47.998	22.326	
+Poroszló	Heves County	47.650	20.667	
+Hőgyész	Tolna County	46.497	18.418	
+Sárrétudvari	Hajdú-Bihar	47.233	21.200	
+Nyírbéltek	Szabolcs-Szatmár-Bereg	47.700	22.133	
+Nyírlugos	Szabolcs-Szatmár-Bereg	47.693	22.045	
+Rétság	Nógrád	47.928	19.137	
+Sajólád	Borsod-Abaúj-Zemplén	48.040	20.902	
+Sóskút	Pest County	47.407	18.822	
+Abda	Győr-Moson-Sopron	47.695	17.545	
+Recsk	Heves County	47.933	20.117	
+Kelebia	Bács-Kiskun	46.197	19.617	
+Szalkszentmárton	Bács-Kiskun	46.976	19.012	
+Pátroha	Szabolcs-Szatmár-Bereg	48.167	22.000	
+Győrszemere	Győr-Moson-Sopron	47.553	17.564	
+Tass	Bács-Kiskun	47.021	19.030	
+Szabadkígyós	Bekes County	46.617	21.100	
+Kunágota	Bekes County	46.433	21.050	
+Levelek	Szabolcs-Szatmár-Bereg	47.963	21.985	
+Csabrendek	Veszprém	47.014	17.291	
+Bölcske	Tolna County	46.741	18.967	
+Rudabánya	Borsod-Abaúj-Zemplén	48.383	20.633	
+Csanytelek	Csongrád	46.595	20.123	
+Biharnagybajom	Hajdú-Bihar	47.217	21.233	
+Beled	Győr-Moson-Sopron	47.466	17.093	
+Okány	Bekes County	46.900	21.350	
+Szakoly	Szabolcs-Szatmár-Bereg	47.767	21.917	
+Apátfalva	Csongrád	46.167	20.583	
+Sárisáp	Komárom-Esztergom	47.677	18.679	
+Adács	Heves County	47.692	19.977	
+Csobánka	Pest County	47.646	18.962	
+Érsekcsanád	Bács-Kiskun	46.254	18.985	
+Gomba	Pest County	47.371	19.531	
+Tiszaeszlár	Szabolcs-Szatmár-Bereg	48.050	21.467	
+Újhartyán	Pest County	47.220	19.386	
+Nagytarcsa	Pest County	47.531	19.283	
+Kisszállás	Bács-Kiskun	46.280	19.490	
+Karancslapujtő	Nógrád	48.150	19.733	
+Cece	Fejér megye	46.771	18.628	
+Gesztely	Borsod-Abaúj-Zemplén	48.100	20.967	
+Dánszentmiklós	Pest County	47.215	19.547	
+Balatonszabadi	Somogy County	46.894	18.137	
+Tarján	Komárom-Esztergom	47.610	18.511	
+Sárszentmihály	Fejér megye	47.153	18.339	
+Csanádapáca	Bekes County	46.550	20.883	
+Iváncsa	Fejér megye	47.157	18.820	
+Gyenesdiás	Zala megye	46.771	17.287	
+Hajmáskér	Veszprém	47.145	18.020	
+Nagydorog	Tolna County	46.627	18.656	
+Köröstarcsa	Bekes County	46.883	21.033	
+Beremend	Baranya	45.791	18.433	
+Iregszemcse	Tolna County	46.693	18.186	
+Porcsalma	Szabolcs-Szatmár-Bereg	47.883	22.567	
+Borsodnádasd	Borsod-Abaúj-Zemplén	48.117	20.250	
+Ruzsa	Csongrád	46.288	19.747	
+Tápióság	Pest County	47.402	19.630	
+Nyírmeggyes	Szabolcs-Szatmár-Bereg	47.917	22.267	
+Jánosháza	Vas megye	47.119	17.165	
+Apc	Heves County	47.794	19.694	
+Ballószög	Bács-Kiskun	46.862	19.571	
+Zákányszék	Csongrád	46.275	19.890	
+Vértesszőlős	Komárom-Esztergom	47.621	18.381	
+Diósjenő	Nógrád	47.940	19.043	
+Kadarkút	Somogy County	46.236	17.620	
+Villány	Baranya	45.869	18.454	
+Tiszabura	Jász-Nagykun-Szolnok	47.450	20.467	
+Báránd	Hajdú-Bihar	47.300	21.233	
+Ófehértó	Szabolcs-Szatmár-Bereg	47.933	22.050	
+Tornyospálca	Szabolcs-Szatmár-Bereg	48.267	22.183	
+Öttevény	Győr-Moson-Sopron	47.719	17.485	
+Gyöngyöspata	Heves County	47.815	19.789	
+Újszilvás	Pest County	47.275	19.925	
+Pákozd	Fejér megye	47.214	18.533	
+Úri	Pest County	47.414	19.528	
+Pocsaj	Hajdú-Bihar	47.283	21.817	
+Jánoshida	Jász-Nagykun-Szolnok	47.383	20.067	
+Lánycsók	Baranya	46.005	18.625	
+Kakucs	Pest County	47.242	19.365	
+Baracska	Fejér megye	47.282	18.759	
+Berzence	Somogy County	46.209	17.148	
+Tiszakeszi	Borsod-Abaúj-Zemplén	47.783	21.000	
+Szászvár	Baranya	46.277	18.376	
+Bőcs	Borsod-Abaúj-Zemplén	48.050	20.967	
+Segesd	Somogy County	46.341	17.351	
+Lovasberény	Fejér megye	47.310	18.552	
+Baj	Komárom-Esztergom	47.646	18.364	
+Gara	Bács-Kiskun	46.032	19.043	
+Kocs	Komárom-Esztergom	47.608	18.215	
+Mágocs	Baranya	46.350	18.232	
+Császártöltés	Bács-Kiskun	46.422	19.184	
+Répcelak	Vas megye	47.421	17.018	
+Kisláng	Fejér megye	46.957	18.388	
+Galgahévíz	Pest County	47.617	19.567	
+Jászszentandrás	Jász-Nagykun-Szolnok	47.583	20.183	
+Magyarbánhegyes	Bekes County	46.450	20.967	
+Jakabszállás	Bács-Kiskun	46.760	19.607	
+Múcsony	Borsod-Abaúj-Zemplén	48.267	20.683	
+Tunyogmatolcs	Szabolcs-Szatmár-Bereg	47.967	22.467	
+Szentistván	Borsod-Abaúj-Zemplén	47.767	20.667	
+Görbeháza	Hajdú-Bihar	47.833	21.233	
+Dunaszentgyörgy	Tolna County	46.529	18.818	
+Kóny	Győr-Moson-Sopron	47.631	17.357	
+Tiszanána	Heves County	47.567	20.533	
+Andornaktálya	Heves County	47.850	20.417	
+Jászszentlászló	Bács-Kiskun	46.567	19.761	
+Mád	Borsod-Abaúj-Zemplén	48.194	21.282	
+Besenyőtelek	Heves County	47.700	20.433	
+Székkutas	Csongrád	46.500	20.533	
+Gyöngyöshalász	Heves County	47.742	19.929	
+Békéssámson	Bekes County	46.417	20.633	
+Gencsapáti	Vas megye	47.285	16.596	
+Prügy	Borsod-Abaúj-Zemplén	48.083	21.250	
+Pétervására	Heves County	48.017	20.100	
+Levél	Győr-Moson-Sopron	47.894	17.204	
+Kesztölc	Komárom-Esztergom	47.713	18.802	
+Előszállás	Fejér megye	46.831	18.835	
+Mezőzombor	Borsod-Abaúj-Zemplén	48.150	21.267	
+Pincehely	Tolna County	46.681	18.439	
+Őcsény	Tolna County	46.314	18.757	
+Leányfalu	Pest County	47.718	19.086	
+Káloz	Fejér megye	46.955	18.483	
+Tiszakarád	Borsod-Abaúj-Zemplén	48.200	21.717	
+Pusztavám	Fejér megye	47.429	18.226	
+Nemesvámos	Veszprém	47.055	17.875	
+Szank	Bács-Kiskun	46.557	19.661	
+Kaposmérő	Somogy County	46.362	17.704	
+Délegyháza	Pest County	47.241	19.090	
+Tiszadada	Szabolcs-Szatmár-Bereg	48.033	21.250	
+Nagymányok	Tolna County	46.279	18.455	
+Fülöpszállás	Bács-Kiskun	46.821	19.237	
+Rábapatona	Győr-Moson-Sopron	47.632	17.480	
+Buj	Szabolcs-Szatmár-Bereg	48.100	21.650	
+Arnót	Borsod-Abaúj-Zemplén	48.131	20.858	
+Bucsa	Bekes County	47.200	21.000	
+Szedres	Tolna County	46.476	18.683	
+Zsámbok	Pest County	47.544	19.610	
+Kistokaj	Borsod-Abaúj-Zemplén	48.040	20.839	
+Gyöngyöstarján	Heves County	47.814	19.867	
+Ónod	Borsod-Abaúj-Zemplén	48.000	20.917	
+Valkó	Pest County	47.564	19.513	
+Boldva	Borsod-Abaúj-Zemplén	48.217	20.800	
+Szigetcsép	Pest County	47.265	18.970	
+Bekecs	Borsod-Abaúj-Zemplén	48.150	21.183	
+Tengelic	Tolna County	46.529	18.711	
+Nagybaracska	Bács-Kiskun	46.042	18.906	
+Sárkeresztúr	Fejér megye	47.005	18.544	
+Böhönye	Somogy County	46.413	17.380	
+Bagamér	Hajdú-Bihar	47.449	21.989	
+Fényeslitke	Szabolcs-Szatmár-Bereg	48.271	22.100	
+Romhány	Nógrád	47.926	19.257	
+Kéthely	Somogy County	46.646	17.394	
+Kevermes	Bekes County	46.417	21.183	
+Nyírkarász	Szabolcs-Szatmár-Bereg	48.095	22.105	
+Nyárlőrinc	Bács-Kiskun	46.860	19.878	
+Nagyrábé	Hajdú-Bihar	47.200	21.333	
+Dombegyház	Bekes County	46.333	21.133	
+Katymár	Bács-Kiskun	46.034	19.209	
+Pér	Győr-Moson-Sopron	47.612	17.806	
+Kosd	Pest County	47.808	19.178	
+Lajoskomárom	Fejér megye	46.842	18.338	
+Ostoros	Heves County	47.867	20.433	
+Dég	Fejér megye	46.868	18.450	
+Apagy	Szabolcs-Szatmár-Bereg	47.964	21.935	
+Vál	Fejér megye	47.363	18.679	
+Bogyiszló	Tolna County	46.386	18.830	
+Almásfüzitő	Komárom-Esztergom	47.728	18.262	
+Buják	Nógrád	47.884	19.544	
+Táplánszentkereszt	Vas megye	47.195	16.696	
+Tiszaszentimre	Jász-Nagykun-Szolnok	47.483	20.733	
+Maklár	Heves County	47.800	20.417	
+Mosonszentmiklós	Győr-Moson-Sopron	47.728	17.428	
+Szárliget	Fejér megye	47.516	18.495	
+Mérk	Szabolcs-Szatmár-Bereg	47.788	22.380	
+Tarpa	Szabolcs-Szatmár-Bereg	48.105	22.537	
+Jobbágyi	Nógrád	47.832	19.678	
+Sáránd	Hajdú-Bihar	47.400	21.633	
+Kimle	Győr-Moson-Sopron	47.817	17.366	
+Piliscsév	Komárom-Esztergom	47.679	18.819	
+Ják	Vas megye	47.142	16.581	
+Mezőszilas	Fejér megye	46.811	18.478	
+Hercegszántó	Bács-Kiskun	45.950	18.939	
+Ádánd	Somogy County	46.859	18.164	
+Szany	Győr-Moson-Sopron	47.464	17.304	
+Somoskőújfalu	Nógrád	48.164	19.823	
+Mány	Fejér megye	47.534	18.656	
+Baks	Csongrád	46.543	20.102	
+Csengőd	Bács-Kiskun	46.715	19.268	
+Sajószöged	Borsod-Abaúj-Zemplén	47.950	21.000	
+Forráskút	Csongrád	46.365	19.910	
+Zomba	Tolna County	46.411	18.566	
+Nagydobos	Szabolcs-Szatmár-Bereg	48.058	22.304	
+Kunfehértó	Bács-Kiskun	46.361	19.415	
+Csány	Heves County	47.648	19.830	
+Méhkerék	Bekes County	46.783	21.450	
+Hidas	Baranya	46.257	18.495	
+Badacsonytomaj	Veszprém	46.807	17.514	
+Mocsa	Komárom-Esztergom	47.670	18.185	
+Ópusztaszer	Csongrád	46.486	20.087	
+Konyár	Hajdú-Bihar	47.317	21.667	
+Becsehely	Zala megye	46.448	16.777	
+Nyírcsaholy	Szabolcs-Szatmár-Bereg	47.904	22.336	
+Nagyoroszi	Nógrád	48.005	19.090	
+Városföld	Bács-Kiskun	46.817	19.757	
+Pilisszántó	Pest County	47.669	18.888	
+Kántorjánosi	Szabolcs-Szatmár-Bereg	47.933	22.150	
+Lábod	Somogy County	46.205	17.454	
+Dávod	Bács-Kiskun	45.995	18.917	
+Naszály	Komárom-Esztergom	47.703	18.258	
+Mátraderecske	Heves County	47.950	20.083	
+Bokod	Komárom-Esztergom	47.492	18.247	
+Jászdózsa	Jász-Nagykun-Szolnok	47.566	20.015	
+Bőny	Győr-Moson-Sopron	47.650	17.870	
+Pilisszentkereszt	Pest County	47.691	18.905	
+Monostorpályi	Hajdú-Bihar	47.400	21.783	
+Kerecsend	Heves County	47.800	20.350	
+Gönc	Borsod-Abaúj-Zemplén	48.467	21.283	
+Zamárdi	Somogy County	46.885	17.954	
+Bősárkány	Győr-Moson-Sopron	47.688	17.250	
+Sajóvámos	Borsod-Abaúj-Zemplén	48.182	20.831	
+Mátraverebély	Nógrád	47.974	19.780	
+Nyírtass	Szabolcs-Szatmár-Bereg	48.117	22.033	
+Zámoly	Fejér megye	47.317	18.408	
+Iklad	Pest County	47.665	19.436	
+Bátya	Bács-Kiskun	46.488	18.954	
+Tyukod	Szabolcs-Szatmár-Bereg	47.854	22.563	
+Máriapócs	Szabolcs-Szatmár-Bereg	47.883	22.025	
+Cserkeszőlő	Jász-Nagykun-Szolnok	46.863	20.187	
+Döge	Szabolcs-Szatmár-Bereg	48.262	22.063	
+Fertőrákos	Győr-Moson-Sopron	47.720	16.650	
+Aldebrő	Heves County	47.789	20.230	
+Úrkút	Veszprém	47.085	17.644	
+Sály	Borsod-Abaúj-Zemplén	47.950	20.667	
+Csökmő	Hajdú-Bihar	47.033	21.300	
+Tállya	Borsod-Abaúj-Zemplén	48.233	21.233	
+Perbál	Pest County	47.590	18.761	
+Kompolt	Heves County	47.742	20.242	
+Szigetújfalu	Pest County	47.234	18.927	
+Maroslele	Csongrád	46.267	20.350	
+Dunaszekcső	Baranya	46.087	18.759	
+Alap	Fejér megye	46.799	18.689	
+Gyönk	Tolna County	46.556	18.477	
+Ősi	Veszprém	47.147	18.188	
+Aranyosapáti	Szabolcs-Szatmár-Bereg	48.206	22.259	
+Nyírmártonfalva	Hajdú-Bihar	47.583	21.900	
+Nyírgyulaj	Szabolcs-Szatmár-Bereg	47.886	22.098	
+Szihalom	Heves County	47.767	20.483	
+Döbrököz	Tolna County	46.422	18.240	
+Bogács	Borsod-Abaúj-Zemplén	47.900	20.533	
+Parád	Heves County	47.923	20.030	
+Apostag	Bács-Kiskun	46.882	18.962	
+Tiszapüspöki	Jász-Nagykun-Szolnok	47.217	20.317	
+Kocsér	Pest County	47.002	19.921	
+Gégény	Szabolcs-Szatmár-Bereg	48.150	21.950	
+Encsencs	Szabolcs-Szatmár-Bereg	47.733	22.117	
+Kálmánháza	Szabolcs-Szatmár-Bereg	47.883	21.583	
+Vácszentlászló	Pest County	47.574	19.538	
+Szamosszeg	Szabolcs-Szatmár-Bereg	48.046	22.366	
+Kazár	Nógrád	48.050	19.861	
+Csávoly	Bács-Kiskun	46.189	19.147	
+Telki	Pest County	47.548	18.828	
+Balatonföldvár	Somogy County	46.853	17.881	
+Sirok	Heves County	47.933	20.200	
+Taktaszada	Borsod-Abaúj-Zemplén	48.117	21.183	
+Zagyvaszántó	Heves County	47.777	19.671	
+Kaszaper	Bekes County	46.467	20.833	
+Galgamácsa	Pest County	47.696	19.387	
+Harsány	Borsod-Abaúj-Zemplén	47.967	20.750	
+Gyulaháza	Szabolcs-Szatmár-Bereg	48.133	22.117	
+Tiszabezdéd	Szabolcs-Szatmár-Bereg	48.367	22.150	
+Pálmonostora	Bács-Kiskun	46.624	19.952	
+Tiszabercel	Szabolcs-Szatmár-Bereg	48.150	21.650	
+Kék	Szabolcs-Szatmár-Bereg	48.117	21.883	
+Szentkirályszabadja	Veszprém	47.058	17.971	
+Pánd	Pest County	47.353	19.636	
+Nemesnádudvar	Bács-Kiskun	46.341	19.051	
+Heréd	Heves County	47.706	19.633	
+Csetény	Veszprém	47.318	17.992	
+Ököritófülpös	Szabolcs-Szatmár-Bereg	47.919	22.508	
+Domony	Pest County	47.656	19.432	
+Hajdúbagos	Hajdú-Bihar	47.393	21.666	
+Rózsaszentmárton	Heves County	47.782	19.742	
+Bajna	Komárom-Esztergom	47.654	18.597	
+Somogyvár	Somogy County	46.581	17.663	
+Anarcs	Szabolcs-Szatmár-Bereg	48.176	22.112	
+Vámosgyörk	Heves County	47.684	19.929	
+Szomód	Komárom-Esztergom	47.685	18.341	
+Lőkösháza	Bekes County	46.433	21.233	
+Taszár	Somogy County	46.375	17.906	
+Rákócziújfalu	Jász-Nagykun-Szolnok	47.067	20.267	
+Tiszanagyfalu	Szabolcs-Szatmár-Bereg	48.092	21.473	
+Litér	Veszprém	47.101	18.005	
+Aszaló	Borsod-Abaúj-Zemplén	48.217	20.967	
+Szentlőrinckáta	Pest County	47.519	19.753	
+Alattyán	Jász-Nagykun-Szolnok	47.427	20.042	
+Csengele	Csongrád	46.542	19.864	
+Tiszabő	Jász-Nagykun-Szolnok	47.300	20.483	
+Süttő	Komárom-Esztergom	47.759	18.449	
+Felsőszentiván	Bács-Kiskun	46.197	19.187	
+Nyírmihálydi	Szabolcs-Szatmár-Bereg	47.740	21.964	
+Soponya	Fejér megye	47.015	18.453	
+Mátraterenye	Nógrád	48.033	19.948	
+Petneháza	Szabolcs-Szatmár-Bereg	48.061	22.075	
+Balatonszárszó	Somogy County	46.829	17.824	
+Bercel	Nógrád	47.871	19.407	
+Pázmánd	Fejér megye	47.288	18.654	
+Ásványráró	Győr-Moson-Sopron	47.827	17.494	
+Karcsa	Borsod-Abaúj-Zemplén	48.311	21.805	
+Tázlár	Bács-Kiskun	46.548	19.514	
+Egerszalók	Heves County	47.867	20.333	
+Tar	Nógrád	47.954	19.746	
+Mátranovák	Nógrád	48.038	19.983	
+Nyírvasvári	Szabolcs-Szatmár-Bereg	47.817	22.187	
+Ágfalva	Győr-Moson-Sopron	47.690	16.517	
+Fábiánsebestyén	Csongrád	46.683	20.467	
+Péteri	Pest County	47.391	19.410	
+Murakeresztúr	Zala megye	46.364	16.882	
+Szentkirály	Bács-Kiskun	46.919	19.918	
+Csór	Fejér megye	47.206	18.257	
+Domoszló	Heves County	47.833	20.117	
+Pilismarót	Komárom-Esztergom	47.785	18.875	
+Hejőbába	Borsod-Abaúj-Zemplén	47.900	20.950	
+Szurdokpüspöki	Nógrád	47.859	19.692	
+Tiszaszőlős	Jász-Nagykun-Szolnok	47.557	20.719	
+Tömörkény	Csongrád	46.617	20.044	
+Kisléta	Szabolcs-Szatmár-Bereg	47.842	22.004	
+Cserszegtomaj	Zala megye	46.802	17.221	
+Farád	Győr-Moson-Sopron	47.606	17.200	
+Madocsa	Tolna County	46.688	18.958	
+Karancskeszi	Nógrád	48.164	19.697	
+Császár	Komárom-Esztergom	47.498	18.143	
+Bakonyszentlászló	Győr-Moson-Sopron	47.389	17.803	
+Kismaros	Pest County	47.837	19.005	
+Kecskéd	Komárom-Esztergom	47.523	18.309	
+Ricse	Borsod-Abaúj-Zemplén	48.326	21.971	
+Nagycserkesz	Szabolcs-Szatmár-Bereg	47.967	21.533	
+Jászfelsőszentgyörgy	Jász-Nagykun-Szolnok	47.507	19.784	
+Vonyarcvashegy	Zala megye	46.757	17.312	
+Töltéstava	Győr-Moson-Sopron	47.626	17.734	
+Németkér	Tolna County	46.716	18.763	
+Ágasegyháza	Bács-Kiskun	46.840	19.452	
+Báta	Tolna County	46.129	18.770	
+Farkaslyuk	Borsod-Abaúj-Zemplén	48.183	20.317	
+Vajszló	Baranya	45.860	17.984	
+Pusztaföldvár	Bekes County	46.533	20.800	
+Fehérvárcsurgó	Fejér megye	47.293	18.265	
+Szilvásvárad	Heves County	48.100	20.400	
+Balatonfenyves	Somogy County	46.715	17.492	
+Pellérd	Baranya	46.034	18.154	
+Pacsa	Zala megye	46.720	17.014	
+Babócsa	Somogy County	46.042	17.343	
+Tiszaroff	Jász-Nagykun-Szolnok	47.400	20.450	
+Rimóc	Nógrád	48.037	19.530	
+Nádasdladány	Fejér megye	47.138	18.240	
+Halmaj	Borsod-Abaúj-Zemplén	48.250	21.000	
+Türje	Zala megye	46.984	17.107	
+Dunakiliti	Győr-Moson-Sopron	47.965	17.287	
+Tolcsva	Borsod-Abaúj-Zemplén	48.283	21.450	
+Nagycenk	Győr-Moson-Sopron	47.604	16.697	
+Visegrád	Pest County	47.785	18.971	
+Tarnaörs	Heves County	47.595	20.053	
+Sármellék	Zala megye	46.712	17.169	
+Tarnalelesz	Heves County	48.050	20.183	
+Kunbaja	Bács-Kiskun	46.084	19.421	
+Olaszliszka	Borsod-Abaúj-Zemplén	48.250	21.433	
+Bócsa	Bács-Kiskun	46.610	19.484	
+Monok	Borsod-Abaúj-Zemplén	48.211	21.151	
+Bak	Zala megye	46.730	16.846	
+Zalakaros	Zala megye	46.565	17.125	
+Hortobágy	Hajdú-Bihar	47.583	21.151	
+Ozora	Tolna County	46.751	18.400	
+Tiszasüly	Jász-Nagykun-Szolnok	47.383	20.400	
+Markaz	Heves County	47.817	20.067	
+Karád	Somogy County	46.691	17.841	
+Csólyospálos	Bács-Kiskun	46.418	19.840	
+Atkár	Heves County	47.721	19.891	
+Pap	Szabolcs-Szatmár-Bereg	48.216	22.145	
+Kunszállás	Bács-Kiskun	46.763	19.754	
+Fajsz	Bács-Kiskun	46.417	18.919	
+Izsófalva	Borsod-Abaúj-Zemplén	48.300	20.667	
+Álmosd	Hajdú-Bihar	47.419	21.978	
+Palotás	Nógrád	47.795	19.596	
+Hegykő	Győr-Moson-Sopron	47.619	16.797	
+Járdánháza	Borsod-Abaúj-Zemplén	48.150	20.250	
+Ugod	Veszprém	47.321	17.600	
+Mecseknádasd	Baranya	46.225	18.471	
+Balotaszállás	Bács-Kiskun	46.351	19.540	
+Balatonszemes	Somogy County	46.810	17.780	
+Pusztaszer	Csongrád	46.551	19.988	
+Miske	Bács-Kiskun	46.446	19.033	
+Tardos	Komárom-Esztergom	47.662	18.444	
+Budajenő	Pest County	47.557	18.802	
+Nagyfüged	Heves County	47.683	20.117	
+Torony	Vas megye	47.241	16.540	
+Ászár	Komárom-Esztergom	47.512	18.002	
+Csopak	Veszprém	46.977	17.918	
+Bajót	Komárom-Esztergom	47.728	18.556	
+Foktő	Bács-Kiskun	46.528	18.919	
+Újszentiván	Csongrád	46.186	20.185	
+Nógrádmegyer	Nógrád	48.068	19.625	
+Kisgyőr	Borsod-Abaúj-Zemplén	48.017	20.700	
+Ladánybene	Bács-Kiskun	47.034	19.456	
+Harka	Győr-Moson-Sopron	47.633	16.600	
+Alsóvadász	Borsod-Abaúj-Zemplén	48.250	20.917	
+Csokonyavisonta	Somogy County	46.077	17.444	
+Homokmégy	Bács-Kiskun	46.490	19.073	
+Kunadacs	Bács-Kiskun	46.956	19.289	
+Réde	Komárom-Esztergom	47.430	17.914	
+Hernádkak	Borsod-Abaúj-Zemplén	48.089	20.964	
+Bátmonostor	Bács-Kiskun	46.102	18.928	
+Kincsesbánya	Fejér megye	47.264	18.278	
+Acsa	Pest County	47.794	19.388	
+Neszmély	Komárom-Esztergom	47.736	18.360	
+Dunaalmás	Komárom-Esztergom	47.729	18.322	
+Dunasziget	Győr-Moson-Sopron	47.940	17.353	
+Ormosbánya	Borsod-Abaúj-Zemplén	48.350	20.650	
+Petőfiszállás	Bács-Kiskun	46.622	19.862	
+Sajópetri	Borsod-Abaúj-Zemplén	48.035	20.888	
+Tihany	Veszprém	46.914	17.889	
+Csátalja	Bács-Kiskun	46.037	18.947	
+Kurityán	Borsod-Abaúj-Zemplén	48.317	20.633	
+Balatonvilágos	Somogy County	46.963	18.160	
+Alcsútdoboz	Fejér megye	47.428	18.604	
+Szeremle	Bács-Kiskun	46.144	18.881	
+Bácsszőlős	Bács-Kiskun	46.150	19.450	
+Pácin	Borsod-Abaúj-Zemplén	48.335	21.836	
+Nógrád	Nógrád	47.909	19.048	
+Bezenye	Győr-Moson-Sopron	47.960	17.215	
+Dunaegyháza	Bács-Kiskun	46.838	18.954	
+Hangony	Borsod-Abaúj-Zemplén	48.233	20.200	
+Őr	Szabolcs-Szatmár-Bereg	47.972	22.187	
+Nagykarácsony	Fejér megye	46.871	18.772	
+Pély	Heves County	47.483	20.350	
+Nádasd	Vas megye	46.968	16.611	
+Alsóörs	Veszprém	46.991	17.976	
+Súr	Komárom-Esztergom	47.369	18.030	
+Borota	Bács-Kiskun	46.266	19.223	
+Apaj	Pest County	47.113	19.088	
+Sióagárd	Tolna County	46.393	18.653	
+Alsópáhok	Zala megye	46.769	17.172	
+Bánhorváti	Borsod-Abaúj-Zemplén	48.233	20.517	
+Soltszentimre	Bács-Kiskun	46.771	19.287	
+Bácsborsód	Bács-Kiskun	46.099	19.158	
+Dédestapolcsány	Borsod-Abaúj-Zemplén	48.183	20.483	
+Rém	Bács-Kiskun	46.247	19.141	
+Páhi	Bács-Kiskun	46.713	19.387	
+Balatonberény	Somogy County	46.707	17.320	
+Zebegény	Pest County	47.800	18.911	
+Dömös	Komárom-Esztergom	47.762	18.913	
+Tabdi	Bács-Kiskun	46.682	19.326	
+Szakmár	Bács-Kiskun	46.555	19.075	
+Andocs	Somogy County	46.648	17.928	
+Sajóörös	Borsod-Abaúj-Zemplén	47.950	21.033	
+Paszab	Szabolcs-Szatmár-Bereg	48.150	21.683	
+Iván	Győr-Moson-Sopron	47.444	16.906	
+Babót	Győr-Moson-Sopron	47.576	17.074	
+Fülöpjakab	Bács-Kiskun	46.742	19.721	
+Vanyarc	Nógrád	47.826	19.453	
+Sé	Vas megye	47.243	16.556	
+Aparhant	Tolna County	46.329	18.449	
+Bükkszentkereszt	Borsod-Abaúj-Zemplén	48.067	20.633	
+Tataháza	Bács-Kiskun	46.174	19.300	
+Ecseg	Nógrád	47.898	19.606	
+Áporka	Pest County	47.233	19.017	
+Mihályi	Győr-Moson-Sopron	47.514	17.095	
+Szelevény	Jász-Nagykun-Szolnok	46.803	20.203	
+Endrefalva	Nógrád	48.127	19.577	
+Bükkösd	Baranya	46.108	17.988	
+Révfülöp	Veszprém	46.826	17.620	
+Hédervár	Győr-Moson-Sopron	47.829	17.453	
+Alsószentmárton	Baranya	45.790	18.306	
+Ároktő	Borsod-Abaúj-Zemplén	47.733	20.950	
+Nagyrécse	Zala megye	46.490	17.052	
+Beloiannisz	Fejér megye	47.182	18.824	
+Szirák	Nógrád	47.831	19.531	
+Parasznya	Borsod-Abaúj-Zemplén	48.167	20.650	
+Pusztahencse	Tolna County	46.600	18.717	
+Felsőnyárád	Borsod-Abaúj-Zemplén	48.333	20.600	
+Tiszabecs	Szabolcs-Szatmár-Bereg	48.098	22.818	
+Sáp	Hajdú-Bihar	47.250	21.367	
+Berente	Borsod-Abaúj-Zemplén	48.233	20.667	
+Varbó	Borsod-Abaúj-Zemplén	48.163	20.622	
+Sáta	Borsod-Abaúj-Zemplén	48.183	20.400	
+Tard	Borsod-Abaúj-Zemplén	47.883	20.617	
+Dad	Komárom-Esztergom	47.519	18.226	
+Héhalom	Nógrád	47.780	19.585	
+Zánka	Veszprém	46.871	17.685	
+Budakalász	Pest County	47.617	19.050	
+Berzék	Borsod-Abaúj-Zemplén	48.017	20.950	
+Kaskantyú	Bács-Kiskun	46.672	19.387	
+Uszód	Bács-Kiskun	46.570	18.901	

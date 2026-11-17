@@ -76,7 +76,8 @@ defmodule TcgCheap.Sealed.Shop do
     * `images` – false when the shop's images cannot be shown elsewhere
       (its bot check answers them with a page; PrestaShop);
     * `pickup_location` – `{latitude, longitude}` of that store, for distances
-      to visitors; nil when the shop has no pickup.
+      to visitors; nil when the shop has no pickup, or when its `pickup_city`
+      is a town of its country's list (`TcgCheap.Geo.Towns`), which stands in.
   """
   @enforce_keys [
     :key,

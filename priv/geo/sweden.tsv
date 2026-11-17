@@ -1,0 +1,806 @@
+Stockholm	Stockholm	59.329	18.069	
+Gothenburg	Västra Götaland	57.707	11.967	
+Malmö	Skåne	55.606	13.001	
+Uppsala	Uppsala	59.859	17.639	
+Linköping	Östergötland	58.411	15.622	
+Örebro	Örebro	59.274	15.207	
+Sollentuna	Stockholm	59.428	17.951	
+Umeå	Västerbottens län	63.828	20.260	
+Västerås	Västmanland	59.616	16.553	
+Jönköping	Jönköping	57.781	14.156	
+Helsingborg	Skåne	56.047	12.694	
+Norrköping	Östergötland	58.594	16.183	
+Huddinge	Stockholm	59.237	17.982	
+Lund	Skåne	55.706	13.193	
+Luleå	Norrbotten	65.584	22.155	
+Haninge	Stockholm	59.168	18.145	
+Gävle	Gävleborgs län	60.675	17.142	
+Borås	Västra Götaland	57.721	12.940	
+Växjö	Kronoberg	56.878	14.809	
+Södertälje	Stockholm	59.196	17.625	
+Halmstad	Hallands län	56.674	12.857	
+Eskilstuna	Södermanland	59.367	16.508	
+Solna	Stockholm	59.360	18.001	
+Karlskrona	Blekinge län	56.162	15.587	
+Karlstad	Värmland	59.379	13.504	
+Mölndal	Västra Götaland	57.655	12.014	
+Täby	Stockholm	59.444	18.069	
+Sundsvall	Västernorrland	62.391	17.306	
+Östersund	Jämtlands län	63.179	14.636	
+Trollhättan	Västra Götaland	58.284	12.289	
+Lidingö	Stockholm	59.367	18.133	
+Borlänge	Dalarnas län	60.486	15.437	
+Tumba	Stockholm	59.199	17.833	
+Kristianstad	Skåne	56.031	14.152	
+Nyköping	Södermanland	58.753	17.008	
+Kalmar	Kalmar	56.662	16.362	
+Falun	Dalarnas län	60.604	15.626	
+Skövde	Västra Götaland	58.391	13.845	
+Upplands Väsby	Stockholm	59.518	17.911	
+Skellefteå	Västerbottens län	64.751	20.953	
+Uddevalla	Västra Götaland	58.348	11.942	
+Sundbyberg	Stockholm	59.361	17.971	
+Varberg	Hallands län	57.106	12.251	
+Åkersberga	Stockholm	59.479	18.300	
+Örnsköldsvik	Västernorrland	63.291	18.715	
+Danderyd	Stockholm	59.404	18.024	
+Landskrona	Skåne	55.871	12.830	
+Vallentuna	Stockholm	59.534	18.078	
+Motala	Östergötland	58.537	15.036	
+Trelleborg	Skåne	55.375	13.157	
+Partille	Västra Götaland	57.739	12.106	
+Karlskoga	Örebro	59.327	14.524	
+Märsta	Stockholm	59.622	17.855	
+Lerum	Västra Götaland	57.771	12.269	
+Alingsås	Västra Götaland	57.930	12.533	
+Nacka	Stockholm	59.311	18.164	
+Härnösand	Västernorrland	62.632	17.938	
+Sandviken	Gävleborgs län	60.617	16.767	
+Kungälv	Västra Götaland	57.871	11.981	
+Falkenberg	Hallands län	56.906	12.491	
+Jakobsberg	Stockholm	59.423	17.835	
+Visby	Gotlands län	57.641	18.296	
+Katrineholm	Södermanland	58.996	16.207	
+Ängelholm	Skåne	56.243	12.862	
+Vänersborg	Västra Götaland	58.381	12.323	
+Trångsund	Stockholm	59.233	18.133	
+Björlanda	Västra Götaland	57.767	11.833	
+Piteå	Norrbotten	65.317	21.479	
+Lidköping	Västra Götaland	58.505	13.158	
+Enköping	Uppsala	59.636	17.078	
+Huskvarna	Jönköping	57.786	14.302	
+Västervik	Kalmar	57.758	16.637	
+Gustavsberg	Stockholm	59.327	18.390	
+Karlshamn	Blekinge län	56.171	14.862	
+Limhamn	Skåne	55.583	12.950	
+Norrtälje	Stockholm	59.758	18.705	
+Rinkeby	Stockholm	59.387	17.928	
+Hässleholm	Skåne	56.159	13.766	
+Värnamo	Jönköping	57.186	14.040	
+Ystad	Skåne	55.430	13.820	
+Kungsbacka	Hallands län	57.487	12.076	
+Eslöv	Skåne	55.839	13.304	
+Kristinehamn	Värmland	59.310	14.108	
+Köping	Västmanland	59.514	15.993	
+Oskarshamn	Kalmar	57.265	16.448	
+Nässjö	Jönköping	57.653	14.697	
+Mölnlycke	Västra Götaland	57.659	12.118	
+Falköping	Västra Götaland	58.173	13.551	
+Kiruna	Norrbotten	67.856	20.225	
+Boden	Norrbotten	65.825	21.689	
+Kumla	Örebro	59.128	15.143	
+Mariestad	Västra Götaland	58.710	13.824	
+Hudiksvall	Gävleborgs län	61.727	17.106	
+Tullinge	Stockholm	59.200	17.900	
+Västra Frölunda	Västra Götaland	57.647	11.929	
+Ljungby	Kronoberg	56.833	13.941	
+Staffanstorp	Skåne	55.643	13.206	
+Ludvika	Dalarnas län	60.150	15.188	
+Kinna	Västra Götaland	57.507	12.695	
+Höllviken	Skåne	55.410	12.956	
+Billdal	Västra Götaland	57.567	11.933	
+Höganäs	Skåne	56.200	12.558	
+Tranås	Jönköping	58.037	14.978	
+Nynäshamn	Stockholm	58.903	17.948	
+Arvika	Värmland	59.655	12.585	
+Bollnäs	Gävleborgs län	61.348	16.395	
+Strängnäs	Södermanland	59.377	17.031	
+Skoghall	Värmland	59.323	13.466	
+Vetlanda	Jönköping	57.429	15.078	
+Bålsta	Uppsala	59.567	17.528	
+Stenungsund	Västra Götaland	58.070	11.818	
+Sala	Västmanland	59.920	16.607	
+Bunkeflostrand	Skåne	55.545	12.924	
+Nybro	Kalmar	56.745	15.907	
+Mjölby	Östergötland	58.326	15.124	
+Finspång	Östergötland	58.706	15.767	
+Oxie	Skåne	55.540	13.096	
+Ronneby	Blekinge län	56.210	15.276	
+Mora	Dalarnas län	61.007	14.543	
+Lomma	Skåne	55.672	13.068	
+Onsala	Hallands län	57.425	12.029	
+Söderhamn	Gävleborgs län	61.304	17.059	
+Höör	Skåne	55.934	13.539	
+Avesta	Dalarnas län	60.143	16.163	
+Fagersta	Västmanland	60.004	15.793	
+Svedala	Skåne	55.508	13.235	
+Handen	Stockholm	59.168	18.138	
+Ekerö	Stockholm	59.291	17.812	
+Skara	Västra Götaland	58.387	13.438	
+Alby	Stockholm	59.233	17.854	
+Oxelösund	Södermanland	58.671	17.102	
+Lindome	Västra Götaland	57.567	12.083	
+Arboga	Västmanland	59.394	15.839	
+Hallstahammar	Västmanland	59.614	16.228	
+Jordbro	Stockholm	59.150	18.117	
+Ulricehamn	Västra Götaland	57.792	13.414	
+Bjuv	Skåne	56.084	12.919	
+Timrå	Västernorrland	62.487	17.326	
+Gällivare	Norrbotten	67.134	20.653	
+Kista	Stockholm	59.403	17.945	
+Gislaved	Jönköping	57.304	13.541	
+Eksjö	Jönköping	57.666	14.972	
+Kungsängen	Stockholm	59.479	17.748	
+Torslanda	Västra Götaland	57.724	11.770	
+Vårby	Stockholm	59.267	17.884	
+Bjärred	Skåne	55.717	13.017	
+Åhus	Skåne	55.917	14.283	
+Sävja	Uppsala	59.819	17.700	
+Lindesberg	Örebro	59.592	15.230	
+Älmhult	Kronoberg	56.551	14.138	
+Saltsjöbaden	Stockholm	59.283	18.300	
+Åmål	Västra Götaland	59.051	12.705	
+Kävlinge	Skåne	55.792	13.110	
+Älta	Stockholm	59.267	18.183	
+Åstorp	Skåne	56.136	12.944	
+Säffle	Värmland	59.132	12.929	
+Arlöv	Skåne	55.632	13.071	
+Sigtuna	Stockholm	59.617	17.724	
+Sölvesborg	Blekinge län	56.052	14.575	
+Torshälla	Södermanland	59.417	16.467	
+Djursholm	Stockholm	59.399	18.056	
+Landvetter	Västra Götaland	57.687	12.212	
+Kvissleby	Västernorrland	62.294	17.375	
+Alvesta	Kronoberg	56.899	14.556	
+Lycksele	Västerbottens län	64.595	18.674	
+Bankeryd	Jönköping	57.860	14.124	
+Klippan	Skåne	56.136	13.131	
+Tibro	Västra Götaland	58.425	14.162	
+Bro	Stockholm	59.517	17.633	
+Tidaholm	Västra Götaland	58.180	13.958	
+Hallsberg	Örebro	59.065	15.110	
+Fisksätra	Stockholm	59.292	18.255	
+Skurup	Skåne	55.478	13.502	
+Vimmerby	Kalmar	57.666	15.855	
+Gårdsten	Västra Götaland	57.805	12.029	
+Brevik	Lidingö, Stockholm	59.350	18.200	
+Knivsta	Uppsala	59.726	17.788	
+Hammarkullen	Västra Götaland	57.780	12.036	
+Sjöbo	Skåne	55.631	13.706	
+Bromölla	Skåne	56.076	14.470	
+Habo	Jönköping	57.912	14.074	
+Lysekil	Västra Götaland	58.274	11.436	
+Kil	Värmland	59.502	13.313	
+Osby	Skåne	56.382	13.994	
+Olofström	Blekinge län	56.277	14.534	
+Fittja	Stockholm	59.249	17.860	
+Kalix	Norrbotten	65.853	23.156	
+Hörby	Skåne	55.852	13.661	
+Söderköping	Östergötland	58.481	16.322	
+Sollefteå	Västernorrland	63.167	17.267	
+Hedemora	Dalarnas län	60.280	15.989	
+Nykvarn	Nykvarns Kommun, Stockholm	59.177	17.432	
+Bergshamra	Stockholm	59.381	18.034	
+Ljusdal	Gävleborgs län	61.829	16.091	
+Degerfors	Örebro	59.238	14.431	
+Strömstad	Västra Götaland	58.939	11.171	
+Valbo	Gävleborgs län	60.650	17.033	
+Lövgärdet	Västra Götaland	57.816	12.039	
+Skanör med Falsterbo	Skåne	55.400	12.850	
+Åtvidaberg	Östergötland	58.202	15.998	
+Åby	Östergötland	58.667	16.183	
+Tomelilla	Skåne	55.543	13.955	
+Kållered	Västra Götaland	57.610	12.051	
+Simrishamn	Skåne	55.557	14.350	
+Ljungsbro	Östergötland	58.517	15.500	
+Haparanda	Norrbotten	65.835	24.137	
+Nora	Örebro	59.519	15.040	
+Flen	Södermanland	59.058	16.588	
+Kramfors	Västernorrland	62.932	17.776	
+Laholm	Hallands län	56.512	13.044	
+Vellinge	Skåne	55.471	13.020	
+Löddeköpinge	Skåne	55.767	13.017	
+Forshaga	Värmland	59.525	13.481	
+Storvreta	Uppsala	59.959	17.706	
+Södra Sandby	Skåne	55.717	13.347	
+Dalby	Skåne	55.667	13.350	
+Skutskär	Uppsala	60.625	17.416	
+Surahammar	Västmanland	59.707	16.222	
+Hjo	Västra Götaland	58.301	14.288	
+Filipstad	Värmland	59.712	14.168	
+Leksand	Dalarnas län	60.730	15.000	
+Hofors	Gävleborgs län	60.546	16.287	
+Åsa	Hallands län	57.350	12.117	
+Järna	Stockholm	59.092	17.566	
+Nykvarn	Norrtälje Kommun, Stockholm	59.800	18.300	
+Gråbo	Västra Götaland	57.836	12.300	
+Malmberget	Norrbotten	67.175	20.655	
+Surte	Västra Götaland	57.825	12.016	
+Holmsund	Västerbottens län	63.706	20.364	
+Åkarp	Skåne	55.654	13.111	
+Södra Sandby	Kalmar	56.567	16.617	
+Rydebäck	Skåne	55.967	12.767	
+Kungsör	Västmanland	59.422	16.097	
+Perstorp	Skåne	56.138	13.395	
+Vi	Sundsvalls Kommun, Västernorrland	62.433	17.417	
+Trosa	Södermanland	58.896	17.548	
+Tierp	Uppsala	60.343	17.518	
+Gnesta	Södermanland	59.048	17.312	
+Lindsdal	Kalmar	56.733	16.300	
+Vadstena	Östergötland	58.449	14.890	
+Färjestaden	Kalmar	56.650	16.469	
+Viken	Skåne	56.151	12.574	
+Mullsjö	Jönköping	57.917	13.878	
+Hultsfred	Kalmar	57.488	15.844	
+Skåre	Värmland	59.433	13.433	
+Fristad	Västra Götaland	57.825	13.011	
+Åkarp	Västra Götaland	58.233	13.650	
+Vårgårda	Västra Götaland	58.037	12.809	
+Sävsjö	Jönköping	57.403	14.662	
+Orsa	Dalarnas län	61.120	14.616	
+Hönö	Västra Götaland	57.690	11.650	
+Smedjebacken	Dalarnas län	60.142	15.414	
+Ödåkra	Skåne	56.104	12.748	
+Örkelljunga	Skåne	56.283	13.278	
+Skåre	Skåne	55.383	13.050	
+Rättvik	Dalarnas län	60.886	15.118	
+Båstad	Skåne	56.427	12.853	
+Vaggeryd	Jönköping	57.498	14.148	
+Anderstorp	Jönköping	57.283	13.633	
+Malmslätt	Östergötland	58.411	15.516	
+Krokek	Östergötland	58.672	16.367	
+Grums	Värmland	59.351	13.111	
+Götene	Västra Götaland	58.528	13.495	
+Sunne	Värmland	59.838	13.143	
+Enebyberg	Stockholm	59.433	18.050	
+Mönsterås	Kalmar	57.041	16.445	
+Anderstorp	Västra Götaland	58.883	14.283	
+Vargön	Västra Götaland	58.356	12.391	
+Älvsbyn	Norrbotten	65.676	21.002	
+Malung	Dalarnas län	60.683	13.715	
+Gammelstad	Norrbotten	65.639	22.011	
+Rimbo	Stockholm	59.750	18.367	
+Hagfors	Värmland	60.024	13.672	
+Veberöd	Skåne	55.633	13.483	
+Vaxholm	Stockholm	59.402	18.353	
+Emmaboda	Kalmar	56.633	15.536	
+Lindö	Östergötland	58.617	16.250	
+Älvängen	Västra Götaland	57.959	12.123	
+Vi	Sundsvalls Kommun, Västernorrland	62.300	17.167	
+Hjärup	Skåne	55.669	13.139	
+Östhammar	Uppsala	60.259	18.374	
+Tyringe	Skåne	56.160	13.598	
+Markaryd	Kronoberg	56.461	13.596	
+Kallinge	Blekinge län	56.248	15.287	
+Arvidsjaur	Norrbotten	65.590	19.167	
+Norberg	Västmanland	60.065	15.924	
+Töreboda	Västra Götaland	58.707	14.126	
+Säter	Dalarnas län	60.348	15.751	
+Hemmesta	Stockholm	59.323	18.487	
+Smålandsstenar	Jönköping	57.162	13.412	
+Vingåker	Södermanland	59.043	15.874	
+Hittarp	Helsingborg, Skåne	56.100	12.633	
+Hallstavik	Stockholm	60.050	18.600	
+Gnosjö	Jönköping	57.358	13.737	
+Taberg	Jönköping	57.677	14.089	
+Hällefors	Örebro	59.784	14.522	
+Torsby	Värmland	60.135	13.008	
+Öjersjö	Västra Götaland	57.699	12.134	
+Vännäs	Västerbottens län	63.907	19.757	
+Rannebergen	Västra Götaland	57.802	12.071	
+Furulund	Skåne	55.774	13.090	
+Borgholm	Kalmar	56.879	16.656	
+Sålanda	Västra Götaland	57.983	12.217	
+Edsbyn	Gävleborgs län	61.377	15.817	
+Oskarström	Hallands län	56.800	12.967	
+Arnö	Södermanland	58.727	17.023	
+Krylbo	Dalarnas län	60.133	16.217	
+Vara	Västra Götaland	58.262	12.954	
+Skärblacka	Östergötland	58.567	15.900	
+Askersund	Örebro	58.880	14.902	
+Hyltebruk	Hallands län	56.999	13.240	
+Vinslöv	Skåne	56.100	13.917	
+Herrljunga	Västra Götaland	58.077	13.027	
+Skillingaryd	Jönköping	57.430	14.094	
+Brunna	Stockholm	59.517	17.750	
+Vallda	Hallands län	57.477	12.001	
+Arnö	Stockholm	60.117	18.633	
+Brunflo	Jämtlands län	63.076	14.832	
+Ursviken	Västerbottens län	64.713	21.166	
+Mariefred	Södermanland	59.260	17.223	
+Munkedal	Västra Götaland	58.466	11.673	
+Mörrum	Blekinge län	56.193	14.747	
+Furulund	Västra Götaland	57.717	12.133	
+Bollebygd	Västra Götaland	57.669	12.573	
+Ösmo	Stockholm	58.983	17.900	
+Brunna	Dalarnas län	60.263	16.010	
+Svalöv	Skåne	55.913	13.108	
+Hittarp	Östra Göinge Kommun, Skåne	56.283	14.117	
+Alsike	Uppsala	59.753	17.773	
+Hofterup	Skåne	55.805	12.980	
+Mellerud	Västra Götaland	58.700	12.453	
+Mantorp	Östergötland	58.350	15.283	
+Kisa	Östergötland	57.988	15.633	
+Lilla Edet	Västra Götaland	58.133	12.133	
+Hjuvik	Västra Götaland	57.702	11.716	
+Viken	Västerbottens län	64.726	20.915	
+Olofstorp	Göteborgs stad, Västra Götaland	57.804	12.171	
+Bara	Skåne	55.582	13.179	
+Viskafors	Västra Götaland	57.629	12.849	
+Strömsund	Jämtlands län	63.852	15.556	
+Ljungskile	Västra Götaland	58.225	11.920	
+Kungshamn	Västra Götaland	58.363	11.259	
+Skultorp	Västra Götaland	58.350	13.833	
+Karlsborg	Västra Götaland	58.537	14.505	
+Smedby	Kalmar	56.674	16.243	
+Dalsjöfors	Västra Götaland	57.717	13.083	
+Bergnäset	Norrbotten	65.578	22.108	
+Svenljunga	Västra Götaland	57.496	13.111	
+Stenhamra	Stockholm	59.334	17.688	
+Vilhelmina	Västerbottens län	64.624	16.656	
+Öckerö	Västra Götaland	57.708	11.656	
+Åre	Jämtlands län	63.399	13.080	
+Smedby	Dalarnas län	60.700	15.050	
+Rödeby	Blekinge län	56.261	15.621	
+Aneby	Jönköping	57.839	14.810	
+Skärhamn	Västra Götaland	57.987	11.557	
+Matfors	Västernorrland	62.349	17.032	
+Tygelsjö	Skåne	55.517	13.000	
+Iggesund	Gävleborgs län	61.642	17.075	
+Mellbystrand	Hallands län	56.486	12.940	
+Tollarp	Skåne	55.933	13.983	
+Vagnhärad	Södermanland	58.946	17.488	
+Skultuna	Västmanland	59.717	16.417	
+Kummelnäs	Stockholm	59.350	18.283	
+Skänninge	Östergötland	58.394	15.087	
+Svärtinge	Östergötland	58.655	16.028	
+Hällbybrunn	Södermanland	59.392	16.422	
+Tallboda	Östergötland	58.425	15.682	
+Hammar	Skåne	56.017	14.217	
+Årjäng	Värmland	59.392	12.133	
+Ekeby	Skåne	56.000	12.967	
+Nättraby	Blekinge län	56.200	15.517	
+Boxholm	Östergötland	58.197	15.054	
+Resarö	Stockholm	59.429	18.334	
+Skänninge	Stockholm	59.933	18.483	
+Tranemo	Västra Götaland	57.483	13.350	
+Eriksberg	Stockholm	59.242	17.816	
+Björklinge	Uppsala	60.030	17.552	
+Tollarp1	Skåne	56.167	14.283	
+Södra Sunderbyn	Norrbotten	65.660	21.940	
+Munka-Ljungby	Skåne	56.250	12.967	
+Knislinge	Skåne	56.183	14.083	
+Häljarp	Skåne	55.850	12.917	
+Laxå	Örebro	58.986	14.619	
+Bengtsfors	Västra Götaland	59.029	12.232	
+Tenhult	Jönköping	57.708	14.322	
+Broby	Skåne	56.255	14.078	
+Sävast	Norrbotten	65.770	21.731	
+Tingsryd	Kronoberg	56.525	14.979	
+Hovmantorp	Kronoberg	56.787	15.140	
+Skelleftehamn	Västerbottens län	64.683	21.233	
+Kopparberg	Örebro	59.876	14.994	
+Ed	Västra Götaland	58.912	11.933	
+Sandared	Västra Götaland	57.710	12.792	
+Hökåsen	Västmanland	59.667	16.583	
+Särö	Hallands län	57.506	11.932	
+Sävar	Västerbottens län	63.904	20.550	
+Genarp	Skåne	55.599	13.398	
+Grästorp	Västra Götaland	58.332	12.681	
+Borensberg	Östergötland	58.567	15.283	
+Påarp	Skåne	56.033	12.817	
+Hindås	Västra Götaland	57.703	12.447	
+Ånge	Västernorrland	62.525	15.659	
+Ockelbo	Gävleborgs län	60.891	16.718	
+Lessebo	Kronoberg	56.752	15.270	
+Linghem	Östergötland	58.433	15.783	
+Vålberg	Värmland	59.391	13.186	
+Stora Höga	Västra Götaland	58.017	11.833	
+Munkfors	Värmland	59.839	13.544	
+Frillesås	Hallands län	57.317	12.167	
+Hovsta	Örebro	59.350	15.217	
+Fyllinge	Hallands län	56.650	12.917	
+Irsta	Västmanland	59.600	16.700	
+Jokkmokk	Norrbotten	66.607	19.823	
+Billesholm	Skåne	56.050	13.000	
+Olofstorp	Tidaholms kommun, Västra Götaland	58.250	14.000	
+Vejbystrand	Skåne	56.318	12.767	
+Gamleby	Kalmar	57.895	16.405	
+Bjärnum	Skåne	56.290	13.711	
+Bårslöv	Skåne	56.009	12.806	
+Åkers Styckebruk	Södermanland	59.250	17.083	
+Gränna	Jönköping	58.017	14.467	
+Heby	Uppsala	59.938	16.862	
+Deje	Värmland	59.603	13.472	
+Gimo	Uppsala	60.173	18.185	
+Valdemarsvik	Östergötland	58.203	16.602	
+Nordmaling	Västerbottens län	63.569	19.502	
+Odensjö	Jönköping	57.717	14.167	
+Tvååker	Hallands län	57.041	12.399	
+Jämjö	Blekinge län	56.192	15.841	
+Sjömarken	Västra Götaland	57.715	12.835	
+Johannedal	Västernorrland	62.434	17.373	
+Eriksbo	Västra Götaland	57.771	12.042	
+Åseda	Kronoberg	57.170	15.344	
+Ödeshög	Östergötland	58.229	14.653	
+Sveg	Jämtlands län	62.034	14.366	
+Irsta	Uppsala	59.700	16.933	
+Bureå	Västerbottens län	64.617	21.200	
+Gånghester	Västra Götaland	57.700	13.017	
+Stockvik	Västernorrland	62.337	17.366	
+Hörnefors	Västerbottens län	63.623	19.909	
+Alunda	Östhammars Kommun, Uppsala	60.067	18.083	
+Ekängen	Östergötland	58.467	15.633	
+Frövi	Örebro	59.467	15.367	
+Vårsta	Stockholm	59.165	17.797	
+Strömma	Stockholm	59.283	18.533	
+Röbäck	Västerbottens län	63.809	20.189	
+Ljunghusen	Skåne	55.398	12.925	
+Kolsva	Västmanland	59.600	15.833	
+Herrestad	Östergötland	58.383	14.800	
+Bälinge	Uppsala	59.950	17.533	
+Vindeln	Västerbottens län	64.202	19.719	
+Rottne	Kronoberg	57.017	14.900	
+Förslöv	Skåne	56.350	12.817	
+Fjärås kyrkby	Hallands län	57.459	12.175	
+Skinnskatteberg	Västmanland	59.830	15.693	
+Blomstermåla	Kalmar	56.983	16.333	
+Kåge	Västerbottens län	64.836	20.985	
+Söråker	Västernorrland	62.506	17.510	
+Charlottenberg	Värmland	59.884	12.304	
+Alfta	Gävleborgs län	61.347	16.075	
+Vikingstad	Östergötland	58.383	15.432	
+Österbybruk	Uppsala	60.200	17.900	
+Fritsla	Västra Götaland	57.557	12.785	
+Frösakull	Hallands län	56.683	12.733	
+Brastad	Västra Götaland	58.383	11.483	
+Hyllinge	Skåne	56.100	12.850	
+Vintrosa	Örebro	59.250	14.950	
+Kopparmora	Stockholm	59.333	18.583	
+Veddige	Hallands län	57.266	12.332	
+Rimforsa	Östergötland	58.136	15.687	
+Storvik	Västerbottens län	65.150	20.733	
+Bergsviken	Norrbotten	65.300	21.383	
+Strömsnäsbruk	Kronoberg	56.550	13.717	
+Henån	Västra Götaland	58.238	11.676	
+Pershagen	Stockholm	59.155	17.653	
+Sturefors	Östergötland	58.333	15.733	
+Alunda	Östhammars Kommun, Uppsala	60.267	18.400	
+Storfors	Värmland	59.532	14.272	
+Sjuntorp	Västra Götaland	58.200	12.217	
+Storvik	Gävleborgs län	60.583	16.533	
+Storuman	Västerbottens län	65.096	17.117	
+Delsbo	Gävleborgs län	61.801	16.556	
+Skogstorp	Södermanland	59.325	16.483	
+Kvicksund	Södermanland	59.451	16.321	
+Obbola	Västerbottens län	63.700	20.317	
+Fjugesta	Örebro	59.174	14.872	
+Tillberga	Västmanland	59.683	16.617	
+Insjön	Västerbottens län	64.400	17.483	
+Grängesberg	Dalarnas län	60.075	15.008	
+Insjön	Dalarnas län	60.677	15.095	
+Djurås	Dalarnas län	60.561	15.133	
+Ljungbyhed	Skåne	56.074	13.240	
+Malmköping	Södermanland	59.133	16.733	
+Sundsbruk	Västernorrland	62.458	17.349	
+Glumslöv	Skåne	55.941	12.809	
+Forserum	Jönköping	57.700	14.467	
+Fränsta	Västernorrland	62.499	16.170	
+Norsjö	Västerbottens län	64.912	19.482	
+Hunnebostrand	Västra Götaland	58.441	11.303	
+Malå	Västerbottens län	65.185	18.742	
+Vansbro	Dalarnas län	60.509	14.225	
+Kolbäck	Västmanland	59.565	16.230	
+Pajala	Norrbotten	67.213	23.366	
+Robertsfors	Västerbottens län	64.193	20.848	
+Örbyhus	Uppsala	60.224	17.701	
+Torsås	Kalmar	56.413	15.998	
+Stenkullen	Västra Götaland	57.795	12.317	
+Lönsboda	Skåne	56.400	14.317	
+Färgelanda	Västra Götaland	58.568	11.992	
+Träslövsläge	Hallands län	57.054	12.279	
+Skattkärr	Värmland	59.412	13.671	
+Jonstorp	Skåne	56.234	12.672	
+Bjursås	Dalarnas län	60.737	15.453	
+Storå	Örebro	59.714	15.132	
+Råneå	Norrbotten	65.855	22.291	
+Anderslöv	Skåne	55.438	13.320	
+Arbrå	Gävleborgs län	61.467	16.383	
+Njurundabommen	Västernorrland	62.263	17.384	
+Bodafors	Jönköping	57.500	14.700	
+Krokom	Jämtlands län	63.326	14.449	
+Stigtomta	Södermanland	58.800	16.783	
+Svanesund	Västra Götaland	58.143	11.818	
+Ljusne	Gävleborgs län	61.212	17.128	
+Stångby	Skåne	55.750	13.198	
+Klågerup	Skåne	55.594	13.246	
+Mörarp	Skåne	56.057	12.880	
+Högsby	Kalmar	57.166	16.026	
+Mockfjärd	Dalarnas län	60.500	14.967	
+Getinge	Hallands län	56.817	12.733	
+Övertorneå	Norrbotten	66.388	23.654	
+Svängsta	Blekinge län	56.267	14.767	
+Enbacka	Dalarnas län	60.410	15.596	
+Andalen	Västra Götaland	57.700	11.761	
+Molkom	Värmland	59.601	13.721	
+Nossebro	Västra Götaland	58.188	12.716	
+Bollstabruk	Västernorrland	62.998	17.673	
+Moheda	Kronoberg	57.000	14.567	
+Grebbestad	Västra Götaland	58.702	11.257	
+Grycksbo	Dalarnas län	60.688	15.485	
+Älvdalen	Dalarnas län	61.228	14.039	
+Dalarö	Stockholm	59.133	18.406	
+Rosvik	Norrbotten	65.433	21.700	
+Skrea	Hallands län	56.883	12.567	
+Bjästa	Västernorrland	63.200	18.500	
+Fjälkinge	Skåne	56.044	14.276	
+Mörbylånga	Kalmar	56.525	16.379	
+Stenstorp	Västra Götaland	58.273	13.715	
+Kvidinge	Skåne	56.134	13.047	
+Arjeplog	Norrbotten	66.052	17.886	
+Skepplanda	Västra Götaland	57.983	12.200	
+Brevik	Tyresö Kommun, Stockholm	59.217	18.383	
+Abborrberget	Dalarnas län	60.150	14.800	
+Vislanda	Kronoberg	56.783	14.450	
+Järbo	Gävleborgs län	60.717	16.600	
+Sösdala	Skåne	56.040	13.678	
+Hällabrottet	Örebro	59.117	15.200	
+Bua	Hallands län	57.238	12.122	
+Vittsjö	Skåne	56.344	13.661	
+Bergeforsen	Västernorrland	62.531	17.381	
+Byske	Västerbottens län	64.953	21.206	
+Stavsnäs	Stockholm	59.283	18.683	
+Tanumshede	Västra Götaland	58.724	11.326	
+Jonstorp	Västra Götaland	58.000	12.717	
+Virserum	Kalmar	57.317	15.583	
+Rosersberg	Stockholm	59.583	17.883	
+Lenhovda	Kronoberg	57.000	15.283	
+Ingelstad	Kronoberg	56.750	14.917	
+Forsbacka	Gävleborgs län	60.617	16.883	
+Höviksnäs	Västra Götaland	58.033	11.767	
+Forsbacka	Västerbottens län	64.767	20.500	
+Hillerstorp	Jönköping	57.313	13.884	
+Östra Ljungby	Skåne	56.196	13.092	
+Källby	Västra Götaland	58.510	13.306	
+Romme	Dalarnas län	60.433	15.500	
+Marielund	Norrbotten	65.853	24.105	
+Ljungbyholm	Kalmar	56.633	16.167	
+Järna	Dalarnas län	60.533	14.367	
+Vibble	Gotlands län	57.605	18.256	
+Bräkne-Hoby	Blekinge län	56.233	15.117	
+Åsele	Västerbottens län	64.160	17.348	
+Söderfors	Uppsala	60.383	17.233	
+Teckomatorp	Skåne	55.867	13.083	
+Ingared	Västra Götaland	57.860	12.452	
+Östervåla	Uppsala	60.183	17.183	
+Lammhult	Kronoberg	57.167	14.583	
+Hästveda	Skåne	56.285	13.935	
+Braås	Kronoberg	57.067	15.050	
+Åled	Hallands län	56.750	12.933	
+Sandarne	Gävleborgs län	61.259	17.153	
+Haverdal	Hallands län	56.722	12.672	
+Stallarholmen	Södermanland	59.367	17.200	
+Hemse	Gotlands län	57.238	18.374	
+Boliden	Västerbottens län	64.867	20.383	
+Ersmark	Västerbottens län	63.883	20.317	
+Jursla	Östergötland	58.655	16.163	
+Långsele	Västernorrland	63.183	17.067	
+Gullbrandstorp	Hallands län	56.700	12.733	
+Rinkabyholm	Kalmar	56.650	16.267	
+Stenstorp	Östergötland	58.483	15.067	
+Hälleforsnäs	Södermanland	59.152	16.497	
+Långsele	Västerbottens län	64.817	20.250	
+Garphyttan	Örebro	59.304	14.946	
+Jämshög	Blekinge län	56.233	14.517	
+Pålsboda	Örebro	59.066	15.337	
+Långshyttan	Dalarnas län	60.452	16.038	
+Hasslö	Blekinge län	56.117	15.483	
+Kode	Västra Götaland	57.943	11.851	
+Marieholm	Skåne	55.867	13.150	
+Trekanten	Kalmar	56.700	16.117	
+Söderfors	Västerbottens län	64.817	18.050	
+Öregrund	Uppsala	60.333	18.433	
+Rydaholm	Jönköping	56.984	14.308	
+Valla	Jämtlands län	63.550	13.800	
+Vännäsby	Västerbottens län	63.916	19.824	
+Sörforsa	Gävleborgs län	61.733	16.983	
+Marieholm	Jönköping	57.383	13.850	
+Burträsk	Västerbottens län	64.517	20.650	
+Ås	Jämtlands län	63.250	14.567	
+Trönninge	Hallands län	56.617	12.933	
+Gullspång	Västra Götaland	58.986	14.096	
+Husum	Västernorrland	63.333	19.167	
+Ekenässjön	Jönköping	57.492	15.022	
+Asmundtorp	Skåne	55.883	12.933	
+Norrfjärden	Norrbotten	65.418	21.502	
+Floby	Västra Götaland	58.133	13.333	
+Kaxholmen	Jönköping	57.853	14.305	
+Bräcke	Jämtlands län	62.751	15.422	
+Järvsö	Gävleborgs län	61.717	16.167	
+Rönnäng	Västra Götaland	57.933	11.583	
+Lagan	Kronoberg	56.917	13.983	
+Bredaryd	Jönköping	57.173	13.738	
+Bergby	Gävleborgs län	60.929	17.042	
+Hällevik	Blekinge län	56.017	14.700	
+Lödöse	Västra Götaland	58.030	12.159	
+Järpen	Jämtlands län	63.346	13.466	
+Ekeby-Almby	Örebro	59.260	15.330	
+Rävlanda	Västra Götaland	57.653	12.498	
+Brålanda	Västra Götaland	58.563	12.349	
+Älvkarleby	Uppsala	60.571	17.449	
+Backa	Västerbottens län	64.983	21.067	
+Kågeröd	Skåne	56.000	13.088	
+Forsheda	Jönköping	57.164	13.830	
+Mariannelund	Jönköping	57.617	15.567	
+Nåntuna	Uppsala	59.817	17.683	
+Harplinge	Hallands län	56.745	12.728	
+Björkö	Västra Götaland	57.732	11.679	
+Dorotea	Västerbottens län	64.262	16.413	
+Klintehamn	Gotlands län	57.387	18.204	
+Valla	Södermanland	59.017	16.383	
+Sollebrunn	Västra Götaland	58.117	12.533	
+Hölö	Södertälje Kommun, Stockholm	59.017	17.533	
+Fellingsbro	Örebro	59.433	15.583	
+Ryd	Kronoberg	56.467	14.683	
+Kimstad	Östergötland	58.550	15.963	
+Glimåkra	Skåne	56.300	14.133	
+Jörlanda	Västra Götaland	57.986	11.829	
+Gemla	Kronoberg	56.868	14.644	
+Vrigstad	Jönköping	57.350	14.467	
+Myggenäs	Västra Götaland	58.062	11.749	
+Blentarp	Skåne	55.583	13.600	
+Ryd	Östergötland	58.667	15.083	
+Donsö	Västra Götaland	57.600	11.799	
+Djurö	Stockholm	59.327	18.712	
+Morgongåva	Uppsala	59.934	16.964	
+Landsbro	Jönköping	57.367	14.900	
+Limmared	Västra Götaland	57.536	13.356	
+Sibbhult	Skåne	56.267	14.200	
+Veinge	Hallands län	56.550	13.067	
+Ödsmål	Västra Götaland	58.100	11.850	
+Vattholma	Uppsala	60.017	17.733	
+Dals Långed	Västra Götaland	58.926	12.309	
+Barkarö	Västmanland	59.549	16.507	
+Lövstalöt	Uppsala	59.957	17.578	
+Anneberg	Uppsala	60.242	18.417	
+Färila	Gävleborgs län	61.800	15.844	
+Önnestad	Skåne	56.057	14.022	
+Hanaskog	Skåne	56.161	14.093	
+Rydsgård	Skåne	55.473	13.588	
+Odensbacken	Örebro	59.167	15.533	
+Älmsta	Stockholm	59.967	18.800	
+Stöpen	Västra Götaland	58.478	13.866	
+Nolvik	Västra Götaland	57.775	11.833	
+Timmernabben	Kalmar	56.967	16.433	
+Målilla	Kalmar	57.388	15.807	
+Åmotfors	Värmland	59.762	12.362	
+Svärdsjö	Dalarnas län	60.740	15.902	
+Ramnäs	Västmanland	59.767	16.200	
+Diseröd	Västra Götaland	57.926	12.026	
+Degeberga	Skåne	55.833	14.083	
+Hestra	Gislaveds Kommun, Jönköping	57.442	13.596	
+Hestra	Aneby Kommun, Jönköping	57.917	14.583	
+Sturkö	Blekinge län	56.083	15.700	
+Styrsö	Västra Götaland	57.616	11.786	
+Gantofta	Skåne	55.987	12.805	
+Åsbro	Örebro	59.000	15.050	
+Mjällby	Blekinge län	56.050	14.683	
+Västra Hagen	Hallands län	57.424	11.936	
+Näsum	Skåne	56.177	14.497	
+Täfteå	Västerbottens län	63.840	20.479	
+Örsundsbro	Uppsala	59.733	17.300	
+Smygehamn	Skåne	55.343	13.370	
+Smögen	Västra Götaland	58.356	11.224	
+Bergsjö	Gävleborgs län	61.983	17.064	
+Mörtnäs	Stockholm	59.319	18.443	
+Reftele	Jönköping	57.175	13.595	
+Kvänum	Västra Götaland	58.300	13.183	
+Siljansnäs	Dalarnas län	60.783	14.850	
+Mjällby	Hallands län	56.683	12.767	
+Ärla	Södermanland	59.280	16.679	
+Bor	Jönköping	57.117	14.167	
+Roknäs	Norrbotten	65.350	21.200	
+Skivarp	Skåne	55.417	13.567	
+Köpingebro	Skåne	55.455	13.935	
+Hova	Västra Götaland	58.854	14.219	
+Löberöd	Skåne	55.776	13.524	
+Norra Åsum	Skåne	55.983	14.150	
+Torup	Hallands län	56.957	13.077	
+Björneborg	Värmland	59.241	14.249	
+Ankarsrum	Kalmar	57.699	16.334	
+Berg	Östergötland	58.488	15.530	
+Annelund	Västra Götaland	57.988	13.075	
+Gustav Adolf	Skåne	56.017	14.250	
+Töcksfors	Värmland	59.508	11.844	
+Knäred	Hallands län	56.519	13.324	
+Sätila	Västra Götaland	57.542	12.434	
+Strövelstorp	Skåne	56.170	12.839	
+Långvik	Stockholm	59.246	18.517	
+Horred	Västra Götaland	57.355	12.478	
+Nolby	Västernorrland	62.288	17.369	
+Bredbyn	Västernorrland	63.447	18.110	
+Hölö	Värmdö Kommun, Stockholm	59.283	18.667	
+Gnarp	Gävleborgs län	62.049	17.259	
+Gagnef	Dalarnas län	60.599	15.077	
+Kilafors	Gävleborgs län	61.233	16.567	
+Köpmanholmen	Västernorrland	63.167	18.567	
+Vikarbyn	Dalarnas län	60.917	15.017	
+Karlholmsbruk	Uppsala	60.521	17.632	
+Stehag	Skåne	55.902	13.396	
+Marieberg	Uppsala	60.233	18.500	
+Brunn	Stockholm	59.280	18.430	
+Sorsele	Västerbottens län	65.535	17.537	
+Tärnsjö	Uppsala	60.150	16.933	
+Saxtorpsskogen	Skåne	55.832	12.944	
+Överum	Kalmar	57.989	16.314	
+Hököpinge	Skåne	55.494	13.008	
+Axvall	Västra Götaland	58.383	13.567	
+Blidö	Stockholm	59.615	18.892	
+Sätofta	Skåne	55.917	13.550	
+Skegrie	Skåne	55.406	13.077	
+Gusum	Östergötland	58.269	16.499	
+Lindholmen	Stockholm	59.583	18.100	
+Södra Vi	Kalmar	57.740	15.794	
+Hortlax	Norrbotten	65.282	21.405	
+Horndal	Dalarnas län	60.300	16.417	
+Lit	Jämtlands län	63.320	14.846	
+Hammarstrand	Jämtlands län	63.110	16.354	
+Steninge	Hallands län	56.769	12.630	
+Billingsfors	Västra Götaland	58.983	12.250	
+Rindö	Stockholm	59.397	18.394	
+Påskallavik	Kalmar	57.167	16.450	
+Ås	Västernorrland	63.367	16.583	
+Svalsta	Södermanland	58.743	16.870	
+Hjärnarp	Skåne	56.317	12.917	
+Gärsnäs	Skåne	55.549	14.179	
+Enhagen-Ekbacken	Västmanland	59.565	16.530	
+Mölnbo	Stockholm	59.050	17.417	
+Malmbäck	Jönköping	57.577	14.462	
+Länghem	Västra Götaland	57.600	13.233	
+Ornäs	Dalarnas län	60.509	15.541	
+Glommen	Hallands län	56.933	12.350	
+Sköllersta	Örebro	59.137	15.339	
+Torekov	Skåne	56.425	12.633	
+Valje	Skåne	56.063	14.544	
+Hedesunda	Gävleborgs län	60.400	17.000	
+Angered	Västra Götaland	57.786	12.099	
+Skottsund	Västernorrland	62.291	17.387	
+Nyhammar	Dalarnas län	60.283	14.967	
+Töre	Norrbotten	65.912	22.651	
+Billeberga	Skåne	55.883	13.000	
+Mölltorp	Västra Götaland	58.500	14.400	
+Grebo	Östergötland	58.301	15.871	
+Tormestorp	Skåne	56.114	13.745	
+Hammerdal	Jämtlands län	63.576	15.365	
+Överkalix	Norrbotten	66.328	22.844	
+Ellös	Västra Götaland	58.183	11.467	
+Björboholm	Västra Götaland	57.871	12.325	
+Vinninga	Västra Götaland	58.450	13.267	
+Grillby	Uppsala	59.626	17.258	
+Gunnebo	Kalmar	57.717	16.533	
+Dingtuna	Västmanland	59.573	16.387	
+Bergkvara	Kalmar	56.391	16.073	
+Ekshärad	Värmland	60.173	13.496	
+Stockaryd	Jönköping	57.317	14.593	
+Olstorp	Södermanland	58.817	16.633	
+Olstorp	Västra Götaland	57.823	12.277	
+Kristdala	Kalmar	57.401	16.205	
+Färlöv	Skåne	56.067	14.083	
+Tjuvkil	Västra Götaland	57.900	11.733	
+Årsunda	Gävleborgs län	60.516	16.734	
+Storebro	Kalmar	57.583	15.850	
+Slottsbron	Värmland	59.323	13.103	
+Göta	Västra Götaland	58.106	12.153	
+Rolfs	Norrbotten	65.850	23.117	
+Svaneholm	Västra Götaland	57.617	12.817	
+Bjurholm	Västerbottens län	63.930	19.214	

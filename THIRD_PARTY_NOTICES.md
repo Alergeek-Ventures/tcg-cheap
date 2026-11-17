@@ -28,10 +28,13 @@ Source: https://github.com/microsoft/fluentui-system-icons
 
 ## GeoNames
 
-`priv/geo/towns.tsv` is reduced from the GeoNames gazetteer extract for Poland
-(`PL.zip`, `admin2Codes.txt`, downloaded 2026-11-01): Polish populated places of
-at least 1,000 inhabitants, with name, voivodeship or county, city of a district
-and coordinates rounded to three decimals.
+`priv/geo/<country>.tsv`, one file per country with a region, is reduced from
+the GeoNames gazetteer extract of that country (`<CC>.zip`, `admin1CodesASCII.txt`,
+`admin2Codes.txt`, and for the countries other than Poland the country's
+`alternatenames/<CC>.zip` for names in its language; Poland downloaded
+2026-11-01, the others 2026-11-17): populated places of at least 1,000
+inhabitants, with name, region or county, city of a district (Poland) and
+coordinates rounded to three decimals.
 
 GeoNames (https://www.geonames.org), licensed under the Creative Commons
 Attribution 4.0 License: https://creativecommons.org/licenses/by/4.0/
