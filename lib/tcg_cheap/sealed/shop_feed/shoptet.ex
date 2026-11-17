@@ -10,7 +10,9 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
   (`data-micro-product-id`), name and link,
   and an offer with the price (`data-micro-price`, a plain decimal), its
   currency, which must be the shop's `currency`, and its schema.org
-  availability; only `InStock` is in stock. Sealed products must name a
+  availability; only `InStock` is in stock, and only on a card that can be
+  bought: it has the add-to-cart form, is a product with variants, or shows
+  no product code to tell (`purchasable?/1`). Sealed products must name a
   sealed product; singles have a 0.10 minimum and no category (the title
   names the set).
   Images (`data-micro-image`) come from the shop's host or Shoptet's CDN
@@ -171,8 +173,20 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
       price: offer && offer |> Floki.attribute("data-micro-price") |> List.first(),
       currency: offer && offer |> Floki.attribute("data-micro-price-currency") |> List.first(),
       availability: availability,
-      in_stock: availability == @in_stock
+      in_stock: availability == @in_stock and purchasable?(node)
     }
+  end
+
+  # Some shops mark a sold-out product `InStock` in the microdata. A card
+  # that can be bought carries the add-to-cart form (`form.pr-action`); one
+  # with only a "Detail" link is either sold out or a product with variants,
+  # whose card shows the code of the variant it prices (`product/variant`,
+  # as the microdata `sku`). So a card with neither is not in stock. A card
+  # without a code shows no evidence either way and keeps its microdata.
+  defp purchasable?(node) do
+    sku = node |> HtmlListing.first(~s([data-micro="sku"])) |> HtmlListing.text()
+
+    Floki.find(node, "form.pr-action") != [] or is_nil(sku) or String.contains?(sku, "/")
   end
 
   defp normalize(shop, {kind, product}) do
@@ -197,7 +211,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
            image_url: image_url(shop, product.image),
            ean: nil,
            price: price,
-           in_stock: availability == @in_stock and not preorder,
+           in_stock: product.in_stock and not preorder,
            preorder: preorder,
            kind: kind,
            category: nil
