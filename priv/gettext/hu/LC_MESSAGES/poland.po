@@ -104,4 +104,4 @@ msgstr "Ez a hely Lengyelországon kívül van. Írj be egy települést."
 #: lib/tcg_cheap/countries/poland.ex:63
 #, elixir-autogen, elixir-format
 msgid "np. Gdańsk"
-msgstr "pl. Kraków"
+msgstr "pl. Gdańsk"
