@@ -254,19 +254,20 @@ defmodule TcgCheap.Sealed.Market do
 
   @doc """
   An amount rounded as the market's currency is: whole forints, złoty to
-  grosze. A positive amount never rounds to zero: below one whole unit it
-  keeps its hundredths ("0,30 Kč", not "0 Kč").
+  grosze. Below one whole unit a whole-unit currency keeps its hundredths
+  ("0,30 Kč", not "0 Kč"; 0,996 is 1 Kč), as `TcgCheapWeb.Format.price/1`
+  writes it.
   """
   @spec rounded(Decimal.t(), t()) :: Decimal.t()
-  def rounded(amount, %__MODULE__{decimals: decimals}) do
-    case Decimal.round(amount, decimals) do
-      %Decimal{coef: 0} = zero ->
-        if Decimal.positive?(amount), do: Decimal.round(amount, 2), else: zero
+  def rounded(amount, %__MODULE__{decimals: 0}) do
+    hundredths = Decimal.round(amount, 2)
 
-      rounded ->
-        rounded
-    end
+    if Decimal.positive?(hundredths) and Decimal.lt?(hundredths, 1),
+      do: hundredths,
+      else: Decimal.round(amount, 0)
   end
+
+  def rounded(amount, %__MODULE__{decimals: decimals}), do: Decimal.round(amount, decimals)
 
   @doc "The step of a market's verdict limits: 0.10 euro, else a whole currency unit."
   @spec limit_step(t()) :: Decimal.t() | 1
