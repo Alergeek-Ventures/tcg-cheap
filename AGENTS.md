@@ -55,7 +55,8 @@ TCG Cheap is a Phoenix/Ash application using standard Phoenix LiveView.
   shared list names it. A new region adds `lib/tcg_cheap/countries/<country>.ex`
   (its region definition, words and `TcgCheapWeb.RegionText` sentences),
   `lib/tcg_cheap/sealed/shops/<country>.ex` (its shops and the deliveries to it
-  of shops abroad), its Gettext domain (`priv/gettext/<country>.pot` and
+  of shops abroad), its towns for the location control (`priv/geo/<country>.tsv`, GeoNames, see
+  `TcgCheap.Geo.Towns`), its Gettext domain (`priv/gettext/<country>.pot` and
   `priv/gettext/*/LC_MESSAGES/<country>.po`) and
   `priv/static/images/flags/<code>.svg`. A new language adds
   `lib/tcg_cheap_web/languages/<language>.ex` and `priv/gettext/<code>/`.

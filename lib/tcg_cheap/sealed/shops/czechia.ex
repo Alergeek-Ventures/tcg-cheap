@@ -206,7 +206,9 @@ defmodule TcgCheap.Sealed.Shops.Czechia do
       max_pages: 40,
       shipping_from: Decimal.new("79"),
       free_shipping_from: Decimal.new("3999"),
-      pickup_city: "Braškov"
+      pickup_city: "Braškov",
+      # A village of fewer than 1,000 inhabitants: not in the towns list.
+      pickup_location: {50.0986, 14.0896}
     },
     # Delivery terms: https://www.pokemagic.cz/dopravaplatba/ (checked 2026-11-15).
     %Shop{
