@@ -18,4 +18,8 @@ defmodule TcgCheap.ModuleDir do
   @doc ~S(The module a file defines: "united_kingdom.ex" under `Shops` is `Shops.UnitedKingdom`.)
   @spec module(module(), String.t()) :: module()
   def module(namespace, file), do: Module.concat(namespace, Macro.camelize(Path.rootname(file)))
+
+  @doc ~S(The file name a module is defined in, without its extension: `Shops.UnitedKingdom` is "united_kingdom".)
+  @spec name(module()) :: String.t()
+  def name(module), do: module |> Module.split() |> List.last() |> Macro.underscore()
 end
