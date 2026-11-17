@@ -345,7 +345,39 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
         currency: "HUF"
       },
       # Its EU delivery page prices singles only; sealed parcels are priced in the checkout.
-      "unicorncards" => %{shipping_from: nil, free_shipping_from: nil, currency: "GBP"}
+      "unicorncards" => %{shipping_from: nil, free_shipping_from: nil, currency: "GBP"},
+      # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-17).
+      "kartonada" => %{
+        shipping_from: Decimal.new("69.99"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # Its cart to Stockholm (2026-11-17): DPD 78.06 zł and 23% VAT.
+      "paladynat" => %{
+        shipping_from: Decimal.new("96.01"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://rgfk.pl/content/1-koszty-dostawy: DHL (2026-11-17).
+      "rgfk" => %{
+        shipping_from: Decimal.new("54"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://pokespot.pl/pl/i/Czas-i-koszty-dostawy/1: one rate to the EU
+      # (2026-11-17).
+      "pokespot" => %{
+        shipping_from: Decimal.new("150"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://carddojo.pl/pl/i/Czas-i-koszty-dostawy/4: InPost courier to the EU
+      # (2026-11-17).
+      "carddojo" => %{
+        shipping_from: Decimal.new("80"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      }
     }
   end
 end

@@ -680,6 +680,62 @@ defmodule TcgCheap.Sealed.Shops.Czechia do
         shipping_from: Decimal.new("11.95"),
         free_shipping_from: nil,
         currency: "EUR"
+      },
+      # Its cart to Prague (2026-11-17): 8,000 Ft and 27% VAT.
+      "tcgwebshop" => %{
+        shipping_from: Decimal.new("10160"),
+        free_shipping_from: nil,
+        currency: "HUF"
+      },
+      # Its cart to Prague (2026-11-17): 3,000 Ft and 21% VAT.
+      "cardverse" => %{
+        shipping_from: Decimal.new("3630"),
+        free_shipping_from: nil,
+        currency: "HUF"
+      },
+      # Its cart to Prague (2026-11-17), as the cart totals it.
+      "pokemagic" => %{
+        shipping_from: Decimal.new("29.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      # Its cart to Prague (2026-11-17), as the cart totals it.
+      "pokebros" => %{
+        shipping_from: Decimal.new("28"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-17).
+      "kartonada" => %{
+        shipping_from: Decimal.new("26.99"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # Its cart to Prague (2026-11-17): DPD 39.02 zł and 23% VAT.
+      "paladynat" => %{
+        shipping_from: Decimal.new("47.99"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://rgfk.pl/content/1-koszty-dostawy: DHL (2026-11-17).
+      "rgfk" => %{
+        shipping_from: Decimal.new("23"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://pokespot.pl/pl/i/Czas-i-koszty-dostawy/1: one rate to the EU
+      # (2026-11-17).
+      "pokespot" => %{
+        shipping_from: Decimal.new("150"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://carddojo.pl/pl/i/Czas-i-koszty-dostawy/4: InPost courier to the EU
+      # (2026-11-17).
+      "carddojo" => %{
+        shipping_from: Decimal.new("80"),
+        free_shipping_from: nil,
+        currency: "PLN"
       }
     }
   end
