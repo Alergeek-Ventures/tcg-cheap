@@ -85,14 +85,10 @@ defmodule TcgCheap.Cards.SinglesBanner do
       price: deal.normal_offer.price,
       shop: deal.normal_offer.shop,
       trend: deal.cardmarket_delivered_pln,
-      percent: discount(deal),
       image: Map.fetch!(images, deal.id),
       path: deal.public_path
     }
   end
-
-  defp discount(card),
-    do: PriceGuide.discount_percent(card.normal_offer.price, card.cardmarket_delivered_pln)
 
   defp cheaper(cards), do: Enum.count(cards, &cheaper?/1)
 
