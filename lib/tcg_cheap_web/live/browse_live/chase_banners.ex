@@ -153,8 +153,10 @@ defmodule TcgCheapWeb.BrowseLive.ChaseBanners do
   defp booster_shops_label(_booster, count),
     do: ngettext("sklep ma go na stanie", "sklepy mają go na stanie", count)
 
-  # How far the cheapest offer is under the reference, when it is.
-  defp booster_discount(%{price: price}, {_source, reference, _shops}),
+  # How far the cheapest offer is under what shops usually ask. Cardmarket
+  # with delivery stays context: a parcel for one booster is not a price to
+  # measure a discount against.
+  defp booster_discount(%{price: price}, {:shops, reference, _shops}),
     do: PriceGuide.discount_percent(price, reference)
 
   defp booster_discount(_cheapest, _reference), do: nil
