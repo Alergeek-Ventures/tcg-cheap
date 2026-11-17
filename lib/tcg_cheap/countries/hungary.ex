@@ -49,6 +49,13 @@ defmodule TcgCheap.Countries.Hungary do
   def hint_switch, do: dgettext("hungary", "Przejdź do wersji węgierskiej")
 
   @impl TcgCheapWeb.RegionText
+  def location_outside,
+    do: dgettext("hungary", "Ta lokalizacja jest poza Węgrami. Wpisz miejscowość.")
+
+  @impl TcgCheapWeb.RegionText
+  def town_example, do: dgettext("hungary", "np. Debrecen")
+
+  @impl TcgCheapWeb.RegionText
   def home_description,
     do:
       dgettext(

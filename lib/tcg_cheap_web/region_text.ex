@@ -26,6 +26,12 @@ defmodule TcgCheapWeb.RegionText do
   @doc "The region hint's link to the region."
   @callback hint_switch() :: String.t()
 
+  @doc ~S(The location control's error for a point outside the country: "…outside Hungary. Enter a town.")
+  @callback location_outside() :: String.t()
+
+  @doc ~S(The location control's example of a town to type, with its "e.g.", in the page language.)
+  @callback town_example() :: String.t()
+
   @doc "The home page's search description."
   @callback home_description() :: String.t()
 
@@ -87,6 +93,8 @@ defmodule TcgCheapWeb.RegionText do
 
   defp country, do: Region.current().country
 
+  def location_outside, do: country().location_outside()
+  def town_example, do: country().town_example()
   def home_description, do: country().home_description()
   def social_promise, do: country().social_promise()
   def products_promise, do: country().products_promise()

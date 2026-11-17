@@ -51,6 +51,13 @@ defmodule TcgCheap.Countries.Croatia do
   def hint_switch, do: dgettext("croatia", "Przejdź do wersji chorwackiej")
 
   @impl TcgCheapWeb.RegionText
+  def location_outside,
+    do: dgettext("croatia", "Ta lokalizacja jest poza Chorwacją. Wpisz miejscowość.")
+
+  @impl TcgCheapWeb.RegionText
+  def town_example, do: dgettext("croatia", "np. Split")
+
+  @impl TcgCheapWeb.RegionText
   def home_description,
     do:
       dgettext(

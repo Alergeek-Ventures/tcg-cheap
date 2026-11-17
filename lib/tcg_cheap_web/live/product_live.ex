@@ -18,7 +18,7 @@ defmodule TcgCheapWeb.ProductLive do
   import TcgCheapWeb.VerdictComponents
 
   alias TcgCheap.Sealed.{Editions, Kinds, ProductPage, RetailDeal}
-  alias TcgCheapWeb.{Analytics, Format, Languages, Paths, Region, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Format, Languages, Paths, SEO, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -133,7 +133,6 @@ defmodule TcgCheapWeb.ProductLive do
           region_hint={@region_hint}
         >
           <VisitorLocation.location_control
-            :if={Region.poland?(@region)}
             location={@location}
             ready={@location_ready?}
             form={@town_form}

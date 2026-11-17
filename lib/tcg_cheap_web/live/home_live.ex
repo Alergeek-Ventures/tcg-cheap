@@ -236,7 +236,6 @@ defmodule TcgCheapWeb.HomeLive do
           region_hint={@region_hint}
         >
           <VisitorLocation.location_control
-            :if={Region.poland?(@region)}
             location={@location}
             ready={@location_ready?}
             form={@town_form}
