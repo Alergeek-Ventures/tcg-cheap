@@ -338,6 +338,21 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
         shipping_from: Decimal.new("80"),
         free_shipping_from: nil,
         currency: "PLN"
+      },
+      # https://chasedex.se/villkor (2026-11-17): a PostNord tracked letter to
+      # the EU for 99 SEK, charged in the buyer's currency, free from 799 SEK.
+      "chasedex" => %{
+        shipping_from: Decimal.new("99"),
+        free_shipping_from: Decimal.new("799"),
+        currency: "SEK"
+      },
+      # https://unicorncards.co.uk/international_shipping (2026-11-17): £5.90
+      # for any number of singles, free from £100, VAT and duties prepaid
+      # (IOSS). It prices singles only; the shop is read for its singles alone.
+      "unicorncards" => %{
+        shipping_from: Decimal.new("5.90"),
+        free_shipping_from: Decimal.new("100"),
+        currency: "GBP"
       }
     }
   end

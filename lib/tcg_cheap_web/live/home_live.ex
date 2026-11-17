@@ -44,9 +44,11 @@ defmodule TcgCheapWeb.HomeLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    # The deals and the doors' numbers are Polish shops' and chains' prices:
-    # other regions have none yet.
-    polish? = Region.poland?(socket.assigns.region)
+    # The deals and the products door's numbers are Polish shops' and
+    # chains' prices: other regions have none yet. The cards door counts the
+    # region's singles, where shops sell them.
+    region = socket.assigns.region
+    polish? = Region.poland?(region)
     today = Date.utc_today()
 
     {:ok,
@@ -55,7 +57,7 @@ defmodule TcgCheapWeb.HomeLive do
      |> assign(
        deals: if(polish?, do: Deals.current(), else: []),
        sealed: if(polish?, do: Deals.market()),
-       singles: if(polish?, do: Cards.SinglesBanner.market()),
+       singles: if(Region.singles?(region), do: Cards.SinglesBanner.market(region.market)),
        articles: articles(),
        sets: news_sets(today)
      )
@@ -135,7 +137,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp search(socket, query) do
     {products, product_count} = find_products(query, socket.assigns.region)
-    {cards, card_count} = find_cards(query)
+    {cards, card_count} = find_cards(query, socket.assigns.region)
 
     socket
     |> assign(product_count: product_count, card_count: card_count)
@@ -151,12 +153,14 @@ defmodule TcgCheapWeb.HomeLive do
   end
 
   # The card list's own search: cards in stock first, as the list shows them.
-  defp find_cards(query) do
+  defp find_cards(query, region) do
+    market = region.market
+
     {available, _more?, count} =
-      Cards.Guide.browse(%{query: query, expansion: nil, stock: :in}, 0)
+      Cards.Guide.browse(%{query: query, expansion: nil, stock: :in}, 0, market)
 
     {unavailable, _more?, out_count} =
-      Cards.Guide.browse(%{query: query, expansion: nil, stock: :out}, 0)
+      Cards.Guide.browse(%{query: query, expansion: nil, stock: :out}, 0, market)
 
     {Enum.take(available ++ unavailable, @results), count + out_count}
   end

@@ -5,8 +5,9 @@ defmodule TcgCheapWeb.SetComponents do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
+  alias TcgCheap.Cards
   alias TcgCheap.Cards.PullRates.Rate
-  alias TcgCheapWeb.{Format, ListingComponents, Paths, Region}
+  alias TcgCheapWeb.{Format, Paths, Region, RegionText}
 
   @doc "A set's pull rates per rarity, with their sources, or a note that none are known yet."
   attr :pull_rates, :map, required: true
@@ -266,11 +267,8 @@ defmodule TcgCheapWeb.SetComponents do
       </details>
     </div>
     <p class="guide-note table-note">
-      {if(Region.poland?(Region.current()),
-        do:
-          gettext(
-            "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w złotych, co tańsze."
-          ),
+      {if(Region.singles?(Region.current()),
+        do: RegionText.card_prices_note(),
         else: gettext("Trend Cardmarket, bez dostawy.")
       )}
     </p>
@@ -280,7 +278,7 @@ defmodule TcgCheapWeb.SetComponents do
   attr :card, :map, required: true
 
   defp card_price(assigns) do
-    assigns = assign(assigns, :price, ListingComponents.card_price(assigns.card))
+    assigns = assign(assigns, :price, Cards.Guide.price(assigns.card))
 
     ~H"""
     <span :if={@price} class="set-cards-price">{Format.price(@price)}</span>

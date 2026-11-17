@@ -10,9 +10,9 @@ defmodule TcgCheapWeb.SEO.Single do
 
   alias TcgCheap.Cards
   alias TcgCheap.Sealed.Shops
-  alias TcgCheapWeb.{Format, Paths, RegionText, SEO, SocialImage, VerdictComponents}
+  alias TcgCheapWeb.{Format, Paths, Region, RegionText, SEO, SocialImage, VerdictComponents}
 
-  @doc "`page` is `TcgCheap.Cards.Guide.page/3`."
+  @doc "`page` is `TcgCheap.Cards.Guide.page/4`."
   @spec metadata(map()) :: SEO.t()
   def metadata(page) do
     card = page.card
@@ -35,9 +35,9 @@ defmodule TcgCheapWeb.SEO.Single do
       description,
       canonical,
       # Matches Cards.Guide.sitemap_cards/0: a card without an offer leaves the
-      # index until one returns. Only Poland has offers of singles: another
-      # region's page repeats the card with its Cardmarket trend alone, which
-      # would be thousands of thin pages, so it stays out of search.
+      # index until one returns. Only Poland's card pages are indexed: the
+      # other regions' stay out of search, with their link previews and
+      # structured data.
       robots: if(answer && SEO.polish?(), do: "index, follow", else: "noindex, follow"),
       social_image:
         if(SEO.polish?(),
@@ -67,9 +67,8 @@ defmodule TcgCheapWeb.SEO.Single do
     card = page.card
 
     cond do
-      not SEO.polish?() ->
-        # Singles have shop prices only in Poland: elsewhere the page shows
-        # Cardmarket's.
+      not Region.singles?(Region.current()) ->
+        # Without singles shops the page shows Cardmarket's price alone.
         gettext("%{name} %{number}: cena na Cardmarket i warianty karty.",
           name: card.name,
           number: number
@@ -77,11 +76,7 @@ defmodule TcgCheapWeb.SEO.Single do
 
       answer ->
         SEO.fit_description([
-          gettext("%{name} %{number}: od %{price} w sklepach wysyłających do Polski.",
-            name: card.name,
-            number: number,
-            price: Format.price(answer.cheapest.price)
-          ),
+          RegionText.card_description(card.name, number, Format.price(answer.cheapest.price)),
           verdict_sentence(answer.verdict),
           gettext("Ceny, stan i warianty karty.")
         ])

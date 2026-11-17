@@ -1,8 +1,7 @@
 defmodule TcgCheap.Countries.Slovenia do
   @moduledoc """
   Slovenia: the guide's region `/si/` in euro, and the words that name it
-  (`TcgCheap.Country`). Singles have no shops here yet: card prices are
-  Cardmarket trends in euro.
+  (`TcgCheap.Country`).
   """
 
   @behaviour TcgCheap.Country
@@ -74,20 +73,67 @@ defmodule TcgCheap.Countries.Slovenia do
     do: dgettext("slovenia", "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Słowenii.")
 
   @impl TcgCheapWeb.RegionText
-  def cards_promise, do: cardmarket_cards()
+  def cards_promise,
+    do: dgettext("slovenia", "Najtańsze karty Pokémon TCG w sklepach wysyłających do Słowenii.")
 
   @impl TcgCheapWeb.RegionText
-  def cards_answer, do: cardmarket_cards()
-
-  defp cardmarket_cards,
-    do: dgettext("slovenia", "Angielskie karty Pokémon TCG z ceną z Cardmarket w euro.")
+  def cards_answer,
+    do: dgettext("slovenia", "Angielskie karty Pokémon TCG w sklepach wysyłających do Słowenii.")
 
   @impl TcgCheapWeb.RegionText
-  def cards_title, do: dgettext("slovenia", "Ceny kart Pokémon TCG w euro")
+  def cards_title, do: dgettext("slovenia", "Ceny kart Pokémon TCG w Słowenii")
 
   @impl TcgCheapWeb.RegionText
   def card_title(card),
-    do: dgettext("slovenia", "%{card} – cena karty Pokémon w euro", card: card)
+    do: dgettext("slovenia", "%{card} – cena karty Pokémon w Słowenii", card: card)
+
+  @impl TcgCheapWeb.RegionText
+  def card_description(name, number, price),
+    do:
+      dgettext("slovenia", "%{name} %{number}: od %{price} w sklepach wysyłających do Słowenii.",
+        name: name,
+        number: number,
+        price: price
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def cards_in_stock(cards),
+    do:
+      dgettext(
+        "slovenia",
+        "Angielskie karty Pokémon TCG w sklepach wysyłających do Słowenii: %{cards} na stanie.",
+        cards: cards
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def card_unavailable, do: dgettext("slovenia", "Brak w słoweńskich sklepach")
+
+  @impl TcgCheapWeb.RegionText
+  def card_unavailable_note, do: dgettext("slovenia", "Brak na stanie w słoweńskich sklepach")
+
+  @impl TcgCheapWeb.RegionText
+  def card_method(minimum),
+    do:
+      dgettext(
+        "slovenia",
+        "Typowa cena to środek stawki: z każdego słoweńskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny słoweńskich sklepów są bez dostawy, zagranicznych – z wysyłką do Słowenii.",
+        minimum: minimum
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def card_prices_note,
+    do:
+      dgettext(
+        "slovenia",
+        "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w euro, co tańsze."
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def cardmarket_card_delivery, do: dgettext("slovenia", "z wysyłką do Słowenii")
+
+  @impl TcgCheapWeb.RegionText
+  def singles_prices_note,
+    do: dgettext("slovenia", "Ceny bez dostawy. Z zagranicy: z wysyłką do Słowenii.")
 
   @impl TcgCheapWeb.RegionText
   def expansion_fallback(expansion),

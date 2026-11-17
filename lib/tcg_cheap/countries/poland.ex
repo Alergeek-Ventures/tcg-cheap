@@ -98,6 +98,54 @@ defmodule TcgCheap.Countries.Poland do
     do: dgettext("poland", "%{card} – cena karty Pokémon w Polsce", card: card)
 
   @impl TcgCheapWeb.RegionText
+  def card_description(name, number, price),
+    do:
+      dgettext("poland", "%{name} %{number}: od %{price} w sklepach wysyłających do Polski.",
+        name: name,
+        number: number,
+        price: price
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def cards_in_stock(cards),
+    do:
+      dgettext(
+        "poland",
+        "Angielskie karty Pokémon TCG w sklepach wysyłających do Polski: %{cards} na stanie.",
+        cards: cards
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def card_unavailable, do: dgettext("poland", "Brak w polskich sklepach")
+
+  @impl TcgCheapWeb.RegionText
+  def card_unavailable_note, do: dgettext("poland", "Brak na stanie w polskich sklepach")
+
+  @impl TcgCheapWeb.RegionText
+  def card_method(minimum),
+    do:
+      dgettext(
+        "poland",
+        "Typowa cena to środek stawki: z każdego polskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką.",
+        minimum: minimum
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def card_prices_note,
+    do:
+      dgettext(
+        "poland",
+        "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w złotych, co tańsze."
+      )
+
+  @impl TcgCheapWeb.RegionText
+  def cardmarket_card_delivery, do: dgettext("poland", "z wysyłką do Polski")
+
+  @impl TcgCheapWeb.RegionText
+  def singles_prices_note,
+    do: dgettext("poland", "Ceny bez dostawy. Z zagranicy: z wysyłką do Polski.")
+
+  @impl TcgCheapWeb.RegionText
   def expansion_fallback(expansion),
     do:
       dgettext(

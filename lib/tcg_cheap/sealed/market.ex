@@ -151,6 +151,77 @@ defmodule TcgCheap.Sealed.Market do
         do: compared_offer(offer, item, compared)
   end
 
+  @typedoc """
+  How `price_terms/2` prices a shop's offers: the item price (`:price`, the
+  offer's stored PLN price, for Poland; `:shop_price`, the shop's own price,
+  already in the market's currency; `{:shop_price, from_pln, to_pln}`, the
+  shop's own price converted at these PLN rates and rounded as the market's
+  currency is) and its delivery to the market, `{shipping, free from}` in the
+  market's currency, nil for a domestic shop.
+  """
+  @type price_terms ::
+          {:price | :shop_price | {:shop_price, Decimal.t(), Decimal.t()},
+           {Decimal.t(), Decimal.t() | nil} | nil}
+
+  @doc """
+  `compared/3`'s terms for every configured shop whose offers count in the
+  market, by key, for a query that prices many offers in the database
+  (`TcgCheap.Cards.Guide`). Offers there carry no prices by country, so a
+  shop abroad counts at its own price, converted, as `compared/3` prices an
+  offer without `market_prices`. A shop only listed or absent there, or
+  needing a rate that is missing or too old, is left out, as `compared/3`
+  leaves its offers out.
+  """
+  @spec price_terms(t(), Date.t()) :: %{String.t() => price_terms()}
+  def price_terms(%__MODULE__{} = market, %Date{} = today) do
+    terms =
+      for shop <- Shops.all(),
+          shop_terms = terms({:ok, shop}, market),
+          shop_terms == :domestic or match?({:delivered, _delivery}, shop_terms),
+          do: {shop, shop_terms}
+
+    currencies =
+      Enum.flat_map(terms, fn
+        {shop, {:delivered, delivery}} -> [shop.currency, delivery.currency]
+        {shop, :domestic} -> [shop.currency]
+      end)
+
+    rates =
+      if market.code == "pl",
+        do: %{},
+        else: Map.new(Enum.uniq([market.currency | currencies]), &{&1, pln_rate(&1, today)})
+
+    for {shop, shop_terms} <- terms,
+        {:ok, item} <- [item_terms(shop, market, rates)],
+        {:ok, delivery} <- [delivery_terms(shop_terms, market, rates)],
+        into: %{},
+        do: {shop.key, {item, delivery}}
+  end
+
+  # Poland's price is the offer's `price`, stored in PLN.
+  defp item_terms(_shop, %__MODULE__{code: "pl"}, _rates), do: {:ok, :price}
+
+  defp item_terms(%Shop{currency: currency}, %{currency: currency}, _rates),
+    do: {:ok, :shop_price}
+
+  defp item_terms(shop, market, rates) do
+    with {:ok, %{rate: from_pln}} <- Map.fetch!(rates, shop.currency),
+         {:ok, %{rate: to_pln}} <- Map.fetch!(rates, market.currency) do
+      {:ok, {:shop_price, from_pln, to_pln}}
+    else
+      {:error, _reason} -> :error
+    end
+  end
+
+  defp delivery_terms(:domestic, _market, _rates), do: {:ok, nil}
+
+  defp delivery_terms({:delivered, delivery}, market, rates) do
+    with {:ok, shipping} <- convert(delivery.shipping_from, delivery.currency, market, rates),
+         {:ok, free_from} <-
+           convert(delivery.free_shipping_from, delivery.currency, market, rates),
+         do: {:ok, {shipping, free_from}}
+  end
+
   @doc """
   An offer as the market compares it: `price` is its compared price,
   `item_price` its item price. `PriceGuide.verdict/4` takes the typical price
@@ -278,6 +349,29 @@ defmodule TcgCheap.Sealed.Market do
   end
 
   def rounded(amount, %__MODULE__{decimals: decimals}), do: Decimal.round(amount, decimals)
+
+  @doc """
+  A threshold set in złoty, in the market's currency at the latest NBP rate
+  (`pln_rate/2`), rounded down to the step of its verdict limits
+  (`limit_step/1`); nil when that rate is unknown. Poland's is the amount
+  itself.
+  """
+  @spec pln_limit(Decimal.t(), t(), Date.t()) :: Decimal.t() | nil
+  def pln_limit(%Decimal{} = pln, %__MODULE__{} = market, %Date{} = today) do
+    case pln_rate(market.currency, today) do
+      {:ok, %{rate: rate}} ->
+        step = limit_step(market)
+
+        pln
+        |> Decimal.div(rate)
+        |> Decimal.div(step)
+        |> Decimal.round(0, :floor)
+        |> Decimal.mult(step)
+
+      {:error, _reason} ->
+        nil
+    end
+  end
 
   @doc "The step of a market's verdict limits: 0.10 euro, else a whole currency unit."
   @spec limit_step(t()) :: Decimal.t() | 1

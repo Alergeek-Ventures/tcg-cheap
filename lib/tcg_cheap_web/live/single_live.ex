@@ -1,8 +1,8 @@
 defmodule TcgCheapWeb.SingleLive do
   @moduledoc """
-  A single English card, its delivered reference and current Polish shop
-  offers. Only the Polish market prices singles: in another region the
-  page shows the card's Cardmarket trend in its currency instead.
+  A single English card, its delivered reference and the current offers of
+  the region's shops, in its currency. A region where no shop sells singles
+  (`Region.singles?/1`) shows the card's Cardmarket trend instead.
   """
   use TcgCheapWeb, :live_view
   use Gettext, backend: TcgCheapWeb.Gettext
@@ -14,7 +14,7 @@ defmodule TcgCheapWeb.SingleLive do
   alias TcgCheap.Cards
   alias TcgCheap.Sealed.{Market, Matcher, PriceGuide, SetPage}
 
-  alias TcgCheapWeb.{Analytics, Format, Paths, Region, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Format, Paths, Region, RegionText, SEO, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -25,28 +25,26 @@ defmodule TcgCheapWeb.SingleLive do
   def mount(%{"slug" => set, "card_slug" => slug}, _session, socket) do
     case Cards.Guide.find(set, slug) do
       {:ok, card, name, path} ->
-        page = Cards.Guide.page(card, name, Paths.localize(path))
+        region = socket.assigns.region
+        market = region.market
+        shops? = Region.singles?(region)
+        page = Cards.Guide.page(card, name, Paths.localize(path), market)
         seo = SEO.Single.metadata(page)
         groups = Enum.group_by(page.offers, &group/1)
         primary = Enum.find(page.answers, & &1.cheapest) || hd(page.answers)
 
-        polish? = Region.poland?(socket.assigns.region)
-        market = socket.assigns.region.market
-
         # The euro's rate in the region's currency, behind its Cardmarket
-        # prices and their rate note: the card's own EUR/PLN rate in Poland.
-        euro_rate =
-          if polish?, do: page.rate, else: Market.cardmarket_rate(market, Date.utc_today())
+        # prices and their rate note.
+        euro_rate = page.rate
 
         {:ok,
          socket
          |> assign(
            primary: primary,
            page: page,
-           polish?: polish?,
+           shops?: shops?,
            euro_rate: euro_rate,
-           trend:
-             if(!polish?, do: regional_trend(page.price, primary.variant, euro_rate, market)),
+           trend: if(!shops?, do: regional_trend(page.price, primary.variant, euro_rate, market)),
            booster:
              SetPage.booster(
                card.tcgdex_set.cardmarket_expansion_id,
@@ -55,9 +53,9 @@ defmodule TcgCheapWeb.SingleLive do
                market
              ),
            versions:
-             if(primary.cheapest || !polish?,
+             if(primary.cheapest || !shops?,
                do: [],
-               else: Cards.Guide.in_stock_versions(card)
+               else: Cards.Guide.in_stock_versions(card, market)
              ),
            seo: seo,
            page_title: seo.page_title,
@@ -264,7 +262,7 @@ defmodule TcgCheapWeb.SingleLive do
                 }>{@page.expansion_name}</.link>
               </p>
             </section>
-            <.verdict_panel :if={!@polish?} id="single-verdict" status={:insufficient_data}>
+            <.verdict_panel :if={!@shops?} id="single-verdict" status={:insufficient_data}>
               <:header>
                 <span class="verdict-badge verdict-badge-large verdict-insufficient_data">
                   {gettext("Cena na Cardmarket")}<.verdict_icon status={:insufficient_data} />
@@ -290,7 +288,7 @@ defmodule TcgCheapWeb.SingleLive do
               </p>
             </.verdict_panel>
             <.verdict_panel
-              :if={@polish?}
+              :if={@shops?}
               id="single-verdict"
               status={single_verdict_status(@primary.verdict)}
             >
@@ -302,7 +300,7 @@ defmodule TcgCheapWeb.SingleLive do
                 ]}>
                   {if(@primary.cheapest,
                     do: single_verdict_label(@primary.verdict),
-                    else: gettext("Brak w polskich sklepach")
+                    else: RegionText.card_unavailable()
                   )}<.verdict_icon status={single_verdict_status(@primary.verdict)} />
                 </span>
               </:header>
@@ -311,7 +309,7 @@ defmodule TcgCheapWeb.SingleLive do
               </p>
               <.verdict_now :if={@primary.cheapest} offer={@primary.cheapest} prefix="single" />
               <p :if={!@primary.cheapest} id="single-empty" class="sr-only">
-                {gettext("Brak na stanie w polskich sklepach")}
+                {RegionText.card_unavailable_note()}
               </p>
               <p :if={@primary.typical} id="single-typical" class="verdict-reason">
                 {gettext("Typowa cena dziś w %{shops}: %{price}",
@@ -332,12 +330,7 @@ defmodule TcgCheapWeb.SingleLive do
               </p>
               <div class="verdict-more">
                 <.verdict_method id="single-method">
-                  <p>
-                    {gettext(
-                      "Typowa cena to środek stawki: z każdego polskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką.",
-                      minimum: PriceGuide.min_shops()
-                    )}
-                  </p>
+                  <p>{RegionText.card_method(PriceGuide.min_shops())}</p>
                   <p>
                     {gettext(
                       "Cardmarket podaje jedną cenę dla wszystkich języków i stanów, więc karta angielska w stanie NM bywa droższa."
@@ -350,7 +343,8 @@ defmodule TcgCheapWeb.SingleLive do
                   </p>
                   <p :if={@primary.verdict == :pennies}>
                     {gettext(
-                      "Karta kosztuje w sklepach najwyżej 3 zł, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
+                      "Karta kosztuje w sklepach najwyżej %{price}, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena.",
+                      price: Format.limit_price(@page.pennies_max)
                     )}
                   </p>
                   <p :if={@primary.variant == :special}>
@@ -370,7 +364,7 @@ defmodule TcgCheapWeb.SingleLive do
             </.verdict_panel>
           </div>
           <section
-            :if={@polish?}
+            :if={@shops?}
             id="single-offers"
             class="product-section"
             aria-labelledby="single-offers-title"
@@ -389,6 +383,7 @@ defmodule TcgCheapWeb.SingleLive do
                 :for={{id, offer} <- @streams.raw}
                 id={id}
                 offer={offer}
+                compared={@page.compared[offer.id]}
                 tags={offer_tags(offer)}
                 location={@location}
                 today={Date.utc_today()}
@@ -408,6 +403,7 @@ defmodule TcgCheapWeb.SingleLive do
                   :for={{id, offer} <- @streams.unavailable}
                   id={id}
                   offer={offer}
+                  compared={@page.compared[offer.id]}
                   tags={offer_tags(offer)}
                   location={@location}
                   today={Date.utc_today()}
@@ -428,6 +424,7 @@ defmodule TcgCheapWeb.SingleLive do
                   :for={{id, offer} <- @streams.graded}
                   id={id}
                   offer={offer}
+                  compared={@page.compared[offer.id]}
                   tags={offer_tags(offer)}
                   location={@location}
                   today={Date.utc_today()}
@@ -438,6 +435,7 @@ defmodule TcgCheapWeb.SingleLive do
                   :for={{id, offer} <- @streams.graded_out}
                   id={id}
                   offer={offer}
+                  compared={@page.compared[offer.id]}
                   tags={offer_tags(offer)}
                   location={@location}
                   today={Date.utc_today()}

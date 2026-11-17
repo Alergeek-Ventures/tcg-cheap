@@ -13,9 +13,8 @@ defmodule TcgCheap.Sealed.SetPage do
   booster (`booster`, a summary, nil when there is none) and the set's pull
   rates and cards as on that booster's page with the card count and the most
   valuable card (`set`, nil when we have neither).
-  `name` is the expansion's name. The booster and the Cardmarket boxes are
-  in the market's currency; the cards' prices stay Polish (singles are
-  priced only in Poland).
+  `name` is the expansion's name. The booster, the Cardmarket boxes and the
+  cards are in the market's currency.
   """
   @spec read(integer(), String.t(), DateTime.t(), Market.t()) :: %{
           set: map() | nil,
@@ -23,11 +22,11 @@ defmodule TcgCheap.Sealed.SetPage do
           cardmarket: [%{kind: atom(), price: Decimal.t()}]
         }
   def read(id, name, %DateTime{} = now, %Market{} = market \\ Market.poland()) do
-    set = Cards.SetCards.read(id)
+    set = Cards.SetCards.read(id, market)
     booster = booster(id, name, now, market)
 
     %{
-      set: Cards.SetCards.with_singles(set, booster),
+      set: Cards.SetCards.with_singles(set, booster, market),
       booster: booster,
       cardmarket: cardmarket_boxes(id, name, now, market)
     }

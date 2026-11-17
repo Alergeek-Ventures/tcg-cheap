@@ -8,7 +8,7 @@ defmodule TcgCheap.Sealed.ProductPage do
 
   alias TcgCheap.Cards
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Market, PriceGuide, Product, Stock, Summary}
+  alias TcgCheap.Sealed.{Market, PriceGuide, Product, Shops, Stock, Summary}
 
   @history_days 90
   # Products an out-of-stock product's page offers instead.
@@ -84,8 +84,8 @@ defmodule TcgCheap.Sealed.ProductPage do
                Sealed.list_current_retail_deals!(today, query: [filter: [product_id: product.id]])
              end),
            boosters: boosters,
-           booster_odds: booster_odds(product, boosters),
-           booster_set: booster_set(product)
+           booster_odds: booster_odds(product, boosters, market),
+           booster_set: booster_set(product, market)
          })}
     end
   end
@@ -127,8 +127,7 @@ defmodule TcgCheap.Sealed.ProductPage do
       |> Enum.sort_by(&best_offer_first/1)
       |> Enum.take(@in_stock_from_set)
 
-    # Singles are priced only in Poland.
-    %{products: products, cards: polish_only(market, 0, fn -> Cards.Guide.in_stock_count(id) end)}
+    %{products: products, cards: singles_count(id, market)}
   end
 
   # The best offer first: by verdict, then by how far the cheapest price is
@@ -163,6 +162,11 @@ defmodule TcgCheap.Sealed.ProductPage do
     end
   end
 
+  # Cards in stock in the market's shops; none where no shop sells singles.
+  defp singles_count(id, market) do
+    if Shops.singles?(market), do: Cards.Guide.in_stock_count(id, market), else: 0
+  end
+
   # REBEL's suggested prices and the retail chains' deals are Polish, in PLN.
   defp polish_only(market, none \\ nil, read),
     do: if(market == Market.poland(), do: read.(), else: none)
@@ -184,12 +188,15 @@ defmodule TcgCheap.Sealed.ProductPage do
   end
 
   # Smaller English packs share the set's card pool, but not its standard-pack odds.
-  defp booster_set(%Product{kind: :booster, edition: :en, cardmarket_expansion_id: id} = product) do
-    set = Cards.SetCards.read(id)
+  defp booster_set(
+         %Product{kind: :booster, edition: :en, cardmarket_expansion_id: id} = product,
+         market
+       ) do
+    set = Cards.SetCards.read(id, market)
     Map.put(set, :smaller_pack?, smaller_pack?(product, set.standard_pack_size))
   end
 
-  defp booster_set(_product), do: nil
+  defp booster_set(_product, _market), do: nil
 
   defp smaller_pack?(product, standard) do
     size = Product.pack_size(product)
@@ -197,23 +204,23 @@ defmodule TcgCheap.Sealed.ProductPage do
   end
 
   # English odds fit English packs only.
-  defp booster_odds(%Product{edition: :en, contents: %{items: items}}, boosters) do
+  defp booster_odds(%Product{edition: :en, contents: %{items: items}}, boosters, market) do
     items
     |> Enum.filter(&(&1.type == :booster and Map.has_key?(boosters, &1.name)))
     |> Enum.group_by(& &1.name)
     |> Enum.sort_by(&elem(&1, 0))
-    |> set_odds(boosters)
+    |> set_odds(boosters, market)
   end
 
-  defp booster_odds(_product, _boosters), do: []
+  defp booster_odds(_product, _boosters, _market), do: []
 
   # Each set's odds across its packs and its cards, so the box's page lists
   # them without a trip to the single booster's page.
-  defp set_odds(groups, boosters) do
+  defp set_odds(groups, boosters, market) do
     Enum.map(groups, fn {name, items} ->
       booster = Map.fetch!(boosters, name)
 
-      Map.merge(Cards.SetCards.odds(booster.cardmarket_expansion_id), %{
+      Map.merge(Cards.SetCards.odds(booster.cardmarket_expansion_id, market), %{
         name: name,
         slug: booster.slug,
         count: Enum.sum(Enum.map(items, & &1.quantity))

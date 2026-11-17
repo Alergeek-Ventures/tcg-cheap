@@ -42,7 +42,10 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
   attr :close, :string, required: true
   attr :cards_href, :string, default: "#product-cards"
   attr :singles?, :boolean, default: false
-  attr :polish?, :boolean, required: true
+
+  attr :shops?, :boolean,
+    required: true,
+    doc: "shops sell singles in the region (`Region.singles?/1`), so cards have their prices"
 
   # A set page's top: the set's most valuable card, what pulling it from packs
   # costs on average against buying it, and the next three cards the same way;
@@ -53,8 +56,8 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
     assigns =
       assign(assigns,
         logo_url: set && set.logo_url,
-        # The cards' prices are Polish shops' and Cardmarket's in złoty.
-        top_cards: if(set && assigns.polish?, do: set.top_cards, else: []),
+        # The cards' prices are the region's shops' and Cardmarket's in its currency.
+        top_cards: if(set && assigns.shops?, do: set.top_cards, else: []),
         card_count: if(set, do: set.card_count, else: 0)
       )
 
@@ -62,7 +65,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
     <section id="set-intro" class="guide-intro set-intro" aria-labelledby="guide-title">
       <.set_title name={@name} logo_url={@logo_url} close={@close} />
       <%= cond do %>
-        <% @singles? and @polish? -> %>
+        <% @singles? and @shops? -> %>
           <.set_singles
             singles={@page.set && @page.set.singles}
             top={List.first(@top_cards)}
@@ -130,7 +133,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
   attr :top, :map, default: nil
   attr :cards_href, :string, required: true
 
-  # The singles banner: the set's best deal in a Polish shop against its
+  # The singles banner: the set's best deal in the region's shops against its
   # Cardmarket trend, then what the set's singles market looks like in numbers.
   def set_singles(assigns) do
     ~H"""
@@ -171,7 +174,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
           <p id="set-chase-pull" class="set-chase-side set-chase-pull">
             <span class="set-chase-label">{gettext("Na Cardmarket")}</span>
             <strong>{Format.price(deal.trend)}</strong>
-            <span class="set-chase-detail">{gettext("z wysyłką do Polski")}</span>
+            <span class="set-chase-detail">{RegionText.cardmarket_card_delivery()}</span>
           </p>
           <.link
             id="set-chase-buy"
@@ -204,7 +207,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
         </li>
       </ul>
       <p class="set-chase-foot">
-        <span>{gettext("Ceny bez dostawy. Z zagranicy: z wysyłką do Polski.")}</span>
+        <span>{RegionText.singles_prices_note()}</span>
         <a href={@cards_href}>{gettext("Zobacz karty")}</a>
       </p>
     </div>

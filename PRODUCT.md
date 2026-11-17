@@ -61,10 +61,12 @@ as missing.
   delivery there, the Cardmarket trend converted at the NBP rate. In a euro region the
   trend is taken as is, without conversion.
 - Not every part exists everywhere yet. Polish only: articles, retail chain
-  deals, today's deals on the home page, singles from shops and a set's most
-  valuable cards. In Hungary, Sweden, Czechia, Croatia, Slovenia, Portugal and the Netherlands a card's price is its
-  Cardmarket trend in the region's currency, and a set page opens with its
-  single booster.
+  deals and today's deals on the home page. Singles from shops, with the same
+  verdict rule, and a set's most valuable cards are in every region where a
+  shop selling singles is at home or has a delivery there (shops abroad with
+  their delivery, in the region's currency); a region without one gives a
+  card's Cardmarket trend in its currency, and its set page opens with the
+  single booster. Card pages are indexed in Poland only.
 - Text in each language reads as written for its buyers, never as a
   word-for-word translation.
 
@@ -100,20 +102,20 @@ as missing.
 - Set pages (owner decision, 2026-11-03, banner revised 2026-11-04): every named
   expansion has a page (`/pl/rozszerzenia/<name>-<id>`, `/hu/szettek/…`, `/se/set/…`,
   `/hr/setovi/…`, `/si/seti/…`, `/pt/expansoes/…`, `/nl/sets/…`, `/cz/sety/…`) that answers first with a banner under the set's logo: in
-  Poland its most valuable card and what pulling it from packs costs on average
-  against buying it, then the next three cards the same way (a set without card
-  prices, and every set in Hungary, Sweden, Czechia, Croatia, Slovenia, Portugal and the Netherlands, shows its single booster
-  instead). The page then lists the set's products with their verdicts, its pull
-  rates and its cards. In Poland one card price is used everywhere: the lower of
-  the cheapest shop offer (abroad with delivery) and the Cardmarket trend,
-  without delivery; in Hungary, Sweden, Czechia, Croatia, Slovenia, Portugal and the Netherlands it is the Cardmarket trend in
-  the region's currency. Pages state the answer in their first sentence and
+  a region with singles shops its most valuable card and what pulling it from
+  packs costs on average against buying it, then the next three cards the same
+  way (a set without card prices, and every set of a region without singles
+  shops, shows its single booster instead). The page then lists the set's
+  products with their verdicts, its pull rates and its cards. One card price is
+  used everywhere: the lower of the cheapest shop offer (abroad with delivery)
+  and the Cardmarket trend, without delivery, in the region's currency; in a
+  region without singles shops it is the Cardmarket trend. Pages state the answer in their first sentence and
   search metadata, so search engines and AI assistants can quote it.
 - The card list (`/pl/karty`, `/hu/kartyak`, `/se/kort`, `/hr/karte`, `/si/karte`, `/pt/cartas`, `/nl/kaarten`, `/cz/karty`) filters by expansion like the
-  product list; in Poland a chosen expansion opens with a singles banner in the
-  same style: the set's best deal (a Polish shop price furthest under the
-  Cardmarket price with delivery), its cards in stock in Poland, the whole set
-  at the lowest prices and its most valuable card. Only a normal print's offer
+  product list; where shops sell singles a chosen expansion opens with a
+  singles banner in the same style: the set's best deal (a shop price furthest
+  under the Cardmarket price with delivery), its cards in stock in the region's
+  shops, the whole set at the lowest prices and its most valuable card. Only a normal print's offer
   is compared with the Cardmarket price, as on the card's page.
 - The home page (`/pl/`, owner decision, 2026-11-16) leads to the two lists
   rather than being one: first one search across products and cards, their
