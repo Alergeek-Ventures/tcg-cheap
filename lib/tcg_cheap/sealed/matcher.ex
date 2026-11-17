@@ -33,9 +33,9 @@ defmodule TcgCheap.Sealed.Matcher do
 
   A title that sets "mega", "ex", "vmax", "vstar" or "gx" beside a Pokémon some
   product of its kind names so does not match a product that names the Pokémon
-  without it (`form_fits?/2`). A title marked as an edition in another
-  language than the catalogue's ("[FR]", "Español") qualifies with it, so
-  matches no English product.
+  without it (`form_fits?/2`). A title marked as an edition in a language the
+  catalogue holds no product in ("[FR]", "Español") qualifies with it, so
+  matches no product.
 
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
@@ -227,11 +227,7 @@ defmodule TcgCheap.Sealed.Matcher do
     {"portugues", "portuguese"},
     {"portuguesa", "portuguese"},
     {"portugiesisch", "portuguese"},
-    {"portugalski", "portuguese"},
-    {"nederlands", "dutch"},
-    {"nederlandse", "dutch"},
-    {"niederlandisch", "dutch"},
-    {"holenderski", "dutch"}
+    {"portugalski", "portuguese"}
   ]
 
   @series [
@@ -250,7 +246,7 @@ defmodule TcgCheap.Sealed.Matcher do
                    checklane blister pack sleeved jumbo build battle prerelease deck league figure poster
                    binder pin sticker tech ultra super special illustration deluxe toolkit chest kit stadium
                    enhanced surprise pouch portfolio starter gift calendar slim jp korean chinese sch tch thai
-                   indonesian german french italian spanish portuguese dutch)
+                   indonesian german french italian spanish portuguese)
               )
 
   # Words that make a Pokémon another one: "Mega Dragonite ex Tin" is not the
@@ -616,6 +612,9 @@ defmodule TcgCheap.Sealed.Matcher do
           code_tokens: Enum.sort(entry.code_tokens),
           meets: Enum.sort(entry.meets),
           edition_named?: edition_named?(entry, offer_set),
+          missing_forms:
+            for({form, word} <- forms, word in entry.tokens, form not in entry.tokens, do: form)
+            |> Enum.sort(),
           qualifies?: qualifies?
         }
       end)
@@ -959,17 +958,18 @@ defmodule TcgCheap.Sealed.Matcher do
   # Dutch or Portuguese word.
   @terminal_german ~r/(?:\s[-–]\s*|\s\()DE\)?\s*\z/u
 
-  # A bracketed language code ("[FR]", "(IT)") marks an edition in that
-  # language; bare "it", "es", "pt" or "nl" are ordinary words, so only the
-  # brackets make the code mean one. "DE" is German, as at a title's end above.
-  @bracketed_edition ~r/[\[(]\s*(fr|it|es|de|pt|nl)\s*[\])]/iu
+  # A bracketed capital language code ("[FR]", "(IT)") marks an edition in
+  # that language; bare or lower-case "it", "es", "pt" are ordinary words, so
+  # only capitals in brackets make the code mean one. "DE" is German, as at a
+  # title's end above. Not "NL": no Dutch edition exists, and a Dutch shop's
+  # "(NL)" speaks of its description.
+  @bracketed_edition ~r/[\[(]\s*(FR|IT|ES|DE|PT)\s*[\])]/u
   @edition_codes %{
     "fr" => "french",
     "it" => "italian",
     "es" => "spanish",
     "de" => "deutsch",
-    "pt" => "portuguese",
-    "nl" => "dutch"
+    "pt" => "portuguese"
   }
 
   # Slovenian titles repeat the series and set number ("ME - Mega Evolution 6:
