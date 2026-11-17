@@ -249,6 +249,50 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
         shipping_from: Decimal.new("5.90"),
         free_shipping_from: Decimal.new("100"),
         currency: "GBP"
+      },
+      # Its cart to Budapest (2026-11-17): GLS to an address, €10 and 25% VAT.
+      "pullz" => %{
+        shipping_from: Decimal.new("12.50"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      # Its cart to Budapest (2026-11-17), as the cart totals it.
+      "pokebros" => %{
+        shipping_from: Decimal.new("28"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-17).
+      "kartonada" => %{
+        shipping_from: Decimal.new("23.99"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # Its cart to Budapest (2026-11-17): DPD 38.21 zł and 23% VAT.
+      "paladynat" => %{
+        shipping_from: Decimal.new("47"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://rgfk.pl/content/1-koszty-dostawy: DHL (2026-11-17).
+      "rgfk" => %{
+        shipping_from: Decimal.new("23"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://pokespot.pl/pl/i/Czas-i-koszty-dostawy/1: one rate to the EU
+      # (2026-11-17).
+      "pokespot" => %{
+        shipping_from: Decimal.new("150"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://carddojo.pl/pl/i/Czas-i-koszty-dostawy/4: InPost courier to the EU
+      # (2026-11-17).
+      "carddojo" => %{
+        shipping_from: Decimal.new("80"),
+        free_shipping_from: nil,
+        currency: "PLN"
       }
     }
   end

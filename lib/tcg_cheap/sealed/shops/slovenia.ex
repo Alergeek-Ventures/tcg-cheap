@@ -134,6 +134,44 @@ defmodule TcgCheap.Sealed.Shops.Slovenia do
         shipping_from: Decimal.new("10160"),
         free_shipping_from: nil,
         currency: "HUF"
+      },
+      # Its cart to Ljubljana (2026-11-17), as the cart totals it.
+      "pokemagic" => %{
+        shipping_from: Decimal.new("29.95"),
+        free_shipping_from: nil,
+        currency: "EUR"
+      },
+      # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-17).
+      "kartonada" => %{
+        shipping_from: Decimal.new("34.99"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # Its cart to Ljubljana (2026-11-17): DPD 41.46 zł and 23% VAT.
+      "paladynat" => %{
+        shipping_from: Decimal.new("51"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://rgfk.pl/content/1-koszty-dostawy: DHL (2026-11-17).
+      "rgfk" => %{
+        shipping_from: Decimal.new("35"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://pokespot.pl/pl/i/Czas-i-koszty-dostawy/1: one rate to the EU
+      # (2026-11-17).
+      "pokespot" => %{
+        shipping_from: Decimal.new("150"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://carddojo.pl/pl/i/Czas-i-koszty-dostawy/4: InPost courier to the EU
+      # (2026-11-17).
+      "carddojo" => %{
+        shipping_from: Decimal.new("80"),
+        free_shipping_from: nil,
+        currency: "PLN"
       }
     }
   end

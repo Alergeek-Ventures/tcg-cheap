@@ -884,7 +884,7 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       feed_path: @shoper_google,
       max_pages: 1,
       shipping_from: Decimal.new("18"),
-      free_shipping_from: Decimal.new("500"),
+      free_shipping_from: Decimal.new("600"),
       pickup_city: nil
     },
     %Shop{
@@ -1795,6 +1795,13 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         # £5.90 for any number of singles, duties paid (IOSS), free from £100.
         shipping_from: Decimal.new("31.05"),
         free_shipping_from: Decimal.new("526.30"),
+        currency: "PLN"
+      },
+      # Its cart to Warsaw (2026-11-17): €34, converted at the NBP rate of 16
+      # November 2026 (4.4048) and rounded up.
+      "pokebros" => %{
+        shipping_from: Decimal.new("149.77"),
+        free_shipping_from: nil,
         currency: "PLN"
       }
     }

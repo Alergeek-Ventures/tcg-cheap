@@ -582,8 +582,9 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
         currency: "EUR",
         price_currency: "EUR"
       },
+      # 3,000 Ft and 21% VAT, as its cart adds the buyer's country's VAT.
       "cardverse" => %{
-        shipping_from: Decimal.new("3000"),
+        shipping_from: Decimal.new("3630"),
         free_shipping_from: nil,
         currency: "HUF"
       },
@@ -604,13 +605,15 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
         currency: "EUR",
         price_currency: "EUR"
       },
+      # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-17).
       "kartonada" => %{
-        shipping_from: Decimal.new("36.36"),
+        shipping_from: Decimal.new("36.99"),
         free_shipping_from: nil,
         currency: "PLN"
       },
+      # DPD 32.52 zł and 23% VAT, as its cart splits every rate.
       "paladynat" => %{
-        shipping_from: Decimal.new("32.52"),
+        shipping_from: Decimal.new("40"),
         free_shipping_from: nil,
         currency: "PLN"
       },

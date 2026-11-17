@@ -293,6 +293,51 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
         shipping_from: Decimal.new("10.95"),
         free_shipping_from: Decimal.new("100"),
         currency: "EUR"
+      },
+      # Its cart to Lisbon (2026-11-17): 8,000 Ft and 27% VAT.
+      "tcgwebshop" => %{
+        shipping_from: Decimal.new("10160"),
+        free_shipping_from: nil,
+        currency: "HUF"
+      },
+      # Its cart to Lisbon (2026-11-17): 3,000 Ft and 23% VAT.
+      "cardverse" => %{
+        shipping_from: Decimal.new("3690"),
+        free_shipping_from: nil,
+        currency: "HUF"
+      },
+      # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-17).
+      "kartonada" => %{
+        shipping_from: Decimal.new("47.99"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # Its cart to Lisbon (2026-11-17): InPost International parcel locker 36.59
+      # zł and 23% VAT; DPD to an address is 49.50 zł.
+      "paladynat" => %{
+        shipping_from: Decimal.new("45.01"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://rgfk.pl/content/1-koszty-dostawy: DHL (2026-11-17).
+      "rgfk" => %{
+        shipping_from: Decimal.new("36"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://pokespot.pl/pl/i/Czas-i-koszty-dostawy/1: one rate to the EU
+      # (2026-11-17).
+      "pokespot" => %{
+        shipping_from: Decimal.new("150"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
+      # https://carddojo.pl/pl/i/Czas-i-koszty-dostawy/4: InPost courier to the EU
+      # (2026-11-17).
+      "carddojo" => %{
+        shipping_from: Decimal.new("80"),
+        free_shipping_from: nil,
+        currency: "PLN"
       }
     }
   end
