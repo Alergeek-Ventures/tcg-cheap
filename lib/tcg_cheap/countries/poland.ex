@@ -56,6 +56,13 @@ defmodule TcgCheap.Countries.Poland do
   def hint_switch, do: dgettext("poland", "Przejdź do wersji polskiej")
 
   @impl TcgCheapWeb.RegionText
+  def location_outside,
+    do: dgettext("poland", "Ta lokalizacja jest poza Polską. Wpisz miejscowość.")
+
+  @impl TcgCheapWeb.RegionText
+  def town_example, do: dgettext("poland", "np. Gdańsk")
+
+  @impl TcgCheapWeb.RegionText
   def home_description,
     do:
       dgettext(

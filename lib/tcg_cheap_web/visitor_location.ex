@@ -27,13 +27,13 @@ defmodule TcgCheapWeb.VisitorLocation do
   alias TcgCheap.Geo
   alias TcgCheap.Geo.Towns
   alias TcgCheap.Sealed.Shops
-  alias TcgCheapWeb.Analytics
+  alias TcgCheapWeb.{Analytics, Region, RegionText}
 
   @type t :: %{coords: Geo.coords(), label: String.t()} | nil
 
   @radius_km 50
   @max_query_length 60
-  # A point counts as in Poland when a Polish town is this close.
+  # A point counts as in the region's country when one of its towns is this close.
   @max_town_km 30
 
   @doc "How far a pickup store still counts as near, in kilometres."
@@ -54,21 +54,21 @@ defmodule TcgCheapWeb.VisitorLocation do
        when is_number(lat) and is_number(lon) and is_binary(label) and
               byte_size(label) in 1..120 do
     coords = rounded({lat, lon})
-    if polish_town_near(coords), do: %{coords: coords, label: label}
+    if town_near(coords), do: %{coords: coords, label: label}
   end
 
   defp from_browser(_location), do: nil
 
-  # Distances only make sense to visitors who can reach a Polish shop:
-  # inside Poland's bounding box (with a margin) and near a Polish town,
-  # which keeps out Prague, Lviv or Kaliningrad.
-  defp polish_town_near({lat, lon} = coords)
-       when lat >= 48.9 and lat <= 55.0 and lon >= 14.0 and lon <= 24.3 do
-    town = Towns.nearest(coords)
+  # The country's own town near the point. Distances only make sense to
+  # visitors who can reach a shop of the region's country, which keeps out
+  # Prague from Poland's pages, or Lviv and Kaliningrad.
+  defp town_near(coords) do
+    town = Towns.nearest(country(), coords)
     if Geo.distance_km(coords, town.coords) <= @max_town_km, do: town
   end
 
-  defp polish_town_near(_coords), do: nil
+  # The ISO code of the region's country: its towns and the shops it has pickup in.
+  defp country, do: Region.current().country.code()
 
   defp rounded({lat, lon}), do: {Float.round(lat * 1.0, 2), Float.round(lon * 1.0, 2)}
 
@@ -84,13 +84,16 @@ defmodule TcgCheapWeb.VisitorLocation do
   def handle_event("location-search", %{"location" => %{"town" => query}}, socket)
       when is_binary(query) do
     socket
-    |> assign(:town_matches, query |> String.slice(0, @max_query_length) |> Towns.search())
+    |> assign(
+      :town_matches,
+      Towns.search(country(), String.slice(query, 0, @max_query_length))
+    )
     |> assign(:location_error, nil)
   end
 
   def handle_event("location-town", %{"location" => %{"town" => query}}, socket)
       when is_binary(query) do
-    case query |> String.slice(0, @max_query_length) |> Towns.search(1) do
+    case Towns.search(country(), String.slice(query, 0, @max_query_length), 1) do
       [town] ->
         put_town(socket, town, "town_typed")
 
@@ -103,7 +106,7 @@ defmodule TcgCheapWeb.VisitorLocation do
 
   def handle_event("location-pick", %{"location" => id}, socket) when is_binary(id) do
     with {id, ""} <- Integer.parse(id),
-         {:ok, town} <- Towns.fetch(id) do
+         {:ok, town} <- Towns.fetch(country(), id) do
       put_town(socket, town, "town_picked")
     else
       _invalid -> socket
@@ -114,7 +117,7 @@ defmodule TcgCheapWeb.VisitorLocation do
       when is_number(lat) and is_number(lon) do
     coords = rounded({lat, lon})
 
-    case polish_town_near(coords) do
+    case town_near(coords) do
       # A city district is named by its city: "Gdańsk", not "Aniołki".
       %{} = town ->
         socket
@@ -123,8 +126,8 @@ defmodule TcgCheapWeb.VisitorLocation do
 
       nil ->
         socket
-        |> assign(:location_error, gettext("Ta lokalizacja jest poza Polską. Wpisz miejscowość."))
-        |> Analytics.track("location_failed", %{reason: "outside_poland"})
+        |> assign(:location_error, RegionText.location_outside())
+        |> Analytics.track("location_failed", %{reason: "outside_country"})
     end
   end
 
@@ -160,9 +163,24 @@ defmodule TcgCheapWeb.VisitorLocation do
   def pickup_km(_shop, nil), do: nil
 
   def pickup_km(shop, %{coords: coords}) do
-    case Shops.fetch(shop) do
-      {:ok, %{pickup_location: {_lat, _lon} = store}} -> Geo.distance_km(coords, store)
+    with {:ok, shop} <- Shops.fetch(shop),
+         {_lat, _lon} = store <- pickup_coords(shop) do
+      Geo.distance_km(coords, store)
+    else
       _no_pickup -> nil
+    end
+  end
+
+  # The shop's store, if it is in the region's country, where the visitor
+  # is: its own coordinates, else those of its pickup town.
+  defp pickup_coords(%{country: shop_country} = shop) do
+    country = country()
+
+    cond do
+      shop_country != country -> nil
+      shop.pickup_location -> shop.pickup_location
+      shop.pickup_city -> Towns.coords(country, shop.pickup_city)
+      true -> nil
     end
   end
 
@@ -177,7 +195,8 @@ defmodule TcgCheapWeb.VisitorLocation do
   def cheapest_pickup(offers, %{coords: coords}) do
     offers
     |> Enum.flat_map(fn offer ->
-      with {:ok, %{pickup_location: {_lat, _lon} = store} = shop} <- Shops.fetch(offer.shop),
+      with {:ok, shop} <- Shops.fetch(offer.shop),
+           {_lat, _lon} = store <- pickup_coords(shop),
            km when km <= @radius_km <- Geo.distance_km(coords, store) do
         [%{offer: offer, shop: shop, km: km}]
       else
@@ -268,7 +287,7 @@ defmodule TcgCheapWeb.VisitorLocation do
             autocomplete="off"
             maxlength="60"
             phx-debounce="200"
-            placeholder={gettext("np. Gdańsk")}
+            placeholder={RegionText.town_example()}
           />
         </.form>
         <ul :if={@matches != []} id="visitor-location-matches" class="visitor-location-matches">
