@@ -25,8 +25,6 @@ Monsanto	Distrito de Santarém	39.462	-8.712
 Rio Tinto	Distrito do Porto	41.179	-8.560	
 São Domingos de Rana	Distrito de Lisboa	38.702	-9.341	
 Figueira da Foz	Distrito de Coimbra	40.151	-8.862	
-Lumiar	Distrito de Lisboa	38.775	-9.156	
-Paranhos	Distrito do Porto	41.173	-8.599	
 Ponte de Lima	Distrito de Viana do Castelo	41.767	-8.584	
 Olival	Distrito de Lisboa	38.771	-9.250	
 Santo António dos Olivais	Distrito de Coimbra	40.218	-8.405	
@@ -37,32 +35,26 @@ Ermesinde	Distrito do Porto	41.217	-8.553
 Santo Ovídio	Distrito do Porto	41.114	-8.602	
 Portimão	Distrito de Faro	37.139	-8.538	
 Damaia	Distrito de Lisboa	38.751	-9.212	
-Benfica	Distrito de Lisboa	38.751	-9.203	
 Cascais	Distrito de Lisboa	38.697	-9.421	
 Maia	Distrito do Porto	41.236	-8.620	
 Viana do Castelo	Distrito de Viana do Castelo	41.693	-8.833	
-Marvila	Distrito de Lisboa	38.740	-9.102	
 Bragança	Distrito de Bragança	41.807	-6.759	
 Oeiras	Distrito de Lisboa	38.691	-9.311	
 Beja	Distrito de Beja	38.015	-7.863	
 Esposende	Distrito de Braga	41.536	-8.782	
-Afurada de Baixo	Distrito do Porto	41.144	-8.646	
+São Pedro da Afurada	Distrito do Porto	41.144	-8.646	
 Almada	Distrito de Setúbal	38.679	-9.157	
-Olivais	Distrito de Lisboa	38.770	-9.107	
 Lagos	Distrito de Faro	37.102	-8.674	
 Castelo Branco	Distrito de Castelo Branco	39.824	-7.491	
 Alcabideche	Distrito de Lisboa	38.734	-9.409	
 Bairro Novo	Distrito de Braga	41.543	-8.407	
 Espinho	Distrito de Aveiro	41.008	-8.641	
 Câmara de Lobos	Região Autónoma da Madeira	32.650	-16.977	
-Alvalade	Distrito de Lisboa	38.753	-9.144	
 Arrentela	Distrito de Setúbal	38.625	-9.102	
 Montijo	Distrito de Setúbal	38.707	-8.974	
 Charneca de Caparica	Distrito de Setúbal	38.620	-9.194	
-Campanhã	Distrito do Porto	41.157	-8.575	
 Santarém	Distrito de Santarém	39.234	-8.686	
 Olhão	Distrito de Faro	37.029	-7.841	
-Aldoar	Distrito do Porto	41.167	-8.669	
 Póvoa de Varzim	Distrito do Porto	41.383	-8.764	
 Senhora da Hora	Distrito do Porto	41.186	-8.652	
 Marinha Grande	Distrito de Leiria	39.748	-8.932	
@@ -92,14 +84,13 @@ Porto de Mós	Distrito de Faro	37.085	-8.684
 Pinhal Novo	Distrito de Setúbal	38.631	-8.914	
 Monte Estoril	Distrito de Lisboa	38.706	-9.406	
 Caniço	Região Autónoma da Madeira	32.651	-16.837	
-Sete Rios	Distrito de Lisboa	38.741	-9.161	
 Pontinha	Distrito de Lisboa	38.768	-9.199	
+São Jorge de Arroios	Distrito de Lisboa	38.729	-9.138	Lisboa
+Bomfim	Distrito do Porto	41.154	-8.587	Porto
 Arcos de Valdevez	Distrito de Viana do Castelo	41.847	-8.419	
 Moscavide e Portela	Distrito de Lisboa	38.779	-9.102	
-Parque das Nações	Distrito de Lisboa	38.769	-9.096	
 Portalegre	Distrito de Portalegre	39.294	-7.431	
-Valadares	Vila Nova de Gaia, Distrito do Porto	41.093	-8.632	
-Lordelo do Ouro	Distrito do Porto	41.151	-8.648	
+Valadares	Distrito do Porto	41.093	-8.632	
 São João da Madeira	Distrito de Aveiro	40.901	-8.490	
 Lavradio	Distrito de Setúbal	38.668	-9.052	
 Bougado	Distrito do Porto	41.340	-8.552	
@@ -107,7 +98,6 @@ Azambuja	Distrito de Lisboa	39.070	-8.868
 Valongo	Distrito do Porto	41.189	-8.499	
 Vilar	Distrito de Aveiro	40.627	-8.632	
 Caparica	Distrito de Setúbal	38.662	-9.200	
-Areeiro	Distrito de Lisboa	38.741	-9.138	
 Arouca	Distrito de Aveiro	40.931	-8.245	
 Belas	Distrito de Lisboa	38.777	-9.264	
 Laranjeiro	Distrito de Setúbal	38.656	-9.154	
@@ -117,6 +107,7 @@ Trofa	Distrito do Porto	41.337	-8.560
 Baião	Distrito do Porto	41.163	-8.035	
 Laranjeiro	Distrito de Faro	37.068	-7.808	
 Carcavelos	Distrito de Lisboa	38.691	-9.322	
+Alcântara	Distrito de Lisboa	38.701	-9.171	Almada
 Camarate	Distrito de Lisboa	38.804	-9.128	
 Ponta Delgada	Região Autónoma dos Açores	37.740	-25.669	
 Entroncamento	Distrito de Santarém	39.467	-8.467	
@@ -135,7 +126,6 @@ Azeitão	Distrito de Setúbal	38.519	-9.014
 Santa Iria da Azóia	Distrito de Lisboa	38.841	-9.099	
 Ovar	Distrito de Aveiro	40.859	-8.625	
 Vila Franca de Xira	Distrito de Lisboa	38.955	-8.990	
-Carnide	Distrito de Lisboa	38.767	-9.183	
 Leça da Palmeira	Distrito do Porto	41.191	-8.700	
 Loulé	Distrito de Faro	37.138	-8.020	
 Moita	Distrito de Setúbal	38.651	-8.990	
@@ -156,17 +146,14 @@ Vila Real	Distrito de Vila Real	41.300	-7.743
 Palmela	Distrito de Setúbal	38.569	-8.901	
 Fafe	Distrito de Braga	41.451	-8.173	
 Cabeceiras de Basto	Distrito de Braga	41.514	-7.989	
-Belém	Distrito de Lisboa	38.699	-9.193	
 Feira	Distrito de Aveiro	40.925	-8.543	
 Leça do Bailio	Distrito do Porto	41.212	-8.634	
 Vialonga	Distrito de Lisboa	38.872	-9.078	
-Buraca	Distrito de Lisboa	38.733	-9.200	
 Albufeira	Distrito de Faro	37.088	-8.250	
 Baguim do Monte	Distrito do Porto	41.192	-8.541	
 Alcobaça	Distrito de Leiria	39.552	-8.977	
 Vermoim	Distrito do Porto	41.243	-8.607	
 Peniche	Distrito de Leiria	39.356	-9.381	
-Campo Grande	Distrito de Lisboa	38.755	-9.167	
 São Martinho do Bispo	Distrito de Coimbra	40.210	-8.457	
 Ribeira de Frades	Distrito de Coimbra	40.205	-8.479	
 Alfena	Distrito do Porto	41.237	-8.525	
@@ -174,22 +161,19 @@ Tavira	Distrito de Faro	37.127	-7.649
 Torres Novas	Distrito de Santarém	39.476	-8.543	
 Póvoa de Santo Adrião	Distrito de Lisboa	38.800	-9.167	
 Gafanha	Distrito de Aveiro	40.636	-8.713	
-Campolide	Distrito de Lisboa	38.729	-9.165	
 Vilar do Paraíso	Distrito do Porto	41.090	-8.621	
 Areosa	Distrito do Porto	41.181	-8.588	
 Valbom	Distrito do Porto	41.129	-8.562	
 Lagoa	Região Autónoma dos Açores	37.745	-25.572	
 Arcozelo	Distrito do Porto	41.062	-8.632	
+Ajuda	Distrito de Lisboa	38.700	-9.208	Algés
 Canelas	Distrito do Porto	41.083	-8.600	
 Costa de Caparica	Almada, Distrito de Setúbal	38.645	-9.236	
 Cadaval	Distrito de Lisboa	39.243	-9.103	
 Valença	Distrito de Viana do Castelo	42.024	-8.635	
 Samora Correia	Distrito de Santarém	38.937	-8.872	
 Santo Tirso	Distrito do Porto	41.343	-8.477	
-Contumil	Distrito do Porto	41.166	-8.580	
-Azevedo	Distrito do Porto	41.150	-8.567	
 Costa de Caparica	Almada, Distrito de Setúbal	38.641	-9.232	
-Graça	Distrito de Lisboa	38.718	-9.129	
 Porto Salvo	Distrito de Lisboa	38.723	-9.305	
 Abrantes	Distrito de Santarém	39.467	-8.200	
 Esgueira	Distrito de Aveiro	40.649	-8.629	
@@ -198,8 +182,6 @@ Olhos de Água	Distrito de Faro	37.090	-8.192
 Moreira	Maia, Distrito do Porto	41.248	-8.648	
 Montemor-o-Novo	Distrito de Évora	38.648	-8.215	
 Sines	Distrito de Setúbal	37.956	-8.870	
-Baixa	Distrito de Lisboa	38.711	-9.137	
-Beato António	Distrito de Lisboa	38.733	-9.103	
 Ourém	Distrito de Santarém	39.642	-8.592	
 Machico	Região Autónoma da Madeira	32.716	-16.768	
 Pedrouços	Distrito do Porto	41.189	-8.586	
@@ -207,6 +189,7 @@ Perafita	Distrito do Porto	41.183	-8.255
 Mirandela	Distrito de Bragança	41.487	-7.187	
 Azenha	Distrito do Porto	41.077	-8.625	
 Mafra	Distrito de Lisboa	38.938	-9.328	
+Bairro da Madre de Deus	Distrito de Lisboa	38.735	-9.118	Beato António
 Aldeia de Paio Pires	Distrito de Setúbal	38.617	-9.083	
 Tábua	Distrito de Coimbra	40.362	-8.029	
 Rio Maior	Distrito de Santarém	39.337	-8.939	
@@ -217,7 +200,7 @@ Alijó	Distrito de Vila Real	41.276	-7.475
 Águeda	Distrito de Aveiro	40.577	-8.444	
 Castelo Viegas	Distrito de Coimbra	40.163	-8.407	
 Fátima	Distrito de Santarém	39.621	-8.652	
-Oliveira de Azemeis	Distrito de Aveiro	40.841	-8.476	
+Oliveira de Azeméis	Distrito de Aveiro	40.841	-8.476	
 Santa Maria Maior	Região Autónoma da Madeira	32.648	-16.891	
 Semelhe	Distrito de Braga	41.554	-8.463	
 Real	Distrito de Braga	41.558	-8.443	
@@ -241,7 +224,7 @@ Sobreda	Distrito de Setúbal	38.650	-9.190
 Santo António da Charneca	Distrito de Setúbal	38.626	-9.030	
 Cucujães	Distrito de Aveiro	40.874	-8.507	
 Ponte de Sôr	Distrito de Portalegre	39.250	-8.010	
-Senhora do Porto	Distrito do Porto	41.167	-8.633	
+Foz do Douro	Distrito do Porto	41.151	-8.671	Porto
 Caneças	Distrito de Lisboa	38.813	-9.227	
 Anta	Distrito do Porto	41.266	-8.628	
 Lamego	Distrito de Viseu	41.097	-7.810	
@@ -253,8 +236,7 @@ Unhos	Distrito de Lisboa	38.820	-9.120
 Gulpilhares	Distrito do Porto	41.076	-8.637	
 Margaride	Distrito do Porto	41.365	-8.200	
 Santo André	Distrito de Setúbal	38.061	-8.782	
-Madalena	Vila Nova de Gaia, Distrito do Porto	41.102	-8.648	
-Charneca	Distrito de Lisboa	38.784	-9.143	
+Madalena	Distrito do Porto	41.102	-8.648	
 Cartaxo	Distrito de Santarém	39.160	-8.787	
 Aver-o-Mar	Distrito do Porto	41.406	-8.780	
 São João das Lampas	Distrito de Lisboa	38.874	-9.398	
@@ -271,11 +253,8 @@ Venda do Pinheiro	Distrito de Lisboa	38.924	-9.232
 Meadela	Distrito de Viana do Castelo	41.707	-8.796	
 Elvas	Distrito de Portalegre	38.882	-7.163	
 Maceira	Distrito de Leiria	39.689	-8.894	
-Ameal	Distrito do Porto	41.167	-8.600	
 Fundão	Distrito de Castelo Branco	40.140	-7.501	
 Alcochete	Distrito de Setúbal	38.755	-8.961	
-Francos	Distrito do Porto	41.168	-8.638	
-Bairro Alto	Distrito de Lisboa	38.712	-9.144	
 Malveira	Distrito de Lisboa	38.932	-9.258	
 Santa Clara	Distrito de Coimbra	40.200	-8.440	
 Lavra	Distrito do Porto	41.259	-8.718	
@@ -287,6 +266,7 @@ Rio de Loba	Distrito de Viseu	40.666	-7.878
 Vila Nova de Famalicão	Distrito de Braga	41.408	-8.520	
 Famões	Distrito de Lisboa	38.788	-9.210	
 São Roque	Região Autónoma da Madeira	32.667	-16.917	
+Anjos	Distrito de Lisboa	38.726	-9.135	Lisboa
 Moura	Distrito de Beja	38.140	-7.449	
 Estremoz	Distrito de Évora	38.844	-7.586	
 Estreito de Câmara de Lobos	Região Autónoma da Madeira	32.661	-17.000	
@@ -302,7 +282,6 @@ Vinhais	Distrito de Bragança	41.835	-7.005
 Marco de Canaveses	Distrito do Porto	41.184	-8.149	
 Caxias	Distrito de Lisboa	38.703	-9.277	
 Mem Martins	Distrito de Lisboa	38.794	-9.343	
-Campo Pequeno	Distrito de Lisboa	38.743	-9.144	
 Nazaré	Distrito de Leiria	39.603	-9.068	
 Benavente	Distrito de Santarém	38.979	-8.808	
 Campo	Distrito do Porto	41.185	-8.465	
@@ -320,6 +299,7 @@ Tavarede	Distrito de Coimbra	40.167	-8.846
 Torre de Moncorvo	Distrito de Bragança	41.175	-7.054	
 Benedita	Distrito de Leiria	39.425	-8.970	
 Moncarapacho	Distrito de Faro	37.084	-7.788	
+Santa Maria de Belém	Distrito de Lisboa	38.700	-9.200	Torre de Belém
 Aves	Distrito do Porto	41.370	-8.410	
 Alpendurada	Distrito do Porto	41.089	-8.246	
 Soure	Distrito de Coimbra	40.060	-8.626	
@@ -334,6 +314,7 @@ Murtosa	Distrito de Aveiro	40.737	-8.638
 Almargem	Distrito de Lisboa	38.845	-9.273	
 Campo Maior	Distrito de Portalegre	39.018	-7.065	
 Beduido	Distrito de Aveiro	40.764	-8.561	
+Prazeres	Distrito de Lisboa	38.708	-9.168	Lisboa
 Darque	Distrito de Viana do Castelo	41.682	-8.803	
 Penafiel	Distrito do Porto	41.208	-8.283	
 Sol Posto	Distrito de Aveiro	40.633	-8.618	
@@ -342,7 +323,6 @@ Serzedo	Distrito de Braga	41.405	-8.229
 Camacha	Santa Cruz, Região Autónoma da Madeira	32.679	-16.845	
 Freamunde	Distrito do Porto	41.288	-8.335	
 Albergaria-a-Velha	Distrito de Aveiro	40.693	-8.480	
-Chelas	Distrito de Lisboa	38.741	-9.120	
 Alpiarça	Distrito de Santarém	39.257	-8.582	
 Batalha	Distrito de Leiria	39.660	-8.825	
 Colares	Distrito de Lisboa	38.799	-9.447	
@@ -361,7 +341,6 @@ Rabo de Peixe	Região Autónoma dos Açores	37.810	-25.583
 Castanheira do Ribatejo	Distrito de Lisboa	38.993	-8.973	
 Vale de Cambra	Distrito de Aveiro	40.850	-8.394	
 Ericeira	Distrito de Lisboa	38.963	-9.416	
-Bonjoia	Distrito do Porto	41.150	-8.583	
 Mondim de Basto	Distrito de Vila Real	41.412	-7.954	
 Miranda do Douro	Distrito de Bragança	41.497	-6.273	
 Nisa	Distrito de Portalegre	39.515	-7.649	
@@ -385,12 +364,9 @@ Válega	Distrito de Aveiro	40.836	-8.581
 Arrifes	Região Autónoma dos Açores	37.767	-25.700	
 Silveira	Distrito de Lisboa	39.111	-9.364	
 Arrifana	Distrito de Aveiro	40.916	-8.497	
-Pinheiro Manso	Distrito do Porto	41.162	-8.652	
-Ramalde do Meio	Distrito do Porto	41.176	-8.640	
 Tunes	Distrito de Faro	37.166	-8.259	
 Cacia	Distrito de Aveiro	40.684	-8.598	
 Arcos	Distrito de Braga	41.522	-8.422	
-Massarelos	Distrito do Porto	41.148	-8.633	
 Paços de Ferreira	Distrito do Porto	41.277	-8.376	
 Amarante	Distrito do Porto	41.273	-8.082	
 São João	Distrito de Aveiro	40.868	-8.607	
@@ -405,12 +381,12 @@ Serpa	Distrito de Beja	37.946	-7.598
 Horta	Região Autónoma dos Açores	38.537	-28.626	
 Macedo de Cavaleiros	Distrito de Bragança	41.538	-6.961	
 Avanca	Distrito de Aveiro	40.808	-8.572	
-Pereiro	Distrito do Porto	41.174	-8.655	
 São Romão	Distrito da Guarda	40.401	-7.715	
 Prior Velho	Distrito de Lisboa	38.792	-9.121	
 Cacilhas	Distrito de Setúbal	38.686	-9.149	
 Sandim	Distrito do Porto	41.035	-8.507	
 Carrazeda de Anciães	Distrito de Bragança	41.242	-7.307	
+São Sebastião da Pedreira	Distrito de Lisboa	38.734	-9.154	Alvalade
 Sabrosa	Distrito de Vila Real	41.267	-7.576	
 Tabuaço	Distrito de Viseu	41.116	-7.568	
 Foz do Sousa	Distrito do Porto	41.097	-8.502	
@@ -424,7 +400,6 @@ Eirol	Distrito de Aveiro	40.611	-8.537
 Arruda dos Vinhos	Distrito de Lisboa	38.984	-9.077	
 Aljubarrota	Distrito de Leiria	39.567	-8.929	
 Madalena	Região Autónoma dos Açores	38.536	-28.527	
-Noeda	Distrito do Porto	41.150	-8.583	
 Vila Cova	Distrito do Porto	41.324	-8.157	
 São Vicente	Região Autónoma da Madeira	32.797	-17.043	
 Praia da Vitória	Região Autónoma dos Açores	38.733	-27.067	
@@ -447,7 +422,7 @@ Arazede	Distrito de Coimbra	40.286	-8.650
 Ribeira de Pena	Distrito de Vila Real	41.521	-7.802	
 Aljezur	Distrito de Faro	37.317	-8.801	
 Bombarral	Distrito de Leiria	39.267	-9.158	
-Vila Nova da Telha	Vila Nova de Gaia, Distrito do Porto	41.072	-8.641	
+Vila Nova da Telha	Distrito do Porto	41.072	-8.641	
 Redondo	Distrito de Évora	38.649	-7.547	
 Odemira	Distrito de Beja	37.598	-8.640	
 Vieira de Leiria	Distrito de Leiria	39.869	-8.932	
@@ -476,7 +451,6 @@ Vilela	Distrito de Vila Real	41.225	-7.603
 Poiares	Distrito de Coimbra	40.210	-8.257	
 Santa Maria de Avioso	Distrito do Porto	41.268	-8.606	
 Pataias	Distrito de Leiria	39.670	-8.996	
-Bairro Silva Braga	Distrito do Porto	41.175	-8.627	
 São Pedro do Sul	Distrito de Viseu	40.755	-8.073	
 Santa Luzia	Região Autónoma da Madeira	32.657	-16.905	
 Nogueira	Distrito do Porto	41.242	-8.587	
@@ -484,14 +458,15 @@ Aguiar da Beira	Distrito da Guarda	40.817	-7.544
 Riachos	Distrito de Santarém	39.445	-8.514	
 Urgeses	Distrito de Braga	41.427	-8.298	
 Monchique	Distrito de Faro	37.318	-8.555	
+São Mamede	Distrito de Lisboa	38.712	-9.143	Lisboa
 São Miguel do Couto	Distrito do Porto	41.332	-8.462	
 Galegos	Distrito de Braga	41.563	-8.572	
+Intendente	Distrito de Lisboa	38.722	-9.135	Lisboa
 Merelim	Distrito de Braga	41.586	-8.466	
 Miramar	Distrito do Porto	41.068	-8.650	
 Macieira de Cambra	Distrito de Aveiro	40.859	-8.373	
 Aljustrel	Distrito de Beja	37.878	-8.165	
 Nogueira da Regedoura	Distrito de Aveiro	41.005	-8.592	
-Cabo Ruivo	Distrito de Lisboa	38.756	-9.097	
 Assafarge	Distrito de Coimbra	40.159	-8.432	
 Vidago	Distrito de Vila Real	41.640	-7.572	
 Gemunde	Distrito do Porto	41.268	-8.645	
@@ -501,14 +476,12 @@ Alvor	Distrito de Faro	37.130	-8.592
 Caranguejeira	Distrito de Leiria	39.746	-8.707	
 Ventosa	Distrito de Lisboa	39.127	-9.084	
 Mêda	Distrito da Guarda	40.966	-7.262	
-Bela Vista	Distrito do Porto	41.160	-8.585	
 Ribeira Grande	Região Autónoma dos Açores	38.517	-28.700	
 Árvore	Distrito do Porto	41.339	-8.718	
 Vila Nova de Paiva	Distrito de Viseu	40.853	-7.728	
 Salvaterra de Magos	Distrito de Santarém	39.028	-8.793	
 Quinta de Santo António	Distrito de Setúbal	38.653	-9.235	
-Camacha	Porto Santo, Região Autónoma da Madeira	33.087	-16.343	
-Cruz	Distrito do Porto	41.167	-8.583	
+Camacha	Região Autónoma da Madeira	33.087	-16.343	
 Antanhol	Distrito de Coimbra	40.168	-8.463	
 Castro Marim	Distrito de Faro	37.221	-7.444	
 Louriçal	Distrito de Leiria	40.004	-8.737	
@@ -520,10 +493,8 @@ Vila Franca do Campo	Região Autónoma dos Açores	37.716	-25.432
 Angeiras	Distrito do Porto	41.267	-8.711	
 Alcanede	Distrito de Santarém	39.415	-8.822	
 Parchal	Distrito de Faro	37.138	-8.517	
-Nevogilde	Distrito do Porto	41.165	-8.679	
 Póvoa de Lanhoso	Distrito de Braga	41.576	-8.270	
 Azinhaga	Distrito de Lisboa	39.050	-9.350	
-Paços	Distrito do Porto	41.162	-8.671	
 Nine	Distrito de Braga	41.459	-8.546	
 Vila Meã	Distrito do Porto	41.251	-8.184	
 Vila Praia de Âncora	Distrito de Viana do Castelo	41.811	-8.853	
@@ -556,7 +527,6 @@ Terrugem	Distrito de Lisboa	38.706	-9.287
 Ferreira do Alentejo	Distrito de Beja	38.060	-8.114	
 Lustosa	Distrito do Porto	41.341	-8.317	
 Telões	Distrito do Porto	41.311	-8.111	
-Godim	Distrito do Porto	41.155	-8.589	
 Paços de Brandão	Distrito de Aveiro	40.975	-8.584	
 Areosa	Distrito de Viana do Castelo	41.718	-8.857	
 Alcains	Distrito de Castelo Branco	39.916	-7.457	
@@ -602,7 +572,6 @@ Poceirão	Distrito de Santarém	38.831	-8.794
 Sobreira	Distrito de Vila Real	41.524	-7.802	
 Ferreira	Distrito do Porto	41.267	-8.344	
 Alvide	Distrito de Lisboa	38.715	-9.424	
-Corujeira	Distrito do Porto	41.158	-8.583	
 Nelas	Distrito de Viseu	40.532	-7.852	
 Vilarinho	Distrito do Porto	41.360	-8.331	
 Guia	Distrito de Faro	37.130	-8.300	
@@ -622,9 +591,10 @@ Sátão	Distrito de Viseu	40.742	-7.733
 Mexilhoeira Grande	Distrito de Faro	37.159	-8.615	
 Serzedelo	Distrito de Braga	41.401	-8.369	
 Vila Frescainha	Distrito de Braga	41.538	-8.640	
+Santos-o-Velho	Distrito de Lisboa	38.707	-9.156	Lisboa
 Tocha	Distrito de Coimbra	40.313	-8.753	
 Campanário	Região Autónoma da Madeira	32.666	-17.036	
-Ribeira Grande	Ribeira Grande, Região Autónoma dos Açores	37.822	-25.521	
+Ribeira Grande	Região Autónoma dos Açores	37.822	-25.521	
 Sardoal	Distrito de Santarém	39.534	-8.161	
 Mogadouro	Distrito de Bragança	41.340	-6.712	
 Alcoentre	Distrito de Lisboa	39.209	-8.960	
@@ -667,6 +637,7 @@ Riba de Ave	Distrito de Braga	41.396	-8.387
 Abrigada	Distrito de Lisboa	39.144	-9.019	
 Fronteira	Distrito de Portalegre	39.056	-7.649	
 Sobral de Monte Agraço	Distrito de Lisboa	39.020	-9.151	
+Bairro do Alto da Boavista	Distrito de Lisboa	38.735	-9.206	Benfica
 Tarouca	Distrito de Viseu	41.018	-7.775	
 Cais do Pico	Região Autónoma dos Açores	38.525	-28.321	
 Rebordões	Distrito do Porto	41.355	-8.424	
@@ -701,6 +672,7 @@ Lever	Distrito do Porto	41.067	-8.476
 Seixal	Distrito de Setúbal	38.640	-9.101	
 Vila Chã de Ourique	Distrito de Santarém	39.172	-8.767	
 Porto Moniz	Região Autónoma da Madeira	32.867	-17.167	
+São Paulo	Distrito de Lisboa	38.712	-9.143	Lisboa
 Ribeirinha	Região Autónoma dos Açores	38.662	-27.181	
 Rio Mau	Vila do Conde, Distrito do Porto	41.404	-8.680	
 Palhaça	Distrito de Aveiro	40.526	-8.600	
@@ -723,8 +695,8 @@ Conceição	Distrito de Faro	37.148	-7.604
 Alvito	Distrito de Beja	38.256	-7.992	
 Porto Judeu	Região Autónoma dos Açores	38.648	-27.119	
 Minas de São Domingos	Distrito de Beja	37.673	-7.498	
-Falcão	Distrito do Porto	41.160	-8.576	
 Macieira da Maia	Distrito do Porto	41.342	-8.665	
+Alfama	Distrito de Lisboa	38.711	-9.128	Lisboa
 Água de Pena	Região Autónoma da Madeira	32.701	-16.779	
 Pego	Distrito de Santarém	39.461	-8.150	
 Angústias	Região Autónoma dos Açores	38.525	-28.631	
@@ -734,7 +706,6 @@ Chavão	Distrito de Braga	41.452	-8.602
 Gaeiras	Distrito de Leiria	39.374	-9.129	
 São Vicente	Região Autónoma dos Açores	37.818	-25.666	
 Mire de Tibães	Distrito de Braga	41.556	-8.479	
-Neiral	Distrito do Porto	41.150	-8.583	
 Montargil	Distrito de Portalegre	39.078	-8.170	
 Estela	Distrito do Porto	41.449	-8.752	
 Azoia	Distrito de Lisboa	38.776	-9.477	
@@ -847,7 +818,6 @@ Boaventura	Região Autónoma da Madeira	32.818	-16.973
 Alqueidão da Serra	Distrito de Leiria	39.615	-8.783	
 Mariz	Distrito de Braga	41.528	-8.671	
 Manta Rota	Distrito de Faro	37.168	-7.518	
-Campinas	Distrito do Porto	41.167	-8.650	
 Vila Seca	Distrito de Braga	41.500	-8.685	
 Cabanas de Tavira	Distrito de Faro	37.135	-7.600	
 Boa Vista	Distrito de Leiria	39.784	-8.752	
@@ -878,7 +848,6 @@ Ribeira Seca	Calheta, Região Autónoma dos Açores	38.600	-27.983
 Loureira	Distrito de Leiria	39.660	-8.688	
 Cabanas de Torres	Distrito de Lisboa	39.156	-9.066	
 Fajã da Ovelha	Região Autónoma da Madeira	32.775	-17.234	
-Granja	Distrito do Porto	41.150	-8.567	
 São Luis	Distrito de Beja	37.716	-8.665	
 Milagres	Distrito de Leiria	39.790	-8.794	
 Porto Martins	Região Autónoma dos Açores	38.681	-27.058	
