@@ -95,6 +95,9 @@ defmodule TcgCheap.Sealed.Shops do
 
   @keys Enum.map(@shops, & &1.key)
 
+  # The countries with a shop that has a pickup store.
+  @pickup_countries for shop <- @shops, shop.pickup_location, uniq: true, do: shop.country
+
   for key <- Map.keys(@deliveries),
       key not in @keys,
       do: raise(ArgumentError, "delivery of unknown shop #{key}")
@@ -190,6 +193,10 @@ defmodule TcgCheap.Sealed.Shops do
         Market.terms({:ok, shop}, Market.poland()) in [:listed, :absent],
         do: shop.key
   end
+
+  @doc "Whether a shop of the country (its ISO code) has a pickup store, so that distances to it can be shown."
+  @spec pickup?(String.t()) :: boolean()
+  def pickup?(country), do: country in @pickup_countries
 
   @spec all() :: [Shop.t()]
   def all, do: @shops

@@ -207,6 +207,7 @@ defmodule TcgCheapWeb.SingleLive do
           region_hint={@region_hint}
         >
           <VisitorLocation.location_control
+            :if={VisitorLocation.pickup?()}
             location={@location}
             ready={@location_ready?}
             form={@town_form}
