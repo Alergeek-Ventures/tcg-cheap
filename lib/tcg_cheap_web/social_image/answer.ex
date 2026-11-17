@@ -18,10 +18,13 @@ defmodule TcgCheapWeb.SocialImage.Answer do
           {list(), integer()}
   def stack(verdict, price, shop_line, notes, x, width) do
     shop_lines = Text.wrap(shop_line, 23, :mono, width, 2)
+    # A note wraps to the column like the shop line: a long amount's line
+    # must not run off the card.
+    note_lines = Enum.flat_map(notes, &Text.wrap(&1, 20, :mono, width, 2))
     badge_height = if verdict, do: 72 + 26, else: 0
     price_height = price_height(price)
     shop_height = length(shop_lines) * 34
-    notes_height = if notes == [], do: 0, else: 12 + length(notes) * 30
+    notes_height = if note_lines == [], do: 0, else: 12 + length(note_lines) * 30
     height = badge_height + price_height + shop_height + notes_height
     top = SocialImage.height() - SocialImage.margin() - height
     price_top = top + badge_height
@@ -31,7 +34,7 @@ defmodule TcgCheapWeb.SocialImage.Answer do
       verdict && badge(verdict, x, top, 72, 40),
       price_line(price, x, price_top),
       Text.lines(shop_lines, x, shop_top, 23, 34, :mono, :ink),
-      Text.lines(notes, x, shop_top + shop_height + 12, 20, 30, :mono, :muted)
+      Text.lines(note_lines, x, shop_top + shop_height + 12, 20, 30, :mono, :muted)
     ]
 
     {svg, height}

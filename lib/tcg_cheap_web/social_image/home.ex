@@ -28,7 +28,7 @@ defmodule TcgCheapWeb.SocialImage.Home do
 
     headline = Text.balanced(gettext("Sprawdź, czy cena jest dobra"), 96, :display, text_width, 2)
 
-    promise_lines = Text.balanced(promise(), 27, :mono, text_width, 3)
+    promise_lines = Text.balanced(promise(), 27, :mono, text_width, 4)
 
     logo_height = 64
     headline_line = 92
@@ -68,8 +68,14 @@ defmodule TcgCheapWeb.SocialImage.Home do
 
     heading = Text.wrap(gettext("Widzisz cenę w sklepie?"), 34, :display, inner, 2)
     heading_height = 34 + length(heading) * 36
-    row_height = 64 + 46
-    height = heading_height + 20 + length(rows) * row_height + 10
+    # A note wraps to the panel, in as many lines as the longest needs.
+    rows =
+      Enum.map(rows, fn {verdict, note} ->
+        note = Text.wrap(note, 20, :mono, inner, 2)
+        {verdict, note, 64 + 16 + length(note) * 28 + 18}
+      end)
+
+    height = heading_height + 20 + (rows |> Enum.map(&elem(&1, 2)) |> Enum.sum()) - 8
 
     card = fn y ->
       rows_top = y + heading_height + 20
@@ -78,15 +84,13 @@ defmodule TcgCheapWeb.SocialImage.Home do
         ~s(<rect x="#{x}" y="#{y}" width="#{width}" height="#{height}" fill="#{SocialImage.color(:paper)}"/>),
         Text.lines(heading, x + 32, y + 34, 34, 36, :display, :ink),
         rows
-        |> Enum.with_index()
-        |> Enum.map(fn {{verdict, note}, index} ->
-          row_y = rows_top + index * row_height
-
-          [
-            Answer.badge(verdict, x + 32, row_y, 64, 36, inner),
-            Text.line(note, x + 32, row_y + 64 + 30, 20, :mono, :muted)
-          ]
+        |> Enum.map_reduce(rows_top, fn {verdict, note, row_height}, row_y ->
+          {[
+             Answer.badge(verdict, x + 32, row_y, 64, 36, inner),
+             Text.lines(note, x + 32, row_y + 64 + 16, 20, 28, :mono, :muted)
+           ], row_y + row_height}
         end)
+        |> elem(0)
       ]
     end
 
