@@ -36,7 +36,10 @@ defmodule TcgCheapWeb.Format do
   # Below one whole unit a price keeps its hundredths, so a cheap card never
   # reads "0 Kč" or "0 Ft"; from one unit up it is whole.
   defp price(value, %Region{market: %{decimals: 0}} = region) do
-    if Decimal.positive?(value) and Decimal.lt?(value, 1),
+    # Rounded first: 0,996 is "1 Kč", not "1,00 Kč".
+    hundredths = Decimal.round(value, 2)
+
+    if Decimal.positive?(hundredths) and Decimal.lt?(hundredths, 1),
       do: fractional_price(value, %{region | market: %{region.market | decimals: 2}}),
       else: whole_price(value)
   end
@@ -104,10 +107,7 @@ defmodule TcgCheapWeb.Format do
   def limit_price(value) do
     case Market.limit_step(Region.current().market) do
       1 ->
-        if(Decimal.lt?(value, 1) and Decimal.positive?(value),
-          do: price(value),
-          else: whole_price(value)
-        )
+        whole_price(value)
 
       %Decimal{} ->
         price(value)
