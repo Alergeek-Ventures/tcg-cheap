@@ -85,7 +85,7 @@ msgstr "Videti je, da si v Sloveniji."
 #: lib/tcg_cheap/countries/slovenia.ex:17
 #, elixir-autogen, elixir-format
 msgid "wysyłka ze Słowenii"
-msgstr "dostava iz Slovenije"
+msgstr "iz Slovenije"
 
 #: lib/tcg_cheap/countries/slovenia.ex:113
 #, elixir-autogen, elixir-format

@@ -6,12 +6,12 @@ msgstr ""
 #: lib/tcg_cheap/countries/czechia.ex:17
 #, elixir-autogen, elixir-format
 msgid "wysyłka z Czech"
-msgstr "shipping from Czechia"
+msgstr "ships from Czechia"
 
 #: lib/tcg_cheap/countries/czechia.ex:20
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Czech"
-msgstr "including delivery from Czechia"
+msgstr "with delivery from Czechia"
 
 #: lib/tcg_cheap/countries/czechia.ex:87
 #, elixir-autogen, elixir-format
@@ -86,7 +86,7 @@ msgstr "It looks like you are in Czechia."
 #: lib/tcg_cheap/countries/czechia.ex:117
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
-msgstr "including delivery from Germany"
+msgstr "with delivery from Germany"
 
 #: lib/tcg_cheap/countries/czechia.ex:126
 #, elixir-autogen, elixir-format
