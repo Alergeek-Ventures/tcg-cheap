@@ -744,7 +744,7 @@ msgstr ""
 #: lib/tcg_cheap_web/live/single_live.ex:316
 #: lib/tcg_cheap_web/social_image/product.ex:122
 #, elixir-autogen, elixir-format
-msgid "Typowa cena dziś w %{shops}: %{price}"
+msgid "Typowa cena dziś w %{shops}, bez dostawy: %{price}"
 msgstr ""
 
 #: lib/tcg_cheap_web/components/price_chart.ex:125
@@ -1127,7 +1127,7 @@ msgstr ""
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów)."
 msgstr ""
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
@@ -4320,7 +4320,7 @@ msgstr ""
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy)."
 msgstr ""
 
 #: lib/tcg_cheap_web/page_markdown.ex:438

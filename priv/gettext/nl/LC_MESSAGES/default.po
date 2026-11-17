@@ -745,8 +745,8 @@ msgstr "Zoveel zijn het er nog niet, dus we vergelijken met de Cardmarket-trend,
 #: lib/tcg_cheap_web/live/single_live.ex:316
 #: lib/tcg_cheap_web/social_image/product.ex:122
 #, elixir-autogen, elixir-format
-msgid "Typowa cena dziś w %{shops}: %{price}"
-msgstr "Gebruikelijke prijs vandaag bij %{shops}: %{price}"
+msgid "Typowa cena dziś w %{shops}, bez dostawy: %{price}"
+msgstr "Gebruikelijke prijs vandaag bij %{shops}, zonder verzending: %{price}"
 
 #: lib/tcg_cheap_web/components/price_chart.ex:125
 #, elixir-autogen, elixir-format
@@ -1128,8 +1128,8 @@ msgstr "Een goede prijs ligt minstens 5% onder de gebruikelijke prijs, onder wat
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
-msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke winkel die het product op voorraad heeft, nemen we de prijs van het product zelf, zonder verzending (we hebben minstens %{minimum} winkels nodig). De aanbiedingen hieronder tonen een winkel in het buitenland inclusief verzending."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów)."
+msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke winkel die het product op voorraad heeft, nemen we de prijs van het product zelf, zonder verzending (we hebben minstens %{minimum} winkels nodig)."
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
 #, elixir-autogen, elixir-format
@@ -4321,8 +4321,8 @@ msgstr "Cardmarket-trend: %{price} zonder verzending, %{delivered} incl. verzend
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
-msgstr "De gebruikelijke prijs is de mediaan van de prijzen van het product zelf, zonder verzending, één per winkel die het op voorraad heeft (minstens %{minimum} winkels). De aanbiedingen tonen een winkel in het buitenland inclusief verzending."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy)."
+msgstr "De gebruikelijke prijs is de mediaan van de prijzen van het product zelf, zonder verzending, één per winkel die het op voorraad heeft (minstens %{minimum} winkels)."
 
 #: lib/tcg_cheap_web/page_markdown.ex:438
 #, elixir-autogen, elixir-format

@@ -48,7 +48,7 @@ msgstr ""
 
 #: lib/tcg_cheap/countries/poland.ex:148
 #, elixir-autogen, elixir-format
-msgid "Ceny w sklepach są bez wysyłki. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
+msgid "Ceny polskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Polski. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr ""
 
 #: lib/tcg_cheap/countries/poland.ex:87

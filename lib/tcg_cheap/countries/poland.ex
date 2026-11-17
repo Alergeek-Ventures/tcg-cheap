@@ -147,7 +147,7 @@ defmodule TcgCheap.Countries.Poland do
     do:
       dgettext(
         "poland",
-        "Ceny w sklepach są bez wysyłki. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec.",
+        "Ceny polskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Polski. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec.",
         shipping: shipping
       )
 end
