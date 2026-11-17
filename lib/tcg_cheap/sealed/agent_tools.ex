@@ -166,7 +166,10 @@ defmodule TcgCheap.Sealed.AgentTools do
       `candidates`, each saying why it does or does not qualify. Rules: every name token must be
       in the title, every title qualifier in the name, at most `max_unexplained` title tokens may
       be absent from the name, the most specific qualifying product wins and a tie stays
-      unmatched; a leading Chinese set code in a name ("CBB3C:") is not a name token, and a title
+      unmatched; a title that sets "mega", "ex", "vmax", "vstar" or "gx" beside a Pokémon, as some
+      product of its kind does, matches no product naming that Pokémon without it; a capital
+      bracketed language code ("[FR]") or a language's own name ("Español") is an edition
+      qualifier no product meets; a leading Chinese set code in a name ("CBB3C:") is not a name token, and a title
       may name it without it counting as absent (`set_code_tokens`); nor is "S-Ch" ("Simplified
       Chinese"), but such a product needs a title saying Chinese or naming its set code; a title
       may leave out the "ex" ending a Japanese set's name ("Terastal Festival ex") when the
