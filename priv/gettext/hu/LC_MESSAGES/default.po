@@ -737,8 +737,8 @@ msgstr "Ennyi bolt még nem árulja, ezért a Cardmarket trendjével vetjük ös
 #: lib/tcg_cheap_web/live/single_live.ex:316
 #: lib/tcg_cheap_web/social_image/product.ex:122
 #, elixir-autogen, elixir-format
-msgid "Typowa cena dziś w %{shops}: %{price}"
-msgstr "Jellemző ár ma %{shops}: %{price}"
+msgid "Typowa cena dziś w %{shops}, bez dostawy: %{price}"
+msgstr "Jellemző ár ma %{shops}, szállítás nélkül: %{price}"
 
 #: lib/tcg_cheap_web/components/price_chart.ex:125
 #, elixir-autogen, elixir-format
@@ -1120,8 +1120,8 @@ msgstr "A jó ár legalább 5%-kal alacsonyabb mindháromnál: a jellemző árn�
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
-msgstr "A jellemző ár a bolti árak középértéke. Minden boltból, ahol raktáron van a termék, magának a terméknek az árát vesszük figyelembe, szállítás nélkül (legalább %{minimum} bolt kell). Az alábbi ajánlatok a külföldi boltot szállítással együtt mutatják."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów)."
+msgstr "A jellemző ár a bolti árak középértéke. Minden boltból, ahol raktáron van a termék, magának a terméknek az árát vesszük figyelembe, szállítás nélkül (legalább %{minimum} bolt kell)."
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
 #, elixir-autogen, elixir-format
@@ -4313,8 +4313,8 @@ msgstr "Cardmarket-trend: %{price} szállítási díj nélkül, %{delivered} né
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
-msgstr "A jellemző ár magának a terméknek a szállítás nélküli árainak mediánja, boltonként egy ár, azokból a boltokból, ahol raktáron van (legalább %{minimum} bolt). Az ajánlatok a külföldi boltot szállítással együtt mutatják."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy)."
+msgstr "A jellemző ár magának a terméknek a szállítás nélküli árainak mediánja, boltonként egy ár, azokból a boltokból, ahol raktáron van (legalább %{minimum} bolt)."
 
 #: lib/tcg_cheap_web/page_markdown.ex:438
 #, elixir-autogen, elixir-format

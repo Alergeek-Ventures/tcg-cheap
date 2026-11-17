@@ -743,8 +743,8 @@ msgstr "Ainda não há lojas suficientes, por isso comparamos com a tendência d
 #: lib/tcg_cheap_web/live/single_live.ex:316
 #: lib/tcg_cheap_web/social_image/product.ex:122
 #, elixir-autogen, elixir-format
-msgid "Typowa cena dziś w %{shops}: %{price}"
-msgstr "Preço típico hoje em %{shops}: %{price}"
+msgid "Typowa cena dziś w %{shops}, bez dostawy: %{price}"
+msgstr "Preço típico hoje em %{shops}, sem portes: %{price}"
 
 #: lib/tcg_cheap_web/components/price_chart.ex:125
 #, elixir-autogen, elixir-format
@@ -1126,8 +1126,8 @@ msgstr "Um bom preço é, pelo menos, 5 % mais baixo do que o preço típico, o 
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
-msgstr "O preço típico é a mediana: de cada loja que tem o produto em stock tomamos o preço do próprio produto, sem portes, e escolhemos o valor do meio (precisamos de pelo menos %{minimum} lojas). As ofertas abaixo mostram uma loja do estrangeiro com portes."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów)."
+msgstr "O preço típico é a mediana: de cada loja que tem o produto em stock tomamos o preço do próprio produto, sem portes, e escolhemos o valor do meio (precisamos de pelo menos %{minimum} lojas)."
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
 #, elixir-autogen, elixir-format
@@ -4319,8 +4319,8 @@ msgstr "Tendência do Cardmarket: %{price} sem portes, %{delivered} com envio da
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
-msgstr "O preço típico é a mediana dos preços do próprio produto, sem portes, um por cada loja que o tem em stock (pelo menos %{minimum} lojas). As ofertas mostram uma loja do estrangeiro com portes."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy)."
+msgstr "O preço típico é a mediana dos preços do próprio produto, sem portes, um por cada loja que o tem em stock (pelo menos %{minimum} lojas)."
 
 #: lib/tcg_cheap_web/page_markdown.ex:438
 #, elixir-autogen, elixir-format

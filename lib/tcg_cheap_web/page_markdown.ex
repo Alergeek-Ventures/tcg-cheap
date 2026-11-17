@@ -39,7 +39,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     [
       prices,
       gettext(
-        "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą.",
+        "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy).",
         minimum: PriceGuide.min_shops()
       ),
       good_price,

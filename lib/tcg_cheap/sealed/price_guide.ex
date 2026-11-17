@@ -101,8 +101,9 @@ defmodule TcgCheap.Sealed.PriceGuide do
       |> Enum.map(fn {shop, prices} -> %{shop: shop, price: Enum.min(prices, Decimal)} end)
       |> Enum.sort_by(& &1.price, Decimal)
 
-    # A shop's delivery is the same for all its offers, so its lowest item
-    # price is that of its cheapest compared offer.
+    # A shop's lowest item price, as `shop_prices` has its lowest compared
+    # one. They are the same offer unless free delivery from some order value
+    # makes a dearer offer the cheaper one delivered.
     item_prices =
       in_stock_offers
       |> Enum.group_by(& &1.shop, &Map.get(&1, :item_price, &1.price))

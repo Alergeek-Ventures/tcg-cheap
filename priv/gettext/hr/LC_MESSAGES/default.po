@@ -742,8 +742,8 @@ msgstr "Toliko ih još nema pa uspoređujemo s trendom na Cardmarketu, preračun
 #: lib/tcg_cheap_web/live/single_live.ex:316
 #: lib/tcg_cheap_web/social_image/product.ex:122
 #, elixir-autogen, elixir-format
-msgid "Typowa cena dziś w %{shops}: %{price}"
-msgstr "Tipična cijena danas u %{shops}: %{price}"
+msgid "Typowa cena dziś w %{shops}, bez dostawy: %{price}"
+msgstr "Tipična cijena danas u %{shops}, bez dostave: %{price}"
 
 #: lib/tcg_cheap_web/components/price_chart.ex:125
 #, elixir-autogen, elixir-format
@@ -1131,8 +1131,8 @@ msgstr "Dobra cijena je barem 5 % niža od tipične, od one koja je u zadnjih %{
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
-msgstr "Tipična cijena je sredina među trgovinama: iz svake trgovine koja ima proizvod na stanju uzimamo cijenu samog proizvoda, bez dostave (potrebne su nam barem %{minimum} trgovine). Ponude niže prikazuju trgovinu iz inozemstva s dostavom."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów)."
+msgstr "Tipična cijena je sredina među trgovinama: iz svake trgovine koja ima proizvod na stanju uzimamo cijenu samog proizvoda, bez dostave (potrebne su nam barem %{minimum} trgovine)."
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
 #, elixir-autogen, elixir-format
@@ -4339,8 +4339,8 @@ msgstr "Cardmarket trend: %{price} bez dostave, %{delivered} s dostavom iz Njema
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
-msgstr "Tipična cijena je medijan cijena samog proizvoda, bez dostave, po jedna iz svake trgovine koja ga ima na stanju (barem %{minimum} trgovine). Ponude prikazuju trgovinu iz inozemstva s dostavom."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy)."
+msgstr "Tipična cijena je medijan cijena samog proizvoda, bez dostave, po jedna iz svake trgovine koja ga ima na stanju (barem %{minimum} trgovine)."
 
 #: lib/tcg_cheap_web/page_markdown.ex:438
 #, elixir-autogen, elixir-format

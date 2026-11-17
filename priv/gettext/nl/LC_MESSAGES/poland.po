@@ -48,8 +48,8 @@ msgstr "Prijzen van Pokémon TCG-kaarten in Polen"
 
 #: lib/tcg_cheap/countries/poland.ex:148
 #, elixir-autogen, elixir-format
-msgid "Ceny w sklepach są bez wysyłki. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
-msgstr "Prijzen bij winkels zijn zonder verzending. Bij Cardmarket tellen we %{shipping} op voor een pakket uit Duitsland."
+msgid "Ceny polskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Polski. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
+msgstr "Prijzen van Poolse winkels zijn zonder verzending, die van winkels in het buitenland incl. verzending naar Polen. Bij Cardmarket tellen we %{shipping} op voor een pakket uit Duitsland."
 
 #: lib/tcg_cheap/countries/poland.ex:87
 #, elixir-autogen, elixir-format

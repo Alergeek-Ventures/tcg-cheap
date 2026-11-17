@@ -223,7 +223,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
         <.verdict_method id="verdict-method">
           <p>
             {gettext(
-              "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą.",
+              "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów).",
               minimum: PriceGuide.min_shops()
             )}
             <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
@@ -271,7 +271,9 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
   end
 
   # Where the bar's limits and today's price sit, in % of the bar: every
-  # range stays wide enough to read.
+  # range stays wide enough to read. A price far above the limits (a shop
+  # abroad's with delivery against a typical price without it) stays at the
+  # bar's end.
   defp price_range(%{typical_source: :shops, cheapest: %{price: cheapest}} = verdict) do
     good_max = to_float(verdict.good_max)
     normal_max = to_float(verdict.normal_max)
@@ -286,7 +288,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
     %{
       good_at: at.(good_max),
       normal_at: at.(normal_max),
-      cheapest_at: at.(cheapest)
+      cheapest_at: min(at.(cheapest), 100.0)
     }
   end
 
@@ -331,7 +333,7 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
   defp reason(%{status: status, typical_source: :shops} = verdict, _past)
        when status in [:good, :normal, :expensive],
        do:
-         gettext("Typowa cena dziś w %{shops}: %{price}",
+         gettext("Typowa cena dziś w %{shops}, bez dostawy: %{price}",
            shops: Format.in_shops(length(verdict.shop_prices)),
            price: Format.limit_price(verdict.typical)
          )

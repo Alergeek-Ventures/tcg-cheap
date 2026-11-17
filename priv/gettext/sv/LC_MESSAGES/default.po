@@ -745,8 +745,8 @@ msgstr "Så många butiker har den inte än, så vi jämför med Cardmarkets tre
 #: lib/tcg_cheap_web/live/single_live.ex:316
 #: lib/tcg_cheap_web/social_image/product.ex:122
 #, elixir-autogen, elixir-format
-msgid "Typowa cena dziś w %{shops}: %{price}"
-msgstr "Typiskt pris i dag i %{shops}: %{price}"
+msgid "Typowa cena dziś w %{shops}, bez dostawy: %{price}"
+msgstr "Typiskt pris i dag i %{shops}, utan frakt: %{price}"
 
 #: lib/tcg_cheap_web/components/price_chart.ex:125
 #, elixir-autogen, elixir-format
@@ -1128,8 +1128,8 @@ msgstr "Ett bra pris ligger minst 5% under det typiska priset, det vanliga prise
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
-msgstr "Typiskt pris är medianen: från varje butik som har produkten i lager tar vi priset på själva produkten, utan frakt (minst %{minimum} butiker krävs). Erbjudandena nedan visar en butik utomlands med frakt."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów)."
+msgstr "Typiskt pris är medianen: från varje butik som har produkten i lager tar vi priset på själva produkten, utan frakt (minst %{minimum} butiker krävs)."
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
 #, elixir-autogen, elixir-format
@@ -4321,8 +4321,8 @@ msgstr "Cardmarket-trend: %{price} utan frakt, %{delivered} med frakt från Tysk
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
-msgstr "Typiskt pris är medianen av priserna på själva produkten, utan frakt, ett per butik som har den i lager (minst %{minimum} butiker). Erbjudandena visar en butik utomlands med frakt."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy)."
+msgstr "Typiskt pris är medianen av priserna på själva produkten, utan frakt, ett per butik som har den i lager (minst %{minimum} butiker)."
 
 #: lib/tcg_cheap_web/page_markdown.ex:438
 #, elixir-autogen, elixir-format
