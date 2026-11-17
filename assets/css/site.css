@@ -131,9 +131,8 @@
 .guide-world .site-footer a:active { color: var(--orange); }
 @media (hover: hover) and (pointer: fine) { .guide-world .site-footer a:hover { color: var(--orange); } }
 
-/* Cookie notice: bottom left, beside the report button; above it where the screen is too narrow for both. */
+/* Cookie notice: bottom left, beside the report button. */
 .cookie-notice { --ink: #201d19; --orange: #b54125; --muted: #6d6256; background: #fffdf8; border: 1px solid var(--ink); box-shadow: .25rem .25rem 0 var(--ink); color: var(--ink); font: .875rem/1.5 "Azeret Mono", ui-monospace, monospace; inset-block-end: max(1rem, env(safe-area-inset-bottom)); inset-inline: 1rem auto; max-inline-size: 24rem; padding: .75rem 1rem; position: fixed; z-index: 10; }
-@media (max-width: 40rem) { .cookie-notice { inset-block-end: calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem); inset-inline: 1rem; max-inline-size: none; } }
 .cookie-notice[hidden] { display: none; }
 .cookie-notice p { margin: 0; text-wrap: pretty; }
 .cookie-notice-actions { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-block-start: .5rem; }
@@ -143,6 +142,15 @@
 .cookie-notice button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 .cookie-notice button:active { color: var(--orange); }
 @media (hover: hover) and (pointer: fine) { #cookie-notice-reject:hover { color: var(--ink); } #cookie-notice-accept:hover { background: var(--orange); border-color: var(--orange); } }
+/* Where the screen is too narrow for both, the notice takes the report button's place until it is answered, and its
+   buttons stand beside the text, so the first screen's price and offer stay in view. After the base rules: it overrides them. */
+@media (max-width: 40rem) {
+  .cookie-notice { align-items: center; display: flex; font-size: .75rem; gap: .75rem; inset-inline: 1rem; max-inline-size: none; padding: .5rem; padding-inline-start: .75rem; }
+  .cookie-notice p { flex: 1; }
+  .cookie-notice-actions { align-items: stretch; flex-direction: column; gap: 0; margin: 0; }
+  #cookie-notice-reject { min-block-size: 2rem; }
+  .report:has(~ .cookie-notice:not([hidden])) { display: none; }
+}
 /* LiveToast's toasts (flashes and the lost-connection notice), drawn like the cookie notice; Layouts.toast_class/1 keeps the library's layout. */
 .site-toast { --ink: #201d19; --orange: #b54125; background: #fffdf8; border: 1px solid var(--ink); box-shadow: .25rem .25rem 0 var(--ink); color: var(--ink); font: .875rem/1.5 "Azeret Mono", ui-monospace, monospace; gap: .75rem; padding: .875rem 1rem; }
 .site-toast-error { box-shadow: .25rem .25rem 0 var(--orange); }
