@@ -11,57 +11,57 @@ msgstr ""
 "Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/tcg_cheap/countries/hungary.ex:85
+#: lib/tcg_cheap/countries/hungary.ex:92
 #, elixir-autogen, elixir-format
 msgid "%{card} – cena karty Pokémon w forintach"
 msgstr "%{card} – prijs van de Pokémon-kaart in forint"
 
-#: lib/tcg_cheap/countries/hungary.ex:90
+#: lib/tcg_cheap/countries/hungary.ex:97
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających na Węgry."
 msgstr "%{expansion}: vergelijk prijzen van boosters, ETB's, boxen en collecties bij winkels die naar Hongarije verzenden."
 
-#: lib/tcg_cheap/countries/hungary.ex:108
+#: lib/tcg_cheap/countries/hungary.ex:115
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden sklep wysyłający na Węgry nie ma tego produktu na stanie."
 msgstr "%{name}: geen enkele winkel die naar Hongarije verzendt heeft dit product nu op voorraad."
 
-#: lib/tcg_cheap/countries/hungary.ex:78
+#: lib/tcg_cheap/countries/hungary.ex:85
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket w forintach."
 msgstr "Engelse Pokémon TCG-kaarten met hun prijs op Cardmarket in forint."
 
-#: lib/tcg_cheap/countries/hungary.ex:99
+#: lib/tcg_cheap/countries/hungary.ex:106
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden sklep wysyłający na Węgry nie ma teraz na stanie."
 msgstr "Geen enkele winkel die naar Hongarije verzendt heeft de %{expansion} booster nu op voorraad."
 
-#: lib/tcg_cheap/countries/hungary.ex:62
+#: lib/tcg_cheap/countries/hungary.ex:69
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG ze sklepów wysyłających na Węgry, sprawdzane codziennie."
 msgstr "Pokémon TCG-prijzen bij winkels die naar Hongarije verzenden, elke dag gecheckt."
 
-#: lib/tcg_cheap/countries/hungary.ex:81
+#: lib/tcg_cheap/countries/hungary.ex:88
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w forintach"
 msgstr "Prijzen van Pokémon TCG-kaarten in forint"
 
-#: lib/tcg_cheap/countries/hungary.ex:153
+#: lib/tcg_cheap/countries/hungary.ex:160
 #, elixir-autogen, elixir-format
 msgid "Ceny węgierskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką na Węgry. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Prijzen van Hongaarse winkels zijn zonder verzending, die van winkels in het buitenland incl. verzending naar Hongarije. Bij Cardmarket tellen we %{shipping} op voor een pakket uit Duitsland."
 
-#: lib/tcg_cheap/countries/hungary.ex:119
+#: lib/tcg_cheap/countries/hungary.ex:126
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką na Węgry."
 msgstr "Prijzen van winkels in het buitenland zijn incl. verzending naar Hongarije."
 
-#: lib/tcg_cheap/countries/hungary.ex:69
+#: lib/tcg_cheap/countries/hungary.ex:76
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających na Węgry."
 msgstr "De goedkoopste Pokémon TCG-aanbiedingen bij winkels die naar Hongarije verzenden."
 
-#: lib/tcg_cheap/countries/hungary.ex:54
+#: lib/tcg_cheap/countries/hungary.ex:61
 #, elixir-autogen, elixir-format
 msgid "Porównaj ceny Pokémon TCG w sklepach wysyłających na Węgry. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
 msgstr "Vergelijk Pokémon TCG-prijzen bij winkels die naar Hongarije verzenden. Bekijk aanbiedingen van boosters, ETB's en boxen, de prijsgeschiedenis en of kopen nu de moeite waard is."
@@ -71,7 +71,7 @@ msgstr "Vergelijk Pokémon TCG-prijzen bij winkels die naar Hongarije verzenden.
 msgid "Przejdź do wersji węgierskiej"
 msgstr "Ga naar de Hongaarse versie"
 
-#: lib/tcg_cheap/countries/hungary.ex:124
+#: lib/tcg_cheap/countries/hungary.ex:131
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Węgier. Gdy podaje ją tylko w swojej walucie (polskie sklepy w złotych), przeliczamy ją na forinty po dziennych kursach NBP. Strona sklepu może być po polsku albo w innym języku."
 msgstr "De prijs van een buitenlandse winkel is de prijs die de winkel aan kopers uit Hongarije geeft. Geeft de winkel die alleen in zijn eigen valuta (Poolse winkels in zloty), dan rekenen we die om naar forint tegen de dagkoersen van de NBP. De website van de winkel kan in het Pools of een andere taal zijn."
@@ -91,7 +91,7 @@ msgstr "Hongarije"
 msgid "wysyłka z Węgier"
 msgstr "verzending uit Hongarije"
 
-#: lib/tcg_cheap/countries/hungary.ex:115
+#: lib/tcg_cheap/countries/hungary.ex:122
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr "incl. verzending uit Duitsland"
@@ -101,17 +101,27 @@ msgstr "incl. verzending uit Duitsland"
 msgid "z wysyłką z Węgier"
 msgstr "incl. verzending uit Hongarije"
 
-#: lib/tcg_cheap/countries/hungary.ex:133
+#: lib/tcg_cheap/countries/hungary.ex:140
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w forintach. Ceny węgierskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę na Węgry."
 msgstr "Prijzen komen uit de openbare productfeeds van winkels, één keer per dag opgehaald, en staan in forint. Prijzen van Hongaarse winkels zijn zonder verzending, die van winkels in het buitenland incl. verzending naar Hongarije."
 
-#: lib/tcg_cheap/countries/hungary.ex:138
+#: lib/tcg_cheap/countries/hungary.ex:145
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w forintach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
 msgstr "Een goede prijs is hooguit 95% van de gebruikelijke prijs, normaal hooguit 110%, daarboven is het duur. Een goede prijs moet ook hooguit 95% zijn van wat het product de afgelopen %{window} dagen meestal kostte en van de Cardmarket-trend in forint (tegen NBP-koersen) incl. verzending uit Duitsland, als die bekend zijn."
 
-#: lib/tcg_cheap/countries/hungary.ex:144
+#: lib/tcg_cheap/countries/hungary.ex:151
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w forintach."
 msgstr "Bij minder winkels is er geen beoordeling en geven we als context de Cardmarket-trend in forint."
+
+#: lib/tcg_cheap/countries/hungary.ex:53
+#, elixir-autogen, elixir-format
+msgid "Ta lokalizacja jest poza Węgrami. Wpisz miejscowość."
+msgstr "Deze locatie ligt buiten Hongarije. Vul een plaats in."
+
+#: lib/tcg_cheap/countries/hungary.ex:56
+#, elixir-autogen, elixir-format
+msgid "np. Debrecen"
+msgstr "bijv. Debrecen"

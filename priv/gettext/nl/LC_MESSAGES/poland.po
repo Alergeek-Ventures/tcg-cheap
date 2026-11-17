@@ -11,52 +11,52 @@ msgstr ""
 "Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/tcg_cheap/countries/poland.ex:91
+#: lib/tcg_cheap/countries/poland.ex:98
 #, elixir-autogen, elixir-format
 msgid "%{card} – cena karty Pokémon w Polsce"
 msgstr "%{card} – prijs van de Pokémon-kaart in Polen"
 
-#: lib/tcg_cheap/countries/poland.ex:96
+#: lib/tcg_cheap/countries/poland.ex:103
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Polski."
 msgstr "%{expansion}: vergelijk prijzen van boosters, ETB's, boxen en collecties bij winkels die naar Polen verzenden."
 
-#: lib/tcg_cheap/countries/poland.ex:112
+#: lib/tcg_cheap/countries/poland.ex:119
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden polski sklep nie ma tego produktu na stanie."
 msgstr "%{name}: geen enkele Poolse winkel heeft dit product nu op voorraad."
 
-#: lib/tcg_cheap/countries/poland.ex:84
+#: lib/tcg_cheap/countries/poland.ex:91
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających do Polski."
 msgstr "Engelse Pokémon TCG-kaarten bij winkels die naar Polen verzenden."
 
-#: lib/tcg_cheap/countries/poland.ex:105
+#: lib/tcg_cheap/countries/poland.ex:112
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden polski sklep nie ma teraz na stanie."
 msgstr "Geen enkele Poolse winkel heeft de %{expansion} booster nu op voorraad."
 
-#: lib/tcg_cheap/countries/poland.ex:69
+#: lib/tcg_cheap/countries/poland.ex:76
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Polski, sprawdzane codziennie."
 msgstr "Pokémon TCG-prijzen bij winkels die naar Polen verzenden, elke dag gecheckt."
 
-#: lib/tcg_cheap/countries/poland.ex:87
+#: lib/tcg_cheap/countries/poland.ex:94
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w Polsce"
 msgstr "Prijzen van Pokémon TCG-kaarten in Polen"
 
-#: lib/tcg_cheap/countries/poland.ex:141
+#: lib/tcg_cheap/countries/poland.ex:148
 #, elixir-autogen, elixir-format
 msgid "Ceny w sklepach są bez wysyłki. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Prijzen bij winkels zijn zonder verzending. Bij Cardmarket tellen we %{shipping} op voor een pakket uit Duitsland."
 
-#: lib/tcg_cheap/countries/poland.ex:80
+#: lib/tcg_cheap/countries/poland.ex:87
 #, elixir-autogen, elixir-format
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Polski."
 msgstr "De goedkoopste Pokémon TCG-kaarten bij winkels die naar Polen verzenden."
 
-#: lib/tcg_cheap/countries/poland.ex:76
+#: lib/tcg_cheap/countries/poland.ex:83
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Polski."
 msgstr "De goedkoopste Pokémon TCG-aanbiedingen bij winkels die naar Polen verzenden."
@@ -66,7 +66,7 @@ msgstr "De goedkoopste Pokémon TCG-aanbiedingen bij winkels die naar Polen verz
 msgid "Polska"
 msgstr "Polen"
 
-#: lib/tcg_cheap/countries/poland.ex:61
+#: lib/tcg_cheap/countries/poland.ex:68
 #, elixir-autogen, elixir-format
 msgid "Porównaj ceny Pokémon TCG w sklepach wysyłających do Polski. Sprawdź oferty boosterów, ETB, boxów i angielskich kart, historię cen i czy warto kupić teraz."
 msgstr "Vergelijk Pokémon TCG-prijzen bij winkels die naar Polen verzenden. Bekijk aanbiedingen van boosters, ETB's, boxen en Engelse kaarten, de prijsgeschiedenis en of kopen nu de moeite waard is."
@@ -86,7 +86,7 @@ msgstr "Het lijkt erop dat je in Polen bent."
 msgid "wysyłka z Polski"
 msgstr "verzending uit Polen"
 
-#: lib/tcg_cheap/countries/poland.ex:118
+#: lib/tcg_cheap/countries/poland.ex:125
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Polski"
 msgstr "incl. verzending naar Polen"
@@ -95,3 +95,13 @@ msgstr "incl. verzending naar Polen"
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Polski"
 msgstr "incl. verzending uit Polen"
+
+#: lib/tcg_cheap/countries/poland.ex:60
+#, elixir-autogen, elixir-format
+msgid "Ta lokalizacja jest poza Polską. Wpisz miejscowość."
+msgstr "Deze locatie ligt buiten Polen. Vul een plaats in."
+
+#: lib/tcg_cheap/countries/poland.ex:63
+#, elixir-autogen, elixir-format
+msgid "np. Gdańsk"
+msgstr "bijv. Gdańsk"
