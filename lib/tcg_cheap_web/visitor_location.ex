@@ -37,6 +37,10 @@ defmodule TcgCheapWeb.VisitorLocation do
   @doc "How far a pickup store still counts as near, in kilometres."
   def radius_km, do: @radius_km
 
+  @doc "Whether the region's country has a shop with a pickup store: elsewhere distances mean nothing and the control is not shown."
+  @spec pickup?() :: boolean()
+  def pickup?, do: Shops.pickup?(country())
+
   @doc "No location until the browser restores it (or says it has none)."
   @spec assign_location(Phoenix.LiveView.Socket.t()) :: Phoenix.LiveView.Socket.t()
   def assign_location(socket) do
