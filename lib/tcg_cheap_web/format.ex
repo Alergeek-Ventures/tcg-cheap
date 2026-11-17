@@ -4,7 +4,8 @@ defmodule TcgCheapWeb.Format do
   (`TcgCheapWeb.Region.current/0`, its symbol and decimals) and dates,
   numbers and counted phrases in the page language (`TcgCheapWeb.Language`).
   Złoty are written to the grosz ("1 299,99 zł"); forints are whole
-  ("22 999 Ft"), and so are kronor from 10 kr ("999 kr", but "3,50 kr").
+  ("22 999 Ft"), and so are kronor from 10 kr ("999 kr", but "3,50 kr");
+  koruna and forint amounts below one unit keep their hundredths ("0,30 Kč").
   """
   use Gettext, backend: TcgCheapWeb.Gettext
 
@@ -32,7 +33,13 @@ defmodule TcgCheapWeb.Format do
   @spec price(Decimal.t()) :: String.t()
   def price(%Decimal{} = value), do: price(value, Region.current())
 
-  defp price(value, %Region{market: %{decimals: 0}}), do: whole_price(value)
+  # Below one whole unit a price keeps its hundredths, so a cheap card never
+  # reads "0 Kč" or "0 Ft"; from one unit up it is whole.
+  defp price(value, %Region{market: %{decimals: 0}} = region) do
+    if Decimal.positive?(value) and Decimal.lt?(value, 1),
+      do: fractional_price(value, %{region | market: %{region.market | decimals: 2}}),
+      else: whole_price(value)
+  end
 
   defp price(value, %Region{whole_prices_from: %Decimal{} = from} = region) do
     # Rounded first: 9,996 is "10 kr", not "10,00 kr".
@@ -96,8 +103,14 @@ defmodule TcgCheapWeb.Format do
   @spec limit_price(integer() | Decimal.t()) :: String.t()
   def limit_price(value) do
     case Market.limit_step(Region.current().market) do
-      1 -> whole_price(value)
-      %Decimal{} -> price(value)
+      1 ->
+        if(Decimal.lt?(value, 1) and Decimal.positive?(value),
+          do: price(value),
+          else: whole_price(value)
+        )
+
+      %Decimal{} ->
+        price(value)
     end
   end
 
