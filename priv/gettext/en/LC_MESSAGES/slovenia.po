@@ -84,17 +84,17 @@ msgstr "It looks like you are in Slovenia."
 #: lib/tcg_cheap/countries/slovenia.ex:17
 #, elixir-autogen, elixir-format
 msgid "wysyłka ze Słowenii"
-msgstr "shipping from Slovenia"
+msgstr "ships from Slovenia"
 
 #: lib/tcg_cheap/countries/slovenia.ex:113
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
-msgstr "including delivery from Germany"
+msgstr "with delivery from Germany"
 
 #: lib/tcg_cheap/countries/slovenia.ex:20
 #, elixir-autogen, elixir-format
 msgid "z wysyłką ze Słowenii"
-msgstr "including delivery from Slovenia"
+msgstr "with delivery from Slovenia"
 
 #: lib/tcg_cheap/countries/slovenia.ex:122
 #, elixir-autogen, elixir-format
