@@ -300,7 +300,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
                 </li>
                 <li>
                   {gettext(
-                    "Cena pudełka to jego typowa cena: mediana najniższych cen w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
+                    "Cena pudełka to jego typowa cena: mediana cen samego pudełka, bez dostawy, w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
                   )}
                 </li>
                 <li>

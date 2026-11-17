@@ -1131,8 +1131,8 @@ msgstr "Dobrá cena je alespoň o 5 % nižší než typická cena, obvyklá cena
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów)."
-msgstr "Typická cena je medián: z každého obchodu, který má produkt skladem, bereme nejlevnější nabídku. Minimální počet obchodů: %{minimum}."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
+msgstr "Typická cena je medián: z každého obchodu, který má produkt skladem, bereme cenu samotného produktu bez dopravy. Minimální počet obchodů: %{minimum}. Nabídky níže ukazují obchod v zahraničí včetně dopravy."
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
 #, elixir-autogen, elixir-format
@@ -3473,8 +3473,8 @@ msgstr "Build & Battle Box"
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:302
 #, elixir-autogen, elixir-format
-msgid "Cena pudełka to jego typowa cena: mediana najniższych cen w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
-msgstr "Cena boxu je jeho typická cena: medián nejnižších cen v obchodech, které ho mají skladem. Porovnáváme ji s typickou cenou boosteru ze stejného setu. Když box mají méně než tři obchody, porovnáváme jeho nejnižší cenu s nejnižší cenou boosteru."
+msgid "Cena pudełka to jego typowa cena: mediana cen samego pudełka, bez dostawy, w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
+msgstr "Cena boxu je jeho typická cena: medián cen samotného boxu bez dopravy v obchodech, které ho mají skladem. Porovnáváme ji s typickou cenou boosteru ze stejného setu. Když box mají méně než tři obchody, porovnáváme jeho nejnižší cenu s nejnižší cenou boosteru."
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:384
 #, elixir-autogen, elixir-format
@@ -4339,13 +4339,13 @@ msgstr "Trend Cardmarket: %{price} bez dopravy, %{delivered} s dopravou z Němec
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej %{minimum} sklepy)."
-msgstr "Typická cena je medián nejnižších cen skladem v obchodech (jedna cena na obchod, minimální počet obchodů: %{minimum})."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
+msgstr "Typická cena je medián cen samotného produktu bez dopravy, jedna z každého obchodu, který ho má skladem (minimální počet obchodů: %{minimum}). Nabídky ukazují obchod v zahraničí včetně dopravy."
 
 #: lib/tcg_cheap_web/page_markdown.ex:438
 #, elixir-autogen, elixir-format
-msgid "Typowa cena w sklepach: %{typical} (mediana z %{count} sklepów)"
-msgstr "Typická cena v obchodech: %{typical} (medián z %{count} obchodů)"
+msgid "Typowa cena w sklepach: %{typical} (mediana cen produktu bez dostawy z %{count} sklepów)"
+msgstr "Typická cena v obchodech: %{typical} (medián cen produktu bez dopravy z %{count} obchodů)"
 
 #: lib/tcg_cheap_web/page_markdown.ex:333
 #, elixir-autogen, elixir-format

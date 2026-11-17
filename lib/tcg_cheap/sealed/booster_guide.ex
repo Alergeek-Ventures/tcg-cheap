@@ -8,7 +8,8 @@ defmodule TcgCheap.Sealed.BoosterGuide do
   products in stock by type (`by_type`, newest set first).
 
   A product's `price` is its typical shop price (the median of each shop's
-  lowest) when enough shops have it, else its cheapest (`few_shops?`). Its
+  lowest item price, delivery not counted) when enough shops have it, else
+  its cheapest (`few_shops?`). Its
   boosters bought one by one (`loose`) cost as many of its set's single
   boosters at the same kind of price (`single`: typical against typical,
   cheapest against cheapest); `extra` is what the rest of the box costs on

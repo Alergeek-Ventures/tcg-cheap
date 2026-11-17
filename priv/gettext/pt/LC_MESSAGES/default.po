@@ -1126,8 +1126,8 @@ msgstr "Um bom preço é, pelo menos, 5 % mais baixo do que o preço típico, o 
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów)."
-msgstr "O preço típico é a mediana: tomamos a oferta mais barata de cada loja que tem o produto em stock e escolhemos o valor do meio (precisamos de pelo menos %{minimum} lojas)."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
+msgstr "O preço típico é a mediana: de cada loja que tem o produto em stock tomamos o preço do próprio produto, sem portes, e escolhemos o valor do meio (precisamos de pelo menos %{minimum} lojas). As ofertas abaixo mostram uma loja do estrangeiro com portes."
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
 #, elixir-autogen, elixir-format
@@ -3459,8 +3459,8 @@ msgstr "Build & Battle Box"
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:302
 #, elixir-autogen, elixir-format
-msgid "Cena pudełka to jego typowa cena: mediana najniższych cen w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
-msgstr "O preço da caixa é o seu preço típico: a mediana dos preços mais baixos nas lojas que a têm. Comparamo-lo com o preço típico do booster da mesma expansão. Quando a caixa está em menos de três lojas, comparamos o preço mais baixo da caixa com o preço mais baixo do booster."
+msgid "Cena pudełka to jego typowa cena: mediana cen samego pudełka, bez dostawy, w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
+msgstr "O preço da caixa é o seu preço típico: a mediana dos preços da própria caixa, sem portes, nas lojas que a têm. Comparamo-lo com o preço típico do booster da mesma expansão. Quando a caixa está em menos de três lojas, comparamos o preço mais baixo da caixa com o preço mais baixo do booster."
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:384
 #, elixir-autogen, elixir-format
@@ -4319,13 +4319,13 @@ msgstr "Tendência do Cardmarket: %{price} sem portes, %{delivered} com envio da
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej %{minimum} sklepy)."
-msgstr "O preço típico é a mediana dos preços mais baixos em stock nas lojas (um preço por loja, pelo menos %{minimum} lojas)."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
+msgstr "O preço típico é a mediana dos preços do próprio produto, sem portes, um por cada loja que o tem em stock (pelo menos %{minimum} lojas). As ofertas mostram uma loja do estrangeiro com portes."
 
 #: lib/tcg_cheap_web/page_markdown.ex:438
 #, elixir-autogen, elixir-format
-msgid "Typowa cena w sklepach: %{typical} (mediana z %{count} sklepów)"
-msgstr "Preço típico nas lojas: %{typical} (mediana de %{count} lojas)"
+msgid "Typowa cena w sklepach: %{typical} (mediana cen produktu bez dostawy z %{count} sklepów)"
+msgstr "Preço típico nas lojas: %{typical} (mediana dos preços do produto sem portes, de %{count} lojas)"
 
 #: lib/tcg_cheap_web/page_markdown.ex:333
 #, elixir-autogen, elixir-format

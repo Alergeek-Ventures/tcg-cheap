@@ -1131,8 +1131,8 @@ msgstr "Dobra cijena je barem 5 % niža od tipične, od one koja je u zadnjih %{
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów)."
-msgstr "Tipična cijena je sredina među trgovinama: iz svake trgovine koja ima proizvod na stanju uzimamo najjeftiniju ponudu (potrebne su nam barem %{minimum} trgovine)."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
+msgstr "Tipična cijena je sredina među trgovinama: iz svake trgovine koja ima proizvod na stanju uzimamo cijenu samog proizvoda, bez dostave (potrebne su nam barem %{minimum} trgovine). Ponude niže prikazuju trgovinu iz inozemstva s dostavom."
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
 #, elixir-autogen, elixir-format
@@ -3473,8 +3473,8 @@ msgstr "Build & Battle Box"
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:302
 #, elixir-autogen, elixir-format
-msgid "Cena pudełka to jego typowa cena: mediana najniższych cen w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
-msgstr "Cijena kutije je njezina tipična cijena: medijan najnižih cijena u trgovinama koje je imaju. Uspoređujemo je s tipičnom cijenom boostera iz istog seta. Kad kutiju ima manje od tri trgovine, uspoređujemo njezinu najnižu cijenu s najnižom cijenom boostera."
+msgid "Cena pudełka to jego typowa cena: mediana cen samego pudełka, bez dostawy, w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
+msgstr "Cijena kutije je njezina tipična cijena: medijan cijena same kutije, bez dostave, u trgovinama koje je imaju. Uspoređujemo je s tipičnom cijenom boostera iz istog seta. Kad kutiju ima manje od tri trgovine, uspoređujemo njezinu najnižu cijenu s najnižom cijenom boostera."
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:384
 #, elixir-autogen, elixir-format
@@ -4339,13 +4339,13 @@ msgstr "Cardmarket trend: %{price} bez dostave, %{delivered} s dostavom iz Njema
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej %{minimum} sklepy)."
-msgstr "Tipična cijena je medijan najnižih cijena u trgovinama koje imaju proizvod na stanju (jedna cijena po trgovini, barem %{minimum} trgovine)."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
+msgstr "Tipična cijena je medijan cijena samog proizvoda, bez dostave, po jedna iz svake trgovine koja ga ima na stanju (barem %{minimum} trgovine). Ponude prikazuju trgovinu iz inozemstva s dostavom."
 
 #: lib/tcg_cheap_web/page_markdown.ex:438
 #, elixir-autogen, elixir-format
-msgid "Typowa cena w sklepach: %{typical} (mediana z %{count} sklepów)"
-msgstr "Tipična cijena u trgovinama: %{typical} (medijan cijena; broj trgovina: %{count})"
+msgid "Typowa cena w sklepach: %{typical} (mediana cen produktu bez dostawy z %{count} sklepów)"
+msgstr "Tipična cijena u trgovinama: %{typical} (medijan cijena proizvoda bez dostave; broj trgovina: %{count})"
 
 #: lib/tcg_cheap_web/page_markdown.ex:333
 #, elixir-autogen, elixir-format
