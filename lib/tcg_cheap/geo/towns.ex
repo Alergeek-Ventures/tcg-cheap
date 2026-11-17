@@ -43,10 +43,12 @@ defmodule TcgCheap.Geo.Towns do
     @moduledoc false
 
     @combining_mark ~r/\p{Mn}/u
+    @apostrophes ~r/['’]/u
     @separators ~r/[\s-]+/u
 
-    # Search keys ignore case, accents and hyphens: "bielsko biala" finds
-    # Bielsko-Biała, "malmo" Malmö. Ł and Đ do not decompose.
+    # Search keys ignore case, accents, apostrophes and hyphens: "bielsko
+    # biala" finds Bielsko-Biała, "malmo" Malmö, "s-hertogenbosch"
+    # 's-Hertogenbosch. Ł and Đ do not decompose.
     def normalize(text) do
       text
       |> String.downcase()
@@ -54,6 +56,7 @@ defmodule TcgCheap.Geo.Towns do
       |> String.replace("đ", "d")
       |> :unicode.characters_to_nfd_binary()
       |> String.replace(@combining_mark, "")
+      |> String.replace(@apostrophes, "")
       |> String.replace(@separators, " ")
       |> String.trim()
     end
