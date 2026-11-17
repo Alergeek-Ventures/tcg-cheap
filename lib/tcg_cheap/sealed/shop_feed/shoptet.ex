@@ -5,8 +5,9 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
   pager names, at most `max_pages` pages. The pagination path is taken from
   the listing's links, supporting localized pagers without language rules.
 
-  Shoptet marks every product of a listing with microdata
-  (`data-micro="product"`): its id (`data-micro-product-id`), name and link,
+  Shoptet marks every product of a listing (its `.products-page` blocks)
+  with microdata (`data-micro="product"`): its id
+  (`data-micro-product-id`), name and link,
   and an offer with the price (`data-micro-price`, a plain decimal), its
   currency, which must be the shop's `currency`, and its schema.org
   availability; only `InStock` is in stock. Sealed products must name a
@@ -98,8 +99,10 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
   end
 
   defp page(document) do
+    # A banner in the middle of a listing splits it into several
+    # `.products-page` blocks, of which only the first is `#products`.
     products =
-      document |> Floki.find(~s(#products [data-micro="product"])) |> Enum.map(&product/1)
+      document |> Floki.find(~s(.products-page [data-micro="product"])) |> Enum.map(&product/1)
 
     with {:ok, number} <- page_number(document),
          {:ok, total} <- total(document, products) do
