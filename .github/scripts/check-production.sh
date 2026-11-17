@@ -37,6 +37,22 @@ if ! sitemap="$(curl -fsS --retry 3 --retry-all-errors --max-time 30 "$base/site
   exit 2
 fi
 
+# /sitemap.xml may be an index of one sitemap per region: its <loc>s are
+# sitemaps, not pages, so the pages are those of the sitemaps it lists.
+if grep -q "<sitemapindex" <<<"$sitemap"; then
+  index="$sitemap"
+  sitemap=""
+
+  for location in $(grep -o '<loc>[^<]*</loc>' <<<"$index" | sed -E 's|</?loc>||g'); do
+    if ! part="$(curl -fsS --retry 3 --retry-all-errors --max-time 60 "$location")"; then
+      echo "::error::$location did not answer"
+      exit 2
+    fi
+
+    sitemap+="$part"$'\n'
+  done
+fi
+
 # The regions and their pages come from the sitemap: without entries there
 # is nothing to request, which says nothing about the release.
 if ! grep -q "<loc>$base/[^<]*</loc>" <<<"$sitemap"; then
@@ -60,8 +76,9 @@ fi
 # catalogue.
 #
 # Only the product kind has a link preview in every region: expansions and
-# cards have one in Poland alone. The expansion kind is the first word of the
-# card paths, so the other two-segment kind is the product one.
+# cards have one only where shops sell singles. The expansion kind is the
+# first word of the card paths, so the other two-segment kind is the product
+# one.
 select_urls() {
   { grep -o '<loc>[^<]*</loc>' <<<"$sitemap" || true; } |
     sed -E 's|<loc>[a-z]+://[^/]*(/[^<]*)</loc>|\1|' | awk '
