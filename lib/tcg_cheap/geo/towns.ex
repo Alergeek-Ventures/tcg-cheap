@@ -5,16 +5,16 @@ defmodule TcgCheap.Geo.Towns do
   (`TcgCheap.Countries`). Data from [GeoNames](https://www.geonames.org)
   (CC BY 4.0), reduced to `priv/geo/<country>.tsv`, named as the country's
   file in `lib/tcg_cheap/countries/` (as its Gettext domain is): name (in
-  the country's language), area (the voivodeship, county or region, with the
-  city for a city district or the county where a name repeats), coordinates
-  and, for a district, its city; largest first.
+  the country's language), area (the region, voivodeship or county, with the
+  county where a name repeats; empty where GeoNames has no regions in the
+  country's language), latitude, longitude and, for a city district, its
+  city; largest first.
 
-  A country's list is read from its file when first needed and kept in
-  `:persistent_term`, so a node holds only the countries its visitors use. A
-  region without its file does not compile.
+  The lists are read at compile time and built into this module. A region
+  without its file, or a malformed line, does not compile.
   """
 
-  alias TcgCheap.{Countries, Geo}
+  alias TcgCheap.{Countries, Geo, ModuleDir}
 
   @type town :: %{
           id: non_neg_integer(),
@@ -22,22 +22,9 @@ defmodule TcgCheap.Geo.Towns do
           area: String.t(),
           coords: Geo.coords(),
           city: String.t() | nil,
-          key: String.t()
+          key: String.t(),
+          reach_km: float()
         }
-
-  @dir Path.expand("../../../priv/geo", __DIR__)
-
-  # ISO code => file name, for every region.
-  @files Map.new(Countries.regions(), fn region ->
-           name = region.module |> Module.split() |> List.last() |> Macro.underscore()
-           path = Path.join(@dir, name <> ".tsv")
-           Module.put_attribute(__MODULE__, :external_resource, path)
-
-           unless File.exists?(path),
-             do: raise(ArgumentError, "region #{region.code} needs its towns in #{path}")
-
-           {region.country, name <> ".tsv"}
-         end)
 
   defmodule SearchKey do
     @moduledoc false
@@ -62,39 +49,115 @@ defmodule TcgCheap.Geo.Towns do
     end
   end
 
-  # The country's towns: the list, largest first, and the same by id.
-  defp towns(country) do
-    key = {__MODULE__, country}
+  defmodule Loader do
+    @moduledoc false
 
-    case :persistent_term.get(key, nil) do
-      nil ->
-        loaded = load(Map.fetch!(@files, country))
-        :persistent_term.put(key, loaded)
-        loaded
+    alias TcgCheap.Geo
+    alias TcgCheap.Geo.Towns.SearchKey
 
-      loaded ->
-        loaded
+    # How far a point may be from a town and still count as in its country
+    # (`TcgCheap.Geo.Towns.near/2`) is read from the list itself: a town's
+    # reach is @slack times its distance to its @neighbours-th nearest town,
+    # at least @min_reach_km. A town among others reaches only as far as they
+    # do (a point 27 km from Landskrona is across the Øresund), and one far
+    # from the rest, like Kiruna, reaches the sparse land around it.
+    @neighbours 3
+    @slack 1.5
+    @min_reach_km 15
+
+    @doc "The towns of a country's file, largest first, each with its reach."
+    def read(path) do
+      towns =
+        path
+        |> File.read!()
+        |> String.split("\n", trim: true)
+        |> Enum.with_index()
+        |> Enum.map(fn {line, id} -> parse(line, id, path) end)
+
+      points =
+        Enum.map(towns, fn %{id: id, coords: {lat, _lon} = coords} ->
+          {id, coords, flat_scale(lat)}
+        end)
+
+      for {town, point} <- Enum.zip(towns, points) do
+        Map.put(town, :reach_km, reach_km(point, points))
+      end
     end
-  end
 
-  defp load(file) do
-    list =
-      :tcg_cheap
-      |> Application.app_dir(Path.join("priv/geo", file))
-      |> File.stream!()
-      |> Stream.map(&(&1 |> String.trim_trailing("\n") |> String.split("\t")))
-      |> Enum.with_index(fn [name, area, lat, lon, city], id ->
+    defp parse(line, id, path) do
+      with [name, area, lat, lon, city] when name != "" <- String.split(line, "\t"),
+           {lat, ""} when lat >= -90 and lat <= 90 <- Float.parse(lat),
+           {lon, ""} when lon >= -180 and lon <= 180 <- Float.parse(lon) do
         %{
           id: id,
           name: name,
           area: area,
-          coords: {String.to_float(lat), String.to_float(lon)},
+          coords: {lat, lon},
           city: if(city != "", do: city),
           key: SearchKey.normalize(name)
         }
-      end)
+      else
+        _malformed ->
+          raise ArgumentError,
+                "#{Path.relative_to_cwd(path)}:#{id + 1}: expected name, area, latitude, " <>
+                  "longitude and city (may be empty), separated by tabs"
+      end
+    end
 
-    {list, List.to_tuple(list)}
+    # The neighbours are found on a flat map (squared degrees, longitude
+    # scaled by the latitude's cosine) and only the last one's distance is
+    # measured properly.
+    defp reach_km({id, coords, scale}, points) do
+      nearest =
+        Enum.reduce(points, [], fn
+          {^id, _coords, _scale}, nearest ->
+            nearest
+
+          {_id, other, _scale}, nearest ->
+            keep_nearest(nearest, {flat_distance(coords, other, scale), other})
+        end)
+
+      case nearest do
+        [_, _, _] ->
+          {_flat, third} = List.last(nearest)
+          max(@min_reach_km, @slack * Geo.distance_km(coords, third))
+
+        _fewer ->
+          @min_reach_km
+      end
+    end
+
+    defp keep_nearest([_, _, _] = nearest, {distance, _other} = candidate) do
+      {farthest, _} = List.last(nearest)
+      if distance < farthest, do: insert(nearest, candidate), else: nearest
+    end
+
+    defp keep_nearest(nearest, candidate), do: insert(nearest, candidate)
+
+    defp insert(nearest, candidate),
+      do: [candidate | nearest] |> Enum.sort() |> Enum.take(@neighbours)
+
+    defp flat_scale(lat), do: :math.cos(lat * :math.pi() / 180)
+
+    defp flat_distance({lat1, lon1}, {lat2, lon2}, scale),
+      do: :math.pow((lon2 - lon1) * scale, 2) + :math.pow(lat2 - lat1, 2)
+  end
+
+  @dir Path.expand("../../../priv/geo", __DIR__)
+
+  # ISO code => the country's towns, for every region.
+  @towns Map.new(Countries.regions(), fn region ->
+           path = Path.join(@dir, ModuleDir.name(region.module) <> ".tsv")
+           Module.put_attribute(__MODULE__, :external_resource, path)
+
+           unless File.exists?(path),
+             do: raise(ArgumentError, "region #{region.code} needs its towns in #{path}")
+
+           {region.country, Loader.read(path)}
+         end)
+
+  for {country, towns} <- @towns do
+    defp towns(unquote(country)), do: unquote(Macro.escape(towns))
   end
 
   @doc "Towns of the country (its ISO code) whose name, or a word of it, starts with `query`: exact name first, then larger towns."
@@ -105,9 +168,8 @@ defmodule TcgCheap.Geo.Towns do
         []
 
       key ->
-        {list, _by_id} = towns(country)
-
-        list
+        country
+        |> towns()
         |> Enum.flat_map(&rank(&1, key))
         |> Enum.sort_by(&elem(&1, 0))
         |> Enum.take(limit)
@@ -126,29 +188,51 @@ defmodule TcgCheap.Geo.Towns do
   end
 
   @spec fetch(String.t(), term()) :: {:ok, town()} | :error
-  def fetch(country, id) when is_integer(id) and id >= 0 do
-    {_list, by_id} = towns(country)
-    if id < tuple_size(by_id), do: {:ok, elem(by_id, id)}, else: :error
-  end
+  def fetch(country, id) when is_integer(id) and id >= 0,
+    do: country |> towns() |> Enum.fetch(id)
 
   def fetch(_country, _id), do: :error
 
-  @doc "The coordinates of the largest town of that name in the country, if it has one."
-  @spec coords(String.t(), String.t()) :: Geo.coords() | nil
-  def coords(country, name) do
+  @doc """
+  The coordinates of the town of that name in the country. Raises for a name
+  the country's list does not have or has more than once, so that a shop's
+  `pickup_city` is checked when the shops are compiled; a repeated name needs
+  the shop's own `pickup_location`.
+  """
+  @spec coords!(String.t(), String.t()) :: Geo.coords()
+  def coords!(country, name) do
     key = SearchKey.normalize(name)
-    {list, _by_id} = towns(country)
 
-    case Enum.find(list, &(&1.key == key)) do
-      nil -> nil
-      town -> town.coords
+    case Enum.filter(towns(country), &(&1.key == key)) do
+      [town] ->
+        town.coords
+
+      [] ->
+        raise ArgumentError, "#{country} has no town #{inspect(name)}: give a pickup_location"
+
+      _repeated ->
+        raise ArgumentError,
+              "#{country} has several towns #{inspect(name)}: give a pickup_location"
     end
   end
 
-  @doc "The country's town closest to the given point."
-  @spec nearest(String.t(), Geo.coords()) :: town()
-  def nearest(country, coords) do
-    {list, _by_id} = towns(country)
-    Enum.min_by(list, &Geo.distance_km(&1.coords, coords))
+  @doc """
+  The country's town closest to the point among those whose reach covers it,
+  or nil: the point is then taken to be outside the country. A town's reach
+  is read from the list (see `Loader`), so that sparse land, such as the
+  Swedish fells or an island, counts as inside, and a town just across a
+  strait or a border does not.
+  """
+  @spec near(String.t(), Geo.coords()) :: town() | nil
+  def near(country, coords) do
+    country
+    |> towns()
+    |> Enum.map(&{Geo.distance_km(&1.coords, coords), &1})
+    |> Enum.filter(fn {distance, town} -> distance <= town.reach_km end)
+    |> Enum.min_by(&elem(&1, 0), fn -> nil end)
+    |> case do
+      {_distance, town} -> town
+      nil -> nil
+    end
   end
 end
