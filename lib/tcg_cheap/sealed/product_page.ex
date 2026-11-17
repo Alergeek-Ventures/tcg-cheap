@@ -54,7 +54,10 @@ defmodule TcgCheap.Sealed.ProductPage do
           end)
 
         offers = for {offer, item, _compared} <- priced, do: %{offer | price: item}
-        compared = for {offer, _item, %Decimal{} = price} <- priced, do: %{offer | price: price}
+
+        compared =
+          for {offer, item, %Decimal{} = price} <- priced,
+              do: Market.compared_offer(offer, item, price)
 
         since = Date.add(today, -(@history_days - 1))
         history = price_history(product.id, market, since)

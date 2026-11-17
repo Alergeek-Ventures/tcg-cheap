@@ -4,9 +4,11 @@ defmodule TcgCheap.Sealed.PriceGuide do
   @moduledoc """
   Judges the cheapest price you can buy a product at right now, twice.
 
-  `verdict/3` is the guide's answer: is it a good price today? The typical
-  price is the median of today's shop prices, one per shop (its lowest
-  in-stock offer, a shop abroad's with delivery), when at least 3 shops have the product. A price
+  `verdict/4` is the guide's answer: is it a good price today? The typical
+  price is the median of today's shops' item prices, one per shop (its lowest
+  in-stock item price, the product alone, without delivery), when at least 3
+  shops have the product. The cheapest offer is the lowest compared price: a
+  shop abroad's with delivery. A price
   is good up to 95% of it, normal up to 110%, and expensive above that, so
   the cheapest offer is good when it clearly undercuts the typical shop.
   A good price must also be at most 95% of each known reference: the usual
@@ -76,7 +78,10 @@ defmodule TcgCheap.Sealed.PriceGuide do
   def min_days_with_stock, do: @min_days_with_stock
 
   @doc """
-  Today's verdict for a product given its current in-stock offers, the
+  Today's verdict for a product given its current in-stock offers (each
+  `price` its compared price; an offer that carries an `item_price`, as
+  `Market.compared/3` makes it, has the typical price taken from that, else
+  from `price`), the
   Cardmarket trend in PLN (the comparison with fewer shops) and the
   references a good price must also undercut: `past:` the usual price
   (`usual/2`) and `cardmarket:` the Cardmarket trend with shipping in PLN,
@@ -96,9 +101,16 @@ defmodule TcgCheap.Sealed.PriceGuide do
       |> Enum.map(fn {shop, prices} -> %{shop: shop, price: Enum.min(prices, Decimal)} end)
       |> Enum.sort_by(& &1.price, Decimal)
 
+    # A shop's delivery is the same for all its offers, so its lowest item
+    # price is that of its cheapest compared offer.
+    item_prices =
+      in_stock_offers
+      |> Enum.group_by(& &1.shop, &Map.get(&1, :item_price, &1.price))
+      |> Enum.map(fn {_shop, prices} -> Enum.min(prices, Decimal) end)
+
     {typical, source} =
       cond do
-        length(shop_prices) >= @min_shops -> {median(Enum.map(shop_prices, & &1.price)), :shops}
+        length(shop_prices) >= @min_shops -> {median(item_prices), :shops}
         match?(%Decimal{}, cardmarket_price) -> {cardmarket_price, :cardmarket}
         true -> {nil, nil}
       end

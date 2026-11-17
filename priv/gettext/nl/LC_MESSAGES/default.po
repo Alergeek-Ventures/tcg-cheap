@@ -1128,8 +1128,8 @@ msgstr "Een goede prijs ligt minstens 5% onder de gebruikelijke prijs, onder wat
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów)."
-msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke winkel die het product op voorraad heeft, nemen we de goedkoopste aanbieding (we hebben minstens %{minimum} winkels nodig)."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
+msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke winkel die het product op voorraad heeft, nemen we de prijs van het product zelf, zonder verzending (we hebben minstens %{minimum} winkels nodig). De aanbiedingen hieronder tonen een winkel in het buitenland inclusief verzending."
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
 #, elixir-autogen, elixir-format
@@ -3461,8 +3461,8 @@ msgstr "Build & Battle Box"
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:302
 #, elixir-autogen, elixir-format
-msgid "Cena pudełka to jego typowa cena: mediana najniższych cen w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
-msgstr "De prijs van een doos is zijn gebruikelijke prijs: de mediaan van de laagste prijzen bij de winkels die hem hebben. We vergelijken die met de gebruikelijke prijs van een booster uit dezelfde set. Hebben minder dan drie winkels de doos, dan vergelijken we de laagste prijs van de doos met de laagste prijs van de booster."
+msgid "Cena pudełka to jego typowa cena: mediana cen samego pudełka, bez dostawy, w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
+msgstr "De prijs van een doos is zijn gebruikelijke prijs: de mediaan van de prijzen van de doos zelf, zonder verzending, bij de winkels die hem hebben. We vergelijken die met de gebruikelijke prijs van een booster uit dezelfde set. Hebben minder dan drie winkels de doos, dan vergelijken we de laagste prijs van de doos met de laagste prijs van de booster."
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:384
 #, elixir-autogen, elixir-format
@@ -4321,13 +4321,13 @@ msgstr "Cardmarket-trend: %{price} zonder verzending, %{delivered} incl. verzend
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej %{minimum} sklepy)."
-msgstr "De gebruikelijke prijs is de mediaan van de laagste prijzen die bij winkels op voorraad zijn (één prijs per winkel, minstens %{minimum} winkels)."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
+msgstr "De gebruikelijke prijs is de mediaan van de prijzen van het product zelf, zonder verzending, één per winkel die het op voorraad heeft (minstens %{minimum} winkels). De aanbiedingen tonen een winkel in het buitenland inclusief verzending."
 
 #: lib/tcg_cheap_web/page_markdown.ex:438
 #, elixir-autogen, elixir-format
-msgid "Typowa cena w sklepach: %{typical} (mediana z %{count} sklepów)"
-msgstr "Gebruikelijke prijs bij winkels: %{typical} (mediaan van %{count} winkels)"
+msgid "Typowa cena w sklepach: %{typical} (mediana cen produktu bez dostawy z %{count} sklepów)"
+msgstr "Gebruikelijke prijs bij winkels: %{typical} (mediaan van de productprijzen zonder verzending, %{count} winkels)"
 
 #: lib/tcg_cheap_web/page_markdown.ex:333
 #, elixir-autogen, elixir-format

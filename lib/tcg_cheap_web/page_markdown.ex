@@ -39,7 +39,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     [
       prices,
       gettext(
-        "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej %{minimum} sklepy).",
+        "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą.",
         minimum: PriceGuide.min_shops()
       ),
       good_price,
@@ -196,7 +196,7 @@ defmodule TcgCheapWeb.PageMarkdown do
     if rows != [],
       do:
         section("Za co dopłacasz w pudełku – #{set}", [
-          "W pudełkach jednego setu są te same boostery, które kupisz osobno. Reszta ceny to dopłata za dodatki: kartę promo, akcesoria, talię albo samo opakowanie. Cena to typowa cena w sklepach (mediana najniższych cen); gdy pudełko ma mniej niż trzy sklepy – najniższa, i wtedy boostery też liczymy po najniższej cenie.",
+          "W pudełkach jednego setu są te same boostery, które kupisz osobno. Reszta ceny to dopłata za dodatki: kartę promo, akcesoria, talię albo samo opakowanie. Cena to typowa cena w sklepach (mediana cen samego pudełka, bez dostawy); gdy pudełko ma mniej niż trzy sklepy – najniższa, i wtedy boostery też liczymy po najniższej cenie.",
           table(["Pudełko", "Cena", "Te same boostery osobno", "Dopłata"], rows)
         ])
   end
@@ -435,7 +435,8 @@ defmodule TcgCheapWeb.PageMarkdown do
       gettext("Ocena: %{verdict}", verdict: VerdictComponents.verdict_label(verdict)),
       verdict.cheapest && cheapest_offer(verdict.cheapest, page.preorder?),
       verdict.typical_source == :shops &&
-        gettext("Typowa cena w sklepach: %{typical} (mediana z %{count} sklepów)",
+        gettext(
+          "Typowa cena w sklepach: %{typical} (mediana cen produktu bez dostawy z %{count} sklepów)",
           typical: Format.limit_price(verdict.typical),
           count: length(verdict.shop_prices)
         ),

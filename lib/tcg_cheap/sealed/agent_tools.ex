@@ -138,8 +138,9 @@ defmodule TcgCheap.Sealed.AgentTools do
       description """
       One catalogue product by `slug` or `id`: its catalogue data, the public verdict on today's
       market (`status` good/normal/expensive against the median of each in-stock shop's lowest
-      price, cardmarket (only compared with the Cardmarket trend when fewer than 3 shops have
-      stock, no limits), insufficient_data or out_of_stock; cheapest in-stock offer,
+      item price (the product alone, without delivery; the cheapest offer, rated against the
+      limits, counts a shop abroad with delivery), cardmarket (only compared with the Cardmarket
+      trend when fewer than 3 shops have stock, no limits), insufficient_data or out_of_stock; cheapest in-stock offer,
       `shop_prices`, typical price and its source, price limits; good also needs the price at most
       95% of the 30-day usual price and of the Cardmarket trend with shipping when known,
       `good_limits` has each limit), `past`: the same cheapest price against the 30-day history

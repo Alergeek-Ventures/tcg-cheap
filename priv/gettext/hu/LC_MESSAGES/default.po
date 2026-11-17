@@ -1120,8 +1120,8 @@ msgstr "A jó ár legalább 5%-kal alacsonyabb mindháromnál: a jellemző árn�
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:225
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów)."
-msgstr "A jellemző ár a bolti árak középértéke. Minden boltból, ahol raktáron van a termék, a legolcsóbb ajánlatot vesszük figyelembe (legalább %{minimum} bolt kell)."
+msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów). Oferty niżej pokazują sklep z zagranicy razem z dostawą."
+msgstr "A jellemző ár a bolti árak középértéke. Minden boltból, ahol raktáron van a termék, magának a terméknek az árát vesszük figyelembe, szállítás nélkül (legalább %{minimum} bolt kell). Az alábbi ajánlatok a külföldi boltot szállítással együtt mutatják."
 
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:405
 #, elixir-autogen, elixir-format
@@ -3453,8 +3453,8 @@ msgstr "Build & Battle Box"
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:302
 #, elixir-autogen, elixir-format
-msgid "Cena pudełka to jego typowa cena: mediana najniższych cen w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
-msgstr "A doboz ára a jellemző ára: a legalacsonyabb árak középértéke azokban a boltokban, ahol kapható. Ezt vetjük össze ugyanannak a szettnek a jellemző boosterárával. Ha háromnál kevesebb bolt árulja a dobozt, a doboz legalacsonyabb árát vetjük össze a booster legalacsonyabb árával."
+msgid "Cena pudełka to jego typowa cena: mediana cen samego pudełka, bez dostawy, w sklepach, które je mają. Porównujemy ją z typową ceną boostera z tego samego setu. Gdy pudełko ma mniej niż trzy sklepy, porównujemy najniższą cenę pudełka z najniższą ceną boostera."
+msgstr "A doboz ára a jellemző ára: a doboz szállítás nélküli árainak mediánja azokban a boltokban, ahol kapható. Ezt vetjük össze ugyanannak a szettnek a jellemző boosterárával. Ha háromnál kevesebb bolt árulja a dobozt, a doboz legalacsonyabb árát vetjük össze a booster legalacsonyabb árával."
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:384
 #, elixir-autogen, elixir-format
@@ -4313,13 +4313,13 @@ msgstr "Cardmarket-trend: %{price} szállítási díj nélkül, %{delivered} né
 
 #: lib/tcg_cheap_web/page_markdown.ex:41
 #, elixir-autogen, elixir-format
-msgid "Typowa cena to mediana najniższych cen na stanie w sklepach (jedna cena na sklep, co najmniej %{minimum} sklepy)."
-msgstr "A jellemző ár a boltokban raktáron lévő legalacsonyabb árak mediánja (boltonként egy ár, legalább %{minimum} bolt)."
+msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy). Oferty pokazują sklep z zagranicy razem z dostawą."
+msgstr "A jellemző ár magának a terméknek a szállítás nélküli árainak mediánja, boltonként egy ár, azokból a boltokból, ahol raktáron van (legalább %{minimum} bolt). Az ajánlatok a külföldi boltot szállítással együtt mutatják."
 
 #: lib/tcg_cheap_web/page_markdown.ex:438
 #, elixir-autogen, elixir-format
-msgid "Typowa cena w sklepach: %{typical} (mediana z %{count} sklepów)"
-msgstr "Jellemző ár a boltokban: %{typical} (%{count} bolt ára alapján)"
+msgid "Typowa cena w sklepach: %{typical} (mediana cen produktu bez dostawy z %{count} sklepów)"
+msgstr "Jellemző ár a boltokban: %{typical} (a termék szállítás nélküli árainak mediánja, %{count} bolt alapján)"
 
 #: lib/tcg_cheap_web/page_markdown.ex:333
 #, elixir-autogen, elixir-format

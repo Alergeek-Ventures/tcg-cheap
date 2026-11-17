@@ -142,13 +142,23 @@ defmodule TcgCheap.Sealed.Market do
 
   @doc """
   The offers that count in the market's prices (verdicts, lowest prices,
-  history), each `price` its compared price in the market's currency.
+  history), each `price` its compared price in the market's currency and
+  `item_price` the product alone, without delivery (see `compared_offer/3`).
   """
   @spec compared([offer], t(), Date.t()) :: [offer] when offer: offer()
   def compared(offers, market, today) do
-    for {offer, _item, %Decimal{} = compared} <- priced(offers, market, today),
-        do: %{offer | price: compared}
+    for {offer, item, %Decimal{} = compared} <- priced(offers, market, today),
+        do: compared_offer(offer, item, compared)
   end
+
+  @doc """
+  An offer as the market compares it: `price` is its compared price,
+  `item_price` its item price. `PriceGuide.verdict/4` takes the typical price
+  from the item prices and rates the cheapest offer at the compared one.
+  """
+  @spec compared_offer(offer, Decimal.t(), Decimal.t()) :: offer when offer: offer()
+  def compared_offer(offer, item, compared),
+    do: offer |> Map.put(:item_price, item) |> Map.put(:price, compared)
 
   @doc """
   The order value from which a shop's delivery to the market is free, in the
