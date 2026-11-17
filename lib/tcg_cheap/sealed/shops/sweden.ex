@@ -344,8 +344,14 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
         free_shipping_from: nil,
         currency: "HUF"
       },
-      # Its EU delivery page prices singles only; sealed parcels are priced in the checkout.
-      "unicorncards" => %{shipping_from: nil, free_shipping_from: nil, currency: "GBP"},
+      # https://unicorncards.co.uk/international_shipping (2026-11-17): £5.90
+      # for any number of singles, free from £100, VAT and duties prepaid
+      # (IOSS). It prices singles only; the shop is read for its singles alone.
+      "unicorncards" => %{
+        shipping_from: Decimal.new("5.90"),
+        free_shipping_from: Decimal.new("100"),
+        currency: "GBP"
+      },
       # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-17).
       "kartonada" => %{
         shipping_from: Decimal.new("69.99"),
