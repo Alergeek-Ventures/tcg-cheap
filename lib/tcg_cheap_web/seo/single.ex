@@ -9,7 +9,6 @@ defmodule TcgCheapWeb.SEO.Single do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Cards
-  alias TcgCheap.Sealed.Shops
   alias TcgCheapWeb.{Format, Paths, Region, RegionText, SEO, SocialImage, VerdictComponents}
 
   @doc "`page` is `TcgCheap.Cards.Guide.page/4`."
@@ -22,6 +21,7 @@ defmodule TcgCheapWeb.SEO.Single do
     description = description(page, answer, number)
     card_name = "#{card.name} #{number} #{page.expansion_name}"
     short_name = "#{card.name} #{card.number} #{page.expansion_name}"
+    singles? = Region.singles?(Region.current())
 
     SEO.compose(
       # A long name drops the set total ("014/159" → "014") before it drops
@@ -34,23 +34,20 @@ defmodule TcgCheapWeb.SEO.Single do
       ]),
       description,
       canonical,
-      # Matches Cards.Guide.sitemap_cards/0: a card without an offer leaves the
-      # index until one returns. Only Poland's card pages are indexed: the
-      # other regions' stay out of search, with their link previews and
-      # structured data.
-      robots: if(answer && SEO.polish?(), do: "index, follow", else: "noindex, follow"),
+      # Matches Cards.Guide.sitemap_cards/1: a card without an offer leaves the
+      # index until one returns. A region without singles shops has only
+      # Cardmarket's price to show, so its card pages stay out of search, with
+      # the home page's link preview.
+      robots: if(answer && singles?, do: "index, follow", else: "noindex, follow"),
       social_image:
-        if(SEO.polish?(),
+        if(singles?,
           do: SEO.social_image(page.path, SocialImage.Single.version(page)),
           else: SEO.home_image()
         ),
-      social_image_alt: if(SEO.polish?(), do: card_name, else: SEO.home_image_alt()),
+      social_image_alt: if(singles?, do: card_name, else: SEO.home_image_alt()),
       structured_data:
         SEO.json_ld(
-          if(SEO.polish?(),
-            do: List.wrap(product_node(page, answer, description, canonical)),
-            else: []
-          ) ++
+          List.wrap(product_node(page, answer, description, canonical)) ++
             [
               SEO.breadcrumbs([
                 SEO.all_products_crumb(),
@@ -95,16 +92,18 @@ defmodule TcgCheapWeb.SEO.Single do
   defp verdict_sentence(verdict), do: VerdictComponents.single_verdict_label(verdict) <> "."
 
   # Like a sealed product's: only current, in-stock, ungraded offers at their
-  # compared price, and only the answer's variant, so the price range starts at the "od"
+  # compared price in the region's currency (a shop only listed has none), and
+  # only the answer's variant, so the price range starts at the "od"
   # price the description and the page's answer state. Without an answer there's no
   # Product block, as Google requires offers on one.
   defp product_node(_page, nil, _description, _canonical), do: nil
 
   defp product_node(page, answer, description, canonical) do
     offers =
-      page.offers
-      |> Enum.filter(&(&1.in_stock and is_nil(&1.grading) and &1.variant == answer.variant))
-      |> Shops.compared()
+      for offer <- page.offers,
+          offer.in_stock and is_nil(offer.grading) and offer.variant == answer.variant,
+          price = page.compared[offer.id],
+          do: %{offer | price: price}
 
     product = %{
       "@type" => "Product",
@@ -113,7 +112,7 @@ defmodule TcgCheapWeb.SEO.Single do
       "description" => description,
       "url" => canonical,
       "category" => gettext("Karta Pokémon TCG"),
-      "offers" => SEO.aggregate_offer(offers, "PLN", canonical)
+      "offers" => SEO.aggregate_offer(offers, page.market.currency, canonical)
     }
 
     # The card picture the page shows, from our own mirror.

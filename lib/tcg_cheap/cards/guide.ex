@@ -956,7 +956,7 @@ defmodule TcgCheap.Cards.Guide do
 
   @doc """
   How many of an expansion's English cards have an answer on their page in
-  the market (an in-stock, ungraded current offer, as in `sitemap_cards/0`).
+  the market (an in-stock, ungraded current offer, as in `sitemap_cards/1`).
   """
   @spec in_stock_count(integer(), Market.t()) :: non_neg_integer()
   def in_stock_count(expansion_id, %Market{} = market) do
@@ -971,14 +971,15 @@ defmodule TcgCheap.Cards.Guide do
     |> Repo.one()
   end
 
-  # Only Polish cards whose page has an answer: an in-stock, ungraded current
-  # offer, the same rule as page/4. The rest stay reachable but noindex, as
-  # do the card pages of the other regions. Each comes with its expansion,
-  # whose set page lists it.
-  def sitemap_cards do
+  # Only the market's cards whose page has an answer: an in-stock, ungraded
+  # current offer there, the same rule as page/4. The rest stay reachable but
+  # noindex. Each comes with its expansion, whose set page lists it. Paths are
+  # Polish (`Paths.localize/2` gives the region's).
+  @spec sitemap_cards(Market.t()) :: [{integer(), String.t(), String.t()}]
+  def sitemap_cards(%Market{} = market) do
     cards =
       from(c in Card,
-        join: o in subquery(compared_query(Market.poland())),
+        join: o in subquery(compared_query(market)),
         on: o.card_id == c.id and o.in_stock and is_nil(o.grading),
         join: s in Set,
         on: c.tcgdex_set_id == s.id,

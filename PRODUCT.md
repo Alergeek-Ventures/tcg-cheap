@@ -66,7 +66,9 @@ as missing.
   shop selling singles is at home or has a delivery there (shops abroad with
   their delivery, in the region's currency); a region without one gives a
   card's Cardmarket trend in its currency, and its set page opens with the
-  single booster. Card pages are indexed in Poland only.
+  single booster. A card page is indexed, with its sitemap entry and link
+  preview, in every region where shops sell singles and one has the card in
+  stock; the card pages of a region without such shops stay out of search.
 - Text in each language reads as written for its buyers, never as a
   word-for-word translation.
 

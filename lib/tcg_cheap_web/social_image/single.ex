@@ -9,8 +9,8 @@ defmodule TcgCheapWeb.SocialImage.Single do
   alias TcgCheapWeb.{Format, OfferComponents, SocialImage, VerdictComponents}
   alias TcgCheapWeb.SocialImage.{Answer, Picture, Text}
 
-  # Versions hash what a preview draws, as drawn: a price to the złoty or
-  # grosz it shows, not the day's exact conversion, so a preview is drawn
+  # Versions hash what a preview draws, as drawn: a price to the unit of the
+  # currency it shows, not the day's exact conversion, so a preview is drawn
   # again only when it would look different.
 
   @doc "A version of what the preview shows (`TcgCheap.Cards.Guide.page/4`)."
@@ -21,7 +21,7 @@ defmodule TcgCheapWeb.SocialImage.Single do
     price =
       if cheapest,
         do: {Format.price(cheapest.price), cheapest.shop},
-        else: (value = cardmarket_pln(page)) && Format.whole_price(value)
+        else: (value = cardmarket_price(page)) && Format.whole_price(value)
 
     SocialImage.version(
       {page.card.name, page.card.number, page.expansion_name, page.image,
@@ -90,7 +90,7 @@ defmodule TcgCheapWeb.SocialImage.Single do
     badge = if status in [:good, :normal, :expensive, :out_of_stock], do: %{status: status}
 
     {price, line} =
-      case {cheapest, cardmarket_pln(page)} do
+      case {cheapest, cardmarket_price(page)} do
         {%{price: price}, _cardmarket} ->
           {{Format.price(price), 104, :ink},
            gettext("najtaniej teraz w %{shop}", shop: OfferComponents.priced_shop_name(cheapest))}
@@ -105,6 +105,9 @@ defmodule TcgCheapWeb.SocialImage.Single do
     Answer.stack(badge, price, line, [], x, width)
   end
 
-  defp cardmarket_pln(%{price: %{trend: trend}, rate: rate}), do: Market.to_pln(trend, rate)
-  defp cardmarket_pln(_page), do: nil
+  # The Cardmarket trend in the page's market currency.
+  defp cardmarket_price(%{price: %{trend: trend}, rate: rate, market: market}),
+    do: Market.in_market(trend, rate, market)
+
+  defp cardmarket_price(_page), do: nil
 end

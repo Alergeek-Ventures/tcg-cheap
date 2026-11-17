@@ -75,6 +75,12 @@ defmodule TcgCheapWeb.Router do
     get "/media/tcgdex/:hash/:size", RemoteImageController, :show
     get "/img/*path", StoredImageController, :show
     get "/sitemap.xml", CrawlController, :sitemap
+
+    for region <- TcgCheapWeb.Region.all() do
+      get "/sitemap-#{region.code}.xml", CrawlController, :region_sitemap,
+        assigns: %{sitemap_region: region.code}
+    end
+
     get "/robots.txt", CrawlController, :robots
     get "/llms.txt", CrawlController, :llms
 
@@ -116,7 +122,7 @@ defmodule TcgCheapWeb.Router do
 
     # Link-preview cards for crawlers: no session, cookies or HTML. A region's
     # other pages share its home page's card; the cards of sets and cards show
-    # Polish card prices.
+    # the card prices of the region's shops, so only where they sell singles.
     scope "/og/#{code}", TcgCheapWeb do
       pipe_through :"default_language_#{code}"
 
@@ -129,7 +135,7 @@ defmodule TcgCheapWeb.Router do
             if(page == :booster_prices, do: :boosters, else: page)
       end
 
-      if TcgCheapWeb.Region.poland?(region) do
+      if TcgCheapWeb.Region.singles?(region) do
         get "/#{cards}", SocialImageController, :cards
         get "/#{expansions}/:slug", SocialImageController, :expansion
         get "/#{expansions}/:slug/#{cards}/:card_slug", SocialImageController, :card

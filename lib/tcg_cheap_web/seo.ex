@@ -94,10 +94,6 @@ defmodule TcgCheapWeb.SEO do
     end)
   end
 
-  @doc "Whether the current region is Poland, the only one with shop prices for cards."
-  @spec polish?() :: boolean()
-  def polish?, do: Region.poland?(Region.current())
-
   @doc """
   The page's URL in each region that has it, for hreflang; none when only
   one region does. A region that keeps its page out of the index is left

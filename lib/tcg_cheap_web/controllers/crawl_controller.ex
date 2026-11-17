@@ -5,23 +5,46 @@ defmodule TcgCheapWeb.CrawlController do
 
   alias TcgCheap.Cards
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Cache, Catalogue, ProductFacets, Shops, Sitemap, Stock}
+  alias TcgCheap.Sealed.{Cache, Catalogue, Market, ProductFacets, Shops, Sitemap, Stock}
   alias TcgCheap.WebBotAuth
   alias TcgCheapWeb.{Format, PageMarkdown, Paths, Region, SEO}
 
   # Every region's pages: each indexes its home page, card list and set
   # pages alike; a product page where its region's shops have it in stock now
-  # (`TcgCheapWeb.SEO.Product.metadata/1`); the card pages of Poland, the only region
-  # with offers of singles (`TcgCheapWeb.SEO.Single.metadata/1`), and the Polish articles.
-  # The body is a whole-site read that changes with the nightly fetches and
-  # crawlers request it often, so it is shared like the other whole-site reads.
+  # (`TcgCheapWeb.SEO.Product.metadata/1`); the card pages where its region's
+  # shops have the card in stock (`TcgCheapWeb.SEO.Single.metadata/1`), and the
+  # Polish articles. A sitemap file holds at most 50,000 URLs, which the
+  # regions' card pages together exceed, so `/sitemap.xml` is an index of one
+  # sitemap per region.
   def sitemap(conn, _params) do
+    entries =
+      for region <- Region.all() do
+        {"sitemap", [], [{"loc", [], [Paths.url("/sitemap-#{region.code}.xml")]}]}
+      end
+
     conn
     |> put_resp_content_type("application/xml")
-    |> send_resp(200, Cache.fetch(:sitemap, &sitemap_body/0))
+    |> send_resp(200, encode_sitemap("sitemapindex", entries))
   end
 
-  defp sitemap_body do
+  # The bodies are a whole-site read that changes with the nightly fetches and
+  # crawlers request them often, so they are shared like the other whole-site reads.
+  def region_sitemap(%{assigns: %{sitemap_region: code}} = conn, _params) do
+    conn
+    |> put_resp_content_type("application/xml")
+    |> send_resp(200, :sitemap_bodies |> Cache.fetch(&sitemap_bodies/0) |> Map.fetch!(code))
+  end
+
+  defp encode_sitemap(root, entries) do
+    Saxy.encode!(
+      {root, [{"xmlns", "http://www.sitemaps.org/schemas/sitemap/0.9"}], entries},
+      version: "1.0",
+      encoding: "UTF-8"
+    )
+  end
+
+  # Each region's sitemap body, by region code.
+  defp sitemap_bodies do
     %{expansions: expansions, products: products, cards: cards} = listed_pages()
     now = DateTime.utc_now()
 
@@ -36,28 +59,29 @@ defmodule TcgCheapWeb.CrawlController do
     # tells search engines to look again.
     today = Date.utc_today()
 
-    locations =
-      Enum.flat_map(Region.all(), fn region ->
-        products =
-          if Region.poland?(region),
-            do: Enum.map(products, &{&1, product_dates[&1.id]}),
-            else: regional_products(region, now)
+    Map.new(Region.all(), fn region ->
+      products =
+        if Region.poland?(region),
+          do: Enum.map(products, &{&1, product_dates[&1.id]}),
+          else: regional_products(region, now)
 
-        cards = if Region.poland?(region), do: cards, else: []
-        region_locations(region, expansions, products, cards, today)
-      end)
+      cards = if Region.poland?(region), do: cards, else: regional_cards(region)
 
-    entries =
-      for {location, lastmod} <- locations do
-        lastmod = lastmod && {"lastmod", [], [Date.to_iso8601(lastmod)]}
-        {"url", [], [{"loc", [], [location]} | List.wrap(lastmod)]}
-      end
+      entries =
+        for {location, lastmod} <-
+              region_locations(
+                region,
+                regional_expansions(expansions, cards),
+                products,
+                cards,
+                today
+              ) do
+          lastmod = lastmod && {"lastmod", [], [Date.to_iso8601(lastmod)]}
+          {"url", [], [{"loc", [], [location]} | List.wrap(lastmod)]}
+        end
 
-    Saxy.encode!(
-      {"urlset", [{"xmlns", "http://www.sitemaps.org/schemas/sitemap/0.9"}], entries},
-      version: "1.0",
-      encoding: "UTF-8"
-    )
+      {region.code, encode_sitemap("urlset", entries)}
+    end)
   end
 
   defp region_locations(region, expansions, products, cards, today) do
@@ -75,6 +99,22 @@ defmodule TcgCheapWeb.CrawlController do
       Enum.map(cards, fn {_id, _name, path} ->
         {Paths.url(Paths.localize(region, path)), nil}
       end)
+  end
+
+  # The cards a region's shops have in stock, where they sell singles at all
+  # (`TcgCheapWeb.SEO.Single.metadata/1`: a region without singles shops keeps
+  # its card pages out of search).
+  defp regional_cards(region),
+    do: if(Region.singles?(region), do: Cards.Guide.sitemap_cards(region.market), else: [])
+
+  # A set whose cards the region's shops have in stock has its set page listed
+  # there, whether or not the sealed products' list names it.
+  defp regional_expansions(expansions, cards) do
+    cards
+    |> Enum.map(fn {id, name, _path} -> {id, name} end)
+    |> Enum.concat(expansions)
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 
   defp regional_products(region, now) do
@@ -116,7 +156,7 @@ defmodule TcgCheapWeb.CrawlController do
       |> Enum.filter(&MapSet.member?(in_stock, &1.id))
       |> Map.new(&{&1.id, &1.name})
 
-    cards = Cards.Guide.sitemap_cards()
+    cards = Cards.Guide.sitemap_cards(Market.poland())
 
     # A set whose cards are in stock but whose sealed products are not still
     # lists those cards, under the name their paths use.

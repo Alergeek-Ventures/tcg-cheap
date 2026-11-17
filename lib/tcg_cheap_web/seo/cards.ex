@@ -24,15 +24,11 @@ defmodule TcgCheapWeb.SEO.Cards do
       SEO.fit_description(answer(market)),
       canonical,
       social_image:
-        if(market && SEO.polish?(),
+        if(market,
           do: SEO.social_image(Paths.cards(), SocialImage.Cards.version(market)),
           else: SEO.home_image()
         ),
-      social_image_alt:
-        if(market && SEO.polish?(),
-          do: gettext("Ceny kart Pokémon w polskich sklepach"),
-          else: SEO.home_image_alt()
-        ),
+      social_image_alt: if(market, do: RegionText.cards_title(), else: SEO.home_image_alt()),
       alternates: SEO.alternates(:cards),
       robots:
         if(Enum.any?(~w(q rozszerzenie), &Map.has_key?(params, &1)),
