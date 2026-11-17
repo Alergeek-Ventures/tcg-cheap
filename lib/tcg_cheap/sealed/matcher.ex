@@ -31,6 +31,12 @@ defmodule TcgCheap.Sealed.Matcher do
       product's name holds that set name and no other "ex"; such a
       product then counts one token less (`set_ex/2`).
 
+  A title that sets "mega", "ex", "vmax", "vstar" or "gx" beside a Pokémon some
+  product of its kind names so does not match a product that names the Pokémon
+  without it (`form_fits?/2`). A title marked as an edition in another
+  language than the catalogue's ("[FR]", "Español") qualifies with it, so
+  matches no English product.
+
   Among matching products the most specific one (most tokens) wins; a tie is
   ambiguous and stays unmatched, because a wrong match would poison the price
   history. When nothing matches, a title may leave out what names a set's only
@@ -89,6 +95,8 @@ defmodule TcgCheap.Sealed.Matcher do
     {"bojni krov", "battle deck"},
     {"slim pack", "slim"},
     {"world championships deck", "wcd"},
+    {"v star", "vstar"},
+    {"v max", "vmax"},
     {"etb", "elite trainer box"},
     # A common misspelling of the Enhanced Booster Box.
     {"enchanced", "enhanced"},
@@ -203,7 +211,27 @@ defmodule TcgCheap.Sealed.Matcher do
     {"tajski", "thai"},
     {"niemiecki", "german"},
     {"deutsch", "german"},
-    {"francuski", "french"}
+    {"francuski", "french"},
+    # Editions in other languages the catalogue has no products for: a title
+    # saying so names no English product (`@bracketed_edition` has the codes).
+    {"francais", "french"},
+    {"francaise", "french"},
+    {"franzosisch", "french"},
+    {"italiano", "italian"},
+    {"italienisch", "italian"},
+    {"wloski", "italian"},
+    {"espanol", "spanish"},
+    {"espanola", "spanish"},
+    {"spanisch", "spanish"},
+    {"hiszpanski", "spanish"},
+    {"portugues", "portuguese"},
+    {"portuguesa", "portuguese"},
+    {"portugiesisch", "portuguese"},
+    {"portugalski", "portuguese"},
+    {"nederlands", "dutch"},
+    {"nederlandse", "dutch"},
+    {"niederlandisch", "dutch"},
+    {"holenderski", "dutch"}
   ]
 
   @series [
@@ -222,8 +250,14 @@ defmodule TcgCheap.Sealed.Matcher do
                    checklane blister pack sleeved jumbo build battle prerelease deck league figure poster
                    binder pin sticker tech ultra super special illustration deluxe toolkit chest kit stadium
                    enhanced surprise pouch portfolio starter gift calendar slim jp korean chinese sch tch thai
-                   indonesian german french italian spanish)
+                   indonesian german french italian spanish portuguese dutch)
               )
+
+  # Words that make a Pokémon another one: "Mega Dragonite ex Tin" is not the
+  # "Dragonite Tin". A title that puts one beside a Pokémon some product name
+  # puts it beside too must not match a product that names the Pokémon without
+  # it (`form_fits?/2`). Not "v": "sv1V" is a set code.
+  @forms MapSet.new(~w(mega ex vmax vstar gx))
 
   # Kind words a title may leave out of its set's only product of that kind.
   @omissible MapSet.new(~w(blister collection))
@@ -314,6 +348,13 @@ defmodule TcgCheap.Sealed.Matcher do
     "playmat",
     "mata",
     "album",
+    # Other makers' products: building sets, figures.
+    "lego",
+    "mega bloks",
+    "megabloks",
+    "mega construx",
+    "funko",
+    "mattel",
     "binder only",
     "toploader",
     "code card",
@@ -354,6 +395,7 @@ defmodule TcgCheap.Sealed.Matcher do
             by_token: %{},
             known_tokens: MapSet.new(),
             sets: [],
+            form_pairs: %{},
             eans: %{},
             by_id: %{}
 
@@ -388,7 +430,8 @@ defmodule TcgCheap.Sealed.Matcher do
             sch?: sch != [],
             code_tokens: MapSet.new(tokens(code)),
             set_tokens: MapSet.new(tokens(Map.get(product, :set_name) || "")),
-            single?: Map.get(product, :kind) == :booster or single_blister?(name_tokens)
+            single?: Map.get(product, :kind) == :booster or single_blister?(name_tokens),
+            form_pairs: form_pairs(name_tokens)
           }
 
     entries = meet_slim(entries)
@@ -427,6 +470,9 @@ defmodule TcgCheap.Sealed.Matcher do
 
     %__MODULE__{
       entries: entries,
+      form_pairs:
+        for(entry <- entries, pair <- entry.form_pairs, do: {pair, entry})
+        |> Enum.group_by(&elem(&1, 0), &elem(&1, 1)),
       by_rare_token: by_rare_token,
       by_rare_pair: by_rare_pair,
       by_token: by_token(entries),
@@ -540,12 +586,14 @@ defmodule TcgCheap.Sealed.Matcher do
     offer_tokens = offer_tokens(title, index.sets, packs?)
     offer_set = MapSet.new(offer_tokens)
     qualifiers = MapSet.intersection(offer_set, @qualifiers)
+    forms = offer_forms(offer_tokens, qualifiers, packs?, index)
 
     candidates =
       for entry <- index.entries,
           shared = MapSet.size(MapSet.intersection(entry.tokens, offer_set)),
           shared > 0 do
-        {candidate?(entry, offer_set, qualifiers, packs?), shared, entry}
+        {candidate?(entry, offer_set, qualifiers, packs?) and form_fits?(entry, forms), shared,
+         entry}
       end
       |> Enum.sort_by(fn {qualifies?, shared, entry} ->
         {not qualifies?, -shared, entry.size - shared}
@@ -589,19 +637,20 @@ defmodule TcgCheap.Sealed.Matcher do
   defp best(offer_tokens, index, packs?) do
     offer_set = MapSet.new(offer_tokens)
     qualifiers = MapSet.intersection(offer_set, @qualifiers)
+    forms = offer_forms(offer_tokens, qualifiers, packs?, index)
 
     candidates =
       offer_set
       |> Enum.flat_map(&Map.get(index.by_rare_token, &1, []))
       |> Enum.uniq()
-      |> Enum.filter(&candidate?(&1, offer_set, qualifiers, packs?))
+      |> Enum.filter(&(candidate?(&1, offer_set, qualifiers, packs?) and form_fits?(&1, forms)))
 
     # A product counts the name tokens the title names, so one whose set's "ex"
     # the title leaves out (`set_ex/2`) yields to a product named in full.
     named = &MapSet.size(MapSet.intersection(&1.tokens, offer_set))
 
     case Enum.group_by(candidates, named) |> Enum.max_by(&elem(&1, 0), fn -> nil end) do
-      nil -> unique_variant(offer_set, qualifiers, index, packs?)
+      nil -> unique_variant(offer_set, forms, qualifiers, index, packs?)
       {_size, [entry]} -> {:matched, entry.id}
       {_size, _tie} -> :ambiguous
     end
@@ -620,14 +669,17 @@ defmodule TcgCheap.Sealed.Matcher do
   # none of the variant ("Obsidian Flames Checklane Blister") fits as well a
   # product whose variant takes several words or a number ("Paldean Wooper",
   # "Porygon2"), which leaves it ambiguous.
-  defp unique_variant(offer_set, qualifiers, index, packs?) do
+  defp unique_variant(offer_set, forms, qualifiers, index, packs?) do
     offer_set
     |> Enum.flat_map(&Map.get(index.by_rare_pair, &1, []))
     |> Enum.uniq()
-    |> Enum.filter(&fits?(&1, offer_set, qualifiers, index.known_tokens, packs?, :variant))
+    |> Enum.filter(
+      &(fits?(&1, offer_set, qualifiers, index.known_tokens, packs?, :variant) and
+          form_fits?(&1, forms))
+    )
     |> case do
       [entry] ->
-        if lookalike?(entry, offer_set, qualifiers, index, packs?),
+        if lookalike?(entry, offer_set, forms, qualifiers, index, packs?),
           do: :ambiguous,
           else: {:matched, entry.id}
 
@@ -639,7 +691,7 @@ defmodule TcgCheap.Sealed.Matcher do
     end
   end
 
-  defp lookalike?(entry, offer_set, qualifiers, index, packs?) do
+  defp lookalike?(entry, offer_set, forms, qualifiers, index, packs?) do
     names_variant? =
       entry.tokens |> MapSet.intersection(offer_set) |> Enum.any?(&variant_token?(&1, entry))
 
@@ -647,7 +699,9 @@ defmodule TcgCheap.Sealed.Matcher do
       offer_set
       |> lookalike_candidates(index)
       |> Enum.any?(
-        &(&1.id != entry.id and fits?(&1, offer_set, qualifiers, index.known_tokens, packs?, :any))
+        &(&1.id != entry.id and
+            fits?(&1, offer_set, qualifiers, index.known_tokens, packs?, :any) and
+            form_fits?(&1, forms))
       )
   end
 
@@ -734,6 +788,32 @@ defmodule TcgCheap.Sealed.Matcher do
     not (packs? and entry.single?) and
       MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets))
   end
+
+  # The (form, Pokémon) pairs of a token list: "mega" comes before its Pokémon,
+  # the other forms after it ({"mega", "dragonite"}, {"ex", "dragonite"}).
+  defp form_pairs(tokens) do
+    for [a, b] <- Enum.chunk_every(tokens, 2, 1, :discard),
+        pair <- [if(a == "mega", do: {a, b}), if(b in @forms and b != "mega", do: {b, a})],
+        pair != nil,
+        into: MapSet.new(),
+        do: pair
+  end
+
+  # The form pairs a title names that a product of its kind names too: the
+  # Evolutions Elite Trainer Box "(Blastoise)" is the "Mega Blastoise" one,
+  # whatever "Mega Blastoise Pin" blisters exist.
+  defp offer_forms(offer_tokens, qualifiers, packs?, index) do
+    for pair <- form_pairs(offer_tokens),
+        Enum.any?(Map.get(index.form_pairs, pair, []), &kind_fits?(&1, qualifiers, packs?)),
+        do: pair
+  end
+
+  # A product that names the word of a pair without its form is another product.
+  defp form_fits?(entry, offer_forms),
+    do:
+      Enum.all?(offer_forms, fn {form, word} ->
+        form in entry.tokens or word not in entry.tokens
+      end)
 
   # A name's "S-Ch" (or "Simplified Chinese") is not a name token, but such a
   # product has a namesake in another edition ("CSV10.5C: Black Bolt S-Ch
@@ -879,6 +959,19 @@ defmodule TcgCheap.Sealed.Matcher do
   # Dutch or Portuguese word.
   @terminal_german ~r/(?:\s[-–]\s*|\s\()DE\)?\s*\z/u
 
+  # A bracketed language code ("[FR]", "(IT)") marks an edition in that
+  # language; bare "it", "es", "pt" or "nl" are ordinary words, so only the
+  # brackets make the code mean one. "DE" is German, as at a title's end above.
+  @bracketed_edition ~r/[\[(]\s*(fr|it|es|de|pt|nl)\s*[\])]/iu
+  @edition_codes %{
+    "fr" => "french",
+    "it" => "italian",
+    "es" => "spanish",
+    "de" => "deutsch",
+    "pt" => "portuguese",
+    "nl" => "dutch"
+  }
+
   # Slovenian titles repeat the series and set number ("ME - Mega Evolution 6:
   # Delta Reign"); the leading ME and number name no product variant.
   @series_number ~r/(?:\A| )me (?:mega evolution )?\d+ /
@@ -889,6 +982,10 @@ defmodule TcgCheap.Sealed.Matcher do
     normalized =
       text
       |> String.replace(@terminal_german, " deutsch")
+      |> String.replace(@bracketed_edition, fn <<_, rest::binary>> ->
+        code = rest |> String.replace(~r/[^a-z]/iu, "") |> String.downcase()
+        " #{Map.fetch!(@edition_codes, code)} "
+      end)
       |> normalize()
       |> String.replace(@digit_letter, "\\1 \\2")
       |> String.replace(@letter_digit, "\\1 \\2")
