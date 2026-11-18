@@ -12,7 +12,11 @@ defmodule TcgCheap.Sealed.Shop do
     * Shopify: `collection` (the Pokémon collection handle; nil reads the
       whole shop), `excluded_markers` (vendors, product types or tags, each
       compared whole and case-insensitively, that take a product out of the
-      sealed ones: graded cards, discontinued products; nil for none) and
+      sealed ones: graded cards, discontinued products; nil for none),
+      `excluded_phrases` (normalized phrases such as "one piece" or "oppnas
+      live", which take a product out when its title, handle or description contains them
+      as whole words: other games, packs opened live on stream; nil for none)
+      and
       `singles_markers` (the same kind of values; a shop with them reads its
       whole list for singles, and a product is a single when it says Pokémon
       in its title or vendor and carries one of them; nil to read
@@ -99,6 +103,7 @@ defmodule TcgCheap.Sealed.Shop do
                 :product_path,
                 :collection,
                 :excluded_markers,
+                :excluded_phrases,
                 :singles_markers,
                 :feed_path,
                 :feed_host,
@@ -134,6 +139,7 @@ defmodule TcgCheap.Sealed.Shop do
           product_path: Regex.t() | nil,
           collection: String.t() | nil,
           excluded_markers: [String.t()] | nil,
+          excluded_phrases: [String.t()] | nil,
           singles_markers: [String.t()] | nil,
           feed_path: String.t() | nil,
           feed_host: String.t() | nil,

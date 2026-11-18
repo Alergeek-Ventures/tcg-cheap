@@ -13,8 +13,9 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
   Price and availability are per variant, so each variant is one offer. A
   product counts as sealed when its title names a sealed product
   (`TcgCheap.Sealed.Matcher.sealed_title?/1`), none of the shop's
-  `excluded_markers` is its vendor, product type or tag and, when the whole
-  shop is read, its title or vendor also says Pokémon (`mixed_listing: false`
+  `excluded_markers` is its vendor, product type or tag, none of its
+  `excluded_phrases` is in its title, handle or description and, when the whole shop is
+  read, its title or vendor also says Pokémon (`mixed_listing: false`
   declares a shop that sells only Pokémon, so nothing has to say it). Product
   URLs are built from the validated handle; images (the variant's own, else
   the product's) may come from the shop's host or Shopify's CDN; EANs come
@@ -235,8 +236,23 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
   defp with_kind(offer, :single), do: Map.merge(offer, %{kind: :single, category: nil})
 
   defp sealed?(shop, product, title) do
-    not marked?(product, shop.excluded_markers) and Matcher.sealed_title?(title) and
+    not marked?(product, shop.excluded_markers) and
+      not phrased?(product, shop.excluded_phrases) and Matcher.sealed_title?(title) and
       (pokemon_only?(shop) or pokemon?(product))
+  end
+
+  # The normalized title, handle or description ("...-oppnas-live" reads
+  # "... oppnas live") holds a phrase as whole words.
+  defp phrased?(_product, nil), do: false
+
+  defp phrased?(product, phrases) do
+    texts =
+      for key <- ["title", "handle", "body_html"],
+          text = product[key],
+          is_binary(text),
+          do: " " <> Matcher.normalize(text) <> " "
+
+    Enum.any?(phrases, fn phrase -> Enum.any?(texts, &String.contains?(&1, " #{phrase} ")) end)
   end
 
   # A collection lists only Pokémon, and so does the whole list of a shop
