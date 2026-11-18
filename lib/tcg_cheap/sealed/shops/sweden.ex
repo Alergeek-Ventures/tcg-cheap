@@ -232,6 +232,21 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       name: "CardValley",
       host: "cardvalley.se",
       source: Shopify,
+      # Its titles do not say Pokémon (nor do all handles), but it also sells
+      # One Piece, Lorcana and Match Attax, and packs opened live on stream
+      # (marked "öppnas live" in the title or handle, or "LIVE-ÖPPNING" in the
+      # description) that are not shipped sealed. Its mystery boxes hold random
+      # products.
+      mixed_listing: false,
+      excluded_phrases: [
+        "one piece",
+        "lorcana",
+        "match attax",
+        "oppnas live",
+        "live oppning",
+        "liveoppning",
+        "mystery box"
+      ],
       currency: "SEK",
       country: "SE",
       max_pages: 2,
