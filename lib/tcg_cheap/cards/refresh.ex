@@ -49,6 +49,7 @@ defmodule TcgCheap.Cards.Refresh do
               :price,
               :shop_price,
               :currency,
+              :market_prices,
               :in_stock
             ])
             |> Map.merge(Map.take(Matcher.parse(&1), [:language, :condition, :grading]))

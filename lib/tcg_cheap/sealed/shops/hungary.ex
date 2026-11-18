@@ -206,7 +206,8 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
       "gemipulls" => %{
         shipping_from: Decimal.new("229"),
         free_shipping_from: nil,
-        currency: "DKK"
+        currency: "DKK",
+        price_currency: "HUF"
       },
       "godofcards" => %{
         shipping_from: Decimal.new("11.45"),
@@ -243,7 +244,8 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
       "tcgking" => %{
         shipping_from: Decimal.new("10.95"),
         free_shipping_from: Decimal.new("100"),
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "HUF"
       },
       "unicorncards" => %{
         shipping_from: Decimal.new("5.90"),
