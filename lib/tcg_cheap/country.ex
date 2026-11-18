@@ -34,7 +34,7 @@ defmodule TcgCheap.Country do
       visitors the root sends to this region rather than to Poland's;
     * `whole_prices_from` (optional) – the amount from which prices are
       written in whole units though smaller ones keep their `decimals`
-      (Sweden: "999 kr", but a cheap card's "3,50 kr").
+      (Sweden: "999 kr" and "8 kr", but a cheap card's "3,50 kr").
   """
   @type region :: %{
           optional(:visitors_from) => [String.t()],

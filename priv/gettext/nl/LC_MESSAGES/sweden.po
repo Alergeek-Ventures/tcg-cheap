@@ -161,12 +161,12 @@ msgstr "Prijzen van Pokémon TCG-kaarten in Zweden"
 msgid "Najtańsze karty Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji."
 msgstr "De goedkoopste Pokémon TCG-kaarten bij Zweedse winkels en winkels die naar Zweden verzenden."
 
-#: lib/tcg_cheap/countries/sweden.ex:137
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji."
-msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke Zweedse winkel die de kaart op voorraad heeft, nemen we de goedkoopste aanbieding (we hebben minstens %{minimum} winkels nodig). Een goede prijs ligt minstens 5% onder de gebruikelijke prijs en onder Cardmarket incl. verzending. Normaal is hooguit 10% boven de gebruikelijke prijs. Hoger is duur. Prijzen van Zweedse winkels zijn zonder verzending, die van buitenlandse winkels incl. verzending naar Zweden."
-
 #: lib/tcg_cheap/countries/sweden.ex:152
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Szwecji"
 msgstr "incl. verzending naar Zweden"
+
+#: lib/tcg_cheap/countries/sweden.ex:137
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji."
+msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke Zweedse winkel die de kaart op voorraad heeft, nemen we de goedkoopste aanbieding (we hebben minstens %{shops} nodig). Een goede prijs ligt minstens 5% onder de gebruikelijke prijs en onder Cardmarket incl. verzending. Normaal is hooguit 10% boven de gebruikelijke prijs. Hoger is duur. Prijzen van Zweedse winkels zijn zonder verzending, die van buitenlandse winkels incl. verzending naar Zweden."

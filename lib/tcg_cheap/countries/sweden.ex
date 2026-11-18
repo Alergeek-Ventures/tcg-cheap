@@ -26,7 +26,8 @@ defmodule TcgCheap.Countries.Sweden do
       currency_symbol: "kr",
       # Shops price in whole kronor ("1 099 kr") and Sweden has no öre coins,
       # so prices are written in whole kronor; only amounts under 10 kr, as
-      # cheap cards' converted trends, keep öre.
+      # cheap cards' converted trends, keep öre – and only when they have any
+      # ("8 kr", "3,50 kr").
       decimals: 2,
       whole_prices_from: Decimal.new(10),
       language: "sv",
@@ -132,12 +133,12 @@ defmodule TcgCheap.Countries.Sweden do
   def card_unavailable_note, do: dgettext("sweden", "Brak na stanie w szwedzkich sklepach")
 
   @impl TcgCheapWeb.RegionText
-  def card_method(minimum),
+  def card_method(shops),
     do:
       dgettext(
         "sweden",
-        "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji.",
-        minimum: minimum
+        "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji.",
+        shops: shops
       )
 
   @impl TcgCheapWeb.RegionText

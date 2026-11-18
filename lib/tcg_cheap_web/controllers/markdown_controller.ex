@@ -40,15 +40,37 @@ defmodule TcgCheapWeb.MarkdownController do
     send_markdown(conn, seo, PageMarkdown.products(seo, summaries, DateTime.to_date(now)))
   end
 
-  # The card list's first page, as the HTML opens without a search.
-  def cards(conn, _params) do
+  # The card list's first page, as the HTML opens it: without a search, and
+  # in the chosen expansion's cards when `rozszerzenie` names one.
+  def cards(conn, params) do
     region = conn.assigns.region
-    market = if Region.singles?(region), do: Cards.SinglesBanner.market(region.market)
-    %{available: {cards, _more?, _count}} = Cards.Guide.discovery(region.market)
-    seo = SEO.Cards.metadata(%{}, market)
 
+    case expansion_param(params) do
+      nil ->
+        market = if Region.singles?(region), do: Cards.SinglesBanner.market(region.market)
+        %{available: {cards, _more?, _count}} = Cards.Guide.discovery(region.market)
+        send_cards(conn, market, cards)
+
+      expansion ->
+        filters = %{query: "", expansion: expansion, stock: :in}
+        {cards, _more?, _count} = Cards.Guide.browse(filters, 0, region.market)
+        send_cards(conn, nil, cards)
+    end
+  end
+
+  defp send_cards(conn, market, cards) do
+    seo = SEO.Cards.metadata(%{}, market)
     send_markdown(conn, seo, PageMarkdown.cards(seo, cards, Date.utc_today()))
   end
+
+  defp expansion_param(%{"rozszerzenie" => id}) when is_binary(id) do
+    case Paths.expansion_id_param(id) do
+      {:ok, expansion} -> expansion
+      :error -> nil
+    end
+  end
+
+  defp expansion_param(_params), do: nil
 
   def booster_prices(conn, _params) do
     page = BoosterGuide.guide()

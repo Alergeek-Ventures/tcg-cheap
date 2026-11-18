@@ -114,12 +114,12 @@ defmodule TcgCheap.Countries.Hungary do
   def card_unavailable_note, do: dgettext("hungary", "Brak na stanie w węgierskich sklepach")
 
   @impl TcgCheapWeb.RegionText
-  def card_method(minimum),
+  def card_method(shops),
     do:
       dgettext(
         "hungary",
-        "Typowa cena to środek stawki: z każdego węgierskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny węgierskich sklepów są bez dostawy, zagranicznych – z wysyłką na Węgry.",
-        minimum: minimum
+        "Typowa cena to środek stawki: z każdego węgierskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny węgierskich sklepów są bez dostawy, zagranicznych – z wysyłką na Węgry.",
+        shops: shops
       )
 
   @impl TcgCheapWeb.RegionText

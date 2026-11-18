@@ -160,12 +160,12 @@ msgstr "Preços das cartas Pokémon TCG na Chéquia"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Czech."
 msgstr "As cartas Pokémon TCG mais baratas em lojas que enviam para a Chéquia."
 
-#: lib/tcg_cheap/countries/czechia.ex:120
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego czeskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny czeskich sklepów są bez dostawy, zagranicznych – z wysyłką do Czech."
-msgstr "O preço típico é o valor central: de cada loja checa que tenha a carta em stock, tomamos a oferta mais barata (precisamos de, pelo menos, %{minimum} lojas). Um bom preço é, pelo menos, 5 % inferior ao preço típico e ao do Cardmarket com envio. Normal é, no máximo, 10 % acima do típico. Acima disso, é caro. Os preços das lojas checas não incluem portes; os das lojas estrangeiras incluem envio para a Chéquia."
-
 #: lib/tcg_cheap/countries/czechia.ex:135
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Czech"
 msgstr "com envio para a Chéquia"
+
+#: lib/tcg_cheap/countries/czechia.ex:120
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego czeskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny czeskich sklepów są bez dostawy, zagranicznych – z wysyłką do Czech."
+msgstr "O preço típico é o valor central: de cada loja checa que tenha a carta em stock, tomamos a oferta mais barata (precisamos de, pelo menos, %{shops}). Um bom preço é, pelo menos, 5 % inferior ao preço típico e ao do Cardmarket com envio. Normal é, no máximo, 10 % acima do típico. Acima disso, é caro. Os preços das lojas checas não incluem portes; os das lojas estrangeiras incluem envio para a Chéquia."

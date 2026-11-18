@@ -115,12 +115,12 @@ defmodule TcgCheap.Countries.Czechia do
   def card_unavailable_note, do: dgettext("czechia", "Brak na stanie w czeskich sklepach")
 
   @impl TcgCheapWeb.RegionText
-  def card_method(minimum),
+  def card_method(shops),
     do:
       dgettext(
         "czechia",
-        "Typowa cena to środek stawki: z każdego czeskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny czeskich sklepów są bez dostawy, zagranicznych – z wysyłką do Czech.",
-        minimum: minimum
+        "Typowa cena to środek stawki: z każdego czeskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny czeskich sklepów są bez dostawy, zagranicznych – z wysyłką do Czech.",
+        shops: shops
       )
 
   @impl TcgCheapWeb.RegionText

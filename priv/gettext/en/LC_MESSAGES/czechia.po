@@ -153,12 +153,12 @@ msgstr "Pokémon TCG card prices in Czechia"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Czech."
 msgstr "The cheapest Pokémon TCG cards in shops delivering to Czechia."
 
-#: lib/tcg_cheap/countries/czechia.ex:120
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego czeskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny czeskich sklepów są bez dostawy, zagranicznych – z wysyłką do Czech."
-msgstr "The typical price is the middle of the pack: from each Czech shop that has the card in stock we take the cheapest offer (we need at least %{minimum} shops). A good price is at least 5% below the typical one and below Cardmarket including delivery. Normal is at most 10% above typical. Higher is expensive. Czech shops' prices exclude delivery; prices of shops abroad include delivery to Czechia."
-
 #: lib/tcg_cheap/countries/czechia.ex:135
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Czech"
 msgstr "including delivery to Czechia"
+
+#: lib/tcg_cheap/countries/czechia.ex:120
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego czeskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny czeskich sklepów są bez dostawy, zagranicznych – z wysyłką do Czech."
+msgstr "The typical price is the middle of the pack: from each Czech shop that has the card in stock we take the cheapest offer (we need at least %{shops}). A good price is at least 5% below the typical one and below Cardmarket including delivery. Normal is at most 10% above typical. Higher is expensive. Czech shops' prices exclude delivery; prices of shops abroad include delivery to Czechia."

@@ -6,7 +6,7 @@ defmodule TcgCheapWeb.SocialImage.Single do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.Market
-  alias TcgCheapWeb.{Format, OfferComponents, SocialImage, VerdictComponents}
+  alias TcgCheapWeb.{Format, OfferComponents, Region, SocialImage, VerdictComponents}
   alias TcgCheapWeb.SocialImage.{Answer, Picture, Text}
 
   # Versions hash what a preview draws, as drawn: a price to the unit of the
@@ -21,7 +21,7 @@ defmodule TcgCheapWeb.SocialImage.Single do
     price =
       if cheapest,
         do: {Format.price(cheapest.price), cheapest.shop},
-        else: (value = cardmarket_price(page)) && Format.whole_price(value)
+        else: (answer = cardmarket_answer(page)) && elem(answer, 0)
 
     SocialImage.version(
       {page.card.name, page.card.number, page.expansion_name, page.image,
@@ -90,19 +90,35 @@ defmodule TcgCheapWeb.SocialImage.Single do
     badge = if status in [:good, :normal, :expensive, :out_of_stock], do: %{status: status}
 
     {price, line} =
-      case {cheapest, cardmarket_price(page)} do
+      case {cheapest, cardmarket_answer(page)} do
         {%{price: price}, _cardmarket} ->
           {{Format.price(price), 104, :ink},
            gettext("najtaniej teraz w %{shop}", shop: OfferComponents.priced_shop_name(cheapest))}
 
-        {nil, %Decimal{} = value} ->
-          {{Format.whole_price(value), 68, :muted}, gettext("cena na Cardmarket")}
+        {nil, {value, label}} ->
+          {{value, 68, :muted}, label}
 
         {nil, nil} ->
           {nil, gettext("Teraz żaden sklep nie ma tej karty na stanie.")}
       end
 
     Answer.stack(badge, price, line, [], x, width)
+  end
+
+  # What the page answers for a card no shop has: where shops sell singles,
+  # the Cardmarket price with delivery that is its headline; elsewhere the
+  # trend. Both are the amount and its label as the page writes them.
+  defp cardmarket_answer(page) do
+    if Region.singles?(Region.current()) do
+      with %Decimal{} = reference <- answer_row(page).reference do
+        {Format.limit_price(reference),
+         gettext("na Cardmarket z wysyłką · wszystkie języki i stany kart")}
+      end
+    else
+      with %Decimal{} = value <- cardmarket_price(page) do
+        {Format.whole_price(value), gettext("cena na Cardmarket")}
+      end
+    end
   end
 
   # The Cardmarket trend in the page's market currency.

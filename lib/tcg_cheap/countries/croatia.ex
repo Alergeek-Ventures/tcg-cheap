@@ -116,12 +116,12 @@ defmodule TcgCheap.Countries.Croatia do
   def card_unavailable_note, do: dgettext("croatia", "Brak na stanie w chorwackich sklepach")
 
   @impl TcgCheapWeb.RegionText
-  def card_method(minimum),
+  def card_method(shops),
     do:
       dgettext(
         "croatia",
-        "Typowa cena to środek stawki: z każdego chorwackiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny chorwackich sklepów są bez dostawy, zagranicznych – z wysyłką do Chorwacji.",
-        minimum: minimum
+        "Typowa cena to środek stawki: z każdego chorwackiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny chorwackich sklepów są bez dostawy, zagranicznych – z wysyłką do Chorwacji.",
+        shops: shops
       )
 
   @impl TcgCheapWeb.RegionText

@@ -161,12 +161,12 @@ msgstr "Pokémon TCG kártyaárak Svédországban"
 msgid "Najtańsze karty Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji."
 msgstr "A legolcsóbb Pokémon TCG kártyák a svéd és a Svédországba szállító boltokban."
 
-#: lib/tcg_cheap/countries/sweden.ex:137
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji."
-msgstr "A jellemző ár a bolti árak középértéke: minden svéd boltból, ahol raktáron van a kártya, a legolcsóbb ajánlatot vesszük (legalább %{minimum} bolt kell). A jó ár legalább 5%-kal alacsonyabb a jellemző árnál és a szállítással számolt Cardmarket-árnál. Az átlagos ár legfeljebb 10%-kal magasabb a jellemző árnál. Efölött drága. A svéd boltok árai szállítási díj nélkül értendők, a külföldieké Svédországba szállítással."
-
 #: lib/tcg_cheap/countries/sweden.ex:152
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Szwecji"
 msgstr "Svédországba szállítással"
+
+#: lib/tcg_cheap/countries/sweden.ex:137
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji."
+msgstr "A jellemző ár a bolti árak középértéke: minden svéd boltból, ahol raktáron van a kártya, a legolcsóbb ajánlatot vesszük (legalább %{shops} kell). A jó ár legalább 5%-kal alacsonyabb a jellemző árnál és a szállítással számolt Cardmarket-árnál. Az átlagos ár legfeljebb 10%-kal magasabb a jellemző árnál. Efölött drága. A svéd boltok árai szállítási díj nélkül értendők, a külföldieké Svédországba szállítással."

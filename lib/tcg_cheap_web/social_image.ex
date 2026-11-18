@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.SocialImage do
   """
 
   # Bump when the layout changes, so stored and cached cards are replaced.
-  @design 6
+  @design 7
 
   @width 1200
   @height 630

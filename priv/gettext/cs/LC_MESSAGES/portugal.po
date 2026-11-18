@@ -154,12 +154,12 @@ msgstr "Ceny karet Pokémon TCG v Portugalsku"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Portugalii."
 msgstr "Nejlevnější karty Pokémon TCG v obchodech s dopravou do Portugalska."
 
-#: lib/tcg_cheap/countries/portugal.ex:121
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
-msgstr "Typická cena je střed: z každého portugalského obchodu, který má kartu skladem, vezmeme nejlevnější nabídku (potřebujeme alespoň %{minimum} obchodů). Dobrá cena je alespoň o 5 % nižší než typická i než Cardmarket s dopravou. Běžná – nejvýše o 10 % vyšší než typická. Vyšší – draho. Ceny portugalských obchodů jsou bez dopravy, zahraničních – s dopravou do Portugalska."
-
 #: lib/tcg_cheap/countries/portugal.ex:136
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Portugalii"
 msgstr "s dopravou do Portugalska"
+
+#: lib/tcg_cheap/countries/portugal.ex:121
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
+msgstr "Typická cena je střed: z každého portugalského obchodu, který má kartu skladem, vezmeme nejlevnější nabídku (potřebujeme alespoň %{shops}). Dobrá cena je alespoň o 5 % nižší než typická i než Cardmarket s dopravou. Běžná – nejvýše o 10 % vyšší než typická. Vyšší – draho. Ceny portugalských obchodů jsou bez dopravy, zahraničních – s dopravou do Portugalska."

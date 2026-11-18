@@ -160,12 +160,12 @@ msgstr "Preços das cartas Pokémon TCG na Croácia"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Chorwacji."
 msgstr "As cartas Pokémon TCG mais baratas em lojas que enviam para a Croácia."
 
-#: lib/tcg_cheap/countries/croatia.ex:121
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego chorwackiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny chorwackich sklepów są bez dostawy, zagranicznych – z wysyłką do Chorwacji."
-msgstr "O preço típico é o valor central: de cada loja croata que tenha a carta em stock, tomamos a oferta mais barata (precisamos de, pelo menos, %{minimum} lojas). Um bom preço é, pelo menos, 5 % inferior ao preço típico e ao do Cardmarket com envio. Normal é, no máximo, 10 % acima do típico. Acima disso, é caro. Os preços das lojas croatas não incluem portes; os das lojas estrangeiras incluem envio para a Croácia."
-
 #: lib/tcg_cheap/countries/croatia.ex:136
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Chorwacji"
 msgstr "com envio para a Croácia"
+
+#: lib/tcg_cheap/countries/croatia.ex:121
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego chorwackiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny chorwackich sklepów są bez dostawy, zagranicznych – z wysyłką do Chorwacji."
+msgstr "O preço típico é o valor central: de cada loja croata que tenha a carta em stock, tomamos a oferta mais barata (precisamos de, pelo menos, %{shops}). Um bom preço é, pelo menos, 5 % inferior ao preço típico e ao do Cardmarket com envio. Normal é, no máximo, 10 % acima do típico. Acima disso, é caro. Os preços das lojas croatas não incluem portes; os das lojas estrangeiras incluem envio para a Croácia."

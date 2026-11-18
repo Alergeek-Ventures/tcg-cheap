@@ -161,12 +161,12 @@ msgstr "Priser på Pokémon TCG-kort i Tjeckien"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Czech."
 msgstr "De billigaste Pokémon TCG-korten i butiker som skickar till Tjeckien."
 
-#: lib/tcg_cheap/countries/czechia.ex:120
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego czeskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny czeskich sklepów są bez dostawy, zagranicznych – z wysyłką do Czech."
-msgstr "Typiskt pris är medianen: från varje tjeckisk butik som har kortet i lager tar vi det billigaste erbjudandet (minst %{minimum} butiker krävs). Ett bra pris ligger minst 5% under det typiska priset och under Cardmarket med frakt. Normalt är högst 10% över det typiska. Högre än så är dyrt. Tjeckiska butikers priser är utan frakt, utländska butikers med frakt till Tjeckien."
-
 #: lib/tcg_cheap/countries/czechia.ex:135
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Czech"
 msgstr "med frakt till Tjeckien"
+
+#: lib/tcg_cheap/countries/czechia.ex:120
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego czeskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny czeskich sklepów są bez dostawy, zagranicznych – z wysyłką do Czech."
+msgstr "Typiskt pris är medianen: från varje tjeckisk butik som har kortet i lager tar vi det billigaste erbjudandet (minst %{shops} krävs). Ett bra pris ligger minst 5% under det typiska priset och under Cardmarket med frakt. Normalt är högst 10% över det typiska. Högre än så är dyrt. Tjeckiska butikers priser är utan frakt, utländska butikers med frakt till Tjeckien."

@@ -161,12 +161,12 @@ msgstr "Prijzen van Pokémon TCG-kaarten in Nederland"
 msgid "Najtańsze karty Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii."
 msgstr "De goedkoopste Pokémon TCG-kaarten bij Nederlandse winkels en winkels die naar Nederland verzenden."
 
-#: lib/tcg_cheap/countries/netherlands.ex:134
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego holenderskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny holenderskich sklepów są bez dostawy, zagranicznych – z wysyłką do Holandii."
-msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke Nederlandse winkel die de kaart op voorraad heeft, nemen we de goedkoopste aanbieding (we hebben minstens %{minimum} winkels nodig). Een goede prijs ligt minstens 5% onder de gebruikelijke prijs en onder Cardmarket incl. verzending. Normaal is hooguit 10% boven de gebruikelijke prijs. Hoger is duur. Prijzen van Nederlandse winkels zijn zonder verzending, die van buitenlandse winkels incl. verzending naar Nederland."
-
 #: lib/tcg_cheap/countries/netherlands.ex:149
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Holandii"
 msgstr "incl. verzending naar Nederland"
+
+#: lib/tcg_cheap/countries/netherlands.ex:134
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego holenderskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny holenderskich sklepów są bez dostawy, zagranicznych – z wysyłką do Holandii."
+msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke Nederlandse winkel die de kaart op voorraad heeft, nemen we de goedkoopste aanbieding (we hebben minstens %{shops} nodig). Een goede prijs ligt minstens 5% onder de gebruikelijke prijs en onder Cardmarket incl. verzending. Normaal is hooguit 10% boven de gebruikelijke prijs. Hoger is duur. Prijzen van Nederlandse winkels zijn zonder verzending, die van buitenlandse winkels incl. verzending naar Nederland."

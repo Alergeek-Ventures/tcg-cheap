@@ -161,12 +161,12 @@ msgstr "Prijzen van Pokémon TCG-kaarten in Hongarije"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających na Węgry."
 msgstr "De goedkoopste Pokémon TCG-kaarten bij winkels die naar Hongarije verzenden."
 
-#: lib/tcg_cheap/countries/hungary.ex:119
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego węgierskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny węgierskich sklepów są bez dostawy, zagranicznych – z wysyłką na Węgry."
-msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke Hongaarse winkel die de kaart op voorraad heeft, nemen we de goedkoopste aanbieding (we hebben minstens %{minimum} winkels nodig). Een goede prijs ligt minstens 5% onder de gebruikelijke prijs en onder Cardmarket incl. verzending. Normaal is hooguit 10% boven de gebruikelijke prijs. Hoger is duur. Prijzen van Hongaarse winkels zijn zonder verzending, die van buitenlandse winkels incl. verzending naar Hongarije."
-
 #: lib/tcg_cheap/countries/hungary.ex:134
 #, elixir-autogen, elixir-format
 msgid "z wysyłką na Węgry"
 msgstr "incl. verzending naar Hongarije"
+
+#: lib/tcg_cheap/countries/hungary.ex:119
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego węgierskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny węgierskich sklepów są bez dostawy, zagranicznych – z wysyłką na Węgry."
+msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke Hongaarse winkel die de kaart op voorraad heeft, nemen we de goedkoopste aanbieding (we hebben minstens %{shops} nodig). Een goede prijs ligt minstens 5% onder de gebruikelijke prijs en onder Cardmarket incl. verzending. Normaal is hooguit 10% boven de gebruikelijke prijs. Hoger is duur. Prijzen van Hongaarse winkels zijn zonder verzending, die van buitenlandse winkels incl. verzending naar Hongarije."

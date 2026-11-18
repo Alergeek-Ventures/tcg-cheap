@@ -681,10 +681,11 @@ defmodule TcgCheapWeb.PageMarkdown do
             "Tego setu nikt jeszcze nie policzył: to szanse z wcześniejszego setu (%{set}), niezweryfikowane dla tego.",
             set: pull_rates.borrowed_from
           ),
-        gettext("To szacunki społeczności, sprawdzone %{date}. Źródła: %{sources}",
-          date: Format.date(pull_rates.checked_on),
-          sources: Enum.map_join(pull_rates.sources, ", ", & &1.url)
-        )
+        # The sources go in after the doubled full stop is mended: a URL may hold "..".
+        "To szacunki społeczności, sprawdzone %{date}. Źródła: %{sources}"
+        |> gettext(date: Format.date(pull_rates.checked_on), sources: "%{sources}")
+        |> Format.sentence()
+        |> String.replace("%{sources}", Enum.map_join(pull_rates.sources, ", ", & &1.url))
       ]
 
     rows =

@@ -337,7 +337,7 @@ defmodule TcgCheapWeb.SingleLive do
                     )}
                   </p>
                   <p :if={@primary.reference}>
-                    {reference_line(@page.price, @primary.variant)} = {Format.whole_price(
+                    {reference_line(@page.price, @primary.variant)} = {Format.limit_price(
                       @primary.reference
                     )}.
                   </p>

@@ -13,7 +13,9 @@ defmodule TcgCheapWeb.SocialImage.Text do
   @min_title 40
   @title_sizes [72, 64, 56, 50, 44, @min_title]
   @xml_forbidden ~r/[\x00-\x08\x0B\x0C\x0E-\x1F]/u
-  @spaces ~r/\s+/u
+  # Whitespace but the no-break space, which keeps a number with its currency
+  # ("2 106 Kč") on one line; `escape/1` draws it as a plain space.
+  @spaces ~r/[^\S\x{00A0}]+/u
 
   @type font :: :display | :mono
   @type anchor :: String.t()
@@ -42,7 +44,12 @@ defmodule TcgCheapWeb.SocialImage.Text do
   @doc "The text as SVG character data."
   @spec escape(String.t()) :: String.t()
   def escape(text),
-    do: text |> normalize() |> Phoenix.HTML.html_escape() |> Phoenix.HTML.safe_to_string()
+    do:
+      text
+      |> normalize()
+      |> String.replace("\u00A0", " ")
+      |> Phoenix.HTML.html_escape()
+      |> Phoenix.HTML.safe_to_string()
 
   @doc """
   The text's width: advance widths in em. Azeret Mono is monospaced; Barlow
@@ -167,7 +174,8 @@ defmodule TcgCheapWeb.SocialImage.Text do
 
   @doc """
   Greedy lines, at most `max_lines`; a line that does not fit, or the last
-  one when text is left over, ends in an ellipsis.
+  one when text is left over, ends in an ellipsis after its last whole word
+  that fits.
   """
   @spec wrap(String.t(), number(), font(), number(), pos_integer()) :: [String.t()]
   def wrap(text, size, font, width, max_lines) do
@@ -183,8 +191,9 @@ defmodule TcgCheapWeb.SocialImage.Text do
     end
   end
 
-  # The longest start of the line that fits with an ellipsis; a line that
-  # fits as it is stays unless the ellipsis is forced.
+  # The longest run of whole words that fits with an ellipsis (a single word
+  # longer than the line is cut inside); a line that fits as it is stays
+  # unless the ellipsis is forced.
   defp ellipsize(line, size, font, width, forced? \\ true)
 
   defp ellipsize(line, size, font, width, false) do
@@ -194,10 +203,24 @@ defmodule TcgCheapWeb.SocialImage.Text do
   end
 
   defp ellipsize(line, size, font, width, true) do
+    fits? = &(measure(&1 <> "…", size, font) <= width)
+
+    words =
+      line
+      |> String.split(" ")
+      |> Enum.scan(&(&2 <> " " <> &1))
+
+    case words |> Enum.take_while(fits?) |> List.last() do
+      nil -> cut_word(line, fits?)
+      kept -> String.replace(kept, ~r/[\s,;:·–-]+$/u, "") <> "…"
+    end
+  end
+
+  defp cut_word(line, fits?) do
     line
     |> String.graphemes()
     |> Enum.scan(&(&2 <> &1))
-    |> Enum.take_while(&(measure(&1 <> "…", size, font) <= width))
+    |> Enum.take_while(fits?)
     |> List.last("")
     |> String.trim_trailing()
     |> Kernel.<>("…")

@@ -162,12 +162,12 @@ msgstr "Cene kart Pokémon TCG na Švedskem"
 msgid "Najtańsze karty Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji."
 msgstr "Najcenejše karte Pokémon TCG v švedskih trgovinah in v trgovinah z dostavo na Švedsko."
 
-#: lib/tcg_cheap/countries/sweden.ex:137
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji."
-msgstr "Tipična cena je sredina ponudb: iz vsake švedske trgovine, ki ima karto na zalogi, vzamemo najcenejšo ponudbo (potrebujemo vsaj %{minimum} trgovin). Dobra cena je vsaj 5 % nižja od tipične in od cene na Cardmarketu z dostavo. Običajna cena je največ 10 % višja od tipične. Višja cena je draga. Cene švedskih trgovin so brez dostave, tujih trgovin pa z dostavo na Švedsko."
-
 #: lib/tcg_cheap/countries/sweden.ex:152
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Szwecji"
 msgstr "z dostavo na Švedsko"
+
+#: lib/tcg_cheap/countries/sweden.ex:137
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji."
+msgstr "Tipična cena je sredina ponudb: iz vsake švedske trgovine, ki ima karto na zalogi, vzamemo najcenejšo ponudbo (potrebujemo vsaj %{shops}). Dobra cena je vsaj 5 % nižja od tipične in od cene na Cardmarketu z dostavo. Običajna cena je največ 10 % višja od tipične. Višja cena je draga. Cene švedskih trgovin so brez dostave, tujih trgovin pa z dostavo na Švedsko."
