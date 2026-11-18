@@ -82,6 +82,9 @@ constraints, unless the product owner explicitly supersedes it.
 - Before committing, inspect status, diff, and recent history; stage only
   intended files. Use Conventional Commit messages. Never auto-commit unless
   explicitly requested.
+- A full send ends at the merge with green checks: do not follow the
+  production rollout or check production afterwards unless asked, and say in
+  the report that the rollout was not followed.
 - This repository is public: anyone can read its commits, pull requests,
   issues, review comments and their edit history. Write them about the code
   only: what changed, why in technical terms, and how it was verified in
