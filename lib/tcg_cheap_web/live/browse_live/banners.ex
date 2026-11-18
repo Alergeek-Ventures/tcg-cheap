@@ -136,6 +136,9 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
 
   # The singles banner: the set's best deal in the region's shops against its
   # Cardmarket trend, then what the set's singles market looks like in numbers.
+  # An expansion without a card set (sealed products only) has no banner.
+  def set_singles(%{singles: nil} = assigns), do: ~H""
+
   def set_singles(assigns) do
     singles = assigns.singles
 
@@ -165,7 +168,6 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
 
     ~H"""
     <div
-      :if={@singles}
       id="set-chase"
       class={["set-chase", !@singles.deal && "set-chase-empty"]}
       data-track-context
