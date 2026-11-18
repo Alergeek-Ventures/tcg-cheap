@@ -21,17 +21,17 @@ msgstr "skickas från Portugal"
 msgid "z wysyłką z Portugalii"
 msgstr "med frakt från Portugal"
 
-#: lib/tcg_cheap/countries/portugal.ex:145
+#: lib/tcg_cheap/countries/portugal.ex:149
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Portugalii."
 msgstr "%{expansion}: jämför priser på boosters, ETB, boxar och Collection Boxar i butiker som skickar till Portugal."
 
-#: lib/tcg_cheap/countries/portugal.ex:163
+#: lib/tcg_cheap/countries/portugal.ex:167
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden sklep wysyłający do Portugalii nie ma tego produktu na stanie."
 msgstr "%{name}: just nu har ingen butik som skickar till Portugal produkten i lager."
 
-#: lib/tcg_cheap/countries/portugal.ex:154
+#: lib/tcg_cheap/countries/portugal.ex:158
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden sklep wysyłający do Portugalii nie ma teraz na stanie."
 msgstr "Ingen butik som skickar till Portugal har %{expansion}-boostern i lager just nu."
@@ -41,22 +41,22 @@ msgstr "Ingen butik som skickar till Portugal har %{expansion}-boostern i lager 
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Portugalii, sprawdzane codziennie."
 msgstr "Priser på Pokémon TCG från butiker som skickar till Portugal, kontrollerade varje dag."
 
-#: lib/tcg_cheap/countries/portugal.ex:188
+#: lib/tcg_cheap/countries/portugal.ex:192
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w euro. Ceny portugalskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Portugalii."
 msgstr "Priserna kommer från butikernas publika produktflöden, som hämtas en gång om dagen, och anges i euro. Portugisiska butikers priser är utan frakt, utländska butikers priser inkluderar frakt till Portugal."
 
-#: lib/tcg_cheap/countries/portugal.ex:208
+#: lib/tcg_cheap/countries/portugal.ex:212
 #, elixir-autogen, elixir-format
 msgid "Ceny portugalskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Portugalii. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Portugisiska butikers priser är utan frakt, butiker utomlands har frakt till Portugal inräknad. För Cardmarket lägger vi till %{shipping} för ett paket från Tyskland."
 
-#: lib/tcg_cheap/countries/portugal.ex:174
+#: lib/tcg_cheap/countries/portugal.ex:178
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Portugalii."
 msgstr "Priser från butiker utomlands inkluderar frakt till Portugal."
 
-#: lib/tcg_cheap/countries/portugal.ex:193
+#: lib/tcg_cheap/countries/portugal.ex:197
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane."
 msgstr "Bra pris är högst 95% av det typiska priset, normalt pris högst 110%, över det är det dyrt. Ett bra pris måste också vara högst 95% av produktens vanliga pris de senaste %{window} dagarna och av Cardmarket-trenden i euro med frakt från Tyskland, när de är kända."
@@ -81,12 +81,12 @@ msgstr "Jämför priser på Pokémon TCG i butiker som skickar till Portugal. Se
 msgid "Przejdź do wersji portugalskiej"
 msgstr "Byt till portugisisk version"
 
-#: lib/tcg_cheap/countries/portugal.ex:199
+#: lib/tcg_cheap/countries/portugal.ex:203
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
 msgstr "Med färre butiker ger vi ingen bedömning och visar i stället Cardmarket-trenden i euro."
 
-#: lib/tcg_cheap/countries/portugal.ex:179
+#: lib/tcg_cheap/countries/portugal.ex:183
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Portugalii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
 msgstr "Priset från en butik utomlands är det som butiken anger för köpare i Portugal. Priser i andra valutor än euro räknar vi om med dagliga växelkurser från polska centralbanken (NBP). Butikens sida kan vara på ett annat språk."
@@ -96,7 +96,7 @@ msgstr "Priset från en butik utomlands är det som butiken anger för köpare i
 msgid "Wygląda na to, że jesteś w Portugalii."
 msgstr "Du verkar vara i Portugal."
 
-#: lib/tcg_cheap/countries/portugal.ex:170
+#: lib/tcg_cheap/countries/portugal.ex:174
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr "med frakt från Tyskland"
@@ -131,7 +131,7 @@ msgstr "Engelska Pokémon TCG-kort i butiker som skickar till Portugal."
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających do Portugalii: %{cards} na stanie."
 msgstr "Engelska Pokémon TCG-kort i butiker som skickar till Portugal: %{cards} i lager."
 
-#: lib/tcg_cheap/countries/portugal.ex:116
+#: lib/tcg_cheap/countries/portugal.ex:120
 #, elixir-autogen, elixir-format
 msgid "Brak na stanie w portugalskich sklepach"
 msgstr "Inte i lager i portugisiska butiker"
@@ -141,12 +141,12 @@ msgstr "Inte i lager i portugisiska butiker"
 msgid "Brak w portugalskich sklepach"
 msgstr "Saknas i portugisiska butiker"
 
-#: lib/tcg_cheap/countries/portugal.ex:130
+#: lib/tcg_cheap/countries/portugal.ex:134
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w euro, co tańsze."
 msgstr "Priser utan frakt (från utlandet med frakt) eller Cardmarket-trenden i euro, det som är billigast."
 
-#: lib/tcg_cheap/countries/portugal.ex:140
+#: lib/tcg_cheap/countries/portugal.ex:144
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Portugalii."
 msgstr "Priser utan frakt. Från utlandet: med frakt till Portugal."
@@ -161,12 +161,17 @@ msgstr "Priser på Pokémon TCG-kort i Portugal"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Portugalii."
 msgstr "De billigaste Pokémon TCG-korten i butiker som skickar till Portugal."
 
-#: lib/tcg_cheap/countries/portugal.ex:136
+#: lib/tcg_cheap/countries/portugal.ex:140
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Portugalii"
 msgstr "med frakt till Portugal"
 
-#: lib/tcg_cheap/countries/portugal.ex:121
+#: lib/tcg_cheap/countries/portugal.ex:125
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
 msgstr "Typiskt pris är medianen: från varje portugisisk butik som har kortet i lager tar vi det billigaste erbjudandet (minst %{shops} krävs). Ett bra pris ligger minst 5% under det typiska priset och under Cardmarket med frakt. Normalt är högst 10% över det typiska. Högre än så är dyrt. Portugisiska butikers priser är utan frakt, utländska butikers med frakt till Portugal."
+
+#: lib/tcg_cheap/countries/portugal.ex:117
+#, elixir-autogen, elixir-format
+msgid "Brak w sklepach wysyłających do Portugalii"
+msgstr "Saknas i butiker som skickar till Portugal"

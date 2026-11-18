@@ -161,6 +161,10 @@ defmodule TcgCheapWeb.VerdictComponents do
   attr :preorder?, :boolean, default: false
   attr :prefix, :string, default: "verdict"
 
+  attr :card?, :boolean,
+    default: false,
+    doc: "the offer is a card's: its price may have no delivery in it (`card_shop_name/1`)"
+
   def verdict_now(assigns) do
     ~H"""
     <div :if={@offer} class="verdict-now">
@@ -170,8 +174,9 @@ defmodule TcgCheapWeb.VerdictComponents do
           {if(@preorder?,
             do: gettext("najtaniej w przedsprzedaży w"),
             else: gettext("najtaniej teraz w")
-          )}&nbsp;<strong>{shop_name(@offer)}</strong><span :if={delivered_term(@offer)}>, {delivered_term(
-            @offer
+          )}&nbsp;<strong>{shop_name(@offer)}</strong><span :if={shop_note(@offer, @card?)}>, {shop_note(
+            @offer,
+            @card?
           )}</span>
         </p>
       </div>
@@ -193,6 +198,11 @@ defmodule TcgCheapWeb.VerdictComponents do
     </div>
     """
   end
+
+  # What follows the shop's name: where its parcel ships from, with the
+  # delivery in the price or not.
+  defp shop_note(offer, true), do: card_shop_note(offer)
+  defp shop_note(offer, false), do: delivered_term(offer)
 
   @doc """
   A Cardmarket price in złoty behind the Cardmarket logo, the one mark for a

@@ -11,17 +11,17 @@ msgstr ""
 "Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/tcg_cheap/countries/croatia.ex:145
+#: lib/tcg_cheap/countries/croatia.ex:149
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Chorwacji."
 msgstr "%{expansion}: vergelijk prijzen van boosters, ETB's, boxen en collecties bij winkels die naar Kroatië verzenden."
 
-#: lib/tcg_cheap/countries/croatia.ex:163
+#: lib/tcg_cheap/countries/croatia.ex:167
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden sklep wysyłający do Chorwacji nie ma tego produktu na stanie."
 msgstr "%{name}: geen enkele winkel die naar Kroatië verzendt heeft dit product nu op voorraad."
 
-#: lib/tcg_cheap/countries/croatia.ex:154
+#: lib/tcg_cheap/countries/croatia.ex:158
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden sklep wysyłający do Chorwacji nie ma teraz na stanie."
 msgstr "Geen enkele winkel die naar Kroatië verzendt heeft de %{expansion} booster nu op voorraad."
@@ -31,12 +31,12 @@ msgstr "Geen enkele winkel die naar Kroatië verzendt heeft de %{expansion} boos
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Chorwacji, sprawdzane codziennie."
 msgstr "Pokémon TCG-prijzen bij winkels die naar Kroatië verzenden, elke dag gecheckt."
 
-#: lib/tcg_cheap/countries/croatia.ex:208
+#: lib/tcg_cheap/countries/croatia.ex:212
 #, elixir-autogen, elixir-format
 msgid "Ceny chorwackich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Chorwacji. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Prijzen van Kroatische winkels zijn zonder verzending, die van winkels in het buitenland incl. verzending naar Kroatië. Bij Cardmarket tellen we %{shipping} op voor een pakket uit Duitsland."
 
-#: lib/tcg_cheap/countries/croatia.ex:174
+#: lib/tcg_cheap/countries/croatia.ex:178
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Chorwacji."
 msgstr "Prijzen van winkels in het buitenland zijn incl. verzending naar Kroatië."
@@ -61,7 +61,7 @@ msgstr "Vergelijk Pokémon TCG-prijzen bij winkels die naar Kroatië verzenden. 
 msgid "Przejdź do wersji chorwackiej"
 msgstr "Ga naar de Kroatische versie"
 
-#: lib/tcg_cheap/countries/croatia.ex:179
+#: lib/tcg_cheap/countries/croatia.ex:183
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Chorwacji. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
 msgstr "De prijs van een buitenlandse winkel is de prijs die de winkel aan kopers uit Kroatië geeft. Prijzen in een andere valuta dan de euro rekenen we om tegen de dagkoersen van de NBP. De website van de winkel kan in een andere taal zijn."
@@ -81,22 +81,22 @@ msgstr "verzending uit Kroatië"
 msgid "z wysyłką z Chorwacji"
 msgstr "incl. verzending uit Kroatië"
 
-#: lib/tcg_cheap/countries/croatia.ex:170
+#: lib/tcg_cheap/countries/croatia.ex:174
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr "incl. verzending uit Duitsland"
 
-#: lib/tcg_cheap/countries/croatia.ex:188
+#: lib/tcg_cheap/countries/croatia.ex:192
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w euro. Ceny chorwackich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Chorwacji."
 msgstr "Prijzen komen uit de openbare productfeeds van winkels, één keer per dag opgehaald, en staan in euro. Prijzen van Kroatische winkels zijn zonder verzending, die van winkels in het buitenland incl. verzending naar Kroatië."
 
-#: lib/tcg_cheap/countries/croatia.ex:193
+#: lib/tcg_cheap/countries/croatia.ex:197
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane."
 msgstr "Een goede prijs is hooguit 95% van de gebruikelijke prijs, normaal hooguit 110%, daarboven is het duur. Een goede prijs moet ook hooguit 95% zijn van wat het product de afgelopen %{window} dagen meestal kostte en van de Cardmarket-trend in euro incl. verzending uit Duitsland, als die bekend zijn."
 
-#: lib/tcg_cheap/countries/croatia.ex:199
+#: lib/tcg_cheap/countries/croatia.ex:203
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
 msgstr "Bij minder winkels is er geen beoordeling en geven we als context de Cardmarket-trend in euro."
@@ -131,7 +131,7 @@ msgstr "Engelse Pokémon TCG-kaarten bij winkels die naar Kroatië verzenden."
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających do Chorwacji: %{cards} na stanie."
 msgstr "Engelse Pokémon TCG-kaarten bij winkels die naar Kroatië verzenden: %{cards} op voorraad."
 
-#: lib/tcg_cheap/countries/croatia.ex:116
+#: lib/tcg_cheap/countries/croatia.ex:120
 #, elixir-autogen, elixir-format
 msgid "Brak na stanie w chorwackich sklepach"
 msgstr "Niet op voorraad bij Kroatische winkels"
@@ -141,12 +141,12 @@ msgstr "Niet op voorraad bij Kroatische winkels"
 msgid "Brak w chorwackich sklepach"
 msgstr "Geen aanbod bij Kroatische winkels"
 
-#: lib/tcg_cheap/countries/croatia.ex:130
+#: lib/tcg_cheap/countries/croatia.ex:134
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w euro, co tańsze."
 msgstr "Prijzen zonder verzending (uit het buitenland incl. verzending) of de Cardmarket-trend in euro, wat goedkoper is."
 
-#: lib/tcg_cheap/countries/croatia.ex:140
+#: lib/tcg_cheap/countries/croatia.ex:144
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Chorwacji."
 msgstr "Prijzen zonder verzending. Uit het buitenland: incl. verzending naar Kroatië."
@@ -161,12 +161,17 @@ msgstr "Prijzen van Pokémon TCG-kaarten in Kroatië"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Chorwacji."
 msgstr "De goedkoopste Pokémon TCG-kaarten bij winkels die naar Kroatië verzenden."
 
-#: lib/tcg_cheap/countries/croatia.ex:136
+#: lib/tcg_cheap/countries/croatia.ex:140
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Chorwacji"
 msgstr "incl. verzending naar Kroatië"
 
-#: lib/tcg_cheap/countries/croatia.ex:121
+#: lib/tcg_cheap/countries/croatia.ex:125
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to środek stawki: z każdego chorwackiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny chorwackich sklepów są bez dostawy, zagranicznych – z wysyłką do Chorwacji."
 msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke Kroatische winkel die de kaart op voorraad heeft, nemen we de goedkoopste aanbieding (we hebben minstens %{shops} nodig). Een goede prijs ligt minstens 5% onder de gebruikelijke prijs en onder Cardmarket incl. verzending. Normaal is hooguit 10% boven de gebruikelijke prijs. Hoger is duur. Prijzen van Kroatische winkels zijn zonder verzending, die van buitenlandse winkels incl. verzending naar Kroatië."
+
+#: lib/tcg_cheap/countries/croatia.ex:117
+#, elixir-autogen, elixir-format
+msgid "Brak w sklepach wysyłających do Chorwacji"
+msgstr "Geen aanbod bij winkels die naar Kroatië verzenden"

@@ -113,6 +113,10 @@ defmodule TcgCheap.Countries.Portugal do
   def card_unavailable, do: dgettext("portugal", "Brak w portugalskich sklepach")
 
   @impl TcgCheapWeb.RegionText
+  def card_unavailable_delivering,
+    do: dgettext("portugal", "Brak w sklepach wysyłających do Portugalii")
+
+  @impl TcgCheapWeb.RegionText
   def card_unavailable_note, do: dgettext("portugal", "Brak na stanie w portugalskich sklepach")
 
   @impl TcgCheapWeb.RegionText

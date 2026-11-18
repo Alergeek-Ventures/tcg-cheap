@@ -11,17 +11,17 @@ msgstr ""
 "Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/tcg_cheap/countries/slovenia.ex:141
+#: lib/tcg_cheap/countries/slovenia.ex:145
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Słowenii."
 msgstr "%{expansion}: vergelijk prijzen van boosters, ETB's, boxen en collecties bij winkels die naar Slovenië verzenden."
 
-#: lib/tcg_cheap/countries/slovenia.ex:159
+#: lib/tcg_cheap/countries/slovenia.ex:163
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden sklep wysyłający do Słowenii nie ma tego produktu na stanie."
 msgstr "%{name}: geen enkele winkel die naar Slovenië verzendt heeft dit product nu op voorraad."
 
-#: lib/tcg_cheap/countries/slovenia.ex:150
+#: lib/tcg_cheap/countries/slovenia.ex:154
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden sklep wysyłający do Słowenii nie ma teraz na stanie."
 msgstr "Geen enkele winkel die naar Slovenië verzendt heeft de %{expansion} booster nu op voorraad."
@@ -31,12 +31,12 @@ msgstr "Geen enkele winkel die naar Slovenië verzendt heeft de %{expansion} boo
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Słowenii, sprawdzane codziennie."
 msgstr "Pokémon TCG-prijzen bij winkels die naar Slovenië verzenden, elke dag gecheckt."
 
-#: lib/tcg_cheap/countries/slovenia.ex:204
+#: lib/tcg_cheap/countries/slovenia.ex:208
 #, elixir-autogen, elixir-format
 msgid "Ceny słoweńskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Słowenii. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Prijzen van Sloveense winkels zijn zonder verzending, die van winkels in het buitenland incl. verzending naar Slovenië. Bij Cardmarket tellen we %{shipping} op voor een pakket uit Duitsland."
 
-#: lib/tcg_cheap/countries/slovenia.ex:170
+#: lib/tcg_cheap/countries/slovenia.ex:174
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Słowenii."
 msgstr "Prijzen van winkels in het buitenland zijn incl. verzending naar Slovenië."
@@ -71,7 +71,7 @@ msgstr "Het lijkt erop dat je in Slovenië bent."
 msgid "wysyłka ze Słowenii"
 msgstr "verzending uit Slovenië"
 
-#: lib/tcg_cheap/countries/slovenia.ex:166
+#: lib/tcg_cheap/countries/slovenia.ex:170
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr "incl. verzending uit Duitsland"
@@ -81,22 +81,22 @@ msgstr "incl. verzending uit Duitsland"
 msgid "z wysyłką ze Słowenii"
 msgstr "incl. verzending uit Slovenië"
 
-#: lib/tcg_cheap/countries/slovenia.ex:175
+#: lib/tcg_cheap/countries/slovenia.ex:179
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym ze Słowenii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
 msgstr "De prijs van een buitenlandse winkel is de prijs die de winkel aan kopers uit Slovenië geeft. Prijzen in een andere valuta dan de euro rekenen we om tegen de dagkoersen van de NBP. De website van de winkel kan in een andere taal zijn."
 
-#: lib/tcg_cheap/countries/slovenia.ex:184
+#: lib/tcg_cheap/countries/slovenia.ex:188
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w euro. Ceny słoweńskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Słowenii."
 msgstr "Prijzen komen uit de openbare productfeeds van winkels, één keer per dag opgehaald, en staan in euro. Prijzen van Sloveense winkels zijn zonder verzending, die van winkels in het buitenland incl. verzending naar Slovenië."
 
-#: lib/tcg_cheap/countries/slovenia.ex:189
+#: lib/tcg_cheap/countries/slovenia.ex:193
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane."
 msgstr "Een goede prijs is hooguit 95% van de gebruikelijke prijs, normaal hooguit 110%, daarboven is het duur. Een goede prijs moet ook hooguit 95% zijn van wat het product de afgelopen %{window} dagen meestal kostte en van de Cardmarket-trend in euro incl. verzending uit Duitsland, als die bekend zijn."
 
-#: lib/tcg_cheap/countries/slovenia.ex:195
+#: lib/tcg_cheap/countries/slovenia.ex:199
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
 msgstr "Bij minder winkels is er geen beoordeling en geven we als context de Cardmarket-trend in euro."
@@ -131,7 +131,7 @@ msgstr "Engelse Pokémon TCG-kaarten bij winkels die naar Slovenië verzenden."
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających do Słowenii: %{cards} na stanie."
 msgstr "Engelse Pokémon TCG-kaarten bij winkels die naar Slovenië verzenden: %{cards} op voorraad."
 
-#: lib/tcg_cheap/countries/slovenia.ex:112
+#: lib/tcg_cheap/countries/slovenia.ex:116
 #, elixir-autogen, elixir-format
 msgid "Brak na stanie w słoweńskich sklepach"
 msgstr "Niet op voorraad bij Sloveense winkels"
@@ -141,12 +141,12 @@ msgstr "Niet op voorraad bij Sloveense winkels"
 msgid "Brak w słoweńskich sklepach"
 msgstr "Geen aanbod bij Sloveense winkels"
 
-#: lib/tcg_cheap/countries/slovenia.ex:126
+#: lib/tcg_cheap/countries/slovenia.ex:130
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w euro, co tańsze."
 msgstr "Prijzen zonder verzending (uit het buitenland incl. verzending) of de Cardmarket-trend in euro, wat goedkoper is."
 
-#: lib/tcg_cheap/countries/slovenia.ex:136
+#: lib/tcg_cheap/countries/slovenia.ex:140
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Słowenii."
 msgstr "Prijzen zonder verzending. Uit het buitenland: incl. verzending naar Slovenië."
@@ -161,12 +161,17 @@ msgstr "Prijzen van Pokémon TCG-kaarten in Slovenië"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Słowenii."
 msgstr "De goedkoopste Pokémon TCG-kaarten bij winkels die naar Slovenië verzenden."
 
-#: lib/tcg_cheap/countries/slovenia.ex:132
+#: lib/tcg_cheap/countries/slovenia.ex:136
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Słowenii"
 msgstr "incl. verzending naar Slovenië"
 
-#: lib/tcg_cheap/countries/slovenia.ex:117
+#: lib/tcg_cheap/countries/slovenia.ex:121
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to środek stawki: z każdego słoweńskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny słoweńskich sklepów są bez dostawy, zagranicznych – z wysyłką do Słowenii."
 msgstr "De gebruikelijke prijs is het midden van het aanbod: van elke Sloveense winkel die de kaart op voorraad heeft, nemen we de goedkoopste aanbieding (we hebben minstens %{shops} nodig). Een goede prijs ligt minstens 5% onder de gebruikelijke prijs en onder Cardmarket incl. verzending. Normaal is hooguit 10% boven de gebruikelijke prijs. Hoger is duur. Prijzen van Sloveense winkels zijn zonder verzending, die van buitenlandse winkels incl. verzending naar Slovenië."
+
+#: lib/tcg_cheap/countries/slovenia.ex:113
+#, elixir-autogen, elixir-format
+msgid "Brak w sklepach wysyłających do Słowenii"
+msgstr "Geen aanbod bij winkels die naar Slovenië verzenden"
