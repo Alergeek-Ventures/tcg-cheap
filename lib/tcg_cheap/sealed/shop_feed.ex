@@ -103,11 +103,14 @@ defmodule TcgCheap.Sealed.ShopFeed do
   (default HTTP/1.1). With `sign: true` the request is signed with Web Bot
   Auth; a 429 is retried after a `Retry-After` of at most
   `max_retry_after_ms` (default #{@max_retry_after_ms} ms). A response the fetch's
-  journal holds is returned without a request or a pause.
+  journal holds is returned without a request or a pause. With `optional: true`
+  (a request the fetch can do without) the journal also keeps a failure, so the
+  request is not made again in the same fetch.
   """
   @spec get(Shop.t(), String.t(), keyword(), keyword(), [
           {:max_body_bytes, pos_integer()}
           | {:max_retry_after_ms, pos_integer()}
+          | {:optional, boolean()}
           | {:pause_ms, pos_integer()}
           | {:protocols, [:http1 | :http2]}
           | {:sign, boolean()}
@@ -115,10 +118,15 @@ defmodule TcgCheap.Sealed.ShopFeed do
           {:ok, Req.Response.t()} | {:error, term()}
   def get(%Shop{} = shop, path, params, req_options, opts \\ []) do
     {journal, req_options} = Keyword.pop(req_options, :journal)
+    {optional, opts} = Keyword.pop(opts, :optional, false)
 
-    case FetchJournal.through(journal, path, params, fn ->
-           request(shop, path, params, req_options, opts)
-         end) do
+    case FetchJournal.through(
+           journal,
+           path,
+           params,
+           fn -> request(shop, path, params, req_options, opts) end,
+           optional: optional
+         ) do
       {:ok, %Req.Response{} = response} -> {:ok, response}
       {:error, reason} -> {:error, reason}
     end
