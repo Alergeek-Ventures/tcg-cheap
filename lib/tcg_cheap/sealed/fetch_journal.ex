@@ -12,6 +12,10 @@ defmodule TcgCheap.Sealed.FetchJournal do
   replays what is stored. A restart therefore costs the request that was in
   flight, and the shop sees the same pace as in one long run.
 
+  A request that is only an extra (`optional: true`) keeps its failure as well:
+  the fetch goes on without it, so a later step must not ask for it again, and
+  a shop that answers errors slowly cannot hold the fetch back.
+
   Nothing but the requests is kept: the fetch is parsed, and its offers
   stored, only by the step that reads the last response, so a fetch that has
   not read the whole shop changes nothing.
@@ -83,7 +87,9 @@ defmodule TcgCheap.Sealed.FetchJournal do
   Answers the request for `path` and `params` from the journal when its
   response is stored. Otherwise calls `live`, which asks the shop (after its
   pause) and returns `{:ok, response}` or an error, and stores a successful
-  response. Without a journal (`nil`) it is just `live`.
+  response. Without a journal (`nil`) it is just `live`. With `optional: true`
+  a failure is stored too and answered as `{:error, :failed_earlier}` to the
+  replays of the request.
 
   Throws to `catch_pause/1` instead of calling `live` once the step has used
   its time budget, but not before the step has made one request of its own, so
@@ -93,26 +99,36 @@ defmodule TcgCheap.Sealed.FetchJournal do
           t() | nil,
           String.t(),
           keyword(),
-          (-> {:ok, Req.Response.t()} | {:error, term()})
+          (-> {:ok, Req.Response.t()} | {:error, term()}),
+          keyword()
         ) :: {:ok, Req.Response.t()} | {:error, term()}
-  def through(nil, _path, _params, live), do: ask(live)
+  def through(journal, path, params, live, opts \\ [])
 
-  def through(%__MODULE__{} = journal, path, params, live) do
+  def through(nil, _path, _params, live, _opts), do: ask(live)
+
+  def through(%__MODULE__{} = journal, path, params, live, opts) do
     :counters.add(journal.counters, 1, 1)
     request = "#{:counters.get(journal.counters, 1)} #{path}?#{URI.encode_query(params)}"
 
     case journal.responses do
       %{^request => stored} ->
-        {:ok, decode(stored)}
+        decode(stored)
 
       _unread ->
         pause_when_over_budget(journal)
 
-        with {:ok, response} = read <- ask(live) do
-          store(journal, request, response)
-          read
-        end
+        live |> ask() |> remember(journal, request, Keyword.get(opts, :optional, false))
     end
+  end
+
+  defp remember({:ok, response} = read, journal, request, _optional) do
+    store(journal, request, {response.headers, response.body})
+    read
+  end
+
+  defp remember({:error, _reason} = error, journal, request, optional) do
+    if optional, do: store(journal, request, :failed)
+    error
   end
 
   # Names what `live` may answer, so callers keep knowing they get a response.
@@ -145,18 +161,20 @@ defmodule TcgCheap.Sealed.FetchJournal do
     :counters.add(journal.counters, 2, 1)
   end
 
-  defp store(journal, request, %Req.Response{headers: headers, body: body}) do
+  defp store(journal, request, entry) do
     Sealed.record_fetch_response!(%{
       run_id: journal.run_id,
       shop: journal.shop,
       request: request,
-      body: :erlang.term_to_binary({headers, body}, [:compressed])
+      body: :erlang.term_to_binary(entry, [:compressed])
     })
   end
 
   defp decode(stored) do
-    {headers, body} = :erlang.binary_to_term(stored, [:safe])
-    %Req.Response{status: 200, headers: headers, body: body}
+    case :erlang.binary_to_term(stored, [:safe]) do
+      :failed -> {:error, :failed_earlier}
+      {headers, body} -> {:ok, %Req.Response{status: 200, headers: headers, body: body}}
+    end
   end
 
   defp discard(query) do
