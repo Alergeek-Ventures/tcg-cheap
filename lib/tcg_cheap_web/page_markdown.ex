@@ -137,7 +137,7 @@ defmodule TcgCheapWeb.PageMarkdown do
 
       own_singles?() ->
         gettext(
-          "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepów za granicą z wysyłką) i ocena wobec Cardmarket z przesyłką. Pełna lista rozszerzeń: %{url}",
+          "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepu za granicą z wysyłką, chyba że przy sklepie jest „bez dostawy”) i ocena wobec Cardmarket liczona tak samo. Pełna lista rozszerzeń: %{url}",
           url: url(~p"/llms.txt")
         )
 
@@ -374,7 +374,7 @@ defmodule TcgCheapWeb.PageMarkdown do
           section(
             gettext("Ceny"),
             list(
-              Enum.map(page.answers, &single_answer/1) ++
+              Enum.map(page.answers, &single_answer(&1, page.abroad_only?)) ++
                 [delivery_line(page), unoffered_trend(page)]
             )
           ),
@@ -399,11 +399,11 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   # Where no shop delivers the card, its Cardmarket trend is the answer.
   defp unoffered_trend(page) do
-    if not own_singles?() and Enum.all?(page.answers, &is_nil(&1.cheapest)),
+    if page.abroad_only? and Enum.all?(page.answers, &is_nil(&1.cheapest)),
       do: cardmarket_trend(page)
   end
 
-  # Where no singles shop is at home, the prices have no delivery in them:
+  # Where the card has no shop at home, its prices have no delivery in them:
   # the cheapest shop's delivery follows.
   defp delivery_line(page) do
     cheapest = page.answers |> Enum.find_value(& &1.cheapest)
@@ -412,9 +412,9 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   # A card nobody sells is said once, in its answer, not again as an empty table.
   defp card_offers(page, today) do
-    if page.offers == [] and not own_singles?(),
+    if page.offers == [] and page.abroad_only?,
       do: nil,
-      else: section(gettext("Oferty"), card_offers_table(page.offers, page.compared, today))
+      else: section(gettext("Oferty"), card_offers_table(page, today))
   end
 
   defp cardmarket_trend(%{price: price, rate: rate, market: market}) do
@@ -784,8 +784,8 @@ defmodule TcgCheapWeb.PageMarkdown do
       {nil, _source} ->
         title
 
-      {price, {:shop, shop}} ->
-        "#{title}: #{price_in_shop(price, OfferComponents.card_shop_name(%{shop: shop}))}"
+      {price, {:shop, offer}} ->
+        "#{title}: #{price_in_shop(price, OfferComponents.card_shop_name(offer))}"
 
       {price, :cardmarket} ->
         gettext("%{title}: %{price} (trend Cardmarket, bez dostawy)",
@@ -795,11 +795,11 @@ defmodule TcgCheapWeb.PageMarkdown do
     end
   end
 
-  defp single_answer(answer) do
+  defp single_answer(answer, abroad_only?) do
     variant = ListingComponents.card_variant_label(answer.variant)
     verdict = VerdictComponents.single_verdict_label(answer.verdict)
 
-    if is_nil(answer.cheapest) and not own_singles?() do
+    if is_nil(answer.cheapest) and abroad_only? do
       # Said once: the verdict is the answer.
       "#{variant}: #{RegionText.card_unavailable()}"
     else
@@ -812,25 +812,25 @@ defmodule TcgCheapWeb.PageMarkdown do
             ),
           else: gettext("brak ofert bez gradingu na stanie")
 
-      "#{variant}: #{price}#{reference_note(answer.reference)} (#{verdict})"
+      "#{variant}: #{price}#{reference_note(answer.reference, abroad_only?)} (#{verdict})"
     end
   end
 
-  defp reference_note(nil), do: ""
+  defp reference_note(nil, _abroad_only?), do: ""
 
-  defp reference_note(reference) do
-    if own_singles?(),
-      do: gettext("; Cardmarket z przesyłką: %{price}", price: Format.price(reference)),
-      else: gettext("; trend Cardmarket, bez dostawy: %{price}", price: Format.price(reference))
+  defp reference_note(reference, abroad_only?) do
+    if abroad_only?,
+      do: gettext("; trend Cardmarket, bez dostawy: %{price}", price: Format.price(reference)),
+      else: gettext("; Cardmarket z przesyłką: %{price}", price: Format.price(reference))
   end
 
-  defp card_offers_table([], _compared, _today),
+  defp card_offers_table(%{offers: []}, _today),
     do: gettext("Żaden sklep nie ma teraz tej karty.")
 
-  # At the compared price, as the HTML rows: where no singles shop is at home
+  # At the compared price, as the HTML rows: for a card without a shop at home
   # the item price, with each shop's delivery in a column of its own.
-  defp card_offers_table(offers, compared, today) do
-    delivery? = not own_singles?()
+  defp card_offers_table(%{offers: offers, compared: compared} = page, today) do
+    delivery? = page.abroad_only?
 
     table(
       [

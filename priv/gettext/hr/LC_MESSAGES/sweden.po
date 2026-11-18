@@ -21,17 +21,17 @@ msgstr "šalje iz Švedske"
 msgid "z wysyłką ze Szwecji"
 msgstr "s dostavom iz Švedske"
 
-#: lib/tcg_cheap/countries/sweden.ex:162
+#: lib/tcg_cheap/countries/sweden.ex:166
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w szwedzkich sklepach i w sklepach wysyłających do Szwecji."
 msgstr "%{expansion}: usporedi cijene boostera, ETB-ova, boxova i kolekcija u švedskim trgovinama i trgovinama koje dostavljaju u Švedsku."
 
-#: lib/tcg_cheap/countries/sweden.ex:180
+#: lib/tcg_cheap/countries/sweden.ex:184
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden szwedzki sklep ani sklep wysyłający do Szwecji nie ma tego produktu na stanie."
 msgstr "%{name}: nijedna švedska trgovina niti trgovina koja dostavlja u Švedsku trenutačno nema ovaj proizvod na stanju."
 
-#: lib/tcg_cheap/countries/sweden.ex:171
+#: lib/tcg_cheap/countries/sweden.ex:175
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden szwedzki sklep ani sklep wysyłający do Szwecji nie ma teraz na stanie."
 msgstr "%{expansion} booster trenutačno nema na stanju nijedna švedska trgovina niti trgovina koja dostavlja u Švedsku."
@@ -41,12 +41,12 @@ msgstr "%{expansion} booster trenutačno nema na stanju nijedna švedska trgovin
 msgid "Ceny Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji, sprawdzane codziennie."
 msgstr "Cijene Pokémon TCG u švedskim trgovinama i trgovinama koje dostavljaju u Švedsku, provjerene svaki dan."
 
-#: lib/tcg_cheap/countries/sweden.ex:225
+#: lib/tcg_cheap/countries/sweden.ex:229
 #, elixir-autogen, elixir-format
 msgid "Ceny szwedzkich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Szwecji. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Cijene švedskih trgovina su bez dostave, a trgovina iz inozemstva s dostavom u Švedsku. Cardmarketovoj cijeni dodajemo %{shipping} za paket iz Njemačke."
 
-#: lib/tcg_cheap/countries/sweden.ex:191
+#: lib/tcg_cheap/countries/sweden.ex:195
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Szwecji."
 msgstr "Cijene trgovina iz inozemstva uključuju dostavu u Švedsku."
@@ -66,7 +66,7 @@ msgstr "Usporedi cijene Pokémon TCG proizvoda u švedskim trgovinama i trgovina
 msgid "Przejdź do wersji szwedzkiej"
 msgstr "Prijeđi na švedsku verziju"
 
-#: lib/tcg_cheap/countries/sweden.ex:196
+#: lib/tcg_cheap/countries/sweden.ex:200
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym ze Szwecji. Gdy podaje ją tylko w swojej walucie, przeliczamy ją na korony po dziennych kursach NBP. Strona sklepu może być w innym języku."
 msgstr "Cijena trgovine iz inozemstva ona je koju trgovina navodi kupcima iz Švedske. Kad je navodi samo u svojoj valuti, preračunavamo je u krune po dnevnom tečaju Poljske narodne banke (NBP). Stranica trgovine može biti na drugom jeziku."
@@ -81,22 +81,22 @@ msgstr "Švedska"
 msgid "Wygląda na to, że jesteś w Szwecji."
 msgstr "Izgleda da si u Švedskoj."
 
-#: lib/tcg_cheap/countries/sweden.ex:187
+#: lib/tcg_cheap/countries/sweden.ex:191
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr "s dostavom iz Njemačke"
 
-#: lib/tcg_cheap/countries/sweden.ex:205
+#: lib/tcg_cheap/countries/sweden.ex:209
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych list produktów i feedów sklepów, pobieranych raz dziennie, i są w koronach szwedzkich. Ceny szwedzkich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Szwecji."
 msgstr "Cijene preuzimamo jednom dnevno s javnih popisa proizvoda i iz feedova trgovina te su izražene u švedskim krunama. Cijene švedskih trgovina ne uključuju dostavu, a cijene trgovina iz inozemstva uključuju dostavu u Švedsku."
 
-#: lib/tcg_cheap/countries/sweden.ex:210
+#: lib/tcg_cheap/countries/sweden.ex:214
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w koronach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
 msgstr "Dobra cijena je barem 5 % niža od tipične, od one koja je u zadnjih %{window} dana obično najjeftinija te od Cardmarket trenda u švedskim krunama (prema tečajevima NBP-a) s dostavom iz Njemačke, ako su ti podaci poznati. Uobičajena cijena je najviše 10 % viša od tipične. Sve više od toga je skupo."
 
-#: lib/tcg_cheap/countries/sweden.ex:216
+#: lib/tcg_cheap/countries/sweden.ex:220
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w koronach."
 msgstr "Kad je trgovina premalo, ne ocjenjujemo cijenu, a kao kontekst navodimo Cardmarket trend u krunama."
@@ -141,16 +141,6 @@ msgstr "Nema na stanju u švedskim trgovinama"
 msgid "Brak w szwedzkich sklepach"
 msgstr "Nema u švedskim trgovinama"
 
-#: lib/tcg_cheap/countries/sweden.ex:147
-#, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w koronach, co tańsze."
-msgstr "Cijene bez dostave (iz inozemstva s dostavom) ili Cardmarket trend u krunama, što je jeftinije."
-
-#: lib/tcg_cheap/countries/sweden.ex:157
-#, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Szwecji."
-msgstr "Cijene bez dostave. Iz inozemstva: s dostavom u Švedsku."
-
 #: lib/tcg_cheap/countries/sweden.ex:103
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w Szwecji"
@@ -170,3 +160,13 @@ msgstr "s dostavom u Švedsku"
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji."
 msgstr "Tipična cijena je sredina među trgovinama: iz svake švedske trgovine koja ima kartu na stanju uzimamo najjeftiniju ponudu (potrebno nam je barem %{shops}). Dobra cijena je barem 5 % niža od tipične i od cijene na Cardmarketu s dostavom. Uobičajena cijena je najviše 10 % viša od tipične. Sve više od toga je skupo. Cijene švedskih trgovina su bez dostave, a inozemnih s dostavom u Švedsku."
+
+#: lib/tcg_cheap/countries/sweden.ex:147
+#, elixir-autogen, elixir-format
+msgid "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w koronach, co tańsze."
+msgstr "Cijene bez dostave (iz inozemstva s dostavom, osim ako uz trgovinu piše „bez dostave”) ili Cardmarket trend u krunama, što je jeftinije."
+
+#: lib/tcg_cheap/countries/sweden.ex:158
+#, elixir-autogen, elixir-format
+msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Szwecji, chyba że przy sklepie jest „bez dostawy”."
+msgstr "Cijene bez dostave. Iz inozemstva: s dostavom u Švedsku, osim ako uz trgovinu piše „bez dostave”."

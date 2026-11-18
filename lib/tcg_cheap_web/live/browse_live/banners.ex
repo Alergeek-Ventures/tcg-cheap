@@ -199,7 +199,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
           <p id="set-chase-pull" class="set-chase-side set-chase-pull">
             <span class="set-chase-label">{gettext("Na Cardmarket")}</span>
             <strong>{Format.price(deal.trend)}</strong>
-            <span class="set-chase-detail">{RegionText.cardmarket_card_delivery()}</span>
+            <span class="set-chase-detail">{RegionText.cardmarket_card_delivery(deal.abroad_only?)}</span>
           </p>
           <.link
             id="set-chase-buy"
@@ -209,7 +209,9 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
           >
             <span class="set-chase-label">{gettext("Kupisz ją za")}</span>
             <strong>{Format.price(deal.price)}</strong>
-            <span class="set-chase-detail">{chase_source({:shop, deal.shop})}</span>
+            <span class="set-chase-detail">{chase_source(
+              {:shop, %{shop: deal.shop, abroad_only?: deal.abroad_only?}}
+            )}</span>
           </.link>
         </div>
       <% end %>
@@ -238,10 +240,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
         </li>
         <li :if={@own? || @singles.cheaper > 0} class={@singles.set_price && "set-chase-fact-extra"}>
           <strong>{Format.number(@singles.cheaper)}</strong>
-          <span>{if(@own?,
-            do: gettext("taniej niż na Cardmarket z wysyłką"),
-            else: gettext("taniej niż na Cardmarket")
-          )}</span>
+          <span>{gettext("taniej niż na Cardmarket")}</span>
         </li>
       </ul>
       <p class="set-chase-foot">

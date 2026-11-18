@@ -168,7 +168,9 @@ defmodule TcgCheap.Cards.Guide do
       Enum.map(page, fn %{cardmarket: price} = row ->
         name = Map.fetch!(names, row.set.cardmarket_expansion_id)
         card = %{row.card | cardmarket_price: price}
-        {variant, variant_offers} = primary_offers(Map.get(offers, card.id, []))
+        card_offers = Map.get(offers, card.id, [])
+        card_context = for_card(context, card_offers)
+        {variant, variant_offers} = primary_offers(card_offers)
         offer = List.first(variant_offers)
 
         image =
@@ -181,7 +183,8 @@ defmodule TcgCheap.Cards.Guide do
         |> Map.merge(%{
           card: card,
           offer: offer,
-          verdict: card_verdict(variant_offers, card, variant, context),
+          abroad_only?: card_context.abroad_only?,
+          verdict: card_verdict(variant_offers, card, variant, card_context),
           cardmarket_trend: Market.in_market(price && price.trend, context.rate, market),
           expansion_name: name,
           path: path(card, name, row.set.cardmarket_expansion_id, collisions),
@@ -236,11 +239,12 @@ defmodule TcgCheap.Cards.Guide do
   # honest ones, as a suspect sealed offer does; a missing ratio (nil) sorts
   # after any number.
   defp version_rank(
-         %{card: printing, set: set, offer: offer, verdict: verdict},
+         %{card: printing, set: set, offer: offer, verdict: verdict, abroad_only?: abroad_only?},
          set_id,
          context
        ) do
-    reference = reference(printing.cardmarket_price, offer.variant, context)
+    reference =
+      reference(printing.cardmarket_price, offer.variant, %{context | abroad_only?: abroad_only?})
 
     ratio =
       if reference && Decimal.positive?(reference), do: Decimal.div(offer.price, reference)
@@ -541,23 +545,41 @@ defmodule TcgCheap.Cards.Guide do
   """
   @spec context(Market.t(), Date.t()) :: %{
           market: Market.t(),
-          own_singles?: boolean(),
+          abroad_only?: boolean(),
           rate: %{rate: Decimal.t(), date: Date.t()} | nil,
           pennies_max: Decimal.t() | nil
         }
   def context(%Market{} = market, %Date{} = today \\ Date.utc_today()),
     do: %{
       market: market,
-      own_singles?: Shops.own_singles?(market),
+      abroad_only?: not Shops.own_singles?(market),
       rate: Market.cardmarket_rate(market, today),
       pennies_max: pennies_max(market, today)
     }
 
   defp pennies_max(market, today), do: Market.pln_limit(@pennies_pln, market, today)
 
-  # With delivery, as a buyer in a market with singles shops at home pays it;
-  # the bare trend where card prices have no delivery either.
-  defp reference(price, variant, %{own_singles?: true} = context),
+  @doc """
+  The context for one card, from its in-stock, ungraded offers that count in
+  the market (their `shop`s): the card is "abroad-only" when it has some and
+  none is a shop at home. Its price is then the item price without delivery,
+  as every card's is in a market without singles shops at home (see
+  `Shops.own_singles?/1`): a buyer takes many such cards in one parcel. A card
+  with an offer of a shop at home keeps the delivery of the shops abroad that
+  compete with it, and a card without offers keeps the market's rule.
+  """
+  def for_card(%{abroad_only?: true} = context, _offers), do: context
+
+  def for_card(context, offers) do
+    abroad_only? =
+      offers != [] and not Enum.any?(offers, &Market.domestic?(&1.shop, context.market))
+
+    %{context | abroad_only?: abroad_only?}
+  end
+
+  # With delivery, as a buyer pays it where a shop at home competes; the bare
+  # trend where the card's price has no delivery either.
+  defp reference(price, variant, %{abroad_only?: false} = context),
     do: Reference.in_market(price, variant, context.rate, context.market)
 
   defp reference(price, variant, context),
@@ -643,9 +665,9 @@ defmodule TcgCheap.Cards.Guide do
   """
   def page(card, name, path, %Market{} = market) do
     today = Date.utc_today()
-    context = context(market, today)
 
-    # By the price compared in the answers: a shop abroad's with delivery.
+    # By the price compared in the answers: a shop abroad's with delivery,
+    # unless the card has no shop at home (`for_card/2`).
     priced =
       [card.id]
       |> current_offers()
@@ -656,6 +678,7 @@ defmodule TcgCheap.Cards.Guide do
 
     offers = for {offer, item, _compared} <- priced, do: %{offer | price: item}
     compared = for {offer, _item, %Decimal{} = price} <- priced, do: %{offer | price: price}
+    context = market |> context(today) |> for_card(Enum.filter(compared, &counted_in_stock?/1))
 
     variants =
       Enum.uniq(
@@ -693,6 +716,7 @@ defmodule TcgCheap.Cards.Guide do
       market: market,
       rate: context.rate,
       pennies_max: context.pennies_max,
+      abroad_only?: context.abroad_only?,
       answers: answers,
       offers: offers,
       compared: Map.new(priced, fn {offer, _item, compared} -> {offer.id, compared} end),
@@ -743,31 +767,76 @@ defmodule TcgCheap.Cards.Guide do
   comes back as raw bytes).
   """
   def compared_query(%Market{} = market) do
-    terms = market |> Market.price_terms(Date.utc_today()) |> without_delivery(market)
+    terms = Market.price_terms(market, Date.utc_today())
+    bare = Map.new(terms, fn {shop, {item, _delivery}} -> {shop, {item, nil}} end)
+    item_only = compared_price(bare, market)
+
+    price =
+      if Shops.own_singles?(market),
+        do:
+          dynamic(
+            [o],
+            fragment(
+              "CASE WHEN ? THEN ? ELSE ? END",
+              ^abroad_only(market),
+              ^item_only,
+              ^compared_price(terms, market)
+            )
+          ),
+        else: item_only
 
     from(o in current_query(),
       where: ^counted(market, Map.keys(terms)),
       where: ^priced_apart(terms, market)
     )
-    |> select_merge(^%{price: compared_price(terms, market)})
+    |> select_merge(^%{price: price})
   end
 
-  # Where no singles shop is at home, a card counts at its item price: the
-  # delivery is stated beside it (see `Shops.own_singles?/1`).
-  defp without_delivery(terms, market) do
-    if Shops.own_singles?(market),
-      do: terms,
-      else: Map.new(terms, fn {shop, {item, _delivery}} -> {shop, {item, nil}} end)
+  # `for_card/2` in SQL, over the offers that count (the query's filters apply
+  # before the window): no shop at home among the card's in-stock, ungraded
+  # offers; null when it has none.
+  defp abroad_only(market) do
+    at_home = Enum.filter(Shops.keys(), &Market.domestic?(&1, market))
+
+    domestic =
+      if market.code == "pl",
+        do: dynamic([o], o.shop in ^at_home or o.shop not in ^Shops.keys()),
+        else: dynamic([o], o.shop in ^at_home)
+
+    dynamic(
+      [o],
+      fragment(
+        "bool_and(NOT (?)) FILTER (WHERE ? AND ? IS NULL) OVER (PARTITION BY ?)",
+        ^domestic,
+        o.in_stock,
+        o.grading,
+        o.card_id
+      )
+    )
   end
 
-  # `Market.priced/3` for cards: in a market without a singles shop at home
-  # the compared price is the item price.
+  defp counted_in_stock?(offer), do: offer.in_stock and is_nil(offer.grading)
+
+  # `Market.priced/3` for cards: the compared price is the item price for a
+  # card without a shop at home (`for_card/2`).
   defp priced_offers(offers, market, today) do
     priced = Market.priced(offers, market, today)
+    context = context(market, today)
 
-    if Shops.own_singles?(market),
-      do: priced,
-      else: for({offer, item, compared} <- priced, do: {offer, item, compared && item})
+    abroad_only =
+      priced
+      |> Enum.filter(fn {offer, _item, compared} -> compared && counted_in_stock?(offer) end)
+      |> Enum.group_by(fn {offer, _item, _compared} -> offer.card_id end, &elem(&1, 0))
+      |> Enum.filter(fn {_card_id, offers} -> for_card(context, offers).abroad_only? end)
+      |> MapSet.new(&elem(&1, 0))
+
+    # Each offer says so, for the shop notes beside a price (`OfferComponents`).
+    for {offer, item, compared} <- priced do
+      bare? = context.abroad_only? or MapSet.member?(abroad_only, offer.card_id)
+
+      {Map.put(offer, :abroad_only?, bare?), item,
+       compared && if(bare?, do: item, else: compared)}
+    end
   end
 
   # A shop no longer configured has only Polish offers left, which Poland
@@ -887,7 +956,8 @@ defmodule TcgCheap.Cards.Guide do
   @doc """
   The cards of these sets with their prices in the market: the cheapest
   in-stock offer (`offer_price`, `offer_shop`; `normal_offer`, the normal
-  print's) and the Cardmarket trend, alone and with delivery, in its currency.
+  print's) and the Cardmarket trend, alone and as the card's price is
+  compared (`for_card/2`), in its currency.
   """
   def enrich(cards, sets, %Market{} = market) do
     offers = in_stock_prices(Enum.map(cards, & &1.id), market)
@@ -912,7 +982,18 @@ defmodule TcgCheap.Cards.Guide do
     from(o in current_query(),
       where: o.card_id in ^card_ids and o.in_stock and is_nil(o.grading),
       select:
-        map(o, [:id, :card_id, :price, :shop_price, :currency, :market_prices, :shop, :variant])
+        map(o, [
+          :id,
+          :card_id,
+          :price,
+          :shop_price,
+          :currency,
+          :market_prices,
+          :shop,
+          :variant,
+          :in_stock,
+          :grading
+        ])
     )
     |> Repo.all()
     |> priced_offers(market, Date.utc_today())
@@ -926,8 +1007,10 @@ defmodule TcgCheap.Cards.Guide do
 
   defp with_prices(card, offers, context) do
     trend = card.cardmarket_price && card.cardmarket_price.trend
+    context = for_card(context, offers)
 
     card
+    |> Map.put(:abroad_only?, context.abroad_only?)
     |> Map.put(:offer_price, if(offers != [], do: hd(offers).price))
     |> Map.put(:offer_shop, if(offers != [], do: hd(offers).shop))
     # Only a normal print compares with the Cardmarket trend, as on the card's page.
@@ -1021,13 +1104,16 @@ defmodule TcgCheap.Cards.Guide do
     end
   end
 
-  @doc "The source of the chosen price; shops win ties."
+  @doc """
+  The source of the chosen price; shops win ties. A shop comes as the offer
+  fields a shop note needs (`OfferComponents.card_shop_name/1`).
+  """
   def price_source(card) do
     offer = Map.get(card, :offer_price)
     trend = Map.get(card, :cardmarket_trend)
 
     if offer && (is_nil(trend) || Decimal.lte?(offer, trend)),
-      do: {:shop, card.offer_shop},
+      do: {:shop, %{shop: card.offer_shop, abroad_only?: card.abroad_only?}},
       else: :cardmarket
   end
 

@@ -66,11 +66,12 @@ as missing.
   shop selling singles is at home or has a delivery there (shops abroad with
   their delivery, in the region's currency); a region without one gives a
   card's Cardmarket trend in its currency, and its set page opens with the
-  single booster. Where no shop selling singles is at home, a card's shop
-  price is the item price the shop charges buyers of that country, without
-  delivery (a buyer takes many cards in one parcel); the shop's delivery
-  stands beside it, and the Cardmarket trend it is compared with has none
-  either. A card page is indexed, with its sitemap entry and link
+  single booster. A card that no shop selling singles at home has in stock
+  (every card, where no such shop is at home) is priced at the item price the
+  shop charges buyers of that country, without delivery (a buyer takes many
+  cards in one parcel); the shop's delivery stands beside it, and the
+  Cardmarket trend it is compared with has none either. A card a shop at home
+  has in stock keeps the delivery in the offers of shops abroad. A card page is indexed, with its sitemap entry and link
   preview, in every region where shops sell singles and one has the card in
   stock; the card pages of a region without such shops stay out of search.
 - Text in each language reads as written for its buyers, never as a
@@ -114,16 +115,16 @@ as missing.
   shops, shows its single booster instead). The page then lists the set's
   products with their verdicts, its pull rates and its cards. One card price is
   used everywhere: the lower of the cheapest shop offer and the Cardmarket
-  trend, without delivery, in the region's currency (in a region with a
-  singles shop at home, a shop abroad's offer counts with its delivery); in a
-  region without singles shops it is the Cardmarket trend. A card search also
+  trend, without delivery, in the region's currency (a shop abroad's offer
+  counts with its delivery only for a card a shop at home also has in stock);
+  in a region without singles shops it is the Cardmarket trend. A card search also
   finds cards no shop has in stock, after those that are. Pages state the answer in their first sentence and
   search metadata, so search engines and AI assistants can quote it.
 - The card list (`/pl/karty`, `/hu/kartyak`, `/se/kort`, `/hr/karte`, `/si/karte`, `/pt/cartas`, `/nl/kaarten`, `/cz/karty`) filters by expansion like the
   product list; where shops sell singles a chosen expansion opens with a
   singles banner in the same style: the set's best deal (a shop price furthest
-  under the Cardmarket price with delivery, or without it where no singles shop
-  is at home), its cards in stock in the region's shops, the whole set at the
+  under the Cardmarket price, with delivery or without it as the card's price
+  has it), its cards in stock in the region's shops, the whole set at the
   lowest prices (a sum that needs every card priced) and its most valuable card. Only a normal print's offer
   is compared with the Cardmarket price, as on the card's page.
 - The home page (`/pl/`, owner decision, 2026-11-16) leads to the two lists

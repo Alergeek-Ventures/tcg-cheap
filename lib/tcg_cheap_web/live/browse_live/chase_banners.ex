@@ -361,8 +361,8 @@ defmodule TcgCheapWeb.BrowseLive.ChaseBanners do
       )
 
   @doc false
-  def chase_source({:shop, shop}),
-    do: glue_short_words(gettext("w %{shop}", shop: card_shop_name(%{shop: shop})))
+  def chase_source({:shop, offer}),
+    do: glue_short_words(gettext("w %{shop}", shop: card_shop_name(offer)))
 
   def chase_source(:cardmarket), do: gettext("na Cardmarket")
 

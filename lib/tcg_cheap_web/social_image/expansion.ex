@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.SocialImage.Expansion do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.Shops
-  alias TcgCheapWeb.{Format, Region, SocialImage}
+  alias TcgCheapWeb.{Format, SocialImage}
   alias TcgCheapWeb.SocialImage.{Figures, Picture}
 
   @doc "A version of what the preview shows (`TcgCheap.Sealed.SetPage.read/3`)."
@@ -88,10 +88,10 @@ defmodule TcgCheapWeb.SocialImage.Expansion do
   defp booster_price(_set_page), do: nil
 
   # Where the set's top card price comes from, as the set page says it.
-  defp top_card_caption(%{source: {:shop, shop}}) do
+  defp top_card_caption(%{source: {:shop, %{shop: shop} = offer}}) do
     Enum.join(
       [gettext("najcenniejsza karta · najtaniej w %{shop}", shop: Shops.name(shop))] ++
-        if(Region.own_singles?(Region.current()), do: [], else: [gettext("bez dostawy")]),
+        if(offer.abroad_only?, do: [gettext("bez dostawy")], else: []),
       " · "
     )
   end

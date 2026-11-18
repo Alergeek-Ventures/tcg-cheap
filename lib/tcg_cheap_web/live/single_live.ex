@@ -43,11 +43,13 @@ defmodule TcgCheapWeb.SingleLive do
            primary: primary,
            page: page,
            shops?: shops?,
-           own_singles?: Region.own_singles?(region),
+           # A card with a shop at home, or none in stock, keeps the delivery in
+           # the price it compares; the others are priced without (`Guide.for_card/2`).
+           with_delivery?: !page.abroad_only?,
            euro_rate: euro_rate,
            # Without a shop to buy from the Cardmarket trend is the answer.
            trend:
-             if(!shops? or (!Region.own_singles?(region) and !primary.cheapest),
+             if(!shops? or (page.abroad_only? and !primary.cheapest),
                do: regional_trend(page.price, primary.variant, euro_rate, market)
              ),
            booster:
@@ -316,7 +318,7 @@ defmodule TcgCheapWeb.SingleLive do
                     do: single_verdict_label(@primary.verdict),
                     else: RegionText.card_unavailable()
                   )}<.verdict_icon
-                    :if={@primary.cheapest || @own_singles?}
+                    :if={@primary.cheapest || @with_delivery?}
                     status={single_verdict_status(@primary.verdict)}
                   />
                 </span>
@@ -332,7 +334,7 @@ defmodule TcgCheapWeb.SingleLive do
                 card?
               />
               <%!-- No shop delivers it: the Cardmarket trend is the answer, or one calm sentence. --%>
-              <div :if={!@primary.cheapest && !@own_singles? && @trend} id="single-trend">
+              <div :if={!@primary.cheapest && !@with_delivery? && @trend} id="single-trend">
                 <p class="verdict-price">{Format.price(@trend)}</p>
                 <p class="verdict-shop">
                   <a
@@ -347,13 +349,13 @@ defmodule TcgCheapWeb.SingleLive do
                 </p>
               </div>
               <p
-                :if={!@primary.cheapest && !@own_singles? && !@trend}
+                :if={!@primary.cheapest && !@with_delivery? && !@trend}
                 id="single-no-price"
                 class="guide-note"
               >
                 {gettext("Brak ceny Cardmarket")}
               </p>
-              <p :if={!@primary.cheapest && @own_singles?} id="single-empty" class="sr-only">
+              <p :if={!@primary.cheapest && @with_delivery?} id="single-empty" class="sr-only">
                 {RegionText.card_unavailable_note()}
               </p>
               <p :if={@primary.typical} id="single-typical" class="verdict-reason">
@@ -364,7 +366,7 @@ defmodule TcgCheapWeb.SingleLive do
                 )}
               </p>
               <p
-                :if={@primary.reference && (@primary.cheapest || @own_singles?)}
+                :if={@primary.reference && (@primary.cheapest || @with_delivery?)}
                 class="verdict-cardmarket"
               >
                 <.cardmarket_price
@@ -373,26 +375,26 @@ defmodule TcgCheapWeb.SingleLive do
                   placement="single_reference"
                   cardmarket_id={@page.card.cardmarket_id}
                   card={@page.card.id}
-                  shipping={@own_singles?}
-                /><span>{if(@own_singles?,
+                  shipping={@with_delivery?}
+                /><span>{if(@with_delivery?,
                   do: gettext("na Cardmarket z wysyłką · wszystkie języki i stany kart"),
                   else: gettext("trend na Cardmarket, bez wysyłki · wszystkie języki i stany kart")
                 )}</span>
               </p>
               <div class="verdict-more">
                 <.verdict_method id="single-method">
-                  <p>{card_method(@own_singles?)}</p>
+                  <p>{card_method(@with_delivery?)}</p>
                   <p>
                     {gettext(
                       "Cardmarket podaje jedną cenę dla wszystkich języków i stanów, więc karta angielska w stanie NM bywa droższa."
                     )}
                   </p>
-                  <p :if={@primary.reference && @own_singles?}>
+                  <p :if={@primary.reference && @with_delivery?}>
                     {reference_line(@page.price, @primary.variant)} = {Format.limit_price(
                       @primary.reference
                     )}.
                   </p>
-                  <p :if={@primary.verdict == :pennies && @own_singles?}>
+                  <p :if={@primary.verdict == :pennies && @with_delivery?}>
                     {gettext(
                       "Karta kosztuje w sklepach najwyżej %{price}, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena.",
                       price: Format.limit_price(@page.pennies_max)
@@ -415,7 +417,7 @@ defmodule TcgCheapWeb.SingleLive do
             </.verdict_panel>
           </div>
           <section
-            :if={@shops? && (@own_singles? || @page.offers != [])}
+            :if={@shops? && (@with_delivery? || @page.offers != [])}
             id="single-offers"
             class="product-section"
             aria-labelledby="single-offers-title"
@@ -427,7 +429,7 @@ defmodule TcgCheapWeb.SingleLive do
               phx-update="stream"
               data-track-positions
             >
-              <li :if={!@counts[:raw] && @own_singles?} id="single-offers-empty" class="guide-empty">
+              <li :if={!@counts[:raw] && @with_delivery?} id="single-offers-empty" class="guide-empty">
                 {gettext("Teraz żaden sklep nie ma tej karty na stanie.")}
               </li>
               <.offer
@@ -436,7 +438,7 @@ defmodule TcgCheapWeb.SingleLive do
                 offer={offer}
                 compared={@page.compared[offer.id]}
                 tags={offer_tags(offer)}
-                delivery_beside?={!@own_singles?}
+                delivery_beside?={!@with_delivery?}
                 location={@location}
                 today={Date.utc_today()}
               />
@@ -457,7 +459,7 @@ defmodule TcgCheapWeb.SingleLive do
                   offer={offer}
                   compared={@page.compared[offer.id]}
                   tags={offer_tags(offer)}
-                  delivery_beside?={!@own_singles?}
+                  delivery_beside?={!@with_delivery?}
                   location={@location}
                   today={Date.utc_today()}
                 />
@@ -479,7 +481,7 @@ defmodule TcgCheapWeb.SingleLive do
                   offer={offer}
                   compared={@page.compared[offer.id]}
                   tags={offer_tags(offer)}
-                  delivery_beside?={!@own_singles?}
+                  delivery_beside?={!@with_delivery?}
                   location={@location}
                   today={Date.utc_today()}
                 />
@@ -491,7 +493,7 @@ defmodule TcgCheapWeb.SingleLive do
                   offer={offer}
                   compared={@page.compared[offer.id]}
                   tags={offer_tags(offer)}
-                  delivery_beside?={!@own_singles?}
+                  delivery_beside?={!@with_delivery?}
                   location={@location}
                   today={Date.utc_today()}
                 />
