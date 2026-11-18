@@ -132,6 +132,16 @@ if config_env() == :prod do
   config :tcg_cheap, TcgCheap.Repo,
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    # A short burst queues more checkouts than the pool serves at once, and
+    # with the default target of 50 ms a request that waited ~100 ms for a
+    # connection failed with an error. DBConnection starts dropping only when
+    # no checkout of a whole `queue_interval` waited less than `queue_target`,
+    # and then drops those that have waited longer than twice the target; the
+    # interval is halved from its default of 2000 ms so a lasting overload is
+    # noticed sooner and still shed. This helps a short pile-up; it does not
+    # cure a pool that stays saturated.
+    queue_target: 250,
+    queue_interval: 1000,
     socket_options: maybe_ipv6
 
   # Signs and encrypts cookies and other secrets. Development and test use
