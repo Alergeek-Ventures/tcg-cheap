@@ -356,8 +356,10 @@ defmodule TcgCheap.Cards.Guide do
 
   # Per card, the lowest in-stock compared price of its current, ungraded offers.
   defp card_offers(words, expansion, market) do
+    reads = if words == [] and is_nil(expansion), do: :all_cards, else: :some_cards
+
     offers =
-      from(o in subquery(compared_query(market)),
+      from(o in subquery(compared_query(market, reads)),
         where: is_nil(o.grading),
         group_by: o.card_id,
         select: %{card_id: o.card_id, price: min(o.price) |> filter(o.in_stock)}
@@ -765,8 +767,14 @@ defmodule TcgCheap.Cards.Guide do
   abroad's includes its delivery to the market. Use it as a subquery, and
   only for prices and counts: its other fields lose their types (a UUID
   comes back as raw bytes).
+
+  `reads` says how much of the market the caller reads, which decides how the
+  per-card decision of `for_card/2` is joined (see `card_home/3`): `:all_cards`
+  for a caller that reads every card, `:some_cards` for one that narrows to
+  a set, a search or card ids.
   """
-  def compared_query(%Market{} = market) do
+  @spec compared_query(Market.t(), :all_cards | :some_cards) :: Ecto.Query.t()
+  def compared_query(%Market{} = market, reads) when reads in [:all_cards, :some_cards] do
     terms = Market.price_terms(market, Date.utc_today())
     bare = Map.new(terms, fn {shop, {item, _delivery}} -> {shop, {item, nil}} end)
     item_only = compared_price(bare, market)
@@ -774,23 +782,16 @@ defmodule TcgCheap.Cards.Guide do
     query = from(o in counted_query(market, terms), as: :offer)
 
     if Shops.own_singles?(market) do
-      home = card_offer_probe(market, terms, domestic_check(market))
-      stocked = card_offer_probe(market, terms, dynamic(true))
-
-      from([o] in query,
-        left_lateral_join: h in subquery(home),
-        on: true,
-        left_lateral_join: a in subquery(stocked),
-        on: true
-      )
+      query
+      |> card_home(reads, market, terms)
       |> select_merge(
         ^%{
           price:
             dynamic(
-              [o, h, a],
+              [o, h],
               fragment(
                 "CASE WHEN ? THEN ? ELSE ? END",
-                is_nil(h.hit) and ((o.in_stock and is_nil(o.grading)) or not is_nil(a.hit)),
+                h.home == false,
                 ^item_only,
                 ^compared_price(terms, market)
               )
@@ -810,27 +811,59 @@ defmodule TcgCheap.Cards.Guide do
     )
   end
 
-  # `for_card/2` in SQL: a card is abroad-only when it has an in-stock,
-  # ungraded offer that counts and none of them is a shop at home. Each test
-  # is a lateral lookup of one such offer of the card, so the planner reaches
-  # only the cards an outer query wants, through the offers' card index (a
-  # window over the card could not be pushed below), and the price
-  # expression carries no subquery of its own, which the outer query repeats.
-  defp card_offer_probe(market, terms, check) do
-    from(i in counted_query(market, terms),
-      where: i.card_id == parent_as(:offer).card_id and i.in_stock and is_nil(i.grading),
-      where: ^check,
-      select: %{hit: fragment("1")},
-      limit: 1
-    )
+  # `for_card/2` in SQL, joined to each offer as `home`: whether a shop at
+  # home has an in-stock, ungraded offer of the card that counts. It is nil for
+  # a card with none, and false exactly when the card is abroad-only. The
+  # price expression carries no subquery of its own, which the outer query
+  # repeats.
+  #
+  # Which join is cheaper depends on the reader. One grouped table over the
+  # market computes the decision once per card, a hash join: right for a
+  # caller that reads every card (the planner cannot push an outer card filter
+  # into a grouped subquery, so it would still scan the market for a set or a
+  # search). A lateral lookup of the card's offers reaches only the cards an
+  # outer query wants, through the offers' card index, but costs an index
+  # probe for each offer, which is dear for the whole market.
+  defp card_home(query, :all_cards, market, terms) do
+    homes =
+      from(i in counted_query(market, terms),
+        where: i.in_stock and is_nil(i.grading),
+        group_by: i.card_id,
+        select: ^%{card_id: dynamic([i], i.card_id), home: at_home_any(market)}
+      )
+
+    from([o] in query, left_join: h in subquery(homes), on: h.card_id == o.card_id)
   end
 
-  defp domestic_check(market) do
+  defp card_home(query, :some_cards, market, terms) do
+    home =
+      from(i in counted_query(market, terms),
+        where: i.card_id == parent_as(:offer).card_id and i.in_stock and is_nil(i.grading),
+        select: ^%{home: at_home_any(market)}
+      )
+
+    from([o] in query, left_lateral_join: h in subquery(home), on: true)
+  end
+
+  # Whether any of a card's offers is a shop's at home; Poland counts a shop no
+  # longer configured as its own (`counted/2`).
+  defp at_home_any(market) do
     at_home = Enum.filter(Shops.keys(), &Market.domestic?(&1, market))
 
-    if market.code == "pl",
-      do: dynamic([i], i.shop in ^at_home or i.shop not in ^Shops.keys()),
-      else: dynamic([i], i.shop in ^at_home)
+    if market.code == "pl" do
+      dynamic(
+        [i],
+        fragment(
+          "bool_or(? = ANY(?) OR ? <> ALL(?))",
+          i.shop,
+          type(^at_home, {:array, :string}),
+          i.shop,
+          type(^Shops.keys(), {:array, :string})
+        )
+      )
+    else
+      dynamic([i], fragment("bool_or(? = ANY(?))", i.shop, type(^at_home, {:array, :string})))
+    end
   end
 
   defp counted_in_stock?(offer), do: offer.in_stock and is_nil(offer.grading)
@@ -1106,7 +1139,7 @@ defmodule TcgCheap.Cards.Guide do
 
   @doc "How many shops counted in the market's card prices have an ungraded card in stock."
   def shop_count(%Market{} = market) do
-    from(o in subquery(compared_query(market)),
+    from(o in subquery(compared_query(market, :all_cards)),
       where: o.in_stock and is_nil(o.grading),
       select: count(o.shop, :distinct)
     )
@@ -1148,7 +1181,7 @@ defmodule TcgCheap.Cards.Guide do
   @spec in_stock_count(integer(), Market.t()) :: non_neg_integer()
   def in_stock_count(expansion_id, %Market{} = market) do
     from(c in Card,
-      join: o in subquery(compared_query(market)),
+      join: o in subquery(compared_query(market, :some_cards)),
       on: o.card_id == c.id and o.in_stock and is_nil(o.grading),
       join: s in Set,
       on: c.tcgdex_set_id == s.id,
@@ -1166,7 +1199,7 @@ defmodule TcgCheap.Cards.Guide do
   def sitemap_cards(%Market{} = market) do
     cards =
       from(c in Card,
-        join: o in subquery(compared_query(market)),
+        join: o in subquery(compared_query(market, :all_cards)),
         on: o.card_id == c.id and o.in_stock and is_nil(o.grading),
         join: s in Set,
         on: c.tcgdex_set_id == s.id,
