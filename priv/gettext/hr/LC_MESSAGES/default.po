@@ -36,7 +36,7 @@ msgstr[0] "%{number} proizvod"
 msgstr[1] "%{number} proizvoda"
 msgstr[2] "%{number} proizvoda"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:224
+#: lib/tcg_cheap_web/components/offer_components.ex:230
 #, elixir-autogen, elixir-format
 msgid "%{shop}: przejdź do sklepu (otwiera się w nowej karcie)"
 msgstr "%{shop}: idi u trgovinu (otvara se u novoj kartici)"
@@ -98,13 +98,13 @@ msgstr "Cardmarket (u zł)"
 msgid "Cardmarket nie podaje ceny tego produktu, więc na razie go nie oceniamy."
 msgstr "Cardmarket ne navodi cijenu ovog proizvoda pa ga zasad ne ocjenjujemo."
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:314
+#: lib/tcg_cheap_web/components/verdict_components.ex:321
 #, elixir-autogen, elixir-format
 msgid "Cardmarket nie podaje jeszcze ceny tego produktu."
 msgstr "Cardmarket još ne navodi cijenu ovog proizvoda."
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:271
-#: lib/tcg_cheap_web/live/single_live.ex:278
+#: lib/tcg_cheap_web/components/verdict_components.ex:278
+#: lib/tcg_cheap_web/live/single_live.ex:282
 #, elixir-autogen, elixir-format
 msgid "Cena na Cardmarket"
 msgstr "Cijena na Cardmarketu"
@@ -114,8 +114,8 @@ msgstr "Cijena na Cardmarketu"
 msgid "Chińska"
 msgstr "Kineska"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:226
-#: lib/tcg_cheap_web/components/verdict_components.ex:196
+#: lib/tcg_cheap_web/components/offer_components.ex:232
+#: lib/tcg_cheap_web/components/verdict_components.ex:203
 #, elixir-autogen, elixir-format
 msgid "Do sklepu"
 msgstr "U trgovinu"
@@ -192,7 +192,7 @@ msgstr "Imamo cijene za %{days} (od %{date}). Grafikon ćemo prikazati kad ih bu
 msgid "Miejscowości:"
 msgstr "Mjesta:"
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:296
+#: lib/tcg_cheap_web/components/verdict_components.ex:303
 #, elixir-autogen, elixir-format
 msgid "Na Cardmarket od %{date}."
 msgstr "Na Cardmarketu od %{date}."
@@ -232,7 +232,7 @@ msgstr "Ocjena cijene"
 msgid "Odbiór osobisty"
 msgstr "Osobno preuzimanje"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:132
+#: lib/tcg_cheap_web/components/offer_components.ex:138
 #, elixir-autogen, elixir-format
 msgid "Oferty w sklepach"
 msgstr "Ponude u trgovinama"
@@ -242,19 +242,19 @@ msgstr "Ponude u trgovinama"
 msgid "Ostatnio najtaniej: %{price} (%{date})."
 msgstr "Zadnja najniža cijena: %{price} (%{date})."
 
-#: lib/tcg_cheap_web/live/browse_live.ex:658
-#: lib/tcg_cheap_web/live/browse_live.ex:684
+#: lib/tcg_cheap_web/live/browse_live.ex:671
+#: lib/tcg_cheap_web/live/browse_live.ex:711
 #, elixir-autogen, elixir-format
 msgid "Pokazano %{loaded} z %{count}."
 msgstr "Prikazano %{loaded} od %{count}."
 
-#: lib/tcg_cheap_web/live/browse_live.ex:655
-#: lib/tcg_cheap_web/live/browse_live.ex:682
+#: lib/tcg_cheap_web/live/browse_live.ex:668
+#: lib/tcg_cheap_web/live/browse_live.ex:709
 #, elixir-autogen, elixir-format
 msgid "Pokaż więcej"
 msgstr "Prikaži još"
 
-#: lib/tcg_cheap_web/live/browse_live.ex:636
+#: lib/tcg_cheap_web/live/browse_live.ex:649
 #, elixir-autogen, elixir-format
 msgid "Pokaż wszystkie produkty"
 msgstr "Prikaži sve proizvode"
@@ -275,8 +275,8 @@ msgid "Puszka"
 msgstr "Tin"
 
 #: lib/tcg_cheap_web/live/browse_live/filters.ex:119
-#: lib/tcg_cheap_web/page_markdown.ex:505
-#: lib/tcg_cheap_web/page_markdown.ex:653
+#: lib/tcg_cheap_web/page_markdown.ex:530
+#: lib/tcg_cheap_web/page_markdown.ex:678
 #, elixir-autogen, elixir-format
 msgid "Rodzaj"
 msgstr "Vrsta"
@@ -287,8 +287,8 @@ msgstr "Vrsta"
 msgid "Sprawdź, czy cena jest dobra"
 msgstr "Provjeri je li cijena dobra"
 
-#: lib/tcg_cheap_web/live/browse_live.ex:514
 #: lib/tcg_cheap_web/live/browse_live.ex:527
+#: lib/tcg_cheap_web/live/browse_live.ex:540
 #, elixir-autogen, elixir-format
 msgid "Szukaj produktu"
 msgstr "Traži proizvod"
@@ -317,7 +317,7 @@ msgstr "Trenutačno nijedna trgovina nema ovaj proizvod na stanju."
 msgid "Teraz: %{town}. Zmień albo usuń."
 msgstr "Sada: %{town}. Promijeni ili obriši."
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:281
+#: lib/tcg_cheap_web/components/verdict_components.ex:288
 #, elixir-autogen, elixir-format
 msgid "Trend:"
 msgstr "Trend:"
@@ -352,8 +352,8 @@ msgstr "Koristi moju lokaciju"
 msgid "W %{shop} %{delivery}"
 msgstr "%{shop}: %{delivery}"
 
-#: lib/tcg_cheap_web/live/browse_live.ex:653
-#: lib/tcg_cheap_web/live/browse_live.ex:681
+#: lib/tcg_cheap_web/live/browse_live.ex:666
+#: lib/tcg_cheap_web/live/browse_live.ex:708
 #, elixir-autogen, elixir-format
 msgid "Wczytuję…"
 msgstr "Učitavam…"
@@ -382,7 +382,7 @@ msgstr "Sve"
 msgid "Wszystkie produkty"
 msgstr "Svi proizvodi"
 
-#: lib/tcg_cheap_web/live/browse_live.ex:586
+#: lib/tcg_cheap_web/live/browse_live.ex:599
 #, elixir-autogen, elixir-format
 msgid "Wyniki"
 msgstr "Rezultati"
@@ -413,13 +413,14 @@ msgstr "suradnici OpenStreetMapa"
 msgid "brak do %{radius} km – potrzebna dostawa"
 msgstr "nijedna do %{radius} km – potrebna dostava"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:464
+#: lib/tcg_cheap_web/components/offer_components.ex:517
 #, elixir-autogen, elixir-format
 msgid "darmowa dostawa od %{amount}"
 msgstr "besplatna dostava od %{amount}"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:454
-#: lib/tcg_cheap_web/components/offer_components.ex:473
+#: lib/tcg_cheap_web/components/offer_components.ex:397
+#: lib/tcg_cheap_web/components/offer_components.ex:507
+#: lib/tcg_cheap_web/components/offer_components.ex:526
 #, elixir-autogen, elixir-format
 msgid "darmowa od %{amount}"
 msgstr "besplatno od %{amount}"
@@ -429,7 +430,7 @@ msgstr "besplatno od %{amount}"
 msgid "dostawa gratis"
 msgstr "besplatna dostava"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:465
+#: lib/tcg_cheap_web/components/offer_components.ex:518
 #: lib/tcg_cheap_web/live/product_live/verdict_block.ex:113
 #, elixir-autogen, elixir-format
 msgid "dostawa od %{amount}"
@@ -441,28 +442,28 @@ msgstr "dostava od %{amount}"
 msgid "dziś"
 msgstr "danas"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:420
-#: lib/tcg_cheap_web/components/offer_components.ex:466
+#: lib/tcg_cheap_web/components/offer_components.ex:473
+#: lib/tcg_cheap_web/components/offer_components.ex:519
 #, elixir-autogen, elixir-format
 msgid "koszt dostawy w koszyku"
 msgstr "trošak dostave vidi se u košarici"
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:176
+#: lib/tcg_cheap_web/components/verdict_components.ex:180
 #, elixir-autogen, elixir-format
 msgid "najtaniej teraz w"
 msgstr "trenutačno najjeftinije u trgovini"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:493
+#: lib/tcg_cheap_web/components/offer_components.ex:546
 #, elixir-autogen, elixir-format
 msgid "odbiór osobisty: %{city}"
 msgstr "osobno preuzimanje: %{city}"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:497
+#: lib/tcg_cheap_web/components/offer_components.ex:550
 #, elixir-autogen, elixir-format
 msgid "odbiór osobisty: %{city} (%{distance})"
 msgstr "osobno preuzimanje: %{city} (%{distance})"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:285
+#: lib/tcg_cheap_web/components/offer_components.ex:291
 #, elixir-autogen, elixir-format
 msgid "odbiór: %{city}, %{distance}"
 msgstr "preuzimanje: %{city}, %{distance}"
@@ -472,7 +473,7 @@ msgstr "preuzimanje: %{city}, %{distance}"
 msgid "położenie sklepów: ©"
 msgstr "lokacije trgovina: ©"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:235
+#: lib/tcg_cheap_web/components/offer_components.ex:241
 #, elixir-autogen, elixir-format
 msgid "sprawdzono %{when}"
 msgstr "provjereno %{when}"
@@ -513,7 +514,7 @@ msgstr "Veletrgovina REBEL:"
 msgid "skąd ta cena?"
 msgstr "odakle ta cijena?"
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:276
+#: lib/tcg_cheap_web/components/verdict_components.ex:283
 #: lib/tcg_cheap_web/live/product_live.ex:416
 #, elixir-autogen, elixir-format
 msgid "stan na %{date}"
@@ -664,7 +665,7 @@ msgstr "oznake stanja"
 msgid "talia %{deck}"
 msgstr "špil %{deck}"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:523
+#: lib/tcg_cheap_web/components/offer_components.ex:576
 #, elixir-autogen, elixir-format
 msgid "Jesteśmy niezależnym agregatorem: nie sprzedajemy produktów i nie weryfikujemy sklepów. Zanim zapłacisz, sprawdź sklep – opinie, dane firmy i regulamin."
 msgstr "Neovisni smo agregator: ne prodajemo proizvode i ne provjeravamo trgovine. Prije plaćanja provjeri trgovinu – recenzije, podatke o tvrtki i uvjete kupnje."
@@ -805,31 +806,31 @@ msgstr "Na Cardmarketu %{price} (bez dostave)."
 msgid "Ocenę pokażemy, gdy produkt będzie na stanie w co najmniej %{count} sklepach."
 msgstr "Ocjenu ćemo prikazati kad proizvod bude na stanju u barem %{count} trgovine."
 
-#: lib/tcg_cheap_web/components/offer_components.ex:134
+#: lib/tcg_cheap_web/components/offer_components.ex:140
 #, elixir-autogen, elixir-format
 msgid "%{offers} na stanie"
 msgstr "Na stanju: %{offers}"
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:196
+#: lib/tcg_cheap_web/components/verdict_components.ex:203
 #, elixir-autogen, elixir-format
 msgid "(otwiera się w nowej karcie)"
 msgstr "(otvara se u novoj kartici)"
 
 #: lib/tcg_cheap_web/live/product_live.ex:277
-#: lib/tcg_cheap_web/live/single_live.ex:417
+#: lib/tcg_cheap_web/live/single_live.ex:448
 #, elixir-autogen, elixir-format
 msgid "Bez towaru: %{offers}"
 msgstr "Nema na stanju: %{offers}"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:237
+#: lib/tcg_cheap_web/components/offer_components.ex:243
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:98
-#: lib/tcg_cheap_web/page_markdown.ex:639
-#: lib/tcg_cheap_web/page_markdown.ex:668
+#: lib/tcg_cheap_web/page_markdown.ex:664
+#: lib/tcg_cheap_web/page_markdown.ex:693
 #, elixir-autogen, elixir-format
 msgid "brak na stanie"
 msgstr "nema na stanju"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:240
+#: lib/tcg_cheap_web/components/offer_components.ex:246
 #, elixir-autogen, elixir-format
 msgid "brak na stanie, sprawdzono %{when}"
 msgstr "nema na stanju, provjereno %{when}"
@@ -839,7 +840,7 @@ msgstr "nema na stanju, provjereno %{when}"
 msgid "Za mało sklepów"
 msgstr "Premalo trgovina"
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:237
+#: lib/tcg_cheap_web/components/verdict_components.ex:244
 #, elixir-autogen, elixir-format
 msgid "Cena na Cardmarket (bez wysyłki)"
 msgstr "Cijena na Cardmarketu (bez dostave)"
@@ -849,7 +850,7 @@ msgstr "Cijena na Cardmarketu (bez dostave)"
 msgid "na Cardmarket, bez wysyłki"
 msgstr "na Cardmarketu, bez dostave"
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:309
+#: lib/tcg_cheap_web/components/verdict_components.ex:316
 #, elixir-autogen, elixir-format
 msgid "Zobacz na Cardmarket"
 msgstr "Pogledaj na Cardmarketu"
@@ -943,15 +944,15 @@ msgstr "Odbij"
 
 #: lib/tcg_cheap_web/components/contents_components.ex:490
 #: lib/tcg_cheap_web/components/set_components.ex:51
-#: lib/tcg_cheap_web/page_markdown.ex:375
-#: lib/tcg_cheap_web/page_markdown.ex:722
+#: lib/tcg_cheap_web/page_markdown.ex:393
+#: lib/tcg_cheap_web/page_markdown.ex:747
 #, elixir-autogen, elixir-format
 msgid "Rzadkość"
 msgstr "Rijetkost"
 
 #: lib/tcg_cheap_web/components/set_components.ex:251
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:359
-#: lib/tcg_cheap_web/live/single_live.ex:265
+#: lib/tcg_cheap_web/live/single_live.ex:269
 #, elixir-autogen, elixir-format
 msgid "Rzadkość nieznana"
 msgstr "Rijetkost nepoznata"
@@ -965,7 +966,7 @@ msgid "Szansa na drop"
 msgstr "Šanse za izvlačenje"
 
 #: lib/tcg_cheap_web/components/set_components.ex:56
-#: lib/tcg_cheap_web/page_markdown.ex:722
+#: lib/tcg_cheap_web/page_markdown.ex:747
 #, elixir-autogen, elixir-format
 msgid "Szansa w paczce"
 msgstr "Šansa po paketiću"
@@ -1013,7 +1014,7 @@ msgstr "podaci: %{source}"
 
 #: lib/tcg_cheap_web/components/contents_components.ex:505
 #: lib/tcg_cheap_web/components/set_components.ex:71
-#: lib/tcg_cheap_web/page_markdown.ex:713
+#: lib/tcg_cheap_web/page_markdown.ex:738
 #, elixir-autogen, elixir-format
 msgid "konkretna karta: %{name}"
 msgstr "određena karta: %{name}"
@@ -1055,13 +1056,13 @@ msgid "Szansa w paczce %{count} kart"
 msgstr "Šansa u paketiću od %{count} karata"
 
 #: lib/tcg_cheap_web/components/set_components.ex:123
-#: lib/tcg_cheap_web/page_markdown.ex:736
+#: lib/tcg_cheap_web/page_markdown.ex:761
 #, elixir-autogen, elixir-format
 msgid "Te szanse dotyczą zwykłej paczki %{count} kart. W tej paczce jest mniej kart, więc szanse są niższe – o ile, nie wiadomo."
 msgstr "Ove šanse vrijede za običan paketić od %{count} karata. U ovom paketiću ima manje karata pa su šanse manje – koliko manje, ne znamo."
 
 #: lib/tcg_cheap_web/components/set_components.ex:128
-#: lib/tcg_cheap_web/page_markdown.ex:730
+#: lib/tcg_cheap_web/page_markdown.ex:755
 #, elixir-autogen, elixir-format
 msgid "Te szanse dotyczą zwykłej paczki. W tej paczce jest mniej kart, więc szanse są niższe – o ile, nie wiadomo."
 msgstr "Ove šanse vrijede za običan paketić. U ovom paketiću ima manje karata pa su šanse manje – koliko manje, ne znamo."
@@ -1135,7 +1136,7 @@ msgid "Zwykle najtaniej %{price} w ostatnich %{days} dniach."
 msgstr "Obično najjeftinije %{price} u zadnjih %{days} dana."
 
 #: lib/tcg_cheap_web/components/set_components.ex:107
-#: lib/tcg_cheap_web/page_markdown.ex:698
+#: lib/tcg_cheap_web/page_markdown.ex:723
 #, elixir-autogen, elixir-format
 msgid "Tego setu nikt jeszcze nie policzył: to szanse z wcześniejszego setu (%{set}), niezweryfikowane dla tego."
 msgstr "Ovaj set još nitko nije prebrojao: to su šanse iz ranijeg seta (%{set}) i nisu provjerene za ovaj set."
@@ -1160,14 +1161,14 @@ msgstr "Odustani"
 msgid "Przedsprzedaż: %{offers}"
 msgstr "Prednarudžba: %{offers}"
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:175
+#: lib/tcg_cheap_web/components/verdict_components.ex:179
 #, elixir-autogen, elixir-format
 msgid "najtaniej w przedsprzedaży w"
 msgstr "najjeftinija prednarudžba u trgovini"
 
-#: lib/tcg_cheap_web/components/listing_components.ex:289
-#: lib/tcg_cheap_web/components/offer_components.ex:200
-#: lib/tcg_cheap_web/page_markdown.ex:600
+#: lib/tcg_cheap_web/components/listing_components.ex:300
+#: lib/tcg_cheap_web/components/offer_components.ex:206
+#: lib/tcg_cheap_web/page_markdown.ex:625
 #, elixir-autogen, elixir-format
 msgid "przedsprzedaż"
 msgstr "prednarudžba"
@@ -1192,7 +1193,7 @@ msgstr "Ovo je prednarudžba: trgovina šalje proizvod nakon izlaska."
 msgid "jutro"
 msgstr "sutra"
 
-#: lib/tcg_cheap_web/components/listing_components.ex:292
+#: lib/tcg_cheap_web/components/listing_components.ex:303
 #, elixir-autogen, elixir-format
 msgid "przedsprzedaż · %{when}"
 msgstr "prednarudžba · %{when}"
@@ -1215,8 +1216,8 @@ msgstr "Ocjenu ćemo prikazati kad proizvod bude u prednarudžbi u barem %{count
 msgid "Produkt jest teraz w przedsprzedaży w %{shops}. Porównamy ceny, gdy będzie w co najmniej %{minimum} sklepach."
 msgstr "Proizvod je trenutačno u prednarudžbi u %{shops}. Cijene ćemo usporediti kad ga bude imalo barem %{minimum} trgovine."
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:117
-#: lib/tcg_cheap_web/live/home_live.ex:262
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:118
+#: lib/tcg_cheap_web/live/home_live.ex:267
 #, elixir-autogen, elixir-format
 msgid "Czy to dobra cena?"
 msgstr "Je li ovo dobra cijena?"
@@ -1277,7 +1278,7 @@ msgstr "nasumični špil (1 od %{count})"
 msgid "Cena detaliczna sugerowana w katalogu hurtowni REBEL. Sklepy ustalają ceny same, więc nie bierzemy jej pod uwagę w ocenie."
 msgstr "Preporučena maloprodajna cijena iz kataloga veletrgovine REBEL. Trgovine same određuju cijene pa je ne uzimamo u obzir pri ocjeni."
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:337
+#: lib/tcg_cheap_web/components/verdict_components.ex:344
 #, elixir-autogen, elixir-format
 msgid "Kurs NBP %{rate} zł z %{date}."
 msgstr "Tečaj NBP-a %{rate} zł na dan %{date}."
@@ -1293,7 +1294,7 @@ msgstr "Na ovoj stranici"
 msgid "To szacunki społeczności"
 msgstr "Ovo su procjene zajednice"
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:291
+#: lib/tcg_cheap_web/components/verdict_components.ex:298
 #, elixir-autogen, elixir-format
 msgid "Europejska giełda."
 msgstr "Europsko tržište."
@@ -1390,28 +1391,29 @@ msgstr "u trgovini %{shop}"
 msgid "%{packs} po %{price}"
 msgstr "%{packs} po %{price}"
 
-#: lib/tcg_cheap_web/live/browse_live.ex:671
+#: lib/tcg_cheap_web/live/browse_live.ex:698
 #, elixir-autogen, elixir-format
 msgid "Bez towaru: %{cards}"
 msgstr "Nema na stanju: %{cards}"
 
 #: lib/tcg_cheap_web/components/verdict_components.ex:122
-#: lib/tcg_cheap_web/live/single_live.ex:297
+#: lib/tcg_cheap_web/live/single_live.ex:301
+#: lib/tcg_cheap_web/live/single_live.ex:354
 #, elixir-autogen, elixir-format
 msgid "Brak ceny Cardmarket"
 msgstr "Nema cijene s Cardmarketa"
 
-#: lib/tcg_cheap_web/live/single_live.ex:374
+#: lib/tcg_cheap_web/live/single_live.ex:405
 #, elixir-autogen, elixir-format
 msgid "Cardmarket nie rozdziela edycji. Nie wystawiamy werdyktu dla pierwszej edycji."
 msgstr "Cardmarket ne razlikuje izdanja. Za prvo izdanje ne dajemo ocjenu."
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:236
+#: lib/tcg_cheap_web/components/verdict_components.ex:243
 #, elixir-autogen, elixir-format
 msgid "Cena na Cardmarket z wysyłką"
 msgstr "Cijena na Cardmarketu s dostavom"
 
-#: lib/tcg_cheap_web/components/listing_components.ex:185
+#: lib/tcg_cheap_web/components/listing_components.ex:196
 #, elixir-autogen, elixir-format
 msgid "Cena nieznana"
 msgstr "Cijena nepoznata"
@@ -1421,17 +1423,17 @@ msgstr "Cijena nepoznata"
 msgid "Ceny bez dostawy, szanse to szacunki."
 msgstr "Cijene bez dostave, šanse su procjene."
 
-#: lib/tcg_cheap_web/live/browse_live.ex:577
-#: lib/tcg_cheap_web/live/home_live.ex:334
-#: lib/tcg_cheap_web/live/home_live.ex:425
-#: lib/tcg_cheap_web/live/home_live.ex:478
+#: lib/tcg_cheap_web/live/browse_live.ex:590
+#: lib/tcg_cheap_web/live/home_live.ex:339
+#: lib/tcg_cheap_web/live/home_live.ex:438
+#: lib/tcg_cheap_web/live/home_live.ex:491
 #: lib/tcg_cheap_web/page_markdown.ex:123
 #: lib/tcg_cheap_web/seo.ex:155
 #, elixir-autogen, elixir-format
 msgid "Karty"
 msgstr "Karte"
 
-#: lib/tcg_cheap_web/live/single_live.ex:439
+#: lib/tcg_cheap_web/live/single_live.ex:470
 #, elixir-autogen, elixir-format
 msgid "Karty z oceną (PSA, CGC): %{count}"
 msgstr "Ocijenjene karte (PSA, CGC): %{count}"
@@ -1441,7 +1443,7 @@ msgstr "Ocijenjene karte (PSA, CGC): %{count}"
 msgid "Kolejne: wylosujesz albo kupisz"
 msgstr "Sljedeće: izvuci ili kupi"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:185
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:210
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:218
 #, elixir-autogen, elixir-format
 msgid "Kupisz ją za"
@@ -1452,35 +1454,35 @@ msgstr "Možeš je kupiti za"
 msgid "Najcenniejsza karta w secie"
 msgstr "Najvrjednija karta u setu"
 
-#: lib/tcg_cheap_web/live/browse_live.ex:616
-#: lib/tcg_cheap_web/live/home_live.ex:317
+#: lib/tcg_cheap_web/live/browse_live.ex:629
+#: lib/tcg_cheap_web/live/home_live.ex:322
 #, elixir-autogen, elixir-format
 msgid "Nic nie znaleźliśmy."
 msgstr "Ništa nismo pronašli."
 
-#: lib/tcg_cheap_web/live/browse_live.ex:614
-#: lib/tcg_cheap_web/live/home_live.ex:346
+#: lib/tcg_cheap_web/live/browse_live.ex:627
+#: lib/tcg_cheap_web/live/home_live.ex:358
 #, elixir-autogen, elixir-format
 msgid "Nie znaleźliśmy takiej karty. Wpisz angielską nazwę, np. Pikachu."
 msgstr "Nismo pronašli tu kartu. Upiši engleski naziv, npr. Pikachu."
 
-#: lib/tcg_cheap_web/live/browse_live.ex:635
+#: lib/tcg_cheap_web/live/browse_live.ex:648
 #, elixir-autogen, elixir-format
 msgid "Pokaż wszystkie karty"
 msgstr "Prikaži sve karte"
 
-#: lib/tcg_cheap_web/live/single_live.ex:378
+#: lib/tcg_cheap_web/live/single_live.ex:409
 #, elixir-autogen, elixir-format
 msgid "Porównujemy karty bez oceny. Sprawdź wariant i stan w sklepie."
 msgstr "Uspoređujemo neocijenjene karte. U trgovini provjeri varijantu i stanje karte."
 
-#: lib/tcg_cheap_web/live/browse_live.ex:571
+#: lib/tcg_cheap_web/live/browse_live.ex:584
 #: lib/tcg_cheap_web/live/browse_live/filters.ex:111
-#: lib/tcg_cheap_web/live/home_live.ex:305
-#: lib/tcg_cheap_web/live/home_live.ex:407
-#: lib/tcg_cheap_web/live/home_live.ex:477
+#: lib/tcg_cheap_web/live/home_live.ex:310
+#: lib/tcg_cheap_web/live/home_live.ex:420
+#: lib/tcg_cheap_web/live/home_live.ex:490
 #: lib/tcg_cheap_web/page_markdown.ex:109
-#: lib/tcg_cheap_web/page_markdown.ex:346
+#: lib/tcg_cheap_web/page_markdown.ex:361
 #, elixir-autogen, elixir-format
 msgid "Produkty"
 msgstr "Proizvodi"
@@ -1490,7 +1492,7 @@ msgstr "Proizvodi"
 msgid "Reverse holo"
 msgstr "Reverse holo"
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:285
+#: lib/tcg_cheap_web/components/verdict_components.ex:292
 #, elixir-autogen, elixir-format
 msgid "Reverse holo:"
 msgstr "Reverse holo:"
@@ -1500,24 +1502,24 @@ msgstr "Reverse holo:"
 msgid "Set liczy %{cards}, najdroższa to %{card} (%{price}, bez dostawy)."
 msgstr "Set ima %{cards}, a najskuplja je %{card} (%{price}, bez dostave)."
 
-#: lib/tcg_cheap_web/live/browse_live.ex:513
 #: lib/tcg_cheap_web/live/browse_live.ex:526
+#: lib/tcg_cheap_web/live/browse_live.ex:539
 #, elixir-autogen, elixir-format
 msgid "Szukaj karty"
 msgstr "Traži kartu"
 
-#: lib/tcg_cheap_web/live/browse_live.ex:558
+#: lib/tcg_cheap_web/live/browse_live.ex:571
 #, elixir-autogen, elixir-format
 msgid "Szukaj w katalogu"
 msgstr "Traži u katalogu"
 
-#: lib/tcg_cheap_web/live/single_live.ex:400
+#: lib/tcg_cheap_web/live/single_live.ex:431
 #: lib/tcg_cheap_web/social_image/single.ex:102
 #, elixir-autogen, elixir-format
 msgid "Teraz żaden sklep nie ma tej karty na stanie."
 msgstr "Trenutačno nijedna trgovina nema ovu kartu na stanju."
 
-#: lib/tcg_cheap_web/live/single_live.ex:238
+#: lib/tcg_cheap_web/live/single_live.ex:242
 #, elixir-autogen, elixir-format
 msgid "Wróć"
 msgstr "Natrag"
@@ -1532,7 +1534,7 @@ msgstr "Izvući ćeš je u prosjeku jednom na"
 msgid "Wylosujesz średnio za"
 msgstr "Izvući ćeš je u prosjeku za"
 
-#: lib/tcg_cheap_web/live/single_live.ex:371
+#: lib/tcg_cheap_web/live/single_live.ex:402
 #, elixir-autogen, elixir-format
 msgid "Wzory specjalne nie mają wspólnej ceny referencyjnej."
 msgstr "Posebne varijante nemaju zajedničku referentnu cijenu."
@@ -1542,7 +1544,7 @@ msgstr "Posebne varijante nemaju zajedničku referentnu cijenu."
 msgid "Wzór specjalny"
 msgstr "Posebna varijanta"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:32
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:33
 #, elixir-autogen, elixir-format
 msgid "Zamknij set i wyczyść filtry"
 msgstr "Zatvori set i očisti filtre"
@@ -1577,12 +1579,12 @@ msgstr "boostera trenutačno nema na stanju"
 msgid "kupisz za "
 msgstr "možeš kupiti za "
 
-#: lib/tcg_cheap_web/live/single_live.ex:139
+#: lib/tcg_cheap_web/live/single_live.ex:143
 #, elixir-autogen, elixir-format
 msgid "list polecony z Polski"
 msgstr "pismo s praćenjem iz Poljske"
 
-#: lib/tcg_cheap_web/live/single_live.ex:140
+#: lib/tcg_cheap_web/live/single_live.ex:144
 #, elixir-autogen, elixir-format
 msgid "list z Niemiec"
 msgstr "pismo iz Njemačke"
@@ -1592,7 +1594,7 @@ msgstr "pismo iz Njemačke"
 msgid "na Cardmarket"
 msgstr "na Cardmarketu"
 
-#: lib/tcg_cheap_web/live/single_live.ex:347
+#: lib/tcg_cheap_web/live/single_live.ex:378
 #: lib/tcg_cheap_web/social_image/single.ex:122
 #, elixir-autogen, elixir-format
 msgid "na Cardmarket z wysyłką · wszystkie języki i stany kart"
@@ -1629,7 +1631,7 @@ msgstr "jednom na %{packs}"
 msgid "szansy nie znamy"
 msgstr "šanse ne znamo"
 
-#: lib/tcg_cheap_web/live/single_live.ex:142
+#: lib/tcg_cheap_web/live/single_live.ex:146
 #, elixir-autogen, elixir-format
 msgid "trend Cardmarket %{trend} + wysyłka %{shipping} (%{source})"
 msgstr "Cardmarket trend %{trend} + dostava %{shipping} (%{source})"
@@ -1665,7 +1667,7 @@ msgstr[2] "Svih %{cards} karata"
 msgid "Wylosujesz?"
 msgstr "Možeš li je izvući?"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:175
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:200
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:80
 #: lib/tcg_cheap_web/live/expensive_cards_live.ex:904
 #: lib/tcg_cheap_web/live/expensive_cards_live.ex:927
@@ -1673,27 +1675,27 @@ msgstr "Možeš li je izvući?"
 msgid "Na Cardmarket"
 msgstr "Na Cardmarketu"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:161
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:186
 #, elixir-autogen, elixir-format
 msgid "Najlepsza okazja w secie"
 msgstr "Najbolja ponuda u setu"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:217
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:249
 #, elixir-autogen, elixir-format
 msgid "Zobacz karty"
 msgstr "Pogledaj karte"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:199
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:227
 #, elixir-autogen, elixir-format
 msgid "cały set, najtaniej"
 msgstr "cijeli set, najjeftinije"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:205
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:233
 #, elixir-autogen, elixir-format
 msgid "najcenniejsza: %{card}"
 msgstr "najvrjednija: %{card}"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:210
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:242
 #, elixir-autogen, elixir-format
 msgid "taniej niż na Cardmarket z wysyłką"
 msgstr "jeftinije nego na Cardmarketu s dostavom"
@@ -1722,12 +1724,12 @@ msgstr[0] "medijan iz %{count} trgovine"
 msgstr[1] "medijan iz %{count} trgovine"
 msgstr[2] "medijan iz %{count} trgovina"
 
-#: lib/tcg_cheap_web/live/browse_live.ex:540
+#: lib/tcg_cheap_web/live/browse_live.ex:553
 #, elixir-autogen, elixir-format
 msgid "np. ETB"
 msgstr "npr. ETB"
 
-#: lib/tcg_cheap_web/live/browse_live.ex:540
+#: lib/tcg_cheap_web/live/browse_live.ex:553
 #, elixir-autogen, elixir-format
 msgid "np. Pikachu"
 msgstr "npr. Pikachu"
@@ -1801,7 +1803,7 @@ msgstr[1] " filtra"
 msgstr[2] " filtara"
 
 #: lib/tcg_cheap_web/components/retail_components.ex:79
-#: lib/tcg_cheap_web/live/home_live.ex:534
+#: lib/tcg_cheap_web/live/home_live.ex:547
 #, elixir-autogen, elixir-format
 msgid "%{chain}: źródło ceny (otwiera się w nowej karcie)"
 msgstr "%{chain}: izvor cijene (otvara se u novoj kartici)"
@@ -1813,7 +1815,7 @@ msgstr "Koliko košta booster"
 
 #: lib/tcg_cheap_web/components/site_components.ex:252
 #: lib/tcg_cheap_web/live/booster_price_live.ex:108
-#: lib/tcg_cheap_web/live/home_live.ex:190
+#: lib/tcg_cheap_web/live/home_live.ex:195
 #: lib/tcg_cheap_web/page_markdown.ex:65
 #: lib/tcg_cheap_web/seo/booster_prices.ex:32
 #: lib/tcg_cheap_web/social_image/booster_prices.ex:35
@@ -1832,7 +1834,7 @@ msgid "Teraz żaden polski sklep nie ma angielskiego boostera na stanie."
 msgstr "Trenutačno nijedna poljska trgovina nema engleski booster na stanju."
 
 #: lib/tcg_cheap_web/live/product_live.ex:331
-#: lib/tcg_cheap_web/page_markdown.ex:339
+#: lib/tcg_cheap_web/page_markdown.ex:354
 #, elixir-autogen, elixir-format
 msgid "W sieciówkach"
 msgstr "U trgovačkim lancima"
@@ -1878,18 +1880,18 @@ msgstr "od %{price}"
 
 #: lib/tcg_cheap_web/components/retail_components.ex:83
 #: lib/tcg_cheap_web/live/expensive_cards_live.ex:273
-#: lib/tcg_cheap_web/live/home_live.ex:538
-#: lib/tcg_cheap_web/page_markdown.ex:551
+#: lib/tcg_cheap_web/live/home_live.ex:551
+#: lib/tcg_cheap_web/page_markdown.ex:576
 #, elixir-autogen, elixir-format
 msgid "źródło"
 msgstr "izvor"
 
-#: lib/tcg_cheap_web/live/single_live.ex:499
+#: lib/tcg_cheap_web/live/single_live.ex:530
 #, elixir-autogen, elixir-format
 msgid "Booster z tego rozszerzenia"
 msgstr "Booster iz ovog seta"
 
-#: lib/tcg_cheap_web/live/home_live.ex:368
+#: lib/tcg_cheap_web/live/home_live.ex:381
 #, elixir-autogen, elixir-format
 msgid "Wszystkie ceny boosterów"
 msgstr "Sve cijene boostera"
@@ -1956,7 +1958,7 @@ msgstr "karta s kodom za Pokémon TCG Online ili Live"
 msgid "znaczniki obrażeń"
 msgstr "brojači štete"
 
-#: lib/tcg_cheap_web/live/browse_live.ex:621
+#: lib/tcg_cheap_web/live/browse_live.ex:634
 #, elixir-autogen, elixir-format
 msgid "Pokaż pasujące karty: %{count}"
 msgstr "Prikaži karte koje odgovaraju: %{count}"
@@ -1981,24 +1983,24 @@ msgstr "Usporedba cijena u trgovinama i povijest cijena."
 msgid "cena z wysyłką"
 msgstr "cijena s dostavom"
 
-#: lib/tcg_cheap_web/live/single_live.ex:355
+#: lib/tcg_cheap_web/live/single_live.ex:386
 #, elixir-autogen, elixir-format
 msgid "Cardmarket podaje jedną cenę dla wszystkich języków i stanów, więc karta angielska w stanie NM bywa droższa."
 msgstr "Cardmarket daje jednu cijenu za sve jezike i stanja, pa engleska karta u stanju NM zna biti skuplja."
 
-#: lib/tcg_cheap_web/components/offer_components.ex:400
-#: lib/tcg_cheap_web/components/offer_components.ex:435
+#: lib/tcg_cheap_web/components/offer_components.ex:453
+#: lib/tcg_cheap_web/components/offer_components.ex:488
 #, elixir-autogen, elixir-format
 msgid "w tym darmowa dostawa"
 msgstr "uključena besplatna dostava"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:407
-#: lib/tcg_cheap_web/components/offer_components.ex:439
+#: lib/tcg_cheap_web/components/offer_components.ex:460
+#: lib/tcg_cheap_web/components/offer_components.ex:492
 #, elixir-autogen, elixir-format
 msgid "w tym dostawa %{amount}"
 msgstr "uključena dostava %{amount}"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:194
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:222
 #, elixir-autogen, elixir-format
 msgid "z %{total} kart na stanie w sklepach"
 msgstr "od %{total} karata na stanju u trgovinama"
@@ -2169,7 +2171,7 @@ msgstr "Cijene, stanje i varijante karte."
 msgid "Ile kosztuje booster Pokémon? Ceny w Polsce"
 msgstr "Koliko košta Pokémon booster? Cijene u Poljskoj"
 
-#: lib/tcg_cheap_web/seo/cards.ex:54
+#: lib/tcg_cheap_web/seo/cards.ex:64
 #, elixir-autogen, elixir-format
 msgid "%{count} z nich taniej niż na Cardmarket z przesyłką."
 msgstr "Od toga jeftinije nego na Cardmarketu s dostavom: %{count}."
@@ -2195,7 +2197,7 @@ msgstr "%{expansion} – cijene karata i boostera Pokémon TCG"
 msgid "%{expansion} – ceny kart i boosterów, drop rate"
 msgstr "%{expansion} – cijene karata i boostera, šanse za izvlačenje"
 
-#: lib/tcg_cheap_web/seo/cards.ex:57
+#: lib/tcg_cheap_web/seo/cards.ex:54
 #, elixir-autogen, elixir-format
 msgid "Najniższa cena i ocena każdej karty."
 msgstr "Najniža cijena i ocjena cijene za svaku kartu."
@@ -2215,7 +2217,7 @@ msgstr "%{expansion} – cijene Pokémon TCG karata"
 msgid "%{expansion} – ceny kart i drop rate"
 msgstr "%{expansion} – cijene karata i šanse za izvlačenje"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:116
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:117
 #, elixir-autogen, elixir-format
 msgid "Ile kosztuje ta karta?"
 msgstr "Koliko košta ova karta?"
@@ -2230,7 +2232,7 @@ msgstr "Na stanju iz seta %{set}"
 msgid "Pojedyncze karty: %{cards}"
 msgstr "Pojedinačne karte: %{cards}"
 
-#: lib/tcg_cheap_web/live/single_live.ex:479
+#: lib/tcg_cheap_web/live/single_live.ex:510
 #, elixir-autogen, elixir-format
 msgid "Inne karty %{name} na stanie"
 msgstr "Ostale karte %{name} na stanju"
@@ -2444,7 +2446,7 @@ msgstr "Najskuplja u poljskoj trgovini"
 #: lib/tcg_cheap_web/live/card_value_live.ex:219
 #: lib/tcg_cheap_web/live/card_value_live.ex:404
 #: lib/tcg_cheap_web/live/expensive_cards_live.ex:167
-#: lib/tcg_cheap_web/live/home_live.ex:200
+#: lib/tcg_cheap_web/live/home_live.ex:205
 #: lib/tcg_cheap_web/page_markdown.ex:70
 #: lib/tcg_cheap_web/seo/expensive_cards.ex:35
 #: lib/tcg_cheap_web/seo/expensive_cards.ex:36
@@ -2591,10 +2593,10 @@ msgid "Rekordy wszech czasów"
 msgstr "Rekordi svih vremena"
 
 #: lib/tcg_cheap_web/live/expensive_cards_live.ex:878
-#: lib/tcg_cheap_web/page_markdown.ex:369
-#: lib/tcg_cheap_web/page_markdown.ex:508
-#: lib/tcg_cheap_web/page_markdown.ex:612
-#: lib/tcg_cheap_web/page_markdown.ex:629
+#: lib/tcg_cheap_web/page_markdown.ex:387
+#: lib/tcg_cheap_web/page_markdown.ex:533
+#: lib/tcg_cheap_web/page_markdown.ex:637
+#: lib/tcg_cheap_web/page_markdown.ex:654
 #, elixir-autogen, elixir-format
 msgid "Rozszerzenie"
 msgstr "Set"
@@ -2847,12 +2849,12 @@ msgstr "Cijene Pokémon karata"
 msgid "Ile kosztuje booster Pokémon: najtańsze boostery w sklepach"
 msgstr "Koliko košta Pokémon booster: najjeftiniji boosteri u trgovinama"
 
-#: lib/tcg_cheap_web/social_image/expansion.ex:94
+#: lib/tcg_cheap_web/social_image/expansion.ex:99
 #, elixir-autogen, elixir-format
 msgid "najcenniejsza karta · Cardmarket"
 msgstr "najvrjednija karta · Cardmarket"
 
-#: lib/tcg_cheap_web/social_image/expansion.ex:92
+#: lib/tcg_cheap_web/social_image/expansion.ex:93
 #, elixir-autogen, elixir-format
 msgid "najcenniejsza karta · najtaniej w %{shop}"
 msgstr "najvrjednija karta · najjeftinije u trgovini %{shop}"
@@ -2862,7 +2864,7 @@ msgstr "najvrjednija karta · najjeftinije u trgovini %{shop}"
 msgid "najdroższa z ostatnich lat"
 msgstr "najskuplja zadnjih godina"
 
-#: lib/tcg_cheap_web/social_image/cards.ex:55
+#: lib/tcg_cheap_web/social_image/cards.ex:57
 #, elixir-autogen, elixir-format
 msgid "najlepsza okazja teraz · %{shop}"
 msgstr "najbolja ponuda sada · %{shop}"
@@ -2979,7 +2981,7 @@ msgid "Ile jest warta twoja karta Pokémon?"
 msgstr "Koliko vrijedi tvoja Pokémon karta?"
 
 #: lib/tcg_cheap_web/components/site_components.ex:262
-#: lib/tcg_cheap_web/live/home_live.ex:219
+#: lib/tcg_cheap_web/live/home_live.ex:224
 #: lib/tcg_cheap_web/page_markdown.ex:75
 #, elixir-autogen, elixir-format
 msgid "Ile jest warta twoja karta?"
@@ -3789,7 +3791,7 @@ msgid "boostery kupione osobno"
 msgstr "boosteri kupljeni zasebno"
 
 #: lib/tcg_cheap_web/live/booster_price_live.ex:735
-#: lib/tcg_cheap_web/page_markdown.ex:619
+#: lib/tcg_cheap_web/page_markdown.ex:644
 #, elixir-autogen, elixir-format
 msgid "brak ceny"
 msgstr "nema cijene"
@@ -4042,7 +4044,7 @@ msgstr[1] "%{number} cijene iz letaka"
 msgstr[2] "%{number} cijena iz letaka"
 
 #: lib/tcg_cheap_web/controllers/crawl_controller.ex:237
-#: lib/tcg_cheap_web/live/home_live.ex:436
+#: lib/tcg_cheap_web/live/home_live.ex:449
 #, elixir-autogen, elixir-format
 msgid "%{number} karta na stanie"
 msgid_plural "%{number} karty na stanie"
@@ -4051,7 +4053,7 @@ msgstr[1] "%{number} karte na stanju"
 msgstr[2] "%{number} karata na stanju"
 
 #: lib/tcg_cheap_web/controllers/crawl_controller.ex:231
-#: lib/tcg_cheap_web/live/home_live.ex:415
+#: lib/tcg_cheap_web/live/home_live.ex:428
 #, elixir-autogen, elixir-format
 msgid "%{number} produkt na stanie"
 msgid_plural "%{number} produkty na stanie"
@@ -4069,7 +4071,7 @@ msgstr "Država"
 msgid "Kraj i język: %{region}, %{language}"
 msgstr "Država i jezik: %{region}, %{language}"
 
-#: lib/tcg_cheap_web/components/verdict_components.ex:344
+#: lib/tcg_cheap_web/components/verdict_components.ex:351
 #, elixir-autogen, elixir-format
 msgid "Kurs %{rate} %{currency} za euro z kursów NBP z %{date}."
 msgstr "Tečaj %{rate} %{currency} za euro, prema tečajnoj listi NBP-a od %{date}."
@@ -4099,8 +4101,8 @@ msgstr "oko %{amount} mil. %{currency}"
 msgid "ok. %{amount} tys. %{currency}"
 msgstr "oko %{amount} tis. %{currency}"
 
-#: lib/tcg_cheap_web/live/single_live.ex:291
-#: lib/tcg_cheap_web/live/single_live.ex:348
+#: lib/tcg_cheap_web/live/single_live.ex:295
+#: lib/tcg_cheap_web/live/single_live.ex:379
 #: lib/tcg_cheap_web/social_image/single.ex:123
 #, elixir-autogen, elixir-format
 msgid "trend na Cardmarket, bez wysyłki · wszystkie języki i stany kart"
@@ -4111,68 +4113,68 @@ msgstr "trend na Cardmarketu, bez dostave · svi jezici i stanja"
 msgid "Niezależna porównywarka cen, nie sklep."
 msgstr "Neovisna usporedba cijena, ne trgovina."
 
-#: lib/tcg_cheap_web/page_markdown.ex:681
+#: lib/tcg_cheap_web/page_markdown.ex:706
 #, elixir-autogen, elixir-format
 msgid "%{offer} (przedsprzedaż)"
 msgstr "%{offer} (prednarudžba)"
 
-#: lib/tcg_cheap_web/page_markdown.ex:675
+#: lib/tcg_cheap_web/page_markdown.ex:700
 #, elixir-autogen, elixir-format
 msgid "%{offer} (przedsprzedaż, premiera %{date})"
 msgstr "%{offer} (prednarudžba, izlazi %{date})"
 
-#: lib/tcg_cheap_web/page_markdown.ex:689
+#: lib/tcg_cheap_web/page_markdown.ex:714
 #, elixir-autogen, elixir-format
 msgid "%{price} w %{shop}"
 msgstr "%{price} u trgovini %{shop}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:592
+#: lib/tcg_cheap_web/page_markdown.ex:617
 #, elixir-autogen, elixir-format
 msgid "%{stock}, sprawdzono %{when}"
 msgstr "%{stock}, provjereno %{when}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:766
+#: lib/tcg_cheap_web/page_markdown.ex:791
 #, elixir-autogen, elixir-format
 msgid "%{title}: %{price} (trend Cardmarket, bez dostawy)"
 msgstr "%{title}: %{price} (Cardmarket trend, bez dostave)"
 
-#: lib/tcg_cheap_web/page_markdown.ex:130
+#: lib/tcg_cheap_web/page_markdown.ex:136
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty z trendem Cardmarket, bez dostawy."
 msgstr "Engleske karte s trendom cijena na Cardmarketu, bez dostave."
 
-#: lib/tcg_cheap_web/page_markdown.ex:747
+#: lib/tcg_cheap_web/page_markdown.ex:772
 #, elixir-autogen, elixir-format
 msgid "Bez rzadkości"
 msgstr "Bez rijetkosti"
 
-#: lib/tcg_cheap_web/page_markdown.ex:401
+#: lib/tcg_cheap_web/page_markdown.ex:425
 #, elixir-autogen, elixir-format
 msgid "Brak ceny Cardmarket."
 msgstr "Nema cijene s Cardmarketa."
 
-#: lib/tcg_cheap_web/page_markdown.ex:603
+#: lib/tcg_cheap_web/page_markdown.ex:628
 #, elixir-autogen, elixir-format
 msgid "Brak kart na stanie."
 msgstr "Nema karata na stanju."
 
-#: lib/tcg_cheap_web/page_markdown.ex:647
+#: lib/tcg_cheap_web/page_markdown.ex:672
 #, elixir-autogen, elixir-format
 msgid "Brak produktów."
 msgstr "Nema proizvoda."
 
-#: lib/tcg_cheap_web/page_markdown.ex:522
+#: lib/tcg_cheap_web/page_markdown.ex:547
 #, elixir-autogen, elixir-format
 msgid "Ceny z gazetek sieci i zgłoszeń z konkretnych sklepów. Dostępność bywa różna, więc nie wliczamy ich do oceny."
 msgstr "Cijene iz letaka trgovačkih lanaca i prijava iz pojedinih trgovina. Dostupnost varira pa ih ne uračunavamo u ocjenu cijene."
 
-#: lib/tcg_cheap_web/page_markdown.ex:466
+#: lib/tcg_cheap_web/page_markdown.ex:491
 #, elixir-autogen, elixir-format
 msgid "Dobra cena do %{good}, normalna do %{normal}"
 msgstr "Dobra cijena do %{good}, uobičajena do %{normal}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:564
-#: lib/tcg_cheap_web/page_markdown.ex:813
+#: lib/tcg_cheap_web/page_markdown.ex:589
+#: lib/tcg_cheap_web/page_markdown.ex:842
 #, elixir-autogen, elixir-format
 msgid "Dostępność"
 msgstr "Dostupnost"
@@ -4183,14 +4185,14 @@ msgstr "Dostupnost"
 msgid "Jak oceniamy cenę"
 msgstr "Kako ocjenjujemo cijenu"
 
-#: lib/tcg_cheap_web/page_markdown.ex:366
-#: lib/tcg_cheap_web/page_markdown.ex:612
-#: lib/tcg_cheap_web/page_markdown.ex:628
+#: lib/tcg_cheap_web/page_markdown.ex:384
+#: lib/tcg_cheap_web/page_markdown.ex:637
+#: lib/tcg_cheap_web/page_markdown.ex:653
 #, elixir-autogen, elixir-format
 msgid "Karta"
 msgstr "Karta"
 
-#: lib/tcg_cheap_web/page_markdown.ex:745
+#: lib/tcg_cheap_web/page_markdown.ex:770
 #, elixir-autogen, elixir-format
 msgid "Lista kart (%{cards})"
 msgstr "Popis karata (%{cards})"
@@ -4200,28 +4202,28 @@ msgstr "Popis karata (%{cards})"
 msgid "Najpierw produkty na stanie w sklepach, potem najnowsze; angielskie wydania. Pełna lista rozszerzeń: %{url}"
 msgstr "Najprije proizvodi na stanju u trgovinama, zatim najnoviji; engleska izdanja. Potpuni popis setova: %{url}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:486
+#: lib/tcg_cheap_web/page_markdown.ex:511
 #, elixir-autogen, elixir-format
 msgid "Najtańsza oferta (przedsprzedaż): %{price} w %{shop}"
 msgstr "Najjeftinija ponuda (prednarudžba): %{price} u trgovini %{shop}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:487
+#: lib/tcg_cheap_web/page_markdown.ex:512
 #, elixir-autogen, elixir-format
 msgid "Najtańsza oferta: %{price} w %{shop}"
 msgstr "Najjeftinija ponuda: %{price} u trgovini %{shop}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:419
+#: lib/tcg_cheap_web/page_markdown.ex:443
 #, elixir-autogen, elixir-format
 msgid "Nie znaleziono"
 msgstr "Nije pronađeno"
 
-#: lib/tcg_cheap_web/page_markdown.ex:368
+#: lib/tcg_cheap_web/page_markdown.ex:386
 #, elixir-autogen, elixir-format
 msgid "Numer: %{number}"
 msgstr "Broj: %{number}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:631
-#: lib/tcg_cheap_web/page_markdown.ex:655
+#: lib/tcg_cheap_web/page_markdown.ex:656
+#: lib/tcg_cheap_web/page_markdown.ex:680
 #, elixir-autogen, elixir-format
 msgid "Ocena"
 msgstr "Ocjena cijene"
@@ -4231,66 +4233,66 @@ msgstr "Ocjena cijene"
 msgid "Ocena nigdy nie opiera się na cenie sugerowanej producenta. Brakujące dane pokazujemy jako brakujące."
 msgstr "Ocjena cijene nikad ne ovisi o preporučenoj cijeni proizvođača. Podatke koji nedostaju prikazujemo kao nedostajuće."
 
-#: lib/tcg_cheap_web/page_markdown.ex:457
+#: lib/tcg_cheap_web/page_markdown.ex:482
 #, elixir-autogen, elixir-format
 msgid "Ocena: %{verdict}"
 msgstr "Ocjena cijene: %{verdict}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:338
-#: lib/tcg_cheap_web/page_markdown.ex:393
+#: lib/tcg_cheap_web/page_markdown.ex:353
+#: lib/tcg_cheap_web/page_markdown.ex:417
 #, elixir-autogen, elixir-format
 msgid "Oferty"
 msgstr "Ponude"
 
-#: lib/tcg_cheap_web/page_markdown.ex:337
-#: lib/tcg_cheap_web/page_markdown.ex:528
-#: lib/tcg_cheap_web/page_markdown.ex:652
+#: lib/tcg_cheap_web/page_markdown.ex:352
+#: lib/tcg_cheap_web/page_markdown.ex:553
+#: lib/tcg_cheap_web/page_markdown.ex:677
 #, elixir-autogen, elixir-format
 msgid "Produkt"
 msgstr "Proizvod"
 
-#: lib/tcg_cheap_web/page_markdown.ex:564
-#: lib/tcg_cheap_web/page_markdown.ex:809
+#: lib/tcg_cheap_web/page_markdown.ex:589
+#: lib/tcg_cheap_web/page_markdown.ex:837
 #, elixir-autogen, elixir-format
 msgid "Sklep"
 msgstr "Trgovina"
 
-#: lib/tcg_cheap_web/page_markdown.ex:430
+#: lib/tcg_cheap_web/page_markdown.ex:454
 #, elixir-autogen, elixir-format
 msgid "Stan na: %{date}"
 msgstr "Na dan %{date}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:429
+#: lib/tcg_cheap_web/page_markdown.ex:453
 #, elixir-autogen, elixir-format
 msgid "Strona: %{url}"
 msgstr "Stranica: %{url}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:720
+#: lib/tcg_cheap_web/page_markdown.ex:745
 #, elixir-autogen, elixir-format
 msgid "Szanse na drop (pull rates)"
 msgstr "Šanse za izvlačenje (pull rate)"
 
-#: lib/tcg_cheap_web/page_markdown.ex:421
+#: lib/tcg_cheap_web/page_markdown.ex:445
 #, elixir-autogen, elixir-format
 msgid "Tej strony nie ma w TCG Cheap. Spis stron: %{url}"
 msgstr "TCG Cheap nema ovu stranicu. Popis stranica: %{url}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:704
+#: lib/tcg_cheap_web/page_markdown.ex:729
 #, elixir-autogen, elixir-format
 msgid "To szacunki społeczności, sprawdzone %{date}. Źródła: %{sources}"
 msgstr "Ovo su procjene zajednice, provjerene %{date}. Izvori: %{sources}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:407
+#: lib/tcg_cheap_web/page_markdown.ex:431
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price} (%{eur}), bez dostawy."
 msgstr "Cardmarket trend: %{price} (%{eur}), bez dostave."
 
-#: lib/tcg_cheap_web/page_markdown.ex:492
+#: lib/tcg_cheap_web/page_markdown.ex:517
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price} bez dostawy"
 msgstr "Cardmarket trend: %{price} bez dostave"
 
-#: lib/tcg_cheap_web/page_markdown.ex:497
+#: lib/tcg_cheap_web/page_markdown.ex:522
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price} bez dostawy, %{delivered} z przesyłką z Niemiec"
 msgstr "Cardmarket trend: %{price} bez dostave, %{delivered} s dostavom iz Njemačke"
@@ -4300,74 +4302,74 @@ msgstr "Cardmarket trend: %{price} bez dostave, %{delivered} s dostavom iz Njema
 msgid "Typowa cena to mediana cen samego produktu, bez dostawy, po jednej z każdego sklepu, który ma go na stanie (co najmniej %{minimum} sklepy)."
 msgstr "Tipična cijena je medijan cijena samog proizvoda, bez dostave, po jedna iz svake trgovine koja ga ima na stanju (barem %{minimum} trgovine)."
 
-#: lib/tcg_cheap_web/page_markdown.ex:460
+#: lib/tcg_cheap_web/page_markdown.ex:485
 #, elixir-autogen, elixir-format
 msgid "Typowa cena w sklepach: %{typical} (mediana cen produktu bez dostawy z %{count} sklepów)"
 msgstr "Tipična cijena u trgovinama: %{typical} (medijan cijena proizvoda bez dostave; broj trgovina: %{count})"
 
-#: lib/tcg_cheap_web/page_markdown.ex:336
+#: lib/tcg_cheap_web/page_markdown.ex:351
 #, elixir-autogen, elixir-format
 msgid "Werdykt"
 msgstr "Ocjena cijene"
 
-#: lib/tcg_cheap_web/page_markdown.ex:506
+#: lib/tcg_cheap_web/page_markdown.ex:531
 #, elixir-autogen, elixir-format
 msgid "Wydanie"
 msgstr "Izdanje"
 
-#: lib/tcg_cheap_web/page_markdown.ex:471
+#: lib/tcg_cheap_web/page_markdown.ex:496
 #, elixir-autogen, elixir-format
 msgid "Zwykła cena z ostatnich %{days} dni: %{price}"
 msgstr "Obično najjeftinija cijena u zadnjih %{days} dana: %{price}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:599
+#: lib/tcg_cheap_web/page_markdown.ex:624
 #, elixir-autogen, elixir-format
 msgid "na stanie"
 msgstr "na stanju"
 
-#: lib/tcg_cheap_web/page_markdown.ex:531
+#: lib/tcg_cheap_web/page_markdown.ex:556
 #, elixir-autogen, elixir-format
 msgid "Źródło"
 msgstr "Izvor"
 
-#: lib/tcg_cheap_web/page_markdown.ex:559
+#: lib/tcg_cheap_web/page_markdown.ex:584
 #, elixir-autogen, elixir-format
 msgid "Żaden sklep nie ma teraz tej oferty."
 msgstr "Nijedna trgovina trenutačno nema ovu ponudu."
 
-#: lib/tcg_cheap_web/page_markdown.ex:612
+#: lib/tcg_cheap_web/page_markdown.ex:637
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket"
 msgstr "Cardmarket trend"
 
-#: lib/tcg_cheap_web/page_markdown.ex:529
-#: lib/tcg_cheap_web/page_markdown.ex:564
-#: lib/tcg_cheap_web/page_markdown.ex:810
+#: lib/tcg_cheap_web/page_markdown.ex:554
+#: lib/tcg_cheap_web/page_markdown.ex:589
+#: lib/tcg_cheap_web/page_markdown.ex:838
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Cena"
 msgstr "Cijena"
 
-#: lib/tcg_cheap_web/page_markdown.ex:530
+#: lib/tcg_cheap_web/page_markdown.ex:555
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Kiedy"
 msgstr "Kada"
 
-#: lib/tcg_cheap_web/page_markdown.ex:630
-#: lib/tcg_cheap_web/page_markdown.ex:654
+#: lib/tcg_cheap_web/page_markdown.ex:655
+#: lib/tcg_cheap_web/page_markdown.ex:679
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Najtaniej"
 msgstr "Najjeftinije"
 
-#: lib/tcg_cheap_web/page_markdown.ex:527
+#: lib/tcg_cheap_web/page_markdown.ex:552
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "Sieć"
 msgstr "Lanac"
 
-#: lib/tcg_cheap_web/page_markdown.ex:601
+#: lib/tcg_cheap_web/page_markdown.ex:626
 #, elixir-autogen, elixir-format
 msgctxt "markdown"
 msgid "brak"
@@ -4383,12 +4385,12 @@ msgstr "Više jezika"
 msgid "Tylu jeszcze nie ma, więc porównujemy z trendem Cardmarket."
 msgstr "Toliko ih još nema pa uspoređujemo s trendom na Cardmarketu."
 
-#: lib/tcg_cheap_web/page_markdown.ex:405
+#: lib/tcg_cheap_web/page_markdown.ex:429
 #, elixir-autogen, elixir-format
 msgid "Trend Cardmarket: %{price}, bez dostawy."
 msgstr "Cardmarket trend: %{price}, bez dostave."
 
-#: lib/tcg_cheap_web/live/home_live.ex:412
+#: lib/tcg_cheap_web/live/home_live.ex:425
 #, elixir-autogen, elixir-format
 msgid "%{count} w dobrej cenie dziś"
 msgstr "%{count} po dobroj cijeni danas"
@@ -4398,12 +4400,12 @@ msgstr "%{count} po dobroj cijeni danas"
 msgid "%{product}: %{price} %{where}, zwykle %{typical} w sklepach%{percent}"
 msgstr "%{product}: %{price} %{where}, inače %{typical} u trgovinama%{percent}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:430
+#: lib/tcg_cheap_web/live/home_live.ex:443
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty: ceny w sklepach i na Cardmarket."
 msgstr "Engleske karte: cijene u trgovinama i na Cardmarketu."
 
-#: lib/tcg_cheap_web/live/home_live.ex:409
+#: lib/tcg_cheap_web/live/home_live.ex:422
 #, elixir-autogen, elixir-format
 msgid "Boostery, ETB, boxy, puszki i kolekcje: najtańszy sklep i ocena ceny."
 msgstr "Boosteri, ETB-ovi, boxovi, limenke i kolekcije: najjeftinija trgovina i ocjena cijene."
@@ -4423,7 +4425,7 @@ msgstr "Cijenu ocjenjujemo kad je proizvod dostupan u najmanje %{minimum} trgovi
 msgid "Gdzie dalej"
 msgstr "Kamo dalje"
 
-#: lib/tcg_cheap_web/live/home_live.ex:220
+#: lib/tcg_cheap_web/live/home_live.ex:225
 #, elixir-autogen, elixir-format
 msgid "Jak w kilka minut sprawdzić cenę karty, którą masz."
 msgstr "Kako za nekoliko minuta provjeriti cijenu karte koju imaš."
@@ -4433,38 +4435,38 @@ msgstr "Kako za nekoliko minuta provjeriti cijenu karte koju imaš."
 msgid "Najniższa cena i ocena każdego produktu, z historią cen."
 msgstr "Najniža cijena i ocjena svakog proizvoda, s poviješću cijena."
 
-#: lib/tcg_cheap_web/live/home_live.ex:191
+#: lib/tcg_cheap_web/live/home_live.ex:196
 #, elixir-autogen, elixir-format
 msgid "Najtańszy booster każdego setu w sklepach i w sieciówkach."
 msgstr "Najjeftiniji booster svakog seta u trgovinama i trgovačkim lancima."
 
-#: lib/tcg_cheap_web/live/home_live.ex:453
+#: lib/tcg_cheap_web/live/home_live.ex:466
 #, elixir-autogen, elixir-format
 msgid "Nowe sety"
 msgstr "Novi setovi"
 
-#: lib/tcg_cheap_web/live/home_live.ex:366
+#: lib/tcg_cheap_web/live/home_live.ex:379
 #: lib/tcg_cheap_web/page_markdown.ex:57
 #, elixir-autogen, elixir-format
 msgid "Okazje dziś"
 msgstr "Današnje akcije"
 
-#: lib/tcg_cheap_web/live/home_live.ex:383
+#: lib/tcg_cheap_web/live/home_live.ex:396
 #, elixir-autogen, elixir-format
 msgid "Poradniki"
 msgstr "Vodiči"
 
-#: lib/tcg_cheap_web/live/home_live.ex:201
+#: lib/tcg_cheap_web/live/home_live.ex:206
 #, elixir-autogen, elixir-format
 msgid "Rekordy aukcji i najdroższe karty, które kupisz dziś."
 msgstr "Rekordi s aukcija i najskuplje karte koje danas možeš kupiti."
 
-#: lib/tcg_cheap_web/live/home_live.ex:275
+#: lib/tcg_cheap_web/live/home_live.ex:280
 #, elixir-autogen, elixir-format
 msgid "Szukaj produktu albo karty"
 msgstr "Traži proizvod ili kartu"
 
-#: lib/tcg_cheap_web/live/home_live.ex:290
+#: lib/tcg_cheap_web/live/home_live.ex:295
 #, elixir-autogen, elixir-format
 msgid "Szukaj w"
 msgstr "Traži u"
@@ -4479,53 +4481,53 @@ msgstr "Sada je u %{shops}."
 msgid "Teraz nie ma go w żadnym sklepie."
 msgstr "Sada ga nema ni u jednoj trgovini."
 
-#: lib/tcg_cheap_web/live/home_live.ex:307
-#: lib/tcg_cheap_web/live/home_live.ex:336
+#: lib/tcg_cheap_web/live/home_live.ex:312
+#: lib/tcg_cheap_web/live/home_live.ex:341
 #, elixir-autogen, elixir-format
 msgid "Wszystkie: %{count}"
 msgstr "Sve: %{count}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:476
+#: lib/tcg_cheap_web/live/home_live.ex:489
 #, elixir-autogen, elixir-format
 msgid "Wszystko"
 msgstr "Sve"
 
-#: lib/tcg_cheap_web/live/home_live.ex:591
+#: lib/tcg_cheap_web/live/home_live.ex:604
 #, elixir-autogen, elixir-format
 msgid "nawet %{price}"
 msgstr "čak %{price}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:286
+#: lib/tcg_cheap_web/live/home_live.ex:291
 #, elixir-autogen, elixir-format
 msgid "np. ETB albo Pikachu"
 msgstr "npr. ETB ili Pikachu"
 
-#: lib/tcg_cheap_web/live/home_live.ex:554
+#: lib/tcg_cheap_web/live/home_live.ex:567
 #, elixir-autogen, elixir-format
 msgid "od"
 msgstr "od"
 
-#: lib/tcg_cheap_web/live/home_live.ex:669
+#: lib/tcg_cheap_web/live/home_live.ex:682
 #, elixir-autogen, elixir-format
 msgid "premiera %{when}"
 msgstr "izlazi %{when}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:592
+#: lib/tcg_cheap_web/live/home_live.ex:605
 #, elixir-autogen, elixir-format
 msgid "tyle kosztuje najdroższa karta w sklepach"
 msgstr "toliko košta najskuplja karta u trgovinama"
 
-#: lib/tcg_cheap_web/live/home_live.ex:670
+#: lib/tcg_cheap_web/live/home_live.ex:683
 #, elixir-autogen, elixir-format
 msgid "wydany %{date}"
 msgstr "izašao %{date}"
 
-#: lib/tcg_cheap_web/live/home_live.ex:523
+#: lib/tcg_cheap_web/live/home_live.ex:536
 #, elixir-autogen, elixir-format
 msgid "zwykle %{price} w sklepach"
 msgstr "inače %{price} u trgovinama"
 
-#: lib/tcg_cheap_web/live/home_live.ex:431
+#: lib/tcg_cheap_web/live/home_live.ex:444
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty: ceny na Cardmarket."
 msgstr "Engleske karte: cijene na Cardmarketu."
@@ -4535,7 +4537,7 @@ msgstr "Engleske karte: cijene na Cardmarketu."
 msgid "%{card} – cena karty Pokémon na Cardmarket"
 msgstr "%{card} – cijena Pokémon karte na Cardmarketu"
 
-#: lib/tcg_cheap_web/page_markdown.ex:798
+#: lib/tcg_cheap_web/page_markdown.ex:823
 #, elixir-autogen, elixir-format
 msgid "; Cardmarket z przesyłką: %{price}"
 msgstr "; Cardmarket s dostavom: %{price}"
@@ -4546,12 +4548,12 @@ msgstr "; Cardmarket s dostavom: %{price}"
 msgid "Angielskie karty Pokémon TCG z ceną z Cardmarket."
 msgstr "Engleske Pokémon TCG karte s cijenom s Cardmarketa."
 
-#: lib/tcg_cheap_web/page_markdown.ex:126
+#: lib/tcg_cheap_web/page_markdown.ex:139
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepów za granicą z wysyłką) i ocena wobec Cardmarket z przesyłką. Pełna lista rozszerzeń: %{url}"
 msgstr "Engleske karte na stanju u trgovinama: najniža cijena bez dostave (u trgovinama iz inozemstva s dostavom) i ocjena u odnosu na Cardmarket s dostavom. Cijeli popis proširenja: %{url}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:360
+#: lib/tcg_cheap_web/page_markdown.ex:375
 #, elixir-autogen, elixir-format
 msgid "Ceny"
 msgstr "Cijene"
@@ -4561,37 +4563,37 @@ msgstr "Cijene"
 msgid "Ceny kart Pokémon TCG na Cardmarket"
 msgstr "Cijene Pokémon TCG karata na Cardmarketu"
 
-#: lib/tcg_cheap_web/live/single_live.ex:365
+#: lib/tcg_cheap_web/live/single_live.ex:396
 #, elixir-autogen, elixir-format
 msgid "Karta kosztuje w sklepach najwyżej %{price}, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena."
 msgstr "Karta u trgovinama stoji najviše %{price}, a dostava na Cardmarketu skuplja je od same karte pa je ovo uobičajena cijena."
 
-#: lib/tcg_cheap_web/page_markdown.ex:812
+#: lib/tcg_cheap_web/page_markdown.ex:841
 #, elixir-autogen, elixir-format
 msgid "Stan / grading"
 msgstr "Stanje / grading"
 
-#: lib/tcg_cheap_web/page_markdown.ex:811
+#: lib/tcg_cheap_web/page_markdown.ex:840
 #, elixir-autogen, elixir-format
 msgid "Wariant"
 msgstr "Varijanta"
 
-#: lib/tcg_cheap_web/page_markdown.ex:788
+#: lib/tcg_cheap_web/page_markdown.ex:813
 #, elixir-autogen, elixir-format
 msgid "brak ofert bez gradingu na stanie"
 msgstr "nema ponuda bez gradinga na stanju"
 
-#: lib/tcg_cheap_web/page_markdown.ex:784
+#: lib/tcg_cheap_web/page_markdown.ex:809
 #, elixir-autogen, elixir-format
 msgid "od %{price} w %{shop}"
 msgstr "od %{price} u %{shop}"
 
-#: lib/tcg_cheap_web/page_markdown.ex:803
+#: lib/tcg_cheap_web/page_markdown.ex:828
 #, elixir-autogen, elixir-format
 msgid "Żaden sklep nie ma teraz tej karty."
 msgstr "Nijedna trgovina trenutačno nema ovu kartu."
 
-#: lib/tcg_cheap_web/live/single_live.ex:332
+#: lib/tcg_cheap_web/live/single_live.ex:360
 #, elixir-autogen, elixir-format
 msgid "Typowa cena dziś w %{shops}: %{price}"
 msgstr "Tipična cijena danas u %{shops}: %{price}"
@@ -4609,28 +4611,26 @@ msgstr[2] "%{number} trgovina"
 msgid "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{shops})."
 msgstr "Tipična cijena je sredina među trgovinama: iz svake trgovine koja ima proizvod na stanju uzimamo cijenu samog proizvoda, bez dostave (potrebno nam je barem %{shops})."
 
-#: lib/tcg_cheap_web/page_markdown.ex:799
+#: lib/tcg_cheap_web/page_markdown.ex:824
 #, elixir-autogen, elixir-format
 msgid "; trend Cardmarket, bez dostawy: %{price}"
 msgstr "; Cardmarket trend, bez dostave: %{price}"
 
-#: lib/tcg_cheap_web/components/offer_components.ex:380
 #: lib/tcg_cheap_web/social_image/single.ex:108
 #, elixir-autogen, elixir-format
 msgid "Cena bez dostawy"
 msgstr "Cijena bez dostave"
 
-#: lib/tcg_cheap_web/live/single_live.ex:121
+#: lib/tcg_cheap_web/live/single_live.ex:125
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu to cena karty bez dostawy, którą sklep podaje kupującym z tego kraju. Dostawę podajemy przy każdej ofercie, bo kupuje się zwykle wiele kart w jednej paczce. Porównujemy ją z trendem Cardmarket bez wysyłki."
 msgstr "Cijena trgovine je cijena karte bez dostave, onakva kakvu trgovina naplaćuje kupcima iz ove zemlje. Dostavu navodimo uz svaku ponudu jer se obično kupuje više karata u jednoj pošiljci. Uspoređujemo je s Cardmarket trendom bez dostave."
 
-#: lib/tcg_cheap_web/components/offer_components.ex:348
-#: lib/tcg_cheap_web/components/offer_components.ex:349
+#: lib/tcg_cheap_web/components/offer_components.ex:354
 #: lib/tcg_cheap_web/region_text.ex:193
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy."
-msgstr "Cijene su bez dostave."
+msgstr "Cijene bez dostave."
 
 #: lib/tcg_cheap_web/region_text.ex:185
 #, elixir-autogen, elixir-format
@@ -4642,12 +4642,49 @@ msgstr "Cijene bez dostave: najniža cijena trgovine ili Cardmarket trend, što 
 msgid "bez wysyłki"
 msgstr "bez dostave"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:200
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:228
 #, elixir-autogen, elixir-format
 msgid "cały set, najtaniej, bez dostawy"
 msgstr "cijeli set, najjeftinije, bez dostave"
 
-#: lib/tcg_cheap_web/live/browse_live/banners.ex:211
+#: lib/tcg_cheap_web/live/browse_live/banners.ex:243
 #, elixir-autogen, elixir-format
 msgid "taniej niż na Cardmarket"
 msgstr "jeftinije nego na Cardmarketu"
+
+#: lib/tcg_cheap_web/seo/cards.ex:68
+#, elixir-autogen, elixir-format
+msgid "%{count} z nich taniej niż na Cardmarket, bez dostawy."
+msgstr "%{count} njih jeftinije je nego na Cardmarketu, bez dostave."
+
+#: lib/tcg_cheap_web/page_markdown.ex:145
+#, elixir-autogen, elixir-format
+msgid "Angielskie karty na stanie w sklepach dowożących do tego kraju: najniższa cena sklepu bez dostawy i ocena wobec trendu Cardmarket, też bez dostawy. Pełna lista rozszerzeń: %{url}"
+msgstr "Engleske karte na zalihi u trgovinama koje dostavljaju u ovu zemlju: najniža cijena trgovine bez dostave i ocjena prema Cardmarket trendu, također bez dostave. Cijeli popis proširenja: %{url}"
+
+#: lib/tcg_cheap_web/page_markdown.ex:839
+#, elixir-autogen, elixir-format
+msgid "Dostawa"
+msgstr "Dostava"
+
+#: lib/tcg_cheap_web/components/offer_components.ex:376
+#, elixir-autogen, elixir-format
+msgid "Dostawa od %{amount}."
+msgstr "Dostava od %{amount}."
+
+#: lib/tcg_cheap_web/components/offer_components.ex:44
+#: lib/tcg_cheap_web/social_image/cards.ex:88
+#: lib/tcg_cheap_web/social_image/expansion.ex:94
+#, elixir-autogen, elixir-format
+msgid "bez dostawy"
+msgstr "bez dostave"
+
+#: lib/tcg_cheap_web/components/offer_components.ex:401
+#, elixir-autogen, elixir-format
+msgid "dostawa"
+msgstr "dostava"
+
+#: lib/tcg_cheap_web/live/single_live.ex:346
+#, elixir-autogen, elixir-format
+msgid "trend na Cardmarket, bez dostawy"
+msgstr "Cardmarket trend, bez dostave"

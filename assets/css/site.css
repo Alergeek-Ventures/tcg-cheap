@@ -228,6 +228,8 @@
 .guide-world .guide-results-heading h2, .guide-world .product-section-heading h2 { font-size: clamp(1.5rem, 3vw, 1.75rem); line-height: 1; }
 .guide-world .guide-results-heading p, .guide-world .product-section-heading p { color: var(--muted); font-size: .875rem; margin: 0; }
 .guide-world .guide-products, .guide-world .offer-list { display: grid; gap: .5rem; list-style: none; margin: 0; padding: 0; }
+/* a search's cards without a shop follow the others as one more list, at the same gap */
+.guide-world .guide-products + .guide-products { margin-block-start: .5rem; }
 /* No entry animation: LiveView re-inserts every card on connect and on each search or filter, so it replayed constantly. */
 .guide-world .guide-product { min-width: 0; }
 .guide-world .guide-product-link { align-items: center; background: var(--paper); color: inherit; display: flex; flex-wrap: wrap; gap: .35rem 1rem; min-height: 3rem; padding: .5rem .75rem .5rem .5rem; text-decoration: none; }
@@ -332,6 +334,10 @@ html:has(.guide-world .site-header) { scroll-padding-block-start: calc(5rem + 1p
 /* the singles banner's numbers: a row under the pair, a column beside it when wide */
 .guide-world .set-chase-facts { display: grid; gap: .5rem; grid-column: 1 / -1; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); list-style: none; margin: 0; padding: 0; }
 .guide-world .set-chase-facts li { align-content: start; background: var(--paper); display: grid; gap: .25rem; padding: .75rem 1rem; }
+/* an odd last number fills its row instead of leaving a hole beside it (a market without a singles shop at home) */
+@media (max-width: 39.99rem) {
+  .guide-world .set-chase-facts-fill li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
 .guide-world .set-chase-facts strong { font: 700 clamp(1.4rem, 1.1rem + 1vw, 1.9rem)/1 "Barlow Condensed", sans-serif; }
 .guide-world .set-chase-facts span { color: var(--muted); font-size: .8rem; line-height: 1.3; overflow-wrap: break-word; }
 /* phones keep only the most valuable card; the rest are in the card list */
@@ -848,8 +854,8 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
   .guide-world .guide-product-deal { align-items: center; display: flex; flex-wrap: wrap; gap: .25rem .75rem; grid-column: 2; justify-content: space-between; margin: 0; max-inline-size: none; text-align: start; }
   /* Phones: no shop name in the list, the product page names it. */
   .guide-world .guide-product-shop { display: none; }
-  /* A card's price without delivery: the shop and where it ships from stay. */
-  .guide-world .guide-product-shop.guide-product-shop-beside { display: block; flex: 1 1 100%; }
+  /* A card's price without delivery, and a Cardmarket price: the shop (or Cardmarket) stays beside the price. */
+  .guide-world .guide-product-shop.guide-product-shop-beside { display: block; flex: 0 1 auto; }
   .guide-world .guide-product-deal .verdict-badge { min-inline-size: 0; }
   .guide-world .guide-product-price, .guide-world .guide-product-price:has(.guide-product-preorder) { align-items: flex-end; flex-direction: column; margin-inline-start: auto; }
   .guide-world .guide-product-deal .verdict-insufficient_data { letter-spacing: 0; padding-inline: .4rem; }

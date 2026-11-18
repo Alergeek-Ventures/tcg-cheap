@@ -165,6 +165,10 @@ defmodule TcgCheapWeb.VerdictComponents do
     default: false,
     doc: "the offer is a card's: its price may have no delivery in it (`card_shop_name/1`)"
 
+  attr :delivery, :string,
+    default: nil,
+    doc: "the shop's delivery, a line under the shop that stays above the link to it"
+
   def verdict_now(assigns) do
     ~H"""
     <div :if={@offer} class="verdict-now">
@@ -178,6 +182,9 @@ defmodule TcgCheapWeb.VerdictComponents do
             @offer,
             @card?
           )}</span>
+        </p>
+        <p :if={@delivery} id={"#{@prefix}-delivery"} class="guide-note verdict-delivery">
+          {@delivery}
         </p>
       </div>
       <a

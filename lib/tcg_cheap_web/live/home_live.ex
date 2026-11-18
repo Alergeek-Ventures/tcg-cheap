@@ -18,6 +18,7 @@ defmodule TcgCheapWeb.HomeLive do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.ListingComponents
+  import TcgCheapWeb.OfferComponents, only: [cards_delivery_note: 1]
   import TcgCheapWeb.SiteComponents
 
   alias TcgCheap.Cards
@@ -130,7 +131,7 @@ defmodule TcgCheapWeb.HomeLive do
 
   defp search(socket, "") do
     socket
-    |> assign(product_count: 0, card_count: 0)
+    |> assign(product_count: 0, card_count: 0, card_shops: [])
     |> stream(:found_products, [], reset: true)
     |> stream(:found_cards, [], reset: true)
   end
@@ -140,7 +141,11 @@ defmodule TcgCheapWeb.HomeLive do
     {cards, card_count} = find_cards(query, socket.assigns.region)
 
     socket
-    |> assign(product_count: product_count, card_count: card_count)
+    |> assign(
+      product_count: product_count,
+      card_count: card_count,
+      card_shops: for(%{offer: %{shop: shop}} <- cards, uniq: true, do: shop)
+    )
     |> stream(:found_products, products, reset: true)
     |> stream(:found_cards, cards, reset: true)
   end
@@ -336,6 +341,13 @@ defmodule TcgCheapWeb.HomeLive do
                     {gettext("Wszystkie: %{count}", count: Format.number(@card_count))}&nbsp;→
                   </.link>
                 </div>
+                <p
+                  :if={@card_count > 0 && cards_delivery_note(@card_shops)}
+                  id="home-cards-delivery-note"
+                  class="guide-note guide-prices-note"
+                >
+                  {cards_delivery_note(@card_shops)}
+                </p>
                 <ul
                   id="home-found-cards"
                   class="guide-products"
@@ -350,6 +362,7 @@ defmodule TcgCheapWeb.HomeLive do
                     id={dom_id}
                     row={row}
                     placement="home"
+                    cardmarket_caption?
                   />
                 </ul>
               </section>

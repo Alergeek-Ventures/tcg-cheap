@@ -8,7 +8,7 @@ defmodule TcgCheapWeb.SEO.Cards do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheapWeb.{Format, Paths, RegionText, SEO, SocialImage}
+  alias TcgCheapWeb.{Format, Paths, Region, RegionText, SEO, SocialImage}
 
   @doc """
   `market` is the region's singles market (`TcgCheap.Cards.SinglesBanner.market/1`);
@@ -50,12 +50,23 @@ defmodule TcgCheapWeb.SEO.Cards do
   defp answer(market) do
     [
       RegionText.cards_in_stock(Format.cards(market.in_stock)),
-      market.cheaper > 0 &&
-        gettext("%{count} z nich taniej niż na Cardmarket z przesyłką.",
-          count: Format.number(market.cheaper)
-        ),
+      market.cheaper > 0 && cheaper_than_cardmarket(market.cheaper),
       gettext("Najniższa cena i ocena każdej karty.")
     ]
     |> Enum.filter(&is_binary/1)
+  end
+
+  # Where no singles shop is at home the count compares the bare trend with
+  # the shops' prices, which have no delivery either.
+  defp cheaper_than_cardmarket(count) do
+    if Region.own_singles?(Region.current()),
+      do:
+        gettext("%{count} z nich taniej niż na Cardmarket z przesyłką.",
+          count: Format.number(count)
+        ),
+      else:
+        gettext("%{count} z nich taniej niż na Cardmarket, bez dostawy.",
+          count: Format.number(count)
+        )
   end
 end

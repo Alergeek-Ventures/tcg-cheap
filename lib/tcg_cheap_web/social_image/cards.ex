@@ -7,7 +7,7 @@ defmodule TcgCheapWeb.SocialImage.Cards do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   alias TcgCheap.Sealed.Shops
-  alias TcgCheapWeb.{Format, SocialImage}
+  alias TcgCheapWeb.{Format, Region, SocialImage}
   alias TcgCheapWeb.SocialImage.{Figures, Picture}
 
   @doc "A version of what the preview shows (`TcgCheap.Cards.SinglesBanner.market/1`)."
@@ -52,8 +52,12 @@ defmodule TcgCheapWeb.SocialImage.Cards do
                   ),
                 size: 48,
                 caption:
-                  gettext("najlepsza okazja teraz · %{shop}",
-                    shop: Shops.name(deal.shop)
+                  Enum.join(
+                    [
+                      gettext("najlepsza okazja teraz · %{shop}", shop: Shops.name(deal.shop))
+                      | without_delivery()
+                    ],
+                    " · "
                   )
               }
           ],
@@ -78,4 +82,8 @@ defmodule TcgCheapWeb.SocialImage.Cards do
       Picture.partial(preview, [scan])
     end)
   end
+
+  # Where no singles shop is at home the deal's price is the shop's item price.
+  defp without_delivery,
+    do: if(Region.own_singles?(Region.current()), do: [], else: [gettext("bez dostawy")])
 end

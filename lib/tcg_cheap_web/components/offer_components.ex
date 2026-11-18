@@ -27,8 +27,8 @@ defmodule TcgCheapWeb.OfferComponents do
 
   @doc """
   The shop of a card's price. Where no singles shop is at home the price is
-  the shop's item price and the row says where the parcel ships from
-  ("Chasedex, wysyłka ze Szwecji"); elsewhere `priced_shop_name/1`.
+  the shop's item price and the shop's name says so ("Chasedex, bez dostawy");
+  elsewhere `priced_shop_name/1`.
   """
   @spec card_shop_name(map()) :: String.t()
   def card_shop_name(offer) do
@@ -41,14 +41,20 @@ defmodule TcgCheapWeb.OfferComponents do
   @doc "What `card_shop_name/1` adds to the shop's name, nil for none."
   @spec card_shop_note(map()) :: String.t() | nil
   def card_shop_note(offer) do
+    if item_price?(offer), do: gettext("bez dostawy"), else: delivered_term(offer)
+  end
+
+  # Whether a card's price is the item price of a shop abroad, its delivery
+  # stated beside it (no singles shop is at home, `Shops.own_singles?/1`).
+  defp item_price?(%{shop: key}) do
     market = Region.current().market
 
     with false <- Shops.own_singles?(market),
-         {:ok, %{country: country} = shop} <- Shops.fetch(offer.shop),
+         {:ok, shop} <- Shops.fetch(key),
          {:delivered, _delivery} <- Market.terms({:ok, shop}, market) do
-      glue_short_words(origin_term(country))
+      true
     else
-      _own_or_included -> delivered_term(offer)
+      _own_or_included -> false
     end
   end
 
@@ -323,7 +329,7 @@ defmodule TcgCheapWeb.OfferComponents do
 
   # Where the parcel ships from and what its delivery costs; a pickup store
   # abroad is of no use to the buyer.
-  defp abroad_card_terms(delivery, shop, price) do
+  defp abroad_card_terms(delivery, shop, price \\ Decimal.new(0)) do
     domestic_delivery_terms(
       delivery,
       origin_term(shop.country),
@@ -336,50 +342,97 @@ defmodule TcgCheapWeb.OfferComponents do
 
   @doc """
   The line above a card list where no singles shop is at home: the prices are
-  without delivery, and the delivery itself when one shop sells the cards.
-  Nil where the prices have delivery in them.
+  without delivery, and what delivery costs (the shop's when the list's offers
+  are one shop's, else the cheapest), the list's offers being from `shop_keys`. Nil where the prices have delivery in them.
   """
-  @spec cards_delivery_note() :: String.t() | nil
-  def cards_delivery_note do
+  @spec cards_delivery_note([String.t()]) :: String.t() | nil
+  def cards_delivery_note(shop_keys) do
     market = Region.current().market
 
     if not Shops.own_singles?(market) and Shops.singles?(market) do
-      case Shops.singles_shops(market) do
-        [shop] -> gettext("Ceny bez dostawy.") <> " " <> shop_delivery(shop, market)
-        _several -> gettext("Ceny bez dostawy.")
-      end
+      shops = for key <- shop_keys, {:ok, shop} <- [Shops.fetch(key)], do: shop
+      Enum.join([gettext("Ceny bez dostawy.") | shops_delivery(shops, market)], " ")
     end
   end
 
-  defp shop_delivery(shop, market) do
-    terms = Market.terms({:ok, shop}, market)
+  defp shops_delivery([], _market), do: []
 
-    with %{} = delivery <- Market.delivery_cost(terms, market, Date.utc_today()),
-         [_origin | costs] <- abroad_card_terms(delivery, shop, Decimal.new(0)) do
-      "#{Shops.name(shop.key)}: #{Enum.join(costs, " · ")}"
+  defp shops_delivery([shop], market) do
+    case shop_delivery(shop, market) do
+      nil ->
+        [Shops.name(shop.key)]
+
+      delivery ->
+        ["#{Shops.name(shop.key)}: #{Enum.join(abroad_card_terms(delivery, shop), " · ")}"]
+    end
+  end
+
+  defp shops_delivery(shops, market) do
+    case for(shop <- shops, delivery = shop_delivery(shop, market), do: delivery.shipping_from) do
+      [] ->
+        []
+
+      costs ->
+        [gettext("Dostawa od %{amount}.", amount: Format.shop_price(Enum.min(costs, Decimal)))]
+    end
+  end
+
+  defp shop_delivery(shop, market),
+    do: Market.delivery_cost(Market.terms({:ok, shop}, market), market, Date.utc_today())
+
+  @doc """
+  The delivery tile of a set's banner where one shop sells the set's cards and
+  no singles shop is at home: `{cheapest delivery, where it ships from and
+  from when it is free}`. Nil otherwise or when the delivery is not known.
+  """
+  @spec delivery_tile(String.t()) :: {String.t(), String.t()} | nil
+  def delivery_tile(key) do
+    market = Region.current().market
+
+    with false <- Shops.own_singles?(market),
+         {:ok, shop} <- Shops.fetch(key),
+         %{} = delivery <- shop_delivery(shop, market) do
+      free =
+        delivery.free_shipping_from &&
+          gettext("darmowa od %{amount}", amount: Format.shop_price(delivery.free_shipping_from))
+
+      caption =
+        Enum.join(
+          Enum.filter([gettext("dostawa"), origin_term(shop.country), free], &is_binary/1),
+          " · "
+        )
+
+      {Format.shop_price(delivery.shipping_from), caption}
     else
-      _unknown -> Shops.name(shop.key)
+      _own_or_unknown -> nil
     end
   end
 
   @doc """
-  The line under a card's price where no singles shop is at home: the price is
-  without delivery, and the cheapest shop's delivery to the market. Nil where
-  the price has delivery in it or the shop does not deliver at a known price.
+  What a shop abroad's delivery to the market comes to, for a card offer's
+  row, Markdown and the line under the card's price: where it ships from,
+  the cheapest delivery and the order value from which it is free. Empty
+  where the price has delivery in it.
   """
-  @spec card_delivery_line(map()) :: String.t() | nil
-  def card_delivery_line(offer) do
+  @spec card_delivery_terms(map()) :: [String.t()]
+  def card_delivery_terms(%{shop: key} = offer) do
     market = Region.current().market
 
-    with false <- Shops.own_singles?(market),
-         {:ok, shop} <- Shops.fetch(offer.shop),
-         {:delivered, _delivery} = terms <- Market.terms({:ok, shop}, market),
-         %{} = delivery <- Market.delivery_cost(terms, market, Date.utc_today()) do
-      # The first term is where the parcel ships from, which the offer's row names.
-      [_origin | costs] = abroad_card_terms(delivery, shop, offer.price)
-      Enum.join([gettext("Cena bez dostawy") | costs], " · ")
+    with true <- item_price?(offer),
+         {:ok, shop} <- Shops.fetch(key),
+         %{} = delivery <- shop_delivery(shop, market) do
+      abroad_card_terms(delivery, shop, offer.price)
     else
-      _own_or_unknown -> nil
+      _included_or_unknown -> []
+    end
+  end
+
+  @doc "The line under a card's price: `card_delivery_terms/1` joined, nil for none."
+  @spec card_delivery_line(map()) :: String.t() | nil
+  def card_delivery_line(offer) do
+    case card_delivery_terms(offer) do
+      [] -> nil
+      terms -> Enum.join(terms, " · ")
     end
   end
 
