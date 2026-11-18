@@ -45,7 +45,11 @@ defmodule TcgCheapWeb.SingleLive do
            shops?: shops?,
            own_singles?: Region.own_singles?(region),
            euro_rate: euro_rate,
-           trend: if(!shops?, do: regional_trend(page.price, primary.variant, euro_rate, market)),
+           # Without a shop to buy from the Cardmarket trend is the answer.
+           trend:
+             if(!shops? or (!Region.own_singles?(region) and !primary.cheapest),
+               do: regional_trend(page.price, primary.variant, euro_rate, market)
+             ),
            booster:
              SetPage.booster(
                card.tcgdex_set.cardmarket_expansion_id,
@@ -311,19 +315,43 @@ defmodule TcgCheapWeb.SingleLive do
                   {if(@primary.cheapest,
                     do: single_verdict_label(@primary.verdict),
                     else: RegionText.card_unavailable()
-                  )}<.verdict_icon status={single_verdict_status(@primary.verdict)} />
+                  )}<.verdict_icon
+                    :if={@primary.cheapest || @own_singles?}
+                    status={single_verdict_status(@primary.verdict)}
+                  />
                 </span>
               </:header>
               <p :if={@primary.variant != :normal} class="guide-note">
                 {card_variant_label(@primary.variant)}
               </p>
-              <.verdict_now :if={@primary.cheapest} offer={@primary.cheapest} prefix="single" card? />
+              <.verdict_now
+                :if={@primary.cheapest}
+                offer={@primary.cheapest}
+                prefix="single"
+                delivery={card_delivery_line(@primary.cheapest)}
+                card?
+              />
+              <%!-- No shop delivers it: the Cardmarket trend is the answer, or one calm sentence. --%>
+              <div :if={!@primary.cheapest && !@own_singles? && @trend} id="single-trend">
+                <p class="verdict-price">{Format.price(@trend)}</p>
+                <p class="verdict-shop">
+                  <a
+                    href={cardmarket_url(@page.card.cardmarket_id)}
+                    target="_blank"
+                    rel="noopener nofollow"
+                    data-track="cardmarket_link_clicked"
+                    data-track-placement="single_trend"
+                    data-track-cardmarket-id={@page.card.cardmarket_id}
+                    data-track-card={@page.card.id}
+                  >{gettext("trend na Cardmarket, bez dostawy")}</a>
+                </p>
+              </div>
               <p
-                :if={@primary.cheapest && card_delivery_line(@primary.cheapest)}
-                id="single-delivery"
+                :if={!@primary.cheapest && !@own_singles? && !@trend}
+                id="single-no-price"
                 class="guide-note"
               >
-                {card_delivery_line(@primary.cheapest)}
+                {gettext("Brak ceny Cardmarket")}
               </p>
               <p :if={!@primary.cheapest && @own_singles?} id="single-empty" class="sr-only">
                 {RegionText.card_unavailable_note()}
@@ -335,7 +363,10 @@ defmodule TcgCheapWeb.SingleLive do
                   price: Format.rough_price(@primary.typical)
                 )}
               </p>
-              <p :if={@primary.reference} class="verdict-cardmarket">
+              <p
+                :if={@primary.reference && (@primary.cheapest || @own_singles?)}
+                class="verdict-cardmarket"
+              >
                 <.cardmarket_price
                   price={@primary.reference}
                   href={cardmarket_url(@page.card.cardmarket_id)}
@@ -361,7 +392,7 @@ defmodule TcgCheapWeb.SingleLive do
                       @primary.reference
                     )}.
                   </p>
-                  <p :if={@primary.verdict == :pennies}>
+                  <p :if={@primary.verdict == :pennies && @own_singles?}>
                     {gettext(
                       "Karta kosztuje w sklepach najwyżej %{price}, a na Cardmarket wysyłka kosztuje więcej niż sama karta, więc to normalna cena.",
                       price: Format.limit_price(@page.pennies_max)

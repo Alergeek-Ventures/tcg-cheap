@@ -121,17 +121,32 @@ defmodule TcgCheapWeb.PageMarkdown do
   def cards(seo, cards, today) do
     page(seo, today, [
       section(gettext("Karty"), [
-        if(singles?(),
-          do:
-            gettext(
-              "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepów za granicą z wysyłką) i ocena wobec Cardmarket z przesyłką. Pełna lista rozszerzeń: %{url}",
-              url: url(~p"/llms.txt")
-            ),
-          else: gettext("Angielskie karty z trendem Cardmarket, bez dostawy.")
-        ),
+        cards_intro(),
+        OfferComponents.cards_delivery_note(card_shops(cards)),
         cards_table(cards)
       ])
     ])
+  end
+
+  defp card_shops(cards), do: for(%{offer: %{shop: shop}} <- cards, uniq: true, do: shop)
+
+  defp cards_intro do
+    cond do
+      not singles?() ->
+        gettext("Angielskie karty z trendem Cardmarket, bez dostawy.")
+
+      own_singles?() ->
+        gettext(
+          "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepów za granicą z wysyłką) i ocena wobec Cardmarket z przesyłką. Pełna lista rozszerzeń: %{url}",
+          url: url(~p"/llms.txt")
+        )
+
+      true ->
+        gettext(
+          "Angielskie karty na stanie w sklepach dowożących do tego kraju: najniższa cena sklepu bez dostawy i ocena wobec trendu Cardmarket, też bez dostawy. Pełna lista rozszerzeń: %{url}",
+          url: url(~p"/llms.txt")
+        )
+    end
   end
 
   def booster_prices(seo, page) do
@@ -358,7 +373,10 @@ defmodule TcgCheapWeb.PageMarkdown do
         do:
           section(
             gettext("Ceny"),
-            list(Enum.map(page.answers, &single_answer/1) ++ [delivery_line(page)])
+            list(
+              Enum.map(page.answers, &single_answer/1) ++
+                [delivery_line(page), unoffered_trend(page)]
+            )
           ),
         else: section("Cardmarket", cardmarket_trend(page))
       ),
@@ -377,6 +395,12 @@ defmodule TcgCheapWeb.PageMarkdown do
       ),
       singles?() && card_offers(page, today)
     ])
+  end
+
+  # Where no shop delivers the card, its Cardmarket trend is the answer.
+  defp unoffered_trend(page) do
+    if not own_singles?() and Enum.all?(page.answers, &is_nil(&1.cheapest)),
+      do: cardmarket_trend(page)
   end
 
   # Where no singles shop is at home, the prices have no delivery in them:
@@ -434,7 +458,8 @@ defmodule TcgCheapWeb.PageMarkdown do
     |> Kernel.<>("\n")
   end
 
-  defp section(title, body), do: Enum.join(["## #{title}" | List.wrap(body)], "\n\n")
+  defp section(title, body),
+    do: Enum.join(["## #{title}" | body |> List.wrap() |> Enum.reject(&is_nil/1)], "\n\n")
 
   defp list(items),
     do: items |> Enum.reject(&(&1 in [nil, false])) |> Enum.map_join("\n", &"- #{&1}")
@@ -802,24 +827,31 @@ defmodule TcgCheapWeb.PageMarkdown do
   defp card_offers_table([], _compared, _today),
     do: gettext("Żaden sklep nie ma teraz tej karty.")
 
-  # At the compared price, as the HTML rows: a shop abroad's with delivery.
+  # At the compared price, as the HTML rows: where no singles shop is at home
+  # the item price, with each shop's delivery in a column of its own.
   defp card_offers_table(offers, compared, today) do
+    delivery? = not own_singles?()
+
     table(
       [
         gettext("Sklep"),
         pgettext("markdown", "Cena"),
+        delivery? && gettext("Dostawa"),
         gettext("Wariant"),
         gettext("Stan / grading"),
         gettext("Dostępność")
-      ],
+      ]
+      |> Enum.filter(& &1),
       Enum.map(offers, fn offer ->
         [
           link(card_offer_shop(offer), OfferComponents.offer_url(offer)),
           Format.price(compared[offer.id] || offer.price),
+          delivery? && (OfferComponents.card_delivery_line(offer) || ""),
           ListingComponents.card_variant_label(offer.variant),
           offer.grading || (offer.condition && condition(offer.condition)) || "",
           availability(offer, today)
         ]
+        |> Enum.filter(&(&1 != false))
       end)
     )
   end

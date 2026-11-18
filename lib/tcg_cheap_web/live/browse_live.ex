@@ -56,6 +56,7 @@ defmodule TcgCheapWeb.BrowseLive do
      |> assign(
        all_expansions?: false,
        set_page: nil,
+       cards_shops: [],
        # A reconnect mounts the page again; its view was already counted.
        remount?: connected?(socket) and get_connect_params(socket)["_mounts"] != 0,
        list_restore: if(connected?(socket), do: get_connect_params(socket)["_guide_list"])
@@ -200,6 +201,13 @@ defmodule TcgCheapWeb.BrowseLive do
     }
   end
 
+  # The shops whose offers the rows show.
+  defp card_shops(rows), do: for(%{offer: %{shop: shop}} <- rows, uniq: true, do: shop)
+
+  # A search that finds this many cards or fewer lists every one of them.
+  @few_results 10
+  defp few_results?(%{query: query}, count), do: query != "" and count <= @few_results
+
   defp list(socket, %{mode: :cards} = filters) do
     market = socket.assigns.region.market
 
@@ -217,6 +225,7 @@ defmodule TcgCheapWeb.BrowseLive do
       filters: filters,
       facets: %{expansions: expansions, editions: [], kinds: []},
       card_matches: 0,
+      cards_shops: card_shops(rows),
       form: to_form(%{"q" => filters.query}),
       result_count: count + out_count,
       cards_stock: if(only_out?, do: :out, else: :in),
@@ -425,7 +434,11 @@ defmodule TcgCheapWeb.BrowseLive do
       )
 
     socket
-    |> assign(loaded: socket.assigns.loaded + length(rows), more?: more?)
+    |> assign(
+      loaded: socket.assigns.loaded + length(rows),
+      more?: more?,
+      cards_shops: Enum.uniq(socket.assigns.cards_shops ++ card_shops(rows))
+    )
     |> stream(:cards, rows)
   end
 
@@ -597,11 +610,11 @@ defmodule TcgCheapWeb.BrowseLive do
                 {RegionText.list_prices_note()}
               </p>
               <p
-                :if={@filters.mode == :cards && !@set_page && cards_delivery_note()}
+                :if={@filters.mode == :cards && !@set_page && cards_delivery_note(@cards_shops)}
                 id="guide-cards-delivery-note"
                 class="guide-note guide-prices-note"
               >
-                {cards_delivery_note()}
+                {cards_delivery_note(@cards_shops)}
               </p>
               <ul
                 id="guide-products"
@@ -664,8 +677,22 @@ defmodule TcgCheapWeb.BrowseLive do
                   )}
                 </p>
               </div>
+              <%!-- A search with few results lists the cards no shop has in stock too, under the others. --%>
+              <ul
+                :if={@cards_out_count > 0 && few_results?(@filters, @result_count)}
+                id="guide-cards-out-list"
+                class="guide-products"
+                phx-update="stream"
+              >
+                <.card_row
+                  :for={{dom_id, row} <- @streams.cards_out}
+                  id={dom_id}
+                  row={row}
+                  cardmarket_caption?
+                />
+              </ul>
               <.offers_disclosure
-                :if={@cards_out_count > 0}
+                :if={@cards_out_count > 0 && !few_results?(@filters, @result_count)}
                 id="guide-cards-out"
                 open={@cards_out_open?}
                 label={gettext("Bez towaru: %{cards}", cards: result_label(@cards_out_count, :cards))}

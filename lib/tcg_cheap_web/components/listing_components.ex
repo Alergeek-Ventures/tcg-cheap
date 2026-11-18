@@ -110,6 +110,11 @@ defmodule TcgCheapWeb.ListingComponents do
     default: true,
     doc: "judge the shop's price; a guide for sellers shows the price alone"
 
+  attr :cardmarket_caption?, :boolean,
+    default: false,
+    doc:
+      "a price from Cardmarket alone, for a card no shop has in stock, says so where a shop's name would stand (a search's rows)"
+
   def card_row(assigns) do
     # With an offer in stock, the row answers as the card's page does: its
     # cheapest shop, the verdict and that shop's price. Without one, the
@@ -119,6 +124,7 @@ defmodule TcgCheapWeb.ListingComponents do
     assigns =
       assign(assigns,
         status: single_verdict_status(assigns.row.verdict),
+        singles?: singles?,
         # Without singles shops in the region, only Cardmarket's price.
         offer: if(singles?, do: assigns.row.offer),
         # Where the price has no delivery in it, the shop's row says where the
@@ -165,12 +171,13 @@ defmodule TcgCheapWeb.ListingComponents do
         </div>
         <div class="guide-product-deal">
           <%= if @offer do %>
+            <%!-- The list's note says the prices have no delivery; the row names the shop only. --%>
             <span class={
               if(@delivery_beside?,
                 do: "guide-product-shop guide-product-shop-beside",
                 else: "guide-product-shop"
               )
-            }>{card_shop_name(@offer)}</span>
+            }>{if(@delivery_beside?, do: shop_name(@offer), else: priced_shop_name(@offer))}</span>
             <%!-- Without a Cardmarket price there is nothing to judge; the card's page says why. --%>
             <.verdict_badge
               :if={@verdict? and @status != :insufficient_data}
@@ -180,6 +187,10 @@ defmodule TcgCheapWeb.ListingComponents do
             />
             <p class="guide-product-price"><strong>{Format.price(@offer.price)}</strong></p>
           <% else %>
+            <span
+              :if={@cardmarket_caption? && @price && @singles?}
+              class="guide-product-shop guide-product-shop-beside"
+            >Cardmarket</span>
             <p class="guide-product-price">
               <strong :if={@price}>{Format.price(@price)}</strong>
               <span :if={!@price}>{gettext("Cena nieznana")}</span>

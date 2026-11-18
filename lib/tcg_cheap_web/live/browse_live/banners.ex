@@ -6,6 +6,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.BrowseLive.ChaseBanners
+  import TcgCheapWeb.OfferComponents, only: [cards_delivery_note: 1, delivery_tile: 1]
 
   alias TcgCheapWeb.{Format, Paths, Region, RegionText, SEO}
 
@@ -136,6 +137,30 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
   # The singles banner: the set's best deal in the region's shops against its
   # Cardmarket trend, then what the set's singles market looks like in numbers.
   def set_singles(assigns) do
+    own? = Region.own_singles?(Region.current())
+    singles = assigns.singles
+
+    # Where no singles shop is at home a count of cards cheaper than Cardmarket
+    # is shown only when it is not zero, and a set whose cards one shop sells
+    # states that shop's delivery in a tile of its own, which replaces the
+    # count; without the tile the foot carries the delivery.
+    tile =
+      with false <- own?,
+           %{cheaper: 0, shops: [shop]} <- singles do
+        delivery_tile(shop)
+      else
+        _own_or_other -> nil
+      end
+
+    assigns =
+      assign(assigns,
+        own?: own?,
+        delivery_tile: tile,
+        foot:
+          if(tile, do: nil, else: cards_delivery_note(singles.shops)) ||
+            RegionText.singles_prices_note()
+      )
+
     ~H"""
     <div
       :if={@singles}
@@ -188,14 +213,17 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
           </.link>
         </div>
       <% end %>
-      <ul id="set-singles-facts" class="set-chase-facts">
+      <ul
+        id="set-singles-facts"
+        class={if(@own?, do: "set-chase-facts", else: "set-chase-facts set-chase-facts-fill")}
+      >
         <li>
           <strong>{Format.number(@singles.in_stock)}</strong>
           <span>{gettext("z %{total} kart na stanie w sklepach", total: Format.number(@singles.total))}</span>
         </li>
-        <li :if={@singles.set_price}>
+        <li :if={@singles.set_price} class={@delivery_tile && "set-chase-fact-extra"}>
           <strong>{Format.about(@singles.set_price)}</strong>
-          <span>{if(Region.own_singles?(Region.current()),
+          <span>{if(@own?,
             do: gettext("cały set, najtaniej"),
             else: gettext("cały set, najtaniej, bez dostawy")
           )}</span>
@@ -204,16 +232,20 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
           <strong>{Format.price(@top.price)}</strong>
           <span>{gettext("najcenniejsza: %{card}", card: @top.card.name)}</span>
         </li>
-        <li class={@singles.set_price && "set-chase-fact-extra"}>
+        <li :if={@delivery_tile} id="set-singles-delivery">
+          <strong>{elem(@delivery_tile, 0)}</strong>
+          <span>{elem(@delivery_tile, 1)}</span>
+        </li>
+        <li :if={@own? || @singles.cheaper > 0} class={@singles.set_price && "set-chase-fact-extra"}>
           <strong>{Format.number(@singles.cheaper)}</strong>
-          <span>{if(Region.own_singles?(Region.current()),
+          <span>{if(@own?,
             do: gettext("taniej niż na Cardmarket z wysyłką"),
             else: gettext("taniej niż na Cardmarket")
           )}</span>
         </li>
       </ul>
       <p class="set-chase-foot">
-        <span>{RegionText.singles_prices_note()}</span>
+        <span>{@foot}</span>
         <a href={@cards_href}>{gettext("Zobacz karty")}</a>
       </p>
     </div>

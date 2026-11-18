@@ -38,6 +38,9 @@ defmodule TcgCheap.Cards.SinglesBanner do
       in_stock: Enum.count(cards, & &1.offer_price),
       cheaper: cheaper(cards),
       total: length(cards),
+      # The shops the in-stock cards come from.
+      shops:
+        cards |> Enum.map(&Map.get(&1, :offer_shop)) |> Enum.reject(&is_nil/1) |> Enum.uniq(),
       # A sum missing some cards' prices would understate the set.
       set_price:
         if(priced != [] and length(priced) == length(cards),
