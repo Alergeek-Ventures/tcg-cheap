@@ -186,11 +186,16 @@ defmodule TcgCheapWeb.RegionText do
       )
 
   def cardmarket_card_delivery(abroad_only? \\ !own_singles?()),
-    do: if(abroad_only?, do: gettext("bez wysyłki"), else: country().cardmarket_card_delivery())
+    do: if(abroad_only?, do: gettext("bez dostawy"), else: country().cardmarket_card_delivery())
 
-  def singles_prices_note,
+  # `bare_list?`: every card of the list is priced without delivery, as where no
+  # singles shop is at home (`SinglesBanner.of_set/3`).
+  def singles_prices_note(bare_list? \\ false),
     do:
-      if(own_singles?(), do: country().singles_prices_note(), else: gettext("Ceny bez dostawy."))
+      if(own_singles?() and not bare_list?,
+        do: country().singles_prices_note(),
+        else: gettext("Ceny bez dostawy.")
+      )
 
   def expansion_fallback(expansion), do: country().expansion_fallback(expansion)
   def booster_out_of_stock(expansion), do: country().booster_out_of_stock(expansion)

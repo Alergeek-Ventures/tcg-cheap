@@ -14,7 +14,7 @@ msgstr ""
 #: lib/tcg_cheap/countries/germany.ex:12
 #, elixir-autogen, elixir-format
 msgid "wysyłka z Niemiec"
-msgstr "verzending uit Duitsland"
+msgstr "verstuurd uit Duitsland"
 
 #: lib/tcg_cheap/countries/germany.ex:15
 #, elixir-autogen, elixir-format

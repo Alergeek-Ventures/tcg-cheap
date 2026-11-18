@@ -771,48 +771,66 @@ defmodule TcgCheap.Cards.Guide do
     bare = Map.new(terms, fn {shop, {item, _delivery}} -> {shop, {item, nil}} end)
     item_only = compared_price(bare, market)
 
-    price =
-      if Shops.own_singles?(market),
-        do:
-          dynamic(
-            [o],
-            fragment(
-              "CASE WHEN ? THEN ? ELSE ? END",
-              ^abroad_only(market),
-              ^item_only,
-              ^compared_price(terms, market)
-            )
-          ),
-        else: item_only
+    query = from(o in counted_query(market, terms), as: :offer)
 
+    if Shops.own_singles?(market) do
+      home = card_offer_probe(market, terms, domestic_check(market))
+      stocked = card_offer_probe(market, terms, dynamic(true))
+
+      from([o] in query,
+        left_lateral_join: h in subquery(home),
+        on: true,
+        left_lateral_join: a in subquery(stocked),
+        on: true
+      )
+      |> select_merge(
+        ^%{
+          price:
+            dynamic(
+              [o, h, a],
+              fragment(
+                "CASE WHEN ? THEN ? ELSE ? END",
+                is_nil(h.hit) and ((o.in_stock and is_nil(o.grading)) or not is_nil(a.hit)),
+                ^item_only,
+                ^compared_price(terms, market)
+              )
+            )
+        }
+      )
+    else
+      select_merge(query, ^%{price: item_only})
+    end
+  end
+
+  # The current offers that count in the market, before any price is chosen.
+  defp counted_query(market, terms) do
     from(o in current_query(),
       where: ^counted(market, Map.keys(terms)),
       where: ^priced_apart(terms, market)
     )
-    |> select_merge(^%{price: price})
   end
 
-  # `for_card/2` in SQL, over the offers that count (the query's filters apply
-  # before the window): no shop at home among the card's in-stock, ungraded
-  # offers; null when it has none.
-  defp abroad_only(market) do
+  # `for_card/2` in SQL: a card is abroad-only when it has an in-stock,
+  # ungraded offer that counts and none of them is a shop at home. Each test
+  # is a lateral lookup of one such offer of the card, so the planner reaches
+  # only the cards an outer query wants, through the offers' card index (a
+  # window over the card could not be pushed below), and the price
+  # expression carries no subquery of its own, which the outer query repeats.
+  defp card_offer_probe(market, terms, check) do
+    from(i in counted_query(market, terms),
+      where: i.card_id == parent_as(:offer).card_id and i.in_stock and is_nil(i.grading),
+      where: ^check,
+      select: %{hit: fragment("1")},
+      limit: 1
+    )
+  end
+
+  defp domestic_check(market) do
     at_home = Enum.filter(Shops.keys(), &Market.domestic?(&1, market))
 
-    domestic =
-      if market.code == "pl",
-        do: dynamic([o], o.shop in ^at_home or o.shop not in ^Shops.keys()),
-        else: dynamic([o], o.shop in ^at_home)
-
-    dynamic(
-      [o],
-      fragment(
-        "bool_and(NOT (?)) FILTER (WHERE ? AND ? IS NULL) OVER (PARTITION BY ?)",
-        ^domestic,
-        o.in_stock,
-        o.grading,
-        o.card_id
-      )
-    )
+    if market.code == "pl",
+      do: dynamic([i], i.shop in ^at_home or i.shop not in ^Shops.keys()),
+      else: dynamic([i], i.shop in ^at_home)
   end
 
   defp counted_in_stock?(offer), do: offer.in_stock and is_nil(offer.grading)

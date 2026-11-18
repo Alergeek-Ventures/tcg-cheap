@@ -28,8 +28,8 @@ defmodule TcgCheapWeb.OfferComponents do
   @doc """
   The shop of a card's price. Where the card has no shop at home (an offer's
   `abroad_only?`, see `Guide.for_card/2`) the price is the shop's item price
-  and the shop's name says so ("Chasedex, bez dostawy");
-  elsewhere `priced_shop_name/1`.
+  and the shop's name says so ("Chasedex, bez dostawy"); elsewhere
+  `priced_shop_name/1`.
   """
   @spec card_shop_name(map()) :: String.t()
   def card_shop_name(offer) do
@@ -43,6 +43,59 @@ defmodule TcgCheapWeb.OfferComponents do
   @spec card_shop_note(map()) :: String.t() | nil
   def card_shop_note(offer) do
     if item_price?(offer), do: gettext("bez dostawy"), else: delivered_term(offer)
+  end
+
+  @doc """
+  The shop of a card in a list, `card_row_note/1` after it: "Chasedex · ze
+  Szwecji", "Bangerpack, z wysyłką ze Szwecji".
+  """
+  @spec card_row_name(map()) :: String.t()
+  def card_row_name(offer) do
+    case card_row_note(offer) do
+      nil -> shop_name(offer)
+      note -> shop_name(offer) <> card_row_separator(offer) <> note
+    end
+  end
+
+  @doc """
+  What a card's row in a list adds to the shop's name. Where shops at home
+  sell singles, a shop abroad whose price has no delivery in it (the card has
+  no shop at home) says where it ships from, as a shop at home carries no
+  note; elsewhere `card_shop_note/1`.
+  """
+  @spec card_row_note(map()) :: String.t() | nil
+  def card_row_note(%{shop: key} = offer) do
+    if item_price?(offer) and own_singles?(),
+      do: key |> ships_from() |> glue_short_words(),
+      else: card_shop_note(offer)
+  end
+
+  defp card_row_separator(offer),
+    do: if(item_price?(offer) and own_singles?(), do: " · ", else: ", ")
+
+  defp own_singles?, do: Shops.own_singles?(Region.current().market)
+
+  # "ze Szwecji": the shop's `Country.shipped_from/0` without its leading noun
+  # or verb ("wysyłka"), which the language may not have.
+  defp ships_from(key) do
+    {:ok, %{country: country}} = Shops.fetch(key)
+    String.replace_prefix(origin_term(country), gettext("wysyłka") <> " ", "")
+  end
+
+  attr :offer, :map, required: true
+  attr :note, :string, required: true, doc: "`card_row_note/1`, not nil"
+
+  @doc """
+  A card's shop and its note as two pieces that wrap only between them.
+  """
+  def card_shop(assigns) do
+    # The separator stays with the name, so a line never starts with it.
+    name = shop_name(assigns.offer) <> String.trim_trailing(card_row_separator(assigns.offer))
+    assigns = assign(assigns, name: name)
+
+    ~H"""
+    <span class="shop-part">{@name}</span> <span class="shop-part">{@note}</span>
+    """
   end
 
   # Whether a card's price is the item price of a shop abroad, its delivery
@@ -343,15 +396,17 @@ defmodule TcgCheapWeb.OfferComponents do
   end
 
   @doc """
-  The line above a card list where no singles shop is at home: the prices are
-  without delivery, and what delivery costs (the shop's when the list's offers
-  are one shop's, else the cheapest), the list's offers being from `shop_keys`. Nil where the prices have delivery in them.
+  The line above a card list where no singles shop is at home, or whose
+  cards all are priced without delivery (`bare_list?`): the prices are without
+  delivery, and what delivery costs (the shop's when the list's offers are one
+  shop's, else the cheapest), the list's offers being from `shop_keys`. Nil
+  where the prices may have delivery in them.
   """
-  @spec cards_delivery_note([String.t()]) :: String.t() | nil
-  def cards_delivery_note(shop_keys) do
+  @spec cards_delivery_note([String.t()], boolean()) :: String.t() | nil
+  def cards_delivery_note(shop_keys, bare_list? \\ false) do
     market = Region.current().market
 
-    if not Shops.own_singles?(market) and Shops.singles?(market) do
+    if (bare_list? or not Shops.own_singles?(market)) and Shops.singles?(market) do
       shops = for key <- shop_keys, {:ok, shop} <- [Shops.fetch(key)], do: shop
       Enum.join([gettext("Ceny bez dostawy.") | shops_delivery(shops, market)], " ")
     end
@@ -383,16 +438,15 @@ defmodule TcgCheapWeb.OfferComponents do
     do: Market.delivery_cost(Market.terms({:ok, shop}, market), market, Date.utc_today())
 
   @doc """
-  The delivery tile of a set's banner where one shop sells the set's cards and
-  no singles shop is at home: `{cheapest delivery, where it ships from and
-  from when it is free}`. Nil otherwise or when the delivery is not known.
+  The delivery tile of a set's banner whose cards are priced without delivery
+  and one shop sells them all: `{cheapest delivery, where it ships from and
+  from when it is free}`. Nil when the delivery is not known.
   """
   @spec delivery_tile(String.t()) :: {String.t(), String.t()} | nil
   def delivery_tile(key) do
     market = Region.current().market
 
-    with false <- Shops.own_singles?(market),
-         {:ok, shop} <- Shops.fetch(key),
+    with {:ok, shop} <- Shops.fetch(key),
          %{} = delivery <- shop_delivery(shop, market) do
       free =
         delivery.free_shipping_from &&
@@ -406,7 +460,7 @@ defmodule TcgCheapWeb.OfferComponents do
 
       {Format.shop_price(delivery.shipping_from), caption}
     else
-      _own_or_unknown -> nil
+      _unknown -> nil
     end
   end
 

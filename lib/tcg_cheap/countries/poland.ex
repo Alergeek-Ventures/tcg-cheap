@@ -135,7 +135,7 @@ defmodule TcgCheap.Countries.Poland do
     do:
       dgettext(
         "poland",
-        "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w złotych, co tańsze."
+        "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w złotych, co tańsze."
       )
 
   @impl TcgCheapWeb.RegionText
@@ -146,7 +146,7 @@ defmodule TcgCheap.Countries.Poland do
     do:
       dgettext(
         "poland",
-        "Ceny bez dostawy. Z zagranicy: z wysyłką do Polski, chyba że przy sklepie jest „bez dostawy”."
+        "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
       )
 
   @impl TcgCheapWeb.RegionText

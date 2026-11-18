@@ -167,10 +167,10 @@ msgstr "Indisponível nas lojas que enviam para a Chéquia"
 
 #: lib/tcg_cheap/countries/czechia.ex:133
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w koronach czeskich, co tańsze."
-msgstr "Preços sem portes (do estrangeiro, com envio, exceto se a loja indicar «sem portes») ou a tendência do Cardmarket em coroas checas, o que for mais barato."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w koronach czeskich, co tańsze."
+msgstr "Preços sem portes, exceto os marcados «com envio», ou a tendência do Cardmarket em coroas checas, o que for mais barato."
 
 #: lib/tcg_cheap/countries/czechia.ex:144
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Czech, chyba że przy sklepie jest „bez dostawy”."
-msgstr "Preços sem portes. Do estrangeiro: com envio para a Chéquia, exceto se a loja indicar «sem portes»."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
+msgstr "Preços sem portes, exceto os marcados «com envio»."

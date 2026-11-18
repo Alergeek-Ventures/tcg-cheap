@@ -236,6 +236,8 @@
 /* Keep the shop, verdict and price together without stretching their gaps. */
 .guide-world .guide-product-deal { align-items: center; display: flex; flex: 0 1 auto; flex-wrap: wrap; gap: .35rem .75rem; justify-content: flex-end; margin-inline-start: auto; max-inline-size: 26rem; min-width: 0; text-align: right; }
 .guide-world .guide-product-shop { font-size: .875rem; overflow-wrap: anywhere; text-align: start; }
+/* A shop and its note wrap only between them, unless one alone is wider than the line. */
+.guide-world .guide-product-shop .shop-part { display: inline-block; }
 .guide-world .guide-product-link:hover { background: var(--bench-light); }
 /* A product row is one link, its name's, stretched over the row; the verdict note sits above it. */
 .guide-world .guide-product-link { position: relative; }
@@ -855,9 +857,10 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
   /* Phones: no shop name in the list, the product page names it. */
   .guide-world .guide-product-shop { display: none; }
   /* A card's price without delivery, and a Cardmarket price: the shop (or Cardmarket) stays beside the price. */
-  .guide-world .guide-product-shop.guide-product-shop-beside { display: block; flex: 0 1 auto; }
+  /* The shop takes the width left beside the price and wraps; the price never shrinks or wraps. */
+  .guide-world .guide-product-shop.guide-product-shop-beside { display: block; flex: 1 1 0; min-width: 0; }
   .guide-world .guide-product-deal .verdict-badge { min-inline-size: 0; }
-  .guide-world .guide-product-price, .guide-world .guide-product-price:has(.guide-product-preorder) { align-items: flex-end; flex-direction: column; margin-inline-start: auto; }
+  .guide-world .guide-product-price, .guide-world .guide-product-price:has(.guide-product-preorder) { align-items: flex-end; flex-direction: column; flex: none; margin-inline-start: auto; }
   .guide-world .guide-product-deal .verdict-insufficient_data { letter-spacing: 0; padding-inline: .4rem; }
   /* The "?" stays: it says the badge opens a note. The note spans the row under it, not the badge. */
   .guide-world .guide-product-deal .verdict-tip { position: static; }

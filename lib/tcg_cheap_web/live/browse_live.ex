@@ -201,6 +201,11 @@ defmodule TcgCheapWeb.BrowseLive do
     }
   end
 
+  # A selected set whose in-stock cards one shop sells, all without delivery
+  # (`SinglesBanner.of_set/3`): its list reads as one where no singles shop is at home.
+  defp bare_set?(%{set: %{singles: %{bare?: true}}}), do: true
+  defp bare_set?(_set_page), do: false
+
   # The shops whose offers the rows show.
   defp card_shops(rows), do: for(%{offer: %{shop: shop}} <- rows, uniq: true, do: shop)
 
@@ -656,7 +661,12 @@ defmodule TcgCheapWeb.BrowseLive do
                     delivery_noted?={RegionText.list_prices_note() != nil}
                   />
                 </li>
-                <.card_row :for={{dom_id, row} <- @streams.cards} id={dom_id} row={row} />
+                <.card_row
+                  :for={{dom_id, row} <- @streams.cards}
+                  id={dom_id}
+                  row={row}
+                  bare_list?={bare_set?(@set_page)}
+                />
               </ul>
               <div :if={@more?} class="guide-more">
                 <button

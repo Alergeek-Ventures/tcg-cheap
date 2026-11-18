@@ -134,10 +134,10 @@ msgstr "Typiskt pris är medianen: från varje polsk butik som har kortet i lage
 
 #: lib/tcg_cheap/countries/poland.ex:136
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w złotych, co tańsze."
-msgstr "Priser utan frakt (från utlandet med frakt, om det inte står ”utan frakt” vid butiken), eller Cardmarket-trenden i PLN om den är lägre."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w złotych, co tańsze."
+msgstr "Priser utan frakt, utom de som är märkta ”med frakt”,, eller Cardmarket-trenden i PLN om den är lägre."
 
 #: lib/tcg_cheap/countries/poland.ex:147
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Polski, chyba że przy sklepie jest „bez dostawy”."
-msgstr "Priser utan frakt. Från utlandet: med frakt till Polen, om det inte står ”utan frakt” vid butiken."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
+msgstr "Priser utan frakt, utom de som är märkta ”med frakt”."

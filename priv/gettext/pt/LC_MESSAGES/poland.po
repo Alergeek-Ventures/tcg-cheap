@@ -133,10 +133,10 @@ msgstr "O preço típico é a mediana: tomamos a oferta mais barata de cada loja
 
 #: lib/tcg_cheap/countries/poland.ex:136
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w złotych, co tańsze."
-msgstr "Preços sem portes (do estrangeiro, com portes, exceto se a loja indicar «sem portes») ou a tendência do Cardmarket em zlótis, o que for mais barato."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w złotych, co tańsze."
+msgstr "Preços sem portes, exceto os marcados «com envio», ou a tendência do Cardmarket em zlótis, o que for mais barato."
 
 #: lib/tcg_cheap/countries/poland.ex:147
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Polski, chyba że przy sklepie jest „bez dostawy”."
-msgstr "Preços sem portes. Do estrangeiro: com portes para a Polónia, exceto se a loja indicar «sem portes»."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
+msgstr "Preços sem portes, exceto os marcados «com envio»."

@@ -294,7 +294,7 @@ defmodule TcgCheapWeb.SingleLive do
                   placement="single_trend"
                   cardmarket_id={@page.card.cardmarket_id}
                   card={@page.card.id}
-                /><span>{gettext("trend na Cardmarket, bez wysyłki · wszystkie języki i stany kart")}</span>
+                /><span>{gettext("trend na Cardmarket, bez dostawy · wszystkie języki i stany kart")}</span>
               </p>
               <p :if={@trend && !euro_region?()} id="single-rate" class="guide-note">
                 {euro_rate_note(@euro_rate)}
@@ -378,7 +378,7 @@ defmodule TcgCheapWeb.SingleLive do
                   shipping={@with_delivery?}
                 /><span>{if(@with_delivery?,
                   do: gettext("na Cardmarket z wysyłką · wszystkie języki i stany kart"),
-                  else: gettext("trend na Cardmarket, bez wysyłki · wszystkie języki i stany kart")
+                  else: gettext("trend na Cardmarket, bez dostawy · wszystkie języki i stany kart")
                 )}</span>
               </p>
               <div class="verdict-more">

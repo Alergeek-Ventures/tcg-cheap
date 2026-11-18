@@ -32,6 +32,8 @@ defmodule TcgCheap.Cards.SinglesBanner do
   @spec of_set([map()], map() | nil, map()) :: map()
   def of_set(cards, deal, images) do
     priced = Enum.map(cards, &Guide.price/1) |> Enum.reject(&is_nil/1)
+    stocked = Enum.filter(cards, & &1.offer_price)
+    shops = stocked |> Enum.map(&Map.get(&1, :offer_shop)) |> Enum.uniq()
 
     %{
       deal: deal && deal_view(deal, images),
@@ -39,8 +41,10 @@ defmodule TcgCheap.Cards.SinglesBanner do
       cheaper: cheaper(cards),
       total: length(cards),
       # The shops the in-stock cards come from.
-      shops:
-        cards |> Enum.map(&Map.get(&1, :offer_shop)) |> Enum.reject(&is_nil/1) |> Enum.uniq(),
+      shops: Enum.reject(shops, &is_nil/1),
+      # Every in-stock card is priced without delivery and one shop sells them
+      # all: the set reads as one in a market without singles shops at home.
+      bare?: stocked != [] and Enum.all?(stocked, & &1.abroad_only?) and length(shops) == 1,
       # A sum missing some cards' prices would understate the set.
       set_price:
         if(priced != [] and length(priced) == length(cards),
@@ -87,6 +91,7 @@ defmodule TcgCheap.Cards.SinglesBanner do
       total: Guide.catalogue_size(),
       # The whole catalogue has no price of its own, as a set does.
       set_price: nil,
+      bare?: false,
       top: top && %{card: top, price: Guide.price(top)},
       shops: Guide.shop_count(market)
     }

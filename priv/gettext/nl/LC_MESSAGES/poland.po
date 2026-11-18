@@ -84,7 +84,7 @@ msgstr "Het lijkt erop dat je in Polen bent."
 #: lib/tcg_cheap/countries/poland.ex:18
 #, elixir-autogen, elixir-format
 msgid "wysyłka z Polski"
-msgstr "verzending uit Polen"
+msgstr "verstuurd uit Polen"
 
 #: lib/tcg_cheap/countries/poland.ex:142
 #: lib/tcg_cheap/countries/poland.ex:177
@@ -134,10 +134,10 @@ msgstr "De gebruikelijke prijs is het midden van het veld: van elke Poolse winke
 
 #: lib/tcg_cheap/countries/poland.ex:136
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w złotych, co tańsze."
-msgstr "Prijzen zonder verzending (uit het buitenland incl. verzending, tenzij bij de winkel «zonder verzending» staat) of de Cardmarket-trend in zloty, wat goedkoper is."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w złotych, co tańsze."
+msgstr "Prijzen zonder verzending, behalve die met «incl. verzending», of de Cardmarket-trend in zloty, wat goedkoper is."
 
 #: lib/tcg_cheap/countries/poland.ex:147
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Polski, chyba że przy sklepie jest „bez dostawy”."
-msgstr "Prijzen zonder verzending. Uit het buitenland: incl. verzending naar Polen, tenzij bij de winkel «zonder verzending» staat."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
+msgstr "Prijzen zonder verzending, behalve die met «incl. verzending»."
