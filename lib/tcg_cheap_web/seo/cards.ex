@@ -56,14 +56,12 @@ defmodule TcgCheapWeb.SEO.Cards do
     |> Enum.filter(&is_binary/1)
   end
 
-  # Where no singles shop is at home the count compares the bare trend with
-  # the shops' prices, which have no delivery either.
+  # A card's price and its Cardmarket reference are both with or both without
+  # delivery (`Guide.for_card/2`), so a list may mix the two: the count says
+  # nothing of delivery where a shop is at home.
   defp cheaper_than_cardmarket(count) do
     if Region.own_singles?(Region.current()),
-      do:
-        gettext("%{count} z nich taniej niż na Cardmarket z przesyłką.",
-          count: Format.number(count)
-        ),
+      do: gettext("%{count} z nich taniej niż na Cardmarket.", count: Format.number(count)),
       else:
         gettext("%{count} z nich taniej niż na Cardmarket, bez dostawy.",
           count: Format.number(count)

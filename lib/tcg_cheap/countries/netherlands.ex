@@ -146,7 +146,7 @@ defmodule TcgCheap.Countries.Netherlands do
     do:
       dgettext(
         "netherlands",
-        "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w euro, co tańsze."
+        "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w euro, co tańsze."
       )
 
   @impl TcgCheapWeb.RegionText
@@ -154,7 +154,11 @@ defmodule TcgCheap.Countries.Netherlands do
 
   @impl TcgCheapWeb.RegionText
   def singles_prices_note,
-    do: dgettext("netherlands", "Ceny bez dostawy. Z zagranicy: z wysyłką do Holandii.")
+    do:
+      dgettext(
+        "netherlands",
+        "Ceny bez dostawy. Z zagranicy: z wysyłką do Holandii, chyba że przy sklepie jest „bez dostawy”."
+      )
 
   @impl TcgCheapWeb.RegionText
   def expansion_fallback(expansion),

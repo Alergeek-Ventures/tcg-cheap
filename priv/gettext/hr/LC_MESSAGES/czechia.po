@@ -21,17 +21,17 @@ msgstr "šalje iz Češke"
 msgid "z wysyłką z Czech"
 msgstr "s dostavom iz Češke"
 
-#: lib/tcg_cheap/countries/czechia.ex:148
+#: lib/tcg_cheap/countries/czechia.ex:152
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Czech."
 msgstr "%{expansion}: usporedi cijene boostera, ETB-ova, boxova i kolekcija u trgovinama koje dostavljaju u Češku."
 
-#: lib/tcg_cheap/countries/czechia.ex:166
+#: lib/tcg_cheap/countries/czechia.ex:170
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden sklep wysyłający do Czech nie ma tego produktu na stanie."
 msgstr "%{name}: nijedna trgovina koja dostavlja u Češku trenutačno nema ovaj proizvod na stanju."
 
-#: lib/tcg_cheap/countries/czechia.ex:157
+#: lib/tcg_cheap/countries/czechia.ex:161
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden sklep wysyłający do Czech nie ma teraz na stanie."
 msgstr "%{expansion} booster trenutačno nema na stanju nijedna trgovina koja dostavlja u Češku."
@@ -41,12 +41,12 @@ msgstr "%{expansion} booster trenutačno nema na stanju nijedna trgovina koja do
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Czech, sprawdzane codziennie."
 msgstr "Cijene Pokémon TCG iz trgovina koje dostavljaju u Češku, provjerene svaki dan."
 
-#: lib/tcg_cheap/countries/czechia.ex:211
+#: lib/tcg_cheap/countries/czechia.ex:215
 #, elixir-autogen, elixir-format
 msgid "Ceny czeskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Czech. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Cijene čeških trgovina su bez dostave, a trgovina iz inozemstva s dostavom u Češku. Cardmarketovoj cijeni dodajemo %{shipping} za paket iz Njemačke."
 
-#: lib/tcg_cheap/countries/czechia.ex:177
+#: lib/tcg_cheap/countries/czechia.ex:181
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Czech."
 msgstr "Cijene trgovina iz inozemstva uključuju dostavu u Češku."
@@ -76,27 +76,27 @@ msgstr "Prijeđi na češku verziju"
 msgid "Wygląda na to, że jesteś w Czechach."
 msgstr "Izgleda da si u Češkoj."
 
-#: lib/tcg_cheap/countries/czechia.ex:173
+#: lib/tcg_cheap/countries/czechia.ex:177
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr "s dostavom iz Njemačke"
 
-#: lib/tcg_cheap/countries/czechia.ex:182
+#: lib/tcg_cheap/countries/czechia.ex:186
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Czech. Ceny w innej walucie niż korona czeska przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
 msgstr "Cijena trgovine iz inozemstva ona je koju trgovina navodi kupcima iz Češke. Cijene u valuti koja nije češka kruna preračunavamo po dnevnom tečaju Poljske narodne banke (NBP). Stranica trgovine može biti na drugom jeziku."
 
-#: lib/tcg_cheap/countries/czechia.ex:191
+#: lib/tcg_cheap/countries/czechia.ex:195
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych list produktów sklepów, pobieranych raz dziennie, i są w koronach czeskich. Ceny czeskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Czech."
 msgstr "Cijene preuzimamo jednom dnevno iz javnih popisa proizvoda trgovina i izražene su u češkim krunama. Cijene čeških trgovina ne uključuju dostavu, a cijene trgovina iz inozemstva uključuju dostavu u Češku."
 
-#: lib/tcg_cheap/countries/czechia.ex:196
+#: lib/tcg_cheap/countries/czechia.ex:200
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w koronach czeskich (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
 msgstr "Dobra cijena je najviše 95 % tipične, uobičajena najviše 110 %, sve iznad toga je skupo. Dobra cijena mora biti i najviše 95 % uobičajene cijene proizvoda u zadnjih %{window} dana te Cardmarket trenda u češkim krunama (po tečaju NBP-a) s dostavom iz Njemačke, ako su ti podaci poznati."
 
-#: lib/tcg_cheap/countries/czechia.ex:202
+#: lib/tcg_cheap/countries/czechia.ex:206
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w koronach czeskich."
 msgstr "Kad je trgovina premalo, ne ocjenjujemo cijenu, a kao kontekst navodimo Cardmarket trend u češkim krunama."
@@ -141,16 +141,6 @@ msgstr "Nema na stanju u češkim trgovinama"
 msgid "Brak w czeskich sklepach"
 msgstr "Nema u češkim trgovinama"
 
-#: lib/tcg_cheap/countries/czechia.ex:133
-#, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w koronach czeskich, co tańsze."
-msgstr "Cijene bez dostave (iz inozemstva s dostavom) ili Cardmarket trend u češkim krunama, što je jeftinije."
-
-#: lib/tcg_cheap/countries/czechia.ex:143
-#, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Czech."
-msgstr "Cijene bez dostave. Iz inozemstva: s dostavom u Češku."
-
 #: lib/tcg_cheap/countries/czechia.ex:87
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w Czechach"
@@ -175,3 +165,13 @@ msgstr "Tipična cijena je sredina među trgovinama: iz svake češke trgovine k
 #, elixir-autogen, elixir-format
 msgid "Brak w sklepach wysyłających do Czech"
 msgstr "Nema u trgovinama koje dostavljaju u Češku"
+
+#: lib/tcg_cheap/countries/czechia.ex:133
+#, elixir-autogen, elixir-format
+msgid "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w koronach czeskich, co tańsze."
+msgstr "Cijene bez dostave (iz inozemstva s dostavom, osim ako uz trgovinu piše „bez dostave”) ili Cardmarket trend u češkim krunama, što je jeftinije."
+
+#: lib/tcg_cheap/countries/czechia.ex:144
+#, elixir-autogen, elixir-format
+msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Czech, chyba że przy sklepie jest „bez dostawy”."
+msgstr "Cijene bez dostave. Iz inozemstva: s dostavom u Češku, osim ako uz trgovinu piše „bez dostave”."

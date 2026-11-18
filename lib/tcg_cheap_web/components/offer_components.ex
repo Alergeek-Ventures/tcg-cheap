@@ -26,8 +26,9 @@ defmodule TcgCheapWeb.OfferComponents do
   end
 
   @doc """
-  The shop of a card's price. Where no singles shop is at home the price is
-  the shop's item price and the shop's name says so ("Chasedex, bez dostawy");
+  The shop of a card's price. Where the card has no shop at home (an offer's
+  `abroad_only?`, see `Guide.for_card/2`) the price is the shop's item price
+  and the shop's name says so ("Chasedex, bez dostawy");
   elsewhere `priced_shop_name/1`.
   """
   @spec card_shop_name(map()) :: String.t()
@@ -45,11 +46,12 @@ defmodule TcgCheapWeb.OfferComponents do
   end
 
   # Whether a card's price is the item price of a shop abroad, its delivery
-  # stated beside it (no singles shop is at home, `Shops.own_singles?/1`).
-  defp item_price?(%{shop: key}) do
+  # stated beside it: the card has no shop at home (`Guide.for_card/2`). An
+  # offer not read with its card's others goes by the market's rule.
+  defp item_price?(%{shop: key} = offer) do
     market = Region.current().market
 
-    with false <- Shops.own_singles?(market),
+    with true <- Map.get(offer, :abroad_only?, !Shops.own_singles?(market)),
          {:ok, shop} <- Shops.fetch(key),
          {:delivered, _delivery} <- Market.terms({:ok, shop}, market) do
       true
@@ -302,11 +304,11 @@ defmodule TcgCheapWeb.OfferComponents do
     market = Region.current().market
 
     cond do
-      market == Market.poland() ->
-        polish_delivery_terms(shop, price, km, near?)
-
       beside? ->
         beside_delivery_terms(Market.terms({:ok, shop}, market), shop, price, km, near?)
+
+      market == Market.poland() ->
+        polish_delivery_terms(shop, price, km, near?)
 
       true ->
         market_delivery_terms(Market.terms({:ok, shop}, market), shop, price, compared, km, near?)

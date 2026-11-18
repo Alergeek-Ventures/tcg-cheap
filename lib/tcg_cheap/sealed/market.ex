@@ -105,6 +105,11 @@ defmodule TcgCheap.Sealed.Market do
   def terms(:error, %__MODULE__{code: "pl"}), do: :domestic
   def terms(:error, _market), do: :absent
 
+  @doc "Whether the shop's offers are priced as the market's own, without delivery (`terms/2`)."
+  @spec domestic?(String.t(), t()) :: boolean()
+  def domestic?(shop_key, %__MODULE__{} = market),
+    do: terms(Shops.fetch(shop_key), market) == :domestic
+
   @typedoc """
   An offer as `priced/3` reads it; a market abroad also needs its shop's own
   price and its prices by country.

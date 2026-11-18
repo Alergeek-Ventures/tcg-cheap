@@ -1,8 +1,8 @@
 defmodule TcgCheap.Cards.SinglesBanner do
   @moduledoc """
   The singles banner of a market, in its currency: the card a shop sells
-  furthest under its Cardmarket price with delivery (what a singles verdict
-  compares), how many cards are in stock in the market's shops and how many
+  furthest under its Cardmarket price (with delivery where a shop at home
+  competes, else the bare trend, as a singles verdict compares), how many cards are in stock in the market's shops and how many
   of them undercut Cardmarket.
   """
 
@@ -97,6 +97,7 @@ defmodule TcgCheap.Cards.SinglesBanner do
       card: deal,
       price: deal.normal_offer.price,
       shop: deal.normal_offer.shop,
+      abroad_only?: deal.abroad_only?,
       trend: deal.cardmarket_delivered,
       image: Map.fetch!(images, deal.id),
       path: deal.public_path

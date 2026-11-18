@@ -102,9 +102,9 @@ defmodule TcgCheapWeb.SocialImage.Single do
           {nil, gettext("Teraz żaden sklep nie ma tej karty na stanie.")}
       end
 
-    # Where no singles shop is at home a shop's price has no delivery in it.
+    # A card without a shop at home has no delivery in its shop price.
     notes =
-      if cheapest && !Region.own_singles?(Region.current()),
+      if cheapest && page.abroad_only?,
         do: [gettext("Cena bez dostawy")],
         else: []
 
@@ -118,9 +118,9 @@ defmodule TcgCheapWeb.SocialImage.Single do
     if Region.singles?(Region.current()) do
       with %Decimal{} = reference <- answer_row(page).reference do
         {Format.limit_price(reference),
-         if(Region.own_singles?(Region.current()),
-           do: gettext("na Cardmarket z wysyłką · wszystkie języki i stany kart"),
-           else: gettext("trend na Cardmarket, bez wysyłki · wszystkie języki i stany kart")
+         if(page.abroad_only?,
+           do: gettext("trend na Cardmarket, bez wysyłki · wszystkie języki i stany kart"),
+           else: gettext("na Cardmarket z wysyłką · wszystkie języki i stany kart")
          )}
       end
     else

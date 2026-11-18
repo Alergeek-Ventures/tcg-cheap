@@ -185,8 +185,8 @@ defmodule TcgCheapWeb.RegionText do
         else: gettext("Ceny bez dostawy: najniższa cena sklepu albo trend Cardmarket, co tańsze.")
       )
 
-  def cardmarket_card_delivery,
-    do: if(own_singles?(), do: country().cardmarket_card_delivery(), else: gettext("bez wysyłki"))
+  def cardmarket_card_delivery(abroad_only? \\ !own_singles?()),
+    do: if(abroad_only?, do: gettext("bez wysyłki"), else: country().cardmarket_card_delivery())
 
   def singles_prices_note,
     do:
