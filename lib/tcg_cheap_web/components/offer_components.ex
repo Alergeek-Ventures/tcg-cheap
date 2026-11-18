@@ -26,6 +26,33 @@ defmodule TcgCheapWeb.OfferComponents do
   end
 
   @doc """
+  The shop of a card's price. Where no singles shop is at home the price is
+  the shop's item price and the row says where the parcel ships from
+  ("Chasedex, wysyłka ze Szwecji"); elsewhere `priced_shop_name/1`.
+  """
+  @spec card_shop_name(map()) :: String.t()
+  def card_shop_name(offer) do
+    case card_shop_note(offer) do
+      nil -> shop_name(offer)
+      note -> shop_name(offer) <> ", " <> note
+    end
+  end
+
+  @doc "What `card_shop_name/1` adds to the shop's name, nil for none."
+  @spec card_shop_note(map()) :: String.t() | nil
+  def card_shop_note(offer) do
+    market = Region.current().market
+
+    with false <- Shops.own_singles?(market),
+         {:ok, %{country: country} = shop} <- Shops.fetch(offer.shop),
+         {:delivered, _delivery} <- Market.terms({:ok, shop}, market) do
+      glue_short_words(origin_term(country))
+    else
+      _own_or_included -> delivered_term(offer)
+    end
+  end
+
+  @doc """
   "z wysyłką ze Szwecji" for a compared price from a shop abroad (its
   delivery is known), else nil.
   """
@@ -133,6 +160,11 @@ defmodule TcgCheapWeb.OfferComponents do
   attr :today, Date, required: true
   attr :tags, :list, default: []
 
+  attr :delivery_beside?, :boolean,
+    default: false,
+    doc:
+      "the price is the item price and the row states the shop's delivery beside it (a card where no singles shop is at home), not as included in it"
+
   attr :compared, :any,
     default: :polish,
     doc:
@@ -157,7 +189,12 @@ defmodule TcgCheapWeb.OfferComponents do
       <div class="offer-shop">
         <strong>{shop_name(@offer)}</strong>
         <span :if={@tags != []} class="offer-delivery single-offer-tags">{Enum.join(@tags, " · ")}</span>
-        <.offer_delivery offer={@offer} compared={@compared} location={@location} />
+        <.offer_delivery
+          offer={@offer}
+          compared={@compared}
+          location={@location}
+          beside?={@delivery_beside?}
+        />
       </div>
       <p class="offer-price">
         <span :if={Map.get(@offer, :preorder, false)} class="offer-preorder-label">{gettext(
@@ -205,6 +242,7 @@ defmodule TcgCheapWeb.OfferComponents do
   attr :offer, :map, required: true
   attr :compared, :any, default: nil, doc: "the offer's compared price, nil when only listed"
   attr :location, :map, default: nil
+  attr :beside?, :boolean, default: false, doc: "see `offer/1`'s `delivery_beside?`"
 
   # What delivery adds to an offer, from the shop's published terms:
   # "dostawa od 14,99 zł · darmowa od 400 zł · odbiór osobisty: Kraków (491 km)".
@@ -225,7 +263,15 @@ defmodule TcgCheapWeb.OfferComponents do
         near?: near?,
         terms:
           if(shop,
-            do: delivery_terms(shop, assigns.offer.price, assigns.compared, km, near?),
+            do:
+              delivery_terms(
+                shop,
+                assigns.offer.price,
+                assigns.compared,
+                km,
+                near?,
+                assigns.beside?
+              ),
             else: []
           )
       )
@@ -246,13 +292,95 @@ defmodule TcgCheapWeb.OfferComponents do
 
   # Poland's terms come from the shops' published delivery to Poland; another
   # market's from how its prices were compared (`Market.terms/2`).
-  defp delivery_terms(shop, price, compared, km, near?) do
+  defp delivery_terms(shop, price, compared, km, near?, beside?) do
     market = Region.current().market
 
-    if market == Market.poland(),
-      do: polish_delivery_terms(shop, price, km, near?),
-      else:
+    cond do
+      market == Market.poland() ->
+        polish_delivery_terms(shop, price, km, near?)
+
+      beside? ->
+        beside_delivery_terms(Market.terms({:ok, shop}, market), shop, price, km, near?)
+
+      true ->
         market_delivery_terms(Market.terms({:ok, shop}, market), shop, price, compared, km, near?)
+    end
+  end
+
+  # A card's price has no delivery in it: state the shop's delivery to the
+  # market as a domestic shop's row does.
+  defp beside_delivery_terms({:delivered, _delivery} = terms, shop, price, km, near?) do
+    market = Region.current().market
+
+    case Market.delivery_cost(terms, market, Date.utc_today()) do
+      nil -> market_delivery_terms(:listed, shop, price, nil, km, near?)
+      delivery -> abroad_card_terms(delivery, shop, price)
+    end
+  end
+
+  defp beside_delivery_terms(terms, shop, price, km, near?),
+    do: market_delivery_terms(terms, shop, price, nil, km, near?)
+
+  # Where the parcel ships from and what its delivery costs; a pickup store
+  # abroad is of no use to the buyer.
+  defp abroad_card_terms(delivery, shop, price) do
+    domestic_delivery_terms(
+      delivery,
+      origin_term(shop.country),
+      price,
+      nil,
+      false,
+      %{shop | pickup_city: nil}
+    )
+  end
+
+  @doc """
+  The line above a card list where no singles shop is at home: the prices are
+  without delivery, and the delivery itself when one shop sells the cards.
+  Nil where the prices have delivery in them.
+  """
+  @spec cards_delivery_note() :: String.t() | nil
+  def cards_delivery_note do
+    market = Region.current().market
+
+    if not Shops.own_singles?(market) and Shops.singles?(market) do
+      case Shops.singles_shops(market) do
+        [shop] -> gettext("Ceny bez dostawy.") <> " " <> shop_delivery(shop, market)
+        _several -> gettext("Ceny bez dostawy.")
+      end
+    end
+  end
+
+  defp shop_delivery(shop, market) do
+    terms = Market.terms({:ok, shop}, market)
+
+    with %{} = delivery <- Market.delivery_cost(terms, market, Date.utc_today()),
+         [_origin | costs] <- abroad_card_terms(delivery, shop, Decimal.new(0)) do
+      "#{Shops.name(shop.key)}: #{Enum.join(costs, " · ")}"
+    else
+      _unknown -> Shops.name(shop.key)
+    end
+  end
+
+  @doc """
+  The line under a card's price where no singles shop is at home: the price is
+  without delivery, and the cheapest shop's delivery to the market. Nil where
+  the price has delivery in it or the shop does not deliver at a known price.
+  """
+  @spec card_delivery_line(map()) :: String.t() | nil
+  def card_delivery_line(offer) do
+    market = Region.current().market
+
+    with false <- Shops.own_singles?(market),
+         {:ok, shop} <- Shops.fetch(offer.shop),
+         {:delivered, _delivery} = terms <- Market.terms({:ok, shop}, market),
+         %{} = delivery <- Market.delivery_cost(terms, market, Date.utc_today()) do
+      # The first term is where the parcel ships from, which the offer's row names.
+      [_origin | costs] = abroad_card_terms(delivery, shop, offer.price)
+      Enum.join([gettext("Cena bez dostawy") | costs], " · ")
+    else
+      _own_or_unknown -> nil
+    end
   end
 
   # Delivered from abroad: the row's price includes it; say how much.

@@ -596,6 +596,13 @@ defmodule TcgCheapWeb.BrowseLive do
               >
                 {RegionText.list_prices_note()}
               </p>
+              <p
+                :if={@filters.mode == :cards && !@set_page && cards_delivery_note()}
+                id="guide-cards-delivery-note"
+                class="guide-note guide-prices-note"
+              >
+                {cards_delivery_note()}
+              </p>
               <ul
                 id="guide-products"
                 class="guide-products"

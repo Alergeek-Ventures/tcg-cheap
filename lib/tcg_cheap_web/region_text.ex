@@ -65,6 +65,12 @@ defmodule TcgCheapWeb.RegionText do
   @doc "A card page's verdict when no shop has the card in stock."
   @callback card_unavailable() :: String.t()
 
+  @doc """
+  The same where no shop selling singles is at home (`Region.own_singles?/1`):
+  the card is in no shop that delivers to the country.
+  """
+  @callback card_unavailable_delivering() :: String.t()
+
   @doc "The same for screen readers, under the verdict."
   @callback card_unavailable_note() :: String.t()
 
@@ -118,8 +124,11 @@ defmodule TcgCheapWeb.RegionText do
               few_shops: String.t()
             }
 
+  @optional_callbacks card_unavailable_delivering: 0
+
   defp country, do: Region.current().country
   defp singles?, do: Region.singles?(Region.current())
+  defp own_singles?, do: Region.own_singles?(Region.current())
 
   def location_outside, do: country().location_outside()
   def town_example, do: country().town_example()
@@ -157,12 +166,32 @@ defmodule TcgCheapWeb.RegionText do
 
   def card_description(name, number, price), do: country().card_description(name, number, price)
   def cards_in_stock(cards), do: country().cards_in_stock(cards)
-  def card_unavailable, do: country().card_unavailable()
+
+  def card_unavailable,
+    do:
+      if(own_singles?(),
+        do: country().card_unavailable(),
+        else: country().card_unavailable_delivering()
+      )
+
   def card_unavailable_note, do: country().card_unavailable_note()
   def card_method(minimum), do: country().card_method(Format.shops(minimum))
-  def card_prices_note, do: country().card_prices_note()
-  def cardmarket_card_delivery, do: country().cardmarket_card_delivery()
-  def singles_prices_note, do: country().singles_prices_note()
+  # Where no singles shop is at home, shops' card prices have no delivery in
+  # them and Cardmarket's trend none either.
+  def card_prices_note,
+    do:
+      if(own_singles?(),
+        do: country().card_prices_note(),
+        else: gettext("Ceny bez dostawy: najniższa cena sklepu albo trend Cardmarket, co tańsze.")
+      )
+
+  def cardmarket_card_delivery,
+    do: if(own_singles?(), do: country().cardmarket_card_delivery(), else: gettext("bez wysyłki"))
+
+  def singles_prices_note,
+    do:
+      if(own_singles?(), do: country().singles_prices_note(), else: gettext("Ceny bez dostawy."))
+
   def expansion_fallback(expansion), do: country().expansion_fallback(expansion)
   def booster_out_of_stock(expansion), do: country().booster_out_of_stock(expansion)
   def product_out_of_stock(name), do: country().product_out_of_stock(name)

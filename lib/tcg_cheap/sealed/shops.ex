@@ -181,10 +181,28 @@ defmodule TcgCheap.Sealed.Shops do
   Cardmarket trend alone: a shop only listed there could not set a price.
   """
   @spec singles?(Market.t()) :: boolean()
-  def singles?(%Market{} = market) do
-    Enum.any?(@shops, fn shop ->
+  def singles?(%Market{} = market), do: singles_shops(market) != []
+
+  @doc "The shops reading singles whose offers count in the market (see `singles?/1`)."
+  @spec singles_shops(Market.t()) :: [Shop.t()]
+  def singles_shops(%Market{} = market) do
+    Enum.filter(@shops, fn shop ->
       (shop.singles_categories != nil or shop.singles_markers != nil) and
         counted?(Market.terms({:ok, shop}, market))
+    end)
+  end
+
+  @doc """
+  Whether a shop reading singles is at home in the market (`domestic?/2`).
+  Without one every card offer comes from a shop abroad, so a card's price is
+  the shop's item price, its delivery stated beside it: a buyer takes many
+  cards in one parcel, which one card's delivery would overstate.
+  """
+  @spec own_singles?(Market.t()) :: boolean()
+  def own_singles?(%Market{} = market) do
+    Enum.any?(@shops, fn shop ->
+      (shop.singles_categories != nil or shop.singles_markers != nil) and
+        Market.terms({:ok, shop}, market) == :domestic
     end)
   end
 

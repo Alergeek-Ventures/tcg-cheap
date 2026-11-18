@@ -7,7 +7,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
 
   import TcgCheapWeb.BrowseLive.ChaseBanners
 
-  alias TcgCheapWeb.{Format, Paths, RegionText, SEO}
+  alias TcgCheapWeb.{Format, Paths, Region, RegionText, SEO}
 
   attr :name, :string, required: true
   attr :logo_url, :string, default: nil
@@ -195,7 +195,10 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
         </li>
         <li :if={@singles.set_price}>
           <strong>{Format.about(@singles.set_price)}</strong>
-          <span>{gettext("cały set, najtaniej")}</span>
+          <span>{if(Region.own_singles?(Region.current()),
+            do: gettext("cały set, najtaniej"),
+            else: gettext("cały set, najtaniej, bez dostawy")
+          )}</span>
         </li>
         <li :if={@top}>
           <strong>{Format.price(@top.price)}</strong>
@@ -203,7 +206,10 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
         </li>
         <li class={@singles.set_price && "set-chase-fact-extra"}>
           <strong>{Format.number(@singles.cheaper)}</strong>
-          <span>{gettext("taniej niż na Cardmarket z wysyłką")}</span>
+          <span>{if(Region.own_singles?(Region.current()),
+            do: gettext("taniej niż na Cardmarket z wysyłką"),
+            else: gettext("taniej niż na Cardmarket")
+          )}</span>
         </li>
       </ul>
       <p class="set-chase-foot">

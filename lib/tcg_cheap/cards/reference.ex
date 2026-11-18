@@ -30,4 +30,17 @@ defmodule TcgCheap.Cards.Reference do
     trend = if variant == :reverse, do: price.trend_holo, else: price.trend
     trend |> delivered_eur() |> Market.in_market(rate, market)
   end
+
+  @doc """
+  The reference without delivery, for a market whose card prices have none
+  either (`Shops.own_singles?/1`): the bare trend in the market's currency.
+  """
+  @spec bare_in_market(map() | nil, atom(), map() | nil, Market.t()) :: Decimal.t() | nil
+  def bare_in_market(_price, :special, _rate, _market), do: nil
+  def bare_in_market(nil, _variant, _rate, _market), do: nil
+
+  def bare_in_market(price, variant, rate, market) do
+    trend = if variant == :reverse, do: price.trend_holo, else: price.trend
+    if trend && Decimal.positive?(trend), do: Market.in_market(trend, rate, market)
+  end
 end

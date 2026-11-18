@@ -121,6 +121,9 @@ defmodule TcgCheapWeb.ListingComponents do
         status: single_verdict_status(assigns.row.verdict),
         # Without singles shops in the region, only Cardmarket's price.
         offer: if(singles?, do: assigns.row.offer),
+        # Where the price has no delivery in it, the shop's row says where the
+        # parcel ships from, so a phone shows it too.
+        delivery_beside?: !Region.own_singles?(Region.current()),
         price:
           Cards.Guide.price(%{
             offer_price: assigns.row.price,
@@ -162,7 +165,12 @@ defmodule TcgCheapWeb.ListingComponents do
         </div>
         <div class="guide-product-deal">
           <%= if @offer do %>
-            <span class="guide-product-shop">{priced_shop_name(@offer)}</span>
+            <span class={
+              if(@delivery_beside?,
+                do: "guide-product-shop guide-product-shop-beside",
+                else: "guide-product-shop"
+              )
+            }>{card_shop_name(@offer)}</span>
             <%!-- Without a Cardmarket price there is nothing to judge; the card's page says why. --%>
             <.verdict_badge
               :if={@verdict? and @status != :insufficient_data}

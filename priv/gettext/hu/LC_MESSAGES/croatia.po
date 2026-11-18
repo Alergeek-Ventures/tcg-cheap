@@ -11,17 +11,17 @@ msgstr ""
 "Language: hu\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/tcg_cheap/countries/croatia.ex:145
+#: lib/tcg_cheap/countries/croatia.ex:149
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Chorwacji."
 msgstr "%{expansion}: hasonlítsd össze a boosterek, ETB-k, boxok és gyűjtői dobozok árait a Horvátországba szállító boltokban."
 
-#: lib/tcg_cheap/countries/croatia.ex:163
+#: lib/tcg_cheap/countries/croatia.ex:167
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden sklep wysyłający do Chorwacji nie ma tego produktu na stanie."
 msgstr "%{name}: most egyik Horvátországba szállító boltban sincs raktáron."
 
-#: lib/tcg_cheap/countries/croatia.ex:154
+#: lib/tcg_cheap/countries/croatia.ex:158
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden sklep wysyłający do Chorwacji nie ma teraz na stanie."
 msgstr "%{expansion} boostert most egyik Horvátországba szállító bolt sem tart raktáron."
@@ -31,12 +31,12 @@ msgstr "%{expansion} boostert most egyik Horvátországba szállító bolt sem t
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Chorwacji, sprawdzane codziennie."
 msgstr "Pokémon TCG árak a Horvátországba szállító boltokból, naponta ellenőrizve."
 
-#: lib/tcg_cheap/countries/croatia.ex:208
+#: lib/tcg_cheap/countries/croatia.ex:212
 #, elixir-autogen, elixir-format
 msgid "Ceny chorwackich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Chorwacji. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "A horvát boltok árait szállítási díj nélkül, a külföldiekét horvátországi szállítással mutatjuk. A Cardmarket-árhoz egy Németországból küldött csomag szállítási díját adjuk hozzá: %{shipping}."
 
-#: lib/tcg_cheap/countries/croatia.ex:174
+#: lib/tcg_cheap/countries/croatia.ex:178
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Chorwacji."
 msgstr "A külföldi boltok árai a horvátországi szállítást is tartalmazzák."
@@ -61,7 +61,7 @@ msgstr "Hasonlítsd össze a Pokémon TCG árakat a Horvátországba szállító
 msgid "Przejdź do wersji chorwackiej"
 msgstr "Váltás a horvát oldalra"
 
-#: lib/tcg_cheap/countries/croatia.ex:179
+#: lib/tcg_cheap/countries/croatia.ex:183
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Chorwacji. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
 msgstr "A külföldi bolt ára az, amelyet a bolt a horvátországi vásárlóknak ad meg. A nem euróban megadott árakat a napi NBP-árfolyamokon számoljuk át. A bolt oldala lehet más nyelvű is."
@@ -81,22 +81,22 @@ msgstr "Horvátországból"
 msgid "z wysyłką z Chorwacji"
 msgstr "Horvátországból, szállítással együtt"
 
-#: lib/tcg_cheap/countries/croatia.ex:170
+#: lib/tcg_cheap/countries/croatia.ex:174
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr "Németországból, szállítással együtt"
 
-#: lib/tcg_cheap/countries/croatia.ex:188
+#: lib/tcg_cheap/countries/croatia.ex:192
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w euro. Ceny chorwackich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Chorwacji."
 msgstr "Az árak a boltok nyilvános termékfeedjeiből származnak, naponta egyszer töltjük le őket, és euróban vannak. A horvát boltok árai nem tartalmazzák a szállítást, a külföldi boltok árai a Horvátországba szállítást is."
 
-#: lib/tcg_cheap/countries/croatia.ex:193
+#: lib/tcg_cheap/countries/croatia.ex:197
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane."
 msgstr "Jó ár: legfeljebb a jellemző ár 95%-a, átlagos ár: legfeljebb 110%-a, afölött drága. A jó árnak emellett legfeljebb a termék elmúlt %{window} napban szokásos árának 95%-a, és – ha ismert – a Cardmarket-trend euróban, Németországból szállítással számolt értékének 95%-a lehet."
 
-#: lib/tcg_cheap/countries/croatia.ex:199
+#: lib/tcg_cheap/countries/croatia.ex:203
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
 msgstr "Ha kevesebb bolt árulja, nincs értékelés; kontextusként a Cardmarket-trendet mutatjuk euróban."
@@ -131,7 +131,7 @@ msgstr "Angol Pokémon TCG kártyák a Horvátországba szállító boltokban."
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających do Chorwacji: %{cards} na stanie."
 msgstr "Angol Pokémon TCG kártyák a Horvátországba szállító boltokban: %{cards} raktáron."
 
-#: lib/tcg_cheap/countries/croatia.ex:116
+#: lib/tcg_cheap/countries/croatia.ex:120
 #, elixir-autogen, elixir-format
 msgid "Brak na stanie w chorwackich sklepach"
 msgstr "Horvát boltokban nincs raktáron"
@@ -141,12 +141,12 @@ msgstr "Horvát boltokban nincs raktáron"
 msgid "Brak w chorwackich sklepach"
 msgstr "Horvát boltokban nincs"
 
-#: lib/tcg_cheap/countries/croatia.ex:130
+#: lib/tcg_cheap/countries/croatia.ex:134
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w euro, co tańsze."
 msgstr "Szállítási díj nélküli árak (külföldről szállítással) vagy a Cardmarket-trend euróban, amelyik olcsóbb."
 
-#: lib/tcg_cheap/countries/croatia.ex:140
+#: lib/tcg_cheap/countries/croatia.ex:144
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Chorwacji."
 msgstr "Az árak szállítási díj nélkül értendők. Külföldről: Horvátországba szállítással."
@@ -161,12 +161,17 @@ msgstr "Pokémon TCG kártyaárak Horvátországban"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Chorwacji."
 msgstr "A legolcsóbb Pokémon TCG kártyák a Horvátországba szállító boltokban."
 
-#: lib/tcg_cheap/countries/croatia.ex:136
+#: lib/tcg_cheap/countries/croatia.ex:140
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Chorwacji"
 msgstr "Horvátországba szállítással"
 
-#: lib/tcg_cheap/countries/croatia.ex:121
+#: lib/tcg_cheap/countries/croatia.ex:125
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to środek stawki: z każdego chorwackiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny chorwackich sklepów są bez dostawy, zagranicznych – z wysyłką do Chorwacji."
 msgstr "A jellemző ár a bolti árak középértéke: minden horvát boltból, ahol raktáron van a kártya, a legolcsóbb ajánlatot vesszük (legalább %{shops} kell). A jó ár legalább 5%-kal alacsonyabb a jellemző árnál és a szállítással számolt Cardmarket-árnál. Az átlagos ár legfeljebb 10%-kal magasabb a jellemző árnál. Efölött drága. A horvát boltok árai szállítási díj nélkül értendők, a külföldieké Horvátországba szállítással."
+
+#: lib/tcg_cheap/countries/croatia.ex:117
+#, elixir-autogen, elixir-format
+msgid "Brak w sklepach wysyłających do Chorwacji"
+msgstr "Nincs a Horvátországba szállító boltokban"

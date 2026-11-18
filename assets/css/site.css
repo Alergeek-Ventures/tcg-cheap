@@ -848,6 +848,8 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
   .guide-world .guide-product-deal { align-items: center; display: flex; flex-wrap: wrap; gap: .25rem .75rem; grid-column: 2; justify-content: space-between; margin: 0; max-inline-size: none; text-align: start; }
   /* Phones: no shop name in the list, the product page names it. */
   .guide-world .guide-product-shop { display: none; }
+  /* A card's price without delivery: the shop and where it ships from stay. */
+  .guide-world .guide-product-shop.guide-product-shop-beside { display: block; flex: 1 1 100%; }
   .guide-world .guide-product-deal .verdict-badge { min-inline-size: 0; }
   .guide-world .guide-product-price, .guide-world .guide-product-price:has(.guide-product-preorder) { align-items: flex-end; flex-direction: column; margin-inline-start: auto; }
   .guide-world .guide-product-deal .verdict-insufficient_data { letter-spacing: 0; padding-inline: .4rem; }

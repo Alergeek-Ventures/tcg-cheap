@@ -252,6 +252,28 @@ defmodule TcgCheap.Sealed.Market do
   def free_delivery_from(_terms, _market, _today), do: nil
 
   @doc """
+  A shop's delivery to the market in the market's currency, as the shop's
+  terms give it (`terms/2`): `%{shipping_from: cheapest delivery,
+  free_shipping_from: order value from which it is free or nil}`. Nil for a
+  shop that is not delivering or whose delivery cannot be converted.
+  """
+  @spec delivery_cost(terms(), t(), Date.t()) ::
+          %{shipping_from: Decimal.t(), free_shipping_from: Decimal.t() | nil} | nil
+  def delivery_cost({:delivered, delivery}, market, today) do
+    rates = Map.new([delivery.currency, market.currency], &{&1, pln_rate(&1, today)})
+
+    with {:ok, shipping} <- convert(delivery.shipping_from, delivery.currency, market, rates),
+         {:ok, free_from} <-
+           convert(delivery.free_shipping_from, delivery.currency, market, rates) do
+      %{shipping_from: shipping, free_shipping_from: free_from}
+    else
+      :error -> nil
+    end
+  end
+
+  def delivery_cost(_terms, _market, _today), do: nil
+
+  @doc """
   The rates `compared/3` needs for these offers that are missing or too old,
   as `{currency, reason}`; empty when every offer can be priced.
   """

@@ -355,7 +355,11 @@ defmodule TcgCheapWeb.PageMarkdown do
 
     page(seo, today, [
       if(singles?(),
-        do: section(gettext("Ceny"), list(Enum.map(page.answers, &single_answer/1))),
+        do:
+          section(
+            gettext("Ceny"),
+            list(Enum.map(page.answers, &single_answer/1) ++ [delivery_line(page)])
+          ),
         else: section("Cardmarket", cardmarket_trend(page))
       ),
       section(
@@ -371,9 +375,22 @@ defmodule TcgCheapWeb.PageMarkdown do
           card.rarity && gettext("Rzadkość") <> ": " <> Cards.Rarities.label(card.rarity)
         ])
       ),
-      singles?() &&
-        section(gettext("Oferty"), card_offers_table(page.offers, page.compared, today))
+      singles?() && card_offers(page, today)
     ])
+  end
+
+  # Where no singles shop is at home, the prices have no delivery in them:
+  # the cheapest shop's delivery follows.
+  defp delivery_line(page) do
+    cheapest = page.answers |> Enum.find_value(& &1.cheapest)
+    cheapest && OfferComponents.card_delivery_line(cheapest)
+  end
+
+  # A card nobody sells is said once, in its answer, not again as an empty table.
+  defp card_offers(page, today) do
+    if page.offers == [] and not own_singles?(),
+      do: nil,
+      else: section(gettext("Oferty"), card_offers_table(page.offers, page.compared, today))
   end
 
   defp cardmarket_trend(%{price: price, rate: rate, market: market}) do
@@ -395,6 +412,7 @@ defmodule TcgCheapWeb.PageMarkdown do
   end
 
   defp singles?, do: Region.singles?(Region.current())
+  defp own_singles?, do: Region.own_singles?(Region.current())
 
   def not_found do
     """
@@ -556,12 +574,12 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   # As on the HTML page, a shop abroad's price includes its delivery:
   # "Bangerpack (z wysyłką ze Szwecji)".
-  defp offer_shop(offer) do
-    case OfferComponents.delivered_term(offer) do
-      nil -> OfferComponents.shop_name(offer)
-      term -> "#{OfferComponents.shop_name(offer)} (#{term})"
-    end
-  end
+  defp offer_shop(offer), do: shop_with_note(offer, OfferComponents.delivered_term(offer))
+
+  defp card_offer_shop(offer), do: shop_with_note(offer, OfferComponents.card_shop_note(offer))
+
+  defp shop_with_note(offer, nil), do: OfferComponents.shop_name(offer)
+  defp shop_with_note(offer, note), do: "#{OfferComponents.shop_name(offer)} (#{note})"
 
   # An offer counts as current for a few days after a shop's last fetch; as
   # the HTML page does, an older one says when it was checked.
@@ -617,7 +635,7 @@ defmodule TcgCheapWeb.PageMarkdown do
           link("#{row.card.name} #{row.card.number}", url_from_path(row.path)),
           row.expansion_name,
           if(row.offer,
-            do: price_in_shop(row.offer.price, OfferComponents.priced_shop_name(row.offer)),
+            do: price_in_shop(row.offer.price, OfferComponents.card_shop_name(row.offer)),
             else: gettext("brak na stanie")
           ),
           VerdictComponents.single_verdict_label(row.verdict)
@@ -742,7 +760,7 @@ defmodule TcgCheapWeb.PageMarkdown do
         title
 
       {price, {:shop, shop}} ->
-        "#{title}: #{price_in_shop(price, OfferComponents.priced_shop_name(%{shop: shop}))}"
+        "#{title}: #{price_in_shop(price, OfferComponents.card_shop_name(%{shop: shop}))}"
 
       {price, :cardmarket} ->
         gettext("%{title}: %{price} (trend Cardmarket, bez dostawy)",
@@ -754,22 +772,31 @@ defmodule TcgCheapWeb.PageMarkdown do
 
   defp single_answer(answer) do
     variant = ListingComponents.card_variant_label(answer.variant)
+    verdict = VerdictComponents.single_verdict_label(answer.verdict)
 
-    price =
-      if answer.cheapest,
-        do:
-          gettext("od %{price} w %{shop}",
-            price: Format.price(answer.cheapest.price),
-            shop: OfferComponents.priced_shop_name(answer.cheapest)
-          ),
-        else: gettext("brak ofert bez gradingu na stanie")
+    if is_nil(answer.cheapest) and not own_singles?() do
+      # Said once: the verdict is the answer.
+      "#{variant}: #{RegionText.card_unavailable()}"
+    else
+      price =
+        if answer.cheapest,
+          do:
+            gettext("od %{price} w %{shop}",
+              price: Format.price(answer.cheapest.price),
+              shop: OfferComponents.card_shop_name(answer.cheapest)
+            ),
+          else: gettext("brak ofert bez gradingu na stanie")
 
-    reference =
-      if answer.reference,
-        do: gettext("; Cardmarket z przesyłką: %{price}", price: Format.price(answer.reference)),
-        else: ""
+      "#{variant}: #{price}#{reference_note(answer.reference)} (#{verdict})"
+    end
+  end
 
-    "#{variant}: #{price}#{reference} (#{VerdictComponents.single_verdict_label(answer.verdict)})"
+  defp reference_note(nil), do: ""
+
+  defp reference_note(reference) do
+    if own_singles?(),
+      do: gettext("; Cardmarket z przesyłką: %{price}", price: Format.price(reference)),
+      else: gettext("; trend Cardmarket, bez dostawy: %{price}", price: Format.price(reference))
   end
 
   defp card_offers_table([], _compared, _today),
@@ -787,7 +814,7 @@ defmodule TcgCheapWeb.PageMarkdown do
       ],
       Enum.map(offers, fn offer ->
         [
-          link(offer_shop(offer), OfferComponents.offer_url(offer)),
+          link(card_offer_shop(offer), OfferComponents.offer_url(offer)),
           Format.price(compared[offer.id] || offer.price),
           ListingComponents.card_variant_label(offer.variant),
           offer.grading || (offer.condition && condition(offer.condition)) || "",

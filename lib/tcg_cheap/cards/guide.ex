@@ -294,12 +294,15 @@ defmodule TcgCheap.Cards.Guide do
       else: catalogue_cards(filters, words, expansion, market)
   end
 
+  # A search also finds the cards no shop stocks (they have pages with the
+  # Cardmarket price), after those in stock; the list without a search holds
+  # only the cards that can be bought now.
   defp offered_cards(filters, words, expansion, market) do
     query =
       from(c in Card,
         join: s in Set,
         on: c.tcgdex_set_id == s.id,
-        join: o in subquery(card_offers(words, expansion, market)),
+        left_join: o in subquery(card_offers(words, expansion, market)),
         on: o.card_id == c.id,
         left_join: p in Price,
         on: p.cardmarket_id == c.cardmarket_id,
@@ -307,8 +310,15 @@ defmodule TcgCheap.Cards.Guide do
       )
       |> stock_filter(Map.get(filters, :stock))
 
-    # Empty discovery lists only cards that can be bought now.
-    if filters.query == "", do: where(query, [_, _, o], not is_nil(o.price)), else: query
+    if filters.query == "" do
+      where(query, [_, _, o], not is_nil(o.price))
+    else
+      where(
+        query,
+        [c],
+        fragment("? = ANY(ARRAY(?))", c.id, subquery(matching_cards(words, expansion)))
+      )
+    end
   end
 
   # Without singles shops every card is listed as the list's first part (its
@@ -531,20 +541,27 @@ defmodule TcgCheap.Cards.Guide do
   """
   @spec context(Market.t(), Date.t()) :: %{
           market: Market.t(),
+          own_singles?: boolean(),
           rate: %{rate: Decimal.t(), date: Date.t()} | nil,
           pennies_max: Decimal.t() | nil
         }
   def context(%Market{} = market, %Date{} = today \\ Date.utc_today()),
     do: %{
       market: market,
+      own_singles?: Shops.own_singles?(market),
       rate: Market.cardmarket_rate(market, today),
       pennies_max: pennies_max(market, today)
     }
 
   defp pennies_max(market, today), do: Market.pln_limit(@pennies_pln, market, today)
 
-  defp reference(price, variant, context),
+  # With delivery, as a buyer in a market with singles shops at home pays it;
+  # the bare trend where card prices have no delivery either.
+  defp reference(price, variant, %{own_singles?: true} = context),
     do: Reference.in_market(price, variant, context.rate, context.market)
+
+  defp reference(price, variant, context),
+    do: Reference.bare_in_market(price, variant, context.rate, context.market)
 
   @doc """
   A card's verdict from its in-stock, ungraded offers of one printing (each
@@ -632,7 +649,7 @@ defmodule TcgCheap.Cards.Guide do
     priced =
       [card.id]
       |> current_offers()
-      |> Market.priced(market, today)
+      |> priced_offers(market, today)
       |> Enum.sort_by(fn {offer, item, compared} ->
         {not offer.in_stock, Decimal.to_float(compared || item), offer.shop, offer.id}
       end)
@@ -726,10 +743,28 @@ defmodule TcgCheap.Cards.Guide do
   comes back as raw bytes).
   """
   def compared_query(%Market{} = market) do
-    terms = Market.price_terms(market, Date.utc_today())
+    terms = market |> Market.price_terms(Date.utc_today()) |> without_delivery(market)
 
     from(o in current_query(), where: ^counted(market, Map.keys(terms)))
     |> select_merge(^%{price: compared_price(terms, market)})
+  end
+
+  # Where no singles shop is at home, a card counts at its item price: the
+  # delivery is stated beside it (see `Shops.own_singles?/1`).
+  defp without_delivery(terms, market) do
+    if Shops.own_singles?(market),
+      do: terms,
+      else: Map.new(terms, fn {shop, {item, _delivery}} -> {shop, {item, nil}} end)
+  end
+
+  # `Market.priced/3` for cards: in a market without a singles shop at home
+  # the compared price is the item price.
+  defp priced_offers(offers, market, today) do
+    priced = Market.priced(offers, market, today)
+
+    if Shops.own_singles?(market),
+      do: priced,
+      else: for({offer, item, compared} <- priced, do: {offer, item, compared && item})
   end
 
   # A shop no longer configured has only Polish offers left, which Poland
@@ -836,7 +871,11 @@ defmodule TcgCheap.Cards.Guide do
       select: map(o, [:id, :card_id, :price, :shop_price, :currency, :shop, :variant])
     )
     |> Repo.all()
-    |> Market.compared(market, Date.utc_today())
+    |> priced_offers(market, Date.utc_today())
+    |> Enum.flat_map(fn
+      {offer, item, %Decimal{} = compared} -> [Market.compared_offer(offer, item, compared)]
+      {_offer, _item, nil} -> []
+    end)
     |> Enum.sort_by(&{Decimal.to_float(&1.price), &1.shop, &1.id})
     |> Enum.group_by(& &1.card_id)
   end

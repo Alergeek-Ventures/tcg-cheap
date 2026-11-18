@@ -122,6 +122,14 @@ defmodule TcgCheapWeb.Region do
   @spec singles?(t()) :: boolean()
   def singles?(%__MODULE__{market: market}), do: Shops.singles?(market)
 
+  @doc """
+  Whether a shop selling singles is at home in the region's market
+  (`TcgCheap.Sealed.Shops.own_singles?/1`). Without one its card prices are
+  the shops' item prices, their delivery stated beside them.
+  """
+  @spec own_singles?(t()) :: boolean()
+  def own_singles?(%__MODULE__{market: market}), do: Shops.own_singles?(market)
+
   @doc "Sets the region this process renders."
   @spec put(t()) :: t()
   def put(%__MODULE__{} = region) do

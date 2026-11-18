@@ -11,17 +11,17 @@ msgstr ""
 "Language: pl\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10||n%100>=20) ? 1 : 2);\n"
 
-#: lib/tcg_cheap/countries/hungary.ex:143
+#: lib/tcg_cheap/countries/hungary.ex:147
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających na Węgry."
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:161
+#: lib/tcg_cheap/countries/hungary.ex:165
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden sklep wysyłający na Węgry nie ma tego produktu na stanie."
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:152
+#: lib/tcg_cheap/countries/hungary.ex:156
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden sklep wysyłający na Węgry nie ma teraz na stanie."
 msgstr ""
@@ -31,12 +31,12 @@ msgstr ""
 msgid "Ceny Pokémon TCG ze sklepów wysyłających na Węgry, sprawdzane codziennie."
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:206
+#: lib/tcg_cheap/countries/hungary.ex:210
 #, elixir-autogen, elixir-format
 msgid "Ceny węgierskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką na Węgry. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:172
+#: lib/tcg_cheap/countries/hungary.ex:176
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką na Węgry."
 msgstr ""
@@ -56,7 +56,7 @@ msgstr ""
 msgid "Przejdź do wersji węgierskiej"
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:177
+#: lib/tcg_cheap/countries/hungary.ex:181
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Węgier. Gdy podaje ją tylko w swojej walucie (polskie sklepy w złotych), przeliczamy ją na forinty po dziennych kursach NBP. Strona sklepu może być po polsku albo w innym języku."
 msgstr ""
@@ -76,7 +76,7 @@ msgstr ""
 msgid "wysyłka z Węgier"
 msgstr "wysyłka z Węgier"
 
-#: lib/tcg_cheap/countries/hungary.ex:168
+#: lib/tcg_cheap/countries/hungary.ex:172
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr ""
@@ -86,17 +86,17 @@ msgstr ""
 msgid "z wysyłką z Węgier"
 msgstr "z wysyłką z Węgier"
 
-#: lib/tcg_cheap/countries/hungary.ex:186
+#: lib/tcg_cheap/countries/hungary.ex:190
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych feedów produktowych sklepów, pobieranych raz dziennie, i są w forintach. Ceny węgierskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę na Węgry."
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:191
+#: lib/tcg_cheap/countries/hungary.ex:195
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w forintach (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:197
+#: lib/tcg_cheap/countries/hungary.ex:201
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w forintach."
 msgstr ""
@@ -131,7 +131,7 @@ msgstr ""
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających na Węgry: %{cards} na stanie."
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:114
+#: lib/tcg_cheap/countries/hungary.ex:118
 #, elixir-autogen, elixir-format
 msgid "Brak na stanie w węgierskich sklepach"
 msgstr ""
@@ -141,12 +141,12 @@ msgstr ""
 msgid "Brak w węgierskich sklepach"
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:128
+#: lib/tcg_cheap/countries/hungary.ex:132
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy (z zagranicy z wysyłką) albo trend Cardmarket w forintach, co tańsze."
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:138
+#: lib/tcg_cheap/countries/hungary.ex:142
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy. Z zagranicy: z wysyłką na Węgry."
 msgstr ""
@@ -161,12 +161,17 @@ msgstr ""
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających na Węgry."
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:134
+#: lib/tcg_cheap/countries/hungary.ex:138
 #, elixir-autogen, elixir-format
 msgid "z wysyłką na Węgry"
 msgstr ""
 
-#: lib/tcg_cheap/countries/hungary.ex:119
+#: lib/tcg_cheap/countries/hungary.ex:123
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to środek stawki: z każdego węgierskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny węgierskich sklepów są bez dostawy, zagranicznych – z wysyłką na Węgry."
+msgstr ""
+
+#: lib/tcg_cheap/countries/hungary.ex:115
+#, elixir-autogen, elixir-format
+msgid "Brak w sklepach wysyłających na Węgry"
 msgstr ""
