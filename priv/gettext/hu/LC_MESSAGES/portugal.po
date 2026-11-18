@@ -161,12 +161,12 @@ msgstr "Pokémon TCG kártyaárak Portugáliában"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Portugalii."
 msgstr "A legolcsóbb Pokémon TCG kártyák a Portugáliába szállító boltokban."
 
-#: lib/tcg_cheap/countries/portugal.ex:121
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
-msgstr "A jellemző ár a bolti árak középértéke: minden portugál boltból, ahol raktáron van a kártya, a legolcsóbb ajánlatot vesszük (legalább %{minimum} bolt kell). A jó ár legalább 5%-kal alacsonyabb a jellemző árnál és a szállítással számolt Cardmarket-árnál. Az átlagos ár legfeljebb 10%-kal magasabb a jellemző árnál. Efölött drága. A portugál boltok árai szállítási díj nélkül értendők, a külföldieké Portugáliába szállítással."
-
 #: lib/tcg_cheap/countries/portugal.ex:136
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Portugalii"
 msgstr "Portugáliába szállítással"
+
+#: lib/tcg_cheap/countries/portugal.ex:121
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
+msgstr "A jellemző ár a bolti árak középértéke: minden portugál boltból, ahol raktáron van a kártya, a legolcsóbb ajánlatot vesszük (legalább %{shops} kell). A jó ár legalább 5%-kal alacsonyabb a jellemző árnál és a szállítással számolt Cardmarket-árnál. Az átlagos ár legfeljebb 10%-kal magasabb a jellemző árnál. Efölött drága. A portugál boltok árai szállítási díj nélkül értendők, a külföldieké Portugáliába szállítással."

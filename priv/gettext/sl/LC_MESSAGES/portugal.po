@@ -162,12 +162,12 @@ msgstr "Cene kart Pokémon TCG na Portugalskem"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Portugalii."
 msgstr "Najcenejše karte Pokémon TCG v trgovinah z dostavo na Portugalsko."
 
-#: lib/tcg_cheap/countries/portugal.ex:121
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
-msgstr "Tipična cena je sredina ponudb: iz vsake portugalske trgovine, ki ima karto na zalogi, vzamemo najcenejšo ponudbo (potrebujemo vsaj %{minimum} trgovin). Dobra cena je vsaj 5 % nižja od tipične in od cene na Cardmarketu z dostavo. Običajna cena je največ 10 % višja od tipične. Višja cena je draga. Cene portugalskih trgovin so brez dostave, tujih trgovin pa z dostavo na Portugalsko."
-
 #: lib/tcg_cheap/countries/portugal.ex:136
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Portugalii"
 msgstr "z dostavo na Portugalsko"
+
+#: lib/tcg_cheap/countries/portugal.ex:121
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
+msgstr "Tipična cena je sredina ponudb: iz vsake portugalske trgovine, ki ima karto na zalogi, vzamemo najcenejšo ponudbo (potrebujemo vsaj %{shops}). Dobra cena je vsaj 5 % nižja od tipične in od cene na Cardmarketu z dostavo. Običajna cena je največ 10 % višja od tipične. Višja cena je draga. Cene portugalskih trgovin so brez dostave, tujih trgovin pa z dostavo na Portugalsko."

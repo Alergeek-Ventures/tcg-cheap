@@ -154,12 +154,12 @@ msgstr "Ceny karet Pokémon TCG v Nizozemsku"
 msgid "Najtańsze karty Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii."
 msgstr "Nejlevnější karty Pokémon TCG v nizozemských obchodech a v obchodech s dopravou do Nizozemska."
 
-#: lib/tcg_cheap/countries/netherlands.ex:134
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego holenderskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny holenderskich sklepów są bez dostawy, zagranicznych – z wysyłką do Holandii."
-msgstr "Typická cena je střed: z každého nizozemského obchodu, který má kartu skladem, vezmeme nejlevnější nabídku (potřebujeme alespoň %{minimum} obchodů). Dobrá cena je alespoň o 5 % nižší než typická i než Cardmarket s dopravou. Běžná – nejvýše o 10 % vyšší než typická. Vyšší – draho. Ceny nizozemských obchodů jsou bez dopravy, zahraničních – s dopravou do Nizozemska."
-
 #: lib/tcg_cheap/countries/netherlands.ex:149
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Holandii"
 msgstr "s dopravou do Nizozemska"
+
+#: lib/tcg_cheap/countries/netherlands.ex:134
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego holenderskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny holenderskich sklepów są bez dostawy, zagranicznych – z wysyłką do Holandii."
+msgstr "Typická cena je střed: z každého nizozemského obchodu, který má kartu skladem, vezmeme nejlevnější nabídku (potřebujeme alespoň %{shops}). Dobrá cena je alespoň o 5 % nižší než typická i než Cardmarket s dopravou. Běžná – nejvýše o 10 % vyšší než typická. Vyšší – draho. Ceny nizozemských obchodů jsou bez dopravy, zahraničních – s dopravou do Nizozemska."

@@ -223,8 +223,8 @@ defmodule TcgCheapWeb.ProductLive.VerdictBlock do
         <.verdict_method id="verdict-method">
           <p>
             {gettext(
-              "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{minimum} sklepów).",
-              minimum: PriceGuide.min_shops()
+              "Typowa cena to środek stawki: z każdego sklepu, który ma produkt na stanie, bierzemy cenę samego produktu, bez dostawy (potrzebujemy co najmniej %{shops}).",
+              shops: Format.shops(PriceGuide.min_shops())
             )}
             <span :if={@verdict.typical_source == :cardmarket} id="verdict-method-cardmarket">
               {if(euro_region?(),

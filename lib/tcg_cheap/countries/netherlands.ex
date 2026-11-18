@@ -129,12 +129,12 @@ defmodule TcgCheap.Countries.Netherlands do
     do: dgettext("netherlands", "Brak na stanie w holenderskich sklepach")
 
   @impl TcgCheapWeb.RegionText
-  def card_method(minimum),
+  def card_method(shops),
     do:
       dgettext(
         "netherlands",
-        "Typowa cena to środek stawki: z każdego holenderskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny holenderskich sklepów są bez dostawy, zagranicznych – z wysyłką do Holandii.",
-        minimum: minimum
+        "Typowa cena to środek stawki: z każdego holenderskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny holenderskich sklepów są bez dostawy, zagranicznych – z wysyłką do Holandii.",
+        shops: shops
       )
 
   @impl TcgCheapWeb.RegionText

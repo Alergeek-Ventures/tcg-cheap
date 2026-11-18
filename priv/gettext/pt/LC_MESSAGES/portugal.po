@@ -160,12 +160,12 @@ msgstr "Preços das cartas Pokémon TCG em Portugal"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Portugalii."
 msgstr "As cartas Pokémon TCG mais baratas em lojas que enviam para Portugal."
 
-#: lib/tcg_cheap/countries/portugal.ex:121
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
-msgstr "O preço típico é o valor central: de cada loja portuguesa que tenha a carta em stock, tomamos a oferta mais barata (precisamos de, pelo menos, %{minimum} lojas). Um bom preço é, pelo menos, 5 % inferior ao preço típico e ao do Cardmarket com envio. Normal é, no máximo, 10 % acima do típico. Acima disso, é caro. Os preços das lojas portuguesas não incluem portes; os das lojas estrangeiras incluem envio para Portugal."
-
 #: lib/tcg_cheap/countries/portugal.ex:136
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Portugalii"
 msgstr "com envio para Portugal"
+
+#: lib/tcg_cheap/countries/portugal.ex:121
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
+msgstr "O preço típico é o valor central: de cada loja portuguesa que tenha a carta em stock, tomamos a oferta mais barata (precisamos de, pelo menos, %{shops}). Um bom preço é, pelo menos, 5 % inferior ao preço típico e ao do Cardmarket com envio. Normal é, no máximo, 10 % acima do típico. Acima disso, é caro. Os preços das lojas portuguesas não incluem portes; os das lojas estrangeiras incluem envio para Portugal."

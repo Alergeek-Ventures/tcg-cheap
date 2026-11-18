@@ -161,12 +161,12 @@ msgstr "Pokémon TCG card prices in Sweden"
 msgid "Najtańsze karty Pokémon TCG w szwedzkich sklepach i w sklepach wysyłających do Szwecji."
 msgstr "The cheapest Pokémon TCG cards in Swedish shops and in shops delivering to Sweden."
 
-#: lib/tcg_cheap/countries/sweden.ex:137
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji."
-msgstr "The typical price is the middle of the pack: from each Swedish shop that has the card in stock we take the cheapest offer (we need at least %{minimum} shops). A good price is at least 5% below the typical one and below Cardmarket including delivery. Normal is at most 10% above typical. Higher is expensive. Swedish shops' prices exclude delivery; prices of shops abroad include delivery to Sweden."
-
 #: lib/tcg_cheap/countries/sweden.ex:152
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Szwecji"
 msgstr "including delivery to Sweden"
+
+#: lib/tcg_cheap/countries/sweden.ex:137
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego szwedzkiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny szwedzkich sklepów są bez dostawy, zagranicznych – z wysyłką do Szwecji."
+msgstr "The typical price is the middle of the pack: from each Swedish shop that has the card in stock we take the cheapest offer (we need at least %{shops}). A good price is at least 5% below the typical one and below Cardmarket including delivery. Normal is at most 10% above typical. Higher is expensive. Swedish shops' prices exclude delivery; prices of shops abroad include delivery to Sweden."

@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.RegionText do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
-  alias TcgCheapWeb.Region
+  alias TcgCheapWeb.{Format, Region}
 
   @doc ~S(The country's name in the page language, for the region control: "Węgry".)
   @callback name() :: String.t()
@@ -68,8 +68,8 @@ defmodule TcgCheapWeb.RegionText do
   @doc "The same for screen readers, under the verdict."
   @callback card_unavailable_note() :: String.t()
 
-  @doc "How a card's verdict is reached, with the `minimum` number of shops."
-  @callback card_method(minimum :: pos_integer()) :: String.t()
+  @doc "How a card's verdict is reached, with the `shops` it needs, counted as `Format.shops/1` writes them."
+  @callback card_method(shops :: String.t()) :: String.t()
 
   @doc "Under a set's card list: which price each card shows."
   @callback card_prices_note() :: String.t()
@@ -159,7 +159,7 @@ defmodule TcgCheapWeb.RegionText do
   def cards_in_stock(cards), do: country().cards_in_stock(cards)
   def card_unavailable, do: country().card_unavailable()
   def card_unavailable_note, do: country().card_unavailable_note()
-  def card_method(minimum), do: country().card_method(minimum)
+  def card_method(minimum), do: country().card_method(Format.shops(minimum))
   def card_prices_note, do: country().card_prices_note()
   def cardmarket_card_delivery, do: country().cardmarket_card_delivery()
   def singles_prices_note, do: country().singles_prices_note()

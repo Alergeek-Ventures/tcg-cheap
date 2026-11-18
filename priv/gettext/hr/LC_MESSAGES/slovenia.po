@@ -161,12 +161,12 @@ msgstr "Cijene Pokémon TCG karata u Sloveniji"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Słowenii."
 msgstr "Najjeftinije Pokémon TCG karte u trgovinama koje dostavljaju u Sloveniju."
 
-#: lib/tcg_cheap/countries/slovenia.ex:117
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego słoweńskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny słoweńskich sklepów są bez dostawy, zagranicznych – z wysyłką do Słowenii."
-msgstr "Tipična cijena je sredina među trgovinama: iz svake slovenske trgovine koja ima kartu na stanju uzimamo najjeftiniju ponudu (potrebne su nam barem %{minimum} trgovine). Dobra cijena je barem 5 % niža od tipične i od cijene na Cardmarketu s dostavom. Uobičajena cijena je najviše 10 % viša od tipične. Sve više od toga je skupo. Cijene slovenskih trgovina su bez dostave, a inozemnih s dostavom u Sloveniju."
-
 #: lib/tcg_cheap/countries/slovenia.ex:132
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Słowenii"
 msgstr "s dostavom u Sloveniju"
+
+#: lib/tcg_cheap/countries/slovenia.ex:117
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego słoweńskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny słoweńskich sklepów są bez dostawy, zagranicznych – z wysyłką do Słowenii."
+msgstr "Tipična cijena je sredina među trgovinama: iz svake slovenske trgovine koja ima kartu na stanju uzimamo najjeftiniju ponudu (potrebno nam je barem %{shops}). Dobra cijena je barem 5 % niža od tipične i od cijene na Cardmarketu s dostavom. Uobičajena cijena je najviše 10 % viša od tipične. Sve više od toga je skupo. Cijene slovenskih trgovina su bez dostave, a inozemnih s dostavom u Sloveniju."

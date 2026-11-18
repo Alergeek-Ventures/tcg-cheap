@@ -161,12 +161,12 @@ msgstr "Pokémon TCG card prices in Hungary"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających na Węgry."
 msgstr "The cheapest Pokémon TCG cards in shops delivering to Hungary."
 
-#: lib/tcg_cheap/countries/hungary.ex:119
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego węgierskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny węgierskich sklepów są bez dostawy, zagranicznych – z wysyłką na Węgry."
-msgstr "The typical price is the middle of the pack: from each Hungarian shop that has the card in stock we take the cheapest offer (we need at least %{minimum} shops). A good price is at least 5% below the typical one and below Cardmarket including delivery. Normal is at most 10% above typical. Higher is expensive. Hungarian shops' prices exclude delivery; prices of shops abroad include delivery to Hungary."
-
 #: lib/tcg_cheap/countries/hungary.ex:134
 #, elixir-autogen, elixir-format
 msgid "z wysyłką na Węgry"
 msgstr "including delivery to Hungary"
+
+#: lib/tcg_cheap/countries/hungary.ex:119
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego węgierskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny węgierskich sklepów są bez dostawy, zagranicznych – z wysyłką na Węgry."
+msgstr "The typical price is the middle of the pack: from each Hungarian shop that has the card in stock we take the cheapest offer (we need at least %{shops}). A good price is at least 5% below the typical one and below Cardmarket including delivery. Normal is at most 10% above typical. Higher is expensive. Hungarian shops' prices exclude delivery; prices of shops abroad include delivery to Hungary."

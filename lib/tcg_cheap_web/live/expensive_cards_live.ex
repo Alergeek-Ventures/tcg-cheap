@@ -628,7 +628,8 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
                   {gettext(
                     "Rekordy to wyniki publicznych aukcji z prowizją kupującego, potwierdzone przez dom aukcyjny, Księgę rekordów Guinnessa albo duże media. Przy każdej karcie jest link do źródła. Stan na %{date}.",
                     date: Format.date(CardRecords.checked_on())
-                  )}
+                  )
+                  |> Format.sentence()}
                 </li>
                 <li :if={@overview.priced_on && @overview.rate}>
                   {gettext(

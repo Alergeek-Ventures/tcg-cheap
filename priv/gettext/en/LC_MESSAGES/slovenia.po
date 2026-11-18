@@ -161,12 +161,12 @@ msgstr "Pokémon TCG card prices in Slovenia"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Słowenii."
 msgstr "The cheapest Pokémon TCG cards in shops delivering to Slovenia."
 
-#: lib/tcg_cheap/countries/slovenia.ex:117
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego słoweńskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny słoweńskich sklepów są bez dostawy, zagranicznych – z wysyłką do Słowenii."
-msgstr "The typical price is the middle of the pack: from each Slovenian shop that has the card in stock we take the cheapest offer (we need at least %{minimum} shops). A good price is at least 5% below the typical one and below Cardmarket including delivery. Normal is at most 10% above typical. Higher is expensive. Slovenian shops' prices exclude delivery; prices of shops abroad include delivery to Slovenia."
-
 #: lib/tcg_cheap/countries/slovenia.ex:132
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Słowenii"
 msgstr "including delivery to Slovenia"
+
+#: lib/tcg_cheap/countries/slovenia.ex:117
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego słoweńskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny słoweńskich sklepów są bez dostawy, zagranicznych – z wysyłką do Słowenii."
+msgstr "The typical price is the middle of the pack: from each Slovenian shop that has the card in stock we take the cheapest offer (we need at least %{shops}). A good price is at least 5% below the typical one and below Cardmarket including delivery. Normal is at most 10% above typical. Higher is expensive. Slovenian shops' prices exclude delivery; prices of shops abroad include delivery to Slovenia."

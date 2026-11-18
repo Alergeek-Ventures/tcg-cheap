@@ -4,8 +4,10 @@ defmodule TcgCheapWeb.Format do
   (`TcgCheapWeb.Region.current/0`, its symbol and decimals) and dates,
   numbers and counted phrases in the page language (`TcgCheapWeb.Language`).
   Złoty are written to the grosz ("1 299,99 zł"); forints are whole
-  ("22 999 Ft"), and so are kronor from 10 kr ("999 kr", but "3,50 kr");
-  koruna and forint amounts below one unit keep their hundredths ("0,30 Kč").
+  ("22 999 Ft"), and so are kronor from 10 kr and whole amounts below it
+  ("999 kr", "8 kr", but "3,50 kr"); koruna and forint amounts below one unit
+  keep their hundredths ("0,30 Kč"). Euro always keeps its cents, a delivery
+  of "20,00 €" included.
   """
   use Gettext, backend: TcgCheapWeb.Gettext
 
@@ -45,8 +47,11 @@ defmodule TcgCheapWeb.Format do
   end
 
   defp price(value, %Region{whole_prices_from: %Decimal{} = from} = region) do
-    # Rounded first: 9,996 is "10 kr", not "10,00 kr".
-    if value |> Decimal.round(region.market.decimals) |> Decimal.lt?(from),
+    # Rounded first: 9,996 is "10 kr", not "10,00 kr". Below the limit a
+    # whole amount stays whole too: "8 kr" beside "12 kr", but "3,50 kr".
+    rounded = Decimal.round(value, region.market.decimals)
+
+    if Decimal.lt?(rounded, from) and not Decimal.integer?(rounded),
       do: fractional_price(value, region),
       else: whole_price(value)
   end
@@ -124,10 +129,14 @@ defmodule TcgCheapWeb.Format do
   def rough_price(%Decimal{} = value),
     do: if(Decimal.lt?(value, 10), do: price(value), else: whole_price(value))
 
-  @doc ~S'A shop price: whole units when it has no fraction, else `price/1`: "89 zł", "89,99 zł".'
+  @doc ~S'A shop price: whole units when it has no fraction, else `price/1`: "89 zł", "89,99 zł". Euro always keeps its cents: "20,00 €".'
   @spec shop_price(Decimal.t()) :: String.t()
   def shop_price(%Decimal{} = value),
-    do: if(Decimal.integer?(value), do: whole_price(value), else: price(value))
+    do:
+      if(Decimal.integer?(value) and currency() != "EUR",
+        do: whole_price(value),
+        else: price(value)
+      )
 
   @doc "A rounded estimate of a pack-opening cost."
   def about(%Decimal{} = value), do: about(value, currency())
@@ -187,13 +196,14 @@ defmodule TcgCheapWeb.Format do
   def date(%Date{} = date), do: language().date(date)
 
   @doc """
-  A sentence ending in a date, with one period: a Hungarian date ends with
-  its own ("2026. november 13."), so a sentence that adds one after it would
-  end in two. `VerdictComponents.euro_rate_note/1` and the product's "on
-  Cardmarket since" line rely on it.
+  A sentence with a date before its full stop, with one period: a Hungarian
+  or Croatian date ends with its own ("2026. november 13."), so a sentence
+  that adds one after it would show two, at its end or before the next
+  sentence. `VerdictComponents.euro_rate_note/1`, the product's "on
+  Cardmarket since" line and the pull-rate notes rely on it.
   """
   @spec sentence(String.t()) :: String.t()
-  def sentence(text), do: String.replace(text, ~r/(?<!\.)\.\.$/, ".")
+  def sentence(text), do: String.replace(text, ~r/(?<!\.)\.\.(?!\.)/, ".")
 
   @doc ~S'A day and month: "6 listopada", "6 November", "november 6.".'
   @spec day_month(Date.t()) :: String.t()
@@ -257,6 +267,15 @@ defmodule TcgCheapWeb.Format do
   @spec in_shops(integer()) :: String.t()
   def in_shops(count),
     do: ngettext("%{number} sklepie", "%{number} sklepach", count, number: number(count))
+
+  @doc """
+  The count with its noun after "at least": in the genitive in Polish ("co
+  najmniej 3 sklepów"), in the form the sentence needs elsewhere ("alespoň 3
+  obchody").
+  """
+  @spec shops(integer()) :: String.t()
+  def shops(count),
+    do: ngettext("%{number} sklepu", "%{number} sklepów", count, number: number(count))
 
   @doc ~S'The count with its noun: "1 booster", "5 boosterów".'
   @spec boosters(integer()) :: String.t()

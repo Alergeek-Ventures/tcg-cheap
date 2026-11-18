@@ -119,7 +119,7 @@ defmodule TcgCheapWeb.SocialImage.Product do
   # The Cardmarket comparison is already in the badge.
   defp typical_note(%{typical: %Decimal{} = typical, typical_source: :shops} = verdict),
     do:
-      gettext("Typowa cena dziś w %{shops}: %{price}",
+      gettext("Typowa cena dziś w %{shops}, bez dostawy: %{price}",
         shops: Format.in_shops(length(verdict.shop_prices)),
         price: Format.limit_price(typical)
       )

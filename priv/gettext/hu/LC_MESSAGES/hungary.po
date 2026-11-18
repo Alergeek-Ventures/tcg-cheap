@@ -161,12 +161,12 @@ msgstr "Pokémon TCG kártyaárak Magyarországon"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających na Węgry."
 msgstr "A legolcsóbb Pokémon TCG kártyák a Magyarországra szállító boltokban."
 
-#: lib/tcg_cheap/countries/hungary.ex:119
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego węgierskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny węgierskich sklepów są bez dostawy, zagranicznych – z wysyłką na Węgry."
-msgstr "A jellemző ár a bolti árak középértéke: minden magyar boltból, ahol raktáron van a kártya, a legolcsóbb ajánlatot vesszük (legalább %{minimum} bolt kell). A jó ár legalább 5%-kal alacsonyabb a jellemző árnál és a szállítással számolt Cardmarket-árnál. Az átlagos ár legfeljebb 10%-kal magasabb a jellemző árnál. Efölött drága. A magyar boltok árai szállítási díj nélkül értendők, a külföldieké Magyarországra szállítással."
-
 #: lib/tcg_cheap/countries/hungary.ex:134
 #, elixir-autogen, elixir-format
 msgid "z wysyłką na Węgry"
 msgstr "Magyarországra szállítással"
+
+#: lib/tcg_cheap/countries/hungary.ex:119
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego węgierskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny węgierskich sklepów są bez dostawy, zagranicznych – z wysyłką na Węgry."
+msgstr "A jellemző ár a bolti árak középértéke: minden magyar boltból, ahol raktáron van a kártya, a legolcsóbb ajánlatot vesszük (legalább %{shops} kell). A jó ár legalább 5%-kal alacsonyabb a jellemző árnál és a szállítással számolt Cardmarket-árnál. Az átlagos ár legfeljebb 10%-kal magasabb a jellemző árnál. Efölött drága. A magyar boltok árai szállítási díj nélkül értendők, a külföldieké Magyarországra szállítással."

@@ -161,12 +161,12 @@ msgstr "Priser på Pokémon TCG-kort i Portugal"
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Portugalii."
 msgstr "De billigaste Pokémon TCG-korten i butiker som skickar till Portugal."
 
-#: lib/tcg_cheap/countries/portugal.ex:121
-#, elixir-autogen, elixir-format
-msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{minimum} sklepów). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
-msgstr "Typiskt pris är medianen: från varje portugisisk butik som har kortet i lager tar vi det billigaste erbjudandet (minst %{minimum} butiker krävs). Ett bra pris ligger minst 5% under det typiska priset och under Cardmarket med frakt. Normalt är högst 10% över det typiska. Högre än så är dyrt. Portugisiska butikers priser är utan frakt, utländska butikers med frakt till Portugal."
-
 #: lib/tcg_cheap/countries/portugal.ex:136
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Portugalii"
 msgstr "med frakt till Portugal"
+
+#: lib/tcg_cheap/countries/portugal.ex:121
+#, elixir-autogen, elixir-format
+msgid "Typowa cena to środek stawki: z każdego portugalskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny portugalskich sklepów są bez dostawy, zagranicznych – z wysyłką do Portugalii."
+msgstr "Typiskt pris är medianen: från varje portugisisk butik som har kortet i lager tar vi det billigaste erbjudandet (minst %{shops} krävs). Ett bra pris ligger minst 5% under det typiska priset och under Cardmarket med frakt. Normalt är högst 10% över det typiska. Högre än så är dyrt. Portugisiska butikers priser är utan frakt, utländska butikers med frakt till Portugal."
