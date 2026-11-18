@@ -650,10 +650,12 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
         free_shipping_from: nil,
         currency: "PLN"
       },
+      # Its list for buyers in the Netherlands is in euro (`?country=NL`, 2026-11-18).
       "samlarhobby" => %{
         shipping_from: Decimal.new("299"),
         free_shipping_from: nil,
-        currency: "SEK"
+        currency: "SEK",
+        price_currency: "EUR"
       },
       "skarbieckart" => %{
         shipping_from: Decimal.new("5.95"),

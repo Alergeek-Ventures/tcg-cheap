@@ -678,10 +678,12 @@ defmodule TcgCheap.Sealed.Shops.Czechia do
         currency: "CZK",
         price_currency: "CZK"
       },
+      # Its list for buyers in Czechia is in euro (`?country=CZ`, 2026-11-18).
       "skladgier" => %{
         shipping_from: Decimal.new("11.95"),
         free_shipping_from: nil,
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "EUR"
       },
       # Its cart to Prague (2026-11-17): 8,000 Ft and 27% VAT.
       "tcgwebshop" => %{
