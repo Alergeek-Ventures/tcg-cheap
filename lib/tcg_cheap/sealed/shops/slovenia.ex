@@ -92,7 +92,8 @@ defmodule TcgCheap.Sealed.Shops.Slovenia do
       "gemipulls" => %{
         shipping_from: Decimal.new("229"),
         free_shipping_from: nil,
-        currency: "DKK"
+        currency: "DKK",
+        price_currency: "EUR"
       },
       "godofcards" => %{
         shipping_from: Decimal.new("10.90"),

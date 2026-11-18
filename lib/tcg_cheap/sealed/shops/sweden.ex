@@ -310,7 +310,12 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
         price_currency: "SEK"
       },
       # Delivers to Sweden; the price is shown only in the checkout.
-      "gemipulls" => %{shipping_from: nil, free_shipping_from: nil, currency: "DKK"},
+      "gemipulls" => %{
+        shipping_from: nil,
+        free_shipping_from: nil,
+        currency: "DKK",
+        price_currency: "SEK"
+      },
       "godofcards" => %{
         shipping_from: Decimal.new("8.55"),
         free_shipping_from: nil,
@@ -351,7 +356,8 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       "tcgking" => %{
         shipping_from: Decimal.new("10.95"),
         free_shipping_from: Decimal.new("100"),
-        currency: "EUR"
+        currency: "EUR",
+        price_currency: "SEK"
       },
       # Its cart to Stockholm, VAT included (2026-11-16).
       "tcgwebshop" => %{

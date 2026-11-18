@@ -156,11 +156,18 @@ defmodule TcgCheap.Sealed.Market do
   offer's stored PLN price, for Poland; `:shop_price`, the shop's own price,
   already in the market's currency; `{:shop_price, from_pln, to_pln}`, the
   shop's own price converted at these PLN rates and rounded as the market's
-  currency is) and its delivery to the market, `{shipping, free from}` in the
+  currency is; `{:market_price, apart, shops_own}`, for a shop that prices
+  the market's country apart, how the offer's `market_prices` for it become
+  the market's currency and, for an offer without `market_prices` yet, how
+  its `shop_price` does, each as the two above or nil when its rate is
+  missing) and its delivery to the market, `{shipping, free from}` in the
   market's currency, nil for a domestic shop.
   """
+  @type item_terms :: :shop_price | {:shop_price, Decimal.t(), Decimal.t()}
   @type price_terms ::
-          {:price | :shop_price | {:shop_price, Decimal.t(), Decimal.t()},
+          {:price
+           | item_terms()
+           | {:market_price, item_terms() | nil, item_terms() | nil},
            {Decimal.t(), Decimal.t() | nil} | nil}
 
   @doc """
@@ -170,7 +177,9 @@ defmodule TcgCheap.Sealed.Market do
   shop abroad counts at its own price, converted, as `compared/3` prices an
   offer without `market_prices`. A shop only listed or absent there, or
   needing a rate that is missing or too old, is left out, as `compared/3`
-  leaves its offers out.
+  leaves its offers out. A shop that prices the market's country apart has
+  its offers' `market_prices` for it read in the query as `compared/3` does
+  (`shop_price/3`).
   """
   @spec price_terms(t(), Date.t()) :: %{String.t() => price_terms()}
   def price_terms(%__MODULE__{} = market, %Date{} = today) do
@@ -182,9 +191,13 @@ defmodule TcgCheap.Sealed.Market do
 
     currencies =
       Enum.flat_map(terms, fn
-        {shop, {:delivered, delivery}} -> [shop.currency, delivery.currency]
-        {shop, :domestic} -> [shop.currency]
+        {shop, {:delivered, delivery}} ->
+          [shop.currency, delivery.currency, apart_currency(shop, market)]
+
+        {shop, :domestic} ->
+          [shop.currency, apart_currency(shop, market)]
       end)
+      |> Enum.reject(&is_nil/1)
 
     rates =
       if market.code == "pl",
@@ -201,17 +214,35 @@ defmodule TcgCheap.Sealed.Market do
   # Poland's price is the offer's `price`, stored in PLN.
   defp item_terms(_shop, %__MODULE__{code: "pl"}, _rates), do: {:ok, :price}
 
-  defp item_terms(%Shop{currency: currency}, %{currency: currency}, _rates),
-    do: {:ok, :shop_price}
-
   defp item_terms(shop, market, rates) do
-    with {:ok, %{rate: from_pln}} <- Map.fetch!(rates, shop.currency),
-         {:ok, %{rate: to_pln}} <- Map.fetch!(rates, market.currency) do
-      {:ok, {:shop_price, from_pln, to_pln}}
-    else
-      {:error, _reason} -> :error
+    shops_own = currency_terms(shop.currency, market, rates)
+
+    case apart_currency(shop, market) do
+      nil ->
+        if shops_own, do: {:ok, shops_own}, else: :error
+
+      currency ->
+        apart = currency_terms(currency, market, rates)
+        if apart || shops_own, do: {:ok, {:market_price, apart, shops_own}}, else: :error
     end
   end
+
+  # How a price in the currency becomes one in the market's: as it is in the
+  # market's own currency, else converted; nil when a rate is missing.
+  defp currency_terms(currency, %{currency: currency}, _rates), do: :shop_price
+
+  defp currency_terms(currency, market, rates) do
+    with {:ok, %{rate: from_pln}} <- Map.fetch!(rates, currency),
+         {:ok, %{rate: to_pln}} <- Map.fetch!(rates, market.currency) do
+      {:shop_price, from_pln, to_pln}
+    else
+      {:error, _reason} -> nil
+    end
+  end
+
+  # The currency a shop states the market's country's prices in, when it
+  # prices that country apart.
+  defp apart_currency(shop, market), do: Shops.price_currencies(shop)[market.country]
 
   defp delivery_terms(:domestic, _market, _rates), do: {:ok, nil}
 

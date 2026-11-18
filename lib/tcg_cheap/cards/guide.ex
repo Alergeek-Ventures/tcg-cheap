@@ -745,7 +745,10 @@ defmodule TcgCheap.Cards.Guide do
   def compared_query(%Market{} = market) do
     terms = market |> Market.price_terms(Date.utc_today()) |> without_delivery(market)
 
-    from(o in current_query(), where: ^counted(market, Map.keys(terms)))
+    from(o in current_query(),
+      where: ^counted(market, Map.keys(terms)),
+      where: ^priced_apart(terms, market)
+    )
     |> select_merge(^%{price: compared_price(terms, market)})
   end
 
@@ -786,18 +789,58 @@ defmodule TcgCheap.Cards.Guide do
     end)
   end
 
-  defp item_price(:price, _market), do: dynamic([o], o.price)
-  defp item_price(:shop_price, _market), do: dynamic([o], o.shop_price)
-
-  defp item_price({:shop_price, from_pln, to_pln}, market),
-    do:
-      rounded(
-        dynamic(
-          [o],
-          o.shop_price * type(^from_pln, :decimal) / type(^to_pln, :decimal)
-        ),
-        market
+  # The offers of shops that price the market's country apart without a
+  # price there are left out, as `Market.priced/3` leaves them out.
+  defp priced_apart(terms, %Market{country: country}) do
+    terms
+    |> Enum.flat_map(fn
+      {shop, {{:market_price, apart, shops_own}, _delivery}} -> [{shop, apart, shops_own}]
+      _other -> []
+    end)
+    |> Enum.group_by(fn {_shop, apart, shops_own} -> {apart, shops_own} end, &elem(&1, 0))
+    |> Enum.reduce(dynamic(true), fn {{apart, shops_own}, shops}, acc ->
+      dynamic(
+        [o],
+        ^acc and
+          (o.shop not in ^shops or
+             (is_nil(o.market_prices) and ^(shops_own != nil)) or
+             (fragment("jsonb_exists(?, ?)", o.market_prices, ^country) and ^(apart != nil)))
       )
+    end)
+  end
+
+  defp item_price(:price, _market), do: dynamic([o], o.price)
+
+  # What the shop charges a buyer in the market's country, as
+  # `Market.shop_price/3` reads it: the offer's price for the country, or the
+  # shop's own price for an offer stored before prices by country were read.
+  defp item_price({:market_price, apart, shops_own}, %Market{country: country} = market) do
+    in_country =
+      dynamic(
+        [o],
+        fragment("(jsonb_extract_path_text(?, ?, 'price'))::numeric", o.market_prices, ^country)
+      )
+
+    dynamic(
+      [o],
+      fragment(
+        "CASE WHEN ? IS NULL THEN ? WHEN jsonb_exists(?, ?) THEN ? END",
+        o.market_prices,
+        ^in_market(shops_own, dynamic([o], o.shop_price), market),
+        o.market_prices,
+        ^country,
+        ^in_market(apart, in_country, market)
+      )
+    )
+  end
+
+  defp item_price(terms, market), do: in_market(terms, dynamic([o], o.shop_price), market)
+
+  defp in_market(nil, _price, _market), do: dynamic(fragment("NULL::numeric"))
+  defp in_market(:shop_price, price, _market), do: price
+
+  defp in_market({:shop_price, from_pln, to_pln}, price, market),
+    do: rounded(dynamic(^price * type(^from_pln, :decimal) / type(^to_pln, :decimal)), market)
 
   # `Market.rounded/2` in SQL: a whole-unit currency keeps its hundredths
   # below one unit.
@@ -868,7 +911,8 @@ defmodule TcgCheap.Cards.Guide do
   defp in_stock_prices(card_ids, market) do
     from(o in current_query(),
       where: o.card_id in ^card_ids and o.in_stock and is_nil(o.grading),
-      select: map(o, [:id, :card_id, :price, :shop_price, :currency, :shop, :variant])
+      select:
+        map(o, [:id, :card_id, :price, :shop_price, :currency, :market_prices, :shop, :variant])
     )
     |> Repo.all()
     |> priced_offers(market, Date.utc_today())
