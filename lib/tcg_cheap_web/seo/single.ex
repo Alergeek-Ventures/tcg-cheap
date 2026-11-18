@@ -73,7 +73,7 @@ defmodule TcgCheapWeb.SEO.Single do
 
       answer ->
         SEO.fit_description([
-          RegionText.card_description(card.name, number, Format.price(answer.cheapest.price)),
+          card_description(page, card.name, number, answer),
           verdict_sentence(answer.verdict),
           gettext("Ceny, stan i warianty karty.")
         ])
@@ -85,6 +85,21 @@ defmodule TcgCheapWeb.SEO.Single do
           number: number
         )
     end
+  end
+
+  # A card no shop at home sells is priced without delivery: no "delivering
+  # to <country>" where shops at home sell singles.
+  defp card_description(page, name, number, answer) do
+    price = Format.price(answer.cheapest.price)
+
+    if page.abroad_only? and Region.own_singles?(Region.current()),
+      do:
+        gettext("%{name} %{number}: od %{price} bez dostawy.",
+          name: name,
+          number: number,
+          price: price
+        ),
+      else: RegionText.card_description(name, number, price)
   end
 
   # "Za mało sklepów." would read as "not available" in a snippet.

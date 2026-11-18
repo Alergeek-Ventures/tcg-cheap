@@ -6,7 +6,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
   use Gettext, backend: TcgCheapWeb.Gettext
 
   import TcgCheapWeb.BrowseLive.ChaseBanners
-  import TcgCheapWeb.OfferComponents, only: [cards_delivery_note: 1, delivery_tile: 1]
+  import TcgCheapWeb.OfferComponents, only: [cards_delivery_note: 2, delivery_tile: 1]
 
   alias TcgCheapWeb.{Format, Paths, Region, RegionText, SEO}
 
@@ -137,28 +137,30 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
   # The singles banner: the set's best deal in the region's shops against its
   # Cardmarket trend, then what the set's singles market looks like in numbers.
   def set_singles(assigns) do
-    own? = Region.own_singles?(Region.current())
     singles = assigns.singles
 
-    # Where no singles shop is at home a count of cards cheaper than Cardmarket
-    # is shown only when it is not zero, and a set whose cards one shop sells
-    # states that shop's delivery in a tile of its own, which replaces the
-    # count; without the tile the foot carries the delivery.
+    # Where no singles shop is at home, or every in-stock card of the set is
+    # priced without delivery and one shop sells them all (`bare?`), the set
+    # states that shop's delivery in a tile of its own in place of a count of
+    # zero cards cheaper than Cardmarket; without the tile the foot carries the
+    # delivery. A count of zero is never shown.
+    bare? = !Region.own_singles?(Region.current()) or singles.bare?
+
     tile =
-      with false <- own?,
+      with true <- bare?,
            %{cheaper: 0, shops: [shop]} <- singles do
         delivery_tile(shop)
       else
-        _own_or_other -> nil
+        _mixed_or_other -> nil
       end
 
     assigns =
       assign(assigns,
-        own?: own?,
+        bare?: bare?,
         delivery_tile: tile,
         foot:
-          if(tile, do: nil, else: cards_delivery_note(singles.shops)) ||
-            RegionText.singles_prices_note()
+          if(tile, do: nil, else: cards_delivery_note(singles.shops, bare?)) ||
+            RegionText.singles_prices_note(bare?)
       )
 
     ~H"""
@@ -217,7 +219,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
       <% end %>
       <ul
         id="set-singles-facts"
-        class={if(@own?, do: "set-chase-facts", else: "set-chase-facts set-chase-facts-fill")}
+        class="set-chase-facts set-chase-facts-fill"
       >
         <li>
           <strong>{Format.number(@singles.in_stock)}</strong>
@@ -225,9 +227,9 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
         </li>
         <li :if={@singles.set_price} class={@delivery_tile && "set-chase-fact-extra"}>
           <strong>{Format.about(@singles.set_price)}</strong>
-          <span>{if(@own?,
-            do: gettext("cały set, najtaniej"),
-            else: gettext("cały set, najtaniej, bez dostawy")
+          <span>{if(@bare?,
+            do: gettext("cały set, najtaniej, bez dostawy"),
+            else: gettext("cały set, najtaniej")
           )}</span>
         </li>
         <li :if={@top}>
@@ -238,7 +240,7 @@ defmodule TcgCheapWeb.BrowseLive.Banners do
           <strong>{elem(@delivery_tile, 0)}</strong>
           <span>{elem(@delivery_tile, 1)}</span>
         </li>
-        <li :if={@own? || @singles.cheaper > 0} class={@singles.set_price && "set-chase-fact-extra"}>
+        <li :if={@singles.cheaper > 0} class={@singles.set_price && "set-chase-fact-extra"}>
           <strong>{Format.number(@singles.cheaper)}</strong>
           <span>{gettext("taniej niż na Cardmarket")}</span>
         </li>

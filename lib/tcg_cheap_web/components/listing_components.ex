@@ -110,6 +110,11 @@ defmodule TcgCheapWeb.ListingComponents do
     default: true,
     doc: "judge the shop's price; a guide for sellers shows the price alone"
 
+  attr :bare_list?, :boolean,
+    default: false,
+    doc:
+      "the list's note states the delivery of every card's shop, as where no singles shop is at home (a set whose cards one shop abroad sells)"
+
   attr :cardmarket_caption?, :boolean,
     default: false,
     doc:
@@ -120,18 +125,26 @@ defmodule TcgCheapWeb.ListingComponents do
     # cheapest shop, the verdict and that shop's price. Without one, the
     # lower known price.
     singles? = Region.singles?(Region.current())
+    # Without singles shops in the region, only Cardmarket's price.
+    offer = if(singles?, do: assigns.row.offer)
+    noted? = assigns.bare_list? or !Region.own_singles?(Region.current())
 
     assigns =
       assign(assigns,
         status: single_verdict_status(assigns.row.verdict),
         singles?: singles?,
-        # Without singles shops in the region, only Cardmarket's price.
-        offer: if(singles?, do: assigns.row.offer),
+        offer: offer,
         # Where no shop at home sells the card, its price has no delivery in
-        # it: the list's note says so where no singles shop is at home, else
-        # the row says "bez dostawy" beside the shop.
+        # it: the list's note says so where it states the delivery, else the
+        # row says where the shop ships from beside its name.
         delivery_beside?: assigns.row.abroad_only?,
-        delivery_noted?: !Region.own_singles?(Region.current()),
+        delivery_noted?: noted?,
+        shop_class:
+          if(assigns.row.abroad_only?,
+            do: "guide-product-shop guide-product-shop-beside",
+            else: "guide-product-shop"
+          ),
+        shop_note: offer && !(assigns.row.abroad_only? and noted?) && card_row_note(offer),
         price:
           Cards.Guide.price(%{
             offer_price: assigns.row.price,
@@ -174,12 +187,10 @@ defmodule TcgCheapWeb.ListingComponents do
         <div class="guide-product-deal">
           <%= if @offer do %>
             <%!-- The list's note says the prices have no delivery; the row names the shop only. --%>
-            <span class={
-              if(@delivery_beside?,
-                do: "guide-product-shop guide-product-shop-beside",
-                else: "guide-product-shop"
-              )
-            }>{card_row_shop(@offer, @delivery_beside?, @delivery_noted?)}</span>
+            <span :if={!@shop_note} class={@shop_class}>{shop_name(@offer)}</span>
+            <span :if={@shop_note} class={@shop_class}>
+              <.card_shop offer={@offer} note={@shop_note} />
+            </span>
             <%!-- Without a Cardmarket price there is nothing to judge; the card's page says why. --%>
             <.verdict_badge
               :if={@verdict? and @status != :insufficient_data}
@@ -203,10 +214,6 @@ defmodule TcgCheapWeb.ListingComponents do
     </li>
     """
   end
-
-  defp card_row_shop(offer, true, true), do: shop_name(offer)
-  defp card_row_shop(offer, true, false), do: card_shop_name(offer)
-  defp card_row_shop(offer, false, _noted?), do: priced_shop_name(offer)
 
   @doc "A product's row in a list: photo, name, kind, cheapest shop, verdict and price."
   attr :summary, :map, required: true

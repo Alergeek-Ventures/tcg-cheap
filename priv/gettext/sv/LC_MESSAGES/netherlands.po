@@ -168,10 +168,10 @@ msgstr "Saknas i butiker som skickar till Nederländerna"
 
 #: lib/tcg_cheap/countries/netherlands.ex:147
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w euro, co tańsze."
-msgstr "Priser utan frakt (från utlandet med frakt, om det inte står ”utan frakt” vid butiken) eller Cardmarket-trenden i euro, det som är billigast."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w euro, co tańsze."
+msgstr "Priser utan frakt, utom de som är märkta ”med frakt”, eller Cardmarket-trenden i euro, det som är billigast."
 
 #: lib/tcg_cheap/countries/netherlands.ex:158
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Holandii, chyba że przy sklepie jest „bez dostawy”."
-msgstr "Priser utan frakt. Från utlandet: med frakt till Nederländerna, om det inte står ”utan frakt” vid butiken."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
+msgstr "Priser utan frakt, utom de som är märkta ”med frakt”."

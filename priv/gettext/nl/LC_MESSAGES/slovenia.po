@@ -69,7 +69,7 @@ msgstr "Het lijkt erop dat je in Slovenië bent."
 #: lib/tcg_cheap/countries/slovenia.ex:16
 #, elixir-autogen, elixir-format
 msgid "wysyłka ze Słowenii"
-msgstr "verzending uit Slovenië"
+msgstr "verstuurd uit Slovenië"
 
 #: lib/tcg_cheap/countries/slovenia.ex:170
 #, elixir-autogen, elixir-format

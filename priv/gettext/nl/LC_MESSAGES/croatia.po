@@ -74,7 +74,7 @@ msgstr "Het lijkt erop dat je in Kroatië bent."
 #: lib/tcg_cheap/countries/croatia.ex:17
 #, elixir-autogen, elixir-format
 msgid "wysyłka z Chorwacji"
-msgstr "verzending uit Kroatië"
+msgstr "verstuurd uit Kroatië"
 
 #: lib/tcg_cheap/countries/croatia.ex:20
 #, elixir-autogen, elixir-format

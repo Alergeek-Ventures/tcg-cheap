@@ -7,7 +7,7 @@ msgstr ""
 #: lib/tcg_cheap/countries/denmark.ex:12
 #, elixir-autogen, elixir-format
 msgid "wysyłka z Danii"
-msgstr "doprava z Dánska"
+msgstr "posílá z Dánska"
 
 #: lib/tcg_cheap/countries/denmark.ex:15
 #, elixir-autogen, elixir-format

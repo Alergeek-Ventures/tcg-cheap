@@ -7,7 +7,7 @@ msgstr ""
 #: lib/tcg_cheap/countries/united_kingdom.ex:12
 #, elixir-autogen, elixir-format
 msgid "wysyłka z Wielkiej Brytanii"
-msgstr "doprava ze Spojeného království"
+msgstr "posílá ze Spojeného království"
 
 #: lib/tcg_cheap/countries/united_kingdom.ex:15
 #, elixir-autogen, elixir-format

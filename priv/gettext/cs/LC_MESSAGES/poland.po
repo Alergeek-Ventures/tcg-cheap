@@ -77,7 +77,7 @@ msgstr "Vypadá to, že jsi v Polsku."
 #: lib/tcg_cheap/countries/poland.ex:18
 #, elixir-autogen, elixir-format
 msgid "wysyłka z Polski"
-msgstr "doprava z Polska"
+msgstr "posílá z Polska"
 
 #: lib/tcg_cheap/countries/poland.ex:142
 #: lib/tcg_cheap/countries/poland.ex:177
@@ -127,10 +127,10 @@ msgstr "Typická cena je medián: z každého polského obchodu, který má kart
 
 #: lib/tcg_cheap/countries/poland.ex:136
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w złotych, co tańsze."
-msgstr "Ceny bez dopravy (ze zahraničí s dopravou, pokud u obchodu není uvedeno „bez dopravy”), nebo trend Cardmarket v zł, podle toho, co je levnější."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w złotych, co tańsze."
+msgstr "Ceny bez dopravy, kromě označených „s dopravou“,, nebo trend Cardmarket v zł, podle toho, co je levnější."
 
 #: lib/tcg_cheap/countries/poland.ex:147
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Polski, chyba że przy sklepie jest „bez dostawy”."
-msgstr "Ceny bez dopravy. Ze zahraničí: s dopravou do Polska, pokud u obchodu není uvedeno „bez dopravy”."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
+msgstr "Ceny bez dopravy, kromě označených „s dopravou“."

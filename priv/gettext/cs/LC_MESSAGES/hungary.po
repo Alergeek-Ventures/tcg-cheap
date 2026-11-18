@@ -67,7 +67,7 @@ msgstr "Maďarsko"
 #: lib/tcg_cheap/countries/hungary.ex:16
 #, elixir-autogen, elixir-format
 msgid "wysyłka z Węgier"
-msgstr "doprava z Maďarska"
+msgstr "posílá z Maďarska"
 
 #: lib/tcg_cheap/countries/hungary.ex:172
 #, elixir-autogen, elixir-format

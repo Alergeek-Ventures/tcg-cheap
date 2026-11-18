@@ -17,7 +17,8 @@ defmodule TcgCheapWeb.SocialImage.Cards do
 
     SocialImage.version(
       {market.in_stock, market.shops,
-       deal && {deal.card.name, Format.price(deal.price), deal.shop, deal.image}}
+       deal &&
+         {deal.card.name, Format.price(deal.price), deal.shop, deal.abroad_only?, deal.image}}
     )
   end
 

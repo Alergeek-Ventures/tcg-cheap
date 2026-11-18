@@ -134,10 +134,10 @@ msgstr "A jellemző ár a bolti árak középértéke. Minden lengyel boltból, 
 
 #: lib/tcg_cheap/countries/poland.ex:136
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w złotych, co tańsze."
-msgstr "Az árak szállítás nélkül (külföldről szállítással, kivéve ha a bolt neve mellett „szállítás nélkül” áll) vagy a Cardmarket-trend zlotyban, amelyik olcsóbb."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w złotych, co tańsze."
+msgstr "Az árak szállítás nélkül, a „szállítással együtt” jelölésűek kivételével, vagy a Cardmarket-trend zlotyban, amelyik olcsóbb."
 
 #: lib/tcg_cheap/countries/poland.ex:147
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Polski, chyba że przy sklepie jest „bez dostawy”."
-msgstr "Az árak szállítás nélkül. Külföldről: Lengyelországba szállítással, kivéve ha a bolt neve mellett „szállítás nélkül” áll."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
+msgstr "Szállítási díj nélküli árak, a „szállítással együtt” jelölésűek kivételével."

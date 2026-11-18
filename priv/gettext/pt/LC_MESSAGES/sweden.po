@@ -162,10 +162,10 @@ msgstr "O preço típico é o valor central: de cada loja sueca que tenha a cart
 
 #: lib/tcg_cheap/countries/sweden.ex:147
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy (z zagranicy z wysyłką, chyba że przy sklepie jest „bez dostawy”) albo trend Cardmarket w koronach, co tańsze."
-msgstr "Preços sem portes (do estrangeiro, com envio, exceto se a loja indicar «sem portes») ou a tendência do Cardmarket em coroas suecas, o que for mais barato."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w koronach, co tańsze."
+msgstr "Preços sem portes, exceto os marcados «com envio», ou a tendência do Cardmarket em coroas suecas, o que for mais barato."
 
 #: lib/tcg_cheap/countries/sweden.ex:158
 #, elixir-autogen, elixir-format
-msgid "Ceny bez dostawy. Z zagranicy: z wysyłką do Szwecji, chyba że przy sklepie jest „bez dostawy”."
-msgstr "Preços sem portes. Do estrangeiro: com envio para a Suécia, exceto se a loja indicar «sem portes»."
+msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
+msgstr "Preços sem portes, exceto os marcados «com envio»."

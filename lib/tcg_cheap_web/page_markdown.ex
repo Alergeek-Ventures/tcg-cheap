@@ -137,7 +137,7 @@ defmodule TcgCheapWeb.PageMarkdown do
 
       own_singles?() ->
         gettext(
-          "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy (ze sklepu za granicą z wysyłką, chyba że przy sklepie jest „bez dostawy”) i ocena wobec Cardmarket liczona tak samo. Pełna lista rozszerzeń: %{url}",
+          "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy, poza oznaczonymi „z wysyłką”, i ocena wobec Cardmarket liczona tak samo. Pełna lista rozszerzeń: %{url}",
           url: url(~p"/llms.txt")
         )
 
@@ -660,7 +660,7 @@ defmodule TcgCheapWeb.PageMarkdown do
           link("#{row.card.name} #{row.card.number}", url_from_path(row.path)),
           row.expansion_name,
           if(row.offer,
-            do: price_in_shop(row.offer.price, OfferComponents.card_shop_name(row.offer)),
+            do: price_in_shop(row.offer.price, OfferComponents.card_row_name(row.offer)),
             else: gettext("brak na stanie")
           ),
           VerdictComponents.single_verdict_label(row.verdict)

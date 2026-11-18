@@ -25,7 +25,7 @@ defmodule TcgCheapWeb.SocialImage.Single do
 
     SocialImage.version(
       {page.card.name, page.card.number, page.expansion_name, page.image,
-       VerdictComponents.single_verdict_status(verdict), price}
+       VerdictComponents.single_verdict_status(verdict), price, page.abroad_only?}
     )
   end
 
@@ -119,7 +119,7 @@ defmodule TcgCheapWeb.SocialImage.Single do
       with %Decimal{} = reference <- answer_row(page).reference do
         {Format.limit_price(reference),
          if(page.abroad_only?,
-           do: gettext("trend na Cardmarket, bez wysyłki · wszystkie języki i stany kart"),
+           do: gettext("trend na Cardmarket, bez dostawy · wszystkie języki i stany kart"),
            else: gettext("na Cardmarket z wysyłką · wszystkie języki i stany kart")
          )}
       end
