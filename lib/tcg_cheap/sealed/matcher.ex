@@ -1131,8 +1131,10 @@ defmodule TcgCheap.Sealed.Matcher do
   }
 
   # Slovenian titles repeat the series and set number ("ME - Mega Evolution 6:
-  # Delta Reign"); the leading ME and number name no product variant.
+  # Delta Reign"), others write "ME2.5 – Ascended Heroes"; the leading ME and
+  # number name no product variant.
   @series_number ~r/(?:\A| )me (?:mega evolution )?\d+ /
+  @half_series_number ~r/\bME ?\d+\.\d+\b/i
 
   @doc "The significant word tokens of a title or product name."
   @spec tokens(String.t()) :: [String.t()]
@@ -1144,6 +1146,7 @@ defmodule TcgCheap.Sealed.Matcher do
         code = rest |> String.replace(~r/[^a-z]/iu, "") |> String.downcase()
         " #{Map.fetch!(@edition_codes, code)} "
       end)
+      |> String.replace(@half_series_number, " ")
       |> normalize()
       |> String.replace(@digit_letter, "\\1 \\2")
       |> String.replace(@letter_digit, "\\1 \\2")
