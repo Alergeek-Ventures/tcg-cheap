@@ -74,6 +74,8 @@ defmodule TcgCheap.Sealed.Matcher do
 
   @synonyms [
     {"eu version", ""},
+    # Shops write "USA" for Cardmarket's "(US Version)" tins.
+    {"usa", "us version"},
     # A shop's tag line; "produkt" alone may still mean something ("produkt opóźniony").
     {"produkt kolekcjonerski", ""},
     # Smyk's tag line ("…, gra karciana w puszce, dodatek"); "dodatek" (expansion)
@@ -385,6 +387,7 @@ defmodule TcgCheap.Sealed.Matcher do
   # Pack counts such as "(36)" or "(10 boosterów)" say nothing about identity
   # (but for 18, see `half_display/1`).
   @pack_count ~r/\(\s*\d{1,3}\s*[[:alpha:]]*\s*\)/u
+  @usa ~r/\busa\b/i
   @case_units ~r/\A\d{1,2}\z/
   @digit_letter ~r/(\d)([a-z])/
   @letter_digit ~r/([a-z])(\d)/
@@ -493,7 +496,8 @@ defmodule TcgCheap.Sealed.Matcher do
         packs? = Regex.match?(@packs, title)
         offer_tokens = offer_tokens(title, index.sets, packs?)
         ean_id = Map.get(index.eans, Map.get(offer, :ean) || "")
-        ean_or_title(ean_id, best(offer_tokens, index, packs?), offer_tokens, index, packs?)
+        by_title = best_or_without_usa(title, offer_tokens, index, packs?)
+        ean_or_title(ean_id, by_title, offer_tokens, index, packs?)
 
       reason ->
         {:excluded, reason}
@@ -637,6 +641,20 @@ defmodule TcgCheap.Sealed.Matcher do
       max_unexplained: @max_unexplained,
       candidates: candidates
     }
+  end
+
+  # A "USA" title is the "(US Version)" product (`tokens/1`). Where the
+  # catalogue has none ("Zacian USA Tin"), the title is the product without it.
+  defp best_or_without_usa(title, offer_tokens, index, packs?) do
+    case best(offer_tokens, index, packs?) do
+      :unmatched ->
+        if Regex.match?(@usa, title),
+          do: best(offer_tokens -- ["us", "version"], index, packs?),
+          else: :unmatched
+
+      result ->
+        result
+    end
   end
 
   defp best(offer_tokens, index, packs?) do
