@@ -85,6 +85,8 @@ defmodule TcgCheap.Sealed.Matcher do
     # displays ("Mini Tin Display", "Build & Battle Box Display") keep the word.
     {"booster box display", "booster box"},
     {"booster display", "booster box"},
+    # Dutch "Halve Booster Box": the half display.
+    {"halve", "half"},
     # A blister "bundle" is the blister itself (REBEL's "3-Pack Blister Bundle"
     # carries the 3-Pack Blister's EAN), unlike a Booster Bundle.
     {"blister bundle", "blister"},
@@ -426,7 +428,7 @@ defmodule TcgCheap.Sealed.Matcher do
             tokens: tokens,
             size: MapSet.size(tokens),
             omissible: set_ex(product, name_tokens),
-            meets: meets(product, single_blister?(name_tokens), sch != []),
+            meets: meets(product, name_tokens, single_blister?(name_tokens), sch != []),
             sch?: sch != [],
             code_tokens: MapSet.new(tokens(code)),
             set_tokens: MapSet.new(tokens(Map.get(product, :set_name) || "")),
@@ -893,10 +895,16 @@ defmodule TcgCheap.Sealed.Matcher do
        else: MapSet.new()
   end
 
-  defp meets(product, single_blister?, sch?) do
+  # Cardmarket's "Booster Box (18 Boosters)" is the half display shops call a
+  # "Half Booster Box" (`half_display/1`).
+  defp half_box?(product, name_tokens),
+    do: Map.get(product, :kind) == :booster_box and "18" in name_tokens
+
+  defp meets(product, name_tokens, single_blister?, sch?) do
     [
       Map.get(@edition_words, Map.get(product, :edition)),
       Map.get(@kind_words, Map.get(product, :kind)),
+      if(half_box?(product, name_tokens), do: "half"),
       if(single_blister?, do: "checklane"),
       if(sch?, do: "sch")
     ]
@@ -910,8 +918,18 @@ defmodule TcgCheap.Sealed.Matcher do
       |> String.replace(@pack_count, &half_display/1)
       |> tokens()
       |> strip_series(sets)
+      |> name_half_count(packs?)
 
     if packs? or "premium" in tokens, do: tokens, else: checklane(tokens)
+  end
+
+  # A "Half Booster Box" without a pack count is Cardmarket's "Booster Box (18
+  # Boosters)"; one counting other packs ("Half Booster Box (36 Packs)")
+  # contradicts itself and names no product.
+  defp name_half_count(tokens, packs?) do
+    if "half" in tokens and "18" not in tokens and not packs?,
+      do: ["18" | tokens],
+      else: tokens
   end
 
   # A pack count says nothing about identity, but for 18: Cardmarket names a
