@@ -940,8 +940,25 @@ defmodule TcgCheap.Sealed.Matcher do
       |> tokens()
       |> strip_series(sets)
       |> name_half_count(packs?)
+      |> booster_bundle(title)
 
     if packs? or "premium" in tokens, do: tokens, else: checklane(tokens)
+  end
+
+  # "Journey Together Bundle" is the Booster Bundle, when no other kind of
+  # product ("Mini Tin Bundle", "Premium Collection Bundle") is named and
+  # nothing is added to it ("Prismatic Evolutions + Terapagos UPC Bundle").
+  @bundle_companions MapSet.new(
+                       ~w(bundle display jp korean chinese sch tch thai indonesian german french italian spanish portuguese)
+                     )
+
+  defp booster_bundle(tokens, title) do
+    kinds = MapSet.intersection(MapSet.new(tokens), @qualifiers)
+
+    if "bundle" in tokens and MapSet.subset?(kinds, @bundle_companions) and
+         not String.contains?(title, "+"),
+      do: Enum.flat_map(tokens, &if(&1 == "bundle", do: ["booster", "bundle"], else: [&1])),
+      else: tokens
   end
 
   # A "Half Booster Box" without a pack count is Cardmarket's "Booster Box (18
