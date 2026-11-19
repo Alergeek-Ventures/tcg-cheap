@@ -356,7 +356,9 @@ defmodule TcgCheap.Cards.Guide do
 
   # Per card, the lowest in-stock compared price of its current, ungraded offers.
   defp card_offers(words, expansion, market) do
-    reads = if words == [] and is_nil(expansion), do: :all_cards, else: :some_cards
+    all? = words == [] and is_nil(expansion)
+    matching = matching_cards(words, expansion)
+    reads = if all?, do: :all_cards, else: {:cards, matching}
 
     offers =
       from(o in subquery(compared_query(market, reads)),
@@ -367,14 +369,9 @@ defmodule TcgCheap.Cards.Guide do
 
     # As an array, the matching cards reach their offers through the offers'
     # card index instead of a scan of every offer.
-    if words == [] and is_nil(expansion),
+    if all?,
       do: offers,
-      else:
-        where(
-          offers,
-          [o],
-          fragment("? = ANY(ARRAY(?))", o.card_id, subquery(matching_cards(words, expansion)))
-        )
+      else: where(offers, [o], fragment("? = ANY(ARRAY(?))", o.card_id, subquery(matching)))
   end
 
   defp matching_cards(words, expansion) do
@@ -769,12 +766,15 @@ defmodule TcgCheap.Cards.Guide do
   comes back as raw bytes).
 
   `reads` says how much of the market the caller reads, which decides how the
-  per-card decision of `for_card/2` is joined (see `card_home/3`): `:all_cards`
-  for a caller that reads every card, `:some_cards` for one that narrows to
-  a set, a search or card ids.
+  per-card decision of `for_card/2` is joined (see `card_home/4`): `:all_cards`
+  for a caller that reads every card, `{:cards, ids}` for one that narrows to
+  the cards a query of ids selects (a search, an expansion), `:some_cards` for
+  one that narrows to a few cards with its own filter.
   """
-  @spec compared_query(Market.t(), :all_cards | :some_cards) :: Ecto.Query.t()
-  def compared_query(%Market{} = market, reads) when reads in [:all_cards, :some_cards] do
+  @spec compared_query(Market.t(), :all_cards | :some_cards | {:cards, Ecto.Query.t()}) ::
+          Ecto.Query.t()
+  def compared_query(%Market{} = market, reads)
+      when reads in [:all_cards, :some_cards] or (is_tuple(reads) and elem(reads, 0) == :cards) do
     terms = Market.price_terms(market, Date.utc_today())
     bare = Map.new(terms, fn {shop, {item, _delivery}} -> {shop, {item, nil}} end)
     item_only = compared_price(bare, market)
@@ -824,15 +824,19 @@ defmodule TcgCheap.Cards.Guide do
   # search). A lateral lookup of the card's offers reaches only the cards an
   # outer query wants, through the offers' card index, but costs an index
   # probe for each offer, which is dear for the whole market.
-  defp card_home(query, :all_cards, market, terms) do
-    homes =
-      from(i in counted_query(market, terms),
-        where: i.in_stock and is_nil(i.grading),
-        group_by: i.card_id,
-        select: ^%{card_id: dynamic([i], i.card_id), home: at_home_any(market)}
-      )
+  defp card_home(query, :all_cards, market, terms),
+    do: join_homes(query, market, terms, dynamic(true))
 
-    from([o] in query, left_join: h in subquery(homes), on: h.card_id == o.card_id)
+  # A search or an expansion names its cards as a query of their ids. Grouped
+  # over only those cards, the decision costs one pass over their offers, not
+  # a lateral probe per offer, which a search matching most cards cannot afford.
+  defp card_home(query, {:cards, ids}, market, terms) do
+    join_homes(
+      query,
+      market,
+      terms,
+      dynamic([i], fragment("? = ANY(ARRAY(?))", i.card_id, subquery(ids)))
+    )
   end
 
   defp card_home(query, :some_cards, market, terms) do
@@ -843,6 +847,18 @@ defmodule TcgCheap.Cards.Guide do
       )
 
     from([o] in query, left_lateral_join: h in subquery(home), on: true)
+  end
+
+  defp join_homes(query, market, terms, cards) do
+    homes =
+      from(i in counted_query(market, terms),
+        where: i.in_stock and is_nil(i.grading),
+        where: ^cards,
+        group_by: i.card_id,
+        select: ^%{card_id: dynamic([i], i.card_id), home: at_home_any(market)}
+      )
+
+    from([o] in query, left_join: h in subquery(homes), on: h.card_id == o.card_id)
   end
 
   # Whether any of a card's offers is a shop's at home; Poland counts a shop no
