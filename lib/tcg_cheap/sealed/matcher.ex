@@ -101,6 +101,9 @@ defmodule TcgCheap.Sealed.Matcher do
     {"world championships deck", "wcd"},
     {"v star", "vstar"},
     {"v max", "vmax"},
+    # "PC" is the Pokémon Center ("Surging Sparks PC Elite Trainer Box").
+    {"pc elite trainer box", "pokemon center elite trainer box"},
+    {"pc etb", "pokemon center elite trainer box"},
     {"etb", "elite trainer box"},
     # A common misspelling of the Enhanced Booster Box.
     {"enchanced", "enhanced"},
