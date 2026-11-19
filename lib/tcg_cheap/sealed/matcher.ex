@@ -111,6 +111,12 @@ defmodule TcgCheap.Sealed.Matcher do
     {"slim pack", "slim"},
     {"world championships deck", "wcd"},
     {"v star", "vstar"},
+    # Titles without the apostrophe of "Champion's Path", "Team Rocket's".
+    {"champions path", "champion path"},
+    {"team rockets", "team rocket"},
+    # Cardmarket's "Build & Battle Stadium Box" and "Build & Battle Box Display".
+    {"build and battle stadium", "build and battle stadium box"},
+    {"build and battle display", "build and battle box display"},
     {"break through", "breakthrough"},
     {"v max", "vmax"},
     # "PC" is the Pokémon Center ("Surging Sparks PC Elite Trainer Box").
