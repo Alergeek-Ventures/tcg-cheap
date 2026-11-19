@@ -390,6 +390,7 @@ defmodule TcgCheap.Sealed.Matcher do
   # Pack counts such as "(36)" or "(10 boosterów)" say nothing about identity
   # (but for 18, see `half_display/1`).
   @pack_count ~r/\(\s*\d{1,3}\s*[[:alpha:]]*\s*\)/u
+  @collection_words MapSet.new(~w(box collection))
   @usa ~r/\busa\b/i
   @case_units ~r/\A\d{1,2}\z/
   @digit_letter ~r/(\d)([a-z])/
@@ -678,7 +679,17 @@ defmodule TcgCheap.Sealed.Matcher do
     case Enum.group_by(candidates, named) |> Enum.max_by(&elem(&1, 0), fn -> nil end) do
       nil -> unique_variant(offer_set, forms, qualifiers, index, packs?)
       {_size, [entry]} -> {:matched, entry.id}
-      {_size, _tie} -> :ambiguous
+      {_size, tie} -> fewest_unexplained(tie, offer_set)
+    end
+  end
+
+  # Of equally named products, the one that leaves fewer title words
+  # unexplained: "Boltund V Showcase Box" is "Boltund V Showcase" (box words
+  # answered for) rather than "Boltund V Box", which lacks "showcase".
+  defp fewest_unexplained(tie, offer_set) do
+    case Enum.group_by(tie, &MapSet.size(unexplained(offer_set, &1))) |> Enum.min_by(&elem(&1, 0)) do
+      {_count, [entry]} -> {:matched, entry.id}
+      {_count, _tie} -> :ambiguous
     end
   end
 
@@ -748,7 +759,7 @@ defmodule TcgCheap.Sealed.Matcher do
     omits?(omits, entry, MapSet.difference(entry.tokens, offer_set)) and
       not (packs? and entry.single?) and
       MapSet.subset?(qualifiers, MapSet.union(entry.tokens, entry.meets)) and
-      MapSet.size(unexplained) <= @max_unexplained and
+      MapSet.size(unexplained) <= max_unexplained(entry, qualifiers) and
       MapSet.disjoint?(unexplained, known_tokens) and
       checklane_fits?(entry, offer_set, unexplained) and
       edition_named?(entry, offer_set)
@@ -784,9 +795,18 @@ defmodule TcgCheap.Sealed.Matcher do
   defp candidate?(entry, offer_set, qualifiers, packs?) do
     kind_fits?(entry, qualifiers, packs?) and
       entry.tokens |> MapSet.difference(entry.omissible) |> MapSet.subset?(offer_set) and
-      MapSet.size(unexplained(offer_set, entry)) <= @max_unexplained and
+      MapSet.size(unexplained(offer_set, entry)) <= max_unexplained(entry, qualifiers) and
       checklane_fits?(entry, offer_set, unexplained(offer_set, entry)) and
       edition_named?(entry, offer_set)
+  end
+
+  # A product that answers for the title's "box" or "collection" without
+  # naming it (`collection_word?/3`) accounts for every title word: "Reshiram &
+  # Charizard GX Premium Collection Box" is not the Charizard GX one.
+  defp max_unexplained(entry, qualifiers) do
+    if qualifiers |> MapSet.intersection(@collection_words) |> MapSet.subset?(entry.tokens),
+      do: @max_unexplained,
+      else: 0
   end
 
   # The title contradicts the EAN's product when that product does not fit the
@@ -921,11 +941,27 @@ defmodule TcgCheap.Sealed.Matcher do
   defp half_box?(product, name_tokens),
     do: Map.get(product, :kind) == :booster_box and "18" in name_tokens
 
+  # Cardmarket names a collection product "X Collection", "X Box" or "X
+  # Showcase", shops "X Collection Box": each answers for the other word.
+  defp collection_word?(product, name_tokens, "box"),
+    do:
+      Map.get(product, :kind) == :collection and "box" not in name_tokens and
+        Enum.any?(["collection", "showcase"], &(&1 in name_tokens))
+
+  # Not an older "EX"/"GX" box ("Charizard EX Box"): a title's "Charizard Ex
+  # Collection Box" is likelier a newer collection than that box.
+  defp collection_word?(product, name_tokens, "collection"),
+    do:
+      Map.get(product, :kind) == :collection and "box" in name_tokens and
+        "collection" not in name_tokens and not Regex.match?(~r/\b(?:EX|GX)\b/, product.name)
+
   defp meets(product, name_tokens, single_blister?, sch?) do
     [
       Map.get(@edition_words, Map.get(product, :edition)),
       Map.get(@kind_words, Map.get(product, :kind)),
       if(half_box?(product, name_tokens), do: "half"),
+      if(collection_word?(product, name_tokens, "box"), do: "box"),
+      if(collection_word?(product, name_tokens, "collection"), do: "collection"),
       if(single_blister?, do: "checklane"),
       if(sch?, do: "sch")
     ]
