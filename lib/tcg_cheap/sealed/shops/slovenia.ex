@@ -1,12 +1,13 @@
 defmodule TcgCheap.Sealed.Shops.Slovenia do
   @moduledoc """
   Shops in Slovenia. Their public listings and published delivery terms were
-  checked on 2026-11-15; unknown terms stay `nil`. Shops behind bot protection
-  are not read.
+  checked on 2026-11-15; unknown terms stay `nil`. The Shopify shops' whole
+  public product lists were checked on 2026-11-19. Igabiba answers signed
+  requests with 500 and its catalogue holds over 20,000 products, so it is not read.
   """
 
   alias TcgCheap.Sealed.Shop
-  alias TcgCheap.Sealed.ShopFeed.{RajZaIgrace, TcgPark, ZberiVse}
+  alias TcgCheap.Sealed.ShopFeed.{RajZaIgrace, Shopify, TcgPark, ZberiVse}
 
   @shops [
     %Shop{
@@ -48,6 +49,71 @@ defmodule TcgCheap.Sealed.Shops.Slovenia do
       shipping_from: Decimal.new("4.99"),
       free_shipping_from: nil,
       pickup_city: nil
+    },
+    %Shop{
+      key: "pokybox",
+      name: "Poky Box",
+      host: "pokybox.com",
+      source: Shopify,
+      # Its English products also list other editions, mystery boxes and accessories.
+      excluded_phrases: ["italian", "japanese", "chinese", "mystery box", "ultra pro"],
+      currency: "EUR",
+      country: "SI",
+      max_pages: 7,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "pokepower",
+      name: "PokePower",
+      host: "poke-power.eu",
+      source: Shopify,
+      excluded_phrases: ["acrylic", "ultra pro"],
+      currency: "EUR",
+      country: "SI",
+      max_pages: 3,
+      shipping_from: nil,
+      # The shop's banner offers free delivery on orders over €100.
+      free_shipping_from: Decimal.new("100"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "pokecarta",
+      name: "PokéCARTA",
+      host: "pokecarta.com",
+      source: Shopify,
+      # The whole list also carries other editions, cases and stationery.
+      excluded_phrases: [
+        "chinese",
+        "japanese",
+        "korean",
+        "german",
+        "cn",
+        "jp",
+        "kn",
+        "de",
+        "acryl case",
+        "ultra pro"
+      ],
+      currency: "EUR",
+      country: "SI",
+      max_pages: 3,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "tcgstar",
+      name: "TCG STAR",
+      host: "tcgstar.eu",
+      source: Shopify,
+      currency: "EUR",
+      country: "SI",
+      max_pages: 1,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
     }
   ]
 
@@ -63,8 +129,7 @@ defmodule TcgCheap.Sealed.Shops.Slovenia do
   shop's own anonymous cart quoted for one sealed product to a Ljubljana
   postcode on 2026-11-16, VAT included (a WooCommerce cart's shipping tax
   added), or what its delivery page says. Beamcardshop's cart offers no
-  delivery to Slovenia; Poky Box, PokePower, PokéCARTA, Igabiba and TCG STAR
-  answer bot checks and are not read.
+  delivery to Slovenia.
   """
   def deliveries do
     %{
