@@ -55,6 +55,16 @@ config :tcg_cheap,
   ],
   token_signing_secret: :endpoint_secret_key_base
 
+# Session settings of every connection, in every environment.
+# - plan_cache_mode: Ecto prepares each query once per connection, and after
+#   five runs Postgres may switch to a generic plan, which ignores the
+#   parameters' statistics: the card list's per-shop fetch times
+#   (`TcgCheap.Cards.Offer`) then look like a handful of offers, and the plan
+#   loops for seconds. A plan per run costs a few milliseconds.
+# - jit: compiling a query took most of its time (about 1 s of 1.3 s for the
+#   image mirror's source scan); no query here runs long enough to repay it.
+config :tcg_cheap, TcgCheap.Repo, parameters: [plan_cache_mode: "force_custom_plan", jit: "off"]
+
 config :backpex,
   pubsub_server: TcgCheap.PubSub,
   translator_function: {TcgCheapWeb.CoreComponents, :translate_error},
