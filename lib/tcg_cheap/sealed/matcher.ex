@@ -1040,9 +1040,22 @@ defmodule TcgCheap.Sealed.Matcher do
     |> Enum.reduce(padded, fn {from, to}, acc ->
       String.replace(acc, " " <> from <> " ", " " <> to <> " ")
     end)
+    |> japanese_code()
     |> String.split(" ", trim: true)
     |> Enum.map(&Map.get(@plurals, &1, &1))
     |> Enum.reject(&(&1 in @stopwords))
+  end
+
+  # A Japanese set code ("sv11b", "sv2a": an English set's has no letter) names
+  # a Japanese edition as well as "Japanese" does, but for the Korean and
+  # Chinese editions that reuse the code ("Booster Box sv9a KR").
+  @japanese_code ~r/ sv \d{1,2} [a-z](?= )/
+  @other_editions ~r/ (?:korean|chinese|sch|tch|thai|indonesian|german|deutsch|french|italian|spanish|portuguese) /
+
+  defp japanese_code(text) do
+    if Regex.match?(@other_editions, text),
+      do: text,
+      else: String.replace(text, @japanese_code, " jp")
   end
 
   @doc "Normalizes text for word-wise comparison: lower case ASCII words separated by spaces."
