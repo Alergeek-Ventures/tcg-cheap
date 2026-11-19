@@ -93,6 +93,17 @@ defmodule TcgCheap.Sealed.Matcher do
     # carries the 3-Pack Blister's EAN), unlike a Booster Bundle.
     {"blister bundle", "blister"},
     {"checkline", "checklane"},
+    # Cardmarket names a blister by its packs: "3-Pack Blister", "1-Pack Blister".
+    {"3 booster pack blister", "3 pack blister"},
+    {"3 booster blister", "3 pack blister"},
+    {"2 booster pack blister", "2 pack blister"},
+    {"2 booster blister", "2 pack blister"},
+    {"one pack blister", "1 pack blister"},
+    # A Booster Bundle always holds six boosters.
+    {"6 pack booster bundle", "booster bundle"},
+    {"booster premium checklane", "premium checklane"},
+    {"boosterpack", "booster pack"},
+    {"mega evolutions", "mega evolution"},
     # The product names are split the same way ("30th" is "30 th").
     {"30 obletnica", "30 th celebration"},
     {"zbirka plakatov", "poster collection"},
