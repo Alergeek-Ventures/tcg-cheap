@@ -118,7 +118,7 @@ defmodule TcgCheap.Cards.Guide do
 
     order = [
       desc: dynamic([_, s], fragment("lower(?) = ?", s.name, ^search)),
-      desc: dynamic([_, _, o], not is_nil(o.price)),
+      desc: dynamic([_, _, o], not is_nil(o.card_id)),
       desc: dynamic([c], fragment("lower(?) = ?", c.name, ^search)),
       desc: dynamic([c], fragment("ltrim(?, '0') = ltrim(?, '0')", c.number, ^search)),
       desc: relevance,
@@ -139,7 +139,7 @@ defmodule TcgCheap.Cards.Guide do
         order_by: ^order,
         offset: ^offset,
         limit: ^(@page_size + 1),
-        select: %{card: c, set: s, price: o.price, cardmarket: p, count: over(count())}
+        select: %{card: c, set: s, cardmarket: p, count: over(count())}
       )
       |> Repo.all()
 
@@ -165,9 +165,9 @@ defmodule TcgCheap.Cards.Guide do
     offers = in_stock_prices(Enum.map(page, & &1.card.id), market)
 
     results =
-      Enum.map(page, fn %{cardmarket: price} = row ->
+      Enum.map(page, fn %{cardmarket: cardmarket} = row ->
         name = Map.fetch!(names, row.set.cardmarket_expansion_id)
-        card = %{row.card | cardmarket_price: price}
+        card = %{row.card | cardmarket_price: cardmarket}
         card_offers = Map.get(offers, card.id, [])
         card_context = for_card(context, card_offers)
         {variant, variant_offers} = primary_offers(card_offers)
@@ -183,9 +183,11 @@ defmodule TcgCheap.Cards.Guide do
         |> Map.merge(%{
           card: card,
           offer: offer,
+          price: cheapest_price(card_offers),
           abroad_only?: card_context.abroad_only?,
           verdict: card_verdict(variant_offers, card, variant, card_context),
-          cardmarket_trend: Market.in_market(price && price.trend, context.rate, market),
+          cardmarket_trend:
+            Market.in_market(cardmarket && cardmarket.trend, context.rate, market),
           expansion_name: name,
           path: path(card, name, row.set.cardmarket_expansion_id, collisions),
           image: image
@@ -194,6 +196,11 @@ defmodule TcgCheap.Cards.Guide do
 
     {results, length(rows) > @page_size, count}
   end
+
+  # The list's price is the cheapest compared offer, as the page query used to
+  # take it in SQL; `in_stock_prices/2` already sorts the card's offers by it.
+  defp cheapest_price([cheapest | _]), do: cheapest.price
+  defp cheapest_price([]), do: nil
 
   # The offers the card's page answers with (`page/3`): those of its first
   # variant in stock, normal before reverse before special, cheapest first.
@@ -306,7 +313,7 @@ defmodule TcgCheap.Cards.Guide do
       from(c in Card,
         join: s in Set,
         on: c.tcgdex_set_id == s.id,
-        left_join: o in subquery(card_offers(words, expansion, market)),
+        left_join: o in subquery(stocked_cards(words, expansion, market)),
         on: o.card_id == c.id,
         left_join: p in Price,
         on: p.cardmarket_id == c.cardmarket_id,
@@ -315,13 +322,9 @@ defmodule TcgCheap.Cards.Guide do
       |> stock_filter(Map.get(filters, :stock))
 
     if filters.query == "" do
-      where(query, [_, _, o], not is_nil(o.price))
+      where(query, [_, _, o], not is_nil(o.card_id))
     else
-      where(
-        query,
-        [c],
-        fragment("? = ANY(ARRAY(?))", c.id, subquery(matching_cards(words, expansion)))
-      )
+      where(query, [c], c.id in subquery(matching_cards(words, expansion)))
     end
   end
 
@@ -334,7 +337,7 @@ defmodule TcgCheap.Cards.Guide do
       from(c in Card,
         join: s in Set,
         on: c.tcgdex_set_id == s.id,
-        left_join: o in subquery(card_offers([], nil, market)),
+        left_join: o in subquery(stocked_cards([], nil, market)),
         on: o.card_id == c.id,
         left_join: p in Price,
         on: p.cardmarket_id == c.cardmarket_id,
@@ -344,27 +347,27 @@ defmodule TcgCheap.Cards.Guide do
     query =
       if words == [] and is_nil(expansion),
         do: query,
-        else:
-          where(
-            query,
-            [c],
-            fragment("? = ANY(ARRAY(?))", c.id, subquery(matching_cards(words, expansion)))
-          )
+        else: where(query, [c], c.id in subquery(matching_cards(words, expansion)))
 
     if Map.get(filters, :stock) == :out, do: where(query, false), else: query
   end
 
-  # Per card, the lowest in-stock compared price of its current, ungraded offers.
-  defp card_offers(words, expansion, market) do
+  # Per card, whether it has an in-stock, ungraded offer that counts in the
+  # market's prices. The list only needs that to filter and order; the price it
+  # shows comes from `in_stock_prices/2` for the page's cards, so this query
+  # skips the per-offer price arithmetic and the home-shop decision.
+  defp stocked_cards(words, expansion, market) do
     all? = words == [] and is_nil(expansion)
     matching = matching_cards(words, expansion)
-    reads = if all?, do: :all_cards, else: {:cards, matching}
+    terms = Market.price_terms(market, Date.utc_today())
 
     offers =
-      from(o in subquery(compared_query(market, reads)),
-        where: is_nil(o.grading),
+      from(o in current_query(),
+        where: ^counted(market, Map.keys(terms)),
+        where: ^priced_apart(terms, market),
+        where: o.in_stock and is_nil(o.grading),
         group_by: o.card_id,
-        select: %{card_id: o.card_id, price: min(o.price) |> filter(o.in_stock)}
+        select: %{card_id: o.card_id}
       )
 
     # As an array, the matching cards reach their offers through the offers'
@@ -518,8 +521,8 @@ defmodule TcgCheap.Cards.Guide do
           Map.merge(expansion, %{name: name, edition: :en, logo_url: Map.get(logos, expansion.id)})
   end
 
-  defp stock_filter(query, :in), do: where(query, [_, _, o], not is_nil(o.price))
-  defp stock_filter(query, :out), do: where(query, [_, _, o], is_nil(o.price))
+  defp stock_filter(query, :in), do: where(query, [_, _, o], not is_nil(o.card_id))
+  defp stock_filter(query, :out), do: where(query, [_, _, o], is_nil(o.card_id))
   defp stock_filter(query, nil), do: query
 
   defp expansion_filter(query, nil), do: query
@@ -767,14 +770,11 @@ defmodule TcgCheap.Cards.Guide do
 
   `reads` says how much of the market the caller reads, which decides how the
   per-card decision of `for_card/2` is joined (see `card_home/4`): `:all_cards`
-  for a caller that reads every card, `{:cards, ids}` for one that narrows to
-  the cards a query of ids selects (a search, an expansion), `:some_cards` for
-  one that narrows to a few cards with its own filter.
+  for a caller that reads every card, `:some_cards` for one that narrows to a
+  few cards with its own filter.
   """
-  @spec compared_query(Market.t(), :all_cards | :some_cards | {:cards, Ecto.Query.t()}) ::
-          Ecto.Query.t()
-  def compared_query(%Market{} = market, reads)
-      when reads in [:all_cards, :some_cards] or (is_tuple(reads) and elem(reads, 0) == :cards) do
+  @spec compared_query(Market.t(), :all_cards | :some_cards) :: Ecto.Query.t()
+  def compared_query(%Market{} = market, reads) when reads in [:all_cards, :some_cards] do
     terms = Market.price_terms(market, Date.utc_today())
     bare = Map.new(terms, fn {shop, {item, _delivery}} -> {shop, {item, nil}} end)
     item_only = compared_price(bare, market)
@@ -817,27 +817,15 @@ defmodule TcgCheap.Cards.Guide do
   # price expression carries no subquery of its own, which the outer query
   # repeats.
   #
-  # Which join is cheaper depends on the reader. One grouped table over the
-  # market computes the decision once per card, a hash join: right for a
-  # caller that reads every card (the planner cannot push an outer card filter
-  # into a grouped subquery, so it would still scan the market for a set or a
-  # search). A lateral lookup of the card's offers reaches only the cards an
-  # outer query wants, through the offers' card index, but costs an index
-  # probe for each offer, which is dear for the whole market.
+  # One grouped table over the market computes the decision once per card, a
+  # hash join: right for a caller that reads every card (the planner cannot
+  # push an outer card filter into a grouped subquery, so it would still scan
+  # the market for a set or a search). A lateral lookup of the card's offers
+  # reaches only the cards an outer query wants, through the offers' card
+  # index, but costs an index probe for each offer, which is dear for the
+  # whole market.
   defp card_home(query, :all_cards, market, terms),
-    do: join_homes(query, market, terms, dynamic(true))
-
-  # A search or an expansion names its cards as a query of their ids. Grouped
-  # over only those cards, the decision costs one pass over their offers, not
-  # a lateral probe per offer, which a search matching most cards cannot afford.
-  defp card_home(query, {:cards, ids}, market, terms) do
-    join_homes(
-      query,
-      market,
-      terms,
-      dynamic([i], fragment("? = ANY(ARRAY(?))", i.card_id, subquery(ids)))
-    )
-  end
+    do: join_homes(query, market, terms)
 
   defp card_home(query, :some_cards, market, terms) do
     home =
@@ -849,11 +837,10 @@ defmodule TcgCheap.Cards.Guide do
     from([o] in query, left_lateral_join: h in subquery(home), on: true)
   end
 
-  defp join_homes(query, market, terms, cards) do
+  defp join_homes(query, market, terms) do
     homes =
       from(i in counted_query(market, terms),
         where: i.in_stock and is_nil(i.grading),
-        where: ^cards,
         group_by: i.card_id,
         select: ^%{card_id: dynamic([i], i.card_id), home: at_home_any(market)}
       )
