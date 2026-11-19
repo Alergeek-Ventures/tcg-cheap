@@ -148,6 +148,10 @@ defmodule TcgCheap.Sealed.Matcher do
     {"japanse", "jp"},
     {"koreaanse", "korean"},
     {"japans", "jp"},
+    # Dutch "Booster Bundel" is the Booster Bundle; a lone "bundel" may
+    # just label a Battle Deck ("Battle Deck bundel Mewtwo V vs. Melmetal V").
+    {"booster bundel", "booster bundle"},
+    {"collection bundel", "collection bundle"},
     {"chinees", "chinese"},
     {"koreaans", "korean"},
     {"duits", "german"},
