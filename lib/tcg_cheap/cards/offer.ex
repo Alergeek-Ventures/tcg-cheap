@@ -25,6 +25,28 @@ defmodule TcgCheap.Cards.Offer do
       index [:shop, :last_seen_at]
       index [:card_id, :last_seen_at]
     end
+
+    custom_statements do
+      # A shop's current offers are those of its latest fetch, read as
+      # `shop = ? AND last_seen_at = ?` per shop (`TcgCheap.Cards.current_offers/1`,
+      # `TcgCheap.Cards.Guide`). Each fetch time belongs to one shop; without
+      # statistics on the pair, Postgres multiplies the two columns'
+      # selectivities, expects about a twentieth of the current offers and
+      # picks nested loops that take seconds. ANALYZE fills the statistics now
+      # instead of at the next automatic analyze.
+      statement :sealed_card_offers_shop_last_seen_at_stats do
+        code? true
+
+        up """
+        execute("CREATE STATISTICS sealed_card_offers_shop_last_seen_at_stats (mcv, dependencies) ON shop, last_seen_at FROM sealed_card_offers")
+        execute("ANALYZE sealed_card_offers")
+        """
+
+        down """
+        execute("DROP STATISTICS sealed_card_offers_shop_last_seen_at_stats")
+        """
+      end
+    end
   end
 
   actions do
