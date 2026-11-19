@@ -100,6 +100,7 @@ defmodule TcgCheap.Sealed.Matcher do
     {"slim pack", "slim"},
     {"world championships deck", "wcd"},
     {"v star", "vstar"},
+    {"break through", "breakthrough"},
     {"v max", "vmax"},
     # "PC" is the Pokémon Center ("Surging Sparks PC Elite Trainer Box").
     {"pc elite trainer box", "pokemon center elite trainer box"},
@@ -247,6 +248,8 @@ defmodule TcgCheap.Sealed.Matcher do
     "sword shield",
     "sun moon",
     "black white",
+    "diamond pearl",
+    "xy",
     "me",
     "sv",
     "swsh"
@@ -500,7 +503,7 @@ defmodule TcgCheap.Sealed.Matcher do
         packs? = Regex.match?(@packs, title)
         offer_tokens = offer_tokens(title, index.sets, packs?)
         ean_id = Map.get(index.eans, Map.get(offer, :ean) || "")
-        by_title = best_or_without_usa(title, offer_tokens, index, packs?)
+        by_title = best_by_title(title, offer_tokens, index, packs?)
         ean_or_title(ean_id, by_title, offer_tokens, index, packs?)
 
       reason ->
@@ -645,6 +648,34 @@ defmodule TcgCheap.Sealed.Matcher do
       max_unexplained: @max_unexplained,
       candidates: candidates
     }
+  end
+
+  # A leading series that is part of the product's name ("Sword & Shield
+  # Ultra-Premium Collection: Zacian & Zamazenta") is read once more with the
+  # series kept when the title matched nothing without it. Only a product the
+  # title names in full takes it: "Scarlet & Violet Shrouded Fable Booster
+  # Bundle" is not the series' own Booster Bundle.
+  defp best_by_title(title, offer_tokens, index, packs?) do
+    case best_or_without_usa(title, offer_tokens, index, packs?) do
+      :unmatched ->
+        with kept when kept != offer_tokens <- offer_tokens(title, [], packs?),
+             {:matched, id} = result <- best_or_without_usa(title, kept, index, packs?),
+             true <- named_in_full?(Map.fetch!(index.by_id, id), kept) do
+          result
+        else
+          _ -> :unmatched
+        end
+
+      result ->
+        result
+    end
+  end
+
+  defp named_in_full?(entry, offer_tokens) do
+    offer_set = MapSet.new(offer_tokens)
+
+    entry.tokens |> MapSet.difference(entry.omissible) |> MapSet.subset?(offer_set) and
+      MapSet.size(unexplained(offer_set, entry)) == 0
   end
 
   # A "USA" title is the "(US Version)" product (`tokens/1`). Where the
@@ -974,6 +1005,7 @@ defmodule TcgCheap.Sealed.Matcher do
       title
       |> String.replace(@pack_count, &half_display/1)
       |> tokens()
+      |> drop_series_base()
       |> strip_series(sets)
       |> name_half_count(packs?)
       |> booster_bundle(title)
@@ -1021,6 +1053,19 @@ defmodule TcgCheap.Sealed.Matcher do
   defp checklane(["checklane" | rest]), do: ~w(checklane 1 pack blister) ++ checklane(rest)
   defp checklane([token | rest]), do: [token | checklane(rest)]
   defp checklane([]), do: []
+
+  # "Sun & Moon – Base Set Booster Pack" is the series' own booster, not the
+  # Base Set one ("Mega Evolution – Base Booster Bundel" likewise).
+  defp drop_series_base(tokens) do
+    text =
+      Enum.reduce(@series, " " <> Enum.join(tokens, " ") <> " ", fn series, acc ->
+        acc
+        |> String.replace(" #{series} base set ", " #{series} ")
+        |> String.replace(" #{series} base ", " #{series} ")
+      end)
+
+    String.split(text, " ", trim: true)
+  end
 
   # Drops a leading series name when a set name follows it.
   defp strip_series(tokens, sets) do
