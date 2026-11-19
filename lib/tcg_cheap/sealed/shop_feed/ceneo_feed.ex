@@ -1,7 +1,7 @@
 defmodule TcgCheap.Sealed.ShopFeed.CeneoFeed do
   @moduledoc """
-  Reads a shop's Ceneo product feed (`<offers><o …>`) at its `feed_path` in
-  one request. Shoper publishes it for the whole shop at
+  Reads a shop's Ceneo product feed (`<offers><o …>`, optionally with the
+  offers inside a `<group>`) at its `feed_path` in one request. Shoper publishes it for the whole shop at
   `/console/integration/execute/name/CeneoV2`; the response may be up to
   64 MB. Ceneo feeds carry prices in PLN by definition and Shoper lists only
   products it has in stock.
@@ -35,9 +35,15 @@ defmodule TcgCheap.Sealed.ShopFeed.CeneoFeed do
     opts = [max_body_bytes: @max_body_bytes]
 
     with {:ok, response} <- ShopFeed.get(shop, shop.feed_path, [], req_options, opts),
-         {:ok, offers} <-
-           XmlRecords.parse(response.body, ["offers", "o"], @fields, &included?(&1, shop)) do
+         {:ok, offers} <- parse(response.body, shop) do
       {:ok, ShopFeed.offers(shop, offers, &normalize(shop, &1))}
+    end
+  end
+
+  defp parse(body, shop) do
+    case XmlRecords.parse(body, ["offers", "o"], @fields, &included?(&1, shop)) do
+      {:ok, []} -> XmlRecords.parse(body, ["offers", "group", "o"], @fields, &included?(&1, shop))
+      other -> other
     end
   end
 

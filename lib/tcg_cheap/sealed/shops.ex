@@ -25,8 +25,7 @@ defmodule TcgCheap.Sealed.Shops do
 
   A shop's logo is `priv/static/images/shops/<key>.webp`, a 240×80 WebP on a
   white chip (dark for light logos); a shop without a file shows none. Morion
-  Games and Hearts Pub have only their favicons: Morion's header image is a
-  banner and Hearts Pub sits behind a bot check.
+  Games and Hearts Pub have only their favicons recorded.
   """
 
   alias TcgCheap.{Countries, ModuleDir}
