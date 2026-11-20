@@ -78,7 +78,8 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
     %Shop{
       key: "tcgreus",
       name: "TcgReus",
-      host: "tcgreus.nl",
+      # The shop answers on www only: the bare domain redirects there.
+      host: "www.tcgreus.nl",
       source: Shopify,
       currency: "EUR",
       country: "NL",
