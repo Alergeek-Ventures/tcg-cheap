@@ -146,13 +146,13 @@ defmodule TcgCheap.Bot.Robots do
   defp normalize(<<?%, high, low, rest::binary>>, acc) when hex?(high) and hex?(low) do
     byte = String.to_integer(<<high, low>>, 16)
     escape = if unreserved?(byte), do: <<byte>>, else: <<?%, high, low>> |> String.upcase()
-    normalize(rest, [acc | escape])
+    normalize(rest, [acc, escape])
   end
 
   defp normalize(<<byte, rest::binary>>, acc) when byte > 127,
-    do: normalize(rest, [acc | ["%", Base.encode16(<<byte>>)]])
+    do: normalize(rest, [acc, "%", Base.encode16(<<byte>>)])
 
-  defp normalize(<<byte, rest::binary>>, acc), do: normalize(rest, [acc | <<byte>>])
+  defp normalize(<<byte, rest::binary>>, acc), do: normalize(rest, [acc, byte])
   defp normalize(<<>>, acc), do: acc
 
   defp matches?("$", target), do: target == ""
