@@ -89,7 +89,6 @@ defmodule TcgCheapWeb.BotLive do
               <dt>{gettext("Podpis Web Bot Auth")}</dt>
               <dd>
                 <code>Signature-Agent: "https://tcg.cheap"</code>
-                <span>{gettext("przy czytaniu list produktów ze sklepów na Shopify")}</span>
               </dd>
               <dt>{gettext("Klucze publiczne")}</dt>
               <dd>
@@ -109,22 +108,6 @@ defmodule TcgCheapWeb.BotLive do
                 <span>
                   {gettext(
                     "Listy produktów czyta raz na dobę, w nocy (od 2:30 UTC), czasem też w dzień, gdy sprawdzamy poprawkę."
-                  )}
-                </span>
-              </li>
-              <li>
-                <.fluent_icon name={:hourglass} />
-                <span>
-                  {gettext(
-                    "Do każdego sklepu jedno żądanie naraz, z przerwą przed każdym: co najmniej pół sekundy, zwykle sekunda, w sklepach na Shopify 15 sekund."
-                  )}
-                </span>
-              </li>
-              <li>
-                <.fluent_icon name={:arrow_clockwise} />
-                <span>
-                  {gettext(
-                    "Gdy sklep odpowie 429 (za dużo żądań), bot raz odczekuje krótki Retry-After (do 10 sekund, na Shopify do minuty), a potem wraca najwyżej dwa razy, po około 20 i 40 minutach. Później czeka już do następnej nocy."
                   )}
                 </span>
               </li>
@@ -162,6 +145,136 @@ defmodule TcgCheapWeb.BotLive do
                 <.fluent_icon name={:shield} />
                 <span>
                   {gettext("Nie sprzedajemy tych danych ani nie przekazujemy ich innym firmom.")}
+                </span>
+              </li>
+            </ul>
+          </section>
+
+          <%!-- Plain English text, on purpose: the registries that review the bot read English,
+               and the gettext catalogues of every language would need the same long text. --%>
+          <section id="bot-policy" aria-labelledby="bot-policy-title" lang="en">
+            <h2 id="bot-policy-title">Bot policy (English)</h2>
+            <dl class="bot-facts">
+              <dt>Operator</dt>
+              <dd>
+                Alergeek Ventures, the operator of tcg.cheap. Contact: <a href={"mailto:#{@contact}"}>{@contact}</a>.
+              </dd>
+              <dt>User-Agent</dt>
+              <dd>
+                <code>TcgCheap/1.0 (buying guide)</code>, robots.txt token <code>TcgCheap</code>.
+              </dd>
+              <dt>Signatures</dt>
+              <dd>
+                Every request the bot makes to a shop (product feeds, store APIs, category and product pages),
+                to a wholesaler's price list, to robots.txt itself and for product and card images is signed
+                with Web Bot Auth (HTTP Message Signatures, RFC 9421, Ed25519) and carries <code>Signature-Agent: "https://tcg.cheap"</code>. The public key is published at <a href={
+                  ~p"/.well-known/http-message-signatures-directory"
+                }>
+                  <code>{url(~p"/.well-known/http-message-signatures-directory")}</code>
+                </a>.
+              </dd>
+            </dl>
+
+            <h3>robots.txt</h3>
+            <ul class="bot-points">
+              <li>
+                <.fluent_icon name={:eye} />
+                <span>
+                  Before the bot reads a host it fetches <code>https://&lt;host&gt;/robots.txt</code>
+                  (signed, with the same User-Agent) and requests only paths the rules allow. The bot
+                  does not read a host or a path robots.txt disallows.
+                </span>
+              </li>
+              <li>
+                <.fluent_icon name={:tag} />
+                <span>
+                  The bot uses the group whose user-agent token is <code>TcgCheap</code>
+                  (compared
+                  case-insensitively) and, only if there is none, the <code>*</code>
+                  group. Within the
+                  group the longest matching <code>Allow</code>
+                  or <code>Disallow</code>
+                  pattern wins and <code>Allow</code>
+                  wins a tie; <code>*</code>
+                  and a final <code>$</code>
+                  in a pattern
+                  work as RFC 9309 describes.
+                </span>
+              </li>
+              <li>
+                <.fluent_icon name={:hourglass} />
+                <span>
+                  A <code>Crawl-delay</code> in that group is a minimum pause between requests to the
+                  host: the larger of it and the bot's own pause. A Crawl-delay over five minutes makes
+                  the bot skip the host.
+                </span>
+              </li>
+              <li>
+                <.fluent_icon name={:shield} />
+                <span>
+                  404 and 410 mean there is no robots.txt: everything is allowed. 401, 403 and a
+                  challenge response mean the host refuses the bot: it is not read. When robots.txt cannot
+                  be read (a 5xx or 429 answer, a timeout, a network error, any other status), the rules
+                  fetched earlier are used for up to 24 hours after they were fetched; without them the
+                  host is not read that run. Rules are fetched again at most once an hour.
+                </span>
+              </li>
+            </ul>
+
+            <h3>Failures, refusals and pacing</h3>
+            <ul class="bot-points">
+              <li>
+                <.fluent_icon name={:shield} />
+                <span>
+                  After a 401, a 403 or a challenge response (for example Cloudflare's <code>cf-mitigated: challenge</code>) the bot stops reading that shop at once. It does
+                  not repeat the request, does not try another host, address or identity, and asks
+                  again only at the next regular run.
+                </span>
+              </li>
+              <li>
+                <.fluent_icon name={:arrow_clockwise} />
+                <span>
+                  <code>Retry-After</code>
+                  on a 429 or 503 is honoured in full. A short one (up to 10 seconds,
+                  a minute for Shopify) is waited out and the request is repeated once; with a longer one the
+                  bot does not ask the host again before the time has passed, and gives the read up if that
+                  time is after the next nightly run. A 429 without <code>Retry-After</code>
+                  is repeated once
+                  after 10 seconds, then after about 20 and 40 minutes.
+                </span>
+              </li>
+              <li>
+                <.fluent_icon name={:hourglass} />
+                <span>
+                  Requests to one shop are made one at a time, at least one second apart (15 seconds on
+                  Shopify, 5 seconds for the wholesaler's price list), and a read runs once a day. Images are
+                  downloaded one by one, spaced by the host's Crawl-delay where robots.txt names one.
+                </span>
+              </li>
+            </ul>
+
+            <h3>What is stored</h3>
+            <ul class="bot-points">
+              <li>
+                <.fluent_icon name={:image} />
+                <span>
+                  Product titles, prices, availability, barcodes where the shop gives them, product page
+                  addresses and product images (resized copies on our storage). The bot does not log in,
+                  does not use carts or checkout and does not read personal data.
+                </span>
+              </li>
+            </ul>
+
+            <h3>Blocking the bot</h3>
+            <ul class="bot-points">
+              <li>
+                <.fluent_icon name={:mail} />
+                <span>
+                  Add <code>User-agent: TcgCheap</code>
+                  with <code>Disallow: /</code>
+                  to robots.txt, or
+                  write to <a href={"mailto:#{@contact}"}>{@contact}</a>. The bot checks robots.txt before
+                  every run.
                 </span>
               </li>
             </ul>
