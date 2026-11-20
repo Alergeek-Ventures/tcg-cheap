@@ -14,7 +14,8 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
   product counts as sealed when its title names a sealed product
   (`TcgCheap.Sealed.Matcher.sealed_title?/1`), none of the shop's
   `excluded_markers` is its vendor, product type or tag, none of its
-  `excluded_phrases` is in its title, handle or description and, when the whole shop is
+  `excluded_phrases` is in its title, handle or description, none of its
+  `excluded_title_phrases` is in its title or handle and, when the whole shop is
   read, its title or vendor also says Pokémon (`mixed_listing: false`
   declares a shop that sells only Pokémon, so nothing has to say it). Product
   URLs are built from the validated handle; images (the variant's own, else
@@ -237,17 +238,19 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
 
   defp sealed?(shop, product, title) do
     not marked?(product, shop.excluded_markers) and
-      not phrased?(product, shop.excluded_phrases) and Matcher.sealed_title?(title) and
+      not phrased?(product, shop.excluded_phrases, ["title", "handle", "body_html"]) and
+      not phrased?(product, shop.excluded_title_phrases, ["title", "handle"]) and
+      Matcher.sealed_title?(title) and
       (pokemon_only?(shop) or pokemon?(product))
   end
 
-  # The normalized title, handle or description ("...-oppnas-live" reads
+  # The normalized text of the given product fields ("...-oppnas-live" reads
   # "... oppnas live") holds a phrase as whole words.
-  defp phrased?(_product, nil), do: false
+  defp phrased?(_product, nil, _keys), do: false
 
-  defp phrased?(product, phrases) do
+  defp phrased?(product, phrases, keys) do
     texts =
-      for key <- ["title", "handle", "body_html"],
+      for key <- keys,
           text = product[key],
           is_binary(text),
           do: " " <> Matcher.normalize(text) <> " "
