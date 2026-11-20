@@ -18,8 +18,12 @@ defmodule TcgCheap.Sealed.ShopFeed do
   and Web Bot Auth signature, and it is made only where the host's robots.txt
   allows. A policy reason (a path robots.txt disallows, a 401, a 403 or a
   challenge, a `Retry-After` longer than the wait a client allows) ends the
-  whole fetch at once, optional requests included, and is returned as the
-  fetch's error; `TcgCheap.Sealed.FetchWorker` does not retry it at once. A
+  whole fetch at once and is returned as the fetch's error; for an optional
+  request only a refusal (401, 403, challenge) and a robots.txt problem do so:
+  a path robots.txt disallows is not requested, and a long `Retry-After` is
+  remembered, and both are just a request not read (the host is not asked an
+  optional request again while that wait lasts; the fetch's required requests
+  wait for it); `TcgCheap.Sealed.FetchWorker` does not retry it at once. A
   rate-limited (429) or unavailable (503) request with a short `Retry-After`
   is repeated once after it; with no `Retry-After` a 429 is repeated after
   10 s and then fails, and `TcgCheap.Sealed.FetchWorker` retries it minutes
@@ -129,7 +133,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
            journal,
            path,
            params,
-           fn -> request(shop, path, params, req_options, opts) end,
+           fn -> request(shop, path, params, req_options, opts, optional) end,
            optional: optional
          ) do
       {:ok, %Req.Response{} = response} -> {:ok, response}
@@ -138,8 +142,8 @@ defmodule TcgCheap.Sealed.ShopFeed do
   end
 
   # A reason the bot's policy ends the shop's fetch with (`TcgCheap.Bot`) leaves
-  # the client at once, optional requests included: the shop is not asked again.
-  defp request(shop, path, params, req_options, opts) do
+  # the client at once (`ended/2`): the shop is not asked again.
+  defp request(shop, path, params, req_options, opts, optional) do
     host = shop.feed_host || shop.host
     max_body_bytes = Keyword.get(opts, :max_body_bytes, @max_body_bytes)
     max_retry_after_ms = Keyword.get(opts, :max_retry_after_ms, @max_retry_after_ms)
@@ -165,26 +169,41 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
     # Waits for the host's turn: the larger of the shop's `Crawl-delay` and the
     # client's own pause after the request before it, whoever made that.
-    with {:error, reason} <-
-           Bot.permit(host, target, req_options,
-             pause_ms: pause_ms,
-             protocols: protocols,
-             max_retry_after_ms: max_retry_after_ms
-           ),
-         do: Bot.stop(reason)
+    permit =
+      Bot.permit(host, target, req_options,
+        pause_ms: pause_ms,
+        protocols: protocols,
+        max_retry_after_ms: max_retry_after_ms
+      )
 
-    case Req.request(request) do
-      {:ok, response} -> answer(host, response)
-      {:error, exception} -> {:error, {:transport, exception.__struct__}}
+    with :ok <- permit_or_end(permit, optional) do
+      case Req.request(request) do
+        {:ok, response} -> answer(host, response, optional)
+        {:error, exception} -> {:error, {:transport, exception.__struct__}}
+      end
     end
   end
 
-  defp answer(host, response) do
+  defp permit_or_end(:ok, _optional), do: :ok
+  defp permit_or_end({:error, reason}, optional), do: ended(reason, optional)
+
+  defp answer(host, response, optional) do
     case Bot.classify(host, response) do
-      {:stop, reason} -> Bot.stop(reason)
+      {:stop, reason} -> ended(reason, optional)
       :ok -> status(response)
     end
   end
+
+  # An optional request the fetch can do without (a Shoptet variant page) is
+  # not read, and that is all, when robots.txt disallows its path or the host
+  # asked for a long wait (`Bot.classify/2` remembers it, so no request goes
+  # there before it has passed; the next required request snoozes the job until
+  # then, and a fetch with only optional requests left is done without it).
+  # Everything else, a refusal first of all, ends the fetch.
+  defp ended({tag, _detail} = reason, true) when tag in [:robots_disallowed, :retry_after],
+    do: {:error, reason}
+
+  defp ended(reason, _optional), do: Bot.stop(reason)
 
   defp status(%Req.Response{status: 200, body: :too_large}), do: {:error, :response_too_large}
   defp status(%Req.Response{status: 200} = response), do: {:ok, response}

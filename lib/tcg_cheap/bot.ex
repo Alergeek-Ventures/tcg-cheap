@@ -56,7 +56,14 @@ defmodule TcgCheap.Bot do
   # What a request waits for its turn in place: within a job's timeout, and
   # not longer than a queue slot should be held.
   @max_wait_ms :timer.minutes(5)
-  @challenge_page ~r/<title>\s*(?:Just a moment|Attention Required|Checking your browser)|cf-chl-|challenge-platform|\/cdn-cgi\/challenge/i
+  # Markers of a challenge page itself: its title, its `cf-chl-` form fields and
+  # the orchestrator under `/cdn-cgi/challenge-platform/h/`. Not the bare
+  # `challenge-platform` or `/cdn-cgi/challenge`: Cloudflare's JavaScript
+  # detections add `/cdn-cgi/challenge-platform/scripts/jsd/main.js` to ordinary
+  # pages, an error page of the shop among them. The `cf-mitigated: challenge`
+  # header (`challenge?/1`) is the main signal.
+  @challenge_page ~r/<title>\s*(?:Just a moment|Attention Required|Checking your browser)|cf-chl-|\/cdn-cgi\/challenge-platform\/h\//i
+  @snooze_margin_s 3_600
   @stop {__MODULE__, :stop}
 
   @type reason ::
@@ -359,12 +366,14 @@ defmodule TcgCheap.Bot do
 
   @doc """
   Whether `reason` is a policy decision that another attempt would only
-  repeat (robots.txt, a refusal). A wait (`wait_seconds/1`) is not: it is
-  waited out.
+  repeat (rules that disallow, a refusal). A wait (`wait_seconds/1`) is not: it
+  is waited out. Neither is a robots.txt that could not be read
+  (`:robots_unreadable`: a timeout, a network failure, a 5xx or a 429): that is
+  a failure of the moment, and the worker's attempts retry it.
   """
   @spec final?(term()) :: boolean()
   def final?({tag, _detail})
-      when tag in [:robots_disallowed, :robots_refused, :robots_unreadable, :refused],
+      when tag in [:robots_disallowed, :robots_refused, :refused],
       do: true
 
   def final?(_reason), do: false
@@ -379,15 +388,16 @@ defmodule TcgCheap.Bot do
 
   @doc """
   What a job does with a wait of `seconds`: `{:snooze, seconds}` (plus up to
-  30 s of jitter) when it ends before the job's next nightly run at `run_at`
-  (UTC), counted from the job's insertion, else `:expired`: the job must end
-  with its failure then, or its snoozing would keep the next night's job from
-  being queued.
+  30 s of jitter) when it ends at least an hour (`@snooze_margin_s`) before the
+  job's next nightly run at `run_at` (UTC), counted from the job's insertion,
+  else `:expired`: the job must end with its failure then, or its snoozing
+  would keep the next night's job from being queued. The margin leaves the
+  last wake-up time to run, and to wait in its queue, before the run.
   """
   @spec snooze_before(Oban.Job.t(), pos_integer(), Time.t()) ::
           {:snooze, pos_integer()} | :expired
   def snooze_before(%Oban.Job{inserted_at: inserted_at}, seconds, %Time{} = run_at) do
-    deadline = next_run(inserted_at, run_at)
+    deadline = inserted_at |> next_run(run_at) |> DateTime.add(-@snooze_margin_s, :second)
     wake_at = DateTime.add(DateTime.utc_now(), seconds, :second)
 
     if DateTime.compare(wake_at, deadline) == :lt,
