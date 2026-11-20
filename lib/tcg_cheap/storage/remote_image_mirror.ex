@@ -118,7 +118,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
 
   # Limitless's object storage answers 403, not 404, for a scan it does not
   # have; elsewhere a 403 is a block (hotlinking, bots) and stays a warning.
-  @missing_as_403 ["limitlesstcg.nyc3.cdn.digitaloceanspaces.com"]
+  @missing_as_403 Storage.ImageDownload.missing_as_403_hosts()
 
   # A run that mirrors nothing while this many images fail on their first
   # attempt looks like a source outage rather than missing scans.

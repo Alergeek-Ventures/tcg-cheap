@@ -214,20 +214,14 @@ defmodule TcgCheap.Sealed.Rebel do
   # The bot's policy (`TcgCheap.Bot`) applies: a path robots.txt disallows, a
   # refusal or a `Retry-After` ends the whole run (`run/1` answers its reason).
   defp get(path, params, req_options) do
-    target = if params == [], do: path, else: path <> "?" <> URI.encode_query(params)
+    {url, target} = Bot.request_url(@host, path, params)
 
-    pause_ms =
-      case Bot.permit(@host, target, req_options, pause_ms: @pause_ms) do
-        {:ok, crawl_delay_ms} -> max(@pause_ms, crawl_delay_ms)
-        {:error, reason} -> Bot.stop(reason)
-      end
-
-    Process.sleep(pause_ms)
+    with {:error, reason} <- Bot.permit(@host, target, req_options, pause_ms: @pause_ms),
+         do: Bot.stop(reason)
 
     request =
       [
-        url: @base <> path,
-        params: params,
+        url: url,
         decode_body: false,
         connect_options: [timeout: 5_000],
         receive_timeout: 15_000,

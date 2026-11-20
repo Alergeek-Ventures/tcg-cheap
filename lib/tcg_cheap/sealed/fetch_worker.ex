@@ -26,11 +26,15 @@ defmodule TcgCheap.Sealed.FetchWorker do
   attempt that night: a path the shop's robots.txt disallows, a robots.txt
   that refuses us or cannot be read, a 401, a 403 or a challenge response end
   the job as cancelled (after the failure report below). A `Retry-After` the
-  fetch does not wait out in place (longer than 10 s, a minute on Shopify) is
-  not slept in the queue either: the job snoozes until the time the shop
+  fetch does not wait out in place (longer than 10 s, a minute on Shopify), and
+  a `Crawl-delay` that puts the shop's next turn more than five minutes away,
+  are not slept in the queue either: the job snoozes until the time the shop
   named (plus up to 30 s of jitter) and goes on from the responses already
-  read, and if that is not before the next nightly run it fails with the
-  reason. The shop is not asked before that time, by any job.
+  read. Snoozes do not use up attempts, so they are bounded by the night: the
+  job's wait must end before the nightly run that follows its insertion
+  (02:30 UTC), or it fails with one report, `{:retry_after, seconds}` or
+  `{:robots_crawl_delay, seconds}`, and is cancelled. The shop is not asked
+  before that time, by any job.
 
   A failure on the last attempt is reported with `TcgCheap.Sealed.FetchFailure`:
   an error the fetch returns by `perform/1`, and a raise, crash or Oban timeout,
@@ -59,6 +63,9 @@ defmodule TcgCheap.Sealed.FetchWorker do
 
   # Seconds. The shop's own pause comes before each request anyway.
   @next_step_in 1
+
+  # The nightly cron entry of this worker (config.exs), UTC.
+  @nightly_at ~T[02:30:00]
 
   @worker inspect(__MODULE__)
   @failure_handler "sealed-fetch-failures"
@@ -172,20 +179,33 @@ defmodule TcgCheap.Sealed.FetchWorker do
     :ok
   end
 
-  # The shop asked to be left alone for a while: wait it out, unless the next
-  # nightly run comes first, which then reads the shop afresh.
-  defp finish({:error, {:retry_after, seconds} = reason}, shop, _job, journal) do
-    if DateTime.compare(DateTime.add(DateTime.utc_now(), seconds, :second), next_run()) == :lt do
-      Logger.info("sealed fetch #{shop.key}: asked to wait #{seconds} s, snoozing")
-      {:snooze, seconds + :rand.uniform(30)}
-    else
-      fail(reason, shop, journal, :cancel)
+  defp finish({:error, reason}, shop, job, journal) do
+    case Bot.wait_seconds(reason) do
+      seconds when is_integer(seconds) -> wait(reason, seconds, shop, job, journal)
+      nil -> fail_or_retry(reason, shop, job, journal)
+    end
+  end
+
+  # The shop asked to be left alone for a while (a `Retry-After`, or the
+  # `Crawl-delay` of its robots.txt that leaves its next turn too far away to
+  # wait for in place): wait it out. Snoozes do not count as attempts, so the
+  # wait ends with the failure when it would reach the next nightly run, which
+  # then reads the shop afresh; a job snoozing past it would keep that run from
+  # being queued (the job is unique per shop).
+  defp wait(reason, seconds, shop, job, journal) do
+    case Bot.snooze_before(job, seconds, @nightly_at) do
+      {:snooze, _seconds} = snooze ->
+        Logger.info("sealed fetch #{shop.key}: asked to wait #{seconds} s, snoozing")
+        snooze
+
+      :expired ->
+        fail(reason, shop, journal, :cancel)
     end
   end
 
   # Another attempt would only ask a shop that refused us, or one whose
   # robots.txt closes it to us, again.
-  defp finish({:error, reason}, shop, job, journal) do
+  defp fail_or_retry(reason, shop, job, journal) do
     cond do
       Bot.final?(reason) -> fail(reason, shop, journal, :cancel)
       # Only the last attempt is a failed fetch: an earlier one is retried and
@@ -215,13 +235,6 @@ defmodule TcgCheap.Sealed.FetchWorker do
     FetchJournal.close(journal)
     FetchFailure.report(:sealed, shop.key, reason)
     {:error, reason}
-  end
-
-  # The next run of the nightly cron entry (config.exs), 02:30 UTC.
-  defp next_run do
-    now = DateTime.utc_now()
-    today = DateTime.new!(Date.utc_today(), ~T[02:30:00], "Etc/UTC")
-    if DateTime.compare(now, today) == :lt, do: today, else: DateTime.add(today, 1, :day)
   end
 
   # A shop that refused or dropped us once is asked again where it stopped;

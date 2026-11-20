@@ -8,19 +8,31 @@ defmodule TcgCheap.Bot do
     User-Agent. The requests of other tools (NBP rates, Cardmarket files,
     TCGdex) are no crawling and do not carry it.
   - robots.txt: `permit/4` fetches `https://<host>/robots.txt` (signed, same
-    identity; up to five redirects are followed) before the host is read and decides whether a path may be
-    requested (`TcgCheap.Bot.Robots`). Rules fetched are used for an hour
-    without asking again. A host whose robots.txt answers 404 or 410 allows
-    everything; one that refuses us (401, 403, a challenge) allows nothing;
-    when it cannot be read (5xx, 429, timeout, network failure, any other
-    status) the rules fetched before are used for up to 24 hours after they
-    were fetched, and without them the host is not read.
-  - Refusals and waits: a 401, a 403 or a challenge response (`cf-mitigated:
-    challenge`, a Cloudflare challenge page) is never retried, and nothing is
-    asked of the host again through another way. A `Retry-After` on 429 or 503
-    is honoured: a short one is waited out in the request (`retry_step/1`), a
-    longer one is remembered (`TcgCheap.Bot.Hosts`) so that the host is not
-    asked before it has passed (`classify/2`, `permit/4`).
+    identity; up to five redirects are followed, at most 512 KiB are read,
+    one request at a time per host) before the host is read and decides
+    whether a path may be requested (`TcgCheap.Bot.Robots`). Rules fetched are
+    used for an hour without asking again. The status of robots.txt itself
+    follows RFC 9309: a 2xx is parsed; any 4xx but 429 (404, 410, and 401 or
+    403 too) means there are no rules and everything is allowed; 429, 5xx, a
+    timeout and network failures mean it cannot be read, and then the rules
+    fetched before are used for up to 24 hours after they were fetched (a
+    refresh is tried again after the `Retry-After`, or an hour), and without
+    them the host is not read. A challenge response in place of robots.txt
+    (`cf-mitigated: challenge`, a Cloudflare challenge page) is a refusal:
+    nothing is read.
+  - Pace: every request to a host takes a turn (`TcgCheap.Bot.Hosts`), the
+    larger of the reader's own pause and the host's `Crawl-delay` after the
+    one before, whichever reader made it. A turn up to five minutes away is
+    waited for in place; a later one ends the step with
+    `{:robots_crawl_delay, seconds}` (`wait_seconds/1`), so that a worker can
+    do it later instead of holding its queue slot.
+  - Refusals and waits: a 401, a 403 or a challenge response to a request
+    itself is never retried, and nothing is asked of the host again through
+    another way. A `Retry-After` on 429 or 503 is honoured: a short one is
+    waited out in the request (`retry_step/1`), a longer one is remembered
+    (`TcgCheap.Bot.Hosts`) so that the host is not asked before it has passed
+    (`classify/2`, `permit/4`), and the worker snoozes until then
+    (`snooze_before/3`).
 
   A policy decision that ends the reading of a host is a reason such as
   `{:robots_disallowed, path}`; `stop/1` throws it to `catch_stop/1`, so that
@@ -41,8 +53,9 @@ defmodule TcgCheap.Bot do
   @valid_ms :timer.hours(24)
   @rate_limit_delay_ms 10_000
   @default_max_retry_after_ms 10_000
-  # A Crawl-delay longer than this would hold a job far beyond its time.
-  @max_crawl_delay_ms :timer.minutes(5)
+  # What a request waits for its turn in place: within a job's timeout, and
+  # not longer than a queue slot should be held.
+  @max_wait_ms :timer.minutes(5)
   @challenge_page ~r/<title>\s*(?:Just a moment|Attention Required|Checking your browser)|cf-chl-|challenge-platform|\/cdn-cgi\/challenge/i
   @stop {__MODULE__, :stop}
 
@@ -71,37 +84,67 @@ defmodule TcgCheap.Bot do
   end
 
   @doc """
-  Decides whether `target` (a path with its query) may be requested from
-  `host`: `{:ok, pause_ms}`, the `Crawl-delay` the host asks between
-  requests, or `{:error, reason}` (see the moduledoc). Fetches robots.txt when
-  its rules are not at hand; `req_options` are merged into that request, and
-  `opts` take `:pause_ms` (before it), `:protocols` and `:max_retry_after_ms`.
+  The URL to request for `path` and `params` on `host`, and the target (path
+  and query) that robots.txt rules are matched against. Both come from the one
+  URL, with the query of `path` and `params` merged once and a fragment, which
+  is never sent, dropped, so that what is checked is what is requested.
   """
-  @spec permit(String.t(), String.t(), keyword(), keyword()) ::
-          {:ok, non_neg_integer()} | {:error, reason()}
+  @spec request_url(String.t(), String.t(), keyword()) :: {String.t(), String.t()}
+  def request_url(host, path, params) do
+    uri = URI.parse("https://" <> host <> path)
+
+    query =
+      [uri.query, if(params == [], do: nil, else: URI.encode_query(params))]
+      |> Enum.reject(&(&1 in [nil, ""]))
+      |> Enum.join("&")
+
+    uri = %{uri | fragment: nil, query: if(query == "", do: nil, else: query)}
+    {URI.to_string(uri), target(uri)}
+  end
+
+  @doc "The path and query of `uri`, which robots.txt rules are matched against."
+  @spec target(URI.t()) :: String.t()
+  def target(%URI{path: path, query: nil}), do: path || "/"
+  def target(%URI{path: path, query: query}), do: (path || "/") <> "?" <> query
+
+  @doc """
+  Decides whether `target` (a path with its query) may be requested from
+  `host` and takes the turn for it: `:ok` once it is the request's turn (the
+  pause has been waited), or `{:error, reason}` (see the moduledoc). Fetches
+  robots.txt when its rules are not at hand; `req_options` are merged into
+  that request, and `opts` take `:pause_ms` (the reader's own pause, default
+  0), `:protocols`, `:max_retry_after_ms` and `:max_wait_ms` (how long to wait
+  for the turn in place).
+  """
+  @spec permit(String.t(), String.t(), keyword(), keyword()) :: :ok | {:error, reason()}
   def permit(host, target, req_options, opts \\ []) do
     host = String.downcase(host)
 
     with :ok <- cooled_down(host),
-         {:ok, rules} <- rules(host, req_options, opts) do
-      verdict(rules, target)
+         {:ok, rules} <- rules(host, req_options, opts),
+         :ok <- verdict(rules, target) do
+      pace(host, max(Keyword.get(opts, :pause_ms, 0), rules.delay_ms), opts)
     end
   end
 
   defp verdict(%Robots{refused: status}, _target) when is_integer(status),
     do: {:error, {:robots_refused, status}}
 
-  defp verdict(%Robots{delay_ms: delay}, _target) when delay > @max_crawl_delay_ms,
-    do: {:error, {:robots_crawl_delay, div(delay, 1000)}}
-
   defp verdict(%Robots{} = rules, target) do
     case Robots.check(rules, target) do
-      :allowed -> {:ok, rules.delay_ms}
-      {:disallowed, _rule} -> {:error, {:robots_disallowed, path(target)}}
+      :allowed -> :ok
+      {:disallowed, _rule} -> {:error, {:robots_disallowed, target |> String.split("?") |> hd()}}
     end
   end
 
-  defp path(target), do: target |> String.split("?", parts: 2) |> hd()
+  # The turn at the host, whoever reads it: a pause, or a longer `Crawl-delay`,
+  # after the request before.
+  defp pace(host, gap_ms, opts) do
+    case Hosts.reserve(host, gap_ms, Keyword.get(opts, :max_wait_ms, @max_wait_ms)) do
+      {:ok, wait_ms} -> Process.sleep(wait_ms)
+      {:wait, wait_ms} -> {:error, {:robots_crawl_delay, seconds(wait_ms)}}
+    end
+  end
 
   defp cooled_down(host) do
     case Hosts.not_before(host) do
@@ -114,55 +157,97 @@ defmodule TcgCheap.Bot do
     end
   end
 
+  # Rules at hand are used; otherwise one process at a time fetches them, and
+  # the others find them when it is done.
   defp rules(host, req_options, opts) do
-    stored = Hosts.robots(host)
+    case at_hand(host) do
+      {:ok, rules} ->
+        {:ok, rules}
 
-    case stored do
-      {rules, fetched_at} when is_struct(rules, Robots) ->
-        if Hosts.now() - fetched_at < @fresh_ms,
-          do: {:ok, rules},
-          else: fetch_rules(host, req_options, opts, stored)
+      {:stale, _stored} ->
+        :global.trans(
+          {{__MODULE__, :robots, host}, self()},
+          fn -> fetch_if_stale(host, req_options, opts) end,
+          [node()]
+        )
+    end
+  end
+
+  defp fetch_if_stale(host, req_options, opts) do
+    case at_hand(host) do
+      {:ok, rules} -> {:ok, rules}
+      {:stale, stored} -> fetch_rules(host, req_options, opts, stored)
+    end
+  end
+
+  # Rules fetched within the hour, or while a refresh that was throttled waits
+  # for its time, stand.
+  defp at_hand(host) do
+    case Hosts.robots(host) do
+      {rules, fetched_at} = stored ->
+        now = Hosts.now()
+
+        if now - fetched_at < @fresh_ms or
+             (now - fetched_at <= @valid_ms and now < (Hosts.robots_retry_at(host) || 0)),
+           do: {:ok, rules},
+           else: {:stale, stored}
 
       nil ->
-        fetch_rules(host, req_options, opts, stored)
+        {:stale, nil}
     end
   end
 
   defp fetch_rules(host, req_options, opts, stored) do
     max_retry_after_ms = Keyword.get(opts, :max_retry_after_ms, @default_max_retry_after_ms)
-    Process.sleep(Keyword.get(opts, :pause_ms, 0))
 
-    request =
-      [
-        url: "https://#{host}/robots.txt",
-        decode_body: false,
-        connect_options: [timeout: 5_000, protocols: Keyword.get(opts, :protocols, [:http1])],
-        receive_timeout: 15_000,
-        # RFC 9309: a crawler follows at least five redirects to robots.txt.
-        redirect: true,
-        max_redirects: 5,
-        retry: retry_step(max_retry_after_ms),
-        max_retries: 1
-      ]
-      |> new()
-      |> Req.merge(req_options)
+    with :ok <- pace(host, Keyword.get(opts, :pause_ms, 0), opts) do
+      request =
+        [
+          url: "https://#{host}/robots.txt",
+          decode_body: false,
+          into: &bounded_body/2,
+          connect_options: [timeout: 5_000, protocols: Keyword.get(opts, :protocols, [:http1])],
+          receive_timeout: 15_000,
+          # RFC 9309: a crawler follows at least five redirects to robots.txt.
+          redirect: true,
+          max_redirects: 5,
+          retry: retry_step(max_retry_after_ms),
+          max_retries: 1
+        ]
+        |> new()
+        # Nothing of the shop's own requests (a token header) goes to robots.txt.
+        |> Req.merge(Keyword.drop(req_options, [:headers, :params, :url]))
 
-    case Req.request(request) do
-      {:ok, %Req.Response{status: 200, body: body} = response} when is_binary(body) ->
-        if refused?(response),
-          do: remember_refusal(host, 200),
-          else: remember(host, Robots.parse(body, @token))
-
-      {:ok, %Req.Response{status: status}} when status in [404, 410] ->
-        remember(host, Robots.allow_all())
-
-      {:ok, response} ->
-        unreadable(host, response, stored)
-
-      {:error, exception} ->
-        fall_back(host, {:transport, exception.__struct__}, stored)
+      case Req.request(request) do
+        {:ok, response} -> robots_answer(host, response, stored)
+        {:error, exception} -> unreadable(host, {:transport, exception.__struct__}, nil, stored)
+      end
     end
   end
+
+  # RFC 9309 says a crawler parses at least 500 KiB and may ignore the rest, so
+  # the download stops there.
+  @doc false
+  def bounded_body({:data, data}, {request, response}) do
+    body = if is_binary(response.body), do: response.body, else: ""
+    room = Robots.max_bytes() - byte_size(body)
+
+    if byte_size(data) < room,
+      do: {:cont, {request, %{response | body: body <> data}}},
+      else: {:halt, {request, %{response | body: body <> binary_part(data, 0, room)}}}
+  end
+
+  defp robots_answer(host, %Req.Response{status: status} = response, stored) do
+    cond do
+      challenge?(response) -> remember_refusal(host, status)
+      status in 200..299 -> remember(host, Robots.parse(body(response), @token))
+      status in 400..499 and status != 429 -> remember(host, Robots.allow_all())
+      true -> unreadable(host, {:http_status, status}, response, stored)
+    end
+  end
+
+  defp body(%Req.Response{body: body}) when is_binary(body), do: body
+  defp body(_response), do: ""
 
   defp remember(host, rules) do
     Hosts.put_robots(host, rules)
@@ -174,28 +259,33 @@ defmodule TcgCheap.Bot do
     {:error, {:robots_refused, status}}
   end
 
-  defp unreadable(host, response, stored) do
-    case classify(host, response) do
-      {:stop, {:refused, status}} -> remember_refusal(host, status)
-      {:stop, {:retry_after, _seconds} = reason} -> {:error, reason}
-      :ok -> fall_back(host, {:http_status, response.status}, stored)
-    end
-  end
+  # The rules fetched before stay valid for a day after they were fetched, and
+  # win over a refresh the host throttles (the refresh waits for the
+  # `Retry-After`, or an hour).
+  defp unreadable(host, reason, response, {rules, fetched_at}) do
+    now = Hosts.now()
 
-  # The rules fetched before stay valid for a day after they were fetched.
-  defp fall_back(host, reason, {rules, fetched_at}) do
-    if Hosts.now() - fetched_at <= @valid_ms do
+    if now - fetched_at <= @valid_ms do
       Logger.info(
         "robots.txt of #{host} unreadable (#{inspect(reason)}): using the earlier rules"
       )
 
+      retry_ms = (response && retry_after_ms(response)) || @fresh_ms
+      Hosts.put_robots_retry_at(host, now + retry_ms)
       {:ok, rules}
     else
-      {:error, {:robots_unreadable, reason}}
+      unreadable(host, reason, response, nil)
     end
   end
 
-  defp fall_back(_host, reason, nil), do: {:error, {:robots_unreadable, reason}}
+  # No usable rules: a `Retry-After` is waited out by the job, else the host is
+  # not read.
+  defp unreadable(host, reason, response, nil) do
+    case response && classify(host, response) do
+      {:stop, {:retry_after, _seconds} = retry} -> {:error, retry}
+      _none -> {:error, {:robots_unreadable, reason}}
+    end
+  end
 
   @doc """
   What a response means for the policy: `{:stop, {:refused, status}}` for a
@@ -224,7 +314,9 @@ defmodule TcgCheap.Bot do
   def refused?(%Req.Response{status: status} = response),
     do: status in [401, 403] or challenge?(response)
 
-  defp challenge?(%Req.Response{status: status, body: body} = response) do
+  @doc "Whether the response is a challenge page or carries a challenge header."
+  @spec challenge?(Req.Response.t()) :: boolean()
+  def challenge?(%Req.Response{status: status, body: body} = response) do
     Enum.any?(
       Req.Response.get_header(response, "cf-mitigated"),
       &String.contains?(String.downcase(&1), "challenge")
@@ -267,20 +359,49 @@ defmodule TcgCheap.Bot do
 
   @doc """
   Whether `reason` is a policy decision that another attempt would only
-  repeat (robots.txt, a refusal). A `Retry-After` is not: it is waited out.
+  repeat (robots.txt, a refusal). A wait (`wait_seconds/1`) is not: it is
+  waited out.
   """
   @spec final?(term()) :: boolean()
   def final?({tag, _detail})
-      when tag in [
-             :robots_disallowed,
-             :robots_refused,
-             :robots_unreadable,
-             :robots_crawl_delay,
-             :refused
-           ],
+      when tag in [:robots_disallowed, :robots_refused, :robots_unreadable, :refused],
       do: true
 
   def final?(_reason), do: false
+
+  @doc """
+  The seconds a reason asks to wait before the host is asked again (a
+  `Retry-After`, or the turn a `Crawl-delay` leaves), or nil.
+  """
+  @spec wait_seconds(term()) :: pos_integer() | nil
+  def wait_seconds({tag, seconds}) when tag in [:retry_after, :robots_crawl_delay], do: seconds
+  def wait_seconds(_reason), do: nil
+
+  @doc """
+  What a job does with a wait of `seconds`: `{:snooze, seconds}` (plus up to
+  30 s of jitter) when it ends before the job's next nightly run at `run_at`
+  (UTC), counted from the job's insertion, else `:expired`: the job must end
+  with its failure then, or its snoozing would keep the next night's job from
+  being queued.
+  """
+  @spec snooze_before(Oban.Job.t(), pos_integer(), Time.t()) ::
+          {:snooze, pos_integer()} | :expired
+  def snooze_before(%Oban.Job{inserted_at: inserted_at}, seconds, %Time{} = run_at) do
+    deadline = next_run(inserted_at, run_at)
+    wake_at = DateTime.add(DateTime.utc_now(), seconds, :second)
+
+    if DateTime.compare(wake_at, deadline) == :lt,
+      do: {:snooze, seconds + :rand.uniform(30)},
+      else: :expired
+  end
+
+  defp next_run(after_time, run_at) do
+    same_day = DateTime.new!(DateTime.to_date(after_time), run_at, "Etc/UTC")
+
+    if DateTime.compare(after_time, same_day) == :lt,
+      do: same_day,
+      else: DateTime.add(same_day, 1, :day)
+  end
 
   @doc "Ends the reading of a host at once, from anywhere in a client; see `catch_stop/1`."
   @spec stop(reason()) :: no_return()
