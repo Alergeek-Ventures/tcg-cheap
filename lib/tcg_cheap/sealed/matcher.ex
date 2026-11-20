@@ -31,6 +31,13 @@ defmodule TcgCheap.Sealed.Matcher do
       product's name holds that set name and no other "ex"; such a
       product then counts one token less (`set_ex/2`).
 
+  Shops name some products otherwise than Cardmarket does, and the matcher
+  reads those forms: a Dutch "Booster Bundel" or a bare "<set> Bundle" is the
+  Booster Bundle, a "Half"/"Halve Booster Box" the 18-booster box, "USA" the
+  "(US Version)", "PC Elite Trainer Box" the Pokémon Center one, a Japanese set
+  code ("sv11b") the Japanese edition, "Collection Box" a collection or a box
+  and "XY", "Diamond & Pearl" and "<series> Base Set" a series' own products.
+
   A title that sets "mega", "ex", "vmax", "vstar" or "gx" beside a Pokémon some
   product of its kind names so does not match a product that names the Pokémon
   without it (`form_fits?/2`). A title marked as an edition in a language the
@@ -735,7 +742,8 @@ defmodule TcgCheap.Sealed.Matcher do
   # unexplained: "Boltund V Showcase Box" is "Boltund V Showcase" (box words
   # answered for) rather than "Boltund V Box", which lacks "showcase".
   defp fewest_unexplained(tie, offer_set) do
-    case Enum.group_by(tie, &MapSet.size(unexplained(offer_set, &1))) |> Enum.min_by(&elem(&1, 0)) do
+    case Enum.group_by(tie, &MapSet.size(unexplained(offer_set, &1)))
+         |> Enum.min_by(&elem(&1, 0)) do
       {_count, [entry]} -> {:matched, entry.id}
       {_count, _tie} -> :ambiguous
     end
@@ -1042,8 +1050,8 @@ defmodule TcgCheap.Sealed.Matcher do
 
     if "bundle" in tokens and MapSet.subset?(kinds, @bundle_companions) and
          not String.contains?(title, "+"),
-      do: Enum.flat_map(tokens, &if(&1 == "bundle", do: ["booster", "bundle"], else: [&1])),
-      else: tokens
+       do: Enum.flat_map(tokens, &if(&1 == "bundle", do: ["booster", "bundle"], else: [&1])),
+       else: tokens
   end
 
   # A "Half Booster Box" without a pack count is Cardmarket's "Booster Box (18
