@@ -188,6 +188,10 @@ msgid "151 mini tin"
 msgstr "151 mini tin"
 
 #. contents item
+msgid "3 losowe karty z Classic Collection (30th Celebration)"
+msgstr "3 willekeurige kaarten uit de Classic Collection (30th Celebration)"
+
+#. contents item
 msgid "3-card fun pack"
 msgstr "fun pack met 3 kaarten"
 
@@ -230,6 +234,10 @@ msgstr "infoblad"
 #. contents item
 msgid "arkusz papierowych żetonów obrażeń"
 msgstr "vel met papieren damage counters"
+
+#. contents item
+msgid "arkusz porad do budowy talii"
+msgstr "tipsblad voor het bouwen van een deck"
 
 #. contents item
 msgid "arkusz żetonów obrażeń i znaczników"
@@ -1216,6 +1224,10 @@ msgid "minipuszka 30th Celebration"
 msgstr "30th Celebration mini tin"
 
 #. contents item
+msgid "minipuszka Galar Pals (5 wzorów)"
+msgstr "Galar Pals mini tin (5 ontwerpen)"
+
+#. contents item
 msgid "minipuszka Lumiose City (5 wzorów)"
 msgstr "Lumiose City mini tin (5 ontwerpen)"
 
@@ -1238,6 +1250,10 @@ msgstr "nieuwjaarsstempel"
 #. contents item
 msgid "noworoczny magnes na lodówkę"
 msgstr "nieuwjaarskoelkastmagneet"
+
+#. contents item
+msgid "pakiet ewolucji (23 karty)"
+msgstr "evolutiepakket (23 kaarten)"
 
 #. contents item
 msgid "pakiet ulepszający talię (15 kart)"
@@ -1508,8 +1524,16 @@ msgid "Leafeon (karta holo)"
 msgstr "Leafeon (holokaart)"
 
 #. promo card
+msgid "losowa (1 z 4: Cherrim, Octillery, Houndoom, Bronzong – SWSH 088–091)"
+msgstr "willekeurig (1 van 4: Cherrim, Octillery, Houndoom, Bronzong – SWSH 088–091)"
+
+#. promo card
 msgid "losowa (1 z 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
 msgstr "willekeurig (1 van 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
+
+#. promo card
+msgid "losowa (1 z 4: Cinderace, Inteleon, Cresselia, Passimian – SWSH 112–115)"
+msgstr "willekeurig (1 van 4: Cinderace, Inteleon, Cresselia, Passimian – SWSH 112–115)"
 
 #. promo card
 msgid "losowa (1 z 4: Delphox, Ampharos, Crobat, Goodra – MEP 074–077)"
@@ -1518,6 +1542,14 @@ msgstr "willekeurig (1 van 4: Delphox, Ampharos, Crobat, Goodra – MEP 074–07
 #. promo card
 msgid "losowa (1 z 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
 msgstr "willekeurig (1 van 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
+
+#. promo card
+msgid "losowa (1 z 4: Meganium, Inteleon, Alakazam, Lunatone – MEP 001–004)"
+msgstr "willekeurig (1 van 4: Meganium, Inteleon, Alakazam, Lunatone – MEP 001–004)"
+
+#. promo card
+msgid "losowa (1 z 4: Moltres, Lucario, Liepard, Bibarel – SWSH 185–188)"
+msgstr "willekeurig (1 van 4: Moltres, Lucario, Liepard, Bibarel – SWSH 185–188)"
 
 #. promo card
 msgid "losowa First Partner (3 z 9: MEP 046–054)"

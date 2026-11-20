@@ -188,6 +188,10 @@ msgid "151 mini tin"
 msgstr "mini plechovka 151"
 
 #. contents item
+msgid "3 losowe karty z Classic Collection (30th Celebration)"
+msgstr "3 náhodné karty z Classic Collection (30th Celebration)"
+
+#. contents item
 msgid "3-card fun pack"
 msgstr "fun pack se 3 kartami"
 
@@ -230,6 +234,10 @@ msgstr "informační list"
 #. contents item
 msgid "arkusz papierowych żetonów obrażeń"
 msgstr "arch papírových žetonů poškození"
+
+#. contents item
+msgid "arkusz porad do budowy talii"
+msgstr "list s tipy pro stavbu balíčku"
 
 #. contents item
 msgid "arkusz żetonów obrażeń i znaczników"
@@ -1216,6 +1224,10 @@ msgid "minipuszka 30th Celebration"
 msgstr "mini plechovka 30th Celebration"
 
 #. contents item
+msgid "minipuszka Galar Pals (5 wzorów)"
+msgstr "mini plechovka Galar Pals (5 vzorů)"
+
+#. contents item
 msgid "minipuszka Lumiose City (5 wzorów)"
 msgstr "mini plechovka Lumiose City (5 vzorů)"
 
@@ -1238,6 +1250,10 @@ msgstr "novoroční razítko"
 #. contents item
 msgid "noworoczny magnes na lodówkę"
 msgstr "novoroční magnet na lednici"
+
+#. contents item
+msgid "pakiet ewolucji (23 karty)"
+msgstr "evoluční balíček (23 karet)"
 
 #. contents item
 msgid "pakiet ulepszający talię (15 kart)"
@@ -1508,8 +1524,16 @@ msgid "Leafeon (karta holo)"
 msgstr "Leafeon (holo)"
 
 #. promo card
+msgid "losowa (1 z 4: Cherrim, Octillery, Houndoom, Bronzong – SWSH 088–091)"
+msgstr "náhodná (1 ze 4: Cherrim, Octillery, Houndoom, Bronzong – SWSH 088–091)"
+
+#. promo card
 msgid "losowa (1 z 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
 msgstr "náhodná (1 ze 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
+
+#. promo card
+msgid "losowa (1 z 4: Cinderace, Inteleon, Cresselia, Passimian – SWSH 112–115)"
+msgstr "náhodná (1 ze 4: Cinderace, Inteleon, Cresselia, Passimian – SWSH 112–115)"
 
 #. promo card
 msgid "losowa (1 z 4: Delphox, Ampharos, Crobat, Goodra – MEP 074–077)"
@@ -1518,6 +1542,14 @@ msgstr "náhodná (1 ze 4: Delphox, Ampharos, Crobat, Goodra – MEP 074–077)"
 #. promo card
 msgid "losowa (1 z 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
 msgstr "náhodná (1 ze 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
+
+#. promo card
+msgid "losowa (1 z 4: Meganium, Inteleon, Alakazam, Lunatone – MEP 001–004)"
+msgstr "náhodná (1 ze 4: Meganium, Inteleon, Alakazam, Lunatone – MEP 001–004)"
+
+#. promo card
+msgid "losowa (1 z 4: Moltres, Lucario, Liepard, Bibarel – SWSH 185–188)"
+msgstr "náhodná (1 ze 4: Moltres, Lucario, Liepard, Bibarel – SWSH 185–188)"
 
 #. promo card
 msgid "losowa First Partner (3 z 9: MEP 046–054)"
