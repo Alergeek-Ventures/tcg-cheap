@@ -28,11 +28,24 @@ defmodule TcgCheap.Countries.Portugal do
       language: "pt",
       hreflang: "pt-PT",
       popular_languages: [],
-      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # Cheaper domestic/German total Prices including packaging, checked 2026-11-20:
       # https://help.cardmarket.com/en/ShippingCosts
-      # German Standardbrief through €25, then domestic Correio Registado.
-      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
-      cardmarket_tracked_letter_eur: Decimal.new("5.10"),
+      # German Standardbrief through €25 and its tracked parcel at €200–€500;
+      # otherwise domestic methods, with insured-courier estimates at the top.
+      cardmarket_letter_tiers: [
+        {Decimal.new("25"), Decimal.new("1.55"), :letter},
+        {Decimal.new("100"), Decimal.new("5.10"), :tracked_letter},
+        {Decimal.new("200"), Decimal.new("9.99"), :tracked_parcel},
+        {Decimal.new("400"), Decimal.new("15.49"), :tracked_parcel},
+        {Decimal.new("500"), Decimal.new("15.49"), :tracked_parcel},
+        {Decimal.new("1000"), Decimal.new("20.15"), :insured_parcel},
+        {Decimal.new("2000"), Decimal.new("34.08"), :insured_parcel},
+        {Decimal.new("2500"), Decimal.new("34.08"), :insured_parcel},
+        {Decimal.new("5000"), Decimal.new("56.33"), :insured_parcel},
+        {Decimal.new("10000"), Decimal.new("150.00"), :insured_courier_estimate},
+        {Decimal.new("20000"), Decimal.new("150.00"), :insured_courier_estimate},
+        {Decimal.new("150000"), Decimal.new("150.00"), :insured_courier_estimate}
+      ],
       # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "produtos", expansions: "expansoes", cards: "cartas"},

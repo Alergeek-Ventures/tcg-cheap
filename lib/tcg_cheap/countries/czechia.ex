@@ -29,11 +29,22 @@ defmodule TcgCheap.Countries.Czechia do
       hreflang: "cs-CZ",
       # Slovak is read here too, but the guide has no Slovak interface yet.
       popular_languages: [],
-      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # Cheaper domestic/German total Prices including packaging, checked 2026-11-20:
       # https://help.cardmarket.com/en/ShippingCosts
-      # German Standardbrief through €25, then domestic Registered Letter.
-      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
-      cardmarket_tracked_letter_eur: Decimal.new("3.85"),
+      # German Standardbrief through €25, insured domestic letters through €10,000,
+      # then the lower German insured-courier estimate (not a fixed courier quote).
+      cardmarket_letter_tiers: [
+        {Decimal.new("25"), Decimal.new("1.55"), :letter},
+        {Decimal.new("60"), Decimal.new("3.85"), :tracked_letter},
+        {Decimal.new("200"), Decimal.new("4.95"), :insured_letter},
+        {Decimal.new("1200"), Decimal.new("5.54"), :insured_letter},
+        {Decimal.new("2400"), Decimal.new("7.31"), :insured_letter},
+        {Decimal.new("2500"), Decimal.new("19.70"), :insured_letter},
+        {Decimal.new("5000"), Decimal.new("19.70"), :insured_letter},
+        {Decimal.new("10000"), Decimal.new("19.70"), :insured_letter},
+        {Decimal.new("20000"), Decimal.new("150.00"), :insured_courier_estimate},
+        {Decimal.new("150000"), Decimal.new("150.00"), :insured_courier_estimate}
+      ],
       # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "produkty", expansions: "sety", cards: "karty"},

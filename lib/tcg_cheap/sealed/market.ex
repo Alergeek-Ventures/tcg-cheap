@@ -35,8 +35,7 @@ defmodule TcgCheap.Sealed.Market do
     :country,
     :currency,
     :decimals,
-    :cardmarket_untracked_letter_eur,
-    :cardmarket_tracked_letter_eur,
+    :cardmarket_letter_tiers,
     :cardmarket_shipping_eur
   ]
   defstruct @enforce_keys
@@ -46,8 +45,7 @@ defmodule TcgCheap.Sealed.Market do
           country: String.t(),
           currency: String.t(),
           decimals: non_neg_integer(),
-          cardmarket_untracked_letter_eur: Decimal.t(),
-          cardmarket_tracked_letter_eur: Decimal.t(),
+          cardmarket_letter_tiers: [TcgCheap.Cards.Reference.tier()],
           cardmarket_shipping_eur: Decimal.t()
         }
 
@@ -61,8 +59,7 @@ defmodule TcgCheap.Sealed.Market do
       country: region.country,
       currency: region.currency,
       decimals: region.decimals,
-      cardmarket_untracked_letter_eur: region.cardmarket_untracked_letter_eur,
-      cardmarket_tracked_letter_eur: region.cardmarket_tracked_letter_eur,
+      cardmarket_letter_tiers: region.cardmarket_letter_tiers,
       cardmarket_shipping_eur: region.cardmarket_shipping_eur
     }
 

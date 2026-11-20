@@ -29,11 +29,24 @@ defmodule TcgCheap.Countries.Croatia do
       language: "hr",
       hreflang: "hr-HR",
       popular_languages: [],
-      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # Cheaper domestic/German total Prices including packaging, checked 2026-11-20:
       # https://help.cardmarket.com/en/ShippingCosts
-      # Domestic Letter (Small) through €25, then Registered Letter (Small).
-      cardmarket_untracked_letter_eur: Decimal.new("1.02"),
-      cardmarket_tracked_letter_eur: Decimal.new("2.75"),
+      # Domestic letters except €300–€500 and above €1,500, where the German
+      # insured parcel is cheaper; the final tiers are estimates, not fixed quotes.
+      cardmarket_letter_tiers: [
+        {Decimal.new("25"), Decimal.new("1.02"), :letter},
+        {Decimal.new("75"), Decimal.new("2.75"), :tracked_letter},
+        {Decimal.new("300"), Decimal.new("11.18"), :insured_letter},
+        {Decimal.new("500"), Decimal.new("15.49"), :tracked_parcel},
+        {Decimal.new("1000"), Decimal.new("19.18"), :insured_letter},
+        {Decimal.new("1500"), Decimal.new("19.18"), :insured_letter},
+        {Decimal.new("2000"), Decimal.new("46.49"), :insured_parcel},
+        {Decimal.new("2500"), Decimal.new("88.20"), :insured_parcel},
+        {Decimal.new("5000"), Decimal.new("122.00"), :insured_parcel},
+        {Decimal.new("10000"), Decimal.new("150.00"), :insured_courier_estimate},
+        {Decimal.new("20000"), Decimal.new("150.00"), :insured_courier_estimate},
+        {Decimal.new("150000"), Decimal.new("150.00"), :insured_courier_estimate}
+      ],
       # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "proizvodi", expansions: "setovi", cards: "karte"},

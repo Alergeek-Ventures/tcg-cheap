@@ -812,16 +812,16 @@ defmodule TcgCheapWeb.PageMarkdown do
             ),
           else: gettext("brak ofert bez gradingu na stanie")
 
-      "#{variant}: #{price}#{reference_note(answer.reference, abroad_only?)} (#{verdict})"
+      "#{variant}: #{price}#{reference_note(answer)} (#{verdict})"
     end
   end
 
-  defp reference_note(nil, _abroad_only?), do: ""
+  defp reference_note(%{reference: nil}), do: ""
 
-  defp reference_note(reference, abroad_only?) do
-    if abroad_only?,
-      do: gettext("; trend Cardmarket, bez dostawy: %{price}", price: Format.price(reference)),
-      else: gettext("; Cardmarket z przesyłką: %{price}", price: Format.price(reference))
+  defp reference_note(%{reference: reference, reference_with_delivery?: with_delivery?}) do
+    if with_delivery?,
+      do: gettext("; Cardmarket z przesyłką: %{price}", price: Format.price(reference)),
+      else: gettext("; trend Cardmarket, bez dostawy: %{price}", price: Format.price(reference))
   end
 
   defp card_offers_table(%{offers: []}, _today),

@@ -33,11 +33,23 @@ defmodule TcgCheap.Countries.Sweden do
       language: "sv",
       hreflang: "sv-SE",
       popular_languages: [],
-      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # Cheaper domestic/German total Prices including packaging, checked 2026-11-20:
       # https://help.cardmarket.com/en/ShippingCosts
-      # German Standardbrief through €25, then domestic Insured Letter (Rek).
-      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
-      cardmarket_tracked_letter_eur: Decimal.new("11.11"),
+      # German Standardbrief through €25, domestic insured letter through €550,
+      # insured parcel through €5,500, then insured-courier estimates (not quotes).
+      cardmarket_letter_tiers: [
+        {Decimal.new("25"), Decimal.new("1.55"), :letter},
+        {Decimal.new("500"), Decimal.new("11.11"), :insured_letter},
+        {Decimal.new("550"), Decimal.new("11.11"), :insured_letter},
+        {Decimal.new("1000"), Decimal.new("15.77"), :insured_parcel},
+        {Decimal.new("2000"), Decimal.new("15.77"), :insured_parcel},
+        {Decimal.new("2500"), Decimal.new("15.77"), :insured_parcel},
+        {Decimal.new("5000"), Decimal.new("15.77"), :insured_parcel},
+        {Decimal.new("5500"), Decimal.new("15.77"), :insured_parcel},
+        {Decimal.new("10000"), Decimal.new("148.38"), :insured_courier_estimate},
+        {Decimal.new("20000"), Decimal.new("148.38"), :insured_courier_estimate},
+        {Decimal.new("150000"), Decimal.new("148.38"), :insured_courier_estimate}
+      ],
       # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "produkter", expansions: "set", cards: "kort"},
