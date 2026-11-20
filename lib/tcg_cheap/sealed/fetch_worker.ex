@@ -27,15 +27,17 @@ defmodule TcgCheap.Sealed.FetchWorker do
   that refuses us, a 401, a 403 or a challenge response end the job as
   cancelled (after the failure report below). A robots.txt that cannot be read
   (a timeout, a 5xx) is a failure of the moment: the job's attempts retry it. A `Retry-After` the
-  fetch does not wait out in place (longer than 10 s, a minute on Shopify), and
-  a `Crawl-delay` that puts the shop's next turn more than five minutes away,
-  are not slept in the queue either: the job snoozes until the time the shop
-  named (plus up to 30 s of jitter) and goes on from the responses already
-  read. Snoozes do not use up attempts, so they are bounded by the night: the
-  job's wait must end an hour before the nightly run that follows its insertion
-  (02:30 UTC), or it fails with one report, `{:retry_after, seconds}` or
-  `{:robots_crawl_delay, seconds}`, and is cancelled. The shop is not asked
-  before that time, by any job.
+  fetch does not wait out in place (longer than 10 s, a minute on Shopify) is
+  not slept in the queue: the attempt ends, and the next one comes no sooner
+  than the shop said and no sooner than the spacing above, so a shop that
+  keeps limiting us is asked three times a night, not every minute. A
+  `Crawl-delay` that puts the shop's next turn more than five minutes away is
+  waited out by snoozing until that turn (plus up to 30 s of jitter), which
+  uses up no attempt. Either wait must end an hour before the nightly run that
+  follows the job's insertion (02:30 UTC), or the job fails with one report,
+  `{:retry_after, seconds}` or `{:robots_crawl_delay, seconds}`, and is
+  cancelled. The shop is not asked before the time it named, by any job, and
+  the next attempt goes on from the responses already read.
 
   A failure on the last attempt is reported with `TcgCheap.Sealed.FetchFailure`:
   an error the fetch returns by `perform/1`, and a raise, crash or Oban timeout,
@@ -133,6 +135,16 @@ defmodule TcgCheap.Sealed.FetchWorker do
       }),
       do: rate_limited_backoff(attempt)
 
+  # A `Retry-After` is the least a rate-limited shop asked us to wait; a shop
+  # that still limits us is asked again later each time, not every minute.
+  def backoff(%Oban.Job{
+        attempt: attempt,
+        unsaved_error: %{
+          reason: %Oban.PerformError{reason: {:error, {:retry_after, seconds}}}
+        }
+      }),
+      do: max(seconds, rate_limited_backoff(attempt))
+
   def backoff(job), do: super(job)
 
   defp rate_limited_backoff(attempt), do: attempt * 20 * 60 + :rand.uniform(5 * 60)
@@ -187,12 +199,32 @@ defmodule TcgCheap.Sealed.FetchWorker do
     end
   end
 
-  # The shop asked to be left alone for a while (a `Retry-After`, or the
-  # `Crawl-delay` of its robots.txt that leaves its next turn too far away to
-  # wait for in place): wait it out. Snoozes do not count as attempts, so the
+  # A shop that rate-limits us with a `Retry-After` is asked again no sooner
+  # than it said, and that counts as an attempt: a shop that keeps limiting us
+  # would otherwise be asked every minute for a day. The attempts are spaced
+  # like those after a 429 without a `Retry-After` (`backoff/1`), and the
+  # responses already read are kept.
+  #
+  # A `Crawl-delay` of its robots.txt that leaves the shop's next turn too far
+  # away to wait for in place is waited out by snoozing. Snoozes do not count as attempts, so the
   # wait ends with the failure when it would reach the next nightly run, which
   # then reads the shop afresh; a job snoozing past it would keep that run from
   # being queued (the job is unique per shop).
+  defp wait({:retry_after, _seconds} = reason, seconds, shop, job, journal) do
+    next_in = max(seconds, rate_limited_backoff(job.attempt))
+
+    cond do
+      job.attempt >= job.max_attempts ->
+        fail(reason, shop, journal, :error)
+
+      Bot.snooze_before(job, next_in, @nightly_at) == :expired ->
+        fail(reason, shop, journal, :cancel)
+
+      true ->
+        retry(reason, shop, job, journal)
+    end
+  end
+
   defp wait(reason, seconds, shop, job, journal) do
     case Bot.snooze_before(job, seconds, @nightly_at) do
       {:snooze, _seconds} = snooze ->
@@ -242,6 +274,7 @@ defmodule TcgCheap.Sealed.FetchWorker do
   # after any other failure the retry reads the shop afresh, since a response
   # that did not parse may have been a bad one.
   defp transient?({:http_status, 429}), do: true
+  defp transient?({:retry_after, _seconds}), do: true
   defp transient?({:transport, _exception}), do: true
   defp transient?(_reason), do: false
 end
