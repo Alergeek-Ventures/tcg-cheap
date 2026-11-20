@@ -221,7 +221,7 @@ defmodule TcgCheapWeb.BotLive do
                   cannot be read (a 429 or 5xx answer, a timeout, a network error, any other status),
                   the rules fetched earlier are used for up to 24 hours after they were fetched, and the
                   bot asks again after the <code>Retry-After</code>
-                  or an hour; without such rules the host is not read that run. Rules are fetched again
+                  or an hour; without such rules the host is not read, and the read is tried again later that night. Rules are fetched again
                   at most once an hour.
                 </span>
               </li>

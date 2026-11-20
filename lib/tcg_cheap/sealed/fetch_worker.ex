@@ -24,14 +24,15 @@ defmodule TcgCheap.Sealed.FetchWorker do
 
   The bot's policy (`TcgCheap.Bot`) ends a fetch at once, with no further
   attempt that night: a path the shop's robots.txt disallows, a robots.txt
-  that refuses us or cannot be read, a 401, a 403 or a challenge response end
-  the job as cancelled (after the failure report below). A `Retry-After` the
+  that refuses us, a 401, a 403 or a challenge response end the job as
+  cancelled (after the failure report below). A robots.txt that cannot be read
+  (a timeout, a 5xx) is a failure of the moment: the job's attempts retry it. A `Retry-After` the
   fetch does not wait out in place (longer than 10 s, a minute on Shopify), and
   a `Crawl-delay` that puts the shop's next turn more than five minutes away,
   are not slept in the queue either: the job snoozes until the time the shop
   named (plus up to 30 s of jitter) and goes on from the responses already
   read. Snoozes do not use up attempts, so they are bounded by the night: the
-  job's wait must end before the nightly run that follows its insertion
+  job's wait must end an hour before the nightly run that follows its insertion
   (02:30 UTC), or it fails with one report, `{:retry_after, seconds}` or
   `{:robots_crawl_delay, seconds}`, and is cancelled. The shop is not asked
   before that time, by any job.
