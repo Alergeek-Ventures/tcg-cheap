@@ -1674,3 +1674,15 @@ msgstr "alleen in de winkel; online 199,99 zł"
 #. retail deal note
 msgid "wybrane sklepy"
 msgstr "geselecteerde winkels"
+
+#. promo card
+msgid "losowa (1 z 4: Flapple, Luxray, Coalossal, Garbodor – SWSH 022–025)"
+msgstr "willekeurig (1 van 4: Flapple, Luxray, Coalossal, Garbodor – SWSH 022–025)"
+
+#. promo card
+msgid "losowa (1 z 4: Sunflora, Rapidash, Kirlia, Archeops – SWSH 269–272)"
+msgstr "willekeurig (1 van 4: Sunflora, Rapidash, Kirlia, Archeops – SWSH 269–272)"
+
+#. contents item
+msgid "minipuszka Vibrant Paldea (5 wzorów)"
+msgstr "Vibrant Paldea mini tin (5 ontwerpen)"

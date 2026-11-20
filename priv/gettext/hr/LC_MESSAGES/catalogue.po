@@ -1674,3 +1674,15 @@ msgstr "samo u poslovnicama; online 199,99 zł"
 #. retail deal note
 msgid "wybrane sklepy"
 msgstr "odabrane trgovine"
+
+#. promo card
+msgid "losowa (1 z 4: Flapple, Luxray, Coalossal, Garbodor – SWSH 022–025)"
+msgstr "nasumična (1 od 4: Flapple, Luxray, Coalossal, Garbodor – SWSH 022–025)"
+
+#. promo card
+msgid "losowa (1 z 4: Sunflora, Rapidash, Kirlia, Archeops – SWSH 269–272)"
+msgstr "nasumična (1 od 4: Sunflora, Rapidash, Kirlia, Archeops – SWSH 269–272)"
+
+#. contents item
+msgid "minipuszka Vibrant Paldea (5 wzorów)"
+msgstr "Vibrant Paldea Mini Tin (5 dizajna)"

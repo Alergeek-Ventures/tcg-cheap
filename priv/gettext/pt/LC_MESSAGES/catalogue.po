@@ -1674,3 +1674,15 @@ msgstr "só em loja física; online 199,99 zł"
 #. retail deal note
 msgid "wybrane sklepy"
 msgstr "lojas selecionadas"
+
+#. promo card
+msgid "losowa (1 z 4: Flapple, Luxray, Coalossal, Garbodor – SWSH 022–025)"
+msgstr "aleatória (1 de 4: Flapple, Luxray, Coalossal, Garbodor – SWSH 022–025)"
+
+#. promo card
+msgid "losowa (1 z 4: Sunflora, Rapidash, Kirlia, Archeops – SWSH 269–272)"
+msgstr "aleatória (1 de 4: Sunflora, Rapidash, Kirlia, Archeops – SWSH 269–272)"
+
+#. contents item
+msgid "minipuszka Vibrant Paldea (5 wzorów)"
+msgstr "Mini Tin Vibrant Paldea (5 modelos)"
