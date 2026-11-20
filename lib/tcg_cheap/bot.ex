@@ -304,9 +304,11 @@ defmodule TcgCheap.Bot do
   def classify(host, %Req.Response{status: status} = response) do
     cond do
       refused?(response) ->
+        log_stop(host, response)
         {:stop, {:refused, status}}
 
       status in [429, 503] and is_integer(retry_after_ms(response)) ->
+        log_stop(host, response)
         ms = retry_after_ms(response)
         Hosts.put_not_before(String.downcase(host), Hosts.now() + ms)
         {:stop, {:retry_after, seconds(ms)}}
@@ -314,6 +316,17 @@ defmodule TcgCheap.Bot do
       true ->
         :ok
     end
+  end
+
+  # The host's own names for the response (`x-request-id`, `cf-ray`) are what
+  # its operator asks for when a refusal or a rate limit has to be traced.
+  defp log_stop(host, %Req.Response{status: status} = response) do
+    ids =
+      for name <- ["x-request-id", "cf-ray", "retry-after"],
+          value <- Req.Response.get_header(response, name),
+          do: "#{name}=#{value}"
+
+    Logger.warning("#{host} answered #{status}: #{Enum.join(ids, " ")}")
   end
 
   @doc "Whether the host refused us: a 401, a 403 or a challenge response."
