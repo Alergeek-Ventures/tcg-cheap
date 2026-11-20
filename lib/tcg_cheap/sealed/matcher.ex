@@ -45,7 +45,8 @@ defmodule TcgCheap.Sealed.Matcher do
   matches no product.
 
   Among matching products the most specific one (most tokens) wins; a tie is
-  ambiguous and stays unmatched, because a wrong match would poison the price
+  broken by the product leaving fewer title words unexplained
+  (`fewest_unexplained/2`), otherwise ambiguous and stays unmatched, because a wrong match would poison the price
   history. When nothing matches, a title may leave out what names a set's only
   product of its kind (a promo Pokémon, "Blister", "Collection"); a booster
   display is a booster box. Titles for multi-item bundles, empty, damaged,
@@ -280,7 +281,7 @@ defmodule TcgCheap.Sealed.Matcher do
   ]
 
   @qualifiers MapSet.new(
-                ~w(booster box bundle display case half mini tin elite trainer center premium collection
+                ~w(booster box bundle display case half halved jpcode mini tin elite trainer center premium collection
                    checklane blister pack sleeved jumbo build battle prerelease deck league figure poster
                    binder pin sticker tech ultra super special illustration deluxe toolkit chest kit stadium
                    enhanced surprise pouch portfolio starter gift calendar slim jp korean chinese sch tch thai
@@ -464,6 +465,7 @@ defmodule TcgCheap.Sealed.Matcher do
             omissible: set_ex(product, name_tokens),
             meets: meets(product, name_tokens, single_blister?(name_tokens), sch != []),
             sch?: sch != [],
+            eu_version?: Regex.match?(~r/\bEU Version\b/i, product.name),
             code_tokens: MapSet.new(tokens(code)),
             set_tokens: MapSet.new(tokens(Map.get(product, :set_name) || "")),
             single?: Map.get(product, :kind) == :booster or single_blister?(name_tokens),
@@ -600,7 +602,9 @@ defmodule TcgCheap.Sealed.Matcher do
       counts and a leading series are removed and "1 Pack Blister" follows
       "Checklane" in a title that neither says "Premium" nor counts packs;
     * `:qualifiers` – the title tokens a matching product name must contain;
-    * `:max_unexplained` – how many title tokens may be absent from the name;
+    * `:max_unexplained` – how many title tokens may be absent from a name; each
+      candidate's own limit is `:max_unexplained` too (0 for a product that
+      answers for the title's "box" or "collection", see `max_unexplained/2`);
     * `:candidates` – up to `limit` indexed products sharing the most tokens
       with the title, qualifying ones first (most specific first), each with
       `:id`, its name `:tokens`, `:missing` (name tokens absent from the
@@ -611,7 +615,8 @@ defmodule TcgCheap.Sealed.Matcher do
       not), `:meets` (qualifiers it meets without naming them: its language,
       "pack" for a single booster, "checklane" for a 1-Pack Blister, "slim"
       for a product sold in a Jumbo version too, "sch" for one named
-      "S-Ch"), `:edition_named?` (false when such a product's title says
+      "S-Ch", "half" for the 18-booster box, "box" or "collection" for a
+      collection product), `:edition_named?` (false when such a product's title says
       neither "Chinese" nor its set code) and `:qualifies?`.
 
   Products whose names reduce to fewer than two tokens are not indexed and
@@ -651,6 +656,7 @@ defmodule TcgCheap.Sealed.Matcher do
             |> Enum.sort(),
           unexplained: offer_set |> unexplained(entry) |> Enum.sort(),
           code_tokens: Enum.sort(entry.code_tokens),
+          max_unexplained: max_unexplained(entry, qualifiers),
           meets: Enum.sort(entry.meets),
           edition_named?: edition_named?(entry, offer_set),
           missing_forms:
@@ -708,13 +714,19 @@ defmodule TcgCheap.Sealed.Matcher do
     case best(offer_tokens, index, packs?) do
       :unmatched ->
         if Regex.match?(@usa, title),
-          do: best(offer_tokens -- ["us", "version"], index, packs?),
+          do: without_eu_version(best(offer_tokens -- ["us", "version"], index, packs?), index),
           else: :unmatched
 
       result ->
         result
     end
   end
+
+  defp without_eu_version({:matched, id} = result, index) do
+    if Enum.any?(index.entries, &(&1.id == id and &1.eu_version?)), do: :unmatched, else: result
+  end
+
+  defp without_eu_version(result, _index), do: result
 
   defp best(offer_tokens, index, packs?) do
     offer_set = MapSet.new(offer_tokens)
@@ -818,7 +830,7 @@ defmodule TcgCheap.Sealed.Matcher do
       MapSet.size(unexplained) <= max_unexplained(entry, qualifiers) and
       MapSet.disjoint?(unexplained, known_tokens) and
       checklane_fits?(entry, offer_set, unexplained) and
-      edition_named?(entry, offer_set)
+      edition_named?(entry, offer_set) and not us_for_eu?(entry, offer_set)
   end
 
   # The name tokens a title lacks: omissible kind words and, for `:variant`,
@@ -848,12 +860,17 @@ defmodule TcgCheap.Sealed.Matcher do
       not MapSet.member?(entry.set_tokens, token) and not String.match?(token, ~r/\A\d+\z/)
   end
 
+  # A "USA" title never is a product named "(EU Version)", whose marker the
+  # synonyms erase from its tokens.
+  defp us_for_eu?(entry, offer_set),
+    do: entry.eu_version? and "us" in offer_set and "version" in offer_set
+
   defp candidate?(entry, offer_set, qualifiers, packs?) do
-    kind_fits?(entry, qualifiers, packs?) and
+    kind_fits?(entry, qualifiers, packs?) and not us_for_eu?(entry, offer_set) and
       entry.tokens |> MapSet.difference(entry.omissible) |> MapSet.subset?(offer_set) and
       MapSet.size(unexplained(offer_set, entry)) <= max_unexplained(entry, qualifiers) and
       checklane_fits?(entry, offer_set, unexplained(offer_set, entry)) and
-      edition_named?(entry, offer_set)
+      edition_named?(entry, offer_set) and not us_for_eu?(entry, offer_set)
   end
 
   # A product that answers for the title's "box" or "collection" without
@@ -1032,6 +1049,7 @@ defmodule TcgCheap.Sealed.Matcher do
       |> tokens()
       |> drop_series_base()
       |> strip_series(sets)
+      |> guard_half()
       |> name_half_count(packs?)
       |> booster_bundle(title)
 
@@ -1045,14 +1063,48 @@ defmodule TcgCheap.Sealed.Matcher do
                        ~w(bundle display jp korean chinese sch tch thai indonesian german french italian spanish portuguese)
                      )
 
+  # "Prismatic Evolutions & Terapagos UPC Bundle", "Prismatic Evolutions 12
+  # Bundle": a connector (not the one of a series, "Scarlet & Violet") or a
+  # count beside "Bundle" names something else than the Booster Bundle.
+  @series_connector ~r/\b(?:scarlet|sword|sun|diamond|black) and (?:violet|shield|moon|pearl|white)\b/
+
+  defp other_product_or_count?(tokens, title) do
+    words = title |> normalize() |> String.replace(@series_connector, " ")
+
+    String.contains?(title, "+") or Regex.match?(~r/\band\b/, words) or
+      tokens
+      |> Enum.chunk_every(2, 1, :discard)
+      |> Enum.any?(fn [count, next] ->
+        next == "bundle" and String.match?(count, ~r/\A\d{1,2}\z/)
+      end)
+  end
+
   defp booster_bundle(tokens, title) do
     kinds = MapSet.intersection(MapSet.new(tokens), @qualifiers)
 
     if "bundle" in tokens and MapSet.subset?(kinds, @bundle_companions) and
-         not String.contains?(title, "+"),
+         not other_product_or_count?(tokens, title),
        do: Enum.flat_map(tokens, &if(&1 == "bundle", do: ["booster", "bundle"], else: [&1])),
        else: tokens
   end
+
+  # "Half" names the 18-booster box only in the shops' phrases ("Half Booster
+  # Box/Display", "Halve …", the reversed "Booster Box Half (18 Packs)"); any
+  # other ("Booster Box Half Price") becomes "halved", a qualifier no product
+  # meets, so the title stays unmatched.
+  defp guard_half(tokens), do: guard_half(tokens, nil, [])
+
+  defp guard_half([], _previous, acc), do: Enum.reverse(acc)
+
+  defp guard_half([token | rest], previous, acc) do
+    token_out = if token == "half" and not half_phrase?(previous, rest), do: "halved", else: token
+    guard_half(rest, token, [token_out | acc])
+  end
+
+  defp half_phrase?(_previous, [next | _]) when next in ["booster", "display"], do: true
+  defp half_phrase?("box", []), do: true
+  defp half_phrase?("box", [count | _]), do: String.match?(count, ~r/\A\d+\z/)
+  defp half_phrase?(_previous, _rest), do: false
 
   # A "Half Booster Box" without a pack count is Cardmarket's "Booster Box (18
   # Boosters)"; one counting other packs ("Half Booster Box (36 Packs)")
@@ -1177,11 +1229,50 @@ defmodule TcgCheap.Sealed.Matcher do
   # Chinese editions that reuse the code ("Booster Box sv9a KR").
   @japanese_code ~r/ sv \d{1,2} [a-z](?= )/
   @other_editions ~r/ (?:korean|chinese|sch|tch|thai|indonesian|german|deutsch|french|italian|spanish|portuguese) /
+  @english ~r/ (?:english|en|eng|angielski|angielska|angielskie|engelsk|engelska|engelskt|engels|engelse|angol|anglicky) /
+
+  # The sets of the Japanese codes the catalogue holds products for: a code
+  # stands for "jp" beside its own set's name, or where the title already says
+  # "jp" ("Black Bolt … SV2A", the code of 151, names no Japanese product). Any
+  # other code becomes "jpcode", a qualifier no product meets, so the title
+  # stays unmatched; so does the code of a title that says "English".
+  @japanese_code_sets %{
+    "sv1s" => " scarlet ",
+    "sv1v" => " violet ",
+    "sv1a" => " triplet beat ",
+    "sv2a" => " 151 ",
+    "sv2d" => " clay burst ",
+    "sv2p" => " snow hazard ",
+    "sv3a" => " raging surf ",
+    "sv4a" => " shiny treasure ",
+    "sv4k" => " ancient roar ",
+    "sv4m" => " future flash ",
+    "sv5a" => " crimson haze ",
+    "sv5k" => " wild force ",
+    "sv5m" => " cyber judge ",
+    "sv6a" => " night wanderer ",
+    "sv7a" => " paradise dragona ",
+    "sv8a" => " terastal ",
+    "sv9a" => " arena ",
+    "sv9b" => " team rocket ",
+    "sv11b" => " black bolt ",
+    "sv11w" => " white flare "
+  }
 
   defp japanese_code(text) do
-    if Regex.match?(@other_editions, text),
-      do: text,
-      else: String.replace(text, @japanese_code, " jp")
+    cond do
+      Regex.match?(@english, text) -> String.replace(text, @japanese_code, " jpcode")
+      Regex.match?(@other_editions, text) -> text
+      true -> String.replace(text, @japanese_code, &japanese_code(&1, text))
+    end
+  end
+
+  defp japanese_code(match, text) do
+    set = Map.get(@japanese_code_sets, String.replace(match, " ", ""))
+
+    if String.contains?(text, " jp ") or (set && String.contains?(text, set)),
+      do: " jp",
+      else: " jpcode"
   end
 
   @doc "Normalizes text for word-wise comparison: lower case ASCII words separated by spaces."
