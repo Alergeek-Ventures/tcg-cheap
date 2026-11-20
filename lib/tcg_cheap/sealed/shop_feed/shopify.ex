@@ -26,7 +26,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
   changelog, May 2026): in November 2026 every listing request from production
   got 429 `local_rate_limited` (`Retry-After: 60`), over HTTP/1.1 and HTTP/2,
   on `/products.json` and on collections alike, 20 s apart and after waiting
-  out the `Retry-After`. Requests are therefore signed (`TcgCheap.WebBotAuth`; the bot
+  out the `Retry-After`. Requests are therefore signed (`TcgCheap.Bot`, as every request of the bot; the bot
   must also be registered with Shopify), go over HTTP/2 15 s apart and wait
   out a `Retry-After` of up to a minute; Shopify shops are fetched one at a
   time in a queue of their own (`TcgCheap.Sealed.FetchWorker`).
@@ -54,7 +54,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shopify do
   alias TcgCheap.Sealed.{Ean, Matcher, Shop, ShopFeed, Shops}
 
   @per_page 250
-  @request_opts [pause_ms: 15_000, protocols: [:http2], sign: true, max_retry_after_ms: 60_000]
+  @request_opts [pause_ms: 15_000, protocols: [:http2], max_retry_after_ms: 60_000]
   @handle ~r/\A[a-z0-9]+(?:[-_][a-z0-9]+)*\z/
 
   @impl true

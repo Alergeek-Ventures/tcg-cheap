@@ -1,6 +1,6 @@
 defmodule TcgCheap.WebBotAuth do
   @moduledoc """
-  Identifies the shop reader with Web Bot Auth: requests carry HTTP Message
+  Identifies the bot with Web Bot Auth: every request it makes (`TcgCheap.Bot`) carries HTTP Message
   Signatures (RFC 9421) made with our Ed25519 `key`, and the public key is
   published at `/.well-known/http-message-signatures-directory` on `agent`,
   our own site (`TcgCheapWeb.CrawlController`).
@@ -23,15 +23,17 @@ defmodule TcgCheap.WebBotAuth do
   @directory_tag "http-message-signatures-directory"
   @lifetime_s 60
 
+  @unsigned_warned {__MODULE__, :unsigned_warned}
+
   @doc """
-  A Req request step that signs the request when a key is configured, and
-  warns that it goes out unsigned otherwise.
+  A Req request step that signs the request when a key is configured; without
+  one the request goes out unsigned and a warning says so once per run.
   """
   @spec sign(Req.Request.t()) :: Req.Request.t()
   def sign(%Req.Request{} = request) do
     case config() do
       %{key: nil} ->
-        Logger.warning("unsigned request to #{request.url.host}: WEB_BOT_AUTH_KEY is not set")
+        warn_unsigned()
         request
 
       %{key: key, agent: agent} ->
@@ -69,6 +71,13 @@ defmodule TcgCheap.WebBotAuth do
 
         {:ok, Jason.encode!(%{keys: [jwk(key)]}),
          [{"signature-input", input}, {"signature", signature}]}
+    end
+  end
+
+  defp warn_unsigned do
+    if :persistent_term.get(@unsigned_warned, false) == false do
+      :persistent_term.put(@unsigned_warned, true)
+      Logger.warning("bot requests go out unsigned: WEB_BOT_AUTH_KEY is not set")
     end
   end
 

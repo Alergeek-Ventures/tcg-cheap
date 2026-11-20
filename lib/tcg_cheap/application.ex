@@ -23,6 +23,7 @@ defmodule TcgCheap.Application do
       {DNSCluster, query: Application.get_env(:tcg_cheap, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: TcgCheap.PubSub},
       {Task.Supervisor, name: TcgCheap.Storage.DownloadSupervisor},
+      TcgCheap.Bot.Hosts,
       {Oban, Application.fetch_env!(:tcg_cheap, Oban)},
       # Start to serve requests, typically the last entry
       TcgCheapWeb.Endpoint

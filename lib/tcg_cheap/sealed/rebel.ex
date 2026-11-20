@@ -6,7 +6,8 @@ defmodule TcgCheap.Sealed.Rebel do
 
   The listing gives REBEL's product id, name and SCD; an item's barcode is
   read once from its product page. The host asks for 5 seconds between
-  requests (robots.txt `Crawl-delay`), so the first run reads about fifty
+  requests (robots.txt `Crawl-delay`, read as the bot's policy requires:
+  `TcgCheap.Bot`), so the first run reads about fifty
   product pages in a few minutes and later runs only the listing and new
   items. A listing that fails or has no items writes nothing; a product page
   that fails leaves the barcode for the next run.
@@ -25,11 +26,13 @@ defmodule TcgCheap.Sealed.Rebel do
 
   require Logger
 
+  alias TcgCheap.Bot
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.{Ean, Matcher, ShopFeed, SuggestedPrice}
   alias TcgCheap.Sealed.ShopFeed.HtmlListing
 
-  @base "https://hurt.rebel.pl"
+  @host "hurt.rebel.pl"
+  @base "https://" <> @host
   @listing "/search/pokemon-tcg.html"
   @pause_ms 5_000
   @max_pages 10
@@ -59,15 +62,17 @@ defmodule TcgCheap.Sealed.Rebel do
     req_options = Keyword.get(opts, :req_options, [])
     known = Map.new(Sealed.list_suggested_prices!(), &{&1.rebel_id, &1.ean})
 
-    with {:ok, items} <- listing(1, [], req_options) do
-      items
-      |> Enum.map(
-        &Map.merge(&1, %{ean: known[&1.rebel_id] || ean(&1, req_options), last_seen_at: now})
-      )
-      |> record()
+    Bot.catch_stop(fn ->
+      with {:ok, items} <- listing(1, [], req_options) do
+        items
+        |> Enum.map(
+          &Map.merge(&1, %{ean: known[&1.rebel_id] || ean(&1, req_options), last_seen_at: now})
+        )
+        |> record()
 
-      {:ok, %{items: length(items), matched: rematch()}}
-    end
+        {:ok, %{items: length(items), matched: rematch()}}
+      end
+    end)
   end
 
   @doc """
@@ -206,26 +211,45 @@ defmodule TcgCheap.Sealed.Rebel do
     end
   end
 
+  # The bot's policy (`TcgCheap.Bot`) applies: a path robots.txt disallows, a
+  # refusal or a `Retry-After` ends the whole run (`run/1` answers its reason).
   defp get(path, params, req_options) do
-    Process.sleep(@pause_ms)
+    target = if params == [], do: path, else: path <> "?" <> URI.encode_query(params)
+
+    pause_ms =
+      case Bot.permit(@host, target, req_options, pause_ms: @pause_ms) do
+        {:ok, crawl_delay_ms} -> max(@pause_ms, crawl_delay_ms)
+        {:error, reason} -> Bot.stop(reason)
+      end
+
+    Process.sleep(pause_ms)
 
     request =
-      Req.new(
+      [
         url: @base <> path,
         params: params,
-        headers: [{"user-agent", "TcgCheap/1.0 (buying guide)"}],
         decode_body: false,
         connect_options: [timeout: 5_000],
         receive_timeout: 15_000,
         redirect: false,
         retry: false
-      )
+      ]
+      |> Bot.new()
       |> Req.merge(req_options)
 
     case Req.request(request) do
-      {:ok, %Req.Response{status: 200} = response} -> ShopFeed.html(response)
-      {:ok, %Req.Response{status: status}} -> {:error, {:http_status, status}}
+      {:ok, response} -> answer(response)
       {:error, exception} -> {:error, {:transport, exception.__struct__}}
     end
   end
+
+  defp answer(response) do
+    case Bot.classify(@host, response) do
+      {:stop, reason} -> Bot.stop(reason)
+      :ok -> status(response)
+    end
+  end
+
+  defp status(%Req.Response{status: 200} = response), do: ShopFeed.html(response)
+  defp status(%Req.Response{status: status}), do: {:error, {:http_status, status}}
 end

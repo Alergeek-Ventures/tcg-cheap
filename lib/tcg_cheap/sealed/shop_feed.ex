@@ -11,13 +11,19 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
   Requests go only to the shop's fixed HTTPS host (its `feed_host`, when
   set), one at a time with a short pause before each (several shops refuse
-  quick successive requests; a client may ask for a longer one), follow no
-  redirects and read at most 5 MB per page, or more where a client asks for
-  it (a whole-shop XML export); a client may also have them signed
-  (`TcgCheap.WebBotAuth`). A rate-limited request (429) is repeated once
-  after the shop's `Retry-After` when that is short (a client may allow a
-  longer wait); otherwise the fetch fails and
-  `TcgCheap.Sealed.FetchWorker` retries it minutes later. A fetch run by that
+  quick successive requests; a client may ask for a longer one, and so may
+  the host's robots.txt `Crawl-delay`), follow no redirects and read at most
+  5 MB per page, or more where a client asks for it (a whole-shop XML export).
+  Every request is the bot's (`TcgCheap.Bot`): it carries the bot's User-Agent
+  and Web Bot Auth signature, and it is made only where the host's robots.txt
+  allows. A policy reason (a path robots.txt disallows, a 401, a 403 or a
+  challenge, a `Retry-After` longer than the wait a client allows) ends the
+  whole fetch at once, optional requests included, and is returned as the
+  fetch's error; `TcgCheap.Sealed.FetchWorker` does not retry it at once. A
+  rate-limited (429) or unavailable (503) request with a short `Retry-After`
+  is repeated once after it; with no `Retry-After` a 429 is repeated after
+  10 s and then fails, and `TcgCheap.Sealed.FetchWorker` retries it minutes
+  later. A fetch run by that
   worker passes a `:journal` in its `req_options` (`TcgCheap.Sealed.FetchJournal`),
   which keeps the responses already read so that a restarted fetch does not
   read them again. Every product field
@@ -29,13 +35,12 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
   require Logger
 
+  alias TcgCheap.Bot
   alias TcgCheap.Sealed.{FetchJournal, Matcher, Shop}
-  alias TcgCheap.WebBotAuth
 
   @request_pause_ms 1_000
   # Kept short by default: a wait holds up the shops queued behind this one,
   # and the job must stay within its 5-minute timeout.
-  @rate_limit_delay_ms 10_000
   @max_retry_after_ms 10_000
   @max_body_bytes 5_000_000
   @max_title_length 300
@@ -98,10 +103,10 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
   @doc """
   GETs `path` on the shop's host (or `feed_host`), after a pause
-  (`pause_ms`, default #{@request_pause_ms} ms), and returns the 200 response with its raw body, at
+  (`pause_ms`, default #{@request_pause_ms} ms, or the host's `Crawl-delay` when that is longer), and
+  returns the 200 response with its raw body, at
   most `max_body_bytes` long (default 5 MB), over the HTTP `protocols` given
-  (default HTTP/1.1). With `sign: true` the request is signed with Web Bot
-  Auth; a 429 is retried after a `Retry-After` of at most
+  (default HTTP/1.1). A 429 or 503 is retried after a `Retry-After` of at most
   `max_retry_after_ms` (default #{@max_retry_after_ms} ms). A response the fetch's
   journal holds is returned without a request or a pause. With `optional: true`
   (a request the fetch can do without) the journal also keeps a failure, so the
@@ -113,7 +118,6 @@ defmodule TcgCheap.Sealed.ShopFeed do
           | {:optional, boolean()}
           | {:pause_ms, pos_integer()}
           | {:protocols, [:http1 | :http2]}
-          | {:sign, boolean()}
         ]) ::
           {:ok, Req.Response.t()} | {:error, term()}
   def get(%Shop{} = shop, path, params, req_options, opts \\ []) do
@@ -132,61 +136,63 @@ defmodule TcgCheap.Sealed.ShopFeed do
     end
   end
 
+  # A reason the bot's policy ends the shop's fetch with (`TcgCheap.Bot`) leaves
+  # the client at once, optional requests included: the shop is not asked again.
   defp request(shop, path, params, req_options, opts) do
     host = shop.feed_host || shop.host
     max_body_bytes = Keyword.get(opts, :max_body_bytes, @max_body_bytes)
     max_retry_after_ms = Keyword.get(opts, :max_retry_after_ms, @max_retry_after_ms)
+    pause_ms = Keyword.get(opts, :pause_ms, @request_pause_ms)
+    protocols = Keyword.get(opts, :protocols, [:http1])
 
     request =
-      Req.new(
+      [
         url: "https://#{host}#{path}",
         params: params,
-        headers: [{"user-agent", "TcgCheap/1.0 (buying guide)"}],
         decode_body: false,
         into: &bounded_body(&1, &2, max_body_bytes),
-        connect_options: [timeout: 5_000, protocols: Keyword.get(opts, :protocols, [:http1])],
+        connect_options: [timeout: 5_000, protocols: protocols],
         receive_timeout: 15_000,
         redirect: false,
-        retry: &retry_rate_limited(&1, &2, max_retry_after_ms),
+        retry: Bot.retry_step(max_retry_after_ms),
         max_retries: 1
-      )
-      |> sign(Keyword.get(opts, :sign, false))
+      ]
+      |> Bot.new()
       |> Req.merge(req_options)
 
-    Process.sleep(Keyword.get(opts, :pause_ms, @request_pause_ms))
+    crawl_delay_ms =
+      case Bot.permit(host, target(path, params), req_options,
+             pause_ms: pause_ms,
+             protocols: protocols,
+             max_retry_after_ms: max_retry_after_ms
+           ) do
+        {:ok, crawl_delay_ms} -> crawl_delay_ms
+        {:error, reason} -> Bot.stop(reason)
+      end
+
+    # The larger of the shop's `Crawl-delay` and the client's own pause.
+    Process.sleep(max(pause_ms, crawl_delay_ms))
 
     case Req.request(request) do
-      {:ok, %Req.Response{status: 200, body: :too_large}} -> {:error, :response_too_large}
-      {:ok, %Req.Response{status: 200} = response} -> {:ok, response}
-      {:ok, %Req.Response{status: status}} -> {:error, {:http_status, status}}
+      {:ok, response} -> answer(host, response)
       {:error, exception} -> {:error, {:transport, exception.__struct__}}
     end
   end
 
-  # A request step, so a retry is signed afresh.
-  defp sign(request, true),
-    do: Req.Request.append_request_steps(request, web_bot_auth: &WebBotAuth.sign/1)
-
-  defp sign(request, false), do: request
-
-  # Waits in the job only when the shop asks for a pause the client allows (or
-  # names none); a longer one would hold up the shops queued behind it.
-  defp retry_rate_limited(_request, %Req.Response{status: 429} = response, max_retry_after_ms) do
-    case retry_after(response) do
-      nil -> {:delay, @rate_limit_delay_ms}
-      delay when delay <= max_retry_after_ms -> {:delay, delay}
-      _long -> false
+  defp answer(host, response) do
+    case Bot.classify(host, response) do
+      {:stop, reason} -> Bot.stop(reason)
+      :ok -> status(response)
     end
   end
 
-  defp retry_rate_limited(_request, _response_or_exception, _max_retry_after_ms), do: false
+  defp status(%Req.Response{status: 200, body: :too_large}), do: {:error, :response_too_large}
+  defp status(%Req.Response{status: 200} = response), do: {:ok, response}
+  defp status(%Req.Response{status: status}), do: {:error, {:http_status, status}}
 
-  defp retry_after(response) do
-    Req.Response.get_retry_after(response)
-  rescue
-    # An unparsable HTTP date; the header is the shop's, not ours.
-    ArgumentError -> nil
-  end
+  # The path and query as the request sends them, which robots.txt rules match.
+  defp target(path, []), do: path
+  defp target(path, params), do: path <> "?" <> URI.encode_query(params)
 
   defp bounded_body({:data, data}, {request, response}, max_body_bytes) do
     body = if is_binary(response.body), do: response.body, else: ""

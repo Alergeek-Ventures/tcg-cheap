@@ -1,18 +1,38 @@
 defmodule TcgCheap.Storage.ImageDownload do
   @moduledoc "Bounded downloads of allowlisted raster images for background mirroring, and their trimming."
 
+  alias TcgCheap.Bot
+  alias TcgCheap.Bot.Hosts
   alias TcgCheap.Sealed.ExternalImage
 
   @max_bytes 15 * 1024 * 1024
   @max_pixels 40_000_000
   @deadline_ms 8_000
 
+  @doc """
+  Downloads an allowlisted remote image as the bot (`TcgCheap.Bot`): only
+  where the host's robots.txt allows the path, spaced by its `Crawl-delay`,
+  and without a second try at a host that refuses us or asked to be left alone.
+  """
   @spec fetch(term(), keyword()) :: {:ok, binary(), String.t()} | {:error, term()}
   def fetch(url, req_options \\ []) do
-    if ExternalImage.valid?(url),
-      do: download(request_url(url), req_options, true),
-      else: {:error, :host_not_allowed}
+    if ExternalImage.valid?(url) do
+      url = request_url(url)
+      %URI{host: host, path: path, query: query} = URI.parse(url)
+
+      with {:ok, crawl_delay_ms} <- Bot.permit(host, target(path, query), req_options) do
+        if crawl_delay_ms > 0,
+          do: Process.sleep(Hosts.reserve(String.downcase(host), crawl_delay_ms))
+
+        download(url, host, req_options, true)
+      end
+    else
+      {:error, :host_not_allowed}
+    end
   end
+
+  defp target(path, nil), do: path
+  defp target(path, query), do: path <> "?" <> query
 
   # Shops publish photo URLs with raw characters a request target may not
   # hold, such as an en dash in a WordPress file name; browsers
@@ -99,37 +119,47 @@ defmodule TcgCheap.Storage.ImageDownload do
   @spec fetch_stored(term()) :: {:ok, binary(), String.t()} | {:error, term()}
   def fetch_stored(url) when is_binary(url) do
     case TcgCheap.Storage.object_path(url) do
-      {:ok, path} -> download(TcgCheap.Storage.bucket_url(path), [], false)
+      {:ok, path} -> download(TcgCheap.Storage.bucket_url(path), nil, [], false)
       :error -> {:error, :host_not_allowed}
     end
   end
 
   def fetch_stored(_url), do: {:error, :host_not_allowed}
 
-  defp download(url, req_options, follow_redirects?) do
+  # `host` is the remote host the bot reads (nil: our own bucket, which is no
+  # crawling and sends no bot identity).
+  defp download(url, host, req_options, follow_redirects?) do
     deadline = System.monotonic_time(:millisecond) + @deadline_ms
+
+    options = [
+      url: url,
+      decode_body: false,
+      into: &bounded_body(&1, &2, deadline),
+      connect_options: [timeout: 3_000],
+      receive_timeout: 5_000,
+      redirect: follow_redirects?,
+      max_redirects: 3,
+      retry: false
+    ]
 
     task =
       Task.Supervisor.async_nolink(TcgCheap.Storage.DownloadSupervisor, fn ->
-        req_options
-        |> Req.new()
+        if(host, do: Bot.new(options), else: Req.new(options))
+        |> Req.merge(req_options)
         |> Req.Request.prepend_response_steps(image_redirect: &check_redirect/1)
-        |> Req.get(
-          url: url,
-          headers: [{"user-agent", "TcgCheap/1.0 (buying guide)"}],
-          decode_body: false,
-          into: &bounded_body(&1, &2, deadline),
-          connect_options: [timeout: 3_000],
-          receive_timeout: 5_000,
-          redirect: follow_redirects?,
-          max_redirects: 3,
-          retry: false
-        )
+        |> Req.request()
       end)
 
     case Task.yield(task, @deadline_ms) || Task.shutdown(task, :brutal_kill) do
       {:ok, {:ok, %Req.Response{status: 200, body: body}}} when is_binary(body) ->
         validate(body)
+
+      {:ok, {:ok, %Req.Response{status: status} = response}} when host != nil and status != 200 ->
+        # A refusal or a `Retry-After` is remembered for every later request.
+        case Bot.classify(host, response) do
+          {:stop, reason} -> {:error, reason}
+          :ok -> {:error, {:http_status, status}}
+        end
 
       {:ok, {:ok, %Req.Response{status: 200, body: reason}}} ->
         {:error, reason}
