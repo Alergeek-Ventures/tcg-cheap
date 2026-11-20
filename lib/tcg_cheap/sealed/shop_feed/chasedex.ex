@@ -12,7 +12,8 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
   lists every card of the set ("Alla kortsidor i …") as "Name 004/165 ·
   Variant · 8 kr", or "· Ej i lager" when sold out, and its JSON-LD
   `CollectionPage` gives the set's name (the offer's category) and the
-  number of cards, which the list must hold in full.
+  number of cards, which the list must hold in full. The page's data also
+  names the Shopify variant of each card in stock (`variantId`).
 
   Only cards with a price become offers, all in stock, priced in the shop's
   `currency` (whole kronor, the cheapest condition) with a 0.10 minimum. A
@@ -21,11 +22,25 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
   60 cards) and no EANs. Every card is English (the shop sells nothing
   else). `singles_categories` is not read; the sitemaps decide. See
   `TcgCheap.Sealed.ShopFeed` for the shared limits.
+
+  The shop charges buyers of another country prices of its own (Shopify
+  Markets), in euros in every country it delivers to, which its deliveries
+  record (`price_currency` of `TcgCheap.Sealed.Shop`'s `deliveries`). They are
+  read as the shop's own pages read them, from the Shopify Storefront API:
+  the home page names the shop's script that holds the API's address,
+  version and public access token, and for each such country the variants of
+  all cards read are asked for, 250 per request, 3 s apart
+  (`@in_context country`). Every offer carries what it costs there
+  (`market_prices`); a card whose variant is unknown or which the API does not
+  price for a country has no price in that country. A failed read, or an
+  answer in another currency than the one recorded, fails the fetch like any
+  other page. A fetch makes about 2 + ⌈variants / 250⌉ requests for each such
+  country on top of its sitemaps and set pages.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
 
-  alias TcgCheap.Sealed.{Shop, ShopFeed}
+  alias TcgCheap.Sealed.{Shop, ShopFeed, Shops}
 
   alias TcgCheap.Sealed.ShopFeed.{HtmlListing, XmlRecords}
 
@@ -37,14 +52,27 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
   @spaces ~r/[\s\x{a0}]+/u
   @sold_out "Ej i lager"
 
+  # The set page's data lists each card by slug with its price and, when it is
+  # in stock, its Shopify variant.
+  @variant ~r/slug:"([a-z0-9-]+)",variant:"[a-z_]+",label:"[^"]*",price:([0-9]+),inStock:!0,quantity:[0-9]+,variantId:"(gid:\/\/shopify\/ProductVariant\/[0-9]+)"/
+  @script_path ~r/\A\/assets\/shopify-[A-Za-z0-9_-]+\.js\z/
+  @storefront_host ~r/`([a-z0-9-]+\.myshopify\.com)`/
+  @storefront_version ~r/`(20[0-9]{2}-[0-9]{2})`/
+  @storefront_token ~r/`([0-9a-f]{32})`/
+  @storefront_query "query MarketPrices($ids: [ID!]!, $country: CountryCode!) @inContext(country: $country) { nodes(ids: $ids) { ... on ProductVariant { id price { amount currencyCode } } } }"
+  @storefront_batch 250
+  # Slower than the reader's other requests: these are the shop's API.
+  @storefront_pause_ms 3_000
+
   @impl true
   def fetch(%Shop{} = shop, req_options) do
     with {:ok, sets} <- sitemap_slugs(shop, "/sitemap-sets.xml", "set", [], req_options),
          {:ok, cards} <-
            sitemap_slugs(shop, "/sitemap-cards-in-stock.xml", "kort", @sitemap_opts, req_options),
          {:ok, stocked} <- stocked_sets(shop, sets, cards),
-         {:ok, products} <- read_sets(shop, stocked, req_options) do
-      {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1))}
+         {:ok, products} <- read_sets(shop, stocked, req_options),
+         {:ok, prices} <- market_prices(shop, products, req_options) do
+      {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1, prices))}
     end
   end
 
@@ -111,10 +139,26 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
     with {:ok, document} <- HtmlListing.page(shop, "/set/#{slug}", req_options),
          {:ok, name, count} <- collection(document),
          links = Floki.find(document, ~s(details ul li a[href^="/kort/"])),
-         true <- (count > 0 and length(links) == count) || {:error, :incomplete_listing} do
-      {:ok, Enum.map(links, &product(&1, name))}
+         true <- (count > 0 and length(links) == count) || {:error, :incomplete_listing},
+         variants = variants(document),
+         true <- (variants != %{} or not Enum.any?(links, &in_stock?/1)) || {:error, :no_variants} do
+      {:ok, Enum.map(links, &product(&1, name, variants))}
     end
   end
+
+  # The variant of each card in stock on a set page, by the card's slug, with
+  # the price the page's data gives it (in kronor).
+  defp variants(document) do
+    data = for {"script", _attrs, children} <- Floki.find(document, "script"), do: children
+
+    for text <- List.flatten(data),
+        is_binary(text),
+        [_, slug, price, variant] <- Regex.scan(@variant, text),
+        into: %{},
+        do: {slug, {price, variant}}
+  end
+
+  defp in_stock?(link), do: not String.ends_with?(HtmlListing.text(link), " · " <> @sold_out)
 
   # The set's name and card count from its JSON-LD CollectionPage.
   defp collection(document) do
@@ -137,15 +181,18 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
     end)
   end
 
-  defp product(link, set_name) do
+  defp product(link, set_name, variants) do
+    path = link |> Floki.attribute("href") |> List.first()
+
     %{
-      path: link |> Floki.attribute("href") |> List.first(),
+      path: path,
       text: HtmlListing.text(link),
-      set: set_name
+      set: set_name,
+      variant: Map.get(variants, String.replace_prefix(path || "", "/kort/", ""))
     }
   end
 
-  defp normalize(shop, %{path: "/kort/" <> slug, text: text, set: set_name})
+  defp normalize(shop, %{path: "/kort/" <> slug, text: text, set: set_name} = product, prices)
        when is_binary(text) do
     with true <- Regex.match?(@slug, slug),
          [card, variant, status] <- String.split(text, " · "),
@@ -163,6 +210,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
            image_url: nil,
            ean: nil,
            price: price,
+           market_prices: card_market_prices(product, price, prices),
            in_stock: true,
            kind: :single,
            category: category
@@ -174,7 +222,130 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
     end
   end
 
-  defp normalize(_shop, _product), do: :invalid
+  defp normalize(_shop, _product, _prices), do: :invalid
+
+  # The price the set page's data gives a card must be the listed one for its
+  # variant to be this card's. A price the shop wrote wrongly for a country is
+  # no price there.
+  defp card_market_prices(%{variant: {listed, variant}}, price, prices) do
+    if Decimal.equal?(Decimal.new(listed), price) do
+      for {country, %{price: raw, currency: currency}} <- Map.get(prices, variant, %{}),
+          {:ok, price} <- [ShopFeed.decimal_price(raw, :single)],
+          into: %{},
+          do: {country, %{price: price, currency: currency}}
+    else
+      %{}
+    end
+  end
+
+  defp card_market_prices(_product, _price, _prices), do: %{}
+
+  # What each variant costs in the countries the shop prices apart, by
+  # variant id and country, as the shop wrote it.
+  defp market_prices(shop, products, req_options) do
+    ids =
+      for %{variant: {_price, variant}} <- products, uniq: true, do: variant
+
+    case shop |> Shops.price_currencies() |> Enum.sort() do
+      [] ->
+        {:ok, %{}}
+
+      markets ->
+        with {:ok, storefront} <- storefront(shop, req_options) do
+          read_markets(shop, storefront, markets, Enum.sort(ids), req_options)
+        end
+    end
+  end
+
+  defp read_markets(shop, storefront, markets, ids, req_options) do
+    for market <- markets,
+        batch <- Enum.chunk_every(ids, @storefront_batch),
+        reduce: {:ok, %{}} do
+      {:ok, prices} -> read_batch(shop, storefront, market, batch, req_options, prices)
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp read_batch(shop, storefront, {country, currency}, ids, req_options, prices) do
+    params = [
+      query: @storefront_query,
+      variables: Jason.encode!(%{ids: ids, country: country})
+    ]
+
+    req_options =
+      Keyword.update(
+        req_options,
+        :headers,
+        [{"x-shopify-storefront-access-token", storefront.token}],
+        &[{"x-shopify-storefront-access-token", storefront.token} | &1]
+      )
+
+    with {:ok, response} <-
+           ShopFeed.get(
+             %{shop | feed_host: storefront.host},
+             "/api/#{storefront.version}/graphql.json",
+             params,
+             req_options,
+             pause_ms: @storefront_pause_ms
+           ),
+         {:ok, %{"data" => %{"nodes" => nodes}} = body}
+         when is_list(nodes) and not is_map_key(body, "errors") <-
+           ShopFeed.decode(response),
+         {:ok, prices} <- put_prices(nodes, {country, currency}, prices) do
+      {:ok, prices}
+    else
+      {:ok, _other} -> {:error, :malformed_response}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  # A variant the API does not know answers null: it has no price there.
+  defp put_prices(nodes, {country, currency}, prices) do
+    Enum.reduce_while(nodes, {:ok, prices}, fn
+      %{"id" => id, "price" => %{"amount" => amount, "currencyCode" => ^currency}}, {:ok, acc}
+      when is_binary(id) ->
+        {:cont,
+         {:ok,
+          Map.update(
+            acc,
+            id,
+            %{country => %{price: amount, currency: currency}},
+            &Map.put(&1, country, %{price: amount, currency: currency})
+          )}}
+
+      %{"price" => %{"currencyCode" => _other}}, _acc ->
+        {:halt, {:error, :unexpected_currency}}
+
+      nil, acc ->
+        {:cont, acc}
+
+      _node, _acc ->
+        {:halt, {:error, :malformed_response}}
+    end)
+  end
+
+  # The Storefront API's address, version and public access token, which the
+  # shop's own pages carry in the script the home page preloads.
+  defp storefront(shop, req_options) do
+    with {:ok, response} <- ShopFeed.get(shop, "/", [], req_options),
+         {:ok, home} <- ShopFeed.html(response),
+         [path | _] <- script_paths(home),
+         {:ok, response} <- ShopFeed.get(shop, path, [], req_options),
+         [[_, host]] <- Regex.scan(@storefront_host, response.body) |> Enum.uniq(),
+         [_, version] <- Regex.run(@storefront_version, response.body),
+         [_, token] <- Regex.run(@storefront_token, response.body) do
+      {:ok, %{host: host, version: version, token: token}}
+    else
+      {:error, reason} -> {:error, reason}
+      _unrecognised -> {:error, :unrecognised_storefront}
+    end
+  end
+
+  defp script_paths(document) do
+    for href <- Floki.attribute(document, ~s(link[rel="modulepreload"]), "href"),
+        Regex.match?(@script_path, href),
+        do: href
+  end
 
   defp price(@sold_out), do: :sold_out
 

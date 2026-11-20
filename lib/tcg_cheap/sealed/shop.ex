@@ -57,7 +57,7 @@ defmodule TcgCheap.Sealed.Shop do
       `price_currency` is to a country whose buyers the shop charges prices
       of their own, in that currency (another VAT, its own exchange rate and
       rounding): its client reads them for that country with every fetch
-      (`TcgCheap.Sealed.ShopFeed.Shopify`), and an offer counts there at that
+      (`TcgCheap.Sealed.ShopFeed.Shopify`, `TcgCheap.Sealed.ShopFeed.Chasedex`), and an offer counts there at that
       price instead of a converted one. Each such country is one more read
       of the shop's whole list, so only countries where the price was seen
       to differ from the shop's own carry it;

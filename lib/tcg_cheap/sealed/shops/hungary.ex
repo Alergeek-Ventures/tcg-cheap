@@ -201,7 +201,8 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
       "chasedex" => %{
         shipping_from: Decimal.new("99"),
         free_shipping_from: Decimal.new("799"),
-        currency: "SEK"
+        currency: "SEK",
+        price_currency: "EUR"
       },
       "gemipulls" => %{
         shipping_from: Decimal.new("229"),

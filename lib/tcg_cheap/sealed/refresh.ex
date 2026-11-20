@@ -193,17 +193,38 @@ defmodule TcgCheap.Sealed.Refresh do
   end
 
   defp convert_to_pln(offers, currency, today) do
-    with {:ok, %{rate: rate}} <- Market.pln_rate(currency, today),
-         do: {:ok, Enum.map(offers, &%{&1 | price: polish_price(&1, rate)})}
+    currencies =
+      offers
+      |> Enum.flat_map(&List.wrap(&1.polish_price))
+      |> Enum.map(& &1.currency)
+      |> Enum.uniq()
+
+    with {:ok, rates} <- pln_rates([currency | currencies], today),
+         do: {:ok, Enum.map(offers, &%{&1 | price: polish_price(&1, currency, rates)})}
   end
 
-  # `Shops` lets a shop state its Polish prices in złoty or in its own
-  # currency. A sealed product it does not sell to Poland keeps a converted
-  # `price`, which is never empty; its `market_prices` lack Poland, so
-  # `Market` leaves it out of the Polish market.
-  defp polish_price(%{polish_price: %{price: price, currency: "PLN"}}, _rate), do: price
-  defp polish_price(%{polish_price: %{price: price}}, rate), do: to_pln(price, rate)
-  defp polish_price(%{price: price}, rate), do: to_pln(price, rate)
+  defp pln_rates(currencies, today) do
+    Enum.reduce_while(Enum.uniq(currencies), {:ok, %{}}, fn currency, {:ok, rates} ->
+      case Market.pln_rate(currency, today) do
+        {:ok, %{rate: rate}} -> {:cont, {:ok, Map.put(rates, currency, rate)}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  # `Shops` lets a shop state its Polish prices in złoty or in any currency
+  # (its own, or the one Shopify Markets charges Poland in), converted at that
+  # currency's rate. A sealed product it does not sell to Poland keeps a
+  # converted `price`, which is never empty; its `market_prices` lack Poland,
+  # so `Market` leaves it out of the Polish market.
+  defp polish_price(%{polish_price: %{price: price, currency: "PLN"}}, _currency, _rates),
+    do: price
+
+  defp polish_price(%{polish_price: %{price: price, currency: charged}}, _currency, rates),
+    do: to_pln(price, Map.fetch!(rates, charged))
+
+  defp polish_price(%{price: price}, currency, rates),
+    do: to_pln(price, Map.fetch!(rates, currency))
 
   # As `Offer.market_prices` stores them: nil for a shop that prices no
   # country apart.

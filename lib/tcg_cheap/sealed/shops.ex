@@ -129,10 +129,11 @@ defmodule TcgCheap.Sealed.Shops do
       do: raise(ArgumentError, "delivery of #{shop.key} to #{country} is misconfigured")
   end
 
-  # Only a Shopify shop's prices are read per country, and Poland's are
-  # stored as `price` in PLN: in złoty, or converted from the shop's currency.
-  for shop <- @shops, {country, %{price_currency: currency}} <- shop.deliveries do
-    unless shop.source == Shopify and (country != "PL" or currency in ["PLN", shop.currency]),
+  # Only Shopify shops' prices are read per country (the Chasedex client reads
+  # them from the Shopify Storefront API). Poland's are stored as `price` in
+  # PLN, converted from the currency they are charged in.
+  for shop <- @shops, {country, %{price_currency: _currency}} <- shop.deliveries do
+    unless shop.source in [Shopify, Chasedex],
       do: raise(ArgumentError, "prices of #{shop.key} for #{country} are misconfigured")
   end
 

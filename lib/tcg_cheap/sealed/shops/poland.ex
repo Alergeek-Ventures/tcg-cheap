@@ -1727,7 +1727,8 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         # up so no order is shown with free delivery it does not get).
         shipping_from: Decimal.new("39.40"),
         free_shipping_from: Decimal.new("320"),
-        currency: "PLN"
+        currency: "PLN",
+        price_currency: "EUR"
       },
       # Its cart for buyers in Poland, in złoty, for a single card (2026-11-16).
       "gemipulls" => %{
