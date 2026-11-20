@@ -344,7 +344,8 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       "chasedex" => %{
         shipping_from: Decimal.new("99"),
         free_shipping_from: Decimal.new("799"),
-        currency: "SEK"
+        currency: "SEK",
+        price_currency: "EUR"
       },
       # https://unicorncards.co.uk/international_shipping (2026-11-17): £5.90
       # for any number of singles, free from £100, VAT and duties prepaid
