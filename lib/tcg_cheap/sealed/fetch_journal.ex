@@ -35,6 +35,7 @@ defmodule TcgCheap.Sealed.FetchJournal do
   # prices into a fresh read.
   @max_age_hours 3
   @paused {__MODULE__, :paused}
+  @max_query_bytes 512
 
   @enforce_keys [:run_id, :shop, :deadline, :counters, :responses]
   defstruct [:run_id, :shop, :deadline, :counters, :responses]
@@ -108,7 +109,7 @@ defmodule TcgCheap.Sealed.FetchJournal do
 
   def through(%__MODULE__{} = journal, path, params, live, opts) do
     :counters.add(journal.counters, 1, 1)
-    request = "#{:counters.get(journal.counters, 1)} #{path}?#{URI.encode_query(params)}"
+    request = "#{:counters.get(journal.counters, 1)} #{request_name(path, params)}"
 
     case journal.responses do
       %{^request => stored} ->
@@ -118,6 +119,20 @@ defmodule TcgCheap.Sealed.FetchJournal do
         pause_when_over_budget(journal)
 
         live |> ask() |> remember(journal, request, Keyword.get(opts, :optional, false))
+    end
+  end
+
+  # The name is part of the table's primary key, which Postgres limits to
+  # about 2.7 kB per row: a long query (a Storefront request names 250
+  # variants) is named by its sha256 instead, so the name stays short and
+  # still tells two different requests apart.
+  defp request_name(path, params) do
+    query = URI.encode_query(params)
+
+    if byte_size(query) <= @max_query_bytes do
+      "#{path}?#{query}"
+    else
+      "#{path}?sha256:" <> Base.encode16(:crypto.hash(:sha256, query), case: :lower)
     end
   end
 
