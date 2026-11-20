@@ -1579,16 +1579,6 @@ msgstr "booster je teď vyprodaný"
 msgid "kupisz za "
 msgstr "koupit za "
 
-#: lib/tcg_cheap_web/live/single_live.ex:145
-#, elixir-autogen, elixir-format
-msgid "list polecony z Polski"
-msgstr "doporučený dopis z Polska"
-
-#: lib/tcg_cheap_web/live/single_live.ex:146
-#, elixir-autogen, elixir-format
-msgid "list z Niemiec"
-msgstr "dopis z Německa"
-
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:367
 #, elixir-autogen, elixir-format
 msgid "na Cardmarket"
@@ -2051,12 +2041,12 @@ msgstr "Veřejné klíče"
 msgid "Listy produktów czyta raz na dobę, w nocy (od 2:30 UTC), czasem też w dzień, gdy sprawdzamy poprawkę."
 msgstr "Seznamy produktů čte jednou denně v noci (od 2:30 UTC), občas i během dne při ověřování opravy."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:287
+#: lib/tcg_cheap_web/live/bot_live.ex:297
 #, elixir-autogen, elixir-format
 msgid "Napisz do nas z nazwą sklepu, a przestaniemy go czytać i usuniemy go z porównania. Pod tym adresem odpowiemy też na pytania o bota."
 msgstr "Napiš nám název svého obchodu. Přestaneme ho číst a odstraníme ho ze srovnání. Na této adrese odpovídáme i na dotazy o botovi."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:285
+#: lib/tcg_cheap_web/live/bot_live.ex:295
 #, elixir-autogen, elixir-format
 msgid "Nie chcesz, żebyśmy czytali Twój sklep?"
 msgstr "Nechceš, abychom tvůj obchod četli?"
@@ -2076,7 +2066,7 @@ msgstr "Podpis Web Bot Auth"
 msgid "TCG Cheap porównuje ceny produktów Pokémon TCG w polskich sklepach internetowych i w kilku sklepach za granicą. Nasz bot czyta publiczne listy produktów tych sklepów, żeby pokazać ich ceny i dostępność, zawsze z linkiem do strony produktu w sklepie."
 msgstr "TCG Cheap porovnává ceny produktů Pokémon TCG v polských internetových obchodech a několika obchodech v zahraničí. Náš bot čte jejich veřejné seznamy produktů a zobrazuje ceny a dostupnost vždy s odkazem na produkt v obchodě."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:298
+#: lib/tcg_cheap_web/live/bot_live.ex:308
 #, elixir-autogen, elixir-format
 msgid "TCG Cheap prowadzi"
 msgstr "TCG Cheap provozuje"
@@ -4674,3 +4664,13 @@ msgstr "trend na Cardmarketu, bez dopravy · všechny jazyky a stavy karet"
 #, elixir-autogen, elixir-format
 msgid "wysyłka"
 msgstr "posílá"
+
+#: lib/tcg_cheap_web/live/single_live.ex:146
+#, elixir-autogen, elixir-format
+msgid "list"
+msgstr "dopis"
+
+#: lib/tcg_cheap_web/live/single_live.ex:145
+#, elixir-autogen, elixir-format
+msgid "list śledzony"
+msgstr "sledovaný dopis"

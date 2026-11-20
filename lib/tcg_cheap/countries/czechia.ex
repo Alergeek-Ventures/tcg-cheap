@@ -29,10 +29,12 @@ defmodule TcgCheap.Countries.Czechia do
       hreflang: "cs-CZ",
       # Slovak is read here too, but the guide has no Slovak interface yet.
       popular_languages: [],
-      # The same EU tariff as Poland's: DHL Paket 2 kg (€14.49) plus
-      # Cardmarket's €1 parcel packaging fee, checked 2026-11-14:
-      # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/tschechische-republik.html
+      # Cardmarket total Prices including packaging, checked 2026-11-20:
       # https://help.cardmarket.com/en/ShippingCosts
+      # German Standardbrief through €25, then domestic Registered Letter.
+      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
+      cardmarket_tracked_letter_eur: Decimal.new("3.85"),
+      # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "produkty", expansions: "sety", cards: "karty"},
       pages: %{}

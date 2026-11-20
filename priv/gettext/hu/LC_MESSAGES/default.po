@@ -1567,16 +1567,6 @@ msgstr "a booster most nincs raktáron"
 msgid "kupisz za "
 msgstr "külön megvéve: "
 
-#: lib/tcg_cheap_web/live/single_live.ex:145
-#, elixir-autogen, elixir-format
-msgid "list polecony z Polski"
-msgstr "ajánlott levél Lengyelországból"
-
-#: lib/tcg_cheap_web/live/single_live.ex:146
-#, elixir-autogen, elixir-format
-msgid "list z Niemiec"
-msgstr "levél Németországból"
-
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:367
 #, elixir-autogen, elixir-format
 msgid "na Cardmarket"
@@ -2032,12 +2022,12 @@ msgstr "Nyilvános kulcsok"
 msgid "Listy produktów czyta raz na dobę, w nocy (od 2:30 UTC), czasem też w dzień, gdy sprawdzamy poprawkę."
 msgstr "A terméklistákat naponta egyszer, éjszaka olvassa (2:30 UTC-től), néha nappal is, amikor egy javítást ellenőrzünk."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:287
+#: lib/tcg_cheap_web/live/bot_live.ex:297
 #, elixir-autogen, elixir-format
 msgid "Napisz do nas z nazwą sklepu, a przestaniemy go czytać i usuniemy go z porównania. Pod tym adresem odpowiemy też na pytania o bota."
 msgstr "Írd meg nekünk a bolt nevét. Ezután nem kérjük le az adatait, és eltávolítjuk az összehasonlításból. Ezen a címen a bottal kapcsolatos kérdéseidre is válaszolunk."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:285
+#: lib/tcg_cheap_web/live/bot_live.ex:295
 #, elixir-autogen, elixir-format
 msgid "Nie chcesz, żebyśmy czytali Twój sklep?"
 msgstr "Nem szeretnéd, hogy lekérjük a boltod adatait?"
@@ -2057,7 +2047,7 @@ msgstr "Web Bot Auth aláírás"
 msgid "TCG Cheap porównuje ceny produktów Pokémon TCG w polskich sklepach internetowych i w kilku sklepach za granicą. Nasz bot czyta publiczne listy produktów tych sklepów, żeby pokazać ich ceny i dostępność, zawsze z linkiem do strony produktu w sklepie."
 msgstr "A TCG Cheap Pokémon TCG termékek árait hasonlítja össze lengyel webshopokban és néhány külföldi boltban. A botunk ezeknek a boltoknak a nyilvános terméklistáit olvassa, hogy megmutassa az áraikat és a készletüket, mindig a bolt termékoldalára mutató linkkel."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:298
+#: lib/tcg_cheap_web/live/bot_live.ex:308
 #, elixir-autogen, elixir-format
 msgid "TCG Cheap prowadzi"
 msgstr "A TCG Cheapet üzemelteti:"
@@ -4647,3 +4637,13 @@ msgstr "Cardmarket-trend, szállítási díj nélkül · minden nyelv és állap
 #, elixir-autogen, elixir-format
 msgid "wysyłka"
 msgstr "–"
+
+#: lib/tcg_cheap_web/live/single_live.ex:146
+#, elixir-autogen, elixir-format
+msgid "list"
+msgstr "levél"
+
+#: lib/tcg_cheap_web/live/single_live.ex:145
+#, elixir-autogen, elixir-format
+msgid "list śledzony"
+msgstr "követhető levél"

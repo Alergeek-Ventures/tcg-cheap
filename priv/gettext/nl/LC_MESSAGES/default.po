@@ -1575,16 +1575,6 @@ msgstr "de booster is nu niet op voorraad"
 msgid "kupisz za "
 msgstr "te koop voor "
 
-#: lib/tcg_cheap_web/live/single_live.ex:145
-#, elixir-autogen, elixir-format
-msgid "list polecony z Polski"
-msgstr "aangetekende brief uit Polen"
-
-#: lib/tcg_cheap_web/live/single_live.ex:146
-#, elixir-autogen, elixir-format
-msgid "list z Niemiec"
-msgstr "brief uit Duitsland"
-
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:367
 #, elixir-autogen, elixir-format
 msgid "na Cardmarket"
@@ -2040,12 +2030,12 @@ msgstr "Openbare sleutels"
 msgid "Listy produktów czyta raz na dobę, w nocy (od 2:30 UTC), czasem też w dzień, gdy sprawdzamy poprawkę."
 msgstr "Hij leest productlijsten één keer per dag, 's nachts (vanaf 2:30 UTC), en soms ook overdag als we een aanpassing testen."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:287
+#: lib/tcg_cheap_web/live/bot_live.ex:297
 #, elixir-autogen, elixir-format
 msgid "Napisz do nas z nazwą sklepu, a przestaniemy go czytać i usuniemy go z porównania. Pod tym adresem odpowiemy też na pytania o bota."
 msgstr "Mail ons de naam van je winkel, dan lezen we hem niet meer en halen we hem uit de vergelijking. Op dit adres beantwoorden we ook vragen over de bot."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:285
+#: lib/tcg_cheap_web/live/bot_live.ex:295
 #, elixir-autogen, elixir-format
 msgid "Nie chcesz, żebyśmy czytali Twój sklep?"
 msgstr "Wil je niet dat we je winkel lezen?"
@@ -2065,7 +2055,7 @@ msgstr "Web Bot Auth-handtekening"
 msgid "TCG Cheap porównuje ceny produktów Pokémon TCG w polskich sklepach internetowych i w kilku sklepach za granicą. Nasz bot czyta publiczne listy produktów tych sklepów, żeby pokazać ich ceny i dostępność, zawsze z linkiem do strony produktu w sklepie."
 msgstr "TCG Cheap vergelijkt de prijzen van Pokémon TCG-producten bij Poolse webwinkels en een paar winkels in het buitenland. Onze bot leest de openbare productlijsten van deze winkels om hun prijzen en beschikbaarheid te tonen, altijd met een link naar de productpagina in de winkel."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:298
+#: lib/tcg_cheap_web/live/bot_live.ex:308
 #, elixir-autogen, elixir-format
 msgid "TCG Cheap prowadzi"
 msgstr "TCG Cheap wordt beheerd door"
@@ -4655,3 +4645,13 @@ msgstr "Cardmarket-trend, zonder verzending · alle talen en kaartstaten"
 #, elixir-autogen, elixir-format
 msgid "wysyłka"
 msgstr "verstuurd"
+
+#: lib/tcg_cheap_web/live/single_live.ex:146
+#, elixir-autogen, elixir-format
+msgid "list"
+msgstr "brief"
+
+#: lib/tcg_cheap_web/live/single_live.ex:145
+#, elixir-autogen, elixir-format
+msgid "list śledzony"
+msgstr "brief met tracking"

@@ -1573,16 +1573,6 @@ msgstr "o booster não está em stock neste momento"
 msgid "kupisz za "
 msgstr "disponível por "
 
-#: lib/tcg_cheap_web/live/single_live.ex:145
-#, elixir-autogen, elixir-format
-msgid "list polecony z Polski"
-msgstr "correio registado da Polónia"
-
-#: lib/tcg_cheap_web/live/single_live.ex:146
-#, elixir-autogen, elixir-format
-msgid "list z Niemiec"
-msgstr "correio normal da Alemanha"
-
 #: lib/tcg_cheap_web/live/browse_live/chase_banners.ex:367
 #, elixir-autogen, elixir-format
 msgid "na Cardmarket"
@@ -2038,12 +2028,12 @@ msgstr "Chaves públicas"
 msgid "Listy produktów czyta raz na dobę, w nocy (od 2:30 UTC), czasem też w dzień, gdy sprawdzamy poprawkę."
 msgstr "Lê as listas de produtos uma vez por dia, de noite (a partir das 2:30 UTC), e por vezes também de dia, quando verificamos uma correção."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:287
+#: lib/tcg_cheap_web/live/bot_live.ex:297
 #, elixir-autogen, elixir-format
 msgid "Napisz do nas z nazwą sklepu, a przestaniemy go czytać i usuniemy go z porównania. Pod tym adresem odpowiemy też na pytania o bota."
 msgstr "Escreve-nos com o nome da loja e deixamos de a ler e removemo-la da comparação. Neste endereço respondemos também a perguntas sobre o bot."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:285
+#: lib/tcg_cheap_web/live/bot_live.ex:295
 #, elixir-autogen, elixir-format
 msgid "Nie chcesz, żebyśmy czytali Twój sklep?"
 msgstr "Não queres que leiamos a tua loja?"
@@ -2063,7 +2053,7 @@ msgstr "Assinatura Web Bot Auth"
 msgid "TCG Cheap porównuje ceny produktów Pokémon TCG w polskich sklepach internetowych i w kilku sklepach za granicą. Nasz bot czyta publiczne listy produktów tych sklepów, żeby pokazać ich ceny i dostępność, zawsze z linkiem do strony produktu w sklepie."
 msgstr "O TCG Cheap compara preços de produtos Pokémon TCG em lojas online polacas e em algumas lojas no estrangeiro. O nosso bot lê as listas públicas de produtos dessas lojas para mostrar os preços e a disponibilidade, sempre com uma ligação para a página do produto na loja."
 
-#: lib/tcg_cheap_web/live/bot_live.ex:298
+#: lib/tcg_cheap_web/live/bot_live.ex:308
 #, elixir-autogen, elixir-format
 msgid "TCG Cheap prowadzi"
 msgstr "O TCG Cheap é gerido por"
@@ -4653,3 +4643,13 @@ msgstr "tendência no Cardmarket, sem portes · todas as línguas e estados"
 #, elixir-autogen, elixir-format
 msgid "wysyłka"
 msgstr "envio"
+
+#: lib/tcg_cheap_web/live/single_live.ex:146
+#, elixir-autogen, elixir-format
+msgid "list"
+msgstr "carta"
+
+#: lib/tcg_cheap_web/live/single_live.ex:145
+#, elixir-autogen, elixir-format
+msgid "list śledzony"
+msgstr "carta com rastreio"

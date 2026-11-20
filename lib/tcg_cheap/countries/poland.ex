@@ -31,10 +31,12 @@ defmodule TcgCheap.Countries.Poland do
       hreflang: "pl-PL",
       # Ukrainian, once the guide renders it: Poland's largest minority.
       popular_languages: ["uk"],
-      # The cheapest tracked parcel to Poland from Germany, Cardmarket's largest
-      # seller country (DHL Paket up to 2 kg, Cardmarket's shipping calculator,
-      # 2026-11-02); orders above 25 € must be tracked, which covers most sealed
-      # products.
+      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # https://help.cardmarket.com/en/ShippingCosts
+      # German Standardbrief through €25, then domestic Registered Priority Letter S.
+      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
+      cardmarket_tracked_letter_eur: Decimal.new("2.79"),
+      # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "produkty", expansions: "rozszerzenia", cards: "karty"},
       pages: %{

@@ -23,6 +23,9 @@ defmodule TcgCheap.Country do
     * `popular_languages` – at most two other languages many people there
       read, which its language menu lists after its own and English (the
       rest of the guide's languages wait behind "more");
+    * `cardmarket_untracked_letter_eur` and `cardmarket_tracked_letter_eur` –
+      the single-card letters through and above Cardmarket's €25 tracking
+      threshold, in euro, including packaging;
     * `cardmarket_shipping_eur` – the tracked parcel added to a Cardmarket
       trend, in euro, for verdicts and "with delivery" prices;
     * `slugs` – its path segments for the product, set and card pages and
@@ -46,6 +49,8 @@ defmodule TcgCheap.Country do
           language: String.t(),
           hreflang: String.t(),
           popular_languages: [String.t()],
+          cardmarket_untracked_letter_eur: Decimal.t(),
+          cardmarket_tracked_letter_eur: Decimal.t(),
           cardmarket_shipping_eur: Decimal.t(),
           slugs: %{products: String.t(), expansions: String.t(), cards: String.t()},
           pages: %{optional(atom()) => String.t()}

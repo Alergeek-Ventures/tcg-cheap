@@ -20,157 +20,157 @@ msgstr "envio dos Países Baixos"
 msgid "z wysyłką z Holandii"
 msgstr "com envio dos Países Baixos"
 
-#: lib/tcg_cheap/countries/netherlands.ex:166
+#: lib/tcg_cheap/countries/netherlands.ex:168
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w holenderskich sklepach i w sklepach wysyłających do Holandii."
 msgstr "%{expansion}: compara os preços de boosters, ETB, displays e coleções em lojas neerlandesas e em lojas que enviam para os Países Baixos."
 
-#: lib/tcg_cheap/countries/netherlands.ex:184
+#: lib/tcg_cheap/countries/netherlands.ex:186
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden holenderski sklep ani sklep wysyłający do Holandii nie ma tego produktu na stanie."
 msgstr "%{name}: neste momento, nenhuma loja neerlandesa nem loja que envia para os Países Baixos tem este produto em stock."
 
-#: lib/tcg_cheap/countries/netherlands.ex:175
+#: lib/tcg_cheap/countries/netherlands.ex:177
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden holenderski sklep ani sklep wysyłający do Holandii nie ma teraz na stanie."
 msgstr "Neste momento, nenhuma loja neerlandesa nem loja que envia para os Países Baixos tem o booster %{expansion} em stock."
 
-#: lib/tcg_cheap/countries/netherlands.ex:68
+#: lib/tcg_cheap/countries/netherlands.ex:70
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii, sprawdzane codziennie."
 msgstr "Preços de Pokémon TCG em lojas neerlandesas e em lojas que enviam para os Países Baixos, verificados todos os dias."
 
-#: lib/tcg_cheap/countries/netherlands.ex:229
+#: lib/tcg_cheap/countries/netherlands.ex:231
 #, elixir-autogen, elixir-format
 msgid "Ceny holenderskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Holandii. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Os preços das lojas neerlandesas não incluem portes; os das lojas estrangeiras incluem envio para os Países Baixos. Ao preço do Cardmarket acrescentamos %{shipping} por um envio da Alemanha."
 
-#: lib/tcg_cheap/countries/netherlands.ex:209
+#: lib/tcg_cheap/countries/netherlands.ex:211
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych list produktów sklepów, pobieranych raz dziennie, i są w euro. Ceny holenderskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Holandii."
 msgstr "Os preços vêm das listas públicas de produtos das lojas, obtidas uma vez por dia, e estão em euros. Os preços das lojas neerlandesas não incluem portes; os das lojas no estrangeiro incluem o envio para os Países Baixos."
 
-#: lib/tcg_cheap/countries/netherlands.ex:195
+#: lib/tcg_cheap/countries/netherlands.ex:197
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Holandii."
 msgstr "Os preços das lojas estrangeiras incluem portes para os Países Baixos."
 
-#: lib/tcg_cheap/countries/netherlands.ex:214
+#: lib/tcg_cheap/countries/netherlands.ex:216
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w euro z przesyłką z Niemiec, gdy są znane."
 msgstr "Um bom preço é, no máximo, 95 % do preço típico; um preço normal, no máximo, 110 %. Acima disso, é caro. Um bom preço tem também de ser, no máximo, 95 % do preço habitual do produto nos últimos %{window} dias e da tendência do Cardmarket em euros com envio da Alemanha, quando estes valores são conhecidos."
 
-#: lib/tcg_cheap/countries/netherlands.ex:42
+#: lib/tcg_cheap/countries/netherlands.ex:44
 #, elixir-autogen, elixir-format
 msgid "Holandia"
 msgstr "Países Baixos"
 
-#: lib/tcg_cheap/countries/netherlands.ex:76
+#: lib/tcg_cheap/countries/netherlands.ex:78
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii."
 msgstr "As ofertas mais baratas de Pokémon TCG em lojas neerlandesas e em lojas que enviam para os Países Baixos."
 
-#: lib/tcg_cheap/countries/netherlands.ex:60
+#: lib/tcg_cheap/countries/netherlands.ex:62
 #, elixir-autogen, elixir-format
 msgid "Porównaj ceny Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
 msgstr "Compara os preços de Pokémon TCG em lojas neerlandesas e em lojas que enviam para os Países Baixos. Vê as ofertas de boosters, ETB e displays, o histórico de preços e se vale a pena comprar agora."
 
-#: lib/tcg_cheap/countries/netherlands.ex:48
+#: lib/tcg_cheap/countries/netherlands.ex:50
 #, elixir-autogen, elixir-format
 msgid "Przejdź do wersji holenderskiej"
 msgstr "Ir para a versão neerlandesa"
 
-#: lib/tcg_cheap/countries/netherlands.ex:220
+#: lib/tcg_cheap/countries/netherlands.ex:222
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w euro."
 msgstr "Com menos lojas não há avaliação e, como contexto, indicamos a tendência do Cardmarket em euros."
 
-#: lib/tcg_cheap/countries/netherlands.ex:45
+#: lib/tcg_cheap/countries/netherlands.ex:47
 #, elixir-autogen, elixir-format
 msgid "Wygląda na to, że jesteś w Holandii."
 msgstr "Parece que estás nos Países Baixos."
 
-#: lib/tcg_cheap/countries/netherlands.ex:191
+#: lib/tcg_cheap/countries/netherlands.ex:193
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr "com envio da Alemanha"
 
-#: lib/tcg_cheap/countries/netherlands.ex:200
+#: lib/tcg_cheap/countries/netherlands.ex:202
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Holandii. Ceny w innej walucie niż euro przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
 msgstr "O preço de uma loja estrangeira é o que a loja indica aos compradores dos Países Baixos. Os preços numa moeda que não o euro são convertidos com base nas taxas de câmbio diárias do NBP. A página da loja pode estar noutro idioma."
 
-#: lib/tcg_cheap/countries/netherlands.ex:52
+#: lib/tcg_cheap/countries/netherlands.ex:54
 #, elixir-autogen, elixir-format
 msgid "Ta lokalizacja jest poza Holandią. Wpisz miejscowość."
 msgstr "Esta localização fica fora dos Países Baixos. Escreve a localidade."
 
-#: lib/tcg_cheap/countries/netherlands.ex:55
+#: lib/tcg_cheap/countries/netherlands.ex:57
 #, elixir-autogen, elixir-format
 msgid "np. Utrecht"
 msgstr "ex.: Utrecht"
 
-#: lib/tcg_cheap/countries/netherlands.ex:102
+#: lib/tcg_cheap/countries/netherlands.ex:104
 #, elixir-autogen, elixir-format
 msgid "%{card} – cena karty Pokémon w Holandii"
 msgstr "%{card} – preço da carta Pokémon nos Países Baixos"
 
-#: lib/tcg_cheap/countries/netherlands.ex:107
+#: lib/tcg_cheap/countries/netherlands.ex:109
 #, elixir-autogen, elixir-format
 msgid "%{name} %{number}: od %{price} w holenderskich sklepach i w sklepach wysyłających do Holandii."
 msgstr "%{name} %{number}: desde %{price} em lojas neerlandesas e em lojas que enviam para os Países Baixos."
 
-#: lib/tcg_cheap/countries/netherlands.ex:92
+#: lib/tcg_cheap/countries/netherlands.ex:94
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii."
 msgstr "Cartas Pokémon TCG em inglês em lojas neerlandesas e em lojas que enviam para os Países Baixos."
 
-#: lib/tcg_cheap/countries/netherlands.ex:118
+#: lib/tcg_cheap/countries/netherlands.ex:120
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii: %{cards} na stanie."
 msgstr "Cartas Pokémon TCG em inglês em lojas neerlandesas e em lojas que enviam para os Países Baixos: %{cards} em stock."
 
-#: lib/tcg_cheap/countries/netherlands.ex:133
+#: lib/tcg_cheap/countries/netherlands.ex:135
 #, elixir-autogen, elixir-format
 msgid "Brak na stanie w holenderskich sklepach"
 msgstr "Sem stock nas lojas neerlandesas"
 
-#: lib/tcg_cheap/countries/netherlands.ex:125
+#: lib/tcg_cheap/countries/netherlands.ex:127
 #, elixir-autogen, elixir-format
 msgid "Brak w holenderskich sklepach"
 msgstr "Indisponível nas lojas neerlandesas"
 
-#: lib/tcg_cheap/countries/netherlands.ex:98
+#: lib/tcg_cheap/countries/netherlands.ex:100
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w Holandii"
 msgstr "Preços das cartas Pokémon TCG nos Países Baixos"
 
-#: lib/tcg_cheap/countries/netherlands.ex:84
+#: lib/tcg_cheap/countries/netherlands.ex:86
 #, elixir-autogen, elixir-format
 msgid "Najtańsze karty Pokémon TCG w holenderskich sklepach i w sklepach wysyłających do Holandii."
 msgstr "As cartas Pokémon TCG mais baratas em lojas neerlandesas e em lojas que enviam para os Países Baixos."
 
-#: lib/tcg_cheap/countries/netherlands.ex:153
+#: lib/tcg_cheap/countries/netherlands.ex:155
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Holandii"
 msgstr "com envio para os Países Baixos"
 
-#: lib/tcg_cheap/countries/netherlands.ex:138
+#: lib/tcg_cheap/countries/netherlands.ex:140
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to środek stawki: z każdego holenderskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny holenderskich sklepów są bez dostawy, zagranicznych – z wysyłką do Holandii."
 msgstr "O preço típico é o valor central: de cada loja neerlandesa que tenha a carta em stock, tomamos a oferta mais barata (precisamos de, pelo menos, %{shops}). Um bom preço é, pelo menos, 5 % inferior ao preço típico e ao do Cardmarket com envio. Normal é, no máximo, 10 % acima do típico. Acima disso, é caro. Os preços das lojas neerlandesas não incluem portes; os das lojas estrangeiras incluem envio para os Países Baixos."
 
-#: lib/tcg_cheap/countries/netherlands.ex:129
+#: lib/tcg_cheap/countries/netherlands.ex:131
 #, elixir-autogen, elixir-format
 msgid "Brak w sklepach wysyłających do Holandii"
 msgstr "Indisponível nas lojas que enviam para os Países Baixos"
 
-#: lib/tcg_cheap/countries/netherlands.ex:147
+#: lib/tcg_cheap/countries/netherlands.ex:149
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w euro, co tańsze."
 msgstr "Preços sem portes, exceto os marcados «com envio», ou a tendência do Cardmarket em euros, o que for mais barato."
 
-#: lib/tcg_cheap/countries/netherlands.ex:158
+#: lib/tcg_cheap/countries/netherlands.ex:160
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
 msgstr "Preços sem portes, exceto os marcados «com envio»."

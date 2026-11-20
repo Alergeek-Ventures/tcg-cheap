@@ -28,8 +28,12 @@ defmodule TcgCheap.Countries.Slovenia do
       language: "sl",
       hreflang: "sl-SI",
       popular_languages: [],
-      # DHL Paket 2 kg, the same EU tariff as Hungary and Croatia, plus
-      # Cardmarket's €1 packaging: https://help.cardmarket.com/en/ShippingCosts
+      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # https://help.cardmarket.com/en/ShippingCosts
+      # German Standardbrief through €25, then domestic tracked Navadno pismo.
+      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
+      cardmarket_tracked_letter_eur: Decimal.new("2.80"),
+      # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "izdelki", expansions: "seti", cards: "karte"},
       pages: %{}

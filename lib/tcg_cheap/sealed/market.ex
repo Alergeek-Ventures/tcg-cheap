@@ -30,7 +30,15 @@ defmodule TcgCheap.Sealed.Market do
   alias TcgCheap.Pricing.ExchangeRate
   alias TcgCheap.Sealed.{Shop, Shops}
 
-  @enforce_keys [:code, :country, :currency, :decimals, :cardmarket_shipping_eur]
+  @enforce_keys [
+    :code,
+    :country,
+    :currency,
+    :decimals,
+    :cardmarket_untracked_letter_eur,
+    :cardmarket_tracked_letter_eur,
+    :cardmarket_shipping_eur
+  ]
   defstruct @enforce_keys
 
   @type t :: %__MODULE__{
@@ -38,6 +46,8 @@ defmodule TcgCheap.Sealed.Market do
           country: String.t(),
           currency: String.t(),
           decimals: non_neg_integer(),
+          cardmarket_untracked_letter_eur: Decimal.t(),
+          cardmarket_tracked_letter_eur: Decimal.t(),
           cardmarket_shipping_eur: Decimal.t()
         }
 
@@ -51,6 +61,8 @@ defmodule TcgCheap.Sealed.Market do
       country: region.country,
       currency: region.currency,
       decimals: region.decimals,
+      cardmarket_untracked_letter_eur: region.cardmarket_untracked_letter_eur,
+      cardmarket_tracked_letter_eur: region.cardmarket_tracked_letter_eur,
       cardmarket_shipping_eur: region.cardmarket_shipping_eur
     }
 
