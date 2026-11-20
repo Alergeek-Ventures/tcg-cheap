@@ -28,11 +28,24 @@ defmodule TcgCheap.Countries.Hungary do
       language: "hu",
       hreflang: "hu-HU",
       popular_languages: [],
-      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # Cheaper domestic/German total Prices including packaging, checked 2026-11-20:
       # https://help.cardmarket.com/en/ShippingCosts
-      # Domestic Priority Letter through €25, then Registered Priority Letter.
-      cardmarket_untracked_letter_eur: Decimal.new("1.53"),
-      cardmarket_tracked_letter_eur: Decimal.new("4.23"),
+      # Domestic tracked letter/parcel through €500, German insured parcels to
+      # €1,000, the domestic insured parcel to €2,400, then German methods.
+      cardmarket_letter_tiers: [
+        {Decimal.new("25"), Decimal.new("1.53"), :letter},
+        {Decimal.new("200"), Decimal.new("4.23"), :tracked_letter},
+        {Decimal.new("500"), Decimal.new("8.58"), :tracked_parcel},
+        {Decimal.new("1000"), Decimal.new("32.49"), :insured_parcel},
+        {Decimal.new("1200"), Decimal.new("45.12"), :insured_parcel},
+        {Decimal.new("2000"), Decimal.new("46.49"), :insured_parcel},
+        {Decimal.new("2400"), Decimal.new("81.67"), :insured_parcel},
+        {Decimal.new("2500"), Decimal.new("88.20"), :insured_parcel},
+        {Decimal.new("5000"), Decimal.new("122.00"), :insured_parcel},
+        {Decimal.new("10000"), Decimal.new("150.00"), :insured_courier_estimate},
+        {Decimal.new("20000"), Decimal.new("150.00"), :insured_courier_estimate},
+        {Decimal.new("150000"), Decimal.new("150.00"), :insured_courier_estimate}
+      ],
       # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "termekek", expansions: "szettek", cards: "kartyak"},

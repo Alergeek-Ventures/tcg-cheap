@@ -266,8 +266,6 @@ defmodule TcgCheap.Cards.AgentTools.Review do
 
   defp suspicious_query(query, market, rate) do
     fx = if rate, do: rate.rate, else: Decimal.new(0)
-    untracked = market.cardmarket_untracked_letter_eur
-    tracked = market.cardmarket_tracked_letter_eur
 
     query =
       from(o in query,
@@ -284,17 +282,26 @@ defmodule TcgCheap.Cards.AgentTools.Review do
         fragment("CASE WHEN ? = 'reverse' THEN ? ELSE ? END", o.variant, p.trend_holo, p.trend)
       )
 
+    shipping =
+      market.cardmarket_letter_tiers
+      |> Enum.reverse()
+      |> Enum.reduce(dynamic(fragment("NULL::numeric")), fn
+        {limit, cost, _method}, fallback ->
+          dynamic(
+            fragment(
+              "CASE WHEN ? <= ?::numeric THEN ?::numeric ELSE ? END",
+              ^trend,
+              ^limit,
+              ^cost,
+              ^fallback
+            )
+          )
+      end)
+
     reference =
       dynamic(
         [_o, _c, _p],
-        fragment(
-          "round((? + CASE WHEN ? > 25 THEN ?::numeric ELSE ?::numeric END) * ?::numeric, 2)",
-          ^trend,
-          ^trend,
-          ^tracked,
-          ^untracked,
-          ^fx
-        )
+        fragment("round((? + ?) * ?::numeric, 2)", ^trend, ^shipping, ^fx)
       )
 
     ratio = dynamic([o], fragment("round(? / NULLIF(?, 0), 3)", o.price, ^reference))

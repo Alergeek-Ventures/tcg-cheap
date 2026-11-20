@@ -28,11 +28,19 @@ defmodule TcgCheap.Countries.Netherlands do
       language: "nl",
       hreflang: "nl-NL",
       popular_languages: [],
-      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # Cheaper domestic/German total Prices including packaging, checked 2026-11-20:
       # https://help.cardmarket.com/en/ShippingCosts
-      # German Standardbrief through €25, then domestic tracked Brievenbuspakje+.
-      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
-      cardmarket_tracked_letter_eur: Decimal.new("6.20"),
+      # German Standardbrief through €25, then domestic parcel methods; the
+      # final tiers are insured-courier estimates, not fixed courier quotes.
+      cardmarket_letter_tiers: [
+        {Decimal.new("25"), Decimal.new("1.55"), :letter},
+        {Decimal.new("200"), Decimal.new("6.20"), :tracked_parcel},
+        {Decimal.new("500"), Decimal.new("13.55"), :tracked_parcel},
+        {Decimal.new("5500"), Decimal.new("18.15"), :insured_parcel},
+        {Decimal.new("10000"), Decimal.new("150.00"), :insured_courier_estimate},
+        {Decimal.new("20000"), Decimal.new("150.00"), :insured_courier_estimate},
+        {Decimal.new("150000"), Decimal.new("150.00"), :insured_courier_estimate}
+      ],
       # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "producten", expansions: "sets", cards: "kaarten"},

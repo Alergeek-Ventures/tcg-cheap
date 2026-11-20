@@ -118,9 +118,9 @@ defmodule TcgCheapWeb.SocialImage.Single do
     if Region.singles?(Region.current()) do
       with %Decimal{} = reference <- answer_row(page).reference do
         {Format.limit_price(reference),
-         if(page.abroad_only?,
-           do: gettext("trend na Cardmarket, bez dostawy · wszystkie języki i stany kart"),
-           else: gettext("na Cardmarket z wysyłką · wszystkie języki i stany kart")
+         if(answer_row(page).reference_with_delivery?,
+           do: gettext("na Cardmarket z wysyłką · wszystkie języki i stany kart"),
+           else: gettext("trend na Cardmarket, bez dostawy · wszystkie języki i stany kart")
          )}
       end
     else

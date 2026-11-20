@@ -31,11 +31,22 @@ defmodule TcgCheap.Countries.Poland do
       hreflang: "pl-PL",
       # Ukrainian, once the guide renders it: Poland's largest minority.
       popular_languages: ["uk"],
-      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # Cheaper domestic/German total Prices including packaging, checked 2026-11-20:
       # https://help.cardmarket.com/en/ShippingCosts
-      # German Standardbrief through €25, then domestic Registered Priority Letter S.
-      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
-      cardmarket_tracked_letter_eur: Decimal.new("2.79"),
+      # German Standardbrief through €25, then the domestic ladder; the final
+      # tiers are Cardmarket's insured-courier estimates, not fixed courier quotes.
+      cardmarket_letter_tiers: [
+        {Decimal.new("25"), Decimal.new("1.55"), :letter},
+        {Decimal.new("100"), Decimal.new("2.79"), :tracked_letter},
+        {Decimal.new("300"), Decimal.new("4.80"), :tracked_parcel},
+        {Decimal.new("500"), Decimal.new("17.28"), :insured_parcel},
+        {Decimal.new("1000"), Decimal.new("28.89"), :insured_parcel},
+        {Decimal.new("2500"), Decimal.new("35.62"), :insured_courier_estimate},
+        {Decimal.new("5000"), Decimal.new("35.62"), :insured_courier_estimate},
+        {Decimal.new("10000"), Decimal.new("35.62"), :insured_courier_estimate},
+        {Decimal.new("20000"), Decimal.new("35.62"), :insured_courier_estimate},
+        {Decimal.new("150000"), Decimal.new("35.62"), :insured_courier_estimate}
+      ],
       # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "produkty", expansions: "rozszerzenia", cards: "karty"},

@@ -10,72 +10,72 @@ msgid ""
 msgstr ""
 "Language: pt\n"
 
-#: lib/tcg_cheap/countries/poland.ex:100
+#: lib/tcg_cheap/countries/poland.ex:111
 #, elixir-autogen, elixir-format
 msgid "%{card} – cena karty Pokémon w Polsce"
 msgstr "%{card} – preço da carta Pokémon na Polónia"
 
-#: lib/tcg_cheap/countries/poland.ex:157
+#: lib/tcg_cheap/countries/poland.ex:168
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Polski."
 msgstr "%{expansion}: compara os preços de boosters, ETB, displays e coleções em lojas que enviam para a Polónia."
 
-#: lib/tcg_cheap/countries/poland.ex:173
+#: lib/tcg_cheap/countries/poland.ex:184
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden polski sklep nie ma tego produktu na stanie."
 msgstr "%{name}: neste momento, nenhuma loja polaca tem este produto em stock."
 
-#: lib/tcg_cheap/countries/poland.ex:93
+#: lib/tcg_cheap/countries/poland.ex:104
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających do Polski."
 msgstr "Cartas Pokémon TCG em inglês em lojas que enviam para a Polónia."
 
-#: lib/tcg_cheap/countries/poland.ex:166
+#: lib/tcg_cheap/countries/poland.ex:177
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden polski sklep nie ma teraz na stanie."
 msgstr "Neste momento, nenhuma loja polaca tem o booster %{expansion} em stock."
 
-#: lib/tcg_cheap/countries/poland.ex:78
+#: lib/tcg_cheap/countries/poland.ex:89
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Polski, sprawdzane codziennie."
 msgstr "Preços de Pokémon TCG de lojas que enviam para a Polónia, verificados todos os dias."
 
-#: lib/tcg_cheap/countries/poland.ex:96
+#: lib/tcg_cheap/countries/poland.ex:107
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w Polsce"
 msgstr "Preços de cartas Pokémon TCG na Polónia"
 
-#: lib/tcg_cheap/countries/poland.ex:202
+#: lib/tcg_cheap/countries/poland.ex:213
 #, elixir-autogen, elixir-format
 msgid "Ceny polskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Polski. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Os preços das lojas polacas não incluem portes; os das lojas estrangeiras incluem envio para a Polónia. Ao preço do Cardmarket acrescentamos %{shipping} por um envio da Alemanha."
 
-#: lib/tcg_cheap/countries/poland.ex:89
+#: lib/tcg_cheap/countries/poland.ex:100
 #, elixir-autogen, elixir-format
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Polski."
 msgstr "As cartas Pokémon TCG mais baratas em lojas que enviam para a Polónia."
 
-#: lib/tcg_cheap/countries/poland.ex:85
+#: lib/tcg_cheap/countries/poland.ex:96
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Polski."
 msgstr "As ofertas mais baratas de Pokémon TCG em lojas que enviam para a Polónia."
 
-#: lib/tcg_cheap/countries/poland.ex:52
+#: lib/tcg_cheap/countries/poland.ex:63
 #, elixir-autogen, elixir-format
 msgid "Polska"
 msgstr "Polónia"
 
-#: lib/tcg_cheap/countries/poland.ex:70
+#: lib/tcg_cheap/countries/poland.ex:81
 #, elixir-autogen, elixir-format
 msgid "Porównaj ceny Pokémon TCG w sklepach wysyłających do Polski. Sprawdź oferty boosterów, ETB, boxów i angielskich kart, historię cen i czy warto kupić teraz."
 msgstr "Compara os preços de Pokémon TCG em lojas que enviam para a Polónia. Vê as ofertas de boosters, ETB, displays e cartas em inglês, o histórico de preços e se vale a pena comprar agora."
 
-#: lib/tcg_cheap/countries/poland.ex:58
+#: lib/tcg_cheap/countries/poland.ex:69
 #, elixir-autogen, elixir-format
 msgid "Przejdź do wersji polskiej"
 msgstr "Ir para a versão polaca"
 
-#: lib/tcg_cheap/countries/poland.ex:55
+#: lib/tcg_cheap/countries/poland.ex:66
 #, elixir-autogen, elixir-format
 msgid "Wygląda na to, że jesteś w Polsce."
 msgstr "Parece que estás na Polónia."
@@ -85,8 +85,8 @@ msgstr "Parece que estás na Polónia."
 msgid "wysyłka z Polski"
 msgstr "envio da Polónia"
 
-#: lib/tcg_cheap/countries/poland.ex:144
-#: lib/tcg_cheap/countries/poland.ex:179
+#: lib/tcg_cheap/countries/poland.ex:155
+#: lib/tcg_cheap/countries/poland.ex:190
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Polski"
 msgstr "com envio para a Polónia"
@@ -96,47 +96,47 @@ msgstr "com envio para a Polónia"
 msgid "z wysyłką z Polski"
 msgstr "com envio da Polónia"
 
-#: lib/tcg_cheap/countries/poland.ex:62
+#: lib/tcg_cheap/countries/poland.ex:73
 #, elixir-autogen, elixir-format
 msgid "Ta lokalizacja jest poza Polską. Wpisz miejscowość."
 msgstr "Esta localização fica fora da Polónia. Escreve a localidade."
 
-#: lib/tcg_cheap/countries/poland.ex:65
+#: lib/tcg_cheap/countries/poland.ex:76
 #, elixir-autogen, elixir-format
 msgid "np. Gdańsk"
 msgstr "ex.: Gdańsk"
 
-#: lib/tcg_cheap/countries/poland.ex:105
+#: lib/tcg_cheap/countries/poland.ex:116
 #, elixir-autogen, elixir-format
 msgid "%{name} %{number}: od %{price} w sklepach wysyłających do Polski."
 msgstr "%{name} %{number}: a partir de %{price} em lojas que enviam para a Polónia."
 
-#: lib/tcg_cheap/countries/poland.ex:114
+#: lib/tcg_cheap/countries/poland.ex:125
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających do Polski: %{cards} na stanie."
 msgstr "Cartas Pokémon TCG em inglês em lojas que enviam para a Polónia: %{cards} em stock."
 
-#: lib/tcg_cheap/countries/poland.ex:124
+#: lib/tcg_cheap/countries/poland.ex:135
 #, elixir-autogen, elixir-format
 msgid "Brak na stanie w polskich sklepach"
 msgstr "Sem stock nas lojas polacas"
 
-#: lib/tcg_cheap/countries/poland.ex:121
+#: lib/tcg_cheap/countries/poland.ex:132
 #, elixir-autogen, elixir-format
 msgid "Brak w polskich sklepach"
 msgstr "Não está nas lojas polacas"
 
-#: lib/tcg_cheap/countries/poland.ex:129
+#: lib/tcg_cheap/countries/poland.ex:140
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to środek stawki: z każdego polskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny polskich sklepów są bez dostawy, zagranicznych z wysyłką."
 msgstr "O preço típico é a mediana: tomamos a oferta mais barata de cada loja polaca que tem a carta em stock e escolhemos o valor do meio (precisamos de pelo menos %{shops}). Um bom preço é, pelo menos, 5 % mais baixo do que o preço típico e do que o Cardmarket com portes. O preço normal fica, no máximo, 10 % acima do típico; acima disso, é caro. Os preços das lojas polacas não incluem portes; os das lojas estrangeiras incluem-nos."
 
-#: lib/tcg_cheap/countries/poland.ex:138
+#: lib/tcg_cheap/countries/poland.ex:149
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w złotych, co tańsze."
 msgstr "Preços sem portes, exceto os marcados «com envio», ou a tendência do Cardmarket em zlótis, o que for mais barato."
 
-#: lib/tcg_cheap/countries/poland.ex:149
+#: lib/tcg_cheap/countries/poland.ex:160
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
 msgstr "Preços sem portes, exceto os marcados «com envio»."

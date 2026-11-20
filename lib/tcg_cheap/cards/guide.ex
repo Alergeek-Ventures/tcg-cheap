@@ -587,6 +587,16 @@ defmodule TcgCheap.Cards.Guide do
   defp reference(price, variant, context),
     do: Reference.bare_in_market(price, variant, context.rate, context.market)
 
+  # A page still shows the bare trend when its delivered reference is unknown.
+  defp page_reference(price, variant, context) do
+    delivered = reference(price, variant, context)
+
+    {
+      delivered || Reference.bare_in_market(price, variant, context.rate, context.market),
+      not context.abroad_only? and not is_nil(delivered)
+    }
+  end
+
   @doc """
   A card's verdict from its in-stock, ungraded offers of one printing (each
   `price` the compared one in the `context`'s market, `Market.compared/3`),
@@ -701,10 +711,14 @@ defmodule TcgCheap.Cards.Guide do
 
         {verdict, guide} = judge(in_stock, card, variant, context)
 
+        {reference, reference_with_delivery?} =
+          page_reference(card.cardmarket_price, variant, context)
+
         %{
           variant: variant,
           cheapest: Enum.min_by(in_stock, & &1.price, Decimal, fn -> nil end),
-          reference: reference(card.cardmarket_price, variant, context),
+          reference: reference,
+          reference_with_delivery?: reference_with_delivery?,
           verdict: verdict,
           # What the verdict compares with, when the market's own shops set it.
           typical: guide && guide.typical,

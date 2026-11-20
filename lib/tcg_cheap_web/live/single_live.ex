@@ -140,10 +140,7 @@ defmodule TcgCheapWeb.SingleLive do
     if delivered do
       shipping = Cards.Reference.shipping_eur(trend, market)
 
-      source =
-        if Cards.Reference.tracking_required?(trend),
-          do: gettext("list śledzony"),
-          else: gettext("list")
+      source = shipping_source(Cards.Reference.shipping_method(trend, market))
 
       gettext("trend Cardmarket %{trend} + wysyłka %{shipping} (%{source})",
         trend: Format.eur(trend),
@@ -152,6 +149,15 @@ defmodule TcgCheapWeb.SingleLive do
       )
     end
   end
+
+  defp shipping_source(:letter), do: gettext("list")
+  defp shipping_source(:tracked_letter), do: gettext("list śledzony")
+  defp shipping_source(:insured_letter), do: gettext("list ubezpieczony")
+  defp shipping_source(:tracked_parcel), do: gettext("paczka śledzona")
+  defp shipping_source(:insured_parcel), do: gettext("paczka ubezpieczona")
+
+  defp shipping_source(:insured_courier_estimate),
+    do: gettext("szacunek: paczka kurierska z pełnym ubezpieczeniem")
 
   @impl true
   def handle_event("location-" <> _ = event, params, socket) do
@@ -375,8 +381,8 @@ defmodule TcgCheapWeb.SingleLive do
                   placement="single_reference"
                   cardmarket_id={@page.card.cardmarket_id}
                   card={@page.card.id}
-                  shipping={@with_delivery?}
-                /><span>{if(@with_delivery?,
+                  shipping={@primary.reference_with_delivery?}
+                /><span>{if(@primary.reference_with_delivery?,
                   do: gettext("na Cardmarket z wysyłką · wszystkie języki i stany kart"),
                   else: gettext("trend na Cardmarket, bez dostawy · wszystkie języki i stany kart")
                 )}</span>
@@ -389,7 +395,7 @@ defmodule TcgCheapWeb.SingleLive do
                       "Cardmarket podaje jedną cenę dla wszystkich języków i stanów, więc karta angielska w stanie NM bywa droższa."
                     )}
                   </p>
-                  <p :if={@primary.reference && @with_delivery?}>
+                  <p :if={@primary.reference_with_delivery?}>
                     {reference_line(@page.price, @primary.variant, @region.market)} = {Format.limit_price(
                       @primary.reference
                     )}.
