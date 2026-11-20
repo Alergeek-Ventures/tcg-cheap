@@ -188,6 +188,10 @@ msgid "151 mini tin"
 msgstr "151 Mini Tin"
 
 #. contents item
+msgid "3 losowe karty z Classic Collection (30th Celebration)"
+msgstr "3 véletlenszerű kártya a Classic Collectionből (30th Celebration)"
+
+#. contents item
 msgid "3-card fun pack"
 msgstr "3 lapos fun pack"
 
@@ -230,6 +234,10 @@ msgstr "tájékoztató lap"
 #. contents item
 msgid "arkusz papierowych żetonów obrażeń"
 msgstr "papír sebzésszámláló-ív"
+
+#. contents item
+msgid "arkusz porad do budowy talii"
+msgstr "paklipítési tippeket tartalmazó lap"
 
 #. contents item
 msgid "arkusz żetonów obrażeń i znaczników"
@@ -1216,6 +1224,10 @@ msgid "minipuszka 30th Celebration"
 msgstr "30th Celebration Mini Tin"
 
 #. contents item
+msgid "minipuszka Galar Pals (5 wzorów)"
+msgstr "Galar Pals Mini Tin (5 féle minta)"
+
+#. contents item
 msgid "minipuszka Lumiose City (5 wzorów)"
 msgstr "Lumiose City Mini Tin (5 féle minta)"
 
@@ -1238,6 +1250,10 @@ msgstr "újévi bélyegző"
 #. contents item
 msgid "noworoczny magnes na lodówkę"
 msgstr "újévi hűtőmágnes"
+
+#. contents item
+msgid "pakiet ewolucji (23 karty)"
+msgstr "evolúciós csomag (23 lap)"
 
 #. contents item
 msgid "pakiet ulepszający talię (15 kart)"
@@ -1508,8 +1524,16 @@ msgid "Leafeon (karta holo)"
 msgstr "Leafeon (holo)"
 
 #. promo card
+msgid "losowa (1 z 4: Cherrim, Octillery, Houndoom, Bronzong – SWSH 088–091)"
+msgstr "véletlenszerű (4 közül 1: Cherrim, Octillery, Houndoom, Bronzong – SWSH 088–091)"
+
+#. promo card
 msgid "losowa (1 z 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
 msgstr "véletlenszerű (4 közül 1: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
+
+#. promo card
+msgid "losowa (1 z 4: Cinderace, Inteleon, Cresselia, Passimian – SWSH 112–115)"
+msgstr "véletlenszerű (4 közül 1: Cinderace, Inteleon, Cresselia, Passimian – SWSH 112–115)"
 
 #. promo card
 msgid "losowa (1 z 4: Delphox, Ampharos, Crobat, Goodra – MEP 074–077)"
@@ -1518,6 +1542,14 @@ msgstr "véletlenszerű (4 közül 1: Delphox, Ampharos, Crobat, Goodra – MEP 
 #. promo card
 msgid "losowa (1 z 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
 msgstr "véletlenszerű (4 közül 1: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
+
+#. promo card
+msgid "losowa (1 z 4: Meganium, Inteleon, Alakazam, Lunatone – MEP 001–004)"
+msgstr "véletlenszerű (4 közül 1: Meganium, Inteleon, Alakazam, Lunatone – MEP 001–004)"
+
+#. promo card
+msgid "losowa (1 z 4: Moltres, Lucario, Liepard, Bibarel – SWSH 185–188)"
+msgstr "véletlenszerű (4 közül 1: Moltres, Lucario, Liepard, Bibarel – SWSH 185–188)"
 
 #. promo card
 msgid "losowa First Partner (3 z 9: MEP 046–054)"

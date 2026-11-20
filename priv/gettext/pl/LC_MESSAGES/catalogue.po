@@ -188,6 +188,10 @@ msgid "151 mini tin"
 msgstr "minipuszka 151"
 
 #. contents item
+msgid "3 losowe karty z Classic Collection (30th Celebration)"
+msgstr ""
+
+#. contents item
 msgid "3-card fun pack"
 msgstr "fun pack z 3 kartami"
 
@@ -229,6 +233,10 @@ msgstr ""
 
 #. contents item
 msgid "arkusz papierowych żetonów obrażeń"
+msgstr ""
+
+#. contents item
+msgid "arkusz porad do budowy talii"
 msgstr ""
 
 #. contents item
@@ -1216,6 +1224,10 @@ msgid "minipuszka 30th Celebration"
 msgstr ""
 
 #. contents item
+msgid "minipuszka Galar Pals (5 wzorów)"
+msgstr ""
+
+#. contents item
 msgid "minipuszka Lumiose City (5 wzorów)"
 msgstr ""
 
@@ -1237,6 +1249,10 @@ msgstr ""
 
 #. contents item
 msgid "noworoczny magnes na lodówkę"
+msgstr ""
+
+#. contents item
+msgid "pakiet ewolucji (23 karty)"
 msgstr ""
 
 #. contents item
@@ -1508,7 +1524,15 @@ msgid "Leafeon (karta holo)"
 msgstr ""
 
 #. promo card
+msgid "losowa (1 z 4: Cherrim, Octillery, Houndoom, Bronzong – SWSH 088–091)"
+msgstr ""
+
+#. promo card
 msgid "losowa (1 z 4: Chi-Yu, Iron Bundle, Xatu, Aegislash – SVP 057–060)"
+msgstr ""
+
+#. promo card
+msgid "losowa (1 z 4: Cinderace, Inteleon, Cresselia, Passimian – SWSH 112–115)"
 msgstr ""
 
 #. promo card
@@ -1517,6 +1541,14 @@ msgstr ""
 
 #. promo card
 msgid "losowa (1 z 4: Hisuian Basculegion, Wyrdeer, Hisuian Samurott, Magnezone – SWSH205–208)"
+msgstr ""
+
+#. promo card
+msgid "losowa (1 z 4: Meganium, Inteleon, Alakazam, Lunatone – MEP 001–004)"
+msgstr ""
+
+#. promo card
+msgid "losowa (1 z 4: Moltres, Lucario, Liepard, Bibarel – SWSH 185–188)"
 msgstr ""
 
 #. promo card
