@@ -22,6 +22,8 @@ defmodule TcgCheap.Sealed.Offer do
     custom_indexes do
       index [:last_seen_at]
       index [:product_id, :last_seen_at]
+      # Each shop's latest fetch (`TcgCheap.Sealed.Offer.LatestFetches`).
+      index [:shop, :last_seen_at]
     end
   end
 
