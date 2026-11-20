@@ -214,6 +214,12 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       name: "Card-Binder.com",
       host: "card-binder.com",
       source: Shopify,
+      # Every product is listed twice: sealed, and a twin marked "[Live]",
+      # "(Live-stream)" or "(Lives-stream)" in the title (and "-live" or
+      # "-live-stream" in the handle) that the shop opens on a live stream
+      # instead of shipping sealed. Only the title and handle are searched:
+      # ordinary sealed descriptions also say "live".
+      excluded_title_phrases: ["live", "live stream", "lives stream"],
       currency: "EUR",
       country: "NL",
       max_pages: 10,

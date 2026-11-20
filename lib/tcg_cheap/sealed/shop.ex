@@ -15,7 +15,9 @@ defmodule TcgCheap.Sealed.Shop do
       sealed ones: graded cards, discontinued products; nil for none),
       `excluded_phrases` (normalized phrases such as "one piece" or "oppnas
       live", which take a product out when its title, handle or description contains them
-      as whole words: other games, packs opened live on stream; nil for none)
+      as whole words: other games, packs opened live on stream; nil for none),
+      `excluded_title_phrases` (the same, looked for in the title and handle
+      only, for a phrase that ordinary descriptions also use; nil for none)
       and
       `singles_markers` (the same kind of values; a shop with them reads its
       whole list for singles, and a product is a single when it says Pokémon
@@ -104,6 +106,7 @@ defmodule TcgCheap.Sealed.Shop do
                 :collection,
                 :excluded_markers,
                 :excluded_phrases,
+                :excluded_title_phrases,
                 :singles_markers,
                 :feed_path,
                 :feed_host,
@@ -140,6 +143,7 @@ defmodule TcgCheap.Sealed.Shop do
           collection: String.t() | nil,
           excluded_markers: [String.t()] | nil,
           excluded_phrases: [String.t()] | nil,
+          excluded_title_phrases: [String.t()] | nil,
           singles_markers: [String.t()] | nil,
           feed_path: String.t() | nil,
           feed_host: String.t() | nil,
