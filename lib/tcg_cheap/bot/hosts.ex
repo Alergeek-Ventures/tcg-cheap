@@ -1,9 +1,11 @@
 defmodule TcgCheap.Bot.Hosts do
   @moduledoc """
   What the bot remembers about the hosts it reads, in memory: the robots.txt
-  rules last fetched from each host, the time before which a host asked not
-  to be asked again (`Retry-After`), and the turns of requests to a host with
-  a `Crawl-delay` that several processes read at once (images).
+  rules last fetched from each host (and when to try a refresh again), the time
+  before which a host asked not to be asked again (`Retry-After`), the hosts
+  that refused an image, and the turns of requests to a host, which every
+  reader (shop fetches, REBEL, images) takes so that the host sees them no
+  closer together than its pause.
 
   A restart forgets all of it: the rules are fetched again and a cooldown is
   left to the job that waits it out (`TcgCheap.Sealed.FetchWorker` snoozes
@@ -23,6 +25,13 @@ defmodule TcgCheap.Bot.Hosts do
   @spec put_robots(String.t(), TcgCheap.Bot.Robots.t()) :: :ok
   def put_robots(host, rules), do: store({:robots, host}, {rules, now()})
 
+  @doc "The system time (ms) before which the rules of `host` are not fetched again, or nil."
+  @spec robots_retry_at(String.t()) :: integer() | nil
+  def robots_retry_at(host), do: lookup({:robots_retry_at, host})
+
+  @spec put_robots_retry_at(String.t(), integer()) :: :ok
+  def put_robots_retry_at(host, at), do: store({:robots_retry_at, host}, at)
+
   @doc "The system time (ms) before which `host` is not to be asked, or nil."
   @spec not_before(String.t()) :: integer() | nil
   def not_before(host), do: lookup({:not_before, host})
@@ -30,12 +39,23 @@ defmodule TcgCheap.Bot.Hosts do
   @spec put_not_before(String.t(), integer()) :: :ok
   def put_not_before(host, at), do: store({:not_before, host}, at)
 
+  @doc "The status (or `:challenge`) with which `host` refused an image until the time (ms) given, or nil."
+  @spec image_refusal(String.t()) :: {term(), integer()} | nil
+  def image_refusal(host), do: lookup({:image_refusal, host})
+
+  @spec put_image_refusal(String.t(), term(), integer()) :: :ok
+  def put_image_refusal(host, refusal, until), do: store({:image_refusal, host}, {refusal, until})
+
   @doc """
-  Takes the next turn at `host`, `gap_ms` after the one before it, and answers
-  how long to wait for it.
+  Takes the next turn at `host`: no sooner than `gap_ms` after the turn before
+  it, and no sooner than the gap that turn asked for. Answers `{:ok, wait_ms}`,
+  the time to wait for it, or `{:wait, wait_ms}` without taking the turn when
+  that wait is longer than `max_wait_ms`.
   """
-  @spec reserve(String.t(), non_neg_integer()) :: non_neg_integer()
-  def reserve(host, gap_ms), do: GenServer.call(__MODULE__, {:reserve, host, gap_ms})
+  @spec reserve(String.t(), non_neg_integer(), non_neg_integer()) ::
+          {:ok, non_neg_integer()} | {:wait, pos_integer()}
+  def reserve(host, gap_ms, max_wait_ms),
+    do: GenServer.call(__MODULE__, {:reserve, host, gap_ms, max_wait_ms})
 
   @doc false
   def now, do: System.system_time(:millisecond)
@@ -58,10 +78,16 @@ defmodule TcgCheap.Bot.Hosts do
     {:ok, %{}}
   end
 
+  # A host's state is the time of its last turn and the time its next one is
+  # free (that turn's own gap after it).
   @impl true
-  def handle_call({:reserve, host, gap_ms}, _from, turns) do
+  def handle_call({:reserve, host, gap_ms, max_wait_ms}, _from, turns) do
     now = System.monotonic_time(:millisecond)
-    turn = max(now, Map.get(turns, host, now - gap_ms) + gap_ms)
-    {:reply, turn - now, Map.put(turns, host, turn)}
+    {last, free} = Map.get(turns, host, {now - gap_ms, now})
+    turn = Enum.max([now, last + gap_ms, free])
+
+    if turn - now > max_wait_ms,
+      do: {:reply, {:wait, turn - now}, turns},
+      else: {:reply, {:ok, turn - now}, Map.put(turns, host, {turn, turn + gap_ms})}
   end
 end

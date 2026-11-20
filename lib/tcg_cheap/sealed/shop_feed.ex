@@ -102,8 +102,9 @@ defmodule TcgCheap.Sealed.ShopFeed do
   end
 
   @doc """
-  GETs `path` on the shop's host (or `feed_host`), after a pause
-  (`pause_ms`, default #{@request_pause_ms} ms, or the host's `Crawl-delay` when that is longer), and
+  GETs `path` on the shop's host (or `feed_host`), a pause
+  (`pause_ms`, default #{@request_pause_ms} ms, or the host's `Crawl-delay` when that is longer)
+  after the host's last request, and
   returns the 200 response with its raw body, at
   most `max_body_bytes` long (default 5 MB), over the HTTP `protocols` given
   (default HTTP/1.1). A 429 or 503 is retried after a `Retry-After` of at most
@@ -145,10 +146,12 @@ defmodule TcgCheap.Sealed.ShopFeed do
     pause_ms = Keyword.get(opts, :pause_ms, @request_pause_ms)
     protocols = Keyword.get(opts, :protocols, [:http1])
 
+    # The URL that is requested is the one robots.txt is asked about.
+    {url, target} = Bot.request_url(host, path, params)
+
     request =
       [
-        url: "https://#{host}#{path}",
-        params: params,
+        url: url,
         decode_body: false,
         into: &bounded_body(&1, &2, max_body_bytes),
         connect_options: [timeout: 5_000, protocols: protocols],
@@ -160,18 +163,15 @@ defmodule TcgCheap.Sealed.ShopFeed do
       |> Bot.new()
       |> Req.merge(req_options)
 
-    crawl_delay_ms =
-      case Bot.permit(host, target(path, params), req_options,
+    # Waits for the host's turn: the larger of the shop's `Crawl-delay` and the
+    # client's own pause after the request before it, whoever made that.
+    with {:error, reason} <-
+           Bot.permit(host, target, req_options,
              pause_ms: pause_ms,
              protocols: protocols,
              max_retry_after_ms: max_retry_after_ms
-           ) do
-        {:ok, crawl_delay_ms} -> crawl_delay_ms
-        {:error, reason} -> Bot.stop(reason)
-      end
-
-    # The larger of the shop's `Crawl-delay` and the client's own pause.
-    Process.sleep(max(pause_ms, crawl_delay_ms))
+           ),
+         do: Bot.stop(reason)
 
     case Req.request(request) do
       {:ok, response} -> answer(host, response)
@@ -189,10 +189,6 @@ defmodule TcgCheap.Sealed.ShopFeed do
   defp status(%Req.Response{status: 200, body: :too_large}), do: {:error, :response_too_large}
   defp status(%Req.Response{status: 200} = response), do: {:ok, response}
   defp status(%Req.Response{status: status}), do: {:error, {:http_status, status}}
-
-  # The path and query as the request sends them, which robots.txt rules match.
-  defp target(path, []), do: path
-  defp target(path, params), do: path <> "?" <> URI.encode_query(params)
 
   defp bounded_body({:data, data}, {request, response}, max_body_bytes) do
     body = if is_binary(response.body), do: response.body, else: ""

@@ -8,31 +8,49 @@ defmodule TcgCheap.Storage.ImageDownload do
   @max_bytes 15 * 1024 * 1024
   @max_pixels 40_000_000
   @deadline_ms 8_000
+  # A host that refused an image is not asked for another for this long: the
+  # time of a mirror run, not of a night.
+  @refusal_ms :timer.hours(1)
+  # A redirect waits for its turn inside the download's deadline.
+  @redirect_wait_ms 3_000
+
+  # Object storage that answers 403, not 404, for a key it does not have: a 403
+  # there says nothing about the host.
+  @missing_as_403 ["limitlesstcg.nyc3.cdn.digitaloceanspaces.com"]
+
+  @doc "Hosts whose object storage answers 403 for a missing image."
+  @spec missing_as_403_hosts() :: [String.t()]
+  def missing_as_403_hosts, do: @missing_as_403
 
   @doc """
   Downloads an allowlisted remote image as the bot (`TcgCheap.Bot`): only
-  where the host's robots.txt allows the path, spaced by its `Crawl-delay`,
-  and without a second try at a host that refuses us or asked to be left alone.
+  where the host's robots.txt allows the path (also that of a redirect it
+  follows), spaced by its pause or `Crawl-delay`, and without a second try at
+  a host that refused us (a 401, a 403 or a challenge) or asked to be left
+  alone: a host that refused an image is not asked for another for an hour.
   """
   @spec fetch(term(), keyword()) :: {:ok, binary(), String.t()} | {:error, term()}
   def fetch(url, req_options \\ []) do
-    if ExternalImage.valid?(url) do
-      url = request_url(url)
-      %URI{host: host, path: path, query: query} = URI.parse(url)
+    if ExternalImage.valid?(url),
+      do: fetch_allowed(request_url(url), req_options),
+      else: {:error, :host_not_allowed}
+  end
 
-      with {:ok, crawl_delay_ms} <- Bot.permit(host, target(path, query), req_options) do
-        if crawl_delay_ms > 0,
-          do: Process.sleep(Hosts.reserve(String.downcase(host), crawl_delay_ms))
+  defp fetch_allowed(url, req_options) do
+    %URI{host: host} = uri = URI.parse(url)
 
-        download(url, host, req_options, true)
-      end
-    else
-      {:error, :host_not_allowed}
+    with :ok <- not_refused(host),
+         :ok <- Bot.permit(host, Bot.target(uri), req_options) do
+      download(url, host, req_options, true)
     end
   end
 
-  defp target(path, nil), do: path
-  defp target(path, query), do: path <> "?" <> query
+  defp not_refused(host) do
+    case Hosts.image_refusal(String.downcase(host)) do
+      {refusal, until} -> if Hosts.now() < until, do: {:error, {:refused, refusal}}, else: :ok
+      nil -> :ok
+    end
+  end
 
   # Shops publish photo URLs with raw characters a request target may not
   # hold, such as an en dash in a WordPress file name; browsers
@@ -129,6 +147,15 @@ defmodule TcgCheap.Storage.ImageDownload do
   # `host` is the remote host the bot reads (nil: our own bucket, which is no
   # crawling and sends no bot identity).
   defp download(url, host, req_options, follow_redirects?) do
+    case request(url, host, req_options, follow_redirects?) do
+      {:ok, %Req.Response{status: 200, body: body}} when is_binary(body) -> validate(body)
+      {:ok, %Req.Response{status: 200, body: reason}} -> {:error, reason}
+      {:ok, response} -> failed(response, host)
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp request(url, host, req_options, follow_redirects?) do
     deadline = System.monotonic_time(:millisecond) + @deadline_ms
 
     options = [
@@ -146,55 +173,76 @@ defmodule TcgCheap.Storage.ImageDownload do
       Task.Supervisor.async_nolink(TcgCheap.Storage.DownloadSupervisor, fn ->
         if(host, do: Bot.new(options), else: Req.new(options))
         |> Req.merge(req_options)
-        |> Req.Request.prepend_response_steps(image_redirect: &check_redirect/1)
+        |> Req.Request.prepend_response_steps(
+          image_redirect: &check_redirect(&1, host, req_options)
+        )
         |> Req.request()
       end)
 
     case Task.yield(task, @deadline_ms) || Task.shutdown(task, :brutal_kill) do
-      {:ok, {:ok, %Req.Response{status: 200, body: body}}} when is_binary(body) ->
-        validate(body)
-
-      {:ok, {:ok, %Req.Response{status: status} = response}} when host != nil and status != 200 ->
-        # A refusal or a `Retry-After` is remembered for every later request.
-        case Bot.classify(host, response) do
-          {:stop, reason} -> {:error, reason}
-          :ok -> {:error, {:http_status, status}}
-        end
-
-      {:ok, {:ok, %Req.Response{status: 200, body: reason}}} ->
-        {:error, reason}
-
-      {:ok, {:ok, %Req.Response{status: status}}} ->
-        {:error, {:http_status, status}}
-
-      {:ok, {:error, exception}} ->
-        {:error, {:transport, exception.__struct__}}
-
-      _failed ->
-        {:error, :download_timeout}
+      {:ok, {:ok, response}} -> {:ok, response}
+      {:ok, {:error, exception}} -> {:error, {:transport, exception.__struct__}}
+      _failed -> {:error, :download_timeout}
     end
   end
 
+  # What a response that is not an image means. For a remote host the policy
+  # decides: a redirect robots.txt forbids, a refusal (remembered: the host
+  # is not asked for another image for a while) or a `Retry-After`.
+  defp failed(response, nil), do: {:error, {:http_status, response.status}}
+
+  defp failed(response, host) do
+    case Req.Response.get_private(response, :bot_stop) do
+      nil -> classified(Bot.classify(host, response), response, host)
+      reason -> {:error, reason}
+    end
+  end
+
+  defp classified({:stop, {:refused, status} = reason}, response, host) do
+    host = String.downcase(host)
+    if host_refused?(host, status, response), do: remember_refusal(host, status)
+    {:error, reason}
+  end
+
+  defp classified({:stop, reason}, _response, _host), do: {:error, reason}
+  defp classified(:ok, response, _host), do: {:error, {:http_status, response.status}}
+
+  # A 403 from object storage that answers it for a missing image says nothing
+  # about the host; a challenge or a 401 does.
+  defp host_refused?(host, 403, response),
+    do: host not in @missing_as_403 or Bot.challenge?(response)
+
+  defp host_refused?(_host, _status, _response), do: true
+
+  defp remember_refusal(host, status),
+    do: Hosts.put_image_refusal(host, status, Hosts.now() + @refusal_ms)
+
   # Some shops generate a missing thumbnail behind a same-origin redirect.
-  # Keep Req's redirect handling, but validate every hop before it can run.
-  defp check_redirect({request, %{body: reason} = response})
+  # Keep Req's redirect handling, but validate every hop before it can run: it
+  # must stay on the host, and the host's robots.txt must allow its path.
+  defp check_redirect({request, %{body: reason} = response}, _host, _req_options)
        when reason in [:too_large, :download_timeout],
        do: Req.Request.halt(request, response)
 
-  defp check_redirect({request, %{status: status} = response})
-       when status in [301, 302, 303, 307, 308] do
+  defp check_redirect({request, %{status: status} = response}, host, req_options)
+       when status in [301, 302, 303, 307, 308] and host != nil do
     with [location | _] <- Req.Response.get_header(response, "location"),
          {:ok, location} <- URI.new(location),
          target <- URI.merge(request.url, location),
          true <- ExternalImage.valid?(URI.to_string(target)),
-         true <- origin(request.url) == origin(target) do
+         true <- origin(request.url) == origin(target),
+         :ok <- Bot.permit(host, Bot.target(target), req_options, max_wait_ms: @redirect_wait_ms) do
       {request, response}
     else
-      _blocked -> Req.Request.halt(request, response)
+      {:error, reason} ->
+        Req.Request.halt(request, Req.Response.put_private(response, :bot_stop, reason))
+
+      _blocked ->
+        Req.Request.halt(request, response)
     end
   end
 
-  defp check_redirect(request_response), do: request_response
+  defp check_redirect(request_response, _host, _req_options), do: request_response
 
   defp origin(uri),
     do: {uri.scheme, String.downcase(uri.host), uri.port || URI.default_port(uri.scheme)}

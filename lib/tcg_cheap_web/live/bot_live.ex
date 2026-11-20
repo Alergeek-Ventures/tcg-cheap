@@ -205,18 +205,24 @@ defmodule TcgCheapWeb.BotLive do
                 <.fluent_icon name={:hourglass} />
                 <span>
                   A <code>Crawl-delay</code> in that group is a minimum pause between requests to the
-                  host: the larger of it and the bot's own pause. A Crawl-delay over five minutes makes
-                  the bot skip the host.
+                  host: the larger of it and the bot's own pause, counted from the last request to that
+                  host of any kind. A long Crawl-delay is a pause, not a refusal: the bot waits up to
+                  five minutes in place; for a longer one it continues later, after the pause, and gives
+                  the read up if the pause would end after the next nightly run.
                 </span>
               </li>
               <li>
                 <.fluent_icon name={:shield} />
                 <span>
-                  404 and 410 mean there is no robots.txt: everything is allowed. 401, 403 and a
-                  challenge response mean the host refuses the bot: it is not read. When robots.txt cannot
-                  be read (a 5xx or 429 answer, a timeout, a network error, any other status), the rules
-                  fetched earlier are used for up to 24 hours after they were fetched; without them the
-                  host is not read that run. Rules are fetched again at most once an hour.
+                  The status of robots.txt follows RFC 9309. A 2xx answer is parsed (the first 512 KiB
+                  are read, the rest is ignored). Any 4xx answer other than 429 (404, 410, and also 401
+                  and 403) means there are no rules: everything is allowed. A challenge response in
+                  place of robots.txt means the host refuses the bot: it is not read. When robots.txt
+                  cannot be read (a 429 or 5xx answer, a timeout, a network error, any other status),
+                  the rules fetched earlier are used for up to 24 hours after they were fetched, and the
+                  bot asks again after the <code>Retry-After</code>
+                  or an hour; without such rules the host is not read that run. Rules are fetched again
+                  at most once an hour.
                 </span>
               </li>
             </ul>
@@ -228,7 +234,9 @@ defmodule TcgCheapWeb.BotLive do
                 <span>
                   After a 401, a 403 or a challenge response (for example Cloudflare's <code>cf-mitigated: challenge</code>) the bot stops reading that shop at once. It does
                   not repeat the request, does not try another host, address or identity, and asks
-                  again only at the next regular run.
+                  again only at the next regular run. A host that refuses an image is not asked for
+                  another image for an hour, and a redirect an image request meets is checked against
+                  the robots.txt rules of its target before it is followed.
                 </span>
               </li>
               <li>
@@ -247,8 +255,10 @@ defmodule TcgCheapWeb.BotLive do
                 <.fluent_icon name={:hourglass} />
                 <span>
                   Requests to one shop are made one at a time, at least one second apart (15 seconds on
-                  Shopify, 5 seconds for the wholesaler's price list), and a read runs once a day. Images are
-                  downloaded one by one, spaced by the host's Crawl-delay where robots.txt names one.
+                  Shopify, 5 seconds for the wholesaler's price list), counted from the last request to
+                  that host of any kind, and a read runs once a day. Images are downloaded one by one,
+                  spaced by the host's Crawl-delay where robots.txt names one, and never closer to a
+                  shop request than its pause.
                 </span>
               </li>
             </ul>

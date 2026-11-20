@@ -11,6 +11,10 @@ defmodule TcgCheap.Bot.Robots do
 
   # RFC 9309 asks a crawler to parse at least 500 KiB; the rest is ignored.
   @max_bytes 512 * 1024
+
+  @doc "How much of a robots.txt is read; `TcgCheap.Bot` does not download more."
+  @spec max_bytes() :: pos_integer()
+  def max_bytes, do: @max_bytes
   @max_pattern_bytes 1_024
 
   @enforce_keys [:rules, :delay_ms]
@@ -40,6 +44,8 @@ defmodule TcgCheap.Bot.Robots do
   @spec parse(binary(), String.t()) :: t()
   def parse(body, token) when is_binary(body) do
     token = String.downcase(token)
+    # The cut may fall inside a character; the line splitting below works on
+    # bytes and does not mind.
     groups = body |> binary_part(0, min(byte_size(body), @max_bytes)) |> groups()
 
     named = Enum.filter(groups, &(token in &1.agents))
@@ -126,17 +132,28 @@ defmodule TcgCheap.Bot.Robots do
     end
   end
 
-  # Percent escapes in upper case and bytes outside ASCII as escapes, so a
-  # pattern and a path written differently still compare.
-  defp normalize(text) do
-    text
-    |> String.replace(~r/%[0-9a-fA-F]{2}/, &String.upcase/1)
-    |> then(fn text ->
-      for <<byte <- text>>, into: "" do
-        if byte > 127, do: "%" <> Base.encode16(<<byte>>), else: <<byte>>
-      end
-    end)
+  # RFC 9309: a pattern and a path compare after the same normalisation: bytes
+  # outside ASCII as escapes, escapes in upper case, and escapes of unreserved
+  # characters (letters, digits, `-._~`) decoded. An escaped reserved character
+  # (`%2F`) stays distinct from the character itself.
+  defp normalize(text), do: text |> normalize([]) |> IO.iodata_to_binary()
+
+  defguardp hex?(char) when char in ?0..?9 or char in ?a..?f or char in ?A..?F
+
+  defguardp unreserved?(byte)
+            when byte in ?a..?z or byte in ?A..?Z or byte in ?0..?9 or byte in [?-, ?., ?_, ?~]
+
+  defp normalize(<<?%, high, low, rest::binary>>, acc) when hex?(high) and hex?(low) do
+    byte = String.to_integer(<<high, low>>, 16)
+    escape = if unreserved?(byte), do: <<byte>>, else: <<?%, high, low>> |> String.upcase()
+    normalize(rest, [acc | escape])
   end
+
+  defp normalize(<<byte, rest::binary>>, acc) when byte > 127,
+    do: normalize(rest, [acc | ["%", Base.encode16(<<byte>>)]])
+
+  defp normalize(<<byte, rest::binary>>, acc), do: normalize(rest, [acc | <<byte>>])
+  defp normalize(<<>>, acc), do: acc
 
   defp matches?("$", target), do: target == ""
   defp matches?("", _target), do: true
