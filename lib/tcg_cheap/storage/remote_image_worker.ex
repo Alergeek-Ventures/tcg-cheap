@@ -18,21 +18,11 @@ defmodule TcgCheap.Storage.RemoteImageWorker do
     if RemoteImageMirror.run(@mirror_batch) == @mirror_batch, do: {:snooze, 1}, else: :ok
   end
 
-  def perform(%Oban.Job{args: args}) do
-    {cursor, count} =
-      RemoteImageMirror.register_batch(Map.get(args, "cursor", ["", ""]), @register_batch)
+  def perform(%Oban.Job{}) do
+    RemoteImageMirror.register_all(@register_batch)
 
-    mirrored = RemoteImageMirror.run(@mirror_batch)
-
-    next =
-      cond do
-        count == @register_batch -> %{"cursor" => cursor}
-        mirrored == @mirror_batch -> %{"registered" => true}
-        true -> nil
-      end
-
-    if next do
-      case next |> new() |> Oban.insert() do
+    if RemoteImageMirror.run(@mirror_batch) == @mirror_batch do
+      case %{"registered" => true} |> new() |> Oban.insert() do
         {:ok, _job} -> :ok
         {:error, reason} -> {:error, reason}
       end

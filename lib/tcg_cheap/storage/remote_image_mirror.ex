@@ -14,8 +14,9 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
                                "('#{number}', '#{code}')"
                              end)
 
-  # Keyset scan across the known source columns. No request parameter can add a
-  # source, and neither rendering nor the media controller invokes this query.
+  # Every known source column, read whole: the union costs the same for one
+  # row as for all of them. No request parameter can add a source, and neither
+  # rendering nor the media controller invokes this query.
   @sources """
   SELECT url, kind FROM (
     SELECT logo_url AS url, 'logo' AS kind FROM sealed_tcgdex_sets
@@ -101,8 +102,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
     UNION
     SELECT url, 'expansion_logo' AS kind FROM sealed_expansion_logos
   ) AS sources
-  WHERE url IS NOT NULL AND url <> '' AND (url, kind) > ($1, $2)
-  ORDER BY url, kind LIMIT $3
+  WHERE url IS NOT NULL AND url <> ''
   """
 
   @logo_kinds ["logo", "expansion_logo"]
@@ -124,10 +124,10 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   # attempt looks like a source outage rather than missing scans.
   @outage_first_failures 10
 
-  @doc "Registers a page of known URLs; returns its keyset cursor and row count."
-  @spec register_batch([String.t()], pos_integer()) :: {[String.t()], non_neg_integer()}
-  def register_batch([url, kind] = cursor, limit) do
-    %{rows: rows} = TcgCheap.Repo.query!(@sources, [url, kind, limit])
+  @doc "Registers every known source, looking them up `batch` at a time."
+  @spec register_all(pos_integer()) :: :ok
+  def register_all(batch) do
+    %{rows: rows} = TcgCheap.Repo.query!(@sources)
 
     # A source used as a logo anywhere is trimmed.
     sources =
@@ -140,6 +140,10 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
           end)
       end
 
+    sources |> Enum.chunk_every(batch) |> Enum.each(&register(Map.new(&1)))
+  end
+
+  defp register(sources) do
     registered =
       sources
       |> Map.keys()
@@ -159,8 +163,6 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
           :ok
       end
     end
-
-    {List.last(rows) || cursor, length(rows)}
   end
 
   @doc """
