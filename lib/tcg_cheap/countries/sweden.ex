@@ -33,10 +33,12 @@ defmodule TcgCheap.Countries.Sweden do
       language: "sv",
       hreflang: "sv-SE",
       popular_languages: [],
-      # DHL Paket 2 kg from Germany to Sweden (€14.49 online) plus
-      # Cardmarket's €1 parcel packaging fee, checked 2026-11-14:
-      # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/schweden.html
+      # Cardmarket total Prices including packaging, checked 2026-11-20:
       # https://help.cardmarket.com/en/ShippingCosts
+      # German Standardbrief through €25, then domestic Insured Letter (Rek).
+      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
+      cardmarket_tracked_letter_eur: Decimal.new("11.11"),
+      # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "produkter", expansions: "set", cards: "kort"},
       pages: %{}

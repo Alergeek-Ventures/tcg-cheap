@@ -28,8 +28,12 @@ defmodule TcgCheap.Countries.Portugal do
       language: "pt",
       hreflang: "pt-PT",
       popular_languages: [],
-      # DHL's price list quotes the same tariff for Portugal and Spain (checked
-      # 2026-11-15), so the same parcel as the other euro regions.
+      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # https://help.cardmarket.com/en/ShippingCosts
+      # German Standardbrief through €25, then domestic Correio Registado.
+      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
+      cardmarket_tracked_letter_eur: Decimal.new("5.10"),
+      # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "produtos", expansions: "expansoes", cards: "cartas"},
       pages: %{}

@@ -21,157 +21,157 @@ msgstr "skickas från Tjeckien"
 msgid "z wysyłką z Czech"
 msgstr "med frakt från Tjeckien"
 
-#: lib/tcg_cheap/countries/czechia.ex:152
+#: lib/tcg_cheap/countries/czechia.ex:154
 #, elixir-autogen, elixir-format
 msgid "%{expansion}: porównaj ceny boosterów, ETB, boxów i kolekcji w sklepach wysyłających do Czech."
 msgstr "%{expansion}: jämför priser på boosters, ETB, boxar och Collection Boxar i butiker som skickar till Tjeckien."
 
-#: lib/tcg_cheap/countries/czechia.ex:170
+#: lib/tcg_cheap/countries/czechia.ex:172
 #, elixir-autogen, elixir-format
 msgid "%{name}: teraz żaden sklep wysyłający do Czech nie ma tego produktu na stanie."
 msgstr "%{name}: just nu har ingen butik som skickar till Tjeckien produkten i lager."
 
-#: lib/tcg_cheap/countries/czechia.ex:161
+#: lib/tcg_cheap/countries/czechia.ex:163
 #, elixir-autogen, elixir-format
 msgid "Boostera %{expansion} żaden sklep wysyłający do Czech nie ma teraz na stanie."
 msgstr "Ingen butik som skickar till Tjeckien har %{expansion}-boostern i lager just nu."
 
-#: lib/tcg_cheap/countries/czechia.ex:69
+#: lib/tcg_cheap/countries/czechia.ex:71
 #, elixir-autogen, elixir-format
 msgid "Ceny Pokémon TCG ze sklepów wysyłających do Czech, sprawdzane codziennie."
 msgstr "Priser på Pokémon TCG i butiker som skickar till Tjeckien. Kollas varje dag."
 
-#: lib/tcg_cheap/countries/czechia.ex:215
+#: lib/tcg_cheap/countries/czechia.ex:217
 #, elixir-autogen, elixir-format
 msgid "Ceny czeskich sklepów są bez wysyłki, a sklepów z zagranicy – z wysyłką do Czech. Do Cardmarket doliczamy %{shipping} za paczkę z Niemiec."
 msgstr "Tjeckiska butikers priser är utan frakt, butiker utomlands har frakt till Tjeckien inräknad. För Cardmarket lägger vi till %{shipping} för ett paket från Tyskland."
 
-#: lib/tcg_cheap/countries/czechia.ex:181
+#: lib/tcg_cheap/countries/czechia.ex:183
 #, elixir-autogen, elixir-format
 msgid "Ceny ze sklepów z zagranicy są z wysyłką do Czech."
 msgstr "Priser från butiker utomlands inkluderar frakt till Tjeckien."
 
-#: lib/tcg_cheap/countries/czechia.ex:43
+#: lib/tcg_cheap/countries/czechia.ex:45
 #, elixir-autogen, elixir-format
 msgid "Czechy"
 msgstr "Tjeckien"
 
-#: lib/tcg_cheap/countries/czechia.ex:76
+#: lib/tcg_cheap/countries/czechia.ex:78
 #, elixir-autogen, elixir-format
 msgid "Najtańsze oferty Pokémon TCG w sklepach wysyłających do Czech."
 msgstr "Lägsta priserna på Pokémon TCG i butiker som skickar till Tjeckien."
 
-#: lib/tcg_cheap/countries/czechia.ex:61
+#: lib/tcg_cheap/countries/czechia.ex:63
 #, elixir-autogen, elixir-format
 msgid "Porównaj ceny Pokémon TCG w sklepach wysyłających do Czech. Sprawdź oferty boosterów, ETB i boxów, historię cen i czy warto kupić teraz."
 msgstr "Jämför priser på Pokémon TCG i butiker som skickar till Tjeckien. Se erbjudanden på boosters, ETB och boxar, prishistorik och om det är läge att köpa nu."
 
-#: lib/tcg_cheap/countries/czechia.ex:49
+#: lib/tcg_cheap/countries/czechia.ex:51
 #, elixir-autogen, elixir-format
 msgid "Przejdź do wersji czeskiej"
 msgstr "Byt till den tjeckiska versionen"
 
-#: lib/tcg_cheap/countries/czechia.ex:46
+#: lib/tcg_cheap/countries/czechia.ex:48
 #, elixir-autogen, elixir-format
 msgid "Wygląda na to, że jesteś w Czechach."
 msgstr "Du verkar vara i Tjeckien."
 
-#: lib/tcg_cheap/countries/czechia.ex:177
+#: lib/tcg_cheap/countries/czechia.ex:179
 #, elixir-autogen, elixir-format
 msgid "z wysyłką z Niemiec"
 msgstr "med frakt från Tyskland"
 
-#: lib/tcg_cheap/countries/czechia.ex:186
+#: lib/tcg_cheap/countries/czechia.ex:188
 #, elixir-autogen, elixir-format
 msgid "Cena sklepu z zagranicy to ta, którą sklep podaje kupującym z Czech. Ceny w innej walucie niż korona czeska przeliczamy po dziennych kursach NBP. Strona sklepu może być w innym języku."
 msgstr "Priset från en butik utomlands är det som butiken anger för köpare i Tjeckien. Anges det i en annan valuta än tjeckiska kronor räknar vi om det med dagliga växelkurser från polska centralbanken (NBP). Butikens sida kan vara på ett annat språk."
 
-#: lib/tcg_cheap/countries/czechia.ex:195
+#: lib/tcg_cheap/countries/czechia.ex:197
 #, elixir-autogen, elixir-format
 msgid "Ceny pochodzą z publicznych list produktów sklepów, pobieranych raz dziennie, i są w koronach czeskich. Ceny czeskich sklepów nie obejmują dostawy, a sklepów za granicą obejmują wysyłkę do Czech."
 msgstr "Priserna kommer från butikernas publika produktlistor, som hämtas en gång om dagen, och anges i tjeckiska kronor. Tjeckiska butikers priser är utan frakt, utländska butikers priser inkluderar frakt till Tjeckien."
 
-#: lib/tcg_cheap/countries/czechia.ex:200
+#: lib/tcg_cheap/countries/czechia.ex:202
 #, elixir-autogen, elixir-format
 msgid "Dobra cena to najwyżej 95% typowej, normalna najwyżej 110%, powyżej jest drogo. Dobra cena musi też być najwyżej 95% zwykłej ceny produktu z ostatnich %{window} dni i trendu Cardmarket w koronach czeskich (po kursach NBP) z przesyłką z Niemiec, gdy są znane."
 msgstr "Bra pris är högst 95% av det typiska priset, normalt pris högst 110%, över det är det dyrt. Ett bra pris måste också vara högst 95% av produktens vanliga pris de senaste %{window} dagarna och av Cardmarket-trenden i tjeckiska kronor (enligt NBP:s kurser) med frakt från Tyskland, när de är kända."
 
-#: lib/tcg_cheap/countries/czechia.ex:206
+#: lib/tcg_cheap/countries/czechia.ex:208
 #, elixir-autogen, elixir-format
 msgid "Przy mniejszej liczbie sklepów nie ma oceny, a jako kontekst podajemy trend Cardmarket w koronach czeskich."
 msgstr "Med färre butiker ger vi ingen bedömning och visar i stället Cardmarket-trenden i tjeckiska kronor."
 
-#: lib/tcg_cheap/countries/czechia.ex:53
+#: lib/tcg_cheap/countries/czechia.ex:55
 #, elixir-autogen, elixir-format
 msgid "Ta lokalizacja jest poza Czechami. Wpisz miejscowość."
 msgstr "Platsen ligger utanför Tjeckien. Skriv en ort."
 
-#: lib/tcg_cheap/countries/czechia.ex:56
+#: lib/tcg_cheap/countries/czechia.ex:58
 #, elixir-autogen, elixir-format
 msgid "np. Brno"
 msgstr "t.ex. Brno"
 
-#: lib/tcg_cheap/countries/czechia.ex:91
+#: lib/tcg_cheap/countries/czechia.ex:93
 #, elixir-autogen, elixir-format
 msgid "%{card} – cena karty Pokémon w Czechach"
 msgstr "%{card} – pris på Pokémon-kort i Tjeckien"
 
-#: lib/tcg_cheap/countries/czechia.ex:96
+#: lib/tcg_cheap/countries/czechia.ex:98
 #, elixir-autogen, elixir-format
 msgid "%{name} %{number}: od %{price} w sklepach wysyłających do Czech."
 msgstr "%{name} %{number}: från %{price} i butiker som skickar till Tjeckien."
 
-#: lib/tcg_cheap/countries/czechia.ex:84
+#: lib/tcg_cheap/countries/czechia.ex:86
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających do Czech."
 msgstr "Engelska Pokémon TCG-kort i butiker som skickar till Tjeckien."
 
-#: lib/tcg_cheap/countries/czechia.ex:105
+#: lib/tcg_cheap/countries/czechia.ex:107
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty Pokémon TCG w sklepach wysyłających do Czech: %{cards} na stanie."
 msgstr "Engelska Pokémon TCG-kort i butiker som skickar till Tjeckien: %{cards} i lager."
 
-#: lib/tcg_cheap/countries/czechia.ex:119
+#: lib/tcg_cheap/countries/czechia.ex:121
 #, elixir-autogen, elixir-format
 msgid "Brak na stanie w czeskich sklepach"
 msgstr "Inte i lager i tjeckiska butiker"
 
-#: lib/tcg_cheap/countries/czechia.ex:112
+#: lib/tcg_cheap/countries/czechia.ex:114
 #, elixir-autogen, elixir-format
 msgid "Brak w czeskich sklepach"
 msgstr "Saknas i tjeckiska butiker"
 
-#: lib/tcg_cheap/countries/czechia.ex:87
+#: lib/tcg_cheap/countries/czechia.ex:89
 #, elixir-autogen, elixir-format
 msgid "Ceny kart Pokémon TCG w Czechach"
 msgstr "Priser på Pokémon TCG-kort i Tjeckien"
 
-#: lib/tcg_cheap/countries/czechia.ex:80
+#: lib/tcg_cheap/countries/czechia.ex:82
 #, elixir-autogen, elixir-format
 msgid "Najtańsze karty Pokémon TCG w sklepach wysyłających do Czech."
 msgstr "De billigaste Pokémon TCG-korten i butiker som skickar till Tjeckien."
 
-#: lib/tcg_cheap/countries/czechia.ex:139
+#: lib/tcg_cheap/countries/czechia.ex:141
 #, elixir-autogen, elixir-format
 msgid "z wysyłką do Czech"
 msgstr "med frakt till Tjeckien"
 
-#: lib/tcg_cheap/countries/czechia.ex:124
+#: lib/tcg_cheap/countries/czechia.ex:126
 #, elixir-autogen, elixir-format
 msgid "Typowa cena to środek stawki: z każdego czeskiego sklepu, który ma kartę na stanie, bierzemy najtańszą ofertę (potrzebujemy co najmniej %{shops}). Dobra cena jest co najmniej 5% niższa od typowej i od Cardmarket z wysyłką. Normalna – najwyżej 10% wyższa od typowej. Wyższa – drogo. Ceny czeskich sklepów są bez dostawy, zagranicznych – z wysyłką do Czech."
 msgstr "Typiskt pris är medianen: från varje tjeckisk butik som har kortet i lager tar vi det billigaste erbjudandet (minst %{shops} krävs). Ett bra pris ligger minst 5% under det typiska priset och under Cardmarket med frakt. Normalt är högst 10% över det typiska. Högre än så är dyrt. Tjeckiska butikers priser är utan frakt, utländska butikers med frakt till Tjeckien."
 
-#: lib/tcg_cheap/countries/czechia.ex:116
+#: lib/tcg_cheap/countries/czechia.ex:118
 #, elixir-autogen, elixir-format
 msgid "Brak w sklepach wysyłających do Czech"
 msgstr "Saknas i butiker som skickar till Tjeckien"
 
-#: lib/tcg_cheap/countries/czechia.ex:133
+#: lib/tcg_cheap/countries/czechia.ex:135
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w koronach czeskich, co tańsze."
 msgstr "Priser utan frakt, utom de som är märkta ”med frakt”, eller Cardmarket-trenden i tjeckiska kronor, det som är billigast."
 
-#: lib/tcg_cheap/countries/czechia.ex:144
+#: lib/tcg_cheap/countries/czechia.ex:146
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”."
 msgstr "Priser utan frakt, utom de som är märkta ”med frakt”."

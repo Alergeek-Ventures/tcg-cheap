@@ -29,9 +29,12 @@ defmodule TcgCheap.Countries.Croatia do
       language: "hr",
       hreflang: "hr-HR",
       popular_languages: [],
-      # DHL's tariff from Germany is the same for Croatia as for Hungary
-      # (checked 2026-11-14), so the same parcel as Hungary's:
-      # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/kroatien.html
+      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # https://help.cardmarket.com/en/ShippingCosts
+      # Domestic Letter (Small) through €25, then Registered Letter (Small).
+      cardmarket_untracked_letter_eur: Decimal.new("1.02"),
+      cardmarket_tracked_letter_eur: Decimal.new("2.75"),
+      # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "proizvodi", expansions: "setovi", cards: "karte"},
       pages: %{},

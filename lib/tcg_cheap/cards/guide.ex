@@ -530,9 +530,9 @@ defmodule TcgCheap.Cards.Guide do
 
   # Shipping dominates when trend is below the shipping component of the
   # backend reference. Reference alone owns shipping thresholds/amounts.
-  def shipping_dominates?(price, variant) do
+  def shipping_dominates?(price, variant, market) do
     trend = price && if(variant == :reverse, do: price.trend_holo, else: price.trend)
-    delivered = variant != :special && Reference.delivered_eur(trend)
+    delivered = variant != :special && Reference.delivered_eur(trend, market)
     !!(delivered && Decimal.lt?(trend, Decimal.sub(delivered, trend)))
   end
 
@@ -615,7 +615,7 @@ defmodule TcgCheap.Cards.Guide do
       variant == :special or "firstEdition" in card.variants ->
         {:unknown, nil}
 
-      pennies?(cheapest, reference, card.cardmarket_price, variant, context.pennies_max) ->
+      pennies?(cheapest, reference, card.cardmarket_price, variant, context) ->
         # Still with the shops' typical price, which the page shows.
         {:pennies, shops_guide(offers, reference, context.market)}
 
@@ -630,12 +630,13 @@ defmodule TcgCheap.Cards.Guide do
   # "Pennies in both places" requires a cheap shop price too: at most
   # `@pennies_pln` and no more than the delivered reference. Never mask an
   # expensive offer.
-  defp pennies?(_cheapest, nil, _price, _variant, _max), do: false
-  defp pennies?(_cheapest, _reference, _price, _variant, nil), do: false
+  defp pennies?(_cheapest, nil, _price, _variant, _context), do: false
+  defp pennies?(_cheapest, _reference, _price, _variant, %{pennies_max: nil}), do: false
 
-  defp pennies?(cheapest, reference, price, variant, max) do
-    Decimal.lte?(cheapest.price, max) and Decimal.lte?(cheapest.price, reference) and
-      shipping_dominates?(price, variant)
+  defp pennies?(cheapest, reference, price, variant, context) do
+    Decimal.lte?(cheapest.price, context.pennies_max) and
+      Decimal.lte?(cheapest.price, reference) and
+      shipping_dominates?(price, variant, context.market)
   end
 
   # The market's own shops' `PriceGuide` answer, nil when too few shops set a typical price.

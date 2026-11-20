@@ -1,22 +1,33 @@
 defmodule TcgCheap.Cards.Reference do
   @moduledoc """
-  Single-card reference: Cardmarket trend (trend_holo for reverse) with
-  delivery, one rule for every market. Up to and including €25 a German
-  letter costs €1.55; above it a registered letter from Poland costs €2.80.
-  Special patterns are separate products without a reference here. Missing
-  or zero prices stay unknown.
+  Single-card reference: Cardmarket trend (trend_holo for reverse) with the
+  market's realistic letter delivery: the cheaper domestic/German untracked
+  letter through €25, then its cheapest domestic tracked letter. Special
+  patterns are separate products without a reference here. Missing or zero
+  prices stay unknown.
   """
   alias TcgCheap.Sealed.Market
 
-  @spec delivered_eur(Decimal.t() | nil) :: Decimal.t() | nil
-  def delivered_eur(%Decimal{} = trend) do
-    if Decimal.gt?(trend, 0) do
-      shipping = if Decimal.gt?(trend, 25), do: "2.80", else: "1.55"
-      Decimal.add(trend, Decimal.new(shipping))
-    end
+  @tracked_from Decimal.new("25")
+
+  @doc "Whether Cardmarket's order-value rule requires tracked shipping."
+  @spec tracking_required?(Decimal.t()) :: boolean()
+  def tracking_required?(trend), do: Decimal.gt?(trend, @tracked_from)
+
+  @doc "The market's letter Price, including Cardmarket's packaging fee."
+  @spec shipping_eur(Decimal.t(), Market.t()) :: Decimal.t()
+  def shipping_eur(trend, %Market{} = market) do
+    if tracking_required?(trend),
+      do: market.cardmarket_tracked_letter_eur,
+      else: market.cardmarket_untracked_letter_eur
   end
 
-  def delivered_eur(nil), do: nil
+  @spec delivered_eur(Decimal.t() | nil, Market.t()) :: Decimal.t() | nil
+  def delivered_eur(%Decimal{} = trend, %Market{} = market) do
+    if Decimal.gt?(trend, 0), do: Decimal.add(trend, shipping_eur(trend, market))
+  end
+
+  def delivered_eur(nil, _market), do: nil
 
   @spec pln(map() | nil, atom(), map() | nil) :: Decimal.t() | nil
   def pln(price, variant, rate), do: in_market(price, variant, rate, Market.poland())
@@ -28,7 +39,7 @@ defmodule TcgCheap.Cards.Reference do
 
   def in_market(price, variant, rate, market) do
     trend = if variant == :reverse, do: price.trend_holo, else: price.trend
-    trend |> delivered_eur() |> Market.in_market(rate, market)
+    trend |> delivered_eur(market) |> Market.in_market(rate, market)
   end
 
   @doc """

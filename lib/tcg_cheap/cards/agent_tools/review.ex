@@ -118,7 +118,7 @@ defmodule TcgCheap.Cards.AgentTools.Review do
 
     query = offer_filters(query, args)
     rate = Market.eur_pln(Date.utc_today())
-    list_query(operation, query, args, %{rate: rate, latest: latest})
+    list_query(operation, query, args, %{rate: rate, latest: latest, market: Market.poland()})
   end
 
   defp offer_filters(query, args) do
@@ -240,7 +240,8 @@ defmodule TcgCheap.Cards.AgentTools.Review do
         query
       end
 
-    query = if args.suspicious, do: suspicious_query(query, context.rate), else: query
+    query =
+      if args.suspicious, do: suspicious_query(query, context.market, context.rate), else: query
 
     {:ok,
      db_page(query, args, fn offers ->
@@ -263,8 +264,10 @@ defmodule TcgCheap.Cards.AgentTools.Review do
      end)}
   end
 
-  defp suspicious_query(query, rate) do
+  defp suspicious_query(query, market, rate) do
     fx = if rate, do: rate.rate, else: Decimal.new(0)
+    untracked = market.cardmarket_untracked_letter_eur
+    tracked = market.cardmarket_tracked_letter_eur
 
     query =
       from(o in query,
@@ -285,9 +288,11 @@ defmodule TcgCheap.Cards.AgentTools.Review do
       dynamic(
         [_o, _c, _p],
         fragment(
-          "round((? + CASE WHEN ? > 25 THEN 2.80 ELSE 1.55 END) * ?::numeric, 2)",
+          "round((? + CASE WHEN ? > 25 THEN ?::numeric ELSE ?::numeric END) * ?::numeric, 2)",
           ^trend,
           ^trend,
+          ^tracked,
+          ^untracked,
           ^fx
         )
       )

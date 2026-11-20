@@ -133,17 +133,17 @@ defmodule TcgCheapWeb.SingleLive do
   defp group(%{in_stock: true}), do: :raw
   defp group(_), do: :unavailable
 
-  defp reference_line(price, variant) do
+  defp reference_line(price, variant, market) do
     trend = if variant == :reverse, do: price && price.trend_holo, else: price && price.trend
-    delivered = Cards.Reference.delivered_eur(trend)
+    delivered = Cards.Reference.delivered_eur(trend, market)
 
     if delivered do
-      shipping = Decimal.sub(delivered, trend)
+      shipping = Cards.Reference.shipping_eur(trend, market)
 
       source =
-        if Decimal.gt?(trend, 25),
-          do: gettext("list polecony z Polski"),
-          else: gettext("list z Niemiec")
+        if Cards.Reference.tracking_required?(trend),
+          do: gettext("list śledzony"),
+          else: gettext("list")
 
       gettext("trend Cardmarket %{trend} + wysyłka %{shipping} (%{source})",
         trend: Format.eur(trend),
@@ -390,7 +390,7 @@ defmodule TcgCheapWeb.SingleLive do
                     )}
                   </p>
                   <p :if={@primary.reference && @with_delivery?}>
-                    {reference_line(@page.price, @primary.variant)} = {Format.limit_price(
+                    {reference_line(@page.price, @primary.variant, @region.market)} = {Format.limit_price(
                       @primary.reference
                     )}.
                   </p>

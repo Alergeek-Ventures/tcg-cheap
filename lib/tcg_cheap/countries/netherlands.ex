@@ -28,10 +28,12 @@ defmodule TcgCheap.Countries.Netherlands do
       language: "nl",
       hreflang: "nl-NL",
       popular_languages: [],
-      # DHL's Paket 2 kg from Germany to the Netherlands costs the same as to
-      # Hungary, Sweden and Croatia (€14.49 online, checked 2026-11-15), plus
-      # Cardmarket's €1 packaging fee:
-      # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/niederlande.html
+      # Cardmarket total Prices including packaging, checked 2026-11-20:
+      # https://help.cardmarket.com/en/ShippingCosts
+      # German Standardbrief through €25, then domestic tracked Brievenbuspakje+.
+      cardmarket_untracked_letter_eur: Decimal.new("1.55"),
+      cardmarket_tracked_letter_eur: Decimal.new("6.20"),
+      # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "producten", expansions: "sets", cards: "kaarten"},
       pages: %{}

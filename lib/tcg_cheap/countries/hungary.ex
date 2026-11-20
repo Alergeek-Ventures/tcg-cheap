@@ -28,10 +28,12 @@ defmodule TcgCheap.Countries.Hungary do
       language: "hu",
       hreflang: "hu-HU",
       popular_languages: [],
-      # The same EU tariff as Poland's: DHL Paket 2 kg (€14.49) plus
-      # Cardmarket's €1 parcel packaging fee, checked 2026-11-14:
-      # https://www.dhl.de/de/privatkunden/pakete-versenden/weltweit-versenden/land/ungarn.html
+      # Cardmarket total Prices including packaging, checked 2026-11-20:
       # https://help.cardmarket.com/en/ShippingCosts
+      # Domestic Priority Letter through €25, then Registered Priority Letter.
+      cardmarket_untracked_letter_eur: Decimal.new("1.53"),
+      cardmarket_tracked_letter_eur: Decimal.new("4.23"),
+      # Cheapest tracked parcel from Germany up to 2 kg: DHL Paket Online.
       cardmarket_shipping_eur: Decimal.new("15.49"),
       slugs: %{products: "termekek", expansions: "szettek", cards: "kartyak"},
       pages: %{}
