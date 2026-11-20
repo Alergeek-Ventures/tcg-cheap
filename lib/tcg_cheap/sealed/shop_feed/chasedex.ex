@@ -34,11 +34,18 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
   (`market_prices`); a card whose variant is unknown or which the API does not
   price for a country has no price in that country. A failed read, or an
   answer in another currency than the one recorded, fails the fetch like any
-  other page. A fetch makes about 2 + ⌈variants / 250⌉ requests for each such
-  country on top of its sitemaps and set pages.
+  other page, as does an answer that does not cover the variants asked, or
+  one that leaves more than 2 % of the cards in stock without a price in some
+  such country (`TcgCheap.Sealed.Refresh` leaves a card without a Polish price
+  out of every market, so a lost price must not pass as a small shop). A fetch
+  makes 2 + countries × ⌈variants / 250⌉ requests on top of its sitemaps and
+  set pages (the home page and the script once, the batches for each country),
+  and logs how many cards it read, priced and left out.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
+
+  require Logger
 
   alias TcgCheap.Sealed.{Shop, ShopFeed, Shops}
 
@@ -54,13 +61,14 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
 
   # The set page's data lists each card by slug with its price and, when it is
   # in stock, its Shopify variant.
-  @variant ~r/slug:"([a-z0-9-]+)",variant:"[a-z_]+",label:"[^"]*",price:([0-9]+),inStock:!0,quantity:[0-9]+,variantId:"(gid:\/\/shopify\/ProductVariant\/[0-9]+)"/
+  @variant ~r/slug:"([a-z0-9-]+)",variant:"[a-z0-9_-]+",label:"[^"]*",price:([0-9]+),inStock:!0,quantity:[0-9]+,variantId:"(gid:\/\/shopify\/ProductVariant\/[0-9]+)"/
   @script_path ~r/\A\/assets\/shopify-[A-Za-z0-9_-]+\.js\z/
   @storefront_host ~r/`([a-z0-9-]+\.myshopify\.com)`/
   @storefront_version ~r/`(20[0-9]{2}-[0-9]{2})`/
   @storefront_token ~r/`([0-9a-f]{32})`/
   @storefront_query "query MarketPrices($ids: [ID!]!, $country: CountryCode!) @inContext(country: $country) { nodes(ids: $ids) { ... on ProductVariant { id price { amount currencyCode } } } }"
   @storefront_batch 250
+  @max_left_out_percent 2
   # Slower than the reader's other requests: these are the shop's API.
   @storefront_pause_ms 3_000
 
@@ -72,8 +80,33 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
          {:ok, stocked} <- stocked_sets(shop, sets, cards),
          {:ok, products} <- read_sets(shop, stocked, req_options),
          {:ok, prices} <- market_prices(shop, products, req_options) do
-      {:ok, ShopFeed.offers(shop, products, &normalize(shop, &1, prices))}
+      offers = ShopFeed.offers(shop, products, &normalize(shop, &1, prices))
+      check_market_prices(shop, offers)
     end
+  end
+
+  # A card in stock must have a price in every country the shop prices apart:
+  # `TcgCheap.Sealed.Refresh` leaves out of every market, Sweden's included, a
+  # singles offer without a price for Poland, so a read that lost the prices
+  # (a token that sees no market, a card the page data does not match) must
+  # not pass as the whole shop. A few cards may lack one (a variant the shop
+  # does not sell to a country); more fail the fetch.
+  defp check_market_prices(shop, offers) do
+    countries = shop |> Shops.price_currencies() |> Map.keys()
+
+    left_out =
+      Enum.count(offers, fn offer ->
+        Enum.any?(countries, &(not is_map_key(offer.market_prices, &1)))
+      end)
+
+    Logger.info(
+      "sealed fetch #{shop.key}: #{length(offers)} cards read from set pages, " <>
+        "#{length(offers) - left_out} with country prices, #{left_out} left out"
+    )
+
+    if countries != [] and left_out * 100 > length(offers) * @max_left_out_percent,
+      do: {:error, {:incomplete_market_prices, left_out, length(offers)}},
+      else: {:ok, offers}
   end
 
   # The slugs of a sitemap's pages under `/<section>/` on the shop's host
@@ -291,6 +324,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
          {:ok, %{"data" => %{"nodes" => nodes}} = body}
          when is_list(nodes) and not is_map_key(body, "errors") <-
            ShopFeed.decode(response),
+         true <- answers_ids?(nodes, ids) || {:error, :incomplete_response},
          {:ok, prices} <- put_prices(nodes, {country, currency}, prices) do
       {:ok, prices}
     else
@@ -298,6 +332,18 @@ defmodule TcgCheap.Sealed.ShopFeed.Chasedex do
       {:error, reason} -> {:error, reason}
     end
   end
+
+  # The API answers one node per id asked, in order; a variant it does not
+  # know is null. A short answer, or a node for another variant, is not an
+  # answer to what was asked.
+  defp answers_ids?(nodes, ids) do
+    length(nodes) == length(ids) and
+      nodes |> Enum.zip(ids) |> Enum.all?(&node_for?/1)
+  end
+
+  defp node_for?({nil, _id}), do: true
+  defp node_for?({%{"id" => id}, id}), do: true
+  defp node_for?(_other), do: false
 
   # A variant the API does not know answers null: it has no price there.
   defp put_prices(nodes, {country, currency}, prices) do

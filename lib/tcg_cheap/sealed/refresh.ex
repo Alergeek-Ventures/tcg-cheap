@@ -238,8 +238,10 @@ defmodule TcgCheap.Sealed.Refresh do
     end
   end
 
-  # Singles have only the Polish market and no prices by country: one its
-  # shop prices for Poland apart and does not sell there is not stored.
+  # Poland's item price for a single is `offer.price` (no `market_prices`
+  # lookup), so a single its shop prices for Poland apart and does not sell
+  # there would show with a converted price of the shop's own: it is not
+  # stored, in any country.
   defp sold_to_poland?(shop, %{kind: :single} = offer),
     do: not is_map_key(Shops.price_currencies(shop), "PL") or offer.polish_price != nil
 
