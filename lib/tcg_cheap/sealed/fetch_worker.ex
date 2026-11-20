@@ -22,6 +22,16 @@ defmodule TcgCheap.Sealed.FetchWorker do
   shop still refuses us. The retry goes on from the responses already read.
   Other failures keep the default backoff.
 
+  The bot's policy (`TcgCheap.Bot`) ends a fetch at once, with no further
+  attempt that night: a path the shop's robots.txt disallows, a robots.txt
+  that refuses us or cannot be read, a 401, a 403 or a challenge response end
+  the job as cancelled (after the failure report below). A `Retry-After` the
+  fetch does not wait out in place (longer than 10 s, a minute on Shopify) is
+  not slept in the queue either: the job snoozes until the time the shop
+  named (plus up to 30 s of jitter) and goes on from the responses already
+  read, and if that is not before the next nightly run it fails with the
+  reason. The shop is not asked before that time, by any job.
+
   A failure on the last attempt is reported with `TcgCheap.Sealed.FetchFailure`:
   an error the fetch returns by `perform/1`, and a raise, crash or Oban timeout,
   which never returns there, by the Oban telemetry handler that
@@ -42,6 +52,7 @@ defmodule TcgCheap.Sealed.FetchWorker do
 
   require Logger
 
+  alias TcgCheap.Bot
   alias TcgCheap.Sealed.{FetchFailure, FetchJournal, Refresh, Shops}
 
   alias TcgCheap.Sealed.ShopFeed.Shopify
@@ -161,9 +172,30 @@ defmodule TcgCheap.Sealed.FetchWorker do
     :ok
   end
 
-  # Only the last attempt is a failed fetch: an earlier one is retried and
-  # may still read the shop the same night.
-  defp finish({:error, reason}, shop, job, journal) when job.attempt < job.max_attempts do
+  # The shop asked to be left alone for a while: wait it out, unless the next
+  # nightly run comes first, which then reads the shop afresh.
+  defp finish({:error, {:retry_after, seconds} = reason}, shop, _job, journal) do
+    if DateTime.compare(DateTime.add(DateTime.utc_now(), seconds, :second), next_run()) == :lt do
+      Logger.info("sealed fetch #{shop.key}: asked to wait #{seconds} s, snoozing")
+      {:snooze, seconds + :rand.uniform(30)}
+    else
+      fail(reason, shop, journal, :cancel)
+    end
+  end
+
+  # Another attempt would only ask a shop that refused us, or one whose
+  # robots.txt closes it to us, again.
+  defp finish({:error, reason}, shop, job, journal) do
+    cond do
+      Bot.final?(reason) -> fail(reason, shop, journal, :cancel)
+      # Only the last attempt is a failed fetch: an earlier one is retried and
+      # may still read the shop the same night.
+      job.attempt < job.max_attempts -> retry(reason, shop, job, journal)
+      true -> fail(reason, shop, journal, :error)
+    end
+  end
+
+  defp retry(reason, shop, job, journal) do
     if not transient?(reason), do: FetchJournal.close(journal)
 
     Logger.warning(
@@ -174,10 +206,22 @@ defmodule TcgCheap.Sealed.FetchWorker do
     {:error, reason}
   end
 
-  defp finish({:error, reason}, shop, _job, journal) do
+  defp fail(reason, shop, journal, :cancel) do
+    fail(reason, shop, journal, :error)
+    {:cancel, reason}
+  end
+
+  defp fail(reason, shop, journal, :error) do
     FetchJournal.close(journal)
     FetchFailure.report(:sealed, shop.key, reason)
     {:error, reason}
+  end
+
+  # The next run of the nightly cron entry (config.exs), 02:30 UTC.
+  defp next_run do
+    now = DateTime.utc_now()
+    today = DateTime.new!(Date.utc_today(), ~T[02:30:00], "Etc/UTC")
+    if DateTime.compare(now, today) == :lt, do: today, else: DateTime.add(today, 1, :day)
   end
 
   # A shop that refused or dropped us once is asked again where it stopped;

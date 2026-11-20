@@ -8,6 +8,7 @@ defmodule TcgCheap.Sealed.SuggestedPriceWorker do
 
   require Logger
 
+  alias TcgCheap.Bot
   alias TcgCheap.Sealed.Rebel
 
   @impl Oban.Worker
@@ -23,9 +24,13 @@ defmodule TcgCheap.Sealed.SuggestedPriceWorker do
         Logger.info("REBEL suggested prices: #{items} listed, #{matched} matched")
         :ok
 
+      # The bot's policy (`TcgCheap.Bot`): another attempt would ask a host
+      # that refused us or that robots.txt closes to us again.
       {:error, reason} ->
         Logger.warning("REBEL suggested prices failed: #{inspect(reason)}")
-        {:error, reason}
+        # The bot's policy (`TcgCheap.Bot`): another attempt would ask a host that
+        # refused us, or that robots.txt closes to us, again.
+        if Bot.final?(reason), do: {:cancel, reason}, else: {:error, reason}
     end
   end
 

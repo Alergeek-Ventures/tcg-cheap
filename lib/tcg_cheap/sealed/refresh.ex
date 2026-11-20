@@ -16,6 +16,7 @@ defmodule TcgCheap.Sealed.Refresh do
   than 30% of a large shop's previous sealed offers is stored but reported.
   """
 
+  alias TcgCheap.Bot
   alias TcgCheap.Cards
   alias TcgCheap.Repo
   alias TcgCheap.Sealed
@@ -69,7 +70,9 @@ defmodule TcgCheap.Sealed.Refresh do
     now = Keyword.get_lazy(opts, :now, &DateTime.utc_now/0)
     req_options = Keyword.get(opts, :req_options, [])
 
-    case FetchJournal.catch_pause(fn -> shop.source.fetch(shop, req_options) end) do
+    fetch = fn -> Bot.catch_stop(fn -> shop.source.fetch(shop, req_options) end) end
+
+    case FetchJournal.catch_pause(fetch) do
       :paused ->
         :paused
 
