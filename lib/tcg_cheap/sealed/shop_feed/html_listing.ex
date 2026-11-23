@@ -19,7 +19,7 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   (for example sold-out products with no price) still prove completeness.
   """
 
-  alias TcgCheap.Sealed.{Shop, ShopFeed}
+  alias TcgCheap.Sealed.{Ean, Shop, ShopFeed}
 
   @spaces ~r/[\s\x{a0}]+/u
   @price ~r/\A([0-9]{1,7})(?:[,.]([0-9]{1,2}))?(?:zł|PLN)?\.?\z/u
@@ -208,7 +208,7 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
          title: title,
          url: url,
          image_url: image_url(shop, product.image),
-         ean: TcgCheap.Sealed.Ean.normalize(Map.get(product, :ean)),
+         ean: Ean.normalize(Map.get(product, :ean)),
          price: price,
          in_stock: in_stock,
          preorder: Map.get(product, :preorder, false)
