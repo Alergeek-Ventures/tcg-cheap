@@ -20,7 +20,7 @@ concurrency:
 jobs:
   database-image:
     name: Validate database image
-    runs-on: ubuntu-latest
+    runs-on: selenge
     timeout-minutes: 5
     outputs:
       image: ${{ steps.database-image.outputs.image }}
@@ -41,7 +41,7 @@ jobs:
   check:
     name: Mix check
     needs: [database-image]
-    runs-on: ubuntu-latest
+    runs-on: selenge
     timeout-minutes: 30
     env:
       MIX_ENV: test
@@ -166,7 +166,7 @@ jobs:
   # job; on main it also warms the layer cache that pull requests restore.
   container:
     name: Build application container
-    runs-on: ubuntu-latest
+    runs-on: selenge
     timeout-minutes: 30
     steps:
       - name: Checkout repository
@@ -176,7 +176,7 @@ jobs:
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
         with:
           driver: docker-container
-          # The hosted runner is discarded after the job; no builder cleanup is needed.
+          # The runner container is discarded after the job; no builder cleanup is needed.
           cleanup: false
 
       - name: Build application container
@@ -195,7 +195,7 @@ jobs:
     name: Create Sentry release
     needs: [check]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: selenge
     timeout-minutes: 10
     environment: production
     steps:
@@ -226,7 +226,7 @@ jobs:
     name: Deploy production
     needs: [check, sentry-release]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: selenge
     timeout-minutes: 45
     environment: production
     permissions:
