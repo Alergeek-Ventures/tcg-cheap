@@ -1,0 +1,15 @@
+# Use Gettext’s built-in cs plural rules (1 / 2–4 / other).
+msgid ""
+msgstr ""
+"Language: cs\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+#: lib/tcg_cheap/countries/belgium.ex:12
+#, elixir-autogen, elixir-format
+msgid "wysyłka z Belgii"
+msgstr "posílá z Belgie"
+
+#: lib/tcg_cheap/countries/belgium.ex:15
+#, elixir-autogen, elixir-format
+msgid "z wysyłką z Belgii"
+msgstr "s dopravou z Belgie"
