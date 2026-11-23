@@ -14,7 +14,9 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   when a listing is read more than once), a page has products unless the listing
   states that it is empty, and a page where no product is readable (no id,
   name, link, price or availability) is not a product list the client
-  recognises.
+  recognises, unless the client explicitly recognises its card metadata
+  (`recognised: true` on the page). This lets known cards without offers
+  (for example sold-out products with no price) still prove completeness.
   """
 
   alias TcgCheap.Sealed.{Shop, ShopFeed}
@@ -34,20 +36,23 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
           required(:image) => String.t() | nil,
           required(:price) => String.t() | nil,
           required(:in_stock) => boolean() | nil,
+          optional(:ean) => String.t() | nil,
           optional(:preorder) => boolean(),
           optional(:category) => String.t() | nil
         }
   @type page :: %{
-          number: pos_integer(),
-          last: pos_integer(),
-          total: non_neg_integer() | nil,
-          products: [product()]
+          required(:number) => pos_integer(),
+          required(:last) => pos_integer(),
+          required(:total) => non_neg_integer() | nil,
+          required(:products) => [product()],
+          optional(:recognised) => boolean()
         }
 
   @doc "Fetches and parses the page at `path`."
-  @spec page(Shop.t(), String.t(), keyword()) :: {:ok, Floki.html_tree()} | {:error, term()}
-  def page(shop, path, req_options) do
-    with {:ok, response} <- ShopFeed.get(shop, path, [], req_options),
+  @spec page(Shop.t(), String.t(), keyword(), keyword()) ::
+          {:ok, Floki.html_tree()} | {:error, term()}
+  def page(shop, path, req_options, opts \\ []) do
+    with {:ok, response} <- ShopFeed.get(shop, path, [], req_options, opts),
          do: ShopFeed.html(response)
   end
 
@@ -139,6 +144,7 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
 
   defp check_products(%{products: [], total: 0}), do: :ok
   defp check_products(%{products: []}), do: {:error, :empty_page}
+  defp check_products(%{recognised: true}), do: :ok
 
   defp check_products(%{products: products}) do
     if Enum.any?(products, &readable?/1), do: :ok, else: {:error, :unrecognised_listing}
@@ -164,7 +170,7 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   with the singles minimum, whose category is its listing's `category`. Links
   and images, relative to the shop's host, are made absolute on it. Absolute
   image URLs are accepted only from the source's declared image hosts.
-  Listings carry no EAN.
+  A listing may carry an EAN, validated by `TcgCheap.Sealed.Ean`.
   """
   @spec offers(Shop.t(), [product() | {:single, product()}], (String.t() -> boolean())) ::
           [ShopFeed.offer()]
@@ -202,7 +208,7 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
          title: title,
          url: url,
          image_url: image_url(shop, product.image),
-         ean: nil,
+         ean: TcgCheap.Sealed.Ean.normalize(Map.get(product, :ean)),
          price: price,
          in_stock: in_stock,
          preorder: Map.get(product, :preorder, false)
