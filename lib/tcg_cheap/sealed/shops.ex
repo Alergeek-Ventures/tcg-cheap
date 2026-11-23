@@ -41,7 +41,8 @@ defmodule TcgCheap.Sealed.Shops do
     Shoptet,
     TcgPark,
     WooCommerce,
-    ZberiVse
+    ZberiVse,
+    ZboziFeed
   }
 
   @dir Path.expand("shops", __DIR__)
@@ -112,7 +113,8 @@ defmodule TcgCheap.Sealed.Shops do
     Jumpseller,
     RajZaIgrace,
     TcgPark,
-    ZberiVse
+    ZberiVse,
+    ZboziFeed
   ]
 
   for shop <- @shops, shop.currency != "PLN" or shop.country != "PL" do
