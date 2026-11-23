@@ -11,7 +11,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Collectify do
   A product counts when it is sealed Pokémon
   (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on its name, the shop selling
   only Pokémon). It is in stock when its card has an add-to-cart button and not
-  when it is marked "Wyprzedane". The shop's product id is the slug, which must
+  when it is marked "Brak w magazynie" (formerly "Wyprzedane"). The shop's product id is the slug, which must
   fit the 40 characters an offer allows. Prices are in złoty. There is no EAN.
   See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
@@ -120,8 +120,14 @@ defmodule TcgCheap.Sealed.ShopFeed.Collectify do
     end
   end
 
+  # The card's own price sits in the row of the add-to-cart button. A reduced
+  # product also shows its struck-through former price there, and the card may
+  # state the lowest price of the last 30 days further down; neither is the
+  # price to pay.
   defp price(card) do
-    case card |> Floki.find("span.tabular-nums") |> Enum.map(&Floki.text/1) do
+    case card
+         |> Floki.find("span.items-baseline > span.tabular-nums:not(.line-through)")
+         |> Enum.map(&Floki.text/1) do
       [text] ->
         case Regex.run(
                @price,
@@ -142,7 +148,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Collectify do
   defp in_stock(card) do
     cond do
       Floki.find(card, "button[aria-label='Dodaj do koszyka']") != [] -> {:ok, true}
-      card |> Floki.text() |> String.contains?("Wyprzedane") -> {:ok, false}
+      card |> Floki.text() |> String.contains?(["Brak w magazynie", "Wyprzedane"]) -> {:ok, false}
       true -> :error
     end
   end
