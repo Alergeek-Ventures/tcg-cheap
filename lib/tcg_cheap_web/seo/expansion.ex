@@ -150,8 +150,14 @@ defmodule TcgCheapWeb.SEO.Expansion do
         shop: OfferComponents.priced_shop_name(cheapest)
       )
 
-  @doc "The two rarest pull rates, as the page's table states them; nil without rates."
+  @doc """
+  The two rarest pull rates, as the page's table states them; nil without
+  rates, and for another set's rates standing in: a snippet has no room for
+  the table's caveat.
+  """
   @spec pull_rates_summary(map() | nil) :: String.t() | nil
+  def pull_rates_summary(%{borrowed_from: borrowed}) when not is_nil(borrowed), do: nil
+
   def pull_rates_summary(%{rates: [_ | _] = rates}) do
     odds = Enum.map_join(Enum.take(rates, 2), ", ", &"#{&1.rarity} #{Format.odds(&1.rate)}")
     gettext("Szansa na drop (pull rates): %{odds}.", odds: odds)

@@ -501,20 +501,6 @@ defmodule TcgCheap.Sealed.Shops.Czechia do
       free_shipping_from: nil,
       pickup_city: nil
     },
-    # Delivery terms: https://www.tlamagames.com/doprava_platba/ (checked 2026-11-15).
-    %Shop{
-      key: "tlamagames",
-      name: "TLAMA games",
-      host: "www.tlamagames.com",
-      source: Shoptet,
-      listing_paths: ["/pokemon/"],
-      currency: "CZK",
-      country: "CZ",
-      max_pages: 40,
-      shipping_from: Decimal.new("54"),
-      free_shipping_from: Decimal.new("2000"),
-      pickup_city: "Praha"
-    },
     # Delivery terms: https://www.toredo.cz/doprava-a-platba/ (checked 2026-11-15).
     %Shop{
       key: "toredo",

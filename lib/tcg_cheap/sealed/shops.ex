@@ -18,10 +18,8 @@ defmodule TcgCheap.Sealed.Shops do
   (`TcgCheap.Sealed.Market`). A shop's delivery within its own country is
   recorded only where the guide has a market.
 
-  singleTCG and PokeKarty ask crawlers in their robots.txt not to read the
-  endpoints used here (`/api`, and the Store API with its `per_page` and
-  `stock_status` parameters). Their clients read them anyway, for the public
-  prices only, at the usual pace and with the guide's own user agent.
+  A shop whose robots.txt forbids the paths its reader needs is not listed
+  (`TcgCheap.Bot`).
 
   A shop's logo is `priv/static/images/shops/<key>.webp`, a 240×80 WebP on a
   white chip (dark for light logos); a shop without a file shows none. Morion

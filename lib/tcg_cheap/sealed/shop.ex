@@ -31,7 +31,7 @@ defmodule TcgCheap.Sealed.Shop do
       `TcgCheap.Sealed.ShopFeed.HtmlListing.read_singles/2`); nopCommerce:
       `"<category id>:<option id>"`, a singles category and the shop's
       specification option meaning "In Stock"; Shoptet: category listing
-      paths; Chasedex, Pokemonki and SingleTcg: not read (the shop's own index
+      paths; Chasedex and Pokemonki: not read (the shop's own index
       decides), any list enables singles;
     * `currency` – the ISO code of the shop's prices, PLN unless the shop is
       abroad; each offer keeps the shop's price in it (`shop_price`), and other
