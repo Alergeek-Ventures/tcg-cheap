@@ -400,6 +400,38 @@ defmodule TcgCheap.Bot do
   def wait_seconds(_reason), do: nil
 
   @doc """
+  The seconds before the attempt that follows a failure that rate-limited the
+  host (a 429, with or without a `Retry-After`), for a worker's `backoff/1`;
+  nil for any other failure. See `rate_limit_wait/2`.
+  """
+  @spec rate_limit_backoff(Oban.Job.t()) :: pos_integer() | nil
+  def rate_limit_backoff(%Oban.Job{attempt: attempt, unsaved_error: %{reason: reason}}) do
+    case reason do
+      %Oban.PerformError{reason: {:error, {:http_status, 429}}} ->
+        rate_limit_wait(attempt, 0)
+
+      %Oban.PerformError{reason: {:error, {:retry_after, seconds}}} ->
+        rate_limit_wait(attempt, seconds)
+
+      _other ->
+        nil
+    end
+  end
+
+  def rate_limit_backoff(%Oban.Job{}), do: nil
+
+  @doc """
+  How long to leave a host alone after the `attempt`th attempt (counted from
+  1) was rate-limited with a `Retry-After` of `seconds` (0 when it named
+  none): no less than it asked, and no less than 20 minutes per attempt, plus
+  up to 5 minutes so that rate-limited hosts do not return together. A host that
+  keeps limiting us is asked a few times a night, not every minute.
+  """
+  @spec rate_limit_wait(pos_integer(), non_neg_integer()) :: pos_integer()
+  def rate_limit_wait(attempt, seconds),
+    do: max(seconds, attempt * 20 * 60 + :rand.uniform(5 * 60))
+
+  @doc """
   What a job does with a wait of `seconds`: `{:snooze, seconds}` (plus up to
   30 s of jitter) when it ends at least an hour (`@snooze_margin_s`) before the
   job's next nightly run at `run_at` (UTC), counted from the job's insertion,

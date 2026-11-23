@@ -129,25 +129,7 @@ defmodule TcgCheap.Sealed.FetchWorker do
   def timeout(_job), do: :timer.minutes(15)
 
   @impl Oban.Worker
-  def backoff(%Oban.Job{
-        attempt: attempt,
-        unsaved_error: %{reason: %Oban.PerformError{reason: {:error, {:http_status, 429}}}}
-      }),
-      do: rate_limited_backoff(attempt)
-
-  # A `Retry-After` is the least a rate-limited shop asked us to wait; a shop
-  # that still limits us is asked again later each time, not every minute.
-  def backoff(%Oban.Job{
-        attempt: attempt,
-        unsaved_error: %{
-          reason: %Oban.PerformError{reason: {:error, {:retry_after, seconds}}}
-        }
-      }),
-      do: max(seconds, rate_limited_backoff(attempt))
-
-  def backoff(job), do: super(job)
-
-  defp rate_limited_backoff(attempt), do: attempt * 20 * 60 + :rand.uniform(5 * 60)
+  def backoff(job), do: Bot.rate_limit_backoff(job) || super(job)
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"shop" => key}} = job) do
@@ -211,7 +193,7 @@ defmodule TcgCheap.Sealed.FetchWorker do
   # then reads the shop afresh; a job snoozing past it would keep that run from
   # being queued (the job is unique per shop).
   defp wait({:retry_after, _seconds} = reason, seconds, shop, job, journal) do
-    next_in = max(seconds, rate_limited_backoff(job.attempt))
+    next_in = Bot.rate_limit_wait(job.attempt, seconds)
 
     cond do
       job.attempt >= job.max_attempts ->
