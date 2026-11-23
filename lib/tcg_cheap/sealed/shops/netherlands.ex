@@ -496,20 +496,6 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       pickup_city: nil
     },
     %Shop{
-      key: "collecthors",
-      name: "Collecthors",
-      host: "www.collecthors.eu",
-      source: WooCommerce,
-      category: "21965",
-      product_path: @product,
-      currency: "EUR",
-      country: "NL",
-      max_pages: 9,
-      shipping_from: Decimal.new("8.40"),
-      free_shipping_from: Decimal.new("150"),
-      pickup_city: nil
-    },
-    %Shop{
       key: "rarecards",
       name: "RareCards",
       host: "rarecards.nl",
@@ -574,8 +560,8 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
   @doc """
   Deliveries to the Netherlands of shops abroad, by shop key: the cheapest
   delivery of a small parcel to an Amsterdam address, in the currency the shop
-  quoted it, read from the shops' carts or delivery pages on 2026-11-16. No
-  shop publishes a free-delivery threshold for the Netherlands. Shops abroad
+  quoted it, read from the shops' carts or delivery pages on 2026-11-16. Only
+  Collecthors publishes a free-delivery threshold for the Netherlands. Shops abroad
   without a known price for the Netherlands are left out. The Shopify shops
   whose cart answered Dutch buyers in euro charge them prices of their own
   (`price_currency`): the German and Portuguese ones as for Croatia, the
@@ -599,6 +585,14 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
         shipping_from: Decimal.new("80"),
         free_shipping_from: nil,
         currency: "PLN"
+      },
+      # https://www.collecthors.eu/ banner (2026-11-23): "Verzendkosten (BE/NL)
+      # €8,40 | Gratis vanaf €100 (BE) €150 (NL)". Its prices are the same for
+      # buyers in the Netherlands.
+      "collecthors" => %{
+        shipping_from: Decimal.new("8.40"),
+        free_shipping_from: Decimal.new("150"),
+        currency: "EUR"
       },
       "godofcards" => %{
         shipping_from: Decimal.new("6.90"),
