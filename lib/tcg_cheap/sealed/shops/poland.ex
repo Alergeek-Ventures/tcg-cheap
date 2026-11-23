@@ -65,7 +65,8 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         "/pokemon-elite-trainer-boxy",
         "/puszki-pokemon"
       ],
-      product_path: ~r{\A/product/[a-z0-9-]+\z},
+      # Flag emoji in a slug are percent-encoded.
+      product_path: ~r"\A/product/(?:[a-z0-9-]|%[0-9a-f]{2})+\z",
       max_pages: 10,
       singles_categories: nil,
       shipping_from: nil,

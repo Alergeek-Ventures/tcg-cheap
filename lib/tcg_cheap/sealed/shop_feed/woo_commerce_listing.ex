@@ -85,27 +85,29 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerceListing do
 
   defp product(shop, node) do
     data = analytics(node)
+    title = title(data["item_name"])
+    path = product_path(shop, HtmlListing.attr(node, ".product-image-link a", "href"))
 
     %{
       id: node |> Floki.attribute("data-id") |> List.first(),
-      title: title(data["item_name"]),
-      path: product_path(shop, HtmlListing.attr(node, ".product-image-link a", "href")),
+      title: title,
+      path: path,
       image: image(HtmlListing.attr(node, ".product-image-link img", "src")),
       price: price(node),
       in_stock: stock(node, data),
       ean: data["sku"],
-      recognised: recognised?(node, data)
+      recognised: is_binary(title) and is_binary(path) and recognised?(node, data)
     }
   end
 
-  # An explicit WooCommerce card may have no offer at all (no price), while
-  # still contributing one product to the category's stated total.
+  # A card whose title and link were read may still have no offer (no price,
+  # a variable product), while it counts as one product of the category's
+  # stated total.
   defp recognised?(node, data) do
     id = node |> Floki.attribute("data-id") |> List.first()
 
     is_binary(id) and is_integer(data["internal_id"]) and
       Integer.to_string(data["internal_id"]) == id and
-      is_binary(data["item_name"]) and is_binary(data["productlink"]) and
       data["product_type"] in ["simple", "variable"] and
       data["stockstatus"] in ["instock", "outofstock", "onbackorder"]
   end
