@@ -20,9 +20,9 @@ defmodule TcgCheap.Sealed.ShopFeed.ZboziFeed do
   ordered), which the feed's `?variantId=` URLs name; any other product has
   one schema.org offer (price, currency, availability). Only `InStock` is in
   stock; `PreOrder`, or a pre-order title, is a pre-order. A feed product the
-  page does not show (a variant it does not list, another shape of page) is
-  skipped like any invalid product. The feed has no product ids: the id is the
-  variant's (`v…`) or the page's product id (`p…`). Images come from the shop's
+  page does not show (a variant it does not list, another shape of page)
+  fails the fetch. The feed has no product ids: the id is the page's product
+  id, as the shop's listings give it, or `v` and the variant's id. Images come from the shop's
   host or Shoptet's CDN. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
@@ -50,7 +50,8 @@ defmodule TcgCheap.Sealed.ShopFeed.ZboziFeed do
            ShopFeed.get(shop, shop.feed_path, [], req_options, max_body_bytes: @max_body_bytes),
          {:ok, items} <-
            XmlRecords.parse(response.body, ["SHOP", "SHOPITEM"], @fields, &included?/1),
-         {:ok, pages} <- read_pages(shop, items, req_options) do
+         {:ok, pages} <- read_pages(shop, items, req_options),
+         :ok <- check_readings(shop, items, pages) do
       {:ok, ShopFeed.offers(shop, items, &normalize(shop, pages, &1))}
     end
   end
@@ -77,6 +78,23 @@ defmodule TcgCheap.Sealed.ShopFeed.ZboziFeed do
     if length(paths) > shop.max_pages,
       do: {:error, {:too_many_pages, length(paths)}},
       else: Enum.reduce_while(paths, {:ok, %{}}, &add_page(shop, req_options, &1, &2))
+  end
+
+  # A feed product its page does not show (a variant the page does not list,
+  # variants the feed does not name, another shape of page) is a page the
+  # reader does not understand, not an invalid product.
+  defp check_readings(shop, items, pages) do
+    unread =
+      Enum.find(items, fn item ->
+        case product_url(shop, item) do
+          {:ok, uri, variant} -> not is_map(pages[uri.path][variant])
+          :error -> false
+        end
+      end)
+
+    if unread,
+      do: {:error, {:unread_product, XmlRecords.text(unread, ["URL"])}},
+      else: :ok
   end
 
   defp add_page(shop, req_options, path, {:ok, pages}) do
@@ -106,11 +124,19 @@ defmodule TcgCheap.Sealed.ShopFeed.ZboziFeed do
   defp readings(document) do
     case Floki.find(document, @variant_radios) do
       [] -> single_offer(document)
-      radios -> {:ok, Enum.map(radios, &variant/1)}
+      radios -> {:ok, Enum.map(radios, &variant(&1, preorder_page?(document)))}
     end
   end
 
-  defp variant(radio) do
+  # A variant's radio button does not say pre-order; the page's offers do.
+  defp preorder_page?(document) do
+    document
+    |> Floki.find(~s(#{@form} [itemprop="availability"]))
+    |> Enum.flat_map(&Floki.attribute(&1, "href"))
+    |> Enum.any?(&(availability(&1) == :preorder))
+  end
+
+  defp variant(radio, preorder_page?) do
     id = radio |> Floki.attribute("value") |> List.first()
     price = radio |> Floki.attribute("data-customerprice") |> List.first()
     orderable? = Floki.attribute(radio, "data-disable-button") == []
@@ -119,7 +145,12 @@ defmodule TcgCheap.Sealed.ShopFeed.ZboziFeed do
      %{
        id: "v#{id}",
        price: price,
-       availability: if(orderable?, do: :in_stock, else: :out_of_stock)
+       availability:
+         cond do
+           not orderable? -> :out_of_stock
+           preorder_page? -> :preorder
+           true -> :in_stock
+         end
      }}
   end
 
@@ -131,8 +162,7 @@ defmodule TcgCheap.Sealed.ShopFeed.ZboziFeed do
 
     if is_binary(product_id) and is_binary(price) and is_binary(availability),
       do:
-        {:ok,
-         [{nil, %{id: "p#{product_id}", price: price, availability: availability(availability)}}]},
+        {:ok, [{nil, %{id: product_id, price: price, availability: availability(availability)}}]},
       else: {:error, :malformed_response}
   end
 
