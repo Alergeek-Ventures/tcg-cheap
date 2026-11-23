@@ -35,7 +35,8 @@ defmodule TcgCheap.Sealed.Shops.Poland do
     Smyk,
     Sote,
     StajniaGier,
-    WooCommerce
+    WooCommerce,
+    WooCommerceListing
   }
 
   @produkt ~r|\A/produkt/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
@@ -50,6 +51,27 @@ defmodule TcgCheap.Sealed.Shops.Poland do
   @shoper_ceneo "/console/integration/execute/name/CeneoV2"
 
   @shops [
+    # robots.txt forbids the Store API query; ordinary category listings are allowed.
+    %Shop{
+      key: "pokekarty",
+      name: "PokeKarty",
+      host: "www.pokekarty.pl",
+      source: WooCommerceListing,
+      listing_paths: [
+        "/boostery-pokemon",
+        "/blistry-pokemon",
+        "/booster-boxy",
+        "/boxy-pokemon",
+        "/pokemon-elite-trainer-boxy",
+        "/puszki-pokemon"
+      ],
+      product_path: ~r{\A/product/[a-z0-9-]+\z},
+      max_pages: 10,
+      singles_categories: nil,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("300"),
+      pickup_city: "Warszawa"
+    },
     %Shop{
       key: "cardgallery",
       name: "Card Gallery",
