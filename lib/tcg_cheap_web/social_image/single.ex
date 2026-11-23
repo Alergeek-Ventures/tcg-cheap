@@ -125,7 +125,7 @@ defmodule TcgCheapWeb.SocialImage.Single do
       end
     else
       with %Decimal{} = value <- cardmarket_price(page) do
-        {Format.whole_price(value), gettext("cena na Cardmarket")}
+        {Format.limit_price(value), gettext("cena na Cardmarket")}
       end
     end
   end

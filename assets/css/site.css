@@ -666,7 +666,8 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 .guide-world .pull-rates { background: var(--paper); border-collapse: collapse; inline-size: 100%; }
 .guide-world .pull-rates :is(th, td) { border-block-end: 1px solid var(--rule); padding: .5rem .75rem; text-align: start; vertical-align: baseline; }
 .guide-world .pull-rates thead th { color: var(--muted); font-size: .8125rem; font-weight: 400; text-wrap: balance; }
-.guide-world .pull-rates thead th:last-child { white-space: nowrap; }
+/* One line for the probability header where the table is wide; on a phone it wraps, or a long translation sets the page's minimum width. */
+@media (min-width: 48rem) { .guide-world .pull-rates thead th:last-child { white-space: nowrap; } }
 .guide-world .pull-rates tbody th { font-weight: 400; }
 .guide-world .pull-rates tbody th a { color: inherit; text-decoration: underline; text-underline-offset: .15em; }
 @media (hover: hover) and (pointer: fine) { .guide-world .pull-rates tbody tr:hover { background: var(--bench-light); } .guide-world .pull-rates tbody th a:hover { color: var(--orange); } }

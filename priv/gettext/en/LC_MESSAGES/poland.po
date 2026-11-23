@@ -135,7 +135,7 @@ msgstr "The typical price is the middle of the pack: from each Polish shop that 
 #: lib/tcg_cheap/countries/poland.ex:149
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w złotych, co tańsze."
-msgstr "Prices exclude delivery, except those marked “with delivery”,, or the Cardmarket trend in PLN, whichever is cheaper."
+msgstr "Prices exclude delivery, except those marked “with delivery”, or the Cardmarket trend in PLN, whichever is cheaper."
 
 #: lib/tcg_cheap/countries/poland.ex:160
 #, elixir-autogen, elixir-format

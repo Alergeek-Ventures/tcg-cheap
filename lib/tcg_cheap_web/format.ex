@@ -112,7 +112,8 @@ defmodule TcgCheapWeb.Format do
   def limit_price(value) do
     case Market.limit_step(Region.current().market) do
       1 ->
-        whole_price(value)
+        # A Cardmarket trend below one unit keeps its hundredths, as `price/1` does.
+        if is_struct(value, Decimal), do: price(value), else: whole_price(value)
 
       %Decimal{} ->
         price(value)
