@@ -6,6 +6,12 @@ defmodule TcgCheap.Sealed.ShopFeed.ZberiVse do
   an offer; the slug can be longer than the offer id and belongs in its URL.
   Cards and other games, accessories and mystery/repack items do not.
 
+  The shop shows a price on a product page only while the product is in stock
+  (`_hasStock`, from 1 €); otherwise it says "Cena še ni potrjena" (price not
+  yet confirmed) and the feed's `webPrice` is a placeholder (a sold-out or
+  announced booster at 499,99 €). Such an item has no price to pay and is
+  not an offer.
+
   An unreleased item or one held back by the shop is a pre-order, never stock.
   Product photos and links stay on the shop's fixed host. See `ShopFeed` for
   validation and request limits.
@@ -51,6 +57,7 @@ defmodule TcgCheap.Sealed.ShopFeed.ZberiVse do
          {:ok, slug} <- slug(product["slug"]),
          {:ok, uri} <- ShopFeed.https_url("https://#{shop.host}/#{slug}", [shop.host]),
          url = URI.to_string(uri),
+         true <- price_confirmed?(product) || :ignore,
          {:ok, price} <- ShopFeed.decimal_price(price(product["webPrice"])),
          {:ok, {in_stock, preorder}} <- availability(product, title) do
       {:ok,
@@ -90,6 +97,12 @@ defmodule TcgCheap.Sealed.ShopFeed.ZberiVse do
     do: Matcher.sealed_title?(title)
 
   defp sealed?(_product, _title), do: false
+
+  defp price_confirmed?(%{"_hasStock" => true, "webPrice" => price})
+       when is_number(price) and price >= 1,
+       do: true
+
+  defp price_confirmed?(_product), do: false
 
   defp price(value) when is_number(value), do: to_string(value)
   defp price(_value), do: nil
