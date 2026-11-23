@@ -4624,7 +4624,7 @@ msgstr "%{name} %{number}: %{price}-tól szállítás nélkül."
 #: lib/tcg_cheap_web/page_markdown.ex:139
 #, elixir-autogen, elixir-format
 msgid "Angielskie karty na stanie w sklepach: najniższa cena bez dostawy, poza oznaczonymi „z wysyłką”, i ocena wobec Cardmarket liczona tak samo. Pełna lista rozszerzeń: %{url}"
-msgstr "Raktáron lévő angol kártyák a boltokban: a legalacsonyabb ár szállítási díj nélkül, a „szállítással együtt” jelölésűek kivételével,, az értékelés pedig a Cardmarket-árhoz képest, ugyanígy számolva. A szettek teljes listája: %{url}"
+msgstr "Raktáron lévő angol kártyák a boltokban: a legalacsonyabb ár szállítási díj nélkül, a „szállítással együtt” jelölésűek kivételével, az értékelés pedig a Cardmarket-árhoz képest, ugyanígy számolva. A szettek teljes listája: %{url}"
 
 #: lib/tcg_cheap_web/live/single_live.ex:303
 #: lib/tcg_cheap_web/live/single_live.ex:387

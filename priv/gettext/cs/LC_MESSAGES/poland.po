@@ -128,7 +128,7 @@ msgstr "Typická cena je medián: z každého polského obchodu, který má kart
 #: lib/tcg_cheap/countries/poland.ex:149
 #, elixir-autogen, elixir-format
 msgid "Ceny bez dostawy, poza oznaczonymi „z wysyłką”, albo trend Cardmarket w złotych, co tańsze."
-msgstr "Ceny bez dopravy, kromě označených „s dopravou“,, nebo trend Cardmarket v zł, podle toho, co je levnější."
+msgstr "Ceny bez dopravy, kromě označených „s dopravou“, nebo trend Cardmarket v zł, podle toho, co je levnější."
 
 #: lib/tcg_cheap/countries/poland.ex:160
 #, elixir-autogen, elixir-format
