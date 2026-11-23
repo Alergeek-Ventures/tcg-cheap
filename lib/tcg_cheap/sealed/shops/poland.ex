@@ -35,6 +35,7 @@ defmodule TcgCheap.Sealed.Shops.Poland do
     Smajk,
     Smyk,
     Sote,
+    StajniaGier,
     WooCommerce
   }
 
@@ -1076,8 +1077,8 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       key: "stajniagier",
       name: "Stajnia Gier",
       host: "stajnia-gier.pl",
-      source: PrestaShop,
-      listing_paths: ["/178-pokemon-tcg"],
+      source: StajniaGier,
+      feed_path: "/kategoria/pokemon-tcg",
       max_pages: 4,
       shipping_from: Decimal.new("13"),
       free_shipping_from: Decimal.new("350"),
