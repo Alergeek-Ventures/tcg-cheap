@@ -2,14 +2,16 @@ defmodule TcgCheap.Sealed.Shops.Czechia do
   @moduledoc """
   Shops in Czechia, the guide's region `/cz/` in koruna, and the deliveries to
   Czechia of shops abroad (`TcgCheap.Sealed.Shops`). The Shoptet and
-  WooCommerce shops are read from their public Pokémon listings. Delivery
+  WooCommerce shops are read from their public Pokémon listings (TLAMA games,
+  whose robots.txt forbids listing pagination, from its Zboží feed and product
+  pages). Delivery
   within Czechia is each shop's cheapest standard parcel and its free-delivery
   threshold as the shop states them in November 2026; nil where it states none.
   Singles have no market here yet.
   """
 
   alias TcgCheap.Sealed.Shop
-  alias TcgCheap.Sealed.ShopFeed.{Shoptet, WooCommerce}
+  alias TcgCheap.Sealed.ShopFeed.{Shoptet, WooCommerce, ZboziFeed}
 
   @shops [
     %Shop{
@@ -500,6 +502,22 @@ defmodule TcgCheap.Sealed.Shops.Czechia do
       shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil
+    },
+    # Read from its Zboží feed and product pages: its robots.txt forbids the
+    # listing pagination the Shoptet reader needs.
+    # Delivery terms: https://www.tlamagames.com/doprava_platba/ (checked 2026-11-15).
+    %Shop{
+      key: "tlamagames",
+      name: "TLAMA games",
+      host: "www.tlamagames.com",
+      source: ZboziFeed,
+      feed_path: "/zbozi.xml",
+      currency: "CZK",
+      country: "CZ",
+      max_pages: 40,
+      shipping_from: Decimal.new("54"),
+      free_shipping_from: Decimal.new("2000"),
+      pickup_city: "Praha"
     },
     # Delivery terms: https://www.toredo.cz/doprava-a-platba/ (checked 2026-11-15).
     %Shop{

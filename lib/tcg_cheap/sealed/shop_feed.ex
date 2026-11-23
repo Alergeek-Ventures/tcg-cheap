@@ -5,6 +5,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
   A shop's `source` is the client module that reads its feed
   (`TcgCheap.Sealed.ShopFeed.WooCommerce`, `TcgCheap.Sealed.ShopFeed.Shopify`,
   `TcgCheap.Sealed.ShopFeed.GoogleFeed`, `TcgCheap.Sealed.ShopFeed.CeneoFeed`,
+  `TcgCheap.Sealed.ShopFeed.ZboziFeed`,
   `TcgCheap.Sealed.ShopFeed.IdoSell`, `TcgCheap.Sealed.ShopFeed.PrestaShop`, and the readers of
   HTML listings, mostly built on `TcgCheap.Sealed.ShopFeed.HtmlListing`); a new kind
   of feed is one more module implementing this behaviour.

@@ -61,7 +61,7 @@ defmodule TcgCheap.Sealed.Shop do
       price instead of a converted one. Each such country is one more read
       of the shop's whole list, so only countries where the price was seen
       to differ from the shop's own carry it;
-    * Google Merchant and Ceneo feeds: `feed_path` (the export, which may
+    * Google Merchant, Ceneo and Zboží feeds: `feed_path` (the export, which may
       cover the whole shop) and `feed_host` (the shop's own host serving the
       export, such as its CDN, when it is not `host`); WooCommerce:
       `feed_path` (the Store API products path, nil for the usual one);
