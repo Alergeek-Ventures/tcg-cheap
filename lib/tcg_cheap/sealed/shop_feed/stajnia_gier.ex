@@ -109,15 +109,16 @@ defmodule TcgCheap.Sealed.ShopFeed.StajniaGier do
   end
 
   defp id(link) do
-    with [_, slug] <- Regex.run(@link, link) do
-      if byte_size(slug) <= @max_id_length do
+    case Regex.run(@link, link) do
+      [_, slug] when byte_size(slug) <= @max_id_length ->
         slug
-      else
+
+      [_, slug] ->
         hash = :sha256 |> :crypto.hash(slug) |> Base.encode16(case: :lower) |> binary_part(0, 8)
         binary_part(slug, 0, @max_id_length - 9) <> "-" <> hash
-      end
-    else
-      _ -> nil
+
+      nil ->
+        nil
     end
   end
 
