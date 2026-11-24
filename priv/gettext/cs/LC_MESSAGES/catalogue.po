@@ -208,6 +208,10 @@ msgid "akrylowy ekspozytor na kartę"
 msgstr "akrylový stojánek na kartu"
 
 #. contents item
+msgid "akrylowy znacznik GX"
+msgstr "akrylový žeton GX"
+
+#. contents item
 msgid "akrylowy znacznik TAG TEAM GX"
 msgstr "akrylový žeton TAG TEAM GX"
 

@@ -208,6 +208,10 @@ msgid "akrylowy ekspozytor na kartę"
 msgstr "expositor de acrílico para carta"
 
 #. contents item
+msgid "akrylowy znacznik GX"
+msgstr "marcador GX de acrílico"
+
+#. contents item
 msgid "akrylowy znacznik TAG TEAM GX"
 msgstr "marcador TAG TEAM GX de acrílico"
 

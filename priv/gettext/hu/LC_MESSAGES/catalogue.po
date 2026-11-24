@@ -208,6 +208,10 @@ msgid "akrylowy ekspozytor na kartę"
 msgstr "akril kártyatartó állvány"
 
 #. contents item
+msgid "akrylowy znacznik GX"
+msgstr "akril GX-jelölő"
+
+#. contents item
 msgid "akrylowy znacznik TAG TEAM GX"
 msgstr "akril TAG TEAM GX-jelölő"
 
