@@ -310,7 +310,7 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
   defp excluded_title?(%Shop{excluded_title_phrases: phrases}, title) do
     text = " " <> Matcher.normalize(title) <> " "
-    Enum.any?(phrases, &String.contains?(text, " #{&1} "))
+    Enum.any?(phrases, &String.contains?(text, " #{Matcher.normalize(&1)} "))
   end
 
   @doc """
