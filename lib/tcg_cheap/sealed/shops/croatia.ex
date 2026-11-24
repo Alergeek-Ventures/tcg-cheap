@@ -68,6 +68,22 @@ defmodule TcgCheap.Sealed.Shops.Croatia do
       shipping_from: Decimal.new("5"),
       free_shipping_from: Decimal.new("70"),
       pickup_city: "Zaprešić"
+    },
+    # Its Pokémon category (Store API, 2026-11-24). Its pages state no
+    # delivery terms.
+    %Shop{
+      key: "igrackehrvatska",
+      name: "Igračke Hrvatska",
+      host: "igrackehrvatska.com",
+      source: WooCommerce,
+      category: "16",
+      product_path: @product,
+      currency: "EUR",
+      country: "HR",
+      max_pages: 3,
+      shipping_from: nil,
+      free_shipping_from: nil,
+      pickup_city: nil
     }
   ]
 
