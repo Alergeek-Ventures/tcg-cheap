@@ -9,13 +9,14 @@ defmodule TcgCheap.Sealed.AgentTools.ExplainMatch do
   alias Ash.Error.Action.InvalidArgument
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.Json
-  alias TcgCheap.Sealed.{Ean, Matcher}
+  alias TcgCheap.Sealed.{Ean, Matcher, Shops}
 
   @impl true
   def run(input, _opts, _context) do
     with {:ok, subject, offer} <- subject(input.arguments) do
       products = Sealed.list_products!(query: [select: [:edition | Json.product_fields()]])
-      index = Matcher.index(products, Sealed.known_eans())
+      edition = Shops.edition((offer && offer.shop) || input.arguments[:shop])
+      index = Matcher.index(products, Sealed.known_eans(), edition)
       explanation = Matcher.explain(subject, index, input.arguments.candidates)
       {:ok, present(explanation, subject, offer, Map.new(products, &{&1.id, &1}))}
     end

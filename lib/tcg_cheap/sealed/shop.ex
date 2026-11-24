@@ -81,6 +81,10 @@ defmodule TcgCheap.Sealed.Shop do
       which that delivery is free, `pickup_city` – the city of the shop's own
       store where orders can be picked up in person; each nil when the shop
       does not publish it (deliveries abroad are in `deliveries`);
+    * `edition` – the language edition (`TcgCheap.Sealed.Editions`) of everything
+      the shop sells, nil for a shop of several or unknown ones. Its offers
+      match products of that edition only, whatever their titles say
+      (`TcgCheap.Sealed.Matcher.index/3`); manual decisions are not limited;
     * `images` – false when the shop's images cannot be shown elsewhere
       (its bot check answers them with a page; PrestaShop);
     * `pickup_location` – `{latitude, longitude}` of that store, for distances
@@ -116,6 +120,7 @@ defmodule TcgCheap.Sealed.Shop do
                 :mixed_listing,
                 :preorder_path,
                 :pickup_location,
+                :edition,
                 country: "PL",
                 home_market: true,
                 deliveries: %{},
@@ -152,6 +157,7 @@ defmodule TcgCheap.Sealed.Shop do
           listing_paths: [String.t()] | nil,
           mixed_listing: boolean() | nil,
           preorder_path: String.t() | nil,
+          edition: atom() | nil,
           currency: String.t(),
           singles_only: boolean(),
           country: String.t(),

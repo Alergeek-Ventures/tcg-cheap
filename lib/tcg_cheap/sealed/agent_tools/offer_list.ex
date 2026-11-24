@@ -8,7 +8,7 @@ defmodule TcgCheap.Sealed.AgentTools.OfferList do
 
   alias TcgCheap.Sealed
   alias TcgCheap.Sealed.AgentTools.Json
-  alias TcgCheap.Sealed.Matcher
+  alias TcgCheap.Sealed.{Matcher, Shops}
 
   @impl true
   def run(input, opts, _context) do
@@ -44,12 +44,13 @@ defmodule TcgCheap.Sealed.AgentTools.OfferList do
     listed = if args.include_excluded, do: offers, else: kept
     slice = Enum.slice(listed, args.offset, args.limit)
 
-    index =
+    indexes =
       if slice != [],
         do:
-          Matcher.index(
+          Matcher.indexes(
             Sealed.list_products!(query: [select: [:name, :set_name, :edition, :kind]]),
-            Sealed.known_eans()
+            Sealed.known_eans(),
+            Enum.map(slice, &Shops.edition(&1.shop))
           )
 
     %{
@@ -57,7 +58,11 @@ defmodule TcgCheap.Sealed.AgentTools.OfferList do
       excluded_total: length(excluded),
       limit: args.limit,
       offset: args.offset,
-      offers: Enum.map(slice, &Map.merge(Json.offer(&1), matcher(Matcher.match(&1, index))))
+      offers:
+        Enum.map(slice, fn offer ->
+          index = Map.fetch!(indexes, Shops.edition(offer.shop))
+          Map.merge(Json.offer(offer), matcher(Matcher.match(offer, index)))
+        end)
     }
   end
 

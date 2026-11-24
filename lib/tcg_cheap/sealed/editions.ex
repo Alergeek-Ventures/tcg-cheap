@@ -102,7 +102,10 @@ defmodule TcgCheap.Sealed.Editions do
     830_072 => :ja,
     # Pokémon Center Yokohama Special Box (2018), sold only at Pokémon Center
     # Yokohama and Pokémon Center Online (pokemon.co.jp), checked on 2026-11-09
-    575_116 => :ja
+    575_116 => :ja,
+    # Pokémon Center Tokyo DX Box, a Pokémon Center Tokyo DX store product,
+    # filed with the English tins like the Yokohama box above
+    562_820 => :ja
   }
 
   @words [
