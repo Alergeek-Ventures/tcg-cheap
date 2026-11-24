@@ -402,15 +402,17 @@ defmodule TcgCheap.Sealed.Refresh do
   defp rematch_offers(products, rematch) do
     offers =
       Sealed.list_offers!(
-        query: [select: [:title, :ean, :manual?, :product_id]] ++ rematch_filter(rematch)
+        query: [select: [:title, :ean, :manual?, :product_id, :shop]] ++ rematch_filter(rematch)
       )
 
-    index = Matcher.index(products, Sealed.known_eans())
+    # A shop selling one edition only matches against that edition's products.
+    indexes =
+      Matcher.indexes(products, Sealed.known_eans(), Enum.map(offers, &Shops.edition(&1.shop)))
 
     # An offer that no longer matches (nil) is unmatched again: a wrong match
     # poisons the price history more than a missing one.
     for %Offer{manual?: false} = offer <- offers,
-        id <- [Matcher.product_id(offer, index)],
+        id <- [Matcher.product_id(offer, Map.fetch!(indexes, Shops.edition(offer.shop)))],
         id != offer.product_id do
       # Nothing subscribes to offer notifications; drop them inside the transaction.
       Sealed.match_offer!(offer, id, return_notifications?: true)

@@ -15,12 +15,34 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
   """
 
   alias TcgCheap.Sealed.Shop
-  alias TcgCheap.Sealed.ShopFeed.{Shopify, WooCommerce}
+  alias TcgCheap.Sealed.ShopFeed.{PrestaShop, Shopify, WooCommerce}
 
   @product ~r|\A/product/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
   @root_product ~r|\A/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
 
   @shops [
+    # Sells Japanese-language products only, whose titles never say so; its
+    # category of booster boxes also holds Pokémon Center boxes and decks. Its
+    # singles are not read.
+    %Shop{
+      key: "tcgjapan",
+      name: "TCGjapan",
+      host: "tcgjapan.nl",
+      source: PrestaShop,
+      listing_paths: ["/nl/20-booster-boxen"],
+      edition: :ja,
+      currency: "EUR",
+      country: "NL",
+      # 5 pages in November 2026.
+      max_pages: 8,
+      # https://tcgjapan.nl/nl/content/1-levering-verzending (2026-11-24):
+      # "Booster Boxen kunnen alleen verzonden worden via PostNL pakket Track &
+      # Trace": €5.99, not the €1.95 and €4 letterbox options, which are for
+      # packs and single cards; it states no free-delivery threshold.
+      shipping_from: Decimal.new("5.99"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
     %Shop{
       key: "pokefamily",
       name: "PokeFamily",

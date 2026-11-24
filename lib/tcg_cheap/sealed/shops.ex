@@ -230,6 +230,15 @@ defmodule TcgCheap.Sealed.Shops do
   def fetch(key) when key in @keys, do: {:ok, Enum.find(@shops, &(&1.key == key))}
   def fetch(_key), do: :error
 
+  @doc "The edition the shop sells alone (`Shop`), nil for other shops and ones no longer configured."
+  @spec edition(String.t()) :: atom() | nil
+  def edition(key) do
+    case fetch(key) do
+      {:ok, shop} -> shop.edition
+      :error -> nil
+    end
+  end
+
   @doc "The shop's display name, or the raw key for a shop no longer configured."
   @spec name(String.t()) :: String.t()
   def name(key) do

@@ -449,9 +449,27 @@ defmodule TcgCheap.Sealed.Matcher do
   @doc """
   Builds a match index over products. `eans` maps a known EAN to its
   product id.
+
+  With an `edition`, the index holds only products of that edition (and only
+  the EANs of those): for a shop selling that edition alone
+  (`TcgCheap.Sealed.Shop`), where an offer can be nothing else and the title
+  needs no language word (the products' own "JP" may stay out of a title), so a
+  set sold in two editions under one name no longer has a namesake to be
+  ambiguous with.
   """
-  @spec index([product()], %{String.t() => term()}) :: t()
-  def index(products, eans \\ %{}) do
+  @spec index([product()], %{String.t() => term()}, atom() | nil) :: t()
+  def index(products, eans \\ %{}, edition \\ nil)
+
+  def index(products, eans, edition) when is_atom(edition) and edition != nil do
+    products = Enum.filter(products, &(Map.get(&1, :edition) == edition))
+    ids = MapSet.new(products, & &1.id)
+    eans = Map.filter(eans, fn {_ean, id} -> MapSet.member?(ids, id) end)
+    build(products, eans, MapSet.new(List.wrap(Map.get(@edition_words, edition))))
+  end
+
+  def index(products, eans, nil), do: build(products, eans, MapSet.new())
+
+  defp build(products, eans, shop_stated) do
     entries =
       for product <- products,
           {code, name} = Editions.chinese_code(product.name) || {"", product.name},
@@ -462,7 +480,7 @@ defmodule TcgCheap.Sealed.Matcher do
             id: product.id,
             tokens: tokens,
             size: MapSet.size(tokens),
-            omissible: set_ex(product, name_tokens),
+            omissible: MapSet.union(set_ex(product, name_tokens), shop_stated),
             meets: meets(product, name_tokens, single_blister?(name_tokens), sch != []),
             sch?: sch != [],
             eu_version?: Regex.match?(~r/\bEU Version\b/i, product.name),
@@ -520,6 +538,15 @@ defmodule TcgCheap.Sealed.Matcher do
       by_id: Map.new(entries, &{&1.id, &1})
     }
   end
+
+  @doc """
+  One index per edition of `editions` (nil for every product), over the same
+  products and EANs, for callers matching offers of shops with different
+  editions (`Shops.edition/1`).
+  """
+  @spec indexes([product()], %{String.t() => term()}, [atom() | nil]) :: %{atom() => t()}
+  def indexes(products, eans, editions),
+    do: Map.new(Enum.uniq(editions), &{&1, index(products, eans, &1)})
 
   @doc "Matches an offer (`:title`, optional `:ean`) against an index."
   @spec match(map(), t()) :: result()

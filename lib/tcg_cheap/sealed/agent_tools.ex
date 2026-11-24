@@ -191,6 +191,10 @@ defmodule TcgCheap.Sealed.AgentTools do
       argument :title, :string, description: "A raw offer title to explain instead of an offer."
       argument :ean, :string, description: "The EAN that goes with `title`, if any."
 
+      argument :shop, :string,
+        description:
+          "The shop key the raw `title` is from, for a shop that sells one language edition only (its offers match that edition's products alone). A stored offer uses its own shop."
+
       argument :candidates, :integer,
         default: 5,
         constraints: [min: 1, max: 20],
