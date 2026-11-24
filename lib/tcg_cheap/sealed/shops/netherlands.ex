@@ -549,8 +549,10 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       pickup_city: nil
     },
     # The four shops below are read through their Store API categories
-    # (2026-11-24); each shop's page states a free-delivery threshold and no
-    # price under it (it appears in the cart), so that price stays nil.
+    # (2026-11-24). DavidPTCG, PackEmAll and TCG Experts state a free-delivery
+    # threshold and no price under it (it appears in the cart), so that price
+    # stays nil. Boxes sold with an acrylic case are not the plain product:
+    # DavidPTCG and DiddoDeals drop them by their "acryl" title word.
     # https://davidptcg.nl/verzending/: free from 250 € in the Netherlands.
     %Shop{
       key: "davidptcg",
@@ -559,6 +561,7 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       source: WooCommerce,
       category: "19,23,24,63",
       product_path: @product,
+      excluded_title_phrases: ["acryl"],
       currency: "EUR",
       country: "NL",
       max_pages: 4,
@@ -574,7 +577,8 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       source: WooCommerce,
       # Its sealed categories, Chinese sets included.
       category: "304,381",
-      product_path: @product,
+      # A flag or other emoji opening a slug is percent-encoded.
+      product_path: ~r"\A/product/(?:[a-z0-9]|%[0-9a-f]{2})+(?:-(?:[a-z0-9]|%[0-9a-f]{2})+)*/\z"i,
       currency: "EUR",
       country: "NL",
       max_pages: 4,
@@ -582,7 +586,8 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       free_shipping_from: Decimal.new("250"),
       pickup_city: nil
     },
-    # https://diddodeals.nl/verzending/: free from 500 €.
+    # Its product pages (https://diddodeals.nl/product/pokemon-surging-sparks-booster-box/,
+    # 2026-11-24): "Verzending € 7,20 in Nederland", free from 500 €.
     %Shop{
       key: "diddodeals",
       name: "DiddoDeals",
@@ -590,10 +595,11 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       source: WooCommerce,
       category: "22,99,23,26,49,21,24,95,89",
       product_path: @product,
+      excluded_title_phrases: ["acryl"],
       currency: "EUR",
       country: "NL",
       max_pages: 3,
-      shipping_from: nil,
+      shipping_from: Decimal.new("7.20"),
       free_shipping_from: Decimal.new("500"),
       pickup_city: nil
     },

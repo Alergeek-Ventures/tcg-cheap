@@ -8,6 +8,9 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
   A product counts as sealed when it is in one of the shop's
   `sealed_categories`, or, for a shop without curated sealed categories, when
   its title names a sealed product (`TcgCheap.Sealed.Matcher.sealed_title?/1`).
+  A product whose own categories name a pre-order (name or slug, read like a
+  title by `TcgCheap.Sealed.Matcher.preorder_title?/1`) is a pre-order offer
+  (`preorder`), not in stock.
   Every product of the shop's `singles_categories` (category ids, requested
   separately, in stock only, with the shop's `singles_attribute` term when it
   has one, subcategories included, at most 80 pages instead of `max_pages`)
@@ -213,7 +216,7 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
     with {:ok, id} <- product_id(product["id"]),
          {:ok, url} <- product_url(shop, product["permalink"]),
          {:ok, price} <- price(product["prices"], shop.currency, kind) do
-      preorder = Matcher.preorder_title?(title)
+      preorder = Matcher.preorder_title?(title) or preorder_category?(product["categories"])
 
       {:ok,
        %{
@@ -228,6 +231,20 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
        }}
     end
   end
+
+  # Shops file a pre-order under a category named for it ("Pre-orders") while
+  # the product is still "in stock" and its title says nothing.
+  defp preorder_category?(categories) when is_list(categories) do
+    Enum.any?(categories, fn
+      %{"name" => name, "slug" => slug} ->
+        Enum.any?([name, slug], &(is_binary(&1) and Matcher.preorder_title?(&1)))
+
+      _ ->
+        false
+    end)
+  end
+
+  defp preorder_category?(_categories), do: false
 
   # The Store API also returns products of subcategories, which come first in
   # their category list ("DRI - Holo" under English singles).
