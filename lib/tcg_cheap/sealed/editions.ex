@@ -66,7 +66,18 @@ defmodule TcgCheap.Sealed.Editions do
     # "CSVNC: Land of Kitakami Special Pack" and the four Ogerpon Gift Boxes
     # that hold it (Simplified Chinese, May 2026); one code in five names is
     # below the names' third.
-    6579 => :zh
+    6579 => :zh,
+    # Indonesian and Thai sets whose names say the language in under a third of
+    # their products (Bulbapedia, 2026-11-24: "released exclusively in Thailand
+    # and Indonesia"): Presence of Champions, Bonds of Destiny, Stellar Lightning,
+    # Void Blast, Shadow Threat (Shadowy Threats), and Indigo Flame (Blue Blaze:
+    # its Gastly, Jigglypuff and Pawmi 2-Pack Blisters are Blue Blaze cards).
+    6413 => :id,
+    6415 => :id,
+    6419 => :id,
+    6519 => :id,
+    6596 => :id,
+    6417 => :id
   }
 
   # Products of another edition than their expansion's, by Cardmarket product
