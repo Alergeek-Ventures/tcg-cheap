@@ -208,6 +208,10 @@ msgid "akrylowy ekspozytor na kartę"
 msgstr "akrilni stalak za kartu"
 
 #. contents item
+msgid "akrylowy znacznik GX"
+msgstr "akrilna oznaka GX"
+
+#. contents item
 msgid "akrylowy znacznik TAG TEAM GX"
 msgstr "akrilna oznaka TAG TEAM GX"
 
