@@ -33,5 +33,5 @@ defmodule TcgCheapWeb.Languages.English do
   def currency_first?, do: false
 
   @impl true
-  def thousands_separator, do: @nbsp
+  def thousands_separator, do: ","
 end

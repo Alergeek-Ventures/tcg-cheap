@@ -7,7 +7,8 @@ defmodule TcgCheapWeb.Format do
   ("22 999 Ft"), and so are kronor from 10 kr and whole amounts below it
   ("999 kr", "8 kr", but "3,50 kr"); koruna and forint amounts below one unit
   keep their hundredths ("0,30 Kč"). Euro always keeps its cents, a delivery
-  of "20,00 €" included.
+  of "20,00 €" included. The separators are the page language's, so the same
+  price reads "1,299.99 zł" in English.
   """
   use Gettext, backend: TcgCheapWeb.Gettext
 
@@ -61,7 +62,7 @@ defmodule TcgCheapWeb.Format do
   defp fractional_price(value, region) do
     rounded = Decimal.round(value, region.market.decimals)
     [whole, fraction] = rounded |> Decimal.to_string(:normal) |> String.split(".")
-    with_currency(group(whole) <> "," <> fraction, region.currency_symbol)
+    with_currency(group(whole) <> decimal_separator() <> fraction, region.currency_symbol)
   end
 
   @doc """
@@ -81,13 +82,17 @@ defmodule TcgCheapWeb.Format do
     [whole, fraction] =
       value |> Decimal.round(2) |> Decimal.to_string(:normal) |> String.split(".")
 
-    with_currency(group(whole) <> "," <> fraction, "€")
+    with_currency(group(whole) <> decimal_separator() <> fraction, "€")
   end
 
   @doc ~S'Formats an exchange rate, to four places unless given: "4,2563", "365,64".'
   @spec rate(Decimal.t(), non_neg_integer()) :: String.t()
   def rate(%Decimal{} = value, places \\ 4),
-    do: value |> Decimal.round(places) |> Decimal.to_string(:normal) |> String.replace(".", ",")
+    do:
+      value
+      |> Decimal.round(places)
+      |> Decimal.to_string(:normal)
+      |> String.replace(".", decimal_separator())
 
   @doc ~S(Formats a whole amount of the region's currency: "1 299 zł", "22 999 Ft".)
   @spec whole_price(integer() | Decimal.t()) :: String.t()
