@@ -281,7 +281,9 @@ defmodule TcgCheap.Sealed.ShopFeed do
   @doc """
   Turns feed products into unique offers with `normalize`, which returns
   `{:ok, offers}` (one product may list several), `:ignore` (not a sealed
-  product) or `:invalid` (counted and logged).
+  product) or `:invalid` (counted and logged). Offers whose title holds one of
+  the shop's `excluded_title_phrases` as whole words are dropped, whichever
+  reader made them.
   """
   @spec offers(Shop.t(), [term()], (term() -> {:ok, [offer()]} | :ignore | :invalid)) ::
           [offer()]
@@ -298,7 +300,17 @@ defmodule TcgCheap.Sealed.ShopFeed do
     if skipped > 0,
       do: Logger.warning("sealed fetch #{shop.key}: skipped #{skipped} invalid products")
 
-    offers |> Enum.reverse() |> Enum.uniq_by(& &1.shop_product_id)
+    offers
+    |> Enum.reverse()
+    |> Enum.reject(&excluded_title?(shop, &1.title))
+    |> Enum.uniq_by(& &1.shop_product_id)
+  end
+
+  defp excluded_title?(%Shop{excluded_title_phrases: nil}, _title), do: false
+
+  defp excluded_title?(%Shop{excluded_title_phrases: phrases}, title) do
+    text = " " <> Matcher.normalize(title) <> " "
+    Enum.any?(phrases, &String.contains?(text, " #{&1} "))
   end
 
   @doc """

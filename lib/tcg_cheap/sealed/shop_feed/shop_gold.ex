@@ -21,7 +21,10 @@ defmodule TcgCheap.Sealed.ShopFeed.ShopGold do
   a promotion); a product priced "Zapytaj o cenę" is ignored. It is in stock
   when its box has an "add to cart" button; a box without one (the listing's
   `ProduktBezZakupu`) or marked "Produkt będzie dostępny od dnia" (a release
-  date) is not. Shops whose listing template has no purchase buttons are not
+  date) is not. A product icon on the box that names a pre-order ("PREORDER",
+  "Przedsprzedaż", read like a title by `TcgCheap.Sealed.Matcher.preorder_title?/1`)
+  makes a purchasable product a pre-order offer (`preorder`), not in stock.
+  Shops whose listing template has no purchase buttons are not
   supported: their "Dostępność" label does not follow what a buyer can order.
   The image is the uploaded original, which shopGold keeps beside the
   listing's thumbnail (`images/…/<name>` for `images/…/mini/250px_<name>`).
@@ -31,7 +34,7 @@ defmodule TcgCheap.Sealed.ShopFeed.ShopGold do
 
   @behaviour TcgCheap.Sealed.ShopFeed
 
-  alias TcgCheap.Sealed.{Shop, ShopFeed}
+  alias TcgCheap.Sealed.{Matcher, Shop, ShopFeed}
 
   alias TcgCheap.Sealed.ShopFeed.HtmlListing
 
@@ -132,6 +135,7 @@ defmodule TcgCheap.Sealed.ShopFeed.ShopGold do
         title: title,
         price: price,
         in_stock: in_stock(box),
+        preorder: preorder_icon?(box),
         # Lazy-loading themes keep the image in data-src-original.
         image:
           HtmlListing.attr(box, ".Foto img", "data-src-original") ||
@@ -170,6 +174,13 @@ defmodule TcgCheap.Sealed.ShopFeed.ShopGold do
     end
   end
 
+  # The badges over the photo ("Nowość", "PREORDER", ...).
+  defp preorder_icon?(box) do
+    box
+    |> Floki.find(".IkonkiProduktu .Ikona")
+    |> Enum.any?(&Matcher.preorder_title?(HtmlListing.text(&1) || ""))
+  end
+
   defp normalize(shop, product) do
     with {:ok, title} <- ShopFeed.title(product.title),
          true <- ShopFeed.sealed_pokemon?(title, product.category) || :ignore,
@@ -186,7 +197,8 @@ defmodule TcgCheap.Sealed.ShopFeed.ShopGold do
            image_url: image_url(shop, product.image),
            ean: nil,
            price: price,
-           in_stock: in_stock
+           in_stock: in_stock and not product.preorder,
+           preorder: in_stock and product.preorder
          }
        ]}
     else

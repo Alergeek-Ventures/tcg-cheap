@@ -1090,6 +1090,7 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       host: "rgfk.pl",
       source: PrestaShop,
       listing_paths: ["/k/51874/pokemon-tcg"],
+      excluded_title_phrases: ["outlet"],
       max_pages: 12,
       shipping_from: Decimal.new("10"),
       free_shipping_from: Decimal.new("200"),
