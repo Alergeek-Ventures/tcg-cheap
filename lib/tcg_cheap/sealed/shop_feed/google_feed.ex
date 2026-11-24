@@ -16,13 +16,16 @@ defmodule TcgCheap.Sealed.ShopFeed.GoogleFeed do
   "preorder" and "backorder" are not; "preorder" is a pre-order (`preorder`).
   Shoper exports pre-orders as "in stock" too, with a `g:max_handling_time`
   of 0: their shipping time ("PREORDER", "Planowana premiera: …") names no
-  days, while stock ships in one or more, so such a product is a pre-order. Links and images must be on the shop's
+  days, while stock ships in one or more, so such a product is a pre-order.
+  An "in stock" product whose `g:product_type` names a pre-order (Shoper
+  shops file them under "Przedsprzedaże", read like a title by
+  `TcgCheap.Sealed.Matcher.preorder_title?/1`) is a pre-order too. Links and images must be on the shop's
   host; EANs come from `g:gtin`. See `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
   @behaviour TcgCheap.Sealed.ShopFeed
 
-  alias TcgCheap.Sealed.{Ean, Shop, ShopFeed}
+  alias TcgCheap.Sealed.{Ean, Matcher, Shop, ShopFeed}
 
   alias TcgCheap.Sealed.ShopFeed.XmlRecords
 
@@ -98,7 +101,8 @@ defmodule TcgCheap.Sealed.ShopFeed.GoogleFeed do
          {:ok, availability} <-
            availability(
              text.("g:availability"),
-             XmlRecords.text(entry, ["g:shipping", "g:max_handling_time"])
+             XmlRecords.text(entry, ["g:shipping", "g:max_handling_time"]),
+             category
            ) do
       {:ok,
        [
@@ -149,17 +153,20 @@ defmodule TcgCheap.Sealed.ShopFeed.GoogleFeed do
   end
 
   # A Shoper pre-order: "in stock" with no days to ship.
-  defp availability(value, "0") when value in ["in stock", "in_stock"],
+  defp availability(value, "0", _category) when value in ["in stock", "in_stock"],
     do: {:ok, %{in_stock: false, preorder: true}}
 
-  defp availability(value, _handling_time) when value in ["in stock", "in_stock"],
-    do: {:ok, %{in_stock: true, preorder: false}}
+  defp availability(value, _handling_time, category) when value in ["in stock", "in_stock"] do
+    preorder? = is_binary(category) and Matcher.preorder_title?(category)
+    {:ok, %{in_stock: not preorder?, preorder: preorder?}}
+  end
 
-  defp availability("preorder", _handling_time), do: {:ok, %{in_stock: false, preorder: true}}
+  defp availability("preorder", _handling_time, _category),
+    do: {:ok, %{in_stock: false, preorder: true}}
 
-  defp availability(value, _handling_time)
+  defp availability(value, _handling_time, _category)
        when value in ["out of stock", "out_of_stock", "backorder"],
        do: {:ok, %{in_stock: false, preorder: false}}
 
-  defp availability(_value, _handling_time), do: :error
+  defp availability(_value, _handling_time, _category), do: :error
 end
