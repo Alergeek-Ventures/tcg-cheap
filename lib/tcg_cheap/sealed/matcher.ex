@@ -464,10 +464,10 @@ defmodule TcgCheap.Sealed.Matcher do
     products = Enum.filter(products, &(Map.get(&1, :edition) == edition))
     ids = MapSet.new(products, & &1.id)
     eans = Map.filter(eans, fn {_ean, id} -> MapSet.member?(ids, id) end)
-    build(products, eans, MapSet.new(List.wrap(Map.get(@edition_words, edition))))
+    build(products, eans, List.wrap(Map.get(@edition_words, edition)))
   end
 
-  def index(products, eans, nil), do: build(products, eans, MapSet.new())
+  def index(products, eans, nil), do: build(products, eans, [])
 
   defp build(products, eans, shop_stated) do
     entries =
@@ -480,7 +480,8 @@ defmodule TcgCheap.Sealed.Matcher do
             id: product.id,
             tokens: tokens,
             size: MapSet.size(tokens),
-            omissible: MapSet.union(set_ex(product, name_tokens), shop_stated),
+            omissible:
+              Enum.reduce(shop_stated, set_ex(product, name_tokens), &MapSet.put(&2, &1)),
             meets: meets(product, name_tokens, single_blister?(name_tokens), sch != []),
             sch?: sch != [],
             eu_version?: Regex.match?(~r/\bEU Version\b/i, product.name),
