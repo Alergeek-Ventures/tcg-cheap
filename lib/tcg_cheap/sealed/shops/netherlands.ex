@@ -547,6 +547,71 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       shipping_from: Decimal.new("5.95"),
       free_shipping_from: nil,
       pickup_city: nil
+    },
+    # The four shops below are read through their Store API categories
+    # (2026-11-24); each shop's page states a free-delivery threshold and no
+    # price under it (it appears in the cart), so that price stays nil.
+    # https://davidptcg.nl/verzending/: free from 250 € in the Netherlands.
+    %Shop{
+      key: "davidptcg",
+      name: "DavidPTCG",
+      host: "davidptcg.nl",
+      source: WooCommerce,
+      category: "19,23,24,63",
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 4,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("250"),
+      pickup_city: nil
+    },
+    # https://packemall.nl/algemene-voorwaarden/: free from 250 €.
+    %Shop{
+      key: "packemall",
+      name: "PackEmAll",
+      host: "packemall.nl",
+      source: WooCommerce,
+      # Its sealed categories, Chinese sets included.
+      category: "304,381",
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 4,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("250"),
+      pickup_city: nil
+    },
+    # https://diddodeals.nl/verzending/: free from 500 €.
+    %Shop{
+      key: "diddodeals",
+      name: "DiddoDeals",
+      host: "diddodeals.nl",
+      source: WooCommerce,
+      category: "22,99,23,26,49,21,24,95,89",
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 3,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("500"),
+      pickup_city: nil
+    },
+    # https://tcgexperts.nl/algemene-voorwaarden/: free from 175 € to the
+    # Netherlands and Belgium. Its bundles of loose cards are not read.
+    %Shop{
+      key: "tcgexperts",
+      name: "TCG Experts",
+      host: "www.tcgexperts.nl",
+      source: WooCommerce,
+      category: "4192,4189,4202,4195,4196,4212,4211",
+      product_path: @product,
+      currency: "EUR",
+      country: "NL",
+      max_pages: 3,
+      shipping_from: nil,
+      free_shipping_from: Decimal.new("175"),
+      pickup_city: nil
     }
   ]
 

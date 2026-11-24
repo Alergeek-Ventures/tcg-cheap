@@ -14,7 +14,7 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
   """
 
   alias TcgCheap.Sealed.Shop
-  alias TcgCheap.Sealed.ShopFeed.{BangerpackSe, Chasedex, GoogleFeed, Shopify}
+  alias TcgCheap.Sealed.ShopFeed.{BangerpackSe, Chasedex, GoogleFeed, Shopify, WooCommerce}
 
   @shops [
     # Bangerpack (White Tree AB, Helsingborg) runs two shops. bangerpack.com
@@ -264,6 +264,24 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       # 6 pages in November 2026.
       max_pages: 8,
       shipping_from: Decimal.new("89"),
+      free_shipping_from: Decimal.new("3000"),
+      pickup_city: nil
+    },
+    # Its Pokémon category (WooCommerce Store API, allowed in its robots.txt,
+    # checked 2026-11-24); the title decides what is sealed. Delivery:
+    # https://theswedishfish.se/shipping/ (2026-11-24), a flat 99 kr by
+    # PostNord, free from 3 000 kr.
+    %Shop{
+      key: "theswedishfish",
+      name: "The Swedish Fish",
+      host: "theswedishfish.se",
+      source: WooCommerce,
+      category: "83",
+      product_path: ~r|\A/product/[a-z0-9]+(?:-[a-z0-9]+)*/\z|,
+      currency: "SEK",
+      country: "SE",
+      max_pages: 3,
+      shipping_from: Decimal.new("99"),
       free_shipping_from: Decimal.new("3000"),
       pickup_city: nil
     }
