@@ -23,11 +23,13 @@ defmodule TcgCheap.Sealed.ShopFeed.PrestaShop do
   `TcgCheap.Sealed.ShopFeed.HtmlListing.read_singles/2` for their page limit); every
   product there is a single, priced with the singles minimum, whose category
   is its default category (`category_name`, usually its set). Its price is the
-  current price in złoty. It is in stock when PrestaShop offers it for adding
+  current price (`price_amount`) in the shop's `currency`: the listing's price
+  text must carry that currency's sign, or the product fails. It is in stock when PrestaShop offers it for adding
   to the cart (`add_to_cart_url`, which PrestaShop leaves out of unavailable
   products) and neither its listing tile nor its default category (`category_name`;
   RGFK files pre-orders under "Przedsprzedaż") names a pre-order
-  ("Przedsprzedaż", "Zapowiedź", "Premiera", …): the shops' faceted stock counts ("W magazynie") equal this
+  ("Przedsprzedaż", "Zapowiedź", "Premiera", or a pre-order word of
+  `TcgCheap.Sealed.Matcher.preorder_title?/1` such as "Preorder", "Pré-venda"): the shops' faceted stock counts ("W magazynie") equal this
   rule on the shops that show them. A pre-order offered for adding to the
   cart is a pre-order offer (`preorder`). A shop that lets customers buy an item
   that is out of stock cannot be told apart from stock by the listing, so it
@@ -46,9 +48,11 @@ defmodule TcgCheap.Sealed.ShopFeed.PrestaShop do
   @preorder ~r/\b(?:przedsprzedaz|przedpremier|zapowiedz|preorder|pre order)/
   @premiere ~r/\bpremier\w*(?: (\d{1,2}) (\d{1,2}|[a-z]{3}) (\d{4}))?/
   @months ~w(sty lut mar kwi maj cze lip sie wrz paz lis gru)
-  # "1 799,95 zł", with a no-break space for the thousands and before "zł".
-  @price ~r/\A([0-9][0-9\s\x{a0}]*),([0-9]{2})[\s\x{a0}]zł\z/u
-  @non_digit ~r/[^0-9]/
+  # What the listing's price text holds besides the number ("1 799,95 zł",
+  # "12,95 €", "€ 12,95", "1 299,00 kr"): the shop's currency sign. The amount
+  # itself is read from the numeric `price_amount`.
+  @not_sign ~r/[0-9\s\x{a0}.,]/u
+  @currency_signs %{"PLN" => "zł", "EUR" => "€", "SEK" => "kr"}
 
   @impl true
   def image_hosts(%Shop{images: false}), do: []
@@ -223,7 +227,7 @@ defmodule TcgCheap.Sealed.ShopFeed.PrestaShop do
   defp offer(shop, %{id: id, product: product, tile: tile}, title, kind) do
     with {:ok, id} <- ShopFeed.product_id(id),
          {:ok, url} <- product_url(shop, product["url"]),
-         {:ok, price} <- price(product["price"], kind) do
+         {:ok, price} <- price(product, shop.currency, kind) do
       {:ok,
        %{
          shop_product_id: id,
@@ -251,17 +255,20 @@ defmodule TcgCheap.Sealed.ShopFeed.PrestaShop do
          else: (_ -> :error)
   end
 
-  defp price(text, kind) when is_binary(text) do
-    case Regex.run(@price, text) do
-      [_text, whole, fraction] ->
-        ShopFeed.decimal_price(String.replace(whole, @non_digit, "") <> "." <> fraction, kind)
-
-      nil ->
-        :error
+  # A price shown in another currency than the shop's is no price: it fails
+  # the product instead of being read as the shop's currency.
+  defp price(%{"price" => text, "price_amount" => amount}, currency, kind)
+       when is_binary(text) and is_number(amount) do
+    case {Map.fetch(@currency_signs, currency), Regex.replace(@not_sign, text, "")} do
+      {{:ok, sign}, sign} -> ShopFeed.decimal_price(cents_text(amount), kind)
+      _other -> :error
     end
   end
 
-  defp price(_text, _kind), do: :error
+  defp price(_product, _currency, _kind), do: :error
+
+  # "17.99": the amount to two decimals, as the listing text wrote it.
+  defp cents_text(amount), do: :erlang.float_to_binary(amount * 1.0, decimals: 2)
 
   defp image_url(shop, %{} = cover) do
     url = get_in(cover, ["large", "url"]) || get_in(cover, ["medium", "url"])
@@ -286,7 +293,7 @@ defmodule TcgCheap.Sealed.ShopFeed.PrestaShop do
     title = Matcher.normalize(title)
     labels = if title == "", do: normalized, else: String.replace(normalized, title, " ")
 
-    Regex.match?(@preorder, labels) or
+    Regex.match?(@preorder, labels) or Matcher.preorder_title?(labels) or
       Enum.any?(Regex.scan(@premiere, labels), &(not released?(&1)))
   end
 

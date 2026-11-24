@@ -6,7 +6,7 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
   """
 
   alias TcgCheap.Sealed.Shop
-  alias TcgCheap.Sealed.ShopFeed.{Jumpseller, Shopify, WooCommerce}
+  alias TcgCheap.Sealed.ShopFeed.{Jumpseller, PrestaShop, Shopify, WooCommerce}
 
   @product ~r/\A\/produto\/[a-z0-9]+(?:-[a-z0-9]+)*\/\z/
 
@@ -105,6 +105,33 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       max_pages: 5,
       shipping_from: nil,
       free_shipping_from: Decimal.new("150"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "ptmerch",
+      name: "PTMERCH",
+      host: "ptmerch.com",
+      source: PrestaShop,
+      # The Pokémon categories by kind of product, and its pre-orders; the
+      # parent category "Pokémon" lists nothing itself.
+      listing_paths: [
+        "/pt/3628-pokemon-preorder",
+        "/pt/3398-tins-pokemon-",
+        "/pt/3399-box-sets-pokemon-",
+        "/pt/3400-decks-pokemon-",
+        "/pt/3905-blisters-pokemon-",
+        "/pt/3906-elite-trainer-boxes-pokemon",
+        "/pt/3907-booster-boxes-pokemon",
+        "/pt/3908-boosters-pokemon",
+        "/pt/3806-special-edition-pokemon"
+      ],
+      currency: "EUR",
+      country: "PT",
+      max_pages: 3,
+      # Its terms (2026-11-24): CTT and NACEX, a price by weight shown only at
+      # checkout.
+      shipping_from: nil,
+      free_shipping_from: nil,
       pickup_city: nil
     },
     %Shop{
