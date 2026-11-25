@@ -190,7 +190,7 @@ defmodule TcgCheap.Sealed.Shops do
   @doc "The shops reading singles whose offers count in the market (see `singles?/1`)."
   @spec singles_shops(Market.t()) :: [Shop.t()]
   def singles_shops(%Market{} = market) do
-    Enum.filter(@shops, fn shop ->
+    Enum.filter(all(), fn shop ->
       (shop.singles_categories != nil or shop.singles_markers != nil) and
         counted?(Market.terms({:ok, shop}, market))
     end)
@@ -204,7 +204,7 @@ defmodule TcgCheap.Sealed.Shops do
   """
   @spec own_singles?(Market.t()) :: boolean()
   def own_singles?(%Market{} = market) do
-    Enum.any?(@shops, fn shop ->
+    Enum.any?(all(), fn shop ->
       (shop.singles_categories != nil or shop.singles_markers != nil) and
         Market.terms({:ok, shop}, market) == :domestic
     end)
@@ -219,18 +219,37 @@ defmodule TcgCheap.Sealed.Shops do
   def pickup?(country), do: country in @pickup_countries
 
   @spec all() :: [Shop.t()]
-  def all, do: @shops
+  def all, do: shops().all
 
   @spec keys() :: [String.t()]
   def keys, do: @keys
 
   @doc "Every host a shop's product images may be shown from."
   @spec image_hosts() :: [String.t()]
-  def image_hosts, do: @shops |> Enum.flat_map(&ShopFeed.image_hosts/1) |> Enum.uniq()
+  def image_hosts, do: all() |> Enum.flat_map(&ShopFeed.image_hosts/1) |> Enum.uniq()
 
   @spec fetch(term()) :: {:ok, Shop.t()} | :error
-  def fetch(key) when key in @keys, do: {:ok, Enum.find(@shops, &(&1.key == key))}
-  def fetch(_key), do: :error
+  def fetch(key), do: Map.fetch(shops().by_key, key)
+
+  # A regex in a compiled literal is imported again (`:re.import/1`) each time
+  # a function evaluates it, and some shops read their feeds with one: a
+  # function returning `@shops` took half a millisecond, which the card prices
+  # paid per offer. The list is evaluated once and kept in `:persistent_term`,
+  # keyed by this module's version so that a recompiled module reads its own.
+  defp shops do
+    key = {__MODULE__, __MODULE__.module_info(:md5)}
+
+    case :persistent_term.get(key, nil) do
+      nil ->
+        all = @shops
+        shops = %{all: all, by_key: Map.new(all, &{&1.key, &1})}
+        :persistent_term.put(key, shops)
+        shops
+
+      shops ->
+        shops
+    end
+  end
 
   @doc "The edition the shop sells alone (`Shop`), nil for other shops and ones no longer configured."
   @spec edition(String.t()) :: atom() | nil
