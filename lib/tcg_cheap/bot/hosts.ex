@@ -32,6 +32,14 @@ defmodule TcgCheap.Bot.Hosts do
   @spec put_robots_retry_at(String.t(), integer()) :: :ok
   def put_robots_retry_at(host, at), do: store({:robots_retry_at, host}, at)
 
+  @doc "The reason robots.txt of `host` could not be read and the time (ms) until which that stands, or nil."
+  @spec robots_unreadable(String.t()) :: {term(), integer()} | nil
+  def robots_unreadable(host), do: lookup({:robots_unreadable, host})
+
+  @spec put_robots_unreadable(String.t(), term(), integer()) :: :ok
+  def put_robots_unreadable(host, reason, until),
+    do: store({:robots_unreadable, host}, {reason, until})
+
   @doc "The system time (ms) before which `host` is not to be asked, or nil."
   @spec not_before(String.t()) :: integer() | nil
   def not_before(host), do: lookup({:not_before, host})
