@@ -495,6 +495,9 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       host: "braadscardshop.nl",
       source: WooCommerce,
       category: "82",
+      # Its bundle plugin: such a product has a disabled button and is bought
+      # only inside a bundle, yet the Store API calls it in stock.
+      bundle_only_text: "Alleen in bundels verkrijgbaar",
       product_path: @product,
       currency: "EUR",
       country: "NL",

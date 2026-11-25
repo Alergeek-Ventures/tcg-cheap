@@ -10,7 +10,8 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
   its title names a sealed product (`TcgCheap.Sealed.Matcher.sealed_title?/1`).
   A product whose own categories name a pre-order (name or slug, read like a
   title by `TcgCheap.Sealed.Matcher.preorder_title?/1`) is a pre-order offer
-  (`preorder`), not in stock.
+  (`preorder`), not in stock, and so is a product whose button text is the
+  shop's `bundle_only_text`.
   Every product of the shop's `singles_categories` (category ids, requested
   separately, in stock only, with the shop's `singles_attribute` term when it
   has one, subcategories included, at most 80 pages instead of `max_pages`)
@@ -37,7 +38,7 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
   # can be many times longer than its stock. The array form is the one the
   # Store API documents.
   @in_stock [{"stock_status[]", "instock"}]
-  @fields "id,name,permalink,prices,categories,images,sku,is_purchasable,is_in_stock,is_on_backorder"
+  @fields "id,name,permalink,prices,categories,images,sku,is_purchasable,is_in_stock,is_on_backorder,add_to_cart"
 
   @impl true
   def fetch(%Shop{} = shop, req_options) do
@@ -226,7 +227,7 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
          image_url: image_url(shop, product["images"]),
          ean: Ean.normalize(product["sku"]),
          price: price,
-         in_stock: in_stock?(product) and not preorder,
+         in_stock: in_stock?(shop, product) and not preorder,
          preorder: preorder
        }}
     end
@@ -309,8 +310,16 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
 
   defp price(_prices, _currency, _kind), do: :error
 
-  defp in_stock?(product) do
+  defp in_stock?(shop, product) do
     product["is_in_stock"] == true and product["is_purchasable"] == true and
-      product["is_on_backorder"] == false
+      product["is_on_backorder"] == false and not bundle_only?(shop, product)
   end
+
+  # A bundle plugin leaves such a product "in stock" and "purchasable" and only
+  # swaps its button text; no other field of the Store API tells it apart, and
+  # the text is in the shop's language.
+  defp bundle_only?(%Shop{bundle_only_text: nil}, _product), do: false
+
+  defp bundle_only?(%Shop{bundle_only_text: text}, product),
+    do: get_in(product, ["add_to_cart", "text"]) == text
 end
