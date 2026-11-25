@@ -20,7 +20,10 @@ defmodule TcgCheap.Sealed.FetchWorker do
   minutes later, plus up to 5 minutes of jitter so rate-limited shops do not
   return together; Oban's default backoff (seconds) would ask again while the
   shop still refuses us. The retry goes on from the responses already read.
-  Other failures keep the default backoff.
+  A robots.txt that cannot be read is remembered for five minutes
+  (`TcgCheap.Bot`), so the next attempt comes after those five minutes (plus up
+  to 30 s of jitter) and asks the host afresh; the other failures keep the
+  default backoff.
 
   The bot's policy (`TcgCheap.Bot`) ends a fetch at once, with no further
   attempt that night: a path the shop's robots.txt disallows, a robots.txt

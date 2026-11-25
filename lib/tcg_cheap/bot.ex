@@ -17,8 +17,12 @@ defmodule TcgCheap.Bot do
     timeout and network failures mean it cannot be read, and then the rules
     fetched before are used for up to 24 hours after they were fetched (a
     refresh is tried again after the `Retry-After`, or an hour), and without
-    them the host is not read, and for a minute every request to it gets that
-    same `{:robots_unreadable, reason}` without a new fetch. A challenge response in place of robots.txt
+    them the host is not read, and for five minutes every request to it gets
+    that same `{:robots_unreadable, reason}` without a new fetch, so a dead host
+    costs at most 12 robots.txt connections an hour from all callers together
+    (3600 s / 300 s). A worker's next attempt waits those five minutes out
+    (`rate_limit_backoff/1`), so each of its three attempts asks afresh. A
+    challenge response in place of robots.txt
     (`cf-mitigated: challenge`, a Cloudflare challenge page) is a refusal:
     nothing is read.
   - Pace: every request to a host takes a turn (`TcgCheap.Bot.Hosts`), the
@@ -53,10 +57,11 @@ defmodule TcgCheap.Bot do
   @fresh_ms :timer.hours(1)
   @valid_ms :timer.hours(24)
   # A robots.txt that cannot be read, with no earlier rules, is not fetched again
-  # for a minute: every request to the host in between gets the same failure at
-  # once. Shorter than the worker's backoff before its last attempt (about two
-  # minutes after the first by Oban's default), so that attempt asks afresh.
-  @unreadable_ms :timer.minutes(1)
+  # for five minutes: every request to the host in between gets the same failure
+  # at once, at most 12 fetches an hour however many callers there are. Workers
+  # wait it out between attempts (`rate_limit_backoff/1`), which is why it is
+  # short enough for three attempts to fit well within a night's window.
+  @unreadable_ms :timer.minutes(5)
   @rate_limit_delay_ms 10_000
   @default_max_retry_after_ms 10_000
   # What a request waits for its turn in place: within a job's timeout, and
@@ -426,8 +431,10 @@ defmodule TcgCheap.Bot do
 
   @doc """
   The seconds before the attempt that follows a failure that rate-limited the
-  host (a 429, with or without a `Retry-After`), for a worker's `backoff/1`;
-  nil for any other failure. See `rate_limit_wait/2`.
+  host (a 429, with or without a `Retry-After`) or left its robots.txt
+  unreadable (waited out until the memory of that has expired, plus up to 30 s
+  of jitter), for a worker's `backoff/1`; nil for any other failure. See
+  `rate_limit_wait/2`.
   """
   @spec rate_limit_backoff(Oban.Job.t()) :: pos_integer() | nil
   def rate_limit_backoff(%Oban.Job{attempt: attempt, unsaved_error: %{reason: reason}}) do
@@ -437,6 +444,9 @@ defmodule TcgCheap.Bot do
 
       %Oban.PerformError{reason: {:error, {:retry_after, seconds}}} ->
         rate_limit_wait(attempt, seconds)
+
+      %Oban.PerformError{reason: {:error, {:robots_unreadable, _detail}}} ->
+        div(@unreadable_ms, 1000) + 1 + :rand.uniform(30)
 
       _other ->
         nil

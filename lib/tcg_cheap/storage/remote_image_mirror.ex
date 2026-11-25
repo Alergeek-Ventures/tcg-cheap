@@ -123,6 +123,7 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
   # A run that mirrors nothing while this many images fail on their first
   # attempt looks like a source outage rather than missing scans.
   @outage_first_failures 10
+  @unreadable_reason "robots.txt unreadable"
 
   @doc "Registers every known source, looking them up `batch` at a time."
   @spec register_all(pos_integer()) :: :ok
@@ -239,8 +240,13 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
       "Remote images: #{length(mirrored)} mirrored, #{length(failures)} failed, " <>
         "#{first_failures} on their first attempt"
 
+    unreadable? =
+      Enum.any?(failures, fn {:failed, reason, _first?} -> unreadable_reason?(reason) end)
+
     level =
-      if mirrored == [] and first_failures >= @outage_first_failures, do: :warning, else: :info
+      if unreadable? or (mirrored == [] and first_failures >= @outage_first_failures),
+        do: :warning,
+        else: :info
 
     Logger.log(level, if(reasons == "", do: summary, else: "#{summary} (#{reasons})"))
   end
@@ -335,7 +341,14 @@ defmodule TcgCheap.Storage.RemoteImageMirror do
     end
   end
 
+  # A host whose robots.txt cannot be read fails all its images alike: counted
+  # per host in the run's summary (a warning), not logged per image.
+  defp log_failure({:error, {:robots_unreadable, _detail}}, image),
+    do: "#{@unreadable_reason} #{URI.parse(image.source_url).host}"
+
   defp log_failure(error, image), do: log_unexpected_failure(error, image)
+
+  defp unreadable_reason?(reason), do: String.starts_with?(reason, @unreadable_reason)
 
   defp log_unexpected_failure(error, image) do
     Logger.warning("Remote image mirror failed: #{inspect(failure_reason(error))} (#{image.id})")
