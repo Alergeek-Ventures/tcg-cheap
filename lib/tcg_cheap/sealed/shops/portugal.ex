@@ -135,6 +135,22 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
       pickup_city: nil
     },
     %Shop{
+      key: "pressstart",
+      name: "Press Start",
+      host: "www.pressstart.pt",
+      source: PrestaShop,
+      listing_paths: ["/pt/pokemon-tcg/"],
+      currency: "EUR",
+      country: "PT",
+      # 6 listing pages in November 2026.
+      max_pages: 8,
+      # https://www.pressstart.pt/pt/content/entregas.html (2026-11-25): €3 below
+      # €20, free from €20 for Portugal and Spain.
+      shipping_from: Decimal.new("3"),
+      free_shipping_from: Decimal.new("20"),
+      pickup_city: nil
+    },
+    %Shop{
       key: "duocollectibles",
       name: "Duo Collectibles",
       host: "duocollectibles.com",
