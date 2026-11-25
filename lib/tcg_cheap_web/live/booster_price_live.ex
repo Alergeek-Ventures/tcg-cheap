@@ -25,7 +25,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
 
   alias TcgCheap.Cards
   alias TcgCheap.Sealed.BoosterGuide
-  alias TcgCheapWeb.{Format, Paths, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Format, Paths, SEO, SiteSearch, VisitorLocation}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -92,6 +92,7 @@ defmodule TcgCheapWeb.BoosterPriceLive do
           />
         </.site_header>
         <main id="booster-prices" class="guide-main expensive-cards">
+          <SiteSearch.search_bar form={@site_search} />
           <article class="expensive-article">
             <header class="expensive-intro expensive-column">
               <.link

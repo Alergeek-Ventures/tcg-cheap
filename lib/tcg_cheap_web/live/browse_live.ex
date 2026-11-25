@@ -35,7 +35,16 @@ defmodule TcgCheapWeb.BrowseLive do
     SetPage
   }
 
-  alias TcgCheapWeb.{Analytics, Format, Paths, Region, RegionText, SEO, VisitorLocation}
+  alias TcgCheapWeb.{
+    Analytics,
+    Format,
+    Paths,
+    Region,
+    RegionText,
+    SEO,
+    SiteSearch,
+    VisitorLocation
+  }
 
   @max_query_length 100
   # The most rows a returning visitor gets back at once: ten pages. The count
@@ -525,7 +534,13 @@ defmodule TcgCheapWeb.BrowseLive do
             <% true -> %>
               <.site_intro filters={@filters} />
           <% end %>
-          <section class="guide-search" aria-labelledby="guide-search-title">
+          <section
+            id="guide-search"
+            class="guide-search"
+            aria-labelledby="guide-search-title"
+            phx-hook="Stuck"
+            phx-mounted={JS.ignore_attributes(["data-stuck"])}
+          >
             <h2 id="guide-search-title" class="sr-only">
               {if(@filters.mode == :cards,
                 do: gettext("Szukaj karty"),
@@ -574,6 +589,11 @@ defmodule TcgCheapWeb.BrowseLive do
               />
             </.form>
             <nav id="guide-mode" class="guide-mode" aria-label={gettext("Szukaj w katalogu")}>
+              <%!-- The home page's search across both, as its search bar's first choice. --%>
+              <.link
+                id="mode-all"
+                navigate={Paths.home(SiteSearch.query_params(@filters.query))}
+              >{gettext("Wszystko")}</.link>
               <%= if @filters.mode == :products do %>
                 <.kind_menu filters={@filters} facets={@facets} />
               <% else %>

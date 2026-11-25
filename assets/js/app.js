@@ -5,6 +5,7 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/tcg_cheap"
 import {Hooks as BackpexHooks, backpexParams} from "backpex"
 import {createLiveToastHook} from "live_toast"
+import Stuck from "./hooks/stuck"
 import VisitorLocation from "./hooks/visitor_location"
 import initAnalytics from "./analytics"
 import initPreferences from "./preferences"
@@ -109,7 +110,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
   // No visitor location here: these params also go into the socket URL, which
   // proxies log. The VisitorLocation hook sends it as an event instead.
   params: () => ({...connectParams(), _guide_list: history.state?.guideList}),
-  hooks: {...colocatedHooks, VisitorLocation, LiveToast: createLiveToastHook(), ...BackpexHooks},
+  hooks: {...colocatedHooks, Stuck, VisitorLocation, LiveToast: createLiveToastHook(), ...BackpexHooks},
   dom: {
     onNodeAdded(el) {
       const saved = history.state?.guideList

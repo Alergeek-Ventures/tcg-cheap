@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
   import TcgCheapWeb.VerdictComponents
 
   alias TcgCheap.Cards
-  alias TcgCheapWeb.{CardRecords, Format, Paths, SEO, VisitorLocation}
+  alias TcgCheapWeb.{CardRecords, Format, Paths, SEO, SiteSearch, VisitorLocation}
 
   @page 30
   # The movers chart's fixed scale: a change past it draws a full bar and
@@ -153,6 +153,7 @@ defmodule TcgCheapWeb.ExpensiveCardsLive do
           />
         </.site_header>
         <main id="expensive-cards" class="guide-main expensive-cards">
+          <SiteSearch.search_bar form={@site_search} />
           <article class="expensive-article">
             <header class="expensive-intro expensive-column">
               <.link id="expensive-cards-back" navigate={Paths.cards()} class="guide-back">

@@ -17,7 +17,7 @@ defmodule TcgCheapWeb.CardValueLive do
 
   alias TcgCheap.Cards
   alias TcgCheap.Sealed.Market
-  alias TcgCheapWeb.{Format, Paths, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Format, Paths, SEO, SiteSearch, VisitorLocation}
 
   # The guide answers with the first few cards; the card list has the rest.
   @shown 5
@@ -94,6 +94,7 @@ defmodule TcgCheapWeb.CardValueLive do
           />
         </.site_header>
         <main id="card-value" class="guide-main expensive-cards">
+          <SiteSearch.search_bar form={@site_search} />
           <article class="expensive-article">
             <header class="expensive-intro expensive-column">
               <.link id="card-value-back" navigate={Paths.cards()} class="guide-back">

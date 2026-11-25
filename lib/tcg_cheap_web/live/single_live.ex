@@ -14,7 +14,16 @@ defmodule TcgCheapWeb.SingleLive do
   alias TcgCheap.Cards
   alias TcgCheap.Sealed.{Market, Matcher, PriceGuide, SetPage}
 
-  alias TcgCheapWeb.{Analytics, Format, Paths, Region, RegionText, SEO, VisitorLocation}
+  alias TcgCheapWeb.{
+    Analytics,
+    Format,
+    Paths,
+    Region,
+    RegionText,
+    SEO,
+    SiteSearch,
+    VisitorLocation
+  }
 
   defmodule NotFound do
     @moduledoc false
@@ -240,6 +249,7 @@ defmodule TcgCheapWeb.SingleLive do
           class="guide-main product-page single-page"
           data-guide-url={@current_path}
         >
+          <SiteSearch.search_bar form={@site_search} />
           <.link
             id="single-back"
             data-guide-back
