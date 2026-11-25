@@ -57,6 +57,7 @@ defmodule TcgCheap.Sealed.Matcher do
   their display's EAN and one Pokémon's tin under its sibling's.
   """
 
+  alias TcgCheap.CompiledRegex
   alias TcgCheap.Sealed.Editions
 
   @stopwords ~w(pokemon tcg ptcg the and of s a z na i w edycja karty kart karta oryginal oryginalne
@@ -307,7 +308,11 @@ defmodule TcgCheap.Sealed.Matcher do
   # A count of two or more packs, as in "Booster Pack (36 boosterów)", "(36)",
   # "Booster 3 boostery" or "3-pack": a display, a lot or a blister, never a
   # single booster or 1-Pack Blister. A count of cards ("(10 kart)") is not one.
-  @packs ~r/\(\s*(?:[2-9]|\d{2,3})\s*(?:booster(?:ów|ow|y|s)?|paczek|paczki|packs?|szt\.?|sztuk)?\s*\)|(?<![\w.,])(?:[2-9]|\d{2,3})[\s\p{Pd}]*(?:booster(?:ów|ow|y|s)|paczek|paczki|packs?)(?!\w)/iu
+  defp packs_regex,
+    do:
+      CompiledRegex.get(fn ->
+        ~r/\(\s*(?:[2-9]|\d{2,3})\s*(?:booster(?:ów|ow|y|s)?|paczek|paczki|packs?|szt\.?|sztuk)?\s*\)|(?<![\w.,])(?:[2-9]|\d{2,3})[\s\p{Pd}]*(?:booster(?:ów|ow|y|s)|paczek|paczki|packs?)(?!\w)/iu
+      end)
 
   # Words naming a kind of sealed product, as in Cardmarket's sealed product
   # names. A title with none of them is a single card or an accessory.
@@ -319,7 +324,11 @@ defmodule TcgCheap.Sealed.Matcher do
   # Swedish "Förboka", "Förhandsbokning", "Förhandsbeställning", Hungarian
   # "Előrendelés", "Előrendelhető", Dutch "Voorbestellen", "Voorverkoop",
   # Czech "Předobjednávka"…).
-  @preorder ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|pre venda|pre reserva|prevenda|prereserva|forbok|forhandsbok|forhandsbest|forbest|elorendel|voorbestel|voorverkoop|predobjednav|prednarocil)/
+  defp preorder_regex,
+    do:
+      CompiledRegex.get(fn ->
+        ~r/(?:\A| )(?:przedsprzedaz|przedpremier|preorder|pre order|pre venda|pre reserva|prevenda|prereserva|forbok|forhandsbok|forhandsbest|forbest|elorendel|voorbestel|voorverkoop|predobjednav|prednarocil)/
+      end)
 
   @exclusions [
     "zestaw",
@@ -402,29 +411,37 @@ defmodule TcgCheap.Sealed.Matcher do
   # "Apróbb szépséghibák", "sérült", Slovak "Malé Imperfekcie", Dutch "beschadigde box",
   # "gebruikt", "geopend", Portuguese "Embalagem danificada", Czech "poškozený",
   # "rozbalený", "použitý"…).
-  @damaged ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult|imperfekci|beschadigd|danificad|gebruikt|geopend|poskozen|rozbalen|otevren|pouziv|prazdn|nahodn|poskodovan|odprt|rabljen)/
+  defp damaged_regex,
+    do:
+      CompiledRegex.get(fn ->
+        ~r/(?:\A| )(?:uszkodz|naruszon|otwart|otwier|uzywan|forpackningsskad|kartongskad|skadad|skadat|oppnad|oppnat|begagnad|szakadt|esztetikai hib|szepseghib|serult|imperfekci|beschadigd|danificad|gebruikt|geopend|poskozen|rozbalen|otevren|pouziv|prazdn|nahodn|poskodovan|odprt|rabljen)/
+      end)
 
   # Two or more pieces ("x3", "10x", "36 szt", "3 sztuki"); "1 szt" is still one item.
   # Swedish "st" counts pieces only where a title starts with it ("3st Pokemon
   # Lost Origin Boosters" is three boosters sold together): elsewhere shops
   # write it for a bundle's contents ("6 st boosters", "(36st)") and purchase
   # limits ("Max 2 st per kund").
-  @multiples ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuki|sztuk|szt|pcs))(?: |\z)|\A(?:[2-9]|[1-9]\d{1,2}) ?st /
+  defp multiples_regex,
+    do:
+      CompiledRegex.get(fn ->
+        ~r/(?:\A| )(?:x ?(?:[2-9]|[1-9]\d{1,2})|(?:[2-9]|[1-9]\d{1,2}) ?x|(?:[2-9]|[1-9]\d{1,2}) (?:sztuki|sztuk|szt|pcs))(?: |\z)|\A(?:[2-9]|[1-9]\d{1,2}) ?st /
+      end)
 
   # A shop's purchase limit in a title ("MAX 2 PER KUND", "Max 2 st per kund", Dutch "(Max 1)")
   # names no product.
-  @purchase_limit ~r/ max \d+ (?:st )?(?:per kund )?/
+  defp purchase_limit_regex, do: CompiledRegex.get(fn -> ~r/ max \d+ (?:st )?(?:per kund )?/ end)
 
   # Pack counts such as "(36)" or "(10 boosterów)" say nothing about identity
   # (but for 18, see `half_display/1`).
-  @pack_count ~r/\(\s*\d{1,3}\s*[[:alpha:]]*\s*\)/u
+  defp pack_count_regex, do: CompiledRegex.get(fn -> ~r/\(\s*\d{1,3}\s*[[:alpha:]]*\s*\)/u end)
   @collection_words MapSet.new(~w(box collection))
-  @usa ~r/\busa\b/i
-  @case_units ~r/\A\d{1,2}\z/
-  @digit_letter ~r/(\d)([a-z])/
-  @letter_digit ~r/([a-z])(\d)/
-  @diacritic ~r/\p{Mn}/u
-  @non_word ~r/[^a-z0-9]+/
+  defp usa_regex, do: CompiledRegex.get(fn -> ~r/\busa\b/i end)
+  defp case_units_regex, do: CompiledRegex.get(fn -> ~r/\A\d{1,2}\z/ end)
+  defp digit_letter_regex, do: CompiledRegex.get(fn -> ~r/(\d)([a-z])/ end)
+  defp letter_digit_regex, do: CompiledRegex.get(fn -> ~r/([a-z])(\d)/ end)
+  defp diacritic_regex, do: CompiledRegex.get(fn -> ~r/\p{Mn}/u end)
+  defp non_word_regex, do: CompiledRegex.get(fn -> ~r/[^a-z0-9]+/ end)
 
   defstruct entries: [],
             by_rare_token: %{},
@@ -484,7 +501,8 @@ defmodule TcgCheap.Sealed.Matcher do
               Enum.reduce(shop_stated, set_ex(product, name_tokens), &MapSet.put(&2, &1)),
             meets: meets(product, name_tokens, single_blister?(name_tokens), sch != []),
             sch?: sch != [],
-            eu_version?: Regex.match?(~r/\bEU Version\b/i, product.name),
+            eu_version?:
+              Regex.match?(CompiledRegex.get(fn -> ~r/\bEU Version\b/i end), product.name),
             code_tokens: MapSet.new(tokens(code)),
             set_tokens: MapSet.new(tokens(Map.get(product, :set_name) || "")),
             single?: Map.get(product, :kind) == :booster or single_blister?(name_tokens),
@@ -554,7 +572,7 @@ defmodule TcgCheap.Sealed.Matcher do
   def match(%{title: title} = offer, %__MODULE__{} = index) when is_binary(title) do
     case exclusion(normalize(title)) do
       nil ->
-        packs? = Regex.match?(@packs, title)
+        packs? = Regex.match?(packs_regex(), title)
         offer_tokens = offer_tokens(title, index.sets, packs?)
         ean_id = Map.get(index.eans, Map.get(offer, :ean) || "")
         by_title = best_by_title(title, offer_tokens, index, packs?)
@@ -602,7 +620,7 @@ defmodule TcgCheap.Sealed.Matcher do
 
   @doc ~s{Whether a title sells a pre-order ("Przedsprzedaż", "Preorder"…).}
   @spec preorder_title?(String.t()) :: boolean()
-  def preorder_title?(title), do: Regex.match?(@preorder, normalize(title))
+  def preorder_title?(title), do: Regex.match?(preorder_regex(), normalize(title))
 
   @doc "Whether a title is excluded outright (bundle of many, accessory…)."
   @spec excluded?(String.t()) :: boolean()
@@ -652,7 +670,7 @@ defmodule TcgCheap.Sealed.Matcher do
   """
   @spec explain(map(), t(), pos_integer()) :: map()
   def explain(%{title: title} = offer, %__MODULE__{} = index, limit \\ 5) when is_binary(title) do
-    packs? = Regex.match?(@packs, title)
+    packs? = Regex.match?(packs_regex(), title)
     offer_tokens = offer_tokens(title, index.sets, packs?)
     offer_set = MapSet.new(offer_tokens)
     qualifiers = MapSet.intersection(offer_set, @qualifiers)
@@ -741,7 +759,7 @@ defmodule TcgCheap.Sealed.Matcher do
   defp best_or_without_usa(title, offer_tokens, index, packs?) do
     case best(offer_tokens, index, packs?) do
       :unmatched ->
-        if Regex.match?(@usa, title),
+        if Regex.match?(usa_regex(), title),
           do: without_eu_version(best(offer_tokens -- ["us", "version"], index, packs?), index),
           else: :unmatched
 
@@ -885,7 +903,8 @@ defmodule TcgCheap.Sealed.Matcher do
   # Version 1" and "Version 2"), so a title must name it.
   defp variant_token?(token, entry) do
     token != "version" and not MapSet.member?(@qualifiers, token) and
-      not MapSet.member?(entry.set_tokens, token) and not String.match?(token, ~r/\A\d+\z/)
+      not MapSet.member?(entry.set_tokens, token) and
+      not String.match?(token, CompiledRegex.get(fn -> ~r/\A\d+\z/ end))
   end
 
   # A "USA" title never is a product named "(EU Version)", whose marker the
@@ -981,7 +1000,7 @@ defmodule TcgCheap.Sealed.Matcher do
   defp checklane_fits?(entry, offer_set, unexplained) do
     not MapSet.member?(offer_set, "checklane") or MapSet.member?(offer_set, "premium") or
       (entry.tokens |> MapSet.intersection(offer_set) |> Enum.any?(&variant_token?(&1, entry)) and
-         not Enum.any?(unexplained, &String.match?(&1, ~r/[a-z]/)))
+         not Enum.any?(unexplained, &String.match?(&1, CompiledRegex.get(fn -> ~r/[a-z]/ end))))
   end
 
   # Title tokens the product name does not account for. A qualifier the product
@@ -1054,7 +1073,8 @@ defmodule TcgCheap.Sealed.Matcher do
   defp collection_word?(product, name_tokens, "collection"),
     do:
       Map.get(product, :kind) == :collection and "box" in name_tokens and
-        "collection" not in name_tokens and not Regex.match?(~r/\b(?:EX|GX)\b/, product.name)
+        "collection" not in name_tokens and
+        not Regex.match?(CompiledRegex.get(fn -> ~r/\b(?:EX|GX)\b/ end), product.name)
 
   defp meets(product, name_tokens, single_blister?, sch?) do
     [
@@ -1073,7 +1093,7 @@ defmodule TcgCheap.Sealed.Matcher do
   defp offer_tokens(title, sets, packs?) do
     tokens =
       title
-      |> String.replace(@pack_count, &half_display/1)
+      |> String.replace(pack_count_regex(), &half_display/1)
       |> tokens()
       |> drop_series_base()
       |> strip_series(sets)
@@ -1094,16 +1114,20 @@ defmodule TcgCheap.Sealed.Matcher do
   # "Prismatic Evolutions & Terapagos UPC Bundle", "Prismatic Evolutions 12
   # Bundle": a connector (not the one of a series, "Scarlet & Violet") or a
   # count beside "Bundle" names something else than the Booster Bundle.
-  @series_connector ~r/\b(?:scarlet|sword|sun|diamond|black) and (?:violet|shield|moon|pearl|white)\b/
+  defp series_connector_regex,
+    do:
+      CompiledRegex.get(fn ->
+        ~r/\b(?:scarlet|sword|sun|diamond|black) and (?:violet|shield|moon|pearl|white)\b/
+      end)
 
   defp other_product_or_count?(tokens, title) do
-    words = title |> normalize() |> String.replace(@series_connector, " ")
+    words = title |> normalize() |> String.replace(series_connector_regex(), " ")
 
-    String.contains?(title, "+") or Regex.match?(~r/\band\b/, words) or
+    String.contains?(title, "+") or Regex.match?(CompiledRegex.get(fn -> ~r/\band\b/ end), words) or
       tokens
       |> Enum.chunk_every(2, 1, :discard)
       |> Enum.any?(fn [count, next] ->
-        next == "bundle" and String.match?(count, ~r/\A\d{1,2}\z/)
+        next == "bundle" and String.match?(count, CompiledRegex.get(fn -> ~r/\A\d{1,2}\z/ end))
       end)
   end
 
@@ -1131,7 +1155,10 @@ defmodule TcgCheap.Sealed.Matcher do
 
   defp half_phrase?(_previous, [next | _]) when next in ["booster", "display"], do: true
   defp half_phrase?("box", []), do: true
-  defp half_phrase?("box", [count | _]), do: String.match?(count, ~r/\A\d+\z/)
+
+  defp half_phrase?("box", [count | _]),
+    do: String.match?(count, CompiledRegex.get(fn -> ~r/\A\d+\z/ end))
+
   defp half_phrase?(_previous, _rest), do: false
 
   # A "Half Booster Box" without a pack count is Cardmarket's "Booster Box (18
@@ -1146,7 +1173,8 @@ defmodule TcgCheap.Sealed.Matcher do
   # A pack count says nothing about identity, but for 18: Cardmarket names a
   # half display "Booster Box (18 Boosters)", and a title counting 18 is one.
   defp half_display(count),
-    do: if(Regex.match?(~r/\A\(\s*18\D/, count), do: " 18 ", else: " ")
+    do:
+      if(Regex.match?(CompiledRegex.get(fn -> ~r/\A\(\s*18\D/ end), count), do: " 18 ", else: " ")
 
   # Shops call a single pack in a blister a "Checklane (Blister/Booster)",
   # Cardmarket a "1-Pack Blister", which meets "checklane" (`meets/2`). A
@@ -1195,14 +1223,14 @@ defmodule TcgCheap.Sealed.Matcher do
     tokens = tokens(name)
 
     if "case" in tokens,
-      do: Enum.reject(tokens, &String.match?(&1, @case_units)),
+      do: Enum.reject(tokens, &String.match?(&1, case_units_regex())),
       else: tokens
   end
 
   # German shops end a title with an edition label ("Stacking Tin - DE",
   # "Booster (DE)"). Only that upper-case ending counts: a lower-case "de" is a
   # Dutch or Portuguese word.
-  @terminal_german ~r/(?:\s[-–]\s*|\s\()DE\)?\s*\z/u
+  defp terminal_german_regex, do: CompiledRegex.get(fn -> ~r/(?:\s[-–]\s*|\s\()DE\)?\s*\z/u end)
 
   # A bracketed capital language code ("[FR]", "(IT)") marks an edition in
   # that language; bare or lower-case "it", "es", "pt" are ordinary words, so
@@ -1213,8 +1241,9 @@ defmodule TcgCheap.Sealed.Matcher do
   # The code may also stand as its own item of a bracketed list separated by
   # "/", "," or "-" ("(Sortido / ES)", "(ES, Sortido)"); a code inside a word or
   # a longer item ("(Sortido ES)") is not an item.
-  @bracket ~r/[\[(][^\[\]()]*[\])]/u
-  @bracket_item_separator ~r/(\s*[\/,–-]\s*)/u
+  defp bracket_regex, do: CompiledRegex.get(fn -> ~r/[\[(][^\[\]()]*[\])]/u end)
+  defp bracket_item_separator_regex, do: CompiledRegex.get(fn -> ~r/(\s*[\/,–-]\s*)/u end)
+
   @edition_codes %{
     "FR" => "french",
     "IT" => "italian",
@@ -1226,14 +1255,16 @@ defmodule TcgCheap.Sealed.Matcher do
   # Slovenian titles repeat the series and set number ("ME - Mega Evolution 6:
   # Delta Reign"), others write "ME2.5 – Ascended Heroes"; the leading ME and
   # number name no product variant.
-  @series_number ~r/(?:\A| )me (?:mega evolution )?\d+ /
-  @half_series_number ~r/\bME ?\d+\.\d+\b/i
+  defp series_number_regex,
+    do: CompiledRegex.get(fn -> ~r/(?:\A| )me (?:mega evolution )?\d+ / end)
+
+  defp half_series_number_regex, do: CompiledRegex.get(fn -> ~r/\bME ?\d+\.\d+\b/i end)
 
   # Replaces each capital language code standing as an item of one bracket by
   # the language's name; a bracket without such an item is returned unchanged.
   defp name_bracketed_editions(<<open, inner::binary>> = bracket) do
     {body, close} = String.split_at(inner, -1)
-    parts = Regex.split(@bracket_item_separator, body, include_captures: true)
+    parts = Regex.split(bracket_item_separator_regex(), body, include_captures: true)
     named = Enum.map(parts, &name_edition_code/1)
 
     if named == parts, do: bracket, else: <<open>> <> Enum.join(named) <> close
@@ -1251,15 +1282,15 @@ defmodule TcgCheap.Sealed.Matcher do
   def tokens(text) do
     normalized =
       text
-      |> String.replace(@terminal_german, " deutsch")
-      |> String.replace(@bracket, &name_bracketed_editions/1)
-      |> String.replace(@half_series_number, " ")
+      |> String.replace(terminal_german_regex(), " deutsch")
+      |> String.replace(bracket_regex(), &name_bracketed_editions/1)
+      |> String.replace(half_series_number_regex(), " ")
       |> normalize()
-      |> String.replace(@digit_letter, "\\1 \\2")
-      |> String.replace(@letter_digit, "\\1 \\2")
-      |> String.replace(@series_number, " ")
+      |> String.replace(digit_letter_regex(), "\\1 \\2")
+      |> String.replace(letter_digit_regex(), "\\1 \\2")
+      |> String.replace(series_number_regex(), " ")
 
-    padded = String.replace(" " <> normalized <> " ", @purchase_limit, " ")
+    padded = String.replace(" " <> normalized <> " ", purchase_limit_regex(), " ")
 
     @synonyms
     |> Enum.reduce(padded, fn {from, to}, acc ->
@@ -1274,9 +1305,19 @@ defmodule TcgCheap.Sealed.Matcher do
   # A Japanese set code ("sv11b", "sv2a": an English set's has no letter) names
   # a Japanese edition as well as "Japanese" does, but for the Korean and
   # Chinese editions that reuse the code ("Booster Box sv9a KR").
-  @japanese_code ~r/ sv \d{1,2} [a-z](?= )/
-  @other_editions ~r/ (?:korean|chinese|sch|tch|thai|indonesian|german|deutsch|french|italian|spanish|portuguese) /
-  @english ~r/ (?:english|en|eng|angielski|angielska|angielskie|engelsk|engelska|engelskt|engels|engelse|angol|anglicky) /
+  defp japanese_code_regex, do: CompiledRegex.get(fn -> ~r/ sv \d{1,2} [a-z](?= )/ end)
+
+  defp other_editions_regex,
+    do:
+      CompiledRegex.get(fn ->
+        ~r/ (?:korean|chinese|sch|tch|thai|indonesian|german|deutsch|french|italian|spanish|portuguese) /
+      end)
+
+  defp english_regex,
+    do:
+      CompiledRegex.get(fn ->
+        ~r/ (?:english|en|eng|angielski|angielska|angielskie|engelsk|engelska|engelskt|engels|engelse|angol|anglicky) /
+      end)
 
   # The sets of the Japanese codes the catalogue holds products for: a code
   # stands for "jp" beside its own set's name, or where the title already says
@@ -1308,9 +1349,14 @@ defmodule TcgCheap.Sealed.Matcher do
 
   defp japanese_code(text) do
     cond do
-      Regex.match?(@english, text) -> String.replace(text, @japanese_code, " jpcode")
-      Regex.match?(@other_editions, text) -> text
-      true -> String.replace(text, @japanese_code, &japanese_code(&1, text))
+      Regex.match?(english_regex(), text) ->
+        String.replace(text, japanese_code_regex(), " jpcode")
+
+      Regex.match?(other_editions_regex(), text) ->
+        text
+
+      true ->
+        String.replace(text, japanese_code_regex(), &japanese_code(&1, text))
     end
   end
 
@@ -1329,9 +1375,9 @@ defmodule TcgCheap.Sealed.Matcher do
     |> String.downcase()
     |> String.replace("ł", "l")
     |> :unicode.characters_to_nfd_binary()
-    |> String.replace(@diacritic, "")
+    |> String.replace(diacritic_regex(), "")
     |> String.replace("&", " and ")
-    |> String.replace(@non_word, " ")
+    |> String.replace(non_word_regex(), " ")
     |> String.trim()
   end
 
@@ -1340,8 +1386,8 @@ defmodule TcgCheap.Sealed.Matcher do
 
     cond do
       phrase = Enum.find(@exclusions, &String.contains?(padded, " " <> &1 <> " ")) -> phrase
-      Regex.match?(@damaged, normalized) -> "damaged or used"
-      Regex.match?(@multiples, normalized) -> "multiple items"
+      Regex.match?(damaged_regex(), normalized) -> "damaged or used"
+      Regex.match?(multiples_regex(), normalized) -> "multiple items"
       true -> nil
     end
   end

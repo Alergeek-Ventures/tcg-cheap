@@ -6,37 +6,63 @@ defmodule TcgCheap.Cards.Matcher do
   A name must corroborate the number. Manual decisions belong to Offer,
   not this parser. No shop title or category is executable input.
   """
+  alias TcgCheap.CompiledRegex
   alias TcgCheap.Sealed.Matcher
 
-  @languages [
-    {"ja", ~r/\b(jp|jap|jpn|japanese|japonsk\w*|japonia)\b/u},
-    {"zh", ~r/\b(cn|chn|chinese|chinsk\w*|cinsk\w*)\b/u},
-    {"ko", ~r/\b(kr|kor|korean|koreansk\w*|korejsk\w*)\b/u},
-    {"pl", ~r/\b(polska|polski|polskie|polskiej|polska wersja)\b|\bpl\s*$/u},
-    {"de", ~r/\b(ger|german|niemieck\w*)\b/u},
-    {"fr", ~r/\b(french|francusk\w*)\b/u},
-    {"it", ~r/\b(italian|wlosk\w*)\b/u},
-    {"es", ~r/\b(spanish|hiszpansk\w*)\b/u},
-    {"pt", ~r/\b(portuguese|portugalsk\w*)\b/u},
-    {"en", ~r/\b(eng|english|angielsk\w*|anglick\w*)\b/u}
-  ]
-  @conditions [
-    {:near_mint, ~r/\b(nm|near mint)\b/},
-    {:light_played, ~r/\b(lp|light played|lightly played)\b/},
-    {:excellent, ~r/\b(excellent|exc)\b/},
-    {:good, ~r/\b(gd|good)\b/},
-    {:played, ~r/\b(played|heavily played|hp)\b/},
-    {:poor, ~r/\b(po|poor|damaged)\b/},
-    {:mint, ~r/\bmint\b/}
-  ]
+  defp languages,
+    do:
+      CompiledRegex.get(fn ->
+        [
+          {"ja", ~r/\b(jp|jap|jpn|japanese|japonsk\w*|japonia)\b/u},
+          {"zh", ~r/\b(cn|chn|chinese|chinsk\w*|cinsk\w*)\b/u},
+          {"ko", ~r/\b(kr|kor|korean|koreansk\w*|korejsk\w*)\b/u},
+          {"pl", ~r/\b(polska|polski|polskie|polskiej|polska wersja)\b|\bpl\s*$/u},
+          {"de", ~r/\b(ger|german|niemieck\w*)\b/u},
+          {"fr", ~r/\b(french|francusk\w*)\b/u},
+          {"it", ~r/\b(italian|wlosk\w*)\b/u},
+          {"es", ~r/\b(spanish|hiszpansk\w*)\b/u},
+          {"pt", ~r/\b(portuguese|portugalsk\w*)\b/u},
+          {"en", ~r/\b(eng|english|angielsk\w*|anglick\w*)\b/u}
+        ]
+      end)
+
+  defp conditions,
+    do:
+      CompiledRegex.get(fn ->
+        [
+          {:near_mint, ~r/\b(nm|near mint)\b/},
+          {:light_played, ~r/\b(lp|light played|lightly played)\b/},
+          {:excellent, ~r/\b(excellent|exc)\b/},
+          {:good, ~r/\b(gd|good)\b/},
+          {:played, ~r/\b(played|heavily played|hp)\b/},
+          {:poor, ~r/\b(po|poor|damaged)\b/},
+          {:mint, ~r/\bmint\b/}
+        ]
+      end)
+
   # A grade may follow its label: "CGC Pristine 10", "PSA Gem Mint 10".
-  @grading ~r/\b(PSA|CGC|BGS|Beckett|ACE|TAG)\s*(?:(?:pristine|gem\s*mint|mint|perfect|black\s*label)\s*)?(10|[1-9](?:[.,]5)?)\b/i
-  @not_card ~r/\b(deck|talia|lot|bundle|zestaw|koszulki|sleeves|booster|box|display|jumbo|oversize|proxy|replika|random|losow\w*|nahodn\w*|poskozen\w*|damaged|rip (?:and )?ship|portfolio|binder|album|toploader|playmat|komplet|pakiet)\b/u
+  defp grading_regex,
+    do:
+      CompiledRegex.get(fn ->
+        ~r/\b(PSA|CGC|BGS|Beckett|ACE|TAG)\s*(?:(?:pristine|gem\s*mint|mint|perfect|black\s*label)\s*)?(10|[1-9](?:[.,]5)?)\b/i
+      end)
+
+  defp not_card_regex,
+    do:
+      CompiledRegex.get(fn ->
+        ~r/\b(deck|talia|lot|bundle|zestaw|koszulki|sleeves|booster|box|display|jumbo|oversize|proxy|replika|random|losow\w*|nahodn\w*|poskozen\w*|damaged|rip (?:and )?ship|portfolio|binder|album|toploader|playmat|komplet|pakiet)\b/u
+      end)
+
   # Patterned and stamped printings, including the stamped promos of Play!
   # Pokémon prize packs ("PPS7"), Pokémon Day, holiday calendars
   # ("Snowflake"), store events ("GameStop", "Thank you"), tournament
   # placements ("TOP 32") and Pokémon GO's peelable Ditto.
-  @special ~r/\b((poke|master|quick|dusk)\s*ball|ball pattern|energy\s*(symbol|pattern)|stamped|stamp|cosmos|cosmic holo|galaxy holo|galactic holo|holo energy pattern|rocket reverse|prize pack|pps\s*\d+|pokemon day|snowflake|gamestop|thank you|peelable|top\s*(4|8|16|32|64|128))\b/
+  defp special_regex,
+    do:
+      CompiledRegex.get(fn ->
+        ~r/\b((poke|master|quick|dusk)\s*ball|ball pattern|energy\s*(symbol|pattern)|stamped|stamp|cosmos|cosmic holo|galaxy holo|galactic holo|holo energy pattern|rocket reverse|prize pack|pps\s*\d+|pokemon day|snowflake|gamestop|thank you|peelable|top\s*(4|8|16|32|64|128))\b/
+      end)
+
   # 30th Classic Collection reprints print their original number (Charizard
   # 4/102), which shops quote; TCGdex numbers them 001–030 in order of it.
   # Three cards print 106 and two print 11, so the name still has to agree.
@@ -79,13 +105,17 @@ defmodule TcgCheap.Cards.Matcher do
   @promo_sets %{"svp" => "svp", "swsh" => "swshp", "sm" => "smp", "xy" => "xyp", "mep" => "mep"}
   # English promo set labels. A bare "SvP Promo" is left out: it also labels
   # Japanese "053/SV-P" numbering.
-  @promo_labels [
-    {"svp", ~r/\b(?:scarlet (?:and )?violet(?: black star)?|svp? black star) promos?\b/},
-    {"swshp", ~r/\b(?:sword (?:and )?shield(?: black star)?|swsh black star) promos?\b/},
-    {"smp", ~r/\b(?:sun (?:and )?moon(?: black star)?|sm black star) promos?\b/},
-    {"xyp", ~r/\bxy(?: black star)? promos?\b/},
-    {"mep", ~r/\b(?:mega evolution|mep)(?: black star)? promos?\b/}
-  ]
+  defp promo_labels,
+    do:
+      CompiledRegex.get(fn ->
+        [
+          {"svp", ~r/\b(?:scarlet (?:and )?violet(?: black star)?|svp? black star) promos?\b/},
+          {"swshp", ~r/\b(?:sword (?:and )?shield(?: black star)?|swsh black star) promos?\b/},
+          {"smp", ~r/\b(?:sun (?:and )?moon(?: black star)?|sm black star) promos?\b/},
+          {"xyp", ~r/\bxy(?: black star)? promos?\b/},
+          {"mep", ~r/\b(?:mega evolution|mep)(?: black star)? promos?\b/}
+        ]
+      end)
 
   @doc "Build once per batch from English synced sets with their loaded cards."
   def index(sets) do
@@ -133,7 +163,7 @@ defmodule TcgCheap.Cards.Matcher do
   # already chose the set, so look its cards up by the digits alone.
   defp set_number(set_id, value) do
     if set_id in Map.values(@promo_sets),
-      do: String.replace(number(value), ~r/^[a-z]+(?=\d)/, ""),
+      do: String.replace(number(value), CompiledRegex.get(fn -> ~r/^[a-z]+(?=\d)/ end), ""),
       else: number(value)
   end
 
@@ -199,7 +229,7 @@ defmodule TcgCheap.Cards.Matcher do
           residual = String.replace(parsed.normalized_title, Matcher.normalize(card.name), " ")
 
           Map.merge(parsed, %{
-            not_a_card: Regex.match?(@not_card, residual),
+            not_a_card: Regex.match?(not_card_regex(), residual),
             variant: variant_without_name(parsed, residual)
           })
 
@@ -256,7 +286,9 @@ defmodule TcgCheap.Cards.Matcher do
 
   defp without_base_set_description(text) do
     Regex.replace(
-      ~r/\b(sword and shield|scarlet and violet|sun and moon) base set\b/,
+      CompiledRegex.get(fn ->
+        ~r/\b(sword and shield|scarlet and violet|sun and moon) base set\b/
+      end),
       text,
       "\\1"
     )
@@ -275,8 +307,14 @@ defmodule TcgCheap.Cards.Matcher do
     normalized_title = Matcher.normalize(title)
     # A slab grade is not a collector number, even when it happens to name
     # an existing card in the set (e.g. Alakazam PSA 1, Base Set).
-    identity_title = Regex.replace(@grading, title, " ")
-    fraction = Regex.run(~r/\b([a-z]{0,5}\d{1,4})\s*\/\s*([a-z]{0,5}\d{1,4})\b/i, identity_title)
+    identity_title = Regex.replace(grading_regex(), title, " ")
+
+    fraction =
+      Regex.run(
+        CompiledRegex.get(fn -> ~r/\b([a-z]{0,5}\d{1,4})\s*\/\s*([a-z]{0,5}\d{1,4})\b/i end),
+        identity_title
+      )
+
     {code, code_number} = code_number(identity_title, fraction)
     fraction = if pikachu_place?(code, code_number, fraction), do: nil, else: fraction
     {num, total} = printed_number(fraction, code_number, identity_title)
@@ -303,7 +341,7 @@ defmodule TcgCheap.Cards.Matcher do
       category_tokens: MapSet.new(String.split(Matcher.normalize(category))),
       category_segments:
         MapSet.new(Enum.map(String.split(category, ">"), &String.downcase(String.trim(&1)))),
-      not_a_card: Regex.match?(@not_card, normalized_title)
+      not_a_card: Regex.match?(not_card_regex(), normalized_title)
     }
   end
 
@@ -313,7 +351,9 @@ defmodule TcgCheap.Cards.Matcher do
       Enum.flat_map([title, category], fn value ->
         explicit =
           Regex.scan(
-            ~r/(?:\[|\(|(?:language|jezyk|wersja)\s*:?\s*)(PL|DE|FR|IT|ES|PT|EN)(?:\]|\)|\b)|\b(PL|DE|FR|IT|ES|PT|EN)\s*$/i,
+            CompiledRegex.get(fn ->
+              ~r/(?:\[|\(|(?:language|jezyk|wersja)\s*:?\s*)(PL|DE|FR|IT|ES|PT|EN)(?:\]|\)|\b)|\b(PL|DE|FR|IT|ES|PT|EN)\s*$/i
+            end),
             value
           )
           |> Enum.map(fn captures ->
@@ -323,7 +363,7 @@ defmodule TcgCheap.Cards.Matcher do
         normalized = Matcher.normalize(value)
 
         marked =
-          @languages
+          languages()
           |> Enum.filter(fn {_lang, regex} -> Regex.match?(regex, normalized) end)
           |> Enum.map(fn {lang, _regex} -> lang end)
 
@@ -336,10 +376,12 @@ defmodule TcgCheap.Cards.Matcher do
   defp condition(title) do
     title =
       title
-      |> then(&Regex.replace(@grading, &1, ""))
+      |> then(&Regex.replace(grading_regex(), &1, ""))
       |> then(
         &Regex.replace(
-          ~r/[\[(](?:PL|JP|JAP|CN|KOR|DE|FR|IT|ES|PT|EN)[\])]|\b(?:PL|JP|JAP|CN|KOR|DE|FR|IT|ES|PT|EN)\s*$/i,
+          CompiledRegex.get(fn ->
+            ~r/[\[(](?:PL|JP|JAP|CN|KOR|DE|FR|IT|ES|PT|EN)[\])]|\b(?:PL|JP|JAP|CN|KOR|DE|FR|IT|ES|PT|EN)\s*$/i
+          end),
           &1,
           ""
         )
@@ -350,7 +392,9 @@ defmodule TcgCheap.Cards.Matcher do
 
     # A condition must be explicitly labelled or form a separated suffix.
     case Regex.run(
-           ~r/(?:\b(?:stan|stav|condition)\s*:?\s*|\s+-\s+|[\[(])((?:NM|Near Mint|LP|Light(?:ly)? Played|EX|Excellent|Exc|GD|Good|HP|Heavily Played|Played|PO|Poor|Damaged|Mint)(?:\s*\/\s*(?:EX|NM|GD))?)(?:[\])]|\s*$)/i,
+           CompiledRegex.get(fn ->
+             ~r/(?:\b(?:stan|stav|condition)\s*:?\s*|\s+-\s+|[\[(])((?:NM|Near Mint|LP|Light(?:ly)? Played|EX|Excellent|Exc|GD|Good|HP|Heavily Played|Played|PO|Poor|Damaged|Mint)(?:\s*\/\s*(?:EX|NM|GD))?)(?:[\])]|\s*$)/i
+           end),
            title
          ) do
       [_, value] ->
@@ -362,13 +406,13 @@ defmodule TcgCheap.Cards.Matcher do
   end
 
   defp named_condition(normalized) do
-    Enum.find_value(@conditions, fn {condition, regex} ->
+    Enum.find_value(conditions(), fn {condition, regex} ->
       if Regex.match?(regex, normalized), do: condition
     end)
   end
 
   defp grading(title) do
-    case Regex.run(@grading, title) do
+    case Regex.run(grading_regex(), title) do
       [_, grader, grade] -> String.upcase(grader) <> " " <> String.replace(grade, ",", ".")
       nil -> nil
     end
@@ -377,35 +421,54 @@ defmodule TcgCheap.Cards.Matcher do
   defp variant_without_name(parsed, residual) do
     # Only the remaining print description may identify Energy/Rocket reverse;
     # "Luminous Energy Reverse Holo" must retain its ordinary reverse finish.
-    if Regex.match?(~r/\b(energy reverse|team rocket s reverse)\b/, residual),
-      do: :special,
-      else:
-        variant(residual, parsed.category, Matcher.normalize(residual <> " " <> parsed.category))
+    if Regex.match?(
+         CompiledRegex.get(fn -> ~r/\b(energy reverse|team rocket s reverse)\b/ end),
+         residual
+       ),
+       do: :special,
+       else:
+         variant(residual, parsed.category, Matcher.normalize(residual <> " " <> parsed.category))
   end
 
   defp energy_pattern?(title),
-    do: Regex.match?(~r/(?:\(|-\s*)energy reverse(?:\)|\s*-|$)/i, title)
+    do:
+      Regex.match?(
+        CompiledRegex.get(fn -> ~r/(?:\(|-\s*)energy reverse(?:\)|\s*-|$)/i end),
+        title
+      )
 
   defp variant(title, category, text) do
     normalized = Matcher.normalize(title)
     energy_pattern = energy_pattern?(title)
 
     cond do
-      energy_pattern or Regex.match?(@special, text) -> :special
-      reverse?(normalized) -> :reverse
-      Regex.match?(~r/\b(holo|normal|non holo|zwykla)\b/, normalized) -> :normal
-      Regex.match?(~r/holo\s*\/\s*reverse/i, category) -> :normal
-      reverse?(Matcher.normalize(category)) -> :reverse
-      true -> :normal
+      energy_pattern or Regex.match?(special_regex(), text) ->
+        :special
+
+      reverse?(normalized) ->
+        :reverse
+
+      Regex.match?(CompiledRegex.get(fn -> ~r/\b(holo|normal|non holo|zwykla)\b/ end), normalized) ->
+        :normal
+
+      Regex.match?(CompiledRegex.get(fn -> ~r/holo\s*\/\s*reverse/i end), category) ->
+        :normal
+
+      reverse?(Matcher.normalize(category)) ->
+        :reverse
+
+      true ->
+        :normal
     end
   end
 
-  defp reverse?(text), do: Regex.match?(~r/\b(reverse|rev holo|rh)\b/, text)
+  defp reverse?(text),
+    do: Regex.match?(CompiledRegex.get(fn -> ~r/\b(reverse|rev holo|rh)\b/ end), text)
 
   # A Classic Collection reprint is labelled "30C BS 4": the subset's code, the
   # original set's and the original number, which the reprint still prints.
   defp code_number(title, fraction) do
-    case Regex.run(~r/\b30C\s+[A-Z]{2,4}\s+(\d{1,3})\b/, title) do
+    case Regex.run(CompiledRegex.get(fn -> ~r/\b30C\s+[A-Z]{2,4}\s+(\d{1,3})\b/ end), title) do
       [_, number] -> {"30c", number}
       nil -> set_code_number(title, fraction)
     end
@@ -416,7 +479,9 @@ defmodule TcgCheap.Cards.Matcher do
   # A card's mechanic is not a set code ("Armarouge EX 125 SVP").
   defp set_code_number(title, fraction) do
     case Regex.run(
-           ~r/\b(?!(?:EX|GX)\b)((?=[A-Z0-9]{0,4}[A-Z])[A-Z0-9]{2,5})\s+((?:TG|GG|SV)?\d{1,4})\b/,
+           CompiledRegex.get(fn ->
+             ~r/\b(?!(?:EX|GX)\b)((?=[A-Z0-9]{0,4}[A-Z])[A-Z0-9]{2,5})\s+((?:TG|GG|SV)?\d{1,4})\b/
+           end),
            title
          ) do
       [_, code, number] -> {String.downcase(code), number}
@@ -428,7 +493,12 @@ defmodule TcgCheap.Cards.Matcher do
   # "SVP-EN-144" is an English promo number too; "XY67a" an alternate print.
   # A following number makes it a set code instead ("sm9 013").
   defp compact_promo(title) do
-    case Regex.run(~r/\b(SVP|SWSH|SM|XY|MEP)(?:-EN-)?(\d{1,3}a?)\b(?!\s*\d)/i, title) do
+    case Regex.run(
+           CompiledRegex.get(fn ->
+             ~r/\b(SVP|SWSH|SM|XY|MEP)(?:-EN-)?(\d{1,3}a?)\b(?!\s*\d)/i
+           end),
+           title
+         ) do
       [_, code, num] -> {String.downcase(code), num}
       nil -> number_code(title)
     end
@@ -437,7 +507,12 @@ defmodule TcgCheap.Cards.Matcher do
   # Some shops write the number first: "Charizard ex 228 OBF". The code still
   # has to be a set's abbreviation and the name has to agree.
   defp number_code(title) do
-    case Regex.run(~r/\b((?:TG|GG|SV)?\d{1,4})\s+([A-Z][A-Z0-9]{1,4})\b(?!\s*\d)/, title) do
+    case Regex.run(
+           CompiledRegex.get(fn ->
+             ~r/\b((?:TG|GG|SV)?\d{1,4})\s+([A-Z][A-Z0-9]{1,4})\b(?!\s*\d)/
+           end),
+           title
+         ) do
       [_, number, code] -> {String.downcase(code), number}
       nil -> {nil, nil}
     end
@@ -457,7 +532,7 @@ defmodule TcgCheap.Cards.Matcher do
   defp pikachu_place?(_code, _code_number, _fraction), do: false
 
   defp several_promos?(title) do
-    ~r/\b(?:SVP|SWSH|SM|XY|MEP)(?:\s*|-EN-)\d{1,3}a?\b/i
+    CompiledRegex.get(fn -> ~r/\b(?:SVP|SWSH|SM|XY|MEP)(?:\s*|-EN-)\d{1,3}a?\b/i end)
     |> Regex.scan(title)
     |> Enum.uniq()
     |> length() > 1
@@ -468,10 +543,15 @@ defmodule TcgCheap.Cards.Matcher do
   defp printed_number(nil, code_number, title) do
     num =
       code_number ||
-        List.first(Regex.run(~r/\b(?:TG|GG|SV|SVP|SWSH|SM|XY)\d{1,3}\b/i, title) || []) ||
-        List.first(Regex.run(~r/\b\d{1,3}\b/, title) || [])
+        List.first(
+          Regex.run(
+            CompiledRegex.get(fn -> ~r/\b(?:TG|GG|SV|SVP|SWSH|SM|XY)\d{1,3}\b/i end),
+            title
+          ) || []
+        ) ||
+        List.first(Regex.run(CompiledRegex.get(fn -> ~r/\b\d{1,3}\b/ end), title) || [])
 
-    case num && Regex.run(~r/^(SVP|SWSH|SM|XY)(\d+)$/i, num) do
+    case num && Regex.run(CompiledRegex.get(fn -> ~r/^(SVP|SWSH|SM|XY)(\d+)$/i end), num) do
       [_, _prefix, digits] -> {digits, nil}
       _ -> {num, nil}
     end
@@ -481,8 +561,8 @@ defmodule TcgCheap.Cards.Matcher do
   def number(value) do
     value
     |> String.downcase()
-    |> String.replace(~r/\b0+(?=\d)/, "")
-    |> String.replace(~r/([a-z])0+(?=\d)/, "\\1")
+    |> String.replace(CompiledRegex.get(fn -> ~r/\b0+(?=\d)/ end), "")
+    |> String.replace(CompiledRegex.get(fn -> ~r/([a-z])0+(?=\d)/ end), "\\1")
   end
 
   defp candidates(parsed, sets, promo_labels) do
@@ -530,9 +610,9 @@ defmodule TcgCheap.Cards.Matcher do
   # Violet Promo"); only a lone number without a total is a Black Star Promo
   # number ("Eevee 101a/149" is not promo 149).
   defp promo_label_sets(%{total: nil} = parsed, sets) do
-    ids = for {id, regex} <- @promo_labels, Regex.match?(regex, parsed.text), do: id
+    ids = for {id, regex} <- promo_labels(), Regex.match?(regex, parsed.text), do: id
 
-    if length(Regex.scan(~r/\d+/, parsed.title)) == 1,
+    if length(Regex.scan(CompiledRegex.get(fn -> ~r/\d+/ end), parsed.title)) == 1,
       do: Enum.filter(sets, &(&1.id in ids)),
       else: []
   end
@@ -552,7 +632,7 @@ defmodule TcgCheap.Cards.Matcher do
   # Google feeds separate a category path with ">", Shoper's Ceneo feed with " / ".
   defp category_sets(category, sets) do
     category
-    |> String.split(~r/>| \/ /)
+    |> String.split(CompiledRegex.get(fn -> ~r/>| \/ / end))
     |> Enum.reverse()
     |> Enum.find_value([], &category_segment(&1, sets))
     |> then(fn result -> if result == :no_set, do: [], else: result end)
@@ -582,7 +662,7 @@ defmodule TcgCheap.Cards.Matcher do
 
   defp category_segment(segment, sets) do
     # Era/promo labels do not identify a same-named base set or its parent.
-    if Regex.match?(~r/\bera\b|promos?/i, segment) do
+    if Regex.match?(CompiledRegex.get(fn -> ~r/\bera\b|promos?/i end), segment) do
       :no_set
     else
       segment =
@@ -603,7 +683,11 @@ defmodule TcgCheap.Cards.Matcher do
   # A numeric set name is evidence only as a set label, never as the card's
   # numerator. In particular [151] must beat the Scarlet & Violet era category.
   defp named_in_title?(%{normalized: "151"}, parsed),
-    do: Regex.match?(~r/\[151\]|pokemon\s+151(?!\d|\s*\/)/i, parsed.title)
+    do:
+      Regex.match?(
+        CompiledRegex.get(fn -> ~r/\[151\]|pokemon\s+151(?!\d|\s*\/)/i end),
+        parsed.title
+      )
 
   defp named_in_title?(set, parsed),
     do:
@@ -674,14 +758,17 @@ defmodule TcgCheap.Cards.Matcher do
 
   defp identity_name(name) do
     name
-    |> String.replace(~r/\s*\([^)]*\)/, "")
+    |> String.replace(CompiledRegex.get(fn -> ~r/\s*\([^)]*\)/ end), "")
     |> normalize_identity()
   end
 
   defp normalize_identity(name) do
     name
     |> Matcher.normalize()
-    |> String.replace(~r/\b(basic|ex|gx|v|vmax|vstar|delta|species)\b/, " ")
+    |> String.replace(
+      CompiledRegex.get(fn -> ~r/\b(basic|ex|gx|v|vmax|vstar|delta|species)\b/ end),
+      " "
+    )
     |> String.split()
     |> Enum.join(" ")
   end
