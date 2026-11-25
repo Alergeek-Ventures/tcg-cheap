@@ -6,7 +6,7 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
   """
 
   alias TcgCheap.Sealed.Shop
-  alias TcgCheap.Sealed.ShopFeed.{Shopify, Shoptet, WooCommerce}
+  alias TcgCheap.Sealed.ShopFeed.{Shopify, ShopRenter, Shoptet, WooCommerce}
 
   @termek ~r|\A/termek/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
   @bolt ~r|\A/bolt/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
@@ -156,6 +156,84 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
       shipping_from: Decimal.new("1990"),
       free_shipping_from: nil,
       pickup_city: "Budapest"
+    },
+    %Shop{
+      key: "gamerunner",
+      name: "Gamerunner",
+      host: "gamerunner.hu",
+      source: ShopRenter,
+      listing_paths: ["/gyujtogetos-kartyajatekok/pokemon-tcg"],
+      currency: "HUF",
+      country: "HU",
+      max_pages: 15,
+      # https://gamerunner.hu/fizetes-szallitas: GLS parcel locker or
+      # collection point, gross (2026-11-25).
+      shipping_from: Decimal.new("1190"),
+      free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "gemklub",
+      name: "Gémklub",
+      host: "www.gemklub.hu",
+      source: ShopRenter,
+      listing_paths: [
+        "/tarsasjatekok-felnotteknek/gyujtogetos-kartyajatekok-1107/pokemon-tcg-1109"
+      ],
+      currency: "HUF",
+      country: "HU",
+      max_pages: 4,
+      # https://www.gemklub.hu/szallitas: parcel locker up to 20 000 Ft, free
+      # above, gross (2026-11-25).
+      shipping_from: Decimal.new("990"),
+      free_shipping_from: Decimal.new("20000"),
+      pickup_city: "Budapest"
+    },
+    %Shop{
+      key: "drawspot",
+      name: "DrawSpot",
+      host: "www.drawspot.hu",
+      source: ShopRenter,
+      listing_paths: [
+        "/tcg-kartyak/pokemon/pokemon-booster-box",
+        "/tcg-kartyak/pokemon/pokemon-booster-pack",
+        "/tcg-kartyak/pokemon/pokemon-elite-trainer-box",
+        "/tcg-kartyak/pokemon/pokemon-collection-box-tin-blister-es-special-box"
+      ],
+      currency: "HUF",
+      country: "HU",
+      max_pages: 4,
+      # https://www.drawspot.hu/fizetes-szallitas-34: Foxpost parcel locker,
+      # free to a locker from 20 000 Ft, gross (2026-11-25).
+      shipping_from: Decimal.new("1290"),
+      free_shipping_from: Decimal.new("20000"),
+      pickup_city: nil
+    },
+    %Shop{
+      key: "revoshop",
+      name: "Revo Shop",
+      host: "revoshop.hu",
+      source: ShopRenter,
+      listing_paths: [
+        "/pokemon-tcg/japan-269/pokemon-japan-booster-box",
+        "/pokemon-tcg/kinai-275/booster-pack-437",
+        "/pokemon-tcg/kinai-275/egyeb",
+        "/pokemon-tcg/kinai-275/pokemon-kinai-booster-box",
+        "/pokemon-tcg/koreai-272/pokemon-koreai-booster-box",
+        "/pokemon-tcg/koreai-272/pokemon-koreai-booster-pack"
+      ],
+      # "[Kína]" (without the "i") marks Chinese products the matcher would read
+      # as the Japanese set of the same name; a "FAT" box is six boxes and a
+      # "LIVE" pack one opened on a stream; plush toys are no cards.
+      excluded_title_phrases: ["Kína", "FAT", "LIVE", "Plush"],
+      currency: "HUF",
+      country: "HU",
+      max_pages: 4,
+      # https://revoshop.hu/szallitasi-informaciok: Foxpost parcel locker,
+      # per parcel (2026-11-25).
+      shipping_from: Decimal.new("1240"),
+      free_shipping_from: nil,
+      pickup_city: nil
     }
   ]
 
