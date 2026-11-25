@@ -4,12 +4,16 @@ defmodule TcgCheap.Sealed.Cache do
   with the shop fetches and catalogue syncs, not with a search or a page.
 
   An entry lives in `:persistent_term` for 10 minutes. Once it
-  expires, one reader at a time reads it again under a `:global` lock; the
-  other readers get the expired value meanwhile, or, when there is none yet,
-  wait for that reader's result.
+  expires, its readers get the expired value at once and a task under
+  `TcgCheap.Sealed.Cache.Refreshes` reads it again, one at a time under a
+  `:global` lock: on a quiet site the first visitor after a pause would
+  otherwise wait seconds for every read its page makes. Only an entry not read
+  yet (after a start, see `TcgCheap.Sealed.CacheWarmup`) makes its readers wait,
+  one of them reading it and the others waiting for its result.
   """
 
   @cached_for_ms :timer.minutes(10)
+  @refreshes __MODULE__.Refreshes
 
   @doc """
   The value read by `read` for `key`, shared by every caller until it expires.
@@ -26,7 +30,8 @@ defmodule TcgCheap.Sealed.Cache do
         :global.trans(refresh_lock(key), fn -> refresh(key, read) end, [node()])
 
       {_expired_at, stale} ->
-        refresh_or_stale(key, read, stale)
+        refresh_in_background(key, read)
+        stale
     end
   end
 
@@ -61,12 +66,15 @@ defmodule TcgCheap.Sealed.Cache do
     end
   end
 
-  # Retries 0: a reader that finds the lock taken does not wait.
-  defp refresh_or_stale(key, read, stale) do
-    case :global.trans(refresh_lock(key), fn -> refresh(key, read) end, [node()], 0) do
-      :aborted -> stale
-      value -> value
-    end
+  # Retries 0: a task that finds the lock taken ends, another one is reading.
+  # A read that fails keeps the expired value; the next reader starts another.
+  defp refresh_in_background(key, read) do
+    {:ok, _pid} =
+      Task.Supervisor.start_child(@refreshes, fn ->
+        :global.trans(refresh_lock(key), fn -> refresh(key, read) end, [node()], 0)
+      end)
+
+    :ok
   end
 
   defp refresh_lock(key), do: {{__MODULE__, key}, self()}
