@@ -8,7 +8,10 @@ defmodule TcgCheap.Sealed.Shop do
       `sealed_categories` (category slugs that count as sealed; nil when the
       title decides), `product_path` (the permalink path shape) and
       `singles_attribute` (`{attribute taxonomy, term id}` every single must
-      have, for a shop whose singles mix languages; nil for none);
+      have, for a shop whose singles mix languages; nil for none) and
+      `bundle_only_text` (the add-to-cart button text with which the shop's
+      bundle plugin marks a product it sells only inside a bundle, though
+      the Store API calls it in stock and purchasable; nil for none);
     * Shopify: `collection` (the Pokémon collection handle; nil reads the
       whole shop), `excluded_markers` (vendors, product types or tags, each
       compared whole and case-insensitively, that take a product out of the
@@ -108,6 +111,7 @@ defmodule TcgCheap.Sealed.Shop do
                 :sealed_categories,
                 :singles_categories,
                 :singles_attribute,
+                :bundle_only_text,
                 :product_path,
                 :collection,
                 :excluded_markers,
@@ -146,6 +150,7 @@ defmodule TcgCheap.Sealed.Shop do
           sealed_categories: [String.t()] | nil,
           singles_categories: [String.t()] | nil,
           singles_attribute: {String.t(), pos_integer()} | nil,
+          bundle_only_text: String.t() | nil,
           product_path: Regex.t() | nil,
           collection: String.t() | nil,
           excluded_markers: [String.t()] | nil,
