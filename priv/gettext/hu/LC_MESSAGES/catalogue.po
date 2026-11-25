@@ -312,6 +312,30 @@ msgid "Elite Trainer Box z dodatku Ascended Heroes"
 msgstr "Ascended Heroes Elite Trainer Box"
 
 #. contents item
+msgid "Elite Trainer Box z dodatku 30th Celebration"
+msgstr "30th Celebration Elite Trainer Box"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Black Bolt"
+msgstr "Black Bolt Elite Trainer Box"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Pitch Black"
+msgstr "Pitch Black Elite Trainer Box"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Prismatic Evolutions"
+msgstr "Prismatic Evolutions Elite Trainer Box"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku White Flare"
+msgstr "White Flare Elite Trainer Box"
+
+#. contents item
+msgid "Booster Box z dodatku Shiny Treasure ex"
+msgstr "Shiny Treasure ex Booster Box"
+
+#. contents item
 msgid "etui na kartę z motywem Greninja"
 msgstr "Greninja mintás kártyatok"
 
