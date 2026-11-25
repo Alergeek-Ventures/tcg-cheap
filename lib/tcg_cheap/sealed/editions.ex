@@ -21,6 +21,8 @@ defmodule TcgCheap.Sealed.Editions do
 
   use Gettext, backend: TcgCheapWeb.Gettext
 
+  alias TcgCheap.CompiledRegex
+
   @editions [
     en: "Angielska",
     ja: "Japońska",
@@ -115,8 +117,10 @@ defmodule TcgCheap.Sealed.Editions do
 
   # Most codes hold a digit ("CBB3C", "CSV9.5C"); a few are letters between
   # "CS" and "C" ("CSFC", "CSNC", "CSMAC").
-  @chinese_code ~r/\A([A-Za-z0-9.]*\d[A-Za-z0-9.]*C|CS[A-Z]*C):\s*(.*)\z/s
-  @non_letter ~r/[^a-z]+/
+  defp chinese_code_regex,
+    do: CompiledRegex.get(fn -> ~r/\A([A-Za-z0-9.]*\d[A-Za-z0-9.]*C|CS[A-Z]*C):\s*(.*)\z/s end)
+
+  defp non_letter_regex, do: CompiledRegex.get(fn -> ~r/[^a-z]+/ end)
 
   @spec all() :: [atom()]
   def all, do: Keyword.keys(@editions)
@@ -163,7 +167,7 @@ defmodule TcgCheap.Sealed.Editions do
   """
   @spec chinese_code(String.t()) :: {String.t(), String.t()} | nil
   def chinese_code(name) do
-    case Regex.run(@chinese_code, name, capture: :all_but_first) do
+    case Regex.run(chinese_code_regex(), name, capture: :all_but_first) do
       [code, rest] -> {code, rest}
       nil -> nil
     end
@@ -190,7 +194,7 @@ defmodule TcgCheap.Sealed.Editions do
   defp from_tcgdex(_language), do: nil
 
   defp from_name(name) do
-    words = name |> String.downcase() |> String.split(@non_letter, trim: true)
+    words = name |> String.downcase() |> String.split(non_letter_regex(), trim: true)
 
     cond do
       chinese_code(name) -> :zh
