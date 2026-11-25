@@ -26,6 +26,7 @@ defmodule TcgCheap.Sealed.Shops.Poland do
     Planszomania,
     Pokemonki,
     PrestaShop,
+    Sellaio,
     Selly,
     ShoperListing,
     ShopGold,
@@ -455,10 +456,17 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       key: "kegami",
       name: "Kegami",
       host: "kegami.pl",
-      source: CeneoFeed,
-      feed_path: @shoper_ceneo,
-      max_pages: 1,
-      shipping_from: Decimal.new("12.5"),
+      source: Sellaio,
+      listing_paths: [
+        "/karty-pokemon-tcg/boostery-pokemon",
+        "/karty-pokemon-tcg/zestawy-pokemon-tcg"
+      ],
+      # Keychain-case bundles ("Mystery Box – etui na kartę (brelok) + booster").
+      excluded_title_phrases: ["etui"],
+      max_pages: 2,
+      # Product page (it has no delivery page): Pocztex locker 10 zł, free from
+      # 300 zł (2026-11-25).
+      shipping_from: Decimal.new("10"),
       free_shipping_from: Decimal.new("300"),
       pickup_city: nil
     },
