@@ -586,7 +586,16 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       source: WooCommerce,
       category: "19,23,24,63",
       product_path: @product,
-      excluded_title_phrases: ["acryl"],
+      # Damaged items, marked in the title or only in the URL slug.
+      excluded_title_phrases: [
+        "acryl",
+        "kleine scheur",
+        "kleine damage",
+        "small damage",
+        "scheur in seal",
+        "kapotte seal",
+        "damaged"
+      ],
       currency: "EUR",
       country: "NL",
       max_pages: 4,
@@ -637,6 +646,8 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
       source: WooCommerce,
       category: "4192,4189,4202,4195,4196,4212,4211",
       product_path: @product,
+      # A torn seal is stated in the URL slug of an acrylic-cased box.
+      excluded_title_phrases: ["tear in seal"],
       currency: "EUR",
       country: "NL",
       max_pages: 3,

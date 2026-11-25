@@ -302,14 +302,19 @@ defmodule TcgCheap.Sealed.ShopFeed do
 
     offers
     |> Enum.reverse()
-    |> Enum.reject(&excluded_title?(shop, &1.title))
+    |> Enum.reject(&excluded_text?(shop, &1.title))
     |> Enum.uniq_by(& &1.shop_product_id)
   end
 
-  defp excluded_title?(%Shop{excluded_title_phrases: nil}, _title), do: false
+  @doc """
+  Whether `text` (a title, or a slug, whose hyphens read as spaces) holds one
+  of the shop's `excluded_title_phrases` as whole words.
+  """
+  @spec excluded_text?(Shop.t(), String.t()) :: boolean()
+  def excluded_text?(%Shop{excluded_title_phrases: nil}, _text), do: false
 
-  defp excluded_title?(%Shop{excluded_title_phrases: phrases}, title) do
-    text = " " <> Matcher.normalize(title) <> " "
+  def excluded_text?(%Shop{excluded_title_phrases: phrases}, text) do
+    text = " " <> Matcher.normalize(text) <> " "
     Enum.any?(phrases, &String.contains?(text, " #{Matcher.normalize(&1)} "))
   end
 
