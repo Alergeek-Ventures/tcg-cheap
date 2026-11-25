@@ -17,7 +17,8 @@ defmodule TcgCheap.Bot do
     timeout and network failures mean it cannot be read, and then the rules
     fetched before are used for up to 24 hours after they were fetched (a
     refresh is tried again after the `Retry-After`, or an hour), and without
-    them the host is not read. A challenge response in place of robots.txt
+    them the host is not read, and for a minute every request to it gets that
+    same `{:robots_unreadable, reason}` without a new fetch. A challenge response in place of robots.txt
     (`cf-mitigated: challenge`, a Cloudflare challenge page) is a refusal:
     nothing is read.
   - Pace: every request to a host takes a turn (`TcgCheap.Bot.Hosts`), the
@@ -51,6 +52,11 @@ defmodule TcgCheap.Bot do
   # that cannot be read is replaced by older rules for up to a day.
   @fresh_ms :timer.hours(1)
   @valid_ms :timer.hours(24)
+  # A robots.txt that cannot be read, with no earlier rules, is not fetched again
+  # for a minute: every request to the host in between gets the same failure at
+  # once. Shorter than the worker's backoff before its last attempt (about two
+  # minutes after the first by Oban's default), so that attempt asks afresh.
+  @unreadable_ms :timer.minutes(1)
   @rate_limit_delay_ms 10_000
   @default_max_retry_after_ms 10_000
   # What a request waits for its turn in place: within a job's timeout, and
@@ -171,6 +177,9 @@ defmodule TcgCheap.Bot do
       {:ok, rules} ->
         {:ok, rules}
 
+      {:error, _reason} = error ->
+        error
+
       {:stale, _stored} ->
         :global.trans(
           {{__MODULE__, :robots, host}, self()},
@@ -183,12 +192,14 @@ defmodule TcgCheap.Bot do
   defp fetch_if_stale(host, req_options, opts) do
     case at_hand(host) do
       {:ok, rules} -> {:ok, rules}
+      {:error, _reason} = error -> error
       {:stale, stored} -> fetch_rules(host, req_options, opts, stored)
     end
   end
 
   # Rules fetched within the hour, or while a refresh that was throttled waits
-  # for its time, stand.
+  # for its time, stand. Without them, a robots.txt that could not be read a
+  # moment ago is not asked for again at once: the same failure is answered.
   defp at_hand(host) do
     case Hosts.robots(host) do
       {rules, fetched_at} = stored ->
@@ -197,10 +208,20 @@ defmodule TcgCheap.Bot do
         if now - fetched_at < @fresh_ms or
              (now - fetched_at <= @valid_ms and now < (Hosts.robots_retry_at(host) || 0)),
            do: {:ok, rules},
-           else: {:stale, stored}
+           else: unreadable_lately(host, stored)
 
       nil ->
-        {:stale, nil}
+        unreadable_lately(host, nil)
+    end
+  end
+
+  defp unreadable_lately(host, stored) do
+    case Hosts.robots_unreadable(host) do
+      {reason, until} ->
+        if Hosts.now() < until, do: {:error, {:robots_unreadable, reason}}, else: {:stale, stored}
+
+      nil ->
+        {:stale, stored}
     end
   end
 
@@ -289,8 +310,12 @@ defmodule TcgCheap.Bot do
   # not read.
   defp unreadable(host, reason, response, nil) do
     case response && classify(host, response) do
-      {:stop, {:retry_after, _seconds} = retry} -> {:error, retry}
-      _none -> {:error, {:robots_unreadable, reason}}
+      {:stop, {:retry_after, _seconds} = retry} ->
+        {:error, retry}
+
+      _none ->
+        Hosts.put_robots_unreadable(host, reason, Hosts.now() + @unreadable_ms)
+        {:error, {:robots_unreadable, reason}}
     end
   end
 
