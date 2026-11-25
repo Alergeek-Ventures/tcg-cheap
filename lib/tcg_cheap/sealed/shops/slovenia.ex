@@ -174,6 +174,14 @@ defmodule TcgCheap.Sealed.Shops.Slovenia do
         free_shipping_from: nil,
         currency: "EUR"
       },
+      # https://www.pressstart.pt/pt/content/entregas.html (2026-11-25), its table
+      # of countries: the rate for orders up to €35; a middle band up to €200
+      # costs less and is not recorded, free above €200.
+      "pressstart" => %{
+        shipping_from: Decimal.new("7.99"),
+        free_shipping_from: Decimal.new("200"),
+        currency: "EUR"
+      },
       # CTT tracked; DPD tracked is €20.
       "psydeck" => %{
         shipping_from: Decimal.new("15"),
