@@ -349,7 +349,7 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
         free_shipping_from: nil,
         currency: "HUF"
       },
-      # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-17).
+      # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-25).
       "kartonada" => %{
         shipping_from: Decimal.new("47.99"),
         free_shipping_from: nil,

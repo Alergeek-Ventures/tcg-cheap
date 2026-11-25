@@ -180,9 +180,9 @@ defmodule TcgCheap.Sealed.Shops.Croatia do
         free_shipping_from: nil,
         currency: "EUR"
       },
-      # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-17).
+      # https://kartonada.pl/dostawa/: DPD Classic up to 1 kg, gross (2026-11-25).
       "kartonada" => %{
-        shipping_from: Decimal.new("41.99"),
+        shipping_from: Decimal.new("42.99"),
         free_shipping_from: nil,
         currency: "PLN"
       },
