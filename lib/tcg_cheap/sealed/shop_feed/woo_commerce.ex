@@ -217,8 +217,12 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
 
   # A shop marks a damaged item in its URL alone ("-small-damage"), as a
   # Shopify shop's handle is read.
-  defp excluded_slug?(shop, permalink) when is_binary(permalink),
-    do: ShopFeed.excluded_text?(shop, permalink |> URI.parse() |> Map.fetch!(:path) |> slug())
+  defp excluded_slug?(shop, permalink) when is_binary(permalink) do
+    case URI.parse(permalink) do
+      %URI{path: path} when is_binary(path) -> ShopFeed.excluded_text?(shop, slug(path))
+      _no_path -> false
+    end
+  end
 
   defp excluded_slug?(_shop, _permalink), do: false
 
