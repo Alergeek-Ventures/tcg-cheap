@@ -41,10 +41,25 @@ defmodule TcgCheap.Sealed.PhotoMirror do
       )
       |> Enum.group_by(& &1.product_id)
 
-    products
-    |> Enum.map(&mirror(&1, Map.get(offers, &1.id, []), req_options))
-    |> Enum.frequencies()
+    results = Enum.map(products, &mirror(&1, Map.get(offers, &1.id, []), req_options))
+    log_unreadable_hosts(results)
+
+    results
+    |> Enum.frequencies_by(fn {outcome, _hosts} -> outcome end)
     |> then(&%{stored: Map.get(&1, :ok, 0), failed: Map.get(&1, :error, 0)})
+  end
+
+  # A host whose robots.txt cannot be read fails every one of its photos for the
+  # same reason: one line per host and pass, not one per candidate and product.
+  defp log_unreadable_hosts(results) do
+    results
+    |> Enum.flat_map(fn {_outcome, hosts} -> hosts end)
+    |> Enum.frequencies()
+    |> Enum.each(fn {host, count} ->
+      Logger.warning(
+        "Photo mirror: robots.txt of #{host} unreadable, #{count} photo candidates skipped"
+      )
+    end)
   end
 
   @doc """
@@ -69,8 +84,15 @@ defmodule TcgCheap.Sealed.PhotoMirror do
     |> then(&%{added: Map.get(&1, :added, 0), failed: Map.get(&1, :failed, 0)})
   end
 
+  # `{:ok | :error, hosts}`: the hosts whose unreadable robots.txt skipped one
+  # of the product's candidates.
   defp mirror(product, offers, req_options) do
-    with {:ok, body, type} <- largest_photo(candidates(product, offers), req_options),
+    {found, hosts} = largest_photo(candidates(product, offers), req_options)
+    {store(product, found), hosts}
+  end
+
+  defp store(product, found) do
+    with {:ok, body, type} <- found,
          {:ok, body, type} <- ImageDownload.trim_transparent_margins(body, type),
          {:ok, %{blob: blob}} <-
            Storage.replace_image(
@@ -89,9 +111,12 @@ defmodule TcgCheap.Sealed.PhotoMirror do
       :ok
     else
       error ->
-        Logger.warning(
-          "Photo of #{product.slug} not mirrored from #{source(product)}: #{inspect(error)}"
-        )
+        # Already part of the pass's line for the host (`log_unreadable_hosts/1`).
+        if error != {:error, :robots_unreadable} do
+          Logger.warning(
+            "Photo of #{product.slug} not mirrored from #{source(product)}: #{inspect(error)}"
+          )
+        end
 
         Sealed.record_photo_attempt!(product)
         :error
@@ -117,21 +142,33 @@ defmodule TcgCheap.Sealed.PhotoMirror do
     |> Enum.take(@max_candidates)
   end
 
+  # `{result, hosts}`: the hosts whose robots.txt could not be read are not
+  # logged per candidate; `:robots_unreadable` is the result when that skipped
+  # every candidate.
   defp largest_photo(urls, req_options) do
-    urls
-    |> Enum.reduce_while(nil, fn url, best ->
-      case ImageDownload.fetch(url, req_options) do
-        {:ok, body, type} ->
-          best |> larger({longest_side(body), body, type}) |> halt_when_enough()
+    {best, hosts} =
+      Enum.reduce_while(urls, {nil, []}, fn url, {best, hosts} ->
+        case ImageDownload.fetch(url, req_options) do
+          {:ok, body, type} ->
+            {action, best} =
+              best |> larger({longest_side(body), body, type}) |> halt_when_enough()
 
-        {:error, reason} ->
-          Logger.info("Photo candidate #{url} skipped: #{inspect(reason)}")
-          {:cont, best}
-      end
-    end)
-    |> case do
-      {_pixels, body, type} -> {:ok, body, type}
-      nil -> {:error, :no_photo}
+            {action, {best, hosts}}
+
+          {:error, {:robots_unreadable, _detail}} ->
+            {:cont, {best, [url |> URI.parse() |> Map.fetch!(:host) | hosts]}}
+
+          {:error, reason} ->
+            Logger.info("Photo candidate #{url} skipped: #{inspect(reason)}")
+            {:cont, {best, hosts}}
+        end
+      end)
+
+    case {best, hosts} do
+      {{_pixels, body, type}, _hosts} -> {{:ok, body, type}, hosts}
+      {nil, []} -> {{:error, :no_photo}, hosts}
+      {nil, hosts} when length(hosts) == length(urls) -> {{:error, :robots_unreadable}, hosts}
+      {nil, _hosts} -> {{:error, :no_photo}, hosts}
     end
   end
 
