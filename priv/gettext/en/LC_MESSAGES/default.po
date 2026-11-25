@@ -216,7 +216,7 @@ msgstr "We couldn't find that town."
 #: lib/tcg_cheap_web/components/verdict_components.ex:102
 #, elixir-autogen, elixir-format
 msgid "Normalna cena"
-msgstr "Fair price"
+msgstr "Regular price"
 
 #: lib/tcg_cheap_web/components/verdict_components.ex:139
 #, elixir-autogen, elixir-format
