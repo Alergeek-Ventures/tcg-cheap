@@ -18,7 +18,7 @@ defmodule TcgCheapWeb.ProductLive do
   import TcgCheapWeb.VerdictComponents
 
   alias TcgCheap.Sealed.{Editions, Kinds, ProductPage, RetailDeal}
-  alias TcgCheapWeb.{Analytics, Format, Languages, Paths, SEO, VisitorLocation}
+  alias TcgCheapWeb.{Analytics, Format, Languages, Paths, SEO, SiteSearch, VisitorLocation}
 
   defmodule NotFound do
     @moduledoc false
@@ -148,6 +148,7 @@ defmodule TcgCheapWeb.ProductLive do
           data-track-context
           data-track-product-slug={@page.product.slug}
         >
+          <SiteSearch.search_bar form={@site_search} />
           <.link id="product-back" data-guide-back navigate={Paths.products()} class="guide-back">
             <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
           </.link>

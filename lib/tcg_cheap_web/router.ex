@@ -228,7 +228,7 @@ defmodule TcgCheapWeb.Router do
     end
 
     live_session :"guide_#{code}",
-      on_mount: [{TcgCheapWeb.Locale, code}, TcgCheapWeb.SiteFooter],
+      on_mount: [{TcgCheapWeb.Locale, code}, TcgCheapWeb.SiteFooter, TcgCheapWeb.SiteSearch],
       session: {TcgCheapWeb.Locale, :session, []} do
       scope "/#{code}", TcgCheapWeb do
         pipe_through [:browser, :"region_#{code}"]

@@ -13,7 +13,7 @@ defmodule TcgCheapWeb.BotLive do
   import TcgCheapWeb.SiteComponents
 
   alias TcgCheap.Sealed.Shops
-  alias TcgCheapWeb.{Format, Paths, SEO}
+  alias TcgCheapWeb.{Format, Paths, SEO, SiteSearch}
 
   @contact "franek@alergeek.ventures"
 
@@ -43,6 +43,7 @@ defmodule TcgCheapWeb.BotLive do
           region_hint={@region_hint}
         />
         <main id="bot" class="guide-main bot-page" data-guide-url={@current_path}>
+          <SiteSearch.search_bar form={@site_search} />
           <.link id="bot-back" data-guide-back navigate={Paths.home()} class="guide-back">
             <.fluent_icon name={:arrow_left} />{gettext("Wszystkie produkty")}
           </.link>

@@ -32,10 +32,10 @@ defmodule TcgCheapWeb.HomeLive do
     Region,
     RegionText,
     SEO,
+    SiteSearch,
     VisitorLocation
   }
 
-  @max_query_length 100
   # Each kind's first results: enough to recognise the right one.
   @results 4
   @sets 6
@@ -70,10 +70,10 @@ defmodule TcgCheapWeb.HomeLive do
   # Also a search sent without LiveView, or an old link: the history entry is
   # replaced, so going back does not lead here again.
   def handle_params(%{"w" => list} = params, _uri, socket) when list in @lists,
-    do: {:noreply, push_navigate(socket, to: list_path(list, query_param(params)), replace: true)}
+    do: {:noreply, push_navigate(socket, to: SiteSearch.path(params), replace: true)}
 
   def handle_params(params, _uri, socket) do
-    query = params |> query_param() |> String.trim() |> String.slice(0, @max_query_length)
+    query = SiteSearch.query(params)
     seo = SEO.Home.metadata(params)
 
     previous = socket.assigns[:query]
@@ -105,29 +105,13 @@ defmodule TcgCheapWeb.HomeLive do
 
   @impl true
   def handle_event("search", %{"w" => list} = params, socket) when list in @lists,
-    do: {:noreply, push_navigate(socket, to: list_path(list, query_param(params)))}
+    do: {:noreply, push_navigate(socket, to: SiteSearch.path(params))}
 
-  def handle_event("search", params, socket) do
-    query = params |> query_param() |> String.trim()
-    {:noreply, push_patch(socket, to: Paths.home(query_params(query)), replace: true)}
-  end
+  def handle_event("search", params, socket),
+    do: {:noreply, push_patch(socket, to: SiteSearch.path(params), replace: true)}
 
   def handle_event("location-" <> _ = event, params, socket),
     do: {:noreply, VisitorLocation.handle_event(event, params, socket)}
-
-  # Nested params (`?q[a]=b`) are no query.
-  defp query_param(%{"q" => query}) when is_binary(query), do: query
-  defp query_param(_params), do: ""
-
-  defp list_path("produkty", query), do: Paths.products(query_params(query))
-  defp list_path("karty", query), do: Paths.cards(query_params(query))
-
-  defp query_params(query) do
-    case String.trim(query) do
-      "" -> []
-      query -> [q: String.slice(query, 0, @max_query_length)]
-    end
-  end
 
   defp search(socket, "") do
     socket
@@ -266,108 +250,78 @@ defmodule TcgCheapWeb.HomeLive do
           <section id="home-intro" class="home-intro" aria-labelledby="guide-title">
             <h1 id="guide-title">{gettext("Czy to dobra cena?")}</h1>
             <p id="guide-promise">{RegionText.products_promise()}</p>
-            <%!-- Without LiveView the form still searches: a GET to this page. --%>
-            <.form
-              for={@form}
-              id="home-search"
-              class="home-search"
-              action={Paths.home()}
-              method="get"
-              role="search"
-              phx-change="search"
-              phx-submit="search"
-            >
-              <label for="home-search-query" class="sr-only">{gettext("Szukaj produktu albo karty")}</label>
-              <div class="home-search-field">
-                <.fluent_icon name={:search} class="home-search-icon" />
-                <input
-                  id="home-search-query"
-                  name="q"
-                  type="search"
-                  value={@form[:q].value}
-                  maxlength="100"
-                  autocomplete="off"
-                  phx-debounce="300"
-                  placeholder={gettext("np. ETB albo Pikachu")}
-                />
-              </div>
-              <fieldset class="home-search-scope">
-                <legend class="sr-only">{gettext("Szukaj w")}</legend>
-                <label :for={{value, label} <- scope_choices()}>
-                  <input type="radio" name="w" value={value} checked={@form[:w].value == value} />
-                  <span>{label}</span>
-                </label>
-              </fieldset>
-            </.form>
-
-            <div :if={@query != ""} id="home-results" class="home-results" aria-live="polite">
-              <section
-                id="home-results-products"
-                class="home-results-kind"
-                aria-labelledby="home-results-products-title"
-              >
-                <div class="home-results-head">
-                  <h2 id="home-results-products-title">{gettext("Produkty")}</h2>
-                  <.link :if={@product_count > 0} navigate={Paths.products(q: @query)}>
-                    {gettext("Wszystkie: %{count}", count: Format.number(@product_count))}&nbsp;→
-                  </.link>
-                </div>
-                <ul
-                  id="home-found-products"
-                  class="guide-products"
-                  phx-update="stream"
-                  data-track-positions
-                >
-                  <li id="home-found-products-empty" class="guide-empty hidden only:block">
-                    {gettext("Nic nie znaleźliśmy.")}
-                  </li>
-                  <li
-                    :for={{dom_id, summary} <- @streams.found_products}
-                    id={dom_id}
-                    class="guide-product"
-                  >
-                    <.product_row summary={summary} />
-                  </li>
-                </ul>
-              </section>
-              <section
-                id="home-results-cards"
-                class="home-results-kind"
-                aria-labelledby="home-results-cards-title"
-              >
-                <div class="home-results-head">
-                  <h2 id="home-results-cards-title">{gettext("Karty")}</h2>
-                  <.link :if={@card_count > 0} navigate={Paths.cards(q: @query)}>
-                    {gettext("Wszystkie: %{count}", count: Format.number(@card_count))}&nbsp;→
-                  </.link>
-                </div>
-                <p
-                  :if={@card_count > 0 && cards_delivery_note(@card_shops)}
-                  id="home-cards-delivery-note"
-                  class="guide-note guide-prices-note"
-                >
-                  {cards_delivery_note(@card_shops)}
-                </p>
-                <ul
-                  id="home-found-cards"
-                  class="guide-products"
-                  phx-update="stream"
-                  data-track-positions
-                >
-                  <li id="home-found-cards-empty" class="guide-empty hidden only:block">
-                    {gettext("Nie znaleźliśmy takiej karty. Wpisz angielską nazwę, np. Pikachu.")}
-                  </li>
-                  <.card_row
-                    :for={{dom_id, row} <- @streams.found_cards}
-                    id={dom_id}
-                    row={row}
-                    placement="home"
-                    cardmarket_caption?
-                  />
-                </ul>
-              </section>
-            </div>
           </section>
+          <%!-- The page's own child, so on a phone it stays stuck down the whole page.
+               Without LiveView the form still searches: a GET to this page. --%>
+          <SiteSearch.search_bar form={@form} id="home-search" event="search" />
+
+          <div :if={@query != ""} id="home-results" class="home-results" aria-live="polite">
+            <section
+              id="home-results-products"
+              class="home-results-kind"
+              aria-labelledby="home-results-products-title"
+            >
+              <div class="home-results-head">
+                <h2 id="home-results-products-title">{gettext("Produkty")}</h2>
+                <.link :if={@product_count > 0} navigate={Paths.products(q: @query)}>
+                  {gettext("Wszystkie: %{count}", count: Format.number(@product_count))}&nbsp;→
+                </.link>
+              </div>
+              <ul
+                id="home-found-products"
+                class="guide-products"
+                phx-update="stream"
+                data-track-positions
+              >
+                <li id="home-found-products-empty" class="guide-empty hidden only:block">
+                  {gettext("Nic nie znaleźliśmy.")}
+                </li>
+                <li
+                  :for={{dom_id, summary} <- @streams.found_products}
+                  id={dom_id}
+                  class="guide-product"
+                >
+                  <.product_row summary={summary} />
+                </li>
+              </ul>
+            </section>
+            <section
+              id="home-results-cards"
+              class="home-results-kind"
+              aria-labelledby="home-results-cards-title"
+            >
+              <div class="home-results-head">
+                <h2 id="home-results-cards-title">{gettext("Karty")}</h2>
+                <.link :if={@card_count > 0} navigate={Paths.cards(q: @query)}>
+                  {gettext("Wszystkie: %{count}", count: Format.number(@card_count))}&nbsp;→
+                </.link>
+              </div>
+              <p
+                :if={@card_count > 0 && cards_delivery_note(@card_shops)}
+                id="home-cards-delivery-note"
+                class="guide-note guide-prices-note"
+              >
+                {cards_delivery_note(@card_shops)}
+              </p>
+              <ul
+                id="home-found-cards"
+                class="guide-products"
+                phx-update="stream"
+                data-track-positions
+              >
+                <li id="home-found-cards-empty" class="guide-empty hidden only:block">
+                  {gettext("Nie znaleźliśmy takiej karty. Wpisz angielską nazwę, np. Pikachu.")}
+                </li>
+                <.card_row
+                  :for={{dom_id, row} <- @streams.found_cards}
+                  id={dom_id}
+                  row={row}
+                  placement="home"
+                  cardmarket_caption?
+                />
+              </ul>
+            </section>
+          </div>
 
           <section
             :if={@deals != []}
@@ -483,13 +437,6 @@ defmodule TcgCheapWeb.HomeLive do
     </Layouts.app>
     """
   end
-
-  defp scope_choices,
-    do: [
-      {"", gettext("Wszystko")},
-      {"produkty", gettext("Produkty")},
-      {"karty", gettext("Karty")}
-    ]
 
   attr :deal, :map, required: true
 

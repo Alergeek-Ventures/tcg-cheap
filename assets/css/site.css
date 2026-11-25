@@ -58,7 +58,7 @@
 .guide-world .site-wordmark { flex: none; }
 /* Masthead and search stay at the top while the list scrolls; both keep one fixed height so the
    search and the filters can sit right under them. A long town name is cut, never wrapped. */
-.guide-world { --guide-header-size: calc(4rem + 1px); --guide-search-gap: .75rem; --guide-search-size: 4rem; --guide-sticky-size: calc(var(--guide-header-size) + var(--guide-search-gap) + var(--guide-search-size)); }
+.guide-world { --guide-header-size: calc(4rem + 1px); --guide-search-gap: .75rem; --guide-search-size: 4rem; --guide-tabs-size: 3.5rem; --guide-sticky-size: calc(var(--guide-header-size) + var(--guide-search-gap) + var(--guide-search-size)); }
 .guide-world .site-header { background: var(--bench); block-size: var(--guide-header-size); flex-wrap: nowrap; inset-block-start: 0; position: sticky; z-index: 4; }
 .guide-world .site-header > :last-child, .guide-world .site-header :is(.visitor-location-summary, .visitor-location-label) { max-inline-size: 100%; min-inline-size: 0; }
 .guide-world .site-header .visitor-location-panel { max-block-size: calc(100svh - var(--guide-header-size) - 1rem); overflow-y: auto; overscroll-behavior: contain; }
@@ -521,7 +521,8 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
   .guide-world .guide-search { box-shadow: 0 var(--guide-search-gap) 0 var(--guide-search-cover), 0 calc(-1 * var(--guide-search-gap)) 0 var(--guide-search-cover), -2.5rem 0 0 var(--guide-search-gap) var(--guide-search-cover); margin-inline: -1rem; }
   .guide-world #guide-search-form { padding-inline: 1rem .5rem; }
   .guide-world .guide-search-input { font-size: clamp(1.125rem, 5vw, 1.25rem); }
-  .guide-world .guide-panel { border-inline: 0; box-shadow: none; max-block-size: calc(100dvh - var(--guide-sticky-size)); padding-inline: 1rem; }
+  /* the kind menu hangs from the tabs' row too, which stays open while it does */
+  .guide-world .guide-panel { border-inline: 0; box-shadow: none; max-block-size: calc(100dvh - var(--guide-sticky-size) - var(--guide-tabs-size)); padding-inline: 1rem; }
   /* The fixed report button would cover the footer's end, so the page ends below it. */
   html:has(#report:not([hidden])) .guide-world .site-footer { padding-block-end: calc(max(1rem, env(safe-area-inset-bottom)) + 3.75rem); }
   .guide-world .site-footer p { flex-wrap: wrap; justify-content: center; text-wrap: balance; }
@@ -921,14 +922,12 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 }
 
 /* The catalogue to search fills the end of the bar, top to bottom, as part of it. */
-/* Produkty and Karty are as wide as each other. A desktop has room to spare,
-   so they stay slim; on a phone they are wider to hit with a thumb, and the
-   query takes the whole bar while it is typed, then truncates beside them. */
-.guide-world .guide-mode { --guide-tab-pad: .75rem; border-inline-start: 1px solid var(--rule); display: grid; flex: none; grid-template-columns: repeat(2, 7.5rem); }
+/* Wszystko, Produkty and Karty are as wide as each other. A desktop has room to spare,
+   so they stay slim; a tablet gives them a little more to hit with a thumb, and a
+   phone puts them in a row of their own under the query. */
+.guide-world .guide-mode { --guide-tab-pad: .75rem; border-inline-start: 1px solid var(--rule); display: grid; flex: none; grid-template-columns: repeat(3, 7.5rem); }
 @media (max-width: 63.99rem) {
-  .guide-world .guide-mode { --guide-tab-pad: .5rem; grid-template-columns: repeat(2, min(8.5rem, 34vw)); }
-  /* collapsed, not removed, so Tab from the query still reaches them and brings them back */
-  .guide-world .guide-search:has(.guide-search-input:focus) .guide-mode { border-inline-start: 0; grid-template-columns: repeat(2, 0); overflow: clip; }
+  .guide-world .guide-mode { --guide-tab-pad: .5rem; grid-template-columns: repeat(3, min(7rem, 24vw)); }
   .guide-world .guide-chosen { inset-block-start: -.7rem; }
   .guide-world .guide-kind-menu > summary { font-size: 1rem; gap: .25rem; line-height: 1; }
   .guide-world .guide-kind-menu > summary .guide-pop-chevron { block-size: .75rem; inline-size: .75rem; }
@@ -940,6 +939,15 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 /* a focused tab stands over the bar's frame, so its ring shows in full at the bar's edges */
 .guide-world .guide-mode a:focus-visible, .guide-world .guide-kind-menu > summary:focus-visible { position: relative; z-index: 1; }
 .guide-world .guide-mode a:active { background: var(--orange); color: var(--paper); }
+/* On a phone the tabs go under the query, as in the search bar of every other page, and fold away
+   the same way once the bar sticks, unless the kind menu hangs open from them. */
+@media (max-width: 47.99rem) {
+  .guide-world .guide-search { block-size: auto; flex-wrap: wrap; }
+  .guide-world #guide-search-form { flex-basis: 100%; min-block-size: var(--guide-search-size); }
+  .guide-world .guide-mode { block-size: var(--guide-tabs-size); border-block-start: 1px solid var(--rule); border-inline-start: 0; flex-basis: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: clip; }
+  .guide-world .guide-search[data-stuck]:not(:has(.guide-pop[open], .guide-mode :focus-visible)) .guide-mode { block-size: 0; border-block-start-color: transparent; }
+  @media (prefers-reduced-motion: no-preference) { .guide-world .guide-mode { transition: block-size .2s ease-out, border-color .2s ease-out; } }
+}
 @media (hover: hover) and (pointer: fine) {
   .guide-world .guide-mode a:not([aria-current="true"]):not(:active):hover { background: color-mix(in oklch, var(--orange) 22%, var(--bench-light)); }
 }
@@ -1493,32 +1501,46 @@ html:has(.guide-pop[open]) .guide-world .guide-search { --guide-search-cover: co
 
 /* Home page: one search across products and cards with its first results, today's deals in one
    row, the articles, then the lists' doors and the newest sets. Same paper, ink and type as the lists. */
-.guide-world .home-main { display: grid; gap: clamp(2.5rem, 2rem + 2vw, 3.5rem); grid-template-columns: minmax(0, 1fr); }
+.guide-world .home-main { --home-gap: clamp(2.5rem, 2rem + 2vw, 3.5rem); display: grid; gap: var(--home-gap); grid-template-columns: minmax(0, 1fr); }
 .guide-world .home-intro { display: grid; gap: .75rem; justify-items: center; text-align: center; }
 .guide-world .home-intro h1 { font-size: clamp(2.25rem, 1.6rem + 3vw, 3.5rem); line-height: 1; }
 .guide-world .home-intro #guide-promise { margin: 0; text-wrap: balance; }
 
-.guide-world .home-search { background: var(--bench-light); border: 1px solid var(--ink); box-shadow: .375rem .375rem 0 var(--ink); display: flex; flex-wrap: wrap; inline-size: min(100%, 44rem); margin-block-start: .75rem; }
-.guide-world .home-search:has(input[type="search"]:focus-visible) { outline: 3px solid var(--orange); outline-offset: -3px; }
-.guide-world .home-search-field { align-items: center; display: flex; flex: 1 1 16rem; gap: .5rem; min-block-size: 3.5rem; padding-inline: .75rem; }
-.guide-world .home-search-icon { block-size: 1.5rem; color: var(--muted); flex: none; inline-size: 1.5rem; }
-.guide-world .home-search input[type="search"] { appearance: none; background: transparent; border: 0; color: var(--ink); flex: 1; font: 700 clamp(1.2rem, 1rem + 1vw, 1.5rem)/1.25 "Barlow Condensed", sans-serif; min-inline-size: 0; padding: 0; }
-.guide-world .home-search input[type="search"]::placeholder { color: var(--muted); opacity: 1; }
-.guide-world .home-search input[type="search"]:focus-visible { outline: none; }
+.guide-world .site-search { background: var(--bench-light); border: 1px solid var(--ink); box-shadow: .375rem .375rem 0 var(--ink); display: flex; flex-wrap: wrap; inline-size: min(100%, 44rem); }
+/* The search and its results follow the intro closely, though they are the page's own children. */
+.guide-world .home-main > .site-search { justify-self: center; margin-block-start: calc(1.5rem - var(--home-gap)); }
+/* Above every other page's own content, where the home page has it under its title. */
+.guide-world .guide-main > .site-search { margin-block-end: 1.5rem; }
+/* The articles are centred, so the bar is too. */
+.guide-world .expensive-cards > .site-search { margin-inline: auto; }
+.guide-world .site-search:has(input[type="search"]:focus-visible) { outline: 3px solid var(--orange); outline-offset: -3px; }
+.guide-world .site-search-field { align-items: center; display: flex; flex: 1 1 16rem; gap: .5rem; min-block-size: 3.5rem; padding-inline: .75rem; }
+.guide-world .site-search-icon { block-size: 1.5rem; color: var(--muted); flex: none; inline-size: 1.5rem; }
+.guide-world .site-search input[type="search"] { appearance: none; background: transparent; border: 0; color: var(--ink); flex: 1; font: 700 clamp(1.2rem, 1rem + 1vw, 1.5rem)/1.25 "Barlow Condensed", sans-serif; min-inline-size: 0; padding: 0; }
+.guide-world .site-search input[type="search"]::placeholder { color: var(--muted); opacity: 1; }
+.guide-world .site-search input[type="search"]:focus-visible { outline: none; }
 /* Everything is searched unless one kind is chosen: a segmented switch, the chosen one inked. */
-.guide-world .home-search-scope { border: 0; border-inline-start: 1px solid var(--rule); display: grid; flex: 1 0 auto; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; min-inline-size: min(100%, 18rem); padding: 0; }
-.guide-world .home-search-scope label { cursor: pointer; display: grid; position: relative; }
-.guide-world .home-search-scope label + label { border-inline-start: 1px solid var(--rule); }
-.guide-world .home-search-scope input { appearance: none; inset: 0; margin: 0; position: absolute; }
-.guide-world .home-search-scope span { align-items: center; display: flex; font: 700 clamp(1rem, .9rem + .4vw, 1.15rem)/1 "Barlow Condensed", sans-serif; justify-content: center; min-block-size: 3.5rem; padding-inline: .75rem; }
-.guide-world .home-search-scope input:checked + span { background: var(--ink); color: var(--paper); }
-.guide-world .home-search-scope input:focus-visible + span { outline: 3px solid var(--orange); outline-offset: -3px; }
-.guide-world .home-search-scope label:active span { background: color-mix(in oklch, var(--ink) 12%, var(--bench-light)); }
-@media (hover: hover) and (pointer: fine) { .guide-world .home-search-scope input:not(:checked) + span:hover { color: var(--orange); } }
-@media (max-width: 39.99rem) { .guide-world .home-search-scope { border-block-start: 1px solid var(--rule); border-inline-start: 0; } }
+.guide-world .site-search-scope { border: 0; border-inline-start: 1px solid var(--rule); display: grid; flex: 1 0 auto; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; min-inline-size: min(100%, 18rem); padding: 0; }
+.guide-world .site-search-scope label { cursor: pointer; display: grid; position: relative; }
+.guide-world .site-search-scope label + label { border-inline-start: 1px solid var(--rule); }
+.guide-world .site-search-scope input { appearance: none; inset: 0; margin: 0; position: absolute; }
+.guide-world .site-search-scope span { align-items: center; display: flex; font: 700 clamp(1rem, .9rem + .4vw, 1.15rem)/1 "Barlow Condensed", sans-serif; justify-content: center; min-block-size: 3.5rem; padding-inline: .75rem; }
+.guide-world .site-search-scope input:checked + span { background: var(--ink); color: var(--paper); }
+.guide-world .site-search-scope input:focus-visible + span { outline: 3px solid var(--orange); outline-offset: -3px; }
+.guide-world .site-search-scope label:active span { background: color-mix(in oklch, var(--ink) 12%, var(--bench-light)); }
+@media (hover: hover) and (pointer: fine) { .guide-world .site-search-scope input:not(:checked) + span:hover { color: var(--orange); } }
+/* On a phone the choice goes under the query, and the bar sticks under the masthead edge to edge,
+   its bench hiding what scrolls past. Once it sticks (the Stuck hook), the choice folds away and only
+   the query stays; scrolling back up brings it back, and so does reaching a choice from the keyboard. */
+@media (max-width: 47.99rem) {
+  .guide-world .site-search { border-inline: 0; box-shadow: 0 calc(-1 * var(--guide-search-gap)) 0 var(--bench), 0 var(--guide-search-gap) 0 var(--bench); inline-size: calc(100% + 2rem); inset-block-start: calc(var(--guide-header-size) + var(--guide-search-gap)); margin-inline: -1rem; position: sticky; z-index: 2; }
+  .guide-world .site-search-scope { border-block-start: 1px solid var(--rule); border-inline-start: 0; flex-basis: 100%; max-block-size: 3.5rem; overflow: clip; }
+  .guide-world .site-search[data-stuck]:not(:has(.site-search-scope :focus-visible)) .site-search-scope { border-block-start-color: transparent; max-block-size: 0; }
+  @media (prefers-reduced-motion: no-preference) { .guide-world .site-search-scope { transition: max-block-size .2s ease-out, border-color .2s ease-out; } }
+}
 
 /* The results take the page's width, as the lists do: the search above stays narrow to read as one field. */
-.guide-world .home-results { display: grid; gap: 1.5rem; inline-size: 100%; margin-block-start: 1.25rem; text-align: start; }
+.guide-world .home-results { display: grid; gap: 1.5rem; margin-block-start: calc(2rem - var(--home-gap)); }
 .guide-world .home-results-head, .guide-world .home-section-head { align-items: baseline; border-block-end: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: .25rem 1rem; justify-content: space-between; margin-block-end: .5rem; padding-block-end: .5rem; }
 .guide-world .home-results-head h2 { font-size: 1.5rem; line-height: 1; }
 .guide-world .home-section-head h2 { font-size: clamp(1.6rem, 1.3rem + 1.2vw, 2.1rem); line-height: 1; }
