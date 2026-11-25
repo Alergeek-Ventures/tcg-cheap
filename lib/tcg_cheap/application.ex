@@ -25,6 +25,8 @@ defmodule TcgCheap.Application do
       {Task.Supervisor, name: TcgCheap.Storage.DownloadSupervisor},
       TcgCheap.Bot.Hosts,
       {Oban, Application.fetch_env!(:tcg_cheap, Oban)},
+      {Task.Supervisor, name: TcgCheap.Sealed.Cache.Refreshes},
+      TcgCheap.Sealed.CacheWarmup,
       # Start to serve requests, typically the last entry
       TcgCheapWeb.Endpoint
     ]
