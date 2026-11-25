@@ -96,12 +96,21 @@ defmodule TcgCheap.Sealed.ShopFeed.ShopRenter do
           else: {:error, :pagination_changed}
 
       :none when number == 1 ->
-        {:ok, %{number: 1, last: 1, total: empty_total(document, products), products: products}}
+        if further_pages?(document),
+          do: {:error, :malformed_pagination},
+          else:
+            {:ok,
+             %{number: 1, last: 1, total: empty_total(document, products), products: products}}
 
       _malformed ->
         {:error, :malformed_pagination}
     end
   end
+
+  # A listing without the counter is taken as one whole page only when nothing
+  # on it leads to another page.
+  defp further_pages?(document),
+    do: Floki.find(document, ~s(a.page-link, a[rel="next"], link[rel="next"])) != []
 
   # An empty category says so ("Nincs megjeleníthető termék."); any other
   # listing without products states no total and fails as an empty page.
