@@ -252,8 +252,9 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       category: "202",
       product_path: @produkt,
       max_pages: 3,
-      shipping_from: nil,
-      free_shipping_from: Decimal.new("399.99"),
+      # Product page: InPost Paczkomat 16,99 zł, free from 400 zł (2026-11-25).
+      shipping_from: Decimal.new("16.99"),
+      free_shipping_from: Decimal.new("400"),
       pickup_city: nil
     },
     %Shop{
@@ -559,7 +560,8 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       source: GoogleFeed,
       feed_path: @shoper_google,
       max_pages: 1,
-      shipping_from: nil,
+      # Product page: GLS Automat Paczkowy 9,99 zł, free from 300 zł (2026-11-25).
+      shipping_from: Decimal.new("9.99"),
       free_shipping_from: Decimal.new("300"),
       pickup_city: "Kraków",
       pickup_location: {50.0208, 20.0498}
@@ -1274,7 +1276,9 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       source: ShopGold,
       listing_paths: ["/pokmon-c-43.html"],
       max_pages: 12,
-      shipping_from: nil,
+      # Product pages: InPost Paczkomaty and ORLEN Paczka 20 zł; no free-delivery
+      # threshold published (2026-11-25).
+      shipping_from: Decimal.new("20"),
       free_shipping_from: nil,
       pickup_city: nil
     },
@@ -1341,7 +1345,9 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         "/chinskie-karty-pokemon-c-196.html"
       ],
       max_pages: 5,
-      shipping_from: nil,
+      # Product page: ORLEN Paczka 11,99 zł is the cheapest of its methods
+      # (2026-11-25); a few products carry their own free-delivery badge.
+      shipping_from: Decimal.new("11.99"),
       free_shipping_from: nil,
       pickup_city: nil
     },
@@ -1352,7 +1358,9 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       source: ShopGold,
       listing_paths: ["/pokmon-tcg-c-1.html"],
       max_pages: 12,
-      shipping_from: nil,
+      # Product pages: DPD Kurier 21,99 zł; no free-delivery threshold published
+      # (2026-11-25).
+      shipping_from: Decimal.new("21.99"),
       free_shipping_from: nil,
       pickup_city: nil
     },
@@ -1544,7 +1552,10 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       source: SkyShop,
       feed_path: "/Karty-Pokemon",
       max_pages: 25,
-      shipping_from: nil,
+      # Product page of a 190 zł item: InPost Paczkomat size A 14 zł. A 2 750 zł item
+      # shows free delivery; the threshold between them is not published
+      # (2026-11-25).
+      shipping_from: Decimal.new("14"),
       free_shipping_from: nil,
       pickup_city: "Elbląg",
       pickup_location: {54.1590, 19.3949}
