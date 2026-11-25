@@ -663,19 +663,6 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       pickup_city: nil
     },
     %Shop{
-      key: "pokebooster",
-      name: "PokeBooster",
-      host: "pokebooster.pl",
-      source: WooCommerce,
-      category: "26,27,42,57",
-      sealed_categories: ["booster", "elite-trainer-box", "premium-collection", "puszki"],
-      product_path: @produkt,
-      max_pages: 10,
-      shipping_from: nil,
-      free_shipping_from: nil,
-      pickup_city: nil
-    },
-    %Shop{
       key: "pokecollect",
       name: "PokeCollect",
       host: "pokecollect.pl",
