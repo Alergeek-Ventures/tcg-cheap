@@ -11,7 +11,8 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
   A product whose own categories name a pre-order (name or slug, read like a
   title by `TcgCheap.Sealed.Matcher.preorder_title?/1`) is a pre-order offer
   (`preorder`), not in stock, and so is a product whose button text is the
-  shop's `bundle_only_text`.
+  shop's `bundle_only_text`. A sealed product whose permalink slug holds one
+  of the shop's `excluded_title_phrases` is left out like one whose title does.
   Every product of the shop's `singles_categories` (category ids, requested
   separately, in stock only, with the shop's `singles_attribute` term when it
   has one, subcategories included, at most 80 pages instead of `max_pages`)
@@ -194,6 +195,7 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
   defp normalize(shop, {:sealed, %{} = product}) do
     with {:ok, title} <- ShopFeed.title(product["name"]),
          true <- sealed?(shop, product["categories"], title) || :ignore,
+         true <- not excluded_slug?(shop, product["permalink"]) || :ignore,
          {:ok, offer} <- offer(shop, product, title, :sealed) do
       {:ok, [offer]}
     else
@@ -212,6 +214,15 @@ defmodule TcgCheap.Sealed.ShopFeed.WooCommerce do
   end
 
   defp normalize(_shop, _product), do: :invalid
+
+  # A shop marks a damaged item in its URL alone ("-small-damage"), as a
+  # Shopify shop's handle is read.
+  defp excluded_slug?(shop, permalink) when is_binary(permalink),
+    do: ShopFeed.excluded_text?(shop, permalink |> URI.parse() |> Map.fetch!(:path) |> slug())
+
+  defp excluded_slug?(_shop, _permalink), do: false
+
+  defp slug(path), do: path |> String.trim("/") |> String.split("/") |> List.last()
 
   defp offer(shop, product, title, kind) do
     with {:ok, id} <- product_id(product["id"]),

@@ -20,7 +20,7 @@ defmodule TcgCheap.Sealed.Shop do
       live", which take a product out when its title, handle or description contains them
       as whole words: other games, packs opened live on stream; nil for none),
       `excluded_title_phrases` (the same, looked for in the title and handle
-      only, for a phrase that ordinary descriptions also use; nil for none;
+      (a WooCommerce shop's permalink slug) only, for a phrase that ordinary descriptions also use; nil for none;
       every reader also drops an offer whose title holds one, see
       `TcgCheap.Sealed.ShopFeed.offers/3`)
       and
