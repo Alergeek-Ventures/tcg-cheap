@@ -1799,6 +1799,14 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         shipping_from: Decimal.new("149.77"),
         free_shipping_from: nil,
         currency: "PLN"
+      },
+      # Its delivery page (2026-11-25): €3.99 to Poland, free from €35
+      # (153.65 zł, rounded up so no order is shown with free delivery it does
+      # not get).
+      "pressstart" => %{
+        shipping_from: Decimal.new("17.52"),
+        free_shipping_from: Decimal.new("154"),
+        currency: "PLN"
       }
     }
   end
