@@ -250,7 +250,7 @@ defmodule TcgCheap.Sealed.Matcher do
     {"deutsch", "german"},
     {"francuski", "french"},
     # Editions in other languages the catalogue has no products for: a title
-    # saying so names no English product (`@bracketed_edition` has the codes).
+    # saying so names no English product (`@edition_codes` has the codes).
     {"francais", "french"},
     {"francaise", "french"},
     {"franzosisch", "french"},
@@ -1209,13 +1209,18 @@ defmodule TcgCheap.Sealed.Matcher do
   # only capitals in brackets make the code mean one. "DE" is German, as at a
   # title's end above. Not "NL": no Dutch edition exists, and a Dutch shop's
   # "(NL)" speaks of its description.
-  @bracketed_edition ~r/[\[(]\s*(FR|IT|ES|DE|PT)\s*[\])]/u
+  #
+  # The code may also stand as its own item of a bracketed list separated by
+  # "/", "," or "-" ("(Sortido / ES)", "(ES, Sortido)"); a code inside a word or
+  # a longer item ("(Sortido ES)") is not an item.
+  @bracket ~r/[\[(][^\[\]()]*[\])]/u
+  @bracket_item_separator ~r/(\s*[\/,–-]\s*)/u
   @edition_codes %{
-    "fr" => "french",
-    "it" => "italian",
-    "es" => "spanish",
-    "de" => "deutsch",
-    "pt" => "portuguese"
+    "FR" => "french",
+    "IT" => "italian",
+    "ES" => "spanish",
+    "DE" => "deutsch",
+    "PT" => "portuguese"
   }
 
   # Slovenian titles repeat the series and set number ("ME - Mega Evolution 6:
@@ -1224,16 +1229,30 @@ defmodule TcgCheap.Sealed.Matcher do
   @series_number ~r/(?:\A| )me (?:mega evolution )?\d+ /
   @half_series_number ~r/\bME ?\d+\.\d+\b/i
 
+  # Replaces each capital language code standing as an item of one bracket by
+  # the language's name; a bracket without such an item is returned unchanged.
+  defp name_bracketed_editions(<<open, inner::binary>> = bracket) do
+    {body, close} = String.split_at(inner, -1)
+    parts = Regex.split(@bracket_item_separator, body, include_captures: true)
+    named = Enum.map(parts, &name_edition_code/1)
+
+    if named == parts, do: bracket, else: <<open>> <> Enum.join(named) <> close
+  end
+
+  defp name_edition_code(item) do
+    case Map.fetch(@edition_codes, String.trim(item)) do
+      {:ok, name} -> " #{name} "
+      :error -> item
+    end
+  end
+
   @doc "The significant word tokens of a title or product name."
   @spec tokens(String.t()) :: [String.t()]
   def tokens(text) do
     normalized =
       text
       |> String.replace(@terminal_german, " deutsch")
-      |> String.replace(@bracketed_edition, fn <<_, rest::binary>> ->
-        code = rest |> String.replace(~r/[^a-z]/iu, "") |> String.downcase()
-        " #{Map.fetch!(@edition_codes, code)} "
-      end)
+      |> String.replace(@bracket, &name_bracketed_editions/1)
       |> String.replace(@half_series_number, " ")
       |> normalize()
       |> String.replace(@digit_letter, "\\1 \\2")
