@@ -1711,3 +1711,23 @@ msgstr ""
 #. contents item
 msgid "minipuszka Vibrant Paldea (5 wzorów)"
 msgstr ""
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Astral Radiance"
+msgstr ""
+
+#. contents item
+msgid "Booster Bundle z dodatku Ascended Heroes"
+msgstr ""
+
+#. contents item
+msgid "Mini Tin z dodatku Ascended Heroes"
+msgstr ""
+
+#. contents item
+msgid "magnes na lodówkę z motywem Święta Smoczych Łodzi"
+msgstr ""
+
+#. contents item
+msgid "trójkątne etui na akcesoria"
+msgstr ""
