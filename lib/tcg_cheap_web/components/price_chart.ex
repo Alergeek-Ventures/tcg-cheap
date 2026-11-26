@@ -118,7 +118,7 @@ defmodule TcgCheapWeb.PriceChart do
               :if={line.points != []}
               id={"#{@id}-summary-#{line.key}"}
             >
-              {line.label}: {Format.price(line.min_price)}–{Format.price(line.max_price)} ({Format.short_date(
+              {line.label}: {Format.price_range(line.min_price, line.max_price)} ({Format.short_date(
                 line.first_date
               )} – {Format.short_date(line.last_date)}).
             </span>
