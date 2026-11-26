@@ -101,18 +101,29 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   `passes` times in all, until the passes together hold the stated total;
   every pass must agree with the first on the page count and the total.
   The result then holds the products of every pass read.
+
+  A listing that is still short after the last pass fails with
+  `{:incomplete_listing, read, stated, passes}`: the distinct products read, the
+  total the listing states and the passes made, so that a failed run can be
+  explained from the logs.
   """
   @spec read((pos_integer() -> {:ok, page()} | {:error, term()}), pos_integer(), pos_integer()) ::
-          {:ok, [product()]} | {:error, term()}
-  def read(request, max_pages, passes \\ 1), do: read(request, max_pages, passes, nil, [])
+          {:ok, [product()]}
+          | {:error,
+             term()
+             | {:incomplete_listing, non_neg_integer(), non_neg_integer(), pos_integer()}}
+  def read(request, max_pages, passes \\ 1), do: read(request, max_pages, passes, 1, nil, [])
 
-  defp read(request, max_pages, passes, first, before) do
+  defp read(request, max_pages, passes, made, first, before) do
     with {:ok, first, products} <- read_pass(request, max_pages, 1, first, []) do
       products = before ++ products
 
       case complete(products, first.total) do
-        {:error, :incomplete_listing} when passes > 1 ->
-          read(request, max_pages, passes - 1, first, products)
+        {:error, {:incomplete_listing, _read, _stated}} when made < passes ->
+          read(request, max_pages, passes, made + 1, first, products)
+
+        {:error, {:incomplete_listing, read, stated}} ->
+          {:error, {:incomplete_listing, read, stated, made}}
 
         result ->
           result
@@ -160,7 +171,7 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
 
     if is_nil(total) or distinct == total,
       do: {:ok, products},
-      else: {:error, :incomplete_listing}
+      else: {:error, {:incomplete_listing, distinct, total}}
   end
 
   @doc """
