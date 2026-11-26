@@ -1729,8 +1729,8 @@ msgstr "Ascended Heroes Mini Tin"
 
 #. contents item
 msgid "magnes na lodówkę z motywem Święta Smoczych Łodzi"
-msgstr "hűtőmágnes Sárkányhajó Fesztivál mintával"
+msgstr "sárkányhajó-fesztivál mintás hűtőmágnes"
 
 #. contents item
 msgid "trójkątne etui na akcesoria"
-msgstr "háromszög alakú kiegészítőtartó"
+msgstr "háromszög alakú kiegészítőtartó tok"
