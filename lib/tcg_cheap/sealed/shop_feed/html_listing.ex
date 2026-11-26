@@ -10,13 +10,18 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   `read/3` accepts the pages only when they form the complete listing: each
   page names itself `n`, none announces more than `max_pages` pages, the
   page count and the stated total (when the listing has one) do not change
-  between pages, the total equals the distinct products read (in all passes,
+  between pages, the total equals the distinct ids read (in all passes,
   when a listing is read more than once), a page has products unless the listing
   states that it is empty, and a page where no product is readable (no id,
   name, link, price or availability) is not a product list the client
   recognises, unless the client explicitly recognises its card metadata
   (`recognised: true` on the page). This lets known cards without offers
   (for example sold-out products with no price) still prove completeness.
+  A listing whose stated total also counts its promoted tiles (ids in the
+  page's `promoted`, not products of the result) is compared like with like:
+  the distinct products and promoted ids together must equal the total. The
+  promoted ids must be the same on every page of every pass, otherwise a
+  rotating advertisement could stand in for a missing product.
   """
 
   alias TcgCheap.Sealed.{Ean, Shop, ShopFeed}
@@ -45,7 +50,8 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
           required(:last) => pos_integer(),
           required(:total) => non_neg_integer() | nil,
           required(:products) => [product()],
-          optional(:recognised) => boolean()
+          optional(:recognised) => boolean(),
+          optional(:promoted) => [String.t()]
         }
 
   @doc "Fetches and parses the page at `path`."
@@ -100,12 +106,14 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   total. With `passes` above 1 such a listing is read again, at most
   `passes` times in all, until the passes together hold the stated total;
   every pass must agree with the first on the page count and the total.
-  The result then holds the products of every pass read.
+  The result then holds the products of every pass read (not the promoted
+  tiles, which only count towards the total).
 
   A listing that is still short after the last pass fails with
-  `{:incomplete_listing, read, stated, passes}`: the distinct products read, the
-  total the listing states and the passes made, so that a failed run can be
-  explained from the logs.
+  `{:incomplete_listing, read, stated, passes}`: the distinct ids read (the
+  products and the promoted ids, overlap counted once), the total the listing
+  states and the passes made, so that a failed run can be explained from the
+  logs.
   """
   @spec read((pos_integer() -> {:ok, page()} | {:error, term()}), pos_integer(), pos_integer()) ::
           {:ok, [product()]}
@@ -115,18 +123,21 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   def read(request, max_pages, passes \\ 1), do: read(request, max_pages, passes, 1, nil, [])
 
   defp read(request, max_pages, passes, made, first, before) do
-    with {:ok, first, products} <- read_pass(request, max_pages, 1, first, []) do
-      products = before ++ products
+    with {:ok, first, pages} <- read_pass(request, max_pages, 1, first, []) do
+      pages = before ++ pages
 
-      case complete(products, first.total) do
+      case complete(pages, first) do
         {:error, {:incomplete_listing, _read, _stated}} when made < passes ->
-          read(request, max_pages, passes, made + 1, first, products)
+          read(request, max_pages, passes, made + 1, first, pages)
 
         {:error, {:incomplete_listing, read, stated}} ->
           {:error, {:incomplete_listing, read, stated, made}}
 
-        result ->
-          result
+        {:ok, products} ->
+          {:ok, products}
+
+        {:error, reason} ->
+          {:error, reason}
       end
     end
   end
@@ -135,11 +146,11 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
     with {:ok, page} <- request.(number),
          :ok <- check(page, max_pages, number, first || page) do
       first = first || page
-      acc = [page.products | acc]
+      acc = [page | acc]
 
       if number < page.last,
         do: read_pass(request, max_pages, number + 1, first, acc),
-        else: {:ok, first, acc |> Enum.reverse() |> List.flatten()}
+        else: {:ok, first, Enum.reverse(acc)}
     end
   end
 
@@ -149,9 +160,16 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
       page.number != number -> {:error, :pagination_changed}
       page.last > max_pages -> {:error, :too_many_pages}
       {page.last, page.total} != {first.last, first.total} -> {:error, :pagination_changed}
+      promoted(page) != promoted(first) -> {:error, :pagination_changed}
+      not valid_promoted?(promoted(page)) -> {:error, :unrecognised_listing}
       true -> check_products(page)
     end
   end
+
+  # The promoted ids of a page, as a set; a page without any promotes none.
+  defp promoted(page), do: page |> Map.get(:promoted, []) |> MapSet.new()
+
+  defp valid_promoted?(ids), do: Enum.all?(ids, &(is_binary(&1) and &1 != ""))
 
   defp check_products(%{products: [], total: 0}), do: :ok
   defp check_products(%{products: []}), do: {:error, :empty_page}
@@ -166,8 +184,14 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
       is_boolean(product.in_stock)
   end
 
-  defp complete(products, total) do
-    distinct = products |> Enum.map(& &1.id) |> Enum.uniq() |> length()
+  # The distinct ids read: those of the products plus the first page's promoted
+  # ids (`check/4` makes every page carry the same ones, so later advertisements
+  # never widen the allowance).
+  defp complete(pages, %{total: total} = first) do
+    products = Enum.flat_map(pages, & &1.products)
+
+    distinct =
+      products |> Enum.map(& &1.id) |> MapSet.new() |> MapSet.union(promoted(first)) |> MapSet.size()
 
     if is_nil(total) or distinct == total,
       do: {:ok, products},
