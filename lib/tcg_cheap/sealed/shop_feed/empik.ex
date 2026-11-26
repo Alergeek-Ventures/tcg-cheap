@@ -11,9 +11,12 @@ defmodule TcgCheap.Sealed.ShopFeed.Empik do
   pass shows some products twice at a page edge and misses as many others
   (2026-11-12: 280–295 distinct of 312, three passes together all 312); the
   listing is read again, up to four passes in all, until the passes
-  together hold every product. Each page also holds a sponsored tile
-  (`data-ad-info`), usually another seller's, which is skipped; a marketplace
-  product among the rest would break the count and fail the fetch too.
+  together hold every product. Each page also holds sponsored tiles
+  (`data-ad-info`), products of any category, which are skipped as products
+  but counted by the listing's stated size (295 = 292 products + 3 sponsored
+  tiles, the same three on every page), so their ids go to the completeness
+  check as `promoted`; a marketplace product among the rest would break the
+  count and fail the fetch too.
 
   The category mixes Panini, Lorcana and card accessories, so a product counts
   when it is sealed Pokémon (`TcgCheap.Sealed.ShopFeed.sealed_pokemon?/2` on
@@ -59,16 +62,18 @@ defmodule TcgCheap.Sealed.ShopFeed.Empik do
          {:ok, document} <- ShopFeed.html(response),
          {:ok, total} <- total(document),
          {:ok, current} <- current(document) do
+      {promoted, products} =
+        document
+        |> Floki.find("div.search-list-item[data-product-id]")
+        |> Enum.split_with(&(Floki.attribute(&1, "data-ad-info") != []))
+
       {:ok,
        %{
          number: current,
          last: max(div(total + @page_size - 1, @page_size), 1),
          total: total,
-         products:
-           document
-           |> Floki.find("div.search-list-item[data-product-id]")
-           |> Enum.reject(&(Floki.attribute(&1, "data-ad-info") != []))
-           |> Enum.map(&product/1)
+         products: Enum.map(products, &product/1),
+         promoted: Enum.map(promoted, &(&1 |> Floki.attribute("data-product-id") |> List.first()))
        }}
     end
   end
