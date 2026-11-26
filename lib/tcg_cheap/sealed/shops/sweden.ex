@@ -14,7 +14,15 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
   """
 
   alias TcgCheap.Sealed.Shop
-  alias TcgCheap.Sealed.ShopFeed.{BangerpackSe, Chasedex, GoogleFeed, Shopify, WooCommerce}
+
+  alias TcgCheap.Sealed.ShopFeed.{
+    BangerpackSe,
+    Chasedex,
+    GoogleFeed,
+    Shopify,
+    Storeborn,
+    WooCommerce
+  }
 
   @shops [
     # Bangerpack (White Tree AB, Helsingborg) runs two shops. bangerpack.com
@@ -230,15 +238,27 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
     %Shop{
       key: "cardvalley",
       name: "CardValley",
-      host: "cardvalley.se",
-      source: Shopify,
-      # Its titles do not say Pokémon (nor do all handles), but it also sells
-      # One Piece, Lorcana and Match Attax, and packs opened live on stream
-      # (marked "öppnas live" in the title or handle, or "LIVE-ÖPPNING" in the
-      # description) that are not shipped sealed. Its mystery boxes hold random
-      # products.
-      mixed_listing: false,
-      excluded_phrases: [
+      host: "www.cardvalley.se",
+      source: Storeborn,
+      # A Storeborn storefront since 2026-11-26 (it left Shopify). Its parent
+      # category "pokemon-sealed-produkter" lacked three products that its
+      # collection category lists, so the subcategories are read instead; the
+      # sleeved packs are in two of them, and the boxes and vintage ones are
+      # empty today. It also sells One Piece and Lorcana (other categories),
+      # and packs opened live on stream (marked "öppnas live" in the title or
+      # the slug) that are not shipped sealed.
+      listing_paths: [
+        "/kategorier/collection-boxar",
+        "/kategorier/pokemon-booster-box",
+        "/kategorier/pokemon-booster-bundle",
+        "/kategorier/pokemon-elite-trainer-box-etb",
+        "/kategorier/pokemon-blister-packs",
+        "/kategorier/pokemon-tins",
+        "/kategorier/sleeved-booster-packs",
+        "/kategorier/engelska-pokemon-booster-packs",
+        "/kategorier/vintage-pokemon"
+      ],
+      excluded_title_phrases: [
         "one piece",
         "lorcana",
         "match attax",
@@ -249,8 +269,10 @@ defmodule TcgCheap.Sealed.Shops.Sweden do
       ],
       currency: "SEK",
       country: "SE",
-      max_pages: 2,
-      shipping_from: Decimal.new("69"),
+      max_pages: 3,
+      # Its shipping policy (updated 2026-09-25) delivers within Sweden only,
+      # with PostNord, and shows the price at checkout: none is published.
+      shipping_from: nil,
       free_shipping_from: nil,
       pickup_city: nil
     },
