@@ -76,6 +76,15 @@ defmodule TcgCheapWeb.Format do
   def recorded(text) when is_binary(text),
     do: Gettext.dgettext(TcgCheapWeb.Gettext, "catalogue", text)
 
+  @doc ~S'Prices from–to: "129 zł–139 zł", one amount ("129 zł") when both ends read the same.'
+  @spec price_range(Decimal.t(), Decimal.t()) :: String.t()
+  def price_range(low, high) do
+    case {price(low), price(high)} do
+      {same, same} -> same
+      {low, high} -> low <> "–" <> high
+    end
+  end
+
   @doc ~S'Formats a Cardmarket price in euro: "1 299,99 €".'
   @spec eur(Decimal.t()) :: String.t()
   def eur(%Decimal{} = value) do
