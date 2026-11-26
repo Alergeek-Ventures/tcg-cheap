@@ -1714,3 +1714,23 @@ msgstr "slumpvis (1 av 4: Sunflora, Rapidash, Kirlia, Archeops – SWSH 269–27
 #. contents item
 msgid "minipuszka Vibrant Paldea (5 wzorów)"
 msgstr "Vibrant Paldea Mini Tin (5 motiv)"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Astral Radiance"
+msgstr "Elite Trainer Box från Astral Radiance"
+
+#. contents item
+msgid "Booster Bundle z dodatku Ascended Heroes"
+msgstr "Booster Bundle från Ascended Heroes"
+
+#. contents item
+msgid "Mini Tin z dodatku Ascended Heroes"
+msgstr "Mini Tin från Ascended Heroes"
+
+#. contents item
+msgid "magnes na lodówkę z motywem Święta Smoczych Łodzi"
+msgstr "kylskåpsmagnet med drakbåtsfestivalmotiv"
+
+#. contents item
+msgid "trójkątne etui na akcesoria"
+msgstr "trekantigt tillbehörsfodral"

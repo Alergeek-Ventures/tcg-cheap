@@ -1714,3 +1714,23 @@ msgstr "naključna (1 od 4: Sunflora, Rapidash, Kirlia, Archeops – SWSH 269–
 #. contents item
 msgid "minipuszka Vibrant Paldea (5 wzorów)"
 msgstr "Vibrant Paldea Mini Tin (5 vzorcev)"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Astral Radiance"
+msgstr "Elite Trainer Box iz seta Astral Radiance"
+
+#. contents item
+msgid "Booster Bundle z dodatku Ascended Heroes"
+msgstr "Booster Bundle iz seta Ascended Heroes"
+
+#. contents item
+msgid "Mini Tin z dodatku Ascended Heroes"
+msgstr "Mini Tin iz seta Ascended Heroes"
+
+#. contents item
+msgid "magnes na lodówkę z motywem Święta Smoczych Łodzi"
+msgstr "magnet za hladilnik z motivom Praznika zmajevih čolnov"
+
+#. contents item
+msgid "trójkątne etui na akcesoria"
+msgstr "trikotni etui za dodatke"

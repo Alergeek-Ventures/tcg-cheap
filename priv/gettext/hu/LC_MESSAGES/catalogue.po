@@ -1714,3 +1714,23 @@ msgstr "véletlenszerű (4 közül 1: Sunflora, Rapidash, Kirlia, Archeops – S
 #. contents item
 msgid "minipuszka Vibrant Paldea (5 wzorów)"
 msgstr "Vibrant Paldea Mini Tin (5 féle minta)"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Astral Radiance"
+msgstr "Astral Radiance Elite Trainer Box"
+
+#. contents item
+msgid "Booster Bundle z dodatku Ascended Heroes"
+msgstr "Ascended Heroes Booster Bundle"
+
+#. contents item
+msgid "Mini Tin z dodatku Ascended Heroes"
+msgstr "Ascended Heroes Mini Tin"
+
+#. contents item
+msgid "magnes na lodówkę z motywem Święta Smoczych Łodzi"
+msgstr "hűtőmágnes Sárkányhajó Fesztivál mintával"
+
+#. contents item
+msgid "trójkątne etui na akcesoria"
+msgstr "háromszög alakú kiegészítőtartó"

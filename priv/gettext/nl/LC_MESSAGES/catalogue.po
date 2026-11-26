@@ -1714,3 +1714,23 @@ msgstr "willekeurig (1 van 4: Sunflora, Rapidash, Kirlia, Archeops – SWSH 269�
 #. contents item
 msgid "minipuszka Vibrant Paldea (5 wzorów)"
 msgstr "Vibrant Paldea mini tin (5 ontwerpen)"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Astral Radiance"
+msgstr "Astral Radiance Elite Trainer Box"
+
+#. contents item
+msgid "Booster Bundle z dodatku Ascended Heroes"
+msgstr "Ascended Heroes Booster Bundle"
+
+#. contents item
+msgid "Mini Tin z dodatku Ascended Heroes"
+msgstr "Ascended Heroes Mini Tin"
+
+#. contents item
+msgid "magnes na lodówkę z motywem Święta Smoczych Łodzi"
+msgstr "koelkastmagneet met Drakenbootfestival-motief"
+
+#. contents item
+msgid "trójkątne etui na akcesoria"
+msgstr "driehoekig accessoire-etui"
