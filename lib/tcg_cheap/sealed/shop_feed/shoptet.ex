@@ -13,8 +13,9 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
   availability; only `InStock` is in stock, and only on a card that can be
   bought: it has the add-to-cart form, is a product with variants, or shows
   no product code to tell (`purchasable?/1`). Sealed products must name a
-  sealed product; singles have a 0.10 minimum and no category (the title
-  names the set).
+  sealed product, and a sold-out one listed at one unit of the currency (a
+  placeholder, not a price) is not an offer; singles have a 0.10 minimum and
+  no category (the title names the set).
   A card showing a variant code (`product/variant`) that would be an offer in
   stock costs one more request: the product's page, which lists the variants
   and takes the cheapest variant that can be bought as new. Images
@@ -432,6 +433,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
          {:ok, url} <- product_url(shop, product.path),
          true <- product.currency == shop.currency,
          {:ok, price} <- ShopFeed.decimal_price(product.price, kind),
+         true <- not placeholder_price?(kind, product, price) || :ignore,
          availability when is_binary(availability) <- product.availability do
       preorder =
         Matcher.preorder_title?(title <> " " <> product.flags) or
@@ -457,6 +459,14 @@ defmodule TcgCheap.Sealed.ShopFeed.Shoptet do
       _ -> :invalid
     end
   end
+
+  # Some shops list a sold-out sealed product at one unit of their currency
+  # (1 Kč) instead of a price. As with any item that has no price to pay, it
+  # is not an offer; a product in stock keeps whatever price it shows.
+  defp placeholder_price?(:sealed, %{in_stock: false}, price),
+    do: Decimal.compare(price, 1) != :gt
+
+  defp placeholder_price?(_kind, _product, _price), do: false
 
   defp product_url(shop, "/" <> _rest = path) do
     url = "https://#{shop.host}#{path}"
