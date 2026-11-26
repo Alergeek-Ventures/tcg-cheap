@@ -18,13 +18,15 @@ defmodule TcgCheap.Sealed.ShopFeed.Storeborn do
   The JSON holds the price without VAT for some products, so the price is the
   one the product card of the same page shows (`.sb-price--current`, whole
   krona, VAT included), found by the card's link. A product without a card
-  or a readable price is skipped and counted, as everywhere. A product is in
+  or a readable price is skipped and counted, as everywhere; one whose JSON
+  lacks its id, name, slug or stock fails the listing. A product is in
   stock when it is `inStock` and `purchasable`; a product that may be bought
   beyond its stock (`allowBackorders` other than `never`) or whose title or
   slug says pre-order (`TcgCheap.Sealed.Matcher.preorder_title?/1`, "kommer
   snart") is a pre-order (`preorder`) and never in stock. Products the
-  shop's `excluded_title_phrases` name in the title or the slug (packs opened
-  live on stream) are left out. The id is the product's `id`, the link
+  shop's `excluded_title_phrases` name in the title (packs opened live on
+  stream) are left out; the slug is not read for it, since it keeps the words
+  when such a product becomes an ordinary one. The id is the product's `id`, the link
   `/produkter/<slug>` and the photo its first image, on the platform's media
   hosts. The listings carry no EAN. Requests are three seconds apart. See
   `TcgCheap.Sealed.ShopFeed` for the shared limits.
@@ -114,17 +116,28 @@ defmodule TcgCheap.Sealed.ShopFeed.Storeborn do
 
     if last == max(div(total + size - 1, size), 1) and length(products) == expected,
       do:
-        {:ok,
-         %{
-           number: number,
-           last: last,
-           total: total,
-           products: Enum.map(products, &product(&1, prices))
-         }},
+        described(%{
+          number: number,
+          last: last,
+          total: total,
+          products: Enum.map(products, &product(&1, prices))
+        }),
       else: {:error, :malformed_pagination}
   end
 
   defp page(_data, _prices, _number), do: {:error, :unrecognised_listing}
+
+  # Only the price comes from the card and may be missing: a product whose
+  # JSON lacks its id, name, slug or stock is a layout this reader does not know.
+  defp described(%{products: products} = page) do
+    if Enum.all?(products, &described?/1),
+      do: {:ok, page},
+      else: {:error, :unrecognised_listing}
+  end
+
+  defp described?(product) do
+    Enum.all?([:id, :title, :path], &is_binary(product[&1])) and is_boolean(product.in_stock)
+  end
 
   # The price each product card shows, by the card's product slug.
   defp prices(document) do
@@ -178,10 +191,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Storeborn do
   defp image([%{"url" => url} | _images]) when is_binary(url), do: url
   defp image(_images), do: nil
 
-  # A pack opened live is named so in its title or its slug.
-  defp excluded?(shop, %{title: title, path: "/produkter/" <> slug}) do
-    ShopFeed.excluded_text?(shop, to_string(title)) or ShopFeed.excluded_text?(shop, slug)
-  end
-
-  defp excluded?(_shop, _product), do: false
+  # A pack opened live says so in its title; slugs keep the words after the
+  # shop turns such a product into an ordinary one.
+  defp excluded?(shop, %{title: title}), do: ShopFeed.excluded_text?(shop, to_string(title))
 end
