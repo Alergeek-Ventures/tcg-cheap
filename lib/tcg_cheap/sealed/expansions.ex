@@ -30,9 +30,28 @@ defmodule TcgCheap.Sealed.Expansions do
   end
 
   @doc """
+  The release day of each expansion's TCGdex set that has one, by Cardmarket
+  expansion id. Shared like the names.
+  """
+  @spec released_on() :: %{integer() => Date.t()}
+  def released_on do
+    Cache.fetch(:expansion_release_dates, fn ->
+      Cards.list_sets!(
+        query: [
+          filter: [not: [is_nil: :cardmarket_expansion_id]],
+          select: [:cardmarket_expansion_id, :language, :name, :released_on]
+        ]
+      )
+      |> Cards.Set.by_expansion()
+      |> Map.new(fn {id, set} -> {id, set.released_on} end)
+      |> Map.reject(fn {_id, released_on} -> is_nil(released_on) end)
+    end)
+  end
+
+  @doc """
   The English sets with products in stock, newest first, as the products
-  list's set column leads with them (`ProductFacets.read/1`): the sets every
-  page's footer links. Shared for a few minutes.
+  list's set column leads with them (`ProductFacets.read/1`, by release
+  day): the sets every page's footer links. Shared for a few minutes.
   """
   @spec newest(pos_integer()) :: [%{id: integer(), name: String.t()}]
   def newest(count) do
@@ -67,22 +86,14 @@ defmodule TcgCheap.Sealed.Expansions do
         |> ProductFacets.read()
         |> Map.fetch!(:expansions)
 
-      released =
-        Cards.list_sets!(
-          query: [
-            filter: [cardmarket_expansion_id: [in: Enum.map(expansions, & &1.id)]],
-            select: [:cardmarket_expansion_id, :language, :name, :released_on]
-          ]
-        )
-        |> Cards.Set.by_expansion()
+      released = released_on()
 
       expansions
       |> Enum.map(fn expansion ->
         expansion
         |> Map.take([:id, :name, :logo_url])
-        |> Map.put(:released_on, get_in(released, [expansion.id, Access.key(:released_on)]))
+        |> Map.put(:released_on, released[expansion.id])
       end)
-      # The list's own order follows its newest product; news follow the release day.
       |> Enum.sort_by(&(&1.released_on || ~D[0000-01-01]), {:desc, Date})
     end)
     |> Enum.take(count)

@@ -5,13 +5,14 @@ defmodule TcgCheap.Sealed.ProductFacets do
   """
 
   alias TcgCheap.Sealed
-  alias TcgCheap.Sealed.{Editions, ExpansionLogo, Kinds, ProductList}
+  alias TcgCheap.Sealed.{Editions, ExpansionLogo, Expansions, Kinds, ProductList}
 
   @doc """
   Product counts per language edition and per kind (the chosen kind stays,
   with none), and the named expansions (English ones first, then the other
   language editions in turn; within each, those with a product in stock
-  first, then newest first) with their logo when one is
+  first, then newest first by the set's release date, else the day its
+  first product joined the catalogue) with their logo when one is
   mirrored: the English TCGdex logo, else the one set for the expansion.
   """
   @spec read(ProductList.filters()) :: %{
@@ -80,10 +81,11 @@ defmodule TcgCheap.Sealed.ProductFacets do
 
   defp expansions(groups, filters) do
     logos = ExpansionLogo.mirrored_urls()
+    released = Expansions.released_on()
 
     expansions =
       groups
-      |> named_expansions(logos)
+      |> named_expansions(logos, released)
       |> Enum.sort_by(&(&1.newest || ~D[1990-01-01]), {:desc, Date})
       |> Enum.sort_by(&(!&1.available?))
       |> Enum.sort_by(&Enum.find_index(Editions.all(), fn edition -> edition == &1.edition end))
@@ -102,12 +104,12 @@ defmodule TcgCheap.Sealed.ProductFacets do
     else
       Sealed.count_product_facets!()
       |> Enum.filter(&(&1.cardmarket_expansion_id == id))
-      |> named_expansions(logos)
+      |> named_expansions(logos, Expansions.released_on())
       |> Enum.map(&(&1 |> Map.drop([:available?, :newest]) |> Map.put(:count, 0)))
     end
   end
 
-  defp named_expansions(groups, logos) do
+  defp named_expansions(groups, logos, released) do
     groups
     |> Enum.filter(&(&1.cardmarket_expansion_id && &1.set_name))
     |> Enum.group_by(& &1.cardmarket_expansion_id)
@@ -119,13 +121,17 @@ defmodule TcgCheap.Sealed.ProductFacets do
         logo_url: Map.get(logos, id),
         count: Enum.sum_by(groups, & &1.count),
         available?: Enum.any?(groups, & &1.available?),
-        newest:
-          groups
-          |> Enum.map(& &1.newest)
-          |> Enum.reject(&is_nil/1)
-          |> Enum.max(Date, fn -> nil end)
+        # A product Cardmarket adds to an old set later must not make it new.
+        newest: Map.get(released, id) || first_added(groups)
       }
     end)
+  end
+
+  defp first_added(groups) do
+    groups
+    |> Enum.map(& &1.first_added)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.min(Date, fn -> nil end)
   end
 
   defp most_common(groups, field),

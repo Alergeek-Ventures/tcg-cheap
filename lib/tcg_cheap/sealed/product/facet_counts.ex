@@ -2,7 +2,7 @@ defmodule TcgCheap.Sealed.Product.FacetCounts do
   @moduledoc """
   The products the public list would show for a search (the `:facets` read),
   counted in the database per language edition, kind, expansion and set name,
-  with the newest Cardmarket addition and whether any is in a Polish shop. The
+  with the first Cardmarket addition and whether any is in a Polish shop. The
   filter counts are sums of these few hundred groups instead of every product.
   """
 
@@ -34,7 +34,7 @@ defmodule TcgCheap.Sealed.Product.FacetCounts do
          cardmarket_expansion_id: product.cardmarket_expansion_id,
          set_name: product.set_name,
          count: count(),
-         newest: max(product.cardmarket_added_on),
+         first_added: min(product.cardmarket_added_on),
          available?: fragment("bool_or(?)", product.available)
        })
        |> TcgCheap.Repo.all()}
