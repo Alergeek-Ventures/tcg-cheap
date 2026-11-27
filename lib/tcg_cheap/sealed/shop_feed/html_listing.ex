@@ -135,9 +135,6 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
 
         {:ok, products} ->
           {:ok, products}
-
-        {:error, reason} ->
-          {:error, reason}
       end
     end
   end
@@ -191,7 +188,11 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
     products = Enum.flat_map(pages, & &1.products)
 
     distinct =
-      products |> Enum.map(& &1.id) |> MapSet.new() |> MapSet.union(promoted(first)) |> MapSet.size()
+      products
+      |> Enum.map(& &1.id)
+      |> MapSet.new()
+      |> MapSet.union(promoted(first))
+      |> MapSet.size()
 
     if is_nil(total) or distinct == total,
       do: {:ok, products},
