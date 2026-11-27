@@ -784,6 +784,13 @@ defmodule TcgCheap.Sealed.Shops.Netherlands do
         currency: "EUR",
         price_currency: "EUR"
       },
+      # https://reflexshop.hu/szallitasi-informaciok: GLS home delivery, zone 2 for orders under 7 000 Ft;
+      # the rate falls with the order value, and the page names no free delivery (2026-11-26).
+      "reflexshop" => %{
+        shipping_from: Decimal.new("5190"),
+        free_shipping_from: nil,
+        currency: "HUF"
+      },
       "tcgwebshop" => %{
         shipping_from: Decimal.new("8000"),
         free_shipping_from: nil,

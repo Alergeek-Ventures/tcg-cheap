@@ -1786,6 +1786,13 @@ defmodule TcgCheap.Sealed.Shops.Poland do
         currency: "PLN",
         price_currency: "PLN"
       },
+      # https://reflexshop.hu/szallitasi-informaciok: GLS home delivery, zone 2 (5 190 Ft) for orders
+      # under 7 000 Ft, at the NBP rate of 25 November 2026 (HUF 0.011999), rounded up (2026-11-26).
+      "reflexshop" => %{
+        shipping_from: Decimal.new("62.28"),
+        free_shipping_from: nil,
+        currency: "PLN"
+      },
       "tcgwebshop" => %{
         # 10 160 Ft in its cart to Warsaw, VAT included (2026-11-16), at the
         # NBP rate of 13 November 2026 (HUF 0.012053), rounded up.

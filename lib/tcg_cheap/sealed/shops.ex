@@ -43,6 +43,7 @@ defmodule TcgCheap.Sealed.Shops do
     Shoptet,
     Storeborn,
     TcgPark,
+    Unas,
     WooCommerce,
     ZberiVse,
     ZboziFeed
@@ -119,6 +120,7 @@ defmodule TcgCheap.Sealed.Shops do
     PrestaShop,
     RajZaIgrace,
     TcgPark,
+    Unas,
     ZberiVse,
     ZboziFeed
   ]

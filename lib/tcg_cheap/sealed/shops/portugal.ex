@@ -337,6 +337,13 @@ defmodule TcgCheap.Sealed.Shops.Portugal do
         free_shipping_from: Decimal.new("100"),
         currency: "EUR"
       },
+      # https://reflexshop.hu/szallitasi-informaciok: GLS home delivery, zone 4 for orders under 7 000 Ft;
+      # the rate falls with the order value, and the page names no free delivery (2026-11-26).
+      "reflexshop" => %{
+        shipping_from: Decimal.new("7190"),
+        free_shipping_from: nil,
+        currency: "HUF"
+      },
       # Its cart to Lisbon (2026-11-17): 8,000 Ft and 27% VAT.
       "tcgwebshop" => %{
         shipping_from: Decimal.new("10160"),
