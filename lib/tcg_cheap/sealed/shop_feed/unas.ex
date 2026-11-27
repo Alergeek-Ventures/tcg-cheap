@@ -8,19 +8,25 @@ defmodule TcgCheap.Sealed.ShopFeed.Unas do
   product's id and whose text or title is the name), its price (the consumer
   price in whole forints, grouped by dots or spaces: `price_akcio_brutto_…`
   when the product is on sale, else `price_net_brutto_…`) and its cart call
-  (`cart_add('<sku>', ...)`). A
-  product is in stock when the card shows the shop's in-stock marker
-  (`.on-stock`) and offers that cart call; a product the shop will not sell
-  (`not-orderable`, `no-stock`) has neither. A pre-order (its title or any
-  "előrendelés" on the card, `TcgCheap.Sealed.Matcher.preorder_title?/1`) is
-  never in stock. The product's link and image must be on the shop's host;
+  (`cart_add('<sku>', ...)`). Every card must state one of the availabilities
+  the shops print: in stock (the shop's marker `.on-stock` with that cart call),
+  sold out (`.no-stock`, or `.not-orderable` on the stock line), or a pre-order
+  (its title or any "előrendelés" on the card,
+  `TcgCheap.Sealed.Matcher.preorder_title?/1`, never in stock). A card without
+  its sku, name or link on the shop's host, or without a recognised
+  availability, is a layout this reader does not know and fails the listing
+  (`:unrecognised_listing`). A sold-out or pre-order card that shows no price
+  is no offer (every offer has a price) and is left out; a listing in which
+  every sealed card is such a card yields no offers, which `TcgCheap.Sealed.Refresh`
+  reports as an empty feed. The product's image must be on the shop's host;
   listings carry no EAN.
 
   A listing is complete when its pager's numbers (`.pager-item`) are all read,
-  the pager marks the page asked for as the selected one, no page links further
+  the pager marks the page asked for as the selected one (a listing with a pager
+  or a page beyond the first without one fails), no page links further
   (`rel="next"`) after the last, and, where the theme states how many products
-  the category holds (`.product-num`), the pages together hold exactly that many
-  distinct products (`TcgCheap.Sealed.ShopFeed.HtmlListing.read/2`). See
+  the category holds (`.product-num`, which must then be a number), the pages
+  together hold exactly that many distinct products (`TcgCheap.Sealed.ShopFeed.HtmlListing.read/2`). See
   `TcgCheap.Sealed.ShopFeed` for the shared limits.
   """
 
@@ -65,11 +71,11 @@ defmodule TcgCheap.Sealed.ShopFeed.Unas do
     last = Enum.max([1 | numbers])
 
     cond do
-      selected(document) not in [nil, number] ->
-        {:error, :pagination_changed}
-
       numbers == [] and number > 1 ->
         {:error, :malformed_pagination}
+
+      numbers != [] and selected(document) != number ->
+        {:error, :pagination_changed}
 
       number >= last and next_link?(document) ->
         {:error, :malformed_pagination}
@@ -80,20 +86,23 @@ defmodule TcgCheap.Sealed.ShopFeed.Unas do
           |> Floki.find(~s(article[id^="page_artlist_artlist_"]))
           |> Enum.map(&product(shop, &1))
 
-        {:ok,
-         %{
-           number: number,
-           last: last,
-           total: total(document),
-           # A sold-out product shows no price, but a page of such cards is
-           # still a product list.
-           recognised: cards != [] and Enum.all?(cards, &identified?/1),
-           products: cards
-         }}
+        with {:ok, total} <- total(document), do: described(cards, number, last, total)
     end
   end
 
-  defp identified?(product), do: Enum.all?([:id, :title, :path], &is_binary(product[&1]))
+  # A sold-out product shows no price, but a page of such cards is still a
+  # product list: what every card must state is its identity and availability.
+  defp described(cards, number, last, total) do
+    if Enum.all?(cards, &described?/1),
+      do:
+        {:ok,
+         %{number: number, last: last, total: total, recognised: cards != [], products: cards}},
+      else: {:error, :unrecognised_listing}
+  end
+
+  defp described?(product) do
+    Enum.all?([:id, :title, :path], &is_binary(product[&1])) and is_boolean(product.in_stock)
+  end
 
   defp pager_numbers(document) do
     for node <- Floki.find(document, "a.pager-item"),
@@ -113,13 +122,18 @@ defmodule TcgCheap.Sealed.ShopFeed.Unas do
   defp next_link?(document),
     do: Floki.find(document, ~s|link[rel="next"], a.next-button:not(.inactive)|) != []
 
-  # "9 termék" on themes that state it; nil on those that do not.
+  # The product count on themes that state it (nil on those that do not); a
+  # counter that is there but not a number is a layout this reader does not know.
   defp total(document) do
-    with node when node != nil <- HtmlListing.first(document, ".product-num"),
-         {total, ""} <- Integer.parse(HtmlListing.text(node) || "") do
-      total
-    else
-      _ -> nil
+    case HtmlListing.first(document, ".product-num") do
+      nil ->
+        {:ok, nil}
+
+      node ->
+        case Integer.parse(HtmlListing.text(node) || "") do
+          {total, ""} -> {:ok, total}
+          _ -> {:error, :malformed_pagination}
+        end
     end
   end
 
@@ -134,16 +148,27 @@ defmodule TcgCheap.Sealed.ShopFeed.Unas do
       path: link && link |> Floki.attribute("href") |> List.first() |> shop_path(shop),
       image: HtmlListing.attr(card, "img[data-src]", "data-src"),
       price: price(shop, card),
-      in_stock: in_stock?(card) and not preorder,
+      in_stock: availability(card, preorder),
       preorder: preorder
     }
   end
 
-  defp in_stock?(card) do
-    Floki.find(card, ".on-stock") != [] and
-      card
-      |> Floki.find("[onclick]")
-      |> Enum.any?(&(&1 |> Floki.attribute("onclick") |> Enum.any?(fn call -> call =~ @cart end)))
+  # In stock (true), sold out or pre-order (false), or a state this reader does
+  # not know (nil): the page does not say, so it is not read as sold out.
+  defp availability(_card, true), do: false
+
+  defp availability(card, false) do
+    cond do
+      Floki.find(card, ".on-stock") != [] and cart?(card) -> true
+      Floki.find(card, ".no-stock, .stock-item.not-orderable") != [] -> false
+      true -> nil
+    end
+  end
+
+  defp cart?(card) do
+    card
+    |> Floki.find("[onclick]")
+    |> Enum.any?(&(&1 |> Floki.attribute("onclick") |> Enum.any?(fn call -> call =~ @cart end)))
   end
 
   # Forints have no fractions; the dots or spaces group thousands.
