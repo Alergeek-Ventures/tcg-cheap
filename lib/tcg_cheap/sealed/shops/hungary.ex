@@ -6,7 +6,7 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
   """
 
   alias TcgCheap.Sealed.Shop
-  alias TcgCheap.Sealed.ShopFeed.{Shopify, ShopRenter, Shoptet, WooCommerce}
+  alias TcgCheap.Sealed.ShopFeed.{Shopify, ShopRenter, Shoptet, Unas, WooCommerce}
 
   @termek ~r|\A/termek/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
   @bolt ~r|\A/bolt/[a-z0-9]+(?:-[a-z0-9]+)*/\z|
@@ -233,6 +233,38 @@ defmodule TcgCheap.Sealed.Shops.Hungary do
       # per parcel (2026-11-25).
       shipping_from: Decimal.new("1240"),
       free_shipping_from: nil,
+      pickup_city: nil
+    },
+    %Shop{
+      key: "reflexshop",
+      name: "Reflexshop",
+      host: "reflexshop.hu",
+      source: Unas,
+      listing_paths: ["/Tarsasjatekok/Gyujtoi-kartyak/Pokemon"],
+      currency: "HUF",
+      country: "HU",
+      max_pages: 8,
+      # https://reflexshop.hu/szallitasi-informaciok: GLS parcel locker or
+      # collection point under 15 000 Ft, free from 30 000 Ft, gross; pickup
+      # in its Budapest stores is free (2026-11-26).
+      shipping_from: Decimal.new("1299"),
+      free_shipping_from: Decimal.new("30000"),
+      pickup_city: "Budapest"
+    },
+    %Shop{
+      key: "sportkartyabolt",
+      name: "Sportkártyabolt",
+      host: "sportkartyabolt.hu",
+      source: Unas,
+      listing_paths: ["/Pokemon-Kartya"],
+      currency: "HUF",
+      country: "HU",
+      max_pages: 4,
+      # https://sportkartyabolt.hu/shop_contact.php?tab=shipping: MPL
+      # PostaPont parcel locker, free from 30 000 Ft, gross (2026-11-26). Pickup
+      # in Veszprém is only by prior arrangement, so none is recorded.
+      shipping_from: Decimal.new("1190"),
+      free_shipping_from: Decimal.new("30000"),
       pickup_city: nil
     }
   ]
