@@ -1734,3 +1734,27 @@ msgstr ""
 #. contents item
 msgid "trójkątne etui na akcesoria"
 msgstr ""
+
+#. contents item
+msgid "Booster Box z dodatku Astral Radiance"
+msgstr ""
+
+#. contents item
+msgid "Booster Box z dodatku Chilling Reign"
+msgstr ""
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Chilling Reign"
+msgstr ""
+
+#. contents item
+msgid "Booster Bundle z dodatku Black Bolt"
+msgstr ""
+
+#. contents item
+msgid "losowa karta z dodatku Champion Road"
+msgstr ""
+
+#. contents item
+msgid "plansza do gry dla dwóch graczy"
+msgstr ""

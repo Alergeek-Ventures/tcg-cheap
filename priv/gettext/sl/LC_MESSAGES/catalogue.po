@@ -1734,3 +1734,27 @@ msgstr "magnet za hladilnik z motivom festivala zmajevih čolnov"
 #. contents item
 msgid "trójkątne etui na akcesoria"
 msgstr "trikotni etui za dodatke"
+
+#. contents item
+msgid "Booster Box z dodatku Astral Radiance"
+msgstr "Booster Box iz seta Astral Radiance"
+
+#. contents item
+msgid "Booster Box z dodatku Chilling Reign"
+msgstr "Booster Box iz seta Chilling Reign"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Chilling Reign"
+msgstr "Elite Trainer Box iz seta Chilling Reign"
+
+#. contents item
+msgid "Booster Bundle z dodatku Black Bolt"
+msgstr "Booster Bundle iz seta Black Bolt"
+
+#. contents item
+msgid "losowa karta z dodatku Champion Road"
+msgstr "naključna karta iz seta Champion Road"
+
+#. contents item
+msgid "plansza do gry dla dwóch graczy"
+msgstr "igralna plošča za dva igralca"

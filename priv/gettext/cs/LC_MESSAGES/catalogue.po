@@ -1734,3 +1734,27 @@ msgstr "magnet na lednici s motivem Svátku dračích lodí"
 #. contents item
 msgid "trójkątne etui na akcesoria"
 msgstr "trojúhelníkové pouzdro na doplňky"
+
+#. contents item
+msgid "Booster Box z dodatku Astral Radiance"
+msgstr "Booster Box ze setu Astral Radiance"
+
+#. contents item
+msgid "Booster Box z dodatku Chilling Reign"
+msgstr "Booster Box ze setu Chilling Reign"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Chilling Reign"
+msgstr "Elite Trainer Box ze setu Chilling Reign"
+
+#. contents item
+msgid "Booster Bundle z dodatku Black Bolt"
+msgstr "Booster Bundle ze setu Black Bolt"
+
+#. contents item
+msgid "losowa karta z dodatku Champion Road"
+msgstr "náhodná karta ze setu Champion Road"
+
+#. contents item
+msgid "plansza do gry dla dwóch graczy"
+msgstr "herní deska pro dva hráče"

@@ -1734,3 +1734,27 @@ msgstr "Dragon Boat Festival fridge magnet"
 #. contents item
 msgid "trójkątne etui na akcesoria"
 msgstr "triangular accessory pouch"
+
+#. contents item
+msgid "Booster Box z dodatku Astral Radiance"
+msgstr "Astral Radiance Booster Box"
+
+#. contents item
+msgid "Booster Box z dodatku Chilling Reign"
+msgstr "Chilling Reign Booster Box"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Chilling Reign"
+msgstr "Chilling Reign Elite Trainer Box"
+
+#. contents item
+msgid "Booster Bundle z dodatku Black Bolt"
+msgstr "Black Bolt Booster Bundle"
+
+#. contents item
+msgid "losowa karta z dodatku Champion Road"
+msgstr "random card from Champion Road"
+
+#. contents item
+msgid "plansza do gry dla dwóch graczy"
+msgstr "two-player game board"

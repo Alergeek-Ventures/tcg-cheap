@@ -1734,3 +1734,27 @@ msgstr "kylskåpsmagnet med drakbåtsfestivalmotiv"
 #. contents item
 msgid "trójkątne etui na akcesoria"
 msgstr "trekantigt tillbehörsfodral"
+
+#. contents item
+msgid "Booster Box z dodatku Astral Radiance"
+msgstr "Booster Box från Astral Radiance"
+
+#. contents item
+msgid "Booster Box z dodatku Chilling Reign"
+msgstr "Booster Box från Chilling Reign"
+
+#. contents item
+msgid "Elite Trainer Box z dodatku Chilling Reign"
+msgstr "Elite Trainer Box från Chilling Reign"
+
+#. contents item
+msgid "Booster Bundle z dodatku Black Bolt"
+msgstr "Booster Bundle från Black Bolt"
+
+#. contents item
+msgid "losowa karta z dodatku Champion Road"
+msgstr "slumpat kort från Champion Road"
+
+#. contents item
+msgid "plansza do gry dla dwóch graczy"
+msgstr "spelplan för två spelare"
