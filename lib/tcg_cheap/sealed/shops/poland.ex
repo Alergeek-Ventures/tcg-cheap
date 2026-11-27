@@ -1259,6 +1259,11 @@ defmodule TcgCheap.Sealed.Shops.Poland do
       host: "www.empik.com",
       source: Empik,
       feed_path: "/zabawki/karty-kolekcjonerskie,3777,s",
+      listing_paths: [
+        "/zabawki/karty-kolekcjonerskie/zestawy-kart,377703,s",
+        "/zabawki/karty-kolekcjonerskie/saszetki-z-kartami,377701,s",
+        "/zabawki/karty-kolekcjonerskie/puszki-kart,377702,s"
+      ],
       max_pages: 10,
       shipping_from: Decimal.new("10.99"),
       free_shipping_from: Decimal.new("250"),

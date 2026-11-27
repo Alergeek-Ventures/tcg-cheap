@@ -20,8 +20,11 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   A listing whose stated total also counts its promoted tiles (ids in the
   page's `promoted`, not products of the result) is compared like with like:
   the distinct products and promoted ids together must equal the total. The
-  promoted ids must be the same on every page of every pass, otherwise a
-  rotating advertisement could stand in for a missing product.
+  promoted ids of a later page or pass must be among those of the first page:
+  an advertisement that rotates in (an id not seen on the first page) fails the
+  read, so it cannot stand in for a missing product, and the ids that count
+  never exceed the first page's tiles. A page may carry fewer of them (a
+  listing leaves one out of a page that is full of products).
   """
 
   alias TcgCheap.Sealed.{Ean, Shop, ShopFeed}
@@ -87,7 +90,13 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
          do: {:ok, Enum.map(products, &{:single, &1})}
   end
 
-  defp read_paths(paths, read) do
+  @doc """
+  Runs `read` on each of `listings` (any terms naming a listing) and joins
+  the products. Any failing listing fails the fetch.
+  """
+  @spec read_paths([term()], (term() -> {:ok, [map()]} | {:error, term()})) ::
+          {:ok, [map()]} | {:error, term()}
+  def read_paths(paths, read) do
     Enum.reduce_while(paths, {:ok, []}, fn path, {:ok, acc} ->
       case read.(path) do
         {:ok, products} -> {:cont, {:ok, acc ++ products}}
@@ -157,7 +166,7 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
       page.number != number -> {:error, :pagination_changed}
       page.last > max_pages -> {:error, :too_many_pages}
       {page.last, page.total} != {first.last, first.total} -> {:error, :pagination_changed}
-      promoted(page) != promoted(first) -> {:error, :pagination_changed}
+      not MapSet.subset?(promoted(page), promoted(first)) -> {:error, :pagination_changed}
       not valid_promoted?(promoted(page)) -> {:error, :unrecognised_listing}
       true -> check_products(page)
     end
@@ -182,8 +191,8 @@ defmodule TcgCheap.Sealed.ShopFeed.HtmlListing do
   end
 
   # The distinct ids read: those of the products plus the first page's promoted
-  # ids (`check/4` makes every page carry the same ones, so later advertisements
-  # never widen the allowance).
+  # ids (`check/4` lets no page carry an id the first one lacks, so later
+  # advertisements never widen the allowance).
   defp complete(pages, %{total: total} = first) do
     products = Enum.flat_map(pages, & &1.products)
 
