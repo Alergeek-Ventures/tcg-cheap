@@ -5,6 +5,10 @@ defmodule TcgCheapWeb.Paths do
   under the same product, set and card slugs; the articles and the bot page
   exist only in the regions that list them (`pages`), Poland so far.
 
+  Poland's home page is the root (`/`), the page visitors from countries
+  without a region of their own get too; its other pages keep the `/pl`
+  prefix.
+
   A page is named by `parse/1` and built by `page_path/2`, which give the same
   page in another region (`switch/2`). The one-argument helpers build in the
   current region (`TcgCheapWeb.Region.current/0`). The router declares the
@@ -30,7 +34,9 @@ defmodule TcgCheapWeb.Paths do
   @doc "A page's path in a region, nil when the region does not have it."
   @spec page_path(Region.t(), page()) :: String.t() | nil
   # The home page ends with a slash, like the region's directory.
-  def page_path(%Region{code: code}, :home), do: "/" <> code <> "/"
+  def page_path(%Region{code: code} = region, :home),
+    do: if(Region.poland?(region), do: "/", else: "/" <> code <> "/")
+
   def page_path(%Region{} = region, :products), do: join(region, [region.slugs.products])
   def page_path(%Region{} = region, :cards), do: join(region, [region.slugs.cards])
 
@@ -58,6 +64,8 @@ defmodule TcgCheapWeb.Paths do
 
   @doc "The region and page of a guide path, :error for any other path."
   @spec parse(String.t()) :: {:ok, Region.t(), page()} | :error
+  def parse("/"), do: {:ok, Region.poland(), :home}
+
   def parse(path) do
     with [code | segments] <- String.split(path, "/", trim: true),
          {:ok, region} <- Region.fetch(code),

@@ -70,8 +70,13 @@ defmodule TcgCheapWeb.Router do
     plug TcgCheapWeb.McpAuth, admit_loopback: Mix.env() == :dev
   end
 
+  # Poland's home page is the root (`TcgCheapWeb.Paths`).
+  pipeline :chosen_region do
+    plug TcgCheapWeb.ChosenRegion
+  end
+
   scope "/", TcgCheapWeb do
-    get "/", RegionController, :root
+    get "/#{TcgCheapWeb.Region.poland().code}", RegionController, :polish_home
     get "/media/tcgdex/:hash/:size", RemoteImageController, :show
     get "/img/*path", StoredImageController, :show
     get "/sitemap.xml", CrawlController, :sitemap
@@ -251,10 +256,18 @@ defmodule TcgCheapWeb.Router do
         end
       end
 
+      if TcgCheapWeb.Region.poland?(region) do
+        scope "/", TcgCheapWeb do
+          pipe_through [:browser, :chosen_region, :"region_#{code}", :set_canonical]
+
+          live "/", HomeLive
+        end
+      end
+
       scope "/#{code}", TcgCheapWeb do
         pipe_through [:browser, :"region_#{code}", :set_canonical]
 
-        live "/", HomeLive
+        unless TcgCheapWeb.Region.poland?(region), do: live("/", HomeLive)
         live "/#{products}", BrowseLive, :index
         live "/#{expansions}/:slug", BrowseLive, :expansion
       end

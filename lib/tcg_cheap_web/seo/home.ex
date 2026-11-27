@@ -14,7 +14,8 @@ defmodule TcgCheapWeb.SEO.Home do
       Paths.url(Paths.home()),
       social_image: SEO.home_image(),
       social_image_alt: SEO.home_image_alt(),
-      # The root sends each visitor to their region's home page.
+      # The root, Poland's home page, is also the page of visitors from
+      # countries without a region of their own.
       alternates: SEO.alternates(:home) ++ [%{hreflang: "x-default", href: url(~p"/")}],
       # A search on the home page is a results page, not the page itself.
       robots:

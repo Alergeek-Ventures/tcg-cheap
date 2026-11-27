@@ -1,52 +1,24 @@
 defmodule TcgCheapWeb.RegionController do
   @moduledoc """
-  Which region a visitor sees: the root sends them to theirs, the region
-  control (and the region hint) switches them to another.
+  Which region a visitor sees: the region control (and the region hint)
+  switches them to another; the root, Poland's home page, sends a visitor who
+  chose another region to theirs (`TcgCheapWeb.ChosenRegion`).
   """
 
   use TcgCheapWeb, :controller
 
-  alias TcgCheapWeb.{LegacyPaths, Locale, Paths, Region}
-
-  # The products list's filters (`TcgCheapWeb.BrowseLive`) and `widok`, the
-  # card list's former view parameter.
-  @list_params ~w(q rodzaj wersja rozszerzenie widok)
+  alias TcgCheapWeb.{Locale, Paths, Region}
 
   @doc """
-  The root redirects to the region the visitor chose (the `region` cookie),
-  else to their country's (Cloudflare's `cf-ipcountry`), else to Poland's,
-  which crawlers get. A temporary, uncached redirect, as it differs by
-  visitor; no other page redirects by country. Other query params (a
-  campaign's) go along.
-
-  The root with the list's filters is a URL from before the region prefixes
-  that search engines still hold: it moves permanently, in one hop, to its
-  Polish page (`TcgCheapWeb.LegacyPaths.home/1`).
+  Poland's home page moved from `/pl/` to the root: permanently, its query
+  (a search, a campaign's params) along.
   """
-  def root(conn, _params) do
-    conn = conn |> fetch_cookies() |> fetch_query_params()
+  def polish_home(conn, _params) do
+    path = Paths.page_path(Region.poland(), :home)
 
-    if Enum.any?(@list_params, &Map.has_key?(conn.query_params, &1)) do
-      {path, query} = LegacyPaths.home(conn.query_params)
-
-      conn
-      |> put_status(:moved_permanently)
-      |> redirect(to: if(query == "", do: path, else: path <> "?" <> query))
-    else
-      region =
-        case Region.fetch(conn.cookies[Locale.region_cookie()]) do
-          {:ok, region} -> region
-          :error -> conn |> get_req_header("cf-ipcountry") |> List.first() |> Region.for_country()
-        end
-
-      path = Paths.page_path(region, :home)
-      path = if conn.query_string == "", do: path, else: path <> "?" <> conn.query_string
-
-      conn
-      |> put_resp_header("cache-control", "private, no-store")
-      |> put_resp_header("vary", "cookie")
-      |> redirect(to: path)
-    end
+    conn
+    |> put_status(:moved_permanently)
+    |> redirect(to: if(conn.query_string == "", do: path, else: path <> "?" <> conn.query_string))
   end
 
   @doc """

@@ -75,7 +75,7 @@ defmodule TcgCheapWeb.Locale do
     with nil <- conn.cookies[@region_cookie],
          [country] <- get_req_header(conn, "cf-ipcountry"),
          %Region{code: code} = suggested when code != region.code <-
-           Enum.find(Region.all(), &(&1.market.country == country)) do
+           Region.for_country(country) do
       suggested.code
     else
       _no_hint -> nil
@@ -118,7 +118,7 @@ defmodule TcgCheapWeb.Locale do
   def put_language_cookie(conn, language),
     do: put_resp_cookie(conn, @language_cookie, language, cookie_options())
 
-  @doc "Remembers the region the visitor chose, for the root's redirect and the region hint."
+  @doc "Remembers the region the visitor chose, for the root (`TcgCheapWeb.ChosenRegion`) and the region hint."
   @spec put_region_cookie(Plug.Conn.t(), Region.t()) :: Plug.Conn.t()
   def put_region_cookie(conn, region),
     do: put_resp_cookie(conn, @region_cookie, region.code, cookie_options())

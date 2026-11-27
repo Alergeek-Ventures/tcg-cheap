@@ -9,12 +9,15 @@ defmodule TcgCheapWeb.CrawlController do
   alias TcgCheap.WebBotAuth
   alias TcgCheapWeb.{Format, PageMarkdown, Paths, Region, SEO}
 
-  # Every region's pages: each indexes its home page, card list and set
-  # pages alike; a product page where its region's shops have it in stock now
-  # (`TcgCheapWeb.SEO.Product.metadata/1`); the card pages where its region's
-  # shops have the card in stock (`TcgCheapWeb.SEO.Single.metadata/1`), and the
-  # Polish articles. A sitemap file holds at most 50,000 URLs, which the
-  # regions' card pages together exceed, so `/sitemap.xml` is an index of one
+  # Every region's pages: each lists its home page, card list and set pages
+  # alike; a product page where its region's shops have it in stock now
+  # (`TcgCheapWeb.SEO.Product.metadata/1`), and the Polish articles. Card
+  # pages only in Poland's, where the card is in stock: elsewhere they are
+  # indexed too (`TcgCheapWeb.SEO.Single.metadata/1`) and their set pages link
+  # them, but most of their offers are the same few Polish shops' offers
+  # delivered abroad, so each region's copy of a card page reads much like the
+  # others, and tens of thousands of them compete for the crawling the
+  # regions' product and set pages need. `/sitemap.xml` is an index of one
   # sitemap per region.
   def sitemap(conn, _params) do
     entries =
@@ -65,17 +68,14 @@ defmodule TcgCheapWeb.CrawlController do
           do: Enum.map(products, &{&1, product_dates[&1.id]}),
           else: regional_products(region, now)
 
-      cards = if Region.poland?(region), do: cards, else: regional_cards(region)
+      # Another region's set pages still follow the cards its shops have.
+      {expansions, cards} =
+        if Region.poland?(region),
+          do: {regional_expansions(expansions, cards), cards},
+          else: {regional_expansions(expansions, regional_cards(region)), []}
 
       entries =
-        for {location, lastmod} <-
-              region_locations(
-                region,
-                regional_expansions(expansions, cards),
-                products,
-                cards,
-                today
-              ) do
+        for {location, lastmod} <- region_locations(region, expansions, products, cards, today) do
           lastmod = lastmod && {"lastmod", [], [Date.to_iso8601(lastmod)]}
           {"url", [], [{"loc", [], [location]} | List.wrap(lastmod)]}
         end
@@ -103,7 +103,7 @@ defmodule TcgCheapWeb.CrawlController do
 
   # The cards a region's shops have in stock, where they sell singles at all
   # (`TcgCheapWeb.SEO.Single.metadata/1`: a region without singles shops keeps
-  # its card pages out of search).
+  # its card pages out of search), for its set pages.
   defp regional_cards(region),
     do: if(Region.singles?(region), do: Cards.Guide.sitemap_cards(region.market), else: [])
 

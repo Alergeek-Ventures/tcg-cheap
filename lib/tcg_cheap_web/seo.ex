@@ -116,7 +116,9 @@ defmodule TcgCheapWeb.SEO do
 
   @doc "The link-preview card of the home page, which pages without a card of their own share."
   @spec home_image() :: String.t()
-  def home_image, do: social_image(Paths.home(), SocialImage.Home.version())
+  # Under the region's prefix, Poland's too: its home page is the root.
+  def home_image,
+    do: social_image("/#{Region.current().code}/", SocialImage.Home.version())
 
   @doc "The alt text of the home page's card."
   @spec home_image_alt() :: String.t()
