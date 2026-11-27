@@ -2,9 +2,9 @@
 # Checks that production runs the given revision and serves every kind of
 # public page in every region the sitemap lists: the region's home and
 # one-segment pages (lists, articles), the first page of each kind with a
-# slug (products and expansions), the first single card, the Markdown
-# versions of the home and the first such page, and link-preview images, plus
-# the bot page, robots.txt and llms.txt. Coolify's own health check only
+# slug (products and expansions), the first single card where the region's
+# sitemap lists cards, the Markdown versions of the home and the first such
+# page, and link-preview images, plus the bot page, robots.txt and llms.txt. Coolify's own health check only
 # covers /health, which renders no page.
 #
 #   check-production.sh <revision> [base URL]
@@ -63,7 +63,7 @@ fi
 # Prints "<kind> <path>" for the pages to check, derived from the sitemap so
 # that a new region, or a region's own path words, need no change here. A
 # region is the first path segment of a <loc>; its pages are
-#   /<rr>/                                  home
+#   /<rr>/                                  home (one region's is the root, /)
 #   /<rr>/<word>                            lists and articles
 #   /<rr>/<word>/<slug>                     products and expansions
 #   /<rr>/<word>/<slug>/<word>/<card-slug>  single cards
@@ -78,10 +78,15 @@ fi
 # Only the product kind has a link preview in every region: expansions and
 # cards have one only where shops sell singles. The expansion kind is the
 # first word of the card paths, so the other two-segment kind is the product
-# one.
+# one. Only some regions' sitemaps list cards (TcgCheapWeb.CrawlController);
+# in the others the expansion kind is the one whose first page's slug is an
+# expansion slug of a region that does (set slugs are the same everywhere).
+# Without any card page in the sitemap no product kind is known, which is
+# worth a warning.
 select_urls() {
   { grep -o '<loc>[^<]*</loc>' <<<"$sitemap" || true; } |
     sed -E 's|<loc>[a-z]+://[^/]*(/[^<]*)</loc>|\1|' | awk '
+    $0 == "/" { root = 1; next }
     {
       n = split(substr($0, 2), s, "/")
       if (s[n] == "") n--
@@ -89,18 +94,26 @@ select_urls() {
       if (!(r in seen)) { seen[r] = 1; regions[++count] = r }
       if (n == 1 && !(r in home)) home[r] = $0
       else if (n == 2) ones[r] = ones[r] " " $0
-      else if (n == 3 && !((r, s[2]) in kind)) {
-        kind[r, s[2]] = 1
-        twos[r] = twos[r] " " $0
-        words[r] = words[r] " " s[2]
-        if (!(r in firsttwo)) firsttwo[r] = $0
+      else if (n == 3) {
+        slug[r, s[2], s[3]] = 1
+        if (!((r, s[2]) in kind)) {
+          kind[r, s[2]] = 1
+          twos[r] = twos[r] " " $0
+          words[r] = words[r] " " s[2]
+          firstslug[r, s[2]] = s[3]
+          if (!(r in firsttwo)) firsttwo[r] = $0
+        }
       }
       else if (n == 5 && !(r in card)) { card[r] = $0; cardword[r] = s[2] }
     }
     END {
+      for (i = 1; i <= count; i++) if (regions[i] in card) { cards = regions[i]; break }
+      if (cards == "") print "warn The sitemap lists no card page"
+
       for (i = 1; i <= count; i++) {
         r = regions[i]
         if (r in home) { print "page " home[r]; print "md /" r "/index.md" }
+        else if (root && !rooted) { rooted = 1; print "page /"; print "md /index.md" }
         else print "warn The sitemap lists no home page in " r
         m = split(ones[r], list, " ")
         for (j = 1; j <= m; j++) print "page " list[j]
@@ -108,12 +121,16 @@ select_urls() {
         else print "warn The sitemap lists no product or expansion page in " r
         m = split(twos[r], list, " ")
         split(words[r], word, " ")
+        sets = ""
+        if (r in card) sets = cardword[r]
+        else if (cards != "")
+          for (j = 1; j <= m; j++)
+            if ((cards, cardword[cards], firstslug[r, word[j]]) in slug) sets = word[j]
         for (j = 1; j <= m; j++) {
           print "page " list[j]
-          if ((r in card) && word[j] != cardword[r]) print "og /og" list[j]
+          if (sets != "" && word[j] != sets) print "og /og" list[j]
         }
         if (r in card) print "page " card[r]
-        else print "warn The sitemap lists no card page in " r
         print "og /og/" r "/"
       }
     }'

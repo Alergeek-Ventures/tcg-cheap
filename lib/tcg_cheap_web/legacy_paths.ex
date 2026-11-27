@@ -1,16 +1,16 @@
 defmodule TcgCheapWeb.LegacyPaths do
   @moduledoc """
   Permanent redirects, in one hop, from the guide's URL forms without a region
-  prefix, which search engines still hold, to the Polish region's URL: `/produkty/<slug>` to
-  `/pl/produkty/<slug>`, a set or card under a name it no longer has straight to its
-  current one, the markdown versions (`/index.md` included) to theirs and
-  the link-preview cards (`/og/…`) to `/og/pl/…`. The query is kept, but
+  prefix, which search engines still hold, to the Polish region's URL:
+  `/produkty/<slug>` to `/pl/produkty/<slug>`, a set or card under a name it
+  no longer has straight to its current one, the markdown versions to theirs
+  and the link-preview cards (`/og/…`) to `/og/pl/…`. The query is kept, but
   for the parameters a set page absorbs (`TcgCheapWeb.SetCanonical`); a
   trailing slash is dropped.
 
   It runs before `TcgCheapWeb.MarkdownNegotiation`, which knows only the
-  regions' paths. The root `/` is `TcgCheapWeb.RegionController.root/2`'s,
-  which resolves the root's filter parameters with `home/1`.
+  regions' paths. The root `/` is Poland's home page, where
+  `TcgCheapWeb.SetCanonical` moves the list's filter parameters.
   """
 
   import Plug.Conn
@@ -36,7 +36,6 @@ defmodule TcgCheapWeb.LegacyPaths do
 
   def call(conn, _opts), do: conn
 
-  defp legacy?(["index.md"]), do: true
   defp legacy?(["og"]), do: true
   defp legacy?(["og" | rest]), do: not region?(rest) and legacy?(rest)
   defp legacy?([first | _rest]), do: String.replace_suffix(first, ".md", "") in polish_segments()
@@ -68,7 +67,6 @@ defmodule TcgCheapWeb.LegacyPaths do
 
   defp strip_markdown(path_info) do
     case String.split_at(List.last(path_info), -3) do
-      {"index", ".md"} when length(path_info) == 1 -> {[], true}
       {page, ".md"} when page != "" -> {List.replace_at(path_info, -1, page), true}
       _html -> {path_info, false}
     end
@@ -94,9 +92,9 @@ defmodule TcgCheapWeb.LegacyPaths do
   defp current(page, conn), do: {Paths.page_path(Region.poland(), page), conn.query_string}
 
   @doc """
-  The Polish URL for the root with these query params: the card list or a
-  set page for the filters that belong there, else the Polish home page;
-  `{path, query}`.
+  The Polish URL for an old home page entry point with these query params:
+  the card list or a set page for the filters that belong there, else the
+  Polish home page; `{path, query}`.
   """
   @spec home(%{String.t() => term()}) :: {String.t(), String.t()}
   def home(params) do

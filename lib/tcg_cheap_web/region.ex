@@ -94,13 +94,14 @@ defmodule TcgCheapWeb.Region do
 
   @doc """
   The region for a visitor in a country (Cloudflare's `cf-ipcountry`): its
-  own, else the one it is among the `visitors_from` of, else Poland's.
+  own, else the one it is among the `visitors_from` of; nil for any other
+  country, whose visitors get Poland's home page, the root.
   """
-  @spec for_country(String.t() | nil) :: t()
+  @spec for_country(String.t() | nil) :: t() | nil
   def for_country(country),
     do:
       Enum.find(all(), &(&1.market.country == country)) ||
-        Enum.find(all(), &(country in &1.visitors_from)) || poland()
+        Enum.find(all(), &(country in &1.visitors_from))
 
   @doc "The languages the guide renders in (`TcgCheapWeb.Languages`)."
   @spec languages() :: [String.t()]

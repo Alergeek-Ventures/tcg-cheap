@@ -10,8 +10,8 @@ defmodule TcgCheapWeb.SetCanonical do
   The card list lives at `/karty`; `/?widok=karty` redirects there, keeping
   its filters.
 
-  Paths are the current region's; `TcgCheapWeb.LegacyPaths` and the root
-  resolve the region-less URLs with `resolve/2` in one hop.
+  Paths are the current region's; `TcgCheapWeb.LegacyPaths` resolves the
+  region-less URLs with `resolve/2` in one hop.
   """
 
   use TcgCheapWeb, :verified_routes

@@ -2,7 +2,8 @@ defmodule TcgCheapWeb.MarkdownNegotiation do
   @moduledoc """
   Routes the markdown versions of the guide's pages to
   `TcgCheapWeb.MarkdownController` under `/md`: a page's path with `.md`
-  (`/pl/index.md` for a region's home page), or the page itself requested with
+  (`/cz/index.md` for a region's home page, `/index.md` for Poland's, the
+  root), or the page itself requested with
   `Accept: text/markdown` preferred over HTML. Browsers, link previews and
   `*/*` keep getting HTML.
   """
@@ -32,7 +33,7 @@ defmodule TcgCheapWeb.MarkdownNegotiation do
 
       # A filtered or searched list has no markdown version.
       conn.query_string == "" and prefers_markdown?(get_req_header(conn, "accept")) ->
-        conn |> put_resp_header("vary", "accept") |> Map.put(:path_info, ["md" | path_info])
+        conn |> put_resp_header("vary", "accept") |> Map.put(:path_info, ["md" | home(path_info)])
 
       true ->
         put_resp_header(conn, "vary", "accept")
@@ -46,6 +47,9 @@ defmodule TcgCheapWeb.MarkdownNegotiation do
     end
   end
 
+  # Poland's home page is the root; its markdown is under its region's prefix.
+  defp home([]), do: [TcgCheapWeb.Region.poland().code]
+  defp home(["index"]), do: home([])
   defp home([region, "index"]), do: [region]
   defp home(path_info), do: path_info
 
