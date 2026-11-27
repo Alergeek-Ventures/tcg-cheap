@@ -5,9 +5,8 @@ defmodule TcgCheap.Sealed.ShopFeed.Empik do
   are left out. Pages hold 60 products; page n is the path with
   `,<60·(n−1)+1>` appended. A listing states its size ("Znaleziono 314
   produktów"), from which its page count follows;
-  `TcgCheap.Sealed.ShopFeed.HtmlListing.read/3` reads every page, at most
-  `max_pages`, and fails the fetch unless the distinct products read match that
-  size.
+  `TcgCheap.Sealed.ShopFeed.HtmlListing.read/3` fails the fetch unless the
+  distinct products read match that size.
 
   The whole category (`feed_path`) is not read:
   Empik orders products that tie on the sort key anew for every page, so a
@@ -19,8 +18,9 @@ defmodule TcgCheap.Sealed.ShopFeed.Empik do
   category filtered to the licence Pokémon (`licenseFacet=pokemon`) and the
   subcategories of `listing_paths` that hold sealed products (box sets, packs,
   tins), so a product missing the licence tag is still found by its
-  subcategory. A listing that grows past one page is still read in up to
-  four passes.
+  subcategory. A listing that grows past one page fails the fetch
+  (`:too_many_pages`): it would be shuffled like the whole category and needs
+  a narrower listing.
 
   Each page also holds sponsored tiles (`data-ad-info`), products of any
   category, which are skipped as products but counted by the listing's stated
@@ -49,6 +49,8 @@ defmodule TcgCheap.Sealed.ShopFeed.Empik do
   # one page ends the read; four passes of the longest stay well within the
   # job's 5-minute timeout.
   @passes 4
+  # Each listing read must fit on one page; see the moduledoc.
+  @listing_pages 1
   @licence [licenseFacet: "pokemon"]
   @image_host "ecsmedia.pl"
   @found ~r/\AZnaleziono ([0-9]{1,6}) produkt/
@@ -66,7 +68,7 @@ defmodule TcgCheap.Sealed.ShopFeed.Empik do
   end
 
   defp read(shop, req_options, {path, filter}),
-    do: HtmlListing.read(&request(shop, req_options, path, filter, &1), shop.max_pages, @passes)
+    do: HtmlListing.read(&request(shop, req_options, path, filter, &1), @listing_pages, @passes)
 
   defp request(shop, req_options, listing, filter, number) do
     path =
